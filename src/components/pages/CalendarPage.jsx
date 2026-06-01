@@ -176,13 +176,14 @@ function CalendarPage({
   onComplete,
   onRemind,
   onStatus,
+  overlayOpen,
 }) {
   const [selectedDate, setSelectedDate] = useState(
     () => new Date().toISOString().slice(0, 10),
   );
   const [now, setNow] = useState(new Date());
   const [remindersVisible, setRemindersVisible] = useState(
-    settings.calendarRemindersVisible ?? true,
+    () => window.innerWidth > 700 && (settings.calendarRemindersVisible ?? true),
   );
   const [reminderFilter, setReminderFilter] = useState("active");
   const [openEntryMenuId, setOpenEntryMenuId] = useState(null);
@@ -302,14 +303,14 @@ function CalendarPage({
           )}
           <button
             aria-label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
-            className="mobile-calendar-feed-button"
+            className={`mobile-calendar-feed-button ${overlayOpen ? "mobile-calendar-action-hidden" : ""}`}
             title="Лента дня"
             type="button"
             onClick={() => setRemindersVisible((current) => !current)}>
-            <ClipboardList size={21} />
+            {remindersVisible ? <X size={22} /> : <ClipboardList size={21} />}
           </button>
           <button
-            className="add-visit-button"
+            className={`add-visit-button calendar-mobile-add-button ${overlayOpen || remindersVisible ? "mobile-calendar-action-hidden" : ""}`}
             type="button"
             onClick={() => onAdd({date: selectedDate})}>
             <Plus size={17} />
@@ -333,6 +334,7 @@ function CalendarPage({
             className="schedule-grid"
             style={{
               "--master-count": employees.length,
+              "--mobile-master-width": `calc((100vw - 34px) / ${Math.min(Math.max(employees.length, 1), 2)})`,
               "--schedule-height": `${gridHeight}px`,
               "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,
             }}>
@@ -562,6 +564,14 @@ function CalendarPage({
         )}
         </DndContext>
 
+        {remindersVisible && (
+          <button
+            aria-label="Закрыть ленту дня"
+            className="mobile-calendar-reminders-backdrop"
+            type="button"
+            onClick={() => setRemindersVisible(false)}
+          />
+        )}
         {remindersVisible && <aside className="panel calendar-reminders">
           <div className="calendar-reminders-header">
             <div>

@@ -3027,6 +3027,10 @@ h2 {
   display: none;
 }
 
+.mobile-calendar-reminders-backdrop {
+  display: none;
+}
+
 .calendar-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
@@ -5267,11 +5271,11 @@ button:focus-visible {
     position: sticky;
     top: 0;
     z-index: 44;
-    min-height: 62px;
+    min-height: 52px;
     align-items: center;
     justify-content: flex-end;
-    margin: 0 -12px 10px;
-    padding: 10px 12px;
+    margin: 0 -12px 4px;
+    padding: 6px 10px;
     background: color-mix(in srgb, #f7f7f6 94%, transparent);
     backdrop-filter: blur(14px);
   }
@@ -5282,7 +5286,7 @@ button:focus-visible {
 
   .client-alert-popover {
     position: fixed;
-    top: 62px;
+    top: 48px;
     right: 10px;
     left: 10px;
     width: auto;
@@ -5293,6 +5297,15 @@ button:focus-visible {
 
   .client-alert-list {
     max-height: calc(100dvh - 164px);
+  }
+
+  .client-alert-button {
+    position: fixed;
+    top: 6px;
+    right: 8px;
+    z-index: 47;
+    width: 38px;
+    height: 38px;
   }
 
   .statistics-page {
@@ -5369,9 +5382,31 @@ button:focus-visible {
     flex-wrap: wrap;
   }
 
+  .calendar-content .page-header {
+    min-height: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .calendar-content .calendar-page {
+    gap: 3px;
+    margin: 0 -12px;
+  }
+
+  .calendar-content .calendar-toolbar {
+    min-height: 42px;
+    padding: 2px 46px 2px 4px;
+  }
+
+  .calendar-content .client-alert-button {
+    top: 4px;
+    right: 6px;
+  }
+
   .calendar-toolbar {
     align-items: center;
-    gap: 7px;
+    gap: 0;
   }
 
   .calendar-toolbar > div:first-child {
@@ -5382,7 +5417,7 @@ button:focus-visible {
     display: grid;
     grid-template-columns: 34px minmax(146px, 1fr) 34px;
     align-items: center;
-    width: min(258px, calc(100vw - 36px));
+    width: min(254px, calc(100vw - 92px));
     gap: 5px;
   }
 
@@ -5420,20 +5455,30 @@ button:focus-visible {
     box-shadow: 0 12px 28px rgba(17, 19, 24, 0.2);
   }
 
-  .calendar-toolbar-actions > .add-visit-button {
+  .calendar-toolbar-actions > .add-visit-button.calendar-mobile-add-button {
     right: 16px;
     min-height: 54px;
+    align-content: center;
+    justify-content: center;
+    line-height: 0;
     color: #fff;
     background: #111318;
   }
 
-  .calendar-toolbar-actions > .add-visit-button svg {
+  .calendar-toolbar-actions > .add-visit-button.calendar-mobile-add-button svg {
+    display: block;
     width: 23px;
     height: 23px;
+    margin: 0;
+  }
+
+  .mobile-calendar-action-hidden {
+    display: none !important;
   }
 
   .mobile-calendar-feed-button {
     left: 16px;
+    z-index: 51;
     color: #15171c;
     background: #fff;
   }
@@ -5469,8 +5514,9 @@ button:focus-visible {
   }
 
   .schedule-grid {
-    grid-template-columns: 44px repeat(var(--master-count, 3), minmax(168px, 1fr));
-    min-width: 560px;
+    width: max-content;
+    min-width: 100%;
+    grid-template-columns: 34px repeat(var(--master-count, 3), var(--mobile-master-width));
   }
 
   .schedule-hour-label strong,
@@ -5485,19 +5531,28 @@ button:focus-visible {
   }
 
   .schedule-master header {
-    padding: 0 7px;
+    padding: 0 6px;
   }
 
   .calendar-reminders {
     position: fixed;
     right: 10px;
-    bottom: calc(76px + env(safe-area-inset-bottom));
+    bottom: calc(140px + env(safe-area-inset-bottom));
     left: 10px;
     z-index: 49;
     max-height: min(62dvh, 520px);
     overflow: auto;
     border-radius: 12px;
     box-shadow: 0 18px 42px rgba(17, 19, 24, 0.2);
+  }
+
+  .mobile-calendar-reminders-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 47;
+    display: block;
+    border: 0;
+    background: rgba(17, 19, 24, 0.24);
   }
 
   .calendar-entry-grid {

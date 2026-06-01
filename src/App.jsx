@@ -2708,7 +2708,12 @@ function App() {
             </button>
           </div>
           <nav>
-            {navItems.map((item) => {
+            {navItems
+              .filter(
+                (item) =>
+                  !mobileNavItems.some((mobileItem) => mobileItem.page === item.page),
+              )
+              .map((item) => {
               const Icon = item.icon;
               return (
                 <button
@@ -2723,7 +2728,7 @@ function App() {
                   <span>{item.label}</span>
                 </button>
               );
-            })}
+              })}
           </nav>
         </section>
       )}
@@ -2741,7 +2746,7 @@ function App() {
       )}
 
       <main
-        className={`content ${isVisitsPage ? "visits-content" : "home-content"}`}>
+        className={`content ${isVisitsPage ? "visits-content" : "home-content"} ${isCalendarPage ? "calendar-content" : ""}`}>
         <header className="page-header">
           <div
             className="page-header-actions"
@@ -3144,6 +3149,7 @@ function App() {
             onComplete={(entry) => requestCalendarAction("complete", entry)}
             onRemind={remindCalendarClient}
             onStatus={updateCalendarEntryStatus}
+            overlayOpen={calendarEntryModalOpen}
           />
         ) : isClientsPage ? (
           <ClientsPage
