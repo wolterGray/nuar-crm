@@ -1,4 +1,4 @@
-import {Eye, MessageSquareText, MoreVertical, Plus, Search, X} from "lucide-react";
+import {CakeSlice, Eye, MessageSquareText, MoreVertical, Pencil, Plus, Search, Trash2, X} from "lucide-react";
 import {useMemo, useState} from "react";
 import {
   formatMoney,
@@ -71,6 +71,7 @@ function ClientsPage({
       client.name,
       client.phone,
       client.email,
+      client.birthday,
       client.instagram,
       client.telegram,
       client.note,
@@ -143,31 +144,35 @@ function ClientsPage({
                 ? "client-needs-contact"
                 : ""
             }`}
-            key={client.id}>
-            <span>{client.name}</span>
-            <span><b className="client-status">{client.status || "Активный"}</b></span>
-            <span>{client.visitsCount}</span>
-            <span>
+            role="button"
+            tabIndex="0"
+            key={client.id}
+            onClick={() => setViewedClient(client)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setViewedClient(client);
+              }
+            }}>
+            <span className="client-name-cell">
+              <strong>{client.name}</strong>
+              <small>{client.phone || "Телефон не указан"}</small>
+            </span>
+            <span data-label="Статус"><b className="client-status">{client.status || "Активный"}</b></span>
+            <span data-label="Визитов">{client.visitsCount}</span>
+            <span data-label="Пакеты">
               {client.packagesCount} / {client.packagesLeft}
             </span>
-            <span>{formatMoney(client.totalIncome)}</span>
-            <span>{client.lastVisit}</span>
-            <span>
+            <span data-label="Сумма">{formatMoney(client.totalIncome)}</span>
+            <span data-label="Последний визит">{client.lastVisit}</span>
+            <span data-label="Не был">
               {client.daysAbsent === null ? "Новый" : `${client.daysAbsent} дн.`}
             </span>
-            <span>{client.note || "—"}</span>
+            <span data-label="Заметка">{client.note || "—"}</span>
 
             <div
               className="row-actions client-row-actions"
               onClick={(event) => event.stopPropagation()}>
-              <button
-                aria-label={`Написать клиенту ${client.name}`}
-                className="row-action client-message-action"
-                title="Написать клиенту"
-                type="button"
-                onClick={() => onMessageClient(client)}>
-                <MessageSquareText size={15} />
-              </button>
               <button
                 className="row-action"
                 aria-label="Действия"
@@ -205,6 +210,7 @@ function ClientsPage({
                       setOpenClientMenuId(null);
                       onEditClient(client);
                     }}>
+                    <Pencil size={15} />
                     Редактировать
                   </button>
                   <button
@@ -213,6 +219,7 @@ function ClientsPage({
                       setOpenClientMenuId(null);
                       onDeleteClient(client);
                     }}>
+                    <Trash2 size={15} />
                     Удалить
                   </button>
                 </div>
@@ -265,6 +272,9 @@ function ClientsPage({
                 Telegram <strong>{viewedClient.telegram || "—"}</strong>
               </span>
               <span>
+                Дата рождения <strong>{viewedClient.birthday || "—"}</strong>
+              </span>
+              <span>
                 Источник <strong>{viewedClient.source || "—"}</strong>
               </span>
               <span>
@@ -300,6 +310,12 @@ function ClientsPage({
                 Теги <strong>{viewedClient.tags || "—"}</strong>
               </span>
             </div>
+            {viewedClient.birthday && (
+              <div className="client-birthday-note">
+                <CakeSlice size={15} />
+                Дата рождения участвует в уведомлениях CRM.
+              </div>
+            )}
             <div className="client-details-note">
               <span>Заметка</span>
               <p>{viewedClient.note || "Заметок пока нет."}</p>

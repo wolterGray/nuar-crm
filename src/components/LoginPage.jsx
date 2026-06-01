@@ -16,20 +16,13 @@ function LoginPage({
   return (
     <main className={`login-screen theme-${settings.theme}`}>
       <section className="login-card">
-        <div className="login-brand">
-          <span className="login-brand-mark">N</span>
-          <div>
-            <strong>{settings.studioName}</strong>
-            <small>CRM</small>
-          </div>
-        </div>
-
         <div className="login-heading">
           <div className="login-icon">
             {activeMode === "login" ? <LockKeyhole size={24} /> : <KeyRound size={24} />}
           </div>
           <div>
-            <h1>{activeMode === "login" ? "Вход в CRM" : activeMode === "reset" ? "Сброс пароля" : "Новый пароль"}</h1>
+            <small>{settings.studioName}</small>
+            <h1>{activeMode === "login" ? "Вход" : activeMode === "reset" ? "Сброс пароля" : "Новый пароль"}</h1>
             <p>
               {activeMode === "login"
                 ? "Доступ только для владельца салона"

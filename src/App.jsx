@@ -3,6 +3,7 @@ import {AnimatePresence, motion} from "framer-motion";
 import {
   Bell,
   BriefcaseBusiness,
+  CakeSlice,
   CalendarDays,
   ChevronDown,
   ClipboardList,
@@ -155,6 +156,8 @@ const defaultAppSettings = {
   supplyAlertsEnabled: true,
   inactiveClientAlertsEnabled: true,
   inactiveClientDays: 14,
+  birthdayAlertsEnabled: true,
+  birthdayReminderDays: 7,
   todayVisitAlertsEnabled: true,
   todayVisitAlertMode: "remaining",
   upcomingVisitMinutes: 180,
@@ -178,6 +181,28 @@ const getTodayInput = () => {
 };
 
 const DEFAULT_STATS_DATE = getTodayInput();
+
+const getUpcomingBirthday = (birthday) => {
+  const [, month, day] = String(birthday ?? "").split("-").map(Number);
+
+  if (!month || !day) return null;
+
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  let nextBirthday = new Date(today.getFullYear(), month - 1, day);
+
+  if (nextBirthday < startOfToday) {
+    nextBirthday = new Date(today.getFullYear() + 1, month - 1, day);
+  }
+
+  const daysLeft = Math.round((nextBirthday - startOfToday) / (24 * 60 * 60 * 1000));
+
+  return {
+    daysLeft,
+    label: daysLeft === 0 ? "Сегодня" : `Через ${daysLeft} дн.`,
+    date: nextBirthday.toLocaleDateString("ru-RU", {day: "2-digit", month: "2-digit"}),
+  };
+};
 
 const loadStoredVisits = () => {
   try {
@@ -459,6 +484,7 @@ function App() {
   const [alertGroupsOpen, setAlertGroupsOpen] = useState({
     system: false,
     calendar: false,
+    birthdays: false,
     inactive: false,
     operations: false,
   });
@@ -591,6 +617,33 @@ function App() {
     ],
   );
 
+  const birthdayAlerts = useMemo(() => {
+    if (!appSettings.notificationsEnabled || !appSettings.birthdayAlertsEnabled) {
+      return [];
+    }
+
+    const reminderDays = Math.max(
+      0,
+      Number(appSettings.birthdayReminderDays) || defaultAppSettings.birthdayReminderDays,
+    );
+
+    return clientProfiles
+      .map((client) => ({...client, birthdayInfo: getUpcomingBirthday(client.birthday)}))
+      .filter((client) => client.birthdayInfo && client.birthdayInfo.daysLeft <= reminderDays)
+      .map((client) => ({
+        ...client,
+        alertId: `birthday-${client.id}-${new Date().getFullYear()}`,
+      }))
+      .filter((client) => !dismissedClientAlertIds.includes(client.alertId))
+      .sort((first, second) => first.birthdayInfo.daysLeft - second.birthdayInfo.daysLeft);
+  }, [
+    appSettings.birthdayAlertsEnabled,
+    appSettings.birthdayReminderDays,
+    appSettings.notificationsEnabled,
+    clientProfiles,
+    dismissedClientAlertIds,
+  ]);
+
   const operationsAlerts = useMemo(() => {
     if (!appSettings.notificationsEnabled) {
       return [];
@@ -634,6 +687,7 @@ function App() {
 
   const alertsCount =
     todayCalendarAlerts.length +
+    birthdayAlerts.length +
     inactiveClientAlerts.length +
     actionableNotificationInbox.length +
     operationsAlerts.length;
@@ -1226,6 +1280,7 @@ function App() {
       name,
       phone: String(form.get("phone") ?? "").trim(),
       email: String(form.get("email") ?? "").trim(),
+      birthday: String(form.get("birthday") ?? "").trim(),
       instagram: String(form.get("instagram") ?? "").trim(),
       telegram: String(form.get("telegram") ?? "").trim(),
       source: form.get("source"),
@@ -1927,6 +1982,10 @@ function App() {
       inactiveClientDays:
         Math.max(1, Number(form.get("inactiveClientDays"))) ||
         defaultAppSettings.inactiveClientDays,
+      birthdayAlertsEnabled: form.get("birthdayAlertsEnabled") === "on",
+      birthdayReminderDays:
+        Math.max(0, Number(form.get("birthdayReminderDays"))) ||
+        defaultAppSettings.birthdayReminderDays,
       todayVisitAlertsEnabled: form.get("todayVisitAlertsEnabled") === "on",
       smartVisitPopupsEnabled: form.get("smartVisitPopupsEnabled") === "on",
       smartVisitPopupMinutes:
@@ -2129,6 +2188,7 @@ function App() {
             name: importedClient.name,
             phone: importedClient.phone,
             email: importedClient.email,
+            birthday: "",
             instagram: "",
             telegram: "",
             source: "Booksy",
@@ -2814,6 +2874,72 @@ function App() {
                         ))}
                           </motion.div>
                         )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+                    {birthdayAlerts.length > 0 && (
+                      <div className="client-alert-group">
+                        <button
+                          className="client-alert-group-toggle"
+                          type="button"
+                          onClick={() =>
+                            setAlertGroupsOpen((current) => ({
+                              ...current,
+                              birthdays: !current.birthdays,
+                            }))
+                          }>
+                          Дни рождения <b>{birthdayAlerts.length}</b>
+                          <ChevronDown className={alertGroupsOpen.birthdays ? "open" : ""} size={14} />
+                        </button>
+                        <AnimatePresence initial={false}>
+                          {alertGroupsOpen.birthdays && (
+                            <motion.div
+                              animate={{height: "auto", opacity: 1}}
+                              exit={{height: 0, opacity: 0}}
+                              initial={{height: 0, opacity: 0}}
+                              transition={{duration: appSettings.animationsEnabled ? 0.18 : 0}}>
+                              {birthdayAlerts.map((client) => (
+                                <div className="client-alert-row" key={client.alertId}>
+                                  <button
+                                    className="client-alert-summary"
+                                    type="button"
+                                    onClick={() =>
+                                      setActiveClientAlertId((current) =>
+                                        current === client.alertId ? null : client.alertId,
+                                      )
+                                    }>
+                                    <div>
+                                      <strong>{client.name}</strong>
+                                      <span>{client.birthdayInfo.date} · поздравить клиента</span>
+                                    </div>
+                                    <b>{client.birthdayInfo.label}</b>
+                                  </button>
+                                  {activeClientAlertId === client.alertId && (
+                                    <div className="client-alert-actions">
+                                      <button
+                                        type="button"
+                                        onClick={() => openClientMessageTemplates(client)}>
+                                        <CakeSlice size={14} />
+                                        Написать
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setDismissedClientAlertIds((current) => [
+                                            ...current,
+                                            client.alertId,
+                                          ]);
+                                          setActiveClientAlertId(null);
+                                        }}>
+                                        <EyeOff size={14} />
+                                        Скрыть
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </motion.div>
+                          )}
                         </AnimatePresence>
                       </div>
                     )}

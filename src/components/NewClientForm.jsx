@@ -35,6 +35,14 @@ function NewClientForm({client, onSubmit}) {
           />
         </label>
         <label>
+          Дата рождения
+          <input
+            name="birthday"
+            type="date"
+            defaultValue={client?.birthday ?? ""}
+          />
+        </label>
+        <label>
           Instagram
           <input
             name="instagram"

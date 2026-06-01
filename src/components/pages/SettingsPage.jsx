@@ -151,6 +151,27 @@ function SettingsPage({settings, onSubmit, onReset, onExportData, onImportData})
               </label>
               <label className="toggle-row">
                 <input
+                  name="birthdayAlertsEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.birthdayAlertsEnabled ?? true}
+                />
+                <span>
+                  Дни рождения клиентов
+                  <small>Показывать отдельную секцию для поздравлений</small>
+                </span>
+              </label>
+              <label>
+                Напоминать о дне рождения заранее
+                <input
+                  min="1"
+                  name="birthdayReminderDays"
+                  type="number"
+                  defaultValue={settings.birthdayReminderDays ?? 7}
+                />
+                <small>За сколько дней добавить клиента в колокольчик</small>
+              </label>
+              <label className="toggle-row">
+                <input
                   name="todayVisitAlertsEnabled"
                   type="checkbox"
                   defaultChecked={settings.todayVisitAlertsEnabled ?? true}
