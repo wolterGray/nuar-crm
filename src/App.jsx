@@ -10,7 +10,9 @@ import {
   EyeOff,
   LogOut,
   MailSearch,
+  Menu,
   MessageSquareText,
+  MoreHorizontal,
   Package,
   PackageSearch,
   PanelLeftClose,
@@ -75,6 +77,13 @@ const navItems = [
   {label: "Импорт", page: "import", icon: MailSearch},
   {label: "Шаблоны", page: "templates", icon: MessageSquareText},
   {label: "Настройки", page: "settings", icon: Settings},
+];
+
+const mobileNavItems = [
+  {label: "Календарь", page: "calendar", icon: CalendarDays},
+  {label: "Визиты", page: "visits", icon: ClipboardList},
+  {label: "Клиенты", page: "clients", icon: Users},
+  {label: "Статистика", page: "statistics", icon: ChartNoAxesCombined},
 ];
 
 const VISITS_STORAGE_KEY = "nuar-crm-visits-2026-05-import";
@@ -406,7 +415,10 @@ const loadStoredSettings = () => {
     const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
 
     if (!storedSettings) {
-      return defaultAppSettings;
+      return {
+        ...defaultAppSettings,
+        sidebarVisible: window.innerWidth > 700,
+      };
     }
 
     const parsedSettings = JSON.parse(storedSettings);
@@ -415,9 +427,14 @@ const loadStoredSettings = () => {
     return {
       ...defaultAppSettings,
       ...parsedSettings,
+      sidebarVisible:
+        window.innerWidth <= 700 ? false : parsedSettings.sidebarVisible ?? true,
     };
   } catch {
-    return defaultAppSettings;
+    return {
+      ...defaultAppSettings,
+      sidebarVisible: window.innerWidth > 700,
+    };
   }
 };
 
@@ -887,7 +904,14 @@ function App() {
       const safeSettings = {...snapshot.settings};
       delete safeSettings.authLogin;
       delete safeSettings.authPassword;
-      setAppSettings({...defaultAppSettings, ...safeSettings});
+      setAppSettings({
+        ...defaultAppSettings,
+        ...safeSettings,
+        sidebarVisible:
+          window.innerWidth <= 700
+            ? false
+            : safeSettings.sidebarVisible ?? defaultAppSettings.sidebarVisible,
+      });
     }
   }, []);
 
@@ -2660,6 +2684,49 @@ function App() {
           </button>
         </div>
       </aside>
+      {appSettings.sidebarVisible && (
+        <button
+          aria-label="Закрыть меню"
+          className="mobile-sidebar-backdrop"
+          type="button"
+          onClick={() =>
+            setAppSettings((current) => ({...current, sidebarVisible: false}))
+          }
+        />
+      )}
+      {appSettings.sidebarVisible && (
+        <section className="mobile-more-sheet" aria-label="Все разделы">
+          <div>
+            <strong>Разделы</strong>
+            <button
+              aria-label="Закрыть разделы"
+              type="button"
+              onClick={() =>
+                setAppSettings((current) => ({...current, sidebarVisible: false}))
+              }>
+              <X size={18} />
+            </button>
+          </div>
+          <nav>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  className={activePage === item.page ? "active" : ""}
+                  key={item.page}
+                  type="button"
+                  onClick={() => {
+                    setActivePage(item.page);
+                    setAppSettings((current) => ({...current, sidebarVisible: false}));
+                  }}>
+                  <Icon size={19} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </section>
+      )}
       {!appSettings.sidebarVisible && (
         <button
           className="sidebar-restore-button"
@@ -2668,7 +2735,8 @@ function App() {
           onClick={() =>
             setAppSettings((current) => ({...current, sidebarVisible: true}))
           }>
-          <PanelLeftOpen size={18} />
+          <Menu className="mobile-menu-icon" size={20} />
+          <PanelLeftOpen className="desktop-menu-icon" size={18} />
         </button>
       )}
 
@@ -3178,6 +3246,36 @@ function App() {
           />
         )}
       </main>
+      <nav className="mobile-bottom-nav" aria-label="Мобильная навигация">
+        {mobileNavItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              className={activePage === item.page ? "active" : ""}
+              key={item.page}
+              type="button"
+              onClick={() => {
+                setActivePage(item.page);
+                setAppSettings((current) => ({...current, sidebarVisible: false}));
+              }}>
+              <Icon size={20} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+        <button
+          className={appSettings.sidebarVisible ? "active" : ""}
+          type="button"
+          onClick={() =>
+            setAppSettings((current) => ({
+              ...current,
+              sidebarVisible: !current.sidebarVisible,
+            }))
+          }>
+          <MoreHorizontal size={21} />
+          <span>Еще</span>
+        </button>
+      </nav>
       {visitModalOpen && (
         <div className="modal-backdrop" role="presentation">
           <section

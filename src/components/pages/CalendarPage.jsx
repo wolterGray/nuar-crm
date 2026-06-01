@@ -4,6 +4,7 @@ import {
   CalendarPlus,
   Check,
   CircleCheck,
+  ClipboardList,
   ChevronLeft,
   ChevronRight,
   Mail,
@@ -260,33 +261,35 @@ function CalendarPage({
           <p>{visitEntries.length} визитов запланировано</p>
         </div>
         <div className="calendar-toolbar-actions">
-          <button
-            aria-label="Предыдущий день"
-            className="calendar-icon-button"
-            type="button"
-            onClick={() => setSelectedDate((current) => shiftDate(current, -1))}>
-            <ChevronLeft size={17} />
-          </button>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(event) => setSelectedDate(event.target.value)}
-          />
+          <div className="calendar-date-control">
+            <button
+              aria-label="Предыдущий день"
+              className="calendar-icon-button"
+              type="button"
+              onClick={() => setSelectedDate((current) => shiftDate(current, -1))}>
+              <ChevronLeft size={17} />
+            </button>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(event) => setSelectedDate(event.target.value)}
+            />
+            <button
+              aria-label="Следующий день"
+              className="calendar-icon-button"
+              type="button"
+              onClick={() => setSelectedDate((current) => shiftDate(current, 1))}>
+              <ChevronRight size={17} />
+            </button>
+          </div>
           {!isToday && (
             <button
-              className="secondary-button"
+              className="secondary-button calendar-today-button"
               type="button"
               onClick={() => setSelectedDate(new Date().toISOString().slice(0, 10))}>
               Сегодня
             </button>
           )}
-          <button
-            aria-label="Следующий день"
-            className="calendar-icon-button"
-            type="button"
-            onClick={() => setSelectedDate((current) => shiftDate(current, 1))}>
-            <ChevronRight size={17} />
-          </button>
           {!remindersVisible && (
             <button
               aria-label="Открыть ленту дня"
@@ -297,6 +300,14 @@ function CalendarPage({
               <ChevronLeft size={17} />
             </button>
           )}
+          <button
+            aria-label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
+            className="mobile-calendar-feed-button"
+            title="Лента дня"
+            type="button"
+            onClick={() => setRemindersVisible((current) => !current)}>
+            <ClipboardList size={21} />
+          </button>
           <button
             className="add-visit-button"
             type="button"

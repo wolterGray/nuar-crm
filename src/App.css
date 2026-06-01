@@ -267,6 +267,13 @@ button {
   box-shadow: 0 12px 30px rgba(17, 19, 24, 0.12);
 }
 
+.mobile-menu-icon,
+.mobile-sidebar-backdrop,
+.mobile-bottom-nav,
+.mobile-more-sheet {
+  display: none;
+}
+
 .sidebar-collapse-button {
   position: absolute;
   top: 22px;
@@ -2989,6 +2996,12 @@ h2 {
   gap: 8px;
 }
 
+.calendar-date-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .calendar-toolbar p {
   margin-top: 4px;
   color: #6f737b;
@@ -3008,6 +3021,10 @@ h2 {
   border-radius: 8px;
   color: #15171c;
   background: #fff;
+}
+
+.mobile-calendar-feed-button {
+  display: none;
 }
 
 .calendar-layout {
@@ -5049,6 +5066,15 @@ button:focus-visible {
 }
 
 @media (max-width: 700px) {
+  html,
+  body,
+  #root {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
   .login-screen {
     align-items: center;
     padding: 14px;
@@ -5084,51 +5110,237 @@ button:focus-visible {
   }
 
   .crm-shell {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-columns: 1fr;
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
   }
 
   .sidebar {
-    height: auto;
-    min-height: 0;
-    padding: 8px 52px 8px 8px;
-  }
-
-  .sidebar-collapse-button {
-    top: 10px;
-    right: 10px;
-  }
-
-  .crm-shell.sidebar-hidden {
-    grid-template-rows: minmax(0, 1fr);
-  }
-
-  .sidebar-hidden .content {
-    padding-left: 16px;
-  }
-
-  .logo,
-  .owner-card {
     display: none;
   }
 
+  .sidebar-collapse-button {
+    top: 17px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .crm-shell.sidebar-hidden {
+    display: block;
+  }
+
+  .sidebar-hidden .content {
+    padding-left: 12px;
+  }
+
+  .logo {
+    display: flex;
+    padding: 2px 42px 16px 4px;
+  }
+
   .nav-list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .nav-list button {
+    display: flex;
+    justify-content: flex-start;
+    min-height: 44px;
+    padding: 0 11px;
+    font-size: 14px;
+  }
+
+  .owner-card {
+    display: grid;
+    margin-top: 14px;
   }
 
   .sidebar-restore-button {
-    top: 10px;
+    display: none;
+  }
+
+  .desktop-menu-icon {
+    display: none;
+  }
+
+  .mobile-menu-icon {
+    display: block;
+  }
+
+  .mobile-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    display: block;
+    border: 0;
+    background: rgba(17, 19, 24, 0.38);
+  }
+
+  .mobile-more-sheet {
+    position: fixed;
+    right: 10px;
+    bottom: calc(70px + env(safe-area-inset-bottom));
     left: 10px;
-    width: 38px;
-    height: 38px;
+    z-index: 57;
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #e5e5e3;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 20px 52px rgba(17, 19, 24, 0.22);
+  }
+
+  .mobile-more-sheet > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .mobile-more-sheet > div button {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    color: #59616d;
+    background: #f4f1eb;
+  }
+
+  .mobile-more-sheet nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .mobile-more-sheet nav button {
+    display: grid;
+    min-height: 62px;
+    place-items: center;
+    align-content: center;
+    gap: 5px;
+    border: 0;
+    border-radius: 9px;
+    color: #59616d;
+    background: #f7f7f6;
+    font-size: 11px;
+  }
+
+  .mobile-more-sheet nav button.active {
+    color: #8d5b18;
+    background: #fff5df;
+  }
+
+  .theme-dark .mobile-more-sheet {
+    border-color: #344052;
+    background: #1a202b;
+  }
+
+  .theme-dark .mobile-more-sheet > div button,
+  .theme-dark .mobile-more-sheet nav button {
+    color: #d5dfec;
+    background: #111722;
   }
 
   .content {
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    padding: 12px;
+    padding-top: 0;
+  }
+
+  .home-content,
+  .visits-content {
+    display: block;
+    padding: 0 12px calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .page-header {
+    position: sticky;
+    top: 0;
+    z-index: 44;
+    min-height: 62px;
+    align-items: center;
+    justify-content: flex-end;
+    margin: 0 -12px 10px;
+    padding: 10px 12px;
+    background: color-mix(in srgb, #f7f7f6 94%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .theme-dark .page-header {
+    background: color-mix(in srgb, #10141c 94%, transparent);
+  }
+
+  .client-alert-popover {
+    position: fixed;
+    top: 62px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - 74px);
     padding: 12px;
   }
 
-  .page-header,
+  .client-alert-list {
+    max-height: calc(100dvh - 164px);
+  }
+
+  .statistics-page {
+    display: grid;
+    overflow: visible;
+    padding-bottom: 26px;
+  }
+
+  .mobile-bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 52;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 7px 6px calc(7px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: #14171d;
+    box-shadow: 0 -12px 32px rgba(17, 19, 24, 0.16);
+  }
+
+  .mobile-bottom-nav button {
+    display: grid;
+    min-width: 0;
+    min-height: 48px;
+    place-items: center;
+    align-content: center;
+    gap: 4px;
+    border: 0;
+    border-radius: 7px;
+    color: #aeb6c4;
+    background: transparent;
+    font-size: 10px;
+  }
+
+  .mobile-bottom-nav button.active {
+    color: #f1d4ac;
+    background: rgba(210, 173, 125, 0.12);
+  }
+
+  .mobile-bottom-nav span {
+    overflow: hidden;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .table-footer,
   .employees-toolbar,
   .calendar-toolbar,
@@ -5150,7 +5362,142 @@ button:focus-visible {
   }
 
   .calendar-toolbar-actions {
+    position: relative;
+    display: flex;
+    width: 100%;
+    justify-content: center;
     flex-wrap: wrap;
+  }
+
+  .calendar-toolbar {
+    align-items: center;
+    gap: 7px;
+  }
+
+  .calendar-toolbar > div:first-child {
+    display: none;
+  }
+
+  .calendar-date-control {
+    display: grid;
+    grid-template-columns: 34px minmax(146px, 1fr) 34px;
+    align-items: center;
+    width: min(258px, calc(100vw - 36px));
+    gap: 5px;
+  }
+
+  .calendar-date-control input {
+    min-height: 36px;
+    padding: 0 8px;
+    border-color: transparent;
+    background: transparent;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 750;
+  }
+
+  .calendar-icon-button {
+    width: 34px;
+    height: 34px;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .calendar-toolbar-actions > .add-visit-button,
+  .mobile-calendar-feed-button {
+    position: fixed;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    z-index: 48;
+    display: grid;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    font-size: 0;
+    box-shadow: 0 12px 28px rgba(17, 19, 24, 0.2);
+  }
+
+  .calendar-toolbar-actions > .add-visit-button {
+    right: 16px;
+    min-height: 54px;
+    color: #fff;
+    background: #111318;
+  }
+
+  .calendar-toolbar-actions > .add-visit-button svg {
+    width: 23px;
+    height: 23px;
+  }
+
+  .mobile-calendar-feed-button {
+    left: 16px;
+    color: #15171c;
+    background: #fff;
+  }
+
+  .calendar-feed-toggle {
+    display: none;
+  }
+
+  .calendar-today-button {
+    position: fixed;
+    bottom: calc(82px + env(safe-area-inset-bottom));
+    left: 50%;
+    z-index: 48;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    transform: translateX(-50%);
+  }
+
+  .calendar-today-button:hover {
+    transform: translateX(-50%);
+  }
+
+  .calendar-layout {
+    gap: 0;
+  }
+
+  .schedule-panel {
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .schedule-grid {
+    grid-template-columns: 44px repeat(var(--master-count, 3), minmax(168px, 1fr));
+    min-width: 560px;
+  }
+
+  .schedule-hour-label strong,
+  .schedule-end-hour {
+    padding: 0 3px;
+    font-size: 10px;
+  }
+
+  .schedule-hour-label span {
+    right: 5px;
+    font-size: 9px;
+  }
+
+  .schedule-master header {
+    padding: 0 7px;
+  }
+
+  .calendar-reminders {
+    position: fixed;
+    right: 10px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    left: 10px;
+    z-index: 49;
+    max-height: min(62dvh, 520px);
+    overflow: auto;
+    border-radius: 12px;
+    box-shadow: 0 18px 42px rgba(17, 19, 24, 0.2);
   }
 
   .calendar-entry-grid {
