@@ -23,6 +23,7 @@ import {
 import ConfirmDialog from "./components/ConfirmDialog.jsx";
 import EmployeeForm from "./components/EmployeeForm.jsx";
 import LoginPage from "./components/LoginPage.jsx";
+import SystemScreen from "./components/SystemScreen.jsx";
 import NewClientForm from "./components/NewClientForm.jsx";
 import NewVisitForm from "./components/NewVisitForm.jsx";
 import MessageTemplateForm from "./components/MessageTemplateForm.jsx";
@@ -422,6 +423,9 @@ function App() {
   const [appSettings, setAppSettings] = useState(loadStoredSettings);
   const [authSession, setAuthSession] = useState(null);
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured);
+  const [passwordRecovery, setPasswordRecovery] = useState(
+    () => window.location.pathname === "/reset-password",
+  );
   const [cloudHydrated, setCloudHydrated] = useState(false);
   const [cloudLoadError, setCloudLoadError] = useState("");
   const [activePage, setActivePage] = useState(loadStoredActivePage);
@@ -842,9 +846,10 @@ function App() {
       setAuthSession(data.session);
       setAuthReady(true);
     });
-    const {data} = supabase.auth.onAuthStateChange((_event, session) => {
+    const {data} = supabase.auth.onAuthStateChange((event, session) => {
       setAuthSession(session);
       setAuthReady(true);
+      if (event === "PASSWORD_RECOVERY") setPasswordRecovery(true);
       if (!session) {
         setCloudHydrated(false);
         setCloudLoadError("");
@@ -2369,6 +2374,73 @@ function App() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    if (!supabase) return;
+
+    const {error} = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+        scopes: "https://www.googleapis.com/auth/gmail.readonly",
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
+    });
+
+    if (error) {
+      pushNotification({
+        title: "Вход через Google недоступен",
+        message: error.message,
+        persist: false,
+      });
+    }
+  };
+
+  const handleResetPassword = async (event) => {
+    event.preventDefault();
+    if (!supabase) return;
+
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const {error} = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    pushNotification({
+      title: error ? "Не удалось отправить ссылку" : "Проверьте почту",
+      message: error?.message || "Ссылка для сброса пароля отправлена на email",
+      persist: false,
+    });
+  };
+
+  const handleUpdatePassword = async (event) => {
+    event.preventDefault();
+    if (!supabase) return;
+
+    const form = new FormData(event.currentTarget);
+    const password = String(form.get("password") ?? "");
+    const {error} = await supabase.auth.updateUser({password});
+
+    if (error) {
+      pushNotification({
+        title: "Не удалось изменить пароль",
+        message: error.message,
+        persist: false,
+      });
+      return;
+    }
+
+    setPasswordRecovery(false);
+    window.history.replaceState({}, "", "/");
+    pushNotification({
+      title: "Пароль обновлён",
+      message: "Теперь используйте новый пароль для входа",
+      persist: false,
+    });
+  };
+
   const handleLogout = () => supabase?.auth.signOut();
 
   const isVisitsPage = activePage === "visits";
@@ -2395,14 +2467,46 @@ function App() {
     });
   };
 
-  if (!authReady) {
-    return <main className="login-screen" />;
+  const supportedPaths = ["/", "/reset-password"];
+  const currentPath = window.location.pathname;
+
+  if (!supportedPaths.includes(currentPath)) {
+    return (
+      <SystemScreen
+        actionLabel="На главную"
+        message="Такой страницы в CRM нет. Вернитесь к рабочему интерфейсу."
+        mode="not-found"
+        settings={appSettings}
+        title="Страница не найдена"
+        onAction={() => {
+          window.history.replaceState({}, "", "/");
+          window.location.reload();
+        }}
+      />
+    );
   }
 
-  if (!authSession) {
+  if (!authReady) {
+    return (
+      <SystemScreen
+        message="Проверяем защищённую сессию владельца."
+        settings={appSettings}
+        title="Подключаем CRM"
+      />
+    );
+  }
+
+  if (!authSession || passwordRecovery) {
     return (
       <>
-        <LoginPage settings={appSettings} onSubmit={handleLogin} />
+        <LoginPage
+          isRecovery={passwordRecovery}
+          settings={appSettings}
+          onGoogleLogin={handleGoogleLogin}
+          onResetPassword={handleResetPassword}
+          onSubmit={handleLogin}
+          onUpdatePassword={handleUpdatePassword}
+        />
         <ToastStack notifications={notifications} onClose={closeNotification} />
       </>
     );
@@ -2410,31 +2514,18 @@ function App() {
 
   if (!cloudHydrated) {
     return (
-      <main className={`login-screen theme-${appSettings.theme}`}>
-        <section className="login-card">
-          <div className="login-brand">
-            <span className="login-brand-mark">N</span>
-            <div>
-              <strong>{appSettings.studioName}</strong>
-              <small>CRM</small>
-            </div>
-          </div>
-          <div className="login-heading">
-            <div>
-              <h1>{cloudLoadError ? "Не удалось загрузить базу" : "Загружаем CRM"}</h1>
-              <p>
-                {cloudLoadError ||
-                  "Получаем актуальные данные из защищённого хранилища Supabase."}
-              </p>
-            </div>
-          </div>
-          {cloudLoadError && (
-            <button className="secondary-button" type="button" onClick={handleLogout}>
-              Выйти
-            </button>
-          )}
-        </section>
-      </main>
+      <SystemScreen
+        actionLabel="Повторить"
+        message={
+          cloudLoadError ||
+          "Получаем актуальные данные из защищённого хранилища Supabase."
+        }
+        mode={cloudLoadError ? "error" : "loading"}
+        settings={appSettings}
+        title={cloudLoadError ? "Не удалось загрузить базу" : "Загружаем CRM"}
+        onAction={cloudLoadError ? () => window.location.reload() : undefined}
+        onLogout={cloudLoadError ? handleLogout : undefined}
+      />
     );
   }
 
@@ -2929,6 +3020,7 @@ function App() {
           <ImportPage
             documents={importDocuments}
             employees={employees}
+            gmailAccessToken={authSession?.provider_token ?? ""}
             gmailClientId={appSettings.gmailClientId}
             importedMailIds={importedMailIds}
             services={serviceCatalog}

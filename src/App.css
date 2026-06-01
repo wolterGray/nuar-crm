@@ -502,6 +502,134 @@ button {
   gap: 8px;
 }
 
+.google-login-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid #344052;
+  border-radius: 7px;
+  color: #eef4fb;
+  background: #1a202b;
+  font-weight: 700;
+}
+
+.google-login-button span {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  color: #1a202b;
+  background: #f8fbff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #8792a3;
+  font-size: 11px;
+}
+
+.login-divider::before,
+.login-divider::after {
+  height: 1px;
+  flex: 1;
+  background: #344052;
+  content: "";
+}
+
+.password-field {
+  position: relative;
+  display: block;
+  margin-top: 5px;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 42px;
+}
+
+.password-field button {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 6px;
+  color: #aeb6c4;
+  background: transparent;
+  transform: translateY(-50%);
+}
+
+.login-link-button {
+  justify-self: center;
+  color: #d9c19f;
+  background: transparent;
+  font-size: 12px;
+}
+
+.system-card {
+  gap: 28px;
+}
+
+.system-state {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  gap: 13px;
+}
+
+.system-state h1 {
+  color: #f8fbff;
+  font-size: 22px;
+}
+
+.system-state p {
+  margin-top: 5px;
+  color: #aeb6c4;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.system-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 8px;
+  color: #111318;
+  background: var(--accent-color);
+}
+
+.system-icon-error {
+  color: #fff6f3;
+  background: #b04b3c;
+}
+
+.system-icon-not-found {
+  color: #182134;
+  background: #8db8ff;
+}
+
+.system-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.system-actions .submit-button,
+.system-actions .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .owner-avatar {
   display: grid;
   width: 44px;
@@ -2030,6 +2158,45 @@ h2 {
   gap: 10px;
 }
 
+.import-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.import-summary span {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 7px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid #e9e9e7;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.import-summary svg {
+  grid-row: span 2;
+  color: #8d5b18;
+}
+
+.import-summary small {
+  overflow: hidden;
+  color: #7b8089;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-summary strong {
+  overflow: hidden;
+  color: #15171c;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .import-panel {
   display: grid;
   align-content: start;
@@ -2063,13 +2230,20 @@ h2 {
 
 .import-row small,
 .import-row em,
-.import-document-row small {
+.import-document-row small,
+.import-document-row em {
   overflow: hidden;
   color: #7b8089;
   font-size: 10px;
   font-style: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.import-document-row em {
+  color: #55873c;
+  font-style: normal;
+  font-weight: 750;
 }
 
 .import-row b {
@@ -2377,10 +2551,15 @@ h2 {
 .theme-dark .supply-row,
 .theme-dark .import-row,
 .theme-dark .import-document-row,
+.theme-dark .import-summary span,
 .theme-dark .supply-actions > button:not(.compact-icon-button),
 .theme-dark .task-check {
   border-color: #344052;
   background: #111722;
+}
+
+.theme-dark .import-summary strong {
+  color: #f8fbff;
 }
 
 .theme-dark .import-kind {
@@ -4902,7 +5081,8 @@ button:focus-visible {
 
   .settings-grid,
   .settings-options,
-  .settings-options-grid {
+  .settings-options-grid,
+  .import-summary {
     grid-template-columns: 1fr;
   }
 

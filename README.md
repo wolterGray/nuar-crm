@@ -38,6 +38,29 @@ VITE_SUPABASE_PUBLISHABLE_KEY
 
 Вход владельца работает через Supabase Auth. Пароль не хранится в сборке CRM.
 
+### Google-вход и Gmail
+
+1. В Google Cloud создайте OAuth Web Client и включите Gmail API.
+2. В consent screen добавьте scope `https://www.googleapis.com/auth/gmail.readonly`.
+3. В Supabase откройте Authentication -> Providers -> Google, включите провайдер
+   и добавьте Google Client ID и Client Secret.
+4. В Google OAuth Client добавьте callback URL из настроек Google-провайдера
+   Supabase: `https://<project-ref>.supabase.co/auth/v1/callback`.
+5. В Supabase Authentication -> URL Configuration укажите Vercel-домен как
+   Site URL и добавьте локальный адрес и Vercel-домен в Redirect URLs.
+
+После входа через Google CRM использует выданный токен для чтения Gmail.
+Ручной Google OAuth Client ID в настройках остается запасным вариантом.
+CRM запрашивает только чтение писем и не получает пароль Gmail.
+
+Для тестового OAuth consent screen добавьте email владельца в Test users.
+
+## Маршруты
+
+`vercel.json` отправляет неизвестные серверу URL в Vite-приложение. Поэтому
+ссылка сброса пароля `/reset-password` открывается корректно после публикации,
+а неизвестные пути отображают экран `404` внутри CRM.
+
 ## Проверка
 
 ```bash

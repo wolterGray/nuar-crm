@@ -104,10 +104,12 @@ const gmailFetch = async (accessToken, path) => {
   return response.json();
 };
 
-export const syncGmailMessages = async (clientId) => {
-  if (!clientId.trim()) throw new Error("Сначала укажите Google OAuth Client ID в настройках");
+export const syncGmailMessages = async (clientId = "", providerAccessToken = "") => {
+  if (!providerAccessToken && !clientId.trim()) {
+    throw new Error("Войдите через Google или укажите Google OAuth Client ID в настройках");
+  }
 
-  const accessToken = await requestToken(clientId.trim());
+  const accessToken = providerAccessToken || await requestToken(clientId.trim());
   const query = encodeURIComponent(
     "newer_than:120d (from:(booksy.com) OR from:(allegro.pl) OR from:(ipos.pl) OR filename:pdf)",
   );

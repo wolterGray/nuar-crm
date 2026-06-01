@@ -135,6 +135,7 @@ const createDocument = (email, source) => ({
   type: "document",
   source,
   subject: email.subject,
+  amount: getMoneyValues(email.text).at(-1) ?? 0,
   receivedAt: email.receivedAt,
   attachments: email.attachments,
   gmailUrl: `https://mail.google.com/mail/u/0/#search/rfc822msgid:${encodeURIComponent(

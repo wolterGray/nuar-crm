@@ -1,6 +1,7 @@
 import {
   CalendarPlus,
   Check,
+  CircleDollarSign,
   ExternalLink,
   FileText,
   MailCheck,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import {useState} from "react";
 import {parseImportedEmail} from "../../utils/emailImport.js";
+import {formatMoney} from "../../utils/formatters.jsx";
 import {syncGmailMessages} from "../../utils/gmail.js";
 
 const typeLabels = {
@@ -32,6 +34,7 @@ const isReadyToImport = (item) =>
 function ImportPage({
   documents,
   employees,
+  gmailAccessToken,
   gmailClientId,
   importedMailIds,
   onApply,
@@ -42,12 +45,18 @@ function ImportPage({
   const [isLoading, setIsLoading] = useState(false);
   const [pendingItems, setPendingItems] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
+  const gmailConnected = Boolean(gmailAccessToken || gmailClientId);
+  const documentsTotal = documents.reduce(
+    (total, document) => total + (Number(document.amount) || 0),
+    0,
+  );
+  const documentSources = new Set(documents.map((document) => document.source)).size;
 
   const synchronize = async () => {
     setIsLoading(true);
 
     try {
-      const emails = await syncGmailMessages(gmailClientId);
+      const emails = await syncGmailMessages(gmailClientId, gmailAccessToken);
       const parsedItems = emails
         .filter((email) => !importedMailIds.includes(email.id))
         .map((email) => parseImportedEmail(email, services, employees))
@@ -94,7 +103,7 @@ function ImportPage({
           </button>
           <button
             className="add-visit-button"
-            disabled={isLoading || !gmailClientId}
+            disabled={isLoading || !gmailConnected}
             type="button"
             onClick={synchronize}>
             <RefreshCw className={isLoading ? "spin" : ""} size={16} />
@@ -103,18 +112,36 @@ function ImportPage({
         </div>
       </div>
 
-      {!gmailClientId && (
+      {!gmailConnected && (
         <section className="panel import-setup">
           <MailCheck size={20} />
           <div>
             <h2>Подключите Gmail</h2>
-            <p>Добавьте Google OAuth Client ID в настройках интеграции. Пароль почты CRM не нужен.</p>
+            <p>Войдите в CRM через Google или добавьте OAuth Client ID в настройках интеграции.</p>
           </div>
           <button className="secondary-button" type="button" onClick={onOpenSettings}>
             Открыть настройки
           </button>
         </section>
       )}
+
+      <div className="import-summary">
+        <span>
+          <FileText size={15} />
+          <small>Документы</small>
+          <strong>{documents.length}</strong>
+        </span>
+        <span>
+          <CircleDollarSign size={15} />
+          <small>Распознано расходов</small>
+          <strong>{formatMoney(documentsTotal)}</strong>
+        </span>
+        <span>
+          <MailCheck size={15} />
+          <small>Источники</small>
+          <strong>{documentSources}</strong>
+        </span>
+      </div>
 
       <div className="import-grid">
         <section className="panel import-panel">
@@ -187,6 +214,7 @@ function ImportPage({
                 <span>
                   <strong>{document.source}</strong>
                   <small>{document.attachments.map((file) => file.filename).join(", ") || document.subject}</small>
+                  {document.amount > 0 && <em>{formatMoney(document.amount)}</em>}
                 </span>
                 <a href={document.gmailUrl} rel="noreferrer" target="_blank" title="Открыть письмо Gmail">
                   <ExternalLink size={15} />
