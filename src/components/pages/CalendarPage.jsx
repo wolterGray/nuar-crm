@@ -334,7 +334,7 @@ function CalendarPage({
             className="schedule-grid"
             style={{
               "--master-count": employees.length,
-              "--mobile-master-width": `calc((100vw - 34px) / ${Math.min(Math.max(employees.length, 1), 2)})`,
+              "--mobile-master-width": `calc((100vw - 28px) / ${Math.min(Math.max(employees.length, 1), 2)})`,
               "--schedule-height": `${gridHeight}px`,
               "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,
             }}>
