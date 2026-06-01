@@ -5517,18 +5517,18 @@ button:focus-visible {
   .schedule-grid {
     width: max-content;
     min-width: 100%;
-    grid-template-columns: 28px repeat(var(--master-count, 3), var(--mobile-master-width));
+    grid-template-columns: 24px repeat(var(--master-count, 3), var(--mobile-master-width));
   }
 
   .schedule-hour-label strong,
   .schedule-end-hour {
-    padding: 0 2px;
-    font-size: 9px;
+    padding: 0;
+    font-size: 8px;
   }
 
   .schedule-hour-label span {
-    right: 3px;
-    font-size: 8px;
+    right: 1px;
+    font-size: 7px;
   }
 
   .schedule-master header {
@@ -5756,6 +5756,11 @@ button:focus-visible {
     padding: 0;
   }
 
+  .calendar-entry-backdrop {
+    z-index: 70;
+    align-items: stretch;
+  }
+
   .employee-modal,
   .visit-modal {
     width: 100%;
@@ -5766,11 +5771,15 @@ button:focus-visible {
 
   .calendar-entry-modal {
     display: flex;
+    width: 100vw;
+    height: 100dvh;
     max-width: 100%;
-    max-height: min(88dvh, 720px);
+    max-height: none;
     flex-direction: column;
     overflow: hidden;
-    padding-bottom: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
   }
 
   .modal-header {
@@ -5784,14 +5793,20 @@ button:focus-visible {
 
   .calendar-entry-modal .modal-header {
     flex: 0 0 auto;
+    top: 0;
+    margin: 0;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e5e3;
   }
 
   .calendar-entry-form {
+    display: block;
+    flex: 1;
     min-width: 0;
     overflow-x: hidden;
     overflow-y: auto;
-    margin: 0 -16px;
-    padding: 8px 16px 0;
+    margin: 0;
+    padding: 12px 14px 74px;
   }
 
   .calendar-entry-form > *,
@@ -5804,6 +5819,10 @@ button:focus-visible {
     max-width: 100%;
   }
 
+  .calendar-entry-form > * + * {
+    margin-top: 9px;
+  }
+
   .calendar-entry-form input,
   .calendar-entry-form select,
   .calendar-entry-form textarea {
@@ -5811,14 +5830,18 @@ button:focus-visible {
   }
 
   .calendar-entry-form .submit-button {
-    position: sticky;
+    position: fixed;
+    right: 12px;
     bottom: 0;
-    z-index: 2;
-    width: calc(100% + 32px);
-    min-height: 52px;
-    margin: 8px -16px 0;
-    border-radius: 0;
-    box-shadow: 0 -10px 22px rgba(17, 19, 24, 0.08);
+    left: 12px;
+    z-index: 72;
+    width: calc(100% - 24px);
+    min-height: 50px;
+    margin: 0 0 max(12px, env(safe-area-inset-bottom));
+    border-radius: 8px;
+    color: #fff;
+    background: #111318;
+    box-shadow: 0 10px 24px rgba(17, 19, 24, 0.18);
   }
 
   .client-details-modal {

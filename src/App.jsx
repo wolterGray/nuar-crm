@@ -3496,7 +3496,7 @@ function App() {
         </div>
       )}
       {calendarEntryModalOpen && (
-        <div className="modal-backdrop" role="presentation">
+        <div className="modal-backdrop calendar-entry-backdrop" role="presentation">
           <section
             aria-modal="true"
             className="employee-modal calendar-entry-modal"
