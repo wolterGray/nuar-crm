@@ -57,7 +57,7 @@ function CalendarEntryForm({
         </button>
       </div>}
       <input name="kind" type="hidden" value={kind} />
-      <div className="calendar-entry-grid">
+      <div className="calendar-entry-grid calendar-entry-time-grid">
         <label>
           Дата
           <input name="date" type="date" defaultValue={initialEntry?.date ?? selectedDate} />
@@ -132,8 +132,8 @@ function CalendarEntryForm({
               onChange={(event) => setClient(event.target.value)}
             />
           </label>
-          <div className="calendar-entry-grid">
-            <label>
+          <div className="calendar-entry-grid calendar-entry-service-grid">
+            <label className="calendar-entry-service-field">
               Услуга
               <select
                 name="serviceId"
@@ -182,7 +182,7 @@ function CalendarEntryForm({
               </select>
             </label>
             {payment === "Пакет" && (
-              <label>
+              <label className="calendar-entry-package-field">
                 Пакет клиента
                 <select name="packageUsageId" required>
                   <option value="">Выберите пакет</option>

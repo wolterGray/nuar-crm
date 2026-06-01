@@ -3027,6 +3027,10 @@ h2 {
   display: none;
 }
 
+.mobile-calendar-week {
+  display: none;
+}
+
 .mobile-calendar-reminders-backdrop {
   display: none;
 }
@@ -5507,6 +5511,47 @@ button:focus-visible {
     gap: 0;
   }
 
+  .mobile-calendar-week {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    padding: 3px 6px 7px;
+    border-bottom: 1px solid #e4e5e4;
+    background: #fff;
+  }
+
+  .mobile-calendar-week button {
+    display: grid;
+    min-width: 0;
+    min-height: 49px;
+    place-items: center;
+    align-content: center;
+    gap: 5px;
+    border: 0;
+    border-radius: 20px;
+    color: #353941;
+    background: transparent;
+  }
+
+  .mobile-calendar-week span {
+    color: #848990;
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  .mobile-calendar-week b {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 14px;
+  }
+
+  .mobile-calendar-week button.selected b {
+    color: #c9483c;
+    background: #fbe9e7;
+  }
+
   .schedule-panel {
     width: 100vw;
     border-right: 0;
@@ -5557,7 +5602,12 @@ button:focus-visible {
   }
 
   .calendar-entry-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .calendar-entry-service-field,
+  .calendar-entry-package-field {
+    grid-column: 1 / -1;
   }
 
   .calendar-client-card-grid {
@@ -5827,6 +5877,14 @@ button:focus-visible {
   .calendar-entry-form select,
   .calendar-entry-form textarea {
     width: 100%;
+    min-height: 42px;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 13px;
+  }
+
+  .calendar-entry-form textarea {
+    min-height: 64px;
   }
 
   .calendar-entry-form .submit-button {

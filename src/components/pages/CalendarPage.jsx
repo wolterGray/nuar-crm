@@ -49,6 +49,18 @@ const shiftDate = (date, days) => {
   return nextDate.toISOString().slice(0, 10);
 };
 
+const getWeekDates = (date) => {
+  const selected = new Date(`${date}T12:00:00`);
+  const mondayOffset = (selected.getDay() + 6) % 7;
+  selected.setDate(selected.getDate() - mondayOffset);
+
+  return Array.from({length: 7}, (_, index) => {
+    const day = new Date(selected);
+    day.setDate(selected.getDate() + index);
+    return day.toISOString().slice(0, 10);
+  });
+};
+
 const toClockTime = (minutes) =>
   `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(
     minutes % 60,
@@ -223,6 +235,7 @@ function CalendarPage({
     reminderFilter === "active" ? activeVisitEntries : visitEntries
   ).sort((first, second) => String(first.time).localeCompare(String(second.time)));
   const isToday = selectedDate === new Date().toISOString().slice(0, 10);
+  const weekDates = getWeekDates(selectedDate);
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const currentTop =
     ((currentMinutes - startMinutes) / minutesInDay) * gridHeight;
@@ -317,6 +330,22 @@ function CalendarPage({
             Добавить
           </button>
         </div>
+      </div>
+
+      <div className="mobile-calendar-week" aria-label="Дни недели">
+        {weekDates.map((date, index) => {
+          const today = date === new Date().toISOString().slice(0, 10);
+          return (
+            <button
+              className={`${date === selectedDate ? "selected" : ""} ${today ? "today" : ""}`}
+              key={date}
+              type="button"
+              onClick={() => setSelectedDate(date)}>
+              <span>{["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"][index]}</span>
+              <b>{Number(date.slice(-2))}</b>
+            </button>
+          );
+        })}
       </div>
 
       <div className={`calendar-layout ${remindersVisible ? "" : "reminders-hidden"}`}>
