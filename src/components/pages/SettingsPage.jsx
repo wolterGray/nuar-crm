@@ -6,7 +6,6 @@ import {
   MailCheck,
   RotateCcw,
   Save,
-  ShieldCheck,
   SlidersHorizontal,
   Upload,
 } from "lucide-react";
@@ -302,35 +301,6 @@ function SettingsPage({settings, onSubmit, onReset, onExportData, onImportData})
                   placeholder="...apps.googleusercontent.com"
                 />
                 <small>CRM получает доступ только для чтения писем после входа через Google</small>
-              </label>
-            </div>
-          </section>
-
-          <section className="panel settings-panel">
-            <div className="settings-panel-heading">
-              <ShieldCheck size={18} />
-              <div>
-                <h2>Доступ</h2>
-                <p>Данные владельца для входа в CRM</p>
-              </div>
-            </div>
-            <div className="settings-options">
-              <label>
-                Логин владельца
-                <input
-                  name="authLogin"
-                  defaultValue={settings.authLogin ?? ""}
-                  autoComplete="username"
-                />
-              </label>
-              <label>
-                Пароль владельца
-                <input
-                  name="authPassword"
-                  type="password"
-                  defaultValue={settings.authPassword ?? ""}
-                  autoComplete="new-password"
-                />
               </label>
             </div>
           </section>

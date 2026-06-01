@@ -24,8 +24,8 @@ function LoginPage({settings, onSubmit}) {
 
         <form className="login-form" onSubmit={onSubmit}>
           <label>
-            Логин
-            <input name="login" autoComplete="username" required />
+            Email
+            <input name="email" type="email" autoComplete="username" required />
           </label>
           <label>
             Пароль

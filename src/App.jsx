@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {AnimatePresence, motion} from "framer-motion";
 import {
   Bell,
@@ -59,6 +59,7 @@ import CalendarPage from "./components/pages/CalendarPage.jsx";
 import StatisticsPage from "./components/pages/StatisticsPage.jsx";
 import OperationsPage from "./components/pages/OperationsPage.jsx";
 import ImportPage from "./components/pages/ImportPage.jsx";
+import {isSupabaseConfigured, supabase} from "./lib/supabase.js";
 
 const navItems = [
   {label: "Статистика", page: "statistics", icon: ChartNoAxesCombined},
@@ -91,7 +92,6 @@ const TASKS_STORAGE_KEY = "nuar-crm-tasks";
 const SUPPLIES_STORAGE_KEY = "nuar-crm-supplies";
 const IMPORT_DOCUMENTS_STORAGE_KEY = "nuar-crm-import-documents";
 const IMPORTED_MAIL_IDS_STORAGE_KEY = "nuar-crm-imported-mail-ids";
-const AUTH_SESSION_KEY = "nuar-crm-authenticated";
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
 const initialMessageTemplates = [
@@ -167,8 +167,6 @@ const defaultAppSettings = {
   workdayEnd: "22:00",
   calendarSlotMinutes: 15,
   gmailClientId: "",
-  authLogin: import.meta.env.VITE_LOCAL_CRM_LOGIN || "",
-  authPassword: import.meta.env.VITE_LOCAL_CRM_PASSWORD || "",
 };
 const getTodayInput = () => {
   const today = new Date();
@@ -386,19 +384,11 @@ const loadStoredSettings = () => {
     }
 
     const parsedSettings = JSON.parse(storedSettings);
-    const shouldMigrateDefaultLogin =
-      parsedSettings.authLogin === "vlad" &&
-      parsedSettings.authPassword === "nuar2026";
-
+    delete parsedSettings.authLogin;
+    delete parsedSettings.authPassword;
     return {
       ...defaultAppSettings,
       ...parsedSettings,
-      ...(shouldMigrateDefaultLogin
-        ? {
-            authLogin: defaultAppSettings.authLogin,
-            authPassword: defaultAppSettings.authPassword,
-          }
-        : {}),
     };
   } catch {
     return defaultAppSettings;
@@ -430,9 +420,10 @@ function App() {
     loadStoredCollection(IMPORTED_MAIL_IDS_STORAGE_KEY),
   );
   const [appSettings, setAppSettings] = useState(loadStoredSettings);
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => window.sessionStorage.getItem(AUTH_SESSION_KEY) === "true",
-  );
+  const [authSession, setAuthSession] = useState(null);
+  const [authReady, setAuthReady] = useState(!isSupabaseConfigured);
+  const [cloudHydrated, setCloudHydrated] = useState(false);
+  const [cloudLoadError, setCloudLoadError] = useState("");
   const [activePage, setActivePage] = useState(loadStoredActivePage);
   const [visitModalOpen, setVisitModalOpen] = useState(false);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
@@ -471,6 +462,7 @@ function App() {
   const [preferredMessageClientId, setPreferredMessageClientId] = useState("");
   const [notifications, setNotifications] = useState([]);
   const smartVisitAlertIds = useRef(new Set());
+  const cloudSnapshotRef = useRef(null);
   const [filters, setFilters] = useState({
     master: "",
     payment: "",
@@ -764,6 +756,166 @@ function App() {
       JSON.stringify(importedMailIds),
     );
   }, [importedMailIds]);
+
+  const cloudSnapshot = useMemo(
+    () => ({
+      version: 1,
+      visits,
+      employees,
+      clients: clientProfiles,
+      services: serviceCatalog,
+      packages: packagesCatalog,
+      clientPackages,
+      messageTemplates,
+      calendarEntries,
+      dismissedClientAlertIds,
+      communicationLog,
+      notificationInbox,
+      tasks,
+      supplies,
+      importDocuments,
+      importedMailIds,
+      settings: appSettings,
+    }),
+    [
+      appSettings,
+      calendarEntries,
+      clientPackages,
+      clientProfiles,
+      communicationLog,
+      dismissedClientAlertIds,
+      employees,
+      importDocuments,
+      importedMailIds,
+      messageTemplates,
+      notificationInbox,
+      packagesCatalog,
+      serviceCatalog,
+      supplies,
+      tasks,
+      visits,
+    ],
+  );
+
+  useEffect(() => {
+    cloudSnapshotRef.current = cloudSnapshot;
+  }, [cloudSnapshot]);
+
+  const applyCloudSnapshot = useCallback((snapshot) => {
+    if (!snapshot || typeof snapshot !== "object") return;
+
+    if (Array.isArray(snapshot.visits)) setVisits(snapshot.visits);
+    if (Array.isArray(snapshot.employees)) setEmployees(snapshot.employees);
+    if (Array.isArray(snapshot.clients)) {
+      setClientProfiles(applyBooksySources(snapshot.clients, snapshot.visits ?? []));
+    }
+    if (Array.isArray(snapshot.services)) setServiceCatalog(snapshot.services);
+    if (Array.isArray(snapshot.packages)) setPackagesCatalog(snapshot.packages);
+    if (Array.isArray(snapshot.clientPackages)) setClientPackages(snapshot.clientPackages);
+    if (Array.isArray(snapshot.messageTemplates)) setMessageTemplates(snapshot.messageTemplates);
+    if (Array.isArray(snapshot.calendarEntries)) setCalendarEntries(snapshot.calendarEntries);
+    if (Array.isArray(snapshot.dismissedClientAlertIds)) {
+      setDismissedClientAlertIds(snapshot.dismissedClientAlertIds);
+    }
+    if (Array.isArray(snapshot.communicationLog)) setCommunicationLog(snapshot.communicationLog);
+    if (Array.isArray(snapshot.notificationInbox)) {
+      setNotificationInbox(snapshot.notificationInbox.filter((item) => item.undoAction));
+    }
+    if (Array.isArray(snapshot.tasks)) setTasks(snapshot.tasks);
+    if (Array.isArray(snapshot.supplies)) setSupplies(snapshot.supplies);
+    if (Array.isArray(snapshot.importDocuments)) setImportDocuments(snapshot.importDocuments);
+    if (Array.isArray(snapshot.importedMailIds)) setImportedMailIds(snapshot.importedMailIds);
+    if (snapshot.settings && typeof snapshot.settings === "object") {
+      const safeSettings = {...snapshot.settings};
+      delete safeSettings.authLogin;
+      delete safeSettings.authPassword;
+      setAppSettings({...defaultAppSettings, ...safeSettings});
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return undefined;
+
+    let active = true;
+    supabase.auth.getSession().then(({data}) => {
+      if (!active) return;
+      setAuthSession(data.session);
+      setAuthReady(true);
+    });
+    const {data} = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthSession(session);
+      setAuthReady(true);
+      if (!session) {
+        setCloudHydrated(false);
+        setCloudLoadError("");
+      }
+    });
+
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    const userId = authSession?.user?.id;
+    if (!supabase || !userId) return undefined;
+
+    let active = true;
+
+    const hydrate = async () => {
+      const {data, error} = await supabase
+        .from("crm_snapshots")
+        .select("payload")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (!active) return;
+
+      if (error) {
+        setCloudLoadError(error.message);
+        return;
+      }
+
+      if (data?.payload && Object.keys(data.payload).length > 0) {
+        applyCloudSnapshot(data.payload);
+      } else {
+        const {error: saveError} = await supabase
+          .from("crm_snapshots")
+          .upsert({user_id: userId, payload: cloudSnapshotRef.current});
+
+        if (saveError) {
+          setCloudLoadError(saveError.message);
+          return;
+        }
+      }
+
+      setCloudHydrated(true);
+      setCloudLoadError("");
+    };
+
+    hydrate();
+    return () => {
+      active = false;
+    };
+  }, [applyCloudSnapshot, authSession?.user?.id]);
+
+  useEffect(() => {
+    const userId = authSession?.user?.id;
+    if (!supabase || !userId || !cloudHydrated) return undefined;
+
+    const timer = window.setTimeout(async () => {
+      await supabase
+        .from("crm_snapshots")
+        .upsert({
+          user_id: userId,
+          payload: cloudSnapshotRef.current,
+          updated_at: new Date().toISOString(),
+        });
+    }, 900);
+
+    return () => window.clearTimeout(timer);
+  }, [authSession?.user?.id, cloudHydrated, cloudSnapshot]);
 
   const employeeStats = useMemo(
     () =>
@@ -1790,12 +1942,6 @@ function App() {
         Number(form.get("calendarSlotMinutes")) ||
         defaultAppSettings.calendarSlotMinutes,
       gmailClientId: String(form.get("gmailClientId") ?? "").trim(),
-      authLogin:
-        String(form.get("authLogin") ?? "").trim() ||
-        defaultAppSettings.authLogin,
-      authPassword:
-        String(form.get("authPassword") ?? "").trim() ||
-        defaultAppSettings.authPassword,
     });
     pushNotification({
       title: "Настройки сохранены",
@@ -2198,44 +2344,32 @@ function App() {
     });
   };
 
-  const handleLogin = (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const normalizeLogin = (value) => String(value ?? "").trim().toLowerCase();
-    const normalizePassword = (value) =>
-      String(value ?? "").replace(/\s+/g, "").trim();
-    const login = normalizeLogin(form.get("login"));
-    const password = normalizePassword(form.get("password"));
-    const matchesSavedCredentials =
-      login === normalizeLogin(appSettings.authLogin) &&
-      password === normalizePassword(appSettings.authPassword);
-    const matchesDefaultCredentials =
-      login === normalizeLogin(defaultAppSettings.authLogin) &&
-      password === normalizePassword(defaultAppSettings.authPassword);
-
-    if (matchesSavedCredentials || matchesDefaultCredentials) {
-      if (matchesDefaultCredentials && !matchesSavedCredentials) {
-        setAppSettings((current) => ({
-          ...current,
-          authLogin: defaultAppSettings.authLogin,
-          authPassword: defaultAppSettings.authPassword,
-        }));
-      }
-      window.sessionStorage.setItem(AUTH_SESSION_KEY, "true");
-      setIsAuthenticated(true);
+    if (!supabase) {
+      pushNotification({
+        title: "Supabase не настроен",
+        message: "Добавьте VITE_SUPABASE_URL и publishable key",
+        persist: false,
+      });
       return;
     }
 
-    pushNotification({
-      title: "Вход не выполнен",
-      message: "Проверьте логин и пароль",
-    });
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    const {error} = await supabase.auth.signInWithPassword({email, password});
+
+    if (error) {
+      pushNotification({
+        title: "Вход не выполнен",
+        message: "Проверьте email и пароль",
+        persist: false,
+      });
+    }
   };
 
-  const handleLogout = () => {
-    window.sessionStorage.removeItem(AUTH_SESSION_KEY);
-    setIsAuthenticated(false);
-  };
+  const handleLogout = () => supabase?.auth.signOut();
 
   const isVisitsPage = activePage === "visits";
   const isCalendarPage = activePage === "calendar";
@@ -2261,12 +2395,46 @@ function App() {
     });
   };
 
-  if (!isAuthenticated) {
+  if (!authReady) {
+    return <main className="login-screen" />;
+  }
+
+  if (!authSession) {
     return (
       <>
         <LoginPage settings={appSettings} onSubmit={handleLogin} />
         <ToastStack notifications={notifications} onClose={closeNotification} />
       </>
+    );
+  }
+
+  if (!cloudHydrated) {
+    return (
+      <main className={`login-screen theme-${appSettings.theme}`}>
+        <section className="login-card">
+          <div className="login-brand">
+            <span className="login-brand-mark">N</span>
+            <div>
+              <strong>{appSettings.studioName}</strong>
+              <small>CRM</small>
+            </div>
+          </div>
+          <div className="login-heading">
+            <div>
+              <h1>{cloudLoadError ? "Не удалось загрузить базу" : "Загружаем CRM"}</h1>
+              <p>
+                {cloudLoadError ||
+                  "Получаем актуальные данные из защищённого хранилища Supabase."}
+              </p>
+            </div>
+          </div>
+          {cloudLoadError && (
+            <button className="secondary-button" type="button" onClick={handleLogout}>
+              Выйти
+            </button>
+          )}
+        </section>
+      </main>
     );
   }
 
