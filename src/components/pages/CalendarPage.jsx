@@ -26,7 +26,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {toDisplayDate} from "../../utils/formatters.jsx";
 
 const QUARTER_HEIGHT = 28;
@@ -201,6 +201,7 @@ function CalendarPage({
   const [openEntryMenuId, setOpenEntryMenuId] = useState(null);
   const [viewedClientEntry, setViewedClientEntry] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
+  const weekSwipeStart = useRef(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {activationConstraint: {distance: 5}}),
   );
@@ -209,12 +210,13 @@ function CalendarPage({
   const endMinutes = configuredEndMinutes > startMinutes
     ? configuredEndMinutes
     : startMinutes + 60;
+  const visualEndMinutes = endMinutes + (window.innerWidth <= 700 ? 120 : 0);
   const slotMinutes = Number(settings.calendarSlotMinutes) || 15;
-  const minutesInDay = endMinutes - startMinutes;
+  const minutesInDay = visualEndMinutes - startMinutes;
   const slotHeight = QUARTER_HEIGHT;
   const gridHeight = (minutesInDay / slotMinutes) * slotHeight;
   const startHour = Math.floor(startMinutes / 60);
-  const endHour = Math.ceil(endMinutes / 60);
+  const endHour = Math.ceil(visualEndMinutes / 60);
   const dayEntries = useMemo(
     () =>
       entries
@@ -332,7 +334,19 @@ function CalendarPage({
         </div>
       </div>
 
-      <div className="mobile-calendar-week" aria-label="Дни недели">
+      <div
+        className="mobile-calendar-week"
+        aria-label="Дни недели"
+        onTouchStart={(event) => {
+          weekSwipeStart.current = event.touches[0]?.clientX ?? null;
+        }}
+        onTouchEnd={(event) => {
+          const start = weekSwipeStart.current;
+          const end = event.changedTouches[0]?.clientX;
+          weekSwipeStart.current = null;
+          if (start == null || end == null || Math.abs(end - start) < 42) return;
+          setSelectedDate((current) => shiftDate(current, end < start ? 7 : -7));
+        }}>
         {weekDates.map((date, index) => {
           const today = date === new Date().toISOString().slice(0, 10);
           return (
@@ -412,7 +426,7 @@ function CalendarPage({
                       toMinutes(employee.shiftStart || settings.workdayStart),
                     );
                     const shiftEnd = Math.min(
-                      endMinutes,
+                      visualEndMinutes,
                       toMinutes(employee.shiftEnd || settings.workdayEnd),
                     );
                     const topHeight =

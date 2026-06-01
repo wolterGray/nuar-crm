@@ -5461,12 +5461,21 @@ button:focus-visible {
 
   .calendar-toolbar-actions > .add-visit-button.calendar-mobile-add-button {
     right: 16px;
+    width: 56px;
+    min-width: 56px;
+    max-width: 56px;
+    height: 56px;
     min-height: 54px;
+    max-height: 56px;
+    aspect-ratio: 1;
     align-content: center;
     justify-content: center;
+    gap: 0;
+    appearance: none;
     line-height: 0;
     color: #fff;
     background: #111318;
+    box-shadow: 0 10px 22px rgba(17, 19, 24, 0.22);
   }
 
   .calendar-toolbar-actions > .add-visit-button.calendar-mobile-add-button svg {
@@ -5517,6 +5526,7 @@ button:focus-visible {
     padding: 3px 6px 7px;
     border-bottom: 1px solid #e4e5e4;
     background: #fff;
+    touch-action: pan-y;
   }
 
   .mobile-calendar-week button {
@@ -5554,9 +5564,14 @@ button:focus-visible {
 
   .schedule-panel {
     width: 100vw;
+    scrollbar-width: none;
     border-right: 0;
     border-left: 0;
     border-radius: 0;
+  }
+
+  .schedule-panel::-webkit-scrollbar {
+    display: none;
   }
 
   .schedule-grid {
@@ -5577,7 +5592,16 @@ button:focus-visible {
   }
 
   .schedule-master header {
+    min-width: 0;
     padding: 0 6px;
+    overflow: hidden;
+  }
+
+  .schedule-master header strong,
+  .schedule-master header span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .calendar-reminders {
