@@ -1,16 +1,46 @@
-# React + Vite
+# NUAR CRM
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Локальная CRM массажной студии на React и Vite.
 
-Currently, two official plugins are available:
+## Локальный запуск
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+Создайте `.env.local` по примеру `.env.example`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Supabase
 
-## Expanding the ESLint configuration
+1. Откройте SQL Editor в панели Supabase.
+2. Выполните файл `supabase/schema.sql`.
+3. В Authentication создайте пользователя-владельца CRM.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Первая серверная схема хранит единый JSON-снимок CRM с Row Level Security.
+Доступ к снимку получает только авторизованный владелец. После стабилизации
+интеграций данные можно постепенно разнести по отдельным таблицам.
+
+## Vercel
+
+1. Импортируйте приватный GitHub-репозиторий в Vercel.
+2. Framework Preset: `Vite`.
+3. Добавьте environment variables:
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_PUBLISHABLE_KEY
+VITE_LOCAL_CRM_LOGIN
+VITE_LOCAL_CRM_PASSWORD
+```
+
+`VITE_LOCAL_CRM_LOGIN` и `VITE_LOCAL_CRM_PASSWORD` используются временно.
+После подключения Supabase Auth их нужно удалить из Vercel.
+
+## Проверка
+
+```bash
+npm run lint
+npm run build
+git diff --check
+```

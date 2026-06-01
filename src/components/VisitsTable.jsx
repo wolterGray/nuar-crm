@@ -1,7 +1,8 @@
-import {ListFilter, MoreVertical} from "lucide-react";
+import {Download, ListFilter, MoreVertical, Plus} from "lucide-react";
 import {paymentMethods} from "../data/seed.js";
 import {formatMoney} from "../utils/formatters.jsx";
-import {getVisitTotal} from "../utils/visits.jsx";
+import {getVisitCommission, getVisitTransactionTotal} from "../utils/visits.jsx";
+import ClientAutocomplete from "./ClientAutocomplete.jsx";
 
 function VisitsTable({
   visits,
@@ -10,22 +11,61 @@ function VisitsTable({
   filters,
   onFilterChange,
   onResetFilters,
+  onAddVisit,
   openActionMenuId,
   onToggleActionMenu,
   onEditVisit,
   onDeleteVisit,
 }) {
-  const clientCount = new Set(visits.map((visit) => visit.client)).size;
   const clientOptions = [...new Set(visits.map((visit) => visit.client))];
+  const exportVisits = () => {
+    const columns = [
+      ["Дата", (visit) => visit.date],
+      ["Клиент", (visit) => visit.client],
+      ["Услуга", (visit) => visit.service],
+      ["Работник", (visit) => visit.master],
+      ["Стоимость", (visit) => visit.amount],
+      ["Оплата", (visit) => visit.payment],
+      ["Чай", (visit) => visit.tip],
+      ["Комиссия", (visit) => getVisitCommission(visit)],
+      ["Доп сумма", (visit) => visit.extra],
+      ["Скидка %", (visit) => visit.discount],
+      ["Итог", (visit) => getVisitTransactionTotal(visit)],
+      ["Комментарий", (visit) => visit.note],
+    ];
+    const escapeCell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+    const csv = [
+      columns.map(([label]) => escapeCell(label)).join(";"),
+      ...visits.map((visit) =>
+        columns.map(([, getValue]) => escapeCell(getValue(visit))).join(";"),
+      ),
+    ].join("\n");
+    const link = document.createElement("a");
+
+    link.href = URL.createObjectURL(new Blob([`\uFEFF${csv}`], {type: "text/csv;charset=utf-8"}));
+    link.download = `nuar-visits-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
 
   return (
     <section className="panel visits-panel">
       <div className="panel-header">
         <h2>{title}</h2>
-        <button className="secondary-button" onClick={onResetFilters}>
-          <ListFilter size={17} />
-          Сбросить
-        </button>
+        <div className="visits-panel-actions">
+          <button className="secondary-button" type="button" onClick={exportVisits}>
+            <Download size={17} />
+            Экспорт CSV
+          </button>
+          <button className="secondary-button" onClick={onResetFilters}>
+            <ListFilter size={17} />
+            Сбросить
+          </button>
+          <button className="add-visit-button" type="button" onClick={onAddVisit}>
+            <Plus size={17} />
+            Добавить визит
+          </button>
+        </div>
       </div>
 
       <div className="table-filters">
@@ -53,14 +93,14 @@ function VisitsTable({
         </label>
         <label>
           Клиент
-          <select
+          <ClientAutocomplete
+            clients={clientOptions}
+            id="visit-filter-client-options"
+            name="client-filter"
+            placeholder="Все клиенты"
             value={filters.client}
-            onChange={(event) => onFilterChange("client", event.target.value)}>
-            <option value="">Все</option>
-            {clientOptions.map((client) => (
-              <option key={client}>{client}</option>
-            ))}
-          </select>
+            onChange={(event) => onFilterChange("client", event.target.value)}
+          />
         </label>
         <label>
           Дата
@@ -78,6 +118,7 @@ function VisitsTable({
           <span>Клиент</span>
           <span>Услуга</span>
           <span>Работник</span>
+          <span>Стоимость</span>
           <span>Оплата</span>
           <span>Чай</span>
           <span>Комиссия</span>
@@ -92,16 +133,25 @@ function VisitsTable({
             <TooltipCell value={visit.client} />
             <span>{visit.service}</span>
             <span>{visit.master}</span>
+            <span>{formatMoney(visit.amount)}</span>
             <TooltipCell
-              className={visit.payment.includes("Пакет") ? "package" : ""}
-              value={visit.payment}
+              className={String(visit.payment ?? "").includes("Пакет") ? "package" : ""}
+              value={visit.payment || "Не указано"}
+              tooltip={
+                visit.packageName
+                  ? `${visit.packageName}: списано ${visit.packageSessionsUsed || 1}`
+                  : visit.payment || "Не указано"
+              }
             />
             <span>{formatMoney(visit.tip)}</span>
-            <span>{formatMoney(visit.commission)}</span>
+            <TooltipCell
+              value={formatMoney(getVisitCommission(visit))}
+              tooltip={visit.commissionType ?? "Без комиссии"}
+            />
             <span>{formatMoney(visit.extra)}</span>
-            <span>{formatMoney(visit.discount)}</span>
+            <span>{Number(visit.discount) || 0}%</span>
             <span className="total-cell">
-              {formatMoney(getVisitTotal(visit))}
+              {formatMoney(getVisitTransactionTotal(visit))}
             </span>
             <div
               className="row-actions"
@@ -132,17 +182,17 @@ function VisitsTable({
       </div>
 
       <footer className="table-footer">
-        <span>Клиентов: {clientCount}</span>
+        <span>Визитов: {visits.length}</span>
       </footer>
     </section>
   );
 }
-function TooltipCell({value, className = ""}) {
+function TooltipCell({value, tooltip = value, className = ""}) {
   return (
     <span className={`tooltip-cell ${className}`} tabIndex="0">
       <span className="cell-value">{value}</span>
       <span className="cell-tooltip" role="tooltip">
-        {value}
+        {tooltip}
       </span>
     </span>
   );

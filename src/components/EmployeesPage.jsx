@@ -1,4 +1,5 @@
 import {Pencil, Plus, Trash2} from "lucide-react";
+import {motion} from "framer-motion";
 import {formatMoney} from "../utils/formatters.jsx";
 
 function EmployeesPage({employees, onAdd, onEdit, onDelete}) {
@@ -17,7 +18,11 @@ function EmployeesPage({employees, onAdd, onEdit, onDelete}) {
 
       <div className="employees-grid">
         {employees.map((employee) => (
-          <article className="employee-card" key={employee.id}>
+          <motion.article
+            animate={{opacity: 1, y: 0}}
+            className="employee-card"
+            initial={{opacity: 0, y: 6}}
+            key={employee.id}>
             <div className="employee-card-header">
               <div className="employee-avatar">{employee.name.slice(0, 1)}</div>
               <div>
@@ -37,13 +42,13 @@ function EmployeesPage({employees, onAdd, onEdit, onDelete}) {
                 Визитов <strong>{employee.visitsCount}</strong>
               </span>
               <span>
-                Доход <strong>{formatMoney(employee.income)}</strong>
+                Выплата <strong>{formatMoney(employee.income)}</strong>
               </span>
               <span>
                 Чай <strong>{formatMoney(employee.tips)}</strong>
               </span>
               <span>
-                Средний чек{" "}
+                Средняя выплата{" "}
                 <strong>{formatMoney(employee.averageCheck)}</strong>
               </span>
             </div>
@@ -51,25 +56,28 @@ function EmployeesPage({employees, onAdd, onEdit, onDelete}) {
             <div className="employee-meta">
               <span>{employee.phone || "Телефон не указан"}</span>
               <span>Комиссия {employee.commissionRate}%</span>
+              <span>Смена {employee.shiftStart || "08:00"}–{employee.shiftEnd || "22:00"}</span>
             </div>
 
             <div className="employee-actions">
               <button
-                className="secondary-button"
+                aria-label="Редактировать сотрудника"
+                className="compact-icon-button"
+                title="Редактировать"
                 type="button"
                 onClick={() => onEdit(employee)}>
                 <Pencil size={16} />
-                Редактировать
               </button>
               <button
-                className="danger-button"
+                aria-label="Удалить сотрудника"
+                className="compact-icon-button danger"
+                title="Удалить"
                 type="button"
                 onClick={() => onDelete(employee)}>
                 <Trash2 size={16} />
-                Удалить
               </button>
             </div>
-          </article>
+          </motion.article>
         ))}
       </div>
     </section>

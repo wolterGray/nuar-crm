@@ -17,8 +17,18 @@ function EmployeeForm({ employee, onSubmit }) {
         </label>
         <label>
           Комиссия %
-          <input name="commissionRate" defaultValue={employee?.commissionRate ?? 0} />
+          <input min="0" max="100" name="commissionRate" type="number" defaultValue={employee?.commissionRate ?? 0} />
         </label>
+        <div className="form-split">
+          <label>
+            Начало смены
+            <input name="shiftStart" type="time" defaultValue={employee?.shiftStart ?? '08:00'} />
+          </label>
+          <label>
+            Конец смены
+            <input name="shiftEnd" type="time" defaultValue={employee?.shiftEnd ?? '22:00'} />
+          </label>
+        </div>
         <label>
           Статус
           <select name="status" defaultValue={employee?.status ?? 'Активен'}>
