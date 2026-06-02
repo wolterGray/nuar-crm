@@ -6,7 +6,6 @@ import {
   CakeSlice,
   CalendarDays,
   ChevronDown,
-  ClipboardList,
   EyeOff,
   LogOut,
   MailSearch,
@@ -28,7 +27,6 @@ import EmployeeForm from "./components/EmployeeForm.jsx";
 import LoginPage from "./components/LoginPage.jsx";
 import SystemScreen from "./components/SystemScreen.jsx";
 import NewClientForm from "./components/NewClientForm.jsx";
-import NewVisitForm from "./components/NewVisitForm.jsx";
 import MessageTemplateForm from "./components/MessageTemplateForm.jsx";
 import CalendarEntryForm from "./components/CalendarEntryForm.jsx";
 import SupplyForm from "./components/SupplyForm.jsx";
@@ -49,10 +47,8 @@ import {
   getDaysSinceDisplayDate,
   getLatestDisplayDate,
   toDisplayDate,
-  toInputDate,
 } from "./utils/formatters.jsx";
 import {getEmployeePayout, toVisitNumber} from "./utils/visits.jsx";
-import VisitsTable from "./components/VisitsTable.jsx";
 import EmployeesPage from "./components/EmployeesPage.jsx";
 import ClientsPage from "./components/pages/ClientsPage.jsx";
 import PackagesPage from "./components/pages/PackagesPage.jsx";
@@ -67,7 +63,6 @@ import {isSupabaseConfigured, supabase} from "./lib/supabase.js";
 
 const navItems = [
   {label: "Статистика", page: "statistics", icon: ChartNoAxesCombined},
-  {label: "Визиты", page: "visits", icon: ClipboardList},
   {label: "Календарь", page: "calendar", icon: CalendarDays},
   {label: "Клиенты", page: "clients", icon: Users},
   {label: "Сотрудники", page: "masters", icon: User},
@@ -81,7 +76,6 @@ const navItems = [
 
 const mobileNavItems = [
   {label: "Календарь", page: "calendar", icon: CalendarDays},
-  {label: "Визиты", page: "visits", icon: ClipboardList},
   {label: "Клиенты", page: "clients", icon: Users},
   {label: "Статистика", page: "statistics", icon: ChartNoAxesCombined},
 ];
@@ -471,7 +465,6 @@ function App() {
   const [cloudHydrated, setCloudHydrated] = useState(false);
   const [cloudLoadError, setCloudLoadError] = useState("");
   const [activePage, setActivePage] = useState(loadStoredActivePage);
-  const [visitModalOpen, setVisitModalOpen] = useState(false);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
@@ -481,7 +474,6 @@ function App() {
   const [calendarEntryModalOpen, setCalendarEntryModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [supplyModalOpen, setSupplyModalOpen] = useState(false);
-  const [editingVisit, setEditingVisit] = useState(null);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
   const [editingService, setEditingService] = useState(null);
@@ -492,11 +484,9 @@ function App() {
   const [editingTask, setEditingTask] = useState(null);
   const [editingSupply, setEditingSupply] = useState(null);
   const [calendarEntryDefaults, setCalendarEntryDefaults] = useState({});
-  const [pendingVisit, setPendingVisit] = useState(null);
   const [pendingCalendarAction, setPendingCalendarAction] = useState(null);
   const [pendingCalendarConflict, setPendingCalendarConflict] = useState(null);
   const [pendingDataBackup, setPendingDataBackup] = useState(null);
-  const [openActionMenuId, setOpenActionMenuId] = useState(null);
   const [clientAlertsOpen, setClientAlertsOpen] = useState(false);
   const [alertGroupsOpen, setAlertGroupsOpen] = useState({
     system: false,
@@ -510,33 +500,6 @@ function App() {
   const [notifications, setNotifications] = useState([]);
   const smartVisitAlertIds = useRef(new Set());
   const cloudSnapshotRef = useRef(null);
-  const [filters, setFilters] = useState({
-    master: "",
-    payment: "",
-    client: "",
-    date: "",
-  });
-
-  const filteredVisits = useMemo(
-    () =>
-      visits.filter((visit) => {
-        const matchesMaster =
-          !filters.master || visit.master === filters.master;
-        const matchesPayment =
-          !filters.payment || String(visit.payment ?? "").includes(filters.payment);
-        const matchesClient =
-          !filters.client ||
-          String(visit.client ?? "")
-            .toLowerCase()
-            .includes(filters.client.toLowerCase());
-        const matchesDate =
-          !filters.date || toInputDate(visit.date) === filters.date;
-
-        return matchesMaster && matchesPayment && matchesClient && matchesDate;
-      }),
-    [filters, visits],
-  );
-
   const masters = useMemo(
     () =>
       employees
@@ -1026,46 +989,6 @@ function App() {
     [employees, visits],
   );
 
-  const handleVisitSubmit = (event) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const amount = toVisitNumber(form.get("amount"));
-    const tip = toVisitNumber(form.get("tip"));
-    const commission = toVisitNumber(form.get("commission"));
-    const extra = toVisitNumber(form.get("extra"));
-    const discount = toVisitNumber(form.get("discount"));
-    const commissionType = form.get("commissionType");
-    const packageSessionsUsed = Number(form.get("packageSessionsUsed")) || 0;
-    const packageUsageId = Number(form.get("packageUsageId")) || "";
-    const selectedClientPackage = clientPackages.find(
-      (packageItem) => packageItem.id === packageUsageId,
-    );
-
-    setPendingVisit({
-      form: event.currentTarget,
-      mode: editingVisit ? "edit" : "create",
-      previousVisit: editingVisit,
-      visit: {
-        id: editingVisit?.id ?? createLocalId(),
-        date: toDisplayDate(form.get("date")),
-        client: form.get("client"),
-        master: form.get("master"),
-        service: form.get("service"),
-        duration: "",
-        amount,
-        payment: form.get("payment"),
-        packageUsageId,
-        packageName: selectedClientPackage?.packageName ?? "",
-        packageSessionsUsed,
-        tip,
-        commission,
-        commissionType,
-        extra,
-        discount,
-      },
-    });
-  };
-
   const archiveNotification = (notification) => {
     if (!notification?.undoAction || notification.persist === false) {
       return;
@@ -1151,61 +1074,6 @@ function App() {
     appSettings.todayVisitAlertsEnabled,
     calendarEntries,
   ]);
-
-  const confirmVisitSave = () => {
-    if (!pendingVisit) {
-      return;
-    }
-
-    if (pendingVisit.mode === "edit") {
-      setVisits((current) =>
-        current.map((visit) =>
-          visit.id === pendingVisit.visit.id ? pendingVisit.visit : visit,
-        ),
-      );
-    } else {
-      setVisits((current) => [pendingVisit.visit, ...current]);
-    }
-    if (pendingVisit.visit.commissionType === "Booksy 45%") {
-      setClientProfiles((current) =>
-        current.map((client) =>
-          client.name === pendingVisit.visit.client
-            ? {...client, source: "Booksy"}
-            : client,
-        ),
-      );
-    }
-    updatePackageBalance(pendingVisit.previousVisit, pendingVisit.visit);
-    pendingVisit.form.reset();
-    setVisitModalOpen(false);
-    setEditingVisit(null);
-    pushNotification({
-      title: pendingVisit.mode === "edit" ? "Визит обновлен" : "Визит сохранен",
-      message: `${pendingVisit.visit.client} сохранен в журнале визитов`,
-    });
-    setPendingVisit(null);
-  };
-
-  const openCreateVisit = () => {
-    setEditingVisit(null);
-    setVisitModalOpen(true);
-  };
-
-  const openEditVisit = (visit) => {
-    setOpenActionMenuId(null);
-    setEditingVisit({...visit, date: toInputDate(visit.date)});
-    setVisitModalOpen(true);
-  };
-
-  const deleteVisit = (visit) => {
-    setOpenActionMenuId(null);
-    updatePackageBalance(visit, null);
-    setVisits((current) => current.filter((item) => item.id !== visit.id));
-    pushNotification({
-      title: "Визит удален",
-      message: `${visit.client} удален из журнала визитов`,
-    });
-  };
 
   const openCreateEmployee = () => {
     setEditingEmployee(null);
@@ -1331,6 +1199,13 @@ function App() {
           packageItem.client === previousName
             ? {...packageItem, client: client.name}
             : packageItem,
+        ),
+      );
+      setCalendarEntries((current) =>
+        current.map((entry) =>
+          entry.kind === "visit" && entry.client === previousName
+            ? {...entry, client: client.name}
+            : entry,
         ),
       );
     }
@@ -1707,6 +1582,27 @@ function App() {
     setEditingCalendarEntry(null);
     setCalendarEntryDefaults(defaults);
     setCalendarEntryModalOpen(true);
+  };
+
+  const repeatClientVisit = (client, appointment) => {
+    const repeatedService = serviceCatalog.find(
+      (service) =>
+        String(service.id) === String(appointment.repeatDefaults.serviceId) ||
+        service.name === appointment.repeatDefaults.service,
+    );
+
+    setActivePage("calendar");
+    openCreateCalendarEntry({
+      amount: appointment.repeatDefaults.amount,
+      client: client.name,
+      date: getTodayInput(),
+      duration: appointment.repeatDefaults.duration,
+      kind: "visit",
+      master: appointment.repeatDefaults.master,
+      payment: appointment.repeatDefaults.payment,
+      serviceId: repeatedService?.id ?? "",
+      time: "10:00",
+    });
   };
 
   const openEditCalendarEntry = (entry) => {
@@ -2531,7 +2427,6 @@ function App() {
 
   const handleLogout = () => supabase?.auth.signOut();
 
-  const isVisitsPage = activePage === "visits";
   const isCalendarPage = activePage === "calendar";
   const isMastersPage = activePage === "masters";
   const isClientsPage = activePage === "clients";
@@ -2542,19 +2437,6 @@ function App() {
   const isSettingsPage = activePage === "settings";
   const isOperationsPage = activePage === "operations";
   const isImportPage = activePage === "import";
-  const handleFilterChange = (name, value) => {
-    setFilters((current) => ({...current, [name]: value}));
-  };
-
-  const resetFilters = () => {
-    setFilters({
-      master: "",
-      payment: "",
-      client: "",
-      date: "",
-    });
-  };
-
   const supportedPaths = ["/", "/reset-password"];
   const currentPath = window.location.pathname;
 
@@ -2623,9 +2505,6 @@ function App() {
         appSettings.sidebarVisible ? "" : "sidebar-hidden"
       } ${appSettings.compactMode ? "compact-mode" : ""}`}
       onClick={() => {
-        if (openActionMenuId) {
-          setOpenActionMenuId(null);
-        }
         if (clientAlertsOpen) {
           setClientAlertsOpen(false);
         }
@@ -2750,7 +2629,7 @@ function App() {
       )}
 
       <main
-        className={`content ${isVisitsPage ? "visits-content" : "home-content"} ${isCalendarPage ? "calendar-content" : ""}`}>
+        className={`content home-content ${isCalendarPage ? "calendar-content" : ""}`}>
         <header className="page-header">
           <div
             className="page-header-actions"
@@ -3121,24 +3000,7 @@ function App() {
             </div>
           </div>
         </header>
-        {isVisitsPage ? (
-          <section className="visits-page-grid">
-            <VisitsTable
-              visits={filteredVisits}
-              title="Все визиты"
-              masters={masters}
-              employees={employees}
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              onResetFilters={resetFilters}
-              onAddVisit={openCreateVisit}
-              openActionMenuId={openActionMenuId}
-              onToggleActionMenu={setOpenActionMenuId}
-              onEditVisit={openEditVisit}
-              onDeleteVisit={deleteVisit}
-            />
-          </section>
-        ) : isCalendarPage ? (
+        {isCalendarPage ? (
           <CalendarPage
             entries={calendarEntries}
             visits={visits}
@@ -3158,6 +3020,7 @@ function App() {
         ) : isClientsPage ? (
           <ClientsPage
             visits={visits}
+            calendarEntries={calendarEntries}
             clients={clientProfiles}
             clientPackages={clientPackages}
             communicationLog={communicationLog}
@@ -3167,6 +3030,7 @@ function App() {
             onEditClient={openEditClient}
             onDeleteClient={deleteClient}
             onMessageClient={openClientMessageTemplates}
+            onRepeatVisit={repeatClientVisit}
           />
         ) : isServicesPage ? (
           <ServicesPage
@@ -3286,39 +3150,6 @@ function App() {
           <span>Еще</span>
         </button>
       </nav>
-      {visitModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="visit-modal"
-            role="dialog"
-            aria-labelledby="visit-modal-title">
-            <div className="modal-header">
-              <h2 id="visit-modal-title">
-                {editingVisit ? "Редактировать визит" : "Добавить визит"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => {
-                  setVisitModalOpen(false);
-                  setEditingVisit(null);
-                }}>
-                <X size={18} />
-              </button>
-            </div>
-            <NewVisitForm
-              clients={clientNames}
-              clientPackages={clientPackages}
-              masters={masters}
-              services={serviceNames}
-              initialVisit={editingVisit}
-              onSubmit={handleVisitSubmit}
-            />
-          </section>
-        </div>
-      )}
       {employeeModalOpen && (
         <div className="modal-backdrop" role="presentation">
           <section
@@ -3529,8 +3360,12 @@ function App() {
               initialEntry={editingCalendarEntry}
               selectedDate={calendarEntryDefaults.date ?? DEFAULT_STATS_DATE}
               selectedClient={calendarEntryDefaults.client ?? ""}
+              selectedAmount={calendarEntryDefaults.amount ?? ""}
+              selectedDuration={calendarEntryDefaults.duration ?? 60}
               selectedKind={calendarEntryDefaults.kind ?? "visit"}
               selectedMaster={calendarEntryDefaults.master ?? masters[0] ?? ""}
+              selectedPayment={calendarEntryDefaults.payment ?? "Наличные"}
+              selectedServiceId={calendarEntryDefaults.serviceId ?? ""}
               selectedTime={calendarEntryDefaults.time ?? "10:00"}
               services={serviceCatalog}
               onSubmit={handleCalendarEntrySubmit}
@@ -3578,14 +3413,6 @@ function App() {
           </section>
         </div>
       )}
-      <ConfirmDialog
-        open={Boolean(pendingVisit)}
-        title="Сохранить визит?"
-        message="Проверьте данные перед добавлением визита в журнал."
-        confirmLabel="Сохранить"
-        onCancel={() => setPendingVisit(null)}
-        onConfirm={confirmVisitSave}
-      />
       <ConfirmDialog
         open={Boolean(pendingCalendarAction)}
         title={

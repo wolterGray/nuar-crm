@@ -19,15 +19,19 @@ function CalendarEntryForm({
   services,
   selectedDate,
   selectedClient,
+  selectedAmount,
+  selectedDuration,
   selectedKind,
   selectedMaster,
+  selectedPayment,
+  selectedServiceId,
   selectedTime,
   onSubmit,
 }) {
   const [kind, setKind] = useState(initialEntry?.kind ?? selectedKind ?? "visit");
   const [client, setClient] = useState(initialEntry?.client ?? selectedClient ?? "");
-  const [serviceId, setServiceId] = useState(initialEntry?.serviceId ?? "");
-  const [duration, setDuration] = useState(initialEntry?.duration ?? 60);
+  const [serviceId, setServiceId] = useState(initialEntry?.serviceId ?? selectedServiceId ?? "");
+  const [duration, setDuration] = useState(initialEntry?.duration ?? selectedDuration ?? 60);
   const [time, setTime] = useState(initialEntry?.time ?? selectedTime ?? "10:00");
   const [endTime, setEndTime] = useState(() =>
     toTime(
@@ -35,8 +39,8 @@ function CalendarEntryForm({
         Number(initialEntry?.duration ?? 60),
     ),
   );
-  const [payment, setPayment] = useState(initialEntry?.payment ?? "Наличные");
-  const [amount, setAmount] = useState(initialEntry?.amount ?? "");
+  const [payment, setPayment] = useState(initialEntry?.payment ?? selectedPayment ?? "Наличные");
+  const [amount, setAmount] = useState(initialEntry?.amount ?? selectedAmount ?? "");
   const service = services.find((item) => String(item.id) === String(serviceId));
   const packageOptions = useMemo(
     () =>

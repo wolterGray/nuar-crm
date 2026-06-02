@@ -1,14 +1,17 @@
-import {CakeSlice, Eye, MessageSquareText, MoreVertical, Pencil, Plus, Search, Trash2, X} from "lucide-react";
+import {CakeSlice, Eye, MessageSquareText, MoreVertical, Pencil, Plus, RotateCcw, Search, Trash2, X} from "lucide-react";
 import {useMemo, useState} from "react";
 import {
   formatMoney,
   getDaysSinceDisplayDate,
   getLatestDisplayDate,
+  toDisplayDate,
+  toInputDate,
 } from "../../utils/formatters.jsx";
 import {getVisitTotal} from "../../utils/visits.jsx";
 
 function ClientsPage({
   visits,
+  calendarEntries,
   clients,
   clientPackages,
   communicationLog,
@@ -18,9 +21,11 @@ function ClientsPage({
   onEditClient,
   onDeleteClient,
   onMessageClient,
+  onRepeatVisit,
 }) {
   const [openClientMenuId, setOpenClientMenuId] = useState(null);
   const [viewedClient, setViewedClient] = useState(null);
+  const [visitHistoryTab, setVisitHistoryTab] = useState("future");
   const [search, setSearch] = useState("");
   const viewedClientCommunications = communicationLog
     .filter(
@@ -34,6 +39,62 @@ function ClientsPage({
     () =>
       clients.map((client) => {
         const clientVisits = visits.filter((visit) => visit.client === client.name);
+        const scheduledEntries = calendarEntries.filter(
+          (entry) => entry.kind === "visit" && entry.client === client.name,
+        );
+        const linkedVisitIds = new Set(
+          scheduledEntries.map((entry) => entry.visitId).filter(Boolean),
+        );
+        const appointments = [
+          ...scheduledEntries.map((entry) => {
+            const journalVisit = clientVisits.find((visit) => visit.id === entry.visitId);
+
+            return {
+              id: `calendar-${entry.id}`,
+              date: toDisplayDate(entry.date),
+              inputDate: entry.date,
+              time: entry.time || "—",
+              service: entry.service || "Услуга не указана",
+              master: entry.master || "—",
+              payment: journalVisit?.payment || entry.payment || "—",
+              total: journalVisit ? getVisitTotal(journalVisit, employees) : null,
+              status: getAppointmentStatus(entry),
+              repeatDefaults: {
+                amount: entry.amount || journalVisit?.amount || "",
+                duration: entry.duration || journalVisit?.duration || 60,
+                master: entry.master || journalVisit?.master || "",
+                payment: entry.payment || journalVisit?.payment || "Наличные",
+                service: entry.service || journalVisit?.service || "",
+                serviceId: entry.serviceId || "",
+              },
+            };
+          }),
+          ...clientVisits
+            .filter((visit) => !linkedVisitIds.has(visit.id))
+            .map((visit) => ({
+              id: `journal-${visit.id}`,
+              date: visit.date,
+              inputDate: toInputDate(visit.date),
+              time: visit.time || "—",
+              service: visit.service || "Услуга не указана",
+              master: visit.master || "—",
+              payment: visit.payment || "—",
+              total: getVisitTotal(visit, employees),
+              status: "Окончен",
+              repeatDefaults: {
+                amount: visit.amount || "",
+                duration: visit.duration || 60,
+                master: visit.master || "",
+                payment: visit.payment || "Наличные",
+                service: visit.service || "",
+                serviceId: "",
+              },
+            })),
+        ].sort((first, second) =>
+          `${second.inputDate}T${second.time}`.localeCompare(
+            `${first.inputDate}T${first.time}`,
+          ),
+        );
         const packages = clientPackages.filter(
           (packageItem) => packageItem.client === client.name,
         );
@@ -54,7 +115,12 @@ function ClientsPage({
 
         return {
           ...client,
-          visitsCount: clientVisits.length,
+          visitsCount: appointments.length,
+          completedVisitsCount: clientVisits.length,
+          upcomingVisitsCount: appointments.filter(
+            (appointment) => appointment.status === "Запланирован",
+          ).length,
+          appointments,
           totalIncome,
           packagesCount: packages.length,
           packagesLeft,
@@ -62,7 +128,7 @@ function ClientsPage({
           daysAbsent,
         };
       }),
-    [clientPackages, clients, employees, visits],
+    [calendarEntries, clientPackages, clients, employees, visits],
   );
 
   const normalizedSearch = search.trim().toLowerCase();
@@ -147,11 +213,15 @@ function ClientsPage({
             role="button"
             tabIndex="0"
             key={client.id}
-            onClick={() => setViewedClient(client)}
+            onClick={() => {
+              setViewedClient(client);
+              setVisitHistoryTab("future");
+            }}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
                 setViewedClient(client);
+                setVisitHistoryTab("future");
               }
             }}>
             <span className="client-name-cell">
@@ -190,6 +260,7 @@ function ClientsPage({
                     type="button"
                     onClick={() => {
                       setViewedClient(client);
+                      setVisitHistoryTab("future");
                       setOpenClientMenuId(null);
                     }}>
                     <Eye size={15} />
@@ -281,6 +352,12 @@ function ClientsPage({
                 Визитов <strong>{viewedClient.visitsCount}</strong>
               </span>
               <span>
+                Завершено <strong>{viewedClient.completedVisitsCount}</strong>
+              </span>
+              <span>
+                Запланировано <strong>{viewedClient.upcomingVisitsCount}</strong>
+              </span>
+              <span>
                 Последний визит <strong>{viewedClient.lastVisit}</strong>
               </span>
               <span>
@@ -320,6 +397,82 @@ function ClientsPage({
               <span>Заметка</span>
               <p>{viewedClient.note || "Заметок пока нет."}</p>
             </div>
+            <div className="client-visit-history">
+              <div>
+                <span>История визитов</span>
+                <b>{viewedClient.appointments.length}</b>
+              </div>
+              <div className="client-visit-history-tabs">
+                <button
+                  className={visitHistoryTab === "future" ? "active" : ""}
+                  type="button"
+                  onClick={() => setVisitHistoryTab("future")}>
+                  Будущие
+                  <b>{viewedClient.upcomingVisitsCount}</b>
+                </button>
+                <button
+                  className={visitHistoryTab === "past" ? "active" : ""}
+                  type="button"
+                  onClick={() => setVisitHistoryTab("past")}>
+                  Прошлые
+                  <b>
+                    {viewedClient.appointments.length - viewedClient.upcomingVisitsCount}
+                  </b>
+                </button>
+              </div>
+              <div className="client-visit-history-table">
+                <div className="client-visit-history-row client-visit-history-head">
+                  <span>Дата</span>
+                  <span>Услуга</span>
+                  <span>Мастер</span>
+                  <span>Оплата</span>
+                  <span>Прибыль</span>
+                  <span>Статус</span>
+                  <span></span>
+                </div>
+                {viewedClient.appointments
+                  .filter((appointment) =>
+                    visitHistoryTab === "future"
+                      ? appointment.status === "Запланирован"
+                      : appointment.status !== "Запланирован",
+                  )
+                  .map((appointment) => (
+                  <div className="client-visit-history-row" key={appointment.id}>
+                    <span data-label="Дата">
+                      {appointment.date}
+                      {appointment.time !== "—" ? ` · ${appointment.time}` : ""}
+                    </span>
+                    <span data-label="Услуга">{appointment.service}</span>
+                    <span data-label="Мастер">{appointment.master}</span>
+                    <span data-label="Оплата">{appointment.payment}</span>
+                    <span data-label="Прибыль">
+                      {appointment.total === null ? "После визита" : formatMoney(appointment.total)}
+                    </span>
+                    <span data-label="Статус">
+                      <b>{appointment.status}</b>
+                    </span>
+                    <button
+                      className="client-repeat-visit"
+                      type="button"
+                      onClick={() => onRepeatVisit(viewedClient, appointment)}>
+                      <RotateCcw size={13} />
+                      Повторить
+                    </button>
+                  </div>
+                ))}
+                {viewedClient.appointments.filter((appointment) =>
+                  visitHistoryTab === "future"
+                    ? appointment.status === "Запланирован"
+                    : appointment.status !== "Запланирован",
+                ).length === 0 && (
+                  <p className="client-visit-history-empty">
+                    {visitHistoryTab === "future"
+                      ? "Будущих визитов пока нет."
+                      : "Прошлых визитов пока нет."}
+                  </p>
+                )}
+              </div>
+            </div>
             <div className="client-communications">
               <span>Последние сообщения</span>
               {viewedClientCommunications.map((entry) => (
@@ -348,6 +501,17 @@ function ClientsPage({
       )}
     </section>
   );
+}
+
+function getAppointmentStatus(entry) {
+  if (entry.status === "cancelled") return "Отменён";
+  if (entry.status === "no_show") return "No-show";
+  if (entry.status === "completed") return "Окончен";
+
+  const end = new Date(`${entry.date}T${entry.time || "00:00"}:00`);
+  end.setMinutes(end.getMinutes() + Number(entry.duration || 0));
+
+  return end < new Date() ? "Окончен" : "Запланирован";
 }
 
 export default ClientsPage;
