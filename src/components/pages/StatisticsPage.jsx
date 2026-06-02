@@ -7,10 +7,9 @@ import {
   Users,
   WalletCards,
 } from "lucide-react";
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {
   formatCompactMoney,
-  formatMoney,
   parseDisplayDate,
   toDisplayDate,
 } from "../../utils/formatters.jsx";
@@ -19,6 +18,7 @@ import {
   getEmployeePayout,
   getVisitCommission,
   getVisitTotal,
+  getVisitTransactionTotal,
 } from "../../utils/visits.jsx";
 import {
   createPaymentRingGradient,
@@ -27,6 +27,14 @@ import {
 } from "../../utils/payments.js";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const CURRENCY_CACHE_KEY = "nuar-crm-nbp-rates";
+const defaultRates = {PLN: 1, USD: 3.72, EUR: 4.28, UAH: 0.087};
+const currencies = [
+  {code: "PLN", label: "zł"},
+  {code: "USD", label: "$"},
+  {code: "EUR", label: "€"},
+  {code: "UAH", label: "₴"},
+];
 
 const toInputDate = (date) => {
   const parsedDate = parseDisplayDate(date);
@@ -61,16 +69,67 @@ const shortDate = (date) => {
   return `${day}.${month}`;
 };
 
-function StatisticsPage({visits, clientPackages, clients, employees}) {
+const isCompletedVisit = (visit) =>
+  visit.recordType === "operation" ||
+  (!visit.isPlanned &&
+    !["scheduled", "confirmed", "cancelled", "no_show"].includes(visit.status));
+
+const isForecastVisit = (visit) =>
+  visit.kind === "visit" &&
+  !["completed", "cancelled", "no_show"].includes(visit.status);
+
+function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, employees}) {
   const [startDate, setStartDate] = useState(getMonthStart);
   const [endDate, setEndDate] = useState(getTodayInput);
   const [master, setMaster] = useState("");
+  const [currency, setCurrency] = useState("PLN");
+  const [rates, setRates] = useState(() => {
+    try {
+      return {...defaultRates, ...JSON.parse(window.localStorage.getItem(CURRENCY_CACHE_KEY))};
+    } catch {
+      return defaultRates;
+    }
+  });
+
+  useEffect(() => {
+    Promise.all(
+      ["USD", "EUR", "UAH"].map(async (code) => {
+        const response = await fetch(`https://api.nbp.pl/api/exchangerates/rates/a/${code}/?format=json`);
+        if (!response.ok) throw new Error("NBP unavailable");
+        const data = await response.json();
+        return [code, Number(data.rates?.[0]?.mid) || defaultRates[code]];
+      }),
+    )
+      .then((entries) => {
+        const nextRates = {...defaultRates, ...Object.fromEntries(entries)};
+        setRates(nextRates);
+        window.localStorage.setItem(CURRENCY_CACHE_KEY, JSON.stringify(nextRates));
+      })
+      .catch(() => {});
+  }, []);
+
+  const formatIncome = (value) =>
+    new Intl.NumberFormat("ru-RU", {
+      currency,
+      currencyDisplay: "symbol",
+      maximumFractionDigits: currency === "PLN" ? 1 : 2,
+      minimumFractionDigits: 0,
+      style: "currency",
+    }).format((Number(value) || 0) / (rates[currency] || 1));
   const analytics = useMemo(() => {
     const dateRange = enumerateDates(startDate, endDate);
     const filteredVisits = visits.filter((visit) => {
       const date = toInputDate(visit.date);
-      return date >= startDate && date <= endDate && (!master || visit.master === master);
+      return (
+        isCompletedVisit(visit) &&
+        date >= startDate &&
+        date <= endDate &&
+        (!master || visit.master === master)
+      );
     });
+    const filteredAppointments = filteredVisits.filter(
+      (visit) => visit.recordType !== "operation",
+    );
     const filteredPackages = master
       ? []
       : clientPackages.filter((item) => {
@@ -81,39 +140,66 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
       (sum, item) => sum + (Number(item.price) || 0),
       0,
     );
+    const forecastVisits = calendarEntries.filter((visit) => {
+      const date = visit.date;
+      return (
+        isForecastVisit(visit) &&
+        date >= startDate &&
+        date <= endDate &&
+        (!master || visit.master === master)
+      );
+    });
+    const forecastIncome = forecastVisits.reduce(
+      (sum, visit) => sum + getVisitTransactionTotal(visit),
+      0,
+    );
     const visitsIncome = filteredVisits.reduce(
       (sum, visit) => sum + getVisitTotal(visit, employees),
       0,
     );
-    const serviceRevenue = filteredVisits.reduce(
+    const financialOperations = filteredVisits.filter(
+      (visit) => visit.recordType === "operation",
+    );
+    const financialOperationsIncome = financialOperations.reduce(
+      (sum, visit) => sum + getVisitTotal(visit, employees),
+      0,
+    );
+    const certificatesCount = financialOperations.filter(
+      (visit) => visit.service === "Продажа сертификата",
+    ).length;
+    const serviceRevenue = filteredAppointments.reduce(
       (sum, visit) => sum + getDiscountedServiceAmount(visit),
       0,
     );
-    const tips = filteredVisits.reduce((sum, visit) => sum + (Number(visit.tip) || 0), 0);
-    const extras = filteredVisits.reduce(
+    const tips = filteredAppointments.reduce((sum, visit) => sum + (Number(visit.tip) || 0), 0);
+    const extras = filteredAppointments.reduce(
       (sum, visit) => sum + (Number(visit.extra) || 0),
       0,
     );
-    const discounts = filteredVisits.reduce(
+    const discounts = filteredAppointments.reduce(
       (sum, visit) =>
         sum + (Number(visit.amount) || 0) * ((Number(visit.discount) || 0) / 100),
       0,
     );
-    const employeePayouts = filteredVisits.reduce(
+    const employeePayouts = filteredAppointments.reduce(
       (sum, visit) => sum + getEmployeePayout(visit, employees),
       0,
     );
-    const platformCommissions = filteredVisits.reduce(
+    const platformCommissions = filteredAppointments.reduce(
       (sum, visit) => sum + getVisitCommission(visit),
       0,
     );
     const totalIncome = visitsIncome + packageIncome;
-    const clientNames = new Set(filteredVisits.map((visit) => visit.client));
+    const clientNames = new Set(
+      filteredAppointments.map((visit) => visit.client).filter(Boolean),
+    );
     const repeatClients = [...clientNames].filter(
       (clientName) =>
-        visits.filter((visit) => visit.client === clientName).length > 1,
+        visits.filter(
+          (visit) => visit.recordType !== "operation" && visit.client === clientName,
+        ).length > 1,
     ).length;
-    const averageCheck = totalIncome / Math.max(filteredVisits.length, 1);
+    const averageCheck = totalIncome / Math.max(filteredAppointments.length, 1);
     const dates = dateRange.map((date) => {
       const dailyVisits = filteredVisits.filter((visit) => toInputDate(visit.date) === date);
       const dailyPackages = filteredPackages.filter(
@@ -152,7 +238,12 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
       discounts,
       employeePayouts,
       extras,
+      certificatesCount,
+      financialOperationsIncome,
+      forecastIncome,
+      forecastVisits,
       filteredPackages,
+      filteredAppointments,
       filteredVisits,
       packageIncome,
       paymentTotal,
@@ -163,20 +254,23 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
       tips,
       totalIncome,
     };
-  }, [clientPackages, employees, endDate, master, startDate, visits]);
+  }, [calendarEntries, clientPackages, employees, endDate, master, startDate, visits]);
 
   const chart = createChart(analytics.dates);
   const activePayments = analytics.payments.filter((item) => item.recordsCount > 0);
+  const visiblePaymentStats = analytics.payments.filter(
+    (item) => item.recordsCount > 0 || ["Наличные", "Карта"].includes(item.label),
+  );
   const mainStats = [
     {
       label: "Общий доход",
-      value: formatMoney(analytics.totalIncome),
+      value: formatIncome(analytics.totalIncome),
       icon: CircleDollarSign,
       color: "#2364d2",
     },
-    ...activePayments.map((item) => ({
+    ...visiblePaymentStats.map((item) => ({
       label: item.label,
-      value: formatMoney(item.value),
+      value: formatIncome(item.value),
       icon: WalletCards,
       color: item.color,
       primary: ["Наличные", "Карта"].includes(item.label),
@@ -188,11 +282,51 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
   const secondaryStats = mainStats.filter(
     (item) => !item.primary && item.label !== "Общий доход",
   );
+  const overviewStats = [
+    {
+      label: `Прогноз · ${analytics.forecastVisits.length} записей`,
+      value: formatIncome(analytics.forecastIncome),
+      icon: TrendingUp,
+      color: "#8b6fd6",
+    },
+    {
+      label: "Завершено визитов",
+      value: analytics.filteredAppointments.length,
+      icon: CalendarRange,
+      color: "#248a4f",
+    },
+    {
+      label: "Клиентов за период",
+      value: analytics.clientsCount,
+      icon: Users,
+      color: "#2364d2",
+    },
+    {
+      label: "Пакетов продано",
+      value: analytics.filteredPackages.length,
+      icon: Package,
+      color: "#d07a12",
+    },
+    {
+      label: "Сертификатов",
+      value: analytics.certificatesCount,
+      icon: CircleDollarSign,
+      color: "#d85886",
+    },
+    {
+      label: "Средний чек",
+      value: formatIncome(analytics.averageCheck),
+      icon: Banknote,
+      color: "#546273",
+    },
+  ];
   const earnings = [
+    ["Массажи после скидок", analytics.serviceRevenue],
     ["Продажи пакетов", analytics.packageIncome],
+    ["Прочие поступления", analytics.financialOperationsIncome],
     ["Чаевые", analytics.tips],
     ["Доп. услуги", analytics.extras],
-    ["Скидки", -analytics.discounts],
+    ["Скидки предоставлено", -analytics.discounts],
     ["Выплаты мастерам", -analytics.employeePayouts],
     ["Комиссии платформ", -analytics.platformCommissions],
   ];
@@ -220,6 +354,16 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
               <option key={employee.id}>{employee.name}</option>
             ))}
           </select>
+          <select
+            aria-label="Валюта отчёта"
+            value={currency}
+            onChange={(event) => setCurrency(event.target.value)}>
+            {currencies.map((item) => (
+              <option key={item.code} value={item.code}>
+                {item.code} · {item.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -234,14 +378,18 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
         )}
       </div>
 
+      <div className="statistics-overview-cards">
+        {overviewStats.map((item) => <StatisticsCard item={item} key={item.label} />)}
+      </div>
+
       <div className="statistics-layout">
         <article className="panel statistics-chart-panel">
           <div className="panel-header">
             <div>
               <h2>Доход по датам</h2>
-              <p>{toDisplayDate(startDate)} — {toDisplayDate(endDate)}</p>
+              <p>Только завершённые визиты · {toDisplayDate(startDate)} — {toDisplayDate(endDate)}</p>
             </div>
-            <strong>{formatMoney(analytics.totalIncome)}</strong>
+            <strong>{formatIncome(analytics.totalIncome)}</strong>
           </div>
           <svg className="statistics-line-chart" viewBox="0 0 760 270" role="img" aria-label="График дохода по дням">
             {[30, 90, 150, 210].map((y) => <line key={y} x1="38" x2="744" y1={y} y2={y} />)}
@@ -249,7 +397,7 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
             <path className="statistics-line" d={chart.linePath} />
             {chart.points.map((point) => (
               <circle key={point.date} cx={point.x} cy={point.y} r="3">
-                <title>{shortDate(point.date)}: {formatMoney(point.income)}</title>
+                <title>{shortDate(point.date)}: {formatIncome(point.income)}</title>
               </circle>
             ))}
           </svg>
@@ -267,7 +415,7 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
             <div
               className="percent-ring dynamic-payment-ring statistics-ring"
               style={{"--payment-ring-gradient": createPaymentRingGradient(activePayments)}}>
-              <strong>{formatCompactMoney(analytics.paymentTotal)}</strong>
+              <strong>{formatCompactMoney(analytics.paymentTotal / (rates[currency] || 1))}</strong>
               <span>доход</span>
             </div>
             <div className="payment-breakdown">
@@ -275,7 +423,7 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
                 <span key={item.label}>
                   <i style={{background: item.color}} />
                   {item.label}
-                  <strong>{formatMoney(item.value)}</strong>
+                  <strong>{formatIncome(item.value)}</strong>
                 </span>
               ))}
             </div>
@@ -291,7 +439,7 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
             {earnings.map(([label, value]) => (
               <span key={label}>
                 {label}
-                <strong className={value < 0 ? "negative" : ""}>{formatMoney(value)}</strong>
+                <strong className={value < 0 ? "negative" : ""}>{formatIncome(value)}</strong>
               </span>
             ))}
           </div>
@@ -307,6 +455,8 @@ function StatisticsPage({visits, clientPackages, clients, employees}) {
             <span><TrendingUp size={16} />Повторных<strong>{analytics.repeatClients}</strong></span>
             <span><Banknote size={16} />Возвратность<strong>{Math.round(repeatRate)}%</strong></span>
             <span><Package size={16} />Пакетов продано<strong>{analytics.filteredPackages.length}</strong></span>
+            <span><WalletCards size={16} />Визитов за период<strong>{analytics.filteredAppointments.length}</strong></span>
+            <span><CircleDollarSign size={16} />Сертификатов<strong>{analytics.certificatesCount}</strong></span>
           </div>
           <small>Всего клиентов в базе: {clients.length}</small>
         </article>

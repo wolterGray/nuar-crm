@@ -1,11 +1,12 @@
 import {Pencil, Plus, Trash2} from "lucide-react";
 import {motion} from "framer-motion";
 import {formatMoney} from "../../utils/formatters.jsx";
-import {getPackageProgressLabel, getPackageUsedVisits} from "../../utils/packages.jsx";
+import {getPackageRemainingLabel, getPackageUsedVisits} from "../../utils/packages.jsx";
 
 function PackagesPage({
   packages,
   clientPackages,
+  certificates,
   onAdd,
   onEdit,
   onDelete,
@@ -76,8 +77,8 @@ function PackagesPage({
               </div>
               <div className="client-package-progress">
                 <div>
-                  <span>Использовано сеансов</span>
-                  <strong>{getPackageProgressLabel(packageItem)}</strong>
+                  <span>Осталось сеансов</span>
+                  <strong>{getPackageRemainingLabel(packageItem)}</strong>
                 </div>
                 <progress
                   max={Math.max(Number(packageItem.totalVisits) || 1, 1)}
@@ -112,6 +113,34 @@ function PackagesPage({
             <div className="clients-empty">
               <strong>Пока нет проданных пакетов</strong>
               <span>Продайте пакет клиенту, чтобы отслеживать остаток визитов.</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="panel client-packages-panel">
+        <div className="panel-header">
+          <h2>Проданные сертификаты</h2>
+          <span>{certificates.length}</span>
+        </div>
+        <div className="client-packages-list">
+          {certificates.map((certificate) => (
+            <article className="client-package-card certificate-card" key={certificate.id}>
+              <div className="client-package-main">
+                <strong>{certificate.client || "Без привязки к клиенту"}</strong>
+                <span>{certificate.service}</span>
+                <small>{certificate.date}</small>
+              </div>
+              <div className="client-package-meta">
+                <span>{formatMoney(certificate.extra)}</span>
+                <b>{certificate.payment}</b>
+              </div>
+            </article>
+          ))}
+          {certificates.length === 0 && (
+            <div className="clients-empty">
+              <strong>Сертификаты пока не продавались</strong>
+              <span>Продажа появится здесь после добавления поступления в разделе оплат.</span>
             </div>
           )}
         </div>

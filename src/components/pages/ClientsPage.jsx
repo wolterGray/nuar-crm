@@ -1,5 +1,5 @@
-import {CakeSlice, CalendarPlus, Eye, MessageSquareText, MoreVertical, Pencil, Plus, RotateCcw, Search, Trash2, X} from "lucide-react";
-import {useMemo, useState} from "react";
+import {CakeSlice, CalendarPlus, Eye, MessageSquareText, MoreVertical, Pencil, Phone, Plus, RotateCcw, Search, Trash2, X} from "lucide-react";
+import {useEffect, useMemo, useState} from "react";
 import {
   formatMoney,
   getDaysSinceDisplayDate,
@@ -39,7 +39,12 @@ function ClientsPage({
   const clientsData = useMemo(
     () =>
       clients.map((client) => {
-        const clientVisits = visits.filter((visit) => visit.client === client.name);
+        const clientVisits = visits.filter(
+          (visit) => visit.client === client.name && visit.recordType !== "operation",
+        );
+        const clientOperations = visits.filter(
+          (visit) => visit.client === client.name && visit.recordType === "operation",
+        );
         const scheduledEntries = calendarEntries.filter(
           (entry) => entry.kind === "visit" && entry.client === client.name,
         );
@@ -102,6 +107,9 @@ function ClientsPage({
         const totalIncome = clientVisits.reduce(
           (sum, visit) => sum + getVisitTotal(visit, employees),
           0,
+        ) + clientOperations.reduce(
+          (sum, visit) => sum + getVisitTotal(visit, employees),
+          0,
         ) + packages.reduce(
           (sum, packageItem) => sum + (Number(packageItem.price) || 0),
           0,
@@ -131,6 +139,20 @@ function ClientsPage({
       }),
     [calendarEntries, clientPackages, clients, employees, visits],
   );
+
+  useEffect(() => {
+    if (!viewedClient) return undefined;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [viewedClient]);
 
   const normalizedSearch = search.trim().toLowerCase();
   const filteredClients = clientsData.filter((client) =>
@@ -403,6 +425,13 @@ function ClientsPage({
                 <MessageSquareText size={15} />
                 Написать
               </button>
+              <a
+                aria-disabled={!viewedClient.phone}
+                className="secondary-button"
+                href={viewedClient.phone ? `tel:${viewedClient.phone}` : undefined}>
+                <Phone size={15} />
+                Позвонить
+              </a>
             </div>
             {viewedClient.birthday && (
               <div className="client-birthday-note">

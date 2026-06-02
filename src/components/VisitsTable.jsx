@@ -16,6 +16,7 @@ function VisitsTable({
   onToggleActionMenu,
   onEditVisit,
   onDeleteVisit,
+  addLabel = "Добавить операцию",
 }) {
   const clientOptions = [...new Set(visits.map((visit) => visit.client))];
   const exportVisits = () => {
@@ -61,10 +62,12 @@ function VisitsTable({
             <ListFilter size={17} />
             Сбросить
           </button>
-          <button className="add-visit-button" type="button" onClick={onAddVisit}>
-            <Plus size={17} />
-            Добавить визит
-          </button>
+          {onAddVisit && (
+            <button className="add-visit-button" type="button" onClick={onAddVisit}>
+              <Plus size={17} />
+              {addLabel}
+            </button>
+          )}
         </div>
       </div>
 
@@ -128,10 +131,13 @@ function VisitsTable({
           <span></span>
         </div>
         {visits.map((visit) => (
-          <div className="table-row" key={visit.id}>
+          <div className={`table-row ${visit.isPlanned ? "table-row-planned" : ""}`} key={visit.id}>
             <span>{visit.date}</span>
             <TooltipCell value={visit.client} />
-            <span>{visit.service}</span>
+            <span>
+              {visit.service}
+              {visit.isPlanned && <small>Запланирован</small>}
+            </span>
             <span>{visit.master}</span>
             <span>{formatMoney(visit.amount)}</span>
             <TooltipCell
@@ -168,12 +174,16 @@ function VisitsTable({
               </button>
               {openActionMenuId === visit.id && (
                 <div className="row-action-menu">
-                  <button type="button" onClick={() => onEditVisit(visit)}>
-                    Редактировать
-                  </button>
-                  <button type="button" onClick={() => onDeleteVisit(visit)}>
-                    Удалить
-                  </button>
+                  {onEditVisit && (
+                    <button type="button" onClick={() => onEditVisit(visit)}>
+                      Редактировать
+                    </button>
+                  )}
+                  {onDeleteVisit && (
+                    <button type="button" onClick={() => onDeleteVisit(visit)}>
+                      Удалить
+                    </button>
+                  )}
                 </div>
               )}
             </div>

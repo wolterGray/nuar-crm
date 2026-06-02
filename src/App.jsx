@@ -12,6 +12,7 @@ import {
   Menu,
   MessageSquareText,
   MoreHorizontal,
+  ReceiptText,
   Package,
   PackageSearch,
   PanelLeftClose,
@@ -29,6 +30,7 @@ import SystemScreen from "./components/SystemScreen.jsx";
 import NewClientForm from "./components/NewClientForm.jsx";
 import MessageTemplateForm from "./components/MessageTemplateForm.jsx";
 import CalendarEntryForm from "./components/CalendarEntryForm.jsx";
+import FinancialOperationForm from "./components/FinancialOperationForm.jsx";
 import SupplyForm from "./components/SupplyForm.jsx";
 import TaskForm from "./components/TaskForm.jsx";
 import PackageForm from "./components/PackageForm.jsx";
@@ -58,6 +60,7 @@ import ServicesPage from "./components/pages/ServicesPage.jsx";
 import MessageTemplatesPage from "./components/pages/MessageTemplatesPage.jsx";
 import CalendarPage from "./components/pages/CalendarPage.jsx";
 import StatisticsPage from "./components/pages/StatisticsPage.jsx";
+import VisitsTable from "./components/VisitsTable.jsx";
 import OperationsPage from "./components/pages/OperationsPage.jsx";
 import ImportPage from "./components/pages/ImportPage.jsx";
 import {isSupabaseConfigured, supabase} from "./lib/supabase.js";
@@ -65,6 +68,7 @@ import {isSupabaseConfigured, supabase} from "./lib/supabase.js";
 const navItems = [
   {label: "Статистика", page: "statistics", icon: ChartNoAxesCombined},
   {label: "Календарь", page: "calendar", icon: CalendarDays},
+  {label: "Оплаты", page: "payments", icon: ReceiptText},
   {label: "Клиенты", page: "clients", icon: Users},
   {label: "Сотрудники", page: "masters", icon: User},
   {label: "Услуги", page: "services", icon: BriefcaseBusiness},
@@ -77,6 +81,7 @@ const navItems = [
 
 const mobileNavItems = [
   {label: "Календарь", page: "calendar", icon: CalendarDays},
+  {label: "Оплаты", page: "payments", icon: ReceiptText},
   {label: "Клиенты", page: "clients", icon: Users},
   {label: "Статистика", page: "statistics", icon: ChartNoAxesCombined},
 ];
@@ -475,6 +480,7 @@ function App() {
   const [calendarEntryModalOpen, setCalendarEntryModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [supplyModalOpen, setSupplyModalOpen] = useState(false);
+  const [financialOperationModalOpen, setFinancialOperationModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
   const [editingService, setEditingService] = useState(null);
@@ -484,6 +490,13 @@ function App() {
   const [editingCalendarEntry, setEditingCalendarEntry] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
   const [editingSupply, setEditingSupply] = useState(null);
+  const [openPaymentActionMenuId, setOpenPaymentActionMenuId] = useState(null);
+  const [paymentFilters, setPaymentFilters] = useState({
+    master: "",
+    payment: "",
+    client: "",
+    date: "",
+  });
   const [calendarEntryDefaults, setCalendarEntryDefaults] = useState({});
   const [pendingCalendarAction, setPendingCalendarAction] = useState(null);
   const [pendingCalendarConflict, setPendingCalendarConflict] = useState(null);
@@ -495,11 +508,14 @@ function App() {
     birthdays: false,
     inactive: false,
     operations: false,
+    packages: false,
+    forecast: false,
   });
   const [activeClientAlertId, setActiveClientAlertId] = useState(null);
   const [preferredMessageClientId, setPreferredMessageClientId] = useState("");
   const [notifications, setNotifications] = useState([]);
   const smartVisitAlertIds = useRef(new Set());
+  const autoCompletedCalendarEntryIds = useRef(new Set());
   const cloudSnapshotRef = useRef(null);
   const masters = useMemo(
     () =>
@@ -537,7 +553,7 @@ function App() {
         })
         .filter(
           (client) =>
-            (client.daysAbsent === null || client.daysAbsent >= inactiveClientDays),
+            client.daysAbsent !== null && client.daysAbsent >= inactiveClientDays,
         )
         .sort(
           (firstClient, secondClient) =>
@@ -661,6 +677,68 @@ function App() {
     tasks,
   ]);
 
+  const packageBalanceAlerts = useMemo(
+    () =>
+      appSettings.notificationsEnabled
+        ? clientPackages
+            .filter((item) => Number(item.remainingVisits) <= 2)
+            .map((item) => ({
+              alertId: `package-balance-${item.id}-${item.remainingVisits}`,
+              title: item.client,
+              message:
+                Number(item.remainingVisits) === 0
+                  ? `${item.packageName}: сеансы закончились`
+                  : `${item.packageName}: осталось ${item.remainingVisits}`,
+            }))
+            .filter((item) => !dismissedClientAlertIds.includes(item.alertId))
+        : [],
+    [
+      appSettings.notificationsEnabled,
+      clientPackages,
+      dismissedClientAlertIds,
+    ],
+  );
+
+  const revenueForecastAlerts = useMemo(() => {
+    if (!appSettings.notificationsEnabled) return [];
+
+    const today = getTodayInput();
+    const tomorrowDate = new Date(`${today}T12:00:00`);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrow = tomorrowDate.toISOString().slice(0, 10);
+    const forecast = (date) =>
+      calendarEntries
+        .filter(
+          (entry) =>
+            entry.kind === "visit" &&
+            entry.date === date &&
+            !["cancelled", "no_show"].includes(entry.status),
+        )
+        .reduce((sum, entry) => sum + toVisitNumber(entry.amount), 0);
+
+    return [
+      {alertId: `forecast-${today}`, title: "Прогноз на сегодня", message: `${forecast(today)} zł`},
+      {alertId: `forecast-${tomorrow}`, title: "Прогноз на завтра", message: `${forecast(tomorrow)} zł`},
+    ]
+      .filter((item) => Number.parseFloat(item.message) > 0)
+      .filter((item) => !dismissedClientAlertIds.includes(item.alertId));
+  }, [
+    appSettings.notificationsEnabled,
+    calendarEntries,
+    dismissedClientAlertIds,
+  ]);
+
+  const dismissAlertTemporarily = (alertId, delay = 6 * 60 * 60 * 1000) => {
+    setDismissedClientAlertIds((current) =>
+      current.includes(alertId) ? current : [...current, alertId],
+    );
+    window.setTimeout(() => {
+      setDismissedClientAlertIds((current) =>
+        current.filter((item) => item !== alertId),
+      );
+    }, delay);
+  };
+
   const actionableNotificationInbox = useMemo(
     () => notificationInbox.filter((notification) => notification.undoAction),
     [notificationInbox],
@@ -671,7 +749,9 @@ function App() {
     birthdayAlerts.length +
     inactiveClientAlerts.length +
     actionableNotificationInbox.length +
-    operationsAlerts.length;
+    operationsAlerts.length +
+    packageBalanceAlerts.length +
+    revenueForecastAlerts.length;
   const serviceNames = useMemo(
     () => serviceCatalog.map((service) => service.name),
     [serviceCatalog],
@@ -686,9 +766,79 @@ function App() {
     [clientPackages],
   );
 
+  const paymentRows = useMemo(
+    () => [
+      ...calendarEntries
+        .filter((entry) => entry.kind === "visit" && !entry.visitId)
+        .map((entry) => ({
+          ...entry,
+          id: `calendar-${entry.id}`,
+          calendarEntryId: entry.id,
+          date: toDisplayDate(entry.date),
+          extra: 0,
+          tip: 0,
+          commission: 0,
+          commissionType: "Без комиссии",
+          discount: 0,
+          isPlanned: true,
+        })),
+      ...visits,
+    ],
+    [calendarEntries, visits],
+  );
+
+  const filteredPaymentRows = useMemo(
+    () =>
+      paymentRows.filter(
+        (visit) =>
+          (!paymentFilters.master || visit.master === paymentFilters.master) &&
+          (!paymentFilters.payment || visit.payment === paymentFilters.payment) &&
+          (!paymentFilters.client || visit.client === paymentFilters.client) &&
+          (!paymentFilters.date || visit.date === toDisplayDate(paymentFilters.date)),
+      ),
+    [paymentFilters, paymentRows],
+  );
+
   useEffect(() => {
     window.localStorage.setItem(VISITS_STORAGE_KEY, JSON.stringify(visits));
   }, [visits]);
+
+  useEffect(() => {
+    const modalOpen =
+      employeeModalOpen ||
+      clientModalOpen ||
+      serviceModalOpen ||
+      packageModalOpen ||
+      clientPackageModalOpen ||
+      messageTemplateModalOpen ||
+      calendarEntryModalOpen ||
+      taskModalOpen ||
+      supplyModalOpen ||
+      financialOperationModalOpen;
+
+    if (!modalOpen) return undefined;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [
+    calendarEntryModalOpen,
+    clientModalOpen,
+    clientPackageModalOpen,
+    employeeModalOpen,
+    financialOperationModalOpen,
+    messageTemplateModalOpen,
+    packageModalOpen,
+    serviceModalOpen,
+    supplyModalOpen,
+    taskModalOpen,
+  ]);
 
   useEffect(() => {
     window.localStorage.setItem(ACTIVE_PAGE_STORAGE_KEY, activePage);
@@ -968,7 +1118,7 @@ function App() {
     () =>
       employees.map((employee) => {
         const employeeVisits = visits.filter(
-          (visit) => visit.master === employee.name,
+          (visit) => visit.recordType !== "operation" && visit.master === employee.name,
         );
         const income = employeeVisits.reduce(
           (sum, visit) => sum + getEmployeePayout(visit, employees),
@@ -1079,6 +1229,65 @@ function App() {
   const openCreateEmployee = () => {
     setEditingEmployee(null);
     setEmployeeModalOpen(true);
+  };
+
+  const handleFinancialOperationSubmit = (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const extra = toVisitNumber(form.get("extra"));
+    const operationType = String(form.get("operationType") ?? "Доплата");
+
+    if (extra <= 0) return;
+
+    setVisits((current) => [
+      {
+        id: createLocalId(),
+        recordType: "operation",
+        date: toDisplayDate(form.get("date")),
+        client: String(form.get("client") ?? "").trim(),
+        master: "",
+        service: operationType,
+        duration: "",
+        amount: 0,
+        payment: String(form.get("payment") ?? "Не указано"),
+        packageUsageId: "",
+        packageName: "",
+        packageSessionsUsed: 0,
+        tip: 0,
+        commission: 0,
+        commissionType: "Без комиссии",
+        extra,
+        discount: 0,
+        note: String(form.get("note") ?? "").trim(),
+      },
+      ...current,
+    ]);
+    setFinancialOperationModalOpen(false);
+    pushNotification({
+      title: "Поступление добавлено",
+      message: `${operationType}: ${extra} zł`,
+    });
+  };
+
+  const deletePaymentRow = (visit) => {
+    if (visit.isPlanned) {
+      setCalendarEntries((current) =>
+        current.filter((entry) => entry.id !== visit.calendarEntryId),
+      );
+      setOpenPaymentActionMenuId(null);
+      pushNotification({
+        title: "Запись удалена",
+        message: `${visit.client}: ${visit.service}`,
+      });
+      return;
+    }
+
+    setVisits((current) => current.filter((item) => item.id !== visit.id));
+    setOpenPaymentActionMenuId(null);
+    pushNotification({
+      title: visit.recordType === "operation" ? "Поступление удалено" : "Запись удалена",
+      message: `${visit.service || "Финансовая запись"} убрана из журнала`,
+    });
   };
 
   const openEditEmployee = (employee) => {
@@ -1809,6 +2018,7 @@ function App() {
     );
     const visit = {
       id: createLocalId(),
+      calendarEntryId: entry.id,
       date: toDisplayDate(entry.date),
       client: entry.client,
       master: entry.master,
@@ -1827,7 +2037,11 @@ function App() {
       note: entry.note || "",
     };
 
-    setVisits((current) => [visit, ...current]);
+    setVisits((current) =>
+      current.some((item) => item.calendarEntryId === entry.id)
+        ? current
+        : [visit, ...current],
+    );
     updatePackageBalance(null, visit);
     setCalendarEntries((current) =>
       current.map((item) =>
@@ -1841,6 +2055,31 @@ function App() {
       message: `${entry.client} добавлен в журнал визитов`,
     });
   };
+
+  useEffect(() => {
+    const expiredEntries = calendarEntries.filter((entry) => {
+      if (
+        entry.kind !== "visit" ||
+        entry.visitId ||
+        ["completed", "cancelled", "no_show"].includes(entry.status) ||
+        autoCompletedCalendarEntryIds.current.has(entry.id)
+      ) {
+        return false;
+      }
+
+      const end = new Date(`${entry.date}T${entry.time || "00:00"}:00`);
+      end.setMinutes(end.getMinutes() + Number(entry.duration || 0));
+
+      return end < new Date();
+    });
+
+    expiredEntries.forEach((entry) => {
+      autoCompletedCalendarEntryIds.current.add(entry.id);
+      completeCalendarVisit(entry);
+    });
+    // This reacts to calendar changes and guards repeated sync by entry id.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calendarEntries]);
 
   const updateCalendarEntryStatus = (entry, status) => {
     setCalendarEntries((current) =>
@@ -2448,6 +2687,7 @@ function App() {
   const isSettingsPage = activePage === "settings";
   const isOperationsPage = activePage === "operations";
   const isImportPage = activePage === "import";
+  const isPaymentsPage = activePage === "payments";
   const supportedPaths = ["/", "/reset-password"];
   const currentPath = window.location.pathname;
 
@@ -2519,6 +2759,9 @@ function App() {
         if (clientAlertsOpen) {
           setClientAlertsOpen(false);
         }
+        if (openPaymentActionMenuId) {
+          setOpenPaymentActionMenuId(null);
+        }
       }}>
       <aside className="sidebar">
         <div className="logo" aria-label={`${appSettings.studioName} CRM`}>
@@ -2544,8 +2787,10 @@ function App() {
             const Icon = item.icon;
             return (
               <button
+                data-label={item.label}
                 className={activePage === item.page ? "active" : ""}
                 key={item.label}
+                title={item.label}
                 onClick={() => {
                   setActivePage(item.page);
 
@@ -2640,7 +2885,9 @@ function App() {
       )}
 
       <main
-        className={`content home-content ${isCalendarPage ? "calendar-content" : ""}`}>
+        className={`content home-content ${isCalendarPage ? "calendar-content" : ""} ${
+          isPaymentsPage ? "visits-content payments-content" : ""
+        }`}>
         <header className="page-header">
           <div
             className="page-header-actions"
@@ -2670,6 +2917,88 @@ function App() {
                     <strong>{alertsCount}</strong>
                   </div>
                   <div className="client-alert-list">
+                    {revenueForecastAlerts.length > 0 && (
+                      <div className="client-alert-group">
+                        <button
+                          className="client-alert-group-toggle"
+                          type="button"
+                          onClick={() =>
+                            setAlertGroupsOpen((current) => ({
+                              ...current,
+                              forecast: !current.forecast,
+                            }))
+                          }>
+                          Прогноз дохода <b>{revenueForecastAlerts.length}</b>
+                          <ChevronDown className={alertGroupsOpen.forecast ? "open" : ""} size={14} />
+                        </button>
+                        <AnimatePresence initial={false}>
+                          {alertGroupsOpen.forecast && (
+                            <motion.div
+                              animate={{height: "auto", opacity: 1}}
+                              exit={{height: 0, opacity: 0}}
+                              initial={{height: 0, opacity: 0}}>
+                              {revenueForecastAlerts.map((alert) => (
+                                <div className="client-alert-row" key={alert.alertId}>
+                                  <div className="client-alert-event">
+                                    <div>
+                                      <strong>{alert.title}</strong>
+                                      <span>{alert.message}</span>
+                                    </div>
+                                    <button
+                                      aria-label="Скрыть уведомление"
+                                      type="button"
+                                      onClick={() => dismissAlertTemporarily(alert.alertId)}>
+                                      <X size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+                    {packageBalanceAlerts.length > 0 && (
+                      <div className="client-alert-group">
+                        <button
+                          className="client-alert-group-toggle"
+                          type="button"
+                          onClick={() =>
+                            setAlertGroupsOpen((current) => ({
+                              ...current,
+                              packages: !current.packages,
+                            }))
+                          }>
+                          Заканчиваются пакеты <b>{packageBalanceAlerts.length}</b>
+                          <ChevronDown className={alertGroupsOpen.packages ? "open" : ""} size={14} />
+                        </button>
+                        <AnimatePresence initial={false}>
+                          {alertGroupsOpen.packages && (
+                            <motion.div
+                              animate={{height: "auto", opacity: 1}}
+                              exit={{height: 0, opacity: 0}}
+                              initial={{height: 0, opacity: 0}}>
+                              {packageBalanceAlerts.map((alert) => (
+                                <div className="client-alert-row" key={alert.alertId}>
+                                  <div className="client-alert-event">
+                                    <div>
+                                      <strong>{alert.title}</strong>
+                                      <span>{alert.message}</span>
+                                    </div>
+                                    <button
+                                      aria-label="Скрыть уведомление"
+                                      type="button"
+                                      onClick={() => dismissAlertTemporarily(alert.alertId)}>
+                                      <X size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
                     {actionableNotificationInbox.length > 0 && (
                       <div className="client-alert-group">
                         <button
@@ -3028,6 +3357,24 @@ function App() {
             onStatus={updateCalendarEntryStatus}
             overlayOpen={calendarEntryModalOpen}
           />
+        ) : isPaymentsPage ? (
+          <VisitsTable
+            addLabel="Добавить поступление"
+            filters={paymentFilters}
+            masters={masters}
+            openActionMenuId={openPaymentActionMenuId}
+            title="Оплаты и финансовый журнал"
+            visits={filteredPaymentRows}
+            onAddVisit={() => setFinancialOperationModalOpen(true)}
+            onDeleteVisit={deletePaymentRow}
+            onFilterChange={(key, value) =>
+              setPaymentFilters((current) => ({...current, [key]: value}))
+            }
+            onResetFilters={() =>
+              setPaymentFilters({master: "", payment: "", client: "", date: ""})
+            }
+            onToggleActionMenu={setOpenPaymentActionMenuId}
+          />
         ) : isClientsPage ? (
           <ClientsPage
             visits={visits}
@@ -3055,6 +3402,11 @@ function App() {
           <PackagesPage
             packages={packagesCatalog}
             clientPackages={clientPackages}
+            certificates={visits.filter(
+              (visit) =>
+                visit.recordType === "operation" &&
+                visit.service === "Продажа сертификата",
+            )}
             packageSalesIncome={packageSalesIncome}
             onAdd={openCreatePackage}
             onEdit={openEditPackage}
@@ -3111,6 +3463,7 @@ function App() {
         ) : isStatisticsPage ? (
           <StatisticsPage
             visits={visits}
+            calendarEntries={calendarEntries}
             clientPackages={clientPackages}
             clients={clientProfiles}
             employees={employees}
@@ -3126,6 +3479,7 @@ function App() {
         ) : (
           <StatisticsPage
             visits={visits}
+            calendarEntries={calendarEntries}
             clientPackages={clientPackages}
             clients={clientProfiles}
             employees={employees}
@@ -3366,6 +3720,7 @@ function App() {
               </button>
             </div>
             <CalendarEntryForm
+              calendarEntries={calendarEntries}
               clients={clientProfiles}
               clientPackages={clientPackages}
               employees={employees.filter((employee) => employee.status !== "Архив")}
@@ -3422,6 +3777,30 @@ function App() {
               </button>
             </div>
             <SupplyForm supply={editingSupply} onSubmit={handleSupplySubmit} />
+          </section>
+        </div>
+      )}
+      {financialOperationModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-labelledby="financial-operation-modal-title"
+            aria-modal="true"
+            className="employee-modal"
+            role="dialog">
+            <div className="modal-header">
+              <h2 id="financial-operation-modal-title">Добавить поступление</h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={() => setFinancialOperationModalOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <FinancialOperationForm
+              clients={clientProfiles}
+              onSubmit={handleFinancialOperationSubmit}
+            />
           </section>
         </div>
       )}

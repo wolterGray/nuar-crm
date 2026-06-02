@@ -1,6 +1,6 @@
 import {useMemo, useState} from "react";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
-import {getPackageProgressLabel} from "../utils/packages.jsx";
+import {getPackageProgressLabel, isUpcomingPackageVisit} from "../utils/packages.jsx";
 
 const fallbackColors = ["#4f8edc", "#8b6fd6", "#45a873", "#d78a42", "#c75b78"];
 const toMinutes = (time) => {
@@ -14,6 +14,7 @@ const toTime = (minutes) =>
 
 function CalendarEntryForm({
   initialEntry,
+  calendarEntries,
   clients,
   clientPackages,
   employees,
@@ -60,6 +61,13 @@ function CalendarEntryForm({
         .sort((first, second) => first - second),
     [service],
   );
+  const getPlannedPackageVisits = (packageItem) =>
+    calendarEntries.filter(
+      (entry) =>
+        entry.id !== initialEntry?.id &&
+        String(entry.packageUsageId) === String(packageItem.id) &&
+        isUpcomingPackageVisit(entry),
+    ).length + 1;
 
   return (
     <form className="calendar-entry-form" onSubmit={onSubmit}>
@@ -210,7 +218,7 @@ function CalendarEntryForm({
                 <option>Карта</option>
                 <option>Пакет</option>
                 <option>Крипта</option>
-                <option>Mono</option>
+                <option>Укр. карта</option>
                 <option>BLIK</option>
                 <option>Не указано</option>
               </select>
@@ -222,7 +230,10 @@ function CalendarEntryForm({
                   <option value="">Выберите пакет</option>
                   {packageOptions.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.packageName} · использовано {getPackageProgressLabel(item)}
+                      {item.packageName} · будет {getPackageProgressLabel(
+                        item,
+                        getPlannedPackageVisits(item),
+                      )}
                     </option>
                   ))}
                 </select>

@@ -2,7 +2,11 @@ export const paymentGroups = [
   {label: "Наличные", color: "#248a4f", matches: (payment) => payment.includes("Наличные")},
   {label: "Карта", color: "#2364d2", matches: (payment) => payment.includes("Карта")},
   {label: "Крипта", color: "#8f7cff", matches: (payment) => payment.includes("Крипта")},
-  {label: "Mono", color: "#d85886", matches: (payment) => payment.includes("Mono")},
+  {
+    label: "Укр. карта",
+    color: "#d85886",
+    matches: (payment) => payment.includes("Укр. карта") || payment.includes("Mono"),
+  },
   {label: "BLIK", color: "#d07a12", matches: (payment) => payment.includes("BLIK")},
   {label: "Пакет", color: "#6b61b8", matches: (payment) => payment.includes("Пакет")},
   {label: "Бартер", color: "#748091", matches: (payment) => payment.includes("Бартер")},

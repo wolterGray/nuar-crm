@@ -27,11 +27,14 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {toDisplayDate} from "../../utils/formatters.jsx";
-import {getPackageProgressLabel} from "../../utils/packages.jsx";
+import {getPackageProgressLabel, isUpcomingPackageVisit} from "../../utils/packages.jsx";
 
 const QUARTER_HEIGHT = 28;
+const isValidInputDate = (date) =>
+  /^\d{4}-\d{2}-\d{2}$/.test(String(date)) &&
+  !Number.isNaN(new Date(`${date}T12:00:00`).getTime());
 
 const toMinutes = (time) => {
   const [hours, minutes] = String(time ?? "08:00").split(":").map(Number);
@@ -46,21 +49,11 @@ const toTime = (minutes, startMinutes, endMinutes, slotMinutes) => {
 };
 
 const shiftDate = (date, days) => {
+  if (!isValidInputDate(date)) return new Date().toISOString().slice(0, 10);
+
   const nextDate = new Date(`${date}T12:00:00`);
   nextDate.setDate(nextDate.getDate() + days);
   return nextDate.toISOString().slice(0, 10);
-};
-
-const getWeekDates = (date) => {
-  const selected = new Date(`${date}T12:00:00`);
-  const mondayOffset = (selected.getDay() + 6) % 7;
-  selected.setDate(selected.getDate() - mondayOffset);
-
-  return Array.from({length: 7}, (_, index) => {
-    const day = new Date(selected);
-    day.setDate(selected.getDate() + index);
-    return day.toISOString().slice(0, 10);
-  });
 };
 
 const toClockTime = (minutes) =>
@@ -205,7 +198,8 @@ function CalendarPage({
   const [dragPreview, setDragPreview] = useState(null);
   const [pendingSlot, setPendingSlot] = useState(null);
   const schedulePanelRef = useRef(null);
-  const weekSwipeStart = useRef(null);
+  const weekCarouselRef = useRef(null);
+  const previousSelectedDateRef = useRef(null);
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {distance: 5},
@@ -219,8 +213,8 @@ function CalendarPage({
   const endMinutes = configuredEndMinutes > startMinutes
     ? configuredEndMinutes
     : startMinutes + 60;
-  const visualStartMinutes = startMinutes - (window.innerWidth <= 700 ? 120 : 0);
-  const visualEndMinutes = endMinutes + (window.innerWidth <= 700 ? 120 : 0);
+  const visualStartMinutes = startMinutes - 120;
+  const visualEndMinutes = endMinutes + 120;
   const slotMinutes = Number(settings.calendarSlotMinutes) || 15;
   const minutesInDay = visualEndMinutes - visualStartMinutes;
   const slotHeight = QUARTER_HEIGHT;
@@ -247,7 +241,16 @@ function CalendarPage({
     reminderFilter === "active" ? activeVisitEntries : visitEntries
   ).sort((first, second) => String(first.time).localeCompare(String(second.time)));
   const isToday = selectedDate === new Date().toISOString().slice(0, 10);
-  const weekDates = getWeekDates(selectedDate);
+  const carouselDates = useMemo(
+    () =>
+      Array.from({length: 1461}, (_, index) =>
+        shiftDate(new Date().toISOString().slice(0, 10), index - 730),
+      ),
+    [],
+  );
+  const selectCalendarDate = (nextDate) => {
+    setSelectedDate(nextDate);
+  };
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const currentTop =
     ((currentMinutes - visualStartMinutes) / minutesInDay) * gridHeight;
@@ -265,6 +268,26 @@ function CalendarPage({
       schedulePanelRef.current.scrollLeft = 0;
     }
   }, [employees.length, selectedDate]);
+
+  useLayoutEffect(() => {
+    if (!weekCarouselRef.current) return;
+
+    if (previousSelectedDateRef.current === selectedDate) return;
+
+    previousSelectedDateRef.current = selectedDate;
+    const selectedIndex = carouselDates.indexOf(selectedDate);
+    if (selectedIndex < 0) return;
+
+    const selectedButton = weekCarouselRef.current.querySelector(
+      `[data-date="${selectedDate}"]`,
+    );
+    if (!selectedButton) return;
+
+    weekCarouselRef.current.scrollLeft = Math.max(
+      0,
+      selectedButton.offsetLeft - selectedButton.offsetWidth - 4,
+    );
+  }, [carouselDates, selectedDate]);
 
   const getDragPosition = ({active, delta, over}) => {
     const entry = active.data.current?.entry;
@@ -298,19 +321,23 @@ function CalendarPage({
               aria-label="Предыдущий день"
               className="calendar-icon-button"
               type="button"
-              onClick={() => setSelectedDate((current) => shiftDate(current, -1))}>
+              onClick={() => selectCalendarDate(shiftDate(selectedDate, -1))}>
               <ChevronLeft size={17} />
             </button>
             <input
               type="date"
               value={selectedDate}
-              onChange={(event) => setSelectedDate(event.target.value)}
+              onChange={(event) => {
+                if (isValidInputDate(event.target.value)) {
+                  selectCalendarDate(event.target.value);
+                }
+              }}
             />
             <button
               aria-label="Следующий день"
               className="calendar-icon-button"
               type="button"
-              onClick={() => setSelectedDate((current) => shiftDate(current, 1))}>
+              onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}>
               <ChevronRight size={17} />
             </button>
           </div>
@@ -318,7 +345,7 @@ function CalendarPage({
             <button
               className="secondary-button calendar-today-button"
               type="button"
-              onClick={() => setSelectedDate(new Date().toISOString().slice(0, 10))}>
+              onClick={() => selectCalendarDate(new Date().toISOString().slice(0, 10))}>
               Сегодня
             </button>
           )}
@@ -353,25 +380,18 @@ function CalendarPage({
       <div
         className="mobile-calendar-week"
         aria-label="Дни недели"
-        onTouchStart={(event) => {
-          weekSwipeStart.current = event.touches[0]?.clientX ?? null;
-        }}
-        onTouchEnd={(event) => {
-          const start = weekSwipeStart.current;
-          const end = event.changedTouches[0]?.clientX;
-          weekSwipeStart.current = null;
-          if (start == null || end == null || Math.abs(end - start) < 42) return;
-          setSelectedDate((current) => shiftDate(current, end < start ? 7 : -7));
-        }}>
-        {weekDates.map((date, index) => {
+        ref={weekCarouselRef}>
+        {carouselDates.map((date) => {
           const today = date === new Date().toISOString().slice(0, 10);
+          const dayIndex = (new Date(`${date}T12:00:00`).getDay() + 6) % 7;
           return (
             <button
               className={`${date === selectedDate ? "selected" : ""} ${today ? "today" : ""}`}
+              data-date={date}
               key={date}
               type="button"
-              onClick={() => setSelectedDate(date)}>
-              <span>{["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"][index]}</span>
+              onClick={() => selectCalendarDate(date)}>
+              <span>{["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"][dayIndex]}</span>
               <b>{Number(date.slice(-2))}</b>
             </button>
           );
@@ -524,9 +544,25 @@ function CalendarPage({
                               const packageItem = clientPackages.find(
                                 (item) => item.id === entry.packageUsageId,
                               );
+                              const plannedPosition = entries
+                                .filter(
+                                  (item) =>
+                                    String(item.packageUsageId) ===
+                                      String(entry.packageUsageId) &&
+                                    isUpcomingPackageVisit(item),
+                                )
+                                .sort((first, second) =>
+                                  `${first.date}T${first.time}`.localeCompare(
+                                    `${second.date}T${second.time}`,
+                                  ),
+                                )
+                                .findIndex((item) => item.id === entry.id) + 1;
                               return packageItem ? (
                                 <small className="schedule-entry-package">
-                                  Пакет {getPackageProgressLabel(packageItem)}
+                                  Пакет {getPackageProgressLabel(
+                                    packageItem,
+                                    plannedPosition,
+                                  )}
                                 </small>
                               ) : null;
                             })()}

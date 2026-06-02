@@ -102,7 +102,7 @@ function NewVisitForm({
               <option>Карта</option>
               <option>Пакет</option>
               <option>Крипта</option>
-              <option>Mono</option>
+              <option>Укр. карта</option>
               <option>BLIK</option>
               <option>Бартер</option>
               <option>Не указано</option>
