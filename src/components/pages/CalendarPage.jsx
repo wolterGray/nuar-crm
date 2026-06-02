@@ -205,7 +205,9 @@ function CalendarPage({
   const schedulePanelRef = useRef(null);
   const weekSwipeStart = useRef(null);
   const sensors = useSensors(
-    useSensor(PointerSensor, {activationConstraint: {distance: 5}}),
+    useSensor(PointerSensor, {
+      activationConstraint: {delay: 320, tolerance: 8},
+    }),
   );
   const startMinutes = toMinutes(settings.workdayStart ?? "08:00");
   const configuredEndMinutes = toMinutes(settings.workdayEnd ?? "22:00");
