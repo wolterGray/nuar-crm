@@ -831,31 +831,17 @@ h1 {
 }
 
 @media (min-width: 701px) {
-  .page-header {
-    position: relative;
-    z-index: 32;
-    height: 0;
-    min-height: 0;
-    justify-content: flex-end;
-    margin: 0;
-  }
-
   .page-header-actions {
-    position: absolute;
-    top: 0;
-    right: 0;
+    position: static;
   }
+}
 
-  .calendar-content .page-header-actions {
-    top: 18px;
-  }
-
-  .clients-toolbar,
-  .employees-toolbar,
-  .statistics-toolbar,
-  .calendar-toolbar {
-    padding-right: 52px;
-  }
+.page-notifications-slot,
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
 }
 
 .client-alert-control {
@@ -5770,7 +5756,7 @@ button:focus-visible {
 
   .payments-content .visits-panel-actions {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     width: 100%;
     gap: 5px;
   }
@@ -5848,9 +5834,9 @@ button:focus-visible {
   }
 
   .client-alert-button {
-    position: absolute;
-    top: 6px;
-    right: 8px;
+    position: relative;
+    top: auto;
+    right: auto;
     z-index: 47;
     width: 38px;
     height: 38px;
@@ -5956,12 +5942,11 @@ button:focus-visible {
   .calendar-content .calendar-toolbar-actions {
     align-items: center;
     justify-content: space-between;
-    padding-right: 42px;
   }
 
   .calendar-content .client-alert-button {
-    top: 6px;
-    right: 4px;
+    top: auto;
+    right: auto;
   }
 
   .calendar-toolbar {

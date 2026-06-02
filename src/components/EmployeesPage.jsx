@@ -1,6 +1,7 @@
 import {Pencil, Plus, Trash2} from "lucide-react";
 import {motion} from "framer-motion";
 import {formatMoney} from "../utils/formatters.jsx";
+import {PageNotificationsSlot} from "./PageNotifications.jsx";
 
 function EmployeesPage({employees, onAdd, onEdit, onDelete}) {
   return (
@@ -10,10 +11,13 @@ function EmployeesPage({employees, onAdd, onEdit, onDelete}) {
           <h2>Сотрудники</h2>
           <p>{employees.length} в базе</p>
         </div>
-        <button className="add-visit-button" type="button" onClick={onAdd}>
-          <Plus size={18} />
-          Добавить сотрудника
-        </button>
+        <div className="toolbar-actions">
+          <button className="add-visit-button" type="button" onClick={onAdd}>
+            <Plus size={18} />
+            Добавить сотрудника
+          </button>
+          <PageNotificationsSlot />
+        </div>
       </div>
 
       <div className="employees-grid">

@@ -3,6 +3,7 @@ import {paymentMethods} from "../data/seed.js";
 import {formatMoney} from "../utils/formatters.jsx";
 import {getVisitCommission, getVisitTransactionTotal} from "../utils/visits.jsx";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
+import {PageNotificationsSlot} from "./PageNotifications.jsx";
 
 function VisitsTable({
   visits,
@@ -68,6 +69,7 @@ function VisitsTable({
               {addLabel}
             </button>
           )}
+          <PageNotificationsSlot />
         </div>
       </div>
 

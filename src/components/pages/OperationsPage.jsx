@@ -7,6 +7,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import {
   closestCenter,
   DndContext,
@@ -99,6 +100,7 @@ function OperationsPage({
         <div className="operations-summary">
           <span><b>{activeTasks.length}</b> задач</span>
           <span><b>{lowStockCount}</b> нужно пополнить</span>
+          <PageNotificationsSlot />
         </div>
       </div>
 

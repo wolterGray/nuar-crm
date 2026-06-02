@@ -13,6 +13,7 @@ import {useState} from "react";
 import {parseImportedEmail} from "../../utils/emailImport.js";
 import {formatMoney} from "../../utils/formatters.jsx";
 import {syncGmailMessages} from "../../utils/gmail.js";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 
 const typeLabels = {
   "booksy-booking": "Новая запись",
@@ -109,6 +110,7 @@ function ImportPage({
             <RefreshCw className={isLoading ? "spin" : ""} size={16} />
             {isLoading ? "Проверяем" : "Синхронизировать"}
           </button>
+          <PageNotificationsSlot />
         </div>
       </div>
 

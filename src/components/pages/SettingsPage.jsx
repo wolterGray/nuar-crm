@@ -10,6 +10,7 @@ import {
   Upload,
 } from "lucide-react";
 import {useRef} from "react";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 
 function SettingsPage({settings, onSubmit, onReset, onExportData, onImportData}) {
   const formRef = useRef(null);
@@ -25,6 +26,7 @@ function SettingsPage({settings, onSubmit, onReset, onExportData, onImportData})
             <h2>Настройки</h2>
             <p>Управление интерфейсом, календарём и локальными данными</p>
           </div>
+          <PageNotificationsSlot />
         </div>
         <form
           className="settings-form settings-grid"

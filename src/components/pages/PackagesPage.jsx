@@ -2,6 +2,7 @@ import {Pencil, Plus, Trash2} from "lucide-react";
 import {motion} from "framer-motion";
 import {formatMoney} from "../../utils/formatters.jsx";
 import {getPackageRemainingLabel, getPackageUsedVisits} from "../../utils/packages.jsx";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 
 function PackagesPage({
   packages,
@@ -41,6 +42,7 @@ function PackagesPage({
             <Plus size={18} />
             Добавить шаблон
           </button>
+          <PageNotificationsSlot />
         </div>
       </div>
 

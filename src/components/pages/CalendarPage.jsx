@@ -18,6 +18,7 @@ import {
   UserX,
   X,
 } from "lucide-react";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import {
   DndContext,
   MouseSensor,
@@ -374,6 +375,7 @@ function CalendarPage({
             <Plus size={17} />
             Добавить
           </button>
+          <PageNotificationsSlot />
         </div>
       </div>
 

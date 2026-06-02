@@ -8,6 +8,7 @@ import {
   toInputDate,
 } from "../../utils/formatters.jsx";
 import {getVisitTotal} from "../../utils/visits.jsx";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 
 function ClientsPage({
   visits,
@@ -210,6 +211,7 @@ function ClientsPage({
             <Plus size={18} />
             Добавить клиента
           </button>
+          <PageNotificationsSlot />
         </div>
       </div>
 

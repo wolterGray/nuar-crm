@@ -20,6 +20,7 @@ import {
   getVisitTotal,
   getVisitTransactionTotal,
 } from "../../utils/visits.jsx";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import {
   createPaymentRingGradient,
   getPaymentGroup,
@@ -364,6 +365,7 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
               </option>
             ))}
           </select>
+          <PageNotificationsSlot />
         </div>
       </div>
 

@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import {useMemo, useState} from "react";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 
 function MessageTemplatesPage({
   templates,
@@ -203,10 +204,13 @@ function MessageTemplatesPage({
             {filteredTemplates.length} из {templates.length} шаблонов
           </p>
         </div>
-        <button className="add-visit-button" type="button" onClick={onAdd}>
-          <Plus size={18} />
-          Добавить шаблон
-        </button>
+        <div className="toolbar-actions">
+          <button className="add-visit-button" type="button" onClick={onAdd}>
+            <Plus size={18} />
+            Добавить шаблон
+          </button>
+          <PageNotificationsSlot />
+        </div>
       </div>
 
       <div className="message-template-filters">

@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {createPortal} from "react-dom";
 import {AnimatePresence, motion} from "framer-motion";
 import {
   Bell,
@@ -36,6 +37,7 @@ import TaskForm from "./components/TaskForm.jsx";
 import PackageForm from "./components/PackageForm.jsx";
 import ServiceForm from "./components/ServiceForm.jsx";
 import ToastStack from "./components/ToastStack.jsx";
+import {PageNotificationsProvider} from "./components/PageNotifications.jsx";
 import "./App.css";
 import {
   initialEmployees,
@@ -502,6 +504,7 @@ function App() {
   const [pendingCalendarConflict, setPendingCalendarConflict] = useState(null);
   const [pendingDataBackup, setPendingDataBackup] = useState(null);
   const [clientAlertsOpen, setClientAlertsOpen] = useState(false);
+  const [notificationSlot, setNotificationSlot] = useState(null);
   const [alertGroupsOpen, setAlertGroupsOpen] = useState({
     system: false,
     calendar: false,
@@ -2888,7 +2891,8 @@ function App() {
         className={`content home-content ${isCalendarPage ? "calendar-content" : ""} ${
           isPaymentsPage ? "visits-content payments-content" : ""
         }`}>
-        <header className="page-header">
+        {notificationSlot &&
+          createPortal(
           <div
             className="page-header-actions"
             onClick={(event) => event.stopPropagation()}>
@@ -3338,8 +3342,10 @@ function App() {
               )}
               </AnimatePresence>
             </div>
-          </div>
-        </header>
+          </div>,
+          notificationSlot,
+        )}
+        <PageNotificationsProvider onSlotChange={setNotificationSlot}>
         {isCalendarPage ? (
           <CalendarPage
             entries={calendarEntries}
@@ -3485,6 +3491,7 @@ function App() {
             employees={employees}
           />
         )}
+        </PageNotificationsProvider>
       </main>
       <nav className="mobile-bottom-nav" aria-label="Мобильная навигация">
         {mobileNavItems.map((item) => {
