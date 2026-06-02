@@ -29,6 +29,7 @@ import {
 } from "@dnd-kit/core";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {toDisplayDate} from "../../utils/formatters.jsx";
+import {getPackageProgressLabel} from "../../utils/packages.jsx";
 
 const QUARTER_HEIGHT = 28;
 
@@ -525,7 +526,7 @@ function CalendarPage({
                               );
                               return packageItem ? (
                                 <small className="schedule-entry-package">
-                                  Пакет {packageItem.remainingVisits}/{packageItem.totalVisits}
+                                  Пакет {getPackageProgressLabel(packageItem)}
                                 </small>
                               ) : null;
                             })()}

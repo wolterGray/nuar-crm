@@ -49,6 +49,7 @@ import {
   toDisplayDate,
 } from "./utils/formatters.jsx";
 import {getEmployeePayout, toVisitNumber} from "./utils/visits.jsx";
+import {getPackageProgressLabel} from "./utils/packages.jsx";
 import EmployeesPage from "./components/EmployeesPage.jsx";
 import ClientsPage from "./components/pages/ClientsPage.jsx";
 import PackagesPage from "./components/pages/PackagesPage.jsx";
@@ -1482,7 +1483,7 @@ function App() {
     setEditingClientPackage(null);
     pushNotification({
       title: editingClientPackage ? "Остаток обновлен" : "Пакет продан",
-      message: `${clientPackage.client}: ${clientPackage.remainingVisits} из ${clientPackage.totalVisits}`,
+      message: `${clientPackage.client}: использовано ${getPackageProgressLabel(clientPackage)}`,
     });
   };
 

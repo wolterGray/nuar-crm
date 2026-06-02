@@ -1,6 +1,7 @@
 import {Pencil, Plus, Trash2} from "lucide-react";
 import {motion} from "framer-motion";
 import {formatMoney} from "../../utils/formatters.jsx";
+import {getPackageProgressLabel, getPackageUsedVisits} from "../../utils/packages.jsx";
 
 function PackagesPage({
   packages,
@@ -75,12 +76,12 @@ function PackagesPage({
               </div>
               <div className="client-package-progress">
                 <div>
-                  <span>Осталось сеансов</span>
-                  <strong>{packageItem.remainingVisits} / {packageItem.totalVisits}</strong>
+                  <span>Использовано сеансов</span>
+                  <strong>{getPackageProgressLabel(packageItem)}</strong>
                 </div>
                 <progress
                   max={Math.max(Number(packageItem.totalVisits) || 1, 1)}
-                  value={Number(packageItem.remainingVisits) || 0}
+                  value={getPackageUsedVisits(packageItem)}
                 />
               </div>
               <div className="client-package-meta">

@@ -1,5 +1,6 @@
 import {useMemo, useState} from "react";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
+import {getPackageProgressLabel} from "../utils/packages.jsx";
 
 const fallbackColors = ["#4f8edc", "#8b6fd6", "#45a873", "#d78a42", "#c75b78"];
 const toMinutes = (time) => {
@@ -221,7 +222,7 @@ function CalendarEntryForm({
                   <option value="">Выберите пакет</option>
                   {packageOptions.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.packageName} · осталось {item.remainingVisits}
+                      {item.packageName} · использовано {getPackageProgressLabel(item)}
                     </option>
                   ))}
                 </select>

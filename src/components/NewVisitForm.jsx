@@ -1,6 +1,7 @@
 import {useMemo, useState} from 'react'
 import { Plus } from 'lucide-react'
 import ClientAutocomplete from './ClientAutocomplete.jsx'
+import {getPackageProgressLabel} from '../utils/packages.jsx'
 
 const getTodayInput = () => {
   const today = new Date()
@@ -121,7 +122,7 @@ function NewVisitForm({
                   </option>
                   {availablePackages.map((packageItem) => (
                     <option key={packageItem.id} value={packageItem.id}>
-                      {packageItem.packageName} · осталось {packageItem.remainingVisits}
+                      {packageItem.packageName} · использовано {getPackageProgressLabel(packageItem)}
                     </option>
                   ))}
                 </select>
