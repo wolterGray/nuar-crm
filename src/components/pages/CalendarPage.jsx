@@ -201,6 +201,8 @@ function CalendarPage({
   const [openEntryMenuId, setOpenEntryMenuId] = useState(null);
   const [viewedClientEntry, setViewedClientEntry] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
+  const [pendingSlot, setPendingSlot] = useState(null);
+  const schedulePanelRef = useRef(null);
   const weekSwipeStart = useRef(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {activationConstraint: {distance: 5}}),
@@ -249,6 +251,12 @@ function CalendarPage({
     const timer = window.setInterval(() => setNow(new Date()), 60000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (employees.length <= 2 && schedulePanelRef.current) {
+      schedulePanelRef.current.scrollLeft = 0;
+    }
+  }, [employees.length, selectedDate]);
 
   const getDragPosition = ({active, delta, over}) => {
     const entry = active.data.current?.entry;
@@ -372,7 +380,9 @@ function CalendarPage({
             setDragPreview(null);
             if (position) onMove(position.entry.id, {master: position.master, time: position.time});
           }}>
-        <section className="panel schedule-panel">
+        <section
+          className={`panel schedule-panel ${employees.length <= 2 ? "schedule-panel-fixed" : ""}`}
+          ref={schedulePanelRef}>
           <div
             className="schedule-grid"
             style={{
@@ -409,7 +419,7 @@ function CalendarPage({
                     const rawMinutes =
                       startMinutes +
                       ((event.clientY - rect.top) / gridHeight) * minutesInDay;
-                    onAdd({
+                    setPendingSlot({
                       date: selectedDate,
                       master: employee.name,
                       time: toTime(
@@ -497,7 +507,7 @@ function CalendarPage({
                             top,
                           }}>
                           <div>
-                            <strong>{entry.kind === "task" ? entry.title : entry.client}</strong>
+                            <strong>{entry.kind === "visit" ? entry.client : entry.title}</strong>
                             <span>
                               {displayedEntry.time}–{getEntryEndTime(displayedEntry)}
                             </span>
@@ -717,6 +727,43 @@ function CalendarPage({
           </div>
         </aside>}
       </div>
+      {pendingSlot && (
+        <div
+          className="calendar-slot-backdrop"
+          role="presentation"
+          onClick={() => setPendingSlot(null)}>
+          <section
+            aria-label="Добавить запись"
+            className="calendar-slot-menu"
+            role="dialog"
+            onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => {
+                onAdd({...pendingSlot, kind: "visit"});
+                setPendingSlot(null);
+              }}>
+              <CalendarPlus size={18} />
+              <span>
+                <strong>Новый визит</strong>
+                <small>Записать клиента</small>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onAdd({...pendingSlot, kind: "reserved"});
+                setPendingSlot(null);
+              }}>
+              <Ban size={18} />
+              <span>
+                <strong>Зарезервировать время</strong>
+                <small>Закрыть слот без клиента</small>
+              </span>
+            </button>
+          </section>
+        </div>
+      )}
       {viewedClientEntry && (
         <ClientCalendarCard
           client={clients.find((client) => client.name === viewedClientEntry.client)}

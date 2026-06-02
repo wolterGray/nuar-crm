@@ -1716,10 +1716,6 @@ function App() {
   };
 
   const getCalendarConflicts = (entry, ignoredId = null) => {
-    if (entry.kind !== "visit") {
-      return [];
-    }
-
     const entryStart = Number(String(entry.time).split(":")[0]) * 60 +
       Number(String(entry.time).split(":")[1]);
     const entryEnd = entryStart + Number(entry.duration);
@@ -1727,7 +1723,6 @@ function App() {
     return calendarEntries.filter((item) => {
       if (
         item.id === ignoredId ||
-        item.kind !== "visit" ||
         ["completed", "cancelled", "no_show"].includes(item.status)
       ) {
         return false;
@@ -1778,7 +1773,7 @@ function App() {
     setCalendarEntryDefaults({});
     pushNotification({
       title: isEditing ? "Календарь обновлен" : "Добавлено в календарь",
-      message: entry.kind === "task" ? entry.title : `${entry.client} · ${entry.time}`,
+      message: entry.kind === "visit" ? `${entry.client} · ${entry.time}` : entry.title,
     });
   };
 
@@ -1804,7 +1799,7 @@ function App() {
       time: form.get("time"),
       duration,
       master: form.get("master"),
-      title: kind === "task" ? String(form.get("title") ?? "").trim() : "",
+      title: kind === "visit" ? "" : String(form.get("title") ?? "").trim(),
       client: kind === "visit" ? form.get("client") : "",
       serviceId: kind === "visit" ? Number(form.get("serviceId")) : "",
       service: kind === "visit" ? service?.name ?? "" : "",
@@ -1836,8 +1831,8 @@ function App() {
   const deleteCalendarEntry = (entry) => {
     setCalendarEntries((current) => current.filter((item) => item.id !== entry.id));
     pushNotification({
-      title: entry.kind === "task" ? "Задача удалена" : "Запись отменена",
-      message: entry.kind === "task" ? entry.title : entry.client,
+      title: entry.kind === "visit" ? "Запись отменена" : "Резерв удален",
+      message: entry.kind === "visit" ? entry.client : entry.title,
     });
   };
 
@@ -3525,6 +3520,7 @@ function App() {
               initialEntry={editingCalendarEntry}
               selectedDate={calendarEntryDefaults.date ?? DEFAULT_STATS_DATE}
               selectedClient={calendarEntryDefaults.client ?? ""}
+              selectedKind={calendarEntryDefaults.kind ?? "visit"}
               selectedMaster={calendarEntryDefaults.master ?? masters[0] ?? ""}
               selectedTime={calendarEntryDefaults.time ?? "10:00"}
               services={serviceCatalog}

@@ -11,11 +11,12 @@ function CalendarEntryForm({
   services,
   selectedDate,
   selectedClient,
+  selectedKind,
   selectedMaster,
   selectedTime,
   onSubmit,
 }) {
-  const [kind, setKind] = useState(initialEntry?.kind ?? "visit");
+  const [kind, setKind] = useState(initialEntry?.kind ?? selectedKind ?? "visit");
   const [client, setClient] = useState(initialEntry?.client ?? selectedClient ?? "");
   const [serviceId, setServiceId] = useState(initialEntry?.serviceId ?? "");
   const [duration, setDuration] = useState(initialEntry?.duration ?? 60);
@@ -50,10 +51,10 @@ function CalendarEntryForm({
           Клиент
         </button>
         <button
-          className={kind === "task" ? "active" : ""}
+          className={kind === "reserved" ? "active" : ""}
           type="button"
-          onClick={() => setKind("task")}>
-          Задача
+          onClick={() => setKind("reserved")}>
+          Резерв
         </button>
       </div>}
       <input name="kind" type="hidden" value={kind} />
@@ -98,19 +99,19 @@ function CalendarEntryForm({
         </label>
       </div>
 
-      {kind === "task" ? (
+      {kind !== "visit" ? (
         <>
           <label>
-            Название задачи
+            Название резерва
             <input
               name="title"
               defaultValue={initialEntry?.title ?? ""}
-              placeholder="Перерыв, закупка, уборка"
+              placeholder="Например: зарезервировано"
               required
             />
           </label>
           <label>
-            Цвет задачи
+            Цвет резерва
             <input
               className="color-input"
               name="color"
