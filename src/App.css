@@ -5666,6 +5666,10 @@ button:focus-visible {
     overflow-x: hidden;
   }
 
+  .schedule-entry {
+    touch-action: pan-y;
+  }
+
   .schedule-grid {
     width: max-content;
     min-width: 100%;

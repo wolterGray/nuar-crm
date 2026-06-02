@@ -20,7 +20,8 @@ import {
 } from "lucide-react";
 import {
   DndContext,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useDraggable,
   useDroppable,
   useSensor,
@@ -205,7 +206,10 @@ function CalendarPage({
   const schedulePanelRef = useRef(null);
   const weekSwipeStart = useRef(null);
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
+      activationConstraint: {distance: 5},
+    }),
+    useSensor(TouchSensor, {
       activationConstraint: {delay: 320, tolerance: 8},
     }),
   );
