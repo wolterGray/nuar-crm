@@ -74,11 +74,11 @@ function CalendarEntryForm({
       </div>}
       <input name="kind" type="hidden" value={kind} />
       <div className="calendar-entry-grid calendar-entry-time-grid">
-        <label>
+        <label className="calendar-entry-date-field">
           Дата
           <input name="date" type="date" defaultValue={initialEntry?.date ?? selectedDate} />
         </label>
-        <label>
+        <label className="calendar-entry-start-field">
           Время
           <input
             name="time"
@@ -114,7 +114,7 @@ function CalendarEntryForm({
               </option>
             ))}
           </select>
-        </label> : <label>
+        </label> : <label className="calendar-entry-end-field">
           Конец
           <input
             name="endTime"

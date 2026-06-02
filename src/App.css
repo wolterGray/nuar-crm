@@ -5485,7 +5485,7 @@ button:focus-visible {
   .calendar-content .calendar-toolbar-actions {
     align-items: center;
     justify-content: space-between;
-    padding-right: 44px;
+    padding-right: 42px;
   }
 
   .calendar-content .client-alert-button {
@@ -5506,7 +5506,7 @@ button:focus-visible {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: min(270px, calc(100vw - 52px));
+    width: 100%;
     gap: 2px;
   }
 
@@ -5736,6 +5736,10 @@ button:focus-visible {
 
   .calendar-entry-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .calendar-entry-time-grid {
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
   }
 
   .calendar-entry-service-field,
@@ -6013,11 +6017,23 @@ button:focus-visible {
   .calendar-entry-form input,
   .calendar-entry-form select,
   .calendar-entry-form textarea {
+    display: block;
     width: 100%;
-    min-height: 42px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0 10px;
+    border: 1px solid #dfe1e3;
     border-radius: 8px;
-    background: #fafafa;
+    background: #fff;
     font-size: 13px;
+  }
+
+  .calendar-entry-form input[type="date"],
+  .calendar-entry-form input[type="time"] {
+    max-width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    font-size: 12px;
   }
 
   .calendar-entry-form textarea {
