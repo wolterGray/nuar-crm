@@ -2,6 +2,14 @@ import {useMemo, useState} from "react";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
 
 const fallbackColors = ["#4f8edc", "#8b6fd6", "#45a873", "#d78a42", "#c75b78"];
+const toMinutes = (time) => {
+  const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
+  return hours * 60 + minutes;
+};
+const toTime = (minutes) =>
+  `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(
+    minutes % 60,
+  ).padStart(2, "0")}`;
 
 function CalendarEntryForm({
   initialEntry,
@@ -20,6 +28,13 @@ function CalendarEntryForm({
   const [client, setClient] = useState(initialEntry?.client ?? selectedClient ?? "");
   const [serviceId, setServiceId] = useState(initialEntry?.serviceId ?? "");
   const [duration, setDuration] = useState(initialEntry?.duration ?? 60);
+  const [time, setTime] = useState(initialEntry?.time ?? selectedTime ?? "10:00");
+  const [endTime, setEndTime] = useState(() =>
+    toTime(
+      toMinutes(initialEntry?.time ?? selectedTime ?? "10:00") +
+        Number(initialEntry?.duration ?? 60),
+    ),
+  );
   const [payment, setPayment] = useState(initialEntry?.payment ?? "Наличные");
   const [amount, setAmount] = useState(initialEntry?.amount ?? "");
   const service = services.find((item) => String(item.id) === String(serviceId));
@@ -65,9 +80,20 @@ function CalendarEntryForm({
         </label>
         <label>
           Время
-          <input name="time" type="time" step="900" defaultValue={initialEntry?.time ?? selectedTime} />
+          <input
+            name="time"
+            type="time"
+            step="900"
+            value={time}
+            onChange={(event) => {
+              const nextTime = event.target.value;
+              const currentDuration = Math.max(15, toMinutes(endTime) - toMinutes(time));
+              setTime(nextTime);
+              setEndTime(toTime(toMinutes(nextTime) + currentDuration));
+            }}
+          />
         </label>
-        <label>
+        {kind === "visit" ? <label>
           Длительность
           <select
             name="duration"
@@ -88,7 +114,16 @@ function CalendarEntryForm({
               </option>
             ))}
           </select>
-        </label>
+        </label> : <label>
+          Конец
+          <input
+            name="endTime"
+            type="time"
+            step="900"
+            value={endTime}
+            onChange={(event) => setEndTime(event.target.value)}
+          />
+        </label>}
         <label>
           Мастер
           <select name="master" defaultValue={initialEntry?.master ?? selectedMaster}>
@@ -102,23 +137,16 @@ function CalendarEntryForm({
       {kind !== "visit" ? (
         <>
           <label>
-            Название резерва
-            <input
+            Причина
+            <textarea
               name="title"
               defaultValue={initialEntry?.title ?? ""}
-              placeholder="Например: зарезервировано"
+              placeholder="Причина"
+              rows="3"
               required
             />
           </label>
-          <label>
-            Цвет резерва
-            <input
-              className="color-input"
-              name="color"
-              type="color"
-              defaultValue={initialEntry?.color ?? "#748091"}
-            />
-          </label>
+          <input name="color" type="hidden" value={initialEntry?.color ?? "#748091"} />
         </>
       ) : (
         <>
@@ -206,12 +234,12 @@ function CalendarEntryForm({
           />
         </>
       )}
-      <label>
+      {kind === "visit" && <label>
         Комментарий
         <textarea name="note" defaultValue={initialEntry?.note ?? ""} rows="2" />
-      </label>
+      </label>}
       <button className="submit-button">
-        {initialEntry ? "Сохранить" : "Добавить в календарь"}
+        {initialEntry || kind !== "visit" ? "Сохранить" : "Добавить в календарь"}
       </button>
     </form>
   );

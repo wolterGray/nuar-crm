@@ -1785,7 +1785,16 @@ function App() {
       (item) => String(item.id) === String(form.get("serviceId")),
     );
     const packageUsageId = Number(form.get("packageUsageId")) || "";
-    const duration = Number(form.get("duration")) || 60;
+    const startTime = String(form.get("time") ?? "00:00");
+    const endTime = String(form.get("endTime") ?? "00:00");
+    const toCalendarMinutes = (time) => {
+      const [hours, minutes] = time.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+    const duration =
+      kind === "visit"
+        ? Number(form.get("duration")) || 60
+        : Math.max(15, toCalendarMinutes(endTime) - toCalendarMinutes(startTime));
     const serviceVariant = service?.variants?.find(
       (variant) => Number(variant.duration) === duration,
     );
@@ -1796,7 +1805,7 @@ function App() {
       visitId: editingCalendarEntry?.visitId ?? "",
       kind,
       date: form.get("date"),
-      time: form.get("time"),
+      time: startTime,
       duration,
       master: form.get("master"),
       title: kind === "visit" ? "" : String(form.get("title") ?? "").trim(),

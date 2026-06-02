@@ -512,6 +512,16 @@ function CalendarPage({
                               {displayedEntry.time}–{getEntryEndTime(displayedEntry)}
                             </span>
                             {entry.kind === "visit" && <small>{entry.service}</small>}
+                            {entry.kind === "visit" && entry.packageUsageId && (() => {
+                              const packageItem = clientPackages.find(
+                                (item) => item.id === entry.packageUsageId,
+                              );
+                              return packageItem ? (
+                                <small className="schedule-entry-package">
+                                  Пакет {packageItem.remainingVisits}/{packageItem.totalVisits}
+                                </small>
+                              ) : null;
+                            })()}
                             {entry.kind === "visit" && (
                               <b>
                                 {["no_show", "cancelled"].includes(entry.status)

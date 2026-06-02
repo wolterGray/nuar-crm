@@ -24,6 +24,15 @@ function SystemScreen({
 }) {
   const Icon = icons[mode] ?? TriangleAlert;
 
+  if (mode === "loading") {
+    return (
+      <main className="system-loading-screen">
+        <span className="system-loading-spinner" aria-hidden="true" />
+        <p>Загрузка</p>
+      </main>
+    );
+  }
+
   return (
     <main className={`login-screen system-screen theme-${settings?.theme ?? "light"}`}>
       <section className="login-card system-card">
@@ -36,7 +45,7 @@ function SystemScreen({
         </div>
         <div className="system-state">
           <span className={`system-icon system-icon-${mode}`}>
-            <Icon className={mode === "loading" ? "spin" : ""} size={22} />
+            <Icon size={22} />
           </span>
           <div>
             <h1>{title}</h1>

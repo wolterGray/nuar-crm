@@ -596,6 +596,30 @@ button {
   gap: 28px;
 }
 
+.system-loading-screen {
+  display: grid;
+  min-height: 100dvh;
+  place-content: center;
+  place-items: center;
+  gap: 14px;
+  color: #15171c;
+  background: #fff;
+}
+
+.system-loading-screen p {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.system-loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid #e5e5e3;
+  border-top-color: #15171c;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
 .system-state {
   display: grid;
   grid-template-columns: 46px minmax(0, 1fr);
@@ -3156,7 +3180,7 @@ h2 {
 .schedule-master header {
   position: sticky;
   top: 0;
-  z-index: 7;
+  z-index: 12;
   display: grid;
   height: 48px;
   align-content: center;
@@ -3259,6 +3283,8 @@ h2 {
   color: #1f2a34;
   background: color-mix(in srgb, var(--entry-color) 18%, #fff);
   cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
   width: calc(100% / var(--overlap-count, 1) - 8px);
 }
 
@@ -5446,12 +5472,18 @@ button:focus-visible {
 
   .calendar-content .calendar-toolbar {
     min-height: 42px;
-    padding: 2px 46px 2px 4px;
+    padding: 2px 4px;
+  }
+
+  .calendar-content .calendar-toolbar-actions {
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 44px;
   }
 
   .calendar-content .client-alert-button {
-    top: 4px;
-    right: 6px;
+    top: 2px;
+    right: 4px;
   }
 
   .calendar-toolbar {
@@ -5464,14 +5496,15 @@ button:focus-visible {
   }
 
   .calendar-date-control {
-    display: grid;
-    grid-template-columns: 34px minmax(146px, 1fr) 34px;
+    display: flex;
     align-items: center;
-    width: min(254px, calc(100vw - 92px));
-    gap: 5px;
+    justify-content: space-between;
+    width: min(270px, calc(100vw - 52px));
+    gap: 2px;
   }
 
   .calendar-date-control input {
+    flex: 1;
     min-height: 36px;
     padding: 0 8px;
     border-color: transparent;
@@ -5610,6 +5643,8 @@ button:focus-visible {
 
   .schedule-panel {
     width: 100vw;
+    max-height: calc(100dvh - 142px - env(safe-area-inset-bottom));
+    overflow-y: auto;
     scrollbar-width: none;
     border-right: 0;
     border-left: 0;
