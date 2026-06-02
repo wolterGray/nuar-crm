@@ -3212,10 +3212,10 @@ h2 {
   background:
     repeating-linear-gradient(
       -45deg,
-      rgba(116, 128, 145, 0.08),
-      rgba(116, 128, 145, 0.08) 5px,
-      rgba(116, 128, 145, 0.02) 5px,
-      rgba(116, 128, 145, 0.02) 10px
+      rgba(116, 128, 145, 0.1),
+      rgba(116, 128, 145, 0.1) 2px,
+      rgba(116, 128, 145, 0.025) 2px,
+      rgba(116, 128, 145, 0.025) 7px
     );
   pointer-events: none;
 }
@@ -3283,6 +3283,7 @@ h2 {
   color: #1f2a34;
   background: color-mix(in srgb, var(--entry-color) 18%, #fff);
   cursor: grab;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   width: calc(100% / var(--overlap-count, 1) - 8px);
@@ -5470,9 +5471,15 @@ button:focus-visible {
     margin: 0 -12px;
   }
 
+  .content.calendar-content {
+    padding-top: 0;
+  }
+
   .calendar-content .calendar-toolbar {
-    min-height: 42px;
-    padding: 2px 4px;
+    min-height: 48px;
+    margin-top: 0;
+    padding: 6px 4px 2px;
+    background: #fff;
   }
 
   .calendar-content .calendar-toolbar-actions {
@@ -5482,7 +5489,7 @@ button:focus-visible {
   }
 
   .calendar-content .client-alert-button {
-    top: 2px;
+    top: 6px;
     right: 4px;
   }
 
@@ -5665,6 +5672,12 @@ button:focus-visible {
     grid-template-columns: 24px repeat(var(--master-count, 3), var(--mobile-master-width));
   }
 
+  .schedule-times {
+    height: calc(var(--schedule-height) + 40px);
+    padding-top: 40px;
+    background: #fff;
+  }
+
   .schedule-hour-label strong,
   .schedule-end-hour {
     padding: 0;
@@ -5677,9 +5690,12 @@ button:focus-visible {
   }
 
   .schedule-master header {
+    height: 40px;
     min-width: 0;
-    padding: 0 6px;
+    gap: 1px;
+    padding: 0 5px;
     overflow: hidden;
+    background: #fff;
   }
 
   .schedule-master header strong,
@@ -5687,6 +5703,14 @@ button:focus-visible {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .schedule-master header strong {
+    font-size: 11px;
+  }
+
+  .schedule-master header span {
+    font-size: 9px;
   }
 
   .calendar-reminders {

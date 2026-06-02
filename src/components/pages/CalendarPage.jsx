@@ -408,7 +408,7 @@ function CalendarPage({
                 <header>
                   <strong>{employee.name}</strong>
                   <span>
-                    {employee.role || "Мастер"} · {employee.shiftStart || settings.workdayStart || "08:00"}–
+                    {employee.shiftStart || settings.workdayStart || "08:00"}–
                     {employee.shiftEnd || settings.workdayEnd || "22:00"}
                   </span>
                 </header>
