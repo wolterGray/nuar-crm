@@ -23,7 +23,8 @@ import {formatMoney} from "../../utils/formatters.jsx";
 
 const getTaskStatusLabel = (task) => {
   if (task.status === "completed") return "Готово";
-  if (task.dueDate && task.dueDate < new Date().toISOString().slice(0, 10)) return "Просрочено";
+  if (task.dueDate && task.dueDate < new Date().toISOString().slice(0, 10))
+    return "Просрочено";
   return "В работе";
 };
 
@@ -93,14 +94,20 @@ function OperationsPage({
   return (
     <section className="operations-page">
       <div className="employees-toolbar">
-        <div>
-          <h2>Задачи и склад</h2>
-          <p>Рабочие дела, закупки и остатки расходников</p>
+        <div className="title-notifications-flex">
+          <div>
+            <h2>Задачи и склад</h2>
+            <p>Рабочие дела, закупки и остатки расходников</p>
+          </div>
+          <PageNotificationsSlot />
         </div>
         <div className="operations-summary">
-          <span><b>{activeTasks.length}</b> задач</span>
-          <span><b>{lowStockCount}</b> нужно пополнить</span>
-          <PageNotificationsSlot />
+          <span>
+            <b>{activeTasks.length}</b> задач
+          </span>
+          <span>
+            <b>{lowStockCount}</b> нужно пополнить
+          </span>
         </div>
       </div>
 
@@ -114,7 +121,10 @@ function OperationsPage({
                 <p>{completedTasks.length} выполнено</p>
               </div>
             </div>
-            <button className="add-visit-button" type="button" onClick={onAddTask}>
+            <button
+              className="add-visit-button"
+              type="button"
+              onClick={onAddTask}>
               <Plus size={16} />
               Добавить
             </button>
@@ -124,12 +134,18 @@ function OperationsPage({
             collisionDetection={closestCenter}
             sensors={sensors}
             onDragCancel={() => setDraggedTask(null)}
-            onDragStart={({active}) => setDraggedTask(active.data.current?.task ?? null)}
+            onDragStart={({active}) =>
+              setDraggedTask(active.data.current?.task ?? null)
+            }
             onDragEnd={({active, over}) => {
               const draggedTaskId = active.data.current?.task.id;
               const targetTaskId = over?.data.current?.task.id;
 
-              if (draggedTaskId && targetTaskId && draggedTaskId !== targetTaskId) {
+              if (
+                draggedTaskId &&
+                targetTaskId &&
+                draggedTaskId !== targetTaskId
+              ) {
                 onReorderTasks(draggedTaskId, targetTaskId);
               }
 
@@ -143,36 +159,50 @@ function OperationsPage({
                     className={`task-row task-${task.status} ${status === "Просрочено" ? "task-overdue" : ""}`}
                     key={task.id}
                     task={task}>
-                  <button
-                    aria-label="Завершить задачу"
-                    className="task-check"
-                    disabled={task.status === "completed"}
-                    title="Завершить"
-                    type="button"
-                    onClick={() => onCompleteTask(task)}>
-                    {task.status === "completed" && <Check size={14} />}
-                  </button>
-                  <div>
-                    <strong>{task.title}</strong>
-                    <span>{task.note || "Без комментария"}</span>
-                  </div>
-                  <div className="task-meta">
-                    <b className={`task-priority priority-${task.priority}`}>{task.priority}</b>
-                    <small>{task.dueDate || "Без срока"}</small>
-                    <em>{status}</em>
-                  </div>
-                  <div className="employee-actions">
-                    <button aria-label="Редактировать задачу" className="compact-icon-button" title="Редактировать" type="button" onClick={() => onEditTask(task)}>
-                      <Pencil size={15} />
+                    <button
+                      aria-label="Завершить задачу"
+                      className="task-check"
+                      disabled={task.status === "completed"}
+                      title="Завершить"
+                      type="button"
+                      onClick={() => onCompleteTask(task)}>
+                      {task.status === "completed" && <Check size={14} />}
                     </button>
-                    <button aria-label="Удалить задачу" className="compact-icon-button danger" title="Удалить" type="button" onClick={() => onDeleteTask(task)}>
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
+                    <div>
+                      <strong>{task.title}</strong>
+                      <span>{task.note || "Без комментария"}</span>
+                    </div>
+                    <div className="task-meta">
+                      <b className={`task-priority priority-${task.priority}`}>
+                        {task.priority}
+                      </b>
+                      <small>{task.dueDate || "Без срока"}</small>
+                      <em>{status}</em>
+                    </div>
+                    <div className="employee-actions">
+                      <button
+                        aria-label="Редактировать задачу"
+                        className="compact-icon-button"
+                        title="Редактировать"
+                        type="button"
+                        onClick={() => onEditTask(task)}>
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        aria-label="Удалить задачу"
+                        className="compact-icon-button danger"
+                        title="Удалить"
+                        type="button"
+                        onClick={() => onDeleteTask(task)}>
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </DraggableTaskRow>
                 );
               })}
-              {tasks.length === 0 && <p className="operations-empty">Задач пока нет.</p>}
+              {tasks.length === 0 && (
+                <p className="operations-empty">Задач пока нет.</p>
+              )}
             </div>
             <DragOverlay>
               {draggedTask && (
@@ -194,7 +224,10 @@ function OperationsPage({
                 <p>{supplies.length} позиций на складе</p>
               </div>
             </div>
-            <button className="add-visit-button" type="button" onClick={onAddSupply}>
+            <button
+              className="add-visit-button"
+              type="button"
+              onClick={onAddSupply}>
               <Plus size={16} />
               Добавить
             </button>
@@ -203,14 +236,18 @@ function OperationsPage({
             {supplies.map((item) => {
               const lowStock = Number(item.stock) <= Number(item.minStock);
               return (
-                <article className={`supply-row ${lowStock ? "supply-low" : ""}`} key={item.id}>
+                <article
+                  className={`supply-row ${lowStock ? "supply-low" : ""}`}
+                  key={item.id}>
                   <div>
                     <strong>{item.name}</strong>
                     <span>{item.note || "Расходный материал"}</span>
                   </div>
                   <div className="supply-stock">
                     <small>Остаток</small>
-                    <strong>{item.stock} {item.unit}</strong>
+                    <strong>
+                      {item.stock} {item.unit}
+                    </strong>
                     <span>минимум {item.minStock}</span>
                   </div>
                   <div className="supply-cost">
@@ -218,19 +255,39 @@ function OperationsPage({
                     <strong>{formatMoney(item.cost)}</strong>
                   </div>
                   <div className="supply-actions">
-                    <button type="button" onClick={() => onChangeSupplyStock(item, -1)}>−</button>
-                    <button type="button" onClick={() => onChangeSupplyStock(item, 1)}>+</button>
-                    <button aria-label="Редактировать расходник" className="compact-icon-button" title="Редактировать" type="button" onClick={() => onEditSupply(item)}>
+                    <button
+                      type="button"
+                      onClick={() => onChangeSupplyStock(item, -1)}>
+                      −
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onChangeSupplyStock(item, 1)}>
+                      +
+                    </button>
+                    <button
+                      aria-label="Редактировать расходник"
+                      className="compact-icon-button"
+                      title="Редактировать"
+                      type="button"
+                      onClick={() => onEditSupply(item)}>
                       <Pencil size={15} />
                     </button>
-                    <button aria-label="Удалить расходник" className="compact-icon-button danger" title="Удалить" type="button" onClick={() => onDeleteSupply(item)}>
+                    <button
+                      aria-label="Удалить расходник"
+                      className="compact-icon-button danger"
+                      title="Удалить"
+                      type="button"
+                      onClick={() => onDeleteSupply(item)}>
                       <Trash2 size={15} />
                     </button>
                   </div>
                 </article>
               );
             })}
-            {supplies.length === 0 && <p className="operations-empty">Добавьте первый расходник.</p>}
+            {supplies.length === 0 && (
+              <p className="operations-empty">Добавьте первый расходник.</p>
+            )}
           </div>
         </section>
       </div>

@@ -198,18 +198,20 @@ function MessageTemplatesPage({
   return (
     <section className="catalog-page message-templates-page">
       <div className="employees-toolbar">
-        <div>
-          <h2>Шаблоны сообщений</h2>
-          <p>
-            {filteredTemplates.length} из {templates.length} шаблонов
-          </p>
+        <div className="title-notifications-flex">
+          <div>
+            <h2>Шаблоны сообщений</h2>
+            <p>
+              {filteredTemplates.length} из {templates.length} шаблонов
+            </p>
+          </div>
+          <PageNotificationsSlot />
         </div>
         <div className="toolbar-actions">
           <button className="add-visit-button" type="button" onClick={onAdd}>
             <Plus size={18} />
             Добавить шаблон
           </button>
-          <PageNotificationsSlot />
         </div>
       </div>
 
@@ -271,13 +273,16 @@ function MessageTemplatesPage({
           const Icon = template.channel === "Email" ? Mail : MessageSquareText;
 
           return (
-            <article className="catalog-card message-template-card" key={template.id}>
+            <article
+              className="catalog-card message-template-card"
+              key={template.id}>
               <div className="message-template-card-header">
                 <Icon size={18} />
                 <div>
                   <h3>{template.name}</h3>
                   <span>
-                    {template.channel} · {template.language} · {template.audience}
+                    {template.channel} · {template.language} ·{" "}
+                    {template.audience}
                   </span>
                 </div>
               </div>
@@ -328,7 +333,10 @@ function MessageTemplatesPage({
         </div>
       )}
       {sendingTemplate && (
-        <div className="modal-backdrop" role="presentation" onClick={closeSendDialog}>
+        <div
+          className="modal-backdrop"
+          role="presentation"
+          onClick={closeSendDialog}>
           <section
             aria-labelledby="send-template-title"
             aria-modal="true"
@@ -357,7 +365,8 @@ function MessageTemplatesPage({
                 onChange={(event) => {
                   const query = event.target.value;
                   const matchingClient = clients.find(
-                    (client) => client.name.toLowerCase() === query.toLowerCase(),
+                    (client) =>
+                      client.name.toLowerCase() === query.toLowerCase(),
                   );
 
                   setClientQuery(query);

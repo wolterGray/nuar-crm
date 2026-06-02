@@ -62,7 +62,7 @@ import ServicesPage from "./components/pages/ServicesPage.jsx";
 import MessageTemplatesPage from "./components/pages/MessageTemplatesPage.jsx";
 import CalendarPage from "./components/pages/CalendarPage.jsx";
 import StatisticsPage from "./components/pages/StatisticsPage.jsx";
-import VisitsTable from "./components/VisitsTable.jsx";
+import PaymentsPage from "./components/pages/PaymentsPage.jsx";
 import OperationsPage from "./components/pages/OperationsPage.jsx";
 import ImportPage from "./components/pages/ImportPage.jsx";
 import {isSupabaseConfigured, supabase} from "./lib/supabase.js";
@@ -3364,14 +3364,12 @@ function App() {
             overlayOpen={calendarEntryModalOpen}
           />
         ) : isPaymentsPage ? (
-          <VisitsTable
-            addLabel="Добавить поступление"
+          <PaymentsPage
             filters={paymentFilters}
             masters={masters}
             openActionMenuId={openPaymentActionMenuId}
-            title="Оплаты и финансовый журнал"
             visits={filteredPaymentRows}
-            onAddVisit={() => setFinancialOperationModalOpen(true)}
+            onAddPayment={() => setFinancialOperationModalOpen(true)}
             onDeleteVisit={deletePaymentRow}
             onFilterChange={(key, value) =>
               setPaymentFilters((current) => ({...current, [key]: value}))

@@ -7,16 +7,18 @@ function EmployeesPage({employees, onAdd, onEdit, onDelete}) {
   return (
     <section className="employees-page">
       <div className="employees-toolbar">
-        <div>
-          <h2>Сотрудники</h2>
-          <p>{employees.length} в базе</p>
+        <div className="title-notifications-flex">
+          <div>
+            <h2>Сотрудники</h2>
+            <p>{employees.length} в базе</p>
+          </div>
+          <PageNotificationsSlot />
         </div>
         <div className="toolbar-actions">
           <button className="add-visit-button" type="button" onClick={onAdd}>
             <Plus size={18} />
             Добавить сотрудника
           </button>
-          <PageNotificationsSlot />
         </div>
       </div>
 

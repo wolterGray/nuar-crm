@@ -58,7 +58,11 @@ const enumerateDates = (startDate, endDate) => {
     return result;
   }
 
-  for (let date = start; date <= end; date = new Date(date.getTime() + DAY_IN_MS)) {
+  for (
+    let date = start;
+    date <= end;
+    date = new Date(date.getTime() + DAY_IN_MS)
+  ) {
     result.push(date.toISOString().slice(0, 10));
   }
 
@@ -79,14 +83,23 @@ const isForecastVisit = (visit) =>
   visit.kind === "visit" &&
   !["completed", "cancelled", "no_show"].includes(visit.status);
 
-function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, employees}) {
+function StatisticsPage({
+  visits,
+  calendarEntries = [],
+  clientPackages,
+  clients,
+  employees,
+}) {
   const [startDate, setStartDate] = useState(getMonthStart);
   const [endDate, setEndDate] = useState(getTodayInput);
   const [master, setMaster] = useState("");
   const [currency, setCurrency] = useState("PLN");
   const [rates, setRates] = useState(() => {
     try {
-      return {...defaultRates, ...JSON.parse(window.localStorage.getItem(CURRENCY_CACHE_KEY))};
+      return {
+        ...defaultRates,
+        ...JSON.parse(window.localStorage.getItem(CURRENCY_CACHE_KEY)),
+      };
     } catch {
       return defaultRates;
     }
@@ -95,7 +108,9 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
   useEffect(() => {
     Promise.all(
       ["USD", "EUR", "UAH"].map(async (code) => {
-        const response = await fetch(`https://api.nbp.pl/api/exchangerates/rates/a/${code}/?format=json`);
+        const response = await fetch(
+          `https://api.nbp.pl/api/exchangerates/rates/a/${code}/?format=json`,
+        );
         if (!response.ok) throw new Error("NBP unavailable");
         const data = await response.json();
         return [code, Number(data.rates?.[0]?.mid) || defaultRates[code]];
@@ -104,7 +119,10 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
       .then((entries) => {
         const nextRates = {...defaultRates, ...Object.fromEntries(entries)};
         setRates(nextRates);
-        window.localStorage.setItem(CURRENCY_CACHE_KEY, JSON.stringify(nextRates));
+        window.localStorage.setItem(
+          CURRENCY_CACHE_KEY,
+          JSON.stringify(nextRates),
+        );
       })
       .catch(() => {});
   }, []);
@@ -172,14 +190,18 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
       (sum, visit) => sum + getDiscountedServiceAmount(visit),
       0,
     );
-    const tips = filteredAppointments.reduce((sum, visit) => sum + (Number(visit.tip) || 0), 0);
+    const tips = filteredAppointments.reduce(
+      (sum, visit) => sum + (Number(visit.tip) || 0),
+      0,
+    );
     const extras = filteredAppointments.reduce(
       (sum, visit) => sum + (Number(visit.extra) || 0),
       0,
     );
     const discounts = filteredAppointments.reduce(
       (sum, visit) =>
-        sum + (Number(visit.amount) || 0) * ((Number(visit.discount) || 0) / 100),
+        sum +
+        (Number(visit.amount) || 0) * ((Number(visit.discount) || 0) / 100),
       0,
     );
     const employeePayouts = filteredAppointments.reduce(
@@ -197,12 +219,15 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
     const repeatClients = [...clientNames].filter(
       (clientName) =>
         visits.filter(
-          (visit) => visit.recordType !== "operation" && visit.client === clientName,
+          (visit) =>
+            visit.recordType !== "operation" && visit.client === clientName,
         ).length > 1,
     ).length;
     const averageCheck = totalIncome / Math.max(filteredAppointments.length, 1);
     const dates = dateRange.map((date) => {
-      const dailyVisits = filteredVisits.filter((visit) => toInputDate(visit.date) === date);
+      const dailyVisits = filteredVisits.filter(
+        (visit) => toInputDate(visit.date) === date,
+      );
       const dailyPackages = filteredPackages.filter(
         (item) => toInputDate(item.purchaseDate) === date,
       );
@@ -210,8 +235,14 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
       return {
         date,
         income:
-          dailyVisits.reduce((sum, visit) => sum + getVisitTotal(visit, employees), 0) +
-          dailyPackages.reduce((sum, item) => sum + (Number(item.price) || 0), 0),
+          dailyVisits.reduce(
+            (sum, visit) => sum + getVisitTotal(visit, employees),
+            0,
+          ) +
+          dailyPackages.reduce(
+            (sum, item) => sum + (Number(item.price) || 0),
+            0,
+          ),
       };
     });
     const payments = paymentGroups.map((group) => {
@@ -225,8 +256,14 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
       return {
         ...group,
         value:
-          visitPayments.reduce((sum, visit) => sum + getVisitTotal(visit, employees), 0) +
-          packagePayments.reduce((sum, item) => sum + (Number(item.price) || 0), 0),
+          visitPayments.reduce(
+            (sum, visit) => sum + getVisitTotal(visit, employees),
+            0,
+          ) +
+          packagePayments.reduce(
+            (sum, item) => sum + (Number(item.price) || 0),
+            0,
+          ),
         recordsCount: visitPayments.length + packagePayments.length,
       };
     });
@@ -255,12 +292,23 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
       tips,
       totalIncome,
     };
-  }, [calendarEntries, clientPackages, employees, endDate, master, startDate, visits]);
+  }, [
+    calendarEntries,
+    clientPackages,
+    employees,
+    endDate,
+    master,
+    startDate,
+    visits,
+  ]);
 
   const chart = createChart(analytics.dates);
-  const activePayments = analytics.payments.filter((item) => item.recordsCount > 0);
+  const activePayments = analytics.payments.filter(
+    (item) => item.recordsCount > 0,
+  );
   const visiblePaymentStats = analytics.payments.filter(
-    (item) => item.recordsCount > 0 || ["Наличные", "Карта"].includes(item.label),
+    (item) =>
+      item.recordsCount > 0 || ["Наличные", "Карта"].includes(item.label),
   );
   const mainStats = [
     {
@@ -331,25 +379,41 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
     ["Выплаты мастерам", -analytics.employeePayouts],
     ["Комиссии платформ", -analytics.platformCommissions],
   ];
-  const repeatRate = (analytics.repeatClients / Math.max(analytics.clientsCount, 1)) * 100;
+  const repeatRate =
+    (analytics.repeatClients / Math.max(analytics.clientsCount, 1)) * 100;
 
   return (
     <section className="statistics-page">
       <div className="statistics-toolbar">
-        <div>
-          <h2>Статистика</h2>
-          <p>Доходы, оплаты и поведение клиентов</p>
+        <div className="statistics-heading">
+          <div className="title-notifications-flex">
+            <div>
+              <h2>Статистика</h2>
+              <p>Доходы, оплаты и поведение клиентов</p>
+            </div>
+            <PageNotificationsSlot />
+          </div>
         </div>
         <div className="statistics-filters">
           <label>
             <CalendarRange size={15} />
-            <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+            <input
+              type="date"
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
+            />
           </label>
           <span>—</span>
           <label>
-            <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(event) => setEndDate(event.target.value)}
+            />
           </label>
-          <select value={master} onChange={(event) => setMaster(event.target.value)}>
+          <select
+            value={master}
+            onChange={(event) => setMaster(event.target.value)}>
             <option value="">Все сотрудники</option>
             {employees.map((employee) => (
               <option key={employee.id}>{employee.name}</option>
@@ -365,23 +429,28 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
               </option>
             ))}
           </select>
-          <PageNotificationsSlot />
         </div>
       </div>
 
       <div className="statistics-main-cards">
         <div className="statistics-primary-cards">
-          {primaryStats.map((item) => <StatisticsCard item={item} key={item.label} primary />)}
+          {primaryStats.map((item) => (
+            <StatisticsCard item={item} key={item.label} primary />
+          ))}
         </div>
         {secondaryStats.length > 0 && (
           <div className="statistics-secondary-cards">
-            {secondaryStats.map((item) => <StatisticsCard item={item} key={item.label} />)}
+            {secondaryStats.map((item) => (
+              <StatisticsCard item={item} key={item.label} />
+            ))}
           </div>
         )}
       </div>
 
       <div className="statistics-overview-cards">
-        {overviewStats.map((item) => <StatisticsCard item={item} key={item.label} />)}
+        {overviewStats.map((item) => (
+          <StatisticsCard item={item} key={item.label} />
+        ))}
       </div>
 
       <div className="statistics-layout">
@@ -389,22 +458,35 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
           <div className="panel-header">
             <div>
               <h2>Доход по датам</h2>
-              <p>Только завершённые визиты · {toDisplayDate(startDate)} — {toDisplayDate(endDate)}</p>
+              <p>
+                Только завершённые визиты · {toDisplayDate(startDate)} —{" "}
+                {toDisplayDate(endDate)}
+              </p>
             </div>
             <strong>{formatIncome(analytics.totalIncome)}</strong>
           </div>
-          <svg className="statistics-line-chart" viewBox="0 0 760 270" role="img" aria-label="График дохода по дням">
-            {[30, 90, 150, 210].map((y) => <line key={y} x1="38" x2="744" y1={y} y2={y} />)}
+          <svg
+            className="statistics-line-chart"
+            viewBox="0 0 760 270"
+            role="img"
+            aria-label="График дохода по дням">
+            {[30, 90, 150, 210].map((y) => (
+              <line key={y} x1="38" x2="744" y1={y} y2={y} />
+            ))}
             <path className="statistics-area" d={chart.areaPath} />
             <path className="statistics-line" d={chart.linePath} />
             {chart.points.map((point) => (
               <circle key={point.date} cx={point.x} cy={point.y} r="3">
-                <title>{shortDate(point.date)}: {formatIncome(point.income)}</title>
+                <title>
+                  {shortDate(point.date)}: {formatIncome(point.income)}
+                </title>
               </circle>
             ))}
           </svg>
           <div className="statistics-chart-labels">
-            {chart.labels.map((date) => <span key={date}>{shortDate(date)}</span>)}
+            {chart.labels.map((date) => (
+              <span key={date}>{shortDate(date)}</span>
+            ))}
           </div>
         </article>
 
@@ -416,8 +498,15 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
           <div className="statistics-ring-wrap">
             <div
               className="percent-ring dynamic-payment-ring statistics-ring"
-              style={{"--payment-ring-gradient": createPaymentRingGradient(activePayments)}}>
-              <strong>{formatCompactMoney(analytics.paymentTotal / (rates[currency] || 1))}</strong>
+              style={{
+                "--payment-ring-gradient":
+                  createPaymentRingGradient(activePayments),
+              }}>
+              <strong>
+                {formatCompactMoney(
+                  analytics.paymentTotal / (rates[currency] || 1),
+                )}
+              </strong>
               <span>доход</span>
             </div>
             <div className="payment-breakdown">
@@ -441,7 +530,9 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
             {earnings.map(([label, value]) => (
               <span key={label}>
                 {label}
-                <strong className={value < 0 ? "negative" : ""}>{formatIncome(value)}</strong>
+                <strong className={value < 0 ? "negative" : ""}>
+                  {formatIncome(value)}
+                </strong>
               </span>
             ))}
           </div>
@@ -453,12 +544,32 @@ function StatisticsPage({visits, calendarEntries = [], clientPackages, clients, 
             <p>Аналитика базы и возвратов</p>
           </div>
           <div className="statistics-client-grid">
-            <span><Users size={16} />Уникальных<strong>{analytics.clientsCount}</strong></span>
-            <span><TrendingUp size={16} />Повторных<strong>{analytics.repeatClients}</strong></span>
-            <span><Banknote size={16} />Возвратность<strong>{Math.round(repeatRate)}%</strong></span>
-            <span><Package size={16} />Пакетов продано<strong>{analytics.filteredPackages.length}</strong></span>
-            <span><WalletCards size={16} />Визитов за период<strong>{analytics.filteredAppointments.length}</strong></span>
-            <span><CircleDollarSign size={16} />Сертификатов<strong>{analytics.certificatesCount}</strong></span>
+            <span>
+              <Users size={16} />
+              Уникальных<strong>{analytics.clientsCount}</strong>
+            </span>
+            <span>
+              <TrendingUp size={16} />
+              Повторных<strong>{analytics.repeatClients}</strong>
+            </span>
+            <span>
+              <Banknote size={16} />
+              Возвратность<strong>{Math.round(repeatRate)}%</strong>
+            </span>
+            <span>
+              <Package size={16} />
+              Пакетов продано
+              <strong>{analytics.filteredPackages.length}</strong>
+            </span>
+            <span>
+              <WalletCards size={16} />
+              Визитов за период
+              <strong>{analytics.filteredAppointments.length}</strong>
+            </span>
+            <span>
+              <CircleDollarSign size={16} />
+              Сертификатов<strong>{analytics.certificatesCount}</strong>
+            </span>
           </div>
           <small>Всего клиентов в базе: {clients.length}</small>
         </article>
@@ -474,7 +585,9 @@ function StatisticsCard({item, primary = false}) {
     <article
       className={`statistics-card ${primary ? "statistics-card-primary" : "statistics-card-secondary"}`}
       style={{"--statistics-card-color": item.color}}>
-      <div><Icon size={17} /></div>
+      <div>
+        <Icon size={17} />
+      </div>
       <span>{item.label}</span>
       <strong>{item.value}</strong>
     </article>
@@ -490,12 +603,16 @@ const createChart = (dates) => {
     x: 38 + (index / Math.max(dates.length - 1, 1)) * width,
     y: 240 - (item.income / maxIncome) * height,
   }));
-  const linePath = points.map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
+  const linePath = points
+    .map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`)
+    .join(" ");
   const areaPath = points.length
     ? `${linePath} L ${points.at(-1).x} 240 L ${points[0].x} 240 Z`
     : "";
   const labelStep = Math.max(1, Math.ceil(dates.length / 7));
-  const labels = dates.filter((_, index) => index % labelStep === 0 || index === dates.length - 1).map((item) => item.date);
+  const labels = dates
+    .filter((_, index) => index % labelStep === 0 || index === dates.length - 1)
+    .map((item) => item.date);
 
   return {areaPath, labels, linePath, points};
 };

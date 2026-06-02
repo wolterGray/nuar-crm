@@ -1,4 +1,17 @@
-import {CakeSlice, CalendarPlus, Eye, MessageSquareText, MoreVertical, Pencil, Phone, Plus, RotateCcw, Search, Trash2, X} from "lucide-react";
+import {
+  CakeSlice,
+  CalendarPlus,
+  Eye,
+  MessageSquareText,
+  MoreVertical,
+  Pencil,
+  Phone,
+  Plus,
+  RotateCcw,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {
   formatMoney,
@@ -41,10 +54,12 @@ function ClientsPage({
     () =>
       clients.map((client) => {
         const clientVisits = visits.filter(
-          (visit) => visit.client === client.name && visit.recordType !== "operation",
+          (visit) =>
+            visit.client === client.name && visit.recordType !== "operation",
         );
         const clientOperations = visits.filter(
-          (visit) => visit.client === client.name && visit.recordType === "operation",
+          (visit) =>
+            visit.client === client.name && visit.recordType === "operation",
         );
         const scheduledEntries = calendarEntries.filter(
           (entry) => entry.kind === "visit" && entry.client === client.name,
@@ -54,7 +69,9 @@ function ClientsPage({
         );
         const appointments = [
           ...scheduledEntries.map((entry) => {
-            const journalVisit = clientVisits.find((visit) => visit.id === entry.visitId);
+            const journalVisit = clientVisits.find(
+              (visit) => visit.id === entry.visitId,
+            );
 
             return {
               id: `calendar-${entry.id}`,
@@ -64,7 +81,9 @@ function ClientsPage({
               service: entry.service || "Услуга не указана",
               master: entry.master || "—",
               payment: journalVisit?.payment || entry.payment || "—",
-              total: journalVisit ? getVisitTotal(journalVisit, employees) : null,
+              total: journalVisit
+                ? getVisitTotal(journalVisit, employees)
+                : null,
               status: getAppointmentStatus(entry),
               repeatDefaults: {
                 amount: entry.amount || journalVisit?.amount || "",
@@ -105,18 +124,22 @@ function ClientsPage({
         const packages = clientPackages.filter(
           (packageItem) => packageItem.client === client.name,
         );
-        const totalIncome = clientVisits.reduce(
-          (sum, visit) => sum + getVisitTotal(visit, employees),
-          0,
-        ) + clientOperations.reduce(
-          (sum, visit) => sum + getVisitTotal(visit, employees),
-          0,
-        ) + packages.reduce(
-          (sum, packageItem) => sum + (Number(packageItem.price) || 0),
-          0,
-        );
+        const totalIncome =
+          clientVisits.reduce(
+            (sum, visit) => sum + getVisitTotal(visit, employees),
+            0,
+          ) +
+          clientOperations.reduce(
+            (sum, visit) => sum + getVisitTotal(visit, employees),
+            0,
+          ) +
+          packages.reduce(
+            (sum, packageItem) => sum + (Number(packageItem.price) || 0),
+            0,
+          );
         const packagesLeft = packages.reduce(
-          (sum, packageItem) => sum + (Number(packageItem.remainingVisits) || 0),
+          (sum, packageItem) =>
+            sum + (Number(packageItem.remainingVisits) || 0),
           0,
         );
         const lastVisit =
@@ -181,11 +204,14 @@ function ClientsPage({
       className="panel clients-page"
       onClick={() => setOpenClientMenuId(null)}>
       <div className="clients-toolbar">
-        <div>
-          <h2>Клиенты</h2>
-          <p>
-            {filteredClients.length} из {clients.length} в базе
-          </p>
+        <div className="title-notifications-flex">
+          <div>
+            <h2>Клиенты </h2>
+            <p>
+              {filteredClients.length} из {clients.length} в базе
+            </p>
+          </div>
+          <PageNotificationsSlot />
         </div>
         <div className="clients-toolbar-actions">
           <label className="clients-search">
@@ -207,11 +233,13 @@ function ClientsPage({
               </button>
             )}
           </label>
-          <button className="add-visit-button" type="button" onClick={onAddClient}>
+          <button
+            className="add-visit-button"
+            type="button"
+            onClick={onAddClient}>
             <Plus size={18} />
             Добавить клиента
           </button>
-          <PageNotificationsSlot />
         </div>
       </div>
 
@@ -231,7 +259,8 @@ function ClientsPage({
         {filteredClients.map((client) => (
           <div
             className={`clients-table-row ${
-              client.daysAbsent === null || client.daysAbsent >= inactiveClientDays
+              client.daysAbsent === null ||
+              client.daysAbsent >= inactiveClientDays
                 ? "client-needs-contact"
                 : ""
             }`}
@@ -253,7 +282,9 @@ function ClientsPage({
               <strong>{client.name}</strong>
               <small>{client.phone || "Телефон не указан"}</small>
             </span>
-            <span data-label="Статус"><b className="client-status">{client.status || "Активный"}</b></span>
+            <span data-label="Статус">
+              <b className="client-status">{client.status || "Активный"}</b>
+            </span>
             <span data-label="Визитов">{client.visitsCount}</span>
             <span data-label="Пакеты">
               {client.packagesCount} / {client.packagesLeft}
@@ -261,7 +292,9 @@ function ClientsPage({
             <span data-label="Сумма">{formatMoney(client.totalIncome)}</span>
             <span data-label="Последний визит">{client.lastVisit}</span>
             <span data-label="Не был">
-              {client.daysAbsent === null ? "Новый" : `${client.daysAbsent} дн.`}
+              {client.daysAbsent === null
+                ? "Новый"
+                : `${client.daysAbsent} дн.`}
             </span>
             <span data-label="Заметка">{client.note || "—"}</span>
 
@@ -380,7 +413,8 @@ function ClientsPage({
                 Завершено <strong>{viewedClient.completedVisitsCount}</strong>
               </span>
               <span>
-                Запланировано <strong>{viewedClient.upcomingVisitsCount}</strong>
+                Запланировано{" "}
+                <strong>{viewedClient.upcomingVisitsCount}</strong>
               </span>
               <span>
                 Последний визит <strong>{viewedClient.lastVisit}</strong>
@@ -400,7 +434,8 @@ function ClientsPage({
                 Остаток сеансов <strong>{viewedClient.packagesLeft}</strong>
               </span>
               <span>
-                Общая сумма <strong>{formatMoney(viewedClient.totalIncome)}</strong>
+                Общая сумма{" "}
+                <strong>{formatMoney(viewedClient.totalIncome)}</strong>
               </span>
               <span>
                 Предпочтения <strong>{viewedClient.preference || "—"}</strong>
@@ -430,7 +465,9 @@ function ClientsPage({
               <a
                 aria-disabled={!viewedClient.phone}
                 className="secondary-button"
-                href={viewedClient.phone ? `tel:${viewedClient.phone}` : undefined}>
+                href={
+                  viewedClient.phone ? `tel:${viewedClient.phone}` : undefined
+                }>
                 <Phone size={15} />
                 Позвонить
               </a>
@@ -464,7 +501,8 @@ function ClientsPage({
                   onClick={() => setVisitHistoryTab("past")}>
                   Прошлые
                   <b>
-                    {viewedClient.appointments.length - viewedClient.upcomingVisitsCount}
+                    {viewedClient.appointments.length -
+                      viewedClient.upcomingVisitsCount}
                   </b>
                 </button>
               </div>
@@ -485,29 +523,37 @@ function ClientsPage({
                       : appointment.status !== "Запланирован",
                   )
                   .map((appointment) => (
-                  <div className="client-visit-history-row" key={appointment.id}>
-                    <span data-label="Дата">
-                      {appointment.date}
-                      {appointment.time !== "—" ? ` · ${appointment.time}` : ""}
-                    </span>
-                    <span data-label="Услуга">{appointment.service}</span>
-                    <span data-label="Мастер">{appointment.master}</span>
-                    <span data-label="Оплата">{appointment.payment}</span>
-                    <span data-label="Прибыль">
-                      {appointment.total === null ? "После визита" : formatMoney(appointment.total)}
-                    </span>
-                    <span data-label="Статус">
-                      <b>{appointment.status}</b>
-                    </span>
-                    <button
-                      className="client-repeat-visit"
-                      type="button"
-                      onClick={() => onRepeatVisit(viewedClient, appointment)}>
-                      <RotateCcw size={13} />
-                      Повторить визит
-                    </button>
-                  </div>
-                ))}
+                    <div
+                      className="client-visit-history-row"
+                      key={appointment.id}>
+                      <span data-label="Дата">
+                        {appointment.date}
+                        {appointment.time !== "—"
+                          ? ` · ${appointment.time}`
+                          : ""}
+                      </span>
+                      <span data-label="Услуга">{appointment.service}</span>
+                      <span data-label="Мастер">{appointment.master}</span>
+                      <span data-label="Оплата">{appointment.payment}</span>
+                      <span data-label="Прибыль">
+                        {appointment.total === null
+                          ? "После визита"
+                          : formatMoney(appointment.total)}
+                      </span>
+                      <span data-label="Статус">
+                        <b>{appointment.status}</b>
+                      </span>
+                      <button
+                        className="client-repeat-visit"
+                        type="button"
+                        onClick={() =>
+                          onRepeatVisit(viewedClient, appointment)
+                        }>
+                        <RotateCcw size={13} />
+                        Повторить визит
+                      </button>
+                    </div>
+                  ))}
                 {viewedClient.appointments.filter((appointment) =>
                   visitHistoryTab === "future"
                     ? appointment.status === "Запланирован"
@@ -541,7 +587,9 @@ function ClientsPage({
                 </article>
               ))}
               {viewedClientCommunications.length === 0 && (
-                <p className="client-communications-empty">Сообщений пока не отправляли.</p>
+                <p className="client-communications-empty">
+                  Сообщений пока не отправляли.
+                </p>
               )}
             </div>
           </section>

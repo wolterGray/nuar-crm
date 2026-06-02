@@ -1,7 +1,10 @@
 import {Pencil, Plus, Trash2} from "lucide-react";
 import {motion} from "framer-motion";
 import {formatMoney} from "../../utils/formatters.jsx";
-import {getPackageRemainingLabel, getPackageUsedVisits} from "../../utils/packages.jsx";
+import {
+  getPackageRemainingLabel,
+  getPackageUsedVisits,
+} from "../../utils/packages.jsx";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
 
 function PackagesPage({
@@ -27,22 +30,27 @@ function PackagesPage({
   return (
     <section className="catalog-page">
       <div className="employees-toolbar">
-        <div>
-          <h2>Пакеты</h2>
-          <p>
-            {packages.length} шаблонов · {clientPackages.length} у клиентов
-          </p>
+        <div className="title-notifications-flex">
+          <div>
+            <h2>Пакеты</h2>
+            <p>
+              {packages.length} шаблонов · {clientPackages.length} у клиентов
+            </p>
+          </div>
+          <PageNotificationsSlot />
         </div>
         <div className="clients-toolbar-actions">
-          <button className="secondary-button" type="button" onClick={onSellPackage}>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={onSellPackage}>
             <Plus size={18} />
             Продать клиенту
           </button>
           <button className="add-visit-button" type="button" onClick={onAdd}>
             <Plus size={18} />
-            Добавить шаблон
+            Добавить пакет
           </button>
-          <PageNotificationsSlot />
         </div>
       </div>
 
@@ -114,7 +122,9 @@ function PackagesPage({
           {clientPackages.length === 0 && (
             <div className="clients-empty">
               <strong>Пока нет проданных пакетов</strong>
-              <span>Продайте пакет клиенту, чтобы отслеживать остаток визитов.</span>
+              <span>
+                Продайте пакет клиенту, чтобы отслеживать остаток визитов.
+              </span>
             </div>
           )}
         </div>
@@ -127,9 +137,13 @@ function PackagesPage({
         </div>
         <div className="client-packages-list">
           {certificates.map((certificate) => (
-            <article className="client-package-card certificate-card" key={certificate.id}>
+            <article
+              className="client-package-card certificate-card"
+              key={certificate.id}>
               <div className="client-package-main">
-                <strong>{certificate.client || "Без привязки к клиенту"}</strong>
+                <strong>
+                  {certificate.client || "Без привязки к клиенту"}
+                </strong>
                 <span>{certificate.service}</span>
                 <small>{certificate.date}</small>
               </div>
@@ -142,7 +156,10 @@ function PackagesPage({
           {certificates.length === 0 && (
             <div className="clients-empty">
               <strong>Сертификаты пока не продавались</strong>
-              <span>Продажа появится здесь после добавления поступления в разделе оплат.</span>
+              <span>
+                Продажа появится здесь после добавления поступления в разделе
+                оплат.
+              </span>
             </div>
           )}
         </div>

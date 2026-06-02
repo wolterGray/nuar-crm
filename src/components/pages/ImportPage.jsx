@@ -51,7 +51,8 @@ function ImportPage({
     (total, document) => total + (Number(document.amount) || 0),
     0,
   );
-  const documentSources = new Set(documents.map((document) => document.source)).size;
+  const documentSources = new Set(documents.map((document) => document.source))
+    .size;
 
   const synchronize = async () => {
     setIsLoading(true);
@@ -64,7 +65,9 @@ function ImportPage({
         .filter(Boolean);
 
       setPendingItems(parsedItems);
-      setSelectedIds(parsedItems.filter(isReadyToImport).map((item) => item.id));
+      setSelectedIds(
+        parsedItems.filter(isReadyToImport).map((item) => item.id),
+      );
       onNotify({
         title: "Gmail проверен",
         message: parsedItems.length
@@ -84,21 +87,33 @@ function ImportPage({
   };
 
   const applySelected = () => {
-    const selectedItems = pendingItems.filter((item) => selectedIds.includes(item.id));
+    const selectedItems = pendingItems.filter((item) =>
+      selectedIds.includes(item.id),
+    );
     onApply(selectedItems);
-    setPendingItems((current) => current.filter((item) => !selectedIds.includes(item.id)));
+    setPendingItems((current) =>
+      current.filter((item) => !selectedIds.includes(item.id)),
+    );
     setSelectedIds([]);
   };
 
   return (
     <section className="import-page">
       <div className="employees-toolbar">
-        <div>
-          <h2>Импорт из Gmail</h2>
-          <p>Записи Booksy и документы расходов с предварительной проверкой</p>
+        <div className="title-notifications-flex">
+          <div>
+            <h2>Импорт из Gmail</h2>
+            <p>
+              Записи Booksy и документы расходов с предварительной проверкой
+            </p>
+          </div>
+          <PageNotificationsSlot />
         </div>
         <div className="import-toolbar-actions">
-          <button className="secondary-button" type="button" onClick={onOpenSettings}>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={onOpenSettings}>
             <Settings size={15} />
             Gmail
           </button>
@@ -110,7 +125,6 @@ function ImportPage({
             <RefreshCw className={isLoading ? "spin" : ""} size={16} />
             {isLoading ? "Проверяем" : "Синхронизировать"}
           </button>
-          <PageNotificationsSlot />
         </div>
       </div>
 
@@ -119,9 +133,15 @@ function ImportPage({
           <MailCheck size={20} />
           <div>
             <h2>Подключите Gmail</h2>
-            <p>Войдите в CRM через Google или добавьте OAuth Client ID в настройках интеграции.</p>
+            <p>
+              Войдите в CRM через Google или добавьте OAuth Client ID в
+              настройках интеграции.
+            </p>
           </div>
-          <button className="secondary-button" type="button" onClick={onOpenSettings}>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={onOpenSettings}>
             Открыть настройки
           </button>
         </section>
@@ -156,7 +176,10 @@ function ImportPage({
               </div>
             </div>
             {selectedIds.length > 0 && (
-              <button className="add-visit-button" type="button" onClick={applySelected}>
+              <button
+                className="add-visit-button"
+                type="button"
+                onClick={applySelected}>
                 <Check size={15} />
                 Применить {selectedIds.length}
               </button>
@@ -178,7 +201,11 @@ function ImportPage({
                   }
                 />
                 <span className={`import-kind import-kind-${item.type}`}>
-                  {item.type === "document" ? <FileText size={15} /> : <UserPlus size={15} />}
+                  {item.type === "document" ? (
+                    <FileText size={15} />
+                  ) : (
+                    <UserPlus size={15} />
+                  )}
                 </span>
                 <span>
                   <strong>{typeLabels[item.type]}</strong>
@@ -188,14 +215,21 @@ function ImportPage({
                       : `${item.client.name || "Клиент не распознан"} · ${item.booking.date || "дата?"} ${item.booking.time || "время?"}`}
                   </small>
                   {item.type !== "document" && (
-                    <em>{item.booking.service || "Проверьте услугу"} · {item.booking.master || "проверьте мастера"}</em>
+                    <em>
+                      {item.booking.service || "Проверьте услугу"} ·{" "}
+                      {item.booking.master || "проверьте мастера"}
+                    </em>
                   )}
-                  {!isReadyToImport(item) && <b>Нужно проверить письмо вручную</b>}
+                  {!isReadyToImport(item) && (
+                    <b>Нужно проверить письмо вручную</b>
+                  )}
                 </span>
               </label>
             ))}
             {pendingItems.length === 0 && (
-              <p className="operations-empty">Нажмите «Синхронизировать», чтобы проверить новые письма.</p>
+              <p className="operations-empty">
+                Нажмите «Синхронизировать», чтобы проверить новые письма.
+              </p>
             )}
           </div>
         </section>
@@ -215,16 +249,28 @@ function ImportPage({
               <article className="import-document-row" key={document.id}>
                 <span>
                   <strong>{document.source}</strong>
-                  <small>{document.attachments.map((file) => file.filename).join(", ") || document.subject}</small>
-                  {document.amount > 0 && <em>{formatMoney(document.amount)}</em>}
+                  <small>
+                    {document.attachments
+                      .map((file) => file.filename)
+                      .join(", ") || document.subject}
+                  </small>
+                  {document.amount > 0 && (
+                    <em>{formatMoney(document.amount)}</em>
+                  )}
                 </span>
-                <a href={document.gmailUrl} rel="noreferrer" target="_blank" title="Открыть письмо Gmail">
+                <a
+                  href={document.gmailUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                  title="Открыть письмо Gmail">
                   <ExternalLink size={15} />
                 </a>
               </article>
             ))}
             {documents.length === 0 && (
-              <p className="operations-empty">Фактуры Allegro, Booksy и iPOS появятся здесь после импорта.</p>
+              <p className="operations-empty">
+                Фактуры Allegro, Booksy и iPOS появятся здесь после импорта.
+              </p>
             )}
           </div>
         </section>

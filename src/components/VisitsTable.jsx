@@ -53,7 +53,10 @@ function VisitsTable({
   return (
     <section className="panel visits-panel">
       <div className="panel-header">
-        <h2>{title}</h2>
+        <div className="title-notifications-flex">
+          <h2>{title}</h2>
+          <PageNotificationsSlot />
+        </div>
         <div className="visits-panel-actions">
           <button className="secondary-button" type="button" onClick={exportVisits}>
             <Download size={17} />
@@ -69,7 +72,6 @@ function VisitsTable({
               {addLabel}
             </button>
           )}
-          <PageNotificationsSlot />
         </div>
       </div>
 

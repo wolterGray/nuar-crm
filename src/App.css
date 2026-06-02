@@ -3,7 +3,12 @@
   color: #111318;
   background: #f7f7f6;
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -46,13 +51,7 @@ button {
   overflow: hidden;
 }
 
-.crm-shell.sidebar-hidden {
-  grid-template-columns: minmax(0, 1fr);
-}
 
-.crm-shell.sidebar-hidden .sidebar {
-  display: none;
-}
 
 .theme-dark {
   color: #eef4fb;
@@ -244,9 +243,22 @@ button {
       #2364d2 calc(var(--cash-percent) * 1%)
         calc((var(--cash-percent) + var(--card-percent)) * 1%),
       #8f7cff calc((var(--cash-percent) + var(--card-percent)) * 1%)
-        calc((var(--cash-percent) + var(--card-percent) + var(--crypto-percent)) * 1%),
-      #d07a12 calc((var(--cash-percent) + var(--card-percent) + var(--crypto-percent)) * 1%)
-        calc((var(--cash-percent) + var(--card-percent) + var(--crypto-percent) + var(--bundle-percent)) * 1%),
+        calc(
+          (var(--cash-percent) + var(--card-percent) + var(--crypto-percent)) *
+            1%
+        ),
+      #d07a12
+        calc(
+          (var(--cash-percent) + var(--card-percent) + var(--crypto-percent)) *
+            1%
+        )
+        calc(
+          (
+              var(--cash-percent) + var(--card-percent) +
+                var(--crypto-percent) + var(--bundle-percent)
+            ) *
+            1%
+        ),
       #303846 0
     );
 }
@@ -293,9 +305,7 @@ button {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.sidebar-hidden .content {
-  padding-left: 86px;
-}
+
 
 .sidebar {
   position: relative;
@@ -842,6 +852,11 @@ h1 {
   align-items: center;
   gap: 8px;
   flex: 0 0 auto;
+  overflow: visible;
+}
+
+.page-notifications-slot {
+  margin-left: auto;
 }
 
 .client-alert-control {
@@ -863,8 +878,8 @@ h1 {
 
 .client-alert-button b {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: -5px;
+  right: -5px;
   display: grid;
   min-width: 18px;
   height: 18px;
@@ -878,10 +893,10 @@ h1 {
 }
 
 .client-alert-popover {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 30;
+  position: fixed;
+  top: 76px;
+  right: 22px;
+  z-index: 80;
   display: grid;
   gap: 12px;
   width: min(360px, calc(100vw - 32px));
@@ -1357,9 +1372,22 @@ h1 {
       #2364d2 calc(var(--cash-percent) * 1%)
         calc((var(--cash-percent) + var(--card-percent)) * 1%),
       #8f7cff calc((var(--cash-percent) + var(--card-percent)) * 1%)
-        calc((var(--cash-percent) + var(--card-percent) + var(--crypto-percent)) * 1%),
-      #d07a12 calc((var(--cash-percent) + var(--card-percent) + var(--crypto-percent)) * 1%)
-        calc((var(--cash-percent) + var(--card-percent) + var(--crypto-percent) + var(--bundle-percent)) * 1%),
+        calc(
+          (var(--cash-percent) + var(--card-percent) + var(--crypto-percent)) *
+            1%
+        ),
+      #d07a12
+        calc(
+          (var(--cash-percent) + var(--card-percent) + var(--crypto-percent)) *
+            1%
+        )
+        calc(
+          (
+              var(--cash-percent) + var(--card-percent) +
+                var(--crypto-percent) + var(--bundle-percent)
+            ) *
+            1%
+        ),
       #ececea 0
     );
 }
@@ -1471,7 +1499,35 @@ h1 {
 }
 
 .payments-content .visits-panel {
+  overflow: visible;
+}
+
+.payments-page {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  min-width: 0;
   overflow: hidden;
+}
+
+.payments-page > .visits-panel {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.payments-content .panel-header {
+  display: grid;
+  gap: 10px;
+}
+
+.payments-content .visits-panel-actions {
+  justify-content: flex-end;
 }
 
 .payments-content .table-row {
@@ -1591,7 +1647,10 @@ h2 {
 
 .table-row {
   display: grid;
-  grid-template-columns: 80px minmax(92px, 1fr) minmax(112px, 1.14fr) 78px 72px 72px 46px 62px 62px 52px 68px 24px;
+  grid-template-columns: 80px minmax(92px, 1fr) minmax(
+      112px,
+      1.14fr
+    ) 78px 72px 72px 46px 62px 62px 52px 68px 24px;
   align-items: center;
   min-width: 0;
   min-height: 44px;
@@ -1790,9 +1849,11 @@ h2 {
 
 .employees-toolbar {
   display: flex;
-  align-items: center;
+  width: 100%;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
+  padding-top: 10px;
 }
 
 .employees-toolbar p {
@@ -1939,10 +2000,6 @@ h2 {
   border-color: #f0d4cf;
 }
 
-.compact-mode .content {
-  padding: 18px 22px;
-}
-
 .compact-mode .page-header {
   margin-bottom: 10px;
 }
@@ -1982,11 +2039,25 @@ h2 {
   overflow: hidden;
 }
 
-.clients-toolbar {
+.title-notifications-flex {
   display: flex;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px;
+}
+
+.title-notifications-flex > .page-notifications-slot {
+  margin-left: auto;
+  padding-left: 14px;
+}
+
+.clients-toolbar {
+  display: grid;
+  width: 100%;
+  gap: 10px;
 }
 
 .clients-toolbar p {
@@ -2067,7 +2138,10 @@ h2 {
 .clients-table-row {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(116px, 1.1fr) 112px 52px 62px 88px 96px 58px minmax(108px, 1fr) 58px;
+  grid-template-columns: minmax(
+      116px,
+      1.1fr
+    ) 112px 52px 62px 88px 96px 58px minmax(108px, 1fr) 58px;
   align-items: center;
   gap: 10px;
   min-height: 46px;
@@ -2322,7 +2396,10 @@ h2 {
 
 .client-visit-history-row {
   display: grid;
-  grid-template-columns: 118px minmax(150px, 1.4fr) minmax(80px, .7fr) minmax(80px, .7fr) 92px 80px 92px;
+  grid-template-columns: 118px minmax(150px, 1.4fr) minmax(80px, 0.7fr) minmax(
+      80px,
+      0.7fr
+    ) 92px 80px 92px;
   gap: 8px;
   align-items: center;
   min-width: 720px;
@@ -3545,14 +3622,13 @@ h2 {
   right: 0;
   left: 0;
   z-index: 1;
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      rgba(116, 128, 145, 0.1),
-      rgba(116, 128, 145, 0.1) 2px,
-      rgba(116, 128, 145, 0.025) 2px,
-      rgba(116, 128, 145, 0.025) 7px
-    );
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(116, 128, 145, 0.1),
+    rgba(116, 128, 145, 0.1) 2px,
+    rgba(116, 128, 145, 0.025) 2px,
+    rgba(116, 128, 145, 0.025) 7px
+  );
   pointer-events: none;
 }
 
@@ -4141,14 +4217,13 @@ h2 {
 }
 
 .theme-dark .schedule-off-hours {
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      rgba(139, 151, 168, 0.14),
-      rgba(139, 151, 168, 0.14) 5px,
-      rgba(139, 151, 168, 0.04) 5px,
-      rgba(139, 151, 168, 0.04) 10px
-    );
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(139, 151, 168, 0.14),
+    rgba(139, 151, 168, 0.14) 5px,
+    rgba(139, 151, 168, 0.04) 5px,
+    rgba(139, 151, 168, 0.04) 10px
+  );
 }
 
 .theme-dark .schedule-quarter-lines i {
@@ -4242,8 +4317,18 @@ h2 {
 }
 
 .statistics-toolbar {
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 14px;
+}
+
+.statistics-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 0;
+  gap: 10px;
 }
 
 .statistics-toolbar p,
@@ -4685,7 +4770,7 @@ h2 {
 
 .settings-page {
   display: grid;
-  justify-items: center;
+  justify-items: stretch;
   align-content: start;
   gap: 10px;
   min-height: 0;
@@ -4695,7 +4780,7 @@ h2 {
 
 .settings-toolbar,
 .settings-form {
-  width: min(900px, 100%);
+  width: 100%;
 }
 
 .settings-grid {
@@ -5523,7 +5608,6 @@ button:focus-visible {
   .catalog-price-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
 }
 
 @media (max-width: 700px) {
@@ -5587,14 +5671,6 @@ button:focus-visible {
     right: 12px;
     width: 34px;
     height: 34px;
-  }
-
-  .crm-shell.sidebar-hidden {
-    display: block;
-  }
-
-  .sidebar-hidden .content {
-    padding-left: 12px;
   }
 
   .logo {
@@ -5744,6 +5820,12 @@ button:focus-visible {
     padding: 12px 10px 8px;
   }
 
+  .payments-page {
+    width: 100%;
+    min-height: 0;
+    min-width: 0;
+  }
+
   .payments-content .panel-header {
     display: grid;
     gap: 8px;
@@ -5756,7 +5838,7 @@ button:focus-visible {
 
   .payments-content .visits-panel-actions {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
     gap: 5px;
   }
@@ -5767,6 +5849,14 @@ button:focus-visible {
     min-height: 34px;
     padding: 0 6px;
     font-size: 0;
+  }
+
+  .payments-content .visits-panel-actions .add-visit-button {
+    min-height: 40px;
+    padding: 3px 5px;
+    font-size: 10px;
+    line-height: 1.05;
+    text-align: center;
   }
 
   .payments-content .visits-panel-actions svg {
@@ -5789,6 +5879,8 @@ button:focus-visible {
   .payments-content .visits-table {
     flex: 1;
     min-height: 0;
+    min-width: 0;
+    overflow: auto;
     padding: 0;
   }
 
@@ -5845,6 +5937,7 @@ button:focus-visible {
   .statistics-page {
     display: grid;
     overflow: visible;
+    padding-top: 10px;
     padding-bottom: 26px;
   }
 
@@ -5910,10 +6003,10 @@ button:focus-visible {
 
   .calendar-toolbar-actions {
     position: relative;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
+    align-items: center;
   }
 
   .calendar-content .page-header {
@@ -5944,6 +6037,11 @@ button:focus-visible {
     justify-content: space-between;
   }
 
+  .calendar-content .calendar-toolbar-actions > .page-notifications-slot {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
   .calendar-content .client-alert-button {
     top: auto;
     right: auto;
@@ -5960,6 +6058,8 @@ button:focus-visible {
 
   .calendar-date-control {
     display: flex;
+    grid-column: 1;
+    grid-row: 1;
     align-items: center;
     justify-content: space-between;
     width: 100%;
@@ -6143,7 +6243,10 @@ button:focus-visible {
   .schedule-grid {
     width: max-content;
     min-width: 100%;
-    grid-template-columns: 24px repeat(var(--master-count, 3), var(--mobile-master-width));
+    grid-template-columns: 24px repeat(
+        var(--master-count, 3),
+        var(--mobile-master-width)
+      );
   }
 
   .schedule-times {
@@ -6235,7 +6338,26 @@ button:focus-visible {
   }
 
   .statistics-filters {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 6px;
+  }
+
+  .statistics-filters > span {
+    display: none;
+  }
+
+  .statistics-filters label,
+  .statistics-filters select {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .statistics-filters input {
+    width: 100%;
+    min-width: 0;
   }
 
   .statistics-main-cards {
@@ -6249,6 +6371,38 @@ button:focus-visible {
 
   .statistics-overview-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .statistics-card,
+  .statistics-card-primary {
+    min-height: 62px;
+    padding: 9px;
+  }
+
+  .statistics-card-primary strong {
+    font-size: 17px;
+  }
+
+  .statistics-layout {
+    gap: 8px;
+  }
+
+  .statistics-layout .panel {
+    padding: 12px;
+  }
+
+  .statistics-line-chart {
+    height: 190px;
+  }
+
+  .statistics-ring-wrap {
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .statistics-client-grid {
+    gap: 6px;
   }
 
   .settings-grid,
@@ -6324,18 +6478,17 @@ button:focus-visible {
 
   .clients-page {
     gap: 10px;
-    padding: 12px;
-  }
-
-  .clients-toolbar,
-  .clients-toolbar-actions {
-    display: grid;
-    width: 100%;
-    gap: 8px;
   }
 
   .clients-toolbar-actions {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .employees-toolbar .toolbar-actions,
+  .import-toolbar-actions,
+  .operations-summary,
+  .statistics-filters {
+    flex-wrap: wrap;
   }
 
   .clients-search {
@@ -6349,13 +6502,21 @@ button:focus-visible {
 
   .clients-toolbar-actions .add-visit-button {
     min-height: 42px;
-    padding: 0 11px;
-    font-size: 0;
+    padding: 0 9px;
+    font-size: 11px;
   }
 
   .clients-toolbar-actions .add-visit-button svg {
     width: 18px;
     height: 18px;
+  }
+
+  .employees-toolbar .add-visit-button,
+  .import-toolbar-actions .add-visit-button,
+  .operations-panel-header .add-visit-button {
+    min-height: 38px;
+    padding: 0 9px;
+    font-size: 11px;
   }
 
   .clients-table-head {
@@ -6600,20 +6761,12 @@ button:focus-visible {
 }
 
 @media (min-width: 701px) {
-  .crm-shell.sidebar-hidden {
-    grid-template-columns: 74px minmax(0, 1fr);
+  .content:not(.calendar-content) {
+    padding: 12px;
   }
 
-  .crm-shell.sidebar-hidden .sidebar {
-    display: flex;
+  .content.visits-content:not(.calendar-content) {
+    padding: 12px;
   }
 
-  .sidebar-collapse-button,
-  .sidebar-restore-button {
-    display: none;
-  }
-
-  .sidebar-hidden .content {
-    padding-left: 22px;
-  }
 }

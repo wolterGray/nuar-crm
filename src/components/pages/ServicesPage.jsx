@@ -7,16 +7,18 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
   return (
     <section className="catalog-page">
       <div className="employees-toolbar">
-        <div>
-          <h2>Услуги</h2>
-          <p>{services.length} в базе</p>
+        <div className="title-notifications-flex">
+          <div>
+            <h2>Услуги</h2>
+            <p>{services.length} в базе</p>
+          </div>
+          <PageNotificationsSlot />
         </div>
         <div className="toolbar-actions">
           <button className="add-visit-button" type="button" onClick={onAdd}>
             <Plus size={18} />
             Добавить услугу
           </button>
-          <PageNotificationsSlot />
         </div>
       </div>
 
@@ -37,15 +39,26 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
             <div className="catalog-prices">
               {service.variants.map((variant) => (
                 <span key={variant.duration}>
-                  {variant.duration} мин <strong>{formatMoney(variant.price)}</strong>
+                  {variant.duration} мин{" "}
+                  <strong>{formatMoney(variant.price)}</strong>
                 </span>
               ))}
             </div>
             <div className="employee-actions">
-              <button aria-label="Редактировать услугу" className="compact-icon-button" title="Редактировать" type="button" onClick={() => onEdit(service)}>
+              <button
+                aria-label="Редактировать услугу"
+                className="compact-icon-button"
+                title="Редактировать"
+                type="button"
+                onClick={() => onEdit(service)}>
                 <Pencil size={16} />
               </button>
-              <button aria-label="Удалить услугу" className="compact-icon-button danger" title="Удалить" type="button" onClick={() => onDelete(service)}>
+              <button
+                aria-label="Удалить услугу"
+                className="compact-icon-button danger"
+                title="Удалить"
+                type="button"
+                onClick={() => onDelete(service)}>
                 <Trash2 size={16} />
               </button>
             </div>
