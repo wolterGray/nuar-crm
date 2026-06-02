@@ -1606,6 +1606,16 @@ function App() {
     });
   };
 
+  const addClientCalendarVisit = (client) => {
+    setActivePage("calendar");
+    openCreateCalendarEntry({
+      client: client.name,
+      date: getTodayInput(),
+      kind: "visit",
+      time: "10:00",
+    });
+  };
+
   const openEditCalendarEntry = (entry) => {
     setEditingCalendarEntry(entry);
     setCalendarEntryDefaults({});
@@ -3031,6 +3041,7 @@ function App() {
             onEditClient={openEditClient}
             onDeleteClient={deleteClient}
             onMessageClient={openClientMessageTemplates}
+            onAddVisit={addClientCalendarVisit}
             onRepeatVisit={repeatClientVisit}
           />
         ) : isServicesPage ? (

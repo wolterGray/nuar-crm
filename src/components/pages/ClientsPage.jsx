@@ -1,4 +1,4 @@
-import {CakeSlice, Eye, MessageSquareText, MoreVertical, Pencil, Plus, RotateCcw, Search, Trash2, X} from "lucide-react";
+import {CakeSlice, CalendarPlus, Eye, MessageSquareText, MoreVertical, Pencil, Plus, RotateCcw, Search, Trash2, X} from "lucide-react";
 import {useMemo, useState} from "react";
 import {
   formatMoney,
@@ -21,6 +21,7 @@ function ClientsPage({
   onEditClient,
   onDeleteClient,
   onMessageClient,
+  onAddVisit,
   onRepeatVisit,
 }) {
   const [openClientMenuId, setOpenClientMenuId] = useState(null);
@@ -387,6 +388,22 @@ function ClientsPage({
                 Теги <strong>{viewedClient.tags || "—"}</strong>
               </span>
             </div>
+            <div className="client-details-actions">
+              <button
+                className="submit-button"
+                type="button"
+                onClick={() => onAddVisit(viewedClient)}>
+                <CalendarPlus size={15} />
+                Добавить визит
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => onMessageClient(viewedClient)}>
+                <MessageSquareText size={15} />
+                Написать
+              </button>
+            </div>
             {viewedClient.birthday && (
               <div className="client-birthday-note">
                 <CakeSlice size={15} />
@@ -456,7 +473,7 @@ function ClientsPage({
                       type="button"
                       onClick={() => onRepeatVisit(viewedClient, appointment)}>
                       <RotateCcw size={13} />
-                      Повторить
+                      Повторить визит
                     </button>
                   </div>
                 ))}

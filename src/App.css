@@ -2129,6 +2129,22 @@ h2 {
   line-height: 1.45;
 }
 
+.client-details-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.client-details-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
 .client-visit-history {
   display: grid;
   gap: 8px;
@@ -2213,7 +2229,7 @@ h2 {
   justify-content: center;
   gap: 4px;
   min-height: 25px;
-  padding: 0 6px;
+  padding: 0 7px;
   border: 1px solid #dfdfdd;
   border-radius: 6px;
   color: #59616d;
