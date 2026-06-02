@@ -212,12 +212,13 @@ function CalendarPage({
   const endMinutes = configuredEndMinutes > startMinutes
     ? configuredEndMinutes
     : startMinutes + 60;
+  const visualStartMinutes = startMinutes - (window.innerWidth <= 700 ? 120 : 0);
   const visualEndMinutes = endMinutes + (window.innerWidth <= 700 ? 120 : 0);
   const slotMinutes = Number(settings.calendarSlotMinutes) || 15;
-  const minutesInDay = visualEndMinutes - startMinutes;
+  const minutesInDay = visualEndMinutes - visualStartMinutes;
   const slotHeight = QUARTER_HEIGHT;
   const gridHeight = (minutesInDay / slotMinutes) * slotHeight;
-  const startHour = Math.floor(startMinutes / 60);
+  const startHour = Math.floor(visualStartMinutes / 60);
   const endHour = Math.ceil(visualEndMinutes / 60);
   const dayEntries = useMemo(
     () =>
@@ -242,7 +243,7 @@ function CalendarPage({
   const weekDates = getWeekDates(selectedDate);
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const currentTop =
-    ((currentMinutes - startMinutes) / minutesInDay) * gridHeight;
+    ((currentMinutes - visualStartMinutes) / minutesInDay) * gridHeight;
   const nextVisitId = activeVisitEntries
     .filter((entry) => !isToday || toMinutes(entry.time) >= currentMinutes)
     .sort((first, second) => String(first.time).localeCompare(String(second.time)))[0]?.id;
@@ -417,7 +418,7 @@ function CalendarPage({
                     if (event.target !== event.currentTarget) return;
                     const rect = event.currentTarget.getBoundingClientRect();
                     const rawMinutes =
-                      startMinutes +
+                      visualStartMinutes +
                       ((event.clientY - rect.top) / gridHeight) * minutesInDay;
                     setPendingSlot({
                       date: selectedDate,
@@ -432,7 +433,7 @@ function CalendarPage({
                   }}>
                   {(() => {
                     const shiftStart = Math.max(
-                      startMinutes,
+                      visualStartMinutes,
                       toMinutes(employee.shiftStart || settings.workdayStart),
                     );
                     const shiftEnd = Math.min(
@@ -440,9 +441,9 @@ function CalendarPage({
                       toMinutes(employee.shiftEnd || settings.workdayEnd),
                     );
                     const topHeight =
-                      (Math.max(0, shiftStart - startMinutes) / minutesInDay) * gridHeight;
+                      (Math.max(0, shiftStart - visualStartMinutes) / minutesInDay) * gridHeight;
                     const bottomTop =
-                      (Math.max(0, shiftEnd - startMinutes) / minutesInDay) * gridHeight;
+                      (Math.max(0, shiftEnd - visualStartMinutes) / minutesInDay) * gridHeight;
 
                     return (
                       <>
@@ -487,7 +488,7 @@ function CalendarPage({
                       const ended = isEntryEnded(entry, selectedDate, now);
                       const activeVisit = isEntryActive(entry, selectedDate, now);
                       const top =
-                        ((toMinutes(entry.time) - startMinutes) / minutesInDay) *
+                        ((toMinutes(entry.time) - visualStartMinutes) / minutesInDay) *
                         gridHeight;
                       const height = Math.max(
                         (Number(entry.duration) / minutesInDay) * gridHeight,

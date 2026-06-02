@@ -5466,7 +5466,7 @@ button:focus-visible {
   }
 
   .calendar-content .calendar-page {
-    gap: 3px;
+    gap: 0;
     margin: 0 -12px;
   }
 
@@ -5806,6 +5806,10 @@ button:focus-visible {
 
   .panel {
     padding: 18px;
+  }
+
+  .panel.schedule-panel {
+    padding: 0;
   }
 
   .bar-chart {
