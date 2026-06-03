@@ -64,6 +64,9 @@ function ClientsPage({
         const scheduledEntries = calendarEntries.filter(
           (entry) => entry.kind === "visit" && entry.client === client.name,
         );
+        const completedCalendarDates = scheduledEntries
+          .filter((entry) => getAppointmentStatus(entry) === "Окончен")
+          .map((entry) => toDisplayDate(entry.date));
         const linkedVisitIds = new Set(
           scheduledEntries.map((entry) => entry.visitId).filter(Boolean),
         );
@@ -143,7 +146,10 @@ function ClientsPage({
           0,
         );
         const lastVisit =
-          getLatestDisplayDate(clientVisits.map((visit) => visit.date)) || "—";
+          getLatestDisplayDate([
+            ...clientVisits.map((visit) => visit.date),
+            ...completedCalendarDates,
+          ]) || "—";
         const daysAbsent = getDaysSinceDisplayDate(lastVisit);
 
         return {
@@ -601,7 +607,7 @@ function ClientsPage({
 
 function getAppointmentStatus(entry) {
   if (entry.status === "cancelled") return "Отменён";
-  if (entry.status === "no_show") return "No-show";
+  if (entry.status === "no_show") return "Отменён";
   if (entry.status === "completed") return "Окончен";
 
   const end = new Date(`${entry.date}T${entry.time || "00:00"}:00`);

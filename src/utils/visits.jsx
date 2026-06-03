@@ -12,7 +12,17 @@ export const getDiscountedServiceAmount = (visit) => {
   return amount - amount * (discountPercent / 100);
 };
 
+export const isPackagePayment = (visit) =>
+  String(visit.payment ?? "").includes("Пакет");
+
+export const isBarterPayment = (visit) =>
+  String(visit.payment ?? "").includes("Бартер");
+
 export const getVisitCommission = (visit) => {
+  if (isPackagePayment(visit) || isBarterPayment(visit)) {
+    return 0;
+  }
+
   if (visit.commissionType === "Booksy 45%") {
     const discountedAmount = getDiscountedServiceAmount(visit);
     const netAmount = Math.floor(
@@ -25,7 +35,7 @@ export const getVisitCommission = (visit) => {
 };
 
 export const getEmployeePayoutBase = (visit) => {
-  if (visit.payment === "Пакет") {
+  if (isPackagePayment(visit) || isBarterPayment(visit)) {
     return 0;
   }
 
@@ -43,7 +53,7 @@ export const getVisitTransactionTotal = (visit) => {
   const tip = toVisitNumber(visit.tip);
   const extra = toVisitNumber(visit.extra);
 
-  if (visit.payment === "Пакет") {
+  if (isPackagePayment(visit) || isBarterPayment(visit)) {
     return tip + extra;
   }
 

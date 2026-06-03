@@ -219,6 +219,35 @@ const isCalendarVisitPlanned = (entry, now = new Date()) => {
   return endMinutes > nowMinutes;
 };
 
+const isCalendarVisitCompleted = (entry, now = new Date()) => {
+  if (
+    entry.kind !== "visit" ||
+    ["cancelled", "no_show"].includes(entry.status)
+  ) {
+    return false;
+  }
+
+  if (entry.status === "completed") {
+    return true;
+  }
+
+  const today = getTodayInput();
+
+  if ((entry.date || today) < today) {
+    return true;
+  }
+
+  if ((entry.date || today) > today) {
+    return false;
+  }
+
+  const endMinutes =
+    getMinutesFromTime(entry.time) + (Number(entry.duration) || 0);
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  return endMinutes <= nowMinutes;
+};
+
 const DEFAULT_STATS_DATE = getTodayInput();
 
 const getUpcomingBirthday = (birthday) => {
@@ -546,6 +575,9 @@ function App() {
   const [activeClientAlertId, setActiveClientAlertId] = useState(null);
   const [preferredMessageClientId, setPreferredMessageClientId] = useState("");
   const [notifications, setNotifications] = useState([]);
+  const notificationQueueRef = useRef([]);
+  const notificationTimerRef = useRef(null);
+  const notificationVisibleRef = useRef(false);
   const smartVisitAlertIds = useRef(new Set());
   const autoCompletedCalendarEntryIds = useRef(new Set());
   const cloudSnapshotRef = useRef(null);
@@ -570,11 +602,24 @@ function App() {
     () =>
       clientProfiles
         .map((client) => {
+          const completedCalendarDates = calendarEntries
+            .filter(
+              (entry) =>
+                entry.client === client.name && isCalendarVisitCompleted(entry),
+            )
+            .map((entry) => toDisplayDate(entry.date));
           const lastVisit =
             getLatestDisplayDate(
-              visits
-                .filter((visit) => visit.client === client.name)
-                .map((visit) => visit.date),
+              [
+                ...visits
+                  .filter(
+                    (visit) =>
+                      visit.client === client.name &&
+                      visit.recordType !== "operation",
+                  )
+                  .map((visit) => visit.date),
+                ...completedCalendarDates,
+              ],
             ) || "";
 
           return {
@@ -592,7 +637,7 @@ function App() {
             (secondClient.daysAbsent ?? Number.MAX_SAFE_INTEGER) -
             (firstClient.daysAbsent ?? Number.MAX_SAFE_INTEGER),
         ),
-    [clientProfiles, inactiveClientDays, visits],
+    [calendarEntries, clientProfiles, inactiveClientDays, visits],
   );
 
   const todayCalendarAlerts = useMemo(() => {
@@ -1181,7 +1226,7 @@ function App() {
     [employees, visits],
   );
 
-  const archiveNotification = (notification) => {
+  const archiveNotification = useCallback((notification) => {
     if (!notification?.undoAction || notification.persist === false) {
       return;
     }
@@ -1193,22 +1238,96 @@ function App() {
       },
       ...current.filter((item) => item.id !== notification.id),
     ].slice(0, 60));
-  };
+  }, []);
 
-  const pushNotification = (notification) => {
-    const id = createLocalId();
-    const nextNotification = {id, ...notification};
-    setNotifications((current) => [...current, nextNotification]);
-    window.setTimeout(() => {
-      setNotifications((current) => current.filter((item) => item.id !== id));
-      archiveNotification(nextNotification);
-    }, 4200);
-  };
+  const showNextNotification = useCallback(() => {
+    if (notificationTimerRef.current || notificationVisibleRef.current) {
+      return;
+    }
 
-  const closeNotification = (id) => {
+    const [nextNotification, ...nextQueue] = notificationQueueRef.current;
+
+    if (!nextNotification) {
+      return;
+    }
+
+    notificationQueueRef.current = nextQueue;
+    notificationVisibleRef.current = true;
+    setNotifications([nextNotification]);
+  }, []);
+
+  const pushNotification = useCallback(
+    (notification) => {
+      const id = createLocalId();
+      const nextNotification = {id, ...notification};
+
+      notificationQueueRef.current = [
+        ...notificationQueueRef.current,
+        nextNotification,
+      ];
+      showNextNotification();
+    },
+    [showNextNotification],
+  );
+
+  const closeNotification = useCallback((id) => {
     archiveNotification(notifications.find((item) => item.id === id));
     setNotifications((current) => current.filter((item) => item.id !== id));
-  };
+
+    if (notificationTimerRef.current) {
+      window.clearTimeout(notificationTimerRef.current);
+      notificationTimerRef.current = null;
+    }
+
+    notificationVisibleRef.current = false;
+  }, [archiveNotification, notifications]);
+
+  useEffect(
+    () => {
+      if (notificationTimerRef.current) {
+        window.clearTimeout(notificationTimerRef.current);
+        notificationTimerRef.current = null;
+      }
+
+      if (notifications.length === 0) {
+        notificationVisibleRef.current = false;
+        notificationTimerRef.current = window.setTimeout(() => {
+          notificationTimerRef.current = null;
+          showNextNotification();
+        }, 260);
+
+        return () => {
+          if (notificationTimerRef.current) {
+            window.clearTimeout(notificationTimerRef.current);
+            notificationTimerRef.current = null;
+          }
+        };
+      }
+
+      notificationVisibleRef.current = true;
+      notificationTimerRef.current = window.setTimeout(() => {
+        archiveNotification(notifications[0]);
+        setNotifications([]);
+      }, 4200);
+
+      return () => {
+        if (notificationTimerRef.current) {
+          window.clearTimeout(notificationTimerRef.current);
+          notificationTimerRef.current = null;
+        }
+      };
+    },
+    [archiveNotification, notifications, showNextNotification],
+  );
+
+  useEffect(
+    () => () => {
+      if (notificationTimerRef.current) {
+        window.clearTimeout(notificationTimerRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (
@@ -1240,18 +1359,10 @@ function App() {
           }
 
           smartVisitAlertIds.current.add(entry.id);
-          const notification = {
-            id: createLocalId(),
+          pushNotification({
             title: difference === 0 ? "Визит начинается сейчас" : `Визит через ${difference} мин.`,
             message: `${entry.client} · ${entry.service} · ${entry.master}`,
-          };
-
-          setNotifications((current) => [...current, notification]);
-          window.setTimeout(() => {
-            setNotifications((current) =>
-              current.filter((item) => item.id !== notification.id),
-            );
-          }, 4200);
+          });
         });
     };
 
@@ -1265,6 +1376,7 @@ function App() {
     appSettings.smartVisitPopupsEnabled,
     appSettings.todayVisitAlertsEnabled,
     calendarEntries,
+    pushNotification,
   ]);
 
   const openCreateEmployee = () => {
@@ -2162,7 +2274,7 @@ function App() {
     );
     pushNotification({
       title: "Статус визита обновлён",
-      message: `${entry.client}: ${status === "no_show" ? "no-show" : status === "cancelled" ? "отменён" : "подтверждён"}`,
+      message: `${entry.client}: ${status === "cancelled" ? "отменён" : "обновлён"}`,
     });
   };
 
@@ -2201,8 +2313,6 @@ function App() {
       openEditCalendarEntry(entry);
     } else if (type === "delete") {
       deleteCalendarEntry(entry);
-    } else if (type === "complete") {
-      completeCalendarVisit(entry);
     }
 
     setPendingCalendarAction(null);
@@ -2690,9 +2800,11 @@ function App() {
       provider: "google",
       options: {
         redirectTo: window.location.origin,
-        scopes: "https://www.googleapis.com/auth/gmail.readonly",
+        scopes:
+          "openid email profile https://www.googleapis.com/auth/gmail.readonly",
         queryParams: {
           access_type: "offline",
+          include_granted_scopes: "true",
           prompt: "consent",
         },
       },
@@ -3430,7 +3542,6 @@ function App() {
             onEdit={(entry) => requestCalendarAction("edit", entry)}
             onDelete={(entry) => requestCalendarAction("delete", entry)}
             onMove={moveCalendarEntry}
-            onComplete={(entry) => requestCalendarAction("complete", entry)}
             onRemind={remindCalendarClient}
             onStatus={updateCalendarEntryStatus}
             overlayOpen={calendarEntryModalOpen}
@@ -3533,6 +3644,7 @@ function App() {
             importedMailIds={importedMailIds}
             services={serviceCatalog}
             onApply={applyMailImports}
+            onGoogleLogin={handleGoogleLogin}
             onNotify={pushNotification}
             onOpenSettings={() => setActivePage("settings")}
           />
@@ -3884,23 +3996,17 @@ function App() {
       <ConfirmDialog
         open={Boolean(pendingCalendarAction)}
         title={
-          pendingCalendarAction?.type === "complete"
-            ? "Завершить визит?"
-            : pendingCalendarAction?.type === "delete"
+          pendingCalendarAction?.type === "delete"
               ? "Удалить запись?"
               : "Редактировать запись?"
         }
         message={
-          pendingCalendarAction?.type === "complete"
-            ? "После завершения визит будет добавлен в журнал и учтен в статистике."
-            : pendingCalendarAction?.type === "delete"
+          pendingCalendarAction?.type === "delete"
               ? "Запись исчезнет из календаря."
               : "Открыть форму и изменить данные записи?"
         }
         confirmLabel={
-          pendingCalendarAction?.type === "complete"
-            ? "Завершить"
-            : pendingCalendarAction?.type === "delete"
+          pendingCalendarAction?.type === "delete"
               ? "Удалить"
               : "Редактировать"
         }

@@ -39,6 +39,7 @@ function ImportPage({
   gmailClientId,
   importedMailIds,
   onApply,
+  onGoogleLogin,
   onNotify,
   onOpenSettings,
   services,
@@ -47,6 +48,11 @@ function ImportPage({
   const [pendingItems, setPendingItems] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const gmailConnected = Boolean(gmailAccessToken || gmailClientId);
+  const gmailConnectionLabel = gmailAccessToken
+    ? "Google-вход активен"
+    : gmailClientId
+      ? "OAuth Client ID настроен"
+      : "Gmail не подключен";
   const documentsTotal = documents.reduce(
     (total, document) => total + (Number(document.amount) || 0),
     0,
@@ -113,9 +119,9 @@ function ImportPage({
           <button
             className="secondary-button"
             type="button"
-            onClick={onOpenSettings}>
-            <Settings size={15} />
-            Gmail
+            onClick={onGoogleLogin}>
+            <MailCheck size={15} />
+            Google
           </button>
           <button
             className="add-visit-button"
@@ -128,21 +134,48 @@ function ImportPage({
         </div>
       </div>
 
-      {!gmailConnected && (
-        <section className="panel import-setup">
-          <MailCheck size={20} />
-          <div>
-            <h2>Подключите Gmail</h2>
-            <p>
-              Войдите в CRM через Google или добавьте OAuth Client ID в
-              настройках интеграции.
-            </p>
-          </div>
+      <section className="panel import-setup">
+        <MailCheck size={20} />
+        <div>
+          <h2>{gmailConnectionLabel}</h2>
+          <p>
+            {gmailAccessToken
+              ? "Письма Booksy, Allegro и iPOS читаются через безопасный Google OAuth."
+              : "Для чтения писем войдите через Google. Запасной вариант — OAuth Client ID в настройках."}
+          </p>
+        </div>
+        <div className="import-setup-actions">
+          <button
+            className="add-visit-button"
+            type="button"
+            onClick={onGoogleLogin}>
+            <MailCheck size={15} />
+            {gmailAccessToken ? "Обновить доступ" : "Подключить Google"}
+          </button>
           <button
             className="secondary-button"
             type="button"
             onClick={onOpenSettings}>
-            Открыть настройки
+            <Settings size={15} />
+            Настройки
+          </button>
+        </div>
+      </section>
+
+      {!gmailConnected && (
+        <section className="panel import-setup import-setup-warning">
+          <MailCheck size={20} />
+          <div>
+            <h2>Подключите Gmail</h2>
+            <p>
+              Без Google-доступа CRM не сможет проверить новые записи и фактуры.
+            </p>
+          </div>
+          <button
+            className="add-visit-button"
+            type="button"
+            onClick={onGoogleLogin}>
+            Войти через Google
           </button>
         </section>
       )}

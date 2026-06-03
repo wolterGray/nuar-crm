@@ -2,8 +2,6 @@ import {
   BellRing,
   Ban,
   CalendarPlus,
-  Check,
-  CircleCheck,
   ClipboardList,
   ChevronLeft,
   ChevronRight,
@@ -15,7 +13,6 @@ import {
   Plus,
   Tag,
   Trash2,
-  UserX,
   X,
 } from "lucide-react";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
@@ -93,7 +90,7 @@ const statusLabels = {
   scheduled: "Запланирован",
   confirmed: "Подтверждён",
   completed: "Окончен",
-  no_show: "No-show",
+  no_show: "Отменён",
   cancelled: "Отменён",
 };
 
@@ -130,7 +127,14 @@ const layoutOverlappingEntries = (entries) => {
   });
 };
 
-function DroppableScheduleColumn({children, master, onClick}) {
+function DroppableScheduleColumn({
+  children,
+  master,
+  onPointerCancel,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+}) {
   const {isOver, setNodeRef} = useDroppable({
     id: `schedule-master-${master}`,
     data: {master},
@@ -140,7 +144,11 @@ function DroppableScheduleColumn({children, master, onClick}) {
     <div
       className={`schedule-column ${isOver ? "schedule-column-over" : ""}`}
       ref={setNodeRef}
-      onClick={onClick}>
+      onContextMenu={(event) => event.preventDefault()}
+      onPointerCancel={onPointerCancel}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}>
       {children}
     </div>
   );
@@ -181,7 +189,6 @@ function CalendarPage({
   onEdit,
   onDelete,
   onMove,
-  onComplete,
   onRemind,
   onStatus,
   overlayOpen,
@@ -200,6 +207,7 @@ function CalendarPage({
   const [pendingSlot, setPendingSlot] = useState(null);
   const schedulePanelRef = useRef(null);
   const weekCarouselRef = useRef(null);
+  const longPressRef = useRef(null);
   const previousSelectedDateRef = useRef(null);
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -264,6 +272,15 @@ function CalendarPage({
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(
+    () => () => {
+      if (longPressRef.current?.timer) {
+        window.clearTimeout(longPressRef.current.timer);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     if (employees.length <= 2 && schedulePanelRef.current) {
       schedulePanelRef.current.scrollLeft = 0;
@@ -307,6 +324,60 @@ function CalendarPage({
       master: over?.data.current?.master ?? entry.master,
       time,
     };
+  };
+
+  const clearSlotLongPress = () => {
+    if (longPressRef.current?.timer) {
+      window.clearTimeout(longPressRef.current.timer);
+    }
+    longPressRef.current = null;
+  };
+
+  const getSlotFromPointer = (event, employeeName) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const rawMinutes =
+      visualStartMinutes +
+      ((event.clientY - rect.top) / gridHeight) * minutesInDay;
+
+    return {
+      date: selectedDate,
+      master: employeeName,
+      time: toTime(
+        Math.round(rawMinutes / slotMinutes) * slotMinutes,
+        startMinutes,
+        endMinutes,
+        slotMinutes,
+      ),
+    };
+  };
+
+  const startSlotLongPress = (event, employeeName) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    if (event.target.closest(".schedule-entry")) return;
+
+    const slot = getSlotFromPointer(event, employeeName);
+    clearSlotLongPress();
+    longPressRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      timer: window.setTimeout(() => {
+        setPendingSlot(slot);
+        longPressRef.current = null;
+      }, 520),
+    };
+  };
+
+  const moveSlotLongPress = (event) => {
+    if (!longPressRef.current) return;
+
+    const distance = Math.hypot(
+      event.clientX - longPressRef.current.startX,
+      event.clientY - longPressRef.current.startY,
+    );
+
+    if (distance > 10) {
+      clearSlotLongPress();
+    }
   };
 
   return (
@@ -443,23 +514,10 @@ function CalendarPage({
                 </header>
                 <DroppableScheduleColumn
                   master={employee.name}
-                  onClick={(event) => {
-                    if (event.target !== event.currentTarget) return;
-                    const rect = event.currentTarget.getBoundingClientRect();
-                    const rawMinutes =
-                      visualStartMinutes +
-                      ((event.clientY - rect.top) / gridHeight) * minutesInDay;
-                    setPendingSlot({
-                      date: selectedDate,
-                      master: employee.name,
-                      time: toTime(
-                        Math.round(rawMinutes / slotMinutes) * slotMinutes,
-                        startMinutes,
-                        endMinutes,
-                        slotMinutes,
-                      ),
-                    });
-                  }}>
+                  onPointerCancel={clearSlotLongPress}
+                  onPointerDown={(event) => startSlotLongPress(event, employee.name)}
+                  onPointerMove={moveSlotLongPress}
+                  onPointerUp={clearSlotLongPress}>
                   {(() => {
                     const shiftStart = Math.max(
                       visualStartMinutes,
@@ -606,26 +664,6 @@ function CalendarPage({
                                   <BellRing size={13} />
                                   Напомнить
                                 </button>}
-                                {activeVisit && entry.status !== "confirmed" && (
-                                  <button
-                                    aria-label="Подтвердить визит"
-                                    title="Подтвердить"
-                                    type="button"
-                                    onClick={() => onStatus(entry, "confirmed")}>
-                                    <CircleCheck size={13} />
-                                    Подтвердить
-                                  </button>
-                                )}
-                                {activeVisit && (
-                                  <button
-                                    aria-label="Клиент не пришёл"
-                                    title="No-show"
-                                    type="button"
-                                    onClick={() => onStatus(entry, "no_show")}>
-                                    <UserX size={13} />
-                                    No-show
-                                  </button>
-                                )}
                                 {activeVisit && (
                                   <button
                                     aria-label="Отменить визит"
@@ -636,14 +674,6 @@ function CalendarPage({
                                     Отменить
                                   </button>
                                 )}
-                                {activeVisit && <button
-                                  aria-label="Завершить визит"
-                                  title="Завершить"
-                                  type="button"
-                                  onClick={() => onComplete(entry)}>
-                                  <Check size={13} />
-                                  Завершить
-                                </button>}
                                 <button
                               aria-label="Редактировать"
                               title="Редактировать"
@@ -754,24 +784,6 @@ function CalendarPage({
                     onClick={() => onRemind(entry)}>
                     <MessageSquareText size={14} />
                   </button>}
-                  {activeVisit && entry.status !== "confirmed" && (
-                    <button
-                      aria-label="Подтвердить визит"
-                      title="Подтвердить"
-                      type="button"
-                      onClick={() => onStatus(entry, "confirmed")}>
-                      <CircleCheck size={14} />
-                    </button>
-                  )}
-                  {activeVisit && (
-                    <button
-                      aria-label="Завершить визит"
-                      title="Завершить"
-                      type="button"
-                      onClick={() => onComplete(entry)}>
-                      <Check size={14} />
-                    </button>
-                  )}
                   <button
                     aria-label="Редактировать визит"
                     title="Редактировать"

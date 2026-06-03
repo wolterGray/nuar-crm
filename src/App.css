@@ -2293,9 +2293,21 @@ h2 {
   padding: 12px;
 }
 
-.import-setup div {
+.import-setup > div:not(.import-setup-actions) {
   min-width: 0;
   margin-right: auto;
+}
+
+.import-setup-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+}
+
+.import-setup-warning {
+  border-color: rgba(188, 77, 65, 0.18);
+  background: #fff9f7;
 }
 
 .import-setup h2 {
@@ -5972,6 +5984,20 @@ button:focus-visible {
   .operations-summary,
   .statistics-filters {
     flex-wrap: wrap;
+  }
+
+  .import-setup {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .import-setup-actions {
+    width: 100%;
+  }
+
+  .import-setup-actions .add-visit-button,
+  .import-setup-actions .secondary-button {
+    flex: 1;
   }
 
   .clients-search {

@@ -19,6 +19,9 @@ import {
   getVisitCommission,
   getVisitTotal,
   getVisitTransactionTotal,
+  isBarterPayment,
+  isPackagePayment,
+  toVisitNumber,
 } from "../../utils/visits.jsx";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import {
@@ -156,7 +159,7 @@ function StatisticsPage({
           return date >= startDate && date <= endDate;
         });
     const packageIncome = filteredPackages.reduce(
-      (sum, item) => sum + (Number(item.price) || 0),
+      (sum, item) => sum + toVisitNumber(item.price),
       0,
     );
     const forecastVisits = calendarEntries.filter((visit) => {
@@ -176,6 +179,10 @@ function StatisticsPage({
       (sum, visit) => sum + getVisitTotal(visit, employees),
       0,
     );
+    const visitsReceived = filteredVisits.reduce(
+      (sum, visit) => sum + getVisitTransactionTotal(visit),
+      0,
+    );
     const financialOperations = filteredVisits.filter(
       (visit) => visit.recordType === "operation",
     );
@@ -187,21 +194,24 @@ function StatisticsPage({
       (visit) => visit.service === "Продажа сертификата",
     ).length;
     const serviceRevenue = filteredAppointments.reduce(
-      (sum, visit) => sum + getDiscountedServiceAmount(visit),
+      (sum, visit) =>
+        isPackagePayment(visit) || isBarterPayment(visit)
+          ? sum
+          : sum + getDiscountedServiceAmount(visit),
       0,
     );
     const tips = filteredAppointments.reduce(
-      (sum, visit) => sum + (Number(visit.tip) || 0),
+      (sum, visit) => sum + toVisitNumber(visit.tip),
       0,
     );
     const extras = filteredAppointments.reduce(
-      (sum, visit) => sum + (Number(visit.extra) || 0),
+      (sum, visit) => sum + toVisitNumber(visit.extra),
       0,
     );
     const discounts = filteredAppointments.reduce(
       (sum, visit) =>
         sum +
-        (Number(visit.amount) || 0) * ((Number(visit.discount) || 0) / 100),
+        toVisitNumber(visit.amount) * (toVisitNumber(visit.discount) / 100),
       0,
     );
     const employeePayouts = filteredAppointments.reduce(
@@ -213,6 +223,7 @@ function StatisticsPage({
       0,
     );
     const totalIncome = visitsIncome + packageIncome;
+    const totalReceived = visitsReceived + packageIncome;
     const clientNames = new Set(
       filteredAppointments.map((visit) => visit.client).filter(Boolean),
     );
@@ -223,7 +234,11 @@ function StatisticsPage({
             visit.recordType !== "operation" && visit.client === clientName,
         ).length > 1,
     ).length;
-    const averageCheck = totalIncome / Math.max(filteredAppointments.length, 1);
+    const incomeRecordsCount =
+      filteredAppointments.length +
+      filteredPackages.length +
+      financialOperations.length;
+    const averageCheck = totalReceived / Math.max(incomeRecordsCount, 1);
     const dates = dateRange.map((date) => {
       const dailyVisits = filteredVisits.filter(
         (visit) => toInputDate(visit.date) === date,
@@ -240,7 +255,7 @@ function StatisticsPage({
             0,
           ) +
           dailyPackages.reduce(
-            (sum, item) => sum + (Number(item.price) || 0),
+            (sum, item) => sum + toVisitNumber(item.price),
             0,
           ),
       };
@@ -257,11 +272,11 @@ function StatisticsPage({
         ...group,
         value:
           visitPayments.reduce(
-            (sum, visit) => sum + getVisitTotal(visit, employees),
+            (sum, visit) => sum + getVisitTransactionTotal(visit),
             0,
           ) +
           packagePayments.reduce(
-            (sum, item) => sum + (Number(item.price) || 0),
+            (sum, item) => sum + toVisitNumber(item.price),
             0,
           ),
         recordsCount: visitPayments.length + packagePayments.length,
@@ -283,6 +298,7 @@ function StatisticsPage({
       filteredPackages,
       filteredAppointments,
       filteredVisits,
+      incomeRecordsCount,
       packageIncome,
       paymentTotal,
       payments,
@@ -291,6 +307,8 @@ function StatisticsPage({
       serviceRevenue,
       tips,
       totalIncome,
+      totalReceived,
+      visitsReceived,
     };
   }, [
     calendarEntries,
@@ -312,10 +330,17 @@ function StatisticsPage({
   );
   const mainStats = [
     {
-      label: "Общий доход",
+      label: "Чистый доход",
       value: formatIncome(analytics.totalIncome),
       icon: CircleDollarSign,
       color: "#2364d2",
+    },
+    {
+      label: "Поступления",
+      value: formatIncome(analytics.totalReceived),
+      icon: Banknote,
+      color: "#248a4f",
+      primary: true,
     },
     ...visiblePaymentStats.map((item) => ({
       label: item.label,
@@ -326,10 +351,10 @@ function StatisticsPage({
     })),
   ];
   const primaryStats = mainStats.filter(
-    (item) => item.primary || item.label === "Общий доход",
+    (item) => item.primary || item.label === "Чистый доход",
   );
   const secondaryStats = mainStats.filter(
-    (item) => !item.primary && item.label !== "Общий доход",
+    (item) => !item.primary && item.label !== "Чистый доход",
   );
   const overviewStats = [
     {
@@ -507,7 +532,7 @@ function StatisticsPage({
                   analytics.paymentTotal / (rates[currency] || 1),
                 )}
               </strong>
-              <span>доход</span>
+              <span>поступления</span>
             </div>
             <div className="payment-breakdown">
               {activePayments.map((item) => (
