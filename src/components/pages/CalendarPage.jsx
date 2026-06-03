@@ -536,6 +536,12 @@ function CalendarPage({
                             height,
                             top,
                           }}>
+                          {entry.kind === "visit" &&
+                            entry.commissionType === "Booksy 45%" && (
+                              <span className="schedule-entry-booksy-badge" title="Booksy 45%">
+                                B
+                              </span>
+                            )}
                           <div>
                             <strong>{entry.kind === "visit" ? entry.client : entry.title}</strong>
                             <span>

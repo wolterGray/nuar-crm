@@ -191,6 +191,34 @@ const getTodayInput = () => {
   return `${year}-${month}-${day}`;
 };
 
+const getMinutesFromTime = (time) => {
+  const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
+
+  return (Number(hours) || 0) * 60 + (Number(minutes) || 0);
+};
+
+const isCalendarVisitPlanned = (entry, now = new Date()) => {
+  if (["completed", "cancelled", "no_show"].includes(entry.status)) {
+    return false;
+  }
+
+  const today = getTodayInput();
+
+  if ((entry.date || today) < today) {
+    return false;
+  }
+
+  if ((entry.date || today) > today) {
+    return true;
+  }
+
+  const endMinutes =
+    getMinutesFromTime(entry.time) + (Number(entry.duration) || 0);
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  return endMinutes > nowMinutes;
+};
+
 const DEFAULT_STATS_DATE = getTodayInput();
 
 const getUpcomingBirthday = (birthday) => {
@@ -501,6 +529,7 @@ function App() {
   });
   const [calendarEntryDefaults, setCalendarEntryDefaults] = useState({});
   const [pendingCalendarAction, setPendingCalendarAction] = useState(null);
+  const [pendingPaymentDelete, setPendingPaymentDelete] = useState(null);
   const [pendingCalendarConflict, setPendingCalendarConflict] = useState(null);
   const [pendingDataBackup, setPendingDataBackup] = useState(null);
   const [clientAlertsOpen, setClientAlertsOpen] = useState(false);
@@ -770,23 +799,32 @@ function App() {
   );
 
   const paymentRows = useMemo(
-    () => [
-      ...calendarEntries
-        .filter((entry) => entry.kind === "visit" && !entry.visitId)
-        .map((entry) => ({
-          ...entry,
-          id: `calendar-${entry.id}`,
-          calendarEntryId: entry.id,
-          date: toDisplayDate(entry.date),
-          extra: 0,
-          tip: 0,
-          commission: 0,
-          commissionType: "Без комиссии",
-          discount: 0,
-          isPlanned: true,
-        })),
-      ...visits,
-    ],
+    () => {
+      const now = new Date();
+
+      return [
+        ...calendarEntries
+          .filter((entry) => entry.kind === "visit" && !entry.visitId)
+          .map((entry) => {
+            const isPlanned = isCalendarVisitPlanned(entry, now);
+
+            return {
+              ...entry,
+              id: `calendar-${entry.id}`,
+              calendarEntryId: entry.id,
+              date: toDisplayDate(entry.date),
+              status: isPlanned ? entry.status : "completed",
+              extra: toVisitNumber(entry.extra),
+              tip: toVisitNumber(entry.tip),
+              commission: 0,
+              commissionType: entry.commissionType || "Без комиссии",
+              discount: toVisitNumber(entry.discount),
+              isPlanned,
+            };
+          }),
+        ...visits,
+      ];
+    },
     [calendarEntries, visits],
   );
 
@@ -1273,24 +1311,53 @@ function App() {
   };
 
   const deletePaymentRow = (visit) => {
-    if (visit.isPlanned) {
-      setCalendarEntries((current) =>
-        current.filter((entry) => entry.id !== visit.calendarEntryId),
-      );
-      setOpenPaymentActionMenuId(null);
-      pushNotification({
-        title: "Запись удалена",
-        message: `${visit.client}: ${visit.service}`,
-      });
+    setPendingPaymentDelete(visit);
+    setOpenPaymentActionMenuId(null);
+  };
+
+  const confirmPaymentDelete = () => {
+    if (!pendingPaymentDelete) {
       return;
     }
 
-    setVisits((current) => current.filter((item) => item.id !== visit.id));
-    setOpenPaymentActionMenuId(null);
+    if (pendingPaymentDelete.calendarEntryId) {
+      const completedVisit = visits.find(
+        (item) => item.calendarEntryId === pendingPaymentDelete.calendarEntryId,
+      );
+
+      setCalendarEntries((current) =>
+        current.filter((entry) => entry.id !== pendingPaymentDelete.calendarEntryId),
+      );
+      setVisits((current) =>
+        current.filter(
+          (item) =>
+            item.id !== pendingPaymentDelete.id &&
+            item.calendarEntryId !== pendingPaymentDelete.calendarEntryId,
+        ),
+      );
+      if (completedVisit) {
+        updatePackageBalance(completedVisit, null);
+      }
+      pushNotification({
+        title: "Запись удалена",
+        message: `${pendingPaymentDelete.client}: ${pendingPaymentDelete.service}`,
+      });
+      setPendingPaymentDelete(null);
+      return;
+    }
+
+    updatePackageBalance(pendingPaymentDelete, null);
+    setVisits((current) => current.filter((item) => item.id !== pendingPaymentDelete.id));
     pushNotification({
-      title: visit.recordType === "operation" ? "Поступление удалено" : "Запись удалена",
-      message: `${visit.service || "Финансовая запись"} убрана из журнала`,
+      title:
+        pendingPaymentDelete.recordType === "operation"
+          ? "Поступление удалено"
+          : "Запись удалена",
+      message: `${
+        pendingPaymentDelete.service || "Финансовая запись"
+      } убрана из журнала`,
     });
+    setPendingPaymentDelete(null);
   };
 
   const openEditEmployee = (employee) => {
@@ -1940,6 +2007,11 @@ function App() {
       packageName:
         clientPackages.find((item) => item.id === packageUsageId)?.packageName ?? "",
       packageSessionsUsed: packageUsageId ? 1 : 0,
+      tip: kind === "visit" ? toVisitNumber(form.get("tip")) : 0,
+      extra: kind === "visit" ? toVisitNumber(form.get("extra")) : 0,
+      discount: kind === "visit" ? toVisitNumber(form.get("discount")) : 0,
+      commissionType:
+        kind === "visit" ? String(form.get("commissionType") ?? "Без комиссии") : "Без комиссии",
       color: form.get("color") || "#748091",
       note: String(form.get("note") ?? "").trim(),
     };
@@ -2032,11 +2104,11 @@ function App() {
       packageUsageId: entry.packageUsageId || "",
       packageName: entry.packageName || "",
       packageSessionsUsed: entry.packageSessionsUsed || 0,
-      tip: 0,
+      tip: toVisitNumber(entry.tip),
       commission: 0,
-      commissionType: "Без комиссии",
-      extra: 0,
-      discount: 0,
+      commissionType: entry.commissionType || "Без комиссии",
+      extra: toVisitNumber(entry.extra),
+      discount: toVisitNumber(entry.discount),
       note: entry.note || "",
     };
 
@@ -3466,7 +3538,7 @@ function App() {
           />
         ) : isStatisticsPage ? (
           <StatisticsPage
-            visits={visits}
+            visits={paymentRows}
             calendarEntries={calendarEntries}
             clientPackages={clientPackages}
             clients={clientProfiles}
@@ -3482,7 +3554,7 @@ function App() {
           />
         ) : (
           <StatisticsPage
-            visits={visits}
+            visits={paymentRows}
             calendarEntries={calendarEntries}
             clientPackages={clientPackages}
             clients={clientProfiles}
@@ -3848,6 +3920,22 @@ function App() {
         confirmLabel="Сохранить"
         onCancel={() => setPendingCalendarConflict(null)}
         onConfirm={confirmCalendarConflict}
+      />
+      <ConfirmDialog
+        open={Boolean(pendingPaymentDelete)}
+        title={
+          pendingPaymentDelete?.recordType === "operation"
+            ? "Удалить поступление?"
+            : "Удалить визит из финжурнала?"
+        }
+        message={
+          pendingPaymentDelete?.calendarEntryId
+            ? "Запись будет удалена из календаря и финансового отчета полностью."
+            : "Запись будет удалена из финансового отчета."
+        }
+        confirmLabel="Удалить"
+        onCancel={() => setPendingPaymentDelete(null)}
+        onConfirm={confirmPaymentDelete}
       />
       <ConfirmDialog
         open={Boolean(pendingDataBackup)}

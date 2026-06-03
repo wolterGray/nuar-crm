@@ -43,6 +43,9 @@ function CalendarEntryForm({
   );
   const [payment, setPayment] = useState(initialEntry?.payment ?? selectedPayment ?? "Наличные");
   const [amount, setAmount] = useState(initialEntry?.amount ?? selectedAmount ?? "");
+  const [commissionType, setCommissionType] = useState(
+    initialEntry?.commissionType ?? "Без комиссии",
+  );
   const service = services.find((item) => String(item.id) === String(serviceId));
   const packageOptions = useMemo(
     () =>
@@ -223,6 +226,16 @@ function CalendarEntryForm({
                 <option>Не указано</option>
               </select>
             </label>
+            <label>
+              Комиссия
+              <select
+                name="commissionType"
+                value={commissionType}
+                onChange={(event) => setCommissionType(event.target.value)}>
+                <option>Без комиссии</option>
+                <option>Booksy 45%</option>
+              </select>
+            </label>
             {payment === "Пакет" && (
               <label className="calendar-entry-package-field">
                 Пакет клиента
@@ -239,6 +252,24 @@ function CalendarEntryForm({
                 </select>
               </label>
             )}
+          </div>
+          <div className="calendar-entry-grid calendar-entry-money-grid">
+            <label>
+              Чай
+              <input name="tip" defaultValue={initialEntry?.tip ?? ""} placeholder="0" />
+            </label>
+            <label>
+              Доп сумма
+              <input name="extra" defaultValue={initialEntry?.extra ?? ""} placeholder="0" />
+            </label>
+            <label>
+              Скидка %
+              <input
+                name="discount"
+                defaultValue={initialEntry?.discount ?? ""}
+                placeholder="0"
+              />
+            </label>
           </div>
           <input
             name="color"

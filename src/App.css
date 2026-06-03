@@ -67,14 +67,12 @@ button {
 }
 
 .theme-dark .panel,
-.theme-dark .stat-card,
 .theme-dark .catalog-card,
 .theme-dark .employee-card,
 .theme-dark .management-card,
 .theme-dark .calendar-popover,
 .theme-dark .client-alert-popover,
 .theme-dark .row-action-menu,
-.theme-dark .visit-modal,
 .theme-dark .employee-modal,
 .theme-dark .confirm-dialog,
 .theme-dark .toast,
@@ -103,7 +101,6 @@ button {
 .theme-dark h2,
 .theme-dark h3,
 .theme-dark label,
-.theme-dark .stat-card strong,
 .theme-dark .total-cell,
 .theme-dark .payment-breakdown strong,
 .theme-dark .management-card strong,
@@ -117,8 +114,6 @@ button {
 
 .theme-dark p,
 .theme-dark .page-header p,
-.theme-dark .stat-card small,
-.theme-dark .stat-card span,
 .theme-dark .panel-header p,
 .theme-dark .payment-breakdown span,
 .theme-dark .clients-toolbar p,
@@ -197,26 +192,6 @@ button {
 
 .theme-dark .package {
   color: #c5bdff;
-}
-
-.theme-dark .mini-bar-chart {
-  border-bottom-color: #344052;
-  background: repeating-linear-gradient(
-    to top,
-    transparent 0,
-    transparent 39px,
-    #242c3a 40px
-  );
-}
-
-.theme-dark .bar-chart {
-  border-bottom-color: #344052;
-  background: repeating-linear-gradient(
-    to top,
-    transparent 0,
-    transparent 49px,
-    #242c3a 50px
-  );
 }
 
 .theme-dark .tooltip-cell .cell-tooltip {
@@ -727,11 +702,7 @@ button {
 
 .owner-card strong,
 .owner-card span,
-.stat-card span,
-.stat-card strong,
-.stat-card small,
-.table-row span,
-.legend span {
+.table-row span {
   display: block;
 }
 
@@ -754,13 +725,6 @@ button {
   padding-bottom: 24px;
 }
 
-.home-dashboard {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-}
-
 .visits-content {
   display: flex;
   flex-direction: column;
@@ -780,11 +744,7 @@ button {
   font-size: 13px;
 }
 
-.page-header,
-.stats-grid,
-.home-table,
-.dashboard,
-.analytics-grid {
+.page-header {
   width: 100%;
 }
 
@@ -1150,15 +1110,6 @@ h1 {
   padding: 0 12px;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 10px;
-  flex: 0 0 auto;
-}
-
-.stat-card,
 .panel {
   border: 1px solid #e5e5e3;
   border-radius: 8px;
@@ -1166,192 +1117,10 @@ h1 {
   box-shadow: 0 4px 14px rgba(17, 19, 24, 0.035);
 }
 
-.stat-card {
-  position: relative;
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  gap: 9px;
-  align-items: center;
-  grid-column: span 2;
-  min-height: 68px;
-  padding: 11px 13px;
-}
-
-.stat-card > div:last-child {
-  min-width: 0;
-}
-
-.stat-card:nth-child(-n + 2) {
-  grid-column: span 3;
-  grid-template-columns: 46px minmax(0, 1fr);
-  min-height: 94px;
-  padding: 16px 18px;
-  background:
-    linear-gradient(135deg, rgba(210, 173, 125, 0.16), transparent 62%),
-    rgba(255, 255, 255, 0.96);
-}
-
-.stat-card:nth-child(1) {
-  border-color: rgba(210, 173, 125, 0.56);
-}
-
-.stat-icon {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border-radius: 50%;
-  color: #fff;
-  background: linear-gradient(135deg, #dcb98b, var(--accent-color));
-}
-
-.stat-tone-1 .stat-icon {
-  background: linear-gradient(135deg, #5cc8ff, #2364d2);
-}
-
-.stat-tone-2 .stat-icon {
-  background: linear-gradient(135deg, #79d27e, #248a4f);
-}
-
-.stat-tone-3 .stat-icon {
-  background: linear-gradient(135deg, #ff7ab6, #b33a76);
-}
-
-.stat-tone-4 .stat-icon {
-  background: linear-gradient(135deg, #ffca5c, #d07a12);
-}
-
-.stat-tone-5 .stat-icon {
-  background: linear-gradient(135deg, #8f7cff, #5531bf);
-}
-
-.stat-tone-0 {
-  border-color: rgba(210, 173, 125, 0.52);
-}
-
-.stat-tone-1 {
-  border-color: rgba(35, 100, 210, 0.24);
-}
-
-.stat-tone-2 {
-  border-color: rgba(36, 138, 79, 0.24);
-}
-
-.stat-tone-3 {
-  border-color: rgba(179, 58, 118, 0.22);
-}
-
-.stat-tone-4 {
-  border-color: rgba(208, 122, 18, 0.24);
-}
-
-.stat-tone-5 {
-  border-color: rgba(85, 49, 191, 0.22);
-}
-
-.stat-card:nth-child(-n + 2) .stat-icon {
-  width: 46px;
-  height: 46px;
-}
-
-.stat-card span {
-  margin-bottom: 4px;
-  font-size: 11px;
-}
-
-.stat-card strong {
-  display: block;
-  overflow: hidden;
-  font-size: 17px;
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.stat-card:nth-child(-n + 2) strong {
-  font-size: 26px;
-}
-
-.stat-card small {
-  margin-top: 5px;
-  color: #737780;
-  font-size: 12px;
-}
-
-.stat-card:nth-child(-n + 2) small {
-  margin-top: 7px;
-  font-size: 12px;
-}
-
-.stat-card b {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  color: #179761;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.dashboard {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 370px;
-  gap: 18px;
-  align-items: start;
-}
-
-.home-analytics {
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.8fr);
-  gap: 14px;
-  flex: 1;
-  min-height: 0;
-}
-
-.income-chart-panel,
-.payment-chart-panel {
-  min-height: 0;
-  padding: 18px;
-}
-
-.income-chart-panel .panel-header strong {
-  font-size: 22px;
-}
-
 .panel-header p {
   margin-top: 4px;
   color: #6f737b;
   font-size: 13px;
-}
-
-.mini-bar-chart {
-  display: grid;
-  grid-template-columns: repeat(31, minmax(4px, 1fr));
-  align-items: end;
-  gap: 4px;
-  height: 126px;
-  margin-top: 18px;
-  padding-top: 12px;
-  border-bottom: 1px solid #e5e5e3;
-  background: repeating-linear-gradient(
-    to top,
-    transparent 0,
-    transparent 39px,
-    #ececea 40px
-  );
-}
-
-.mini-bar-chart span {
-  min-height: 4px;
-  border-radius: 5px 5px 0 0;
-  background: linear-gradient(180deg, #5cc8ff, #2364d2);
-}
-
-.payment-chart-content {
-  display: grid;
-  grid-template-columns: 124px minmax(0, 1fr);
-  align-items: center;
-  gap: 16px;
-  margin-top: 12px;
 }
 
 .percent-ring {
@@ -1440,22 +1209,6 @@ h1 {
   text-overflow: ellipsis;
   text-align: right;
   white-space: nowrap;
-}
-
-.cash {
-  background: #248a4f;
-}
-
-.card {
-  background: #2364d2;
-}
-
-.crypto {
-  background: #8f7cff;
-}
-
-.bundle {
-  background: #d07a12;
 }
 
 .visits-page-grid {
@@ -1565,39 +1318,8 @@ h1 {
   background-clip: padding-box;
 }
 
-.visits-content .new-visit-panel {
-  margin-bottom: 12px;
-}
-
-.home-table {
-  min-height: 0;
-  flex: 1;
-}
-
-.home-table .visits-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.home-table .visits-table {
-  flex: 1;
-  min-height: 0;
-}
-
-.main-column,
-.side-column {
-  display: grid;
-  gap: 18px;
-  min-width: 0;
-}
-
 .panel {
   padding: 24px;
-}
-
-.home-table .panel {
-  padding: 18px 22px;
 }
 
 .panel-header {
@@ -3758,6 +3480,25 @@ h2 {
   font-size: 9px;
 }
 
+.schedule-entry .schedule-entry-booksy-badge {
+  position: absolute;
+  top: 4px;
+  right: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: #111318;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 4px 10px rgba(17, 19, 24, 0.16);
+}
+
 .schedule-task {
   border-style: dashed;
 }
@@ -4165,6 +3906,10 @@ h2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.calendar-entry-money-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .calendar-entry-form label {
@@ -4958,173 +4703,6 @@ h2 {
   font-size: 20px;
 }
 
-.analytics-grid {
-  display: grid;
-  grid-template-columns: 0.9fr 1.35fr;
-  gap: 18px;
-}
-
-.donut-row {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  margin-top: 22px;
-}
-
-.donut {
-  flex: 0 0 auto;
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  position: relative;
-}
-
-.donut::after {
-  position: absolute;
-  inset: 34px;
-  content: "";
-  border-radius: 50%;
-  background: #fff;
-}
-
-.master-donut {
-  background: conic-gradient(#12161c 0 46%, #d2ad7d 46% 80%, #8177cc 80% 100%);
-}
-
-.payment-donut {
-  background: conic-gradient(#12161c 0 50%, #d2ad7d 50% 90%, #8177cc 90% 100%);
-}
-
-.legend {
-  display: grid;
-  gap: 16px;
-  min-width: 0;
-  flex: 1;
-}
-
-.legend span {
-  display: grid;
-  grid-template-columns: 14px minmax(70px, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  font-size: 14px;
-}
-
-.legend i {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.legend b {
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.black {
-  background: #12161c;
-}
-
-.gold {
-  background: #d2ad7d;
-}
-
-.violet {
-  background: #8177cc;
-}
-
-.month-income {
-  position: relative;
-}
-
-.chart-tooltip {
-  position: absolute;
-  top: 42px;
-  left: 48%;
-  z-index: 1;
-  padding: 10px 14px;
-  border: 1px solid #dfdfdf;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 12px 30px rgba(17, 19, 24, 0.08);
-}
-
-.chart-tooltip small {
-  color: #6f737b;
-}
-
-.bar-chart {
-  display: grid;
-  grid-template-columns: repeat(32, minmax(5px, 1fr));
-  align-items: end;
-  gap: 8px;
-  height: 160px;
-  margin-top: 28px;
-  padding-top: 20px;
-  border-bottom: 1px solid #e5e5e3;
-  background: repeating-linear-gradient(
-    to top,
-    transparent 0,
-    transparent 49px,
-    #ececea 50px
-  );
-}
-
-.bar-chart span {
-  border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, #d8b485, #c69c68);
-}
-
-.chart-axis {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-  color: #6f737b;
-  font-size: 12px;
-}
-
-.new-visit-panel form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
-  align-items: start;
-  gap: 10px;
-  max-width: 720px;
-  margin-top: 18px;
-}
-
-.visit-modal .new-visit-panel {
-  border: 0;
-  padding: 0;
-  box-shadow: none;
-}
-
-.visit-modal .new-visit-panel > h2 {
-  display: none;
-}
-
-.visit-modal .new-visit-panel form {
-  max-width: none;
-}
-
-.visits-content .new-visit-panel form {
-  align-items: end;
-}
-
-.form-section {
-  display: contents;
-}
-
-.form-section > label {
-  min-width: 0;
-}
-
-.visits-content .new-visit-panel .submit-button {
-  grid-column: 1 / -1;
-  margin-left: 0;
-  justify-self: end;
-  width: min(260px, 100%);
-}
-
 label {
   display: grid;
   gap: 7px;
@@ -5240,17 +4818,6 @@ select {
 .financial-operation-note,
 .financial-operation-form .submit-button {
   grid-column: 1 / -1;
-}
-
-.visit-modal {
-  width: min(760px, 100%);
-  max-height: calc(100vh - 36px);
-  overflow: auto;
-  padding: 22px;
-  border: 1px solid #e5e5e3;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 24px 70px rgba(17, 19, 24, 0.22);
 }
 
 .employee-modal {
@@ -5404,29 +4971,11 @@ select {
   background: transparent;
 }
 
-.payments-panel .compact {
-  gap: 22px;
-}
-
-.payments-panel .donut {
-  width: 118px;
-  height: 118px;
-}
-
-.payments-panel .donut::after {
-  inset: 28px;
-}
-
-.payments-panel .legend {
-  gap: 14px;
-}
-
 button:hover {
   transform: translateY(-1px);
 }
 
 button,
-.stat-card,
 .panel {
   transition:
     transform 0.16s ease,
@@ -5442,31 +4991,8 @@ button:focus-visible {
 }
 
 @media (max-width: 1260px) {
-  .stats-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .stat-card,
-  .stat-card:nth-child(-n + 2) {
-    grid-column: span 2;
-  }
-
-  .dashboard,
   .visits-page-grid {
     grid-template-columns: 1fr;
-  }
-
-  .side-column {
-    grid-template-columns: 1fr;
-  }
-
-  .visits-content .new-visit-panel form {
-    max-width: none;
-  }
-
-  .visits-content .new-visit-panel .submit-button {
-    justify-self: end;
-    width: 100%;
   }
 
   .employees-grid {
@@ -5475,10 +5001,6 @@ button:focus-visible {
 
   .catalog-grid {
     grid-template-columns: repeat(2, minmax(310px, 1fr));
-  }
-
-  .home-analytics {
-    grid-template-columns: 1fr;
   }
 
   .package-summary-grid {
@@ -5530,11 +5052,6 @@ button:focus-visible {
     padding: 22px;
   }
 
-  .analytics-grid,
-  .side-column {
-    grid-template-columns: 1fr;
-  }
-
   .employees-grid {
     grid-template-columns: 1fr;
   }
@@ -5575,7 +5092,6 @@ button:focus-visible {
   .settings-options,
   .settings-options-grid,
   .package-summary-grid,
-  .payment-chart-content,
   .management-grid,
   .message-template-filters {
     grid-template-columns: 1fr;
@@ -5984,13 +5500,11 @@ button:focus-visible {
   .table-footer,
   .employees-toolbar,
   .calendar-toolbar,
-  .statistics-toolbar,
-  .donut-row {
+  .statistics-toolbar {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .stats-grid,
   .form-split,
   .client-details-grid,
   .message-template-form-grid {
@@ -6315,6 +5829,10 @@ button:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .calendar-entry-money-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .calendar-entry-time-grid {
     grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
   }
@@ -6433,47 +5951,12 @@ button:focus-visible {
     grid-row: 3;
   }
 
-  .visit-main-fields > label:nth-child(1),
-  .visit-main-fields > label:nth-child(2),
-  .visit-main-fields > label:nth-child(3),
-  .visit-service-fields > label:nth-child(1),
-  .visit-service-fields > label:nth-child(2),
-  .visit-payment-fields > label,
-  .visit-money-fields > label,
-  .visits-content .new-visit-panel .submit-button {
-    grid-column: 1 / -1;
-  }
-
-  .stat-card,
-  .stat-card:nth-child(-n + 2) {
-    grid-column: span 1;
-    min-height: 108px;
-    padding: 18px;
-  }
-
-  .stat-card:nth-child(-n + 2) {
-    grid-template-columns: 42px minmax(0, 1fr);
-  }
-
-  .stat-card:nth-child(-n + 2) .stat-icon {
-    width: 42px;
-    height: 42px;
-  }
-
-  .stat-card:nth-child(-n + 2) strong {
-    font-size: 24px;
-  }
-
   .panel {
     padding: 18px;
   }
 
   .panel.schedule-panel {
     padding: 0;
-  }
-
-  .bar-chart {
-    gap: 4px;
   }
 
   .clients-page {
@@ -6591,8 +6074,7 @@ button:focus-visible {
     align-items: stretch;
   }
 
-  .employee-modal,
-  .visit-modal {
+  .employee-modal {
     width: 100%;
     max-height: calc(100dvh - 10px);
     padding: 16px;
