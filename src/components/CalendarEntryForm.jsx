@@ -18,6 +18,7 @@ function CalendarEntryForm({
   clients,
   clientPackages,
   employees,
+  visits = [],
   services,
   selectedDate,
   selectedClient,
@@ -28,10 +29,14 @@ function CalendarEntryForm({
   selectedPayment,
   selectedServiceId,
   selectedTime,
+  onCreateClient,
   onSubmit,
 }) {
   const [kind, setKind] = useState(initialEntry?.kind ?? selectedKind ?? "visit");
   const [client, setClient] = useState(initialEntry?.client ?? selectedClient ?? "");
+  const [master, setMaster] = useState(
+    initialEntry?.master ?? selectedMaster ?? employees[0]?.name ?? "",
+  );
   const [serviceId, setServiceId] = useState(initialEntry?.serviceId ?? selectedServiceId ?? "");
   const [duration, setDuration] = useState(initialEntry?.duration ?? selectedDuration ?? 60);
   const [time, setTime] = useState(initialEntry?.time ?? selectedTime ?? "10:00");
@@ -46,7 +51,86 @@ function CalendarEntryForm({
   const [commissionType, setCommissionType] = useState(
     initialEntry?.commissionType ?? "Без комиссии",
   );
+  const [tip, setTip] = useState(initialEntry?.tip ?? "");
+  const [extra, setExtra] = useState(initialEntry?.extra ?? "");
+  const [debt, setDebt] = useState(initialEntry?.debt ?? "");
+  const [discount, setDiscount] = useState(initialEntry?.discount ?? "");
+  const [note, setNote] = useState(initialEntry?.note ?? "");
+  const [clientTemplateApplied, setClientTemplateApplied] = useState(
+    Boolean(initialEntry),
+  );
   const service = services.find((item) => String(item.id) === String(serviceId));
+  const clientExists = clients.some((item) => item.name === client);
+  const findServiceByVisit = (visit) =>
+    services.find(
+      (item) =>
+        String(item.id) === String(visit.serviceId) ||
+        item.name === visit.service ||
+        String(visit.service ?? "").startsWith(item.name) ||
+        item.variants?.some((variant) => `${item.name} ${variant.duration} min.` === visit.service),
+    );
+  const getVisitDuration = (visit) => {
+    const durationFromField = Number(visit.duration);
+
+    if (durationFromField) {
+      return durationFromField;
+    }
+
+    const [, durationFromService] =
+      String(visit.service ?? "").match(/(\d+)\s*min/i) ?? [];
+
+    return Number(durationFromService) || Number(duration) || 60;
+  };
+  const getVisitTimestamp = (visit) => {
+    if (visit.date?.includes(".")) {
+      const [day, month, year] = String(visit.date).split(".");
+      return new Date(`${year}-${month}-${day}T${visit.time || "00:00"}:00`).getTime();
+    }
+
+    return new Date(`${visit.date || "1970-01-01"}T${visit.time || "00:00"}:00`).getTime();
+  };
+  const findPreviousVisit = (clientName) =>
+    [...visits, ...calendarEntries]
+      .filter(
+        (visit) =>
+          visit.kind !== "reserved" &&
+          visit.client === clientName &&
+          (!initialEntry || visit.id !== initialEntry.id),
+      )
+      .sort((first, second) => getVisitTimestamp(second) - getVisitTimestamp(first))[0];
+  const applyClientTemplate = (clientName) => {
+    const previousVisit = findPreviousVisit(clientName);
+
+    if (!previousVisit) {
+      setClientTemplateApplied(true);
+      return;
+    }
+
+    const previousService = findServiceByVisit(previousVisit);
+    const nextDuration = getVisitDuration(previousVisit);
+    const nextVariant = previousService?.variants?.find(
+      (variant) => Number(variant.duration) === nextDuration,
+    );
+
+    setServiceId(previousService?.id ?? previousVisit.serviceId ?? "");
+    setDuration(nextDuration);
+    setAmount(
+      previousVisit.amount === "" || previousVisit.amount === undefined
+        ? nextVariant?.price ?? ""
+        : previousVisit.amount,
+    );
+    setPayment(previousVisit.payment || "Наличные");
+    setCommissionType(previousVisit.commissionType || "Без комиссии");
+    setTip(previousVisit.tip ?? "");
+    setExtra(previousVisit.extra ?? "");
+    setDebt("");
+    setDiscount(previousVisit.discount ?? "");
+    setNote(previousVisit.note ?? "");
+    if (previousVisit.master) {
+      setMaster(previousVisit.master);
+    }
+    setClientTemplateApplied(true);
+  };
   const packageOptions = useMemo(
     () =>
       clientPackages.filter(
@@ -89,6 +173,41 @@ function CalendarEntryForm({
         </button>
       </div>}
       <input name="kind" type="hidden" value={kind} />
+      {kind === "visit" && (
+        <>
+          <label className="calendar-entry-client-field">
+            Клиент
+            <ClientAutocomplete
+              clients={clients}
+              id="calendar-client-options"
+              name="client"
+              value={client}
+              required
+              onChange={(event) => {
+                const nextClient = event.target.value;
+                setClient(nextClient);
+                setClientTemplateApplied(false);
+                if (clients.some((item) => item.name === nextClient)) {
+                  applyClientTemplate(nextClient);
+                }
+              }}
+            />
+          </label>
+          {client && !clientExists && (
+            <div className="calendar-new-client-hint">
+              <span>Такого клиента нет в базе.</span>
+              <button type="button" onClick={() => onCreateClient?.(client)}>
+                Добавить клиента
+              </button>
+            </div>
+          )}
+          {client && clientExists && clientTemplateApplied && !initialEntry && (
+            <p className="calendar-client-template-hint">
+              Данные заполнены по предыдущему визиту клиента.
+            </p>
+          )}
+        </>
+      )}
       <div className="calendar-entry-grid calendar-entry-time-grid">
         <label className="calendar-entry-date-field">
           Дата
@@ -142,7 +261,10 @@ function CalendarEntryForm({
         </label>}
         <label>
           Мастер
-          <select name="master" defaultValue={initialEntry?.master ?? selectedMaster}>
+          <select
+            name="master"
+            value={master}
+            onChange={(event) => setMaster(event.target.value)}>
             {employees.map((employee) => (
               <option key={employee.id}>{employee.name}</option>
             ))}
@@ -166,17 +288,6 @@ function CalendarEntryForm({
         </>
       ) : (
         <>
-          <label>
-            Клиент
-            <ClientAutocomplete
-              clients={clients}
-              id="calendar-client-options"
-              name="client"
-              value={client}
-              required
-              onChange={(event) => setClient(event.target.value)}
-            />
-          </label>
           <div className="calendar-entry-grid calendar-entry-service-grid">
             <label className="calendar-entry-service-field">
               Услуга
@@ -256,17 +367,37 @@ function CalendarEntryForm({
           <div className="calendar-entry-grid calendar-entry-money-grid">
             <label>
               Чай
-              <input name="tip" defaultValue={initialEntry?.tip ?? ""} placeholder="0" />
+              <input
+                name="tip"
+                value={tip}
+                onChange={(event) => setTip(event.target.value)}
+                placeholder="0"
+              />
             </label>
             <label>
               Доп сумма
-              <input name="extra" defaultValue={initialEntry?.extra ?? ""} placeholder="0" />
+              <input
+                name="extra"
+                value={extra}
+                onChange={(event) => setExtra(event.target.value)}
+                placeholder="0"
+              />
+            </label>
+            <label>
+              Долг
+              <input
+                name="debt"
+                value={debt}
+                onChange={(event) => setDebt(event.target.value)}
+                placeholder="0"
+              />
             </label>
             <label>
               Скидка %
               <input
                 name="discount"
-                defaultValue={initialEntry?.discount ?? ""}
+                value={discount}
+                onChange={(event) => setDiscount(event.target.value)}
                 placeholder="0"
               />
             </label>
@@ -283,7 +414,12 @@ function CalendarEntryForm({
       )}
       {kind === "visit" && <label>
         Комментарий
-        <textarea name="note" defaultValue={initialEntry?.note ?? ""} rows="2" />
+        <textarea
+          name="note"
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          rows="2"
+        />
       </label>}
       <button className="submit-button">
         {initialEntry || kind !== "visit" ? "Сохранить" : "Добавить в календарь"}

@@ -105,6 +105,8 @@ const TASKS_STORAGE_KEY = "nuar-crm-tasks";
 const SUPPLIES_STORAGE_KEY = "nuar-crm-supplies";
 const IMPORT_DOCUMENTS_STORAGE_KEY = "nuar-crm-import-documents";
 const IMPORTED_MAIL_IDS_STORAGE_KEY = "nuar-crm-imported-mail-ids";
+const AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY =
+  "nuar-crm-auto-completed-calendar-entry-ids";
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
 const initialMessageTemplates = [
@@ -521,6 +523,8 @@ function App() {
   const [importedMailIds, setImportedMailIds] = useState(() =>
     loadStoredCollection(IMPORTED_MAIL_IDS_STORAGE_KEY),
   );
+  const [autoCompletedCalendarEntryIds, setAutoCompletedCalendarEntryIds] =
+    useState(() => loadStoredCollection(AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY));
   const [appSettings, setAppSettings] = useState(loadStoredSettings);
   const [authSession, setAuthSession] = useState(null);
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured);
@@ -575,11 +579,20 @@ function App() {
   const [activeClientAlertId, setActiveClientAlertId] = useState(null);
   const [preferredMessageClientId, setPreferredMessageClientId] = useState("");
   const [notifications, setNotifications] = useState([]);
+  const [pullRefresh, setPullRefresh] = useState({
+    distance: 0,
+    refreshing: false,
+  });
+  const contentRef = useRef(null);
+  const pullStartYRef = useRef(0);
+  const pullTrackingRef = useRef(false);
   const notificationQueueRef = useRef([]);
   const notificationTimerRef = useRef(null);
   const notificationVisibleRef = useRef(false);
   const smartVisitAlertIds = useRef(new Set());
-  const autoCompletedCalendarEntryIds = useRef(new Set());
+  const autoCompletedCalendarEntryIdsRef = useRef(
+    new Set(autoCompletedCalendarEntryIds),
+  );
   const cloudSnapshotRef = useRef(null);
   const masters = useMemo(
     () =>
@@ -598,6 +611,125 @@ function App() {
     1,
     Number(appSettings.inactiveClientDays) || defaultAppSettings.inactiveClientDays,
   );
+
+  useEffect(() => {
+    autoCompletedCalendarEntryIdsRef.current = new Set(autoCompletedCalendarEntryIds);
+  }, [autoCompletedCalendarEntryIds]);
+
+  const isPullRefreshBlocked = useCallback(
+    () =>
+      employeeModalOpen ||
+      clientModalOpen ||
+      serviceModalOpen ||
+      packageModalOpen ||
+      clientPackageModalOpen ||
+      messageTemplateModalOpen ||
+      calendarEntryModalOpen ||
+      taskModalOpen ||
+      supplyModalOpen ||
+      financialOperationModalOpen ||
+      clientAlertsOpen,
+    [
+      calendarEntryModalOpen,
+      clientAlertsOpen,
+      clientModalOpen,
+      clientPackageModalOpen,
+      employeeModalOpen,
+      financialOperationModalOpen,
+      messageTemplateModalOpen,
+      packageModalOpen,
+      serviceModalOpen,
+      supplyModalOpen,
+      taskModalOpen,
+    ],
+  );
+
+  const getScrollableParent = useCallback((target) => {
+    const root = contentRef.current;
+    let current = target instanceof Element ? target : null;
+
+    while (current && current !== root && current !== document.body) {
+      const style = window.getComputedStyle(current);
+      const canScroll =
+        /(auto|scroll)/.test(style.overflowY) &&
+        current.scrollHeight > current.clientHeight + 1;
+
+      if (canScroll) {
+        return current;
+      }
+
+      current = current.parentElement;
+    }
+
+    return document.scrollingElement || document.documentElement;
+  }, []);
+
+  const handlePullRefreshStart = useCallback(
+    (event) => {
+      const target = event.target;
+      const tagName = target?.tagName?.toLowerCase();
+
+      if (
+        pullRefresh.refreshing ||
+        isPullRefreshBlocked() ||
+        !window.matchMedia("(max-width: 700px)").matches ||
+        ["input", "textarea", "select", "button"].includes(tagName)
+      ) {
+        pullTrackingRef.current = false;
+        return;
+      }
+
+      const scrollParent = getScrollableParent(target);
+      const scrollTop =
+        scrollParent === document.scrollingElement ||
+        scrollParent === document.documentElement
+          ? window.scrollY || scrollParent.scrollTop
+          : scrollParent.scrollTop;
+
+      pullTrackingRef.current = scrollTop <= 0;
+      pullStartYRef.current = event.touches[0]?.clientY ?? 0;
+    },
+    [getScrollableParent, isPullRefreshBlocked, pullRefresh.refreshing],
+  );
+
+  const handlePullRefreshMove = useCallback((event) => {
+    if (!pullTrackingRef.current) {
+      return;
+    }
+
+    const currentY = event.touches[0]?.clientY ?? 0;
+    const delta = currentY - pullStartYRef.current;
+
+    if (delta <= 0) {
+      setPullRefresh((current) =>
+        current.distance ? {...current, distance: 0} : current,
+      );
+      return;
+    }
+
+    if (delta > 12) {
+      event.preventDefault();
+    }
+
+    const distance = Math.min(86, Math.round(delta * 0.48));
+    setPullRefresh((current) => ({...current, distance}));
+  }, []);
+
+  const handlePullRefreshEnd = useCallback(() => {
+    if (!pullTrackingRef.current) {
+      return;
+    }
+
+    pullTrackingRef.current = false;
+    setPullRefresh((current) => {
+      if (current.distance >= 58) {
+        window.setTimeout(() => window.location.reload(), 180);
+        return {distance: 68, refreshing: true};
+      }
+
+      return {distance: 0, refreshing: false};
+    });
+  }, []);
   const inactiveClients = useMemo(
     () =>
       clientProfiles
@@ -846,28 +978,74 @@ function App() {
   const paymentRows = useMemo(
     () => {
       const now = new Date();
+      const calendarEntryById = new Map(
+        calendarEntries
+          .filter((entry) => entry.kind === "visit")
+          .map((entry) => [entry.id, entry]),
+      );
+      const normalizeCalendarEntryRow = (entry) => {
+        const isPlanned = isCalendarVisitPlanned(entry, now);
+
+        return {
+          ...entry,
+          id: `calendar-${entry.id}`,
+          calendarEntryId: entry.id,
+          date: toDisplayDate(entry.date),
+          status: isPlanned ? entry.status : "completed",
+          extra: toVisitNumber(entry.extra),
+          tip: toVisitNumber(entry.tip),
+          debt: toVisitNumber(entry.debt),
+          commission: 0,
+          commissionType: entry.commissionType || "Без комиссии",
+          discount: toVisitNumber(entry.discount),
+          isPlanned,
+        };
+      };
+      const syncedVisits = visits.map((visit) => {
+        const entry = calendarEntryById.get(visit.calendarEntryId);
+        const hasValue = (value) =>
+          value !== undefined && value !== null && String(value).trim() !== "";
+
+        if (!entry) {
+          return visit;
+        }
+
+        return {
+          ...visit,
+          date: toDisplayDate(entry.date),
+          client: entry.client || visit.client,
+          master: entry.master || visit.master,
+          service: entry.service || visit.service,
+          amount: hasValue(entry.amount)
+            ? toVisitNumber(entry.amount)
+            : toVisitNumber(visit.amount),
+          payment: entry.payment || visit.payment || "Не указано",
+          packageUsageId: entry.packageUsageId || visit.packageUsageId || "",
+          packageName: entry.packageName || visit.packageName || "",
+          packageSessionsUsed:
+            toVisitNumber(entry.packageSessionsUsed) ||
+            toVisitNumber(visit.packageSessionsUsed),
+          tip: hasValue(entry.tip) ? toVisitNumber(entry.tip) : toVisitNumber(visit.tip),
+          extra: hasValue(entry.extra)
+            ? toVisitNumber(entry.extra)
+            : toVisitNumber(visit.extra),
+          debt: hasValue(entry.debt)
+            ? toVisitNumber(entry.debt)
+            : toVisitNumber(visit.debt),
+          commissionType: entry.commissionType || visit.commissionType || "Без комиссии",
+          discount: hasValue(entry.discount)
+            ? toVisitNumber(entry.discount)
+            : toVisitNumber(visit.discount),
+          note: entry.note || visit.note || "",
+          status: entry.status === "completed" ? "completed" : visit.status,
+        };
+      });
 
       return [
         ...calendarEntries
           .filter((entry) => entry.kind === "visit" && !entry.visitId)
-          .map((entry) => {
-            const isPlanned = isCalendarVisitPlanned(entry, now);
-
-            return {
-              ...entry,
-              id: `calendar-${entry.id}`,
-              calendarEntryId: entry.id,
-              date: toDisplayDate(entry.date),
-              status: isPlanned ? entry.status : "completed",
-              extra: toVisitNumber(entry.extra),
-              tip: toVisitNumber(entry.tip),
-              commission: 0,
-              commissionType: entry.commissionType || "Без комиссии",
-              discount: toVisitNumber(entry.discount),
-              isPlanned,
-            };
-          }),
-        ...visits,
+          .map(normalizeCalendarEntryRow),
+        ...syncedVisits,
       ];
     },
     [calendarEntries, visits],
@@ -1032,6 +1210,13 @@ function App() {
     );
   }, [importedMailIds]);
 
+  useEffect(() => {
+    window.localStorage.setItem(
+      AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY,
+      JSON.stringify(autoCompletedCalendarEntryIds),
+    );
+  }, [autoCompletedCalendarEntryIds]);
+
   const cloudSnapshot = useMemo(
     () => ({
       version: 1,
@@ -1050,6 +1235,7 @@ function App() {
       supplies,
       importDocuments,
       importedMailIds,
+      autoCompletedCalendarEntryIds,
       settings: appSettings,
     }),
     [
@@ -1062,6 +1248,7 @@ function App() {
       employees,
       importDocuments,
       importedMailIds,
+      autoCompletedCalendarEntryIds,
       messageTemplates,
       notificationInbox,
       packagesCatalog,
@@ -1100,6 +1287,9 @@ function App() {
     if (Array.isArray(snapshot.supplies)) setSupplies(snapshot.supplies);
     if (Array.isArray(snapshot.importDocuments)) setImportDocuments(snapshot.importDocuments);
     if (Array.isArray(snapshot.importedMailIds)) setImportedMailIds(snapshot.importedMailIds);
+    if (Array.isArray(snapshot.autoCompletedCalendarEntryIds)) {
+      setAutoCompletedCalendarEntryIds(snapshot.autoCompletedCalendarEntryIds);
+    }
     if (snapshot.settings && typeof snapshot.settings === "object") {
       const safeSettings = {...snapshot.settings};
       delete safeSettings.authLogin;
@@ -1410,6 +1600,7 @@ function App() {
         commission: 0,
         commissionType: "Без комиссии",
         extra,
+        debt: 0,
         discount: 0,
         note: String(form.get("note") ?? "").trim(),
       },
@@ -1539,8 +1730,17 @@ function App() {
     });
   };
 
-  const openCreateClient = () => {
-    setEditingClient(null);
+  const openCreateClient = (prefill = {}) => {
+    setEditingClient(
+      prefill?.name
+        ? {
+            name: prefill.name,
+            source: "Instagram",
+            preference: "Любой мастер",
+            status: "Новый",
+          }
+        : null,
+    );
     setClientModalOpen(true);
   };
 
@@ -2007,6 +2207,44 @@ function App() {
     });
   };
 
+  const addCalendarFormClient = (name) => {
+    const trimmedName = String(name ?? "").trim();
+
+    if (!trimmedName) {
+      return;
+    }
+
+    const exists = clientProfiles.some(
+      (client) => client.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
+
+    if (exists) {
+      return;
+    }
+
+    setClientProfiles((current) => [
+      {
+        id: createLocalId(),
+        name: trimmedName,
+        phone: "",
+        email: "",
+        birthday: "",
+        instagram: "",
+        telegram: "",
+        source: "Визит",
+        preference: "Любой мастер",
+        status: "Новый",
+        tags: "",
+        note: "",
+      },
+      ...current,
+    ]);
+    pushNotification({
+      title: "Клиент добавлен",
+      message: `${trimmedName} теперь в базе клиентов`,
+    });
+  };
+
   const openEditCalendarEntry = (entry) => {
     setEditingCalendarEntry(entry);
     setCalendarEntryDefaults({});
@@ -2060,12 +2298,44 @@ function App() {
       : "";
   };
 
+  const syncCompletedCalendarVisit = (entry) => {
+    if (entry.kind !== "visit" || !entry.visitId) {
+      return;
+    }
+
+    setVisits((current) =>
+      current.map((visit) =>
+        visit.id === entry.visitId || visit.calendarEntryId === entry.id
+          ? {
+              ...visit,
+              date: toDisplayDate(entry.date),
+              client: entry.client,
+              master: entry.master,
+              service: entry.service,
+              amount: toVisitNumber(entry.amount),
+              payment: entry.payment || "Не указано",
+              packageUsageId: entry.packageUsageId || "",
+              packageName: entry.packageName || "",
+              packageSessionsUsed: entry.packageSessionsUsed || 0,
+              tip: toVisitNumber(entry.tip),
+              commissionType: entry.commissionType || "Без комиссии",
+              extra: toVisitNumber(entry.extra),
+              debt: toVisitNumber(entry.debt),
+              discount: toVisitNumber(entry.discount),
+              note: entry.note || "",
+            }
+          : visit,
+      ),
+    );
+  };
+
   const saveCalendarEntry = (entry, isEditing) => {
     setCalendarEntries((current) =>
       isEditing
         ? current.map((item) => (item.id === entry.id ? entry : item))
         : [...current, entry],
     );
+    syncCompletedCalendarVisit(entry);
     setCalendarEntryModalOpen(false);
     setEditingCalendarEntry(null);
     setCalendarEntryDefaults({});
@@ -2096,6 +2366,7 @@ function App() {
     const serviceVariant = service?.variants?.find(
       (variant) => Number(variant.duration) === duration,
     );
+    const rawAmount = String(form.get("amount") ?? "").trim();
     const entry = {
       id: editingCalendarEntry?.id ?? createLocalId(),
       status: editingCalendarEntry?.status ?? "scheduled",
@@ -2112,7 +2383,9 @@ function App() {
       service: kind === "visit" ? service?.name ?? "" : "",
       amount:
         kind === "visit"
-          ? toVisitNumber(form.get("amount")) || toVisitNumber(serviceVariant?.price)
+          ? rawAmount === ""
+            ? toVisitNumber(serviceVariant?.price)
+            : toVisitNumber(rawAmount)
           : 0,
       payment: kind === "visit" ? form.get("payment") : "",
       packageUsageId,
@@ -2121,6 +2394,7 @@ function App() {
       packageSessionsUsed: packageUsageId ? 1 : 0,
       tip: kind === "visit" ? toVisitNumber(form.get("tip")) : 0,
       extra: kind === "visit" ? toVisitNumber(form.get("extra")) : 0,
+      debt: kind === "visit" ? toVisitNumber(form.get("debt")) : 0,
       discount: kind === "visit" ? toVisitNumber(form.get("discount")) : 0,
       commissionType:
         kind === "visit" ? String(form.get("commissionType") ?? "Без комиссии") : "Без комиссии",
@@ -2172,6 +2446,7 @@ function App() {
     setCalendarEntries((current) =>
       current.map((entry) => (entry.id === entryId ? movedEntry : entry)),
     );
+    syncCompletedCalendarVisit(movedEntry);
   };
 
   const confirmCalendarConflict = () => {
@@ -2185,6 +2460,7 @@ function App() {
       setCalendarEntries((current) =>
         current.map((item) => (item.id === entry.id ? entry : item)),
       );
+      syncCompletedCalendarVisit(entry);
     } else {
       saveCalendarEntry(entry, isEditing);
     }
@@ -2192,7 +2468,7 @@ function App() {
     setPendingCalendarConflict(null);
   };
 
-  const completeCalendarVisit = (entry) => {
+  const completeCalendarVisit = (entry, {notify = true} = {}) => {
     if (["completed", "cancelled", "no_show"].includes(entry.status)) {
       return;
     }
@@ -2203,6 +2479,10 @@ function App() {
     const matchedVariant = matchedService?.variants?.find(
       (variant) => Number(variant.duration) === Number(entry.duration),
     );
+    const amount =
+      entry.amount === "" || entry.amount === null || entry.amount === undefined
+        ? toVisitNumber(matchedVariant?.price)
+        : toVisitNumber(entry.amount);
     const visit = {
       id: createLocalId(),
       calendarEntryId: entry.id,
@@ -2211,7 +2491,7 @@ function App() {
       master: entry.master,
       service: entry.service,
       duration: "",
-      amount: toVisitNumber(entry.amount) || toVisitNumber(matchedVariant?.price),
+      amount,
       payment: entry.payment || "Не указано",
       packageUsageId: entry.packageUsageId || "",
       packageName: entry.packageName || "",
@@ -2220,36 +2500,52 @@ function App() {
       commission: 0,
       commissionType: entry.commissionType || "Без комиссии",
       extra: toVisitNumber(entry.extra),
+      debt: toVisitNumber(entry.debt),
       discount: toVisitNumber(entry.discount),
       note: entry.note || "",
     };
 
-    setVisits((current) =>
-      current.some((item) => item.calendarEntryId === entry.id)
-        ? current
-        : [visit, ...current],
-    );
-    updatePackageBalance(null, visit);
+    const existingVisit = visits.find((item) => item.calendarEntryId === entry.id);
+    const hasExistingVisit = Boolean(existingVisit);
+
+    if (!hasExistingVisit) {
+      setVisits((current) =>
+        current.some((item) => item.calendarEntryId === entry.id)
+          ? current
+          : [visit, ...current],
+      );
+      updatePackageBalance(null, visit);
+    }
+
     setCalendarEntries((current) =>
       current.map((item) =>
         item.id === entry.id
-          ? {...item, status: "completed", completedAt: new Date().toISOString(), visitId: visit.id}
+          ? {
+              ...item,
+              status: "completed",
+              completedAt: new Date().toISOString(),
+              visitId: existingVisit?.id ?? visit.id,
+            }
           : item,
       ),
     );
-    pushNotification({
-      title: "Визит завершен",
-      message: `${entry.client} добавлен в журнал визитов`,
-    });
+
+    if (notify && !hasExistingVisit) {
+      pushNotification({
+        title: "Визит завершен",
+        message: `${entry.client} добавлен в журнал визитов`,
+      });
+    }
   };
 
   useEffect(() => {
+    const now = new Date();
     const expiredEntries = calendarEntries.filter((entry) => {
       if (
         entry.kind !== "visit" ||
         entry.visitId ||
         ["completed", "cancelled", "no_show"].includes(entry.status) ||
-        autoCompletedCalendarEntryIds.current.has(entry.id)
+        autoCompletedCalendarEntryIdsRef.current.has(entry.id)
       ) {
         return false;
       }
@@ -2257,13 +2553,22 @@ function App() {
       const end = new Date(`${entry.date}T${entry.time || "00:00"}:00`);
       end.setMinutes(end.getMinutes() + Number(entry.duration || 0));
 
-      return end < new Date();
+      return end < now;
     });
 
     expiredEntries.forEach((entry) => {
-      autoCompletedCalendarEntryIds.current.add(entry.id);
-      completeCalendarVisit(entry);
+      const end = new Date(`${entry.date}T${entry.time || "00:00"}:00`);
+      end.setMinutes(end.getMinutes() + Number(entry.duration || 0));
+      const justCompleted = now.getTime() - end.getTime() <= 2 * 60 * 1000;
+
+      autoCompletedCalendarEntryIdsRef.current.add(entry.id);
+      completeCalendarVisit(entry, {notify: justCompleted});
     });
+    if (expiredEntries.length > 0) {
+      setAutoCompletedCalendarEntryIds((current) => [
+        ...new Set([...current, ...expiredEntries.map((entry) => entry.id)]),
+      ]);
+    }
     // This reacts to calendar changes and guards repeated sync by entry id.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [calendarEntries]);
@@ -2394,16 +2699,19 @@ function App() {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const title = String(form.get("title") ?? "").trim();
+    const type = editingTask?.type === "note" ? "note" : "task";
 
     if (!title) return;
 
     const task = {
       id: editingTask?.id ?? createLocalId(),
+      type,
       title,
       dueDate: form.get("dueDate") || "",
       priority: form.get("priority") || "Средний",
       note: String(form.get("note") ?? "").trim(),
       status: editingTask?.status ?? "active",
+      createdAt: editingTask?.createdAt ?? new Date().toISOString(),
     };
     setTasks((current) =>
       editingTask
@@ -2412,7 +2720,26 @@ function App() {
     );
     setTaskModalOpen(false);
     setEditingTask(null);
-    pushNotification({title: "Задача сохранена", message: task.title});
+    pushNotification({
+      title: type === "note" ? "Заметка сохранена" : "Задача сохранена",
+      message: task.title,
+    });
+  };
+
+  const addQuickNote = ({title, category}) => {
+    const note = {
+      id: createLocalId(),
+      type: "note",
+      title,
+      dueDate: "",
+      priority: category || "Мысль",
+      note: "",
+      status: "active",
+      createdAt: new Date().toISOString(),
+    };
+
+    setTasks((current) => [note, ...current]);
+    pushNotification({title: "Заметка добавлена", message: note.title});
   };
 
   const completeTask = (task) => {
@@ -2440,7 +2767,10 @@ function App() {
 
   const deleteTask = (task) => {
     setTasks((current) => current.filter((item) => item.id !== task.id));
-    pushNotification({title: "Задача удалена", message: task.title});
+    pushNotification({
+      title: task.type === "note" ? "Заметка удалена" : "Задача удалена",
+      message: task.title,
+    });
   };
 
   const openCreateSupply = () => {
@@ -3070,11 +3400,24 @@ function App() {
           <PanelLeftOpen className="desktop-menu-icon" size={18} />
         </button>
       )}
+      <div
+        className={`pull-refresh-indicator ${
+          pullRefresh.refreshing || pullRefresh.distance > 0 ? "visible" : ""
+        } ${pullRefresh.refreshing ? "refreshing" : ""}`}
+        style={{"--pull-distance": `${pullRefresh.distance}px`}}>
+        <span aria-hidden="true" />
+        <b>{pullRefresh.refreshing ? "Обновляем" : "Потяните для обновления"}</b>
+      </div>
 
       <main
+        ref={contentRef}
         className={`content home-content ${isCalendarPage ? "calendar-content" : ""} ${
           isPaymentsPage ? "visits-content payments-content" : ""
-        }`}>
+        }`}
+        onTouchCancel={handlePullRefreshEnd}
+        onTouchEnd={handlePullRefreshEnd}
+        onTouchMove={handlePullRefreshMove}
+        onTouchStart={handlePullRefreshStart}>
         {notificationSlot &&
           createPortal(
           <div
@@ -3626,6 +3969,7 @@ function App() {
             tasks={tasks}
             supplies={supplies}
             onAddTask={openCreateTask}
+            onAddNote={addQuickNote}
             onEditTask={openEditTask}
             onDeleteTask={deleteTask}
             onCompleteTask={completeTask}
@@ -3740,7 +4084,7 @@ function App() {
         <div className="modal-backdrop" role="presentation">
           <section
             aria-modal="true"
-            className="employee-modal"
+            className="employee-modal client-form-modal"
             role="dialog"
             aria-labelledby="client-modal-title">
             <div className="modal-header">
@@ -3914,6 +4258,7 @@ function App() {
               clientPackages={clientPackages}
               employees={employees.filter((employee) => employee.status !== "Архив")}
               initialEntry={editingCalendarEntry}
+              visits={paymentRows}
               selectedDate={calendarEntryDefaults.date ?? DEFAULT_STATS_DATE}
               selectedClient={calendarEntryDefaults.client ?? ""}
               selectedAmount={calendarEntryDefaults.amount ?? ""}
@@ -3924,6 +4269,7 @@ function App() {
               selectedServiceId={calendarEntryDefaults.serviceId ?? ""}
               selectedTime={calendarEntryDefaults.time ?? "10:00"}
               services={serviceCatalog}
+              onCreateClient={addCalendarFormClient}
               onSubmit={handleCalendarEntrySubmit}
             />
           </section>
@@ -3933,7 +4279,13 @@ function App() {
         <div className="modal-backdrop" role="presentation">
           <section aria-modal="true" className="employee-modal catalog-modal" role="dialog" aria-labelledby="task-modal-title">
             <div className="modal-header">
-              <h2 id="task-modal-title">{editingTask ? "Редактировать задачу" : "Новая задача"}</h2>
+              <h2 id="task-modal-title">
+                {editingTask?.type === "note"
+                  ? "Редактировать заметку"
+                  : editingTask
+                    ? "Редактировать задачу"
+                    : "Новая задача"}
+              </h2>
               <button
                 aria-label="Закрыть форму"
                 className="modal-close"

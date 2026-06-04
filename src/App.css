@@ -257,7 +257,8 @@ button {
 .mobile-menu-icon,
 .mobile-sidebar-backdrop,
 .mobile-bottom-nav,
-.mobile-more-sheet {
+.mobile-more-sheet,
+.pull-refresh-indicator {
   display: none;
 }
 
@@ -1284,7 +1285,7 @@ h1 {
 }
 
 .payments-content .table-row {
-  min-width: 980px;
+  min-width: 1040px;
 }
 
 .payments-content .table-head {
@@ -1372,7 +1373,7 @@ h2 {
   grid-template-columns: 80px minmax(92px, 1fr) minmax(
       112px,
       1.14fr
-    ) 78px 72px 72px 46px 62px 62px 52px 68px 24px;
+    ) 78px 68px 68px 42px 58px 58px 58px 48px 66px 24px;
   align-items: center;
   min-width: 0;
   min-height: 44px;
@@ -2500,6 +2501,41 @@ h2 {
   gap: 8px;
 }
 
+.operations-header-actions,
+.operations-tabs,
+.quick-note-form,
+.note-row {
+  display: flex;
+  align-items: center;
+}
+
+.operations-header-actions {
+  gap: 7px;
+}
+
+.operations-tabs {
+  gap: 3px;
+  padding: 3px;
+  border-radius: 7px;
+  background: #f4f4f2;
+}
+
+.operations-tabs button {
+  min-height: 28px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 5px;
+  color: #6f737b;
+  background: transparent;
+  font-size: 11px;
+}
+
+.operations-tabs button.active {
+  color: #15171c;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(17, 19, 24, 0.08);
+}
+
 .operations-panel-header > div {
   gap: 8px;
 }
@@ -2529,6 +2565,46 @@ h2 {
   gap: 6px;
 }
 
+.operations-notes {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.quick-note-form {
+  gap: 7px;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #e9e9e7;
+  border-radius: 8px;
+  background: #fbfbfa;
+}
+
+.quick-note-form > svg {
+  flex: 0 0 auto;
+  color: var(--accent-color);
+}
+
+.quick-note-form input {
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 9px;
+  font-size: 12px;
+}
+
+.quick-note-form select {
+  width: 116px;
+  min-height: 34px;
+  padding: 0 24px 0 9px;
+  font-size: 11px;
+}
+
+.quick-note-form .add-visit-button {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
 .task-row,
 .supply-row {
   gap: 8px;
@@ -2537,6 +2613,48 @@ h2 {
   border: 1px solid #e9e9e7;
   border-radius: 7px;
   background: #fff;
+}
+
+.note-row {
+  gap: 8px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #e9e9e7;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.note-row > span {
+  display: grid;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 7px;
+  color: #8d5b18;
+  background: #f6efe6;
+}
+
+.note-row > div:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  margin-right: auto;
+}
+
+.note-row strong {
+  overflow: hidden;
+  color: #15171c;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-row small {
+  overflow: hidden;
+  color: #7b8089;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .task-row > div:nth-child(3),
@@ -2704,19 +2822,24 @@ h2 {
 }
 
 .theme-dark .operations-summary span,
-.theme-dark .task-priority {
+.theme-dark .task-priority,
+.theme-dark .operations-tabs {
   color: #aeb9c8;
   background: #111722;
 }
 
 .theme-dark .operations-summary b,
 .theme-dark .task-row strong,
-.theme-dark .supply-row strong {
+.theme-dark .supply-row strong,
+.theme-dark .note-row strong,
+.theme-dark .operations-tabs button.active {
   color: #f8fbff;
 }
 
 .theme-dark .task-row,
 .theme-dark .supply-row,
+.theme-dark .note-row,
+.theme-dark .quick-note-form,
 .theme-dark .import-row,
 .theme-dark .import-document-row,
 .theme-dark .import-summary span,
@@ -2724,6 +2847,15 @@ h2 {
 .theme-dark .task-check {
   border-color: #344052;
   background: #111722;
+}
+
+.theme-dark .operations-tabs button.active {
+  background: #1a202b;
+}
+
+.theme-dark .note-row > span {
+  color: #f2c26e;
+  background: #302414;
 }
 
 .theme-dark .import-summary strong {
@@ -3214,6 +3346,9 @@ h2 {
   place-items: center;
   padding: 18px;
   background: rgba(17, 19, 24, 0.28);
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 }
 
 .calendar-slot-menu {
@@ -3224,6 +3359,9 @@ h2 {
   border-radius: 10px;
   background: #fff;
   box-shadow: 0 22px 54px rgba(17, 19, 24, 0.2);
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 }
 
 .calendar-slot-menu button {
@@ -3275,6 +3413,9 @@ h2 {
   display: grid;
   grid-template-columns: 58px repeat(var(--master-count, 3), minmax(190px, 1fr));
   min-width: 700px;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 }
 
 .schedule-times {
@@ -3345,6 +3486,9 @@ h2 {
 .schedule-column {
   position: relative;
   height: var(--schedule-height);
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 }
 
 .schedule-column-over {
@@ -3534,6 +3678,19 @@ h2 {
   color: #59616d;
   font-size: 9px;
   text-transform: uppercase;
+}
+
+.schedule-entry-money,
+.calendar-reminder-money {
+  color: #386247;
+  font-weight: 800;
+}
+
+.schedule-entry-debt,
+.calendar-reminder-debt,
+.debt-cell {
+  color: #a13d2f;
+  font-weight: 800;
 }
 
 .schedule-entry-actions {
@@ -3924,6 +4081,42 @@ h2 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.calendar-entry-client-field {
+  margin-top: 2px;
+}
+
+.calendar-new-client-hint,
+.calendar-client-template-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -2px 0 2px;
+  padding: 8px 9px;
+  border-radius: 8px;
+  background: #f7f7f5;
+  color: #59616d;
+  font-size: 11px;
+}
+
+.calendar-new-client-hint button {
+  min-height: 28px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  color: #fff;
+  background: #15171c;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.calendar-client-template-hint {
+  justify-content: flex-start;
+  color: #386247;
+  background: #edf6ef;
+}
+
 .calendar-entry-form label {
   gap: 4px;
   font-size: 11px;
@@ -3998,6 +4191,16 @@ h2 {
 .theme-dark .calendar-kind-switch button.active {
   color: #f8fbff;
   background: #273142;
+}
+
+.theme-dark .calendar-new-client-hint {
+  color: #d5dfec;
+  background: #111722;
+}
+
+.theme-dark .calendar-client-template-hint {
+  color: #b6e1c2;
+  background: #132316;
 }
 
 .theme-dark .calendar-feed-toggle,
@@ -5322,6 +5525,63 @@ button:focus-visible {
     padding-top: 0;
   }
 
+  .pull-refresh-indicator {
+    position: fixed;
+    top: calc(8px + env(safe-area-inset-top));
+    left: 50%;
+    z-index: 96;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 7px 12px;
+    border: 1px solid #e5e5e3;
+    border-radius: 999px;
+    color: #15171c;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 12px 30px rgba(17, 19, 24, 0.14);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, calc(-100% + var(--pull-distance, 0px)));
+    transition:
+      opacity 0.14s ease,
+      transform 0.14s ease;
+  }
+
+  .pull-refresh-indicator.visible {
+    opacity: 1;
+  }
+
+  .pull-refresh-indicator span {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #dededb;
+    border-top-color: #15171c;
+    border-radius: 50%;
+    transform: rotate(calc(var(--pull-distance, 0px) * 3deg));
+  }
+
+  .pull-refresh-indicator.refreshing span {
+    animation: spin 0.8s linear infinite;
+  }
+
+  .pull-refresh-indicator b {
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .theme-dark .pull-refresh-indicator {
+    border-color: #344052;
+    color: #f8fbff;
+    background: rgba(22, 27, 36, 0.94);
+  }
+
+  .theme-dark .pull-refresh-indicator span {
+    border-color: #344052;
+    border-top-color: #f8fbff;
+  }
+
   .home-content,
   .visits-content {
     display: block;
@@ -5413,7 +5673,7 @@ button:focus-visible {
   }
 
   .payments-content .table-row {
-    min-width: 930px;
+    min-width: 1040px;
   }
 
   .payments-content .table-footer {
@@ -5460,6 +5720,31 @@ button:focus-visible {
     z-index: 47;
     width: 38px;
     height: 38px;
+  }
+
+  .toast-stack {
+    top: calc(10px + env(safe-area-inset-top));
+    right: 10px;
+    bottom: auto;
+    left: 10px;
+    z-index: 90;
+    width: auto;
+  }
+
+  .toast {
+    grid-template-columns: 20px minmax(0, 1fr) 28px;
+    gap: 8px;
+    padding: 10px 11px;
+    border-radius: 10px;
+    box-shadow: 0 14px 34px rgba(17, 19, 24, 0.16);
+  }
+
+  .toast strong {
+    font-size: 13px;
+  }
+
+  .toast span {
+    font-size: 11px;
   }
 
   .statistics-page {
@@ -5846,7 +6131,8 @@ button:focus-visible {
   }
 
   .calendar-entry-time-grid {
-    grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
   }
 
   .calendar-entry-service-field,
@@ -6026,6 +6312,39 @@ button:focus-visible {
     min-height: 38px;
     padding: 0 9px;
     font-size: 11px;
+  }
+
+  .operations-panel-header,
+  .operations-header-actions,
+  .quick-note-form {
+    flex-wrap: wrap;
+  }
+
+  .operations-header-actions,
+  .operations-tabs {
+    width: 100%;
+  }
+
+  .operations-tabs button {
+    flex: 1;
+  }
+
+  .quick-note-form {
+    align-items: stretch;
+  }
+
+  .quick-note-form input {
+    flex: 1 1 calc(100% - 30px);
+  }
+
+  .quick-note-form select,
+  .quick-note-form .add-visit-button {
+    flex: 1;
+    width: auto;
+  }
+
+  .note-row {
+    align-items: flex-start;
   }
 
   .clients-table-head {
@@ -6273,32 +6592,52 @@ button:focus-visible {
     margin-top: 12px;
   }
 
-  .employee-modal .new-client-panel {
-    display: flex;
-    min-height: 0;
-    flex: 1;
-    flex-direction: column;
+  .client-form-modal {
+    max-height: calc(100dvh - 12px);
     overflow: hidden;
   }
 
-  .employee-modal .new-client-panel form {
+  .client-form-modal .new-client-panel {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .client-form-modal .new-client-panel form {
+    display: grid;
+    max-height: calc(100dvh - 88px);
     overflow-x: hidden;
     overflow-y: auto;
-    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    padding: 2px 2px calc(14px + env(safe-area-inset-bottom));
+    scrollbar-width: none;
+  }
+
+  .client-form-modal .new-client-panel form::-webkit-scrollbar {
+    display: none;
+  }
+
+  .client-form-modal .form-split {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .client-form-modal label {
+    min-width: 0;
   }
 
   .new-client-panel input,
   .new-client-panel select,
   .new-client-panel textarea {
+    width: 100%;
+    min-width: 0;
     min-height: 42px;
+    font-size: 16px;
   }
 
-  .employee-modal .new-client-panel .submit-button {
-    position: sticky;
-    bottom: max(10px, env(safe-area-inset-bottom));
-    z-index: 4;
+  .client-form-modal .new-client-panel .submit-button {
+    position: static;
+    width: 100%;
     min-height: 48px;
-    margin-top: 4px;
+    margin-top: 8px;
     box-shadow: 0 10px 24px rgba(17, 19, 24, 0.18);
   }
 

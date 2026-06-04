@@ -17,6 +17,7 @@ import {
   getDiscountedServiceAmount,
   getEmployeePayout,
   getVisitCommission,
+  getVisitDebt,
   getVisitTotal,
   getVisitTransactionTotal,
   isBarterPayment,
@@ -86,6 +87,11 @@ const isForecastVisit = (visit) =>
   visit.kind === "visit" &&
   !["completed", "cancelled", "no_show"].includes(visit.status);
 
+const isDebtEligibleVisit = (visit) =>
+  visit.recordType !== "operation" &&
+  !["cancelled", "no_show"].includes(visit.status) &&
+  getVisitDebt(visit) > 0;
+
 function StatisticsPage({
   visits,
   calendarEntries = [],
@@ -152,6 +158,18 @@ function StatisticsPage({
     const filteredAppointments = filteredVisits.filter(
       (visit) => visit.recordType !== "operation",
     );
+    const allDebtVisits = visits.filter(
+      (visit) => isDebtEligibleVisit(visit) && (!master || visit.master === master),
+    );
+    const debtVisits = visits.filter((visit) => {
+      const date = toInputDate(visit.date);
+      return (
+        isDebtEligibleVisit(visit) &&
+        date >= startDate &&
+        date <= endDate &&
+        (!master || visit.master === master)
+      );
+    });
     const filteredPackages = master
       ? []
       : clientPackages.filter((item) => {
@@ -206,6 +224,14 @@ function StatisticsPage({
     );
     const extras = filteredAppointments.reduce(
       (sum, visit) => sum + toVisitNumber(visit.extra),
+      0,
+    );
+    const debts = debtVisits.reduce(
+      (sum, visit) => sum + getVisitDebt(visit),
+      0,
+    );
+    const outstandingDebts = allDebtVisits.reduce(
+      (sum, visit) => sum + getVisitDebt(visit),
       0,
     );
     const discounts = filteredAppointments.reduce(
@@ -289,6 +315,8 @@ function StatisticsPage({
       clientsCount: clientNames.size,
       dates,
       discounts,
+      debts,
+      debtVisits,
       employeePayouts,
       extras,
       certificatesCount,
@@ -308,6 +336,8 @@ function StatisticsPage({
       tips,
       totalIncome,
       totalReceived,
+      outstandingDebts,
+      allDebtVisits,
       visitsReceived,
     };
   }, [
@@ -393,6 +423,16 @@ function StatisticsPage({
       icon: Banknote,
       color: "#546273",
     },
+    {
+      label: "Долги клиентов",
+      value: formatIncome(analytics.outstandingDebts),
+      helper:
+        analytics.debts > 0
+          ? `${analytics.debtVisits.length} в периоде`
+          : `${analytics.allDebtVisits.length} всего`,
+      icon: WalletCards,
+      color: "#c9483c",
+    },
   ];
   const earnings = [
     ["Массажи после скидок", analytics.serviceRevenue],
@@ -400,6 +440,7 @@ function StatisticsPage({
     ["Прочие поступления", analytics.financialOperationsIncome],
     ["Чаевые", analytics.tips],
     ["Доп. услуги", analytics.extras],
+    ["Долги клиентов", -analytics.debts],
     ["Скидки предоставлено", -analytics.discounts],
     ["Выплаты мастерам", -analytics.employeePayouts],
     ["Комиссии платформ", -analytics.platformCommissions],

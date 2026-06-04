@@ -26,8 +26,9 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
-import {toDisplayDate} from "../../utils/formatters.jsx";
+import {formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
 import {getPackageProgressLabel, isUpcomingPackageVisit} from "../../utils/packages.jsx";
+import {getVisitDebt, getVisitTransactionTotal} from "../../utils/visits.jsx";
 
 const QUARTER_HEIGHT = 28;
 const isValidInputDate = (date) =>
@@ -61,6 +62,16 @@ const toClockTime = (minutes) =>
 
 const getEntryEndTime = (entry) =>
   toClockTime(toMinutes(entry.time) + Number(entry.duration || 0));
+
+const getEntryMoneyLabel = (entry) => {
+  const debt = getVisitDebt(entry);
+
+  if (debt > 0) {
+    return `Долг ${formatMoney(debt)}`;
+  }
+
+  return formatMoney(getVisitTransactionTotal(entry));
+};
 
 const isEntryEnded = (entry, selectedDate, now) => {
   if (entry.kind !== "visit") {
@@ -355,6 +366,7 @@ function CalendarPage({
     if (event.button !== undefined && event.button !== 0) return;
     if (event.target.closest(".schedule-entry")) return;
 
+    event.preventDefault();
     const slot = getSlotFromPointer(event, employeeName);
     clearSlotLongPress();
     longPressRef.current = {
@@ -606,6 +618,16 @@ function CalendarPage({
                               {displayedEntry.time}–{getEntryEndTime(displayedEntry)}
                             </span>
                             {entry.kind === "visit" && <small>{entry.service}</small>}
+                            {entry.kind === "visit" && (
+                              <small
+                                className={
+                                  getVisitDebt(entry) > 0
+                                    ? "schedule-entry-money schedule-entry-debt"
+                                    : "schedule-entry-money"
+                                }>
+                                {getEntryMoneyLabel(entry)}
+                              </small>
+                            )}
                             {entry.kind === "visit" && entry.packageUsageId && (() => {
                               const packageItem = clientPackages.find(
                                 (item) => item.id === entry.packageUsageId,
@@ -770,6 +792,14 @@ function CalendarPage({
                     {entry.client}
                   </button>
                   <span>{entry.service}</span>
+                  <small
+                    className={
+                      getVisitDebt(entry) > 0
+                        ? "calendar-reminder-money calendar-reminder-debt"
+                        : "calendar-reminder-money"
+                    }>
+                    {getEntryMoneyLabel(entry)}
+                  </small>
                   <small>
                     {entry.master} · {activeVisit
                       ? statusLabels[entry.status] || statusLabels.scheduled

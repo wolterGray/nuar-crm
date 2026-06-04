@@ -2,9 +2,11 @@ import {
   Check,
   ClipboardCheck,
   GripVertical,
+  Lightbulb,
   PackagePlus,
   Pencil,
   Plus,
+  StickyNote,
   Trash2,
 } from "lucide-react";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
@@ -72,6 +74,7 @@ function OperationsPage({
   tasks,
   supplies,
   onAddTask,
+  onAddNote,
   onEditTask,
   onDeleteTask,
   onCompleteTask,
@@ -82,14 +85,28 @@ function OperationsPage({
   onChangeSupplyStock,
 }) {
   const [draggedTask, setDraggedTask] = useState(null);
+  const [activeMode, setActiveMode] = useState("tasks");
+  const [noteText, setNoteText] = useState("");
+  const [noteCategory, setNoteCategory] = useState("Мысль");
   const sensors = useSensors(
     useSensor(PointerSensor, {activationConstraint: {distance: 4}}),
   );
-  const activeTasks = tasks.filter((task) => task.status !== "completed");
-  const completedTasks = tasks.filter((task) => task.status === "completed");
+  const notes = tasks.filter((task) => task.type === "note");
+  const workTasks = tasks.filter((task) => task.type !== "note");
+  const activeTasks = workTasks.filter((task) => task.status !== "completed");
+  const completedTasks = workTasks.filter((task) => task.status === "completed");
   const lowStockCount = supplies.filter(
     (item) => Number(item.stock) <= Number(item.minStock),
   ).length;
+  const submitQuickNote = (event) => {
+    event.preventDefault();
+    const title = noteText.trim();
+
+    if (!title) return;
+
+    onAddNote({title, category: noteCategory});
+    setNoteText("");
+  };
 
   return (
     <section className="operations-page">
@@ -106,6 +123,9 @@ function OperationsPage({
             <b>{activeTasks.length}</b> задач
           </span>
           <span>
+            <b>{notes.length}</b> заметок
+          </span>
+          <span>
             <b>{lowStockCount}</b> нужно пополнить
           </span>
         </div>
@@ -118,101 +138,188 @@ function OperationsPage({
               <ClipboardCheck size={18} />
               <div>
                 <h2>Задачи</h2>
-                <p>{completedTasks.length} выполнено</p>
+                <p>
+                  {activeMode === "tasks"
+                    ? `${completedTasks.length} выполнено`
+                    : "Мысли, идеи и личные покупки"}
+                </p>
               </div>
             </div>
-            <button
-              className="add-visit-button"
-              type="button"
-              onClick={onAddTask}>
-              <Plus size={16} />
-              Добавить
-            </button>
+            <div className="operations-header-actions">
+              <div className="operations-tabs">
+                <button
+                  className={activeMode === "tasks" ? "active" : ""}
+                  type="button"
+                  onClick={() => setActiveMode("tasks")}>
+                  Задачи
+                </button>
+                <button
+                  className={activeMode === "notes" ? "active" : ""}
+                  type="button"
+                  onClick={() => setActiveMode("notes")}>
+                  Заметки
+                </button>
+              </div>
+              {activeMode === "tasks" && (
+                <button
+                  className="add-visit-button"
+                  type="button"
+                  onClick={onAddTask}>
+                  <Plus size={16} />
+                  Добавить
+                </button>
+              )}
+            </div>
           </div>
-          <DndContext
-            autoScroll={false}
-            collisionDetection={closestCenter}
-            sensors={sensors}
-            onDragCancel={() => setDraggedTask(null)}
-            onDragStart={({active}) =>
-              setDraggedTask(active.data.current?.task ?? null)
-            }
-            onDragEnd={({active, over}) => {
-              const draggedTaskId = active.data.current?.task.id;
-              const targetTaskId = over?.data.current?.task.id;
-
-              if (
-                draggedTaskId &&
-                targetTaskId &&
-                draggedTaskId !== targetTaskId
-              ) {
-                onReorderTasks(draggedTaskId, targetTaskId);
+          {activeMode === "tasks" ? (
+            <DndContext
+              autoScroll={false}
+              collisionDetection={closestCenter}
+              sensors={sensors}
+              onDragCancel={() => setDraggedTask(null)}
+              onDragStart={({active}) =>
+                setDraggedTask(active.data.current?.task ?? null)
               }
+              onDragEnd={({active, over}) => {
+                const draggedTaskId = active.data.current?.task.id;
+                const targetTaskId = over?.data.current?.task.id;
 
-              setDraggedTask(null);
-            }}>
-            <div className="operations-list">
-              {tasks.map((task) => {
-                const status = getTaskStatusLabel(task);
-                return (
-                  <DraggableTaskRow
-                    className={`task-row task-${task.status} ${status === "Просрочено" ? "task-overdue" : ""}`}
-                    key={task.id}
-                    task={task}>
-                    <button
-                      aria-label="Завершить задачу"
-                      className="task-check"
-                      disabled={task.status === "completed"}
-                      title="Завершить"
-                      type="button"
-                      onClick={() => onCompleteTask(task)}>
-                      {task.status === "completed" && <Check size={14} />}
-                    </button>
+                if (
+                  draggedTaskId &&
+                  targetTaskId &&
+                  draggedTaskId !== targetTaskId
+                ) {
+                  onReorderTasks(draggedTaskId, targetTaskId);
+                }
+
+                setDraggedTask(null);
+              }}>
+              <div className="operations-list">
+                {workTasks.map((task) => {
+                  const status = getTaskStatusLabel(task);
+                  return (
+                    <DraggableTaskRow
+                      className={`task-row task-${task.status} ${status === "Просрочено" ? "task-overdue" : ""}`}
+                      key={task.id}
+                      task={task}>
+                      <button
+                        aria-label="Завершить задачу"
+                        className="task-check"
+                        disabled={task.status === "completed"}
+                        title="Завершить"
+                        type="button"
+                        onClick={() => onCompleteTask(task)}>
+                        {task.status === "completed" && <Check size={14} />}
+                      </button>
+                      <div>
+                        <strong>{task.title}</strong>
+                        <span>{task.note || "Без комментария"}</span>
+                      </div>
+                      <div className="task-meta">
+                        <b className={`task-priority priority-${task.priority}`}>
+                          {task.priority}
+                        </b>
+                        <small>{task.dueDate || "Без срока"}</small>
+                        <em>{status}</em>
+                      </div>
+                      <div className="employee-actions">
+                        <button
+                          aria-label="Редактировать задачу"
+                          className="compact-icon-button"
+                          title="Редактировать"
+                          type="button"
+                          onClick={() => onEditTask(task)}>
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          aria-label="Удалить задачу"
+                          className="compact-icon-button danger"
+                          title="Удалить"
+                          type="button"
+                          onClick={() => onDeleteTask(task)}>
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </DraggableTaskRow>
+                  );
+                })}
+                {workTasks.length === 0 && (
+                  <p className="operations-empty">Задач пока нет.</p>
+                )}
+              </div>
+              <DragOverlay>
+                {draggedTask && (
+                  <div className="task-drag-overlay">
+                    <GripVertical size={15} />
+                    <strong>{draggedTask.title}</strong>
+                  </div>
+                )}
+              </DragOverlay>
+            </DndContext>
+          ) : (
+            <div className="operations-notes">
+              <form className="quick-note-form" onSubmit={submitQuickNote}>
+                <StickyNote size={16} />
+                <input
+                  value={noteText}
+                  placeholder="Мысль, идея или что заказать"
+                  onChange={(event) => setNoteText(event.target.value)}
+                />
+                <select
+                  value={noteCategory}
+                  onChange={(event) => setNoteCategory(event.target.value)}>
+                  <option>Мысль</option>
+                  <option>Заказать</option>
+                  <option>Идея</option>
+                  <option>Личное</option>
+                </select>
+                <button className="add-visit-button" type="submit">
+                  <Plus size={15} />
+                  Записать
+                </button>
+              </form>
+              <div className="operations-list notes-list">
+                {notes.map((note) => (
+                  <article className="note-row" key={note.id}>
+                    <span>
+                      {note.priority === "Идея" ? (
+                        <Lightbulb size={15} />
+                      ) : (
+                        <StickyNote size={15} />
+                      )}
+                    </span>
                     <div>
-                      <strong>{task.title}</strong>
-                      <span>{task.note || "Без комментария"}</span>
-                    </div>
-                    <div className="task-meta">
-                      <b className={`task-priority priority-${task.priority}`}>
-                        {task.priority}
-                      </b>
-                      <small>{task.dueDate || "Без срока"}</small>
-                      <em>{status}</em>
+                      <strong>{note.title}</strong>
+                      <small>{note.note || note.priority || "Заметка"}</small>
                     </div>
                     <div className="employee-actions">
                       <button
-                        aria-label="Редактировать задачу"
+                        aria-label="Редактировать заметку"
                         className="compact-icon-button"
                         title="Редактировать"
                         type="button"
-                        onClick={() => onEditTask(task)}>
+                        onClick={() => onEditTask(note)}>
                         <Pencil size={15} />
                       </button>
                       <button
-                        aria-label="Удалить задачу"
+                        aria-label="Удалить заметку"
                         className="compact-icon-button danger"
                         title="Удалить"
                         type="button"
-                        onClick={() => onDeleteTask(task)}>
+                        onClick={() => onDeleteTask(note)}>
                         <Trash2 size={15} />
                       </button>
                     </div>
-                  </DraggableTaskRow>
-                );
-              })}
-              {tasks.length === 0 && (
-                <p className="operations-empty">Задач пока нет.</p>
-              )}
+                  </article>
+                ))}
+                {notes.length === 0 && (
+                  <p className="operations-empty">
+                    Здесь можно хранить личные мысли, идеи и покупки.
+                  </p>
+                )}
+              </div>
             </div>
-            <DragOverlay>
-              {draggedTask && (
-                <div className="task-drag-overlay">
-                  <GripVertical size={15} />
-                  <strong>{draggedTask.title}</strong>
-                </div>
-              )}
-            </DragOverlay>
-          </DndContext>
+          )}
         </section>
 
         <section className="panel operations-panel">

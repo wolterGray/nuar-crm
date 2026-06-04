@@ -1,7 +1,11 @@
 import {Download, ListFilter, MoreVertical, Plus} from "lucide-react";
 import {paymentMethods} from "../data/seed.js";
 import {formatMoney} from "../utils/formatters.jsx";
-import {getVisitCommission, getVisitTransactionTotal} from "../utils/visits.jsx";
+import {
+  getVisitCommission,
+  getVisitDebt,
+  getVisitTransactionTotal,
+} from "../utils/visits.jsx";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {PageNotificationsSlot} from "./PageNotifications.jsx";
 
@@ -31,6 +35,7 @@ function VisitsTable({
       ["Чай", (visit) => visit.tip],
       ["Комиссия", (visit) => getVisitCommission(visit)],
       ["Доп сумма", (visit) => visit.extra],
+      ["Долг", (visit) => getVisitDebt(visit)],
       ["Скидка %", (visit) => visit.discount],
       ["Итог", (visit) => getVisitTransactionTotal(visit)],
       ["Комментарий", (visit) => visit.note],
@@ -130,6 +135,7 @@ function VisitsTable({
           <span>Чай</span>
           <span>Комиссия</span>
           <span>Доп сумма</span>
+          <span>Долг</span>
           <span>Скидка</span>
           <span>Итог</span>
           <span></span>
@@ -159,6 +165,9 @@ function VisitsTable({
               tooltip={visit.commissionType ?? "Без комиссии"}
             />
             <span>{formatMoney(visit.extra)}</span>
+            <span className={getVisitDebt(visit) > 0 ? "debt-cell" : ""}>
+              {formatMoney(getVisitDebt(visit))}
+            </span>
             <span>{Number(visit.discount) || 0}%</span>
             <span className="total-cell">
               {formatMoney(getVisitTransactionTotal(visit))}
