@@ -200,10 +200,52 @@ export const getVisitEmployeePayout = (visit, employees = []) => {
   return Math.round(Math.max(0, base) * (rate / 100));
 };
 
-export const getVisitNetProfit = (visit, employees = []) =>
+const getEmployeeRate = (employees = [], employeeName = "") => {
+  const employee = employees.find((item) => item.name === employeeName);
+
+  return toFinanceNumber(employee?.commissionRate);
+};
+
+const getPackageSaleEmployeePayout = (packageItem, employees = []) => {
+  const rate = getEmployeeRate(employees, packageItem?.master);
+
+  return Math.round(Math.max(0, toFinanceNumber(packageItem?.price)) * (rate / 100));
+};
+
+const getPackageVisitUnitAmount = (visit, clientPackages = []) => {
+  const packageItem = clientPackages.find(
+    (item) => String(item.id) === String(visit?.packageUsageId),
+  );
+  const totalVisits = Math.max(1, toFinanceNumber(packageItem?.totalVisits));
+  const sessionsUsed = Math.max(1, toFinanceNumber(visit?.packageSessionsUsed) || 1);
+
+  return (Math.max(0, toFinanceNumber(packageItem?.price)) / totalVisits) * sessionsUsed;
+};
+
+const getPackageVisitEmployeePayout = (
+  visit,
+  employees = [],
+  clientPackages = [],
+) => {
+  if (!isPackageVisit(visit)) {
+    return 0;
+  }
+
+  const rate = getEmployeeRate(employees, visit?.master);
+
+  return Math.round(getPackageVisitUnitAmount(visit, clientPackages) * (rate / 100));
+};
+
+export const getVisitNetProfit = (
+  visit,
+  employees = [],
+  clientPackages = [],
+) =>
   getVisitReceivedAmount(visit) -
   getVisitPlatformCommission(visit) -
-  getVisitEmployeePayout(visit, employees);
+  (isPackageVisit(visit)
+    ? getPackageVisitEmployeePayout(visit, employees, clientPackages)
+    : getVisitEmployeePayout(visit, employees));
 
 export const parseFinanceDate = parseAppDate;
 
@@ -275,13 +317,17 @@ export const buildFinanceStats = ({
     (visit) => !isExpenseOperation(visit),
   );
   const expenseOperations = financialOperations.filter(isExpenseOperation);
-  const filteredPackages = master
-    ? []
-    : safeClientPackages.filter((item) =>
-        isVisitInPeriod({date: item.purchaseDate}, startDate, endDate),
-      );
+  const filteredPackages = safeClientPackages.filter(
+    (item) =>
+      isVisitInPeriod({date: item.purchaseDate}, startDate, endDate) &&
+      (!master || item.master === master),
+  );
   const packageIncome = filteredPackages.reduce(
     (sum, item) => sum + Math.max(0, toFinanceNumber(item.price)),
+    0,
+  );
+  const packageSalePayouts = filteredPackages.reduce(
+    (sum, item) => sum + getPackageSaleEmployeePayout(item, employees),
     0,
   );
   const certificateIncome = incomeOperations
@@ -320,9 +366,13 @@ export const buildFinanceStats = ({
     0,
   );
   const employeePayouts = completedAppointments.reduce(
-    (sum, visit) => sum + getVisitEmployeePayout(visit, employees),
+    (sum, visit) =>
+      sum +
+      (isPackageVisit(visit)
+        ? getPackageVisitEmployeePayout(visit, employees, safeClientPackages)
+        : getVisitEmployeePayout(visit, employees)),
     0,
-  );
+  ) + packageSalePayouts;
   const debtVisits = safeVisits.filter((visit) => {
     return (
       !isCancelledVisit(visit) &&
@@ -452,6 +502,7 @@ export const buildFinanceStats = ({
     operationsIncome,
     outstandingDebts,
     packageIncome,
+    packageSalePayouts,
     paymentRecordsByMethod,
     paymentsByMethod,
     platformCommission,

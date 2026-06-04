@@ -14,7 +14,13 @@ const toInputDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-function ClientPackageForm({clients, packages, clientPackage, onSubmit}) {
+function ClientPackageForm({
+  clients,
+  employees = [],
+  packages,
+  clientPackage,
+  onSubmit,
+}) {
   const [selectedPackageId, setSelectedPackageId] = useState(
     clientPackage?.packageId ?? packages[0]?.id ?? "",
   );
@@ -73,12 +79,30 @@ function ClientPackageForm({clients, packages, clientPackage, onSubmit}) {
             />
           </label>
           <label>
+            Кто продал
+            <select name="master" defaultValue={clientPackage?.master ?? ""}>
+              <option value="">Не указан</option>
+              {employees.map((employee) => (
+                <option key={employee.id} value={employee.name}>
+                  {employee.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="form-split">
+          <label>
             Оплата
             <select name="payment" defaultValue={clientPackage?.payment ?? "Наличные"}>
               <option>Наличные</option>
               <option>Карта</option>
+              <option>Укр. карта</option>
               <option>Крипта</option>
             </select>
+          </label>
+          <label>
+            Сумма продажи
+            <input name="price" defaultValue={price} placeholder="0" />
           </label>
         </div>
         <div className="form-split" key={selectedPackageId}>
@@ -99,10 +123,6 @@ function ClientPackageForm({clients, packages, clientPackage, onSubmit}) {
             />
           </label>
         </div>
-        <label>
-          Сумма продажи
-          <input name="price" defaultValue={price} placeholder="0" />
-        </label>
         <label>
           Статус
           <select name="status" defaultValue={clientPackage?.status ?? "Активен"}>

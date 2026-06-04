@@ -50,6 +50,7 @@ export const expenseSchema = z
 export const packageSchema = z
   .object({
     client: nullableString.default(""),
+    master: nullableString.default(""),
     payment: nullableString.default("Не указано"),
     price: amountLike.default(0),
     purchaseDate: nullableString.default(""),

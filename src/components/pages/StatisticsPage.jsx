@@ -3,7 +3,6 @@ import {
   Banknote,
   CalendarRange,
   CheckCircle2,
-  CircleDollarSign,
   Download,
   Users,
   WalletCards,
@@ -24,6 +23,7 @@ import {
 } from "../../utils/formatters.jsx";
 import {
   formatAppDate,
+  getEndOfMonth,
   getPeriodDays,
   getStartOfMonth,
   shiftAppDate,
@@ -49,6 +49,15 @@ const currencies = [
   {code: "EUR", label: "€"},
   {code: "UAH", label: "₴"},
 ];
+
+const currencyIcons = {
+  EUR: "€",
+  PLN: "zł",
+  UAH: "₴",
+  USD: "$",
+};
+
+const revenueChartColor = "#3f2a63";
 
 const getTodayInput = () => formatAppDate(new Date(), "yyyy-MM-dd");
 
@@ -135,6 +144,22 @@ function StatisticsPage({
       startDate: previousPeriodStart,
       visits,
     });
+    const fallbackForecastEndDate = formatAppDate(
+      getEndOfMonth(new Date()),
+      "yyyy-MM-dd",
+    );
+    const forecastStats =
+      financeStats.forecastRevenue > 0
+        ? financeStats
+        : buildFinanceStats({
+            calendarEntries,
+            clientPackages,
+            employees,
+            endDate: fallbackForecastEndDate,
+            master,
+            startDate: getTodayInput(),
+            visits,
+          });
     const filteredVisits = financeStats.completedVisits;
     const filteredAppointments = financeStats.completedAppointments;
     const financialOperations = financeStats.financialOperations;
@@ -169,7 +194,8 @@ function StatisticsPage({
         date,
         income:
           dailyVisits.reduce(
-            (sum, visit) => sum + getVisitNetProfit(visit, employees),
+            (sum, visit) =>
+              sum + getVisitNetProfit(visit, employees, clientPackages),
             0,
           ) +
           dailyPackages.reduce(
@@ -207,8 +233,8 @@ function StatisticsPage({
       certificateIncome: financeStats.certificateIncome,
       financialOperationsIncome:
         financeStats.operationsIncome - financeStats.certificateIncome,
-      forecastIncome: financeStats.forecastRevenue,
-      forecastVisits: financeStats.forecastVisits,
+      forecastIncome: forecastStats.forecastRevenue,
+      forecastVisits: forecastStats.forecastVisits,
       filteredAppointments,
       filteredPackages,
       filteredVisits,
@@ -246,26 +272,31 @@ function StatisticsPage({
   );
   const unknownPayment =
     analytics.payments.find((item) => item.label === "Не указано") || {};
+  const businessExtraIncome =
+    analytics.packageIncome +
+    analytics.certificateIncome +
+    analytics.financialOperationsIncome;
+  const incomeScopeLabel = master ? `Доход мастера ${master}` : "Доход бизнеса";
   const kpiStats = [
     {
       label: "Клиенты",
       value: analytics.clientsCount,
       helper: `${analytics.repeatClients} повторных`,
       icon: Users,
-      color: "#2563eb",
+      color: "#8f7a63",
     },
     {
       label: "Визиты",
       value: analytics.filteredAppointments.length,
       helper: "завершено",
       icon: CalendarRange,
-      color: "#16834a",
+      color: "#6f7964",
     },
     {
       label: "Средний чек",
       value: formatIncome(analytics.averageCheck),
       icon: Banknote,
-      color: "#546273",
+      color: "#6d6672",
     },
     {
       label: "Долги",
@@ -275,7 +306,7 @@ function StatisticsPage({
           ? `${analytics.debtVisits.length} в периоде`
           : `${analytics.allDebtVisits.length} всего`,
       icon: WalletCards,
-      color: "#c9483c",
+      color: "#9b5d53",
     },
   ];
   const repeatRate =
@@ -416,7 +447,16 @@ function StatisticsPage({
           <h2>Статистика</h2>
           <p>Финансы, визиты и сигналы по клиентам</p>
         </div>
-        <PageNotificationsSlot />
+        <div className="statistics-header-actions">
+          <button
+            className="statistics-export-button"
+            type="button"
+            onClick={exportStatistics}>
+            <Download size={15} />
+            <span>Экспорт Excel</span>
+          </button>
+          <PageNotificationsSlot />
+        </div>
       </div>
 
       <div className="statistics-filters-card">
@@ -455,28 +495,30 @@ function StatisticsPage({
               </option>
             ))}
           </select>
-          <button
-            className="statistics-export-button"
-            type="button"
-            onClick={exportStatistics}>
-            <Download size={15} />
-            <span>Экспорт Excel</span>
-          </button>
         </div>
       </div>
 
       <article className="statistics-income-card">
         <div className="statistics-income-top">
           <div>
-            <span>Доход за период</span>
+            <span>{incomeScopeLabel}</span>
             <strong>{formatIncome(analytics.totalIncome)}</strong>
             <p>
               Поступления {formatIncome(analytics.totalReceived)} ·{" "}
               {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
             </p>
+            <small className="statistics-income-context">
+              {master
+                ? "Показаны визиты выбранного мастера и проданные им пакеты. Операции без мастера остаются только в общем доходе бизнеса."
+                : businessExtraIncome > 0
+                  ? `Включает доп. доход бизнеса: ${formatIncome(
+                      businessExtraIncome,
+                    )} · пакеты, сертификаты и операции.`
+                  : "Считаются завершённые визиты и финансовые операции за период."}
+            </small>
           </div>
           <div className="statistics-income-icon">
-            <CircleDollarSign size={24} />
+            <span>{currencyIcons[currency] || currency}</span>
           </div>
         </div>
         <div className="statistics-income-strip">
@@ -516,7 +558,7 @@ function StatisticsPage({
             <div className="statistics-revenue-chart-frame">
               <ResponsiveContainer
                 width="100%"
-                height="100%"
+                height={190}
                 minWidth={260}
                 minHeight={190}>
                 <AreaChart
@@ -531,12 +573,12 @@ function StatisticsPage({
                       y2="1">
                       <stop
                         offset="5%"
-                        stopColor="#2364d2"
+                        stopColor={revenueChartColor}
                         stopOpacity={0.22}
                       />
                       <stop
                         offset="95%"
-                        stopColor="#2364d2"
+                        stopColor={revenueChartColor}
                         stopOpacity={0.02}
                       />
                     </linearGradient>
@@ -568,19 +610,19 @@ function StatisticsPage({
                   />
                   <Tooltip
                     content={<RevenueTooltip formatIncome={formatIncome} />}
-                    cursor={{fill: "rgba(35, 100, 210, 0.08)"}}
+                    cursor={{fill: "rgba(63, 42, 99, 0.08)"}}
                   />
                   <Area
                     dataKey="income"
                     dot={{
                       fill: "#fff",
                       r: 3,
-                      stroke: "#2364d2",
+                      stroke: revenueChartColor,
                       strokeWidth: 2,
                     }}
                     fill="url(#statisticsRevenueGradient)"
                     isAnimationActive={false}
-                    stroke="#2364d2"
+                    stroke={revenueChartColor}
                     strokeWidth={2.4}
                     type="monotone"
                   />

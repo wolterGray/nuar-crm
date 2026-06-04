@@ -2063,6 +2063,7 @@ function App() {
       packageName:
         packageTemplate?.name ?? editingClientPackage?.packageName ?? "",
       service: packageTemplate?.service ?? editingClientPackage?.service ?? "",
+      master: form.get("master") || editingClientPackage?.master || "",
       totalVisits,
       remainingVisits: Math.min(remainingVisits, totalVisits),
       price: Number(form.get("price")) || packageTemplate?.price || 0,
@@ -4199,6 +4200,7 @@ function App() {
             </div>
             <ClientPackageForm
               clients={clientNames}
+              employees={employees.filter((employee) => employee.status !== "Архив")}
               packages={packagesCatalog}
               clientPackage={editingClientPackage}
               onSubmit={handleClientPackageSubmit}
