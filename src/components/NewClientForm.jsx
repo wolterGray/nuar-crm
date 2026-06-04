@@ -7,7 +7,7 @@ function NewClientForm({client, onSubmit}) {
         <UserPlus size={18} />
         <h2>{client ? "Редактировать клиента" : "Новый клиент"}</h2>
       </div>
-      <form onSubmit={onSubmit}>
+      <form noValidate onSubmit={onSubmit}>
         <label>
           Имя клиента
           <input
@@ -29,7 +29,7 @@ function NewClientForm({client, onSubmit}) {
           Email
           <input
             name="email"
-            type="email"
+            inputMode="email"
             defaultValue={client?.email ?? ""}
             placeholder="client@example.com"
           />
@@ -110,7 +110,7 @@ function NewClientForm({client, onSubmit}) {
             rows="3"
           />
         </label>
-        <button className="submit-button">
+        <button className="submit-button" type="submit">
           {client ? "Сохранить клиента" : "Добавить клиента"}
         </button>
       </form>
