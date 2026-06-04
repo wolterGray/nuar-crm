@@ -1,26 +1,31 @@
+import {normalizePaymentMethod} from "./finance.js";
+
 export const paymentGroups = [
-  {label: "Наличные", color: "#248a4f", matches: (payment) => payment.includes("Наличные")},
-  {label: "Карта", color: "#2364d2", matches: (payment) => payment.includes("Карта")},
-  {label: "Крипта", color: "#8f7cff", matches: (payment) => payment.includes("Крипта")},
+  {key: "cash", label: "Наличные", color: "#248a4f"},
+  {key: "card", label: "Карта", color: "#2364d2"},
+  {key: "ukrainianCard", label: "Укр. карта", color: "#d85886"},
+  {key: "crypto", label: "Крипта", color: "#8f7cff"},
+  {key: "blik", label: "BLIK", color: "#d07a12"},
+  {key: "package", label: "Пакет", color: "#6b61b8"},
   {
-    label: "Укр. карта",
-    color: "#d85886",
-    matches: (payment) => payment.includes("Укр. карта") || payment.includes("Mono"),
+    key: "certificate",
+    label: "Сертификат",
+    color: "#b98237",
   },
-  {label: "BLIK", color: "#d07a12", matches: (payment) => payment.includes("BLIK")},
-  {label: "Пакет", color: "#6b61b8", matches: (payment) => payment.includes("Пакет")},
-  {label: "Бартер", color: "#748091", matches: (payment) => payment.includes("Бартер")},
+  {key: "barter", label: "Бартер", color: "#748091"},
   {
+    key: "unspecified",
     label: "Не указано",
     color: "#a0a4ab",
-    matches: (payment) => !payment || payment.includes("Не указано"),
   },
-  {label: "Другое", color: "#546273", matches: () => true},
 ];
 
 export const getPaymentGroup = (payment) => {
-  const normalizedPayment = String(payment ?? "").trim();
-  return paymentGroups.find((group) => group.matches(normalizedPayment));
+  const normalizedPayment = normalizePaymentMethod(payment);
+  return (
+    paymentGroups.find((group) => group.key === normalizedPayment) ||
+    paymentGroups.find((group) => group.key === "unspecified")
+  );
 };
 
 export const createPaymentRingGradient = (payments) => {

@@ -983,6 +983,9 @@ function App() {
           .filter((entry) => entry.kind === "visit")
           .map((entry) => [entry.id, entry]),
       );
+      const syncedCalendarEntryIds = new Set(
+        visits.map((visit) => visit.calendarEntryId).filter(Boolean),
+      );
       const normalizeCalendarEntryRow = (entry) => {
         const isPlanned = isCalendarVisitPlanned(entry, now);
 
@@ -1043,7 +1046,12 @@ function App() {
 
       return [
         ...calendarEntries
-          .filter((entry) => entry.kind === "visit" && !entry.visitId)
+          .filter(
+            (entry) =>
+              entry.kind === "visit" &&
+              !entry.visitId &&
+              !syncedCalendarEntryIds.has(entry.id),
+          )
           .map(normalizeCalendarEntryRow),
         ...syncedVisits,
       ];

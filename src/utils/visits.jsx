@@ -1,81 +1,31 @@
-export const toVisitNumber = (value) => {
-  const normalizedValue =
-    typeof value === "string" ? value.replace(/\s+/g, "").replace(",", ".") : value;
-  const number = Number(normalizedValue);
+import {
+  getVisitDebtAmount,
+  getVisitDiscountedAmount,
+  getVisitEmployeePayout,
+  getVisitNetProfit,
+  getVisitPlatformCommission,
+  getVisitReceivedAmount,
+  isBarterVisit,
+  isPackageVisit,
+  toFinanceNumber,
+} from "./finance.js";
 
-  return Number.isFinite(number) ? number : 0;
-};
+export const toVisitNumber = toFinanceNumber;
 
-export const getDiscountedServiceAmount = (visit) => {
-  const amount = toVisitNumber(visit.amount);
-  const discountPercent = toVisitNumber(visit.discount);
-  return amount - amount * (discountPercent / 100);
-};
+export const getDiscountedServiceAmount = getVisitDiscountedAmount;
 
-export const isPackagePayment = (visit) =>
-  String(visit.payment ?? "").includes("Пакет");
+export const isPackagePayment = isPackageVisit;
 
-export const isBarterPayment = (visit) =>
-  String(visit.payment ?? "").includes("Бартер");
+export const isBarterPayment = isBarterVisit;
 
-export const getVisitCommission = (visit) => {
-  if (isPackagePayment(visit) || isBarterPayment(visit)) {
-    return 0;
-  }
+export const getVisitCommission = getVisitPlatformCommission;
 
-  if (visit.commissionType === "Booksy 45%") {
-    const discountedAmount = getDiscountedServiceAmount(visit);
-    const netAmount = Math.floor(
-      discountedAmount - discountedAmount * 0.45 * 1.23,
-    );
-    return Math.max(0, discountedAmount - netAmount);
-  }
+export const getVisitDebt = getVisitDebtAmount;
 
-  return toVisitNumber(visit.commission);
-};
+export const getEmployeePayoutBase = getVisitDiscountedAmount;
 
-export const getVisitDebt = (visit) => Math.max(0, toVisitNumber(visit.debt));
+export const getEmployeePayout = getVisitEmployeePayout;
 
-export const getEmployeePayoutBase = (visit) => {
-  if (isPackagePayment(visit) || isBarterPayment(visit)) {
-    return 0;
-  }
+export const getVisitTransactionTotal = getVisitReceivedAmount;
 
-  return getDiscountedServiceAmount(visit);
-};
-
-export const getEmployeePayout = (visit, employees = []) => {
-  const employee = employees.find((item) => item.name === visit.master);
-  const rate = toVisitNumber(employee?.commissionRate);
-
-  return Math.round(getEmployeePayoutBase(visit) * (rate / 100));
-};
-
-export const getVisitTransactionTotal = (visit) => {
-  const tip = toVisitNumber(visit.tip);
-  const extra = toVisitNumber(visit.extra);
-  const debt = getVisitDebt(visit);
-  const subtractDebt = (value) => Math.max(0, value - debt);
-
-  if (isPackagePayment(visit) || isBarterPayment(visit)) {
-    return subtractDebt(tip + extra);
-  }
-
-  if (visit.commissionType === "Booksy 45%") {
-    const discountedAmount = getDiscountedServiceAmount(visit);
-    const netAmount = Math.floor(
-      discountedAmount - discountedAmount * 0.45 * 1.23,
-    );
-    return subtractDebt(Math.max(0, netAmount) + tip + extra);
-  }
-
-  return subtractDebt(
-    getDiscountedServiceAmount(visit) +
-    tip +
-    extra -
-    getVisitCommission(visit),
-  );
-};
-
-export const getVisitTotal = (visit, employees = []) =>
-  getVisitTransactionTotal(visit) - getEmployeePayout(visit, employees);
+export const getVisitTotal = getVisitNetProfit;

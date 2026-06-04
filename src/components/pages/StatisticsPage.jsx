@@ -1,37 +1,46 @@
 import {
+  AlertTriangle,
   Banknote,
   CalendarRange,
+  CheckCircle2,
   CircleDollarSign,
-  Package,
-  TrendingUp,
+  Download,
   Users,
   WalletCards,
 } from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
   formatCompactMoney,
-  parseDisplayDate,
   toDisplayDate,
 } from "../../utils/formatters.jsx";
 import {
-  getDiscountedServiceAmount,
-  getEmployeePayout,
-  getVisitCommission,
-  getVisitDebt,
-  getVisitTotal,
-  getVisitTransactionTotal,
-  isBarterPayment,
-  isPackagePayment,
-  toVisitNumber,
-} from "../../utils/visits.jsx";
+  formatAppDate,
+  getPeriodDays,
+  getStartOfMonth,
+  shiftAppDate,
+} from "../../utils/dateUtils.js";
+import {
+  buildFinanceStats,
+  getVisitNetProfit,
+  toFinanceNumber,
+  toFinanceInputDate,
+} from "../../utils/finance.js";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import {
   createPaymentRingGradient,
-  getPaymentGroup,
   paymentGroups,
 } from "../../utils/payments.js";
+import {exportRowsToExcel} from "../../utils/exportExcel.js";
 
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const CURRENCY_CACHE_KEY = "nuar-crm-nbp-rates";
 const defaultRates = {PLN: 1, USD: 3.72, EUR: 4.28, UAH: 0.087};
 const currencies = [
@@ -41,56 +50,13 @@ const currencies = [
   {code: "UAH", label: "₴"},
 ];
 
-const toInputDate = (date) => {
-  const parsedDate = parseDisplayDate(date);
-  return parsedDate ? parsedDate.toISOString().slice(0, 10) : "";
-};
-
-const getTodayInput = () => new Date().toISOString().slice(0, 10);
+const getTodayInput = () => formatAppDate(new Date(), "yyyy-MM-dd");
 
 const getMonthStart = () => {
-  const today = new Date();
-  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
+  return formatAppDate(getStartOfMonth(new Date()), "yyyy-MM-dd");
 };
 
-const enumerateDates = (startDate, endDate) => {
-  const start = new Date(`${startDate}T12:00:00`);
-  const end = new Date(`${endDate}T12:00:00`);
-  const result = [];
-
-  if (start > end) {
-    return result;
-  }
-
-  for (
-    let date = start;
-    date <= end;
-    date = new Date(date.getTime() + DAY_IN_MS)
-  ) {
-    result.push(date.toISOString().slice(0, 10));
-  }
-
-  return result;
-};
-
-const shortDate = (date) => {
-  const [, month, day] = date.split("-");
-  return `${day}.${month}`;
-};
-
-const isCompletedVisit = (visit) =>
-  visit.recordType === "operation" ||
-  (!visit.isPlanned &&
-    !["scheduled", "confirmed", "cancelled", "no_show"].includes(visit.status));
-
-const isForecastVisit = (visit) =>
-  visit.kind === "visit" &&
-  !["completed", "cancelled", "no_show"].includes(visit.status);
-
-const isDebtEligibleVisit = (visit) =>
-  visit.recordType !== "operation" &&
-  !["cancelled", "no_show"].includes(visit.status) &&
-  getVisitDebt(visit) > 0;
+const formatChartDate = (date) => formatAppDate(date, "dd MMM");
 
 function StatisticsPage({
   visits,
@@ -145,111 +111,35 @@ function StatisticsPage({
       style: "currency",
     }).format((Number(value) || 0) / (rates[currency] || 1));
   const analytics = useMemo(() => {
-    const dateRange = enumerateDates(startDate, endDate);
-    const filteredVisits = visits.filter((visit) => {
-      const date = toInputDate(visit.date);
-      return (
-        isCompletedVisit(visit) &&
-        date >= startDate &&
-        date <= endDate &&
-        (!master || visit.master === master)
-      );
+    const dateRange = getPeriodDays(startDate, endDate);
+    const financeStats = buildFinanceStats({
+      calendarEntries,
+      clientPackages,
+      employees,
+      endDate,
+      master,
+      startDate,
+      visits,
     });
-    const filteredAppointments = filteredVisits.filter(
-      (visit) => visit.recordType !== "operation",
+    const previousPeriodEnd = shiftAppDate(startDate, -1);
+    const previousPeriodStart = shiftAppDate(
+      previousPeriodEnd,
+      -(dateRange.length - 1),
     );
-    const allDebtVisits = visits.filter(
-      (visit) => isDebtEligibleVisit(visit) && (!master || visit.master === master),
-    );
-    const debtVisits = visits.filter((visit) => {
-      const date = toInputDate(visit.date);
-      return (
-        isDebtEligibleVisit(visit) &&
-        date >= startDate &&
-        date <= endDate &&
-        (!master || visit.master === master)
-      );
+    const previousStats = buildFinanceStats({
+      calendarEntries,
+      clientPackages,
+      employees,
+      endDate: previousPeriodEnd,
+      master,
+      startDate: previousPeriodStart,
+      visits,
     });
-    const filteredPackages = master
-      ? []
-      : clientPackages.filter((item) => {
-          const date = toInputDate(item.purchaseDate);
-          return date >= startDate && date <= endDate;
-        });
-    const packageIncome = filteredPackages.reduce(
-      (sum, item) => sum + toVisitNumber(item.price),
-      0,
-    );
-    const forecastVisits = calendarEntries.filter((visit) => {
-      const date = visit.date;
-      return (
-        isForecastVisit(visit) &&
-        date >= startDate &&
-        date <= endDate &&
-        (!master || visit.master === master)
-      );
-    });
-    const forecastIncome = forecastVisits.reduce(
-      (sum, visit) => sum + getVisitTransactionTotal(visit),
-      0,
-    );
-    const visitsIncome = filteredVisits.reduce(
-      (sum, visit) => sum + getVisitTotal(visit, employees),
-      0,
-    );
-    const visitsReceived = filteredVisits.reduce(
-      (sum, visit) => sum + getVisitTransactionTotal(visit),
-      0,
-    );
-    const financialOperations = filteredVisits.filter(
-      (visit) => visit.recordType === "operation",
-    );
-    const financialOperationsIncome = financialOperations.reduce(
-      (sum, visit) => sum + getVisitTotal(visit, employees),
-      0,
-    );
-    const certificatesCount = financialOperations.filter(
-      (visit) => visit.service === "Продажа сертификата",
-    ).length;
-    const serviceRevenue = filteredAppointments.reduce(
-      (sum, visit) =>
-        isPackagePayment(visit) || isBarterPayment(visit)
-          ? sum
-          : sum + getDiscountedServiceAmount(visit),
-      0,
-    );
-    const tips = filteredAppointments.reduce(
-      (sum, visit) => sum + toVisitNumber(visit.tip),
-      0,
-    );
-    const extras = filteredAppointments.reduce(
-      (sum, visit) => sum + toVisitNumber(visit.extra),
-      0,
-    );
-    const debts = debtVisits.reduce(
-      (sum, visit) => sum + getVisitDebt(visit),
-      0,
-    );
-    const outstandingDebts = allDebtVisits.reduce(
-      (sum, visit) => sum + getVisitDebt(visit),
-      0,
-    );
-    const discounts = filteredAppointments.reduce(
-      (sum, visit) =>
-        sum +
-        toVisitNumber(visit.amount) * (toVisitNumber(visit.discount) / 100),
-      0,
-    );
-    const employeePayouts = filteredAppointments.reduce(
-      (sum, visit) => sum + getEmployeePayout(visit, employees),
-      0,
-    );
-    const platformCommissions = filteredAppointments.reduce(
-      (sum, visit) => sum + getVisitCommission(visit),
-      0,
-    );
-    const totalIncome = visitsIncome + packageIncome;
-    const totalReceived = visitsReceived + packageIncome;
+    const filteredVisits = financeStats.completedVisits;
+    const filteredAppointments = financeStats.completedAppointments;
+    const financialOperations = financeStats.financialOperations;
+    const filteredPackages = financeStats.filteredPackages;
+    const previousPeriodIncome = previousStats.netProfit;
     const clientNames = new Set(
       filteredAppointments.map((visit) => visit.client).filter(Boolean),
     );
@@ -264,81 +154,75 @@ function StatisticsPage({
       filteredAppointments.length +
       filteredPackages.length +
       financialOperations.length;
-    const averageCheck = totalReceived / Math.max(incomeRecordsCount, 1);
     const dates = dateRange.map((date) => {
       const dailyVisits = filteredVisits.filter(
-        (visit) => toInputDate(visit.date) === date,
+        (visit) => toFinanceInputDate(visit.date) === date,
       );
       const dailyPackages = filteredPackages.filter(
-        (item) => toInputDate(item.purchaseDate) === date,
+        (item) => toFinanceInputDate(item.purchaseDate) === date,
+      );
+      const dailyOperations = financialOperations.filter(
+        (visit) => toFinanceInputDate(visit.date) === date,
       );
 
       return {
         date,
         income:
           dailyVisits.reduce(
-            (sum, visit) => sum + getVisitTotal(visit, employees),
+            (sum, visit) => sum + getVisitNetProfit(visit, employees),
             0,
           ) +
           dailyPackages.reduce(
-            (sum, item) => sum + toVisitNumber(item.price),
-            0,
-          ),
-      };
-    });
-    const payments = paymentGroups.map((group) => {
-      const visitPayments = filteredVisits.filter(
-        (visit) => getPaymentGroup(visit.payment) === group,
-      );
-      const packagePayments = filteredPackages.filter(
-        (item) => getPaymentGroup(item.payment) === group,
-      );
-
-      return {
-        ...group,
-        value:
-          visitPayments.reduce(
-            (sum, visit) => sum + getVisitTransactionTotal(visit),
+            (sum, item) => sum + toFinanceNumber(item.price),
             0,
           ) +
-          packagePayments.reduce(
-            (sum, item) => sum + toVisitNumber(item.price),
+          dailyOperations.reduce(
+            (sum, visit) => sum + getVisitNetProfit(visit, employees),
             0,
           ),
-        recordsCount: visitPayments.length + packagePayments.length,
+        visitsCount: dailyVisits.filter(
+          (visit) => visit.recordType !== "operation",
+        ).length,
       };
     });
+    const payments = paymentGroups.map((group) => ({
+      ...group,
+      recordsCount: financeStats.paymentRecordsByMethod[group.key] || 0,
+      value: financeStats.paymentsByMethod[group.key] || 0,
+    }));
     const paymentTotal = payments.reduce((sum, item) => sum + item.value, 0);
 
     return {
-      averageCheck,
+      ...financeStats,
+      averageCheck: financeStats.averageReceivedCheck,
+      averageReceivedCheck: financeStats.averageReceivedCheck,
+      averageVisitCheck: financeStats.averageVisitCheck,
+      certificatesCount: financialOperations.filter(
+        (visit) => visit.service === "Продажа сертификата",
+      ).length,
       clientsCount: clientNames.size,
       dates,
-      discounts,
-      debts,
-      debtVisits,
-      employeePayouts,
-      extras,
-      certificatesCount,
-      financialOperationsIncome,
-      forecastIncome,
-      forecastVisits,
-      filteredPackages,
+      debts: financeStats.debtAmount,
+      debtVisits: financeStats.debtVisits,
+      certificateIncome: financeStats.certificateIncome,
+      financialOperationsIncome:
+        financeStats.operationsIncome - financeStats.certificateIncome,
+      forecastIncome: financeStats.forecastRevenue,
+      forecastVisits: financeStats.forecastVisits,
       filteredAppointments,
+      filteredPackages,
       filteredVisits,
       incomeRecordsCount,
-      packageIncome,
+      packageIncome: financeStats.packageIncome,
       paymentTotal,
       payments,
-      platformCommissions,
+      platformCommissions: financeStats.platformCommission,
+      previousPeriodIncome,
       repeatClients,
-      serviceRevenue,
-      tips,
-      totalIncome,
-      totalReceived,
-      outstandingDebts,
-      allDebtVisits,
-      visitsReceived,
+      serviceRevenue: financeStats.discountedRevenue,
+      totalIncome: financeStats.netProfit,
+      totalReceived: financeStats.receivedRevenue,
+      visitsReceived: financeStats.serviceReceived,
     };
   }, [
     calendarEntries,
@@ -350,72 +234,32 @@ function StatisticsPage({
     visits,
   ]);
 
-  const chart = createChart(analytics.dates);
+  const chartData = groupChartDates(analytics.dates);
+  const periodChangePercent =
+    analytics.previousPeriodIncome > 0
+      ? ((analytics.totalIncome - analytics.previousPeriodIncome) /
+          analytics.previousPeriodIncome) *
+        100
+      : null;
   const activePayments = analytics.payments.filter(
     (item) => item.recordsCount > 0,
   );
-  const visiblePaymentStats = analytics.payments.filter(
-    (item) =>
-      item.recordsCount > 0 || ["Наличные", "Карта"].includes(item.label),
-  );
-  const mainStats = [
+  const unknownPayment =
+    analytics.payments.find((item) => item.label === "Не указано") || {};
+  const kpiStats = [
     {
-      label: "Чистый доход",
-      value: formatIncome(analytics.totalIncome),
-      icon: CircleDollarSign,
-      color: "#2364d2",
-    },
-    {
-      label: "Поступления",
-      value: formatIncome(analytics.totalReceived),
-      icon: Banknote,
-      color: "#248a4f",
-      primary: true,
-    },
-    ...visiblePaymentStats.map((item) => ({
-      label: item.label,
-      value: formatIncome(item.value),
-      icon: WalletCards,
-      color: item.color,
-      primary: ["Наличные", "Карта"].includes(item.label),
-    })),
-  ];
-  const primaryStats = mainStats.filter(
-    (item) => item.primary || item.label === "Чистый доход",
-  );
-  const secondaryStats = mainStats.filter(
-    (item) => !item.primary && item.label !== "Чистый доход",
-  );
-  const overviewStats = [
-    {
-      label: `Прогноз · ${analytics.forecastVisits.length} записей`,
-      value: formatIncome(analytics.forecastIncome),
-      icon: TrendingUp,
-      color: "#8b6fd6",
-    },
-    {
-      label: "Завершено визитов",
-      value: analytics.filteredAppointments.length,
-      icon: CalendarRange,
-      color: "#248a4f",
-    },
-    {
-      label: "Клиентов за период",
+      label: "Клиенты",
       value: analytics.clientsCount,
+      helper: `${analytics.repeatClients} повторных`,
       icon: Users,
-      color: "#2364d2",
+      color: "#2563eb",
     },
     {
-      label: "Пакетов продано",
-      value: analytics.filteredPackages.length,
-      icon: Package,
-      color: "#d07a12",
-    },
-    {
-      label: "Сертификатов",
-      value: analytics.certificatesCount,
-      icon: CircleDollarSign,
-      color: "#d85886",
+      label: "Визиты",
+      value: analytics.filteredAppointments.length,
+      helper: "завершено",
+      icon: CalendarRange,
+      color: "#16834a",
     },
     {
       label: "Средний чек",
@@ -424,7 +268,7 @@ function StatisticsPage({
       color: "#546273",
     },
     {
-      label: "Долги клиентов",
+      label: "Долги",
       value: formatIncome(analytics.outstandingDebts),
       helper:
         analytics.debts > 0
@@ -434,9 +278,18 @@ function StatisticsPage({
       color: "#c9483c",
     },
   ];
+  const repeatRate =
+    (analytics.repeatClients / Math.max(analytics.clientsCount, 1)) * 100;
+  const activityStats = [
+    ["Пакетов продано", analytics.filteredPackages.length],
+    ["Сертификатов", analytics.certificatesCount],
+    ["Клиентов в базе", clients.length],
+    ["Возвратность", `${Math.round(repeatRate)}%`],
+  ];
   const earnings = [
     ["Массажи после скидок", analytics.serviceRevenue],
     ["Продажи пакетов", analytics.packageIncome],
+    ["Сертификаты", analytics.certificateIncome],
     ["Прочие поступления", analytics.financialOperationsIncome],
     ["Чаевые", analytics.tips],
     ["Доп. услуги", analytics.extras],
@@ -445,21 +298,128 @@ function StatisticsPage({
     ["Выплаты мастерам", -analytics.employeePayouts],
     ["Комиссии платформ", -analytics.platformCommissions],
   ];
-  const repeatRate =
-    (analytics.repeatClients / Math.max(analytics.clientsCount, 1)) * 100;
+  const paymentRows = analytics.payments.filter((item) =>
+    [
+      "Наличные",
+      "Карта",
+      "Укр. карта",
+      "Пакет",
+      "Сертификат",
+      "Не указано",
+    ].includes(item.label),
+  );
+  const attentionItems = [];
+
+  if (analytics.outstandingDebts > 0) {
+    attentionItems.push({
+      tone: "danger",
+      title: "Есть долги клиентов",
+      text: `${analytics.allDebtVisits.length} записей · ${formatIncome(
+        analytics.outstandingDebts,
+      )}`,
+    });
+  }
+
+  if ((unknownPayment.recordsCount || 0) > 0) {
+    attentionItems.push({
+      tone: "warning",
+      title: "Есть оплаты без способа",
+      text: `${unknownPayment.recordsCount} записей · ${formatIncome(
+        unknownPayment.value || 0,
+      )}`,
+    });
+  }
+
+  if (attentionItems.length === 0) {
+    attentionItems.push({
+      tone: "good",
+      title: "Финансы выглядят аккуратно",
+      text: "Критичных долгов и неразобранных оплат за период не найдено.",
+    });
+  }
+
+  const exportStatistics = () => {
+    const rows = [
+      {
+        metric: "Чистая прибыль",
+        section: "Итог",
+        value: formatIncome(analytics.totalIncome),
+        valuePln: analytics.totalIncome,
+      },
+      {
+        metric: "Поступления",
+        section: "Итог",
+        value: formatIncome(analytics.totalReceived),
+        valuePln: analytics.totalReceived,
+      },
+      {
+        metric: "Прогноз",
+        section: "Итог",
+        value: formatIncome(analytics.forecastIncome),
+        valuePln: analytics.forecastIncome,
+      },
+      {
+        metric: "Долги клиентов",
+        section: "Сигналы",
+        value: formatIncome(analytics.outstandingDebts),
+        valuePln: analytics.outstandingDebts,
+      },
+      {
+        metric: "Завершённые визиты",
+        section: "Активность",
+        value: analytics.filteredAppointments.length,
+        valuePln: "",
+      },
+      {
+        metric: "Клиенты за период",
+        section: "Активность",
+        value: analytics.clientsCount,
+        valuePln: "",
+      },
+      {
+        metric: "Средний чек визита",
+        section: "Активность",
+        value: formatIncome(analytics.averageVisitCheck),
+        valuePln: analytics.averageVisitCheck,
+      },
+      ...paymentRows.map((item) => ({
+        metric: item.label,
+        section: "Оплаты",
+        value: formatIncome(item.value),
+        valuePln: item.value,
+      })),
+      ...earnings.map(([label, value]) => ({
+        metric: label,
+        section: "Финансовая разбивка",
+        value: formatIncome(value),
+        valuePln: value,
+      })),
+    ];
+
+    exportRowsToExcel({
+      columns: [
+        {label: "Раздел", value: "section"},
+        {label: "Метрика", value: "metric"},
+        {label: "Значение", value: "value"},
+        {label: "PLN", value: "valuePln"},
+      ],
+      fileName: `nuar-statistics-${startDate}-${endDate}.xlsx`,
+      rows,
+      sheetName: "Статистика",
+    });
+  };
 
   return (
     <section className="statistics-page">
-      <div className="statistics-toolbar">
-        <div className="statistics-heading">
-          <div className="title-notifications-flex">
-            <div>
-              <h2>Статистика</h2>
-              <p>Доходы, оплаты и поведение клиентов</p>
-            </div>
-            <PageNotificationsSlot />
-          </div>
+      <div className="statistics-hero-header">
+        <div>
+          <h2>Статистика</h2>
+          <p>Финансы, визиты и сигналы по клиентам</p>
         </div>
+        <PageNotificationsSlot />
+      </div>
+
+      <div className="statistics-filters-card">
         <div className="statistics-filters">
           <label>
             <CalendarRange size={15} />
@@ -495,151 +455,252 @@ function StatisticsPage({
               </option>
             ))}
           </select>
+          <button
+            className="statistics-export-button"
+            type="button"
+            onClick={exportStatistics}>
+            <Download size={15} />
+            <span>Экспорт Excel</span>
+          </button>
         </div>
       </div>
 
-      <div className="statistics-main-cards">
-        <div className="statistics-primary-cards">
-          {primaryStats.map((item) => (
-            <StatisticsCard item={item} key={item.label} primary />
-          ))}
+      <article className="statistics-income-card">
+        <div className="statistics-income-top">
+          <div>
+            <span>Доход за период</span>
+            <strong>{formatIncome(analytics.totalIncome)}</strong>
+            <p>
+              Поступления {formatIncome(analytics.totalReceived)} ·{" "}
+              {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
+            </p>
+          </div>
+          <div className="statistics-income-icon">
+            <CircleDollarSign size={24} />
+          </div>
         </div>
-        {secondaryStats.length > 0 && (
-          <div className="statistics-secondary-cards">
-            {secondaryStats.map((item) => (
-              <StatisticsCard item={item} key={item.label} />
-            ))}
+        <div className="statistics-income-strip">
+          <span>
+            Прогноз <b>{formatIncome(analytics.forecastIncome)}</b>
+          </span>
+          <span>
+            Завершено <b>{analytics.filteredAppointments.length}</b>
+          </span>
+          <span>
+            Средний чек <b>{formatIncome(analytics.averageCheck)}</b>
+          </span>
+        </div>
+        <div className="statistics-chart-heading">
+          <span>Динамика дохода</span>
+          <strong
+            className={
+              periodChangePercent === null
+                ? ""
+                : periodChangePercent >= 0
+                  ? "positive"
+                  : "negative"
+            }>
+            {periodChangePercent === null
+              ? "Нет прошлого периода"
+              : `${periodChangePercent >= 0 ? "↑" : "↓"} ${Math.abs(
+                  Math.round(periodChangePercent),
+                )}% к прошлому периоду`}
+          </strong>
+        </div>
+        {chartData.length < 2 ? (
+          <div className="statistics-chart-empty">
+            Недостаточно данных для построения динамики дохода
+          </div>
+        ) : (
+          <div className="statistics-revenue-chart">
+            <div className="statistics-revenue-chart-frame">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={260}
+                minHeight={190}>
+                <AreaChart
+                  data={chartData}
+                  margin={{top: 10, right: 8, left: -10, bottom: 0}}>
+                  <defs>
+                    <linearGradient
+                      id="statisticsRevenueGradient"
+                      x1="0"
+                      x2="0"
+                      y1="0"
+                      y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="#2364d2"
+                        stopOpacity={0.22}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="#2364d2"
+                        stopOpacity={0.02}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    stroke="rgba(126, 137, 151, 0.18)"
+                    strokeDasharray="4 6"
+                    vertical={false}
+                  />
+                  <XAxis
+                    axisLine={false}
+                    dataKey="label"
+                    interval="preserveStartEnd"
+                    minTickGap={12}
+                    tick={{fill: "#8a8f98", fontSize: 11}}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tick={{
+                      fill: "#8a8f98",
+                      fontSize: 10,
+                    }}
+                    tickFormatter={(value) =>
+                      formatCompactMoney(value).replace(" zł", "")
+                    }
+                    tickLine={false}
+                    width={52}
+                  />
+                  <Tooltip
+                    content={<RevenueTooltip formatIncome={formatIncome} />}
+                    cursor={{fill: "rgba(35, 100, 210, 0.08)"}}
+                  />
+                  <Area
+                    dataKey="income"
+                    dot={{
+                      fill: "#fff",
+                      r: 3,
+                      stroke: "#2364d2",
+                      strokeWidth: 2,
+                    }}
+                    fill="url(#statisticsRevenueGradient)"
+                    isAnimationActive={false}
+                    stroke="#2364d2"
+                    strokeWidth={2.4}
+                    type="monotone"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
-      </div>
+      </article>
 
-      <div className="statistics-overview-cards">
-        {overviewStats.map((item) => (
+      <article className="statistics-panel statistics-attention-panel">
+        <div className="statistics-panel-title">
+          <div>
+            <h3>Требует внимания</h3>
+            <p>Самые важные сигналы по деньгам</p>
+          </div>
+        </div>
+        <div className="statistics-attention-list">
+          {attentionItems.map((item) => (
+            <div
+              className={`statistics-attention-item ${item.tone}`}
+              key={item.title}>
+              {item.tone === "good" ? (
+                <CheckCircle2 size={17} />
+              ) : (
+                <AlertTriangle size={17} />
+              )}
+              <span>
+                <strong>{item.title}</strong>
+                <small>{item.text}</small>
+              </span>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <div className="statistics-kpi-grid">
+        {kpiStats.map((item) => (
           <StatisticsCard item={item} key={item.label} />
         ))}
       </div>
 
-      <div className="statistics-layout">
-        <article className="panel statistics-chart-panel">
-          <div className="panel-header">
-            <div>
-              <h2>Доход по датам</h2>
-              <p>
-                Только завершённые визиты · {toDisplayDate(startDate)} —{" "}
-                {toDisplayDate(endDate)}
-              </p>
-            </div>
-            <strong>{formatIncome(analytics.totalIncome)}</strong>
-          </div>
-          <svg
-            className="statistics-line-chart"
-            viewBox="0 0 760 270"
-            role="img"
-            aria-label="График дохода по дням">
-            {[30, 90, 150, 210].map((y) => (
-              <line key={y} x1="38" x2="744" y1={y} y2={y} />
-            ))}
-            <path className="statistics-area" d={chart.areaPath} />
-            <path className="statistics-line" d={chart.linePath} />
-            {chart.points.map((point) => (
-              <circle key={point.date} cx={point.x} cy={point.y} r="3">
-                <title>
-                  {shortDate(point.date)}: {formatIncome(point.income)}
-                </title>
-              </circle>
-            ))}
-          </svg>
-          <div className="statistics-chart-labels">
-            {chart.labels.map((date) => (
-              <span key={date}>{shortDate(date)}</span>
-            ))}
-          </div>
-        </article>
-
-        <article className="panel statistics-ring-panel">
+      <article className="statistics-panel statistics-payments-panel">
+        <div className="statistics-panel-title">
           <div>
-            <h2>Структура оплат</h2>
-            <p>По выбранному периоду</p>
+            <h3>Оплаты</h3>
+            <p>Наличные, карта, укр. карта, пакеты и неразобранные оплаты</p>
           </div>
-          <div className="statistics-ring-wrap">
-            <div
-              className="percent-ring dynamic-payment-ring statistics-ring"
-              style={{
-                "--payment-ring-gradient":
-                  createPaymentRingGradient(activePayments),
-              }}>
-              <strong>
-                {formatCompactMoney(
-                  analytics.paymentTotal / (rates[currency] || 1),
-                )}
-              </strong>
-              <span>поступления</span>
+          <strong>{formatIncome(analytics.paymentTotal)}</strong>
+        </div>
+        <div className="statistics-payment-bars">
+          {paymentRows.map((item) => (
+            <PaymentRow
+              item={item}
+              key={item.label}
+              total={analytics.paymentTotal}
+              value={formatIncome(item.value)}
+            />
+          ))}
+        </div>
+      </article>
+
+      <details className="statistics-details-panel">
+        <summary>
+          <span>
+            <strong>Подробная финансовая аналитика</strong>
+            <small>Разбивка дохода, пакеты, сертификаты и возвратность</small>
+          </span>
+        </summary>
+        <div className="statistics-business-grid statistics-business-grid-bottom">
+          <article className="statistics-panel statistics-breakdown-panel">
+            <div className="statistics-panel-title">
+              <div>
+                <h3>Финансовая разбивка</h3>
+                <p>Из чего складывается чистый доход</p>
+              </div>
+              <div
+                className="percent-ring dynamic-payment-ring statistics-ring"
+                style={{
+                  "--payment-ring-gradient":
+                    createPaymentRingGradient(activePayments),
+                }}>
+                <strong>
+                  {formatCompactMoney(
+                    analytics.totalIncome / (rates[currency] || 1),
+                  )}
+                </strong>
+                <span>{currency}</span>
+              </div>
             </div>
-            <div className="payment-breakdown">
-              {activePayments.map((item) => (
-                <span key={item.label}>
-                  <i style={{background: item.color}} />
-                  {item.label}
-                  <strong>{formatIncome(item.value)}</strong>
+            <div className="statistics-breakdown-list">
+              {earnings.map(([label, value]) => (
+                <span key={label}>
+                  {label}
+                  <strong className={value < 0 ? "negative" : ""}>
+                    {formatIncome(value)}
+                  </strong>
                 </span>
               ))}
             </div>
-          </div>
-        </article>
+          </article>
 
-        <article className="panel statistics-breakdown-panel">
-          <div>
-            <h2>Вариации заработка</h2>
-            <p>Что формирует итог</p>
-          </div>
-          <div className="statistics-breakdown-list">
-            {earnings.map(([label, value]) => (
-              <span key={label}>
-                {label}
-                <strong className={value < 0 ? "negative" : ""}>
-                  {formatIncome(value)}
-                </strong>
-              </span>
-            ))}
-          </div>
-        </article>
-
-        <article className="panel statistics-client-panel">
-          <div>
-            <h2>Клиенты</h2>
-            <p>Аналитика базы и возвратов</p>
-          </div>
-          <div className="statistics-client-grid">
-            <span>
-              <Users size={16} />
-              Уникальных<strong>{analytics.clientsCount}</strong>
-            </span>
-            <span>
-              <TrendingUp size={16} />
-              Повторных<strong>{analytics.repeatClients}</strong>
-            </span>
-            <span>
-              <Banknote size={16} />
-              Возвратность<strong>{Math.round(repeatRate)}%</strong>
-            </span>
-            <span>
-              <Package size={16} />
-              Пакетов продано
-              <strong>{analytics.filteredPackages.length}</strong>
-            </span>
-            <span>
-              <WalletCards size={16} />
-              Визитов за период
-              <strong>{analytics.filteredAppointments.length}</strong>
-            </span>
-            <span>
-              <CircleDollarSign size={16} />
-              Сертификатов<strong>{analytics.certificatesCount}</strong>
-            </span>
-          </div>
-          <small>Всего клиентов в базе: {clients.length}</small>
-        </article>
-      </div>
+          <article className="statistics-panel statistics-activity-panel">
+            <div className="statistics-panel-title">
+              <div>
+                <h3>Активность</h3>
+                <p>Клиенты, пакеты и сертификаты</p>
+              </div>
+            </div>
+            <div className="statistics-activity-grid">
+              {activityStats.map(([label, value]) => (
+                <span key={label}>
+                  {label}
+                  <strong>{value}</strong>
+                </span>
+              ))}
+            </div>
+          </article>
+        </div>
+      </details>
     </section>
   );
 }
@@ -656,31 +717,78 @@ function StatisticsCard({item, primary = false}) {
       </div>
       <span>{item.label}</span>
       <strong>{item.value}</strong>
+      {item.helper && <small>{item.helper}</small>}
     </article>
   );
 }
 
-const createChart = (dates) => {
-  const width = 706;
-  const height = 220;
-  const maxIncome = Math.max(...dates.map((item) => item.income), 1);
-  const points = dates.map((item, index) => ({
-    ...item,
-    x: 38 + (index / Math.max(dates.length - 1, 1)) * width,
-    y: 240 - (item.income / maxIncome) * height,
-  }));
-  const linePath = points
-    .map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`)
-    .join(" ");
-  const areaPath = points.length
-    ? `${linePath} L ${points.at(-1).x} 240 L ${points[0].x} 240 Z`
-    : "";
-  const labelStep = Math.max(1, Math.ceil(dates.length / 7));
-  const labels = dates
-    .filter((_, index) => index % labelStep === 0 || index === dates.length - 1)
-    .map((item) => item.date);
+function PaymentRow({item, total, value}) {
+  const percent = Math.round((item.value / Math.max(total, 1)) * 100);
 
-  return {areaPath, labels, linePath, points};
+  return (
+    <div className="statistics-payment-row">
+      <div>
+        <i style={{background: item.color}} />
+        <span>{item.label}</span>
+        <strong>{value}</strong>
+      </div>
+      <div className="statistics-payment-track">
+        <b
+          style={{width: `${Math.min(percent, 100)}%`, background: item.color}}
+        />
+      </div>
+      <small>
+        {item.recordsCount} записей · {percent}%
+      </small>
+    </div>
+  );
+}
+
+function RevenueTooltip({active, payload, formatIncome}) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const item = payload[0].payload;
+
+  return (
+    <div className="statistics-revenue-tooltip">
+      <strong>{item.tooltipDate}</strong>
+      <span>{formatIncome(item.income)}</span>
+      <small>{item.visitsCount} визитов</small>
+    </div>
+  );
+}
+
+const groupChartDates = (dates) => {
+  if (dates.length <= 31) {
+    return dates.map((item) => ({
+      ...item,
+      key: item.date,
+      label: formatChartDate(item.date),
+      tooltipDate: formatChartDate(item.date),
+    }));
+  }
+
+  const groups = [];
+
+  for (let index = 0; index < dates.length; index += 7) {
+    const chunk = dates.slice(index, index + 7);
+    const firstDate = chunk[0].date;
+    const lastDate = chunk.at(-1).date;
+
+    groups.push({
+      key: `${firstDate}-${lastDate}`,
+      label: `${formatChartDate(firstDate)}–${formatChartDate(lastDate)}`,
+      tooltipDate: `${formatChartDate(firstDate)} — ${formatChartDate(
+        lastDate,
+      )}`,
+      income: chunk.reduce((sum, item) => sum + item.income, 0),
+      visitsCount: chunk.reduce((sum, item) => sum + item.visitsCount, 0),
+    });
+  }
+
+  return groups;
 };
 
 export default StatisticsPage;
