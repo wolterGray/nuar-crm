@@ -7800,16 +7800,16 @@ textarea,
   }
 }
 
-/* Nude statistics palette and grouped filter layout. */
+/* Cool professional palette and grouped filter layout. */
 :root {
-  --accent-color: #a88969;
-  --linear-bg: #f6f2ed;
-  --linear-surface-muted: #eee8df;
-  --linear-border: rgba(55, 45, 36, 0.11);
-  --linear-border-soft: rgba(55, 45, 36, 0.07);
-  --linear-text: #1f1b18;
-  --linear-muted: #847a71;
-  --linear-faint: #aaa199;
+  --accent-color: #6f6b8f;
+  --linear-bg: #f3f5f8;
+  --linear-surface-muted: #e8ebf0;
+  --linear-border: rgba(34, 40, 52, 0.11);
+  --linear-border-soft: rgba(34, 40, 52, 0.07);
+  --linear-text: #191d25;
+  --linear-muted: #747b89;
+  --linear-faint: #a1a7b3;
 }
 
 body,
@@ -7817,7 +7817,7 @@ body,
 .visits-content,
 .calendar-content {
   background:
-    radial-gradient(circle at 76% 0%, rgba(168, 137, 105, 0.08), transparent 28%),
+    radial-gradient(circle at 76% 0%, rgba(63, 42, 99, 0.055), transparent 30%),
     var(--linear-bg);
 }
 
@@ -7851,8 +7851,8 @@ body,
 .statistics-income-icon,
 .statistics-card > div {
   color: var(--accent-color);
-  background: rgba(168, 137, 105, 0.12);
-  border-color: rgba(168, 137, 105, 0.2);
+  background: rgba(111, 107, 143, 0.12);
+  border-color: rgba(111, 107, 143, 0.2);
 }
 
 .statistics-revenue-tooltip span {
@@ -7863,9 +7863,33 @@ body,
   display: block;
   max-width: 720px;
   margin-top: 10px;
-  color: var(--linear-muted, #847a71);
+  color: var(--linear-muted, #747b89);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.statistics-hero-header {
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.statistics-hero-header h2 {
+  color: var(--linear-text, #191d25);
+  font-size: clamp(22px, 2.1vw, 30px);
+  font-weight: 560;
+  letter-spacing: -0.035em;
+}
+
+.statistics-hero-header p {
+  margin-top: 3px;
+  color: var(--linear-muted, #747b89);
+  font-size: 12px;
+}
+
+.statistics-card > div {
+  background: color-mix(in srgb, var(--statistics-card-color) 18%, white);
+  border-color: color-mix(in srgb, var(--statistics-card-color) 26%, transparent);
+  color: color-mix(in srgb, var(--statistics-card-color) 78%, #30343d);
 }
 
 @media (max-width: 900px) {

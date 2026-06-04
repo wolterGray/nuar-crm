@@ -1,22 +1,22 @@
 import {normalizePaymentMethod} from "./finance.js";
 
 export const paymentGroups = [
-  {key: "cash", label: "Наличные", color: "#248a4f"},
-  {key: "card", label: "Карта", color: "#2364d2"},
-  {key: "ukrainianCard", label: "Укр. карта", color: "#d85886"},
-  {key: "crypto", label: "Крипта", color: "#8f7cff"},
-  {key: "blik", label: "BLIK", color: "#d07a12"},
-  {key: "package", label: "Пакет", color: "#6b61b8"},
+  {key: "cash", label: "Наличные", color: "#7fbea0"},
+  {key: "card", label: "Карта", color: "#86a9dc"},
+  {key: "ukrainianCard", label: "Укр. карта", color: "#d99cc0"},
+  {key: "crypto", label: "Крипта", color: "#a79be2"},
+  {key: "blik", label: "BLIK", color: "#d9b07a"},
+  {key: "package", label: "Пакет", color: "#9f96d8"},
   {
     key: "certificate",
     label: "Сертификат",
-    color: "#b98237",
+    color: "#cfb489",
   },
-  {key: "barter", label: "Бартер", color: "#748091"},
+  {key: "barter", label: "Бартер", color: "#9da6b3"},
   {
     key: "unspecified",
     label: "Не указано",
-    color: "#a0a4ab",
+    color: "#b7bcc6",
   },
 ];
 

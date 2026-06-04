@@ -283,20 +283,20 @@ function StatisticsPage({
       value: analytics.clientsCount,
       helper: `${analytics.repeatClients} повторных`,
       icon: Users,
-      color: "#8f7a63",
+      color: "#8ba7d8",
     },
     {
       label: "Визиты",
       value: analytics.filteredAppointments.length,
       helper: "завершено",
       icon: CalendarRange,
-      color: "#6f7964",
+      color: "#8fc5aa",
     },
     {
       label: "Средний чек",
       value: formatIncome(analytics.averageCheck),
       icon: Banknote,
-      color: "#6d6672",
+      color: "#b7a0d6",
     },
     {
       label: "Долги",
@@ -306,7 +306,7 @@ function StatisticsPage({
           ? `${analytics.debtVisits.length} в периоде`
           : `${analytics.allDebtVisits.length} всего`,
       icon: WalletCards,
-      color: "#9b5d53",
+      color: "#d99a9a",
     },
   ];
   const repeatRate =
