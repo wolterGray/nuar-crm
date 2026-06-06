@@ -1,0 +1,435 @@
+import {X} from "lucide-react";
+import ConfirmDialog from "./ConfirmDialog.jsx";
+import EmployeeForm from "./EmployeeForm.jsx";
+import NewClientForm from "./NewClientForm.jsx";
+import ServiceForm from "./ServiceForm.jsx";
+import PackageForm from "./PackageForm.jsx";
+import ClientPackageForm from "./ClientPackageForm.jsx";
+import MessageTemplateForm from "./MessageTemplateForm.jsx";
+import CalendarEntryForm from "./CalendarEntryForm.jsx";
+import TaskForm from "./TaskForm.jsx";
+import SupplyForm from "./SupplyForm.jsx";
+import FinancialOperationForm from "./FinancialOperationForm.jsx";
+
+export default function AppModals({
+  employeeModalOpen,
+  clientModalOpen,
+  serviceModalOpen,
+  packageModalOpen,
+  clientPackageModalOpen,
+  messageTemplateModalOpen,
+  calendarEntryModalOpen,
+  taskModalOpen,
+  supplyModalOpen,
+  financialOperationModalOpen,
+  editingEmployee,
+  editingClient,
+  editingService,
+  editingPackage,
+  editingClientPackage,
+  editingMessageTemplate,
+  editingCalendarEntry,
+  editingTask,
+  editingSupply,
+  serviceNames,
+  clientNames,
+  employees,
+  packagesCatalog,
+  calendarEntries,
+  clientProfiles,
+  clientPackages,
+  paymentRows,
+  calendarEntryDefaults,
+  defaultStatsDate,
+  masters,
+  serviceCatalog,
+  pendingCalendarAction,
+  pendingCalendarConflict,
+  pendingPaymentDelete,
+  pendingDataBackup,
+  onCloseEmployeeModal,
+  onCloseClientModal,
+  onCloseServiceModal,
+  onClosePackageModal,
+  onCloseClientPackageModal,
+  onCloseMessageTemplateModal,
+  onCloseCalendarEntryModal,
+  onCloseTaskModal,
+  onCloseSupplyModal,
+  onCloseFinancialOperationModal,
+  onEmployeeSubmit,
+  onClientSubmit,
+  onServiceSubmit,
+  onPackageSubmit,
+  onClientPackageSubmit,
+  onMessageTemplateSubmit,
+  onCalendarEntrySubmit,
+  onTaskSubmit,
+  onSupplySubmit,
+  onFinancialOperationSubmit,
+  onCreateCalendarClient,
+  onCancelCalendarAction,
+  onConfirmCalendarAction,
+  onCancelCalendarConflict,
+  onConfirmCalendarConflict,
+  onCancelPaymentDelete,
+  onConfirmPaymentDelete,
+  onCancelDataBackup,
+  onConfirmDataBackup,
+}) {
+  const activeEmployees = employees.filter(
+    (employee) => employee.status !== "Архив",
+  );
+
+  return (
+    <>
+      {employeeModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal"
+            role="dialog"
+            aria-labelledby="employee-modal-title">
+            <div className="modal-header">
+              <h2 id="employee-modal-title">
+                {editingEmployee
+                  ? "Редактировать сотрудника"
+                  : "Добавить сотрудника"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseEmployeeModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <EmployeeForm employee={editingEmployee} onSubmit={onEmployeeSubmit} />
+          </section>
+        </div>
+      )}
+
+      {clientModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal client-form-modal"
+            role="dialog"
+            aria-labelledby="client-modal-title">
+            <div className="modal-header">
+              <h2 id="client-modal-title">
+                {editingClient ? "Редактировать клиента" : "Добавить клиента"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseClientModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <NewClientForm client={editingClient} onSubmit={onClientSubmit} />
+          </section>
+        </div>
+      )}
+
+      {serviceModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal catalog-modal"
+            role="dialog"
+            aria-labelledby="service-modal-title">
+            <div className="modal-header">
+              <h2 id="service-modal-title">
+                {editingService ? "Редактировать услугу" : "Добавить услугу"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseServiceModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <ServiceForm service={editingService} onSubmit={onServiceSubmit} />
+          </section>
+        </div>
+      )}
+
+      {packageModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal catalog-modal"
+            role="dialog"
+            aria-labelledby="package-modal-title">
+            <div className="modal-header">
+              <h2 id="package-modal-title">
+                {editingPackage ? "Редактировать пакет" : "Добавить пакет"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onClosePackageModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <PackageForm
+              packageItem={editingPackage}
+              services={serviceNames}
+              onSubmit={onPackageSubmit}
+            />
+          </section>
+        </div>
+      )}
+
+      {clientPackageModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal catalog-modal"
+            role="dialog"
+            aria-labelledby="client-package-modal-title">
+            <div className="modal-header">
+              <h2 id="client-package-modal-title">
+                {editingClientPackage
+                  ? "Редактировать остаток"
+                  : "Продать пакет клиенту"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseClientPackageModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <ClientPackageForm
+              clientPackage={editingClientPackage}
+              clients={clientNames}
+              employees={activeEmployees}
+              packages={packagesCatalog}
+              onSubmit={onClientPackageSubmit}
+            />
+          </section>
+        </div>
+      )}
+
+      {messageTemplateModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal message-template-modal"
+            role="dialog"
+            aria-labelledby="message-template-modal-title">
+            <div className="modal-header">
+              <h2 id="message-template-modal-title">
+                {editingMessageTemplate
+                  ? "Редактировать шаблон"
+                  : "Добавить шаблон"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseMessageTemplateModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <MessageTemplateForm
+              template={editingMessageTemplate}
+              onSubmit={onMessageTemplateSubmit}
+            />
+          </section>
+        </div>
+      )}
+
+      {calendarEntryModalOpen && (
+        <div className="modal-backdrop calendar-entry-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal calendar-entry-modal"
+            role="dialog"
+            aria-labelledby="calendar-entry-modal-title">
+            <div className="modal-header">
+              <h2 id="calendar-entry-modal-title">
+                {editingCalendarEntry
+                  ? "Редактировать запись"
+                  : "Добавить в календарь"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseCalendarEntryModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <CalendarEntryForm
+              calendarEntries={calendarEntries}
+              clientPackages={clientPackages}
+              clients={clientProfiles}
+              employees={activeEmployees}
+              initialEntry={editingCalendarEntry}
+              selectedAmount={calendarEntryDefaults.amount ?? ""}
+              selectedClient={calendarEntryDefaults.client ?? ""}
+              selectedDate={calendarEntryDefaults.date ?? defaultStatsDate}
+              selectedDuration={calendarEntryDefaults.duration ?? 60}
+              selectedKind={calendarEntryDefaults.kind ?? "visit"}
+              selectedMaster={calendarEntryDefaults.master ?? masters[0] ?? ""}
+              selectedPayment={calendarEntryDefaults.payment ?? "Наличные"}
+              selectedServiceId={calendarEntryDefaults.serviceId ?? ""}
+              selectedTime={calendarEntryDefaults.time ?? "10:00"}
+              services={serviceCatalog}
+              visits={paymentRows}
+              onCreateClient={onCreateCalendarClient}
+              onSubmit={onCalendarEntrySubmit}
+            />
+          </section>
+        </div>
+      )}
+
+      {taskModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal catalog-modal"
+            role="dialog"
+            aria-labelledby="task-modal-title">
+            <div className="modal-header">
+              <h2 id="task-modal-title">
+                {editingTask?.type === "note"
+                  ? "Редактировать заметку"
+                  : editingTask
+                    ? "Редактировать задачу"
+                    : "Новая задача"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseTaskModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <TaskForm task={editingTask} onSubmit={onTaskSubmit} />
+          </section>
+        </div>
+      )}
+
+      {supplyModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal catalog-modal"
+            role="dialog"
+            aria-labelledby="supply-modal-title">
+            <div className="modal-header">
+              <h2 id="supply-modal-title">
+                {editingSupply ? "Редактировать расходник" : "Новый расходник"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseSupplyModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <SupplyForm supply={editingSupply} onSubmit={onSupplySubmit} />
+          </section>
+        </div>
+      )}
+
+      {financialOperationModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-labelledby="financial-operation-modal-title"
+            aria-modal="true"
+            className="employee-modal"
+            role="dialog">
+            <div className="modal-header">
+              <h2 id="financial-operation-modal-title">Добавить поступление</h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseFinancialOperationModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <FinancialOperationForm
+              clients={clientProfiles}
+              onSubmit={onFinancialOperationSubmit}
+            />
+          </section>
+        </div>
+      )}
+
+      <ConfirmDialog
+        confirmLabel={
+          pendingCalendarAction?.type === "delete" ? "Удалить" : "Редактировать"
+        }
+        message={
+          pendingCalendarAction?.type === "delete"
+            ? "Запись исчезнет из календаря."
+            : "Открыть форму и изменить данные записи?"
+        }
+        open={Boolean(pendingCalendarAction)}
+        title={
+          pendingCalendarAction?.type === "delete"
+            ? "Удалить запись?"
+            : "Редактировать запись?"
+        }
+        onCancel={onCancelCalendarAction}
+        onConfirm={onConfirmCalendarAction}
+      />
+      <ConfirmDialog
+        confirmLabel="Сохранить"
+        message={[
+          pendingCalendarConflict?.shiftWarning,
+          (pendingCalendarConflict?.conflicts.length ?? 0) > 0
+            ? `У этого мастера уже есть ${pendingCalendarConflict.conflicts.length} пересекающихся записей.`
+            : "",
+          "Всё равно сохранить запись?",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        open={Boolean(pendingCalendarConflict)}
+        title={
+          pendingCalendarConflict?.shiftWarning
+            ? "Проверьте время записи"
+            : "Конфликт в календаре"
+        }
+        onCancel={onCancelCalendarConflict}
+        onConfirm={onConfirmCalendarConflict}
+      />
+      <ConfirmDialog
+        confirmLabel="Удалить"
+        message={
+          pendingPaymentDelete?.calendarEntryId
+            ? "Запись будет удалена из календаря и финансового отчета полностью."
+            : "Запись будет удалена из финансового отчета."
+        }
+        open={Boolean(pendingPaymentDelete)}
+        title={
+          pendingPaymentDelete?.recordType === "operation"
+            ? "Удалить поступление?"
+            : "Удалить визит из финжурнала?"
+        }
+        onCancel={onCancelPaymentDelete}
+        onConfirm={onConfirmPaymentDelete}
+      />
+      <ConfirmDialog
+        confirmLabel="Восстановить"
+        message="Текущие локальные данные будут заменены содержимым резервной копии."
+        open={Boolean(pendingDataBackup)}
+        title="Восстановить базу?"
+        onCancel={onCancelDataBackup}
+        onConfirm={onConfirmDataBackup}
+      />
+    </>
+  );
+}

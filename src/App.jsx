@@ -1,41 +1,11 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {createPortal} from "react-dom";
-import {AnimatePresence, motion} from "framer-motion";
-import {
-  Bell,
-  BriefcaseBusiness,
-  CakeSlice,
-  CalendarDays,
-  ChevronDown,
-  EyeOff,
-  LogOut,
-  MailSearch,
-  Menu,
-  MessageSquareText,
-  MoreHorizontal,
-  ReceiptText,
-  Package,
-  PackageSearch,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Settings,
-  ChartNoAxesCombined,
-  User,
-  Users,
-  X,
-} from "lucide-react";
-import ConfirmDialog from "./components/ConfirmDialog.jsx";
-import EmployeeForm from "./components/EmployeeForm.jsx";
 import LoginPage from "./components/LoginPage.jsx";
 import SystemScreen from "./components/SystemScreen.jsx";
-import NewClientForm from "./components/NewClientForm.jsx";
-import MessageTemplateForm from "./components/MessageTemplateForm.jsx";
-import CalendarEntryForm from "./components/CalendarEntryForm.jsx";
-import FinancialOperationForm from "./components/FinancialOperationForm.jsx";
-import SupplyForm from "./components/SupplyForm.jsx";
-import TaskForm from "./components/TaskForm.jsx";
-import PackageForm from "./components/PackageForm.jsx";
-import ServiceForm from "./components/ServiceForm.jsx";
+import AppShell from "./components/AppShell.jsx";
+import AppNavigation from "./components/AppNavigation.jsx";
+import NotificationDrawer from "./components/NotificationDrawer.jsx";
+import AppModals from "./components/AppModals.jsx";
 import ToastStack from "./components/ToastStack.jsx";
 import {PageNotificationsProvider} from "./components/PageNotifications.jsx";
 import "./App.css";
@@ -46,7 +16,6 @@ import {
   initialServices,
   visitsSeed,
 } from "./data/seed.js";
-import ClientPackageForm from "./components/ClientPackageForm.jsx";
 import {
   getDaysSinceDisplayDate,
   getLatestDisplayDate,
@@ -66,47 +35,28 @@ import PaymentsPage from "./components/pages/PaymentsPage.jsx";
 import OperationsPage from "./components/pages/OperationsPage.jsx";
 import ImportPage from "./components/pages/ImportPage.jsx";
 import {isSupabaseConfigured, supabase} from "./lib/supabase.js";
-
-const navItems = [
-  {label: "Статистика", page: "statistics", icon: ChartNoAxesCombined},
-  {label: "Календарь", page: "calendar", icon: CalendarDays},
-  {label: "Оплаты", page: "payments", icon: ReceiptText},
-  {label: "Клиенты", page: "clients", icon: Users},
-  {label: "Сотрудники", page: "masters", icon: User},
-  {label: "Услуги", page: "services", icon: BriefcaseBusiness},
-  {label: "Пакеты", page: "packages", icon: Package},
-  {label: "Задачи", page: "operations", icon: PackageSearch},
-  {label: "Импорт", page: "import", icon: MailSearch},
-  {label: "Шаблоны", page: "templates", icon: MessageSquareText},
-  {label: "Настройки", page: "settings", icon: Settings},
-];
-
-const mobileNavItems = [
-  {label: "Календарь", page: "calendar", icon: CalendarDays},
-  {label: "Оплаты", page: "payments", icon: ReceiptText},
-  {label: "Клиенты", page: "clients", icon: Users},
-  {label: "Статистика", page: "statistics", icon: ChartNoAxesCombined},
-];
-
-const VISITS_STORAGE_KEY = "nuar-crm-visits-2026-05-import";
-const ACTIVE_PAGE_STORAGE_KEY = "nuar-crm-active-page";
-const EMPLOYEES_STORAGE_KEY = "nuar-crm-employees-2026-05-import";
-const CLIENTS_STORAGE_KEY = "nuar-crm-clients-2026-05-import";
-const SERVICES_STORAGE_KEY = "nuar-crm-services-2026-05-import";
-const PACKAGES_STORAGE_KEY = "nuar-crm-packages-2026-05-import";
-const CLIENT_PACKAGES_STORAGE_KEY = "nuar-crm-client-packages-2026-05-import";
-const MESSAGE_TEMPLATES_STORAGE_KEY = "nuar-crm-message-templates";
-const CALENDAR_ENTRIES_STORAGE_KEY = "nuar-crm-calendar-entries";
-const DISMISSED_CLIENT_ALERTS_STORAGE_KEY = "nuar-crm-dismissed-client-alerts";
-const COMMUNICATION_LOG_STORAGE_KEY = "nuar-crm-communication-log";
-const NOTIFICATION_INBOX_STORAGE_KEY = "nuar-crm-notification-inbox";
-const SETTINGS_STORAGE_KEY = "nuar-crm-settings";
-const TASKS_STORAGE_KEY = "nuar-crm-tasks";
-const SUPPLIES_STORAGE_KEY = "nuar-crm-supplies";
-const IMPORT_DOCUMENTS_STORAGE_KEY = "nuar-crm-import-documents";
-const IMPORTED_MAIL_IDS_STORAGE_KEY = "nuar-crm-imported-mail-ids";
-const AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY =
-  "nuar-crm-auto-completed-calendar-entry-ids";
+import {mobileNavItems, navItems} from "./constants/navigation.js";
+import {
+  ACTIVE_PAGE_STORAGE_KEY,
+  AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY,
+  CALENDAR_ENTRIES_STORAGE_KEY,
+  CLIENT_PACKAGES_STORAGE_KEY,
+  CLIENTS_STORAGE_KEY,
+  COMMUNICATION_LOG_STORAGE_KEY,
+  DISMISSED_CLIENT_ALERTS_STORAGE_KEY,
+  EMPLOYEES_STORAGE_KEY,
+  IMPORT_DOCUMENTS_STORAGE_KEY,
+  IMPORTED_MAIL_IDS_STORAGE_KEY,
+  MESSAGE_TEMPLATES_STORAGE_KEY,
+  NOTIFICATION_INBOX_STORAGE_KEY,
+  PACKAGES_STORAGE_KEY,
+  SERVICES_STORAGE_KEY,
+  SETTINGS_STORAGE_KEY,
+  SUPPLIES_STORAGE_KEY,
+  TASKS_STORAGE_KEY,
+  VISITS_STORAGE_KEY,
+} from "./constants/storageKeys.js";
+import {usePersistentState} from "./hooks/usePersistentState.js";
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
 const initialMessageTemplates = [
@@ -471,6 +421,19 @@ const loadStoredCollection = (key) => {
   }
 };
 
+const normalizeStoredSettings = (settings = {}) => {
+  const safeSettings = {...settings};
+  delete safeSettings.authLogin;
+  delete safeSettings.authPassword;
+
+  return {
+    ...defaultAppSettings,
+    ...safeSettings,
+    sidebarVisible:
+      window.innerWidth <= 700 ? false : safeSettings.sidebarVisible ?? true,
+  };
+};
+
 const loadStoredSettings = () => {
   try {
     const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
@@ -483,14 +446,7 @@ const loadStoredSettings = () => {
     }
 
     const parsedSettings = JSON.parse(storedSettings);
-    delete parsedSettings.authLogin;
-    delete parsedSettings.authPassword;
-    return {
-      ...defaultAppSettings,
-      ...parsedSettings,
-      sidebarVisible:
-        window.innerWidth <= 700 ? false : parsedSettings.sidebarVisible ?? true,
-    };
+    return normalizeStoredSettings(parsedSettings);
   } catch {
     return {
       ...defaultAppSettings,
@@ -525,7 +481,13 @@ function App() {
   );
   const [autoCompletedCalendarEntryIds, setAutoCompletedCalendarEntryIds] =
     useState(() => loadStoredCollection(AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY));
-  const [appSettings, setAppSettings] = useState(loadStoredSettings);
+  const [appSettings, setAppSettings] = usePersistentState(
+    SETTINGS_STORAGE_KEY,
+    loadStoredSettings,
+    {
+      deserialize: (value) => normalizeStoredSettings(JSON.parse(value)),
+    },
+  );
   const [authSession, setAuthSession] = useState(null);
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured);
   const [passwordRecovery, setPasswordRecovery] = useState(
@@ -533,7 +495,17 @@ function App() {
   );
   const [cloudHydrated, setCloudHydrated] = useState(false);
   const [cloudLoadError, setCloudLoadError] = useState("");
-  const [activePage, setActivePage] = useState(loadStoredActivePage);
+  const [activePage, setActivePage] = usePersistentState(
+    ACTIVE_PAGE_STORAGE_KEY,
+    loadStoredActivePage,
+    {
+      deserialize: (value) => {
+        const pageExists = navItems.some((item) => item.page === value);
+        return pageExists && value !== "home" ? value : "statistics";
+      },
+      serialize: (value) => value,
+    },
+  );
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
@@ -1113,10 +1085,6 @@ function App() {
   ]);
 
   useEffect(() => {
-    window.localStorage.setItem(ACTIVE_PAGE_STORAGE_KEY, activePage);
-  }, [activePage]);
-
-  useEffect(() => {
     window.localStorage.setItem(
       EMPLOYEES_STORAGE_KEY,
       JSON.stringify(employees),
@@ -1186,10 +1154,6 @@ function App() {
   }, [notificationInbox]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      SETTINGS_STORAGE_KEY,
-      JSON.stringify(appSettings),
-    );
     document.documentElement.style.setProperty(
       "--accent-color",
       appSettings.accentColor,
@@ -1271,47 +1235,50 @@ function App() {
     cloudSnapshotRef.current = cloudSnapshot;
   }, [cloudSnapshot]);
 
-  const applyCloudSnapshot = useCallback((snapshot) => {
-    if (!snapshot || typeof snapshot !== "object") return;
+  const applyCloudSnapshot = useCallback(
+    (snapshot) => {
+      if (!snapshot || typeof snapshot !== "object") return;
 
-    if (Array.isArray(snapshot.visits)) setVisits(snapshot.visits);
-    if (Array.isArray(snapshot.employees)) setEmployees(snapshot.employees);
-    if (Array.isArray(snapshot.clients)) {
-      setClientProfiles(applyBooksySources(snapshot.clients, snapshot.visits ?? []));
-    }
-    if (Array.isArray(snapshot.services)) setServiceCatalog(snapshot.services);
-    if (Array.isArray(snapshot.packages)) setPackagesCatalog(snapshot.packages);
-    if (Array.isArray(snapshot.clientPackages)) setClientPackages(snapshot.clientPackages);
-    if (Array.isArray(snapshot.messageTemplates)) setMessageTemplates(snapshot.messageTemplates);
-    if (Array.isArray(snapshot.calendarEntries)) setCalendarEntries(snapshot.calendarEntries);
-    if (Array.isArray(snapshot.dismissedClientAlertIds)) {
-      setDismissedClientAlertIds(snapshot.dismissedClientAlertIds);
-    }
-    if (Array.isArray(snapshot.communicationLog)) setCommunicationLog(snapshot.communicationLog);
-    if (Array.isArray(snapshot.notificationInbox)) {
-      setNotificationInbox(snapshot.notificationInbox.filter((item) => item.undoAction));
-    }
-    if (Array.isArray(snapshot.tasks)) setTasks(snapshot.tasks);
-    if (Array.isArray(snapshot.supplies)) setSupplies(snapshot.supplies);
-    if (Array.isArray(snapshot.importDocuments)) setImportDocuments(snapshot.importDocuments);
-    if (Array.isArray(snapshot.importedMailIds)) setImportedMailIds(snapshot.importedMailIds);
-    if (Array.isArray(snapshot.autoCompletedCalendarEntryIds)) {
-      setAutoCompletedCalendarEntryIds(snapshot.autoCompletedCalendarEntryIds);
-    }
-    if (snapshot.settings && typeof snapshot.settings === "object") {
-      const safeSettings = {...snapshot.settings};
-      delete safeSettings.authLogin;
-      delete safeSettings.authPassword;
-      setAppSettings({
-        ...defaultAppSettings,
-        ...safeSettings,
-        sidebarVisible:
-          window.innerWidth <= 700
-            ? false
-            : safeSettings.sidebarVisible ?? defaultAppSettings.sidebarVisible,
-      });
-    }
-  }, []);
+      if (Array.isArray(snapshot.visits)) setVisits(snapshot.visits);
+      if (Array.isArray(snapshot.employees)) setEmployees(snapshot.employees);
+      if (Array.isArray(snapshot.clients)) {
+        setClientProfiles(applyBooksySources(snapshot.clients, snapshot.visits ?? []));
+      }
+      if (Array.isArray(snapshot.services)) setServiceCatalog(snapshot.services);
+      if (Array.isArray(snapshot.packages)) setPackagesCatalog(snapshot.packages);
+      if (Array.isArray(snapshot.clientPackages)) setClientPackages(snapshot.clientPackages);
+      if (Array.isArray(snapshot.messageTemplates)) setMessageTemplates(snapshot.messageTemplates);
+      if (Array.isArray(snapshot.calendarEntries)) setCalendarEntries(snapshot.calendarEntries);
+      if (Array.isArray(snapshot.dismissedClientAlertIds)) {
+        setDismissedClientAlertIds(snapshot.dismissedClientAlertIds);
+      }
+      if (Array.isArray(snapshot.communicationLog)) setCommunicationLog(snapshot.communicationLog);
+      if (Array.isArray(snapshot.notificationInbox)) {
+        setNotificationInbox(snapshot.notificationInbox.filter((item) => item.undoAction));
+      }
+      if (Array.isArray(snapshot.tasks)) setTasks(snapshot.tasks);
+      if (Array.isArray(snapshot.supplies)) setSupplies(snapshot.supplies);
+      if (Array.isArray(snapshot.importDocuments)) setImportDocuments(snapshot.importDocuments);
+      if (Array.isArray(snapshot.importedMailIds)) setImportedMailIds(snapshot.importedMailIds);
+      if (Array.isArray(snapshot.autoCompletedCalendarEntryIds)) {
+        setAutoCompletedCalendarEntryIds(snapshot.autoCompletedCalendarEntryIds);
+      }
+      if (snapshot.settings && typeof snapshot.settings === "object") {
+        const safeSettings = {...snapshot.settings};
+        delete safeSettings.authLogin;
+        delete safeSettings.authPassword;
+        setAppSettings({
+          ...defaultAppSettings,
+          ...safeSettings,
+          sidebarVisible:
+            window.innerWidth <= 700
+              ? false
+              : safeSettings.sidebarVisible ?? defaultAppSettings.sidebarVisible,
+        });
+      }
+    },
+    [setAppSettings],
+  );
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -3277,610 +3244,203 @@ function App() {
   }
 
   return (
-    <div
-      className={`crm-shell theme-${appSettings.theme} ${
-        appSettings.sidebarVisible ? "" : "sidebar-hidden"
-      } ${appSettings.compactMode ? "compact-mode" : ""}`}
-      onClick={() => {
+    <AppShell
+      compactMode={appSettings.compactMode}
+      contentRef={contentRef}
+      isCalendarPage={isCalendarPage}
+      isPaymentsPage={isPaymentsPage}
+      navigation={
+        <AppNavigation
+          activePage={activePage}
+          mobileNavItems={mobileNavItems}
+          navItems={navItems}
+          ownerName={appSettings.ownerName}
+          sidebarVisible={appSettings.sidebarVisible}
+          studioName={appSettings.studioName}
+          onLogout={handleLogout}
+          onPageChange={setActivePage}
+          onSidebarVisibleChange={(sidebarVisible) =>
+            setAppSettings((current) => ({...current, sidebarVisible}))
+          }
+        />
+      }
+      pullRefresh={pullRefresh}
+      sidebarVisible={appSettings.sidebarVisible}
+      theme={appSettings.theme}
+      onShellClick={() => {
         if (clientAlertsOpen) {
           setClientAlertsOpen(false);
         }
         if (openPaymentActionMenuId) {
           setOpenPaymentActionMenuId(null);
         }
-      }}>
-      <aside className="sidebar">
-        <div className="logo" aria-label={`${appSettings.studioName} CRM`}>
-          <span className="logo-mark">N</span>
-          <div className="logo-wordmark">
-            <strong>{appSettings.studioName}</strong>
-            <small>CRM</small>
-          </div>
-        </div>
-        <button
-          aria-label="Скрыть меню"
-          className="sidebar-collapse-button"
-          title="Скрыть меню"
-          type="button"
-          onClick={() =>
-            setAppSettings((current) => ({...current, sidebarVisible: false}))
-          }>
-          <PanelLeftClose size={17} />
-        </button>
-
-        <nav className="nav-list" aria-label="Главное меню">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                data-label={item.label}
-                className={activePage === item.page ? "active" : ""}
-                key={item.label}
-                title={item.label}
-                onClick={() => {
-                  setActivePage(item.page);
-
-                  if (window.innerWidth <= 700) {
-                    setAppSettings((current) => ({
-                      ...current,
-                      sidebarVisible: false,
-                    }));
-                  }
-                }}>
-                <Icon size={20} />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="owner-card">
-          <div className="owner-avatar">В</div>
-          <div>
-            <strong>{appSettings.ownerName}</strong>
-            <span>Владелец</span>
-          </div>
-          <button
-            className="logout-button"
-            type="button"
-            aria-label="Выйти"
-            onClick={handleLogout}>
-            <LogOut size={16} />
-          </button>
-        </div>
-      </aside>
-      {appSettings.sidebarVisible && (
-        <button
-          aria-label="Закрыть меню"
-          className="mobile-sidebar-backdrop"
-          type="button"
-          onClick={() =>
-            setAppSettings((current) => ({...current, sidebarVisible: false}))
-          }
-        />
-      )}
-      {appSettings.sidebarVisible && (
-        <section className="mobile-more-sheet" aria-label="Все разделы">
-          <div>
-            <strong>Разделы</strong>
-            <button
-              aria-label="Закрыть разделы"
-              type="button"
-              onClick={() =>
-                setAppSettings((current) => ({...current, sidebarVisible: false}))
-              }>
-              <X size={18} />
-            </button>
-          </div>
-          <nav>
-            {navItems
-              .filter(
-                (item) =>
-                  !mobileNavItems.some((mobileItem) => mobileItem.page === item.page),
-              )
-              .map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  className={activePage === item.page ? "active" : ""}
-                  key={item.page}
-                  type="button"
-                  onClick={() => {
-                    setActivePage(item.page);
-                    setAppSettings((current) => ({...current, sidebarVisible: false}));
-                  }}>
-                  <Icon size={19} />
-                  <span>{item.label}</span>
-                </button>
-              );
-              })}
-          </nav>
-        </section>
-      )}
-      {!appSettings.sidebarVisible && (
-        <button
-          className="sidebar-restore-button"
-          type="button"
-          aria-label="Показать меню"
-          onClick={() =>
-            setAppSettings((current) => ({...current, sidebarVisible: true}))
-          }>
-          <Menu className="mobile-menu-icon" size={20} />
-          <PanelLeftOpen className="desktop-menu-icon" size={18} />
-        </button>
-      )}
-      <div
-        className={`pull-refresh-indicator ${
-          pullRefresh.refreshing || pullRefresh.distance > 0 ? "visible" : ""
-        } ${pullRefresh.refreshing ? "refreshing" : ""}`}
-        style={{"--pull-distance": `${pullRefresh.distance}px`}}>
-        <span aria-hidden="true" />
-        <b>{pullRefresh.refreshing ? "Обновляем" : "Потяните для обновления"}</b>
-      </div>
-
-      <main
-        ref={contentRef}
-        className={`content home-content ${isCalendarPage ? "calendar-content" : ""} ${
-          isPaymentsPage ? "visits-content payments-content" : ""
-        }`}
-        onTouchCancel={handlePullRefreshEnd}
-        onTouchEnd={handlePullRefreshEnd}
-        onTouchMove={handlePullRefreshMove}
-        onTouchStart={handlePullRefreshStart}>
+      }}
+      onTouchCancel={handlePullRefreshEnd}
+      onTouchEnd={handlePullRefreshEnd}
+      onTouchMove={handlePullRefreshMove}
+      onTouchStart={handlePullRefreshStart}
+      afterMain={
+        <>
+          <AppModals
+            calendarEntries={calendarEntries}
+            calendarEntryDefaults={calendarEntryDefaults}
+            calendarEntryModalOpen={calendarEntryModalOpen}
+            clientModalOpen={clientModalOpen}
+            clientNames={clientNames}
+            clientPackageModalOpen={clientPackageModalOpen}
+            clientPackages={clientPackages}
+            clientProfiles={clientProfiles}
+            defaultStatsDate={DEFAULT_STATS_DATE}
+            editingCalendarEntry={editingCalendarEntry}
+            editingClient={editingClient}
+            editingClientPackage={editingClientPackage}
+            editingEmployee={editingEmployee}
+            editingMessageTemplate={editingMessageTemplate}
+            editingPackage={editingPackage}
+            editingService={editingService}
+            editingSupply={editingSupply}
+            editingTask={editingTask}
+            employeeModalOpen={employeeModalOpen}
+            employees={employees}
+            financialOperationModalOpen={financialOperationModalOpen}
+            masters={masters}
+            messageTemplateModalOpen={messageTemplateModalOpen}
+            packageModalOpen={packageModalOpen}
+            packagesCatalog={packagesCatalog}
+            paymentRows={paymentRows}
+            pendingCalendarAction={pendingCalendarAction}
+            pendingCalendarConflict={pendingCalendarConflict}
+            pendingDataBackup={pendingDataBackup}
+            pendingPaymentDelete={pendingPaymentDelete}
+            serviceCatalog={serviceCatalog}
+            serviceModalOpen={serviceModalOpen}
+            serviceNames={serviceNames}
+            supplyModalOpen={supplyModalOpen}
+            taskModalOpen={taskModalOpen}
+            onCalendarEntrySubmit={handleCalendarEntrySubmit}
+            onCancelCalendarAction={() => setPendingCalendarAction(null)}
+            onCancelCalendarConflict={() => setPendingCalendarConflict(null)}
+            onCancelDataBackup={() => setPendingDataBackup(null)}
+            onCancelPaymentDelete={() => setPendingPaymentDelete(null)}
+            onClientPackageSubmit={handleClientPackageSubmit}
+            onClientSubmit={handleClientSubmit}
+            onCloseCalendarEntryModal={() => {
+              setCalendarEntryModalOpen(false);
+              setEditingCalendarEntry(null);
+              setCalendarEntryDefaults({});
+            }}
+            onCloseClientModal={() => {
+              setClientModalOpen(false);
+              setEditingClient(null);
+            }}
+            onCloseClientPackageModal={() => {
+              setClientPackageModalOpen(false);
+              setEditingClientPackage(null);
+            }}
+            onCloseEmployeeModal={() => {
+              setEmployeeModalOpen(false);
+              setEditingEmployee(null);
+            }}
+            onCloseFinancialOperationModal={() => setFinancialOperationModalOpen(false)}
+            onCloseMessageTemplateModal={() => {
+              setMessageTemplateModalOpen(false);
+              setEditingMessageTemplate(null);
+            }}
+            onClosePackageModal={() => {
+              setPackageModalOpen(false);
+              setEditingPackage(null);
+            }}
+            onCloseServiceModal={() => {
+              setServiceModalOpen(false);
+              setEditingService(null);
+            }}
+            onCloseSupplyModal={() => {
+              setSupplyModalOpen(false);
+              setEditingSupply(null);
+            }}
+            onCloseTaskModal={() => {
+              setTaskModalOpen(false);
+              setEditingTask(null);
+            }}
+            onConfirmCalendarAction={confirmCalendarAction}
+            onConfirmCalendarConflict={confirmCalendarConflict}
+            onConfirmDataBackup={confirmDataBackupImport}
+            onConfirmPaymentDelete={confirmPaymentDelete}
+            onCreateCalendarClient={addCalendarFormClient}
+            onEmployeeSubmit={handleEmployeeSubmit}
+            onFinancialOperationSubmit={handleFinancialOperationSubmit}
+            onMessageTemplateSubmit={handleMessageTemplateSubmit}
+            onPackageSubmit={handlePackageSubmit}
+            onServiceSubmit={handleServiceSubmit}
+            onSupplySubmit={handleSupplySubmit}
+            onTaskSubmit={handleTaskSubmit}
+          />
+          <ToastStack notifications={notifications} onClose={closeNotification} />
+        </>
+      }>
         {notificationSlot &&
           createPortal(
-          <div
-            className="page-header-actions"
-            onClick={(event) => event.stopPropagation()}>
-            <div className="client-alert-control">
-              <button
-                aria-label="Центр уведомлений"
-                className="client-alert-button"
-                type="button"
-                onClick={() => setClientAlertsOpen((current) => !current)}>
-                <Bell size={18} />
-                {alertsCount > 0 && <b>{alertsCount}</b>}
-              </button>
-              <AnimatePresence>
-              {clientAlertsOpen && (
-                <motion.div
-                  animate={{opacity: 1, y: 0, scale: 1}}
-                  className="client-alert-popover"
-                  exit={{opacity: 0, y: -6, scale: 0.98}}
-                  initial={{opacity: 0, y: -8, scale: 0.98}}
-                  transition={{duration: appSettings.animationsEnabled ? 0.18 : 0}}>
-                  <div className="client-alert-heading">
-                    <div>
-                      <h2>Уведомления</h2>
-                      <p>Только события, требующие внимания</p>
-                    </div>
-                    <strong>{alertsCount}</strong>
-                  </div>
-                  <div className="client-alert-list">
-                    {revenueForecastAlerts.length > 0 && (
-                      <div className="client-alert-group">
-                        <button
-                          className="client-alert-group-toggle"
-                          type="button"
-                          onClick={() =>
-                            setAlertGroupsOpen((current) => ({
-                              ...current,
-                              forecast: !current.forecast,
-                            }))
-                          }>
-                          Прогноз дохода <b>{revenueForecastAlerts.length}</b>
-                          <ChevronDown className={alertGroupsOpen.forecast ? "open" : ""} size={14} />
-                        </button>
-                        <AnimatePresence initial={false}>
-                          {alertGroupsOpen.forecast && (
-                            <motion.div
-                              animate={{height: "auto", opacity: 1}}
-                              exit={{height: 0, opacity: 0}}
-                              initial={{height: 0, opacity: 0}}>
-                              {revenueForecastAlerts.map((alert) => (
-                                <div className="client-alert-row" key={alert.alertId}>
-                                  <div className="client-alert-event">
-                                    <div>
-                                      <strong>{alert.title}</strong>
-                                      <span>{alert.message}</span>
-                                    </div>
-                                    <button
-                                      aria-label="Скрыть уведомление"
-                                      type="button"
-                                      onClick={() => dismissAlertTemporarily(alert.alertId)}>
-                                      <X size={14} />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                    {packageBalanceAlerts.length > 0 && (
-                      <div className="client-alert-group">
-                        <button
-                          className="client-alert-group-toggle"
-                          type="button"
-                          onClick={() =>
-                            setAlertGroupsOpen((current) => ({
-                              ...current,
-                              packages: !current.packages,
-                            }))
-                          }>
-                          Заканчиваются пакеты <b>{packageBalanceAlerts.length}</b>
-                          <ChevronDown className={alertGroupsOpen.packages ? "open" : ""} size={14} />
-                        </button>
-                        <AnimatePresence initial={false}>
-                          {alertGroupsOpen.packages && (
-                            <motion.div
-                              animate={{height: "auto", opacity: 1}}
-                              exit={{height: 0, opacity: 0}}
-                              initial={{height: 0, opacity: 0}}>
-                              {packageBalanceAlerts.map((alert) => (
-                                <div className="client-alert-row" key={alert.alertId}>
-                                  <div className="client-alert-event">
-                                    <div>
-                                      <strong>{alert.title}</strong>
-                                      <span>{alert.message}</span>
-                                    </div>
-                                    <button
-                                      aria-label="Скрыть уведомление"
-                                      type="button"
-                                      onClick={() => dismissAlertTemporarily(alert.alertId)}>
-                                      <X size={14} />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                    {actionableNotificationInbox.length > 0 && (
-                      <div className="client-alert-group">
-                        <button
-                          className="client-alert-group-toggle"
-                          type="button"
-                          onClick={() =>
-                            setAlertGroupsOpen((current) => ({
-                              ...current,
-                              system: !current.system,
-                            }))
-                          }>
-                          Корзина изменений <b>{actionableNotificationInbox.length}</b>
-                          <ChevronDown className={alertGroupsOpen.system ? "open" : ""} size={14} />
-                        </button>
-                        <AnimatePresence initial={false}>
-                          {alertGroupsOpen.system && (
-                            <motion.div
-                              animate={{height: "auto", opacity: 1}}
-                              exit={{height: 0, opacity: 0}}
-                              initial={{height: 0, opacity: 0}}
-                              transition={{duration: appSettings.animationsEnabled ? 0.18 : 0}}>
-                              {actionableNotificationInbox.map((notification) => (
-                                <div className="client-alert-row" key={notification.id}>
-                                  <div className="client-alert-event">
-                                  <div>
-                                    <strong>{notification.title}</strong>
-                                    <span>{notification.message}</span>
-                                  </div>
-                                  {notification.undoAction && (
-                                    <button
-                                      aria-label="Вернуть изменение"
-                                      className="client-alert-undo"
-                                      title="Вернуть изменение"
-                                      type="button"
-                                      onClick={() => undoNotificationAction(notification)}>
-                                      Вернуть
-                                    </button>
-                                  )}
-                                  <button
-                                      aria-label="Убрать событие"
-                                      title="Убрать"
-                                      type="button"
-                                      onClick={() =>
-                                        setNotificationInbox((current) =>
-                                          current.filter((item) => item.id !== notification.id),
-                                        )
-                                      }>
-                                      <X size={14} />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                    {operationsAlerts.length > 0 && (
-                      <div className="client-alert-group">
-                        <button
-                          className="client-alert-group-toggle"
-                          type="button"
-                          onClick={() =>
-                            setAlertGroupsOpen((current) => ({
-                              ...current,
-                              operations: !current.operations,
-                            }))
-                          }>
-                          Задачи и склад <b>{operationsAlerts.length}</b>
-                          <ChevronDown className={alertGroupsOpen.operations ? "open" : ""} size={14} />
-                        </button>
-                        <AnimatePresence initial={false}>
-                          {alertGroupsOpen.operations && (
-                            <motion.div
-                              animate={{height: "auto", opacity: 1}}
-                              exit={{height: 0, opacity: 0}}
-                              initial={{height: 0, opacity: 0}}
-                              transition={{duration: appSettings.animationsEnabled ? 0.18 : 0}}>
-                              {operationsAlerts.map((alert) => (
-                                <div className="client-alert-row" key={alert.alertId}>
-                                  <button
-                                    className="client-alert-summary"
-                                    type="button"
-                                    onClick={() => {
-                                      setActivePage(alert.page);
-                                      setClientAlertsOpen(false);
-                                    }}>
-                                    <div>
-                                      <strong>{alert.title}</strong>
-                                      <span>{alert.message}</span>
-                                    </div>
-                                    <b>Открыть</b>
-                                  </button>
-                                </div>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                    {todayCalendarAlerts.length > 0 && (
-                      <div className="client-alert-group">
-                        <button
-                          className="client-alert-group-toggle"
-                          type="button"
-                          onClick={() =>
-                            setAlertGroupsOpen((current) => ({
-                              ...current,
-                              calendar: !current.calendar,
-                            }))
-                          }>
-                          Ближайшие визиты <b>{todayCalendarAlerts.length}</b>
-                          <ChevronDown className={alertGroupsOpen.calendar ? "open" : ""} size={14} />
-                        </button>
-                        <AnimatePresence initial={false}>
-                        {alertGroupsOpen.calendar && (
-                          <motion.div
-                            animate={{height: "auto", opacity: 1}}
-                            exit={{height: 0, opacity: 0}}
-                            initial={{height: 0, opacity: 0}}
-                            transition={{duration: appSettings.animationsEnabled ? 0.18 : 0}}>
-                        {todayCalendarAlerts.map((entry) => (
-                          <div className="client-alert-row" key={entry.alertId}>
-                            <button
-                              className="client-alert-summary"
-                              type="button"
-                              onClick={() =>
-                                setActiveClientAlertId((current) =>
-                                  current === entry.alertId ? null : entry.alertId,
-                                )
-                              }>
-                              <div>
-                                <strong>{entry.time} · {entry.client}</strong>
-                                <span>{entry.service} · {entry.master}</span>
-                              </div>
-                              <b>Сегодня</b>
-                            </button>
-                            {activeClientAlertId === entry.alertId && (
-                              <div className="client-alert-actions">
-                                <button type="button" onClick={() => remindCalendarClient(entry)}>
-                                  <MessageSquareText size={14} />
-                                  Написать
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActivePage("calendar");
-                                    setClientAlertsOpen(false);
-                                    setActiveClientAlertId(null);
-                                  }}>
-                                  <CalendarDays size={14} />
-                                  Календарь
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setDismissedClientAlertIds((current) => [
-                                      ...current,
-                                      entry.alertId,
-                                    ]);
-                                    setActiveClientAlertId(null);
-                                  }}>
-                                  <EyeOff size={14} />
-                                  Скрыть
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                          </motion.div>
-                        )}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                    {birthdayAlerts.length > 0 && (
-                      <div className="client-alert-group">
-                        <button
-                          className="client-alert-group-toggle"
-                          type="button"
-                          onClick={() =>
-                            setAlertGroupsOpen((current) => ({
-                              ...current,
-                              birthdays: !current.birthdays,
-                            }))
-                          }>
-                          Дни рождения <b>{birthdayAlerts.length}</b>
-                          <ChevronDown className={alertGroupsOpen.birthdays ? "open" : ""} size={14} />
-                        </button>
-                        <AnimatePresence initial={false}>
-                          {alertGroupsOpen.birthdays && (
-                            <motion.div
-                              animate={{height: "auto", opacity: 1}}
-                              exit={{height: 0, opacity: 0}}
-                              initial={{height: 0, opacity: 0}}
-                              transition={{duration: appSettings.animationsEnabled ? 0.18 : 0}}>
-                              {birthdayAlerts.map((client) => (
-                                <div className="client-alert-row" key={client.alertId}>
-                                  <button
-                                    className="client-alert-summary"
-                                    type="button"
-                                    onClick={() =>
-                                      setActiveClientAlertId((current) =>
-                                        current === client.alertId ? null : client.alertId,
-                                      )
-                                    }>
-                                    <div>
-                                      <strong>{client.name}</strong>
-                                      <span>{client.birthdayInfo.date} · поздравить клиента</span>
-                                    </div>
-                                    <b>{client.birthdayInfo.label}</b>
-                                  </button>
-                                  {activeClientAlertId === client.alertId && (
-                                    <div className="client-alert-actions">
-                                      <button
-                                        type="button"
-                                        onClick={() => openClientMessageTemplates(client)}>
-                                        <CakeSlice size={14} />
-                                        Написать
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setDismissedClientAlertIds((current) => [
-                                            ...current,
-                                            client.alertId,
-                                          ]);
-                                          setActiveClientAlertId(null);
-                                        }}>
-                                        <EyeOff size={14} />
-                                        Скрыть
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                    {inactiveClientAlerts.length > 0 && (
-                      <div className="client-alert-group">
-                        <button
-                          className="client-alert-group-toggle"
-                          type="button"
-                          onClick={() =>
-                            setAlertGroupsOpen((current) => ({
-                              ...current,
-                              inactive: !current.inactive,
-                            }))
-                          }>
-                          Давно не были <b>{inactiveClientAlerts.length}</b>
-                          <ChevronDown className={alertGroupsOpen.inactive ? "open" : ""} size={14} />
-                        </button>
-                        <AnimatePresence initial={false}>
-                        {alertGroupsOpen.inactive && (
-                          <motion.div
-                            animate={{height: "auto", opacity: 1}}
-                            exit={{height: 0, opacity: 0}}
-                            initial={{height: 0, opacity: 0}}
-                            transition={{duration: appSettings.animationsEnabled ? 0.18 : 0}}>
-                      {inactiveClientAlerts.map((client) => (
-                        <div
-                          className={`client-alert-row ${
-                            activeClientAlertId === client.alertId ? "active" : ""
-                          }`}
-                          key={client.alertId}>
-                          <button
-                            className="client-alert-summary"
-                            type="button"
-                            onClick={() =>
-                              setActiveClientAlertId((current) =>
-                                current === client.alertId ? null : client.alertId,
-                              )
-                            }>
-                            <div>
-                              <strong>{client.name}</strong>
-                              <span>{client.phone || "Телефон не указан"}</span>
-                            </div>
-                            <b>
-                              {client.daysAbsent === null
-                                ? "Нет визитов"
-                                : `${client.daysAbsent} дн.`}
-                            </b>
-                          </button>
-                          {activeClientAlertId === client.alertId && (
-                            <div className="client-alert-actions">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setPreferredMessageClientId(String(client.id));
-                                  setActivePage("templates");
-                                  setClientAlertsOpen(false);
-                                  setActiveClientAlertId(null);
-                                }}>
-                                <MessageSquareText size={14} />
-                                Написать
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setDismissedClientAlertIds((current) => [
-                                    ...current,
-                                    client.alertId,
-                                  ]);
-                                  setActiveClientAlertId(null);
-                                }}>
-                                <EyeOff size={14} />
-                                Скрыть
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                        <button
-                          className="secondary-button client-alert-category-action"
-                          type="button"
-                          onClick={() => {
-                            setActivePage("clients");
-                            setClientAlertsOpen(false);
-                            setActiveClientAlertId(null);
-                          }}>
-                          Открыть клиентов
-                        </button>
-                          </motion.div>
-                        )}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                    {alertsCount === 0 && (
-                      <p className="client-alert-empty">
-                        Сейчас нет новых уведомлений.
-                      </p>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-              </AnimatePresence>
-            </div>
-          </div>,
-          notificationSlot,
-        )}
+            <NotificationDrawer
+              actionableNotificationInbox={actionableNotificationInbox}
+              activeClientAlertId={activeClientAlertId}
+              alertGroupsOpen={alertGroupsOpen}
+              alertsCount={alertsCount}
+              animationsEnabled={appSettings.animationsEnabled}
+              birthdayAlerts={birthdayAlerts}
+              inactiveClientAlerts={inactiveClientAlerts}
+              isOpen={clientAlertsOpen}
+              operationsAlerts={operationsAlerts}
+              packageBalanceAlerts={packageBalanceAlerts}
+              revenueForecastAlerts={revenueForecastAlerts}
+              todayCalendarAlerts={todayCalendarAlerts}
+              onDeleteInboxNotification={(notificationId) =>
+                setNotificationInbox((current) =>
+                  current.filter((item) => item.id !== notificationId),
+                )
+              }
+              onDismissAlert={dismissAlertTemporarily}
+              onDismissClientAlert={(alertId) => {
+                setDismissedClientAlertIds((current) => [...current, alertId]);
+                setActiveClientAlertId(null);
+              }}
+              onOpenAlertPage={(page) => {
+                setActivePage(page);
+                setClientAlertsOpen(false);
+              }}
+              onOpenCalendar={() => {
+                setActivePage("calendar");
+                setClientAlertsOpen(false);
+                setActiveClientAlertId(null);
+              }}
+              onOpenClientMessageTemplates={openClientMessageTemplates}
+              onOpenClients={() => {
+                setActivePage("clients");
+                setClientAlertsOpen(false);
+                setActiveClientAlertId(null);
+              }}
+              onOpenTemplatesForClient={(client) => {
+                setPreferredMessageClientId(String(client.id));
+                setActivePage("templates");
+                setClientAlertsOpen(false);
+                setActiveClientAlertId(null);
+              }}
+              onRemindCalendarClient={remindCalendarClient}
+              onToggleActiveAlert={(alertId) =>
+                setActiveClientAlertId((current) =>
+                  current === alertId ? null : alertId,
+                )
+              }
+              onToggleGroup={(group) =>
+                setAlertGroupsOpen((current) => ({
+                  ...current,
+                  [group]: !current[group],
+                }))
+              }
+              onToggleOpen={() => setClientAlertsOpen((current) => !current)}
+              onUndoNotificationAction={undoNotificationAction}
+            />,
+            notificationSlot,
+          )}
         <PageNotificationsProvider onSlotChange={setNotificationSlot}>
         {isCalendarPage ? (
           <CalendarPage
@@ -4027,394 +3587,7 @@ function App() {
           />
         )}
         </PageNotificationsProvider>
-      </main>
-      <nav className="mobile-bottom-nav" aria-label="Мобильная навигация">
-        {mobileNavItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              className={activePage === item.page ? "active" : ""}
-              key={item.page}
-              type="button"
-              onClick={() => {
-                setActivePage(item.page);
-                setAppSettings((current) => ({...current, sidebarVisible: false}));
-              }}>
-              <Icon size={20} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-        <button
-          className={appSettings.sidebarVisible ? "active" : ""}
-          type="button"
-          onClick={() =>
-            setAppSettings((current) => ({
-              ...current,
-              sidebarVisible: !current.sidebarVisible,
-            }))
-          }>
-          <MoreHorizontal size={21} />
-          <span>Еще</span>
-        </button>
-      </nav>
-      {employeeModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal"
-            role="dialog"
-            aria-labelledby="employee-modal-title">
-            <div className="modal-header">
-              <h2 id="employee-modal-title">
-                {editingEmployee
-                  ? "Редактировать сотрудника"
-                  : "Добавить сотрудника"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => {
-                  setEmployeeModalOpen(false);
-                  setEditingEmployee(null);
-                }}>
-                <X size={18} />
-              </button>
-            </div>
-            <EmployeeForm
-              employee={editingEmployee}
-              onSubmit={handleEmployeeSubmit}
-            />
-          </section>
-        </div>
-      )}
-      {clientModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal client-form-modal"
-            role="dialog"
-            aria-labelledby="client-modal-title">
-            <div className="modal-header">
-              <h2 id="client-modal-title">
-                {editingClient ? "Редактировать клиента" : "Добавить клиента"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => {
-                  setClientModalOpen(false);
-                  setEditingClient(null);
-                }}>
-                <X size={18} />
-              </button>
-            </div>
-            <NewClientForm client={editingClient} onSubmit={handleClientSubmit} />
-          </section>
-        </div>
-      )}
-      {serviceModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal catalog-modal"
-            role="dialog"
-            aria-labelledby="service-modal-title">
-            <div className="modal-header">
-              <h2 id="service-modal-title">
-                {editingService ? "Редактировать услугу" : "Добавить услугу"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => {
-                  setServiceModalOpen(false);
-                  setEditingService(null);
-                }}>
-                <X size={18} />
-              </button>
-            </div>
-            <ServiceForm
-              service={editingService}
-              onSubmit={handleServiceSubmit}
-            />
-          </section>
-        </div>
-      )}
-      {packageModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal catalog-modal"
-            role="dialog"
-            aria-labelledby="package-modal-title">
-            <div className="modal-header">
-              <h2 id="package-modal-title">
-                {editingPackage ? "Редактировать пакет" : "Добавить пакет"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => {
-                  setPackageModalOpen(false);
-                  setEditingPackage(null);
-                }}>
-                <X size={18} />
-              </button>
-            </div>
-            <PackageForm
-              packageItem={editingPackage}
-              services={serviceNames}
-              onSubmit={handlePackageSubmit}
-            />
-          </section>
-        </div>
-      )}
-      {clientPackageModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal catalog-modal"
-            role="dialog"
-            aria-labelledby="client-package-modal-title">
-            <div className="modal-header">
-              <h2 id="client-package-modal-title">
-                {editingClientPackage
-                  ? "Редактировать остаток"
-                  : "Продать пакет клиенту"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => {
-                  setClientPackageModalOpen(false);
-                  setEditingClientPackage(null);
-                }}>
-                <X size={18} />
-              </button>
-            </div>
-            <ClientPackageForm
-              clients={clientNames}
-              employees={employees.filter((employee) => employee.status !== "Архив")}
-              packages={packagesCatalog}
-              clientPackage={editingClientPackage}
-              onSubmit={handleClientPackageSubmit}
-            />
-          </section>
-        </div>
-      )}
-      {messageTemplateModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal message-template-modal"
-            role="dialog"
-            aria-labelledby="message-template-modal-title">
-            <div className="modal-header">
-              <h2 id="message-template-modal-title">
-                {editingMessageTemplate
-                  ? "Редактировать шаблон"
-                  : "Добавить шаблон"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => {
-                  setMessageTemplateModalOpen(false);
-                  setEditingMessageTemplate(null);
-                }}>
-                <X size={18} />
-              </button>
-            </div>
-            <MessageTemplateForm
-              template={editingMessageTemplate}
-              onSubmit={handleMessageTemplateSubmit}
-            />
-          </section>
-        </div>
-      )}
-      {calendarEntryModalOpen && (
-        <div className="modal-backdrop calendar-entry-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal calendar-entry-modal"
-            role="dialog"
-            aria-labelledby="calendar-entry-modal-title">
-            <div className="modal-header">
-              <h2 id="calendar-entry-modal-title">
-                {editingCalendarEntry ? "Редактировать запись" : "Добавить в календарь"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => {
-                  setCalendarEntryModalOpen(false);
-                  setEditingCalendarEntry(null);
-                  setCalendarEntryDefaults({});
-                }}>
-                <X size={18} />
-              </button>
-            </div>
-            <CalendarEntryForm
-              calendarEntries={calendarEntries}
-              clients={clientProfiles}
-              clientPackages={clientPackages}
-              employees={employees.filter((employee) => employee.status !== "Архив")}
-              initialEntry={editingCalendarEntry}
-              visits={paymentRows}
-              selectedDate={calendarEntryDefaults.date ?? DEFAULT_STATS_DATE}
-              selectedClient={calendarEntryDefaults.client ?? ""}
-              selectedAmount={calendarEntryDefaults.amount ?? ""}
-              selectedDuration={calendarEntryDefaults.duration ?? 60}
-              selectedKind={calendarEntryDefaults.kind ?? "visit"}
-              selectedMaster={calendarEntryDefaults.master ?? masters[0] ?? ""}
-              selectedPayment={calendarEntryDefaults.payment ?? "Наличные"}
-              selectedServiceId={calendarEntryDefaults.serviceId ?? ""}
-              selectedTime={calendarEntryDefaults.time ?? "10:00"}
-              services={serviceCatalog}
-              onCreateClient={addCalendarFormClient}
-              onSubmit={handleCalendarEntrySubmit}
-            />
-          </section>
-        </div>
-      )}
-      {taskModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section aria-modal="true" className="employee-modal catalog-modal" role="dialog" aria-labelledby="task-modal-title">
-            <div className="modal-header">
-              <h2 id="task-modal-title">
-                {editingTask?.type === "note"
-                  ? "Редактировать заметку"
-                  : editingTask
-                    ? "Редактировать задачу"
-                    : "Новая задача"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => {
-                  setTaskModalOpen(false);
-                  setEditingTask(null);
-                }}>
-                <X size={18} />
-              </button>
-            </div>
-            <TaskForm task={editingTask} onSubmit={handleTaskSubmit} />
-          </section>
-        </div>
-      )}
-      {supplyModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section aria-modal="true" className="employee-modal catalog-modal" role="dialog" aria-labelledby="supply-modal-title">
-            <div className="modal-header">
-              <h2 id="supply-modal-title">{editingSupply ? "Редактировать расходник" : "Новый расходник"}</h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => {
-                  setSupplyModalOpen(false);
-                  setEditingSupply(null);
-                }}>
-                <X size={18} />
-              </button>
-            </div>
-            <SupplyForm supply={editingSupply} onSubmit={handleSupplySubmit} />
-          </section>
-        </div>
-      )}
-      {financialOperationModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-labelledby="financial-operation-modal-title"
-            aria-modal="true"
-            className="employee-modal"
-            role="dialog">
-            <div className="modal-header">
-              <h2 id="financial-operation-modal-title">Добавить поступление</h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={() => setFinancialOperationModalOpen(false)}>
-                <X size={18} />
-              </button>
-            </div>
-            <FinancialOperationForm
-              clients={clientProfiles}
-              onSubmit={handleFinancialOperationSubmit}
-            />
-          </section>
-        </div>
-      )}
-      <ConfirmDialog
-        open={Boolean(pendingCalendarAction)}
-        title={
-          pendingCalendarAction?.type === "delete"
-              ? "Удалить запись?"
-              : "Редактировать запись?"
-        }
-        message={
-          pendingCalendarAction?.type === "delete"
-              ? "Запись исчезнет из календаря."
-              : "Открыть форму и изменить данные записи?"
-        }
-        confirmLabel={
-          pendingCalendarAction?.type === "delete"
-              ? "Удалить"
-              : "Редактировать"
-        }
-        onCancel={() => setPendingCalendarAction(null)}
-        onConfirm={confirmCalendarAction}
-      />
-      <ConfirmDialog
-        open={Boolean(pendingCalendarConflict)}
-        title={pendingCalendarConflict?.shiftWarning ? "Проверьте время записи" : "Конфликт в календаре"}
-        message={[
-          pendingCalendarConflict?.shiftWarning,
-          (pendingCalendarConflict?.conflicts.length ?? 0) > 0
-            ? `У этого мастера уже есть ${pendingCalendarConflict.conflicts.length} пересекающихся записей.`
-            : "",
-          "Всё равно сохранить запись?",
-        ].filter(Boolean).join(" ")}
-        confirmLabel="Сохранить"
-        onCancel={() => setPendingCalendarConflict(null)}
-        onConfirm={confirmCalendarConflict}
-      />
-      <ConfirmDialog
-        open={Boolean(pendingPaymentDelete)}
-        title={
-          pendingPaymentDelete?.recordType === "operation"
-            ? "Удалить поступление?"
-            : "Удалить визит из финжурнала?"
-        }
-        message={
-          pendingPaymentDelete?.calendarEntryId
-            ? "Запись будет удалена из календаря и финансового отчета полностью."
-            : "Запись будет удалена из финансового отчета."
-        }
-        confirmLabel="Удалить"
-        onCancel={() => setPendingPaymentDelete(null)}
-        onConfirm={confirmPaymentDelete}
-      />
-      <ConfirmDialog
-        open={Boolean(pendingDataBackup)}
-        title="Восстановить базу?"
-        message="Текущие локальные данные будут заменены содержимым резервной копии."
-        confirmLabel="Восстановить"
-        onCancel={() => setPendingDataBackup(null)}
-        onConfirm={confirmDataBackupImport}
-      />
-      <ToastStack notifications={notifications} onClose={closeNotification} />
-    </div>
+    </AppShell>
   );
 }
 

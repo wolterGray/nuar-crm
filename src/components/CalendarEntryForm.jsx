@@ -1,4 +1,7 @@
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {useForm, useWatch} from "react-hook-form";
+import {z} from "zod";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {getPackageProgressLabel, isUpcomingPackageVisit} from "../utils/packages.jsx";
 
@@ -11,6 +14,88 @@ const toTime = (minutes) =>
   `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(
     minutes % 60,
   ).padStart(2, "0")}`;
+const optionalMoneyField = z.union([z.string(), z.number(), z.literal("")]).optional();
+const calendarEntrySchema = z
+  .object({
+    kind: z.enum(["visit", "reserved"]),
+    client: z.string().optional(),
+    date: z.string().min(1, "Укажите дату"),
+    time: z.string().min(1, "Укажите время"),
+    endTime: z.string().optional(),
+    duration: z.coerce.number().min(15, "Минимум 15 минут"),
+    master: z.string().min(1, "Выберите мастера"),
+    title: z.string().optional(),
+    serviceId: z.union([z.string(), z.number()]).optional(),
+    amount: optionalMoneyField,
+    payment: z.string().optional(),
+    packageUsageId: z.union([z.string(), z.number()]).optional(),
+    commissionType: z.string().optional(),
+    tip: optionalMoneyField,
+    extra: optionalMoneyField,
+    debt: optionalMoneyField,
+    discount: optionalMoneyField,
+    color: z.string().optional(),
+    note: z.string().optional(),
+  })
+  .superRefine((data, context) => {
+    if (data.kind === "visit") {
+      if (!String(data.client ?? "").trim()) {
+        context.addIssue({
+          code: "custom",
+          message: "Выберите или введите клиента",
+          path: ["client"],
+        });
+      }
+
+      if (!String(data.serviceId ?? "").trim()) {
+        context.addIssue({
+          code: "custom",
+          message: "Выберите услугу",
+          path: ["serviceId"],
+        });
+      }
+
+      if (!String(data.payment ?? "").trim()) {
+        context.addIssue({
+          code: "custom",
+          message: "Выберите оплату",
+          path: ["payment"],
+        });
+      }
+
+      if (data.payment === "Пакет" && !String(data.packageUsageId ?? "").trim()) {
+        context.addIssue({
+          code: "custom",
+          message: "Выберите пакет клиента",
+          path: ["packageUsageId"],
+        });
+      }
+    }
+
+    if (data.kind === "reserved") {
+      if (!String(data.title ?? "").trim()) {
+        context.addIssue({
+          code: "custom",
+          message: "Укажите причину резерва",
+          path: ["title"],
+        });
+      }
+
+      if (!String(data.endTime ?? "").trim()) {
+        context.addIssue({
+          code: "custom",
+          message: "Укажите время окончания",
+          path: ["endTime"],
+        });
+      } else if (toMinutes(data.endTime) <= toMinutes(data.time)) {
+        context.addIssue({
+          code: "custom",
+          message: "Конец должен быть позже начала",
+          path: ["endTime"],
+        });
+      }
+    }
+  });
 
 function CalendarEntryForm({
   initialEntry,
@@ -32,35 +117,91 @@ function CalendarEntryForm({
   onCreateClient,
   onSubmit,
 }) {
-  const [kind, setKind] = useState(initialEntry?.kind ?? selectedKind ?? "visit");
-  const [client, setClient] = useState(initialEntry?.client ?? selectedClient ?? "");
-  const [master, setMaster] = useState(
-    initialEntry?.master ?? selectedMaster ?? employees[0]?.name ?? "",
-  );
-  const [serviceId, setServiceId] = useState(initialEntry?.serviceId ?? selectedServiceId ?? "");
-  const [duration, setDuration] = useState(initialEntry?.duration ?? selectedDuration ?? 60);
-  const [time, setTime] = useState(initialEntry?.time ?? selectedTime ?? "10:00");
-  const [endTime, setEndTime] = useState(() =>
-    toTime(
-      toMinutes(initialEntry?.time ?? selectedTime ?? "10:00") +
-        Number(initialEntry?.duration ?? 60),
-    ),
-  );
-  const [payment, setPayment] = useState(initialEntry?.payment ?? selectedPayment ?? "Наличные");
-  const [amount, setAmount] = useState(initialEntry?.amount ?? selectedAmount ?? "");
-  const [commissionType, setCommissionType] = useState(
-    initialEntry?.commissionType ?? "Без комиссии",
-  );
-  const [tip, setTip] = useState(initialEntry?.tip ?? "");
-  const [extra, setExtra] = useState(initialEntry?.extra ?? "");
-  const [debt, setDebt] = useState(initialEntry?.debt ?? "");
-  const [discount, setDiscount] = useState(initialEntry?.discount ?? "");
-  const [note, setNote] = useState(initialEntry?.note ?? "");
   const [clientTemplateApplied, setClientTemplateApplied] = useState(
     Boolean(initialEntry),
   );
+  const defaultTime = initialEntry?.time ?? selectedTime ?? "10:00";
+  const defaultDuration = initialEntry?.duration ?? selectedDuration ?? 60;
+  const {
+    control,
+    formState: {errors, isValid},
+    handleSubmit,
+    register,
+    setValue,
+    trigger,
+  } = useForm({
+    defaultValues: {
+      kind: initialEntry?.kind ?? selectedKind ?? "visit",
+      client: initialEntry?.client ?? selectedClient ?? "",
+      date: initialEntry?.date ?? selectedDate,
+      time: defaultTime,
+      endTime: toTime(toMinutes(defaultTime) + Number(defaultDuration)),
+      duration: String(defaultDuration),
+      master: initialEntry?.master ?? selectedMaster ?? employees[0]?.name ?? "",
+      title: initialEntry?.title ?? "",
+      serviceId: initialEntry?.serviceId ?? selectedServiceId ?? "",
+      amount: initialEntry?.amount ?? selectedAmount ?? "",
+      payment: initialEntry?.payment ?? selectedPayment ?? "Наличные",
+      packageUsageId: initialEntry?.packageUsageId ?? "",
+      commissionType: initialEntry?.commissionType ?? "Без комиссии",
+      tip: initialEntry?.tip ?? "",
+      extra: initialEntry?.extra ?? "",
+      debt: initialEntry?.debt ?? "",
+      discount: initialEntry?.discount ?? "",
+      color: initialEntry?.color ?? "#748091",
+      note: initialEntry?.note ?? "",
+    },
+    mode: "onChange",
+    resolver: zodResolver(calendarEntrySchema),
+  });
+  useEffect(() => {
+    trigger();
+  }, [trigger]);
+  const [
+    kind,
+    client,
+    master,
+    serviceId,
+    duration,
+    time,
+    endTime,
+    payment,
+    amount,
+    commissionType,
+    tip,
+    extra,
+    debt,
+    discount,
+    note,
+  ] = useWatch({
+    control,
+    name: [
+      "kind",
+      "client",
+      "master",
+      "serviceId",
+      "duration",
+      "time",
+      "endTime",
+      "payment",
+      "amount",
+      "commissionType",
+      "tip",
+      "extra",
+      "debt",
+      "discount",
+      "note",
+    ],
+  });
   const service = services.find((item) => String(item.id) === String(serviceId));
   const clientExists = clients.some((item) => item.name === client);
+  const setFormValue = (name, value, options = {}) =>
+    setValue(name, value, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+      ...options,
+    });
   const findServiceByVisit = (visit) =>
     services.find(
       (item) =>
@@ -112,22 +253,23 @@ function CalendarEntryForm({
       (variant) => Number(variant.duration) === nextDuration,
     );
 
-    setServiceId(previousService?.id ?? previousVisit.serviceId ?? "");
-    setDuration(nextDuration);
-    setAmount(
+    setFormValue("serviceId", previousService?.id ?? previousVisit.serviceId ?? "");
+    setFormValue("duration", String(nextDuration));
+    setFormValue(
+      "amount",
       previousVisit.amount === "" || previousVisit.amount === undefined
         ? nextVariant?.price ?? ""
         : previousVisit.amount,
     );
-    setPayment(previousVisit.payment || "Наличные");
-    setCommissionType(previousVisit.commissionType || "Без комиссии");
-    setTip(previousVisit.tip ?? "");
-    setExtra(previousVisit.extra ?? "");
-    setDebt("");
-    setDiscount(previousVisit.discount ?? "");
-    setNote(previousVisit.note ?? "");
+    setFormValue("payment", previousVisit.payment || "Наличные");
+    setFormValue("commissionType", previousVisit.commissionType || "Без комиссии");
+    setFormValue("tip", previousVisit.tip ?? "");
+    setFormValue("extra", previousVisit.extra ?? "");
+    setFormValue("debt", "");
+    setFormValue("discount", previousVisit.discount ?? "");
+    setFormValue("note", previousVisit.note ?? "");
     if (previousVisit.master) {
-      setMaster(previousVisit.master);
+      setFormValue("master", previousVisit.master);
     }
     setClientTemplateApplied(true);
   };
@@ -155,24 +297,25 @@ function CalendarEntryForm({
         String(entry.packageUsageId) === String(packageItem.id) &&
         isUpcomingPackageVisit(entry),
     ).length + 1;
+  const submitForm = handleSubmit((_values, event) => onSubmit(event));
 
   return (
-    <form className="calendar-entry-form" onSubmit={onSubmit}>
+    <form className="calendar-entry-form" noValidate onSubmit={submitForm}>
       {!initialEntry && <div className="calendar-kind-switch">
         <button
           className={kind === "visit" ? "active" : ""}
           type="button"
-          onClick={() => setKind("visit")}>
+          onClick={() => setFormValue("kind", "visit")}>
           Клиент
         </button>
         <button
           className={kind === "reserved" ? "active" : ""}
           type="button"
-          onClick={() => setKind("reserved")}>
+          onClick={() => setFormValue("kind", "reserved")}>
           Резерв
         </button>
       </div>}
-      <input name="kind" type="hidden" value={kind} />
+      <input {...register("kind")} type="hidden" />
       {kind === "visit" && (
         <>
           <label className="calendar-entry-client-field">
@@ -185,13 +328,14 @@ function CalendarEntryForm({
               required
               onChange={(event) => {
                 const nextClient = event.target.value;
-                setClient(nextClient);
+                setFormValue("client", nextClient);
                 setClientTemplateApplied(false);
                 if (clients.some((item) => item.name === nextClient)) {
                   applyClientTemplate(nextClient);
                 }
               }}
             />
+            <FieldError message={errors.client?.message} />
           </label>
           {client && !clientExists && (
             <div className="calendar-new-client-hint">
@@ -211,36 +355,40 @@ function CalendarEntryForm({
       <div className="calendar-entry-grid calendar-entry-time-grid">
         <label className="calendar-entry-date-field">
           Дата
-          <input name="date" type="date" defaultValue={initialEntry?.date ?? selectedDate} />
+          <input {...register("date")} aria-invalid={Boolean(errors.date)} type="date" />
+          <FieldError message={errors.date?.message} />
         </label>
         <label className="calendar-entry-start-field">
           Время
           <input
-            name="time"
+            {...register("time")}
+            aria-invalid={Boolean(errors.time)}
             type="time"
             step="900"
             value={time}
             onChange={(event) => {
               const nextTime = event.target.value;
               const currentDuration = Math.max(15, toMinutes(endTime) - toMinutes(time));
-              setTime(nextTime);
-              setEndTime(toTime(toMinutes(nextTime) + currentDuration));
+              setFormValue("time", nextTime);
+              setFormValue("endTime", toTime(toMinutes(nextTime) + currentDuration));
             }}
           />
+          <FieldError message={errors.time?.message} />
         </label>
         {kind === "visit" ? <label>
           Длительность
           <select
-            name="duration"
+            {...register("duration")}
+            aria-invalid={Boolean(errors.duration)}
             value={duration}
             onChange={(event) => {
               const nextDuration = Number(event.target.value);
               const nextVariant = service?.variants?.find(
                 (variant) => Number(variant.duration) === nextDuration,
               );
-              setDuration(nextDuration);
+              setFormValue("duration", String(nextDuration));
               if (nextVariant) {
-                setAmount(nextVariant.price);
+                setFormValue("amount", nextVariant.price);
               }
             }}>
             {durationOptions.map((value) => (
@@ -249,26 +397,31 @@ function CalendarEntryForm({
               </option>
             ))}
           </select>
+          <FieldError message={errors.duration?.message} />
         </label> : <label className="calendar-entry-end-field">
           Конец
           <input
-            name="endTime"
+            {...register("endTime")}
+            aria-invalid={Boolean(errors.endTime)}
             type="time"
             step="900"
             value={endTime}
-            onChange={(event) => setEndTime(event.target.value)}
+            onChange={(event) => setFormValue("endTime", event.target.value)}
           />
+          <FieldError message={errors.endTime?.message} />
         </label>}
         <label>
           Мастер
           <select
-            name="master"
+            {...register("master")}
+            aria-invalid={Boolean(errors.master)}
             value={master}
-            onChange={(event) => setMaster(event.target.value)}>
+            onChange={(event) => setFormValue("master", event.target.value)}>
             {employees.map((employee) => (
               <option key={employee.id}>{employee.name}</option>
             ))}
           </select>
+          <FieldError message={errors.master?.message} />
         </label>
       </div>
 
@@ -277,14 +430,14 @@ function CalendarEntryForm({
           <label>
             Причина
             <textarea
-              name="title"
-              defaultValue={initialEntry?.title ?? ""}
+              {...register("title")}
+              aria-invalid={Boolean(errors.title)}
               placeholder="Причина"
               rows="3"
-              required
             />
+            <FieldError message={errors.title?.message} />
           </label>
-          <input name="color" type="hidden" value={initialEntry?.color ?? "#748091"} />
+          <input {...register("color")} type="hidden" value={initialEntry?.color ?? "#748091"} />
         </>
       ) : (
         <>
@@ -292,9 +445,9 @@ function CalendarEntryForm({
             <label className="calendar-entry-service-field">
               Услуга
               <select
-                name="serviceId"
+                {...register("serviceId")}
+                aria-invalid={Boolean(errors.serviceId)}
                 value={serviceId}
-                required
                 onChange={(event) => {
                   const nextService = services.find(
                     (item) => String(item.id) === String(event.target.value),
@@ -302,8 +455,8 @@ function CalendarEntryForm({
                   const nextVariant = nextService?.variants?.find(
                     (variant) => Number(variant.duration) === Number(duration),
                   );
-                  setServiceId(event.target.value);
-                  setAmount(nextVariant?.price ?? "");
+                  setFormValue("serviceId", event.target.value);
+                  setFormValue("amount", nextVariant?.price ?? "");
                 }}>
                 <option value="">Выберите услугу</option>
                 {services.map((item) => (
@@ -312,22 +465,24 @@ function CalendarEntryForm({
                   </option>
                 ))}
               </select>
+              <FieldError message={errors.serviceId?.message} />
             </label>
             <label>
               Стоимость
               <input
-                name="amount"
+                {...register("amount")}
                 value={amount}
-                onChange={(event) => setAmount(event.target.value)}
+                onChange={(event) => setFormValue("amount", event.target.value)}
                 placeholder="0"
               />
             </label>
             <label>
               Оплата
               <select
-                name="payment"
+                {...register("payment")}
+                aria-invalid={Boolean(errors.payment)}
                 value={payment}
-                onChange={(event) => setPayment(event.target.value)}>
+                onChange={(event) => setFormValue("payment", event.target.value)}>
                 <option>Наличные</option>
                 <option>Карта</option>
                 <option>Пакет</option>
@@ -336,13 +491,14 @@ function CalendarEntryForm({
                 <option>BLIK</option>
                 <option>Не указано</option>
               </select>
+              <FieldError message={errors.payment?.message} />
             </label>
             <label>
               Комиссия
               <select
-                name="commissionType"
+                {...register("commissionType")}
                 value={commissionType}
-                onChange={(event) => setCommissionType(event.target.value)}>
+                onChange={(event) => setFormValue("commissionType", event.target.value)}>
                 <option>Без комиссии</option>
                 <option>Booksy 45%</option>
               </select>
@@ -350,7 +506,9 @@ function CalendarEntryForm({
             {payment === "Пакет" && (
               <label className="calendar-entry-package-field">
                 Пакет клиента
-                <select name="packageUsageId" required>
+                <select
+                  {...register("packageUsageId")}
+                  aria-invalid={Boolean(errors.packageUsageId)}>
                   <option value="">Выберите пакет</option>
                   {packageOptions.map((item) => (
                     <option key={item.id} value={item.id}>
@@ -361,6 +519,7 @@ function CalendarEntryForm({
                     </option>
                   ))}
                 </select>
+                <FieldError message={errors.packageUsageId?.message} />
               </label>
             )}
           </div>
@@ -368,42 +527,42 @@ function CalendarEntryForm({
             <label>
               Чай
               <input
-                name="tip"
+                {...register("tip")}
                 value={tip}
-                onChange={(event) => setTip(event.target.value)}
+                onChange={(event) => setFormValue("tip", event.target.value)}
                 placeholder="0"
               />
             </label>
             <label>
               Доп сумма
               <input
-                name="extra"
+                {...register("extra")}
                 value={extra}
-                onChange={(event) => setExtra(event.target.value)}
+                onChange={(event) => setFormValue("extra", event.target.value)}
                 placeholder="0"
               />
             </label>
             <label>
               Долг
               <input
-                name="debt"
+                {...register("debt")}
                 value={debt}
-                onChange={(event) => setDebt(event.target.value)}
+                onChange={(event) => setFormValue("debt", event.target.value)}
                 placeholder="0"
               />
             </label>
             <label>
               Скидка %
               <input
-                name="discount"
+                {...register("discount")}
                 value={discount}
-                onChange={(event) => setDiscount(event.target.value)}
+                onChange={(event) => setFormValue("discount", event.target.value)}
                 placeholder="0"
               />
             </label>
           </div>
           <input
-            name="color"
+            {...register("color")}
             type="hidden"
             value={
               service?.color ??
@@ -415,16 +574,29 @@ function CalendarEntryForm({
       {kind === "visit" && <label>
         Комментарий
         <textarea
-          name="note"
+          {...register("note")}
           value={note}
-          onChange={(event) => setNote(event.target.value)}
+          onChange={(event) => setFormValue("note", event.target.value)}
           rows="2"
         />
       </label>}
-      <button className="submit-button">
+      <button className="submit-button" disabled={!isValid}>
         {initialEntry || kind !== "visit" ? "Сохранить" : "Добавить в календарь"}
       </button>
     </form>
+  );
+}
+
+function FieldError({message}) {
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <small
+      style={{color: "#b4493f", fontSize: 12, fontWeight: 600, marginTop: 4}}>
+      {message}
+    </small>
   );
 }
 

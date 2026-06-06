@@ -1,102 +1,153 @@
 import {UserPlus} from "lucide-react";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {useEffect} from "react";
+import {useForm} from "react-hook-form";
+import {z} from "zod";
+
+const optionalEmail = z
+  .string()
+  .trim()
+  .optional()
+  .or(z.literal(""))
+  .refine((value) => !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value), {
+    message: "Введите корректный email",
+  });
+
+const clientFormSchema = z.object({
+  name: z.string().trim().min(1, "Укажите имя клиента"),
+  phone: z.string().optional(),
+  email: optionalEmail,
+  birthday: z.string().optional(),
+  instagram: z.string().optional(),
+  telegram: z.string().optional(),
+  source: z.string().min(1, "Укажите источник"),
+  preference: z.string().min(1, "Укажите предпочтение"),
+  status: z.string().min(1, "Укажите статус"),
+  tags: z.string().optional(),
+  note: z.string().optional(),
+});
 
 function NewClientForm({client, onSubmit}) {
+  const {
+    formState: {errors, isValid},
+    handleSubmit,
+    register,
+    trigger,
+  } = useForm({
+    defaultValues: {
+      name: client?.name ?? "",
+      phone: client?.phone ?? "",
+      email: client?.email ?? "",
+      birthday: client?.birthday ?? "",
+      instagram: client?.instagram ?? "",
+      telegram: client?.telegram ?? "",
+      source: client?.source ?? "Instagram",
+      preference: client?.preference ?? "Любой мастер",
+      status: client?.status ?? "Активный",
+      tags: client?.tags ?? "",
+      note: client?.note ?? "",
+    },
+    mode: "onChange",
+    resolver: zodResolver(clientFormSchema),
+  });
+  useEffect(() => {
+    trigger();
+  }, [trigger]);
+  const submitForm = handleSubmit((_values, event) => onSubmit(event));
+
   return (
     <section className="panel new-client-panel">
       <div className="form-title">
         <UserPlus size={18} />
         <h2>{client ? "Редактировать клиента" : "Новый клиент"}</h2>
       </div>
-      <form noValidate onSubmit={onSubmit}>
+      <form noValidate onSubmit={submitForm}>
         <label>
           Имя клиента
           <input
-            name="name"
-            defaultValue={client?.name ?? ""}
+            {...register("name")}
+            aria-invalid={Boolean(errors.name)}
             placeholder="Например: Наталья К."
-            required
           />
+          <FieldError message={errors.name?.message} />
         </label>
         <label>
           Телефон
           <input
-            name="phone"
-            defaultValue={client?.phone ?? ""}
+            {...register("phone")}
             placeholder="+48 000 000 000"
           />
         </label>
         <label>
           Email
           <input
-            name="email"
+            {...register("email")}
+            aria-invalid={Boolean(errors.email)}
             inputMode="email"
-            defaultValue={client?.email ?? ""}
             placeholder="client@example.com"
           />
+          <FieldError message={errors.email?.message} />
         </label>
         <label>
           Дата рождения
           <input
-            name="birthday"
+            {...register("birthday")}
             type="date"
-            defaultValue={client?.birthday ?? ""}
           />
         </label>
         <label>
           Instagram
           <input
-            name="instagram"
-            defaultValue={client?.instagram ?? ""}
+            {...register("instagram")}
             placeholder="@username или ссылка на профиль"
           />
         </label>
         <label>
           Telegram
           <input
-            name="telegram"
-            defaultValue={client?.telegram ?? ""}
+            {...register("telegram")}
             placeholder="@username"
           />
         </label>
         <div className="form-split">
           <label>
             Источник
-            <select name="source" defaultValue={client?.source ?? "Instagram"}>
+            <select {...register("source")} aria-invalid={Boolean(errors.source)}>
               <option>Instagram</option>
               <option>Booksy</option>
               <option>Google</option>
               <option>Рекомендация</option>
               <option>Проходил мимо</option>
             </select>
+            <FieldError message={errors.source?.message} />
           </label>
           <label>
             Предпочтение
-            <select
-              name="preference"
-              defaultValue={client?.preference ?? "Любой мастер"}>
+            <select {...register("preference")} aria-invalid={Boolean(errors.preference)}>
               <option>Любой мастер</option>
               <option>Ольга</option>
               <option>Максим</option>
               <option>Новая мастер</option>
             </select>
+            <FieldError message={errors.preference?.message} />
           </label>
         </div>
         <div className="form-split">
           <label>
             Статус клиента
-            <select name="status" defaultValue={client?.status ?? "Активный"}>
+            <select {...register("status")} aria-invalid={Boolean(errors.status)}>
               <option>Активный</option>
               <option>VIP</option>
               <option>Новый</option>
               <option>Пауза</option>
               <option>Не беспокоить</option>
             </select>
+            <FieldError message={errors.status?.message} />
           </label>
           <label>
             Теги
             <input
-              name="tags"
-              defaultValue={client?.tags ?? ""}
+              {...register("tags")}
               placeholder="VIP, спорт, поляк"
             />
           </label>
@@ -104,17 +155,29 @@ function NewClientForm({client, onSubmit}) {
         <label>
           Комментарий
           <textarea
-            name="note"
-            defaultValue={client?.note ?? ""}
+            {...register("note")}
             placeholder="Аллергии, противопоказания, пожелания"
             rows="3"
           />
         </label>
-        <button className="submit-button" type="submit">
+        <button className="submit-button" disabled={!isValid} type="submit">
           {client ? "Сохранить клиента" : "Добавить клиента"}
         </button>
       </form>
     </section>
+  );
+}
+
+function FieldError({message}) {
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <small
+      style={{color: "#b4493f", fontSize: 12, fontWeight: 600, marginTop: 4}}>
+      {message}
+    </small>
   );
 }
 
