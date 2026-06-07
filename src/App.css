@@ -51,8 +51,6 @@ button {
   overflow: hidden;
 }
 
-
-
 .theme-dark {
   color: #eef4fb;
   background: #0f131a;
@@ -300,8 +298,6 @@ button {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
 }
-
-
 
 .sidebar {
   position: relative;
@@ -736,7 +732,7 @@ button {
   position: relative;
   min-width: 0;
   height: 100vh;
-  overflow: hidden;
+  overflow: hidden !important;
   padding: 18px 22px 24px;
 }
 
@@ -850,10 +846,10 @@ h1 {
   width: 42px;
   height: 42px;
   place-items: center;
-  border: 1px solid #dcdcdc;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 8px;
-  color: #15171c;
-  background: #fff;
+  color: #f4f5f7 !important;
+  background: #151820 !important;
   box-shadow: 0 8px 26px rgba(17, 19, 24, 0.03);
 }
 
@@ -1417,10 +1413,9 @@ h2 {
 
 .table-row {
   display: grid;
-  grid-template-columns: 80px minmax(92px, 1fr) minmax(
-      112px,
-      1.14fr
-    ) 78px 68px 68px 42px 58px 58px 58px 48px 66px 24px;
+  grid-template-columns:
+    80px minmax(92px, 1fr) minmax(112px, 1.14fr)
+    78px 68px 68px 42px 58px 58px 58px 48px 66px 24px;
   align-items: center;
   min-width: 0;
   min-height: 44px;
@@ -1959,10 +1954,9 @@ h2 {
 .clients-table-row {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(
-      116px,
-      1.1fr
-    ) 112px 52px 62px 88px 96px 58px minmax(108px, 1fr) 58px;
+  grid-template-columns:
+    minmax(116px, 1.1fr)
+    112px 52px 62px 88px 96px 58px minmax(108px, 1fr) 58px;
   align-items: center;
   gap: 10px;
   min-height: 46px;
@@ -2225,10 +2219,9 @@ h2 {
 
 .client-visit-history-row {
   display: grid;
-  grid-template-columns: 118px minmax(150px, 1.4fr) minmax(80px, 0.7fr) minmax(
-      80px,
-      0.7fr
-    ) 92px 80px 92px;
+  grid-template-columns:
+    118px minmax(150px, 1.4fr) minmax(80px, 0.7fr) minmax(80px, 0.7fr)
+    92px 80px 92px;
   gap: 8px;
   align-items: center;
   min-width: 720px;
@@ -3555,15 +3548,15 @@ h2 {
 }
 
 .schedule-hour-label span:nth-child(2) {
-  top: 21px;
+  top: 15px;
 }
 
 .schedule-hour-label span:nth-child(3) {
-  top: 49px;
+  top: 37px;
 }
 
 .schedule-hour-label span:nth-child(4) {
-  top: 77px;
+  top: 59px;
 }
 
 .schedule-master {
@@ -3670,7 +3663,7 @@ h2 {
   display: flex;
   justify-content: space-between;
   gap: 3px;
-  min-height: 38px;
+  min-height: 30px;
   padding: 5px 6px;
   overflow: visible;
   /* border: 1px solid color-mix(in srgb, var(--entry-color) 74%, #fff); */
@@ -4435,10 +4428,10 @@ h2 {
   gap: 6px;
   min-height: 40px;
   padding: 0 10px;
-  border: 1px solid #e4e5e4;
+  border: 1px solid rgba(255,255,255,.08) !important;
   border-radius: 12px;
   color: #6f737b;
-  background: #f8f8f7;
+  background: #151820 !important;
 }
 
 .statistics-filters input {
@@ -6316,7 +6309,7 @@ button:focus-visible {
 
   .statistics-page {
     display: flex;
-    overflow: visible;
+    overflow: hidden;
     padding-top: 10px;
     padding-bottom: calc(94px + env(safe-area-inset-bottom));
   }
@@ -7426,7 +7419,6 @@ button:focus-visible {
   .content.visits-content:not(.calendar-content) {
     padding: 12px;
   }
-
 }
 
 /* shadcn-like minimal UI layer */
@@ -8172,7 +8164,11 @@ body,
 
 .statistics-card > div {
   background: color-mix(in srgb, var(--statistics-card-color) 18%, white);
-  border-color: color-mix(in srgb, var(--statistics-card-color) 26%, transparent);
+  border-color: color-mix(
+    in srgb,
+    var(--statistics-card-color) 26%,
+    transparent
+  );
   color: color-mix(in srgb, var(--statistics-card-color) 78%, #30343d);
 }
 
@@ -8182,5 +8178,880 @@ body,
     width: 100%;
     min-width: 0;
     margin-left: 0;
+  }
+}
+
+/* ===== LINEAR-LIKE UI PATCH ===== */
+
+:root {
+  --linear-bg: #0b0d10;
+  --linear-sidebar: #0f1115;
+  --linear-panel: #111318;
+  --linear-panel-soft: #171a22;
+  --linear-border: rgba(255, 255, 255, 0.08);
+  --linear-text: #f4f5f7;
+  --linear-muted: #9ca3af;
+  --linear-dim: #6b7280;
+  --linear-accent: #7c6cf2;
+}
+
+.content {
+  background: var(--linear-bg) !important;
+  color: var(--linear-text) !important;
+}
+
+.sidebar {
+  background: var(--linear-sidebar) !important;
+  border-right: 1px solid var(--linear-border);
+}
+
+.statistics-hero-header h2 {
+  color: var(--linear-text) !important;
+  font-size: 22px !important;
+  letter-spacing: -0.03em;
+}
+
+.statistics-hero-header p,
+.statistics-panel-title p,
+.statistics-income-top p,
+.statistics-income-context {
+  color: var(--linear-muted) !important;
+}
+
+.statistics-filters-card,
+.statistics-income-card,
+.statistics-panel,
+.statistics-card {
+  background: var(--linear-panel) !important;
+  border: 1px solid var(--linear-border) !important;
+  box-shadow: none !important;
+}
+
+.statistics-income-card {
+  padding: 16px !important;
+}
+
+.statistics-income-top strong {
+  color: var(--linear-text) !important;
+  font-size: 42px !important;
+  letter-spacing: -0.05em;
+}
+
+.statistics-income-top span,
+.statistics-chart-heading span {
+  color: var(--linear-muted) !important;
+}
+
+.statistics-income-strip span,
+.statistics-card {
+  background: var(--linear-panel-soft) !important;
+  border: 1px solid var(--linear-border) !important;
+}
+
+.statistics-income-strip b,
+.statistics-card strong,
+.statistics-panel-title strong {
+  color: var(--linear-text) !important;
+}
+
+.statistics-revenue-chart {
+  height: 220px !important;
+}
+
+.statistics-attention-item {
+  background: rgba(245, 158, 11, 0.1) !important;
+  border: 1px solid rgba(245, 158, 11, 0.18) !important;
+}
+
+.statistics-payment-track {
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+.statistics-export-button,
+.statistics-filters input,
+.statistics-filters select {
+  background: var(--linear-panel-soft) !important;
+  border: 1px solid var(--linear-border) !important;
+  color: var(--linear-text) !important;
+  box-shadow: none !important;
+}
+
+.statistics-card div {
+  background: rgba(124, 108, 242, 0.12) !important;
+  color: #b7adff !important;
+}
+
+.statistics-kpi-grid {
+  gap: 8px !important;
+}
+
+.statistics-card {
+  min-height: 58px !important;
+  padding: 10px 12px !important;
+}
+
+/* Fix notification bell clipping */
+
+.statistics-header-actions,
+.page-header-actions,
+.page-notifications-slot,
+.client-alert-control {
+  overflow: visible !important;
+}
+
+.client-alert-button {
+  position: relative;
+  flex: 0 0 auto;
+  overflow: visible !important;
+}
+
+.client-alert-button b {
+  top: -6px !important;
+  right: -6px !important;
+  z-index: 3;
+}
+
+/* App-wide Linear palette: statistics colors are the default design language. */
+.theme-dark {
+  --accent-color: #7c6cf2;
+  --app-bg: #0b0d10;
+  --surface: #111318;
+  --surface-solid: #111318;
+  --surface-muted: #171a22;
+  --line-soft: rgba(255, 255, 255, 0.08);
+  --line-subtle: rgba(255, 255, 255, 0.06);
+  --text-main: #f4f5f7;
+  --text-soft: #9ca3af;
+  --text-muted: #6b7280;
+  --linear-bg: #0b0d10;
+  --linear-sidebar: #0f1115;
+  --linear-panel: #111318;
+  --linear-panel-soft: #171a22;
+  --linear-border: rgba(255, 255, 255, 0.08);
+  --linear-border-soft: rgba(255, 255, 255, 0.06);
+  --linear-text: #f4f5f7;
+  --linear-muted: #9ca3af;
+  --linear-dim: #6b7280;
+  --linear-accent: #7c6cf2;
+  --premium-shadow: none;
+  --soft-shadow: none;
+  --focus-ring: 0 0 0 3px rgba(124, 108, 242, 0.24);
+  color: var(--linear-text) !important;
+  background: var(--linear-bg) !important;
+}
+
+.theme-light {
+  --accent-color: #6f6b8f;
+  --app-bg: #f3f5f8;
+  --surface: rgba(255, 255, 255, 0.76);
+  --surface-solid: #ffffff;
+  --surface-muted: #e8ebf0;
+  --line-soft: rgba(34, 40, 52, 0.11);
+  --line-subtle: rgba(34, 40, 52, 0.07);
+  --text-main: #191d25;
+  --text-soft: #747b89;
+  --text-muted: #a1a7b3;
+  --linear-bg: #f3f5f8;
+  --linear-sidebar: #17191e;
+  --linear-panel: rgba(255, 255, 255, 0.76);
+  --linear-panel-soft: #e8ebf0;
+  --linear-border: rgba(34, 40, 52, 0.11);
+  --linear-border-soft: rgba(34, 40, 52, 0.07);
+  --linear-text: #191d25;
+  --linear-muted: #747b89;
+  --linear-dim: #a1a7b3;
+  --linear-accent: #6f6b8f;
+  --premium-shadow: 0 18px 48px rgba(17, 19, 24, 0.08);
+  --soft-shadow: 0 1px 2px rgba(17, 19, 24, 0.045);
+  --focus-ring: 0 0 0 3px rgba(111, 107, 143, 0.16);
+  color: var(--linear-text) !important;
+  background: var(--linear-bg) !important;
+}
+
+.theme-dark .content,
+.theme-dark .visits-content,
+.theme-dark .calendar-content,
+.theme-light .content,
+.theme-light .visits-content,
+.theme-light .calendar-content {
+  color: var(--linear-text) !important;
+  background:
+    radial-gradient(circle at 76% 0%, rgba(124, 108, 242, 0.08), transparent 30%),
+    var(--linear-bg) !important;
+}
+
+.theme-light .content,
+.theme-light .visits-content,
+.theme-light .calendar-content {
+  background:
+    radial-gradient(circle at 76% 0%, rgba(63, 42, 99, 0.055), transparent 30%),
+    var(--linear-bg) !important;
+}
+
+.theme-dark .sidebar,
+.theme-light .sidebar {
+  background: var(--linear-sidebar) !important;
+  border-right: 1px solid var(--linear-border) !important;
+}
+
+.theme-dark .panel,
+.theme-dark .catalog-card,
+.theme-dark .employee-card,
+.theme-dark .management-card,
+.theme-dark .settings-panel,
+.theme-dark .statistics-filters-card,
+.theme-dark .statistics-income-card,
+.theme-dark .statistics-panel,
+.theme-dark .statistics-card,
+.theme-dark .statistics-details-panel,
+.theme-dark .calendar-client-card,
+.theme-dark .employee-modal,
+.theme-dark .confirm-dialog,
+.theme-dark .client-form-modal,
+.theme-dark .client-details-modal,
+.theme-dark .client-alert-popover,
+.theme-dark .calendar-popover,
+.theme-dark .row-action-menu,
+.theme-dark .calendar-slot-menu,
+.theme-dark .visits-table,
+.theme-dark .table-search,
+.theme-light .panel,
+.theme-light .catalog-card,
+.theme-light .employee-card,
+.theme-light .management-card,
+.theme-light .settings-panel,
+.theme-light .statistics-filters-card,
+.theme-light .statistics-income-card,
+.theme-light .statistics-panel,
+.theme-light .statistics-card,
+.theme-light .statistics-details-panel,
+.theme-light .calendar-client-card,
+.theme-light .employee-modal,
+.theme-light .confirm-dialog,
+.theme-light .client-form-modal,
+.theme-light .client-details-modal,
+.theme-light .client-alert-popover,
+.theme-light .calendar-popover,
+.theme-light .row-action-menu,
+.theme-light .calendar-slot-menu,
+.theme-light .visits-table,
+.theme-light .table-search {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel) !important;
+  border-color: var(--linear-border) !important;
+  box-shadow: var(--soft-shadow) !important;
+}
+
+.theme-dark .settings-options,
+.theme-dark .employee-stats span,
+.theme-dark .catalog-prices span,
+.theme-dark .client-details-grid span,
+.theme-dark .statistics-income-strip span,
+.theme-dark .statistics-payment-summary span,
+.theme-dark .statistics-activity-grid span,
+.theme-dark .date-button,
+.theme-dark .secondary-button,
+.theme-dark .client-alert-button,
+.theme-dark .calendar-icon-button,
+.theme-dark .row-action,
+.theme-dark .modal-close,
+.theme-dark input,
+.theme-dark select,
+.theme-dark textarea,
+.theme-light .settings-options,
+.theme-light .employee-stats span,
+.theme-light .catalog-prices span,
+.theme-light .client-details-grid span,
+.theme-light .statistics-income-strip span,
+.theme-light .statistics-payment-summary span,
+.theme-light .statistics-activity-grid span,
+.theme-light .date-button,
+.theme-light .secondary-button,
+.theme-light .client-alert-button,
+.theme-light .calendar-icon-button,
+.theme-light .row-action,
+.theme-light .modal-close,
+.theme-light input,
+.theme-light select,
+.theme-light textarea {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel-soft) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-light input,
+.theme-light select,
+.theme-light textarea,
+.theme-light .date-button,
+.theme-light .secondary-button,
+.theme-light .client-alert-button,
+.theme-light .calendar-icon-button,
+.theme-light .row-action,
+.theme-light .modal-close {
+  background: rgba(255, 255, 255, 0.86) !important;
+}
+
+.theme-dark h1,
+.theme-dark h2,
+.theme-dark h3,
+.theme-dark label,
+.theme-dark strong,
+.theme-dark .total-cell,
+.theme-dark .statistics-income-top strong,
+.theme-dark .statistics-card strong,
+.theme-light h1,
+.theme-light h2,
+.theme-light h3,
+.theme-light label,
+.theme-light strong,
+.theme-light .total-cell,
+.theme-light .statistics-income-top strong,
+.theme-light .statistics-card strong {
+  color: var(--linear-text) !important;
+}
+
+.theme-dark p,
+.theme-dark small,
+.theme-dark .page-header p,
+.theme-dark .panel-header p,
+.theme-dark .clients-toolbar p,
+.theme-dark .employees-toolbar p,
+.theme-dark .settings-toolbar p,
+.theme-dark .catalog-toolbar p,
+.theme-dark .import-toolbar p,
+.theme-dark .statistics-hero-header p,
+.theme-dark .statistics-panel-title p,
+.theme-dark .statistics-income-context,
+.theme-light p,
+.theme-light small,
+.theme-light .page-header p,
+.theme-light .panel-header p,
+.theme-light .clients-toolbar p,
+.theme-light .employees-toolbar p,
+.theme-light .settings-toolbar p,
+.theme-light .catalog-toolbar p,
+.theme-light .import-toolbar p,
+.theme-light .statistics-hero-header p,
+.theme-light .statistics-panel-title p,
+.theme-light .statistics-income-context {
+  color: var(--linear-muted) !important;
+}
+
+.theme-dark input::placeholder,
+.theme-dark textarea::placeholder,
+.theme-light input::placeholder,
+.theme-light textarea::placeholder {
+  color: var(--linear-dim) !important;
+}
+
+.theme-dark select option {
+  color: var(--linear-text);
+  background: var(--linear-panel-soft);
+}
+
+.theme-light select option {
+  color: var(--linear-text);
+  background: #ffffff;
+}
+
+.theme-dark .table-head,
+.theme-dark .clients-table-head,
+.theme-dark .client-package-head,
+.theme-light .table-head,
+.theme-light .clients-table-head,
+.theme-light .client-package-head {
+  color: var(--linear-dim) !important;
+  background: var(--linear-panel-soft) !important;
+}
+
+.theme-dark .table-row,
+.theme-dark .clients-table-row,
+.theme-dark .client-package-row,
+.theme-dark .client-alert-row,
+.theme-light .table-row,
+.theme-light .clients-table-row,
+.theme-light .client-package-row,
+.theme-light .client-alert-row {
+  border-bottom-color: var(--linear-border) !important;
+}
+
+.theme-dark .table-row:not(.table-head):hover,
+.theme-dark .clients-table-row:not(.clients-table-head):hover,
+.theme-dark .client-package-row:hover,
+.theme-dark .calendar-reminder-list article:hover,
+.theme-light .table-row:not(.table-head):hover,
+.theme-light .clients-table-row:not(.clients-table-head):hover,
+.theme-light .client-package-row:hover,
+.theme-light .calendar-reminder-list article:hover {
+  background: color-mix(in srgb, var(--linear-accent) 9%, var(--linear-panel)) !important;
+}
+
+.theme-dark .submit-button,
+.theme-dark .add-visit-button,
+.theme-dark .statistics-export-button,
+.theme-light .submit-button,
+.theme-light .add-visit-button,
+.theme-light .statistics-export-button {
+  color: #ffffff !important;
+  background: var(--linear-accent) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.theme-dark .statistics-income-icon,
+.theme-dark .statistics-card > div,
+.theme-light .statistics-income-icon,
+.theme-light .statistics-card > div {
+  color: color-mix(in srgb, var(--linear-accent) 72%, white) !important;
+  background: color-mix(in srgb, var(--linear-accent) 14%, transparent) !important;
+  border-color: color-mix(in srgb, var(--linear-accent) 22%, transparent) !important;
+}
+
+.theme-light .statistics-income-icon,
+.theme-light .statistics-card > div {
+  color: color-mix(in srgb, var(--linear-accent) 78%, #30343d) !important;
+  background: color-mix(in srgb, var(--linear-accent) 12%, white) !important;
+}
+
+.theme-dark .statistics-payment-track,
+.theme-light .statistics-payment-track {
+  background: color-mix(in srgb, var(--linear-text) 7%, transparent) !important;
+}
+
+.theme-dark .calendar-toolbar,
+.theme-dark .schedule-master header,
+.theme-dark .mobile-calendar-week,
+.theme-light .calendar-toolbar,
+.theme-light .schedule-master header,
+.theme-light .mobile-calendar-week {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-dark .client-form-modal,
+.theme-dark .client-form-modal .new-client-panel,
+.theme-dark .client-form-modal .new-client-panel form {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-dark .new-client-panel input,
+.theme-dark .new-client-panel select,
+.theme-dark .new-client-panel textarea {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel-soft) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-light .client-form-modal,
+.theme-light .client-form-modal .new-client-panel,
+.theme-light .client-form-modal .new-client-panel form {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-dark .schedule-entry {
+  border-left-color: var(--entry-color) !important;
+  color: var(--linear-text) !important;
+  background: color-mix(in srgb, var(--entry-color) 24%, var(--linear-panel)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--entry-color) 28%, transparent) !important;
+}
+
+.theme-dark .schedule-entry strong,
+.theme-dark .schedule-entry span,
+.theme-dark .schedule-entry small {
+  color: var(--linear-text) !important;
+}
+
+.theme-dark .schedule-entry b {
+  color: color-mix(in srgb, var(--entry-color) 42%, white) !important;
+  background: color-mix(in srgb, var(--entry-color) 15%, transparent) !important;
+}
+
+.theme-dark .schedule-reserved {
+  background: color-mix(in srgb, var(--entry-color) 26%, var(--linear-panel-soft)) !important;
+}
+
+.theme-light .schedule-entry {
+  border-left-color: var(--entry-color) !important;
+  color: var(--linear-text) !important;
+  background: color-mix(in srgb, var(--entry-color) 16%, white) !important;
+}
+
+/* Modal and calendar form audit: keep every dialog in the active theme. */
+.theme-dark :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+),
+.theme-light :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+) {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-dark :is(
+  .employee-form-panel,
+  .new-client-panel,
+  .service-form-panel,
+  .package-form-panel,
+  .client-package-form,
+  .message-template-form,
+  .calendar-entry-form,
+  .task-form,
+  .supply-form,
+  .financial-operation-form
+),
+.theme-light :is(
+  .employee-form-panel,
+  .new-client-panel,
+  .service-form-panel,
+  .package-form-panel,
+  .client-package-form,
+  .message-template-form,
+  .calendar-entry-form,
+  .task-form,
+  .supply-form,
+  .financial-operation-form
+) {
+  color: var(--linear-text) !important;
+  background: transparent !important;
+  border-color: var(--linear-border) !important;
+  box-shadow: none !important;
+}
+
+.theme-dark :is(
+  .employee-form-panel,
+  .new-client-panel,
+  .service-form-panel,
+  .package-form-panel
+).panel,
+.theme-light :is(
+  .employee-form-panel,
+  .new-client-panel,
+  .service-form-panel,
+  .package-form-panel
+).panel {
+  background: transparent !important;
+}
+
+.theme-dark :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+) .modal-header,
+.theme-light :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+) .modal-header {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-dark :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+) :is(input, select, textarea),
+.theme-light :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+) :is(input, select, textarea) {
+  width: 100%;
+  color: var(--linear-text) !important;
+  background: var(--linear-panel-soft) !important;
+  border: 1px solid var(--linear-border) !important;
+  box-shadow: none !important;
+}
+
+.theme-light :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+) :is(input, select, textarea) {
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.theme-dark :is(.calendar-kind-switch, .send-channel-control, .period-tabs),
+.theme-light :is(.calendar-kind-switch, .send-channel-control, .period-tabs) {
+  background: var(--linear-panel-soft) !important;
+  border: 1px solid var(--linear-border) !important;
+}
+
+.theme-dark :is(.calendar-kind-switch, .send-channel-control, .period-tabs) button,
+.theme-light :is(.calendar-kind-switch, .send-channel-control, .period-tabs) button {
+  color: var(--linear-muted) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.theme-dark :is(.calendar-kind-switch, .send-channel-control, .period-tabs) button.active,
+.theme-light :is(.calendar-kind-switch, .send-channel-control, .period-tabs) button.active {
+  color: var(--linear-text) !important;
+  background: color-mix(in srgb, var(--linear-accent) 16%, var(--linear-panel)) !important;
+}
+
+.theme-dark :is(.calendar-new-client-hint, .calendar-client-template-hint),
+.theme-light :is(.calendar-new-client-hint, .calendar-client-template-hint) {
+  color: var(--linear-muted) !important;
+  background: color-mix(in srgb, var(--linear-accent) 10%, var(--linear-panel)) !important;
+  border: 1px solid var(--linear-border) !important;
+}
+
+.field-error,
+.theme-dark .field-error,
+.theme-light .field-error {
+  display: block;
+  margin-top: 4px;
+  color: #ff8a7a !important;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.calendar-entry-money-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.calendar-entry-form label {
+  min-width: 0;
+}
+
+.calendar-entry-form :is(input, select, textarea) {
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .calendar-entry-grid,
+  .calendar-entry-money-grid,
+  .calendar-entry-service-grid,
+  .calendar-entry-time-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .calendar-entry-service-field,
+  .calendar-entry-package-field {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 420px) {
+  .calendar-entry-money-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Strong calendar service colors. */
+.theme-dark .schedule-entry {
+  border-top: 1px solid color-mix(in srgb, var(--entry-color) 58%, transparent) !important;
+  border-right: 1px solid color-mix(in srgb, var(--entry-color) 32%, transparent) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--entry-color) 32%, transparent) !important;
+  border-left: 5px solid var(--entry-color) !important;
+  background: color-mix(in srgb, var(--entry-color) 34%, var(--linear-panel)) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--entry-color) 30%, transparent),
+    0 10px 22px rgba(0, 0, 0, 0.18) !important;
+  animation: schedule-entry-pulse 3.8s ease-in-out infinite;
+}
+
+.theme-light .schedule-entry {
+  border-left: 5px solid var(--entry-color) !important;
+  background: color-mix(in srgb, var(--entry-color) 22%, white) !important;
+  animation: schedule-entry-pulse 3.8s ease-in-out infinite;
+}
+
+.theme-dark .schedule-entry-ended,
+.theme-light .schedule-entry-ended {
+  opacity: 0.88 !important;
+}
+
+.theme-dark .schedule-entry-ended {
+  filter: saturate(1.24) brightness(1.08);
+  animation-duration: 5.2s;
+}
+
+.theme-dark .schedule-entry strong {
+  color: #ffffff !important;
+  font-weight: 780;
+}
+
+.theme-dark .schedule-entry span,
+.theme-dark .schedule-entry small {
+  color: rgba(244, 245, 247, 0.82) !important;
+}
+
+.theme-dark .schedule-entry-money {
+  color: color-mix(in srgb, var(--entry-color) 28%, #d9ffe8) !important;
+}
+
+.theme-dark .schedule-entry b {
+  color: #ffffff !important;
+  background: color-mix(in srgb, var(--entry-color) 32%, rgba(255, 255, 255, 0.08)) !important;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+@keyframes schedule-entry-flow {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes schedule-entry-pulse {
+  0%,
+  100% {
+    filter: saturate(1.05) brightness(1.02);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--entry-color) 34%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--entry-color) 28%, transparent),
+      0 8px 18px rgba(0, 0, 0, 0.18) !important;
+  }
+
+  50% {
+    filter: saturate(1.75) brightness(1.2);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--entry-color) 64%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--entry-color) 52%, transparent),
+      0 0 24px color-mix(in srgb, var(--entry-color) 46%, transparent),
+      0 12px 26px rgba(0, 0, 0, 0.24) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schedule-entry {
+    animation: none !important;
+  }
+}
+
+/* Stronger calendar date strip. */
+.theme-dark .mobile-calendar-week,
+.theme-light .mobile-calendar-week {
+  min-height: 88px !important;
+  height: 88px !important;
+  padding: 10px 12px !important;
+  border-bottom: 1px solid var(--linear-border) !important;
+  background: color-mix(in srgb, var(--linear-panel) 92%, transparent) !important;
+}
+
+.theme-dark .mobile-calendar-week button,
+.theme-light .mobile-calendar-week button {
+  min-height: 66px !important;
+  padding: 7px 6px !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  color: var(--linear-muted) !important;
+  background: transparent !important;
+}
+
+.theme-dark .mobile-calendar-week span,
+.theme-light .mobile-calendar-week span {
+  color: color-mix(in srgb, var(--linear-muted) 86%, var(--linear-text)) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em;
+}
+
+.theme-dark .mobile-calendar-week b,
+.theme-light .mobile-calendar-week b {
+  width: 34px !important;
+  height: 34px !important;
+  color: color-mix(in srgb, var(--linear-text) 78%, var(--linear-muted)) !important;
+  font-size: 18px !important;
+  font-weight: 850 !important;
+}
+
+.theme-dark .mobile-calendar-week button:hover,
+.theme-light .mobile-calendar-week button:hover {
+  border-color: var(--linear-border) !important;
+  background: color-mix(in srgb, var(--linear-accent) 8%, var(--linear-panel)) !important;
+}
+
+.theme-dark .mobile-calendar-week button.selected,
+.theme-light .mobile-calendar-week button.selected {
+  min-height: 70px !important;
+  padding: 8px 8px !important;
+  border-color: color-mix(in srgb, var(--linear-accent) 44%, transparent) !important;
+  border-radius: 16px !important;
+  background: color-mix(in srgb, var(--linear-accent) 12%, var(--linear-panel)) !important;
+}
+
+.theme-dark .mobile-calendar-week button.selected span,
+.theme-light .mobile-calendar-week button.selected span {
+  color: color-mix(in srgb, var(--linear-accent) 42%, white) !important;
+}
+
+.theme-dark .mobile-calendar-week button.selected b,
+.theme-light .mobile-calendar-week button.selected b {
+  width: 34px !important;
+  height: 34px !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  background: var(--linear-accent) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--linear-accent) 58%, transparent),
+    0 0 18px color-mix(in srgb, var(--linear-accent) 36%, transparent) !important;
+}
+
+.theme-dark .mobile-calendar-week button.today:not(.selected) b,
+.theme-light .mobile-calendar-week button.today:not(.selected) b {
+  width: 34px !important;
+  height: 34px !important;
+  color: #ffffff !important;
+  background: color-mix(in srgb, var(--linear-accent) 82%, #ffffff) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--linear-accent) 32%, transparent) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schedule-entry {
+    animation: none !important;
   }
 }

@@ -77,9 +77,9 @@ function SettingsPage({
           <div className="settings-options">
             <label>
               Тема
-              <select name="theme" defaultValue={settings.theme ?? "light"}>
-                <option value="light">Светлая</option>
+              <select name="theme" defaultValue={settings.theme ?? "dark"}>
                 <option value="dark">Темная</option>
+                <option value="light">Светлая</option>
               </select>
             </label>
             <label className="toggle-row">

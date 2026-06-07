@@ -124,7 +124,7 @@ function CalendarEntryForm({
   const defaultDuration = initialEntry?.duration ?? selectedDuration ?? 60;
   const {
     control,
-    formState: {errors, isValid},
+    formState: {errors},
     handleSubmit,
     register,
     setValue,
@@ -239,6 +239,13 @@ function CalendarEntryForm({
           (!initialEntry || visit.id !== initialEntry.id),
       )
       .sort((first, second) => getVisitTimestamp(second) - getVisitTimestamp(first))[0];
+  const getAvailablePackagesForClient = (clientName) =>
+    clientPackages.filter(
+      (item) =>
+        item.client === clientName &&
+        item.status !== "Архив" &&
+        Number(item.remainingVisits) > 0,
+    );
   const applyClientTemplate = (clientName) => {
     const previousVisit = findPreviousVisit(clientName);
 
@@ -252,6 +259,12 @@ function CalendarEntryForm({
     const nextVariant = previousService?.variants?.find(
       (variant) => Number(variant.duration) === nextDuration,
     );
+    const availablePackages = getAvailablePackagesForClient(clientName);
+    const previousPackage = availablePackages.find(
+      (item) => String(item.id) === String(previousVisit.packageUsageId),
+    );
+    const canUsePreviousPackagePayment =
+      previousVisit.payment === "Пакет" && availablePackages.length > 0;
 
     setFormValue("serviceId", previousService?.id ?? previousVisit.serviceId ?? "");
     setFormValue("duration", String(nextDuration));
@@ -261,7 +274,20 @@ function CalendarEntryForm({
         ? nextVariant?.price ?? ""
         : previousVisit.amount,
     );
-    setFormValue("payment", previousVisit.payment || "Наличные");
+    setFormValue(
+      "payment",
+      canUsePreviousPackagePayment
+        ? "Пакет"
+        : previousVisit.payment === "Пакет"
+          ? "Наличные"
+          : previousVisit.payment || "Наличные",
+    );
+    setFormValue(
+      "packageUsageId",
+      canUsePreviousPackagePayment
+        ? previousPackage?.id ?? availablePackages[0]?.id ?? ""
+        : "",
+    );
     setFormValue("commissionType", previousVisit.commissionType || "Без комиссии");
     setFormValue("tip", previousVisit.tip ?? "");
     setFormValue("extra", previousVisit.extra ?? "");
@@ -273,16 +299,7 @@ function CalendarEntryForm({
     }
     setClientTemplateApplied(true);
   };
-  const packageOptions = useMemo(
-    () =>
-      clientPackages.filter(
-        (item) =>
-          item.client === client &&
-          item.status !== "Архив" &&
-          Number(item.remainingVisits) > 0,
-      ),
-    [client, clientPackages],
-  );
+  const packageOptions = getAvailablePackagesForClient(client);
   const durationOptions = useMemo(
     () =>
       [...new Set([30, 45, 60, 75, 90, 120, ...(service?.variants ?? []).map((variant) => Number(variant.duration))])]
@@ -297,7 +314,10 @@ function CalendarEntryForm({
         String(entry.packageUsageId) === String(packageItem.id) &&
         isUpcomingPackageVisit(entry),
     ).length + 1;
-  const submitForm = handleSubmit((_values, event) => onSubmit(event));
+  const submitForm = (event) => {
+    const form = event.currentTarget;
+    handleSubmit(() => onSubmit(form))(event);
+  };
 
   return (
     <form className="calendar-entry-form" noValidate onSubmit={submitForm}>
@@ -482,7 +502,15 @@ function CalendarEntryForm({
                 {...register("payment")}
                 aria-invalid={Boolean(errors.payment)}
                 value={payment}
-                onChange={(event) => setFormValue("payment", event.target.value)}>
+                onChange={(event) => {
+                  const nextPayment = event.target.value;
+                  setFormValue("payment", nextPayment);
+                  if (nextPayment !== "Пакет") {
+                    setFormValue("packageUsageId", "");
+                  } else if (packageOptions.length === 1) {
+                    setFormValue("packageUsageId", packageOptions[0].id);
+                  }
+                }}>
                 <option>Наличные</option>
                 <option>Карта</option>
                 <option>Пакет</option>
@@ -580,7 +608,7 @@ function CalendarEntryForm({
           rows="2"
         />
       </label>}
-      <button className="submit-button" disabled={!isValid}>
+      <button className="submit-button" type="submit">
         {initialEntry || kind !== "visit" ? "Сохранить" : "Добавить в календарь"}
       </button>
     </form>
@@ -593,8 +621,7 @@ function FieldError({message}) {
   }
 
   return (
-    <small
-      style={{color: "#b4493f", fontSize: 12, fontWeight: 600, marginTop: 4}}>
+    <small className="field-error">
       {message}
     </small>
   );

@@ -1,6 +1,13 @@
+import {useMemo} from "react";
+import {getRandomServiceColor} from "../utils/serviceColors.js";
+
 const serviceDurations = [60, 75, 90, 120];
 
 function ServiceForm({service, onSubmit}) {
+  const defaultColor = useMemo(
+    () => service?.color ?? getRandomServiceColor(),
+    [service?.color],
+  );
   const getPrice = (duration) =>
     service?.variants?.find((variant) => variant.duration === duration)?.price ?? "";
 
@@ -22,7 +29,7 @@ function ServiceForm({service, onSubmit}) {
             className="color-input"
             name="color"
             type="color"
-            defaultValue={service?.color ?? "#4f8edc"}
+            defaultValue={defaultColor}
           />
         </label>
         <div className="catalog-price-grid">

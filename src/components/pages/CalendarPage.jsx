@@ -30,7 +30,7 @@ import {formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
 import {getPackageProgressLabel, isUpcomingPackageVisit} from "../../utils/packages.jsx";
 import {getVisitDebt, getVisitTransactionTotal} from "../../utils/visits.jsx";
 
-const QUARTER_HEIGHT = 28;
+const QUARTER_HEIGHT = 22;
 const isValidInputDate = (date) =>
   /^\d{4}-\d{2}-\d{2}$/.test(String(date)) &&
   !Number.isNaN(new Date(`${date}T12:00:00`).getTime());
@@ -314,7 +314,7 @@ function CalendarPage({
 
     weekCarouselRef.current.scrollLeft = Math.max(
       0,
-      selectedButton.offsetLeft - selectedButton.offsetWidth - 4,
+      selectedButton.offsetLeft - (selectedButton.offsetWidth + 4) * 2,
     );
   }, [carouselDates, selectedDate]);
 

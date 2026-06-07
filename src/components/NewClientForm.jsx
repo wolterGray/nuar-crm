@@ -53,7 +53,10 @@ function NewClientForm({client, onSubmit}) {
   useEffect(() => {
     trigger();
   }, [trigger]);
-  const submitForm = handleSubmit((_values, event) => onSubmit(event));
+  const submitForm = (event) => {
+    const form = event.currentTarget;
+    handleSubmit(() => onSubmit(form))(event);
+  };
 
   return (
     <section className="panel new-client-panel">
@@ -174,8 +177,7 @@ function FieldError({message}) {
   }
 
   return (
-    <small
-      style={{color: "#b4493f", fontSize: 12, fontWeight: 600, marginTop: 4}}>
+    <small className="field-error">
       {message}
     </small>
   );

@@ -1,6 +1,7 @@
 import {Pencil, Plus, Trash2} from "lucide-react";
 import {motion} from "framer-motion";
 import {formatMoney} from "../../utils/formatters.jsx";
+import {serviceColorPalette} from "../../utils/serviceColors.js";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
 
 function ServicesPage({services, onAdd, onEdit, onDelete}) {
@@ -32,7 +33,7 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
             <div>
               <h3>{service.name}</h3>
               <span className="service-color-label">
-                <i style={{background: service.color ?? "#4f8edc"}} />
+                <i style={{background: service.color ?? serviceColorPalette[0]}} />
                 {service.category}
               </span>
             </div>

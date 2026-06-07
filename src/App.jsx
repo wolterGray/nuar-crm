@@ -23,6 +23,12 @@ import {
 } from "./utils/formatters.jsx";
 import {getEmployeePayout, toVisitNumber} from "./utils/visits.jsx";
 import {getPackageProgressLabel} from "./utils/packages.jsx";
+import {
+  getRandomServiceColor,
+  getServiceColor,
+  normalizeServiceColors,
+  serviceColorPalette,
+} from "./utils/serviceColors.js";
 import EmployeesPage from "./components/EmployeesPage.jsx";
 import ClientsPage from "./components/pages/ClientsPage.jsx";
 import PackagesPage from "./components/pages/PackagesPage.jsx";
@@ -109,8 +115,8 @@ const initialMessageTemplates = [
 const defaultAppSettings = {
   studioName: "NUAR",
   ownerName: "Влад",
-  accentColor: "#d2ad7d",
-  theme: "light",
+  accentColor: "#7c6cf2",
+  theme: "dark",
   sidebarVisible: true,
   compactMode: true,
   animationsEnabled: true,
@@ -300,13 +306,15 @@ const loadStoredServices = () => {
     const storedServices = window.localStorage.getItem(SERVICES_STORAGE_KEY);
 
     if (!storedServices) {
-      return initialServices;
+      return normalizeServiceColors(initialServices);
     }
 
     const parsedServices = JSON.parse(storedServices);
-    return Array.isArray(parsedServices) ? parsedServices : initialServices;
+    return Array.isArray(parsedServices)
+      ? normalizeServiceColors(parsedServices)
+      : normalizeServiceColors(initialServices);
   } catch {
-    return initialServices;
+    return normalizeServiceColors(initialServices);
   }
 };
 
@@ -425,6 +433,14 @@ const normalizeStoredSettings = (settings = {}) => {
   const safeSettings = {...settings};
   delete safeSettings.authLogin;
   delete safeSettings.authPassword;
+
+  if (
+    safeSettings.theme === "light" &&
+    (!safeSettings.accentColor || safeSettings.accentColor === "#d2ad7d")
+  ) {
+    safeSettings.theme = defaultAppSettings.theme;
+    safeSettings.accentColor = defaultAppSettings.accentColor;
+  }
 
   return {
     ...defaultAppSettings,
@@ -937,6 +953,34 @@ function App() {
     () => serviceCatalog.map((service) => service.name),
     [serviceCatalog],
   );
+  const getCalendarServiceColor = useCallback(
+    (entry) => {
+      if (entry?.kind !== "visit") {
+        return entry?.color || "#748091";
+      }
+
+      const service = serviceCatalog.find(
+        (item) =>
+          String(item.id) === String(entry.serviceId) ||
+          item.name === entry.service ||
+          String(entry.service ?? "").startsWith(item.name),
+      );
+
+      return service
+        ? getServiceColor(service, serviceCatalog.indexOf(service))
+        : entry.color || serviceColorPalette[0];
+    },
+    [serviceCatalog],
+  );
+  const calendarEntriesWithServiceColors = useMemo(
+    () =>
+      calendarEntries.map((entry) =>
+        entry.kind === "visit"
+          ? {...entry, color: getCalendarServiceColor(entry)}
+          : entry,
+      ),
+    [calendarEntries, getCalendarServiceColor],
+  );
 
   const packageSalesIncome = useMemo(
     () =>
@@ -1244,7 +1288,9 @@ function App() {
       if (Array.isArray(snapshot.clients)) {
         setClientProfiles(applyBooksySources(snapshot.clients, snapshot.visits ?? []));
       }
-      if (Array.isArray(snapshot.services)) setServiceCatalog(snapshot.services);
+      if (Array.isArray(snapshot.services)) {
+        setServiceCatalog(normalizeServiceColors(snapshot.services));
+      }
       if (Array.isArray(snapshot.packages)) setPackagesCatalog(snapshot.packages);
       if (Array.isArray(snapshot.clientPackages)) setClientPackages(snapshot.clientPackages);
       if (Array.isArray(snapshot.messageTemplates)) setMessageTemplates(snapshot.messageTemplates);
@@ -1724,9 +1770,10 @@ function App() {
     setClientModalOpen(true);
   };
 
-  const handleClientSubmit = (event) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
+  const handleClientSubmit = (eventOrForm) => {
+    eventOrForm.preventDefault?.();
+    const formElement = eventOrForm.currentTarget ?? eventOrForm;
+    const form = new FormData(formElement);
     const name = String(form.get("name") ?? "").trim();
     const previousName = editingClient?.name;
 
@@ -1820,7 +1867,7 @@ function App() {
       id: editingService?.id ?? createLocalId(),
       name,
       category: String(form.get("category") ?? "").trim() || "Массаж",
-      color: form.get("color") || "#4f8edc",
+      color: form.get("color") || editingService?.color || getRandomServiceColor(),
       variants: [60, 75, 90, 120]
         .map((duration) => ({
           duration,
@@ -2321,9 +2368,10 @@ function App() {
     });
   };
 
-  const handleCalendarEntrySubmit = (event) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
+  const handleCalendarEntrySubmit = (eventOrForm) => {
+    eventOrForm.preventDefault?.();
+    const formElement = eventOrForm.currentTarget ?? eventOrForm;
+    const form = new FormData(formElement);
     const kind = form.get("kind");
     const service = serviceCatalog.find(
       (item) => String(item.id) === String(form.get("serviceId")),
@@ -2374,7 +2422,15 @@ function App() {
       discount: kind === "visit" ? toVisitNumber(form.get("discount")) : 0,
       commissionType:
         kind === "visit" ? String(form.get("commissionType") ?? "Без комиссии") : "Без комиссии",
-      color: form.get("color") || "#748091",
+      color:
+        kind === "visit"
+          ? getCalendarServiceColor({
+              kind,
+              serviceId: form.get("serviceId"),
+              service: service?.name,
+              color: form.get("color"),
+            })
+          : form.get("color") || "#748091",
       note: String(form.get("note") ?? "").trim(),
     };
 
@@ -2883,9 +2939,6 @@ function App() {
               entry.time === booking.time
             ),
         );
-        const service = serviceCatalog.find(
-          (catalogItem) => String(catalogItem.id) === String(booking.serviceId),
-        );
         const entry = {
           ...(existingEntry ?? {}),
           id: existingEntry?.id ?? createLocalId(),
@@ -2905,7 +2958,12 @@ function App() {
           packageUsageId: existingEntry?.packageUsageId ?? "",
           packageName: existingEntry?.packageName ?? "",
           packageSessionsUsed: existingEntry?.packageSessionsUsed ?? 0,
-          color: service?.color || existingEntry?.color || "#4f8edc",
+          color: getCalendarServiceColor({
+            kind: "visit",
+            serviceId: booking.serviceId,
+            service: booking.service,
+            color: existingEntry?.color,
+          }),
           note: existingEntry?.note || "Импортировано из Gmail · Booksy",
           externalSource: "Booksy",
           externalMessageId: item.id,
@@ -3015,7 +3073,7 @@ function App() {
     setClientProfiles(
       applyBooksySources(pendingDataBackup.clients, pendingDataBackup.visits),
     );
-    setServiceCatalog(pendingDataBackup.services);
+    setServiceCatalog(normalizeServiceColors(pendingDataBackup.services));
     setPackagesCatalog(pendingDataBackup.packages);
     setClientPackages(pendingDataBackup.clientPackages);
     setMessageTemplates(pendingDataBackup.messageTemplates);
@@ -3444,7 +3502,7 @@ function App() {
         <PageNotificationsProvider onSlotChange={setNotificationSlot}>
         {isCalendarPage ? (
           <CalendarPage
-            entries={calendarEntries}
+            entries={calendarEntriesWithServiceColors}
             visits={visits}
             clients={clientProfiles}
             clientPackages={clientPackages}
