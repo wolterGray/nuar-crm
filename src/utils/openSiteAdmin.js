@@ -9,7 +9,7 @@ function getSiteBaseUrl() {
   return PRODUCTION_SITE_URL;
 }
 
-export async function openSiteAdmin(path = "/admin") {
+export async function openSiteAdmin(path = "/admin/login") {
   if (!isSupabaseConfigured || !supabase) {
     throw new Error("Supabase не настроен.");
   }
@@ -30,7 +30,6 @@ export async function openSiteAdmin(path = "/admin") {
     refresh_token: session.refresh_token,
     expires_in: String(session.expires_in ?? 3600),
     token_type: "bearer",
-    type: "crm_sso",
   }).toString();
 
   window.open(`${getSiteBaseUrl()}${normalizedPath}#${hash}`, "_blank", "noopener");
