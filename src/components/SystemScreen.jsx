@@ -26,7 +26,7 @@ function SystemScreen({
 
   if (mode === "loading") {
     return (
-      <main className="system-loading-screen">
+      <main className="system-loading-screen theme-dark">
         <span className="system-loading-spinner" aria-hidden="true" />
         <p>Загрузка</p>
       </main>

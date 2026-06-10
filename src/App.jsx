@@ -40,6 +40,7 @@ import StatisticsPage from "./components/pages/StatisticsPage.jsx";
 import PaymentsPage from "./components/pages/PaymentsPage.jsx";
 import OperationsPage from "./components/pages/OperationsPage.jsx";
 import ImportPage from "./components/pages/ImportPage.jsx";
+import SitePage from "./components/pages/SitePage.jsx";
 import {isSupabaseConfigured, supabase} from "./lib/supabase.js";
 import {mobileNavItems, navItems} from "./constants/navigation.js";
 import {
@@ -115,7 +116,7 @@ const initialMessageTemplates = [
 const defaultAppSettings = {
   studioName: "NUAR",
   ownerName: "Влад",
-  accentColor: "#7c6cf2",
+  accentColor: "#5e6ad2",
   theme: "dark",
   sidebarVisible: true,
   compactMode: true,
@@ -433,12 +434,17 @@ const normalizeStoredSettings = (settings = {}) => {
   const safeSettings = {...settings};
   delete safeSettings.authLogin;
   delete safeSettings.authPassword;
+  const oldDefaultAccents = new Set(["#d2ad7d", "#7c6cf2"]);
 
   if (
     safeSettings.theme === "light" &&
-    (!safeSettings.accentColor || safeSettings.accentColor === "#d2ad7d")
+    (!safeSettings.accentColor || oldDefaultAccents.has(safeSettings.accentColor))
   ) {
     safeSettings.theme = defaultAppSettings.theme;
+    safeSettings.accentColor = defaultAppSettings.accentColor;
+  }
+
+  if (oldDefaultAccents.has(safeSettings.accentColor)) {
     safeSettings.accentColor = defaultAppSettings.accentColor;
   }
 
@@ -2352,7 +2358,47 @@ function App() {
     );
   };
 
+  const shouldReopenCompletedCalendarEntry = (entry, previousEntry = entry) =>
+    previousEntry?.status === "completed" &&
+    entry.kind === "visit" &&
+    isCalendarVisitPlanned(
+      {...entry, status: "scheduled", completedAt: "", visitId: ""},
+      new Date(),
+    );
+
+  const normalizeCalendarEntryTiming = (entry, previousEntry = entry) =>
+    shouldReopenCompletedCalendarEntry(entry, previousEntry)
+      ? {...entry, status: "scheduled", completedAt: "", visitId: ""}
+      : entry;
+
+  const removeCompletedVisitLink = (previousEntry, nextEntry) => {
+    if (!shouldReopenCompletedCalendarEntry(nextEntry, previousEntry)) {
+      return;
+    }
+
+    const completedVisit = visits.find(
+      (visit) =>
+        visit.id === previousEntry?.visitId ||
+        visit.calendarEntryId === previousEntry?.id,
+    );
+
+    if (completedVisit) {
+      updatePackageBalance(completedVisit, null);
+      setVisits((current) =>
+        current.filter(
+          (visit) =>
+            visit.id !== completedVisit.id &&
+            visit.calendarEntryId !== previousEntry?.id,
+        ),
+      );
+    }
+  };
+
   const saveCalendarEntry = (entry, isEditing) => {
+    const previousEntry = isEditing
+      ? calendarEntries.find((item) => item.id === entry.id)
+      : null;
+    removeCompletedVisitLink(previousEntry, entry);
     setCalendarEntries((current) =>
       isEditing
         ? current.map((item) => (item.id === entry.id ? entry : item))
@@ -2391,7 +2437,7 @@ function App() {
       (variant) => Number(variant.duration) === duration,
     );
     const rawAmount = String(form.get("amount") ?? "").trim();
-    const entry = {
+    const entryDraft = {
       id: editingCalendarEntry?.id ?? createLocalId(),
       status: editingCalendarEntry?.status ?? "scheduled",
       completedAt: editingCalendarEntry?.completedAt ?? "",
@@ -2433,6 +2479,7 @@ function App() {
           : form.get("color") || "#748091",
       note: String(form.get("note") ?? "").trim(),
     };
+    const entry = normalizeCalendarEntryTiming(entryDraft, editingCalendarEntry);
 
     const isEditing = Boolean(editingCalendarEntry);
     const conflicts = getCalendarConflicts(entry, editingCalendarEntry?.id);
@@ -2456,7 +2503,9 @@ function App() {
 
   const moveCalendarEntry = (entryId, nextPosition) => {
     const currentEntry = calendarEntries.find((entry) => entry.id === entryId);
-    const movedEntry = currentEntry ? {...currentEntry, ...nextPosition} : null;
+    const movedEntry = currentEntry
+      ? normalizeCalendarEntryTiming({...currentEntry, ...nextPosition}, currentEntry)
+      : null;
     const conflicts = movedEntry ? getCalendarConflicts(movedEntry, entryId) : [];
     const shiftWarning = movedEntry ? getCalendarShiftWarning(movedEntry) : "";
 
@@ -2478,6 +2527,7 @@ function App() {
     setCalendarEntries((current) =>
       current.map((entry) => (entry.id === entryId ? movedEntry : entry)),
     );
+    removeCompletedVisitLink(currentEntry, movedEntry);
     syncCompletedCalendarVisit(movedEntry);
   };
 
@@ -2489,6 +2539,8 @@ function App() {
     const {entry, isEditing, type} = pendingCalendarConflict;
 
     if (type === "move") {
+      const previousEntry = calendarEntries.find((item) => item.id === entry.id);
+      removeCompletedVisitLink(previousEntry, entry);
       setCalendarEntries((current) =>
         current.map((item) => (item.id === entry.id ? entry : item)),
       );
@@ -3239,6 +3291,7 @@ function App() {
   const isOperationsPage = activePage === "operations";
   const isImportPage = activePage === "import";
   const isPaymentsPage = activePage === "payments";
+  const isSitePage = activePage === "site";
   const supportedPaths = ["/", "/reset-password"];
   const currentPath = window.location.pathname;
 
@@ -3627,6 +3680,8 @@ function App() {
             clients={clientProfiles}
             employees={employees}
           />
+        ) : isSitePage ? (
+          <SitePage services={serviceCatalog} />
         ) : isSettingsPage ? (
           <SettingsPage
             settings={appSettings}

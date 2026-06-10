@@ -289,7 +289,14 @@ function ClientsPage({
               <small>{client.phone || "Телефон не указан"}</small>
             </span>
             <span data-label="Статус">
-              <b className="client-status">{client.status || "Активный"}</b>
+              <b
+                className={`client-status ${
+                  (client.status || "Активный") === "Новый"
+                    ? "client-status-new"
+                    : "client-status-active"
+                }`}>
+                {client.status || "Активный"}
+              </b>
             </span>
             <span data-label="Визитов">{client.visitsCount}</span>
             <span data-label="Пакеты">

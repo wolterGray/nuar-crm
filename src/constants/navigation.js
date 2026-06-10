@@ -2,6 +2,7 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   ChartNoAxesCombined,
+  Globe,
   MailSearch,
   MessageSquareText,
   Package,
@@ -23,6 +24,7 @@ export const navItems = [
   {label: "Задачи", page: "operations", icon: PackageSearch},
   {label: "Импорт", page: "import", icon: MailSearch},
   {label: "Шаблоны", page: "templates", icon: MessageSquareText},
+  {label: "Сайт", page: "site", icon: Globe},
   {label: "Настройки", page: "settings", icon: Settings},
 ];
 

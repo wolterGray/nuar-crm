@@ -637,8 +637,10 @@ button {
   place-content: center;
   place-items: center;
   gap: 14px;
-  color: #15171c;
-  background: #fff;
+  color: #d9dbe7;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(94, 106, 210, 0.16), transparent 28%),
+    #08090b;
 }
 
 .system-loading-screen p {
@@ -649,8 +651,8 @@ button {
 .system-loading-spinner {
   width: 44px;
   height: 44px;
-  border: 3px solid #e5e5e3;
-  border-top-color: #15171c;
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  border-top-color: #5e6ad2;
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
 }
@@ -3142,6 +3144,18 @@ h2 {
   font-size: 11px;
 }
 
+.client-status-active {
+  color: #2f8f64;
+  background: rgba(47, 143, 100, 0.14);
+  border: 1px solid rgba(47, 143, 100, 0.24);
+}
+
+.client-status-new {
+  color: #6f6cf2;
+  background: rgba(111, 108, 242, 0.14);
+  border: 1px solid rgba(111, 108, 242, 0.26);
+}
+
 .theme-dark .client-package-card {
   background: #111722;
   border-color: #344052;
@@ -3711,9 +3725,10 @@ h2 {
   font-size: 11px;
 }
 
-.schedule-entry > div:first-child {
+.schedule-entry > div:first-child,
+.schedule-entry-content {
   min-width: 0;
-  max-width: calc(100% - 28px);
+  max-width: calc(100% - 52px);
 }
 
 .schedule-entry strong,
@@ -3737,21 +3752,34 @@ h2 {
 
 .schedule-entry .schedule-entry-booksy-badge {
   position: absolute;
-  top: 4px;
-  right: 24px;
+  top: 6px;
+  right: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
   margin: 0;
-  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 999px;
   color: #fff;
-  background: #111318;
-  font-size: 9px;
+  background:
+    radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.32), transparent 28%),
+    #7b5be8;
+  font-size: 0;
   font-weight: 800;
   line-height: 1;
-  box-shadow: 0 4px 10px rgba(17, 19, 24, 0.16);
+  box-shadow:
+    0 0 0 1px rgba(123, 91, 232, 0.14),
+    0 3px 8px rgba(17, 19, 24, 0.14);
+  pointer-events: none;
+  z-index: 6;
+}
+
+.schedule-entry .schedule-entry-booksy-badge svg {
+  display: block;
+  width: 11px;
+  height: 11px;
 }
 
 .schedule-task {
@@ -8313,35 +8341,42 @@ body,
 
 /* App-wide Linear palette: statistics colors are the default design language. */
 .theme-dark {
-  --accent-color: #7c6cf2;
-  --app-bg: #0b0d10;
-  --surface: #111318;
-  --surface-solid: #111318;
-  --surface-muted: #171a22;
-  --line-soft: rgba(255, 255, 255, 0.08);
-  --line-subtle: rgba(255, 255, 255, 0.06);
-  --text-main: #f4f5f7;
-  --text-soft: #9ca3af;
-  --text-muted: #6b7280;
-  --linear-bg: #0b0d10;
-  --linear-sidebar: #0f1115;
-  --linear-panel: #111318;
-  --linear-panel-soft: #171a22;
-  --linear-border: rgba(255, 255, 255, 0.08);
-  --linear-border-soft: rgba(255, 255, 255, 0.06);
-  --linear-text: #f4f5f7;
-  --linear-muted: #9ca3af;
-  --linear-dim: #6b7280;
-  --linear-accent: #7c6cf2;
+  --accent-color: #5e6ad2;
+  --app-bg: #08090b;
+  --surface: rgba(18, 19, 23, 0.86);
+  --surface-solid: #121317;
+  --surface-muted: rgba(26, 28, 34, 0.72);
+  --line-soft: rgba(255, 255, 255, 0.10);
+  --line-subtle: rgba(255, 255, 255, 0.065);
+  --text-main: #f2f3f7;
+  --text-soft: #a3a6b3;
+  --text-muted: #70737f;
+  --linear-bg: #08090b;
+  --linear-sidebar: #0b0c0f;
+  --linear-panel: rgba(18, 19, 23, 0.86);
+  --linear-panel-soft: rgba(26, 28, 34, 0.72);
+  --linear-border: rgba(255, 255, 255, 0.10);
+  --linear-border-soft: rgba(255, 255, 255, 0.065);
+  --linear-text: #f2f3f7;
+  --linear-muted: #a3a6b3;
+  --linear-dim: #70737f;
+  --linear-accent: #5e6ad2;
+  --linear-blue: #4c6fff;
+  --linear-cyan: #59a8d6;
+  --linear-teal: #35b8a6;
+  --linear-orange: #d97745;
+  --linear-green: #56b870;
+  --linear-red: #c15555;
+  --linear-gray: #8a8f98;
   --premium-shadow: none;
   --soft-shadow: none;
-  --focus-ring: 0 0 0 3px rgba(124, 108, 242, 0.24);
+  --focus-ring: 0 0 0 3px rgba(94, 106, 210, 0.26);
   color: var(--linear-text) !important;
   background: var(--linear-bg) !important;
 }
 
 .theme-light {
-  --accent-color: #6f6b8f;
+  --accent-color: #5e6ad2;
   --app-bg: #f3f5f8;
   --surface: rgba(255, 255, 255, 0.76);
   --surface-solid: #ffffff;
@@ -8360,10 +8395,17 @@ body,
   --linear-text: #191d25;
   --linear-muted: #747b89;
   --linear-dim: #a1a7b3;
-  --linear-accent: #6f6b8f;
+  --linear-accent: #5e6ad2;
+  --linear-blue: #4c6fff;
+  --linear-cyan: #348fc0;
+  --linear-teal: #248f82;
+  --linear-orange: #c86b39;
+  --linear-green: #338f56;
+  --linear-red: #b94b4b;
+  --linear-gray: #747b89;
   --premium-shadow: 0 18px 48px rgba(17, 19, 24, 0.08);
   --soft-shadow: 0 1px 2px rgba(17, 19, 24, 0.045);
-  --focus-ring: 0 0 0 3px rgba(111, 107, 143, 0.16);
+  --focus-ring: 0 0 0 3px rgba(94, 106, 210, 0.16);
   color: var(--linear-text) !important;
   background: var(--linear-bg) !important;
 }
@@ -8584,6 +8626,87 @@ body,
 .theme-light .client-package-row:hover,
 .theme-light .calendar-reminder-list article:hover {
   background: color-mix(in srgb, var(--linear-accent) 9%, var(--linear-panel)) !important;
+}
+
+.theme-dark .client-status-active,
+.theme-light .client-status-active {
+  color: #74e0aa !important;
+  border-color: rgba(116, 224, 170, 0.28) !important;
+  background: rgba(116, 224, 170, 0.12) !important;
+}
+
+.theme-dark .client-status-new,
+.theme-light .client-status-new {
+  color: color-mix(in srgb, var(--linear-accent) 62%, #ffffff) !important;
+  border-color: color-mix(in srgb, var(--linear-accent) 34%, transparent) !important;
+  background: color-mix(in srgb, var(--linear-accent) 14%, transparent) !important;
+}
+
+.theme-dark .employee-card,
+.theme-light .employee-card {
+  display: grid;
+  align-content: start;
+  gap: 18px !important;
+  padding: 24px !important;
+}
+
+.theme-dark .employee-card-header,
+.theme-light .employee-card-header {
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--linear-border);
+}
+
+.theme-dark .employee-avatar,
+.theme-light .employee-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  color: #111722;
+  background: color-mix(in srgb, var(--linear-accent) 20%, #f4e3bd);
+}
+
+.theme-dark .employee-stats,
+.theme-light .employee-stats {
+  gap: 10px !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.theme-dark .employee-stats span,
+.theme-light .employee-stats span {
+  gap: 8px !important;
+  min-height: 70px;
+  padding: 12px 14px !important;
+  border: 1px solid color-mix(in srgb, var(--linear-border) 72%, transparent) !important;
+  border-radius: 12px !important;
+  color: var(--linear-muted) !important;
+  background: color-mix(in srgb, var(--linear-text) 4%, transparent) !important;
+}
+
+.theme-dark .employee-stats strong,
+.theme-light .employee-stats strong {
+  color: var(--linear-text) !important;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.theme-dark .employee-meta,
+.theme-light .employee-meta {
+  gap: 10px 18px;
+  padding-top: 2px;
+}
+
+.theme-dark .employee-meta span,
+.theme-light .employee-meta span {
+  color: var(--linear-muted) !important;
+  font-size: 13px;
+}
+
+.theme-dark .employee-actions,
+.theme-light .employee-actions {
+  gap: 10px;
 }
 
 .theme-dark .submit-button,
@@ -8895,23 +9018,23 @@ body,
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--entry-color) 30%, transparent),
     0 10px 22px rgba(0, 0, 0, 0.18) !important;
-  animation: schedule-entry-pulse 3.8s ease-in-out infinite;
+  animation: schedule-entry-pulse 2.8s ease-in-out infinite;
 }
 
 .theme-light .schedule-entry {
   border-left: 5px solid var(--entry-color) !important;
   background: color-mix(in srgb, var(--entry-color) 22%, white) !important;
-  animation: schedule-entry-pulse 3.8s ease-in-out infinite;
+  animation: schedule-entry-pulse 2.8s ease-in-out infinite;
 }
 
 .theme-dark .schedule-entry-ended,
 .theme-light .schedule-entry-ended {
-  opacity: 0.88 !important;
+  opacity: 0.56 !important;
+  animation: none !important;
 }
 
 .theme-dark .schedule-entry-ended {
-  filter: saturate(1.24) brightness(1.08);
-  animation-duration: 5.2s;
+  filter: saturate(0.78) brightness(0.82);
 }
 
 .theme-dark .schedule-entry strong {
@@ -8972,24 +9095,51 @@ body,
   }
 }
 
+/* Reserved slots use the same compact pulse with a calmer base color. */
+.theme-dark .schedule-reserved {
+  border-left-color: color-mix(in srgb, var(--linear-accent) 70%, #94a3b8) !important;
+  background: color-mix(in srgb, var(--linear-accent) 24%, var(--linear-panel)) !important;
+  animation: schedule-entry-pulse 2.8s ease-in-out infinite !important;
+}
+
+.theme-light .schedule-reserved {
+  border-left-color: var(--linear-accent) !important;
+  background: color-mix(in srgb, var(--linear-accent) 18%, white) !important;
+  animation: schedule-entry-pulse 2.8s ease-in-out infinite !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schedule-reserved {
+    animation: none !important;
+  }
+}
+
 /* Stronger calendar date strip. */
 .theme-dark .mobile-calendar-week,
 .theme-light .mobile-calendar-week {
-  min-height: 88px !important;
-  height: 88px !important;
-  padding: 10px 12px !important;
+  position: relative;
+  min-height: 70px !important;
+  height: 70px !important;
+  padding: 6px 12px !important;
   border-bottom: 1px solid var(--linear-border) !important;
   background: color-mix(in srgb, var(--linear-panel) 92%, transparent) !important;
 }
 
 .theme-dark .mobile-calendar-week button,
 .theme-light .mobile-calendar-week button {
-  min-height: 66px !important;
-  padding: 7px 6px !important;
+  position: relative;
+  z-index: 1;
+  min-height: 52px !important;
+  padding: 4px 6px !important;
   border: 1px solid transparent !important;
   border-radius: 14px !important;
   color: var(--linear-muted) !important;
   background: transparent !important;
+  transition:
+    color 180ms ease,
+    transform 180ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease;
 }
 
 .theme-dark .mobile-calendar-week span,
@@ -9007,6 +9157,11 @@ body,
   color: color-mix(in srgb, var(--linear-text) 78%, var(--linear-muted)) !important;
   font-size: 18px !important;
   font-weight: 850 !important;
+  transition:
+    color 180ms ease,
+    background-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
 }
 
 .theme-dark .mobile-calendar-week button:hover,
@@ -9017,11 +9172,11 @@ body,
 
 .theme-dark .mobile-calendar-week button.selected,
 .theme-light .mobile-calendar-week button.selected {
-  min-height: 70px !important;
-  padding: 8px 8px !important;
-  border-color: color-mix(in srgb, var(--linear-accent) 44%, transparent) !important;
+  min-height: 52px !important;
+  padding: 4px 8px !important;
+  border-color: transparent !important;
   border-radius: 16px !important;
-  background: color-mix(in srgb, var(--linear-accent) 12%, var(--linear-panel)) !important;
+  background: transparent !important;
 }
 
 .theme-dark .mobile-calendar-week button.selected span,
@@ -9031,23 +9186,422 @@ body,
 
 .theme-dark .mobile-calendar-week button.selected b,
 .theme-light .mobile-calendar-week button.selected b {
-  width: 34px !important;
-  height: 34px !important;
+  width: 23px !important;
+  height: 23px !important;
   color: #ffffff !important;
-  font-size: 18px !important;
+  font-size: 14px !important;
   background: var(--linear-accent) !important;
+  transform: none;
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--linear-accent) 58%, transparent),
     0 0 18px color-mix(in srgb, var(--linear-accent) 36%, transparent) !important;
 }
 
+.theme-dark .calendar-week-selection-indicator,
+.theme-light .calendar-week-selection-indicator {
+  position: absolute;
+  z-index: 0;
+  display: block;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--linear-accent) 44%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--linear-accent) 12%, var(--linear-panel));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 120ms ease;
+}
+
+.theme-dark .calendar-week-selection-indicator[style],
+.theme-light .calendar-week-selection-indicator[style] {
+  height: 52px !important;
+  margin-top: 0;
+  opacity: 1;
+}
+
+.mobile-calendar-week + .calendar-layout {
+  margin-top: -12px !important;
+}
+
+.calendar-content .calendar-page {
+  gap: 4px !important;
+}
+
+.theme-dark .schedule-master header,
+.theme-light .schedule-master header {
+  transform: translateY(-20px);
+  margin-bottom: -20px;
+}
+
 .theme-dark .mobile-calendar-week button.today:not(.selected) b,
 .theme-light .mobile-calendar-week button.today:not(.selected) b {
-  width: 34px !important;
-  height: 34px !important;
+  width: 27px !important;
+  height: 27px !important;
   color: #ffffff !important;
-  background: color-mix(in srgb, var(--linear-accent) 82%, #ffffff) !important;
-  box-shadow: 0 0 14px color-mix(in srgb, var(--linear-accent) 32%, transparent) !important;
+  font-size: 16px !important;
+  background: color-mix(in srgb, var(--linear-accent) 62%, transparent) !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--linear-accent) 24%, transparent) !important;
+  animation: calendar-today-pulse 1.65s ease-in-out infinite;
+}
+
+@keyframes calendar-today-pulse {
+  0%, 100% {
+    opacity: 0.58;
+    transform: scale(0.94);
+  }
+
+  50% {
+    opacity: 0.92;
+    transform: scale(1);
+  }
+}
+
+.theme-dark .calendar-slot-backdrop {
+  background: rgba(3, 5, 10, 0.54) !important;
+  backdrop-filter: blur(8px);
+}
+
+.theme-dark .calendar-slot-menu {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel) !important;
+  border-color: var(--linear-border) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34) !important;
+}
+
+.theme-dark .calendar-slot-menu button {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel) !important;
+  border-bottom-color: var(--linear-border) !important;
+}
+
+.theme-dark .calendar-slot-menu button:hover {
+  background: color-mix(in srgb, var(--linear-accent) 10%, var(--linear-panel)) !important;
+}
+
+.theme-dark .calendar-slot-menu svg {
+  color: color-mix(in srgb, var(--linear-accent) 44%, white) !important;
+}
+
+.theme-dark .calendar-slot-menu small {
+  color: var(--linear-muted) !important;
+}
+
+.theme-light .calendar-slot-menu button {
+  color: var(--linear-text) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-bottom-color: var(--linear-border) !important;
+}
+
+.theme-dark .statistics-filters label,
+.theme-light .statistics-filters label {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel-soft) !important;
+  border: 1px solid var(--linear-border) !important;
+  box-shadow: none !important;
+}
+
+.theme-dark .statistics-filters label input[type="date"],
+.theme-light .statistics-filters label input[type="date"] {
+  min-height: 0 !important;
+  height: 36px !important;
+  padding: 0 !important;
+  color: var(--linear-text) !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.theme-dark .statistics-filters label input[type="date"]:focus,
+.theme-light .statistics-filters label input[type="date"]:focus {
+  box-shadow: none !important;
+}
+
+.statistics-filters label input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+.statistics-filters label input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.theme-dark .statistics-filters label svg,
+.theme-light .statistics-filters label svg {
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--linear-accent) 42%, white) !important;
+}
+
+/* Calendar board should match the Linear dark surface, not the old blue grid. */
+.theme-dark .schedule-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.006)),
+    rgba(18, 19, 23, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.theme-dark .schedule-grid,
+.theme-dark .schedule-column,
+.theme-dark .schedule-times,
+.theme-dark .schedule-master header {
+  background: transparent !important;
+}
+
+.theme-dark .schedule-times {
+  color: rgba(242, 243, 247, 0.72) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.012)),
+    rgba(18, 19, 23, 0.86) !important;
+}
+
+.theme-dark .schedule-hour-label strong,
+.theme-dark .schedule-end-hour {
+  color: rgba(242, 243, 247, 0.82) !important;
+}
+
+.theme-dark .schedule-hour-label span {
+  color: rgba(163, 166, 179, 0.72) !important;
+}
+
+.theme-dark .schedule-master {
+  border-left-color: rgba(255, 255, 255, 0.085) !important;
+}
+
+.theme-dark .schedule-master header {
+  border-bottom-color: rgba(255, 255, 255, 0.085) !important;
+}
+
+.theme-dark .schedule-quarter-lines i {
+  border-top-color: rgba(255, 255, 255, 0.055) !important;
+}
+
+.theme-dark .schedule-quarter-lines i.hour {
+  border-top-color: rgba(255, 255, 255, 0.13) !important;
+}
+
+.theme-dark .schedule-off-hours {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.035) 4px,
+      rgba(255, 255, 255, 0.012) 4px,
+      rgba(255, 255, 255, 0.012) 10px
+    ),
+    rgba(255, 255, 255, 0.018) !important;
+}
+
+.theme-dark .schedule-column-over {
+  background: color-mix(in srgb, var(--linear-accent) 9%, transparent) !important;
+}
+
+/* Linear-inspired final visual layer. */
+.theme-dark .content,
+.theme-dark .visits-content,
+.theme-dark .calendar-content {
+  background:
+    radial-gradient(circle at 50% -12%, rgba(94, 106, 210, 0.13), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 210px),
+    var(--linear-bg) !important;
+}
+
+.theme-dark :is(
+  .panel,
+  .catalog-card,
+  .employee-card,
+  .management-card,
+  .settings-panel,
+  .statistics-filters-card,
+  .statistics-income-card,
+  .statistics-panel,
+  .statistics-card,
+  .statistics-details-panel,
+  .calendar-client-card,
+  .visits-table,
+  .table-search,
+  .client-alert-popover,
+  .calendar-popover,
+  .row-action-menu,
+  .calendar-slot-menu
+) {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.008)),
+    var(--linear-panel) !important;
+  border-color: var(--linear-border) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
+}
+
+.theme-dark .modal-backdrop,
+.theme-dark .dialog-backdrop,
+.theme-dark .calendar-entry-backdrop {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(94, 106, 210, 0.13), transparent 34%),
+    rgba(3, 4, 6, 0.78) !important;
+  backdrop-filter: blur(18px) saturate(115%) !important;
+}
+
+.theme-dark :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+) {
+  color: var(--linear-text) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    rgba(18, 19, 23, 0.94) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 24px 80px rgba(0, 0, 0, 0.42) !important;
+}
+
+.theme-dark :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+) .modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
+}
+
+.theme-dark :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+) :is(input, select, textarea) {
+  color: var(--linear-text) !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+  border: 1px solid rgba(255, 255, 255, 0.11) !important;
+  border-radius: 10px !important;
+}
+
+.theme-dark :is(
+  .employee-modal,
+  .calendar-entry-modal,
+  .client-form-modal,
+  .catalog-modal,
+  .message-template-modal,
+  .send-template-modal,
+  .client-details-modal,
+  .confirm-dialog
+) :is(input, select, textarea):focus {
+  border-color: color-mix(in srgb, var(--linear-accent) 52%, white) !important;
+  box-shadow: var(--focus-ring) !important;
+}
+
+.theme-dark .modal-close,
+.theme-dark .secondary-button,
+.theme-dark .row-action,
+.theme-dark .calendar-icon-button,
+.theme-dark .date-button {
+  background: rgba(255, 255, 255, 0.045) !important;
+  border-color: rgba(255, 255, 255, 0.11) !important;
+}
+
+.theme-dark .submit-button,
+.theme-dark .add-visit-button,
+.theme-dark .statistics-export-button {
+  background: #5e6ad2 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-dark .submit-button:hover,
+.theme-dark .add-visit-button:hover,
+.theme-dark .statistics-export-button:hover {
+  background: #6975e6 !important;
+}
+
+.theme-dark .system-loading-screen {
+  color: var(--linear-text);
+  background:
+    radial-gradient(circle at 50% 42%, rgba(94, 106, 210, 0.18), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 220px),
+    #08090b;
+}
+
+.theme-dark .system-loading-spinner,
+.system-loading-spinner {
+  border-color: rgba(255, 255, 255, 0.08);
+  border-top-color: #5e6ad2;
+}
+
+.theme-dark .panel.schedule-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.006)),
+    rgba(18, 19, 23, 0.94) !important;
+}
+
+.theme-dark .schedule-grid,
+.theme-dark .schedule-column {
+  background: transparent !important;
+}
+
+.theme-dark .schedule-times {
+  color: rgba(242, 243, 247, 0.72) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.036), rgba(255, 255, 255, 0.012)),
+    rgba(18, 19, 23, 0.9) !important;
+}
+
+.theme-dark .schedule-master header {
+  background: rgba(18, 19, 23, 0.9) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.085) !important;
+}
+
+.theme-dark .schedule-master {
+  border-left-color: rgba(255, 255, 255, 0.085) !important;
+}
+
+.theme-dark .schedule-hour-label strong,
+.theme-dark .schedule-end-hour {
+  color: rgba(242, 243, 247, 0.82) !important;
+}
+
+.theme-dark .schedule-hour-label span {
+  color: rgba(163, 166, 179, 0.72) !important;
+}
+
+.theme-dark .schedule-quarter-lines i {
+  border-top-color: rgba(255, 255, 255, 0.055) !important;
+}
+
+.theme-dark .schedule-quarter-lines i.hour {
+  border-top-color: rgba(255, 255, 255, 0.13) !important;
+}
+
+.theme-dark .schedule-off-hours {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.034),
+      rgba(255, 255, 255, 0.034) 4px,
+      rgba(255, 255, 255, 0.011) 4px,
+      rgba(255, 255, 255, 0.011) 10px
+    ),
+    rgba(255, 255, 255, 0.018) !important;
+}
+
+.theme-dark .schedule-column-over {
+  background: color-mix(in srgb, var(--linear-accent) 9%, transparent) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

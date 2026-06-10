@@ -11,6 +11,7 @@ import {
   Pencil,
   Phone,
   Plus,
+  Rocket,
   Tag,
   Trash2,
   X,
@@ -216,6 +217,7 @@ function CalendarPage({
   const [viewedClientEntry, setViewedClientEntry] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
   const [pendingSlot, setPendingSlot] = useState(null);
+  const [weekSelectionStyle, setWeekSelectionStyle] = useState(null);
   const schedulePanelRef = useRef(null);
   const weekCarouselRef = useRef(null);
   const longPressRef = useRef(null);
@@ -316,6 +318,12 @@ function CalendarPage({
       0,
       selectedButton.offsetLeft - (selectedButton.offsetWidth + 4) * 2,
     );
+
+    setWeekSelectionStyle({
+      transform: `translate3d(${selectedButton.offsetLeft}px, ${selectedButton.offsetTop}px, 0)`,
+      width: `${selectedButton.offsetWidth}px`,
+      height: `${selectedButton.offsetHeight}px`,
+    });
   }, [carouselDates, selectedDate]);
 
   const getDragPosition = ({active, delta, over}) => {
@@ -466,6 +474,11 @@ function CalendarPage({
         className="mobile-calendar-week"
         aria-label="Дни недели"
         ref={weekCarouselRef}>
+        <span
+          aria-hidden="true"
+          className="calendar-week-selection-indicator"
+          style={weekSelectionStyle ?? undefined}
+        />
         {carouselDates.map((date) => {
           const today = date === new Date().toISOString().slice(0, 10);
           const dayIndex = (new Date(`${date}T12:00:00`).getDay() + 6) % 7;
@@ -609,10 +622,10 @@ function CalendarPage({
                           {entry.kind === "visit" &&
                             entry.commissionType === "Booksy 45%" && (
                               <span className="schedule-entry-booksy-badge" title="Booksy 45%">
-                                B
+                                <Rocket size={16} strokeWidth={2.4} />
                               </span>
                             )}
-                          <div>
+                          <div className="schedule-entry-content">
                             <strong>{entry.kind === "visit" ? entry.client : entry.title}</strong>
                             <span>
                               {displayedEntry.time}–{getEntryEndTime(displayedEntry)}

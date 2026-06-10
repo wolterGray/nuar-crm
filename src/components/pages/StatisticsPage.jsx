@@ -471,6 +471,7 @@ function StatisticsPage({
           </label>
           <span>—</span>
           <label>
+            <CalendarRange size={15} />
             <input
               type="date"
               value={endDate}

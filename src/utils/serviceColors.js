@@ -1,14 +1,14 @@
 export const serviceColorPalette = [
-  "#7c6cf2",
-  "#00c2ff",
-  "#2dd4bf",
-  "#22c55e",
-  "#a3e635",
-  "#f43f5e",
-  "#ec4899",
-  "#d946ef",
-  "#3b82f6",
-  "#14b8a6",
+  "#5e6ad2",
+  "#4c6fff",
+  "#59a8d6",
+  "#35b8a6",
+  "#56b870",
+  "#d97745",
+  "#e06c3f",
+  "#c15555",
+  "#8a8f98",
+  "#6f7bd9",
 ];
 
 const legacyServiceColors = new Set([
