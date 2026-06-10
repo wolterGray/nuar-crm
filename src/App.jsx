@@ -42,6 +42,7 @@ import OperationsPage from "./components/pages/OperationsPage.jsx";
 import ImportPage from "./components/pages/ImportPage.jsx";
 import SitePage from "./components/pages/SitePage.jsx";
 import {isSupabaseConfigured, supabase} from "./lib/supabase.js";
+import {publishServicesToSite} from "./utils/siteSync.js";
 import {mobileNavItems, navItems} from "./constants/navigation.js";
 import {
   ACTIVE_PAGE_STORAGE_KEY,
@@ -588,6 +589,7 @@ function App() {
     new Set(autoCompletedCalendarEntryIds),
   );
   const cloudSnapshotRef = useRef(null);
+  const lastPublishedServicesRef = useRef("");
   const masters = useMemo(
     () =>
       employees
@@ -1416,6 +1418,25 @@ function App() {
 
     return () => window.clearTimeout(timer);
   }, [authSession?.user?.id, cloudHydrated, cloudSnapshot]);
+
+  useEffect(() => {
+    const userId = authSession?.user?.id;
+    if (!supabase || !userId || !cloudHydrated) return undefined;
+
+    const servicesKey = JSON.stringify(serviceCatalog);
+    if (lastPublishedServicesRef.current === servicesKey) return undefined;
+
+    const timer = window.setTimeout(async () => {
+      try {
+        await publishServicesToSite(serviceCatalog);
+        lastPublishedServicesRef.current = servicesKey;
+      } catch {
+        // фоновая синхронизация цен на сайт — не блокирует CRM
+      }
+    }, 1200);
+
+    return () => window.clearTimeout(timer);
+  }, [authSession?.user?.id, cloudHydrated, serviceCatalog]);
 
   const employeeStats = useMemo(
     () =>
@@ -3681,7 +3702,7 @@ function App() {
             employees={employees}
           />
         ) : isSitePage ? (
-          <SitePage services={serviceCatalog} />
+          <SitePage />
         ) : isSettingsPage ? (
           <SettingsPage
             settings={appSettings}
