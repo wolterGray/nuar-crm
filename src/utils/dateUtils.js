@@ -168,6 +168,56 @@ export const isSameAppDay = (firstDate, secondDate) => {
   return Boolean(first && second && isSameDay(first, second));
 };
 
+export const getVisitDateTime = (visit) => {
+  const visitDate = parseAppDate(visit?.date);
+
+  if (!visitDate) {
+    return null;
+  }
+
+  const [hours = 0, minutes = 0] = String(visit?.time || "00:00")
+    .split(":")
+    .map(Number);
+  visitDate.setHours(
+    Number.isFinite(hours) ? hours : 0,
+    Number.isFinite(minutes) ? minutes : 0,
+    0,
+    0,
+  );
+
+  return visitDate;
+};
+
+export const getUpcomingVisitsWithinHours = (
+  entries,
+  hours = 3,
+  now = new Date(),
+  filter = () => true,
+) => {
+  const limitMs = hours * 60 * 60 * 1000;
+
+  return entries
+    .filter((entry) => {
+      if (!filter(entry)) {
+        return false;
+      }
+
+      const dateTime = getVisitDateTime(entry);
+
+      if (!dateTime) {
+        return false;
+      }
+
+      const delta = dateTime.getTime() - now.getTime();
+
+      return delta > 0 && delta <= limitMs;
+    })
+    .sort(
+      (first, second) =>
+        getVisitDateTime(first).getTime() - getVisitDateTime(second).getTime(),
+    );
+};
+
 export const getVisitDurationMinutes = (startVisit, endVisit) => {
   const start = parseAppDate(startVisit?.date);
   const end = parseAppDate(endVisit?.date);

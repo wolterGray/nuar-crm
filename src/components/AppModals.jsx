@@ -1,5 +1,6 @@
 import {X} from "lucide-react";
 import ConfirmDialog from "./ConfirmDialog.jsx";
+import {getEntityDeleteDialogContent} from "../utils/entityDeleteDialog.js";
 import EmployeeForm from "./EmployeeForm.jsx";
 import NewClientForm from "./NewClientForm.jsx";
 import ServiceForm from "./ServiceForm.jsx";
@@ -10,6 +11,55 @@ import CalendarEntryForm from "./CalendarEntryForm.jsx";
 import TaskForm from "./TaskForm.jsx";
 import SupplyForm from "./SupplyForm.jsx";
 import FinancialOperationForm from "./FinancialOperationForm.jsx";
+import {
+  formatBackupExportedAt,
+  getBackupPreview,
+} from "../utils/backupFormat.js";
+
+function BackupImportPreview({backup}) {
+  if (!backup) {
+    return null;
+  }
+
+  const preview = getBackupPreview(backup);
+
+  return (
+    <dl className="backup-import-preview">
+      <div>
+        <dt>Версия схемы</dt>
+        <dd>{preview.version}</dd>
+      </div>
+      <div>
+        <dt>Экспорт</dt>
+        <dd>{formatBackupExportedAt(preview.exportedAt)}</dd>
+      </div>
+      <div>
+        <dt>Визиты</dt>
+        <dd>{preview.counts.visits}</dd>
+      </div>
+      <div>
+        <dt>Клиенты</dt>
+        <dd>{preview.counts.clients}</dd>
+      </div>
+      <div>
+        <dt>Календарь</dt>
+        <dd>{preview.counts.calendarEntries}</dd>
+      </div>
+      <div>
+        <dt>Сотрудники</dt>
+        <dd>{preview.counts.employees}</dd>
+      </div>
+      <div>
+        <dt>Услуги</dt>
+        <dd>{preview.counts.services}</dd>
+      </div>
+      <div>
+        <dt>Пакеты клиентов</dt>
+        <dd>{preview.counts.clientPackages}</dd>
+      </div>
+    </dl>
+  );
+}
 
 export default function AppModals({
   employeeModalOpen,
@@ -31,6 +81,8 @@ export default function AppModals({
   editingCalendarEntry,
   editingTask,
   editingSupply,
+  editingFinancialOperation,
+  editingJournalVisit,
   serviceNames,
   clientNames,
   employees,
@@ -47,6 +99,9 @@ export default function AppModals({
   pendingCalendarConflict,
   pendingPaymentDelete,
   pendingDataBackup,
+  pendingEntityDelete,
+  onCancelEntityDelete,
+  onConfirmEntityDelete,
   onCloseEmployeeModal,
   onCloseClientModal,
   onCloseServiceModal,
@@ -80,6 +135,7 @@ export default function AppModals({
   const activeEmployees = employees.filter(
     (employee) => employee.status !== "Архив",
   );
+  const entityDeleteDialog = getEntityDeleteDialogContent(pendingEntityDelete);
 
   return (
     <>
@@ -255,9 +311,11 @@ export default function AppModals({
             aria-labelledby="calendar-entry-modal-title">
             <div className="modal-header">
               <h2 id="calendar-entry-modal-title">
-                {editingCalendarEntry
-                  ? "Редактировать запись"
-                  : "Добавить в календарь"}
+                {editingJournalVisit
+                  ? "Редактировать визит"
+                  : editingCalendarEntry
+                    ? "Редактировать запись"
+                    : "Добавить в календарь"}
               </h2>
               <button
                 aria-label="Закрыть форму"
@@ -351,7 +409,11 @@ export default function AppModals({
             className="employee-modal"
             role="dialog">
             <div className="modal-header">
-              <h2 id="financial-operation-modal-title">Добавить поступление</h2>
+              <h2 id="financial-operation-modal-title">
+                {editingFinancialOperation
+                  ? "Редактировать поступление"
+                  : "Добавить поступление"}
+              </h2>
               <button
                 aria-label="Закрыть форму"
                 className="modal-close"
@@ -362,6 +424,7 @@ export default function AppModals({
             </div>
             <FinancialOperationForm
               clients={clientProfiles}
+              operation={editingFinancialOperation}
               onSubmit={onFinancialOperationSubmit}
             />
           </section>
@@ -424,12 +487,34 @@ export default function AppModals({
       />
       <ConfirmDialog
         confirmLabel="Восстановить"
-        message="Текущие локальные данные будут заменены содержимым резервной копии."
+        message={
+          pendingDataBackup ? (
+            <>
+              <p>
+                Текущие локальные данные будут заменены содержимым резервной
+                копии.
+              </p>
+              <BackupImportPreview backup={pendingDataBackup} />
+            </>
+          ) : (
+            ""
+          )
+        }
         open={Boolean(pendingDataBackup)}
         title="Восстановить базу?"
         onCancel={onCancelDataBackup}
         onConfirm={onConfirmDataBackup}
       />
+      {entityDeleteDialog && (
+        <ConfirmDialog
+          confirmLabel={entityDeleteDialog.confirmLabel}
+          message={entityDeleteDialog.message}
+          open={Boolean(pendingEntityDelete)}
+          title={entityDeleteDialog.title}
+          onCancel={onCancelEntityDelete}
+          onConfirm={onConfirmEntityDelete}
+        />
+      )}
     </>
   );
 }

@@ -21,11 +21,12 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {useState} from "react";
+import {getTodayInput} from "../../utils/dateHelpers.js";
 import {formatMoney} from "../../utils/formatters.jsx";
 
 const getTaskStatusLabel = (task) => {
   if (task.status === "completed") return "Готово";
-  if (task.dueDate && task.dueDate < new Date().toISOString().slice(0, 10))
+  if (task.dueDate && task.dueDate < getTodayInput())
     return "Просрочено";
   return "В работе";
 };

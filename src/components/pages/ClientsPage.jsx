@@ -21,6 +21,7 @@ import {
   toInputDate,
 } from "../../utils/formatters.jsx";
 import {getVisitTotal} from "../../utils/visits.jsx";
+import {matchesClientRecord} from "../../utils/clientLinks.js";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
 
 function ClientsPage({
@@ -33,6 +34,7 @@ function ClientsPage({
   inactiveClientDays,
   onAddClient,
   onEditClient,
+  onUpdateClientNote,
   onDeleteClient,
   onMessageClient,
   onAddVisit,
@@ -55,14 +57,17 @@ function ClientsPage({
       clients.map((client) => {
         const clientVisits = visits.filter(
           (visit) =>
-            visit.client === client.name && visit.recordType !== "operation",
+            matchesClientRecord(visit, clients, client) &&
+            visit.recordType !== "operation",
         );
         const clientOperations = visits.filter(
           (visit) =>
-            visit.client === client.name && visit.recordType === "operation",
+            matchesClientRecord(visit, clients, client) &&
+            visit.recordType === "operation",
         );
         const scheduledEntries = calendarEntries.filter(
-          (entry) => entry.kind === "visit" && entry.client === client.name,
+          (entry) =>
+            entry.kind === "visit" && matchesClientRecord(entry, clients, client),
         );
         const completedCalendarDates = scheduledEntries
           .filter((entry) => getAppointmentStatus(entry) === "Окончен")
@@ -124,8 +129,8 @@ function ClientsPage({
             `${first.inputDate}T${first.time}`,
           ),
         );
-        const packages = clientPackages.filter(
-          (packageItem) => packageItem.client === client.name,
+        const packages = clientPackages.filter((packageItem) =>
+          matchesClientRecord(packageItem, clients, client),
         );
         const totalIncome =
           clientVisits.reduce(
@@ -169,6 +174,13 @@ function ClientsPage({
       }),
     [calendarEntries, clientPackages, clients, employees, visits],
   );
+  const activeViewedClient = useMemo(() => {
+    if (!viewedClient) {
+      return null;
+    }
+
+    return clientsData.find((client) => client.id === viewedClient.id) ?? viewedClient;
+  }, [clientsData, viewedClient]);
 
   useEffect(() => {
     if (!viewedClient) return undefined;
@@ -376,7 +388,7 @@ function ClientsPage({
           </div>
         )}
       </div>
-      {viewedClient && (
+      {activeViewedClient && (
         <div
           className="modal-backdrop"
           role="presentation"
@@ -390,7 +402,7 @@ function ClientsPage({
             <div className="modal-header">
               <div>
                 <span>Карточка клиента</span>
-                <h2 id="client-card-title">{viewedClient.name}</h2>
+                <h2 id="client-card-title">{activeViewedClient.name}</h2>
               </div>
               <button
                 aria-label="Закрыть карточку"
@@ -402,90 +414,90 @@ function ClientsPage({
             </div>
             <div className="client-details-grid">
               <span>
-                Телефон <strong>{viewedClient.phone || "—"}</strong>
+                Телефон <strong>{activeViewedClient.phone || "—"}</strong>
               </span>
               <span>
-                Email <strong>{viewedClient.email || "—"}</strong>
+                Email <strong>{activeViewedClient.email || "—"}</strong>
               </span>
               <span>
-                Instagram <strong>{viewedClient.instagram || "—"}</strong>
+                Instagram <strong>{activeViewedClient.instagram || "—"}</strong>
               </span>
               <span>
-                Telegram <strong>{viewedClient.telegram || "—"}</strong>
+                Telegram <strong>{activeViewedClient.telegram || "—"}</strong>
               </span>
               <span>
-                Дата рождения <strong>{viewedClient.birthday || "—"}</strong>
+                Дата рождения <strong>{activeViewedClient.birthday || "—"}</strong>
               </span>
               <span>
-                Источник <strong>{viewedClient.source || "—"}</strong>
+                Источник <strong>{activeViewedClient.source || "—"}</strong>
               </span>
               <span>
-                Визитов <strong>{viewedClient.visitsCount}</strong>
+                Визитов <strong>{activeViewedClient.visitsCount}</strong>
               </span>
               <span>
-                Завершено <strong>{viewedClient.completedVisitsCount}</strong>
+                Завершено <strong>{activeViewedClient.completedVisitsCount}</strong>
               </span>
               <span>
                 Запланировано{" "}
-                <strong>{viewedClient.upcomingVisitsCount}</strong>
+                <strong>{activeViewedClient.upcomingVisitsCount}</strong>
               </span>
               <span>
-                Последний визит <strong>{viewedClient.lastVisit}</strong>
+                Последний визит <strong>{activeViewedClient.lastVisit}</strong>
               </span>
               <span>
                 Не был{" "}
                 <strong>
-                  {viewedClient.daysAbsent === null
+                  {activeViewedClient.daysAbsent === null
                     ? "Еще не приходил"
-                    : `${viewedClient.daysAbsent} дн.`}
+                    : `${activeViewedClient.daysAbsent} дн.`}
                 </strong>
               </span>
               <span>
-                Пакетов <strong>{viewedClient.packagesCount}</strong>
+                Пакетов <strong>{activeViewedClient.packagesCount}</strong>
               </span>
               <span>
-                Остаток сеансов <strong>{viewedClient.packagesLeft}</strong>
+                Остаток сеансов <strong>{activeViewedClient.packagesLeft}</strong>
               </span>
               <span>
                 Общая сумма{" "}
-                <strong>{formatMoney(viewedClient.totalIncome)}</strong>
+                <strong>{formatMoney(activeViewedClient.totalIncome)}</strong>
               </span>
               <span>
-                Предпочтения <strong>{viewedClient.preference || "—"}</strong>
+                Предпочтения <strong>{activeViewedClient.preference || "—"}</strong>
               </span>
               <span>
-                Статус <strong>{viewedClient.status || "Активный"}</strong>
+                Статус <strong>{activeViewedClient.status || "Активный"}</strong>
               </span>
               <span>
-                Теги <strong>{viewedClient.tags || "—"}</strong>
+                Теги <strong>{activeViewedClient.tags || "—"}</strong>
               </span>
             </div>
             <div className="client-details-actions">
               <button
                 className="submit-button"
                 type="button"
-                onClick={() => onAddVisit(viewedClient)}>
+                onClick={() => onAddVisit(activeViewedClient)}>
                 <CalendarPlus size={15} />
                 Добавить визит
               </button>
               <button
                 className="secondary-button"
                 type="button"
-                onClick={() => onMessageClient(viewedClient)}>
+                onClick={() => onMessageClient(activeViewedClient)}>
                 <MessageSquareText size={15} />
                 Написать
               </button>
               <a
-                aria-disabled={!viewedClient.phone}
+                aria-disabled={!activeViewedClient.phone}
                 className="secondary-button"
                 href={
-                  viewedClient.phone ? `tel:${viewedClient.phone}` : undefined
+                  activeViewedClient.phone ? `tel:${activeViewedClient.phone}` : undefined
                 }>
                 <Phone size={15} />
                 Позвонить
               </a>
             </div>
-            {viewedClient.birthday && (
+            {activeViewedClient.birthday && (
               <div className="client-birthday-note">
                 <CakeSlice size={15} />
                 Дата рождения участвует в уведомлениях CRM.
@@ -493,12 +505,28 @@ function ClientsPage({
             )}
             <div className="client-details-note">
               <span>Заметка</span>
-              <p>{viewedClient.note || "Заметок пока нет."}</p>
+              <textarea
+                key={`${activeViewedClient.id}-${activeViewedClient.note || ""}`}
+                className="client-details-note-input"
+                defaultValue={activeViewedClient.note || ""}
+                placeholder="Заметок пока нет."
+                rows={3}
+                onBlur={(event) => {
+                  const nextNote = event.target.value.trim();
+                  const currentNote = String(activeViewedClient.note || "").trim();
+
+                  if (nextNote === currentNote) {
+                    return;
+                  }
+
+                  onUpdateClientNote(activeViewedClient, nextNote);
+                }}
+              />
             </div>
             <div className="client-visit-history">
               <div>
                 <span>История визитов</span>
-                <b>{viewedClient.appointments.length}</b>
+                <b>{activeViewedClient.appointments.length}</b>
               </div>
               <div className="client-visit-history-tabs">
                 <button
@@ -506,7 +534,7 @@ function ClientsPage({
                   type="button"
                   onClick={() => setVisitHistoryTab("future")}>
                   Будущие
-                  <b>{viewedClient.upcomingVisitsCount}</b>
+                  <b>{activeViewedClient.upcomingVisitsCount}</b>
                 </button>
                 <button
                   className={visitHistoryTab === "past" ? "active" : ""}
@@ -514,8 +542,8 @@ function ClientsPage({
                   onClick={() => setVisitHistoryTab("past")}>
                   Прошлые
                   <b>
-                    {viewedClient.appointments.length -
-                      viewedClient.upcomingVisitsCount}
+                    {activeViewedClient.appointments.length -
+                      activeViewedClient.upcomingVisitsCount}
                   </b>
                 </button>
               </div>
@@ -529,7 +557,7 @@ function ClientsPage({
                   <span>Статус</span>
                   <span></span>
                 </div>
-                {viewedClient.appointments
+                {activeViewedClient.appointments
                   .filter((appointment) =>
                     visitHistoryTab === "future"
                       ? appointment.status === "Запланирован"
@@ -560,14 +588,14 @@ function ClientsPage({
                         className="client-repeat-visit"
                         type="button"
                         onClick={() =>
-                          onRepeatVisit(viewedClient, appointment)
+                          onRepeatVisit(activeViewedClient, appointment)
                         }>
                         <RotateCcw size={13} />
                         Повторить визит
                       </button>
                     </div>
                   ))}
-                {viewedClient.appointments.filter((appointment) =>
+                {activeViewedClient.appointments.filter((appointment) =>
                   visitHistoryTab === "future"
                     ? appointment.status === "Запланирован"
                     : appointment.status !== "Запланирован",

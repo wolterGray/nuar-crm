@@ -4,6 +4,7 @@ export const paymentGroups = [
   {key: "cash", label: "Наличные", color: "#7fbea0"},
   {key: "card", label: "Карта", color: "#86a9dc"},
   {key: "ukrainianCard", label: "Укр. карта", color: "#d99cc0"},
+  {key: "mono", label: "Mono", color: "#8eb5d9"},
   {key: "crypto", label: "Крипта", color: "#a79be2"},
   {key: "blik", label: "BLIK", color: "#d9b07a"},
   {key: "package", label: "Пакет", color: "#9f96d8"},

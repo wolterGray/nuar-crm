@@ -1993,13 +1993,4 @@ export const initialClients = [
   }
 ];
 
-export const paymentMethods = [
-  "Наличные",
-  "Карта",
-  "Пакет",
-  "Крипта",
-  "Укр. карта",
-  "BLIK",
-  "Бартер",
-  "Не указано"
-];
+export {paymentMethods} from "../constants/paymentMethods.js";

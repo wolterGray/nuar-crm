@@ -3,6 +3,8 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {useForm, useWatch} from "react-hook-form";
 import {z} from "zod";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
+import {paymentMethods} from "../constants/paymentMethods.js";
+import {matchesClientRecord} from "../utils/clientLinks.js";
 import {getPackageProgressLabel, isUpcomingPackageVisit} from "../utils/packages.jsx";
 
 const fallbackColors = ["#4f8edc", "#8b6fd6", "#45a873", "#d78a42", "#c75b78"];
@@ -235,14 +237,14 @@ function CalendarEntryForm({
       .filter(
         (visit) =>
           visit.kind !== "reserved" &&
-          visit.client === clientName &&
+          matchesClientRecord(visit, clients, clientName) &&
           (!initialEntry || visit.id !== initialEntry.id),
       )
       .sort((first, second) => getVisitTimestamp(second) - getVisitTimestamp(first))[0];
   const getAvailablePackagesForClient = (clientName) =>
     clientPackages.filter(
       (item) =>
-        item.client === clientName &&
+        matchesClientRecord(item, clients, clientName) &&
         item.status !== "Архив" &&
         Number(item.remainingVisits) > 0,
     );
@@ -511,13 +513,9 @@ function CalendarEntryForm({
                     setFormValue("packageUsageId", packageOptions[0].id);
                   }
                 }}>
-                <option>Наличные</option>
-                <option>Карта</option>
-                <option>Пакет</option>
-                <option>Крипта</option>
-                <option>Укр. карта</option>
-                <option>BLIK</option>
-                <option>Не указано</option>
+                {paymentMethods.map((method) => (
+                  <option key={method}>{method}</option>
+                ))}
               </select>
               <FieldError message={errors.payment?.message} />
             </label>

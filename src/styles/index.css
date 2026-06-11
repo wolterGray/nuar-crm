@@ -1,0 +1,7 @@
+/* NUAR CRM — modular styles (import order preserves cascade). */
+@import "./base.css";
+@import "./calendar.css";
+@import "./pages.css";
+@import "./responsive.css";
+@import "./statistics-palette.css";
+@import "./linear-theme.css";

@@ -3,7 +3,7 @@ import clsx from "clsx";
 
 const variants = {
   primary:
-    "border-transparent bg-neutral-950 text-white shadow-sm hover:bg-neutral-800 focus-visible:ring-neutral-950 disabled:bg-neutral-300",
+    "border-transparent bg-[var(--accent-color)] text-white shadow-sm hover:brightness-95 focus-visible:ring-[var(--accent-color)] disabled:opacity-70",
   secondary:
     "border-neutral-200 bg-white text-neutral-900 shadow-sm hover:bg-neutral-50 focus-visible:ring-neutral-400",
   ghost:

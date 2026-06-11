@@ -3,6 +3,7 @@ import {
   Banknote,
   CalendarRange,
   CheckCircle2,
+  Clock3,
   Download,
   Users,
   WalletCards,
@@ -26,14 +27,17 @@ import {
   getEndOfMonth,
   getPeriodDays,
   getStartOfMonth,
+  getUpcomingVisitsWithinHours,
   shiftAppDate,
 } from "../../utils/dateUtils.js";
 import {
   buildFinanceStats,
   getVisitNetProfit,
+  isCancelledVisit,
   toFinanceNumber,
   toFinanceInputDate,
 } from "../../utils/finance.js";
+import {getTodayInput} from "../../utils/dateHelpers.js";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import {
   createPaymentRingGradient,
@@ -58,8 +62,6 @@ const currencyIcons = {
 };
 
 const revenueChartColor = "#3f2a63";
-
-const getTodayInput = () => formatAppDate(new Date(), "yyyy-MM-dd");
 
 const getMonthStart = () => {
   return formatAppDate(getStartOfMonth(new Date()), "yyyy-MM-dd");
@@ -260,6 +262,42 @@ function StatisticsPage({
     visits,
   ]);
 
+  const todaySnapshot = useMemo(() => {
+    const today = getTodayInput();
+    const now = new Date();
+    const todayStats = buildFinanceStats({
+      calendarEntries,
+      clientPackages,
+      employees,
+      endDate: today,
+      master,
+      now,
+      startDate: today,
+      visits,
+    });
+    const todayCalendarVisits = calendarEntries.filter(
+      (entry) =>
+        entry.kind === "visit" &&
+        entry.date === today &&
+        !isCancelledVisit(entry) &&
+        (!master || entry.master === master),
+    );
+    const upcomingVisits = getUpcomingVisitsWithinHours(
+      todayCalendarVisits,
+      3,
+      now,
+    );
+
+    return {
+      completedVisits: todayStats.completedAppointments.length,
+      debtAmount: todayStats.debtAmount,
+      debtVisits: todayStats.debtVisits.length,
+      received: todayStats.receivedRevenue,
+      scheduledVisits: todayCalendarVisits.length,
+      upcomingVisits,
+    };
+  }, [calendarEntries, clientPackages, employees, master, visits]);
+
   const chartData = groupChartDates(analytics.dates);
   const periodChangePercent =
     analytics.previousPeriodIncome > 0
@@ -329,15 +367,8 @@ function StatisticsPage({
     ["Выплаты мастерам", -analytics.employeePayouts],
     ["Комиссии платформ", -analytics.platformCommissions],
   ];
-  const paymentRows = analytics.payments.filter((item) =>
-    [
-      "Наличные",
-      "Карта",
-      "Укр. карта",
-      "Пакет",
-      "Сертификат",
-      "Не указано",
-    ].includes(item.label),
+  const paymentRows = analytics.payments.filter(
+    (item) => item.recordsCount > 0 || item.value > 0,
   );
   const attentionItems = [];
 
@@ -498,6 +529,66 @@ function StatisticsPage({
           </select>
         </div>
       </div>
+
+      <article className="statistics-panel statistics-today-panel">
+        <div className="statistics-panel-title">
+          <div>
+            <h3>Сегодня</h3>
+            <p>{toDisplayDate(getTodayInput())}</p>
+          </div>
+        </div>
+        <div className="statistics-today-grid">
+          <StatisticsCard
+            item={{
+              color: "#8fc5aa",
+              helper: `${todaySnapshot.completedVisits} завершено`,
+              icon: CalendarRange,
+              label: "Визиты",
+              value: todaySnapshot.scheduledVisits,
+            }}
+          />
+          <StatisticsCard
+            item={{
+              color: "#b7a0d6",
+              icon: Banknote,
+              label: "Поступления",
+              value: formatIncome(todaySnapshot.received),
+            }}
+          />
+          <StatisticsCard
+            item={{
+              color: "#d99a9a",
+              helper:
+                todaySnapshot.debtVisits > 0
+                  ? `${todaySnapshot.debtVisits} записей`
+                  : "нет долгов",
+              icon: WalletCards,
+              label: "Долги",
+              value: formatIncome(todaySnapshot.debtAmount),
+            }}
+          />
+          <StatisticsCard
+            item={{
+              color: "#8ba7d8",
+              helper: "следующие 3 часа",
+              icon: Clock3,
+              label: "Ближайшие",
+              value: todaySnapshot.upcomingVisits.length,
+            }}
+          />
+        </div>
+        {todaySnapshot.upcomingVisits.length > 0 && (
+          <ul className="statistics-today-upcoming">
+            {todaySnapshot.upcomingVisits.map((entry) => (
+              <li key={entry.id ?? `${entry.time}-${entry.client}`}>
+                <strong>{entry.time}</strong>
+                <span>{entry.client || "Без клиента"}</span>
+                <small>{entry.service || "Визит"}</small>
+              </li>
+            ))}
+          </ul>
+        )}
+      </article>
 
       <article className="statistics-income-card">
         <div className="statistics-income-top">

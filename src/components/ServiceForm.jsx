@@ -1,7 +1,7 @@
 import {useMemo} from "react";
 import {getRandomServiceColor} from "../utils/serviceColors.js";
 
-const serviceDurations = [60, 75, 90, 120];
+const serviceDurations = [30, 60, 75, 90, 120];
 
 function ServiceForm({service, onSubmit}) {
   const defaultColor = useMemo(

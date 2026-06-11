@@ -1,6 +1,7 @@
 import {
   BellRing,
   CalendarClock,
+  CloudUpload,
   DatabaseBackup,
   Download,
   MailCheck,
@@ -10,10 +11,21 @@ import {
   Upload,
 } from "lucide-react";
 import {useRef} from "react";
+import {NUAR_ACCENT_PRESETS} from "../../constants/nuarAccentPresets.js";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
 
 function SettingsPage({
   settings,
+  cloudConflict = null,
+  cloudEnabled = false,
+  cloudHydrated = false,
+  cloudLoadError = "",
+  cloudSyncing = false,
+  lastCloudSyncAt = "",
+  lastCloudSyncError = "",
+  onApplyRemoteSnapshot,
+  onForceCloudSave,
+  onOverwriteRemoteSnapshot,
   onSubmit,
   onReset,
   onExportData,
@@ -24,6 +36,34 @@ function SettingsPage({
     formRef.current?.reset();
     onReset();
   };
+  const formatCloudSyncTime = (value) => {
+    if (!value) {
+      return "ещё не сохранялось";
+    }
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+      ? "ещё не сохранялось"
+      : date.toLocaleString("ru-RU", {
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+  };
+  const cloudStatusMessage = !cloudEnabled
+    ? "Войдите в CRM, чтобы синхронизировать данные с Supabase."
+    : cloudLoadError
+      ? cloudLoadError
+      : cloudConflict
+        ? "Облако новее локальной базы. Выберите, какую версию оставить."
+        : !cloudHydrated
+          ? "Загрузка данных из облака..."
+          : lastCloudSyncError
+            ? lastCloudSyncError
+            : "Изменения автоматически сохраняются в облако через ~1 секунду после правок.";
 
   return (
     <section className="settings-page">
@@ -74,6 +114,24 @@ function SettingsPage({
               defaultValue={settings.accentColor}
             />
           </label>
+          <div className="settings-accent-presets">
+            {NUAR_ACCENT_PRESETS.map((preset) => (
+              <button
+                className="settings-accent-preset"
+                key={preset.value}
+                style={{"--preset-color": preset.value}}
+                title={preset.label}
+                type="button"
+                onClick={() => {
+                  const input = formRef.current?.elements.namedItem("accentColor");
+                  if (input) {
+                    input.value = preset.value;
+                  }
+                }}>
+                <span>{preset.label}</span>
+              </button>
+            ))}
+          </div>
           <div className="settings-options">
             <label>
               Тема
@@ -356,6 +414,68 @@ function SettingsPage({
                 Google
               </small>
             </label>
+          </div>
+        </section>
+
+        <section className="panel settings-panel">
+          <div className="settings-panel-heading">
+            <CloudUpload size={18} />
+            <div>
+              <h2>Облако</h2>
+              <p>Синхронизация CRM через Supabase</p>
+            </div>
+          </div>
+          <div className="settings-options settings-cloud-panel">
+            <div className="settings-cloud-status">
+              <span>Последнее сохранение</span>
+              <strong>{formatCloudSyncTime(lastCloudSyncAt)}</strong>
+              <small
+                className={
+                  cloudLoadError || lastCloudSyncError || cloudConflict
+                    ? "error"
+                    : ""
+                }>
+                {cloudStatusMessage}
+              </small>
+            </div>
+            {cloudConflict && (
+              <div className="settings-cloud-conflict">
+                <p>
+                  В облаке более свежая версия (
+                  {formatCloudSyncTime(cloudConflict.remoteUpdatedAt)}). Если
+                  сохранить локальные данные сейчас, изменения с другого
+                  устройства будут потеряны.
+                </p>
+                <div className="settings-data-actions">
+                  <button
+                    className="secondary-button"
+                    disabled={cloudSyncing}
+                    type="button"
+                    onClick={onApplyRemoteSnapshot}>
+                    Загрузить из облака
+                  </button>
+                  <button
+                    className="submit-button"
+                    disabled={cloudSyncing}
+                    type="button"
+                    onClick={onOverwriteRemoteSnapshot}>
+                    Сохранить локальные в облако
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="settings-data-actions">
+              <button
+                className="secondary-button"
+                disabled={
+                  !cloudEnabled || !cloudHydrated || cloudSyncing || cloudConflict
+                }
+                type="button"
+                onClick={onForceCloudSave}>
+                <CloudUpload size={16} />
+                {cloudSyncing ? "Сохранение..." : "Принудительно сохранить сейчас"}
+              </button>
+            </div>
           </div>
         </section>
 

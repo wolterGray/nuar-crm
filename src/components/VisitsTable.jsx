@@ -7,7 +7,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {Download, ListFilter, MoreVertical, Plus, Search} from "lucide-react";
-import {paymentMethods} from "../data/seed.js";
+import {paymentMethods} from "../constants/paymentMethods.js";
+import {getTodayInput} from "../utils/dateHelpers.js";
 import {formatMoney} from "../utils/formatters.jsx";
 import {
   getVisitCommission,
@@ -286,7 +287,7 @@ function VisitsTable({
     const link = document.createElement("a");
 
     link.href = URL.createObjectURL(new Blob([`\uFEFF${csv}`], {type: "text/csv;charset=utf-8"}));
-    link.download = `nuar-visits-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `nuar-visits-${getTodayInput()}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
   };

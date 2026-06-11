@@ -16,6 +16,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import {getTodayInput} from "../../utils/dateHelpers.js";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import {
   DndContext,
@@ -28,6 +29,7 @@ import {
 } from "@dnd-kit/core";
 import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
+import {matchesClientRecord} from "../../utils/clientLinks.js";
 import {getPackageProgressLabel, isUpcomingPackageVisit} from "../../utils/packages.jsx";
 import {getVisitDebt, getVisitTransactionTotal} from "../../utils/visits.jsx";
 
@@ -49,7 +51,7 @@ const toTime = (minutes, startMinutes, endMinutes, slotMinutes) => {
 };
 
 const shiftDate = (date, days) => {
-  if (!isValidInputDate(date)) return new Date().toISOString().slice(0, 10);
+  if (!isValidInputDate(date)) return getTodayInput();
 
   const nextDate = new Date(`${date}T12:00:00`);
   nextDate.setDate(nextDate.getDate() + days);
@@ -206,7 +208,7 @@ function CalendarPage({
   overlayOpen,
 }) {
   const [selectedDate, setSelectedDate] = useState(
-    () => new Date().toISOString().slice(0, 10),
+    () => getTodayInput(),
   );
   const [now, setNow] = useState(new Date());
   const [remindersVisible, setRemindersVisible] = useState(
@@ -262,11 +264,11 @@ function CalendarPage({
   const visibleReminderEntries = (
     reminderFilter === "active" ? activeVisitEntries : visitEntries
   ).sort((first, second) => String(first.time).localeCompare(String(second.time)));
-  const isToday = selectedDate === new Date().toISOString().slice(0, 10);
+  const isToday = selectedDate === getTodayInput();
   const carouselDates = useMemo(
     () =>
       Array.from({length: 1461}, (_, index) =>
-        shiftDate(new Date().toISOString().slice(0, 10), index - 730),
+        shiftDate(getTodayInput(), index - 730),
       ),
     [],
   );
@@ -437,7 +439,7 @@ function CalendarPage({
             <button
               className="secondary-button calendar-today-button"
               type="button"
-              onClick={() => selectCalendarDate(new Date().toISOString().slice(0, 10))}>
+              onClick={() => selectCalendarDate(getTodayInput())}>
               Сегодня
             </button>
           )}
@@ -480,7 +482,7 @@ function CalendarPage({
           style={weekSelectionStyle ?? undefined}
         />
         {carouselDates.map((date) => {
-          const today = date === new Date().toISOString().slice(0, 10);
+          const today = date === getTodayInput();
           const dayIndex = (new Date(`${date}T12:00:00`).getDay() + 6) % 7;
           return (
             <button
@@ -913,14 +915,21 @@ function ClientCalendarCard({
   onRemind,
 }) {
   const relatedEntries = entries.filter(
-    (entry) => entry.kind === "visit" && entry.client === clientName && entry.id !== currentEntry.id,
+    (entry) =>
+      entry.kind === "visit" &&
+      matchesClientRecord(entry, [client].filter(Boolean), client ?? clientName) &&
+      entry.id !== currentEntry.id,
   );
   const futureVisits = relatedEntries.filter(
     (entry) => `${entry.date}T${entry.time}` > `${currentEntry.date}T${currentEntry.time}`,
   );
-  const pastVisits = visits.filter((visit) => visit.client === clientName);
+  const pastVisits = visits.filter((visit) =>
+    matchesClientRecord(visit, [client].filter(Boolean), client ?? clientName),
+  );
   const packages = clientPackages.filter(
-    (packageItem) => packageItem.client === clientName && packageItem.status !== "Архив",
+    (packageItem) =>
+      matchesClientRecord(packageItem, [client].filter(Boolean), client ?? clientName) &&
+      packageItem.status !== "Архив",
   );
 
   return (

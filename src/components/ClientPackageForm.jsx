@@ -1,18 +1,11 @@
 import {useMemo, useState} from "react";
+import {paymentMethods} from "../constants/paymentMethods.js";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
+import {toInputDate} from "../utils/formatters.jsx";
 
-const toInputDate = (date) => {
-  if (!date) {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  }
-
-  const [day, month, year] = date.split(".");
-  return `${year}-${month}-${day}`;
-};
+const packagePaymentMethods = paymentMethods.filter(
+  (method) => method !== "Пакет" && method !== "Сертификат",
+);
 
 function ClientPackageForm({
   clients,
@@ -94,10 +87,9 @@ function ClientPackageForm({
           <label>
             Оплата
             <select name="payment" defaultValue={clientPackage?.payment ?? "Наличные"}>
-              <option>Наличные</option>
-              <option>Карта</option>
-              <option>Укр. карта</option>
-              <option>Крипта</option>
+              {packagePaymentMethods.map((method) => (
+                <option key={method}>{method}</option>
+              ))}
             </select>
           </label>
           <label>

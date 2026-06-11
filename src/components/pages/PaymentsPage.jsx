@@ -7,6 +7,7 @@ function PaymentsPage({
   visits,
   onAddPayment,
   onDeleteVisit,
+  onEditVisit,
   onFilterChange,
   onResetFilters,
   onToggleActionMenu,
@@ -22,6 +23,7 @@ function PaymentsPage({
         visits={visits}
         onAddVisit={onAddPayment}
         onDeleteVisit={onDeleteVisit}
+        onEditVisit={onEditVisit}
         onFilterChange={onFilterChange}
         onResetFilters={onResetFilters}
         onToggleActionMenu={onToggleActionMenu}

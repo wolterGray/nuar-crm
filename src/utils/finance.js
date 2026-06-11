@@ -39,11 +39,14 @@ export const normalizePaymentMethod = (method) => {
   }
 
   if (
-    value.includes("ukr") ||
-    value.includes("укр") ||
-    value.includes("mono") ||
-    value.includes("monobank")
+    value === "mono" ||
+    value.includes("monobank") ||
+    (value.includes("mono") && !value.includes("monochrome"))
   ) {
+    return "mono";
+  }
+
+  if (value.includes("ukr") || value.includes("укр")) {
     return "ukrainianCard";
   }
 
@@ -589,8 +592,13 @@ export const auditFinanceLogic = () => {
       200,
     ),
     runAuditCase(
-      "ukrainian card normalized",
+      "mono normalized",
       normalizePaymentMethod("monobank"),
+      "mono",
+    ),
+    runAuditCase(
+      "ukrainian card normalized",
+      normalizePaymentMethod("Укр. карта"),
       "ukrainianCard",
     ),
     runAuditCase(
