@@ -148,6 +148,7 @@ export default function AppRoutes({activePage, ...props}) {
           booksyGmailSync={props.booksyGmailSync}
           calendarEntries={props.calendarEntries}
           documents={props.importDocuments}
+          onDeleteDocuments={props.deleteImportDocuments}
         />
       );
 

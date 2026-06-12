@@ -69,6 +69,10 @@ import {useMessageTemplateHandlers} from "./hooks/useMessageTemplateHandlers.js"
 import {useTaskHandlers} from "./hooks/useTaskHandlers.js";
 import {useSupplyHandlers} from "./hooks/useSupplyHandlers.js";
 import {useMailImport} from "./hooks/useMailImport.js";
+import {
+  removeImportedMailIds,
+  removeImportDocumentsByIds,
+} from "./utils/importDocuments.js";
 import {useBooksyGmailSync} from "./hooks/useBooksyGmailSync.js";
 import {useToastNotifications} from "./hooks/useToastNotifications.js";
 import {useAuth} from "./hooks/useAuth.js";
@@ -1058,6 +1062,28 @@ function App() {
     setImportedMailIds,
   });
 
+  const deleteImportDocuments = useCallback(
+    (documentIds) => {
+      const ids = (Array.isArray(documentIds) ? documentIds : [documentIds]).filter(Boolean);
+
+      if (ids.length === 0) {
+        return;
+      }
+
+      setImportDocuments((current) => removeImportDocumentsByIds(current, ids));
+      setImportedMailIds((current) => removeImportedMailIds(current, ids));
+      pushNotification({
+        title: "Импорт Gmail",
+        message:
+          ids.length === 1
+            ? "Документ удалён из CRM. При синхронизации письмо можно импортировать снова."
+            : `Удалено документов: ${ids.length}`,
+        persist: false,
+      });
+    },
+    [pushNotification],
+  );
+
   const booksyGmailSync = useBooksyGmailSync({
     calendarEntries,
     clientProfiles,
@@ -1322,6 +1348,7 @@ function App() {
             cloudSyncing={cloudSyncing}
             communicationLog={communicationLog}
             completeTask={completeTask}
+            deleteImportDocuments={deleteImportDocuments}
             deletePaymentRow={deletePaymentRow}
             editPaymentRow={editPaymentRow}
             employeeStats={employeeStats}

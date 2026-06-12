@@ -2981,6 +2981,22 @@ h2 {
   justify-self: start;
 }
 
+.import-document-delete-bulk {
+  justify-self: start;
+}
+
+.import-document-card-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.import-document-delete {
+  width: 30px;
+  height: 30px;
+}
+
 .import-document-grid {
   display: grid;
   gap: 8px;

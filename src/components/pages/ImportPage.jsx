@@ -6,6 +6,7 @@ import {
   Mail,
   MailCheck,
   Search,
+  Trash2,
   X,
 } from "lucide-react";
 import {useMemo, useState} from "react";
@@ -41,10 +42,26 @@ const periodFilterOptions = [
   {value: IMPORT_DOCUMENT_PERIOD_FILTERS.year, label: "Год"},
 ];
 
-function ImportDocumentCard({document}) {
+function ImportDocumentCard({document, onDelete}) {
   const title = getImportDocumentTitle(document);
   const sourceLabel = getImportDocumentSourceLabel(document);
   const metaRows = getImportDocumentMetaRows(document);
+
+  const handleDelete = () => {
+    if (!onDelete) {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Удалить документ «${title}» из CRM?\n\nПисьмо в Gmail останется. При следующей синхронизации его можно импортировать снова.`,
+      )
+    ) {
+      return;
+    }
+
+    onDelete(document.id);
+  };
 
   return (
     <article className="import-document-card">
@@ -56,14 +73,24 @@ function ImportDocumentCard({document}) {
           <strong>{title}</strong>
           <small>{sourceLabel}</small>
         </div>
-        <a
-          className="import-document-card-link"
-          href={document.gmailUrl}
-          rel="noreferrer"
-          target="_blank"
-          title="Открыть письмо в Gmail">
-          <ExternalLink size={15} />
-        </a>
+        <div className="import-document-card-actions">
+          <a
+            className="import-document-card-link"
+            href={document.gmailUrl}
+            rel="noreferrer"
+            target="_blank"
+            title="Открыть письмо в Gmail">
+            <ExternalLink size={15} />
+          </a>
+          <button
+            aria-label="Удалить документ"
+            className="compact-icon-button danger import-document-delete"
+            title="Удалить из CRM"
+            type="button"
+            onClick={handleDelete}>
+            <Trash2 size={15} />
+          </button>
+        </div>
       </div>
 
       {document.subject && document.subject !== title && (
@@ -88,7 +115,7 @@ function ImportDocumentCard({document}) {
   );
 }
 
-function ImportPage({booksyGmailSync, calendarEntries, documents}) {
+function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocuments}) {
   const [filters, setFilters] = useState(DEFAULT_IMPORT_DOCUMENT_FILTERS);
   const sourceOptions = useMemo(
     () => getImportDocumentSourceOptions(documents),
@@ -111,6 +138,24 @@ function ImportPage({booksyGmailSync, calendarEntries, documents}) {
 
   const resetFilters = () => {
     setFilters(DEFAULT_IMPORT_DOCUMENT_FILTERS);
+  };
+
+  const handleDeleteVisible = () => {
+    if (!onDeleteDocuments || filteredDocuments.length === 0) {
+      return;
+    }
+
+    const count = filteredDocuments.length;
+    const message =
+      count === 1
+        ? `Удалить документ «${getImportDocumentTitle(filteredDocuments[0])}» из CRM?`
+        : `Удалить ${count} документов из CRM?\n\nПисьма в Gmail останутся. При синхронизации их можно импортировать снова.`;
+
+    if (!window.confirm(message)) {
+      return;
+    }
+
+    onDeleteDocuments(filteredDocuments.map((document) => document.id));
   };
 
   return (
@@ -263,11 +308,27 @@ function ImportPage({booksyGmailSync, calendarEntries, documents}) {
               Сбросить фильтры
             </button>
           )}
+
+          {filteredDocuments.length > 0 && onDeleteDocuments && (
+            <button
+              className="danger-button import-document-delete-bulk"
+              type="button"
+              onClick={handleDeleteVisible}>
+              <Trash2 size={15} />
+              {filtersActive
+                ? `Удалить показанные (${filteredDocuments.length})`
+                : `Удалить все (${filteredDocuments.length})`}
+            </button>
+          )}
         </div>
 
         <div className="import-document-grid">
           {filteredDocuments.map((document) => (
-            <ImportDocumentCard document={document} key={document.id} />
+            <ImportDocumentCard
+              document={document}
+              key={document.id}
+              onDelete={onDeleteDocuments}
+            />
           ))}
           {filteredDocuments.length === 0 && (
             <p className="operations-empty">
