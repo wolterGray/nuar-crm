@@ -55,6 +55,16 @@ export const getPageFromPath = (pathname = "") => {
   return PATH_TO_PAGE[normalized] ?? null;
 };
 
+export const isSupportedAppPath = (pathname = "") => {
+  const normalized = normalizeAppPath(pathname);
+
+  if (normalized === "/" || normalized === "/reset-password") {
+    return true;
+  }
+
+  return getPageFromPath(normalized) !== null;
+};
+
 export const resolveInitialPage = ({
   pathname = window.location.pathname,
   storedPage = "calendar",

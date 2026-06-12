@@ -1,8 +1,7 @@
 import LoginPage from "./LoginPage.jsx";
 import SystemScreen from "./SystemScreen.jsx";
 import ToastStack from "./ToastStack.jsx";
-
-const supportedPaths = ["/", "/reset-password"];
+import {getPathFromPage, isSupportedAppPath} from "../utils/appRouting.js";
 
 export default function AppGate({
   appSettings,
@@ -22,7 +21,7 @@ export default function AppGate({
 }) {
   const currentPath = window.location.pathname;
 
-  if (!supportedPaths.includes(currentPath)) {
+  if (!isSupportedAppPath(currentPath)) {
     return (
       <SystemScreen
         actionLabel="На главную"
@@ -31,7 +30,7 @@ export default function AppGate({
         settings={appSettings}
         title="Страница не найдена"
         onAction={() => {
-          window.history.replaceState({}, "", "/");
+          window.history.replaceState({page: "calendar"}, "", getPathFromPage("calendar"));
           window.location.reload();
         }}
       />

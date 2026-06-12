@@ -2,6 +2,7 @@ import {describe, expect, it} from "vitest";
 import {
   getPageFromPath,
   getPathFromPage,
+  isSupportedAppPath,
   normalizeAppPath,
   resolveInitialPage,
 } from "./appRouting.js";
@@ -31,5 +32,13 @@ describe("appRouting", () => {
         storedPage: "today",
       }),
     ).toBe("today");
+  });
+
+  it("accepts known CRM paths for AppGate", () => {
+    expect(isSupportedAppPath("/")).toBe(true);
+    expect(isSupportedAppPath("/reset-password")).toBe(true);
+    expect(isSupportedAppPath("/today")).toBe(true);
+    expect(isSupportedAppPath("/calendar")).toBe(true);
+    expect(isSupportedAppPath("/unknown-page")).toBe(false);
   });
 });
