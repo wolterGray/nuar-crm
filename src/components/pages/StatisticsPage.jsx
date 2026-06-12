@@ -72,6 +72,7 @@ const formatChartDate = (date) => formatAppDate(date, "dd MMM");
 function StatisticsPage({
   visits,
   calendarEntries = [],
+  certificates = [],
   clientPackages,
   clients,
   employees,
@@ -125,6 +126,7 @@ function StatisticsPage({
     const dateRange = getPeriodDays(startDate, endDate);
     const financeStats = buildFinanceStats({
       calendarEntries,
+      certificates,
       clientPackages,
       employees,
       endDate,
@@ -139,6 +141,7 @@ function StatisticsPage({
     );
     const previousStats = buildFinanceStats({
       calendarEntries,
+      certificates,
       clientPackages,
       employees,
       endDate: previousPeriodEnd,
@@ -155,6 +158,7 @@ function StatisticsPage({
         ? financeStats
         : buildFinanceStats({
             calendarEntries,
+            certificates,
             clientPackages,
             employees,
             endDate: fallbackForecastEndDate,
@@ -255,6 +259,7 @@ function StatisticsPage({
   }, [
     calendarEntries,
     clientPackages,
+    certificates,
     employees,
     endDate,
     master,
@@ -267,6 +272,7 @@ function StatisticsPage({
     const now = new Date();
     const todayStats = buildFinanceStats({
       calendarEntries,
+      certificates,
       clientPackages,
       employees,
       endDate: today,
@@ -296,7 +302,7 @@ function StatisticsPage({
       scheduledVisits: todayCalendarVisits.length,
       upcomingVisits,
     };
-  }, [calendarEntries, clientPackages, employees, master, visits]);
+  }, [calendarEntries, certificates, clientPackages, employees, master, visits]);
 
   const chartData = groupChartDates(analytics.dates);
   const periodChangePercent =

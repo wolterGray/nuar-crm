@@ -34,6 +34,7 @@ export function useClientAlerts({
   alertSnoozes,
   appSettings,
   calendarEntries,
+  certificates,
   clientPackages,
   clientProfiles,
   defaultAppSettings,
@@ -46,6 +47,7 @@ export function useClientAlerts({
   setAlertSnoozes,
   setClientAlertsOpen,
   setClientPackages,
+  setCertificates,
   setDismissedClientAlertIds,
   setNotificationInbox,
   setPackagesCatalog,
@@ -65,6 +67,7 @@ export function useClientAlerts({
       buildAlertCenter({
         appSettings,
         calendarEntries,
+        certificates,
         clientPackages,
         clientProfiles,
         defaultAppSettings,
@@ -80,6 +83,7 @@ export function useClientAlerts({
       alertSnoozes,
       appSettings,
       calendarEntries,
+      certificates,
       clientPackages,
       clientProfiles,
       defaultAppSettings,
@@ -198,6 +202,22 @@ export function useClientAlerts({
           message: `${packageItem.client}: ${packageItem.packageName}`,
           persist: false,
         });
+      } else if (notification.undoAction?.type === "restore-certificate") {
+        const certificate = notification.undoAction.payload;
+
+        setCertificates((current) =>
+          current.some((item) => item.id === certificate.id)
+            ? current
+            : [certificate, ...current],
+        );
+        setNotificationInbox((current) =>
+          current.filter((item) => item.id !== notification.id),
+        );
+        pushNotification({
+          title: "Сертификат восстановлен",
+          message: `${certificate.code} · ${certificate.client}`,
+          persist: false,
+        });
       } else if (notification.undoAction?.type === "restore-package-template") {
         const packageItem = notification.undoAction.payload;
 
@@ -216,7 +236,7 @@ export function useClientAlerts({
         });
       }
     },
-    [pushNotification, setClientPackages, setNotificationInbox, setPackagesCatalog],
+    [pushNotification, setCertificates, setClientPackages, setNotificationInbox, setPackagesCatalog],
   );
 
   const openClientMessageTemplates = useCallback(

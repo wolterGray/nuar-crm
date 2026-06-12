@@ -4,7 +4,7 @@ import {
   isVisitInPeriod,
   parseAppDate,
 } from "./dateUtils.js";
-import {safePackage, safeVisit} from "./financeSchemas.js";
+import {safeCertificate, safePackage, safeVisit} from "./financeSchemas.js";
 
 export const toFinanceNumber = (value) => {
   const normalizedValue =
@@ -293,6 +293,7 @@ const isCertificateSale = (visit) =>
 export const buildFinanceStats = ({
   visits = [],
   calendarEntries = [],
+  certificates = [],
   clientPackages = [],
   employees = [],
   startDate,
@@ -303,6 +304,7 @@ export const buildFinanceStats = ({
   const safeVisits = visits.map(safeVisit);
   const safeCalendarEntries = calendarEntries.map(safeVisit);
   const safeClientPackages = clientPackages.map(safePackage);
+  const safeCertificates = certificates.map(safeCertificate);
   const completedVisits = safeVisits.filter((visit) => {
     return (
       isCompletedVisit(visit, now) &&
@@ -333,9 +335,24 @@ export const buildFinanceStats = ({
     (sum, item) => sum + getPackageSaleEmployeePayout(item, employees),
     0,
   );
-  const certificateIncome = incomeOperations
+  const filteredCertificates = safeCertificates.filter(
+    (item) =>
+      isVisitInPeriod({date: item.purchaseDate}, startDate, endDate) &&
+      (!master || item.master === master),
+  );
+  const linkedCertificateSaleVisitIds = new Set(
+    safeCertificates.map((item) => item.saleVisitId).filter(Boolean),
+  );
+  const certificateIncomeFromCatalog = filteredCertificates.reduce(
+    (sum, item) => sum + Math.max(0, toFinanceNumber(item.nominal)),
+    0,
+  );
+  const certificateIncomeLegacy = incomeOperations
     .filter(isCertificateSale)
+    .filter((visit) => !linkedCertificateSaleVisitIds.has(visit.id))
     .reduce((sum, visit) => sum + getVisitReceivedAmount(visit), 0);
+  const certificateIncome =
+    certificateIncomeFromCatalog + certificateIncomeLegacy;
   const operationsIncome = incomeOperations.reduce(
     (sum, visit) => sum + getVisitReceivedAmount(visit),
     0,

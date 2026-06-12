@@ -59,9 +59,17 @@ export const packageSchema = z
 
 export const certificateSchema = z
   .object({
-    ...baseFinanceObject,
-    recordType: nullableString.default("operation"),
-    service: nullableString.default("Продажа сертификата"),
+    client: nullableString.default(""),
+    code: nullableString.default(""),
+    expiryDate: nullableString.default(""),
+    master: nullableString.default(""),
+    nominal: amountLike.default(0),
+    payment: nullableString.default("Не указано"),
+    purchaseDate: nullableString.default(""),
+    recipient: nullableString.default(""),
+    remainingBalance: amountLike.default(0),
+    saleVisitId: z.union([z.string(), z.number(), z.null(), z.undefined()]).optional(),
+    status: nullableString.default("Активен"),
   })
   .passthrough();
 
@@ -69,3 +77,6 @@ export const safeVisit = (visit) => visitSchema.safeParse(visit).data ?? visit;
 
 export const safePackage = (clientPackage) =>
   packageSchema.safeParse(clientPackage).data ?? clientPackage;
+
+export const safeCertificate = (certificate) =>
+  certificateSchema.safeParse(certificate).data ?? certificate;

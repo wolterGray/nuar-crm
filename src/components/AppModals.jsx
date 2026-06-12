@@ -6,6 +6,7 @@ import NewClientForm from "./NewClientForm.jsx";
 import ServiceForm from "./ServiceForm.jsx";
 import PackageForm from "./PackageForm.jsx";
 import ClientPackageForm from "./ClientPackageForm.jsx";
+import CertificateForm from "./CertificateForm.jsx";
 import MessageTemplateForm from "./MessageTemplateForm.jsx";
 import CalendarEntryForm from "./CalendarEntryForm.jsx";
 import TaskForm from "./TaskForm.jsx";
@@ -67,6 +68,7 @@ export default function AppModals({
   serviceModalOpen,
   packageModalOpen,
   clientPackageModalOpen,
+  certificateModalOpen,
   messageTemplateModalOpen,
   calendarEntryModalOpen,
   taskModalOpen,
@@ -77,6 +79,7 @@ export default function AppModals({
   editingService,
   editingPackage,
   editingClientPackage,
+  editingCertificate,
   editingMessageTemplate,
   editingCalendarEntry,
   editingTask,
@@ -90,6 +93,7 @@ export default function AppModals({
   calendarEntries,
   clientProfiles,
   clientPackages,
+  certificates,
   paymentRows,
   calendarEntryDefaults,
   defaultStatsDate,
@@ -107,6 +111,7 @@ export default function AppModals({
   onCloseServiceModal,
   onClosePackageModal,
   onCloseClientPackageModal,
+  onCloseCertificateModal,
   onCloseMessageTemplateModal,
   onCloseCalendarEntryModal,
   onCloseTaskModal,
@@ -117,6 +122,7 @@ export default function AppModals({
   onServiceSubmit,
   onPackageSubmit,
   onClientPackageSubmit,
+  onCertificateSubmit,
   onMessageTemplateSubmit,
   onCalendarEntrySubmit,
   onTaskSubmit,
@@ -273,6 +279,38 @@ export default function AppModals({
         </div>
       )}
 
+      {certificateModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal catalog-modal"
+            role="dialog"
+            aria-labelledby="certificate-modal-title">
+            <div className="modal-header">
+              <h2 id="certificate-modal-title">
+                {editingCertificate
+                  ? "Редактировать сертификат"
+                  : "Продать сертификат"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseCertificateModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <CertificateForm
+              certificate={editingCertificate}
+              certificates={certificates}
+              clients={clientNames}
+              employees={activeEmployees}
+              onSubmit={onCertificateSubmit}
+            />
+          </section>
+        </div>
+      )}
+
       {messageTemplateModalOpen && (
         <div className="modal-backdrop" role="presentation">
           <section
@@ -327,6 +365,7 @@ export default function AppModals({
             </div>
             <CalendarEntryForm
               calendarEntries={calendarEntries}
+              certificates={certificates}
               clientPackages={clientPackages}
               clients={clientProfiles}
               employees={activeEmployees}

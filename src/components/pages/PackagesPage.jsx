@@ -1,10 +1,15 @@
-import {Archive, ChevronDown, Pencil, Plus, Trash2} from "lucide-react";
+import {Archive, ChevronDown, Gift, Pencil, Plus, Trash2} from "lucide-react";
 import {useMemo, useState} from "react";
 import {motion} from "framer-motion";
 import {
   isActiveClientPackage,
   isArchivedClientPackage,
 } from "../../utils/clientPackages.js";
+import {
+  getCertificateBalanceLabel,
+  isActiveCertificate,
+  isArchivedCertificate,
+} from "../../utils/certificates.js";
 import {formatMoney} from "../../utils/formatters.jsx";
 import {
   getPackageRemainingLabel,
@@ -58,19 +63,78 @@ function ClientPackageCard({onDelete, onEdit, packageItem}) {
   );
 }
 
+function CertificateCard({certificate, onDelete, onEdit}) {
+  const archived = isArchivedCertificate(certificate);
+
+  return (
+    <article
+      className={`client-package-card certificate-card${archived ? " is-archived" : ""}`}>
+      <div className="client-package-main">
+        <strong>{certificate.code}</strong>
+        <span>{certificate.client || "Без покупателя"}</span>
+        <small>
+          {certificate.recipient && certificate.recipient !== certificate.client
+            ? `Получатель: ${certificate.recipient}`
+            : `До ${certificate.expiryDate || "—"}`}
+        </small>
+      </div>
+      <div className="client-package-progress">
+        <div>
+          <span>{archived ? "Использовано" : "Остаток"}</span>
+          <strong>{getCertificateBalanceLabel(certificate)}</strong>
+        </div>
+        <progress
+          max={Math.max(Number(certificate.nominal) || 1, 1)}
+          value={Math.max(
+            0,
+            Number(certificate.nominal) - Number(certificate.remainingBalance),
+          )}
+        />
+      </div>
+      <div className="client-package-meta">
+        <span>{certificate.purchaseDate}</span>
+        <b>{certificate.status}</b>
+      </div>
+      <div className="employee-actions">
+        <button
+          aria-label="Редактировать сертификат"
+          className="compact-icon-button"
+          title="Редактировать"
+          type="button"
+          onClick={() => onEdit(certificate)}>
+          <Pencil size={16} />
+        </button>
+        <button
+          aria-label="Удалить сертификат"
+          className="compact-icon-button danger"
+          title="Удалить"
+          type="button"
+          onClick={() => onDelete(certificate)}>
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </article>
+  );
+}
+
 function PackagesPage({
   packages,
   clientPackages,
   certificates,
+  certificateSalesIncome,
   onAdd,
   onEdit,
   onDelete,
   packageSalesIncome,
   onSellPackage,
+  onSellCertificate,
   onEditClientPackage,
   onDeleteClientPackage,
+  onEditCertificate,
+  onDeleteCertificate,
 }) {
   const [archiveOpen, setArchiveOpen] = useState(false);
+  const [certificateArchiveOpen, setCertificateArchiveOpen] = useState(false);
   const activeClientPackages = useMemo(
     () => clientPackages.filter(isActiveClientPackage),
     [clientPackages],
@@ -79,8 +143,20 @@ function PackagesPage({
     () => clientPackages.filter(isArchivedClientPackage),
     [clientPackages],
   );
+  const activeCertificates = useMemo(
+    () => certificates.filter(isActiveCertificate),
+    [certificates],
+  );
+  const archivedCertificates = useMemo(
+    () => certificates.filter(isArchivedCertificate),
+    [certificates],
+  );
   const remainingVisits = activeClientPackages.reduce(
     (sum, packageItem) => sum + (Number(packageItem.remainingVisits) || 0),
+    0,
+  );
+  const activeCertificateBalance = activeCertificates.reduce(
+    (sum, certificate) => sum + (Number(certificate.remainingBalance) || 0),
     0,
   );
 
@@ -92,9 +168,16 @@ function PackagesPage({
             <button
               className="secondary-button"
               type="button"
+              onClick={onSellCertificate}>
+              <Gift size={18} />
+              Продать сертификат
+            </button>
+            <button
+              className="secondary-button"
+              type="button"
               onClick={onSellPackage}>
               <Plus size={18} />
-              Продать клиенту
+              Продать пакет
             </button>
             <button className="add-visit-button" type="button" onClick={onAdd}>
               <Plus size={18} />
@@ -102,7 +185,7 @@ function PackagesPage({
             </button>
           </>
         }
-        description={`${packages.length} шаблонов · ${activeClientPackages.length} активных · ${archivedClientPackages.length} в архиве`}
+        description={`${packages.length} шаблонов · ${activeClientPackages.length} активных пакетов · ${activeCertificates.length} активных сертификатов`}
         title="Пакеты"
       />
 
@@ -116,14 +199,79 @@ function PackagesPage({
           <h3>{formatMoney(packageSalesIncome)}</h3>
         </article>
         <article className="catalog-card">
-          <span>Активных пакетов</span>
-          <h3>{activeClientPackages.length}</h3>
+          <span>Сертификатов продано</span>
+          <h3>{certificates.length}</h3>
         </article>
         <article className="catalog-card">
-          <span>Осталось визитов</span>
+          <span>Доход от сертификатов</span>
+          <h3>{formatMoney(certificateSalesIncome)}</h3>
+        </article>
+        <article className="catalog-card">
+          <span>Активный остаток сертификатов</span>
+          <h3>{formatMoney(activeCertificateBalance)}</h3>
+        </article>
+        <article className="catalog-card">
+          <span>Осталось визитов в пакетах</span>
           <h3>{remainingVisits}</h3>
         </article>
       </div>
+
+      <div className="panel client-packages-panel">
+        <div className="panel-header">
+          <h2>Активные сертификаты</h2>
+          <span>{activeCertificates.length}</span>
+        </div>
+        <div className="client-packages-list">
+          {activeCertificates.map((certificate) => (
+            <CertificateCard
+              key={certificate.id}
+              certificate={certificate}
+              onDelete={onDeleteCertificate}
+              onEdit={onEditCertificate}
+            />
+          ))}
+          {activeCertificates.length === 0 && (
+            <div className="clients-empty">
+              <strong>Активных сертификатов нет</strong>
+              <span>
+                Продайте сертификат клиенту — код, номинал и остаток будут
+                отслеживаться автоматически.
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {archivedCertificates.length > 0 ? (
+        <div className="panel client-packages-panel client-packages-archive-panel">
+          <button
+            className="client-packages-archive-toggle"
+            type="button"
+            onClick={() => setCertificateArchiveOpen((current) => !current)}>
+            <span>
+              <Archive size={16} />
+              Архив сертификатов
+            </span>
+            <strong>{archivedCertificates.length}</strong>
+            <ChevronDown
+              className={certificateArchiveOpen ? "open" : ""}
+              size={16}
+            />
+          </button>
+          {certificateArchiveOpen ? (
+            <div className="client-packages-list client-packages-archive-list">
+              {archivedCertificates.map((certificate) => (
+                <CertificateCard
+                  key={certificate.id}
+                  certificate={certificate}
+                  onDelete={onDeleteCertificate}
+                  onEdit={onEditCertificate}
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="panel client-packages-panel">
         <div className="panel-header">
@@ -177,41 +325,6 @@ function PackagesPage({
           ) : null}
         </div>
       ) : null}
-
-      <div className="panel client-packages-panel">
-        <div className="panel-header">
-          <h2>Проданные сертификаты</h2>
-          <span>{certificates.length}</span>
-        </div>
-        <div className="client-packages-list">
-          {certificates.map((certificate) => (
-            <article
-              className="client-package-card certificate-card"
-              key={certificate.id}>
-              <div className="client-package-main">
-                <strong>
-                  {certificate.client || "Без привязки к клиенту"}
-                </strong>
-                <span>{certificate.service}</span>
-                <small>{certificate.date}</small>
-              </div>
-              <div className="client-package-meta">
-                <span>{formatMoney(certificate.extra)}</span>
-                <b>{certificate.payment}</b>
-              </div>
-            </article>
-          ))}
-          {certificates.length === 0 && (
-            <div className="clients-empty">
-              <strong>Сертификаты пока не продавались</strong>
-              <span>
-                Продажа появится здесь после добавления поступления в разделе
-                оплат.
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
 
       <h2>Шаблоны пакетов</h2>
       <div className="catalog-grid">

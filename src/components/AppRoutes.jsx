@@ -8,10 +8,37 @@ import MessageTemplatesPage from "./pages/MessageTemplatesPage.jsx";
 import OperationsPage from "./pages/OperationsPage.jsx";
 import ImportPage from "./pages/ImportPage.jsx";
 import StatisticsPage from "./pages/StatisticsPage.jsx";
+import TodayPage from "./pages/TodayPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 
 export default function AppRoutes({activePage, ...props}) {
   switch (activePage) {
+    case "today":
+      return (
+        <TodayPage
+          alertSummary={props.alertSummary}
+          alerts={props.alerts}
+          appSettings={props.appSettings}
+          calendarEntries={props.calendarEntries}
+          certificates={props.certificates}
+          clientPackages={props.clientPackages}
+          clientProfiles={props.clientProfiles}
+          employees={props.activeEmployees}
+          supplies={props.supplies}
+          tasks={props.tasks}
+          visits={props.paymentRows}
+          onAddTask={props.openCreateTask}
+          onAddVisit={props.openCreateCalendarEntry}
+          onChangeSupplyStock={props.changeSupplyStock}
+          onCompleteTask={props.completeTask}
+          onEditVisit={(entry) => props.requestCalendarAction("edit", entry)}
+          onOpenCalendar={() => props.setActivePage("calendar")}
+          onOpenOperations={() => props.setActivePage("operations")}
+          onOpenPayments={() => props.setActivePage("payments")}
+          onRemindVisit={props.remindCalendarClient}
+        />
+      );
+
     case "calendar":
       return (
         <CalendarPage
@@ -86,14 +113,18 @@ export default function AppRoutes({activePage, ...props}) {
         <PackagesPage
           packages={props.packagesCatalog}
           clientPackages={props.clientPackages}
-          certificates={props.certificateVisits}
+          certificates={props.certificates}
+          certificateSalesIncome={props.certificateSalesIncome}
           packageSalesIncome={props.packageSalesIncome}
           onAdd={props.openCreatePackage}
           onEdit={props.openEditPackage}
           onDelete={props.requestDeletePackage}
           onSellPackage={props.openCreateClientPackage}
+          onSellCertificate={props.openCreateCertificate}
           onEditClientPackage={props.openEditClientPackage}
           onDeleteClientPackage={props.requestDeleteClientPackage}
+          onEditCertificate={props.openEditCertificate}
+          onDeleteCertificate={props.requestDeleteCertificate}
         />
       );
 
@@ -157,6 +188,7 @@ export default function AppRoutes({activePage, ...props}) {
         <StatisticsPage
           visits={props.paymentRows}
           calendarEntries={props.calendarEntries}
+          certificates={props.certificates}
           clientPackages={props.clientPackages}
           clients={props.clientProfiles}
           employees={props.employees}
@@ -175,6 +207,9 @@ export default function AppRoutes({activePage, ...props}) {
           lastCloudSyncAt={props.lastCloudSyncAt}
           lastCloudSyncError={props.lastCloudSyncError}
           settings={props.appSettings}
+          smsReminders={props.smsReminders}
+          telegramDigest={props.telegramDigest}
+          pushNotification={props.pushNotification}
           onApplyRemoteSnapshot={props.handleApplyRemoteSnapshot}
           onForceCloudSave={props.handleForceCloudSave}
           onOverwriteRemoteSnapshot={props.handleOverwriteRemoteSnapshot}
@@ -196,6 +231,9 @@ export default function AppRoutes({activePage, ...props}) {
           lastCloudSyncAt={props.lastCloudSyncAt}
           lastCloudSyncError={props.lastCloudSyncError}
           settings={props.appSettings}
+          smsReminders={props.smsReminders}
+          telegramDigest={props.telegramDigest}
+          pushNotification={props.pushNotification}
           onApplyRemoteSnapshot={props.handleApplyRemoteSnapshot}
           onForceCloudSave={props.handleForceCloudSave}
           onOverwriteRemoteSnapshot={props.handleOverwriteRemoteSnapshot}

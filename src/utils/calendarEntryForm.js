@@ -1,4 +1,5 @@
 import {attachClientLink} from "./clientLinks.js";
+import {computeCertificateRedemptionAmount} from "./certificates.js";
 import {toDisplayDate} from "./formatters.jsx";
 import {normalizeCalendarEntryTiming} from "./calendarEntryTiming.js";
 import {toVisitNumber} from "./visits.jsx";
@@ -12,6 +13,7 @@ const toCalendarMinutes = (time) => {
 export const buildCalendarEntryFromForm = (
   form,
   {
+    certificates = [],
     clientPackages,
     clientProfiles,
     createLocalId,
@@ -25,6 +27,10 @@ export const buildCalendarEntryFromForm = (
     (item) => String(item.id) === String(form.get("serviceId")),
   );
   const packageUsageId = Number(form.get("packageUsageId")) || "";
+  const certificateUsageId = form.get("certificateUsageId") || "";
+  const selectedCertificate = certificates.find(
+    (item) => String(item.id) === String(certificateUsageId),
+  );
   const startTime = String(form.get("time") ?? "00:00");
   const endTime = String(form.get("endTime") ?? "00:00");
   const duration =
@@ -60,6 +66,17 @@ export const buildCalendarEntryFromForm = (
     packageName:
       clientPackages.find((item) => item.id === packageUsageId)?.packageName ?? "",
     packageSessionsUsed: packageUsageId ? 1 : 0,
+    certificateUsageId,
+    certificateCode: selectedCertificate?.code ?? "",
+    certificateAmountUsed:
+      kind === "visit" && form.get("payment") === "Сертификат"
+        ? computeCertificateRedemptionAmount(
+            selectedCertificate,
+            rawAmount === ""
+              ? toVisitNumber(serviceVariant?.price)
+              : toVisitNumber(rawAmount),
+          )
+        : 0,
     tip: kind === "visit" ? toVisitNumber(form.get("tip")) : 0,
     extra: kind === "visit" ? toVisitNumber(form.get("extra")) : 0,
     debt: kind === "visit" ? toVisitNumber(form.get("debt")) : 0,
@@ -103,6 +120,9 @@ export const buildJournalVisitUpdateFromEntry = (
     packageUsageId: entry.packageUsageId || "",
     packageName: entry.packageName || "",
     packageSessionsUsed: entry.packageSessionsUsed || 0,
+    certificateUsageId: entry.certificateUsageId || "",
+    certificateCode: entry.certificateCode || "",
+    certificateAmountUsed: entry.certificateAmountUsed || 0,
     tip: entry.tip,
     commissionType: entry.commissionType || "Без комиссии",
     extra: entry.extra,

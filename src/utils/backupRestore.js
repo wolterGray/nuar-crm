@@ -24,6 +24,16 @@ export const restoreBackupSnapshot = (
   setters.setServiceCatalog(normalizeServiceColors(backup.services));
   setters.setPackagesCatalog(backup.packages);
   setters.setClientPackages(migrated.clientPackages);
+  if (setters.setCertificates) {
+    setters.setCertificates(
+      Array.isArray(migrated.certificates) ? migrated.certificates : [],
+    );
+  }
+  if (setters.setSmsReminderLog) {
+    setters.setSmsReminderLog(
+      Array.isArray(backup.smsReminderLog) ? backup.smsReminderLog : [],
+    );
+  }
   setters.setMessageTemplates(backup.messageTemplates);
   setters.setCalendarEntries(migrated.calendarEntries);
   setters.setDismissedClientAlertIds(

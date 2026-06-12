@@ -1969,3 +1969,136 @@ button:focus-visible {
   background: #111722;
 }
 
+.today-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.today-side-column {
+  display: grid;
+  gap: 14px;
+}
+
+.today-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.today-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.today-panel-heading h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.today-panel-heading p {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 12px;
+}
+
+.today-empty {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+}
+
+.today-visit-list,
+.today-slot-list,
+.today-task-list,
+.today-supply-list,
+.today-note-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.today-visit-row,
+.today-task-row,
+.today-supply-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(63, 42, 99, 0.05);
+}
+
+.today-visit-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.today-visit-main strong {
+  min-width: 44px;
+  font-size: 13px;
+}
+
+.today-visit-main span,
+.today-task-row strong,
+.today-supply-row strong {
+  display: block;
+  font-size: 13px;
+}
+
+.today-visit-main small,
+.today-task-row small,
+.today-supply-row small {
+  display: block;
+  margin-top: 2px;
+  color: #667085;
+  font-size: 12px;
+}
+
+.today-visit-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.today-visit-meta b {
+  font-size: 11px;
+  font-weight: 700;
+  color: #667085;
+}
+
+.today-visit-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.today-slot-list li {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(63, 42, 99, 0.05);
+}
+
+.today-note-list li {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(63, 42, 99, 0.05);
+  font-size: 13px;
+}
+
+@media (max-width: 980px) {
+  .today-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

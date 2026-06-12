@@ -11,12 +11,17 @@ import {
 } from "../utils/calendarConflicts.js";
 import {toDisplayDate} from "../utils/formatters.jsx";
 import {getTodayInput} from "../utils/dateHelpers.js";
+import {
+  computeCertificateRedemptionAmount,
+} from "../utils/certificates.js";
+import {getVisitDiscountedAmount} from "../utils/finance.js";
 import {toVisitNumber} from "../utils/visits.jsx";
 
 export function useCalendarActions({
   appSettings,
   autoCompletedCalendarEntryIdsRef,
   calendarEntries,
+  certificates,
   clientPackages,
   clientProfiles,
   createLocalId,
@@ -37,6 +42,7 @@ export function useCalendarActions({
   setEditingJournalVisit,
   setPreferredMessageClientId,
   setVisits,
+  updateCertificateBalance,
   updatePackageBalance,
   visits,
 }) {
@@ -88,6 +94,9 @@ export function useCalendarActions({
                 packageUsageId: entry.packageUsageId || "",
                 packageName: entry.packageName || "",
                 packageSessionsUsed: entry.packageSessionsUsed || 0,
+                certificateUsageId: entry.certificateUsageId || "",
+                certificateCode: entry.certificateCode || "",
+                certificateAmountUsed: entry.certificateAmountUsed || 0,
                 tip: toVisitNumber(entry.tip),
                 commissionType: entry.commissionType || "Без комиссии",
                 extra: toVisitNumber(entry.extra),
@@ -116,6 +125,7 @@ export function useCalendarActions({
 
       if (completedVisit) {
         updatePackageBalance(completedVisit, null);
+        updateCertificateBalance(completedVisit, null);
         setVisits((current) =>
           current.filter(
             (visit) =>
@@ -125,7 +135,7 @@ export function useCalendarActions({
         );
       }
     },
-    [setVisits, updatePackageBalance, visits],
+    [setVisits, updateCertificateBalance, updatePackageBalance, visits],
   );
 
   const saveCalendarEntry = useCallback(
@@ -178,6 +188,17 @@ export function useCalendarActions({
         entry.amount === "" || entry.amount === null || entry.amount === undefined
           ? toVisitNumber(matchedVariant?.price)
           : toVisitNumber(entry.amount);
+      const certificate = certificates.find(
+        (item) => String(item.id) === String(entry.certificateUsageId),
+      );
+      const certificateAmountUsed =
+        entry.payment === "Сертификат"
+          ? entry.certificateAmountUsed ||
+            computeCertificateRedemptionAmount(
+              certificate,
+              getVisitDiscountedAmount({amount, discount: entry.discount}),
+            )
+          : 0;
       const visit = attachClientLink(clientProfiles, {
         id: createLocalId(),
         calendarEntryId: entry.id,
@@ -192,6 +213,9 @@ export function useCalendarActions({
         packageUsageId: entry.packageUsageId || "",
         packageName: entry.packageName || "",
         packageSessionsUsed: entry.packageSessionsUsed || 0,
+        certificateUsageId: entry.certificateUsageId || "",
+        certificateCode: entry.certificateCode || certificate?.code || "",
+        certificateAmountUsed,
         tip: toVisitNumber(entry.tip),
         commission: 0,
         commissionType: entry.commissionType || "Без комиссии",
@@ -211,6 +235,7 @@ export function useCalendarActions({
             : [visit, ...current],
         );
         updatePackageBalance(null, visit);
+        updateCertificateBalance(null, visit);
       }
 
       setCalendarEntries((current) =>
@@ -234,12 +259,14 @@ export function useCalendarActions({
       }
     },
     [
+      certificates,
       clientProfiles,
       createLocalId,
       pushNotification,
       serviceCatalog,
       setCalendarEntries,
       setVisits,
+      updateCertificateBalance,
       updatePackageBalance,
       visits,
     ],
@@ -251,6 +278,7 @@ export function useCalendarActions({
       const formElement = eventOrForm.currentTarget ?? eventOrForm;
       const form = new FormData(formElement);
       const entry = buildCalendarEntryFromForm(form, {
+        certificates,
         clientPackages,
         clientProfiles,
         createLocalId,
@@ -268,6 +296,7 @@ export function useCalendarActions({
         );
 
         updatePackageBalance(previousVisit, nextVisit);
+        updateCertificateBalance(previousVisit, nextVisit);
         setVisits((current) =>
           current.map((visit) =>
             visit.id === previousVisit.id ? nextVisit : visit,
@@ -311,6 +340,7 @@ export function useCalendarActions({
     [
       appSettings,
       calendarEntries,
+      certificates,
       clientPackages,
       clientProfiles,
       createLocalId,
@@ -326,6 +356,7 @@ export function useCalendarActions({
       setEditingCalendarEntry,
       setEditingJournalVisit,
       setVisits,
+      updateCertificateBalance,
       updatePackageBalance,
     ],
   );

@@ -1,10 +1,16 @@
 import {getUpcomingBirthday} from "./clientAlerts.js";
 import {isActiveClientPackage} from "./clientPackages.js";
+import {
+  getCertificateRemainingPercent,
+  isActiveCertificate,
+  isCertificateExpired,
+} from "./certificates.js";
 import {matchesClientRecord} from "./clientLinks.js";
 import {
   getDaysSinceDisplayDate,
   getLatestDisplayDate,
   toDisplayDate,
+  toInputDate,
 } from "./formatters.jsx";
 import {getTodayInput} from "./dateHelpers.js";
 import {shiftAppDate} from "./dateUtils.js";
@@ -80,6 +86,7 @@ export const buildInactiveClients = ({
 export const buildAlertCenter = ({
   appSettings,
   calendarEntries,
+  certificates = [],
   clientPackages,
   clientProfiles,
   defaultAppSettings,
@@ -256,6 +263,64 @@ export const buildAlertCenter = ({
             page: "clients",
             entityId: item.client,
             actions: ["client", "snooze"],
+            meta: {item},
+          }),
+        );
+      });
+  }
+
+  if (appSettings.certificateAlertsEnabled !== false) {
+    const expiryReminderDays = Math.max(
+      1,
+      Number(appSettings.certificateExpiryReminderDays) ||
+        defaultAppSettings.certificateExpiryReminderDays,
+    );
+    const lowBalancePercent = Math.max(
+      1,
+      Number(appSettings.certificateLowBalancePercent) ||
+        defaultAppSettings.certificateLowBalancePercent,
+    );
+    const expiryThreshold = shiftAppDate(getTodayInput(), expiryReminderDays);
+
+    certificates
+      .filter((item) => isActiveCertificate(item))
+      .forEach((item) => {
+        const expiryInput = toInputDate(item.expiryDate);
+        const remainingPercent = getCertificateRemainingPercent(item);
+        const expirySoon =
+          expiryInput &&
+          expiryInput <= expiryThreshold &&
+          !isCertificateExpired(item);
+        const lowBalance =
+          Number(item.remainingBalance) > 0 &&
+          remainingPercent <= lowBalancePercent &&
+          remainingPercent > 0;
+
+        if (!expirySoon && !lowBalance) {
+          return;
+        }
+
+        const alertId = expirySoon
+          ? `certificate-expiry-${item.id}-${item.expiryDate}`
+          : `certificate-balance-${item.id}-${remainingPercent}`;
+
+        if (isHidden(alertId)) {
+          return;
+        }
+
+        alerts.push(
+          createAlert({
+            id: alertId,
+            type: "certificate",
+            group: "packages",
+            priority: expirySoon ? "action" : "info",
+            title: item.code,
+            message: expirySoon
+              ? `${item.client} · истекает ${item.expiryDate}`
+              : `${item.client} · осталось ${item.remainingBalance} zł (${remainingPercent}%)`,
+            page: "packages",
+            entityId: item.id,
+            actions: ["open", "snooze"],
             meta: {item},
           }),
         );

@@ -4,6 +4,7 @@ import {
   matchesClientRecord,
   remapClientRecords,
 } from "../utils/clientLinks.js";
+import {matchesCertificateClient} from "../utils/certificates.js";
 import {resolveClientPackageStatus} from "../utils/clientPackages.js";
 import {toDisplayDate} from "../utils/formatters.jsx";
 import {getPackageProgressLabel} from "../utils/packages.jsx";
@@ -24,6 +25,7 @@ export function useClientHandlers({
   setClientPackageModalOpen,
   setClientPackages,
   setClientProfiles,
+  setCertificates,
   setEditingClient,
   setEditingClientPackage,
   setVisits,
@@ -108,6 +110,45 @@ export function useClientHandlers({
         setClientPackages((current) =>
           remapClientRecords(current, clientProfiles, previousClient, client),
         );
+        setCertificates((current) =>
+          current.map((certificate) => {
+            if (
+              !matchesCertificateClient(certificate, clientProfiles, previousClient)
+            ) {
+              return certificate;
+            }
+
+            const nextCertificate = {...certificate};
+
+            if (
+              matchesClientRecord(
+                {client: certificate.client, clientId: certificate.clientId},
+                clientProfiles,
+                previousClient,
+              )
+            ) {
+              nextCertificate.client = client.name;
+              nextCertificate.clientId = client.id;
+            }
+
+            if (
+              certificate.recipient &&
+              matchesClientRecord(
+                {
+                  client: certificate.recipient,
+                  clientId: certificate.recipientId,
+                },
+                clientProfiles,
+                previousClient,
+              )
+            ) {
+              nextCertificate.recipient = client.name;
+              nextCertificate.recipientId = client.id;
+            }
+
+            return nextCertificate;
+          }),
+        );
         setCalendarEntries((current) =>
           remapClientRecords(current, clientProfiles, previousClient, client, {
             visitOnly: true,
@@ -131,6 +172,7 @@ export function useClientHandlers({
       setClientModalOpen,
       setClientPackages,
       setClientProfiles,
+      setCertificates,
       setEditingClient,
       setVisits,
     ],
@@ -151,12 +193,18 @@ export function useClientHandlers({
           (packageItem) => !matchesClientRecord(packageItem, clientProfiles, client),
         ),
       );
+      setCertificates((current) =>
+        current.filter(
+          (certificate) =>
+            !matchesCertificateClient(certificate, clientProfiles, client),
+        ),
+      );
       pushNotification({
         title: "Клиент удален",
         message: `${client.name} удален из базы клиентов`,
       });
     },
-    [clientProfiles, pushNotification, setClientPackages, setClientProfiles],
+    [clientProfiles, pushNotification, setCertificates, setClientPackages, setClientProfiles],
   );
 
   const addClientCalendarVisit = useCallback(

@@ -15,6 +15,36 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
   taskAlertsEnabled: form.get("taskAlertsEnabled") === "on",
   supplyAlertsEnabled: form.get("supplyAlertsEnabled") === "on",
   packageBalanceAlertsEnabled: form.get("packageBalanceAlertsEnabled") === "on",
+  certificateAlertsEnabled: form.get("certificateAlertsEnabled") === "on",
+  certificateExpiryReminderDays:
+    Math.max(1, Number(form.get("certificateExpiryReminderDays"))) ||
+    defaultAppSettings.certificateExpiryReminderDays,
+  certificateLowBalancePercent:
+    Math.max(1, Number(form.get("certificateLowBalancePercent"))) ||
+    defaultAppSettings.certificateLowBalancePercent,
+  smsRemindersEnabled: form.get("smsRemindersEnabled") === "on",
+  smsReminder24hEnabled: form.get("smsReminder24hEnabled") === "on",
+  smsReminder2hEnabled: form.get("smsReminder2hEnabled") === "on",
+  smsReminder24hTemplate:
+    String(form.get("smsReminder24hTemplate") ?? "").trim() ||
+    defaultAppSettings.smsReminder24hTemplate,
+  smsReminder2hTemplate:
+    String(form.get("smsReminder2hTemplate") ?? "").trim() ||
+    defaultAppSettings.smsReminder2hTemplate,
+  smsAutoProcessEnabled: form.get("smsAutoProcessEnabled") === "on",
+  smsAutoProcessMinutes:
+    Math.max(5, Number(form.get("smsAutoProcessMinutes"))) ||
+    defaultAppSettings.smsAutoProcessMinutes,
+  smsSenderName:
+    String(form.get("smsSenderName") ?? "").trim() ||
+    defaultAppSettings.smsSenderName,
+  smsRemindersLastRunAt: appSettings.smsRemindersLastRunAt ?? "",
+  telegramDigestEnabled: form.get("telegramDigestEnabled") === "on",
+  telegramDigestTime:
+    String(form.get("telegramDigestTime") ?? "").trim() ||
+    defaultAppSettings.telegramDigestTime,
+  telegramChatId: String(form.get("telegramChatId") ?? "").trim(),
+  telegramDigestLastRunAt: appSettings.telegramDigestLastRunAt ?? "",
   forecastAlertsEnabled: form.get("forecastAlertsEnabled") === "on",
   alertAggregationEnabled: form.get("alertAggregationEnabled") === "on",
   quietHoursEnabled: form.get("quietHoursEnabled") === "on",

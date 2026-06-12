@@ -8,6 +8,7 @@ import {
   Package,
   ReceiptText,
   Settings,
+  Sun,
   User,
   Users,
 } from "lucide-react";
@@ -17,6 +18,7 @@ export const navGroups = [
     id: "work",
     label: "Работа",
     items: [
+      {label: "Сегодня", page: "today", icon: Sun},
       {label: "Календарь", page: "calendar", icon: CalendarDays},
       {label: "Клиенты", page: "clients", icon: Users},
       {label: "Оплаты", page: "payments", icon: ReceiptText},
@@ -55,8 +57,8 @@ export const navGroups = [
 export const navItems = navGroups.flatMap((group) => group.items);
 
 export const mobileNavItems = [
+  {label: "Сегодня", page: "today", icon: Sun},
   {label: "Календарь", page: "calendar", icon: CalendarDays},
   {label: "Оплаты", page: "payments", icon: ReceiptText},
   {label: "Клиенты", page: "clients", icon: Users},
-  {label: "Статистика", page: "statistics", icon: ChartNoAxesCombined},
 ];

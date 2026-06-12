@@ -1,5 +1,6 @@
 import {pruneExpiredSnoozes} from "./alertSnooze.js";
 import {migrateClientLinks} from "./clientLinks.js";
+import {mergeLegacyCertificateSales, syncCertificateStatus} from "./certificates.js";
 
 export const applyCrmSnapshot = (
   snapshot,
@@ -15,6 +16,7 @@ export const applyCrmSnapshot = (
     setCommunicationLog,
     setDismissedClientAlertIds,
     setAlertSnoozes,
+    setCertificates,
     setEmployees,
     setImportDocuments,
     setImportedMailIds,
@@ -23,6 +25,7 @@ export const applyCrmSnapshot = (
     setPackagesCatalog,
     setServiceCatalog,
     setSupplies,
+    setSmsReminderLog,
     setTasks,
     setVisits,
   },
@@ -39,6 +42,7 @@ export const applyCrmSnapshot = (
         visits: snapshot.visits ?? [],
         calendarEntries: snapshot.calendarEntries ?? [],
         clientPackages: snapshot.clientPackages ?? [],
+        certificates: snapshot.certificates ?? [],
       })
     : null;
 
@@ -50,6 +54,15 @@ export const applyCrmSnapshot = (
   }
   if (Array.isArray(snapshot.packages)) setPackagesCatalog(snapshot.packages);
   if (migrated?.clientPackages) setClientPackages(migrated.clientPackages);
+  if (setCertificates) {
+    const nextCertificates = mergeLegacyCertificateSales(
+      migrated?.visits ?? snapshot.visits ?? [],
+      migrated?.certificates ??
+        (Array.isArray(snapshot.certificates) ? snapshot.certificates : []),
+      () => Date.now(),
+    ).map(syncCertificateStatus);
+    setCertificates(nextCertificates);
+  }
   if (Array.isArray(snapshot.messageTemplates)) {
     setMessageTemplates(snapshot.messageTemplates);
   }
@@ -77,6 +90,9 @@ export const applyCrmSnapshot = (
   if (Array.isArray(snapshot.autoCompletedCalendarEntryIds)) {
     setAutoCompletedCalendarEntryIds(snapshot.autoCompletedCalendarEntryIds);
   }
+  if (Array.isArray(snapshot.smsReminderLog)) {
+    setSmsReminderLog(snapshot.smsReminderLog);
+  }
   if (snapshot.settings && typeof snapshot.settings === "object") {
     const safeSettings = {...snapshot.settings};
     delete safeSettings.authLogin;
@@ -97,6 +113,7 @@ export const buildCloudSnapshot = ({
   appSettings,
   autoCompletedCalendarEntryIds,
   calendarEntries,
+  certificates,
   clientPackages,
   clientProfiles,
   communicationLog,
@@ -108,6 +125,7 @@ export const buildCloudSnapshot = ({
   notificationInbox,
   packagesCatalog,
   serviceCatalog,
+  smsReminderLog,
   supplies,
   tasks,
   visits,
@@ -118,6 +136,7 @@ export const buildCloudSnapshot = ({
   clients: clientProfiles,
   services: serviceCatalog,
   packages: packagesCatalog,
+  certificates,
   clientPackages,
   messageTemplates,
   calendarEntries,
@@ -129,6 +148,7 @@ export const buildCloudSnapshot = ({
   supplies,
   importDocuments,
   importedMailIds,
+  smsReminderLog,
   autoCompletedCalendarEntryIds,
   settings: appSettings,
 });

@@ -4,6 +4,7 @@ export const entityDeleteTypes = {
   service: "service",
   package: "package",
   clientPackage: "clientPackage",
+  certificate: "certificate",
   messageTemplate: "messageTemplate",
   task: "task",
   supply: "supply",
@@ -20,7 +21,7 @@ export const getEntityDeleteDialogContent = (pendingDelete) => {
     case entityDeleteTypes.client:
       return {
         confirmLabel: "Удалить",
-        message: `${entity.name} будет удалён из базы клиентов. Его пакеты тоже будут удалены. Визиты и записи в календаре сохранятся.`,
+        message: `${entity.name} будет удалён из базы клиентов. Его пакеты и сертификаты тоже будут удалены. Визиты и записи в календаре сохранятся.`,
         title: "Удалить клиента?",
       };
     case entityDeleteTypes.employee:
@@ -46,6 +47,12 @@ export const getEntityDeleteDialogContent = (pendingDelete) => {
         confirmLabel: "Удалить",
         message: `${entity.client}: ${entity.packageName} будет удалён. Остаток сеансов и история списаний по этому пакету пропадут из CRM.`,
         title: "Удалить пакет клиента?",
+      };
+    case entityDeleteTypes.certificate:
+      return {
+        confirmLabel: "Удалить",
+        message: `${entity.code} · ${entity.client} будет удалён. Остаток ${entity.remainingBalance} zł пропадёт из CRM.`,
+        title: "Удалить сертификат?",
       };
     case entityDeleteTypes.messageTemplate:
       return {

@@ -14,6 +14,7 @@ describe("backupRestore", () => {
     const setters = {
       setAppSettings: vi.fn(),
       setCalendarEntries: vi.fn(),
+      setCertificates: vi.fn(),
       setClientPackages: vi.fn(),
       setClientProfiles: vi.fn(),
       setCommunicationLog: vi.fn(),
@@ -33,6 +34,7 @@ describe("backupRestore", () => {
     restoreBackupSnapshot(
       {
         calendarEntries: [],
+        certificates: [],
         clientPackages: [],
         clients: [{id: 1, name: "Anna", source: "Instagram"}],
         communicationLog: [],

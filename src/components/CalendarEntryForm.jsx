@@ -3,6 +3,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {useForm, useWatch} from "react-hook-form";
 import {z} from "zod";
 import {isActiveClientPackage} from "../utils/clientPackages.js";
+import {getActiveCertificatesForClient} from "../utils/certificates.js";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import {matchesClientRecord} from "../utils/clientLinks.js";
@@ -32,6 +33,7 @@ const calendarEntrySchema = z
     amount: optionalMoneyField,
     payment: z.string().optional(),
     packageUsageId: z.union([z.string(), z.number()]).optional(),
+    certificateUsageId: z.union([z.string(), z.number()]).optional(),
     commissionType: z.string().optional(),
     tip: optionalMoneyField,
     extra: optionalMoneyField,
@@ -73,6 +75,17 @@ const calendarEntrySchema = z
           path: ["packageUsageId"],
         });
       }
+
+      if (
+        data.payment === "Сертификат" &&
+        !String(data.certificateUsageId ?? "").trim()
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "Выберите сертификат",
+          path: ["certificateUsageId"],
+        });
+      }
     }
 
     if (data.kind === "reserved") {
@@ -103,6 +116,7 @@ const calendarEntrySchema = z
 function CalendarEntryForm({
   initialEntry,
   calendarEntries,
+  certificates = [],
   clients,
   clientPackages,
   employees,
@@ -146,6 +160,7 @@ function CalendarEntryForm({
       amount: initialEntry?.amount ?? selectedAmount ?? "",
       payment: initialEntry?.payment ?? selectedPayment ?? "Наличные",
       packageUsageId: initialEntry?.packageUsageId ?? "",
+      certificateUsageId: initialEntry?.certificateUsageId ?? "",
       commissionType: initialEntry?.commissionType ?? "Без комиссии",
       tip: initialEntry?.tip ?? "",
       extra: initialEntry?.extra ?? "",
@@ -302,6 +317,11 @@ function CalendarEntryForm({
     setClientTemplateApplied(true);
   };
   const packageOptions = getAvailablePackagesForClient(client);
+  const certificateOptions = getActiveCertificatesForClient(
+    certificates,
+    clients,
+    client,
+  );
   const durationOptions = useMemo(
     () =>
       [...new Set([30, 45, 60, 75, 90, 120, ...(service?.variants ?? []).map((variant) => Number(variant.duration))])]
@@ -512,6 +532,11 @@ function CalendarEntryForm({
                   } else if (packageOptions.length === 1) {
                     setFormValue("packageUsageId", packageOptions[0].id);
                   }
+                  if (nextPayment !== "Сертификат") {
+                    setFormValue("certificateUsageId", "");
+                  } else if (certificateOptions.length === 1) {
+                    setFormValue("certificateUsageId", certificateOptions[0].id);
+                  }
                 }}>
                 {paymentMethods.map((method) => (
                   <option key={method}>{method}</option>
@@ -546,6 +571,22 @@ function CalendarEntryForm({
                   ))}
                 </select>
                 <FieldError message={errors.packageUsageId?.message} />
+              </label>
+            )}
+            {payment === "Сертификат" && (
+              <label className="calendar-entry-package-field">
+                Сертификат
+                <select
+                  {...register("certificateUsageId")}
+                  aria-invalid={Boolean(errors.certificateUsageId)}>
+                  <option value="">Выберите сертификат</option>
+                  {certificateOptions.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.code} · остаток {item.remainingBalance} zł
+                    </option>
+                  ))}
+                </select>
+                <FieldError message={errors.certificateUsageId?.message} />
               </label>
             )}
           </div>

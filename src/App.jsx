@@ -41,6 +41,7 @@ import {
   loadStoredPackages,
   loadStoredServices,
   loadStoredSettings,
+  loadStoredSmsReminderLog,
   normalizeStoredSettings,
   IMPORT_DOCUMENTS_STORAGE_KEY,
   IMPORTED_MAIL_IDS_STORAGE_KEY,
@@ -53,6 +54,7 @@ import {applyBooksySources} from "./utils/booksySources.js";
 import {openSupplyOrderUrl} from "./utils/supplyOrder.js";
 import {resolveClientPackageStatus} from "./utils/clientPackages.js";
 import {resolveColorTheme} from "./utils/colorTheme.js";
+import {syncCertificateStatus} from "./utils/certificates.js";
 import {applyCrmSnapshot, buildCloudSnapshot} from "./utils/cloudSnapshot.js";
 import {useCloudSync} from "./hooks/useCloudSync.js";
 import {useCloudSaveActions} from "./hooks/useCloudSaveActions.js";
@@ -64,6 +66,7 @@ import {usePaymentJournal} from "./hooks/usePaymentJournal.js";
 import {useCalendarActions} from "./hooks/useCalendarActions.js";
 import {useEmployeeHandlers} from "./hooks/useEmployeeHandlers.js";
 import {useClientHandlers} from "./hooks/useClientHandlers.js";
+import {useCertificateHandlers} from "./hooks/useCertificateHandlers.js";
 import {useServiceHandlers} from "./hooks/useServiceHandlers.js";
 import {useMessageTemplateHandlers} from "./hooks/useMessageTemplateHandlers.js";
 import {useTaskHandlers} from "./hooks/useTaskHandlers.js";
@@ -74,6 +77,8 @@ import {
   removeImportDocumentsByIds,
 } from "./utils/importDocuments.js";
 import {useBooksyGmailSync} from "./hooks/useBooksyGmailSync.js";
+import {useSmsReminders} from "./hooks/useSmsReminders.js";
+import {useTelegramDigest} from "./hooks/useTelegramDigest.js";
 import {useToastNotifications} from "./hooks/useToastNotifications.js";
 import {useAuth} from "./hooks/useAuth.js";
 import {useClientAlerts} from "./hooks/useClientAlerts.js";
@@ -95,6 +100,10 @@ function App() {
   const [clientPackages, setClientPackages] = useState(
     () => getInitialCrmCollections().clientPackages,
   );
+  const [certificates, setCertificates] = useState(
+    () => getInitialCrmCollections().certificates ?? [],
+  );
+  const [smsReminderLog, setSmsReminderLog] = useState(loadStoredSmsReminderLog);
   const [messageTemplates, setMessageTemplates] = useState(
     loadStoredMessageTemplates,
   );
@@ -141,6 +150,8 @@ function App() {
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [packageModalOpen, setPackageModalOpen] = useState(false);
   const [clientPackageModalOpen, setClientPackageModalOpen] = useState(false);
+  const [certificateModalOpen, setCertificateModalOpen] = useState(false);
+  const [editingCertificate, setEditingCertificate] = useState(null);
   const [messageTemplateModalOpen, setMessageTemplateModalOpen] = useState(false);
   const [calendarEntryModalOpen, setCalendarEntryModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -228,6 +239,7 @@ function App() {
     serviceModalOpen ||
     packageModalOpen ||
     clientPackageModalOpen ||
+    certificateModalOpen ||
     messageTemplateModalOpen ||
     calendarEntryModalOpen ||
     taskModalOpen ||
@@ -263,6 +275,7 @@ function App() {
     alertSnoozes,
     appSettings,
     calendarEntries,
+    certificates,
     clientPackages,
     clientProfiles,
     defaultAppSettings,
@@ -275,6 +288,7 @@ function App() {
     setAlertSnoozes,
     setClientAlertsOpen,
     setClientPackages,
+    setCertificates,
     setDismissedClientAlertIds,
     setNotificationInbox,
     setPackagesCatalog,
@@ -325,6 +339,14 @@ function App() {
       ),
     [clientPackages],
   );
+  const certificateSalesIncome = useMemo(
+    () =>
+      certificates.reduce(
+        (sum, certificate) => sum + (Number(certificate.nominal) || 0),
+        0,
+      ),
+    [certificates],
+  );
 
   const paymentRows = useMemo(
     () => buildPaymentRows(calendarEntries, visits),
@@ -345,6 +367,7 @@ function App() {
     appSettings,
     autoCompletedCalendarEntryIds,
     calendarEntries,
+    certificates,
     clientPackages,
     clientProfiles,
     communicationLog,
@@ -357,6 +380,7 @@ function App() {
     packagesCatalog,
     serviceCatalog,
     supplies,
+    smsReminderLog,
     tasks,
     visits,
   });
@@ -367,6 +391,7 @@ function App() {
       serviceModalOpen ||
       packageModalOpen ||
       clientPackageModalOpen ||
+      certificateModalOpen ||
       messageTemplateModalOpen ||
       calendarEntryModalOpen ||
       taskModalOpen ||
@@ -381,6 +406,7 @@ function App() {
         appSettings,
         autoCompletedCalendarEntryIds,
         calendarEntries,
+        certificates,
         clientPackages,
         clientProfiles,
         communicationLog,
@@ -393,6 +419,7 @@ function App() {
         packagesCatalog,
         serviceCatalog,
         supplies,
+        smsReminderLog,
         tasks,
         visits,
       }),
@@ -401,6 +428,7 @@ function App() {
       appSettings,
       autoCompletedCalendarEntryIds,
       calendarEntries,
+      certificates,
       clientPackages,
       clientProfiles,
       communicationLog,
@@ -413,6 +441,7 @@ function App() {
       packagesCatalog,
       serviceCatalog,
       supplies,
+      smsReminderLog,
       tasks,
       visits,
     ],
@@ -433,6 +462,7 @@ function App() {
         setCalendarEntries,
         setClientPackages,
         setClientProfiles,
+        setCertificates,
         setCommunicationLog,
         setDismissedClientAlertIds,
         setAlertSnoozes,
@@ -443,6 +473,7 @@ function App() {
         setNotificationInbox,
         setPackagesCatalog,
         setServiceCatalog,
+        setSmsReminderLog,
         setSupplies,
         setTasks,
         setVisits,
@@ -513,6 +544,7 @@ function App() {
   const backupCollections = useMemo(
     () => ({
       calendarEntries,
+      certificates,
       clientPackages,
       alertSnoozes,
       clients: clientProfiles,
@@ -527,6 +559,7 @@ function App() {
       services: serviceCatalog,
       settings: appSettings,
       supplies,
+      smsReminderLog,
       tasks,
       visits,
     }),
@@ -534,6 +567,7 @@ function App() {
       appSettings,
       alertSnoozes,
       calendarEntries,
+      certificates,
       clientPackages,
       clientProfiles,
       communicationLog,
@@ -546,6 +580,7 @@ function App() {
       packagesCatalog,
       serviceCatalog,
       supplies,
+      smsReminderLog,
       tasks,
       visits,
     ],
@@ -555,6 +590,7 @@ function App() {
     () => ({
       setAppSettings,
       setCalendarEntries,
+      setCertificates,
       setClientPackages,
       setClientProfiles,
       setCommunicationLog,
@@ -567,6 +603,7 @@ function App() {
       setNotificationInbox,
       setPackagesCatalog,
       setServiceCatalog,
+      setSmsReminderLog,
       setSupplies,
       setTasks,
       setVisits,
@@ -574,6 +611,7 @@ function App() {
     [
       setAppSettings,
       setCalendarEntries,
+      setCertificates,
       setClientPackages,
       setClientProfiles,
       setCommunicationLog,
@@ -586,6 +624,7 @@ function App() {
       setNotificationInbox,
       setPackagesCatalog,
       setServiceCatalog,
+      setSmsReminderLog,
       setSupplies,
       setTasks,
       setVisits,
@@ -621,6 +660,31 @@ function App() {
     forceCloudSave,
     overwriteRemoteSnapshot,
     pushNotification,
+  });
+
+  const smsReminders = useSmsReminders({
+    appSettings,
+    authSession,
+    calendarEntries,
+    clientProfiles,
+    cloudHydrated,
+    onRemoteSnapshotRefresh: applyRemoteSnapshot,
+    pushNotification,
+    smsReminderLog,
+  });
+
+  const telegramDigest = useTelegramDigest({
+    appSettings,
+    authSession,
+    calendarEntries,
+    certificates,
+    clientPackages,
+    clientProfiles,
+    cloudHydrated,
+    employees,
+    onRemoteSnapshotRefresh: applyRemoteSnapshot,
+    pushNotification,
+    visits,
   });
 
   const entityDeleteHandlersRef = useRef({});
@@ -673,6 +737,41 @@ function App() {
     });
   }, [setClientPackages]);
 
+  const updateCertificateBalance = useCallback((previousVisit, nextVisit) => {
+    setCertificates((current) => {
+      const restored = current.map((certificate) => {
+        if (
+          String(certificate.id) !== String(previousVisit?.certificateUsageId)
+        ) {
+          return certificate;
+        }
+
+        const restoredBalance =
+          Number(certificate.remainingBalance) +
+          (Number(previousVisit.certificateAmountUsed) || 0);
+
+        return syncCertificateStatus({
+          ...certificate,
+          remainingBalance: Math.min(restoredBalance, certificate.nominal),
+        });
+      });
+
+      return restored.map((certificate) => {
+        if (String(certificate.id) !== String(nextVisit?.certificateUsageId)) {
+          return certificate;
+        }
+
+        const used = Number(nextVisit.certificateAmountUsed) || 0;
+        const nextBalance = Math.max(0, certificate.remainingBalance - used);
+
+        return syncCertificateStatus({
+          ...certificate,
+          remainingBalance: nextBalance,
+        });
+      });
+    });
+  }, [setCertificates]);
+
   const {
     cancelCalendarAction,
     cancelCalendarConflict,
@@ -692,6 +791,7 @@ function App() {
     appSettings,
     autoCompletedCalendarEntryIdsRef,
     calendarEntries,
+    certificates,
     clientPackages,
     clientProfiles,
     createLocalId,
@@ -712,6 +812,7 @@ function App() {
     setEditingJournalVisit,
     setPreferredMessageClientId,
     setVisits,
+    updateCertificateBalance,
     updatePackageBalance,
     visits,
   });
@@ -747,6 +848,7 @@ function App() {
     setFinancialOperationModalOpen,
     setOpenPaymentActionMenuId,
     setVisits,
+    updateCertificateBalance,
     updatePackageBalance,
     visits,
   });
@@ -797,9 +899,29 @@ function App() {
     setClientModalOpen,
     setClientPackageModalOpen,
     setClientPackages,
+    setCertificates,
     setClientProfiles,
     setEditingClient,
     setEditingClientPackage,
+    setVisits,
+  });
+
+  const {
+    handleCertificateSubmit,
+    openCreateCertificate,
+    openEditCertificate,
+    performDeleteCertificate,
+    requestDeleteCertificate,
+  } = useCertificateHandlers({
+    certificates,
+    clientProfiles,
+    createLocalId,
+    editingCertificate,
+    pushNotification,
+    requestEntityDelete,
+    setCertificateModalOpen,
+    setCertificates,
+    setEditingCertificate,
     setVisits,
   });
 
@@ -1114,6 +1236,7 @@ function App() {
     entityDeleteHandlersRef.current = {
       client: performDeleteClient,
       clientPackage: performDeleteClientPackage,
+      certificate: performDeleteCertificate,
       employee: performDeleteEmployee,
       messageTemplate: performDeleteMessageTemplate,
       package: performDeletePackage,
@@ -1129,15 +1252,6 @@ function App() {
   const activeEmployees = useMemo(
     () => employees.filter((employee) => employee.status !== "Архив"),
     [employees],
-  );
-  const certificateVisits = useMemo(
-    () =>
-      visits.filter(
-        (visit) =>
-          visit.recordType === "operation" &&
-          visit.service === "Продажа сертификата",
-      ),
-    [visits],
   );
   return (
     <AppGate
@@ -1194,6 +1308,8 @@ function App() {
             calendarEntries={calendarEntries}
             calendarEntryDefaults={calendarEntryDefaults}
             calendarEntryModalOpen={calendarEntryModalOpen}
+            certificateModalOpen={certificateModalOpen}
+            certificates={certificates}
             clientModalOpen={clientModalOpen}
             clientNames={clientNames}
             clientPackageModalOpen={clientPackageModalOpen}
@@ -1203,6 +1319,7 @@ function App() {
             editingCalendarEntry={editingCalendarEntry}
             editingClient={editingClient}
             editingClientPackage={editingClientPackage}
+            editingCertificate={editingCertificate}
             editingEmployee={editingEmployee}
             editingMessageTemplate={editingMessageTemplate}
             editingPackage={editingPackage}
@@ -1236,6 +1353,7 @@ function App() {
             onCancelEntityDelete={cancelEntityDelete}
             onCancelPaymentDelete={cancelPaymentDelete}
             onClientPackageSubmit={handleClientPackageSubmit}
+            onCertificateSubmit={handleCertificateSubmit}
             onClientSubmit={handleClientSubmit}
             onCloseCalendarEntryModal={() => {
               setCalendarEntryModalOpen(false);
@@ -1250,6 +1368,10 @@ function App() {
             onCloseClientPackageModal={() => {
               setClientPackageModalOpen(false);
               setEditingClientPackage(null);
+            }}
+            onCloseCertificateModal={() => {
+              setCertificateModalOpen(false);
+              setEditingCertificate(null);
             }}
             onCloseEmployeeModal={() => {
               setEmployeeModalOpen(false);
@@ -1326,6 +1448,8 @@ function App() {
           <AppRoutes
             activePage={activePage}
             alertFocus={alertFocus}
+            alertSummary={alertSummary}
+            alerts={alerts}
             activeEmployees={activeEmployees}
             addClientCalendarVisit={addClientCalendarVisit}
             addQuickNote={addQuickNote}
@@ -1335,7 +1459,8 @@ function App() {
             calendarEntries={calendarEntries}
             calendarEntriesWithServiceColors={calendarEntriesWithServiceColors}
             calendarEntryModalOpen={calendarEntryModalOpen}
-            certificateVisits={certificateVisits}
+            certificateSalesIncome={certificateSalesIncome}
+            certificates={certificates}
             changeSupplyStock={changeSupplyStock}
             clearAlertFocus={clearAlertFocus}
             clearPreferredMessageClientId={() => setPreferredMessageClientId("")}
@@ -1375,6 +1500,7 @@ function App() {
             openCreateCalendarEntry={openCreateCalendarEntry}
             openCreateClient={openCreateClient}
             openCreateClientPackage={openCreateClientPackage}
+            openCreateCertificate={openCreateCertificate}
             openCreateEmployee={openCreateEmployee}
             openCreateMessageTemplate={openCreateMessageTemplate}
             openCreatePackage={openCreatePackage}
@@ -1387,6 +1513,7 @@ function App() {
             openCreateTask={openCreateTask}
             openEditClient={openEditClient}
             openEditClientPackage={openEditClientPackage}
+            openEditCertificate={openEditCertificate}
             openEditEmployee={openEditEmployee}
             openEditMessageTemplate={openEditMessageTemplate}
             openEditPackage={openEditPackage}
@@ -1398,6 +1525,8 @@ function App() {
             packagesCatalog={packagesCatalog}
             paymentFilters={paymentFilters}
             paymentRows={paymentRows}
+            smsReminders={smsReminders}
+            telegramDigest={telegramDigest}
             preferredMessageClientId={preferredMessageClientId}
             pushNotification={pushNotification}
             remindCalendarClient={remindCalendarClient}
@@ -1406,6 +1535,7 @@ function App() {
             requestCalendarAction={requestCalendarAction}
             requestDeleteClient={requestDeleteClient}
             requestDeleteClientPackage={requestDeleteClientPackage}
+            requestDeleteCertificate={requestDeleteCertificate}
             requestDeleteEmployee={requestDeleteEmployee}
             requestDeleteMessageTemplate={requestDeleteMessageTemplate}
             requestDeletePackage={requestDeletePackage}
@@ -1414,6 +1544,7 @@ function App() {
             requestDeleteTask={requestDeleteTask}
             resetSettings={resetSettings}
             serviceCatalog={serviceCatalog}
+            setActivePage={setActivePage}
             setOpenPaymentActionMenuId={setOpenPaymentActionMenuId}
             supplies={supplies}
             tasks={tasks}

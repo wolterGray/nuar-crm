@@ -14,10 +14,15 @@ import {useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import PageHeader from "../PageHeader.jsx";
 import SiteAdminPanel from "../SiteAdminPanel.jsx";
+import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
+import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 
 function SettingsPage({
   initialTab = "interface",
   settings,
+  smsReminders = null,
+  telegramDigest = null,
+  pushNotification,
   cloudConflict = null,
   cloudEnabled = false,
   cloudHydrated = false,
@@ -201,6 +206,137 @@ function SettingsPage({
                   Заканчивающиеся пакеты
                   <small>Напоминать, когда у клиента осталось мало сеансов</small>
                 </span>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="certificateAlertsEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.certificateAlertsEnabled ?? true}
+                />
+                <span>
+                  Сертификаты
+                  <small>Напоминать об истекающих сертификатах и низком остатке</small>
+                </span>
+              </label>
+              <label>
+                Напоминать об истечении за, дней
+                <input
+                  min="1"
+                  name="certificateExpiryReminderDays"
+                  type="number"
+                  defaultValue={settings.certificateExpiryReminderDays ?? 30}
+                />
+              </label>
+              <label>
+                Низкий остаток сертификата, %
+                <input
+                  max="100"
+                  min="1"
+                  name="certificateLowBalancePercent"
+                  type="number"
+                  defaultValue={settings.certificateLowBalancePercent ?? 20}
+                />
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="smsRemindersEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.smsRemindersEnabled ?? false}
+                />
+                <span>
+                  SMS-напоминания о визитах
+                  <small>Автоматически отправлять SMS за 24 часа и за 2 часа</small>
+                </span>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="smsReminder24hEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.smsReminder24hEnabled ?? true}
+                />
+                <span>Напоминание за 24 часа</span>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="smsReminder2hEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.smsReminder2hEnabled ?? true}
+                />
+                <span>Напоминание за 2 часа</span>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="smsAutoProcessEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.smsAutoProcessEnabled ?? true}
+                />
+                <span>
+                  Автопроверка при открытой CRM
+                  <small>Каждые N минут отправлять due-напоминания</small>
+                </span>
+              </label>
+              <label>
+                Интервал автопроверки, мин
+                <input
+                  min="5"
+                  name="smsAutoProcessMinutes"
+                  type="number"
+                  defaultValue={settings.smsAutoProcessMinutes ?? 10}
+                />
+              </label>
+              <label>
+                Имя отправителя SMS
+                <input
+                  name="smsSenderName"
+                  defaultValue={settings.smsSenderName ?? "NUAR"}
+                  placeholder="NUAR"
+                />
+              </label>
+              <label>
+                Шаблон SMS за 24 часа
+                <textarea
+                  name="smsReminder24hTemplate"
+                  defaultValue={settings.smsReminder24hTemplate ?? ""}
+                  rows="3"
+                />
+                <small>{`Плейсхолдеры: {name}, {date}, {time}, {service}, {master}, {studio}`}</small>
+              </label>
+              <label>
+                Шаблон SMS за 2 часа
+                <textarea
+                  name="smsReminder2hTemplate"
+                  defaultValue={settings.smsReminder2hTemplate ?? ""}
+                  rows="3"
+                />
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="telegramDigestEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.telegramDigestEnabled ?? false}
+                />
+                <span>
+                  Telegram-дайджест
+                  <small>Ежедневная сводка в Telegram владельцу салона</small>
+                </span>
+              </label>
+              <label>
+                Время отправки дайджеста
+                <input
+                  name="telegramDigestTime"
+                  type="time"
+                  defaultValue={settings.telegramDigestTime ?? "08:00"}
+                />
+                <small>Часовой пояс: Europe/Warsaw</small>
+              </label>
+              <label>
+                Telegram Chat ID
+                <input
+                  name="telegramChatId"
+                  defaultValue={settings.telegramChatId ?? ""}
+                  placeholder="123456789"
+                />
+                <small>Можно задать в Supabase Secret TELEGRAM_CHAT_ID вместо этого поля</small>
               </label>
               <label className="toggle-row">
                 <input
@@ -517,6 +653,23 @@ function SettingsPage({
             activeTab === "integrations" ? "active" : ""
           }`}>
           <SiteAdminPanel compact />
+          {smsReminders ? (
+            <SmsRemindersPanel
+              status={smsReminders.status}
+              onPreview={smsReminders.runPreview}
+              onProcess={smsReminders.runProcess}
+              onRefreshStatus={smsReminders.refreshStatus}
+            />
+          ) : null}
+          {telegramDigest ? (
+            <TelegramDigestPanel
+              pushNotification={pushNotification}
+              status={telegramDigest.status}
+              onPreview={telegramDigest.runPreview}
+              onRefreshStatus={telegramDigest.refreshStatus}
+              onSend={telegramDigest.runSend}
+            />
+          ) : null}
         </section>
 
         <section

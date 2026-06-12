@@ -12,6 +12,8 @@ import {
   AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY,
   CALENDAR_ENTRIES_STORAGE_KEY,
   CLIENT_PACKAGES_STORAGE_KEY,
+  CERTIFICATES_STORAGE_KEY,
+  SMS_REMINDER_LOG_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,
@@ -32,6 +34,7 @@ import {defaultAppSettings, initialMessageTemplates} from "../constants/appDefau
 import {syncSettingsWithColorTheme} from "./colorTheme.js";
 import {applyBooksySources} from "./booksySources.js";
 import {migrateClientLinks} from "./clientLinks.js";
+import {mergeLegacyCertificateSales, syncCertificateStatus} from "./certificates.js";
 import {normalizeServiceColors} from "./serviceColors.js";
 
 export const normalizeStoredSettings = (settings = {}) => {
@@ -149,6 +152,38 @@ export const loadStoredClientPackages = () => {
 
     const parsedClientPackages = JSON.parse(storedClientPackages);
     return Array.isArray(parsedClientPackages) ? parsedClientPackages : [];
+  } catch {
+    return [];
+  }
+};
+
+export const loadStoredCertificates = () => {
+  try {
+    const storedCertificates = window.localStorage.getItem(
+      CERTIFICATES_STORAGE_KEY,
+    );
+
+    if (!storedCertificates) {
+      return [];
+    }
+
+    const parsedCertificates = JSON.parse(storedCertificates);
+    return Array.isArray(parsedCertificates) ? parsedCertificates : [];
+  } catch {
+    return [];
+  }
+};
+
+export const loadStoredSmsReminderLog = () => {
+  try {
+    const storedLog = window.localStorage.getItem(SMS_REMINDER_LOG_STORAGE_KEY);
+
+    if (!storedLog) {
+      return [];
+    }
+
+    const parsedLog = JSON.parse(storedLog);
+    return Array.isArray(parsedLog) ? parsedLog : [];
   } catch {
     return [];
   }
@@ -290,10 +325,12 @@ export const getInitialCrmCollections = () => {
   const clients = loadStoredClients();
   const calendarEntries = loadStoredCalendarEntries();
   const clientPackages = loadStoredClientPackages();
+  const certificates = loadStoredCertificates();
   const migrated = migrateClientLinks(clients, {
     visits,
     calendarEntries,
     clientPackages,
+    certificates,
   });
 
   initialCrmCollectionsCache = {
@@ -301,6 +338,11 @@ export const getInitialCrmCollections = () => {
     visits: migrated.visits,
     calendarEntries: migrated.calendarEntries,
     clientPackages: migrated.clientPackages,
+    certificates: mergeLegacyCertificateSales(
+      migrated.visits,
+      migrated.certificates ?? loadStoredCertificates(),
+      () => Date.now(),
+    ).map(syncCertificateStatus),
   };
 
   return initialCrmCollectionsCache;
@@ -310,6 +352,8 @@ export {
   AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY,
   CALENDAR_ENTRIES_STORAGE_KEY,
   CLIENT_PACKAGES_STORAGE_KEY,
+  CERTIFICATES_STORAGE_KEY,
+  SMS_REMINDER_LOG_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,

@@ -94,7 +94,12 @@ export const matchesClientRecord = (record, clients = [], clientRef) => {
 
 export const migrateClientLinks = (
   clients = [],
-  {visits = [], calendarEntries = [], clientPackages = []} = {},
+  {
+    visits = [],
+    calendarEntries = [],
+    clientPackages = [],
+    certificates = [],
+  } = {},
 ) => ({
   visits: visits.map((visit) => attachClientLink(clients, visit)),
   calendarEntries: calendarEntries.map((entry) =>
@@ -103,6 +108,28 @@ export const migrateClientLinks = (
   clientPackages: clientPackages.map((packageItem) =>
     attachClientLink(clients, packageItem),
   ),
+  certificates: certificates.map((certificate) => {
+    const linkedBuyer = attachClientLink(clients, {
+      client: certificate.client,
+      clientId: certificate.clientId,
+    });
+    const linkedRecipient = certificate.recipient
+      ? attachClientLink(clients, {
+          client: certificate.recipient,
+          clientId: certificate.recipientId,
+        })
+      : linkedBuyer;
+
+    return {
+      ...certificate,
+      client: linkedBuyer.client,
+      ...(linkedBuyer.clientId ? {clientId: linkedBuyer.clientId} : {}),
+      recipient: linkedRecipient.client,
+      ...(linkedRecipient.clientId
+        ? {recipientId: linkedRecipient.clientId}
+        : {}),
+    };
+  }),
 });
 
 export const migrateCrmSnapshot = (snapshot = {}) => {
@@ -114,10 +141,14 @@ export const migrateCrmSnapshot = (snapshot = {}) => {
   const clientPackages = Array.isArray(snapshot.clientPackages)
     ? snapshot.clientPackages
     : [];
+  const certificates = Array.isArray(snapshot.certificates)
+    ? snapshot.certificates
+    : [];
   const migrated = migrateClientLinks(clients, {
     visits,
     calendarEntries,
     clientPackages,
+    certificates,
   });
 
   return {

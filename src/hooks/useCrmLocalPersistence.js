@@ -5,6 +5,7 @@ import {
   AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY,
   CALENDAR_ENTRIES_STORAGE_KEY,
   CLIENT_PACKAGES_STORAGE_KEY,
+  CERTIFICATES_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,
@@ -15,6 +16,7 @@ import {
   NOTIFICATION_INBOX_STORAGE_KEY,
   PACKAGES_STORAGE_KEY,
   SERVICES_STORAGE_KEY,
+  SMS_REMINDER_LOG_STORAGE_KEY,
   SUPPLIES_STORAGE_KEY,
   TASKS_STORAGE_KEY,
   VISITS_STORAGE_KEY,
@@ -25,6 +27,7 @@ export function useCrmLocalPersistence({
   appSettings,
   autoCompletedCalendarEntryIds,
   calendarEntries,
+  certificates,
   clientPackages,
   clientProfiles,
   communicationLog,
@@ -37,6 +40,7 @@ export function useCrmLocalPersistence({
   packagesCatalog,
   serviceCatalog,
   supplies,
+  smsReminderLog,
   tasks,
   visits,
 }) {
@@ -66,6 +70,10 @@ export function useCrmLocalPersistence({
       JSON.stringify(clientPackages),
     );
   }, [clientPackages]);
+
+  useEffect(() => {
+    window.localStorage.setItem(CERTIFICATES_STORAGE_KEY, JSON.stringify(certificates));
+  }, [certificates]);
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -108,6 +116,10 @@ export function useCrmLocalPersistence({
       JSON.stringify(notificationInbox),
     );
   }, [notificationInbox]);
+
+  useEffect(() => {
+    window.localStorage.setItem(SMS_REMINDER_LOG_STORAGE_KEY, JSON.stringify(smsReminderLog));
+  }, [smsReminderLog]);
 
   useLayoutEffect(() => {
     applyColorTheme(appSettings);

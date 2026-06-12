@@ -19,6 +19,7 @@ export function usePaymentJournal({
   setFinancialOperationModalOpen,
   setOpenPaymentActionMenuId,
   setVisits,
+  updateCertificateBalance,
   updatePackageBalance,
   visits,
 }) {
@@ -104,6 +105,7 @@ export function usePaymentJournal({
 
       if (completedVisit) {
         updatePackageBalance(completedVisit, null);
+        updateCertificateBalance(completedVisit, null);
       }
 
       pushNotification({
@@ -115,6 +117,7 @@ export function usePaymentJournal({
     }
 
     updatePackageBalance(pendingPaymentDelete, null);
+    updateCertificateBalance(pendingPaymentDelete, null);
     setVisits((current) =>
       current.filter((item) => item.id !== pendingPaymentDelete.id),
     );
@@ -133,6 +136,7 @@ export function usePaymentJournal({
     pushNotification,
     setCalendarEntries,
     setVisits,
+    updateCertificateBalance,
     updatePackageBalance,
     visits,
   ]);
