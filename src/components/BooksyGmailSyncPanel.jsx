@@ -67,7 +67,7 @@ function BooksyGmailSyncPanel({
           <h2>{connectionLabel}</h2>
           <p>
             {isConnected
-              ? "Доступ к Gmail активен. Нажмите «Синхронизировать сейчас», чтобы проверить письма Booksy."
+              ? "Доступ к Gmail активен. Синхронизация подтягивает визиты Booksy и фактуры с PDF."
               : "Нажмите «Подключить Gmail», войдите в Google и разрешите чтение почты."}
           </p>
           {connection?.last_sync_at && (

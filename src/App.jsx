@@ -1067,12 +1067,14 @@ function App() {
     gmailAccessToken: authSession?.provider_token ?? "",
     gmailClientId: appSettings.gmailClientId,
     googleEmail: authSession?.user?.email ?? "",
+    importDocuments,
     onGoogleLogin: handleGoogleLogin,
     processedMessageIds: importedMailIds,
     pushNotification,
     services: serviceCatalog,
     setCalendarEntries,
     setClientProfiles,
+    setImportDocuments,
     setProcessedMessageIds: setImportedMailIds,
   });
 

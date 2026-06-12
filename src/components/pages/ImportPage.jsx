@@ -14,7 +14,7 @@ function ImportPage({booksyGmailSync, calendarEntries, documents}) {
   return (
     <section className="import-page">
       <PageHeader
-        description="Одно подключение Gmail для автоматического импорта визитов Booksy"
+        description="Импорт визитов Booksy и фактур Allegro, Booksy, iPOS из Gmail"
         title="Импорт из Gmail"
       />
 

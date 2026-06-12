@@ -1,7 +1,8 @@
 import {
-  BOOKSY_GMAIL_QUERY,
+  GMAIL_SYNC_QUERY,
   parseBooksyGmailMessage,
 } from "./booksyGmailParser.js";
+import {parseImportDocument} from "./invoiceParser.js";
 import {matchExtractedEventToCalendar} from "./matching.js";
 import {syncGmailMessages} from "../gmail.js";
 
@@ -47,16 +48,19 @@ export const syncBooksyGmailClient = async ({
   employees,
   gmailAccessToken,
   gmailClientId,
+  importDocuments = [],
   services,
   skippedMessageIds = [],
 }) => {
   const emails = await syncGmailMessages(
     gmailClientId,
     gmailAccessToken,
-    BOOKSY_GMAIL_QUERY,
+    GMAIL_SYNC_QUERY,
   );
   const skipped = new Set(skippedMessageIds);
+  const existingDocumentIds = new Set(importDocuments.map((document) => document.id));
   const pendingEvents = [];
+  const pendingDocuments = [];
   const parseErrors = [];
 
   emails.forEach((email) => {
@@ -65,6 +69,12 @@ export const syncBooksyGmailClient = async ({
     }
 
     try {
+      const document = parseImportDocument(email);
+      if (document && !existingDocumentIds.has(document.id)) {
+        pendingDocuments.push(document);
+        return;
+      }
+
       const extracted = parseBooksyGmailMessage(
         {
           subject: email.subject,
@@ -100,6 +110,7 @@ export const syncBooksyGmailClient = async ({
 
   return {
     pendingEvents,
+    pendingDocuments,
     parseErrors,
     scanned: emails.length,
   };

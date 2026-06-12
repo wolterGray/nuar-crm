@@ -62,12 +62,14 @@ export function useBooksyGmailSync({
   gmailAccessToken = "",
   gmailClientId = "",
   googleEmail = "",
+  importDocuments = [],
   onGoogleLogin,
   processedMessageIds = [],
   pushNotification,
   services,
   setCalendarEntries,
   setClientProfiles,
+  setImportDocuments,
   setProcessedMessageIds,
 }) {
   const [connection, setConnection] = useState(null);
@@ -274,21 +276,50 @@ export function useBooksyGmailSync({
         employees,
         gmailAccessToken: effectiveGmailToken,
         gmailClientId,
+        importDocuments,
         services,
         skippedMessageIds: processedMessageIds,
       });
 
       setPendingEvents(result.pendingEvents);
       setParseErrors(result.parseErrors);
+
+      if (result.pendingDocuments.length > 0 && setImportDocuments) {
+        setImportDocuments((current) => {
+          const knownIds = new Set(current.map((document) => document.id));
+          const fresh = result.pendingDocuments.filter(
+            (document) => !knownIds.has(document.id),
+          );
+          return fresh.length > 0 ? [...fresh, ...current] : current;
+        });
+
+        if (setProcessedMessageIds) {
+          setProcessedMessageIds((current) => [
+            ...new Set([
+              ...current,
+              ...result.pendingDocuments.map((document) => document.id),
+            ]),
+          ]);
+        }
+      }
+
       const syncedAt = new Date().toISOString();
       saveLastSyncAt(syncedAt);
       setLastSyncAt(syncedAt);
 
+      const parts = [];
+      if (result.pendingEvents.length) {
+        parts.push(`визитов: ${result.pendingEvents.length}`);
+      }
+      if (result.pendingDocuments.length) {
+        parts.push(`фактур: ${result.pendingDocuments.length}`);
+      }
+
       pushNotification({
         title: "Booksy Gmail Sync",
-        message: result.pendingEvents.length
-          ? `Найдено событий: ${result.pendingEvents.length}`
-          : "Новых писем Booksy не найдено",
+        message: parts.length
+          ? `Найдено ${parts.join(", ")}`
+          : "Новых писем и фактур не найдено",
         persist: false,
       });
     } catch (error) {
@@ -308,10 +339,12 @@ export function useBooksyGmailSync({
     gmailClientId,
     googleEmail,
     isGmailConnected,
+    importDocuments,
     processedMessageIds,
     pushNotification,
     refreshDashboard,
     services,
+    setImportDocuments,
     useServerSync,
   ]);
 

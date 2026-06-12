@@ -35,6 +35,9 @@ const employeeAliases = {
 
 export const BOOKSY_GMAIL_QUERY = "newer_than:90d from:booksy.com";
 
+export const GMAIL_SYNC_QUERY =
+  "newer_than:90d (from:booksy.com OR from:allegro.pl OR from:ipos.pl OR filename:pdf OR subject:(faktura OR faktur OR invoice))";
+
 export const normalizeBooksyText = (value) =>
   String(value ?? "")
     .toLowerCase()
