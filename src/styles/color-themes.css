@@ -1,0 +1,217 @@
+/* Theme tokens are applied via JS (applyColorTheme). These rules consume CSS variables. */
+
+:root {
+  --accent-color: #d2ad7d;
+  --accent-hover: #e0bf8f;
+  --linear-accent: #d2ad7d;
+  --app-bg: #08090b;
+  --surface: rgba(18, 19, 23, 0.86);
+  --surface-solid: #121317;
+  --surface-muted: rgba(26, 28, 34, 0.72);
+  --line-soft: rgba(255, 255, 255, 0.10);
+  --line-subtle: rgba(255, 255, 255, 0.065);
+  --text-main: #f2f3f7;
+  --text-soft: #a3a6b3;
+  --text-muted: #70737f;
+  --linear-bg: #08090b;
+  --linear-sidebar: #0b0c0f;
+  --linear-panel: rgba(18, 19, 23, 0.86);
+  --linear-panel-soft: rgba(26, 28, 34, 0.72);
+  --linear-border: rgba(255, 255, 255, 0.10);
+  --linear-border-soft: rgba(255, 255, 255, 0.065);
+  --linear-text: #f2f3f7;
+  --linear-muted: #a3a6b3;
+  --linear-dim: #70737f;
+  --focus-ring: 0 0 0 3px rgba(210, 173, 125, 0.28);
+  --content-bg-gradient:
+    radial-gradient(circle at 76% 0%, rgba(210, 173, 125, 0.1), transparent 30%), #08090b;
+  --nav-active-bg: rgba(210, 173, 125, 0.14);
+  --mobile-nav-bg: rgba(11, 12, 15, 0.96);
+  --loading-gradient:
+    radial-gradient(circle at 50% 42%, rgba(210, 173, 125, 0.16), transparent 30%), #08090b;
+  --button-primary-text: #1a1208;
+  --button-primary-border: rgba(255, 255, 255, 0.32);
+  --button-primary-shadow: 0 10px 26px color-mix(in srgb, #d2ad7d 48%, transparent);
+}
+
+.crm-shell .content,
+.crm-shell .visits-content,
+.crm-shell .calendar-content,
+.login-screen,
+.system-loading-screen {
+  color: var(--linear-text);
+  background: var(--content-bg-gradient, var(--linear-bg));
+}
+
+.theme-dark .content,
+.theme-dark .visits-content,
+.theme-dark .calendar-content,
+.theme-light .content,
+.theme-light .visits-content,
+.theme-light .calendar-content {
+  color: var(--linear-text) !important;
+  background: var(--content-bg-gradient, var(--linear-bg)) !important;
+}
+
+.theme-dark .sidebar,
+.theme-light .sidebar {
+  background: var(--linear-sidebar) !important;
+  border-right-color: var(--linear-border) !important;
+}
+
+.theme-dark .nav-list button.active,
+.theme-light .sidebar .nav-list button.active {
+  color: var(--linear-text) !important;
+  background: var(--nav-active-bg, color-mix(in srgb, var(--accent-color) 14%, transparent)) !important;
+}
+
+.add-visit-button,
+.submit-button,
+.statistics-export-button,
+.login-form .submit-button {
+  color: var(--button-primary-text, #fff) !important;
+  background: var(--accent-color) !important;
+  border: 1px solid var(--button-primary-border, transparent) !important;
+  box-shadow: var(--button-primary-shadow, 0 10px 24px color-mix(in srgb, var(--accent-color) 36%, transparent)) !important;
+}
+
+.add-visit-button svg,
+.submit-button svg,
+.statistics-export-button svg {
+  color: currentColor !important;
+  stroke: currentColor;
+}
+
+.add-visit-button:hover,
+.submit-button:hover,
+.statistics-export-button:hover {
+  color: var(--button-primary-text, #fff) !important;
+  background: var(--accent-hover, color-mix(in srgb, var(--accent-color) 88%, white)) !important;
+}
+
+.theme-dark .submit-button,
+.theme-dark .add-visit-button,
+.theme-dark .statistics-export-button,
+.theme-light .submit-button,
+.theme-light .add-visit-button,
+.theme-light .statistics-export-button {
+  color: var(--button-primary-text, #fff) !important;
+  background: var(--accent-color) !important;
+  border: 1px solid var(--button-primary-border, transparent) !important;
+  box-shadow: var(--button-primary-shadow, 0 10px 24px color-mix(in srgb, var(--accent-color) 36%, transparent)) !important;
+}
+
+.theme-dark .submit-button:hover,
+.theme-dark .add-visit-button:hover,
+.theme-dark .statistics-export-button:hover,
+.theme-light .submit-button:hover,
+.theme-light .add-visit-button:hover,
+.theme-light .statistics-export-button:hover {
+  background: var(--accent-hover, color-mix(in srgb, var(--accent-color) 88%, white)) !important;
+}
+
+.theme-dark .system-loading-screen {
+  background: var(--loading-gradient, var(--linear-bg)) !important;
+}
+
+.theme-dark .system-loading-spinner,
+.system-loading-spinner {
+  border-color: color-mix(in srgb, var(--linear-text) 12%, transparent);
+  border-top-color: var(--accent-color);
+}
+
+@media (max-width: 900px) {
+  .mobile-bottom-nav {
+    background: var(--mobile-nav-bg) !important;
+  }
+}
+
+.color-theme-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.color-theme-option {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  min-height: 118px;
+  padding: 12px;
+  border: 1px solid var(--line-soft, #e4e5e4);
+  border-radius: 14px;
+  background: var(--surface-solid, #fff);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.color-theme-option:has(input:checked) {
+  border-color: color-mix(in srgb, var(--accent-color) 50%, var(--line-soft, #e4e5e4));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-color) 28%, transparent);
+}
+
+.color-theme-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.color-theme-swatches {
+  display: flex;
+  gap: 5px;
+}
+
+.color-theme-swatches span {
+  flex: 1;
+  height: 28px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}
+
+.color-theme-option strong {
+  color: var(--text-main, #15171c);
+  font-size: 13px;
+}
+
+.color-theme-option small {
+  color: var(--text-soft, #737780);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.theme-dark .color-theme-option {
+  background: var(--surface-solid, #1a202b);
+  border-color: var(--line-soft, #344052);
+}
+
+.theme-dark .color-theme-option strong {
+  color: var(--text-main, #f8fbff);
+}
+
+.theme-dark .color-theme-option small {
+  color: var(--text-soft, #b3bdcb);
+}
+
+@media (max-width: 900px) {
+  .color-theme-picker {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Перекрывает pages.css .theme-dark .supply-row — цельная красная заливка без рамки */
+.theme-dark .supply-row.supply-low,
+.theme-dark .supply-row.supply-critical {
+  border-color: transparent;
+}
+
+.theme-dark .supply-row.supply-low {
+  background: rgba(100, 22, 22, 0.72);
+  animation: supply-stock-fill-pulse-dark 2.4s ease-in-out infinite;
+}
+
+.theme-dark .supply-row.supply-critical {
+  background: rgba(80, 16, 16, 0.88);
+  animation: supply-stock-fill-pulse-dark-strong 1.6s ease-in-out infinite;
+}

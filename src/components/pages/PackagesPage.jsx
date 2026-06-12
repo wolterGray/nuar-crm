@@ -5,7 +5,7 @@ import {
   getPackageRemainingLabel,
   getPackageUsedVisits,
 } from "../../utils/packages.jsx";
-import {PageNotificationsSlot} from "../PageNotifications.jsx";
+import PageHeader from "../PageHeader.jsx";
 
 function PackagesPage({
   packages,
@@ -29,30 +29,25 @@ function PackagesPage({
 
   return (
     <section className="catalog-page">
-      <div className="employees-toolbar">
-        <div className="title-notifications-flex">
-          <div>
-            <h2>Пакеты</h2>
-            <p>
-              {packages.length} шаблонов · {clientPackages.length} у клиентов
-            </p>
-          </div>
-          <PageNotificationsSlot />
-        </div>
-        <div className="clients-toolbar-actions">
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={onSellPackage}>
-            <Plus size={18} />
-            Продать клиенту
-          </button>
-          <button className="add-visit-button" type="button" onClick={onAdd}>
-            <Plus size={18} />
-            Добавить пакет
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={onSellPackage}>
+              <Plus size={18} />
+              Продать клиенту
+            </button>
+            <button className="add-visit-button" type="button" onClick={onAdd}>
+              <Plus size={18} />
+              Добавить пакет
+            </button>
+          </>
+        }
+        description={`${packages.length} шаблонов · ${clientPackages.length} у клиентов`}
+        title="Пакеты"
+      />
 
       <div className="package-summary-grid">
         <article className="catalog-card">

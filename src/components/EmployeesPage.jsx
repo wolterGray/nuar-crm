@@ -1,26 +1,21 @@
 import {Pencil, Plus, Trash2} from "lucide-react";
 import {motion} from "framer-motion";
 import {formatMoney} from "../utils/formatters.jsx";
-import {PageNotificationsSlot} from "./PageNotifications.jsx";
+import PageHeader from "./PageHeader.jsx";
 
 function EmployeesPage({employees, onAdd, onEdit, onDelete}) {
   return (
     <section className="employees-page">
-      <div className="employees-toolbar">
-        <div className="title-notifications-flex">
-          <div>
-            <h2>Сотрудники</h2>
-            <p>{employees.length} в базе</p>
-          </div>
-          <PageNotificationsSlot />
-        </div>
-        <div className="toolbar-actions">
+      <PageHeader
+        actions={
           <button className="add-visit-button" type="button" onClick={onAdd}>
             <Plus size={18} />
             Добавить сотрудника
           </button>
-        </div>
-      </div>
+        }
+        description={`${employees.length} в базе`}
+        title="Сотрудники"
+      />
 
       <div className="employees-grid">
         {employees.map((employee) => (

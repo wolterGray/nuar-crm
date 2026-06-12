@@ -1,112 +1,5 @@
 /* ===== LINEAR-LIKE UI PATCH ===== */
 
-:root {
-  --linear-bg: #0b0d10;
-  --linear-sidebar: #0f1115;
-  --linear-panel: #111318;
-  --linear-panel-soft: #171a22;
-  --linear-border: rgba(255, 255, 255, 0.08);
-  --linear-text: #f4f5f7;
-  --linear-muted: #9ca3af;
-  --linear-dim: #6b7280;
-  --linear-accent: #7c6cf2;
-}
-
-.content {
-  background: var(--linear-bg) !important;
-  color: var(--linear-text) !important;
-}
-
-.sidebar {
-  background: var(--linear-sidebar) !important;
-  border-right: 1px solid var(--linear-border);
-}
-
-.statistics-hero-header h2 {
-  color: var(--linear-text) !important;
-  font-size: 22px !important;
-  letter-spacing: -0.03em;
-}
-
-.statistics-hero-header p,
-.statistics-panel-title p,
-.statistics-income-top p,
-.statistics-income-context {
-  color: var(--linear-muted) !important;
-}
-
-.statistics-filters-card,
-.statistics-income-card,
-.statistics-panel,
-.statistics-card {
-  background: var(--linear-panel) !important;
-  border: 1px solid var(--linear-border) !important;
-  box-shadow: none !important;
-}
-
-.statistics-income-card {
-  padding: 16px !important;
-}
-
-.statistics-income-top strong {
-  color: var(--linear-text) !important;
-  font-size: 42px !important;
-  letter-spacing: -0.05em;
-}
-
-.statistics-income-top span,
-.statistics-chart-heading span {
-  color: var(--linear-muted) !important;
-}
-
-.statistics-income-strip span,
-.statistics-card {
-  background: var(--linear-panel-soft) !important;
-  border: 1px solid var(--linear-border) !important;
-}
-
-.statistics-income-strip b,
-.statistics-card strong,
-.statistics-panel-title strong {
-  color: var(--linear-text) !important;
-}
-
-.statistics-revenue-chart {
-  height: 220px !important;
-}
-
-.statistics-attention-item {
-  background: rgba(245, 158, 11, 0.1) !important;
-  border: 1px solid rgba(245, 158, 11, 0.18) !important;
-}
-
-.statistics-payment-track {
-  background: rgba(255, 255, 255, 0.07) !important;
-}
-
-.statistics-export-button,
-.statistics-filters input,
-.statistics-filters select {
-  background: var(--linear-panel-soft) !important;
-  border: 1px solid var(--linear-border) !important;
-  color: var(--linear-text) !important;
-  box-shadow: none !important;
-}
-
-.statistics-card div {
-  background: rgba(124, 108, 242, 0.12) !important;
-  color: #b7adff !important;
-}
-
-.statistics-kpi-grid {
-  gap: 8px !important;
-}
-
-.statistics-card {
-  min-height: 58px !important;
-  padding: 10px 12px !important;
-}
-
 /* Fix notification bell clipping */
 
 .statistics-header-actions,
@@ -128,95 +21,14 @@
   z-index: 3;
 }
 
-/* App-wide Linear palette: statistics colors are the default design language. */
 .theme-dark {
-  --accent-color: #d2ad7d;
-  --app-bg: #08090b;
-  --surface: rgba(18, 19, 23, 0.86);
-  --surface-solid: #121317;
-  --surface-muted: rgba(26, 28, 34, 0.72);
-  --line-soft: rgba(255, 255, 255, 0.10);
-  --line-subtle: rgba(255, 255, 255, 0.065);
-  --text-main: #f2f3f7;
-  --text-soft: #a3a6b3;
-  --text-muted: #70737f;
-  --linear-bg: #08090b;
-  --linear-sidebar: #0b0c0f;
-  --linear-panel: rgba(18, 19, 23, 0.86);
-  --linear-panel-soft: rgba(26, 28, 34, 0.72);
-  --linear-border: rgba(255, 255, 255, 0.10);
-  --linear-border-soft: rgba(255, 255, 255, 0.065);
-  --linear-text: #f2f3f7;
-  --linear-muted: #a3a6b3;
-  --linear-dim: #70737f;
-  --linear-accent: #d2ad7d;
-  --linear-blue: #4c6fff;
-  --linear-cyan: #59a8d6;
-  --linear-teal: #35b8a6;
-  --linear-orange: #d97745;
-  --linear-green: #56b870;
-  --linear-red: #c15555;
-  --linear-gray: #8a8f98;
-  --premium-shadow: none;
-  --soft-shadow: none;
-  --focus-ring: 0 0 0 3px rgba(94, 106, 210, 0.26);
   color: var(--linear-text) !important;
   background: var(--linear-bg) !important;
 }
 
 .theme-light {
-  --accent-color: #d2ad7d;
-  --app-bg: #f3f5f8;
-  --surface: rgba(255, 255, 255, 0.76);
-  --surface-solid: #ffffff;
-  --surface-muted: #e8ebf0;
-  --line-soft: rgba(34, 40, 52, 0.11);
-  --line-subtle: rgba(34, 40, 52, 0.07);
-  --text-main: #191d25;
-  --text-soft: #747b89;
-  --text-muted: #a1a7b3;
-  --linear-bg: #f3f5f8;
-  --linear-sidebar: #17191e;
-  --linear-panel: rgba(255, 255, 255, 0.76);
-  --linear-panel-soft: #e8ebf0;
-  --linear-border: rgba(34, 40, 52, 0.11);
-  --linear-border-soft: rgba(34, 40, 52, 0.07);
-  --linear-text: #191d25;
-  --linear-muted: #747b89;
-  --linear-dim: #a1a7b3;
-  --linear-accent: #d2ad7d;
-  --linear-blue: #4c6fff;
-  --linear-cyan: #348fc0;
-  --linear-teal: #248f82;
-  --linear-orange: #c86b39;
-  --linear-green: #338f56;
-  --linear-red: #b94b4b;
-  --linear-gray: #747b89;
-  --premium-shadow: 0 18px 48px rgba(17, 19, 24, 0.08);
-  --soft-shadow: 0 1px 2px rgba(17, 19, 24, 0.045);
-  --focus-ring: 0 0 0 3px rgba(94, 106, 210, 0.16);
   color: var(--linear-text) !important;
   background: var(--linear-bg) !important;
-}
-
-.theme-dark .content,
-.theme-dark .visits-content,
-.theme-dark .calendar-content,
-.theme-light .content,
-.theme-light .visits-content,
-.theme-light .calendar-content {
-  color: var(--linear-text) !important;
-  background:
-    radial-gradient(circle at 76% 0%, rgba(124, 108, 242, 0.08), transparent 30%),
-    var(--linear-bg) !important;
-}
-
-.theme-light .content,
-.theme-light .visits-content,
-.theme-light .calendar-content {
-  background:
-    radial-gradient(circle at 76% 0%, rgba(63, 42, 99, 0.055), transparent 30%),
-    var(--linear-bg) !important;
 }
 
 .theme-dark .sidebar,
@@ -1309,28 +1121,25 @@
 .theme-dark .submit-button,
 .theme-dark .add-visit-button,
 .theme-dark .statistics-export-button {
-  background: #d2ad7d !important;
+  background: var(--accent-color) !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 .theme-dark .submit-button:hover,
 .theme-dark .add-visit-button:hover,
 .theme-dark .statistics-export-button:hover {
-  background: #6975e6 !important;
+  background: var(--accent-hover, color-mix(in srgb, var(--accent-color) 88%, white)) !important;
 }
 
 .theme-dark .system-loading-screen {
   color: var(--linear-text);
-  background:
-    radial-gradient(circle at 50% 42%, rgba(94, 106, 210, 0.18), transparent 30%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 220px),
-    #08090b;
+  background: var(--loading-gradient, var(--linear-bg));
 }
 
 .theme-dark .system-loading-spinner,
 .system-loading-spinner {
   border-color: rgba(255, 255, 255, 0.08);
-  border-top-color: #d2ad7d;
+  border-top-color: var(--accent-color);
 }
 
 .theme-dark .panel.schedule-panel {

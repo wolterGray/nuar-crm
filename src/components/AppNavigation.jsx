@@ -6,11 +6,10 @@ import {
   PanelLeftOpen,
   X,
 } from "lucide-react";
+import {mobileNavItems, navGroups, navItems} from "../constants/navigation.js";
 
 export default function AppNavigation({
   activePage,
-  navItems,
-  mobileNavItems,
   sidebarVisible,
   onPageChange,
   onSidebarVisibleChange,
@@ -38,6 +37,15 @@ export default function AppNavigation({
     (item) => !mobileNavItems.some((mobileItem) => mobileItem.page === item.page),
   );
 
+  const hiddenMobileGroups = navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) =>
+        hiddenMobileItems.some((hiddenItem) => hiddenItem.page === item.page),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
+
   return (
     <>
       <aside className="sidebar">
@@ -58,21 +66,27 @@ export default function AppNavigation({
         </button>
 
         <nav className="nav-list" aria-label="Главное меню">
-          {navItems.map((item) => {
-            const Icon = item.icon;
+          {navGroups.map((group, groupIndex) => (
+            <div className="nav-group" key={group.id}>
+              {groupIndex > 0 ? <span aria-hidden="true" className="nav-group-divider" /> : null}
+              {group.items.map((item) => {
+                const Icon = item.icon;
 
-            return (
-              <button
-                data-label={item.label}
-                className={activePage === item.page ? "active" : ""}
-                key={item.label}
-                title={item.label}
-                onClick={() => handleDesktopPageChange(item.page)}>
-                <Icon size={20} />
-                {item.label}
-              </button>
-            );
-          })}
+                return (
+                  <button
+                    data-label={item.label}
+                    className={activePage === item.page ? "active" : ""}
+                    key={item.page}
+                    title={item.label}
+                    type="button"
+                    onClick={() => handleDesktopPageChange(item.page)}>
+                    <Icon size={20} />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="owner-card">
@@ -111,22 +125,27 @@ export default function AppNavigation({
               <X size={18} />
             </button>
           </div>
-          <nav>
-            {hiddenMobileItems.map((item) => {
-              const Icon = item.icon;
+          {hiddenMobileGroups.map((group) => (
+            <div className="mobile-more-group" key={group.id}>
+              <span className="mobile-more-group-label">{group.label}</span>
+              <nav>
+                {group.items.map((item) => {
+                  const Icon = item.icon;
 
-              return (
-                <button
-                  className={activePage === item.page ? "active" : ""}
-                  key={item.page}
-                  type="button"
-                  onClick={() => handleSheetPageChange(item.page)}>
-                  <Icon size={19} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+                  return (
+                    <button
+                      className={activePage === item.page ? "active" : ""}
+                      key={item.page}
+                      type="button"
+                      onClick={() => handleSheetPageChange(item.page)}>
+                      <Icon size={19} />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          ))}
         </section>
       )}
 

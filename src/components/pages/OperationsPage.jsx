@@ -1,6 +1,7 @@
 import {
   Check,
   ClipboardCheck,
+  ExternalLink,
   GripVertical,
   Lightbulb,
   PackagePlus,
@@ -9,7 +10,7 @@ import {
   StickyNote,
   Trash2,
 } from "lucide-react";
-import {PageNotificationsSlot} from "../PageNotifications.jsx";
+import PageHeader from "../PageHeader.jsx";
 import {
   closestCenter,
   DndContext,
@@ -20,9 +21,15 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {useState} from "react";
+import {useMemo, useState, useEffect} from "react";
 import {getTodayInput} from "../../utils/dateHelpers.js";
 import {formatMoney} from "../../utils/formatters.jsx";
+import {
+  getSupplyStockStatus,
+  getSupplyStockStatusLabel,
+  isSupplyLowStock,
+} from "../../utils/supplyStock.js";
+import {openSupplyOrderUrl} from "../../utils/supplyOrder.js";
 
 const getTaskStatusLabel = (task) => {
   if (task.status === "completed") return "Готово";
@@ -31,7 +38,7 @@ const getTaskStatusLabel = (task) => {
   return "В работе";
 };
 
-function DraggableTaskRow({children, className, task}) {
+function DraggableTaskRow({children, className, id, task}) {
   const {
     attributes,
     isDragging,
@@ -56,6 +63,7 @@ function DraggableTaskRow({children, className, task}) {
       className={`${className} ${isDragging ? "task-row-dragging" : ""} ${
         isOver && !isDragging ? "task-row-over" : ""
       }`}
+      id={id}
       ref={setNodeRef}>
       <button
         aria-label={`Переместить задачу: ${task.title}`}
@@ -72,10 +80,12 @@ function DraggableTaskRow({children, className, task}) {
 }
 
 function OperationsPage({
+  alertFocus,
   tasks,
   supplies,
   onAddTask,
   onAddNote,
+  onAlertFocusHandled,
   onEditTask,
   onDeleteTask,
   onCompleteTask,
@@ -87,6 +97,7 @@ function OperationsPage({
 }) {
   const [draggedTask, setDraggedTask] = useState(null);
   const [activeMode, setActiveMode] = useState("tasks");
+  const [mobileSection, setMobileSection] = useState("tasks");
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
   const sensors = useSensors(
@@ -96,9 +107,21 @@ function OperationsPage({
   const workTasks = tasks.filter((task) => task.type !== "note");
   const activeTasks = workTasks.filter((task) => task.status !== "completed");
   const completedTasks = workTasks.filter((task) => task.status === "completed");
-  const lowStockCount = supplies.filter(
-    (item) => Number(item.stock) <= Number(item.minStock),
-  ).length;
+  const lowStockCount = supplies.filter(isSupplyLowStock).length;
+  const sortedSupplies = useMemo(
+    () =>
+      [...supplies].sort((left, right) => {
+        const leftLow = isSupplyLowStock(left) ? 0 : 1;
+        const rightLow = isSupplyLowStock(right) ? 0 : 1;
+
+        if (leftLow !== rightLow) {
+          return leftLow - rightLow;
+        }
+
+        return String(left.name).localeCompare(String(right.name), "ru");
+      }),
+    [supplies],
+  );
   const submitQuickNote = (event) => {
     event.preventDefault();
     const title = noteText.trim();
@@ -109,15 +132,54 @@ function OperationsPage({
     setNoteText("");
   };
 
+  useEffect(() => {
+    if (!alertFocus?.entityId) {
+      return undefined;
+    }
+
+    const setupTimer = window.setTimeout(() => {
+      if (alertFocus.section === "supplies") {
+        setMobileSection("supplies");
+      } else if (alertFocus.section === "tasks" || alertFocus.type === "task") {
+        setActiveMode("tasks");
+        setMobileSection("tasks");
+      }
+
+      document
+        .getElementById(`alert-focus-${alertFocus.entityId}`)
+        ?.scrollIntoView({behavior: "smooth", block: "center"});
+    }, 0);
+    const clearTimer = window.setTimeout(() => {
+      onAlertFocusHandled?.();
+    }, 4500);
+
+    return () => {
+      window.clearTimeout(setupTimer);
+      window.clearTimeout(clearTimer);
+    };
+  }, [alertFocus, onAlertFocusHandled]);
+
+  const isFocused = (entityId) =>
+    String(alertFocus?.entityId) === String(entityId);
+
   return (
     <section className="operations-page">
-      <div className="employees-toolbar">
-        <div className="title-notifications-flex">
-          <div>
-            <h2>Задачи и склад</h2>
-            <p>Рабочие дела, закупки и остатки расходников</p>
-          </div>
-          <PageNotificationsSlot />
+      <PageHeader
+        description="Рабочие дела, закупки и остатки расходников"
+        title="Операции">
+        <div className="operations-page-tabs">
+          <button
+            className={mobileSection === "tasks" ? "active" : ""}
+            type="button"
+            onClick={() => setMobileSection("tasks")}>
+            Задачи
+          </button>
+          <button
+            className={mobileSection === "supplies" ? "active" : ""}
+            type="button"
+            onClick={() => setMobileSection("supplies")}>
+            Склад
+          </button>
         </div>
         <div className="operations-summary">
           <span>
@@ -126,14 +188,17 @@ function OperationsPage({
           <span>
             <b>{notes.length}</b> заметок
           </span>
-          <span>
+          <span className={lowStockCount > 0 ? "operations-summary-alert" : ""}>
             <b>{lowStockCount}</b> нужно пополнить
           </span>
         </div>
-      </div>
+      </PageHeader>
 
       <div className="operations-grid">
-        <section className="panel operations-panel">
+        <section
+          className={`panel operations-panel operations-panel-tasks ${
+            mobileSection === "supplies" ? "operations-panel-hidden-mobile" : ""
+          }`}>
           <div className="operations-panel-header">
             <div>
               <ClipboardCheck size={18} />
@@ -200,7 +265,8 @@ function OperationsPage({
                   const status = getTaskStatusLabel(task);
                   return (
                     <DraggableTaskRow
-                      className={`task-row task-${task.status} ${status === "Просрочено" ? "task-overdue" : ""}`}
+                      className={`task-row task-${task.status} ${status === "Просрочено" ? "task-overdue" : ""} ${isFocused(task.id) ? "alert-focus-pulse" : ""}`}
+                      id={`alert-focus-${task.id}`}
                       key={task.id}
                       task={task}>
                       <button
@@ -323,13 +389,21 @@ function OperationsPage({
           )}
         </section>
 
-        <section className="panel operations-panel">
+        <section
+          className={`panel operations-panel operations-panel-supplies ${
+            mobileSection === "tasks" ? "operations-panel-hidden-mobile" : ""
+          }`}>
           <div className="operations-panel-header">
             <div>
               <PackagePlus size={18} />
               <div>
                 <h2>Расходники</h2>
-                <p>{supplies.length} позиций на складе</p>
+                <p>
+                  {supplies.length} позиций
+                  {lowStockCount > 0
+                    ? ` · ${lowStockCount} нужно пополнить`
+                    : " на складе"}
+                </p>
               </div>
             </div>
             <button
@@ -341,14 +415,28 @@ function OperationsPage({
             </button>
           </div>
           <div className="operations-list">
-            {supplies.map((item) => {
-              const lowStock = Number(item.stock) <= Number(item.minStock);
+            {sortedSupplies.map((item) => {
+              const stockStatus = getSupplyStockStatus(item);
+              const stockBadge = getSupplyStockStatusLabel(stockStatus);
+              const rowClassName =
+                stockStatus === "out"
+                  ? "supply-critical"
+                  : stockStatus === "low"
+                    ? "supply-low"
+                    : "";
+
               return (
                 <article
-                  className={`supply-row ${lowStock ? "supply-low" : ""}`}
+                  className={`supply-row ${rowClassName} ${isFocused(item.id) ? "alert-focus-pulse" : ""}`}
+                  id={`alert-focus-${item.id}`}
                   key={item.id}>
                   <div>
-                    <strong>{item.name}</strong>
+                    <div className="supply-row-title">
+                      <strong>{item.name}</strong>
+                      {stockBadge ? (
+                        <span className="supply-stock-badge">{stockBadge}</span>
+                      ) : null}
+                    </div>
                     <span>{item.note || "Расходный материал"}</span>
                   </div>
                   <div className="supply-stock">
@@ -363,6 +451,19 @@ function OperationsPage({
                     <strong>{formatMoney(item.cost)}</strong>
                   </div>
                   <div className="supply-actions">
+                    <button
+                      className="supply-order-button"
+                      disabled={!item.orderUrl}
+                      title={
+                        item.orderUrl
+                          ? "Открыть ссылку на заказ"
+                          : "Укажите ссылку в редактировании"
+                      }
+                      type="button"
+                      onClick={() => openSupplyOrderUrl(item.orderUrl)}>
+                      <ExternalLink size={13} />
+                      Заказать
+                    </button>
                     <button
                       type="button"
                       onClick={() => onChangeSupplyStock(item, -1)}>

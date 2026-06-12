@@ -16,13 +16,11 @@ import {
   getVisitTransactionTotal,
 } from "../utils/visits.jsx";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
-import {PageNotificationsSlot} from "./PageNotifications.jsx";
+import PageHeader from "./PageHeader.jsx";
 import {
   Badge,
   Button,
   Card,
-  CardHeader,
-  CardTitle,
   Dropdown,
   DropdownContent,
   DropdownItem,
@@ -294,32 +292,32 @@ function VisitsTable({
 
   return (
     <Card className="panel visits-panel">
-      <CardHeader className="panel-header">
-        <div className="title-notifications-flex">
-          <CardTitle>{title}</CardTitle>
-          <PageNotificationsSlot />
-        </div>
-        <div className="visits-panel-actions">
-          <Button className="secondary-button" type="button" onClick={exportVisits}>
-            <Download size={16} />
-            Экспорт CSV
-          </Button>
-          <Button className="secondary-button" onClick={onResetFilters}>
-            <ListFilter size={16} />
-            Сбросить
-          </Button>
-          {onAddVisit && (
-            <Button
-              className="add-visit-button"
-              type="button"
-              variant="primary"
-              onClick={onAddVisit}>
-              <Plus size={16} />
-              {addLabel}
+      <PageHeader
+        actions={
+          <>
+            <Button className="secondary-button" type="button" onClick={exportVisits}>
+              <Download size={16} />
+              Экспорт CSV
             </Button>
-          )}
-        </div>
-      </CardHeader>
+            <Button className="secondary-button" onClick={onResetFilters}>
+              <ListFilter size={16} />
+              Сбросить
+            </Button>
+            {onAddVisit && (
+              <Button
+                className="add-visit-button"
+                type="button"
+                variant="primary"
+                onClick={onAddVisit}>
+                <Plus size={16} />
+                {addLabel}
+              </Button>
+            )}
+          </>
+        }
+        description={`${rows.length} из ${visits.length} записей`}
+        title={title}
+      />
 
       <div className="table-search">
         <Search size={16} />
@@ -375,7 +373,50 @@ function VisitsTable({
         </label>
       </div>
 
-      <Table className="visits-table">
+      <div className="visits-mobile-list">
+        {rows.map((row) => {
+          const visit = row.original;
+
+          return (
+            <article
+              className={`visit-mobile-card ${visit.isPlanned ? "visit-mobile-card-planned" : ""}`}
+              key={visit.id}
+              onClick={() => onEditVisit?.(visit)}>
+              <div className="visit-mobile-card-top">
+                <div>
+                  <strong>{visit.client}</strong>
+                  <span>{visit.date}</span>
+                </div>
+                <b>{formatMoney(getVisitTransactionTotal(visit))}</b>
+              </div>
+              <div className="visit-mobile-card-meta">
+                <span>{visit.service}</span>
+                <span>{visit.payment || "Не указано"}</span>
+              </div>
+              <div
+                className="visit-mobile-card-actions"
+                onClick={(event) => event.stopPropagation()}>
+                <button
+                  className="client-quick-action"
+                  type="button"
+                  onClick={() => onEditVisit?.(visit)}>
+                  Изменить
+                </button>
+                {onDeleteVisit && (
+                  <button
+                    className="client-quick-action visit-mobile-delete"
+                    type="button"
+                    onClick={() => onDeleteVisit(visit)}>
+                    Удалить
+                  </button>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      <Table className="visits-table visits-table-desktop">
         <TableHeader className="table-row table-head">
           {table.getFlatHeaders().map((header) => (
             <TableCell key={header.id}>

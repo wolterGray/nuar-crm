@@ -35,6 +35,16 @@ function SupplyForm({supply, onSubmit}) {
         Комментарий
         <textarea name="note" defaultValue={supply?.note ?? ""} rows="3" />
       </label>
+      <label>
+        Ссылка на заказ
+        <input
+          name="orderUrl"
+          defaultValue={supply?.orderUrl ?? ""}
+          inputMode="url"
+          placeholder="https://shop.pl/product/123"
+          type="url"
+        />
+      </label>
       <button className="submit-button">{supply ? "Сохранить" : "Добавить расходник"}</button>
     </form>
   );

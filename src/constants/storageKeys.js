@@ -9,6 +9,8 @@ export const MESSAGE_TEMPLATES_STORAGE_KEY = "nuar-crm-message-templates";
 export const CALENDAR_ENTRIES_STORAGE_KEY = "nuar-crm-calendar-entries";
 export const DISMISSED_CLIENT_ALERTS_STORAGE_KEY =
   "nuar-crm-dismissed-client-alerts";
+export const SNOOZED_ALERTS_STORAGE_KEY = "nuar-crm-alert-snoozes";
+export const ALERT_FILTER_STORAGE_KEY = "nuar-crm-alert-filter";
 export const COMMUNICATION_LOG_STORAGE_KEY = "nuar-crm-communication-log";
 export const NOTIFICATION_INBOX_STORAGE_KEY = "nuar-crm-notification-inbox";
 export const SETTINGS_STORAGE_KEY = "nuar-crm-settings";

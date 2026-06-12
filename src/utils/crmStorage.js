@@ -8,6 +8,7 @@ import {
 import {navItems} from "../constants/navigation.js";
 import {
   ACTIVE_PAGE_STORAGE_KEY,
+  ALERT_FILTER_STORAGE_KEY,
   AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY,
   CALENDAR_ENTRIES_STORAGE_KEY,
   CLIENT_PACKAGES_STORAGE_KEY,
@@ -22,11 +23,13 @@ import {
   PACKAGES_STORAGE_KEY,
   SERVICES_STORAGE_KEY,
   SETTINGS_STORAGE_KEY,
+  SNOOZED_ALERTS_STORAGE_KEY,
   SUPPLIES_STORAGE_KEY,
   TASKS_STORAGE_KEY,
   VISITS_STORAGE_KEY,
 } from "../constants/storageKeys.js";
 import {defaultAppSettings, initialMessageTemplates} from "../constants/appDefaults.js";
+import {syncSettingsWithColorTheme} from "./colorTheme.js";
 import {applyBooksySources} from "./booksySources.js";
 import {migrateClientLinks} from "./clientLinks.js";
 import {normalizeServiceColors} from "./serviceColors.js";
@@ -35,26 +38,13 @@ export const normalizeStoredSettings = (settings = {}) => {
   const safeSettings = {...settings};
   delete safeSettings.authLogin;
   delete safeSettings.authPassword;
-  const legacyAccentColors = new Set(["#5e6ad2", "#7c6cf2"]);
 
-  if (
-    safeSettings.theme === "light" &&
-    (!safeSettings.accentColor || legacyAccentColors.has(safeSettings.accentColor))
-  ) {
-    safeSettings.theme = defaultAppSettings.theme;
-    safeSettings.accentColor = defaultAppSettings.accentColor;
-  }
-
-  if (legacyAccentColors.has(safeSettings.accentColor)) {
-    safeSettings.accentColor = defaultAppSettings.accentColor;
-  }
-
-  return {
+  return syncSettingsWithColorTheme({
     ...defaultAppSettings,
     ...safeSettings,
     sidebarVisible:
       window.innerWidth <= 700 ? false : safeSettings.sidebarVisible ?? true,
-  };
+  });
 };
 
 export const loadStoredVisits = () => {
@@ -76,9 +66,9 @@ export const loadStoredActivePage = () => {
   try {
     const storedPage = window.localStorage.getItem(ACTIVE_PAGE_STORAGE_KEY);
     const pageExists = navItems.some((item) => item.page === storedPage);
-    return pageExists && storedPage !== "home" ? storedPage : "statistics";
+    return pageExists && storedPage !== "home" ? storedPage : "calendar";
   } catch {
-    return "statistics";
+    return "calendar";
   }
 };
 
@@ -207,6 +197,31 @@ export const loadDismissedClientAlerts = () => {
       : [];
   } catch {
     return [];
+  }
+};
+
+export const loadAlertSnoozes = () => {
+  try {
+    const storedSnoozes = window.localStorage.getItem(SNOOZED_ALERTS_STORAGE_KEY);
+    const parsedSnoozes = storedSnoozes ? JSON.parse(storedSnoozes) : {};
+
+    return parsedSnoozes && typeof parsedSnoozes === "object" ? parsedSnoozes : {};
+  } catch {
+    return {};
+  }
+};
+
+export const loadStoredAlertFilter = () => {
+  try {
+    const storedFilter = window.localStorage.getItem(ALERT_FILTER_STORAGE_KEY);
+
+    if (["urgent", "all", "operations", "clients"].includes(storedFilter)) {
+      return storedFilter;
+    }
+
+    return "urgent";
+  } catch {
+    return "urgent";
   }
 };
 

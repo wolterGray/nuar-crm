@@ -19,6 +19,7 @@ import {publishServicesToSite} from "./utils/siteSync.js";
 import {mobileNavItems, navItems} from "./constants/navigation.js";
 import {
   ACTIVE_PAGE_STORAGE_KEY,
+  ALERT_FILTER_STORAGE_KEY,
   SETTINGS_STORAGE_KEY,
 } from "./constants/storageKeys.js";
 import {
@@ -28,9 +29,11 @@ import {
 import {
   AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY,
   getInitialCrmCollections,
+  loadAlertSnoozes,
   loadCommunicationLog,
   loadDismissedClientAlerts,
   loadNotificationInbox,
+  loadStoredAlertFilter,
   loadStoredActivePage,
   loadStoredCollection,
   loadStoredEmployees,
@@ -47,6 +50,8 @@ import {
 import {buildPaymentRows, filterPaymentRows} from "./utils/paymentRows.js";
 import {buildEmployeeStats} from "./utils/employeeStats.js";
 import {applyBooksySources} from "./utils/booksySources.js";
+import {openSupplyOrderUrl} from "./utils/supplyOrder.js";
+import {resolveColorTheme} from "./utils/colorTheme.js";
 import {applyCrmSnapshot, buildCloudSnapshot} from "./utils/cloudSnapshot.js";
 import {useCloudSync} from "./hooks/useCloudSync.js";
 import {useCloudSaveActions} from "./hooks/useCloudSaveActions.js";
@@ -93,6 +98,7 @@ function App() {
   const [dismissedClientAlertIds, setDismissedClientAlertIds] = useState(
     loadDismissedClientAlerts,
   );
+  const [alertSnoozes, setAlertSnoozes] = useState(loadAlertSnoozes);
   const [communicationLog, setCommunicationLog] = useState(loadCommunicationLog);
   const [notificationInbox, setNotificationInbox] = useState(loadNotificationInbox);
   const [tasks, setTasks] = useState(() => loadStoredCollection(TASKS_STORAGE_KEY));
@@ -117,8 +123,9 @@ function App() {
     loadStoredActivePage,
     {
       deserialize: (value) => {
-        const pageExists = navItems.some((item) => item.page === value);
-        return pageExists && value !== "home" ? value : "statistics";
+        const pageExists =
+          navItems.some((item) => item.page === value) || value === "site";
+        return pageExists && value !== "home" ? value : "calendar";
       },
       serialize: (value) => value,
     },
@@ -153,17 +160,10 @@ function App() {
   });
   const [calendarEntryDefaults, setCalendarEntryDefaults] = useState({});
   const [clientAlertsOpen, setClientAlertsOpen] = useState(false);
+  const [alertFilter, setAlertFilter] = useState(loadStoredAlertFilter);
+  const [alertFocus, setAlertFocus] = useState(null);
   const [notificationSlot, setNotificationSlot] = useState(null);
-  const [alertGroupsOpen, setAlertGroupsOpen] = useState({
-    system: false,
-    calendar: false,
-    birthdays: false,
-    inactive: false,
-    operations: false,
-    packages: false,
-    forecast: false,
-  });
-  const [activeClientAlertId, setActiveClientAlertId] = useState(null);
+  const [, setActiveClientAlertId] = useState(null);
   const [preferredMessageClientId, setPreferredMessageClientId] = useState("");
   const contentRef = useRef(null);
   const autoCompletedCalendarEntryIdsRef = useRef(
@@ -240,18 +240,21 @@ function App() {
   });
 
   const {
-    actionableNotificationInbox,
+    alertSummary,
+    alerts,
     alertsCount,
-    birthdayAlerts,
-    dismissAlertTemporarily,
-    inactiveClientAlerts,
+    dismissAlertPermanent,
     openClientMessageTemplates,
-    operationsAlerts,
-    packageBalanceAlerts,
-    revenueForecastAlerts,
-    todayCalendarAlerts,
+    quietHoursActive,
+    snoozeAlertDays,
+    snoozeAlertToday,
+    snoozeAlertWeek,
+    totalAlertsCount,
     undoNotificationAction,
+    urgentAlertsCount,
   } = useClientAlerts({
+    alertFilter,
+    alertSnoozes,
     appSettings,
     calendarEntries,
     clientPackages,
@@ -263,6 +266,7 @@ function App() {
     pushNotification,
     setActiveClientAlertId,
     setActivePage,
+    setAlertSnoozes,
     setClientAlertsOpen,
     setClientPackages,
     setDismissedClientAlertIds,
@@ -326,7 +330,12 @@ function App() {
     [paymentFilters, paymentRows],
   );
 
+  useEffect(() => {
+    window.localStorage.setItem(ALERT_FILTER_STORAGE_KEY, alertFilter);
+  }, [alertFilter]);
+
   useCrmLocalPersistence({
+    alertSnoozes,
     appSettings,
     autoCompletedCalendarEntryIds,
     calendarEntries,
@@ -362,6 +371,7 @@ function App() {
   const cloudSnapshot = useMemo(
     () =>
       buildCloudSnapshot({
+        alertSnoozes,
         appSettings,
         autoCompletedCalendarEntryIds,
         calendarEntries,
@@ -381,6 +391,7 @@ function App() {
         visits,
       }),
     [
+      alertSnoozes,
       appSettings,
       autoCompletedCalendarEntryIds,
       calendarEntries,
@@ -418,6 +429,7 @@ function App() {
         setClientProfiles,
         setCommunicationLog,
         setDismissedClientAlertIds,
+        setAlertSnoozes,
         setEmployees,
         setImportDocuments,
         setImportedMailIds,
@@ -496,6 +508,7 @@ function App() {
     () => ({
       calendarEntries,
       clientPackages,
+      alertSnoozes,
       clients: clientProfiles,
       communicationLog,
       dismissedClientAlertIds,
@@ -513,6 +526,7 @@ function App() {
     }),
     [
       appSettings,
+      alertSnoozes,
       calendarEntries,
       clientPackages,
       clientProfiles,
@@ -539,6 +553,7 @@ function App() {
       setClientProfiles,
       setCommunicationLog,
       setDismissedClientAlertIds,
+      setAlertSnoozes,
       setEmployees,
       setImportDocuments,
       setImportedMailIds,
@@ -557,6 +572,7 @@ function App() {
       setClientProfiles,
       setCommunicationLog,
       setDismissedClientAlertIds,
+      setAlertSnoozes,
       setEmployees,
       setImportDocuments,
       setImportedMailIds,
@@ -865,6 +881,172 @@ function App() {
     setSupplyModalOpen,
   });
 
+  const clearAlertFocus = useCallback(() => {
+    setAlertFocus(null);
+  }, []);
+
+  const resolveAlertClient = useCallback(
+    (alert) => {
+      if (alert.meta?.client) {
+        return alert.meta.client;
+      }
+
+      if (alert.meta?.entry) {
+        return clientProfiles.find(
+          (item) =>
+            (alert.meta.entry.clientId &&
+              String(item.id) === String(alert.meta.entry.clientId)) ||
+            item.name === alert.meta.entry.client,
+        );
+      }
+
+      return clientProfiles.find(
+        (item) =>
+          String(item.id) === String(alert.entityId) ||
+          item.name === alert.entityId,
+      );
+    },
+    [clientProfiles],
+  );
+
+  const navigateFromAlert = useCallback(
+    (alert) => {
+      if (alert.type === "aggregate") {
+        const focusChild =
+          alert.children.find((child) => child.priority === "critical") ??
+          alert.children[0];
+
+        setActivePage(alert.page);
+        setAlertFocus({
+          entityId: focusChild?.entityId,
+          section: alert.section,
+          type: focusChild?.type ?? alert.aggregateKind,
+        });
+        setClientAlertsOpen(false);
+        setActiveClientAlertId(null);
+        return;
+      }
+
+      setActivePage(alert.page);
+      setAlertFocus({
+        entityId: alert.entityId,
+        section: alert.section,
+        type: alert.type,
+      });
+      setClientAlertsOpen(false);
+      setActiveClientAlertId(null);
+    },
+    [setActivePage],
+  );
+
+  const handleAlertAction = useCallback(
+    (alert, action) => {
+      switch (action) {
+        case "complete":
+          if (alert.meta?.task) {
+            completeTask(alert.meta.task);
+          }
+          break;
+        case "open":
+          navigateFromAlert(alert);
+          break;
+        case "order":
+          if (alert.meta?.item?.orderUrl) {
+            openSupplyOrderUrl(alert.meta.item.orderUrl);
+            snoozeAlertToday(alert);
+          }
+          break;
+        case "stock":
+          if (alert.meta?.item) {
+            changeSupplyStock(alert.meta.item, 1);
+          }
+          break;
+        case "write": {
+          const client = resolveAlertClient(alert);
+
+          if (client) {
+            openClientMessageTemplates(client);
+
+            if (alert.type === "inactive") {
+              snoozeAlertDays(alert, 14);
+            }
+          }
+          break;
+        }
+        case "calendar":
+          setActivePage("calendar");
+          setAlertFocus({
+            entityId: alert.meta?.entry?.id ?? alert.entityId,
+            type: "calendar",
+          });
+          setClientAlertsOpen(false);
+          setActiveClientAlertId(null);
+          break;
+        case "client": {
+          const client = resolveAlertClient(alert);
+          setActivePage("clients");
+          setAlertFocus({
+            entityId: client?.id ?? alert.entityId,
+            type: "client",
+          });
+          setClientAlertsOpen(false);
+          setActiveClientAlertId(null);
+          break;
+        }
+        case "undo":
+          if (alert.meta?.notification) {
+            undoNotificationAction(alert.meta.notification);
+          }
+          break;
+        case "dismiss":
+          if (alert.meta?.notification) {
+            setNotificationInbox((current) =>
+              current.filter((item) => item.id !== alert.meta.notification.id),
+            );
+          }
+          break;
+        default:
+          break;
+      }
+    },
+    [
+      changeSupplyStock,
+      completeTask,
+      navigateFromAlert,
+      openClientMessageTemplates,
+      resolveAlertClient,
+      snoozeAlertDays,
+      snoozeAlertToday,
+      undoNotificationAction,
+    ],
+  );
+
+  const handleToastAction = useCallback(
+    (notification, actionItem) => {
+      if (actionItem.action === "calendar") {
+        setActivePage("calendar");
+        setAlertFocus({
+          entityId: actionItem.entityId ?? notification.meta?.entry?.id,
+          type: "calendar",
+        });
+      } else if (actionItem.action === "write") {
+        const client = clientProfiles.find(
+          (item) =>
+            String(item.id) === String(actionItem.entityId) ||
+            item.name === actionItem.entityId ||
+            item.name === notification.meta?.entry?.client,
+        );
+
+        if (client) {
+          openClientMessageTemplates(client);
+        }
+      }
+
+      closeNotification(notification.id);
+    },
+    [clientProfiles, closeNotification, openClientMessageTemplates, setActivePage],
+  );
+
   const {applyMailImports} = useMailImport({
     calendarEntries,
     clientProfiles,
@@ -899,6 +1081,7 @@ function App() {
 
   const isCalendarPage = activePage === "calendar";
   const isPaymentsPage = activePage === "payments";
+  const colorTheme = resolveColorTheme(appSettings);
   const activeEmployees = useMemo(
     () => employees.filter((employee) => employee.status !== "Архив"),
     [employees],
@@ -936,7 +1119,6 @@ function App() {
         <AppNavigation
           activePage={activePage}
           mobileNavItems={mobileNavItems}
-          navItems={navItems}
           ownerName={appSettings.ownerName}
           sidebarVisible={appSettings.sidebarVisible}
           studioName={appSettings.studioName}
@@ -949,7 +1131,7 @@ function App() {
       }
       pullRefresh={pullRefresh}
       sidebarVisible={appSettings.sidebarVisible}
-      theme={appSettings.theme}
+      theme={colorTheme.mode}
       onShellClick={() => {
         if (clientAlertsOpen) {
           setClientAlertsOpen(false);
@@ -1067,75 +1249,38 @@ function App() {
             onSupplySubmit={handleSupplySubmit}
             onTaskSubmit={handleTaskSubmit}
           />
-          <ToastStack notifications={notifications} onClose={closeNotification} />
+          <ToastStack
+            notifications={notifications}
+            onAction={handleToastAction}
+            onClose={closeNotification}
+          />
         </>
       }>
         {notificationSlot &&
           createPortal(
             <NotificationDrawer
-              actionableNotificationInbox={actionableNotificationInbox}
-              activeClientAlertId={activeClientAlertId}
-              alertGroupsOpen={alertGroupsOpen}
+              alertFilter={alertFilter}
+              alertSummary={alertSummary}
+              alerts={alerts}
               alertsCount={alertsCount}
               animationsEnabled={appSettings.animationsEnabled}
-              birthdayAlerts={birthdayAlerts}
-              inactiveClientAlerts={inactiveClientAlerts}
               isOpen={clientAlertsOpen}
-              operationsAlerts={operationsAlerts}
-              packageBalanceAlerts={packageBalanceAlerts}
-              revenueForecastAlerts={revenueForecastAlerts}
-              todayCalendarAlerts={todayCalendarAlerts}
-              onDeleteInboxNotification={(notificationId) =>
-                setNotificationInbox((current) =>
-                  current.filter((item) => item.id !== notificationId),
-                )
-              }
-              onDismissAlert={dismissAlertTemporarily}
-              onDismissClientAlert={(alertId) => {
-                setDismissedClientAlertIds((current) => [...current, alertId]);
-                setActiveClientAlertId(null);
-              }}
-              onOpenAlertPage={(page) => {
-                setActivePage(page);
-                setClientAlertsOpen(false);
-              }}
-              onOpenCalendar={() => {
-                setActivePage("calendar");
-                setClientAlertsOpen(false);
-                setActiveClientAlertId(null);
-              }}
-              onOpenClientMessageTemplates={openClientMessageTemplates}
-              onOpenClients={() => {
-                setActivePage("clients");
-                setClientAlertsOpen(false);
-                setActiveClientAlertId(null);
-              }}
-              onOpenTemplatesForClient={(client) => {
-                setPreferredMessageClientId(String(client.id));
-                setActivePage("templates");
-                setClientAlertsOpen(false);
-                setActiveClientAlertId(null);
-              }}
-              onRemindCalendarClient={remindCalendarClient}
-              onToggleActiveAlert={(alertId) =>
-                setActiveClientAlertId((current) =>
-                  current === alertId ? null : alertId,
-                )
-              }
-              onToggleGroup={(group) =>
-                setAlertGroupsOpen((current) => ({
-                  ...current,
-                  [group]: !current[group],
-                }))
-              }
+              totalAlertsCount={totalAlertsCount}
+              urgentAlertsCount={urgentAlertsCount}
+              quietHoursActive={quietHoursActive}
+              onAction={handleAlertAction}
+              onDismissPermanent={dismissAlertPermanent}
+              onFilterChange={setAlertFilter}
+              onSnoozeToday={snoozeAlertToday}
+              onSnoozeWeek={snoozeAlertWeek}
               onToggleOpen={() => setClientAlertsOpen((current) => !current)}
-              onUndoNotificationAction={undoNotificationAction}
             />,
             notificationSlot,
           )}
         <PageNotificationsProvider onSlotChange={setNotificationSlot}>
           <AppRoutes
             activePage={activePage}
+            alertFocus={alertFocus}
             activeEmployees={activeEmployees}
             addClientCalendarVisit={addClientCalendarVisit}
             addQuickNote={addQuickNote}
@@ -1146,6 +1291,7 @@ function App() {
             calendarEntryModalOpen={calendarEntryModalOpen}
             certificateVisits={certificateVisits}
             changeSupplyStock={changeSupplyStock}
+            clearAlertFocus={clearAlertFocus}
             clearPreferredMessageClientId={() => setPreferredMessageClientId("")}
             clientPackages={clientPackages}
             clientProfiles={clientProfiles}

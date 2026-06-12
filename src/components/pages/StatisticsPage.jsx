@@ -38,7 +38,7 @@ import {
   toFinanceInputDate,
 } from "../../utils/finance.js";
 import {getTodayInput} from "../../utils/dateHelpers.js";
-import {PageNotificationsSlot} from "../PageNotifications.jsx";
+import PageHeader from "../PageHeader.jsx";
 import {
   createPaymentRingGradient,
   paymentGroups,
@@ -473,12 +473,10 @@ function StatisticsPage({
 
   return (
     <section className="statistics-page">
-      <div className="statistics-hero-header">
-        <div>
-          <h2>Статистика</h2>
-          <p>Финансы, визиты и сигналы по клиентам</p>
-        </div>
-        <div className="statistics-header-actions">
+      <PageHeader
+        className="statistics-hero-header"
+        description="Финансы, визиты и сигналы по клиентам"
+        headerActions={
           <button
             className="statistics-export-button"
             type="button"
@@ -486,9 +484,9 @@ function StatisticsPage({
             <Download size={15} />
             <span>Экспорт Excel</span>
           </button>
-          <PageNotificationsSlot />
-        </div>
-      </div>
+        }
+        title="Статистика"
+      />
 
       <div className="statistics-filters-card">
         <div className="statistics-filters">

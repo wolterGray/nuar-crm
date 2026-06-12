@@ -1,4 +1,6 @@
-import {useEffect} from "react";
+import {useEffect, useLayoutEffect} from "react";
+import {SNOOZED_ALERTS_STORAGE_KEY} from "../constants/storageKeys.js";
+import {applyColorTheme} from "../utils/colorTheme.js";
 import {
   AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY,
   CALENDAR_ENTRIES_STORAGE_KEY,
@@ -19,6 +21,7 @@ import {
 } from "../utils/crmStorage.js";
 
 export function useCrmLocalPersistence({
+  alertSnoozes,
   appSettings,
   autoCompletedCalendarEntryIds,
   calendarEntries,
@@ -87,6 +90,13 @@ export function useCrmLocalPersistence({
 
   useEffect(() => {
     window.localStorage.setItem(
+      SNOOZED_ALERTS_STORAGE_KEY,
+      JSON.stringify(alertSnoozes),
+    );
+  }, [alertSnoozes]);
+
+  useEffect(() => {
+    window.localStorage.setItem(
       COMMUNICATION_LOG_STORAGE_KEY,
       JSON.stringify(communicationLog),
     );
@@ -99,11 +109,8 @@ export function useCrmLocalPersistence({
     );
   }, [notificationInbox]);
 
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--accent-color",
-      appSettings.accentColor,
-    );
+  useLayoutEffect(() => {
+    applyColorTheme(appSettings);
   }, [appSettings]);
 
   useEffect(() => {

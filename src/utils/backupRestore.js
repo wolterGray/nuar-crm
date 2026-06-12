@@ -31,6 +31,13 @@ export const restoreBackupSnapshot = (
       ? backup.dismissedClientAlertIds
       : [],
   );
+  if (setters.setAlertSnoozes) {
+    setters.setAlertSnoozes(
+      backup.alertSnoozes && typeof backup.alertSnoozes === "object"
+        ? backup.alertSnoozes
+        : {},
+    );
+  }
   setters.setCommunicationLog(
     Array.isArray(backup.communicationLog) ? backup.communicationLog : [],
   );

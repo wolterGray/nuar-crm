@@ -8,7 +8,6 @@ import MessageTemplatesPage from "./pages/MessageTemplatesPage.jsx";
 import OperationsPage from "./pages/OperationsPage.jsx";
 import ImportPage from "./pages/ImportPage.jsx";
 import StatisticsPage from "./pages/StatisticsPage.jsx";
-import SitePage from "./pages/SitePage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 
 export default function AppRoutes({activePage, ...props}) {
@@ -16,6 +15,7 @@ export default function AppRoutes({activePage, ...props}) {
     case "calendar":
       return (
         <CalendarPage
+          alertFocus={props.alertFocus}
           entries={props.calendarEntriesWithServiceColors}
           visits={props.visits}
           clients={props.clientProfiles}
@@ -23,6 +23,7 @@ export default function AppRoutes({activePage, ...props}) {
           employees={props.activeEmployees}
           settings={props.appSettings}
           onAdd={props.openCreateCalendarEntry}
+          onAlertFocusHandled={props.clearAlertFocus}
           onEdit={(entry) => props.requestCalendarAction("edit", entry)}
           onDelete={(entry) => props.requestCalendarAction("delete", entry)}
           onMove={props.moveCalendarEntry}
@@ -51,6 +52,7 @@ export default function AppRoutes({activePage, ...props}) {
     case "clients":
       return (
         <ClientsPage
+          alertFocus={props.alertFocus}
           visits={props.visits}
           calendarEntries={props.calendarEntries}
           clients={props.clientProfiles}
@@ -59,6 +61,7 @@ export default function AppRoutes({activePage, ...props}) {
           employees={props.employees}
           inactiveClientDays={props.inactiveClientDays}
           onAddClient={props.openCreateClient}
+          onAlertFocusHandled={props.clearAlertFocus}
           onEditClient={props.openEditClient}
           onUpdateClientNote={props.updateClientNote}
           onDeleteClient={props.requestDeleteClient}
@@ -122,10 +125,12 @@ export default function AppRoutes({activePage, ...props}) {
     case "operations":
       return (
         <OperationsPage
+          alertFocus={props.alertFocus}
           tasks={props.tasks}
           supplies={props.supplies}
           onAddTask={props.openCreateTask}
           onAddNote={props.addQuickNote}
+          onAlertFocusHandled={props.clearAlertFocus}
           onEditTask={props.openEditTask}
           onDeleteTask={props.requestDeleteTask}
           onCompleteTask={props.completeTask}
@@ -165,7 +170,26 @@ export default function AppRoutes({activePage, ...props}) {
       );
 
     case "site":
-      return <SitePage />;
+      return (
+        <SettingsPage
+          initialTab="integrations"
+          cloudConflict={props.cloudConflict}
+          cloudEnabled={props.cloudEnabled}
+          cloudHydrated={props.cloudHydrated}
+          cloudLoadError={props.cloudLoadError}
+          cloudSyncing={props.cloudSyncing}
+          lastCloudSyncAt={props.lastCloudSyncAt}
+          lastCloudSyncError={props.lastCloudSyncError}
+          settings={props.appSettings}
+          onApplyRemoteSnapshot={props.handleApplyRemoteSnapshot}
+          onForceCloudSave={props.handleForceCloudSave}
+          onOverwriteRemoteSnapshot={props.handleOverwriteRemoteSnapshot}
+          onSubmit={props.handleSettingsSubmit}
+          onReset={props.resetSettings}
+          onExportData={props.exportDataBackup}
+          onImportData={props.importDataBackup}
+        />
+      );
 
     case "settings":
       return (

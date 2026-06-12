@@ -152,12 +152,14 @@ body {
 
 .page-header h1,
 .statistics-hero-header h2,
+.statistics-hero-header .page-header-unified-copy h2,
 .clients-toolbar h2,
 .employees-toolbar h2,
 .settings-toolbar h2,
 .catalog-toolbar h2,
 .import-toolbar h2,
 .operations-panel-header h2,
+.payments-content .page-header-unified-copy h2,
 .payments-content .panel-header h2 {
   color: var(--text-main);
   font-size: clamp(20px, 2.1vw, 30px);
@@ -313,10 +315,11 @@ button:focus-visible {
 .add-visit-button,
 .submit-button,
 .statistics-export-button {
-  border: 0;
+  border: 1px solid var(--button-primary-border, transparent);
   border-radius: var(--radius-md);
-  background: #111317;
-  box-shadow: 0 8px 18px rgba(17, 19, 24, 0.12);
+  color: var(--button-primary-text, #fff);
+  background: var(--accent-color);
+  box-shadow: var(--button-primary-shadow, 0 8px 18px color-mix(in srgb, var(--accent-color) 32%, transparent));
 }
 
 .secondary-button,
@@ -376,18 +379,18 @@ button:focus-visible {
 }
 
 .visits-panel {
+  display: grid;
+  gap: 12px;
   overflow: visible;
 }
 
-.visits-panel .panel-header {
-  margin: -20px -20px 16px;
-  padding: 16px 20px;
+.visits-panel .page-header-unified {
+  margin: 0;
+  padding: 0 0 4px;
 }
 
-.visits-panel .panel-header h2 {
-  font-size: 16px;
-  font-weight: 650;
-  line-height: 1.35;
+.visits-panel .panel-header {
+  display: none;
 }
 
 .visits-table {
@@ -476,7 +479,8 @@ button:focus-visible {
 .clients-page,
 .catalog-page,
 .employees-page,
-.settings-page {
+.settings-page,
+.payments-page {
   gap: 18px;
 }
 
@@ -724,6 +728,7 @@ button:focus-visible {
 
   .page-header h1,
   .statistics-hero-header h2,
+.statistics-hero-header .page-header-unified-copy h2,
   .clients-toolbar h2,
   .employees-toolbar h2,
   .settings-toolbar h2,
@@ -748,30 +753,9 @@ button:focus-visible {
 
   .mobile-bottom-nav {
     border-top: 0;
-    background: rgba(20, 23, 29, 0.96);
+    background: var(--mobile-nav-bg, rgba(20, 23, 29, 0.96));
     backdrop-filter: blur(18px);
   }
-}
-
-/* Cool professional palette and grouped filter layout. */
-:root {
-  --accent-color: #6f6b8f;
-  --linear-bg: #f3f5f8;
-  --linear-surface-muted: #e8ebf0;
-  --linear-border: rgba(34, 40, 52, 0.11);
-  --linear-border-soft: rgba(34, 40, 52, 0.07);
-  --linear-text: #191d25;
-  --linear-muted: #747b89;
-  --linear-faint: #a1a7b3;
-}
-
-body,
-.content,
-.visits-content,
-.calendar-content {
-  background:
-    radial-gradient(circle at 76% 0%, rgba(63, 42, 99, 0.055), transparent 30%),
-    var(--linear-bg);
 }
 
 .statistics-filters {
@@ -803,13 +787,13 @@ body,
 
 .statistics-income-icon,
 .statistics-card > div {
-  color: var(--accent-color);
-  background: rgba(111, 107, 143, 0.12);
-  border-color: rgba(111, 107, 143, 0.2);
+  color: color-mix(in srgb, var(--accent-color) 72%, white);
+  background: color-mix(in srgb, var(--accent-color) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent-color) 20%, transparent);
 }
 
 .statistics-revenue-tooltip span {
-  color: #3f2a63;
+  color: color-mix(in srgb, var(--accent-color) 65%, #30343d);
 }
 
 .statistics-income-context {

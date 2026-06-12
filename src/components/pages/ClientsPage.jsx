@@ -22,9 +22,10 @@ import {
 } from "../../utils/formatters.jsx";
 import {getVisitTotal} from "../../utils/visits.jsx";
 import {matchesClientRecord} from "../../utils/clientLinks.js";
-import {PageNotificationsSlot} from "../PageNotifications.jsx";
+import PageHeader from "../PageHeader.jsx";
 
 function ClientsPage({
+  alertFocus,
   visits,
   calendarEntries,
   clients,
@@ -33,6 +34,7 @@ function ClientsPage({
   employees,
   inactiveClientDays,
   onAddClient,
+  onAlertFocusHandled,
   onEditClient,
   onUpdateClientNote,
   onDeleteClient,
@@ -196,6 +198,42 @@ function ClientsPage({
     };
   }, [viewedClient]);
 
+  useEffect(() => {
+    if (!alertFocus?.entityId || alertFocus.type !== "client") {
+      return undefined;
+    }
+
+    const client =
+      clients.find(
+        (item) =>
+          String(item.id) === String(alertFocus.entityId) ||
+          item.name === alertFocus.entityId,
+      ) ?? null;
+
+    const setupTimer = window.setTimeout(() => {
+      if (client) {
+        setViewedClient(client);
+      }
+
+      document
+        .getElementById(`alert-focus-client-${alertFocus.entityId}`)
+        ?.scrollIntoView({behavior: "smooth", block: "center"});
+    }, 0);
+    const clearTimer = window.setTimeout(() => {
+      onAlertFocusHandled?.();
+    }, 4500);
+
+    return () => {
+      window.clearTimeout(setupTimer);
+      window.clearTimeout(clearTimer);
+    };
+  }, [alertFocus, clients, onAlertFocusHandled]);
+
+  const isFocusedClient = (client) =>
+    alertFocus?.type === "client" &&
+    (String(alertFocus.entityId) === String(client.id) ||
+      alertFocus.entityId === client.name);
+
   const normalizedSearch = search.trim().toLowerCase();
   const filteredClients = clientsData.filter((client) =>
     [
@@ -221,45 +259,37 @@ function ClientsPage({
     <section
       className="panel clients-page"
       onClick={() => setOpenClientMenuId(null)}>
-      <div className="clients-toolbar">
-        <div className="title-notifications-flex">
-          <div>
-            <h2>Клиенты </h2>
-            <p>
-              {filteredClients.length} из {clients.length} в базе
-            </p>
-          </div>
-          <PageNotificationsSlot />
-        </div>
-        <div className="clients-toolbar-actions">
-          <label className="clients-search">
-            <Search size={16} />
-            <input
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setOpenClientMenuId(null);
-              }}
-              placeholder="Поиск клиента"
-            />
-            {search && (
-              <button
-                aria-label="Очистить поиск"
-                type="button"
-                onClick={() => setSearch("")}>
-                <X size={15} />
-              </button>
-            )}
-          </label>
-          <button
-            className="add-visit-button"
-            type="button"
-            onClick={onAddClient}>
-            <Plus size={18} />
-            Добавить клиента
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <label className="clients-search">
+              <Search size={16} />
+              <input
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setOpenClientMenuId(null);
+                }}
+                placeholder="Поиск клиента"
+              />
+              {search && (
+                <button
+                  aria-label="Очистить поиск"
+                  type="button"
+                  onClick={() => setSearch("")}>
+                  <X size={15} />
+                </button>
+              )}
+            </label>
+            <button className="add-visit-button" type="button" onClick={onAddClient}>
+              <Plus size={18} />
+              Добавить клиента
+            </button>
+          </>
+        }
+        description={`${filteredClients.length} из ${clients.length} в базе`}
+        title="Клиенты"
+      />
 
       <div className="clients-table">
         <div className="clients-table-row clients-table-head">
@@ -281,7 +311,8 @@ function ClientsPage({
               client.daysAbsent >= inactiveClientDays
                 ? "client-needs-contact"
                 : ""
-            }`}
+            } ${isFocusedClient(client) ? "alert-focus-pulse" : ""}`}
+            id={`alert-focus-client-${client.id}`}
             role="button"
             tabIndex="0"
             key={client.id}
@@ -322,6 +353,25 @@ function ClientsPage({
                 : `${client.daysAbsent} дн.`}
             </span>
             <span data-label="Заметка">{client.note || "—"}</span>
+
+            <div
+              className="client-mobile-quick-actions"
+              onClick={(event) => event.stopPropagation()}>
+              <button
+                className="client-quick-action"
+                type="button"
+                onClick={() => onMessageClient(client)}>
+                <MessageSquareText size={14} />
+                Написать
+              </button>
+              <button
+                className="client-quick-action"
+                type="button"
+                onClick={() => onAddVisit(client)}>
+                <CalendarPlus size={14} />
+                Запись
+              </button>
+            </div>
 
             <div
               className="row-actions client-row-actions"
@@ -642,7 +692,7 @@ function ClientsPage({
 
 function getAppointmentStatus(entry) {
   if (entry.status === "cancelled") return "Отменён";
-  if (entry.status === "no_show") return "Отменён";
+  if (entry.status === "no_show") return "Не пришёл";
   if (entry.status === "completed") return "Окончен";
 
   const end = new Date(`${entry.date}T${entry.time || "00:00"}:00`);

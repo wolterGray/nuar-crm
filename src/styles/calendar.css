@@ -45,6 +45,24 @@
   display: none;
 }
 
+.calendar-mobile-add-button {
+  display: none;
+}
+
+.calendar-desktop-add-button {
+  display: inline-flex;
+}
+
+.calendar-page-header .page-header-unified-copy p {
+  margin-top: 4px;
+  color: #6f737b;
+  font-size: 13px;
+}
+
+.theme-dark .calendar-page-header .page-header-unified-copy p {
+  color: #b3bdcb;
+}
+
 .mobile-calendar-week {
   display: grid;
   grid-auto-columns: calc((100% - 24px) / 7);

@@ -2,26 +2,21 @@ import {Pencil, Plus, Trash2} from "lucide-react";
 import {motion} from "framer-motion";
 import {formatMoney} from "../../utils/formatters.jsx";
 import {serviceColorPalette} from "../../utils/serviceColors.js";
-import {PageNotificationsSlot} from "../PageNotifications.jsx";
+import PageHeader from "../PageHeader.jsx";
 
 function ServicesPage({services, onAdd, onEdit, onDelete}) {
   return (
     <section className="catalog-page">
-      <div className="employees-toolbar">
-        <div className="title-notifications-flex">
-          <div>
-            <h2>Услуги</h2>
-            <p>{services.length} в базе</p>
-          </div>
-          <PageNotificationsSlot />
-        </div>
-        <div className="toolbar-actions">
+      <PageHeader
+        actions={
           <button className="add-visit-button" type="button" onClick={onAdd}>
             <Plus size={18} />
             Добавить услугу
           </button>
-        </div>
-      </div>
+        }
+        description={`${services.length} в базе`}
+        title="Услуги"
+      />
 
       <div className="catalog-grid">
         {services.map((service) => (

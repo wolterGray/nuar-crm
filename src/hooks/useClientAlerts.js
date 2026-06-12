@@ -1,17 +1,37 @@
 import {useCallback, useEffect, useMemo, useRef} from "react";
-import {matchesClientRecord} from "../utils/clientLinks.js";
-import {getUpcomingBirthday} from "../utils/clientAlerts.js";
+import {buildAlertCenter, filterAlertsByMode} from "../utils/alertCenter.js";
+import {getAggregateChildIds} from "../utils/alertAggregation.js";
 import {
-  getDaysSinceDisplayDate,
-  getLatestDisplayDate,
-  toDisplayDate,
-} from "../utils/formatters.jsx";
+  getEndOfToday,
+  getSnoozeUntilDays,
+  pruneExpiredSnoozes,
+} from "../utils/alertSnooze.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
-import {shiftAppDate} from "../utils/dateUtils.js";
-import {isCalendarVisitCompleted} from "../utils/calendarVisitStatus.js";
-import {toVisitNumber} from "../utils/visits.jsx";
+import {
+  applyQuietHoursFilter,
+  isQuietHours,
+  shouldShowSmartVisitPopup,
+} from "../utils/quietHours.js";
+
+const resolveAlertIds = (alertOrId) => {
+  if (Array.isArray(alertOrId)) {
+    return alertOrId;
+  }
+
+  if (typeof alertOrId === "string") {
+    return [alertOrId];
+  }
+
+  if (alertOrId?.type === "aggregate") {
+    return getAggregateChildIds(alertOrId);
+  }
+
+  return alertOrId?.id ? [alertOrId.id] : [];
+};
 
 export function useClientAlerts({
+  alertFilter = "all",
+  alertSnoozes,
   appSettings,
   calendarEntries,
   clientPackages,
@@ -23,6 +43,7 @@ export function useClientAlerts({
   pushNotification,
   setActiveClientAlertId,
   setActivePage,
+  setAlertSnoozes,
   setClientAlertsOpen,
   setClientPackages,
   setDismissedClientAlertIds,
@@ -35,244 +56,129 @@ export function useClientAlerts({
 }) {
   const smartVisitAlertIds = useRef(new Set());
 
-  const inactiveClients = useMemo(
+  useEffect(() => {
+    setAlertSnoozes((current) => pruneExpiredSnoozes(current));
+  }, [setAlertSnoozes]);
+
+  const alertCenter = useMemo(
     () =>
-      clientProfiles
-        .map((client) => {
-          const completedCalendarDates = calendarEntries
-            .filter(
-              (entry) =>
-                matchesClientRecord(entry, clientProfiles, client) &&
-                isCalendarVisitCompleted(entry),
-            )
-            .map((entry) => toDisplayDate(entry.date));
-          const lastVisit =
-            getLatestDisplayDate([
-              ...visits
-                .filter(
-                  (visit) =>
-                    matchesClientRecord(visit, clientProfiles, client) &&
-                    visit.recordType !== "operation",
-                )
-                .map((visit) => visit.date),
-              ...completedCalendarDates,
-            ]) || "";
-
-          return {
-            ...client,
-            lastVisit,
-            daysAbsent: getDaysSinceDisplayDate(lastVisit),
-          };
-        })
-        .filter(
-          (client) =>
-            client.daysAbsent !== null && client.daysAbsent >= inactiveClientDays,
-        )
-        .sort(
-          (firstClient, secondClient) =>
-            (secondClient.daysAbsent ?? Number.MAX_SAFE_INTEGER) -
-            (firstClient.daysAbsent ?? Number.MAX_SAFE_INTEGER),
-        ),
-    [calendarEntries, clientProfiles, inactiveClientDays, visits],
-  );
-
-  const todayCalendarAlerts = useMemo(() => {
-    if (!appSettings.notificationsEnabled || !appSettings.todayVisitAlertsEnabled) {
-      return [];
-    }
-
-    const today = getTodayInput();
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const mode = appSettings.todayVisitAlertMode ?? "all";
-    const upcomingMinutes = Math.max(15, Number(appSettings.upcomingVisitMinutes) || 180);
-
-    return calendarEntries
-      .filter((entry) => entry.date === today && entry.kind === "visit")
-      .filter((entry) => !["completed", "cancelled", "no_show"].includes(entry.status))
-      .filter((entry) => {
-        const [hours, minutes] = String(entry.time ?? "00:00").split(":").map(Number);
-        const difference = hours * 60 + minutes - currentMinutes;
-
-        if (mode === "upcoming") {
-          return difference >= 0 && difference <= upcomingMinutes;
-        }
-        return difference >= 0;
-      })
-      .map((entry) => ({
-        ...entry,
-        alertId: `calendar-${entry.id}`,
-      }))
-      .filter((entry) => !dismissedClientAlertIds.includes(entry.alertId))
-      .sort((first, second) => String(first.time).localeCompare(String(second.time)));
-  }, [
-    appSettings.notificationsEnabled,
-    appSettings.todayVisitAlertMode,
-    appSettings.todayVisitAlertsEnabled,
-    appSettings.upcomingVisitMinutes,
-    calendarEntries,
-    dismissedClientAlertIds,
-  ]);
-
-  const inactiveClientAlerts = useMemo(
-    () =>
-      appSettings.notificationsEnabled && appSettings.inactiveClientAlertsEnabled
-        ? inactiveClients
-            .map((client) => ({...client, alertId: `inactive-${client.id}`}))
-            .filter((client) => !dismissedClientAlertIds.includes(client.alertId))
-        : [],
+      buildAlertCenter({
+        appSettings,
+        calendarEntries,
+        clientPackages,
+        clientProfiles,
+        defaultAppSettings,
+        dismissedAlertIds: dismissedClientAlertIds,
+        inactiveClientDays,
+        notificationInbox,
+        snoozes: alertSnoozes,
+        supplies,
+        tasks,
+        visits,
+      }),
     [
-      appSettings.inactiveClientAlertsEnabled,
-      appSettings.notificationsEnabled,
+      alertSnoozes,
+      appSettings,
+      calendarEntries,
+      clientPackages,
+      clientProfiles,
+      defaultAppSettings,
       dismissedClientAlertIds,
-      inactiveClients,
+      inactiveClientDays,
+      notificationInbox,
+      supplies,
+      tasks,
+      visits,
     ],
   );
 
-  const birthdayAlerts = useMemo(() => {
-    if (!appSettings.notificationsEnabled || !appSettings.birthdayAlertsEnabled) {
-      return [];
-    }
-
-    const reminderDays = Math.max(
-      0,
-      Number(appSettings.birthdayReminderDays) || defaultAppSettings.birthdayReminderDays,
-    );
-
-    return clientProfiles
-      .map((client) => ({...client, birthdayInfo: getUpcomingBirthday(client.birthday)}))
-      .filter((client) => client.birthdayInfo && client.birthdayInfo.daysLeft <= reminderDays)
-      .map((client) => ({
-        ...client,
-        alertId: `birthday-${client.id}-${new Date().getFullYear()}`,
-      }))
-      .filter((client) => !dismissedClientAlertIds.includes(client.alertId))
-      .sort((first, second) => first.birthdayInfo.daysLeft - second.birthdayInfo.daysLeft);
-  }, [
-    appSettings.birthdayAlertsEnabled,
-    appSettings.birthdayReminderDays,
-    appSettings.notificationsEnabled,
-    clientProfiles,
-    defaultAppSettings.birthdayReminderDays,
-    dismissedClientAlertIds,
-  ]);
-
-  const operationsAlerts = useMemo(() => {
-    if (!appSettings.notificationsEnabled) {
-      return [];
-    }
-
-    const today = getTodayInput();
-    const taskAlerts = appSettings.taskAlertsEnabled
-      ? tasks
-          .filter(
-            (task) => task.status !== "completed" && task.dueDate && task.dueDate <= today,
-          )
-          .map((task) => ({
-            alertId: `task-${task.id}`,
-            title: task.title,
-            message: task.dueDate < today ? `Просрочено: ${task.dueDate}` : "Срок сегодня",
-            page: "operations",
-          }))
-      : [];
-    const supplyAlerts = appSettings.supplyAlertsEnabled
-      ? supplies
-          .filter((item) => Number(item.stock) <= Number(item.minStock))
-          .map((item) => ({
-            alertId: `supply-${item.id}`,
-            title: item.name,
-            message: `Остаток ${item.stock} ${item.unit} · минимум ${item.minStock}`,
-            page: "operations",
-          }))
-      : [];
-
-    return [...taskAlerts, ...supplyAlerts];
-  }, [
-    appSettings.notificationsEnabled,
-    appSettings.supplyAlertsEnabled,
-    appSettings.taskAlertsEnabled,
-    supplies,
-    tasks,
-  ]);
-
-  const packageBalanceAlerts = useMemo(
-    () =>
-      appSettings.notificationsEnabled
-        ? clientPackages
-            .filter((item) => Number(item.remainingVisits) <= 2)
-            .map((item) => ({
-              alertId: `package-balance-${item.id}-${item.remainingVisits}`,
-              title: item.client,
-              message:
-                Number(item.remainingVisits) === 0
-                  ? `${item.packageName}: сеансы закончились`
-                  : `${item.packageName}: осталось ${item.remainingVisits}`,
-            }))
-            .filter((item) => !dismissedClientAlertIds.includes(item.alertId))
-        : [],
-    [appSettings.notificationsEnabled, clientPackages, dismissedClientAlertIds],
+  const quietHoursActive = useMemo(
+    () => isQuietHours(new Date(), appSettings),
+    [appSettings],
   );
 
-  const revenueForecastAlerts = useMemo(() => {
-    if (!appSettings.notificationsEnabled) {
-      return [];
-    }
+  const quietFilteredAlerts = useMemo(
+    () => applyQuietHoursFilter(alertCenter.alerts, appSettings),
+    [alertCenter.alerts, appSettings],
+  );
 
-    const today = getTodayInput();
-    const tomorrow = shiftAppDate(today, 1);
-    const forecast = (date) =>
-      calendarEntries
-        .filter(
-          (entry) =>
-            entry.kind === "visit" &&
-            entry.date === date &&
-            !["cancelled", "no_show"].includes(entry.status),
-        )
-        .reduce((sum, entry) => sum + toVisitNumber(entry.amount), 0);
+  const visibleAlerts = useMemo(
+    () => filterAlertsByMode(quietFilteredAlerts, alertFilter),
+    [alertFilter, quietFilteredAlerts],
+  );
 
-    return [
-      {
-        alertId: `forecast-${today}`,
-        title: "Прогноз на сегодня",
-        message: `${forecast(today)} zł`,
-      },
-      {
-        alertId: `forecast-${tomorrow}`,
-        title: "Прогноз на завтра",
-        message: `${forecast(tomorrow)} zł`,
-      },
-    ]
-      .filter((item) => Number.parseFloat(item.message) > 0)
-      .filter((item) => !dismissedClientAlertIds.includes(item.alertId));
-  }, [appSettings.notificationsEnabled, calendarEntries, dismissedClientAlertIds]);
+  const drawerCounts = useMemo(() => {
+    const urgentAlertsCount = quietFilteredAlerts.filter(
+      (alert) => alert.priority === "critical" || alert.priority === "action",
+    ).length;
 
-  const dismissAlertTemporarily = useCallback(
-    (alertId, delay = 6 * 60 * 60 * 1000) => {
-      setDismissedClientAlertIds((current) =>
-        current.includes(alertId) ? current : [...current, alertId],
-      );
-      window.setTimeout(() => {
-        setDismissedClientAlertIds((current) =>
-          current.filter((item) => item !== alertId),
-        );
-      }, delay);
+    return {
+      alertsCount: visibleAlerts.length,
+      totalAlertsCount: quietFilteredAlerts.length,
+      urgentAlertsCount,
+    };
+  }, [quietFilteredAlerts, visibleAlerts.length]);
+
+  const snoozeAlertIdsUntil = useCallback(
+    (alertOrId, until) => {
+      const alertIds = resolveAlertIds(alertOrId);
+
+      if (alertIds.length === 0) {
+        return;
+      }
+
+      setAlertSnoozes((current) => {
+        const next = {...current};
+        alertIds.forEach((alertId) => {
+          next[alertId] = until.toISOString();
+        });
+        return next;
+      });
+      setActiveClientAlertId(null);
     },
-    [setDismissedClientAlertIds],
+    [setActiveClientAlertId, setAlertSnoozes],
   );
 
-  const actionableNotificationInbox = useMemo(
-    () => notificationInbox.filter((notification) => notification.undoAction),
-    [notificationInbox],
+  const snoozeAlertToday = useCallback(
+    (alertOrId) => {
+      snoozeAlertIdsUntil(alertOrId, getEndOfToday());
+    },
+    [snoozeAlertIdsUntil],
   );
 
-  const alertsCount =
-    todayCalendarAlerts.length +
-    birthdayAlerts.length +
-    inactiveClientAlerts.length +
-    actionableNotificationInbox.length +
-    operationsAlerts.length +
-    packageBalanceAlerts.length +
-    revenueForecastAlerts.length;
+  const snoozeAlertWeek = useCallback(
+    (alertOrId) => {
+      snoozeAlertIdsUntil(alertOrId, getSnoozeUntilDays(7));
+    },
+    [snoozeAlertIdsUntil],
+  );
+
+  const snoozeAlertDays = useCallback(
+    (alertOrId, days) => {
+      snoozeAlertIdsUntil(alertOrId, getSnoozeUntilDays(days));
+    },
+    [snoozeAlertIdsUntil],
+  );
+
+  const dismissAlertPermanent = useCallback(
+    (alertOrId) => {
+      const alertIds = resolveAlertIds(alertOrId);
+
+      setDismissedClientAlertIds((current) => [
+        ...current,
+        ...alertIds.filter((alertId) => !current.includes(alertId)),
+      ]);
+      setAlertSnoozes((current) => {
+        const next = {...current};
+        alertIds.forEach((alertId) => {
+          delete next[alertId];
+        });
+        return next;
+      });
+      setActiveClientAlertId(null);
+    },
+    [setActiveClientAlertId, setAlertSnoozes, setDismissedClientAlertIds],
+  );
 
   const undoNotificationAction = useCallback(
     (notification) => {
@@ -352,7 +258,8 @@ export function useClientAlerts({
           if (
             difference < 0 ||
             difference > (Number(appSettings.smartVisitPopupMinutes) || 15) ||
-            smartVisitAlertIds.current.has(entry.id)
+            smartVisitAlertIds.current.has(entry.id) ||
+            !shouldShowSmartVisitPopup(difference, appSettings, now)
           ) {
             return;
           }
@@ -362,6 +269,12 @@ export function useClientAlerts({
             title:
               difference === 0 ? "Визит начинается сейчас" : `Визит через ${difference} мин.`,
             message: `${entry.client} · ${entry.service} · ${entry.master}`,
+            tone: "urgent",
+            actions: [
+              {label: "Календарь", action: "calendar", entityId: entry.id},
+              {label: "Написать", action: "write", entityId: entry.clientId || entry.client},
+            ],
+            meta: {entry},
           });
         });
     };
@@ -372,6 +285,9 @@ export function useClientAlerts({
     return () => window.clearInterval(timer);
   }, [
     appSettings.notificationsEnabled,
+    appSettings.quietHoursEnabled,
+    appSettings.quietHoursEnd,
+    appSettings.quietHoursStart,
     appSettings.smartVisitPopupMinutes,
     appSettings.smartVisitPopupsEnabled,
     appSettings.todayVisitAlertsEnabled,
@@ -380,16 +296,17 @@ export function useClientAlerts({
   ]);
 
   return {
-    actionableNotificationInbox,
-    alertsCount,
-    birthdayAlerts,
-    dismissAlertTemporarily,
-    inactiveClientAlerts,
+    alertSummary: alertCenter.summary,
+    alerts: visibleAlerts,
+    alertsCount: drawerCounts.alertsCount,
+    dismissAlertPermanent,
     openClientMessageTemplates,
-    operationsAlerts,
-    packageBalanceAlerts,
-    revenueForecastAlerts,
-    todayCalendarAlerts,
+    quietHoursActive,
+    snoozeAlertDays,
+    snoozeAlertToday,
+    snoozeAlertWeek,
+    totalAlertsCount: drawerCounts.totalAlertsCount,
     undoNotificationAction,
+    urgentAlertsCount: drawerCounts.urgentAlertsCount,
   };
 }

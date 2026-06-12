@@ -40,6 +40,7 @@ export function useSupplyHandlers({
         unit: form.get("unit") || "шт.",
         cost: Math.max(0, Number(form.get("cost")) || 0),
         note: String(form.get("note") ?? "").trim(),
+        orderUrl: String(form.get("orderUrl") ?? "").trim(),
       };
 
       setSupplies((current) =>

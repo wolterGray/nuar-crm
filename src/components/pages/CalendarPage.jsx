@@ -17,7 +17,7 @@ import {
   X,
 } from "lucide-react";
 import {getTodayInput} from "../../utils/dateHelpers.js";
-import {PageNotificationsSlot} from "../PageNotifications.jsx";
+import PageHeader from "../PageHeader.jsx";
 import {
   DndContext,
   MouseSensor,
@@ -104,7 +104,7 @@ const statusLabels = {
   scheduled: "Запланирован",
   confirmed: "Подтверждён",
   completed: "Окончен",
-  no_show: "Отменён",
+  no_show: "Не пришёл",
   cancelled: "Отменён",
 };
 
@@ -168,7 +168,7 @@ function DroppableScheduleColumn({
   );
 }
 
-function DraggableScheduleEntry({children, className, entry, style}) {
+function DraggableScheduleEntry({children, className, domId, entry, style}) {
   const {attributes, listeners, setNodeRef, transform, isDragging} = useDraggable({
     id: `schedule-entry-${entry.id}`,
     data: {entry},
@@ -177,6 +177,7 @@ function DraggableScheduleEntry({children, className, entry, style}) {
   return (
     <article
       className={`${className} ${isDragging ? "schedule-entry-dragging" : ""}`}
+      id={domId}
       ref={setNodeRef}
       style={{
         ...style,
@@ -193,6 +194,7 @@ function DraggableScheduleEntry({children, className, entry, style}) {
 }
 
 function CalendarPage({
+  alertFocus,
   entries,
   visits,
   clients,
@@ -200,6 +202,7 @@ function CalendarPage({
   employees,
   settings,
   onAdd,
+  onAlertFocusHandled,
   onEdit,
   onDelete,
   onMove,
@@ -232,6 +235,40 @@ function CalendarPage({
       activationConstraint: {delay: 320, tolerance: 8},
     }),
   );
+  const isFocusedEntry = (entryId) =>
+    alertFocus?.type === "calendar" &&
+    String(alertFocus.entityId) === String(entryId);
+
+  useEffect(() => {
+    if (!alertFocus?.entityId || alertFocus.type !== "calendar") {
+      return undefined;
+    }
+
+    const entry = entries.find(
+      (item) => String(item.id) === String(alertFocus.entityId),
+    );
+
+    const setupTimer = window.setTimeout(() => {
+      if (entry?.date) {
+        setSelectedDate(entry.date);
+      }
+
+      window.setTimeout(() => {
+        document
+          .getElementById(`alert-focus-calendar-${alertFocus.entityId}`)
+          ?.scrollIntoView({behavior: "smooth", block: "center"});
+      }, 120);
+    }, 0);
+    const clearTimer = window.setTimeout(() => {
+      onAlertFocusHandled?.();
+    }, 4500);
+
+    return () => {
+      window.clearTimeout(setupTimer);
+      window.clearTimeout(clearTimer);
+    };
+  }, [alertFocus, entries, onAlertFocusHandled]);
+
   const startMinutes = toMinutes(settings.workdayStart ?? "08:00");
   const configuredEndMinutes = toMinutes(settings.workdayEnd ?? "22:00");
   const endMinutes = configuredEndMinutes > startMinutes
@@ -404,73 +441,82 @@ function CalendarPage({
 
   return (
     <section className="calendar-page">
-      <div className="calendar-toolbar">
-        <div>
-          <h2>Календарь</h2>
-          <p>{visitEntries.length} визитов запланировано</p>
-        </div>
-        <div className="calendar-toolbar-actions">
-          <div className="calendar-date-control">
+      <PageHeader
+        actions={
+          <div className="calendar-toolbar-actions">
+            <div className="calendar-date-control">
+              <button
+                aria-label="Предыдущий день"
+                className="calendar-icon-button"
+                type="button"
+                onClick={() => selectCalendarDate(shiftDate(selectedDate, -1))}>
+                <ChevronLeft size={17} />
+              </button>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(event) => {
+                  if (isValidInputDate(event.target.value)) {
+                    selectCalendarDate(event.target.value);
+                  }
+                }}
+              />
+              <button
+                aria-label="Следующий день"
+                className="calendar-icon-button"
+                type="button"
+                onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}>
+                <ChevronRight size={17} />
+              </button>
+            </div>
+            {!isToday && (
+              <button
+                className="secondary-button calendar-today-button"
+                type="button"
+                onClick={() => selectCalendarDate(getTodayInput())}>
+                Сегодня
+              </button>
+            )}
+            {!remindersVisible && (
+              <button
+                aria-label="Открыть ленту дня"
+                className="calendar-feed-toggle calendar-feed-toggle-open"
+                title="Открыть ленту дня"
+                type="button"
+                onClick={() => setRemindersVisible(true)}>
+                <ChevronLeft size={17} />
+              </button>
+            )}
             <button
-              aria-label="Предыдущий день"
-              className="calendar-icon-button"
+              aria-label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
+              className={`mobile-calendar-feed-button ${overlayOpen ? "mobile-calendar-action-hidden" : ""}`}
+              title="Лента дня"
               type="button"
-              onClick={() => selectCalendarDate(shiftDate(selectedDate, -1))}>
-              <ChevronLeft size={17} />
+              onClick={() => setRemindersVisible((current) => !current)}>
+              {remindersVisible ? <X size={22} /> : <ClipboardList size={21} />}
             </button>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(event) => {
-                if (isValidInputDate(event.target.value)) {
-                  selectCalendarDate(event.target.value);
-                }
-              }}
-            />
             <button
-              aria-label="Следующий день"
-              className="calendar-icon-button"
+              className={`add-visit-button calendar-mobile-add-button ${overlayOpen || remindersVisible ? "mobile-calendar-action-hidden" : ""}`}
               type="button"
-              onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}>
-              <ChevronRight size={17} />
+              onClick={() => onAdd({date: selectedDate})}>
+              <Plus size={17} />
+              Добавить
             </button>
           </div>
-          {!isToday && (
-            <button
-              className="secondary-button calendar-today-button"
-              type="button"
-              onClick={() => selectCalendarDate(getTodayInput())}>
-              Сегодня
-            </button>
-          )}
-          {!remindersVisible && (
-            <button
-              aria-label="Открыть ленту дня"
-              className="calendar-feed-toggle calendar-feed-toggle-open"
-              title="Открыть ленту дня"
-              type="button"
-              onClick={() => setRemindersVisible(true)}>
-              <ChevronLeft size={17} />
-            </button>
-          )}
+        }
+        className="calendar-toolbar calendar-page-header"
+        description={`${visitEntries.length} визитов запланировано`}
+        headerActions={
           <button
-            aria-label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
-            className={`mobile-calendar-feed-button ${overlayOpen ? "mobile-calendar-action-hidden" : ""}`}
-            title="Лента дня"
-            type="button"
-            onClick={() => setRemindersVisible((current) => !current)}>
-            {remindersVisible ? <X size={22} /> : <ClipboardList size={21} />}
-          </button>
-          <button
-            className={`add-visit-button calendar-mobile-add-button ${overlayOpen || remindersVisible ? "mobile-calendar-action-hidden" : ""}`}
+            className="add-visit-button calendar-desktop-add-button"
             type="button"
             onClick={() => onAdd({date: selectedDate})}>
             <Plus size={17} />
             Добавить
           </button>
-          <PageNotificationsSlot />
-        </div>
-      </div>
+        }
+        title="Календарь"
+      />
 
       <div
         className="mobile-calendar-week"
@@ -611,7 +657,8 @@ function CalendarPage({
 
                       return (
                         <DraggableScheduleEntry
-                          className={`schedule-entry schedule-${entry.kind} schedule-status-${entry.status || "scheduled"} ${ended ? "schedule-entry-ended" : ""}`}
+                          className={`schedule-entry schedule-${entry.kind} schedule-status-${entry.status || "scheduled"} ${ended ? "schedule-entry-ended" : ""} ${isFocusedEntry(entry.id) ? "alert-focus-pulse" : ""}`}
+                          domId={`alert-focus-calendar-${entry.id}`}
                           entry={entry}
                           key={entry.id}
                           style={{

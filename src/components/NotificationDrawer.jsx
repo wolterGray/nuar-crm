@@ -1,42 +1,70 @@
 import {AnimatePresence, motion} from "framer-motion";
-import {
-  Bell,
-  CakeSlice,
-  CalendarDays,
-  ChevronDown,
-  EyeOff,
-  MessageSquareText,
-  X,
-} from "lucide-react";
+import {Bell, ChevronDown} from "lucide-react";
+import {ALERT_GROUP_LABELS, groupAlerts} from "../utils/alertCenter.js";
+import NotificationAggregateRow from "./NotificationAggregateRow.jsx";
+import NotificationAlertRow from "./NotificationAlertRow.jsx";
+
+const FILTER_OPTIONS = [
+  {id: "urgent", label: "Срочные"},
+  {id: "all", label: "Все"},
+  {id: "operations", label: "Склад"},
+  {id: "clients", label: "Клиенты"},
+];
 
 export default function NotificationDrawer({
+  alertFilter,
+  alertSummary,
+  alerts,
   alertsCount,
   animationsEnabled,
   isOpen,
-  alertGroupsOpen,
-  activeClientAlertId,
-  revenueForecastAlerts,
-  packageBalanceAlerts,
-  actionableNotificationInbox,
-  operationsAlerts,
-  todayCalendarAlerts,
-  birthdayAlerts,
-  inactiveClientAlerts,
+  onAction,
+  onDismissPermanent,
+  onFilterChange,
+  onSnoozeToday,
+  onSnoozeWeek,
   onToggleOpen,
-  onToggleGroup,
-  onToggleActiveAlert,
-  onDismissAlert,
-  onUndoNotificationAction,
-  onDeleteInboxNotification,
-  onOpenAlertPage,
-  onRemindCalendarClient,
-  onOpenCalendar,
-  onOpenClientMessageTemplates,
-  onOpenTemplatesForClient,
-  onDismissClientAlert,
-  onOpenClients,
+  quietHoursActive,
+  totalAlertsCount,
+  urgentAlertsCount,
 }) {
   const transition = {duration: animationsEnabled ? 0.18 : 0};
+  const groupedAlerts = groupAlerts(alerts);
+  const groupOrder = [
+    "calendar",
+    "operations",
+    "packages",
+    "birthdays",
+    "inactive",
+    "forecast",
+    "system",
+  ];
+
+  const renderAlert = (alert) => {
+    if (alert.type === "aggregate") {
+      return (
+        <NotificationAggregateRow
+          alert={alert}
+          key={alert.id}
+          onAction={onAction}
+          onDismissPermanent={onDismissPermanent}
+          onSnoozeToday={onSnoozeToday}
+          onSnoozeWeek={onSnoozeWeek}
+        />
+      );
+    }
+
+    return (
+      <NotificationAlertRow
+        alert={alert}
+        key={alert.id}
+        onAction={onAction}
+        onDismissPermanent={onDismissPermanent}
+        onSnoozeToday={onSnoozeToday}
+        onSnoozeWeek={onSnoozeWeek}
+      />
+    );
+  };
 
   return (
     <div
@@ -49,7 +77,12 @@ export default function NotificationDrawer({
           type="button"
           onClick={onToggleOpen}>
           <Bell size={18} />
-          {alertsCount > 0 && <b>{alertsCount}</b>}
+          {urgentAlertsCount > 0 ? <b>{urgentAlertsCount}</b> : null}
+          {urgentAlertsCount > 0 && totalAlertsCount > urgentAlertsCount ? (
+            <em>{totalAlertsCount}</em>
+          ) : totalAlertsCount > 0 && urgentAlertsCount === 0 ? (
+            <b className="client-alert-button-info">{totalAlertsCount}</b>
+          ) : null}
         </button>
         <AnimatePresence>
           {isOpen && (
@@ -62,374 +95,69 @@ export default function NotificationDrawer({
               <div className="client-alert-heading">
                 <div>
                   <h2>Уведомления</h2>
-                  <p>Только события, требующие внимания</p>
+                  <p>
+                    {urgentAlertsCount > 0
+                      ? `${urgentAlertsCount} срочных · ${totalAlertsCount} всего`
+                      : "Только события, требующие внимания"}
+                  </p>
                 </div>
                 <strong>{alertsCount}</strong>
               </div>
+
+              {totalAlertsCount > 0 || quietHoursActive ? (
+                <div
+                  className={`client-alert-summary-bar${quietHoursActive ? " quiet-hours" : ""}`}>
+                  <div>
+                    <strong>{quietHoursActive ? "Тихий режим" : "Сегодня"}</strong>
+                    <span>
+                      {quietHoursActive
+                        ? "Показываются только срочные уведомления"
+                        : `${alertSummary.visitsToday} визитов · ~${alertSummary.revenueToday} zł`}
+                    </span>
+                  </div>
+                  <div className="client-alert-filter-chips">
+                    {FILTER_OPTIONS.map((option) => (
+                      <button
+                        className={alertFilter === option.id ? "active" : ""}
+                        key={option.id}
+                        type="button"
+                        onClick={() => onFilterChange(option.id)}>
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="client-alert-list">
-                {revenueForecastAlerts.length > 0 && (
-                  <div className="client-alert-group">
-                    <button
-                      className="client-alert-group-toggle"
-                      type="button"
-                      onClick={() => onToggleGroup("forecast")}>
-                      Прогноз дохода <b>{revenueForecastAlerts.length}</b>
-                      <ChevronDown
-                        className={alertGroupsOpen.forecast ? "open" : ""}
-                        size={14}
-                      />
-                    </button>
-                    <AnimatePresence initial={false}>
-                      {alertGroupsOpen.forecast && (
-                        <motion.div
-                          animate={{height: "auto", opacity: 1}}
-                          exit={{height: 0, opacity: 0}}
-                          initial={{height: 0, opacity: 0}}>
-                          {revenueForecastAlerts.map((alert) => (
-                            <div className="client-alert-row" key={alert.alertId}>
-                              <div className="client-alert-event">
-                                <div>
-                                  <strong>{alert.title}</strong>
-                                  <span>{alert.message}</span>
-                                </div>
-                                <button
-                                  aria-label="Скрыть уведомление"
-                                  type="button"
-                                  onClick={() => onDismissAlert(alert.alertId)}>
-                                  <X size={14} />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
+                {groupOrder.map((groupKey) => {
+                  const groupAlertsList = groupedAlerts.get(groupKey);
 
-                {packageBalanceAlerts.length > 0 && (
-                  <div className="client-alert-group">
-                    <button
-                      className="client-alert-group-toggle"
-                      type="button"
-                      onClick={() => onToggleGroup("packages")}>
-                      Заканчиваются пакеты <b>{packageBalanceAlerts.length}</b>
-                      <ChevronDown
-                        className={alertGroupsOpen.packages ? "open" : ""}
-                        size={14}
-                      />
-                    </button>
-                    <AnimatePresence initial={false}>
-                      {alertGroupsOpen.packages && (
-                        <motion.div
-                          animate={{height: "auto", opacity: 1}}
-                          exit={{height: 0, opacity: 0}}
-                          initial={{height: 0, opacity: 0}}>
-                          {packageBalanceAlerts.map((alert) => (
-                            <div className="client-alert-row" key={alert.alertId}>
-                              <div className="client-alert-event">
-                                <div>
-                                  <strong>{alert.title}</strong>
-                                  <span>{alert.message}</span>
-                                </div>
-                                <button
-                                  aria-label="Скрыть уведомление"
-                                  type="button"
-                                  onClick={() => onDismissAlert(alert.alertId)}>
-                                  <X size={14} />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
+                  if (!groupAlertsList?.length) {
+                    return null;
+                  }
 
-                {actionableNotificationInbox.length > 0 && (
-                  <div className="client-alert-group">
-                    <button
-                      className="client-alert-group-toggle"
-                      type="button"
-                      onClick={() => onToggleGroup("system")}>
-                      Корзина изменений <b>{actionableNotificationInbox.length}</b>
-                      <ChevronDown
-                        className={alertGroupsOpen.system ? "open" : ""}
-                        size={14}
-                      />
-                    </button>
-                    <AnimatePresence initial={false}>
-                      {alertGroupsOpen.system && (
-                        <motion.div
-                          animate={{height: "auto", opacity: 1}}
-                          exit={{height: 0, opacity: 0}}
-                          initial={{height: 0, opacity: 0}}
-                          transition={transition}>
-                          {actionableNotificationInbox.map((notification) => (
-                            <div className="client-alert-row" key={notification.id}>
-                              <div className="client-alert-event">
-                                <div>
-                                  <strong>{notification.title}</strong>
-                                  <span>{notification.message}</span>
-                                </div>
-                                {notification.undoAction && (
-                                  <button
-                                    aria-label="Вернуть изменение"
-                                    className="client-alert-undo"
-                                    title="Вернуть изменение"
-                                    type="button"
-                                    onClick={() => onUndoNotificationAction(notification)}>
-                                    Вернуть
-                                  </button>
-                                )}
-                                <button
-                                  aria-label="Убрать событие"
-                                  title="Убрать"
-                                  type="button"
-                                  onClick={() => onDeleteInboxNotification(notification.id)}>
-                                  <X size={14} />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
-
-                {operationsAlerts.length > 0 && (
-                  <div className="client-alert-group">
-                    <button
-                      className="client-alert-group-toggle"
-                      type="button"
-                      onClick={() => onToggleGroup("operations")}>
-                      Задачи и склад <b>{operationsAlerts.length}</b>
-                      <ChevronDown
-                        className={alertGroupsOpen.operations ? "open" : ""}
-                        size={14}
-                      />
-                    </button>
-                    <AnimatePresence initial={false}>
-                      {alertGroupsOpen.operations && (
-                        <motion.div
-                          animate={{height: "auto", opacity: 1}}
-                          exit={{height: 0, opacity: 0}}
-                          initial={{height: 0, opacity: 0}}
-                          transition={transition}>
-                          {operationsAlerts.map((alert) => (
-                            <div className="client-alert-row" key={alert.alertId}>
-                              <button
-                                className="client-alert-summary"
-                                type="button"
-                                onClick={() => onOpenAlertPage(alert.page)}>
-                                <div>
-                                  <strong>{alert.title}</strong>
-                                  <span>{alert.message}</span>
-                                </div>
-                                <b>Открыть</b>
-                              </button>
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
-
-                {todayCalendarAlerts.length > 0 && (
-                  <div className="client-alert-group">
-                    <button
-                      className="client-alert-group-toggle"
-                      type="button"
-                      onClick={() => onToggleGroup("calendar")}>
-                      Ближайшие визиты <b>{todayCalendarAlerts.length}</b>
-                      <ChevronDown
-                        className={alertGroupsOpen.calendar ? "open" : ""}
-                        size={14}
-                      />
-                    </button>
-                    <AnimatePresence initial={false}>
-                      {alertGroupsOpen.calendar && (
-                        <motion.div
-                          animate={{height: "auto", opacity: 1}}
-                          exit={{height: 0, opacity: 0}}
-                          initial={{height: 0, opacity: 0}}
-                          transition={transition}>
-                          {todayCalendarAlerts.map((entry) => (
-                            <div className="client-alert-row" key={entry.alertId}>
-                              <button
-                                className="client-alert-summary"
-                                type="button"
-                                onClick={() => onToggleActiveAlert(entry.alertId)}>
-                                <div>
-                                  <strong>
-                                    {entry.time} · {entry.client}
-                                  </strong>
-                                  <span>
-                                    {entry.service} · {entry.master}
-                                  </span>
-                                </div>
-                                <b>Сегодня</b>
-                              </button>
-                              {activeClientAlertId === entry.alertId && (
-                                <div className="client-alert-actions">
-                                  <button
-                                    type="button"
-                                    onClick={() => onRemindCalendarClient(entry)}>
-                                    <MessageSquareText size={14} />
-                                    Написать
-                                  </button>
-                                  <button type="button" onClick={onOpenCalendar}>
-                                    <CalendarDays size={14} />
-                                    Календарь
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => onDismissClientAlert(entry.alertId)}>
-                                    <EyeOff size={14} />
-                                    Скрыть
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
-
-                {birthdayAlerts.length > 0 && (
-                  <div className="client-alert-group">
-                    <button
-                      className="client-alert-group-toggle"
-                      type="button"
-                      onClick={() => onToggleGroup("birthdays")}>
-                      Дни рождения <b>{birthdayAlerts.length}</b>
-                      <ChevronDown
-                        className={alertGroupsOpen.birthdays ? "open" : ""}
-                        size={14}
-                      />
-                    </button>
-                    <AnimatePresence initial={false}>
-                      {alertGroupsOpen.birthdays && (
-                        <motion.div
-                          animate={{height: "auto", opacity: 1}}
-                          exit={{height: 0, opacity: 0}}
-                          initial={{height: 0, opacity: 0}}
-                          transition={transition}>
-                          {birthdayAlerts.map((client) => (
-                            <div className="client-alert-row" key={client.alertId}>
-                              <button
-                                className="client-alert-summary"
-                                type="button"
-                                onClick={() => onToggleActiveAlert(client.alertId)}>
-                                <div>
-                                  <strong>{client.name}</strong>
-                                  <span>
-                                    {client.birthdayInfo.date} · поздравить клиента
-                                  </span>
-                                </div>
-                                <b>{client.birthdayInfo.label}</b>
-                              </button>
-                              {activeClientAlertId === client.alertId && (
-                                <div className="client-alert-actions">
-                                  <button
-                                    type="button"
-                                    onClick={() => onOpenClientMessageTemplates(client)}>
-                                    <CakeSlice size={14} />
-                                    Написать
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => onDismissClientAlert(client.alertId)}>
-                                    <EyeOff size={14} />
-                                    Скрыть
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
-
-                {inactiveClientAlerts.length > 0 && (
-                  <div className="client-alert-group">
-                    <button
-                      className="client-alert-group-toggle"
-                      type="button"
-                      onClick={() => onToggleGroup("inactive")}>
-                      Давно не были <b>{inactiveClientAlerts.length}</b>
-                      <ChevronDown
-                        className={alertGroupsOpen.inactive ? "open" : ""}
-                        size={14}
-                      />
-                    </button>
-                    <AnimatePresence initial={false}>
-                      {alertGroupsOpen.inactive && (
-                        <motion.div
-                          animate={{height: "auto", opacity: 1}}
-                          exit={{height: 0, opacity: 0}}
-                          initial={{height: 0, opacity: 0}}
-                          transition={transition}>
-                          {inactiveClientAlerts.map((client) => (
-                            <div
-                              className={`client-alert-row ${
-                                activeClientAlertId === client.alertId ? "active" : ""
-                              }`}
-                              key={client.alertId}>
-                              <button
-                                className="client-alert-summary"
-                                type="button"
-                                onClick={() => onToggleActiveAlert(client.alertId)}>
-                                <div>
-                                  <strong>{client.name}</strong>
-                                  <span>{client.phone || "Телефон не указан"}</span>
-                                </div>
-                                <b>
-                                  {client.daysAbsent === null
-                                    ? "Нет визитов"
-                                    : `${client.daysAbsent} дн.`}
-                                </b>
-                              </button>
-                              {activeClientAlertId === client.alertId && (
-                                <div className="client-alert-actions">
-                                  <button
-                                    type="button"
-                                    onClick={() => onOpenTemplatesForClient(client)}>
-                                    <MessageSquareText size={14} />
-                                    Написать
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => onDismissClientAlert(client.alertId)}>
-                                    <EyeOff size={14} />
-                                    Скрыть
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                          <button
-                            className="secondary-button client-alert-category-action"
-                            type="button"
-                            onClick={onOpenClients}>
-                            Открыть клиентов
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
+                  return (
+                    <div className="client-alert-group" key={groupKey}>
+                      <div className="client-alert-group-heading">
+                        {ALERT_GROUP_LABELS[groupKey] ?? groupKey}
+                        <b>{groupAlertsList.length}</b>
+                        <ChevronDown className="open" size={14} />
+                      </div>
+                      {groupAlertsList.map((alert) => renderAlert(alert))}
+                    </div>
+                  );
+                })}
 
                 {alertsCount === 0 && (
                   <p className="client-alert-empty">
-                    Сейчас нет новых уведомлений.
+                    {alertFilter === "urgent"
+                      ? "Срочных уведомлений нет."
+                      : alertFilter === "clients"
+                        ? "Клиентских уведомлений нет."
+                        : alertFilter === "operations"
+                          ? "Операционных уведомлений нет."
+                          : "Сейчас нет новых уведомлений."}
                   </p>
                 )}
               </div>

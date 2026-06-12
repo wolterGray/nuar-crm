@@ -1,3 +1,4 @@
+import {pruneExpiredSnoozes} from "./alertSnooze.js";
 import {migrateClientLinks} from "./clientLinks.js";
 
 export const applyCrmSnapshot = (
@@ -13,6 +14,7 @@ export const applyCrmSnapshot = (
     setClientProfiles,
     setCommunicationLog,
     setDismissedClientAlertIds,
+    setAlertSnoozes,
     setEmployees,
     setImportDocuments,
     setImportedMailIds,
@@ -55,6 +57,9 @@ export const applyCrmSnapshot = (
   if (Array.isArray(snapshot.dismissedClientAlertIds)) {
     setDismissedClientAlertIds(snapshot.dismissedClientAlertIds);
   }
+  if (snapshot.alertSnoozes && typeof snapshot.alertSnoozes === "object") {
+    setAlertSnoozes(pruneExpiredSnoozes(snapshot.alertSnoozes));
+  }
   if (Array.isArray(snapshot.communicationLog)) {
     setCommunicationLog(snapshot.communicationLog);
   }
@@ -88,6 +93,7 @@ export const applyCrmSnapshot = (
 };
 
 export const buildCloudSnapshot = ({
+  alertSnoozes,
   appSettings,
   autoCompletedCalendarEntryIds,
   calendarEntries,
@@ -116,6 +122,7 @@ export const buildCloudSnapshot = ({
   messageTemplates,
   calendarEntries,
   dismissedClientAlertIds,
+  alertSnoozes,
   communicationLog,
   notificationInbox,
   tasks,

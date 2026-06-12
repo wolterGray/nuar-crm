@@ -1,84 +1,19 @@
-import {ExternalLink, Globe} from "lucide-react";
-import {useState} from "react";
-import {getPublicSiteUrl, openSiteAdmin} from "../../utils/openSiteAdmin.js";
-import {PageNotificationsSlot} from "../PageNotifications.jsx";
+import PageHeader from "../PageHeader.jsx";
+import SiteAdminPanel from "../SiteAdminPanel.jsx";
 
 function SitePage() {
-  const [openingAdmin, setOpeningAdmin] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-
-  const handleOpenAdmin = async () => {
-    setOpeningAdmin(true);
-    setError("");
-
-    try {
-      await openSiteAdmin("/admin");
-      setMessage("Админка сайта открыта в новой вкладке — повторный вход не нужен.");
-    } catch (openError) {
-      setError(openError.message ?? "Не удалось открыть админку сайта.");
-    } finally {
-      setOpeningAdmin(false);
-    }
-  };
-
   return (
     <section className="settings-page">
-      <div className="employees-toolbar settings-toolbar">
-        <div className="title-notifications-flex">
-          <div>
-            <h2>Сайт NUAR</h2>
-            <p>
-              Цены и длительности услуг обновляются на сайте автоматически при
-              изменении в CRM. В админке — только фото, тексты и остальной контент.
-            </p>
-          </div>
-          <PageNotificationsSlot />
-        </div>
-      </div>
+      <PageHeader
+        description="Цены и длительности услуг обновляются на сайте автоматически при изменении в CRM."
+        title="Сайт NUAR"
+      />
 
       <div className="settings-grid">
         <section className="panel settings-panel">
-          <div className="settings-panel-heading">
-            <Globe size={18} />
-            <div>
-              <h2>Админка сайта</h2>
-              <p>
-                Откроет CMS (фото, тексты, отзывы, галерея) в новой вкладке с вашей
-                текущей CRM-сессией.
-              </p>
-            </div>
-          </div>
-          <div className="toolbar-actions">
-            <button
-              className="add-visit-button"
-              disabled={openingAdmin}
-              type="button"
-              onClick={handleOpenAdmin}>
-              {openingAdmin ? "Открываем…" : "Открыть админку сайта"}
-            </button>
-            <a
-              className="compact-icon-button"
-              href={getPublicSiteUrl()}
-              rel="noreferrer"
-              target="_blank"
-              title="Открыть сайт">
-              <ExternalLink size={16} />
-            </a>
-          </div>
+          <SiteAdminPanel />
         </section>
       </div>
-
-      {message && (
-        <section className="panel settings-panel">
-          <p>{message}</p>
-        </section>
-      )}
-      {error && (
-        <section className="panel settings-panel">
-          <p className="field-error">{error}</p>
-        </section>
-      )}
     </section>
   );
 }

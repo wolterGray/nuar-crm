@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import {useMemo, useState} from "react";
-import {PageNotificationsSlot} from "../PageNotifications.jsx";
+import PageHeader from "../PageHeader.jsx";
 
 function MessageTemplatesPage({
   templates,
@@ -197,23 +197,16 @@ function MessageTemplatesPage({
 
   return (
     <section className="catalog-page message-templates-page">
-      <div className="employees-toolbar">
-        <div className="title-notifications-flex">
-          <div>
-            <h2>Шаблоны сообщений</h2>
-            <p>
-              {filteredTemplates.length} из {templates.length} шаблонов
-            </p>
-          </div>
-          <PageNotificationsSlot />
-        </div>
-        <div className="toolbar-actions">
+      <PageHeader
+        actions={
           <button className="add-visit-button" type="button" onClick={onAdd}>
             <Plus size={18} />
             Добавить шаблон
           </button>
-        </div>
-      </div>
+        }
+        description={`${filteredTemplates.length} из ${templates.length} шаблонов`}
+        title="Шаблоны сообщений"
+      />
 
       <div className="message-template-filters">
         <label className="clients-search">

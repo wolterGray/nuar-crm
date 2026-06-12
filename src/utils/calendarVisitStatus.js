@@ -1,4 +1,4 @@
-import {getTodayInput} from "./dateHelpers.js";
+import {formatAppDate, INPUT_DATE_FORMAT} from "./dateUtils.js";
 
 export const getMinutesFromTime = (time) => {
   const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
@@ -6,18 +6,21 @@ export const getMinutesFromTime = (time) => {
   return (Number(hours) || 0) * 60 + (Number(minutes) || 0);
 };
 
+const getTodayFromNow = (now) => formatAppDate(now, INPUT_DATE_FORMAT);
+
 export const isCalendarVisitPlanned = (entry, now = new Date()) => {
   if (["completed", "cancelled", "no_show"].includes(entry.status)) {
     return false;
   }
 
-  const today = getTodayInput();
+  const today = getTodayFromNow(now);
+  const entryDate = entry.date || today;
 
-  if ((entry.date || today) < today) {
+  if (entryDate < today) {
     return false;
   }
 
-  if ((entry.date || today) > today) {
+  if (entryDate > today) {
     return true;
   }
 
@@ -40,13 +43,14 @@ export const isCalendarVisitCompleted = (entry, now = new Date()) => {
     return true;
   }
 
-  const today = getTodayInput();
+  const today = getTodayFromNow(now);
+  const entryDate = entry.date || today;
 
-  if ((entry.date || today) < today) {
+  if (entryDate < today) {
     return true;
   }
 
-  if ((entry.date || today) > today) {
+  if (entryDate > today) {
     return false;
   }
 

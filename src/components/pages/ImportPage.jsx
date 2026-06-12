@@ -13,7 +13,7 @@ import {useState} from "react";
 import {parseImportedEmail} from "../../utils/emailImport.js";
 import {formatMoney} from "../../utils/formatters.jsx";
 import {syncGmailMessages} from "../../utils/gmail.js";
-import {PageNotificationsSlot} from "../PageNotifications.jsx";
+import PageHeader from "../PageHeader.jsx";
 
 const typeLabels = {
   "booksy-booking": "Новая запись",
@@ -105,34 +105,29 @@ function ImportPage({
 
   return (
     <section className="import-page">
-      <div className="employees-toolbar">
-        <div className="title-notifications-flex">
-          <div>
-            <h2>Импорт из Gmail</h2>
-            <p>
-              Записи Booksy и документы расходов с предварительной проверкой
-            </p>
-          </div>
-          <PageNotificationsSlot />
-        </div>
-        <div className="import-toolbar-actions">
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={onGoogleLogin}>
-            <MailCheck size={15} />
-            Google
-          </button>
-          <button
-            className="add-visit-button"
-            disabled={isLoading || !gmailConnected}
-            type="button"
-            onClick={synchronize}>
-            <RefreshCw className={isLoading ? "spin" : ""} size={16} />
-            {isLoading ? "Проверяем" : "Синхронизировать"}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={onGoogleLogin}>
+              <MailCheck size={15} />
+              Google
+            </button>
+            <button
+              className="add-visit-button"
+              disabled={isLoading || !gmailConnected}
+              type="button"
+              onClick={synchronize}>
+              <RefreshCw className={isLoading ? "spin" : ""} size={16} />
+              {isLoading ? "Проверяем" : "Синхронизировать"}
+            </button>
+          </>
+        }
+        description="Записи Booksy и документы расходов с предварительной проверкой"
+        title="Импорт из Gmail"
+      />
 
       <section className="panel import-setup">
         <MailCheck size={20} />
@@ -308,6 +303,16 @@ function ImportPage({
           </div>
         </section>
       </div>
+
+      {selectedIds.length > 0 && (
+        <div className="import-apply-bar">
+          <span>Выбрано: {selectedIds.length}</span>
+          <button className="add-visit-button" type="button" onClick={applySelected}>
+            <Check size={15} />
+            Применить
+          </button>
+        </div>
+      )}
     </section>
   );
 }

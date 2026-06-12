@@ -7,6 +7,8 @@ import {
   TriangleAlert,
 } from "lucide-react";
 
+import {resolveColorTheme} from "../utils/colorTheme.js";
+
 const icons = {
   error: TriangleAlert,
   loading: LoaderCircle,
@@ -23,10 +25,11 @@ function SystemScreen({
   title,
 }) {
   const Icon = icons[mode] ?? TriangleAlert;
+  const themeMode = resolveColorTheme(settings).mode;
 
   if (mode === "loading") {
     return (
-      <main className="system-loading-screen theme-dark">
+      <main className={`system-loading-screen theme-${themeMode}`}>
         <span className="system-loading-spinner" aria-hidden="true" />
         <p>Загрузка</p>
       </main>
@@ -34,7 +37,7 @@ function SystemScreen({
   }
 
   return (
-    <main className={`login-screen system-screen theme-${settings?.theme ?? "light"}`}>
+    <main className={`login-screen system-screen theme-${themeMode}`}>
       <section className="login-card system-card">
         <div className="login-brand">
           <span className="login-brand-mark">N</span>

@@ -1,5 +1,6 @@
 import {Eye, EyeOff, KeyRound, LockKeyhole, LogIn, Mail, RotateCcw} from "lucide-react";
 import {useState} from "react";
+import {resolveColorTheme} from "../utils/colorTheme.js";
 
 function LoginPage({
   isRecovery,
@@ -12,9 +13,10 @@ function LoginPage({
   const [mode, setMode] = useState(isRecovery ? "recovery" : "login");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const activeMode = isRecovery ? "recovery" : mode;
+  const themeMode = resolveColorTheme(settings).mode;
 
   return (
-    <main className={`login-screen theme-${settings.theme}`}>
+    <main className={`login-screen theme-${themeMode}`}>
       <section className="login-card">
         <div className="login-heading">
           <div className="login-icon">
