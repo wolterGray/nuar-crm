@@ -703,6 +703,14 @@
     border-radius: 12px;
   }
 
+  .import-summary-documents {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .import-document-meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .supply-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

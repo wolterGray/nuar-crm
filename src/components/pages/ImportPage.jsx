@@ -1,15 +1,79 @@
-import {CircleDollarSign, ExternalLink, FileText, MailCheck} from "lucide-react";
+import {
+  CalendarDays,
+  CircleDollarSign,
+  ExternalLink,
+  FileText,
+  Mail,
+  MailCheck,
+} from "lucide-react";
+import {useMemo} from "react";
 import BooksyGmailSyncPanel from "../BooksyGmailSyncPanel.jsx";
+import {
+  getImportDocumentMetaRows,
+  getImportDocumentSourceLabel,
+  getImportDocumentTitle,
+  sortImportDocuments,
+} from "../../utils/booksySync/importDocumentDisplay.js";
 import {formatMoney} from "../../utils/formatters.jsx";
 import PageHeader from "../PageHeader.jsx";
 
+function ImportDocumentCard({document}) {
+  const title = getImportDocumentTitle(document);
+  const sourceLabel = getImportDocumentSourceLabel(document);
+  const metaRows = getImportDocumentMetaRows(document);
+
+  return (
+    <article className="import-document-card">
+      <div className="import-document-card-header">
+        <span className="import-kind import-kind-document">
+          <FileText size={15} />
+        </span>
+        <div className="import-document-card-heading">
+          <strong>{title}</strong>
+          <small>{sourceLabel}</small>
+        </div>
+        <a
+          className="import-document-card-link"
+          href={document.gmailUrl}
+          rel="noreferrer"
+          target="_blank"
+          title="Открыть письмо в Gmail">
+          <ExternalLink size={15} />
+        </a>
+      </div>
+
+      {document.subject && document.subject !== title && (
+        <p className="import-document-card-subject">{document.subject}</p>
+      )}
+
+      {(document.summary || document.description) && (
+        <p className="import-document-card-summary">
+          {document.summary || document.description}
+        </p>
+      )}
+
+      <dl className="import-document-meta">
+        {metaRows.map((row) => (
+          <div className="import-document-meta-row" key={row.label}>
+            <dt>{row.label}</dt>
+            <dd className={row.highlight ? "is-highlight" : ""}>{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </article>
+  );
+}
+
 function ImportPage({booksyGmailSync, calendarEntries, documents}) {
-  const documentsTotal = documents.reduce(
+  const sortedDocuments = useMemo(() => sortImportDocuments(documents), [documents]);
+  const documentsTotal = sortedDocuments.reduce(
     (total, document) => total + (Number(document.amount) || 0),
     0,
   );
-  const documentSources = new Set(documents.map((document) => document.source))
-    .size;
+  const documentsWithAmount = sortedDocuments.filter(
+    (document) => Number(document.amount) > 0,
+  ).length;
+  const documentSources = new Set(sortedDocuments.map((document) => document.source)).size;
 
   return (
     <section className="import-page">
@@ -40,14 +104,19 @@ function ImportPage({booksyGmailSync, calendarEntries, documents}) {
         />
       )}
 
-      <div className="import-summary">
+      <div className="import-summary import-summary-documents">
         <span>
           <FileText size={15} />
           <small>Документы</small>
-          <strong>{documents.length}</strong>
+          <strong>{sortedDocuments.length}</strong>
         </span>
         <span>
           <CircleDollarSign size={15} />
+          <small>С суммой в письме</small>
+          <strong>{documentsWithAmount}</strong>
+        </span>
+        <span>
+          <CalendarDays size={15} />
           <small>Распознано расходов</small>
           <strong>{formatMoney(documentsTotal)}</strong>
         </span>
@@ -58,40 +127,26 @@ function ImportPage({booksyGmailSync, calendarEntries, documents}) {
         </span>
       </div>
 
-      <section className="panel import-panel">
+      <section className="panel import-panel import-documents-panel">
         <div className="operations-panel-header">
           <div>
-            <FileText size={18} />
+            <Mail size={18} />
             <div>
               <h2>Документы расходов</h2>
-              <p>{documents.length} сохранено</p>
+              <p>
+                {sortedDocuments.length} сохранено · сортировка по дате фактуры, новые сверху
+              </p>
             </div>
           </div>
         </div>
-        <div className="import-list">
-          {documents.map((document) => (
-            <article className="import-document-row" key={document.id}>
-              <span>
-                <strong>{document.source}</strong>
-                <small>
-                  {document.attachments
-                    .map((file) => file.filename)
-                    .join(", ") || document.subject}
-                </small>
-                {document.amount > 0 && <em>{formatMoney(document.amount)}</em>}
-              </span>
-              <a
-                href={document.gmailUrl}
-                rel="noreferrer"
-                target="_blank"
-                title="Открыть письмо Gmail">
-                <ExternalLink size={15} />
-              </a>
-            </article>
+        <div className="import-document-grid">
+          {sortedDocuments.map((document) => (
+            <ImportDocumentCard document={document} key={document.id} />
           ))}
-          {documents.length === 0 && (
+          {sortedDocuments.length === 0 && (
             <p className="operations-empty">
-              Импортированные фактуры Allegro, Booksy и iPOS появятся здесь.
+              Импортированные фактуры Allegro, Booksy, iPOS и другие появятся здесь с датой,
+              номером, отправителем и вложениями.
             </p>
           )}
         </div>

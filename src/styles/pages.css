@@ -1888,6 +1888,7 @@ button:focus-visible {
 
 .theme-dark .import-row,
 .theme-dark .import-document-row,
+.theme-dark .import-document-card,
 .theme-dark .task-row,
 .theme-dark .note-row,
 .theme-dark .supply-row {
@@ -1899,6 +1900,22 @@ button:focus-visible {
 .theme-dark .import-row em,
 .theme-dark .import-document-row small {
   color: #9aa3b4;
+}
+
+.theme-dark .import-document-card-heading strong,
+.theme-dark .import-document-meta-row dd {
+  color: #eef2f7;
+}
+
+.theme-dark .import-document-card-subject,
+.theme-dark .import-document-card-summary,
+.theme-dark .import-document-meta-row dt {
+  color: #9aa3b4;
+}
+
+.theme-dark .import-document-card-link {
+  border-color: #344052;
+  background: #12161d;
 }
 
 .theme-dark .import-kind {

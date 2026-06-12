@@ -2824,6 +2824,10 @@ h2 {
   gap: 7px;
 }
 
+.import-summary-documents {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .import-summary span {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
@@ -2935,6 +2939,115 @@ h2 {
   place-items: center;
   border-radius: 6px;
   color: #59616d;
+}
+
+.import-documents-panel {
+  gap: 12px;
+}
+
+.import-document-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.import-document-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #e9e9e7;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.import-document-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.import-document-card-heading {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  margin-right: auto;
+}
+
+.import-document-card-heading strong {
+  overflow: hidden;
+  color: #15171c;
+  font-size: 13px;
+  text-overflow: ellipsis;
+}
+
+.import-document-card-heading small {
+  overflow: hidden;
+  color: #8d5b18;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.import-document-card-link {
+  display: grid;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid #e9e9e7;
+  border-radius: 7px;
+  color: #59616d;
+  background: #fafafa;
+}
+
+.import-document-card-subject,
+.import-document-card-summary {
+  margin: 0;
+  color: #59616d;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.import-document-card-summary {
+  color: #7b8089;
+}
+
+.import-document-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.import-document-meta-row {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.import-document-meta-row dt {
+  color: #9aa0a8;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.import-document-meta-row dd {
+  margin: 0;
+  overflow: hidden;
+  color: #15171c;
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+}
+
+.import-document-meta-row dd.is-highlight {
+  color: #55873c;
+  font-weight: 750;
 }
 
 .spin {
