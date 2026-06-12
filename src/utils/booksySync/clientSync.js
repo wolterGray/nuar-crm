@@ -110,7 +110,8 @@ export const buildClientGmailConnection = ({
   googleEmail = "",
   lastSyncAt = null,
 }) => ({
-  is_connected: Boolean(gmailAccessToken || gmailClientId?.trim()),
+  is_connected: Boolean(gmailAccessToken),
+  has_client_id: Boolean(gmailClientId?.trim()),
   google_email: googleEmail,
   last_sync_at: lastSyncAt,
   last_sync_error: null,

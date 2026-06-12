@@ -14,6 +14,11 @@ import {
 } from "../utils/booksySync/api.js";
 import {reviewKindLabel} from "../utils/booksySync/matching.js";
 import {isSupabaseConfigured} from "../lib/supabase.js";
+import {
+  clearStoredGmailAccessToken,
+  getStoredGmailAccessToken,
+  requestGmailAccessToken,
+} from "../utils/gmail.js";
 
 const LAST_SYNC_STORAGE_KEY = "nuar-crm-booksy-gmail-last-sync";
 
@@ -73,18 +78,20 @@ export function useBooksyGmailSync({
   const [loadError, setLoadError] = useState("");
   const [useServerSync, setUseServerSync] = useState(false);
   const [lastSyncAt, setLastSyncAt] = useState(loadLastSyncAt);
+  const [localGmailToken, setLocalGmailToken] = useState(getStoredGmailAccessToken);
 
-  const isGmailConnected = Boolean(gmailAccessToken || gmailClientId?.trim());
+  const effectiveGmailToken = localGmailToken || gmailAccessToken;
+  const isGmailConnected = Boolean(effectiveGmailToken);
 
   const clientConnection = useMemo(
     () =>
       buildClientGmailConnection({
-        gmailAccessToken,
+        gmailAccessToken: effectiveGmailToken,
         gmailClientId,
         googleEmail,
         lastSyncAt,
       }),
-    [gmailAccessToken, gmailClientId, googleEmail, lastSyncAt],
+    [effectiveGmailToken, gmailClientId, googleEmail, lastSyncAt],
   );
 
   const activeConnection = useServerSync ? connection : clientConnection;
@@ -172,7 +179,29 @@ export function useBooksyGmailSync({
         window.location.assign(authUrl);
         return;
       } catch {
-        // fall through to Supabase Google OAuth
+        // fall through to client OAuth
+      }
+    }
+
+    if (gmailClientId?.trim()) {
+      try {
+        const token = await requestGmailAccessToken(gmailClientId.trim(), {
+          prompt: "consent",
+        });
+        setLocalGmailToken(token);
+        pushNotification({
+          title: "Booksy Gmail",
+          message: "Gmail подключён. Можно синхронизировать письма Booksy.",
+          persist: false,
+        });
+        return;
+      } catch (error) {
+        pushNotification({
+          title: "Booksy Gmail",
+          message: error instanceof Error ? error.message : "OAuth ошибка",
+          persist: false,
+        });
+        return;
       }
     }
 
@@ -183,10 +212,11 @@ export function useBooksyGmailSync({
 
     pushNotification({
       title: "Booksy Gmail",
-      message: "Не удалось открыть окно авторизации Google",
+      message:
+        "Укажите Google OAuth Client ID в настройках CRM или включите вход через Google.",
       persist: false,
     });
-  }, [onGoogleLogin, pushNotification, useServerSync]);
+  }, [gmailClientId, onGoogleLogin, pushNotification, useServerSync]);
 
   const disconnectGmail = useCallback(async () => {
     if (useServerSync) {
@@ -203,8 +233,14 @@ export function useBooksyGmailSync({
       return;
     }
 
-    connectGmail();
-  }, [connectGmail, pushNotification, refreshDashboard, useServerSync]);
+    clearStoredGmailAccessToken();
+    setLocalGmailToken("");
+    pushNotification({
+      title: "Booksy Gmail",
+      message: "Локальный доступ к Gmail сброшен",
+      persist: false,
+    });
+  }, [pushNotification, refreshDashboard, useServerSync]);
 
   const syncNow = useCallback(async () => {
     if (!isGmailConnected) {
@@ -236,7 +272,7 @@ export function useBooksyGmailSync({
         calendarEntries,
         clientProfiles,
         employees,
-        gmailAccessToken,
+        gmailAccessToken: effectiveGmailToken,
         gmailClientId,
         services,
         skippedMessageIds: processedMessageIds,
@@ -268,7 +304,7 @@ export function useBooksyGmailSync({
     calendarEntries,
     clientProfiles,
     employees,
-    gmailAccessToken,
+    effectiveGmailToken,
     gmailClientId,
     googleEmail,
     isGmailConnected,
