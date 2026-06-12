@@ -818,6 +818,7 @@ h1 {
   align-items: center;
   gap: 8px;
   flex: 0 0 auto;
+  overflow: visible;
 }
 
 @media (min-width: 701px) {
@@ -836,19 +837,29 @@ h1 {
 }
 
 .page-notifications-slot {
+  flex-shrink: 0;
+  align-self: center;
   margin-left: auto;
+  padding: 2px 6px 2px 2px;
 }
 
 .client-alert-control {
   position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
 }
 
 .client-alert-button {
   position: relative;
   display: grid;
+  flex-shrink: 0;
   width: 42px;
   height: 42px;
   place-items: center;
+  overflow: visible;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 8px;
   color: #f4f5f7 !important;
@@ -858,8 +869,9 @@ h1 {
 
 .client-alert-button b {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: 2px;
+  right: 2px;
+  z-index: 2;
   display: grid;
   min-width: 18px;
   height: 18px;
@@ -870,6 +882,7 @@ h1 {
   color: #fff;
   background: #c9483c;
   font-size: 10px;
+  line-height: 1;
 }
 
 .client-alert-popover {
@@ -887,6 +900,43 @@ h1 {
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 20px 46px rgba(17, 19, 24, 0.16);
+}
+
+.client-alert-popover-portal {
+  top: auto;
+  right: auto;
+  bottom: auto;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(360px, calc(100vw - 32px));
+  min-height: 0;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.theme-dark.client-alert-popover,
+.theme-light.client-alert-popover {
+  color: var(--linear-text, #eef4fb);
+  background: var(--linear-panel, #1a202b) !important;
+  border-color: var(--linear-border, #344052) !important;
+}
+
+.client-alert-popover-portal .client-alert-summary-bar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.client-alert-popover-portal .client-alert-filter-chips {
+  flex-wrap: wrap;
+}
+
+.client-alert-popover-portal .client-alert-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
 }
 
 .client-alert-heading,
@@ -1078,8 +1128,11 @@ h1 {
 
 .client-alert-button em {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: auto;
+  bottom: 2px;
+  left: 2px;
+  right: auto;
+  z-index: 2;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
@@ -2170,6 +2223,13 @@ h2 {
   gap: 16px;
   min-height: 0;
   overflow: hidden;
+}
+
+.clients-page > .page-header-unified,
+.payments-content .page-header-unified,
+.payments-content .page-header-unified-top,
+.payments-content .page-notifications-slot {
+  overflow: visible;
 }
 
 .title-notifications-flex {
@@ -3662,6 +3722,69 @@ h2 {
   border: 0;
   border-radius: 999px;
   accent-color: var(--accent-color);
+}
+
+.client-package-card.is-archived {
+  opacity: 0.82;
+  border-style: dashed;
+}
+
+.client-package-card.is-archived .client-package-meta b {
+  color: #737780;
+  background: #f1f1ef;
+}
+
+.client-packages-archive-panel {
+  gap: 0;
+}
+
+.client-packages-archive-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.client-packages-archive-toggle span {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.client-packages-archive-toggle svg {
+  flex: 0 0 auto;
+  transition: transform 0.16s ease;
+}
+
+.client-packages-archive-toggle svg.open {
+  transform: rotate(180deg);
+}
+
+.client-packages-archive-list {
+  padding: 0 12px 12px;
+}
+
+.theme-dark .client-package-card.is-archived .client-package-meta b {
+  color: #aeb9c8;
+  background: #232b38;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  color: #737780;
+  font-size: 11px;
+}
+
+.theme-dark .field-hint {
+  color: #9aa3b4;
 }
 
 .client-package-meta b,

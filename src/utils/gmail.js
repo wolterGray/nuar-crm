@@ -104,16 +104,17 @@ const gmailFetch = async (accessToken, path) => {
   return response.json();
 };
 
-export const syncGmailMessages = async (clientId = "", providerAccessToken = "") => {
+export const syncGmailMessages = async (clientId = "", providerAccessToken = "", query) => {
   if (!providerAccessToken && !clientId.trim()) {
     throw new Error("Войдите через Google или укажите Google OAuth Client ID в настройках");
   }
 
-  const accessToken = providerAccessToken || await requestToken(clientId.trim());
-  const query = encodeURIComponent(
-    "newer_than:120d (from:(booksy.com) OR from:(allegro.pl) OR from:(ipos.pl) OR filename:pdf)",
+  const accessToken = providerAccessToken || (await requestToken(clientId.trim()));
+  const searchQuery = encodeURIComponent(
+    query ??
+      "newer_than:120d (from:(booksy.com) OR from:(allegro.pl) OR from:(ipos.pl) OR filename:pdf)",
   );
-  const list = await gmailFetch(accessToken, `messages?q=${query}&maxResults=100`);
+  const list = await gmailFetch(accessToken, `messages?q=${searchQuery}&maxResults=100`);
   const messages = await Promise.all(
     (list.messages ?? []).map(async ({id}) => {
       const message = await gmailFetch(accessToken, `messages/${id}?format=full`);

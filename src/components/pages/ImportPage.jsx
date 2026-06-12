@@ -1,58 +1,9 @@
-import {
-  CalendarPlus,
-  Check,
-  CircleDollarSign,
-  ExternalLink,
-  FileText,
-  MailCheck,
-  RefreshCw,
-  Settings,
-  UserPlus,
-} from "lucide-react";
-import {useState} from "react";
-import {parseImportedEmail} from "../../utils/emailImport.js";
+import {CircleDollarSign, ExternalLink, FileText, MailCheck} from "lucide-react";
+import BooksyGmailSyncPanel from "../BooksyGmailSyncPanel.jsx";
 import {formatMoney} from "../../utils/formatters.jsx";
-import {syncGmailMessages} from "../../utils/gmail.js";
 import PageHeader from "../PageHeader.jsx";
 
-const typeLabels = {
-  "booksy-booking": "Новая запись",
-  "booksy-reschedule": "Перенос записи",
-  "booksy-confirmation": "Подтверждение",
-  document: "Документ",
-};
-
-const isReadyToImport = (item) =>
-  item.type === "document" ||
-  Boolean(
-    item.client.name &&
-    item.booking.date &&
-    item.booking.time &&
-    item.booking.master &&
-    item.booking.service,
-  );
-
-function ImportPage({
-  documents,
-  employees,
-  gmailAccessToken,
-  gmailClientId,
-  importedMailIds,
-  onApply,
-  onGoogleLogin,
-  onNotify,
-  onOpenSettings,
-  services,
-}) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [pendingItems, setPendingItems] = useState([]);
-  const [selectedIds, setSelectedIds] = useState([]);
-  const gmailConnected = Boolean(gmailAccessToken || gmailClientId);
-  const gmailConnectionLabel = gmailAccessToken
-    ? "Google-вход активен"
-    : gmailClientId
-      ? "OAuth Client ID настроен"
-      : "Gmail не подключен";
+function ImportPage({booksyGmailSync, calendarEntries, documents}) {
   const documentsTotal = documents.reduce(
     (total, document) => total + (Number(document.amount) || 0),
     0,
@@ -60,119 +11,33 @@ function ImportPage({
   const documentSources = new Set(documents.map((document) => document.source))
     .size;
 
-  const synchronize = async () => {
-    setIsLoading(true);
-
-    try {
-      const emails = await syncGmailMessages(gmailClientId, gmailAccessToken);
-      const parsedItems = emails
-        .filter((email) => !importedMailIds.includes(email.id))
-        .map((email) => parseImportedEmail(email, services, employees))
-        .filter(Boolean);
-
-      setPendingItems(parsedItems);
-      setSelectedIds(
-        parsedItems.filter(isReadyToImport).map((item) => item.id),
-      );
-      onNotify({
-        title: "Gmail проверен",
-        message: parsedItems.length
-          ? `Найдено новых событий: ${parsedItems.length}`
-          : "Новых записей и документов нет",
-        persist: false,
-      });
-    } catch (error) {
-      onNotify({
-        title: "Не удалось подключить Gmail",
-        message: error.message,
-        persist: false,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const applySelected = () => {
-    const selectedItems = pendingItems.filter((item) =>
-      selectedIds.includes(item.id),
-    );
-    onApply(selectedItems);
-    setPendingItems((current) =>
-      current.filter((item) => !selectedIds.includes(item.id)),
-    );
-    setSelectedIds([]);
-  };
-
   return (
     <section className="import-page">
       <PageHeader
-        actions={
-          <>
-            <button
-              className="secondary-button"
-              type="button"
-              onClick={onGoogleLogin}>
-              <MailCheck size={15} />
-              Google
-            </button>
-            <button
-              className="add-visit-button"
-              disabled={isLoading || !gmailConnected}
-              type="button"
-              onClick={synchronize}>
-              <RefreshCw className={isLoading ? "spin" : ""} size={16} />
-              {isLoading ? "Проверяем" : "Синхронизировать"}
-            </button>
-          </>
-        }
-        description="Записи Booksy и документы расходов с предварительной проверкой"
+        description="Одно подключение Gmail для автоматического импорта визитов Booksy"
         title="Импорт из Gmail"
       />
 
-      <section className="panel import-setup">
-        <MailCheck size={20} />
-        <div>
-          <h2>{gmailConnectionLabel}</h2>
-          <p>
-            {gmailAccessToken
-              ? "Письма Booksy, Allegro и iPOS читаются через безопасный Google OAuth."
-              : "Для чтения писем войдите через Google. Запасной вариант — OAuth Client ID в настройках."}
-          </p>
-        </div>
-        <div className="import-setup-actions">
-          <button
-            className="add-visit-button"
-            type="button"
-            onClick={onGoogleLogin}>
-            <MailCheck size={15} />
-            {gmailAccessToken ? "Обновить доступ" : "Подключить Google"}
-          </button>
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={onOpenSettings}>
-            <Settings size={15} />
-            Настройки
-          </button>
-        </div>
-      </section>
-
-      {!gmailConnected && (
-        <section className="panel import-setup import-setup-warning">
-          <MailCheck size={20} />
-          <div>
-            <h2>Подключите Gmail</h2>
-            <p>
-              Без Google-доступа CRM не сможет проверить новые записи и фактуры.
-            </p>
-          </div>
-          <button
-            className="add-visit-button"
-            type="button"
-            onClick={onGoogleLogin}>
-            Войти через Google
-          </button>
-        </section>
+      {booksyGmailSync && (
+        <BooksyGmailSyncPanel
+          calendarEntries={calendarEntries}
+          connection={booksyGmailSync.connection}
+          isConfigured={booksyGmailSync.isConfigured}
+          isGmailConnected={booksyGmailSync.isGmailConnected}
+          isLoading={booksyGmailSync.isLoading}
+          isSyncing={booksyGmailSync.isSyncing}
+          loadError={booksyGmailSync.loadError}
+          parseErrors={booksyGmailSync.parseErrors}
+          pendingEvents={booksyGmailSync.pendingEvents}
+          reviewKindLabel={booksyGmailSync.reviewKindLabel}
+          summary={booksyGmailSync.summary}
+          useServerSync={booksyGmailSync.useServerSync}
+          onApplyDecision={booksyGmailSync.applyDecision}
+          onConnect={booksyGmailSync.connectGmail}
+          onDisconnect={booksyGmailSync.disconnectGmail}
+          onRefresh={booksyGmailSync.refreshDashboard}
+          onSync={booksyGmailSync.syncNow}
+        />
       )}
 
       <div className="import-summary">
@@ -193,126 +58,44 @@ function ImportPage({
         </span>
       </div>
 
-      <div className="import-grid">
-        <section className="panel import-panel">
-          <div className="operations-panel-header">
+      <section className="panel import-panel">
+        <div className="operations-panel-header">
+          <div>
+            <FileText size={18} />
             <div>
-              <CalendarPlus size={18} />
-              <div>
-                <h2>Найдено в почте</h2>
-                <p>{pendingItems.length} новых событий</p>
-              </div>
-            </div>
-            {selectedIds.length > 0 && (
-              <button
-                className="add-visit-button"
-                type="button"
-                onClick={applySelected}>
-                <Check size={15} />
-                Применить {selectedIds.length}
-              </button>
-            )}
-          </div>
-          <div className="import-list">
-            {pendingItems.map((item) => (
-              <label className="import-row" key={item.id}>
-                <input
-                  checked={selectedIds.includes(item.id)}
-                  disabled={!isReadyToImport(item)}
-                  type="checkbox"
-                  onChange={(event) =>
-                    setSelectedIds((current) =>
-                      event.target.checked
-                        ? [...current, item.id]
-                        : current.filter((id) => id !== item.id),
-                    )
-                  }
-                />
-                <span className={`import-kind import-kind-${item.type}`}>
-                  {item.type === "document" ? (
-                    <FileText size={15} />
-                  ) : (
-                    <UserPlus size={15} />
-                  )}
-                </span>
-                <span>
-                  <strong>{typeLabels[item.type]}</strong>
-                  <small>
-                    {item.type === "document"
-                      ? `${item.source} · ${item.attachments.map((file) => file.filename).join(", ") || item.subject}`
-                      : `${item.client.name || "Клиент не распознан"} · ${item.booking.date || "дата?"} ${item.booking.time || "время?"}`}
-                  </small>
-                  {item.type !== "document" && (
-                    <em>
-                      {item.booking.service || "Проверьте услугу"} ·{" "}
-                      {item.booking.master || "проверьте мастера"}
-                    </em>
-                  )}
-                  {!isReadyToImport(item) && (
-                    <b>Нужно проверить письмо вручную</b>
-                  )}
-                </span>
-              </label>
-            ))}
-            {pendingItems.length === 0 && (
-              <p className="operations-empty">
-                Нажмите «Синхронизировать», чтобы проверить новые письма.
-              </p>
-            )}
-          </div>
-        </section>
-
-        <section className="panel import-panel">
-          <div className="operations-panel-header">
-            <div>
-              <FileText size={18} />
-              <div>
-                <h2>Документы расходов</h2>
-                <p>{documents.length} сохранено</p>
-              </div>
+              <h2>Документы расходов</h2>
+              <p>{documents.length} сохранено</p>
             </div>
           </div>
-          <div className="import-list">
-            {documents.map((document) => (
-              <article className="import-document-row" key={document.id}>
-                <span>
-                  <strong>{document.source}</strong>
-                  <small>
-                    {document.attachments
-                      .map((file) => file.filename)
-                      .join(", ") || document.subject}
-                  </small>
-                  {document.amount > 0 && (
-                    <em>{formatMoney(document.amount)}</em>
-                  )}
-                </span>
-                <a
-                  href={document.gmailUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                  title="Открыть письмо Gmail">
-                  <ExternalLink size={15} />
-                </a>
-              </article>
-            ))}
-            {documents.length === 0 && (
-              <p className="operations-empty">
-                Фактуры Allegro, Booksy и iPOS появятся здесь после импорта.
-              </p>
-            )}
-          </div>
-        </section>
-      </div>
-
-      {selectedIds.length > 0 && (
-        <div className="import-apply-bar">
-          <span>Выбрано: {selectedIds.length}</span>
-          <button className="add-visit-button" type="button" onClick={applySelected}>
-            <Check size={15} />
-            Применить
-          </button>
         </div>
-      )}
+        <div className="import-list">
+          {documents.map((document) => (
+            <article className="import-document-row" key={document.id}>
+              <span>
+                <strong>{document.source}</strong>
+                <small>
+                  {document.attachments
+                    .map((file) => file.filename)
+                    .join(", ") || document.subject}
+                </small>
+                {document.amount > 0 && <em>{formatMoney(document.amount)}</em>}
+              </span>
+              <a
+                href={document.gmailUrl}
+                rel="noreferrer"
+                target="_blank"
+                title="Открыть письмо Gmail">
+                <ExternalLink size={15} />
+              </a>
+            </article>
+          ))}
+          {documents.length === 0 && (
+            <p className="operations-empty">
+              Импортированные фактуры Allegro, Booksy и iPOS появятся здесь.
+            </p>
+          )}
+        </div>
+      </section>
     </section>
   );
 }

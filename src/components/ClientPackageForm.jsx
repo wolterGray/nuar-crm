@@ -120,9 +120,11 @@ function ClientPackageForm({
           <select name="status" defaultValue={clientPackage?.status ?? "Активен"}>
             <option>Активен</option>
             <option>Пауза</option>
-            <option>Закончился</option>
             <option>Архив</option>
           </select>
+          <small className="field-hint">
+            Пакет с нулевым остатком автоматически попадает в архив.
+          </small>
         </label>
         <button className="submit-button">
           {clientPackage ? "Сохранить остаток" : "Продать пакет"}

@@ -74,7 +74,7 @@ export function useAuth({onSessionLostRef, pushNotification, supabase}) {
     const {error} = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: window.location.href,
         scopes: "openid email profile https://www.googleapis.com/auth/gmail.readonly",
         queryParams: {
           access_type: "offline",

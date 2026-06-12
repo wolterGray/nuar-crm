@@ -1,11 +1,62 @@
-import {Pencil, Plus, Trash2} from "lucide-react";
+import {Archive, ChevronDown, Pencil, Plus, Trash2} from "lucide-react";
+import {useMemo, useState} from "react";
 import {motion} from "framer-motion";
+import {
+  isActiveClientPackage,
+  isArchivedClientPackage,
+} from "../../utils/clientPackages.js";
 import {formatMoney} from "../../utils/formatters.jsx";
 import {
   getPackageRemainingLabel,
   getPackageUsedVisits,
 } from "../../utils/packages.jsx";
 import PageHeader from "../PageHeader.jsx";
+
+function ClientPackageCard({onDelete, onEdit, packageItem}) {
+  const archived = isArchivedClientPackage(packageItem);
+
+  return (
+    <article className={`client-package-card${archived ? " is-archived" : ""}`}>
+      <div className="client-package-main">
+        <strong>{packageItem.client}</strong>
+        <span>{packageItem.packageName}</span>
+        <small>{packageItem.service}</small>
+      </div>
+      <div className="client-package-progress">
+        <div>
+          <span>{archived ? "Использовано сеансов" : "Осталось сеансов"}</span>
+          <strong>{getPackageRemainingLabel(packageItem)}</strong>
+        </div>
+        <progress
+          max={Math.max(Number(packageItem.totalVisits) || 1, 1)}
+          value={getPackageUsedVisits(packageItem)}
+        />
+      </div>
+      <div className="client-package-meta">
+        <span>{formatMoney(packageItem.price)}</span>
+        <b>{packageItem.status}</b>
+      </div>
+      <div className="employee-actions">
+        <button
+          aria-label="Редактировать пакет клиента"
+          className="compact-icon-button"
+          title="Редактировать"
+          type="button"
+          onClick={() => onEdit(packageItem)}>
+          <Pencil size={16} />
+        </button>
+        <button
+          aria-label="Удалить пакет клиента"
+          className="compact-icon-button danger"
+          title="Удалить"
+          type="button"
+          onClick={() => onDelete(packageItem)}>
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </article>
+  );
+}
 
 function PackagesPage({
   packages,
@@ -19,10 +70,16 @@ function PackagesPage({
   onEditClientPackage,
   onDeleteClientPackage,
 }) {
-  const activePackages = clientPackages.filter(
-    (packageItem) => packageItem.status === "Активен",
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const activeClientPackages = useMemo(
+    () => clientPackages.filter(isActiveClientPackage),
+    [clientPackages],
   );
-  const remainingVisits = clientPackages.reduce(
+  const archivedClientPackages = useMemo(
+    () => clientPackages.filter(isArchivedClientPackage),
+    [clientPackages],
+  );
+  const remainingVisits = activeClientPackages.reduce(
     (sum, packageItem) => sum + (Number(packageItem.remainingVisits) || 0),
     0,
   );
@@ -45,7 +102,7 @@ function PackagesPage({
             </button>
           </>
         }
-        description={`${packages.length} шаблонов · ${clientPackages.length} у клиентов`}
+        description={`${packages.length} шаблонов · ${activeClientPackages.length} активных · ${archivedClientPackages.length} в архиве`}
         title="Пакеты"
       />
 
@@ -60,7 +117,7 @@ function PackagesPage({
         </article>
         <article className="catalog-card">
           <span>Активных пакетов</span>
-          <h3>{activePackages.length}</h3>
+          <h3>{activeClientPackages.length}</h3>
         </article>
         <article className="catalog-card">
           <span>Осталось визитов</span>
@@ -70,60 +127,56 @@ function PackagesPage({
 
       <div className="panel client-packages-panel">
         <div className="panel-header">
-          <h2>Пакеты клиентов</h2>
+          <h2>Активные пакеты клиентов</h2>
+          <span>{activeClientPackages.length}</span>
         </div>
         <div className="client-packages-list">
-          {clientPackages.map((packageItem) => (
-            <article className="client-package-card" key={packageItem.id}>
-              <div className="client-package-main">
-                <strong>{packageItem.client}</strong>
-                <span>{packageItem.packageName}</span>
-                <small>{packageItem.service}</small>
-              </div>
-              <div className="client-package-progress">
-                <div>
-                  <span>Осталось сеансов</span>
-                  <strong>{getPackageRemainingLabel(packageItem)}</strong>
-                </div>
-                <progress
-                  max={Math.max(Number(packageItem.totalVisits) || 1, 1)}
-                  value={getPackageUsedVisits(packageItem)}
-                />
-              </div>
-              <div className="client-package-meta">
-                <span>{formatMoney(packageItem.price)}</span>
-                <b>{packageItem.status}</b>
-              </div>
-              <div className="employee-actions">
-                <button
-                  aria-label="Редактировать пакет клиента"
-                  className="compact-icon-button"
-                  title="Редактировать"
-                  type="button"
-                  onClick={() => onEditClientPackage(packageItem)}>
-                  <Pencil size={16} />
-                </button>
-                <button
-                  aria-label="Удалить пакет клиента"
-                  className="compact-icon-button danger"
-                  title="Удалить"
-                  type="button"
-                  onClick={() => onDeleteClientPackage(packageItem)}>
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </article>
+          {activeClientPackages.map((packageItem) => (
+            <ClientPackageCard
+              key={packageItem.id}
+              packageItem={packageItem}
+              onDelete={onDeleteClientPackage}
+              onEdit={onEditClientPackage}
+            />
           ))}
-          {clientPackages.length === 0 && (
+          {activeClientPackages.length === 0 && (
             <div className="clients-empty">
-              <strong>Пока нет проданных пакетов</strong>
+              <strong>Активных пакетов нет</strong>
               <span>
-                Продайте пакет клиенту, чтобы отслеживать остаток визитов.
+                Продайте пакет клиенту или верните нужный пакет из архива.
               </span>
             </div>
           )}
         </div>
       </div>
+
+      {archivedClientPackages.length > 0 ? (
+        <div className="panel client-packages-panel client-packages-archive-panel">
+          <button
+            className="client-packages-archive-toggle"
+            type="button"
+            onClick={() => setArchiveOpen((current) => !current)}>
+            <span>
+              <Archive size={16} />
+              Архив завершённых пакетов
+            </span>
+            <strong>{archivedClientPackages.length}</strong>
+            <ChevronDown className={archiveOpen ? "open" : ""} size={16} />
+          </button>
+          {archiveOpen ? (
+            <div className="client-packages-list client-packages-archive-list">
+              {archivedClientPackages.map((packageItem) => (
+                <ClientPackageCard
+                  key={packageItem.id}
+                  packageItem={packageItem}
+                  onDelete={onDeleteClientPackage}
+                  onEdit={onEditClientPackage}
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="panel client-packages-panel">
         <div className="panel-header">

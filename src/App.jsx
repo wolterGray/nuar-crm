@@ -51,6 +51,7 @@ import {buildPaymentRows, filterPaymentRows} from "./utils/paymentRows.js";
 import {buildEmployeeStats} from "./utils/employeeStats.js";
 import {applyBooksySources} from "./utils/booksySources.js";
 import {openSupplyOrderUrl} from "./utils/supplyOrder.js";
+import {resolveClientPackageStatus} from "./utils/clientPackages.js";
 import {resolveColorTheme} from "./utils/colorTheme.js";
 import {applyCrmSnapshot, buildCloudSnapshot} from "./utils/cloudSnapshot.js";
 import {useCloudSync} from "./hooks/useCloudSync.js";
@@ -68,6 +69,7 @@ import {useMessageTemplateHandlers} from "./hooks/useMessageTemplateHandlers.js"
 import {useTaskHandlers} from "./hooks/useTaskHandlers.js";
 import {useSupplyHandlers} from "./hooks/useSupplyHandlers.js";
 import {useMailImport} from "./hooks/useMailImport.js";
+import {useBooksyGmailSync} from "./hooks/useBooksyGmailSync.js";
 import {useToastNotifications} from "./hooks/useToastNotifications.js";
 import {useAuth} from "./hooks/useAuth.js";
 import {useClientAlerts} from "./hooks/useClientAlerts.js";
@@ -643,12 +645,10 @@ function App() {
         return {
           ...packageItem,
           remainingVisits: Math.min(restored, packageItem.totalVisits),
-          status:
-            Math.min(restored, packageItem.totalVisits) > 0
-              ? packageItem.status === "Закончился"
-                ? "Активен"
-                : packageItem.status
-              : "Закончился",
+          status: resolveClientPackageStatus(
+            Math.min(restored, packageItem.totalVisits),
+            packageItem.status,
+          ),
         };
       });
 
@@ -658,14 +658,12 @@ function App() {
         }
 
         const used = Number(nextVisit.packageSessionsUsed) || 0;
+        const nextRemaining = Math.max(0, packageItem.remainingVisits - used);
 
         return {
           ...packageItem,
-          remainingVisits: Math.max(0, packageItem.remainingVisits - used),
-          status:
-            Math.max(0, packageItem.remainingVisits - used) === 0
-              ? "Закончился"
-              : packageItem.status,
+          remainingVisits: nextRemaining,
+          status: resolveClientPackageStatus(nextRemaining, packageItem.status),
         };
       });
     });
@@ -1060,6 +1058,24 @@ function App() {
     setImportedMailIds,
   });
 
+  const booksyGmailSync = useBooksyGmailSync({
+    calendarEntries,
+    clientProfiles,
+    createLocalId,
+    employees,
+    getCalendarServiceColor,
+    gmailAccessToken: authSession?.provider_token ?? "",
+    gmailClientId: appSettings.gmailClientId,
+    googleEmail: authSession?.user?.email ?? "",
+    onGoogleLogin: handleGoogleLogin,
+    processedMessageIds: importedMailIds,
+    pushNotification,
+    services: serviceCatalog,
+    setCalendarEntries,
+    setClientProfiles,
+    setProcessedMessageIds: setImportedMailIds,
+  });
+
   const {logClientMessage} = useCommunicationLog({
     createLocalId,
     pushNotification,
@@ -1268,6 +1284,7 @@ function App() {
               totalAlertsCount={totalAlertsCount}
               urgentAlertsCount={urgentAlertsCount}
               quietHoursActive={quietHoursActive}
+              theme={colorTheme.mode}
               onAction={handleAlertAction}
               onDismissPermanent={dismissAlertPermanent}
               onFilterChange={setAlertFilter}
@@ -1286,6 +1303,7 @@ function App() {
             addQuickNote={addQuickNote}
             appSettings={appSettings}
             applyMailImports={applyMailImports}
+            booksyGmailSync={booksyGmailSync}
             calendarEntries={calendarEntries}
             calendarEntriesWithServiceColors={calendarEntriesWithServiceColors}
             calendarEntryModalOpen={calendarEntryModalOpen}

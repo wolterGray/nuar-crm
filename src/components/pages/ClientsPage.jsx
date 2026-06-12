@@ -22,6 +22,10 @@ import {
 } from "../../utils/formatters.jsx";
 import {getVisitTotal} from "../../utils/visits.jsx";
 import {matchesClientRecord} from "../../utils/clientLinks.js";
+import {
+  isActiveClientPackage,
+  isArchivedClientPackage,
+} from "../../utils/clientPackages.js";
 import PageHeader from "../PageHeader.jsx";
 
 function ClientsPage({
@@ -134,6 +138,7 @@ function ClientsPage({
         const packages = clientPackages.filter((packageItem) =>
           matchesClientRecord(packageItem, clients, client),
         );
+        const activePackages = packages.filter(isActiveClientPackage);
         const totalIncome =
           clientVisits.reduce(
             (sum, visit) => sum + getVisitTotal(visit, employees),
@@ -147,7 +152,7 @@ function ClientsPage({
             (sum, packageItem) => sum + (Number(packageItem.price) || 0),
             0,
           );
-        const packagesLeft = packages.reduce(
+        const packagesLeft = activePackages.reduce(
           (sum, packageItem) =>
             sum + (Number(packageItem.remainingVisits) || 0),
           0,
@@ -168,8 +173,9 @@ function ClientsPage({
           ).length,
           appointments,
           totalIncome,
-          packagesCount: packages.length,
+          packagesCount: activePackages.length,
           packagesLeft,
+          archivedPackagesCount: packages.filter(isArchivedClientPackage).length,
           lastVisit,
           daysAbsent,
         };
@@ -508,6 +514,11 @@ function ClientsPage({
               <span>
                 Остаток сеансов <strong>{activeViewedClient.packagesLeft}</strong>
               </span>
+              {activeViewedClient.archivedPackagesCount > 0 ? (
+                <span>
+                  В архиве <strong>{activeViewedClient.archivedPackagesCount}</strong>
+                </span>
+              ) : null}
               <span>
                 Общая сумма{" "}
                 <strong>{formatMoney(activeViewedClient.totalIncome)}</strong>

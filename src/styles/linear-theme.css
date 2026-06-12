@@ -4,6 +4,8 @@
 
 .statistics-header-actions,
 .page-header-actions,
+.page-header-unified-side,
+.page-header-unified-top,
 .page-notifications-slot,
 .client-alert-control {
   overflow: visible !important;
@@ -16,8 +18,16 @@
 }
 
 .client-alert-button b {
-  top: -6px !important;
-  right: -6px !important;
+  top: 2px !important;
+  right: 2px !important;
+  z-index: 3;
+}
+
+.client-alert-button em {
+  top: auto !important;
+  bottom: 2px !important;
+  left: 2px !important;
+  right: auto !important;
   z-index: 3;
 }
 

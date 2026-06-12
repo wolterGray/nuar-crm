@@ -4,6 +4,7 @@ import {
   matchesClientRecord,
   remapClientRecords,
 } from "../utils/clientLinks.js";
+import {resolveClientPackageStatus} from "../utils/clientPackages.js";
 import {toDisplayDate} from "../utils/formatters.jsx";
 import {getPackageProgressLabel} from "../utils/packages.jsx";
 import {getTodayInput} from "../utils/dateHelpers.js";
@@ -258,7 +259,10 @@ export function useClientHandlers({
         price: Number(form.get("price")) || packageTemplate?.price || 0,
         purchaseDate: toDisplayDate(form.get("purchaseDate")),
         payment: form.get("payment"),
-        status: form.get("status"),
+        status: resolveClientPackageStatus(
+          Math.min(remainingVisits, totalVisits),
+          form.get("status"),
+        ),
       });
 
       setClientPackages((current) =>

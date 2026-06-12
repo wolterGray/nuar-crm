@@ -30,6 +30,7 @@ import {
 import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
 import {matchesClientRecord} from "../../utils/clientLinks.js";
+import {isActiveClientPackage} from "../../utils/clientPackages.js";
 import {getPackageProgressLabel, isUpcomingPackageVisit} from "../../utils/packages.jsx";
 import {getVisitDebt, getVisitTransactionTotal} from "../../utils/visits.jsx";
 
@@ -976,7 +977,7 @@ function ClientCalendarCard({
   const packages = clientPackages.filter(
     (packageItem) =>
       matchesClientRecord(packageItem, [client].filter(Boolean), client ?? clientName) &&
-      packageItem.status !== "Архив",
+      isActiveClientPackage(packageItem),
   );
 
   return (

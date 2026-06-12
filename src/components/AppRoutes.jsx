@@ -145,16 +145,9 @@ export default function AppRoutes({activePage, ...props}) {
     case "import":
       return (
         <ImportPage
+          booksyGmailSync={props.booksyGmailSync}
+          calendarEntries={props.calendarEntries}
           documents={props.importDocuments}
-          employees={props.employees}
-          gmailAccessToken={props.gmailAccessToken}
-          gmailClientId={props.appSettings.gmailClientId}
-          importedMailIds={props.importedMailIds}
-          services={props.serviceCatalog}
-          onApply={props.applyMailImports}
-          onGoogleLogin={props.handleGoogleLogin}
-          onNotify={props.pushNotification}
-          onOpenSettings={props.openSettingsPage}
         />
       );
 

@@ -1,4 +1,5 @@
 import {getUpcomingBirthday} from "./clientAlerts.js";
+import {isActiveClientPackage} from "./clientPackages.js";
 import {matchesClientRecord} from "./clientLinks.js";
 import {
   getDaysSinceDisplayDate,
@@ -229,7 +230,10 @@ export const buildAlertCenter = ({
 
   if (appSettings.packageBalanceAlertsEnabled !== false) {
     clientPackages
-      .filter((item) => Number(item.remainingVisits) <= 2)
+      .filter(
+        (item) =>
+          isActiveClientPackage(item) && Number(item.remainingVisits) <= 2,
+      )
       .forEach((item) => {
         const alertId = `package-balance-${item.id}-${item.remainingVisits}`;
         const remaining = Number(item.remainingVisits);

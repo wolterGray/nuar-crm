@@ -483,6 +483,7 @@
     z-index: 44;
     margin: 0 -12px 4px;
     padding: 6px 10px;
+    overflow: visible;
     background: color-mix(in srgb, #f7f7f6 94%, transparent);
     backdrop-filter: blur(14px);
   }
@@ -517,18 +518,7 @@
   }
 
   .client-alert-popover {
-    position: fixed;
-    top: 48px;
-    right: 10px;
-    left: 10px;
-    width: auto;
-    max-width: none;
-    max-height: calc(100dvh - 74px);
     padding: 12px;
-  }
-
-  .client-alert-list {
-    max-height: calc(100dvh - 164px);
   }
 
   .client-alert-button {

@@ -5,6 +5,7 @@
   justify-content: flex-end;
   gap: 10px;
   flex: 0 0 auto;
+  overflow: visible;
 }
 
 .statistics-header-actions .statistics-export-button {

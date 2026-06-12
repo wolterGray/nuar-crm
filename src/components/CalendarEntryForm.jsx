@@ -2,6 +2,7 @@ import {useEffect, useMemo, useState} from "react";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useForm, useWatch} from "react-hook-form";
 import {z} from "zod";
+import {isActiveClientPackage} from "../utils/clientPackages.js";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import {matchesClientRecord} from "../utils/clientLinks.js";
@@ -245,8 +246,7 @@ function CalendarEntryForm({
     clientPackages.filter(
       (item) =>
         matchesClientRecord(item, clients, clientName) &&
-        item.status !== "Архив" &&
-        Number(item.remainingVisits) > 0,
+        isActiveClientPackage(item),
     );
   const applyClientTemplate = (clientName) => {
     const previousVisit = findPreviousVisit(clientName);

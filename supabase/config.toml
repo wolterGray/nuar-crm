@@ -1,0 +1,10 @@
+project_id = "nuar-crm"
+
+[functions.booksy-gmail-oauth]
+verify_jwt = false
+
+[functions.booksy-gmail-sync]
+verify_jwt = true
+
+[functions.booksy-gmail-events]
+verify_jwt = true

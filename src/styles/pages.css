@@ -1635,6 +1635,13 @@ button:focus-visible {
   flex-shrink: 0;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  overflow: visible;
+}
+
+.page-header-unified,
+.page-header-unified-top {
+  overflow: visible;
 }
 
 .statistics-hero-header.page-header-unified {
@@ -1642,7 +1649,7 @@ button:focus-visible {
 }
 
 .statistics-hero-header .page-header-unified-side {
-  align-items: flex-start;
+  align-items: center;
 }
 
 .visits-panel .page-header-unified {
