@@ -177,27 +177,63 @@ const gmailFetch = async (accessToken, path) => {
   return response.json();
 };
 
-const fetchGmailMessageList = async (accessToken, query) => {
-  const searchQuery = encodeURIComponent(query);
-  const list = await gmailFetch(accessToken, `messages?q=${searchQuery}&maxResults=100`);
+const fetchGmailMessageIds = async (accessToken, query, maxResults = 250) => {
+  const ids = [];
+  let pageToken = "";
 
-  return Promise.all(
-    (list.messages ?? []).map(async ({id}) => {
-      const message = await gmailFetch(accessToken, `messages/${id}?format=full`);
-      const content = extractPayload(message.payload);
-      const headers = message.payload.headers ?? [];
+  while (ids.length < maxResults) {
+    const pageSize = Math.min(100, maxResults - ids.length);
+    const searchQuery = encodeURIComponent(query);
+    const pageTokenParam = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : "";
+    const list = await gmailFetch(
+      accessToken,
+      `messages?q=${searchQuery}&maxResults=${pageSize}${pageTokenParam}`,
+    );
 
-      return {
-        id,
-        threadId: message.threadId,
-        from: getHeader(headers, "From"),
-        replyTo: getHeader(headers, "Reply-To"),
-        messageId: getHeader(headers, "Message-ID"),
-        subject: getHeader(headers, "Subject"),
-        receivedAt: new Date(Number(message.internalDate)).toISOString(),
-        ...content,
-      };
-    }),
+    ids.push(...(list.messages ?? []).map((message) => message.id));
+
+    if (!list.nextPageToken || ids.length >= maxResults) {
+      break;
+    }
+
+    pageToken = list.nextPageToken;
+  }
+
+  return ids;
+};
+
+const fetchGmailMessageById = async (accessToken, id) => {
+  const message = await gmailFetch(accessToken, `messages/${id}?format=full`);
+  const content = extractPayload(message.payload);
+  const headers = message.payload.headers ?? [];
+
+  return {
+    id,
+    threadId: message.threadId,
+    from: getHeader(headers, "From"),
+    replyTo: getHeader(headers, "Reply-To"),
+    messageId: getHeader(headers, "Message-ID"),
+    subject: getHeader(headers, "Subject"),
+    receivedAt: new Date(Number(message.internalDate)).toISOString(),
+    ...content,
+  };
+};
+
+const fetchGmailMessageList = async (accessToken, query, maxResults = 250) => {
+  const ids = await fetchGmailMessageIds(accessToken, query, maxResults);
+
+  return Promise.all(ids.map((id) => fetchGmailMessageById(accessToken, id)));
+};
+
+const mergeGmailMessages = (messageGroups) => {
+  const byId = new Map();
+
+  messageGroups.flat().forEach((message) => {
+    byId.set(message.id, message);
+  });
+
+  return [...byId.values()].sort((first, second) =>
+    first.receivedAt.localeCompare(second.receivedAt),
   );
 };
 
@@ -237,19 +273,40 @@ export const resolveGmailAccessToken = async ({
   );
 };
 
-export const syncGmailMessages = async (clientId = "", providerAccessToken = "", query) => {
-  const searchQuery =
-    query ??
-    "newer_than:120d (from:(booksy.com) OR from:(allegro.pl) OR from:(ipos.pl) OR filename:pdf)";
+export const syncGmailMessages = async (
+  clientId = "",
+  providerAccessToken = "",
+  query,
+  {queries = null, maxResults = 250} = {},
+) => {
+  const searchQueries = Array.isArray(queries)
+    ? queries.filter(Boolean)
+    : [
+        query ??
+          "newer_than:365d (from:booksy.com OR from:allegro.pl OR subject:(faktura OR faktur OR invoice))",
+      ];
 
   let accessToken = await resolveGmailAccessToken({
     clientId,
     providerAccessToken,
   });
 
+  const loadMessages = async () => {
+    const perQueryLimit = Math.max(
+      50,
+      Math.ceil(maxResults / Math.max(searchQueries.length, 1)),
+    );
+    const groups = await Promise.all(
+      searchQueries.map((searchQuery) =>
+        fetchGmailMessageList(accessToken, searchQuery, perQueryLimit),
+      ),
+    );
+
+    return mergeGmailMessages(groups).slice(-maxResults);
+  };
+
   try {
-    const messages = await fetchGmailMessageList(accessToken, searchQuery);
-    return messages.sort((first, second) => first.receivedAt.localeCompare(second.receivedAt));
+    return await loadMessages();
   } catch (error) {
     if (
       String(clientId ?? "").trim() &&
@@ -260,8 +317,7 @@ export const syncGmailMessages = async (clientId = "", providerAccessToken = "",
       accessToken = await requestGmailAccessToken(String(clientId).trim(), {
         prompt: "consent",
       });
-      const messages = await fetchGmailMessageList(accessToken, searchQuery);
-      return messages.sort((first, second) => first.receivedAt.localeCompare(second.receivedAt));
+      return loadMessages();
     }
 
     throw error;

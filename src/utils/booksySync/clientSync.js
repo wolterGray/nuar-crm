@@ -1,5 +1,5 @@
 import {
-  GMAIL_SYNC_QUERY,
+  GMAIL_SYNC_QUERIES,
   parseBooksyGmailMessage,
 } from "./booksyGmailParser.js";
 import {parseImportDocument} from "./invoiceParser.js";
@@ -52,26 +52,34 @@ export const syncBooksyGmailClient = async ({
   services,
   skippedMessageIds = [],
 }) => {
-  const emails = await syncGmailMessages(
-    gmailClientId,
-    gmailAccessToken,
-    GMAIL_SYNC_QUERY,
-  );
-  const skipped = new Set(skippedMessageIds);
+  const emails = await syncGmailMessages(gmailClientId, gmailAccessToken, null, {
+    queries: GMAIL_SYNC_QUERIES,
+    maxResults: 300,
+  });
+  const skippedVisitIds = new Set(skippedMessageIds);
   const existingDocumentIds = new Set(importDocuments.map((document) => document.id));
   const pendingEvents = [];
   const pendingDocuments = [];
   const parseErrors = [];
+  let skippedAsProcessed = 0;
+  let skippedAsDuplicate = 0;
+  let unparsed = 0;
 
   emails.forEach((email) => {
-    if (skipped.has(email.id)) {
-      return;
-    }
-
     try {
       const document = parseImportDocument(email);
-      if (document && !existingDocumentIds.has(document.id)) {
+      if (document) {
+        if (existingDocumentIds.has(document.id)) {
+          skippedAsDuplicate += 1;
+          return;
+        }
+
         pendingDocuments.push(document);
+        return;
+      }
+
+      if (skippedVisitIds.has(email.id)) {
+        skippedAsProcessed += 1;
         return;
       }
 
@@ -86,6 +94,7 @@ export const syncBooksyGmailClient = async ({
       );
 
       if (!extracted) {
+        unparsed += 1;
         return;
       }
 
@@ -113,6 +122,9 @@ export const syncBooksyGmailClient = async ({
     pendingDocuments,
     parseErrors,
     scanned: emails.length,
+    skippedAsProcessed,
+    skippedAsDuplicate,
+    unparsed,
   };
 };
 

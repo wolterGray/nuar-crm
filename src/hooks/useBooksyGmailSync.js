@@ -315,11 +315,19 @@ export function useBooksyGmailSync({
         parts.push(`фактур: ${result.pendingDocuments.length}`);
       }
 
+      const scannedHint = result.scanned
+        ? `Просмотрено писем: ${result.scanned}.`
+        : "Gmail не вернул писем за последние 365 дней.";
+
       pushNotification({
         title: "Booksy Gmail Sync",
         message: parts.length
-          ? `Найдено ${parts.join(", ")}`
-          : "Новых писем и фактур не найдено",
+          ? `Найдено ${parts.join(", ")}. ${scannedHint}`
+          : `${scannedHint} Новых визитов и фактур не найдено${
+              result.skippedAsProcessed
+                ? ` (${result.skippedAsProcessed} уже обработаны ранее)`
+                : ""
+            }.`,
         persist: false,
       });
     } catch (error) {

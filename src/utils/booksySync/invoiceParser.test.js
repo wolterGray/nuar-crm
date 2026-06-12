@@ -33,4 +33,36 @@ describe("invoiceParser", () => {
 
     expect(document?.source).toBe("Booksy");
   });
+
+  it("detects Polish Booksy invoice without invoice@ address", () => {
+    const document = parseImportDocument({
+      id: "msg-3",
+      from: "Booksy International <noreply@booksy.com>",
+      subject: "Booksy - Twoja Faktura FV/STR/2024/05/66809",
+      text: "Dzień dobry, Przesyłamy fakturę VAT za usługi Booksy.",
+      attachments: [{filename: "FVSTR20240566809.pdf"}],
+      messageId: "<booksy-invoice@booksy.com>",
+      receivedAt: "2024-05-30T10:00:00.000Z",
+    });
+
+    expect(document).toMatchObject({
+      type: "document",
+      source: "Booksy",
+      id: "msg-3",
+    });
+  });
+
+  it("detects iPOS invoice by subject", () => {
+    const document = parseImportDocument({
+      id: "msg-4",
+      from: "no-reply <billing@ipos.pl>",
+      subject: "Faktura za usługi iPOS",
+      text: "Twoja faktura znajduje się w załączniku.",
+      attachments: [{filename: "Faktura_2024-05.pdf"}],
+      messageId: "<ipos@ipos.pl>",
+      receivedAt: "2024-05-28T10:00:00.000Z",
+    });
+
+    expect(document?.source).toBe("iPOS");
+  });
 });

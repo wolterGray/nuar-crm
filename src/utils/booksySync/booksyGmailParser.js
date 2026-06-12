@@ -33,10 +33,17 @@ const employeeAliases = {
   максим: "Максим",
 };
 
-export const BOOKSY_GMAIL_QUERY = "newer_than:90d from:booksy.com";
+export const BOOKSY_GMAIL_QUERY = "newer_than:365d from:booksy.com";
 
-export const GMAIL_SYNC_QUERY =
-  "newer_than:90d (from:booksy.com OR from:allegro.pl OR from:ipos.pl OR filename:pdf OR subject:(faktura OR faktur OR invoice))";
+/** Один запрос — fallback; основной поиск идёт несколькими узкими запросами (см. GMAIL_SYNC_QUERIES). */
+export const GMAIL_SYNC_QUERY = BOOKSY_GMAIL_QUERY;
+
+export const GMAIL_SYNC_QUERIES = [
+  "newer_than:365d from:booksy.com",
+  "newer_than:365d from:allegro.pl",
+  "newer_than:365d (from:ipos.pl OR subject:ipos)",
+  "newer_than:365d subject:(faktura OR faktur OR invoice OR \"twoja faktura\" OR \"faktura VAT\")",
+];
 
 export const normalizeBooksyText = (value) =>
   String(value ?? "")
@@ -195,10 +202,28 @@ export const isBooksyGmailMessage = ({from = "", subject = "", bodyText = ""}) =
   return haystack.includes("booksy") || haystack.includes("booksy.com");
 };
 
+export const isBooksyInvoiceMessage = ({from = "", subject = "", bodyText = ""} = {}) => {
+  const haystack = normalizeBooksyText(`${from}\n${subject}\n${bodyText}`);
+  if (!haystack.includes("booksy")) {
+    return false;
+  }
+
+  return (
+    haystack.includes("invoice@") ||
+    haystack.includes("twoja faktura") ||
+    haystack.includes("fakturę vat") ||
+    haystack.includes("faktura vat") ||
+    (haystack.includes("faktur") &&
+      !haystack.includes("rezerwacja") &&
+      !haystack.includes("бронювання") &&
+      !haystack.includes("booking"))
+  );
+};
+
 export const shouldSkipBooksyMessage = (text) =>
   text.includes("відгук") ||
   text.includes("opini") ||
-  (text.includes("faktur") && text.includes("invoice@"));
+  isBooksyInvoiceMessage({subject: text, bodyText: text});
 
 const buildMissingFields = (event) => {
   const missing = [];
