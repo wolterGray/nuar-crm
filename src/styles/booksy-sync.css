@@ -67,6 +67,116 @@
   margin-top: 6px;
 }
 
+.booksy-outbound-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e9e9e7;
+  border-radius: 10px;
+  background: #faf9f7;
+}
+
+.booksy-outbound-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.booksy-outbound-panel-copy,
+.booksy-outbound-hint {
+  margin: 0;
+  color: #7b8089;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.booksy-outbound-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.booksy-outbound-meta div {
+  display: grid;
+  gap: 2px;
+}
+
+.booksy-outbound-meta dt {
+  color: #9aa0a8;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.booksy-outbound-meta dd {
+  margin: 0;
+  color: #15171c;
+  font-size: 11px;
+}
+
+.booksy-outbound-error {
+  margin: 0;
+  color: #a13d2f;
+  font-size: 11px;
+}
+
+.booksy-outbound-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.booksy-outbound-actions .secondary-button {
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+}
+
+.booksy-outbound-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #eef1f4;
+  color: #59616d;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.booksy-outbound-status-pending,
+.booksy-outbound-status-retrying {
+  color: #8d5b18;
+  background: #fff5df;
+}
+
+.booksy-outbound-status-synced {
+  color: #3f7a4c;
+  background: #edf7ef;
+}
+
+.booksy-outbound-status-failed {
+  color: #a13d2f;
+  background: #fff3f1;
+}
+
+.theme-dark .booksy-outbound-panel {
+  border-color: #344052;
+  background: #151922;
+}
+
+.theme-dark .booksy-outbound-meta dd {
+  color: #eef2f7;
+}
+
+@media (max-width: 700px) {
+  .booksy-outbound-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
 .import-setup-legacy {
   opacity: 0.92;
 }

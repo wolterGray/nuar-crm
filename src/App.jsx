@@ -73,6 +73,14 @@ import {
   removeImportedMailIds,
   removeImportDocumentsByIds,
 } from "./utils/importDocuments.js";
+import {
+  enqueueBooksySyncJob,
+  retryBooksySyncJob,
+} from "./utils/booksyOutbound/enqueueBooksySync.js";
+import {
+  BOOKSY_SYNC_STATUSES,
+  patchCalendarEntryInList,
+} from "./utils/booksyOutbound/booksySyncStatus.js";
 import {useBooksyGmailSync} from "./hooks/useBooksyGmailSync.js";
 import {useToastNotifications} from "./hooks/useToastNotifications.js";
 import {useAuth} from "./hooks/useAuth.js";
@@ -143,6 +151,7 @@ function App() {
   const [clientPackageModalOpen, setClientPackageModalOpen] = useState(false);
   const [messageTemplateModalOpen, setMessageTemplateModalOpen] = useState(false);
   const [calendarEntryModalOpen, setCalendarEntryModalOpen] = useState(false);
+  const [isBooksySyncSubmitting, setIsBooksySyncSubmitting] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [supplyModalOpen, setSupplyModalOpen] = useState(false);
   const [financialOperationModalOpen, setFinancialOperationModalOpen] = useState(false);
@@ -1084,6 +1093,85 @@ function App() {
     [pushNotification],
   );
 
+  const applyBooksySyncPatch = useCallback((entryId, patch) => {
+    setCalendarEntries((current) => patchCalendarEntryInList(current, entryId, patch));
+    setEditingCalendarEntry((current) =>
+      current && String(current.id) === String(entryId) ? {...current, ...patch} : current,
+    );
+  }, []);
+
+  const handleBooksyEnqueue = useCallback(
+    async (entry) => {
+      if (!entry?.id) {
+        return;
+      }
+
+      setIsBooksySyncSubmitting(true);
+
+      try {
+        const result = await enqueueBooksySyncJob(entry.id);
+        const patch = {
+          booksySyncStatus: result.booksySyncStatus || BOOKSY_SYNC_STATUSES.PENDING,
+          booksySyncError: "",
+          booksyLastAttemptAt: new Date().toISOString(),
+          booksyLockedAt: new Date().toISOString(),
+        };
+
+        applyBooksySyncPatch(entry.id, patch);
+        pushNotification({
+          title: "Booksy",
+          message: "Задача создана. Worker заберёт её и попробует создать визит в Booksy.",
+          persist: false,
+        });
+      } catch (error) {
+        pushNotification({
+          title: "Booksy",
+          message: error instanceof Error ? error.message : "Не удалось отправить в Booksy",
+          persist: false,
+        });
+      } finally {
+        setIsBooksySyncSubmitting(false);
+      }
+    },
+    [applyBooksySyncPatch, pushNotification],
+  );
+
+  const handleBooksyRetry = useCallback(
+    async (entry) => {
+      if (!entry?.id) {
+        return;
+      }
+
+      setIsBooksySyncSubmitting(true);
+
+      try {
+        const result = await retryBooksySyncJob(entry.id);
+        const patch = {
+          booksySyncStatus: result.booksySyncStatus || BOOKSY_SYNC_STATUSES.PENDING,
+          booksySyncError: "",
+          booksyLastAttemptAt: new Date().toISOString(),
+          booksyLockedAt: new Date().toISOString(),
+        };
+
+        applyBooksySyncPatch(entry.id, patch);
+        pushNotification({
+          title: "Booksy",
+          message: "Повторная отправка поставлена в очередь.",
+          persist: false,
+        });
+      } catch (error) {
+        pushNotification({
+          title: "Booksy",
+          message: error instanceof Error ? error.message : "Не удалось повторить отправку",
+          persist: false,
+        });
+      } finally {
+        setIsBooksySyncSubmitting(false);
+      }
+    },
+    [applyBooksySyncPatch, pushNotification],
+  );
+
   const booksyGmailSync = useBooksyGmailSync({
     calendarEntries,
     clientProfiles,
@@ -1230,6 +1318,9 @@ function App() {
             supplyModalOpen={supplyModalOpen}
             taskModalOpen={taskModalOpen}
             onCalendarEntrySubmit={handleCalendarEntrySubmit}
+            isBooksySyncSubmitting={isBooksySyncSubmitting}
+            onBooksyEnqueue={handleBooksyEnqueue}
+            onBooksyRetry={handleBooksyRetry}
             onCancelCalendarAction={cancelCalendarAction}
             onCancelCalendarConflict={cancelCalendarConflict}
             onCancelDataBackup={cancelDataBackupImport}

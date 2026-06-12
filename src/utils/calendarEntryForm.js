@@ -78,6 +78,13 @@ export const buildCalendarEntryFromForm = (
           })
         : form.get("color") || "#748091",
     note: String(form.get("note") ?? "").trim(),
+    booksySyncStatus: editingCalendarEntry?.booksySyncStatus ?? "not_sent",
+    booksySyncError: editingCalendarEntry?.booksySyncError ?? "",
+    booksySyncedAt: editingCalendarEntry?.booksySyncedAt ?? "",
+    booksyLastAttemptAt: editingCalendarEntry?.booksyLastAttemptAt ?? "",
+    booksyRetryCount: editingCalendarEntry?.booksyRetryCount ?? 0,
+    booksyExternalId: editingCalendarEntry?.booksyExternalId ?? "",
+    booksyLockedAt: editingCalendarEntry?.booksyLockedAt ?? "",
   };
   const linkedEntryDraft =
     kind === "visit" ? attachClientLink(clientProfiles, entryDraft) : entryDraft;
