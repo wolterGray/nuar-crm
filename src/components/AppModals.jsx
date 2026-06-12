@@ -119,9 +119,6 @@ export default function AppModals({
   onClientPackageSubmit,
   onMessageTemplateSubmit,
   onCalendarEntrySubmit,
-  onBooksyEnqueue,
-  onBooksyRetry,
-  isBooksySyncSubmitting = false,
   onTaskSubmit,
   onSupplySubmit,
   onFinancialOperationSubmit,
@@ -334,7 +331,6 @@ export default function AppModals({
               clients={clientProfiles}
               employees={activeEmployees}
               initialEntry={editingCalendarEntry}
-              syncEntry={editingCalendarEntry}
               selectedAmount={calendarEntryDefaults.amount ?? ""}
               selectedClient={calendarEntryDefaults.client ?? ""}
               selectedDate={calendarEntryDefaults.date ?? defaultStatsDate}
@@ -348,9 +344,6 @@ export default function AppModals({
               visits={paymentRows}
               onCreateClient={onCreateCalendarClient}
               onSubmit={onCalendarEntrySubmit}
-              isBooksySyncSubmitting={isBooksySyncSubmitting}
-              onBooksyEnqueue={onBooksyEnqueue}
-              onBooksyRetry={onBooksyRetry}
             />
           </section>
         </div>

@@ -4,7 +4,6 @@ import {useForm, useWatch} from "react-hook-form";
 import {z} from "zod";
 import {isActiveClientPackage} from "../utils/clientPackages.js";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
-import BooksyOutboundSyncPanel from "./BooksyOutboundSyncPanel.jsx";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import {matchesClientRecord} from "../utils/clientLinks.js";
 import {getPackageProgressLabel, isUpcomingPackageVisit} from "../utils/packages.jsx";
@@ -103,7 +102,6 @@ const calendarEntrySchema = z
 
 function CalendarEntryForm({
   initialEntry,
-  syncEntry,
   calendarEntries,
   clients,
   clientPackages,
@@ -121,9 +119,6 @@ function CalendarEntryForm({
   selectedTime,
   onCreateClient,
   onSubmit,
-  onBooksyEnqueue,
-  onBooksyRetry,
-  isBooksySyncSubmitting = false,
 }) {
   const [clientTemplateApplied, setClientTemplateApplied] = useState(
     Boolean(initialEntry),
@@ -611,14 +606,6 @@ function CalendarEntryForm({
           rows="2"
         />
       </label>}
-      {kind === "visit" && (syncEntry || initialEntry) && (
-        <BooksyOutboundSyncPanel
-          entry={syncEntry || initialEntry}
-          isSubmitting={isBooksySyncSubmitting}
-          onEnqueue={onBooksyEnqueue}
-          onRetry={onBooksyRetry}
-        />
-      )}
       <button className="submit-button" type="submit">
         {initialEntry || kind !== "visit" ? "Сохранить" : "Добавить в календарь"}
       </button>
