@@ -70,6 +70,7 @@ export const syncBooksyGmailClient = async ({
           subject: email.subject,
           body_text: email.text,
           from_address: email.from,
+          reply_to: email.replyTo,
         },
         {employees, services},
       );

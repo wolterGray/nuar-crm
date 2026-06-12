@@ -191,6 +191,7 @@ const fetchGmailMessageList = async (accessToken, query) => {
         id,
         threadId: message.threadId,
         from: getHeader(headers, "From"),
+        replyTo: getHeader(headers, "Reply-To"),
         messageId: getHeader(headers, "Message-ID"),
         subject: getHeader(headers, "Subject"),
         receivedAt: new Date(Number(message.internalDate)).toISOString(),

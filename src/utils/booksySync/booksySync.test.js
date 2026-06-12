@@ -43,6 +43,27 @@ describe("booksyGmailParser", () => {
     expect(parsed?.confidence_score).toBeGreaterThanOrEqual(90);
   });
 
+  it("extracts Ukrainian Booksy subject with reply-to email", () => {
+    const parsed = parseBooksyGmailMessage(
+      {
+        from_address: "Pawel Zaremba <no-reply@booksy.com>",
+        reply_to: "zaremba_p@yahoo.com",
+        subject:
+          "Pawel Zaremba: нове бронювання п'ятниця, 12 червня 2026 р. о 17:45",
+        body_text: "Pawel Zaremba: нове бронювання",
+      },
+      {employees: [], services: []},
+    );
+
+    expect(parsed).toMatchObject({
+      client_name: "Pawel Zaremba",
+      client_email: "zaremba_p@yahoo.com",
+      appointment_date: "2026-06-12",
+      start_time: "17:45",
+      status: "new",
+    });
+  });
+
   it("detects cancellation emails", () => {
     const parsed = parseBooksyGmailMessage(
       {

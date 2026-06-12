@@ -33,14 +33,33 @@ const employeeAliases = {
   максим: "Максим",
 };
 
-export const BOOKSY_GMAIL_QUERY =
-  "newer_than:30d (from:booksy OR subject:Booksy) (appointment OR booking OR reservation OR wizyta OR rezerwacja OR cancelled OR changed OR rescheduled OR anulowana OR zmieniona OR potwierdzi OR nowa)";
+export const BOOKSY_GMAIL_QUERY = "newer_than:90d from:booksy.com";
 
 export const normalizeBooksyText = (value) =>
   String(value ?? "")
     .toLowerCase()
+    .replace(/[''ʼ`]/g, "'")
     .replace(/\s+/g, " ")
     .trim();
+
+const ignoredEmailPattern =
+  /(?:no-?reply|noreply|donotreply|booksy|lavandi|nuar)@/i;
+
+export const getClientEmailFromMessage = ({
+  replyTo = "",
+  from = "",
+  bodyText = "",
+} = {}) => {
+  const candidates = [
+    ...String(replyTo).matchAll(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi),
+    ...String(bodyText).matchAll(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi),
+    ...String(from).matchAll(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi),
+  ].map((match) => match[0]);
+
+  return (
+    candidates.find((email) => !ignoredEmailPattern.test(email)) ?? ""
+  );
+};
 
 export const getPhoneFromText = (text) =>
   text.match(/(?:\+?\d|\(\d{2,4}\))[\d\s()-]{6,}\d/)?.[0]?.trim() ?? "";
@@ -49,7 +68,11 @@ export const getEmailFromText = (text) =>
   text.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i)?.[0] ?? "";
 
 export const getDateMatchesFromText = (text) =>
-  [...text.matchAll(/(\d{1,2})\s+([a-zа-яąćęłńóśźżіїєґ]+)\s+(\d{4})/gi)]
+  [
+    ...text.matchAll(
+      /(\d{1,2})\s+([a-zа-яąćęłńóśźżіїєґ]+)\s+(\d{4})(?:\s*(?:r\.|р\.|rok))?/gi,
+    ),
+  ]
     .map((match) => {
       const month = monthNumbers[normalizeBooksyText(match[2])];
       return month
@@ -63,8 +86,25 @@ export const getTimeRangesFromText = (text) =>
     (match) => ({start: match[1], end: match[2]}),
   );
 
+export const getAppointmentTimeFromText = (text) => {
+  const ranges = getTimeRangesFromText(text);
+  if (ranges.length > 0) {
+    return ranges.at(-1) ?? null;
+  }
+
+  const singleTime =
+    text.match(/(?:^|[\s,.])(?:o|о|at|godz\.?|r\.?\s*o)\s*(\d{1,2}:\d{2})/i)?.[1] ??
+    text.match(/\b(\d{1,2}:\d{2})\b/)?.[1];
+
+  if (!singleTime) {
+    return null;
+  }
+
+  return {start: singleTime, end: null};
+};
+
 export const getDurationFromRange = (range) => {
-  if (!range) {
+  if (!range?.end) {
     return 60;
   }
 
@@ -149,7 +189,7 @@ const detectBooksyEventType = (text) => {
 
 export const isBooksyGmailMessage = ({from = "", subject = "", bodyText = ""}) => {
   const haystack = normalizeBooksyText(`${from}\n${subject}\n${bodyText}`);
-  return haystack.includes("booksy");
+  return haystack.includes("booksy") || haystack.includes("booksy.com");
 };
 
 export const shouldSkipBooksyMessage = (text) =>
@@ -201,6 +241,7 @@ export const parseBooksyGmailMessage = (
   const subject = String(message.subject ?? "");
   const bodyText = String(message.body_text ?? message.text ?? "");
   const from = String(message.from_address ?? message.from ?? "");
+  const replyTo = String(message.reply_to ?? message.replyTo ?? "");
   const combined = `${subject}\n${bodyText}`;
 
   if (!isBooksyGmailMessage({from, subject, bodyText})) {
@@ -213,9 +254,8 @@ export const parseBooksyGmailMessage = (
     return null;
   }
 
-  const dates = getDateMatchesFromText(combined);
-  const timeRanges = getTimeRangesFromText(combined);
-  const currentRange = timeRanges.at(-1);
+  const dates = getDateMatchesFromText(`${subject}\n${bodyText}`);
+  const currentRange = getAppointmentTimeFromText(`${subject}\n${bodyText}`);
   const eventStatus = detectBooksyEventType(normalized);
   const serviceName =
     resolveServiceName(combined, services) ||
@@ -226,7 +266,7 @@ export const parseBooksyGmailMessage = (
     source: "booksy_gmail",
     client_name: getClientNameFromEmail(subject, combined),
     client_phone: getPhoneFromText(combined),
-    client_email: getEmailFromText(combined),
+    client_email: getClientEmailFromMessage({replyTo, from, bodyText: combined}),
     service_name: serviceName,
     staff_name: resolveStaffName(combined, employees),
     appointment_date: dates.at(-1) || null,
