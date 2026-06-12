@@ -1,3 +1,4 @@
+import {endOfMonth, startOfMonth, startOfYear, subMonths} from "date-fns";
 import {formatAppDate, parseAppDate} from "../dateUtils.js";
 import {formatMoney} from "../formatters.jsx";
 import {enrichImportDocument} from "./invoiceParser.js";
@@ -7,6 +8,26 @@ const sourceLabels = {
   Allegro: "Allegro",
   iPOS: "iPOS",
   Groupon: "Groupon",
+};
+
+export const IMPORT_DOCUMENT_AMOUNT_FILTERS = {
+  all: "all",
+  withAmount: "with_amount",
+  withoutAmount: "without_amount",
+};
+
+export const IMPORT_DOCUMENT_PERIOD_FILTERS = {
+  all: "all",
+  month: "month",
+  quarter: "quarter",
+  year: "year",
+};
+
+export const DEFAULT_IMPORT_DOCUMENT_FILTERS = {
+  search: "",
+  source: "all",
+  amount: IMPORT_DOCUMENT_AMOUNT_FILTERS.all,
+  period: IMPORT_DOCUMENT_PERIOD_FILTERS.all,
 };
 
 export const formatImportDocumentDate = (value) => {
@@ -69,6 +90,150 @@ export const sortImportDocuments = (documents = []) =>
       const secondDate = second.invoiceDate || second.receivedAt || "";
       return secondDate.localeCompare(firstDate);
     });
+
+export const buildImportDocumentSearchText = (document) => {
+  const enriched = enrichImportDocument(document);
+
+  return [
+    enriched.invoiceNumber,
+    enriched.subject,
+    enriched.summary,
+    enriched.description,
+    enriched.fromLabel,
+    enriched.fromAddress,
+    enriched.source,
+    enriched.period,
+    ...(enriched.attachments ?? []).map((file) => file.filename),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+};
+
+export const matchesImportDocumentSearch = (document, search = "") => {
+  const query = String(search).trim().toLowerCase();
+
+  if (!query) {
+    return true;
+  }
+
+  return buildImportDocumentSearchText(document).includes(query);
+};
+
+export const matchesImportDocumentSource = (document, source = "all") => {
+  if (!source || source === "all") {
+    return true;
+  }
+
+  return (document.source || "Прочее") === source;
+};
+
+export const matchesImportDocumentAmount = (
+  document,
+  amountFilter = IMPORT_DOCUMENT_AMOUNT_FILTERS.all,
+) => {
+  if (!amountFilter || amountFilter === IMPORT_DOCUMENT_AMOUNT_FILTERS.all) {
+    return true;
+  }
+
+  const hasAmount = Number(document.amount) > 0;
+
+  if (amountFilter === IMPORT_DOCUMENT_AMOUNT_FILTERS.withAmount) {
+    return hasAmount;
+  }
+
+  if (amountFilter === IMPORT_DOCUMENT_AMOUNT_FILTERS.withoutAmount) {
+    return !hasAmount;
+  }
+
+  return true;
+};
+
+export const getImportDocumentFilterDate = (document) => {
+  const enriched = enrichImportDocument(document);
+  const rawDate = enriched.invoiceDate || enriched.receivedAt || "";
+
+  return parseAppDate(rawDate.slice(0, 10));
+};
+
+export const matchesImportDocumentPeriod = (
+  document,
+  periodFilter = IMPORT_DOCUMENT_PERIOD_FILTERS.all,
+  today = new Date(),
+) => {
+  if (!periodFilter || periodFilter === IMPORT_DOCUMENT_PERIOD_FILTERS.all) {
+    return true;
+  }
+
+  const date = getImportDocumentFilterDate(document);
+
+  if (!date) {
+    return false;
+  }
+
+  if (periodFilter === IMPORT_DOCUMENT_PERIOD_FILTERS.month) {
+    return date >= startOfMonth(today) && date <= endOfMonth(today);
+  }
+
+  if (periodFilter === IMPORT_DOCUMENT_PERIOD_FILTERS.quarter) {
+    return date >= startOfMonth(subMonths(today, 2)) && date <= endOfMonth(today);
+  }
+
+  if (periodFilter === IMPORT_DOCUMENT_PERIOD_FILTERS.year) {
+    return date >= startOfYear(today) && date <= endOfMonth(today);
+  }
+
+  return true;
+};
+
+export const getImportDocumentSourceOptions = (documents = []) => {
+  const counts = new Map();
+
+  sortImportDocuments(documents).forEach((document) => {
+    const source = document.source || "Прочее";
+    counts.set(source, (counts.get(source) ?? 0) + 1);
+  });
+
+  return [...counts.entries()]
+    .map(([value, count]) => ({
+      value,
+      label: getImportDocumentSourceLabel({source: value}),
+      count,
+    }))
+    .sort((first, second) => first.label.localeCompare(second.label, "ru"));
+};
+
+export const hasActiveImportDocumentFilters = (filters = DEFAULT_IMPORT_DOCUMENT_FILTERS) =>
+  Boolean(filters.search?.trim()) ||
+  filters.source !== DEFAULT_IMPORT_DOCUMENT_FILTERS.source ||
+  filters.amount !== DEFAULT_IMPORT_DOCUMENT_FILTERS.amount ||
+  filters.period !== DEFAULT_IMPORT_DOCUMENT_FILTERS.period;
+
+export const filterImportDocuments = (
+  documents = [],
+  filters = DEFAULT_IMPORT_DOCUMENT_FILTERS,
+) =>
+  sortImportDocuments(documents).filter(
+    (document) =>
+      matchesImportDocumentSearch(document, filters.search) &&
+      matchesImportDocumentSource(document, filters.source) &&
+      matchesImportDocumentAmount(document, filters.amount) &&
+      matchesImportDocumentPeriod(document, filters.period),
+  );
+
+export const summarizeImportDocuments = (documents = []) => {
+  const sorted = sortImportDocuments(documents);
+
+  return {
+    total: sorted.length,
+    withAmount: sorted.filter((document) => Number(document.amount) > 0).length,
+    amountTotal: sorted.reduce(
+      (total, document) => total + (Number(document.amount) || 0),
+      0,
+    ),
+    sources: new Set(sorted.map((document) => document.source)).size,
+  };
+};
 
 export const getImportDocumentMetaRows = (document) => {
   const enriched = enrichImportDocument(document);

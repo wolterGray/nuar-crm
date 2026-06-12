@@ -711,6 +711,10 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .import-document-search {
+    max-width: none;
+  }
+
   .supply-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
