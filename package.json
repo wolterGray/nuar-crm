@@ -11,7 +11,8 @@
     "test": "vitest run",
     "deploy:booksy-gmail": "npx supabase functions deploy booksy-gmail-oauth && npx supabase functions deploy booksy-gmail-sync && npx supabase functions deploy booksy-gmail-events",
     "deploy:sms-reminders": "npx supabase functions deploy visit-sms-reminders",
-    "deploy:telegram-digest": "npx supabase functions deploy telegram-daily-digest"
+    "deploy:telegram-digest": "npx supabase functions deploy telegram-daily-digest",
+    "deploy:review-requests": "npx supabase functions deploy visit-review-requests"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

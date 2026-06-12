@@ -14,12 +14,14 @@ import {useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import PageHeader from "../PageHeader.jsx";
 import SiteAdminPanel from "../SiteAdminPanel.jsx";
+import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 
 function SettingsPage({
   initialTab = "interface",
   settings,
+  reviewRequests = null,
   smsReminders = null,
   telegramDigest = null,
   pushNotification,
@@ -337,6 +339,79 @@ function SettingsPage({
                   placeholder="123456789"
                 />
                 <small>Можно задать в Supabase Secret TELEGRAM_CHAT_ID вместо этого поля</small>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="reviewRequestsEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.reviewRequestsEnabled ?? false}
+                />
+                <span>
+                  Запрос отзыва после визита
+                  <small>Авто-SMS через N часов после завершённого визита</small>
+                </span>
+              </label>
+              <label>
+                Задержка после визита, часов
+                <input
+                  min="1"
+                  name="reviewRequestDelayHours"
+                  type="number"
+                  defaultValue={settings.reviewRequestDelayHours ?? 2}
+                />
+              </label>
+              <label>
+                Ссылка Google Maps
+                <input
+                  name="reviewGoogleUrl"
+                  defaultValue={settings.reviewGoogleUrl ?? ""}
+                  placeholder="https://g.page/nuar/review"
+                />
+              </label>
+              <label>
+                Ссылка Booksy
+                <input
+                  name="reviewBooksyUrl"
+                  defaultValue={settings.reviewBooksyUrl ?? ""}
+                  placeholder="https://booksy.com/..."
+                />
+              </label>
+              <label>
+                Основная ссылка в SMS
+                <input
+                  name="reviewPrimaryUrl"
+                  defaultValue={settings.reviewPrimaryUrl ?? ""}
+                  placeholder="Если пусто — Google, затем Booksy"
+                />
+              </label>
+              <label>
+                Шаблон SMS с отзывом
+                <textarea
+                  name="reviewRequestTemplate"
+                  defaultValue={settings.reviewRequestTemplate ?? ""}
+                  rows="3"
+                />
+                <small>{`Плейсхолдеры: {name}, {reviewUrl}, {googleUrl}, {booksyUrl}, {service}, {master}, {studio}`}</small>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="reviewRequestAutoProcessEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.reviewRequestAutoProcessEnabled ?? true}
+                />
+                <span>
+                  Автопроверка запросов отзывов
+                  <small>Каждые N минут отправлять due-запросы при открытой CRM</small>
+                </span>
+              </label>
+              <label>
+                Интервал автопроверки отзывов, мин
+                <input
+                  min="10"
+                  name="reviewRequestAutoProcessMinutes"
+                  type="number"
+                  defaultValue={settings.reviewRequestAutoProcessMinutes ?? 15}
+                />
               </label>
               <label className="toggle-row">
                 <input
@@ -659,6 +734,15 @@ function SettingsPage({
               onPreview={smsReminders.runPreview}
               onProcess={smsReminders.runProcess}
               onRefreshStatus={smsReminders.refreshStatus}
+            />
+          ) : null}
+          {reviewRequests ? (
+            <ReviewRequestsPanel
+              pushNotification={pushNotification}
+              status={reviewRequests.status}
+              onPreview={reviewRequests.runPreview}
+              onProcess={reviewRequests.runProcess}
+              onRefreshStatus={reviewRequests.refreshStatus}
             />
           ) : null}
           {telegramDigest ? (

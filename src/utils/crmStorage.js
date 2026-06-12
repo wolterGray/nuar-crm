@@ -14,6 +14,7 @@ import {
   CLIENT_PACKAGES_STORAGE_KEY,
   CERTIFICATES_STORAGE_KEY,
   SMS_REMINDER_LOG_STORAGE_KEY,
+  REVIEW_REQUEST_LOG_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,
@@ -177,6 +178,21 @@ export const loadStoredCertificates = () => {
 export const loadStoredSmsReminderLog = () => {
   try {
     const storedLog = window.localStorage.getItem(SMS_REMINDER_LOG_STORAGE_KEY);
+
+    if (!storedLog) {
+      return [];
+    }
+
+    const parsedLog = JSON.parse(storedLog);
+    return Array.isArray(parsedLog) ? parsedLog : [];
+  } catch {
+    return [];
+  }
+};
+
+export const loadStoredReviewRequestLog = () => {
+  try {
+    const storedLog = window.localStorage.getItem(REVIEW_REQUEST_LOG_STORAGE_KEY);
 
     if (!storedLog) {
       return [];
@@ -354,6 +370,7 @@ export {
   CLIENT_PACKAGES_STORAGE_KEY,
   CERTIFICATES_STORAGE_KEY,
   SMS_REMINDER_LOG_STORAGE_KEY,
+  REVIEW_REQUEST_LOG_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,

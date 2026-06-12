@@ -5,6 +5,8 @@ import AppShell from "./components/AppShell.jsx";
 import AppNavigation from "./components/AppNavigation.jsx";
 import NotificationDrawer from "./components/NotificationDrawer.jsx";
 import AppModals from "./components/AppModals.jsx";
+import ClientSearchDialog from "./components/ClientSearchDialog.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import ToastStack from "./components/ToastStack.jsx";
 import {PageNotificationsProvider} from "./components/PageNotifications.jsx";
 import "./styles/index.css";
@@ -16,7 +18,7 @@ import {
 import AppRoutes from "./components/AppRoutes.jsx";
 import {supabase} from "./lib/supabase.js";
 import {publishServicesToSite} from "./utils/siteSync.js";
-import {mobileNavItems, navItems} from "./constants/navigation.js";
+import {navItems} from "./constants/navigation.js";
 import {
   ACTIVE_PAGE_STORAGE_KEY,
   ALERT_FILTER_STORAGE_KEY,
@@ -42,6 +44,7 @@ import {
   loadStoredServices,
   loadStoredSettings,
   loadStoredSmsReminderLog,
+  loadStoredReviewRequestLog,
   normalizeStoredSettings,
   IMPORT_DOCUMENTS_STORAGE_KEY,
   IMPORTED_MAIL_IDS_STORAGE_KEY,
@@ -55,6 +58,7 @@ import {openSupplyOrderUrl} from "./utils/supplyOrder.js";
 import {resolveClientPackageStatus} from "./utils/clientPackages.js";
 import {resolveColorTheme} from "./utils/colorTheme.js";
 import {syncCertificateStatus} from "./utils/certificates.js";
+import {buildClientSearchIndex} from "./utils/clientSearch.js";
 import {applyCrmSnapshot, buildCloudSnapshot} from "./utils/cloudSnapshot.js";
 import {useCloudSync} from "./hooks/useCloudSync.js";
 import {useCloudSaveActions} from "./hooks/useCloudSaveActions.js";
@@ -77,7 +81,10 @@ import {
   removeImportDocumentsByIds,
 } from "./utils/importDocuments.js";
 import {useBooksyGmailSync} from "./hooks/useBooksyGmailSync.js";
+import {useReviewRequests} from "./hooks/useReviewRequests.js";
 import {useSmsReminders} from "./hooks/useSmsReminders.js";
+import {useAppRouting} from "./hooks/useAppRouting.js";
+import {useClientSearch} from "./hooks/useClientSearch.js";
 import {useTelegramDigest} from "./hooks/useTelegramDigest.js";
 import {useToastNotifications} from "./hooks/useToastNotifications.js";
 import {useAuth} from "./hooks/useAuth.js";
@@ -104,6 +111,7 @@ function App() {
     () => getInitialCrmCollections().certificates ?? [],
   );
   const [smsReminderLog, setSmsReminderLog] = useState(loadStoredSmsReminderLog);
+  const [reviewRequestLog, setReviewRequestLog] = useState(loadStoredReviewRequestLog);
   const [messageTemplates, setMessageTemplates] = useState(
     loadStoredMessageTemplates,
   );
@@ -133,7 +141,7 @@ function App() {
       deserialize: (value) => normalizeStoredSettings(JSON.parse(value)),
     },
   );
-  const [activePage, setActivePage] = usePersistentState(
+  const [activePage, setActivePageState] = usePersistentState(
     ACTIVE_PAGE_STORAGE_KEY,
     loadStoredActivePage,
     {
@@ -145,6 +153,7 @@ function App() {
       serialize: (value) => value,
     },
   );
+  const setActivePage = useAppRouting(activePage, setActivePageState);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
@@ -381,6 +390,7 @@ function App() {
     serviceCatalog,
     supplies,
     smsReminderLog,
+    reviewRequestLog,
     tasks,
     visits,
   });
@@ -420,6 +430,7 @@ function App() {
         serviceCatalog,
         supplies,
         smsReminderLog,
+        reviewRequestLog,
         tasks,
         visits,
       }),
@@ -442,6 +453,7 @@ function App() {
       serviceCatalog,
       supplies,
       smsReminderLog,
+      reviewRequestLog,
       tasks,
       visits,
     ],
@@ -474,6 +486,7 @@ function App() {
         setPackagesCatalog,
         setServiceCatalog,
         setSmsReminderLog,
+        setReviewRequestLog,
         setSupplies,
         setTasks,
         setVisits,
@@ -560,6 +573,7 @@ function App() {
       settings: appSettings,
       supplies,
       smsReminderLog,
+      reviewRequestLog,
       tasks,
       visits,
     }),
@@ -581,6 +595,7 @@ function App() {
       serviceCatalog,
       supplies,
       smsReminderLog,
+      reviewRequestLog,
       tasks,
       visits,
     ],
@@ -604,6 +619,7 @@ function App() {
       setPackagesCatalog,
       setServiceCatalog,
       setSmsReminderLog,
+      setReviewRequestLog,
       setSupplies,
       setTasks,
       setVisits,
@@ -625,6 +641,7 @@ function App() {
       setPackagesCatalog,
       setServiceCatalog,
       setSmsReminderLog,
+      setReviewRequestLog,
       setSupplies,
       setTasks,
       setVisits,
@@ -673,6 +690,17 @@ function App() {
     smsReminderLog,
   });
 
+  const reviewRequests = useReviewRequests({
+    appSettings,
+    authSession,
+    calendarEntries,
+    clientProfiles,
+    cloudHydrated,
+    onRemoteSnapshotRefresh: applyRemoteSnapshot,
+    pushNotification,
+    reviewRequestLog,
+  });
+
   const telegramDigest = useTelegramDigest({
     appSettings,
     authSession,
@@ -686,6 +714,17 @@ function App() {
     pushNotification,
     visits,
   });
+
+  const clientSearch = useClientSearch();
+  const clientSearchIndex = useMemo(
+    () =>
+      buildClientSearchIndex({
+        calendarEntries,
+        clientProfiles,
+        visits,
+      }),
+    [calendarEntries, clientProfiles, visits],
+  );
 
   const entityDeleteHandlersRef = useRef({});
   const {
@@ -1063,6 +1102,26 @@ function App() {
     [setActivePage],
   );
 
+  const openClientFromSearch = useCallback(
+    (client) => {
+      setActivePage("clients");
+      setAlertFocus({
+        entityId: client.id,
+        type: "client",
+      });
+      clientSearch.close();
+    },
+    [clientSearch, setActivePage],
+  );
+
+  const messageClientFromSearch = useCallback(
+    (client) => {
+      openClientMessageTemplates(client);
+      clientSearch.close();
+    },
+    [clientSearch, openClientMessageTemplates],
+  );
+
   const handleAlertAction = useCallback(
     (alert, action) => {
       switch (action) {
@@ -1276,11 +1335,11 @@ function App() {
       navigation={
         <AppNavigation
           activePage={activePage}
-          mobileNavItems={mobileNavItems}
           ownerName={appSettings.ownerName}
           sidebarVisible={appSettings.sidebarVisible}
           studioName={appSettings.studioName}
           onLogout={handleLogout}
+          onOpenClientSearch={clientSearch.open}
           onPageChange={setActivePage}
           onSidebarVisibleChange={(sidebarVisible) =>
             setAppSettings((current) => ({...current, sidebarVisible}))
@@ -1415,6 +1474,13 @@ function App() {
             onSupplySubmit={handleSupplySubmit}
             onTaskSubmit={handleTaskSubmit}
           />
+          <ClientSearchDialog
+            clients={clientSearchIndex}
+            isOpen={clientSearch.isOpen}
+            onClose={clientSearch.close}
+            onMessageClient={messageClientFromSearch}
+            onOpenClient={openClientFromSearch}
+          />
           <ToastStack
             notifications={notifications}
             onAction={handleToastAction}
@@ -1445,7 +1511,8 @@ function App() {
             notificationSlot,
           )}
         <PageNotificationsProvider onSlotChange={setNotificationSlot}>
-          <AppRoutes
+          <ErrorBoundary>
+            <AppRoutes
             activePage={activePage}
             alertFocus={alertFocus}
             alertSummary={alertSummary}
@@ -1525,6 +1592,7 @@ function App() {
             packagesCatalog={packagesCatalog}
             paymentFilters={paymentFilters}
             paymentRows={paymentRows}
+            reviewRequests={reviewRequests}
             smsReminders={smsReminders}
             telegramDigest={telegramDigest}
             preferredMessageClientId={preferredMessageClientId}
@@ -1559,6 +1627,7 @@ function App() {
             }
             openPaymentActionMenuId={openPaymentActionMenuId}
           />
+          </ErrorBoundary>
         </PageNotificationsProvider>
     </AppShell>
     </AppGate>

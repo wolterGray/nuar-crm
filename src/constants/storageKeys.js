@@ -7,6 +7,7 @@ export const PACKAGES_STORAGE_KEY = "nuar-crm-packages-2026-05-import";
 export const CLIENT_PACKAGES_STORAGE_KEY = "nuar-crm-client-packages-2026-05-import";
 export const CERTIFICATES_STORAGE_KEY = "nuar-crm-certificates-2026-06";
 export const SMS_REMINDER_LOG_STORAGE_KEY = "nuar-crm-sms-reminder-log";
+export const REVIEW_REQUEST_LOG_STORAGE_KEY = "nuar-crm-review-request-log";
 export const MESSAGE_TEMPLATES_STORAGE_KEY = "nuar-crm-message-templates";
 export const CALENDAR_ENTRIES_STORAGE_KEY = "nuar-crm-calendar-entries";
 export const DISMISSED_CLIENT_ALERTS_STORAGE_KEY =

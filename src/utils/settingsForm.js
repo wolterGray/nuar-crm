@@ -45,6 +45,22 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
     defaultAppSettings.telegramDigestTime,
   telegramChatId: String(form.get("telegramChatId") ?? "").trim(),
   telegramDigestLastRunAt: appSettings.telegramDigestLastRunAt ?? "",
+  reviewRequestsEnabled: form.get("reviewRequestsEnabled") === "on",
+  reviewRequestDelayHours:
+    Math.max(1, Number(form.get("reviewRequestDelayHours"))) ||
+    defaultAppSettings.reviewRequestDelayHours,
+  reviewRequestTemplate:
+    String(form.get("reviewRequestTemplate") ?? "").trim() ||
+    defaultAppSettings.reviewRequestTemplate,
+  reviewGoogleUrl: String(form.get("reviewGoogleUrl") ?? "").trim(),
+  reviewBooksyUrl: String(form.get("reviewBooksyUrl") ?? "").trim(),
+  reviewPrimaryUrl: String(form.get("reviewPrimaryUrl") ?? "").trim(),
+  reviewRequestAutoProcessEnabled:
+    form.get("reviewRequestAutoProcessEnabled") === "on",
+  reviewRequestAutoProcessMinutes:
+    Math.max(10, Number(form.get("reviewRequestAutoProcessMinutes"))) ||
+    defaultAppSettings.reviewRequestAutoProcessMinutes,
+  reviewRequestLastRunAt: appSettings.reviewRequestLastRunAt ?? "",
   forecastAlertsEnabled: form.get("forecastAlertsEnabled") === "on",
   alertAggregationEnabled: form.get("alertAggregationEnabled") === "on",
   quietHoursEnabled: form.get("quietHoursEnabled") === "on",

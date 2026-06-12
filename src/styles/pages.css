@@ -2102,3 +2102,245 @@ button:focus-visible {
   }
 }
 
+.client-search-backdrop {
+  z-index: 120;
+}
+
+.client-search-dialog {
+  width: min(100%, 560px);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgba(17, 19, 24, 0.24);
+  overflow: hidden;
+}
+
+.client-search-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(17, 19, 24, 0.08);
+}
+
+.client-search-header input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #15171c;
+  font-size: 16px;
+}
+
+.client-search-results {
+  max-height: min(52vh, 420px);
+  overflow: auto;
+  padding: 8px;
+}
+
+.client-search-results ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.client-search-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  border-radius: 12px;
+}
+
+.client-search-item.active {
+  background: rgba(63, 42, 99, 0.08);
+}
+
+.client-search-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+}
+
+.client-search-row:hover,
+.client-search-item.active .client-search-row {
+  background: rgba(63, 42, 99, 0.06);
+}
+
+.client-search-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(63, 42, 99, 0.1);
+  color: #5b4b7a;
+}
+
+.client-search-copy strong {
+  display: block;
+  font-size: 14px;
+}
+
+.client-search-copy small {
+  display: block;
+  margin-top: 2px;
+  color: #667085;
+  font-size: 12px;
+}
+
+.client-search-message {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(17, 19, 24, 0.08);
+  border-radius: 10px;
+  background: #fff;
+  color: #353941;
+}
+
+.client-search-empty {
+  margin: 0;
+  padding: 18px 12px;
+  color: #667085;
+  font-size: 13px;
+}
+
+.client-search-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 12px 16px 16px;
+  border-top: 1px solid rgba(17, 19, 24, 0.08);
+  color: #667085;
+  font-size: 11px;
+}
+
+.client-search-trigger {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  text-align: left;
+}
+
+.client-search-trigger kbd {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+}
+
+.theme-dark .client-search-dialog {
+  background: #111722;
+}
+
+.theme-dark .client-search-header,
+.theme-dark .client-search-footer {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .client-search-header input {
+  color: #eef4fb;
+}
+
+.theme-dark .client-search-message {
+  background: #171d29;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #eef4fb;
+}
+
+.app-error-boundary {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: #f5f6f8;
+}
+
+.app-error-boundary-card {
+  width: min(100%, 520px);
+  padding: 28px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgba(17, 19, 24, 0.12);
+  text-align: center;
+}
+
+.app-error-boundary-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  background: rgba(217, 154, 154, 0.16);
+  color: #b42318;
+}
+
+.app-error-boundary-card h1 {
+  margin: 0 0 10px;
+  font-size: 24px;
+}
+
+.app-error-boundary-card p {
+  margin: 0;
+  color: #667085;
+  line-height: 1.5;
+}
+
+.app-error-boundary-details {
+  margin: 16px 0 0;
+  padding: 12px;
+  overflow: auto;
+  border-radius: 12px;
+  background: rgba(17, 19, 24, 0.05);
+  color: #353941;
+  font-size: 12px;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.app-error-boundary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.theme-dark .app-error-boundary {
+  background: #0b0c0f;
+}
+
+.theme-dark .app-error-boundary-card {
+  background: #111722;
+}
+
+.theme-dark .app-error-boundary-card p,
+.theme-dark .app-error-boundary-details {
+  color: #c5cad3;
+}
+
+.theme-dark .app-error-boundary-details {
+  background: rgba(255, 255, 255, 0.05);
+}
+

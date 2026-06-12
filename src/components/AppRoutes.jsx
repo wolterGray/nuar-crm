@@ -207,6 +207,7 @@ export default function AppRoutes({activePage, ...props}) {
           lastCloudSyncAt={props.lastCloudSyncAt}
           lastCloudSyncError={props.lastCloudSyncError}
           settings={props.appSettings}
+          reviewRequests={props.reviewRequests}
           smsReminders={props.smsReminders}
           telegramDigest={props.telegramDigest}
           pushNotification={props.pushNotification}
@@ -231,6 +232,7 @@ export default function AppRoutes({activePage, ...props}) {
           lastCloudSyncAt={props.lastCloudSyncAt}
           lastCloudSyncError={props.lastCloudSyncError}
           settings={props.appSettings}
+          reviewRequests={props.reviewRequests}
           smsReminders={props.smsReminders}
           telegramDigest={props.telegramDigest}
           pushNotification={props.pushNotification}

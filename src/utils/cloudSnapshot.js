@@ -26,6 +26,7 @@ export const applyCrmSnapshot = (
     setServiceCatalog,
     setSupplies,
     setSmsReminderLog,
+    setReviewRequestLog,
     setTasks,
     setVisits,
   },
@@ -93,6 +94,9 @@ export const applyCrmSnapshot = (
   if (Array.isArray(snapshot.smsReminderLog)) {
     setSmsReminderLog(snapshot.smsReminderLog);
   }
+  if (Array.isArray(snapshot.reviewRequestLog)) {
+    setReviewRequestLog(snapshot.reviewRequestLog);
+  }
   if (snapshot.settings && typeof snapshot.settings === "object") {
     const safeSettings = {...snapshot.settings};
     delete safeSettings.authLogin;
@@ -126,6 +130,7 @@ export const buildCloudSnapshot = ({
   packagesCatalog,
   serviceCatalog,
   smsReminderLog,
+  reviewRequestLog,
   supplies,
   tasks,
   visits,
@@ -149,6 +154,7 @@ export const buildCloudSnapshot = ({
   importDocuments,
   importedMailIds,
   smsReminderLog,
+  reviewRequestLog,
   autoCompletedCalendarEntryIds,
   settings: appSettings,
 });

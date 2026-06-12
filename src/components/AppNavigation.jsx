@@ -4,12 +4,14 @@ import {
   MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
+  Search,
   X,
 } from "lucide-react";
 import {mobileNavItems, navGroups, navItems} from "../constants/navigation.js";
 
 export default function AppNavigation({
   activePage,
+  onOpenClientSearch,
   sidebarVisible,
   onPageChange,
   onSidebarVisibleChange,
@@ -66,6 +68,14 @@ export default function AppNavigation({
         </button>
 
         <nav className="nav-list" aria-label="Главное меню">
+          <button
+            className="client-search-trigger"
+            type="button"
+            onClick={onOpenClientSearch}>
+            <Search size={18} />
+            <span>Поиск клиентов</span>
+            <kbd>{typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform) ? "⌘K" : "Ctrl+K"}</kbd>
+          </button>
           {navGroups.map((group, groupIndex) => (
             <div className="nav-group" key={group.id}>
               {groupIndex > 0 ? <span aria-hidden="true" className="nav-group-divider" /> : null}

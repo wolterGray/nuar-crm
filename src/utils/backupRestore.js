@@ -34,6 +34,11 @@ export const restoreBackupSnapshot = (
       Array.isArray(backup.smsReminderLog) ? backup.smsReminderLog : [],
     );
   }
+  if (setters.setReviewRequestLog) {
+    setters.setReviewRequestLog(
+      Array.isArray(backup.reviewRequestLog) ? backup.reviewRequestLog : [],
+    );
+  }
   setters.setMessageTemplates(backup.messageTemplates);
   setters.setCalendarEntries(migrated.calendarEntries);
   setters.setDismissedClientAlertIds(
