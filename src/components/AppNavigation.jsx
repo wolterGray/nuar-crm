@@ -116,7 +116,7 @@ export default function AppNavigation({
 
       {sidebarVisible && (
         <section className="mobile-more-sheet" aria-label="Все разделы">
-          <div>
+          <div className="mobile-more-sheet-header">
             <strong>Разделы</strong>
             <button
               aria-label="Закрыть разделы"

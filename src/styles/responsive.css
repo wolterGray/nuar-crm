@@ -251,21 +251,25 @@
     z-index: 57;
     display: grid;
     gap: 12px;
+    max-height: min(72dvh, 560px);
     padding: 14px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     border: 1px solid #e5e5e3;
     border-radius: 14px;
     background: #fff;
     box-shadow: 0 20px 52px rgba(17, 19, 24, 0.22);
   }
 
-  .mobile-more-sheet > div {
+  .mobile-more-sheet-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
   }
 
-  .mobile-more-sheet > div button {
+  .mobile-more-sheet-header button {
     display: grid;
     width: 32px;
     height: 32px;
@@ -276,23 +280,45 @@
     background: #f4f1eb;
   }
 
+  .mobile-more-group {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .mobile-more-group-label {
+    padding: 0 2px;
+  }
+
+  .mobile-more-group nav,
   .mobile-more-sheet nav {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
+    gap: 8px;
+    width: 100%;
   }
 
   .mobile-more-sheet nav button {
     display: grid;
-    min-height: 62px;
+    min-width: 0;
+    min-height: 72px;
     place-items: center;
     align-content: center;
-    gap: 5px;
+    gap: 6px;
+    padding: 8px 6px;
     border: 0;
-    border-radius: 9px;
+    border-radius: 10px;
     color: #59616d;
     background: #f7f7f6;
     font-size: 11px;
+  }
+
+  .mobile-more-sheet nav button span {
+    overflow: hidden;
+    width: 100%;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .mobile-more-sheet nav button.active {
@@ -305,10 +331,15 @@
     background: #1a202b;
   }
 
-  .theme-dark .mobile-more-sheet > div button,
+  .theme-dark .mobile-more-sheet-header button,
   .theme-dark .mobile-more-sheet nav button {
     color: #d5dfec;
     background: #111722;
+  }
+
+  .theme-dark .mobile-more-sheet nav button.active {
+    color: #f1d4ac;
+    background: rgba(210, 173, 125, 0.14);
   }
 
   .content {
