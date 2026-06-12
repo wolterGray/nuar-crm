@@ -714,7 +714,7 @@ button:focus-visible {
 
   .content:not(.calendar-content),
   .visits-content {
-    padding: 14px 12px calc(94px + env(safe-area-inset-bottom));
+    padding: 14px 12px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
   }
 
   .page-header,

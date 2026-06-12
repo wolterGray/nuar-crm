@@ -1,0 +1,335 @@
+/* Mobile polish layer — loaded last. Breakpoint matches responsive.css (700px). */
+
+@media (max-width: 700px) {
+  /* Shared touch targets */
+  .add-visit-button,
+  .secondary-button,
+  .danger-button,
+  .submit-button,
+  .google-login-button,
+  .modal-close,
+  .row-action,
+  .calendar-icon-button,
+  .date-button,
+  .settings-tabs button,
+  .operations-tabs button,
+  .client-alert-filter-chips button,
+  .import-document-reset,
+  .import-document-delete-bulk,
+  .clients-toolbar-actions .add-visit-button,
+  .page-header-unified-actions .add-visit-button,
+  .employees-toolbar .add-visit-button,
+  .import-toolbar-actions .add-visit-button,
+  .operations-panel-header .add-visit-button,
+  .client-details-actions button,
+  .client-details-actions a,
+  .client-mobile-quick-actions button,
+  .quick-note-form .add-visit-button,
+  .quick-note-form select {
+    min-height: var(--mobile-touch-target, 44px);
+  }
+
+  .compact-icon-button,
+  .import-document-card-link,
+  .import-document-delete {
+    width: var(--mobile-touch-target, 44px);
+    height: var(--mobile-touch-target, 44px);
+  }
+
+  .clients-search,
+  .import-document-search {
+    min-height: var(--mobile-touch-target, 44px);
+  }
+
+  .clients-search input,
+  .import-document-search input,
+  .quick-note-form input,
+  .settings-form input,
+  .settings-form select,
+  .settings-form textarea,
+  .employee-form input,
+  .employee-form select,
+  .employee-form textarea,
+  .catalog-form input,
+  .catalog-form select,
+  .catalog-form textarea,
+  .message-template-form input,
+  .message-template-form select,
+  .message-template-form textarea {
+    min-height: var(--mobile-touch-target, 44px);
+  }
+
+  /* Page headers */
+  .page-header-unified-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+  }
+
+  .page-header-unified-side {
+    justify-self: end;
+  }
+
+  .clients-page .page-header-unified-actions .clients-search,
+  .clients-page .page-header-unified-actions .add-visit-button {
+    width: 100%;
+  }
+
+  /* Forms: single column on phones */
+  .form-split,
+  .client-form-modal .form-split,
+  .financial-operation-form,
+  .calendar-entry-grid,
+  .calendar-entry-money-grid,
+  .calendar-entry-time-grid,
+  .message-template-form-grid,
+  .settings-options-grid,
+  .catalog-price-grid,
+  .send-channel-control {
+    grid-template-columns: 1fr !important;
+  }
+
+  .calendar-entry-service-field,
+  .calendar-entry-package-field {
+    grid-column: 1 / -1;
+  }
+
+  /* Modals: bottom sheets with internal scroll */
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) {
+    display: flex;
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top) - 8px);
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) > :not(.modal-header) {
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) form,
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form-panel,
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .catalog-form,
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .message-template-form,
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .new-client-panel {
+    min-height: 0;
+  }
+
+  .confirm-dialog {
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top) - 8px);
+    overflow-y: auto;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .theme-dark :is(
+      .employee-modal,
+      .client-form-modal,
+      .catalog-modal,
+      .message-template-modal,
+      .send-template-modal,
+      .client-details-modal,
+      .confirm-dialog
+    ):not(.calendar-entry-modal),
+  .theme-light :is(
+      .employee-modal,
+      .client-form-modal,
+      .catalog-modal,
+      .message-template-modal,
+      .send-template-modal,
+      .client-details-modal,
+      .confirm-dialog
+    ):not(.calendar-entry-modal) {
+    border-radius: 12px 12px 0 0 !important;
+  }
+
+  .theme-dark .calendar-entry-modal,
+  .theme-light .calendar-entry-modal {
+    border-radius: 0 !important;
+  }
+
+  /* Settings sticky save */
+  .settings-page {
+    padding-bottom: calc(var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom))) + 56px);
+  }
+
+  .settings-save-bar {
+    position: sticky;
+    bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+    z-index: 45;
+    margin-top: 8px;
+    padding: 10px 0 calc(8px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--app-bg, #f7f7f6) 92%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .theme-dark .settings-save-bar {
+    background: color-mix(in srgb, var(--app-bg, #10141c) 92%, transparent);
+  }
+
+  .settings-save-bar .submit-button {
+    width: 100%;
+  }
+
+  /* Import / Booksy */
+  .import-summary,
+  .import-summary-documents {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .import-document-toolbar {
+    display: grid;
+    gap: 12px;
+  }
+
+  .import-document-filters {
+    display: grid;
+    gap: 12px;
+  }
+
+  .import-document-filter-group .client-alert-filter-chips,
+  .message-template-filters .client-alert-filter-chips {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .import-document-filter-group .client-alert-filter-chips::-webkit-scrollbar,
+  .message-template-filters .client-alert-filter-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .import-document-reset,
+  .import-document-delete-bulk {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .import-row.booksy-sync-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .booksy-sync-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .booksy-sync-actions button,
+  .booksy-sync-actions select {
+    width: 100%;
+    min-width: 0;
+    min-height: var(--mobile-touch-target, 44px);
+  }
+
+  .import-document-card-header {
+    align-items: flex-start;
+  }
+
+  .import-document-card-actions {
+    flex-shrink: 0;
+  }
+
+  /* Operations / supplies */
+  .operations-header-actions,
+  .operations-tabs,
+  .operations-panel-header,
+  .quick-note-form {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .operations-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quick-note-form {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-note-form input,
+  .quick-note-form select,
+  .quick-note-form .add-visit-button {
+    width: 100%;
+  }
+
+  .supply-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .supply-actions > button {
+    width: 100%;
+    min-height: var(--mobile-touch-target, 44px);
+  }
+
+  /* Tables / lists */
+  .payments-content .table-filters {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .schedule-panel {
+    scroll-padding-bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+  }
+
+  .calendar-reminders {
+    bottom: calc(150px + env(safe-area-inset-bottom));
+    max-height: min(52dvh, 460px);
+  }
+
+  /* Packages / catalog cards */
+  .client-package-card,
+  .catalog-row-card,
+  .employee-card {
+    gap: 10px;
+  }
+
+  .employee-actions,
+  .catalog-row-card .employee-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .employee-actions .compact-icon-button,
+  .catalog-row-card .employee-actions .compact-icon-button {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .import-summary,
+  .import-summary-documents,
+  .statistics-kpi-grid,
+  .statistics-today-grid,
+  .statistics-income-strip,
+  .employee-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-more-sheet nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
