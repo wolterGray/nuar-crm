@@ -14,6 +14,7 @@ import {useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import PageHeader from "../PageHeader.jsx";
 import SiteAdminPanel from "../SiteAdminPanel.jsx";
+import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
 import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
@@ -22,6 +23,7 @@ function SettingsPage({
   initialTab = "interface",
   settings,
   reviewRequests = null,
+  inactiveFollowUp = null,
   smsReminders = null,
   telegramDigest = null,
   pushNotification,
@@ -415,6 +417,86 @@ function SettingsPage({
               </label>
               <label className="toggle-row">
                 <input
+                  name="inactiveFollowUpEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.inactiveFollowUpEnabled ?? false}
+                />
+                <span>
+                  Follow-up неактивных клиентов
+                  <small>Авто-SMS через 14, 30 и 60 дней без визита</small>
+                </span>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="inactiveFollowUp14Enabled"
+                  type="checkbox"
+                  defaultChecked={settings.inactiveFollowUp14Enabled ?? true}
+                />
+                <span>SMS через 14 дней без визита</span>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="inactiveFollowUp30Enabled"
+                  type="checkbox"
+                  defaultChecked={settings.inactiveFollowUp30Enabled ?? true}
+                />
+                <span>SMS через 30 дней</span>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="inactiveFollowUp60Enabled"
+                  type="checkbox"
+                  defaultChecked={settings.inactiveFollowUp60Enabled ?? true}
+                />
+                <span>SMS через 60 дней</span>
+              </label>
+              <label>
+                Шаблон SMS через 14 дней
+                <textarea
+                  name="inactiveFollowUp14Template"
+                  defaultValue={settings.inactiveFollowUp14Template ?? ""}
+                  rows="2"
+                />
+              </label>
+              <label>
+                Шаблон SMS через 30 дней
+                <textarea
+                  name="inactiveFollowUp30Template"
+                  defaultValue={settings.inactiveFollowUp30Template ?? ""}
+                  rows="2"
+                />
+              </label>
+              <label>
+                Шаблон SMS через 60 дней
+                <textarea
+                  name="inactiveFollowUp60Template"
+                  defaultValue={settings.inactiveFollowUp60Template ?? ""}
+                  rows="2"
+                />
+                <small>{`Плейсхолдеры: {name}, {days}, {studio}, {date}`}</small>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="inactiveFollowUpAutoProcessEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.inactiveFollowUpAutoProcessEnabled ?? true}
+                />
+                <span>
+                  Автопроверка follow-up
+                  <small>Каждые N минут при открытой CRM</small>
+                </span>
+              </label>
+              <label>
+                Интервал автопроверки follow-up, мин
+                <input
+                  min="30"
+                  name="inactiveFollowUpAutoProcessMinutes"
+                  type="number"
+                  defaultValue={settings.inactiveFollowUpAutoProcessMinutes ?? 60}
+                />
+              </label>
+              <label className="toggle-row">
+                <input
                   name="forecastAlertsEnabled"
                   type="checkbox"
                   defaultChecked={settings.forecastAlertsEnabled ?? true}
@@ -743,6 +825,15 @@ function SettingsPage({
               onPreview={reviewRequests.runPreview}
               onProcess={reviewRequests.runProcess}
               onRefreshStatus={reviewRequests.refreshStatus}
+            />
+          ) : null}
+          {inactiveFollowUp ? (
+            <InactiveFollowUpPanel
+              pushNotification={pushNotification}
+              status={inactiveFollowUp.status}
+              onPreview={inactiveFollowUp.runPreview}
+              onProcess={inactiveFollowUp.runProcess}
+              onRefreshStatus={inactiveFollowUp.refreshStatus}
             />
           ) : null}
           {telegramDigest ? (

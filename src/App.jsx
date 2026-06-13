@@ -45,6 +45,7 @@ import {
   loadStoredSettings,
   loadStoredSmsReminderLog,
   loadStoredReviewRequestLog,
+  loadStoredInactiveFollowUpLog,
   normalizeStoredSettings,
   IMPORT_DOCUMENTS_STORAGE_KEY,
   IMPORTED_MAIL_IDS_STORAGE_KEY,
@@ -81,6 +82,7 @@ import {
   removeImportDocumentsByIds,
 } from "./utils/importDocuments.js";
 import {useBooksyGmailSync} from "./hooks/useBooksyGmailSync.js";
+import {useInactiveFollowUp} from "./hooks/useInactiveFollowUp.js";
 import {useReviewRequests} from "./hooks/useReviewRequests.js";
 import {useSmsReminders} from "./hooks/useSmsReminders.js";
 import {useAppRouting} from "./hooks/useAppRouting.js";
@@ -112,6 +114,9 @@ function App() {
   );
   const [smsReminderLog, setSmsReminderLog] = useState(loadStoredSmsReminderLog);
   const [reviewRequestLog, setReviewRequestLog] = useState(loadStoredReviewRequestLog);
+  const [inactiveFollowUpLog, setInactiveFollowUpLog] = useState(
+    loadStoredInactiveFollowUpLog,
+  );
   const [messageTemplates, setMessageTemplates] = useState(
     loadStoredMessageTemplates,
   );
@@ -391,6 +396,7 @@ function App() {
     supplies,
     smsReminderLog,
     reviewRequestLog,
+    inactiveFollowUpLog,
     tasks,
     visits,
   });
@@ -431,6 +437,7 @@ function App() {
         supplies,
         smsReminderLog,
         reviewRequestLog,
+        inactiveFollowUpLog,
         tasks,
         visits,
       }),
@@ -454,6 +461,7 @@ function App() {
       supplies,
       smsReminderLog,
       reviewRequestLog,
+      inactiveFollowUpLog,
       tasks,
       visits,
     ],
@@ -487,6 +495,7 @@ function App() {
         setServiceCatalog,
         setSmsReminderLog,
         setReviewRequestLog,
+        setInactiveFollowUpLog,
         setSupplies,
         setTasks,
         setVisits,
@@ -574,6 +583,7 @@ function App() {
       supplies,
       smsReminderLog,
       reviewRequestLog,
+      inactiveFollowUpLog,
       tasks,
       visits,
     }),
@@ -596,6 +606,7 @@ function App() {
       supplies,
       smsReminderLog,
       reviewRequestLog,
+      inactiveFollowUpLog,
       tasks,
       visits,
     ],
@@ -620,6 +631,7 @@ function App() {
       setServiceCatalog,
       setSmsReminderLog,
       setReviewRequestLog,
+      setInactiveFollowUpLog,
       setSupplies,
       setTasks,
       setVisits,
@@ -642,6 +654,7 @@ function App() {
       setServiceCatalog,
       setSmsReminderLog,
       setReviewRequestLog,
+      setInactiveFollowUpLog,
       setSupplies,
       setTasks,
       setVisits,
@@ -699,6 +712,18 @@ function App() {
     onRemoteSnapshotRefresh: applyRemoteSnapshot,
     pushNotification,
     reviewRequestLog,
+  });
+
+  const inactiveFollowUp = useInactiveFollowUp({
+    appSettings,
+    authSession,
+    calendarEntries,
+    clientProfiles,
+    cloudHydrated,
+    inactiveFollowUpLog,
+    onRemoteSnapshotRefresh: applyRemoteSnapshot,
+    pushNotification,
+    visits,
   });
 
   const telegramDigest = useTelegramDigest({
@@ -1593,6 +1618,7 @@ function App() {
             paymentFilters={paymentFilters}
             paymentRows={paymentRows}
             reviewRequests={reviewRequests}
+            inactiveFollowUp={inactiveFollowUp}
             smsReminders={smsReminders}
             telegramDigest={telegramDigest}
             preferredMessageClientId={preferredMessageClientId}

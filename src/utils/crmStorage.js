@@ -15,6 +15,7 @@ import {
   CERTIFICATES_STORAGE_KEY,
   SMS_REMINDER_LOG_STORAGE_KEY,
   REVIEW_REQUEST_LOG_STORAGE_KEY,
+  INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,
@@ -205,6 +206,21 @@ export const loadStoredReviewRequestLog = () => {
   }
 };
 
+export const loadStoredInactiveFollowUpLog = () => {
+  try {
+    const storedLog = window.localStorage.getItem(INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY);
+
+    if (!storedLog) {
+      return [];
+    }
+
+    const parsedLog = JSON.parse(storedLog);
+    return Array.isArray(parsedLog) ? parsedLog : [];
+  } catch {
+    return [];
+  }
+};
+
 export const loadStoredMessageTemplates = () => {
   try {
     const storedTemplates = window.localStorage.getItem(
@@ -371,6 +387,7 @@ export {
   CERTIFICATES_STORAGE_KEY,
   SMS_REMINDER_LOG_STORAGE_KEY,
   REVIEW_REQUEST_LOG_STORAGE_KEY,
+  INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,

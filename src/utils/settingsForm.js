@@ -61,6 +61,25 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
     Math.max(10, Number(form.get("reviewRequestAutoProcessMinutes"))) ||
     defaultAppSettings.reviewRequestAutoProcessMinutes,
   reviewRequestLastRunAt: appSettings.reviewRequestLastRunAt ?? "",
+  inactiveFollowUpEnabled: form.get("inactiveFollowUpEnabled") === "on",
+  inactiveFollowUp14Enabled: form.get("inactiveFollowUp14Enabled") === "on",
+  inactiveFollowUp30Enabled: form.get("inactiveFollowUp30Enabled") === "on",
+  inactiveFollowUp60Enabled: form.get("inactiveFollowUp60Enabled") === "on",
+  inactiveFollowUp14Template:
+    String(form.get("inactiveFollowUp14Template") ?? "").trim() ||
+    defaultAppSettings.inactiveFollowUp14Template,
+  inactiveFollowUp30Template:
+    String(form.get("inactiveFollowUp30Template") ?? "").trim() ||
+    defaultAppSettings.inactiveFollowUp30Template,
+  inactiveFollowUp60Template:
+    String(form.get("inactiveFollowUp60Template") ?? "").trim() ||
+    defaultAppSettings.inactiveFollowUp60Template,
+  inactiveFollowUpAutoProcessEnabled:
+    form.get("inactiveFollowUpAutoProcessEnabled") === "on",
+  inactiveFollowUpAutoProcessMinutes:
+    Math.max(30, Number(form.get("inactiveFollowUpAutoProcessMinutes"))) ||
+    defaultAppSettings.inactiveFollowUpAutoProcessMinutes,
+  inactiveFollowUpLastRunAt: appSettings.inactiveFollowUpLastRunAt ?? "",
   forecastAlertsEnabled: form.get("forecastAlertsEnabled") === "on",
   alertAggregationEnabled: form.get("alertAggregationEnabled") === "on",
   quietHoursEnabled: form.get("quietHoursEnabled") === "on",

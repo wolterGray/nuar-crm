@@ -129,7 +129,7 @@ export const buildTelegramDigestSections = ({
   const birthdaysToday = clientProfiles
     .map((client) => ({
       ...client,
-      birthdayInfo: getUpcomingBirthday(client.birthday),
+      birthdayInfo: getUpcomingBirthday(client.birthday, now),
     }))
     .filter(
       (client) =>

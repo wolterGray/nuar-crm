@@ -89,6 +89,19 @@ export const defaultAppSettings = {
   reviewRequestAutoProcessEnabled: true,
   reviewRequestAutoProcessMinutes: 15,
   reviewRequestLastRunAt: "",
+  inactiveFollowUpEnabled: false,
+  inactiveFollowUp14Enabled: true,
+  inactiveFollowUp30Enabled: true,
+  inactiveFollowUp60Enabled: true,
+  inactiveFollowUp14Template:
+    "Czesc {name}! Tesknilismy za Toba w {studio}. Minely juz {days} dni od ostatniej wizyty. Chetnie pomozemy zarezerwowac termin.",
+  inactiveFollowUp30Template:
+    "Czesc {name}! W {studio} pamietamy o Tobie. Minelo juz {days} dni bez wizyty - odezwij sie, ustalimy dogodny termin.",
+  inactiveFollowUp60Template:
+    "Czesc {name}! Czekamy na Ciebie w {studio}. Minelo {days} dni od ostatniej wizyty - wroc do regularnych masazy u nas.",
+  inactiveFollowUpAutoProcessEnabled: true,
+  inactiveFollowUpAutoProcessMinutes: 60,
+  inactiveFollowUpLastRunAt: "",
   forecastAlertsEnabled: true,
   alertAggregationEnabled: true,
   inactiveClientAlertLimit: 5,
