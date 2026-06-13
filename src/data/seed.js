@@ -1319,7 +1319,20 @@ export const initialEmployees = [
     "role": "Массажист",
     "phone": "",
     "commissionRate": 35,
-    "status": "Активен"
+    "status": "Активен",
+    "siteDiscountPercent": 0,
+    "premiumHoursEnabled": true,
+    "premiumHoursRules": [
+      {
+        "id": "olga-premium-weekend",
+        "label": "Выходные вечер",
+        "percent": 15,
+        "daysOfWeek": [5, 6, 0],
+        "startTime": "17:00",
+        "endTime": "22:00",
+        "enabled": true
+      }
+    ]
   },
   {
     "id": 2,
@@ -1327,7 +1340,10 @@ export const initialEmployees = [
     "role": "Массажист",
     "phone": "",
     "commissionRate": 40,
-    "status": "Активен"
+    "status": "Активен",
+    "siteDiscountPercent": 18,
+    "premiumHoursEnabled": false,
+    "premiumHoursRules": []
   }
 ];
 

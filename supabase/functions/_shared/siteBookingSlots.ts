@@ -21,7 +21,7 @@ export const resolveSiteBookingMaster = (
   const raw = String(preferredMaster ?? "").trim();
 
   if (!raw) {
-    return String(employees[0]?.name ?? "");
+    return "";
   }
 
   const alias = SITE_MASTER_ALIASES[normalizeText(raw)];
@@ -34,7 +34,10 @@ export const resolveSiteBookingMaster = (
     (employee) => normalizeText(employee.name) === normalizeText(raw),
   );
 
-  return String(matched?.name ?? raw);
+  const matchedName = String(matched?.name ?? raw);
+  const matchedAlias = SITE_MASTER_ALIASES[normalizeText(matchedName)];
+
+  return matchedAlias || matchedName;
 };
 
 const toMinutes = (time: unknown) => {
@@ -211,7 +214,7 @@ export const buildBookableSlots = ({
   }> = [];
 
   activeEmployees.forEach((employee) => {
-    const master = String(employee.name ?? "");
+    const master = resolveSiteBookingMaster(String(employee.name ?? ""), employees);
     const shiftStart = toMinutes(
       employee.shiftStart || appSettings.workdayStart || "08:00",
     );
@@ -246,14 +249,11 @@ export const buildBookableSlots = ({
       ...pendingBookings
         .filter((booking) => {
           const bookingDate = normalizeBookingInputDate(booking.preferred_date);
-          const bookingMaster = resolveSiteBookingMaster(
-            String(booking.preferred_master ?? ""),
-            employees,
-          );
 
           return (
             bookingDate === inputDate &&
-            bookingMaster === master &&
+            resolveSiteBookingMaster(String(booking.preferred_master ?? ""), employees) ===
+              master &&
             String(booking.status ?? "pending") === "pending"
           );
         })
@@ -331,9 +331,15 @@ export const isBookableSlotAvailable = ({
   const normalizedTime = String(preferredTime ?? "").trim().slice(0, 5);
   const resolvedMaster = resolveSiteBookingMaster(preferredMaster, employees);
 
-  return slots.some(
-    (slot) =>
-      slot.startTime === normalizedTime &&
-      (!resolvedMaster || slot.master === resolvedMaster),
-  );
+  return slots.some((slot) => {
+    if (slot.startTime !== normalizedTime) {
+      return false;
+    }
+
+    if (!resolvedMaster) {
+      return true;
+    }
+
+    return resolveSiteBookingMaster(slot.master, employees) === resolvedMaster;
+  });
 };

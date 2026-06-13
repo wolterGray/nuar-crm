@@ -68,6 +68,30 @@ describe("calendarBookableSlots", () => {
     expect(slots.some((slot) => slot.master === "Ольга")).toBe(true);
   });
 
+  it("blocks Max at 15:30 when calendar master uses Latin name", () => {
+    const slots = buildBookableSlots({
+      appSettings: {workdayStart: "08:00", workdayEnd: "22:00"},
+      calendarEntries: [
+        {
+          id: "1",
+          kind: "visit",
+          date: "13.06.2026",
+          time: "15:30",
+          duration: 60,
+          master: "Max",
+          status: "scheduled",
+        },
+      ],
+      date: "2026-06-13",
+      durationMinutes: 60,
+      employees: [{name: "Max", shiftStart: "08:00", shiftEnd: "22:00"}],
+      now: new Date("2026-06-13T08:00:00"),
+      preferredMaster: "Max",
+    });
+
+    expect(slots.some((slot) => slot.startTime === "15:30")).toBe(false);
+  });
+
   it("validates selected slot availability", () => {
     expect(
       isBookableSlotAvailable({

@@ -1,9 +1,11 @@
 import {useCallback, useState} from "react";
 import {getTodayInput} from "../utils/dateHelpers.js";
 import {getClientMessageName} from "../utils/clientMessageName.js";
+import {resolveAutomatedMessageTemplate} from "../utils/messageTemplates.js";
 import {
   buildFreedCalendarSlot,
   buildWaitlistEntry,
+  defaultWaitlistOfferTemplate,
   findWaitlistMatches,
   formatWaitlistSlotLabel,
   personalizeWaitlistOfferTemplate,
@@ -13,6 +15,7 @@ export function useWaitlistHandlers({
   appSettings,
   clientProfiles,
   createLocalId,
+  messageTemplates = [],
   openClientMessageTemplates,
   openCreateCalendarEntry,
   pushNotification,
@@ -211,7 +214,13 @@ export function useWaitlistHandlers({
       );
 
       return personalizeWaitlistOfferTemplate(
-        appSettings.waitlistOfferTemplate,
+        resolveAutomatedMessageTemplate({
+          appSettings,
+          client,
+          defaultTemplate: defaultWaitlistOfferTemplate,
+          messageTemplates,
+          purpose: "waitlist-offer",
+        }),
         {
           clientName: getClientMessageName(client) || entry.clientName,
           master: entry.preferredMaster || slot.master,
@@ -221,7 +230,11 @@ export function useWaitlistHandlers({
         },
       );
     },
-    [appSettings.studioName, appSettings.waitlistOfferTemplate, clientProfiles],
+    [
+      appSettings,
+      clientProfiles,
+      messageTemplates,
+    ],
   );
 
   const bookWaitlistEntryFromPanel = useCallback(

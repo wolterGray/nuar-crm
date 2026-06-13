@@ -13,6 +13,7 @@ export function useInactiveFollowUp({
   clientProfiles,
   cloudHydrated,
   inactiveFollowUpLog,
+  messageTemplates = [],
   onRemoteSnapshotRefresh,
   pushNotification,
   visits,
@@ -35,6 +36,7 @@ export function useInactiveFollowUp({
         calendarEntries,
         clientProfiles,
         inactiveFollowUpLog,
+        messageTemplates,
         visits,
       }),
     [
@@ -42,6 +44,7 @@ export function useInactiveFollowUp({
       calendarEntries,
       clientProfiles,
       inactiveFollowUpLog,
+      messageTemplates,
       visits,
     ],
   );

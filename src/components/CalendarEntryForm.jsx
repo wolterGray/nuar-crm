@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useForm, useWatch} from "react-hook-form";
 import {z} from "zod";
@@ -8,6 +8,7 @@ import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import {matchesClientRecord} from "../utils/clientLinks.js";
 import {getPackageProgressLabel, isUpcomingPackageVisit} from "../utils/packages.jsx";
+import {calculateSiteBookingPrice} from "../utils/siteBookingPricing.js";
 
 const fallbackColors = ["#4f8edc", "#8b6fd6", "#45a873", "#d78a42", "#c75b78"];
 const toMinutes = (time) => {
@@ -137,6 +138,7 @@ function CalendarEntryForm({
   const [clientTemplateApplied, setClientTemplateApplied] = useState(
     Boolean(initialEntry),
   );
+  const skipInitialPricingRef = useRef(Boolean(initialEntry));
   const defaultTime = initialEntry?.time ?? selectedTime ?? "10:00";
   const defaultDuration = initialEntry?.duration ?? selectedDuration ?? 60;
   const {
@@ -186,6 +188,7 @@ function CalendarEntryForm({
     payment,
     amount,
     commissionType,
+    date,
     tip,
     extra,
     debt,
@@ -204,6 +207,7 @@ function CalendarEntryForm({
       "payment",
       "amount",
       "commissionType",
+      "date",
       "tip",
       "extra",
       "debt",
@@ -212,6 +216,40 @@ function CalendarEntryForm({
     ],
   });
   const service = services.find((item) => String(item.id) === String(serviceId));
+  const serviceVariant = useMemo(
+    () =>
+      service?.variants?.find(
+        (variant) => Number(variant.duration) === Number(duration),
+      ) ?? null,
+    [duration, service],
+  );
+  const visitPricing = useMemo(() => {
+    if (kind !== "visit" || !master || !date || !time || !serviceVariant?.price) {
+      return null;
+    }
+
+    const employee = employees.find((item) => item.name === master) ?? null;
+
+    return calculateSiteBookingPrice({
+      basePrice: serviceVariant.price,
+      date,
+      employee,
+      time,
+    });
+  }, [date, duration, employees, kind, master, serviceVariant, time]);
+  useEffect(() => {
+    if (kind !== "visit" || !visitPricing) {
+      return;
+    }
+
+    if (skipInitialPricingRef.current) {
+      skipInitialPricingRef.current = false;
+      return;
+    }
+
+    setFormValue("amount", visitPricing.subtotal);
+    setFormValue("discount", visitPricing.discountPercent);
+  }, [kind, setFormValue, visitPricing]);
   const clientExists = clients.some((item) => item.name === client);
   const setFormValue = (name, value, options = {}) =>
     setValue(name, value, {
@@ -628,6 +666,39 @@ function CalendarEntryForm({
               />
             </label>
           </div>
+          {visitPricing ? (
+            <div className="visit-pricing-table">
+              <h4>Расчёт стоимости</h4>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>Базовая цена</th>
+                    <td>{visitPricing.basePrice} zł</td>
+                  </tr>
+                  {visitPricing.premiumPercent > 0 ? (
+                    <tr>
+                      <th>Премиум +{visitPricing.premiumPercent}%</th>
+                      <td>+{visitPricing.premiumAmount} zł</td>
+                    </tr>
+                  ) : null}
+                  <tr>
+                    <th>Сумма до скидки</th>
+                    <td>{visitPricing.subtotal} zł</td>
+                  </tr>
+                  {visitPricing.discountPercent > 0 ? (
+                    <tr>
+                      <th>Скидка −{visitPricing.discountPercent}%</th>
+                      <td>−{visitPricing.discountAmount} zł</td>
+                    </tr>
+                  ) : null}
+                  <tr className="visit-pricing-total">
+                    <th>К оплате</th>
+                    <td>{visitPricing.finalPrice} zł</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ) : null}
           <input
             {...register("color")}
             type="hidden"

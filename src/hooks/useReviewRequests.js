@@ -12,6 +12,7 @@ export function useReviewRequests({
   calendarEntries,
   clientProfiles,
   cloudHydrated,
+  messageTemplates = [],
   onRemoteSnapshotRefresh,
   pushNotification,
   reviewRequestLog,
@@ -50,6 +51,7 @@ export function useReviewRequests({
         appSettings,
         calendarEntries,
         clientProfiles,
+        messageTemplates,
         reviewRequestLog,
       });
       setStatus((current) => ({
@@ -66,6 +68,7 @@ export function useReviewRequests({
     authSession,
     calendarEntries,
     clientProfiles,
+    messageTemplates,
     reviewRequestLog,
   ]);
 
@@ -115,6 +118,7 @@ export function useReviewRequests({
         appSettings,
         calendarEntries,
         clientProfiles,
+        messageTemplates,
         reviewRequestLog,
       });
       setLocalDue(due);
@@ -131,6 +135,7 @@ export function useReviewRequests({
         appSettings,
         calendarEntries,
         clientProfiles,
+        messageTemplates,
         reviewRequestLog,
       });
       setLocalDue(due);
@@ -141,6 +146,7 @@ export function useReviewRequests({
     authSession,
     calendarEntries,
     clientProfiles,
+    messageTemplates,
     reviewRequestLog,
   ]);
 

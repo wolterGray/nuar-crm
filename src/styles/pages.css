@@ -1459,6 +1459,75 @@ select {
   margin-top: 18px;
 }
 
+.employee-pricing-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e5e5e3;
+  border-radius: 8px;
+  background: #fafaf9;
+}
+
+.employee-pricing-panel h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.employee-pricing-panel small {
+  display: block;
+  margin-top: 4px;
+  color: #6f737b;
+}
+
+.employee-premium-rule-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.employee-premium-days-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+.visit-pricing-table {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border: 1px solid #e5e5e3;
+  border-radius: 8px;
+  background: #fafaf9;
+}
+
+.visit-pricing-table h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.visit-pricing-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.visit-pricing-table th,
+.visit-pricing-table td {
+  padding: 6px 0;
+  text-align: left;
+  font-size: 13px;
+}
+
+.visit-pricing-table td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.visit-pricing-table .visit-pricing-total th,
+.visit-pricing-table .visit-pricing-total td {
+  padding-top: 10px;
+  border-top: 1px solid #e5e5e3;
+  font-weight: 600;
+}
+
 .modal-header {
   display: flex;
   align-items: center;

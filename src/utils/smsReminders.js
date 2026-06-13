@@ -1,7 +1,8 @@
 import {differenceInMinutes} from "date-fns";
 import {parseAppDate} from "./dateUtils.js";
-import {resolveClientMessageName} from "./clientMessageName.js";
 import {matchesClientRecord} from "./clientLinks.js";
+import {resolveClientMessageName} from "./clientMessageName.js";
+import {resolveAutomatedMessageTemplate, resolveLinkedClient} from "./messageTemplates.js";
 
 export const SMS_REMINDER_KINDS = ["24h", "2h"];
 
@@ -120,6 +121,7 @@ export const buildDueSmsReminders = ({
   appSettings,
   calendarEntries = [],
   clientProfiles = [],
+  messageTemplates = [],
   now = new Date(),
   smsReminderLog = [],
 }) => {
@@ -172,12 +174,14 @@ export const buildDueSmsReminders = ({
           return;
         }
 
-        const template =
-          kind === "24h"
-            ? appSettings.smsReminder24hTemplate ||
-              defaultSmsReminderTemplates["24h"]
-            : appSettings.smsReminder2hTemplate ||
-              defaultSmsReminderTemplates["2h"];
+        const linkedClient = resolveLinkedClient(entry, clientProfiles);
+        const template = resolveAutomatedMessageTemplate({
+          appSettings,
+          client: linkedClient,
+          defaultTemplate: defaultSmsReminderTemplates[kind],
+          messageTemplates,
+          purpose: kind === "24h" ? "sms-reminder-24h" : "sms-reminder-2h",
+        });
 
         due.push({
           calendarEntryId: entry.id,

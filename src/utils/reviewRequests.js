@@ -2,6 +2,7 @@ import {differenceInMinutes} from "date-fns";
 import {isCalendarVisitCompleted} from "./calendarVisitStatus.js";
 import {resolveClientMessageName} from "./clientMessageName.js";
 import {matchesClientRecord} from "./clientLinks.js";
+import {resolveAutomatedMessageTemplate, resolveLinkedClient} from "./messageTemplates.js";
 import {
   getCalendarVisitDateTime,
   normalizePhoneForSms,
@@ -158,6 +159,7 @@ export const buildDueReviewRequests = ({
   appSettings = {},
   calendarEntries = [],
   clientProfiles = [],
+  messageTemplates = [],
   now = new Date(),
   reviewRequestLog = [],
 }) => {
@@ -195,18 +197,23 @@ export const buildDueReviewRequests = ({
     .map((entry) => {
       const phone = resolveClientPhone(entry, clientProfiles);
       const telegram = resolveClientTelegram(entry, clientProfiles);
-      const message = personalizeReviewTemplate(
-        appSettings.reviewRequestTemplate || defaultReviewRequestTemplate,
-        {
+      const linkedClient = resolveLinkedClient(entry, clientProfiles);
+      const template = resolveAutomatedMessageTemplate({
+        appSettings,
+        client: linkedClient,
+        defaultTemplate: defaultReviewRequestTemplate,
+        messageTemplates,
+        purpose: "review-request",
+      });
+      const message = personalizeReviewTemplate(template, {
           booksyUrl: urls.booksyUrl,
           clientName: resolveClientMessageName(clientProfiles, entry),
           googleUrl: urls.googleUrl,
           master: entry.master,
-          reviewUrl: urls.reviewUrl,
-          service: entry.service,
-          studio: studioName,
-        },
-      );
+        reviewUrl: urls.reviewUrl,
+        service: entry.service,
+        studio: studioName,
+      });
 
       if (!phone) {
         return {

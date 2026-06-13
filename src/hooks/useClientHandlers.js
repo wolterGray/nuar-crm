@@ -37,6 +37,7 @@ export function useClientHandlers({
           ? {
               name: prefill.name,
               source: "Instagram",
+              messageLanguage: "Польский",
               preference: "Любой мастер",
               status: "Новый",
             }
@@ -90,6 +91,7 @@ export function useClientHandlers({
         instagram: String(form.get("instagram") ?? "").trim(),
         telegram: String(form.get("telegram") ?? "").trim(),
         source: form.get("source"),
+        messageLanguage: form.get("messageLanguage") || "Польский",
         preference: form.get("preference"),
         status: form.get("status") || "Активный",
         tags: String(form.get("tags") ?? "").trim(),
@@ -248,6 +250,7 @@ export function useClientHandlers({
           instagram: "",
           telegram: "",
           source: "Визит",
+          messageLanguage: "Польский",
           preference: "Любой мастер",
           status: "Новый",
           tags: "",

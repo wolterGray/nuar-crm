@@ -1,6 +1,7 @@
 import {pruneExpiredSnoozes} from "./alertSnooze.js";
 import {migrateClientLinks} from "./clientLinks.js";
 import {mergeLegacyCertificateSales, syncCertificateStatus} from "./certificates.js";
+import {mergeAutomatedMessageTemplates} from "./messageTemplates.js";
 
 export const applyCrmSnapshot = (
   snapshot,
@@ -69,7 +70,9 @@ export const applyCrmSnapshot = (
     setCertificates(nextCertificates);
   }
   if (Array.isArray(snapshot.messageTemplates)) {
-    setMessageTemplates(snapshot.messageTemplates);
+    setMessageTemplates(
+      mergeAutomatedMessageTemplates(snapshot.messageTemplates),
+    );
   }
   if (migrated?.calendarEntries) setCalendarEntries(migrated.calendarEntries);
   if (Array.isArray(snapshot.dismissedClientAlertIds)) {

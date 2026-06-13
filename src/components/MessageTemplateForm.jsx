@@ -1,3 +1,5 @@
+import {MESSAGE_TEMPLATE_PURPOSES} from "../utils/messageTemplates.js";
+
 function MessageTemplateForm({template, onSubmit}) {
   return (
     <form className="catalog-form message-template-form" onSubmit={onSubmit}>
@@ -38,6 +40,16 @@ function MessageTemplateForm({template, onSubmit}) {
             <option>Украинцы</option>
           </select>
         </label>
+        <label>
+          Назначение
+          <select name="purpose" defaultValue={template?.purpose ?? "general"}>
+            {Object.entries(MESSAGE_TEMPLATE_PURPOSES).map(([value, meta]) => (
+              <option key={value} value={value}>
+                {meta.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       <label>
         Тема письма
@@ -58,7 +70,8 @@ function MessageTemplateForm({template, onSubmit}) {
         />
       </label>
       <small className="message-template-hint">
-        {"{name}"} — имя для SMS (короткое, без «от Влады» и меток).
+        {"{name}"} — имя для SMS. Для автоматических SMS выберите назначение и язык —
+        CRM подставит нужный текст клиенту по полю «Язык SMS» в карточке клиента.
       </small>
       <button className="submit-button">
         {template ? "Сохранить шаблон" : "Добавить шаблон"}

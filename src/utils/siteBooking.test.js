@@ -9,8 +9,28 @@ import {
 
 describe("siteBooking", () => {
   const employees = [
-    {id: 1, name: "Ольга", commissionRate: 35},
-    {id: 2, name: "Максим", commissionRate: 40},
+    {
+      id: 1,
+      name: "Ольга",
+      commissionRate: 35,
+      premiumHoursEnabled: true,
+      premiumHoursRules: [
+        {
+          daysOfWeek: [5, 6, 0],
+          enabled: true,
+          endTime: "22:00",
+          percent: 15,
+          startTime: "17:00",
+        },
+      ],
+      siteDiscountPercent: 0,
+    },
+    {
+      id: 2,
+      name: "Максим",
+      commissionRate: 40,
+      siteDiscountPercent: 18,
+    },
   ];
   const serviceCatalog = [
     {
@@ -75,7 +95,37 @@ describe("siteBooking", () => {
     expect(result.nextClients[0].source).toBe("Сайт");
     expect(result.nextCalendarEntries[0].client).toBe("Anna Kowalska");
     expect(result.nextCalendarEntries[0].master).toBe("Ольга");
+    expect(result.nextCalendarEntries[0].amount).toBe(255);
+    expect(result.nextCalendarEntries[0].discount).toBe(0);
     expect(formatSiteBookingDateForCrm("2026-06-20")).toBe("20.06.2026");
     expect(formatSiteBookingTimeForCrm("14:30:00")).toBe("14:30");
+  });
+
+  it("applies employee discount when importing site booking", () => {
+    const result = applySiteBookingRequest(
+      {
+        id: "booking-2",
+        client_name: "Jan Nowak",
+        client_phone: "600123456",
+        duration_minutes: 60,
+        preferred_date: "2026-06-20",
+        preferred_master: "Max",
+        preferred_time: "14:30:00",
+        service_name: "Masaż klasyczny",
+        service_slug: "masaz-klasyczny",
+      },
+      {
+        calendarEntries: [],
+        clientProfiles: [],
+        createLocalId: () => "entry-2",
+        employees,
+        getCalendarServiceColor: () => "#748091",
+        serviceCatalog,
+      },
+    );
+
+    expect(result.nextCalendarEntries[0].master).toBe("Максим");
+    expect(result.nextCalendarEntries[0].amount).toBe(255);
+    expect(result.nextCalendarEntries[0].discount).toBe(18);
   });
 });

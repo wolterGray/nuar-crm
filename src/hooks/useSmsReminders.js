@@ -12,6 +12,7 @@ export function useSmsReminders({
   calendarEntries,
   clientProfiles,
   cloudHydrated,
+  messageTemplates = [],
   onRemoteSnapshotRefresh,
   pushNotification,
   smsReminderLog,
@@ -49,6 +50,7 @@ export function useSmsReminders({
         appSettings,
         calendarEntries,
         clientProfiles,
+        messageTemplates,
         smsReminderLog,
       });
       setStatus((current) => ({
@@ -65,6 +67,7 @@ export function useSmsReminders({
     authSession,
     calendarEntries,
     clientProfiles,
+    messageTemplates,
     smsReminderLog,
   ]);
 
@@ -114,6 +117,7 @@ export function useSmsReminders({
         appSettings,
         calendarEntries,
         clientProfiles,
+        messageTemplates,
         smsReminderLog,
       });
       setLocalDue(due);
@@ -130,6 +134,7 @@ export function useSmsReminders({
         appSettings,
         calendarEntries,
         clientProfiles,
+        messageTemplates,
         smsReminderLog,
       });
       setLocalDue(due);

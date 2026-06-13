@@ -3,6 +3,7 @@ import {createAdminClient} from "./supabaseAdmin.ts";
 export type CrmSnapshotPayload = {
   calendarEntries?: Array<Record<string, unknown>>;
   employees?: Array<Record<string, unknown>>;
+  services?: Array<Record<string, unknown>>;
   settings?: Record<string, unknown>;
 };
 

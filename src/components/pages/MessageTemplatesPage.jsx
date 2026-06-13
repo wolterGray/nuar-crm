@@ -16,6 +16,10 @@ import {useMemo, useState} from "react";
 import PageHeader from "../PageHeader.jsx";
 import BulkSmsPanel from "../BulkSmsPanel.jsx";
 import {getClientMessageName} from "../../utils/clientMessageName.js";
+import {
+  getMessageTemplatePurposeLabel,
+  MESSAGE_TEMPLATE_PURPOSES,
+} from "../../utils/messageTemplates.js";
 
 function MessageTemplatesPage({
   bulkSms = null,
@@ -38,6 +42,7 @@ function MessageTemplatesPage({
     channel: "",
     language: "",
     audience: "",
+    purpose: "",
   });
   const filteredTemplates = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
@@ -45,7 +50,7 @@ function MessageTemplatesPage({
     return templates.filter((template) => {
       const matchesQuery =
         !query ||
-        [template.name, template.subject, template.body]
+        [template.name, template.subject, template.body, getMessageTemplatePurposeLabel(template.purpose)]
           .join(" ")
           .toLowerCase()
           .includes(query);
@@ -54,7 +59,9 @@ function MessageTemplatesPage({
         matchesQuery &&
         (!filters.channel || template.channel === filters.channel) &&
         (!filters.language || template.language === filters.language) &&
-        (!filters.audience || template.audience === filters.audience)
+        (!filters.audience || template.audience === filters.audience) &&
+        (!filters.purpose ||
+          String(template.purpose ?? "general") === filters.purpose)
       );
     });
   }, [filters, templates]);
@@ -247,6 +254,16 @@ function MessageTemplatesPage({
           <option>Англичане</option>
           <option>Украинцы</option>
         </select>
+        <select
+          value={filters.purpose}
+          onChange={(event) => setFilter("purpose", event.target.value)}>
+          <option value="">Все назначения</option>
+          {Object.entries(MESSAGE_TEMPLATE_PURPOSES).map(([value, meta]) => (
+            <option key={value} value={value}>
+              {meta.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {bulkSms ? (
@@ -286,8 +303,8 @@ function MessageTemplatesPage({
                 <div>
                   <h3>{template.name}</h3>
                   <span>
-                    {template.channel} · {template.language} ·{" "}
-                    {template.audience}
+                    {getMessageTemplatePurposeLabel(template.purpose)} ·{" "}
+                    {template.channel} · {template.language} · {template.audience}
                   </span>
                 </div>
               </div>

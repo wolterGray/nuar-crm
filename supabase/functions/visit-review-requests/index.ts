@@ -9,6 +9,7 @@ type SnapshotPayload = {
   settings?: Record<string, unknown>;
   calendarEntries?: Array<Record<string, unknown>>;
   clients?: Array<Record<string, unknown>>;
+  messageTemplates?: Array<Record<string, unknown>>;
   reviewRequestLog?: Array<Record<string, unknown>>;
   communicationLog?: Array<Record<string, unknown>>;
 };
@@ -74,6 +75,7 @@ const processReviewRequests = async ({
     appSettings,
     calendarEntries: payload.calendarEntries ?? [],
     clientProfiles: payload.clients ?? [],
+    messageTemplates: payload.messageTemplates ?? [],
     reviewRequestLog: payload.reviewRequestLog ?? [],
   });
 
@@ -185,6 +187,7 @@ serve(async (request) => {
         appSettings: payload.settings ?? {},
         calendarEntries: payload.calendarEntries ?? [],
         clientProfiles: payload.clients ?? [],
+        messageTemplates: payload.messageTemplates ?? [],
         reviewRequestLog: payload.reviewRequestLog ?? [],
       });
 

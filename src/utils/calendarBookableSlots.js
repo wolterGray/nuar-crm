@@ -119,7 +119,7 @@ export const buildBookableSlots = ({
   const slots = [];
 
   activeEmployees.forEach((employee) => {
-    const master = employee.name;
+    const master = resolveSiteBookingMaster(employee.name, employees);
     const shiftStart = toMinutes(
       employee.shiftStart || appSettings.workdayStart || "08:00",
     );
@@ -153,14 +153,10 @@ export const buildBookableSlots = ({
       ...pendingBookings
         .filter((booking) => {
           const bookingDate = normalizeBookingInputDate(booking.preferred_date);
-          const bookingMaster = resolveSiteBookingMaster(
-            booking.preferred_master,
-            employees,
-          );
 
           return (
             bookingDate === inputDate &&
-            bookingMaster === master &&
+            resolveSiteBookingMaster(booking.preferred_master, employees) === master &&
             String(booking.status ?? "pending") === "pending"
           );
         })
@@ -228,9 +224,15 @@ export const isBookableSlotAvailable = ({
   const normalizedTime = String(preferredTime ?? "").trim().slice(0, 5);
   const resolvedMaster = resolveSiteBookingMaster(preferredMaster, employees);
 
-  return slots.some(
-    (slot) =>
-      slot.startTime === normalizedTime &&
-      (!resolvedMaster || slot.master === resolvedMaster),
-  );
+  return slots.some((slot) => {
+    if (slot.startTime !== normalizedTime) {
+      return false;
+    }
+
+    if (!resolvedMaster) {
+      return true;
+    }
+
+    return resolveSiteBookingMaster(slot.master, employees) === resolvedMaster;
+  });
 };

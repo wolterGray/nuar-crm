@@ -36,6 +36,7 @@ import {
   VISITS_STORAGE_KEY,
 } from "../constants/storageKeys.js";
 import {defaultAppSettings, initialMessageTemplates} from "../constants/appDefaults.js";
+import {mergeAutomatedMessageTemplates} from "./messageTemplates.js";
 import {syncSettingsWithColorTheme} from "./colorTheme.js";
 import {applyBooksySources} from "./booksySources.js";
 import {migrateClientLinks} from "./clientLinks.js";
@@ -276,13 +277,15 @@ export const loadStoredMessageTemplates = () => {
     );
 
     if (!storedTemplates) {
-      return initialMessageTemplates;
+      return mergeAutomatedMessageTemplates(initialMessageTemplates);
     }
 
     const parsedTemplates = JSON.parse(storedTemplates);
-    return Array.isArray(parsedTemplates) ? parsedTemplates : initialMessageTemplates;
+    return mergeAutomatedMessageTemplates(
+      Array.isArray(parsedTemplates) ? parsedTemplates : initialMessageTemplates,
+    );
   } catch {
-    return initialMessageTemplates;
+    return mergeAutomatedMessageTemplates(initialMessageTemplates);
   }
 };
 

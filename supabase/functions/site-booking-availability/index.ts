@@ -3,6 +3,7 @@ import {createAdminClient} from "../_shared/supabaseAdmin.ts";
 import {loadCrmSnapshotForSiteBooking} from "../_shared/crmSnapshot.ts";
 import {handleOptions, jsonResponse} from "../_shared/cors.ts";
 import {formatEdgeError, loadPendingSiteBookings} from "../_shared/siteBookingRequests.ts";
+import {attachPricingToSlots} from "../_shared/siteBookingPricing.ts";
 import {buildBookableSlots} from "../_shared/siteBookingSlots.ts";
 
 serve(async (request) => {
@@ -23,6 +24,8 @@ serve(async (request) => {
     const preferredMaster = String(
       body.preferredMaster ?? body.preferred_master ?? "",
     ).trim();
+    const serviceSlug = String(body.serviceSlug ?? body.service_slug ?? "").trim();
+    const serviceName = String(body.serviceName ?? body.service_name ?? "").trim();
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(preferredDate)) {
       return jsonResponse({error: "preferredDate must be YYYY-MM-DD"}, 400);
@@ -35,7 +38,7 @@ serve(async (request) => {
       preferredDate,
     });
 
-    const slots = buildBookableSlots({
+    const bookableSlots = buildBookableSlots({
       appSettings: payload.settings ?? {},
       calendarEntries: payload.calendarEntries ?? [],
       date: preferredDate,
@@ -43,6 +46,15 @@ serve(async (request) => {
       employees: payload.employees ?? [],
       pendingBookings: pendingBookings ?? [],
       preferredMaster,
+    });
+    const slots = attachPricingToSlots({
+      date: preferredDate,
+      durationMinutes,
+      employees: payload.employees ?? [],
+      serviceCatalog: payload.services ?? [],
+      serviceName,
+      serviceSlug,
+      slots: bookableSlots,
     });
 
     return jsonResponse({

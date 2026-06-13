@@ -1,10 +1,15 @@
 import {
   formatSiteBookingDateForCrm,
+  formatSiteBookingInputDate,
   formatSiteBookingTimeForCrm,
   normalizeSiteBookingPhone,
   resolveSiteBookingMaster,
   resolveSiteBookingService,
 } from "./siteBooking.js";
+import {
+  calculateSiteBookingPrice,
+  findEmployeeForMaster,
+} from "./siteBookingPricing.js";
 
 const normalizeText = (value) => String(value ?? "").trim().toLowerCase();
 
@@ -59,6 +64,19 @@ export const applySiteBookingRequest = (
   }
 
   const service = resolveSiteBookingService(request, serviceCatalog);
+  const master = resolveSiteBookingMaster(request.preferred_master, employees);
+  const employee = findEmployeeForMaster(master, employees);
+  const preferredTime = formatSiteBookingTimeForCrm(
+    request.preferred_time ?? request.preferredTime,
+  );
+  const pricing = calculateSiteBookingPrice({
+    basePrice: service.amount,
+    date:
+      formatSiteBookingInputDate(request.preferred_date ?? request.preferredDate) ||
+      String(request.preferred_date ?? request.preferredDate ?? ""),
+    employee,
+    time: preferredTime,
+  });
   const entry = {
     id: createLocalId(),
     kind: "visit",
@@ -68,16 +86,15 @@ export const applySiteBookingRequest = (
     date: formatSiteBookingDateForCrm(
       request.preferred_date ?? request.preferredDate,
     ),
-    time: formatSiteBookingTimeForCrm(
-      request.preferred_time ?? request.preferredTime,
-    ),
+    time: preferredTime,
     duration: service.duration,
-    master: resolveSiteBookingMaster(request.preferred_master, employees),
+    master,
     client: client.name,
     clientId: client.id,
     serviceId: service.serviceId,
     service: service.service,
-    amount: service.amount,
+    amount: pricing.subtotal,
+    discount: pricing.discountPercent,
     payment: "Не указано",
     packageUsageId: "",
     packageName: "",

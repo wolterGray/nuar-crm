@@ -7,6 +7,7 @@ import {
 } from "https://esm.sh/date-fns@4.1.0";
 import {normalizePhoneForSms, personalizeSmsTemplate} from "./visitReminders.ts";
 import {getClientMessageName} from "./clientMessageName.ts";
+import {resolveAutomatedMessageTemplate} from "./messageTemplates.ts";
 
 const APP_DATE_FORMAT = "dd.MM.yyyy";
 const INACTIVE_FOLLOW_UP_KINDS = ["14d", "30d", "60d"] as const;
@@ -233,26 +234,27 @@ const isInactiveFollowUpTierEnabled = (
 const resolveInactiveFollowUpTemplate = (
   appSettings: Record<string, unknown>,
   kind: string,
+  {
+    client = null,
+    messageTemplates = [],
+  }: {
+    client?: ClientProfile | null;
+    messageTemplates?: Array<Record<string, unknown>>;
+  } = {},
 ) => {
-  switch (kind) {
-    case "14d":
-      return String(
-        appSettings.inactiveFollowUp14Template ??
-          defaultInactiveFollowUpTemplates["14d"],
-      );
-    case "30d":
-      return String(
-        appSettings.inactiveFollowUp30Template ??
-          defaultInactiveFollowUpTemplates["30d"],
-      );
-    case "60d":
-      return String(
-        appSettings.inactiveFollowUp60Template ??
-          defaultInactiveFollowUpTemplates["60d"],
-      );
-    default:
-      return "";
-  }
+  const purposeMap: Record<string, string> = {
+    "14d": "inactive-14d",
+    "30d": "inactive-30d",
+    "60d": "inactive-60d",
+  };
+
+  return resolveAutomatedMessageTemplate({
+    appSettings,
+    client,
+    defaultTemplate: defaultInactiveFollowUpTemplates[kind] ?? "",
+    messageTemplates,
+    purpose: purposeMap[kind] ?? "general",
+  });
 };
 
 const resolveNextInactiveFollowUpKind = ({
@@ -353,6 +355,7 @@ export const buildDueInactiveFollowUps = ({
   calendarEntries = [],
   clientProfiles = [],
   inactiveFollowUpLog = [],
+  messageTemplates = [],
   now = new Date(),
   visits = [],
 }: {
@@ -360,6 +363,7 @@ export const buildDueInactiveFollowUps = ({
   calendarEntries?: CalendarEntry[];
   clientProfiles?: ClientProfile[];
   inactiveFollowUpLog?: FollowUpLogItem[];
+  messageTemplates?: Array<Record<string, unknown>>;
   now?: Date;
   visits?: Visit[];
 }) => {
@@ -388,7 +392,10 @@ export const buildDueInactiveFollowUps = ({
       }
 
       const phone = normalizePhoneForSms(client.phone);
-      const template = resolveInactiveFollowUpTemplate(appSettings, kind);
+      const template = resolveInactiveFollowUpTemplate(appSettings, kind, {
+        client,
+        messageTemplates,
+      });
       const message = personalizeSmsTemplate(template, {
         clientName: getClientMessageName(client),
         date: client.lastVisit,

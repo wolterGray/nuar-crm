@@ -39,6 +39,7 @@ export function useMessageTemplateHandlers({
         channel: form.get("channel"),
         language: form.get("language"),
         audience: form.get("audience"),
+        purpose: form.get("purpose") || "general",
         subject: String(form.get("subject") ?? "").trim(),
         body,
       };

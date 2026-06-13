@@ -1,4 +1,5 @@
 import {differenceInMinutes, isValid, parse, parseISO} from "https://esm.sh/date-fns@4.1.0";
+import {resolveAutomatedMessageTemplate} from "./messageTemplates.ts";
 import {resolveClientMessageName} from "./clientMessageName.ts";
 
 const APP_DATE_FORMAT = "dd.MM.yyyy";
@@ -27,6 +28,8 @@ type ClientProfile = {
   id?: string | number;
   name?: string;
   phone?: string;
+  messageLanguage?: string;
+  tags?: string;
 };
 
 type ReminderLogItem = {
@@ -187,12 +190,14 @@ export const buildDueSmsReminders = ({
   appSettings,
   calendarEntries = [],
   clientProfiles = [],
+  messageTemplates = [],
   now = new Date(),
   smsReminderLog = [],
 }: {
   appSettings: Record<string, unknown>;
   calendarEntries?: CalendarEntry[];
   clientProfiles?: ClientProfile[];
+  messageTemplates?: Array<Record<string, unknown>>;
   now?: Date;
   smsReminderLog?: ReminderLogItem[];
 }) => {
@@ -242,16 +247,24 @@ export const buildDueSmsReminders = ({
           return;
         }
 
-        const template =
-          kind === "24h"
-            ? String(
-                appSettings.smsReminder24hTemplate ??
-                  defaultSmsReminderTemplates["24h"],
-              )
-            : String(
-                appSettings.smsReminder2hTemplate ??
-                  defaultSmsReminderTemplates["2h"],
-              );
+        const linkedClient =
+          clientProfiles.find(
+            (client) =>
+              entry?.clientId &&
+              String(client.id) === String(entry.clientId),
+          ) ??
+          clientProfiles.find(
+            (client) =>
+              normalizeClientName(client.name) === normalizeClientName(entry?.client),
+          ) ??
+          null;
+        const template = resolveAutomatedMessageTemplate({
+          appSettings,
+          client: linkedClient,
+          defaultTemplate: defaultSmsReminderTemplates[kind],
+          messageTemplates,
+          purpose: kind === "24h" ? "sms-reminder-24h" : "sms-reminder-2h",
+        });
 
         due.push({
           calendarEntryId: entry.id,

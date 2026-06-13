@@ -25,12 +25,6 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
   smsRemindersEnabled: form.get("smsRemindersEnabled") === "on",
   smsReminder24hEnabled: form.get("smsReminder24hEnabled") === "on",
   smsReminder2hEnabled: form.get("smsReminder2hEnabled") === "on",
-  smsReminder24hTemplate:
-    String(form.get("smsReminder24hTemplate") ?? "").trim() ||
-    defaultAppSettings.smsReminder24hTemplate,
-  smsReminder2hTemplate:
-    String(form.get("smsReminder2hTemplate") ?? "").trim() ||
-    defaultAppSettings.smsReminder2hTemplate,
   smsAutoProcessEnabled: form.get("smsAutoProcessEnabled") === "on",
   smsAutoProcessMinutes:
     Math.max(5, Number(form.get("smsAutoProcessMinutes"))) ||
@@ -54,9 +48,6 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
   reviewRequestDelayHours:
     Math.max(1, Number(form.get("reviewRequestDelayHours"))) ||
     defaultAppSettings.reviewRequestDelayHours,
-  reviewRequestTemplate:
-    String(form.get("reviewRequestTemplate") ?? "").trim() ||
-    defaultAppSettings.reviewRequestTemplate,
   reviewGoogleUrl: String(form.get("reviewGoogleUrl") ?? "").trim(),
   reviewBooksyUrl: String(form.get("reviewBooksyUrl") ?? "").trim(),
   reviewPrimaryUrl: String(form.get("reviewPrimaryUrl") ?? "").trim(),
@@ -70,15 +61,6 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
   inactiveFollowUp14Enabled: form.get("inactiveFollowUp14Enabled") === "on",
   inactiveFollowUp30Enabled: form.get("inactiveFollowUp30Enabled") === "on",
   inactiveFollowUp60Enabled: form.get("inactiveFollowUp60Enabled") === "on",
-  inactiveFollowUp14Template:
-    String(form.get("inactiveFollowUp14Template") ?? "").trim() ||
-    defaultAppSettings.inactiveFollowUp14Template,
-  inactiveFollowUp30Template:
-    String(form.get("inactiveFollowUp30Template") ?? "").trim() ||
-    defaultAppSettings.inactiveFollowUp30Template,
-  inactiveFollowUp60Template:
-    String(form.get("inactiveFollowUp60Template") ?? "").trim() ||
-    defaultAppSettings.inactiveFollowUp60Template,
   inactiveFollowUpAutoProcessEnabled:
     form.get("inactiveFollowUpAutoProcessEnabled") === "on",
   inactiveFollowUpAutoProcessMinutes:
@@ -86,9 +68,6 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
     defaultAppSettings.inactiveFollowUpAutoProcessMinutes,
   inactiveFollowUpLastRunAt: appSettings.inactiveFollowUpLastRunAt ?? "",
   waitlistEnabled: form.get("waitlistEnabled") === "on",
-  waitlistOfferTemplate:
-    String(form.get("waitlistOfferTemplate") ?? "").trim() ||
-    defaultAppSettings.waitlistOfferTemplate,
   forecastAlertsEnabled: form.get("forecastAlertsEnabled") === "on",
   alertAggregationEnabled: form.get("alertAggregationEnabled") === "on",
   quietHoursEnabled: form.get("quietHoursEnabled") === "on",

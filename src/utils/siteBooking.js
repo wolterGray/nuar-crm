@@ -23,7 +23,7 @@ export const resolveSiteBookingMaster = (preferredMaster = "", employees = []) =
   const raw = String(preferredMaster ?? "").trim();
 
   if (!raw) {
-    return employees[0]?.name ?? "";
+    return "";
   }
 
   const alias = SITE_MASTER_ALIASES[normalizeText(raw)];
@@ -36,7 +36,9 @@ export const resolveSiteBookingMaster = (preferredMaster = "", employees = []) =
     (employee) => normalizeText(employee.name) === normalizeText(raw),
   );
 
-  return matched?.name ?? raw;
+  const matchedName = matched?.name ?? raw;
+
+  return SITE_MASTER_ALIASES[normalizeText(matchedName)] || matchedName;
 };
 
 export const resolveSiteBookingService = (

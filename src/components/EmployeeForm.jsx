@@ -1,3 +1,5 @@
+import EmployeePremiumHoursFields from './EmployeePremiumHoursFields'
+
 function EmployeeForm({ employee, onSubmit }) {
   return (
     <section className="panel employee-form-panel">
@@ -37,6 +39,7 @@ function EmployeeForm({ employee, onSubmit }) {
             <option>Архив</option>
           </select>
         </label>
+        <EmployeePremiumHoursFields employee={employee} />
         <button className="submit-button">
           {employee ? 'Сохранить сотрудника' : 'Добавить сотрудника'}
         </button>

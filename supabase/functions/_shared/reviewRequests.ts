@@ -1,5 +1,6 @@
 import {differenceInMinutes, isValid, parse, parseISO} from "https://esm.sh/date-fns@4.1.0";
 import {resolveClientMessageName} from "./clientMessageName.ts";
+import {resolveAutomatedMessageTemplate} from "./messageTemplates.ts";
 
 const APP_DATE_FORMAT = "dd.MM.yyyy";
 const REVIEW_REQUEST_TOLERANCE_MINUTES = 30;
@@ -263,12 +264,14 @@ export const buildDueReviewRequests = ({
   appSettings,
   calendarEntries = [],
   clientProfiles = [],
+  messageTemplates = [],
   now = new Date(),
   reviewRequestLog = [],
 }: {
   appSettings: Record<string, unknown>;
   calendarEntries?: CalendarEntry[];
   clientProfiles?: ClientProfile[];
+  messageTemplates?: Array<Record<string, unknown>>;
   now?: Date;
   reviewRequestLog?: ReviewLogItem[];
 }) => {
@@ -304,21 +307,36 @@ export const buildDueReviewRequests = ({
     .filter((entry) => isReviewRequestDue(entry, appSettings, now))
     .map((entry) => {
       const phone = resolveClientPhone(entry, clientProfiles);
-      const message = personalizeReviewTemplate(
-        String(appSettings.reviewRequestTemplate ?? defaultReviewRequestTemplate),
-        {
-          booksyUrl: urls.booksyUrl,
-          clientName: resolveClientMessageName(clientProfiles, {
-            client: entry.client,
-            clientId: entry.clientId,
-          }),
-          googleUrl: urls.googleUrl,
-          master: entry.master,
-          reviewUrl: urls.reviewUrl,
-          service: entry.service,
-          studio: studioName,
-        },
-      );
+      const linkedClient =
+        clientProfiles.find(
+          (client) =>
+            entry?.clientId &&
+            String(client.id) === String(entry.clientId),
+        ) ??
+        clientProfiles.find(
+          (client) =>
+            normalizeClientName(client.name) === normalizeClientName(entry?.client),
+        ) ??
+        null;
+      const template = resolveAutomatedMessageTemplate({
+        appSettings,
+        client: linkedClient,
+        defaultTemplate: defaultReviewRequestTemplate,
+        messageTemplates,
+        purpose: "review-request",
+      });
+      const message = personalizeReviewTemplate(template, {
+        booksyUrl: urls.booksyUrl,
+        clientName: resolveClientMessageName(clientProfiles, {
+          client: entry.client,
+          clientId: entry.clientId,
+        }),
+        googleUrl: urls.googleUrl,
+        master: entry.master,
+        reviewUrl: urls.reviewUrl,
+        service: entry.service,
+        studio: studioName,
+      });
 
       if (!phone) {
         return {

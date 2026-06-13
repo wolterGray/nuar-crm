@@ -294,23 +294,11 @@ function SettingsPage({
                   placeholder="NUAR"
                 />
               </label>
-              <label>
-                Шаблон SMS за 24 часа
-                <textarea
-                  name="smsReminder24hTemplate"
-                  defaultValue={settings.smsReminder24hTemplate ?? ""}
-                  rows="3"
-                />
-                <small>{`Плейсхолдеры: {name}, {date}, {time}, {service}, {master}, {studio}`}</small>
-              </label>
-              <label>
-                Шаблон SMS за 2 часа
-                <textarea
-                  name="smsReminder2hTemplate"
-                  defaultValue={settings.smsReminder2hTemplate ?? ""}
-                  rows="3"
-                />
-              </label>
+              <p className="field-hint">
+                Тексты SMS редактируются во вкладке <strong>Шаблоны</strong>: для каждого
+                назначения (24ч, 2ч, отзыв, follow-up) создайте варианты на PL / RU / EN.
+                Язык клиента задаётся в карточке клиента.
+              </p>
               <label className="toggle-row">
                 <input
                   name="telegramDigestEnabled"
@@ -380,15 +368,6 @@ function SettingsPage({
                   placeholder="Если пусто — Google, затем Booksy"
                 />
               </label>
-              <label>
-                Шаблон SMS с отзывом
-                <textarea
-                  name="reviewRequestTemplate"
-                  defaultValue={settings.reviewRequestTemplate ?? ""}
-                  rows="3"
-                />
-                <small>{`Плейсхолдеры: {name}, {reviewUrl}, {googleUrl}, {booksyUrl}, {service}, {master}, {studio}`}</small>
-              </label>
               <label className="toggle-row">
                 <input
                   name="reviewRequestAutoProcessEnabled"
@@ -444,31 +423,6 @@ function SettingsPage({
                 />
                 <span>SMS через 60 дней</span>
               </label>
-              <label>
-                Шаблон SMS через 14 дней
-                <textarea
-                  name="inactiveFollowUp14Template"
-                  defaultValue={settings.inactiveFollowUp14Template ?? ""}
-                  rows="2"
-                />
-              </label>
-              <label>
-                Шаблон SMS через 30 дней
-                <textarea
-                  name="inactiveFollowUp30Template"
-                  defaultValue={settings.inactiveFollowUp30Template ?? ""}
-                  rows="2"
-                />
-              </label>
-              <label>
-                Шаблон SMS через 60 дней
-                <textarea
-                  name="inactiveFollowUp60Template"
-                  defaultValue={settings.inactiveFollowUp60Template ?? ""}
-                  rows="2"
-                />
-                <small>{`Плейсхолдеры: {name}, {days}, {studio}, {date}`}</small>
-              </label>
               <label className="toggle-row">
                 <input
                   name="inactiveFollowUpAutoProcessEnabled"
@@ -499,15 +453,6 @@ function SettingsPage({
                   Лист ожидания на отмены
                   <small>Предлагать клиентов из waitlist при освобождении слота</small>
                 </span>
-              </label>
-              <label>
-                Шаблон предложения слота
-                <textarea
-                  name="waitlistOfferTemplate"
-                  defaultValue={settings.waitlistOfferTemplate ?? ""}
-                  rows="2"
-                />
-                <small>{`Плейсхолдеры: {name}, {date}, {time}, {master}, {service}, {studio}`}</small>
               </label>
               <label className="toggle-row">
                 <input

@@ -1,4 +1,5 @@
 import {useCallback} from "react";
+import {parseEmployeePricingFromForm} from "../utils/siteBookingPricing.js";
 
 export function useEmployeeHandlers({
   createLocalId,
@@ -44,6 +45,7 @@ export function useEmployeeHandlers({
         shiftStart: form.get("shiftStart") || "08:00",
         shiftEnd: form.get("shiftEnd") || "22:00",
         status: form.get("status"),
+        ...parseEmployeePricingFromForm(form, editingEmployee),
       };
 
       setEmployees((current) =>

@@ -536,6 +536,9 @@ function ClientsPage({
               </span>
               <span>
                 Предпочтения <strong>{activeViewedClient.preference || "—"}</strong>
+                {" · "}
+                Язык SMS{" "}
+                <strong>{activeViewedClient.messageLanguage || "Польский"}</strong>
               </span>
               <span>
                 Статус <strong>{activeViewedClient.status || "Активный"}</strong>

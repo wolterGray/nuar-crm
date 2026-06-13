@@ -22,6 +22,7 @@ const clientFormSchema = z.object({
   instagram: z.string().optional(),
   telegram: z.string().optional(),
   source: z.string().min(1, "Укажите источник"),
+  messageLanguage: z.string().min(1, "Укажите язык SMS"),
   preference: z.string().min(1, "Укажите предпочтение"),
   status: z.string().min(1, "Укажите статус"),
   tags: z.string().optional(),
@@ -44,6 +45,7 @@ function NewClientForm({client, onSubmit}) {
       instagram: client?.instagram ?? "",
       telegram: client?.telegram ?? "",
       source: client?.source ?? "Instagram",
+      messageLanguage: client?.messageLanguage ?? "Польский",
       preference: client?.preference ?? "Любой мастер",
       status: client?.status ?? "Активный",
       tags: client?.tags ?? "",
@@ -148,6 +150,20 @@ function NewClientForm({client, onSubmit}) {
           </label>
         </div>
         <div className="form-split">
+          <label>
+            Язык SMS
+            <select
+              {...register("messageLanguage")}
+              aria-invalid={Boolean(errors.messageLanguage)}
+            >
+              <option>Польский</option>
+              <option>Русский</option>
+              <option>Английский</option>
+              <option>Украинский</option>
+            </select>
+            <FieldError message={errors.messageLanguage?.message} />
+            <small>Какой шаблон использовать в автоматических SMS</small>
+          </label>
           <label>
             Статус клиента
             <select {...register("status")} aria-invalid={Boolean(errors.status)}>

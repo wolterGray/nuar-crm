@@ -9,6 +9,7 @@ type SnapshotPayload = {
   settings?: Record<string, unknown>;
   calendarEntries?: Array<Record<string, unknown>>;
   clients?: Array<Record<string, unknown>>;
+  messageTemplates?: Array<Record<string, unknown>>;
   visits?: Array<Record<string, unknown>>;
   inactiveFollowUpLog?: Array<Record<string, unknown>>;
   communicationLog?: Array<Record<string, unknown>>;
@@ -73,6 +74,7 @@ const processFollowUps = async ({
     calendarEntries: payload.calendarEntries ?? [],
     clientProfiles: payload.clients ?? [],
     inactiveFollowUpLog: payload.inactiveFollowUpLog ?? [],
+    messageTemplates: payload.messageTemplates ?? [],
     visits: payload.visits ?? [],
   });
 
@@ -186,6 +188,7 @@ serve(async (request) => {
         calendarEntries: payload.calendarEntries ?? [],
         clientProfiles: payload.clients ?? [],
         inactiveFollowUpLog: payload.inactiveFollowUpLog ?? [],
+        messageTemplates: payload.messageTemplates ?? [],
         visits: payload.visits ?? [],
       });
 

@@ -2,6 +2,7 @@ import {buildInactiveClients} from "./alertCenter.js";
 import {isCalendarVisitPlanned} from "./calendarVisitStatus.js";
 import {getClientMessageName} from "./clientMessageName.js";
 import {matchesClientRecord} from "./clientLinks.js";
+import {resolveAutomatedMessageTemplate} from "./messageTemplates.js";
 import {normalizePhoneForSms, personalizeSmsTemplate} from "./smsReminders.js";
 
 export const INACTIVE_FOLLOW_UP_KINDS = ["14d", "30d", "60d"];
@@ -53,28 +54,24 @@ export const isInactiveFollowUpTierEnabled = (appSettings = {}, kind) => {
   }
 };
 
-export const resolveInactiveFollowUpTemplate = (appSettings = {}, kind) => {
-  const defaults = defaultInactiveFollowUpTemplates;
+export const resolveInactiveFollowUpTemplate = (
+  appSettings = {},
+  kind,
+  {client = null, messageTemplates = []} = {},
+) => {
+  const purposeMap = {
+    "14d": "inactive-14d",
+    "30d": "inactive-30d",
+    "60d": "inactive-60d",
+  };
 
-  switch (kind) {
-    case "14d":
-      return (
-        String(appSettings.inactiveFollowUp14Template ?? "").trim() ||
-        defaults["14d"]
-      );
-    case "30d":
-      return (
-        String(appSettings.inactiveFollowUp30Template ?? "").trim() ||
-        defaults["30d"]
-      );
-    case "60d":
-      return (
-        String(appSettings.inactiveFollowUp60Template ?? "").trim() ||
-        defaults["60d"]
-      );
-    default:
-      return "";
-  }
+  return resolveAutomatedMessageTemplate({
+    appSettings,
+    client,
+    defaultTemplate: defaultInactiveFollowUpTemplates[kind] ?? "",
+    messageTemplates,
+    purpose: purposeMap[kind] ?? "general",
+  });
 };
 
 export const resolveNextInactiveFollowUpKind = ({
@@ -121,6 +118,7 @@ export const buildDueInactiveFollowUps = ({
   calendarEntries = [],
   clientProfiles = [],
   inactiveFollowUpLog = [],
+  messageTemplates = [],
   now = new Date(),
   visits = [],
 }) => {
@@ -149,7 +147,10 @@ export const buildDueInactiveFollowUps = ({
       }
 
       const phone = normalizePhoneForSms(client.phone);
-      const template = resolveInactiveFollowUpTemplate(appSettings, kind);
+      const template = resolveInactiveFollowUpTemplate(appSettings, kind, {
+        client,
+        messageTemplates,
+      });
       const message = personalizeSmsTemplate(template, {
         clientName: getClientMessageName(client),
         date: client.lastVisit,
