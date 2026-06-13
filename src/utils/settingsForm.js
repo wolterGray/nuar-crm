@@ -37,13 +37,21 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
   telegramDigestTime:
     String(form.get("telegramDigestTime") ?? "").trim() ||
     defaultAppSettings.telegramDigestTime,
-  telegramChatId: String(form.get("telegramChatId") ?? "").trim(),
+  telegramChatId: form.has("telegramChatId")
+    ? String(form.get("telegramChatId") ?? "").trim()
+    : String(appSettings.telegramChatId ?? defaultAppSettings.telegramChatId ?? "").trim(),
   telegramDigestLastRunAt: appSettings.telegramDigestLastRunAt ?? "",
-  siteBookingNotifyTelegramEnabled:
-    form.get("siteBookingNotifyTelegramEnabled") === "on",
-  siteBookingNotifyWhatsappEnabled:
-    form.get("siteBookingNotifyWhatsappEnabled") === "on",
-  ownerNotifyPhone: String(form.get("ownerNotifyPhone") ?? "").trim(),
+  siteBookingNotifyTelegramEnabled: form.has("siteBookingNotifyTelegramEnabled")
+    ? form.get("siteBookingNotifyTelegramEnabled") === "on"
+    : appSettings.siteBookingNotifyTelegramEnabled ??
+      defaultAppSettings.siteBookingNotifyTelegramEnabled,
+  siteBookingNotifyWhatsappEnabled: form.has("siteBookingNotifyWhatsappEnabled")
+    ? form.get("siteBookingNotifyWhatsappEnabled") === "on"
+    : appSettings.siteBookingNotifyWhatsappEnabled ??
+      defaultAppSettings.siteBookingNotifyWhatsappEnabled,
+  ownerNotifyPhone: form.has("ownerNotifyPhone")
+    ? String(form.get("ownerNotifyPhone") ?? "").trim()
+    : String(appSettings.ownerNotifyPhone ?? defaultAppSettings.ownerNotifyPhone ?? "").trim(),
   reviewRequestsEnabled: form.get("reviewRequestsEnabled") === "on",
   reviewRequestDelayHours:
     Math.max(1, Number(form.get("reviewRequestDelayHours"))) ||

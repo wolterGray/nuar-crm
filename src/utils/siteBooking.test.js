@@ -66,6 +66,24 @@ describe("siteBooking", () => {
     });
   });
 
+  it("falls back to site catalog when service name is localized", () => {
+    expect(
+      resolveSiteBookingService(
+        {
+          duration_minutes: 60,
+          service_name: "Classic massage",
+          service_slug: "masaz-klasyczny",
+        },
+        [],
+      ),
+    ).toEqual({
+      amount: 255,
+      duration: 60,
+      service: "Masaż klasyczny",
+      serviceId: "",
+    });
+  });
+
   it("creates calendar entry and client from site booking", () => {
     const result = applySiteBookingRequest(
       {

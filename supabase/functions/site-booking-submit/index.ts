@@ -115,7 +115,7 @@ serve(async (request) => {
       throw error;
     }
 
-    await notifyOwnerAboutSiteBooking({
+    const notifyResults = await notifyOwnerAboutSiteBooking({
       appSettings: payload.settings ?? {},
       booking: {
         clientEmail,
@@ -128,7 +128,14 @@ serve(async (request) => {
         preferredTime: preferredTime.slice(0, 5),
         serviceName,
       },
-    }).catch(() => ({}));
+    });
+
+    if (notifyResults.telegram && !notifyResults.telegram.ok) {
+      console.error(
+        "Site booking telegram notify failed:",
+        notifyResults.telegram.error,
+      );
+    }
 
     return jsonResponse({
       id: data.id,

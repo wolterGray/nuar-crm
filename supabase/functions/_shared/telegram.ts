@@ -30,30 +30,37 @@ export const sendTelegramMessage = async ({
     return {ok: false, error: "Telegram chat id is not configured"};
   }
 
-  const response = await fetch(`${TELEGRAM_API_BASE}/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      chat_id: chatId,
-      disable_web_page_preview: true,
-      text: message,
-    }),
-  });
+  try {
+    const response = await fetch(`${TELEGRAM_API_BASE}/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        chat_id: chatId,
+        disable_web_page_preview: true,
+        text: message,
+      }),
+    });
 
-  const payload = await response.json().catch(() => ({}));
+    const payload = await response.json().catch(() => ({}));
 
-  if (!response.ok || payload?.ok === false) {
+    if (!response.ok || payload?.ok === false) {
+      return {
+        ok: false,
+        error:
+          payload?.description ||
+          payload?.error ||
+          `Telegram API error (${response.status})`,
+      };
+    }
+
+    return {
+      ok: true,
+      messageId: String(payload?.result?.message_id ?? ""),
+    };
+  } catch (error) {
     return {
       ok: false,
-      error:
-        payload?.description ||
-        payload?.error ||
-        `Telegram API error (${response.status})`,
+      error: error instanceof Error ? error.message : "Telegram send failed",
     };
   }
-
-  return {
-    ok: true,
-    messageId: String(payload?.result?.message_id ?? ""),
-  };
 };

@@ -91,13 +91,9 @@ describe("attachPricingToSlots", () => {
       date: "2026-06-13",
       durationMinutes: 60,
       employees: [maxEmployee, olgaEmployee],
-      serviceCatalog: [
-        {
-          name: "Masaż klasyczny",
-          variants: [{duration: 60, price: 255}],
-        },
-      ],
-      serviceName: "Masaż klasyczny",
+      serviceCatalog: [],
+      serviceName: "Classic massage",
+      serviceSlug: "masaz-klasyczny",
       slots: [
         {master: "Максим", startTime: "12:00"},
         {master: "Ольга", startTime: "18:00"},
@@ -106,6 +102,20 @@ describe("attachPricingToSlots", () => {
 
     expect(slots[0].finalPrice).toBe(209);
     expect(slots[1].finalPrice).toBe(293);
+  });
+
+  it("resolves base price from slug when CRM catalog is empty", () => {
+    const slots = attachPricingToSlots({
+      date: "2026-06-13",
+      durationMinutes: 60,
+      employees: [maxEmployee],
+      serviceCatalog: [],
+      serviceName: "Classic massage",
+      serviceSlug: "masaz-klasyczny",
+      slots: [{master: "Максим", startTime: "12:00"}],
+    });
+
+    expect(slots[0].basePrice).toBe(255);
   });
 });
 

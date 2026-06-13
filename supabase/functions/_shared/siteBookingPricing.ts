@@ -1,4 +1,5 @@
 import {resolveSiteBookingMaster} from "./siteBookingSlots.ts";
+import {resolveSiteBookingBasePrice} from "./siteBookingCatalog.ts";
 
 type EmployeeRecord = Record<string, unknown>;
 type PremiumHoursRule = {
@@ -135,39 +136,6 @@ export const calculateSiteBookingPrice = ({
     premiumPercent,
     subtotal,
   };
-};
-
-const normalizeText = (value: unknown) =>
-  String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replaceAll("ё", "е");
-
-export const resolveSiteBookingBasePrice = ({
-  durationMinutes,
-  serviceCatalog = [],
-  serviceSlug = "",
-  serviceName = "",
-}: {
-  durationMinutes: number;
-  serviceCatalog?: Array<Record<string, unknown>>;
-  serviceSlug?: string;
-  serviceName?: string;
-}) => {
-  const slug = String(serviceSlug ?? "").trim();
-  const name = String(serviceName ?? "").trim();
-  const crmService = serviceCatalog.find((service) => {
-    const normalizedName = normalizeText(service.name);
-
-    return normalizedName === normalizeText(name) || slug && normalizedName.includes(normalizeText(slug.replaceAll("-", " ")));
-  });
-  const variant =
-    (crmService?.variants as Array<Record<string, unknown>> | undefined)?.find(
-      (item) => Number(item.duration) === Number(durationMinutes),
-    ) ??
-    (crmService?.variants as Array<Record<string, unknown>> | undefined)?.[0];
-
-  return Math.max(0, Math.round(Number(variant?.price ?? crmService?.price ?? 0)));
 };
 
 export const attachPricingToSlots = ({

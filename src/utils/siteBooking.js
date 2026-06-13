@@ -47,6 +47,9 @@ export const resolveSiteBookingService = (
 ) => {
   const slug = String(request.service_slug ?? request.serviceSlug ?? "").trim();
   const serviceName = String(request.service_name ?? request.serviceName ?? "").trim();
+  const durationMinutes = Number(
+    request.duration_minutes ?? request.durationMinutes ?? 60,
+  );
   const catalogItem = siteServicesCatalog.find(
     (item) => normalizeText(item.slug) === normalizeText(slug),
   );
@@ -63,22 +66,37 @@ export const resolveSiteBookingService = (
   if (crmBySlug) {
     const variant =
       crmBySlug.variants?.find(
-        (item) =>
-          Number(item.duration) ===
-          Number(request.duration_minutes ?? request.durationMinutes ?? 60),
+        (item) => Number(item.duration) === durationMinutes,
       ) ?? crmBySlug.variants?.[0];
+    const amount = toFinanceNumber(variant?.price ?? crmBySlug.price ?? 0);
+
+    if (amount > 0) {
+      return {
+        amount,
+        duration: Number(variant?.duration ?? durationMinutes),
+        service: crmBySlug.name,
+        serviceId: crmBySlug.id,
+      };
+    }
+  }
+
+  if (catalogItem) {
+    const durationIndex = catalogItem.time.findIndex(
+      (minutes) => Number(minutes) === durationMinutes,
+    );
+    const priceIndex = durationIndex >= 0 ? durationIndex : 0;
 
     return {
-      amount: toFinanceNumber(variant?.price ?? crmBySlug.price ?? 0),
-      duration: Number(variant?.duration ?? request.duration_minutes ?? 60),
-      service: crmBySlug.name,
-      serviceId: crmBySlug.id,
+      amount: toFinanceNumber(catalogItem.price[priceIndex] ?? 0),
+      duration: Number(catalogItem.time[priceIndex] ?? durationMinutes),
+      service: catalogItem.title,
+      serviceId: crmBySlug?.id ?? "",
     };
   }
 
   return {
     amount: 0,
-    duration: Number(request.duration_minutes ?? request.durationMinutes ?? 60),
+    duration: durationMinutes,
     service: serviceName || catalogItem?.title || "Услуга с сайта",
     serviceId: "",
   };
