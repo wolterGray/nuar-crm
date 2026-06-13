@@ -31,16 +31,29 @@
 }
 
 .hint-icon-wrap:hover .hint-icon,
-.hint-icon-wrap:focus-within .hint-icon {
+.hint-icon-wrap:focus-within .hint-icon,
+.hint-icon:focus {
   opacity: 0.95;
 }
 
+.hint-tooltip-portal {
+  position: fixed;
+  z-index: 10050;
+  margin: 0;
+  pointer-events: none;
+  visibility: visible;
+  opacity: 1;
+}
+
+.hint-tooltip-portal.is-top {
+  transform: translate(-50%, -100%);
+}
+
+.hint-tooltip-portal.is-bottom {
+  transform: translate(-50%, 0);
+}
+
 .hint-tooltip {
-  position: absolute;
-  z-index: 120;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  width: min(280px, 72vw);
   padding: 10px 12px;
   border: 1px solid var(--line-soft, #e5e5e3);
   border-radius: 8px;
@@ -52,18 +65,7 @@
   line-height: 1.45;
   text-align: left;
   white-space: normal;
-  visibility: hidden;
-  opacity: 0;
-  transform: translate(-50%, 4px);
-  pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
-}
-
-.hint-icon-wrap:hover .hint-tooltip,
-.hint-icon-wrap:focus-within .hint-tooltip {
-  visibility: visible;
-  opacity: 1;
-  transform: translate(-50%, 0);
+  overflow-wrap: anywhere;
 }
 
 .labeled-hint-row {
