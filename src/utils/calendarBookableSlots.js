@@ -1,6 +1,8 @@
 import {formatAppDate, INPUT_DATE_FORMAT, parseAppDate} from "./dateUtils.js";
 import {resolveSiteBookingMaster} from "./siteBooking.js";
 
+const DEFAULT_SITE_MASTERS = ["Ольга", "Максим"];
+
 const toMinutes = (time) => {
   const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
 
@@ -39,6 +41,13 @@ const roundUpToStep = (minutes, step) =>
 
 const overlapsInterval = (start, end, interval) =>
   start < interval.end && end > interval.start;
+
+const buildDefaultEmployees = (appSettings) =>
+  DEFAULT_SITE_MASTERS.map((name) => ({
+    name,
+    shiftEnd: appSettings.workdayEnd || "22:00",
+    shiftStart: appSettings.workdayStart || "08:00",
+  }));
 
 export const normalizeBookingInputDate = (value) => {
   const parsed = parseAppDate(value);
@@ -88,7 +97,8 @@ export const buildBookableSlots = ({
       activeEmployees,
     );
     activeEmployees = activeEmployees.filter(
-      (employee) => employee.name === resolvedMaster,
+      (employee) =>
+        resolveSiteBookingMaster(employee.name, employees) === resolvedMaster,
     );
 
     if (activeEmployees.length === 0 && resolvedMaster) {
@@ -100,6 +110,10 @@ export const buildBookableSlots = ({
         },
       ];
     }
+  }
+
+  if (activeEmployees.length === 0) {
+    activeEmployees = buildDefaultEmployees(appSettings);
   }
 
   const slots = [];
@@ -127,7 +141,7 @@ export const buildBookableSlots = ({
           (entry) =>
             entry?.kind === "visit" &&
             entry.date === crmDate &&
-            entry.master === master &&
+            resolveSiteBookingMaster(entry.master, employees) === master &&
             !["cancelled", "no_show"].includes(String(entry.status ?? "")),
         )
         .map((entry) => ({

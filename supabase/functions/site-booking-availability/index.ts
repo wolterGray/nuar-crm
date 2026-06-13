@@ -1,36 +1,8 @@
 import {serve} from "https://deno.land/std@0.224.0/http/server.ts";
 import {createAdminClient} from "../_shared/supabaseAdmin.ts";
+import {loadCrmSnapshotForSiteBooking} from "../_shared/crmSnapshot.ts";
 import {handleOptions, jsonResponse} from "../_shared/cors.ts";
 import {buildBookableSlots} from "../_shared/siteBookingSlots.ts";
-
-type SnapshotPayload = {
-  calendarEntries?: Array<Record<string, unknown>>;
-  employees?: Array<Record<string, unknown>>;
-  settings?: Record<string, unknown>;
-};
-
-const loadOwnerSnapshot = async (admin: ReturnType<typeof createAdminClient>) => {
-  const ownerUserId = String(Deno.env.get("CRM_OWNER_USER_ID") ?? "").trim();
-
-  if (!ownerUserId) {
-    throw new Error("CRM_OWNER_USER_ID is not configured");
-  }
-
-  const {data, error} = await admin
-    .from("crm_snapshots")
-    .select("payload")
-    .eq("user_id", ownerUserId)
-    .maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  return {
-    ownerUserId,
-    payload: (data?.payload ?? {}) as SnapshotPayload,
-  };
-};
 
 serve(async (request) => {
   const options = handleOptions(request);
@@ -56,7 +28,7 @@ serve(async (request) => {
     }
 
     const admin = createAdminClient();
-    const {ownerUserId, payload} = await loadOwnerSnapshot(admin);
+    const {ownerUserId, payload} = await loadCrmSnapshotForSiteBooking(admin);
     const {data: pendingBookings, error: pendingError} = await admin
       .from("site_booking_requests")
       .select("preferred_date, preferred_time, preferred_master, duration_minutes, status")

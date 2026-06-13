@@ -6,6 +6,8 @@ const SITE_MASTER_ALIASES: Record<string, string> = {
   ольга: "Ольга",
 };
 
+const DEFAULT_SITE_MASTERS = ["Ольга", "Максим"];
+
 const normalizeText = (value: unknown) =>
   String(value ?? "")
     .trim()
@@ -111,6 +113,33 @@ export const normalizeBookingCrmDate = (value: unknown) => {
   return `${day}.${month}.${year}`;
 };
 
+const getWarsawNow = (now = new Date()) => {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(now).map((part) => [part.type, part.value]),
+  );
+
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    minutes: Number(parts.hour) * 60 + Number(parts.minute),
+  };
+};
+
+const buildDefaultEmployees = (appSettings: Record<string, unknown>) =>
+  DEFAULT_SITE_MASTERS.map((name) => ({
+    name,
+    shiftEnd: appSettings.workdayEnd || "22:00",
+    shiftStart: appSettings.workdayStart || "08:00",
+  }));
+
 export const buildBookableSlots = ({
   appSettings = {},
   calendarEntries = [],
@@ -144,9 +173,9 @@ export const buildBookableSlots = ({
     15,
     Number(slotStepMinutes ?? appSettings.calendarSlotMinutes) || 15,
   );
-  const todayInput = now.toISOString().slice(0, 10);
-  const isToday = inputDate === todayInput;
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const warsawNow = getWarsawNow(now);
+  const isToday = inputDate === warsawNow.date;
+  const currentMinutes = warsawNow.minutes;
   let activeEmployees = employees.filter(
     (employee) => String(employee.status ?? "") !== "Архив",
   );
@@ -154,7 +183,9 @@ export const buildBookableSlots = ({
   if (preferredMaster) {
     const resolvedMaster = resolveSiteBookingMaster(preferredMaster, activeEmployees);
     activeEmployees = activeEmployees.filter(
-      (employee) => String(employee.name) === resolvedMaster,
+      (employee) =>
+        resolveSiteBookingMaster(String(employee.name ?? ""), employees) ===
+        resolvedMaster,
     );
 
     if (activeEmployees.length === 0 && resolvedMaster) {
@@ -166,6 +197,10 @@ export const buildBookableSlots = ({
         },
       ];
     }
+  }
+
+  if (activeEmployees.length === 0) {
+    activeEmployees = buildDefaultEmployees(appSettings);
   }
 
   const slots: Array<{
@@ -198,7 +233,8 @@ export const buildBookableSlots = ({
           (entry) =>
             entry?.kind === "visit" &&
             entry.date === crmDate &&
-            entry.master === master &&
+            resolveSiteBookingMaster(String(entry.master ?? ""), employees) ===
+              master &&
             !["cancelled", "no_show"].includes(String(entry.status ?? "")),
         )
         .map((entry) => ({

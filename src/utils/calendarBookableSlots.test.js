@@ -54,6 +54,20 @@ describe("calendarBookableSlots", () => {
     expect(slots.some((slot) => slot.startTime === "14:00")).toBe(false);
   });
 
+  it("returns default masters when employees list is empty", () => {
+    const slots = buildBookableSlots({
+      appSettings: {workdayStart: "08:00", workdayEnd: "18:00"},
+      calendarEntries: [],
+      date: "2026-06-20",
+      durationMinutes: 60,
+      employees: [],
+      now: new Date("2026-06-20T08:00:00"),
+    });
+
+    expect(slots.length).toBeGreaterThan(0);
+    expect(slots.some((slot) => slot.master === "Ольга")).toBe(true);
+  });
+
   it("validates selected slot availability", () => {
     expect(
       isBookableSlotAvailable({
