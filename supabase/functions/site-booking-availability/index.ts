@@ -2,6 +2,7 @@ import {serve} from "https://deno.land/std@0.224.0/http/server.ts";
 import {createAdminClient} from "../_shared/supabaseAdmin.ts";
 import {loadCrmSnapshotForSiteBooking} from "../_shared/crmSnapshot.ts";
 import {handleOptions, jsonResponse} from "../_shared/cors.ts";
+import {formatEdgeError, loadPendingSiteBookings} from "../_shared/siteBookingRequests.ts";
 import {buildBookableSlots} from "../_shared/siteBookingSlots.ts";
 
 serve(async (request) => {
@@ -29,16 +30,10 @@ serve(async (request) => {
 
     const admin = createAdminClient();
     const {ownerUserId, payload} = await loadCrmSnapshotForSiteBooking(admin);
-    const {data: pendingBookings, error: pendingError} = await admin
-      .from("site_booking_requests")
-      .select("preferred_date, preferred_time, preferred_master, duration_minutes, status")
-      .eq("owner_user_id", ownerUserId)
-      .eq("status", "pending")
-      .eq("preferred_date", preferredDate);
-
-    if (pendingError) {
-      throw pendingError;
-    }
+    const pendingBookings = await loadPendingSiteBookings(admin, {
+      ownerUserId,
+      preferredDate,
+    });
 
     const slots = buildBookableSlots({
       appSettings: payload.settings ?? {},
@@ -57,9 +52,6 @@ serve(async (request) => {
       slots,
     });
   } catch (error) {
-    return jsonResponse(
-      {error: error instanceof Error ? error.message : "Availability failed"},
-      500,
-    );
+    return jsonResponse({error: formatEdgeError(error, "Availability failed")}, 500);
   }
 });
