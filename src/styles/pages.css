@@ -821,9 +821,7 @@
 }
 
 .send-template-modal {
-  display: grid;
-  gap: 15px;
-  width: min(560px, 100%);
+  width: min(640px, 100%);
 }
 
 .send-template-modal .modal-header p {
@@ -1392,16 +1390,13 @@ select {
 }
 
 .employee-modal {
-  width: min(520px, 100%);
-  max-height: calc(100vh - 36px);
-  overflow: auto;
-  padding: 22px;
+  width: min(680px, 100%);
+  max-height: calc(100dvh - 32px);
   border: 1px solid var(--line-soft, #e5e5e3);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-xl, 16px);
   color: var(--text-main, #15171c);
   background: var(--surface-solid, #fff);
   box-shadow: 0 24px 70px rgba(17, 19, 24, 0.22);
-  overscroll-behavior: contain;
 }
 
 .employee-modal:not(.calendar-entry-modal):not(.client-details-modal),
@@ -1435,7 +1430,6 @@ select {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
 }
 
 .employee-modal .employee-form-panel {
@@ -1459,8 +1453,8 @@ select {
 }
 
 .client-form-modal {
-  width: min(860px, calc(100vw - 48px));
-  max-height: calc(100vh - 48px);
+  width: min(840px, calc(100vw - 32px));
+  max-height: min(88dvh, 880px);
 }
 
 .client-form-modal .new-client-panel {
@@ -1470,7 +1464,6 @@ select {
 .client-form-modal .new-client-panel form {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
-  overflow: visible;
 }
 
 .client-form-modal .new-client-panel form > label:has(textarea),

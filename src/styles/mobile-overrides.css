@@ -98,34 +98,23 @@
 
   /* Modals: bottom sheets with internal scroll */
   .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) {
-    display: flex;
     width: 100%;
-    max-height: calc(100dvh - env(safe-area-inset-top) - 8px);
-    flex-direction: column;
-    overflow: hidden;
-    border-radius: 12px 12px 0 0;
+    max-height: min(94dvh, 100dvh);
+    padding: 0;
+    border-radius: 16px 16px 0 0;
   }
 
-  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) > :not(.modal-header) {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) > :not(.modal-header),
   .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) form,
   .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form-panel,
-  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .catalog-form,
-  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .message-template-form,
   .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .new-client-panel {
     min-height: 0;
   }
 
   .confirm-dialog {
     width: 100%;
-    max-height: calc(100dvh - env(safe-area-inset-top) - 8px);
-    overflow-y: auto;
-    border-radius: 12px 12px 0 0;
+    max-height: min(80dvh, 100dvh);
+    border-radius: 16px 16px 0 0;
   }
 
   .theme-dark :is(

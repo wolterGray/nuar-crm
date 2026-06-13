@@ -122,7 +122,7 @@
   }
 
   .calendar-reminders {
-    max-height: 220px;
+    max-height: min(42dvh, 420px);
   }
 
   .percent-ring {
@@ -1543,18 +1543,15 @@
   }
 
   .employee-modal {
-    display: flex;
     width: 100%;
-    max-height: calc(100dvh - 10px);
-    flex-direction: column;
-    overflow: hidden;
-    padding: 16px;
-    border-radius: 12px 12px 0 0;
+    max-height: min(94dvh, 100dvh);
+    padding: 0;
+    border-radius: 16px 16px 0 0;
   }
 
   .calendar-entry-modal {
     display: flex;
-    width: 100vw;
+    width: 100%;
     height: 100dvh;
     max-width: 100%;
     max-height: none;
@@ -1566,34 +1563,30 @@
   }
 
   .modal-header {
-    position: sticky;
-    top: -16px;
+    position: static;
     z-index: 2;
-    margin: -16px -16px 5px;
-    padding: 14px 16px 10px;
-    background: var(--surface-solid, #fff);
+    margin: 0;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--line-soft, #e5e5e3);
+    background: inherit;
   }
 
   .calendar-entry-modal .modal-header {
     flex: 0 0 auto;
-    top: 0;
-    margin: 0;
     padding: 12px 14px;
-    background: var(--surface-solid, #fff);
     border-bottom: 1px solid var(--line-soft, #e5e5e3);
   }
 
   .calendar-entry-form {
-    display: block;
+    display: grid;
     flex: 1;
     min-width: 0;
     min-height: 0;
+    gap: 12px;
     overflow-x: hidden;
     overflow-y: auto;
     margin: 0;
-    color: var(--text-main, inherit);
-    background: transparent;
-    padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   }
 
   .calendar-entry-form > *,
@@ -1748,22 +1741,11 @@
   }
 
   .client-form-modal {
-    max-height: calc(100dvh - 12px);
-    overflow: hidden;
-  }
-
-  .client-form-modal .new-client-panel {
-    min-height: 0;
-    overflow: hidden;
+    max-height: min(94dvh, 100dvh);
   }
 
   .client-form-modal .new-client-panel form {
     display: grid;
-    scrollbar-width: none;
-  }
-
-  .client-form-modal .new-client-panel form::-webkit-scrollbar {
-    display: none;
   }
 
   .client-form-modal .form-split {

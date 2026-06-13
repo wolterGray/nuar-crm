@@ -71,12 +71,52 @@
 
 /* ---- Panels & cards ---- */
 
-.panel {
+.panel:not(.schedule-panel):not(.calendar-reminders):not(.client-packages-panel) {
   display: grid;
   gap: var(--ds-space-3);
   padding: var(--ds-panel-padding);
   border-radius: var(--ds-radius-lg);
   box-shadow: var(--ds-shadow-panel);
+}
+
+.schedule-panel.panel {
+  display: block;
+  padding: 0;
+  gap: 0;
+  min-height: 0;
+  overflow: auto;
+  box-shadow: none;
+}
+
+.calendar-reminders.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+  padding: 12px;
+  overflow: hidden;
+  box-shadow: var(--soft-shadow, var(--ds-shadow-panel));
+}
+
+.calendar-reminders .calendar-reminders-header,
+.calendar-reminders .calendar-reminders-summary,
+.calendar-reminders .calendar-reminders-tabs {
+  flex-shrink: 0;
+}
+
+.calendar-reminders .calendar-reminder-list {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.calendar-reminders-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .panel-header {
@@ -275,35 +315,263 @@
   line-height: 1.45;
 }
 
-/* ---- Modals ---- */
+/* ---- Modals: unified form shell ---- */
+
+.modal-backdrop {
+  align-items: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+}
 
 .employee-modal,
-.client-form-modal,
 .client-details-modal,
-.calendar-entry-modal,
 .confirm-dialog,
 .client-search-dialog {
   border-radius: var(--ds-radius-xl);
   box-shadow: var(--ds-shadow-soft);
 }
 
-.employee-modal:not(.calendar-entry-modal),
-.client-form-modal,
-.client-details-modal,
-.confirm-dialog {
-  width: min(720px, calc(100vw - 24px));
+.employee-modal:not(.client-details-modal) {
+  display: flex;
+  width: min(680px, calc(100vw - 32px));
+  max-height: min(88dvh, 880px);
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+.employee-modal.client-form-modal {
+  width: min(840px, calc(100vw - 32px));
+}
+
+.employee-modal.catalog-modal,
+.employee-modal.message-template-modal,
+.employee-modal.send-template-modal {
+  width: min(640px, calc(100vw - 32px));
+}
+
+.employee-modal.calendar-entry-modal {
+  width: min(700px, calc(100vw - 32px));
+  max-height: min(92dvh, 920px);
+}
+
+.client-details-modal {
+  display: flex;
+  width: min(820px, calc(100vw - 32px));
   max-height: min(88dvh, 900px);
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0;
+}
+
+.confirm-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: min(80dvh, 520px);
+  overflow-y: auto;
+}
+
+.employee-modal .modal-header,
+.client-details-modal .modal-header {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+}
+
+.client-details-modal .modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: inherit;
+}
+
+.employee-modal > :not(.modal-header) {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.employee-modal :is(
+  .employee-form-panel,
+  .new-client-panel,
+  .service-form-panel,
+  .package-form-panel
+) {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.employee-modal :is(
+  .employee-form,
+  .catalog-form,
+  .modal-form,
+  .calendar-entry-form,
+  .financial-operation-form,
+  .new-client-panel form
+),
+.employee-modal > :not(.modal-header):is(form, .calendar-entry-form) {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  gap: 14px;
+  margin-top: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  scrollbar-color: color-mix(in srgb, var(--accent-color) 42%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+.client-form-modal .new-client-panel form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  align-items: start;
+}
+
+.client-form-modal .new-client-panel form > label:has(textarea),
+.client-form-modal .new-client-panel .submit-button,
+.employee-modal :is(.employee-form, .catalog-form, .modal-form) .submit-button,
+.employee-modal .calendar-entry-form .submit-button {
+  grid-column: 1 / -1;
+}
+
+.client-details-modal > :not(.modal-header) {
+  padding: 0 20px calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.client-details-modal .client-details-grid,
+.client-details-modal .client-details-note,
+.client-details-modal .client-visit-history,
+.client-details-modal .client-communications {
+  margin-top: 12px;
 }
 
 .modal-header h2 {
   font-size: 18px;
   letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .modal-header span,
 .modal-header p {
   color: var(--linear-dim, #70737f);
   font-size: 12px;
+}
+
+.employee-modal :is(.employee-form, .catalog-form, .modal-form, .calendar-entry-form) label,
+.client-form-modal label {
+  gap: 7px;
+}
+
+.employee-modal :is(.employee-form, .catalog-form, .modal-form) .form-split,
+.client-form-modal .form-split {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.employee-modal .employee-pricing-panel {
+  grid-column: 1 / -1;
+}
+
+.employee-modal.send-template-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.employee-modal.send-template-modal .modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: inherit;
+}
+
+.employee-modal.send-template-modal > :not(.modal-header) {
+  display: block;
+  flex: 0 0 auto;
+  min-height: auto;
+  overflow: visible;
+  padding: 0 20px;
+}
+
+.employee-modal.send-template-modal > label:first-of-type {
+  margin-top: 16px;
+}
+
+.employee-modal.send-template-modal > :not(.modal-header) + :not(.modal-header) {
+  margin-top: 14px;
+}
+
+@media (max-width: 700px) {
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .employee-modal:not(.client-details-modal) {
+    width: 100%;
+    max-height: min(94dvh, 100dvh);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .employee-modal.calendar-entry-modal {
+    width: 100%;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .client-details-modal {
+    width: 100%;
+    max-height: min(94dvh, 100dvh);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .employee-modal :is(
+    .employee-form,
+    .catalog-form,
+    .modal-form,
+    .calendar-entry-form,
+    .financial-operation-form,
+    .new-client-panel form
+  ),
+  .employee-modal > :not(.modal-header):is(form, .calendar-entry-form) {
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .client-form-modal .new-client-panel form,
+  .employee-modal :is(.employee-form, .catalog-form, .modal-form) .form-split,
+  .client-form-modal .form-split {
+    grid-template-columns: 1fr;
+  }
+
+  .employee-modal .modal-header,
+  .client-details-modal .modal-header {
+    padding: 14px 16px 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .catalog-price-grid,
+  .employee-premium-rule-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* ---- Status chips ---- */
