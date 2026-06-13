@@ -1571,7 +1571,7 @@
     z-index: 2;
     margin: -16px -16px 5px;
     padding: 14px 16px 10px;
-    background: inherit;
+    background: var(--surface-solid, #fff);
   }
 
   .calendar-entry-modal .modal-header {
@@ -1749,10 +1749,6 @@
 
   .client-form-modal .new-client-panel form {
     display: grid;
-    max-height: calc(100dvh - 88px);
-    overflow-x: hidden;
-    overflow-y: auto;
-    padding: 2px 2px calc(14px + env(safe-area-inset-bottom));
     scrollbar-width: none;
   }
 

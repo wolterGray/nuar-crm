@@ -371,6 +371,37 @@
   border-color: var(--linear-border) !important;
 }
 
+.theme-dark :is(.employee-modal, .client-form-modal) .employee-pricing-panel,
+.theme-light :is(.employee-modal, .client-form-modal) .employee-pricing-panel {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel-soft) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-dark :is(.employee-modal, .client-form-modal) .employee-premium-days,
+.theme-light :is(.employee-modal, .client-form-modal) .employee-premium-days {
+  color: var(--linear-text) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-dark :is(.employee-modal, .client-form-modal) :is(
+  .employee-pricing-panel small,
+  .toggle-row small,
+  label small:not(.field-error)
+),
+.theme-light :is(.employee-modal, .client-form-modal) :is(
+  .employee-pricing-panel small,
+  .toggle-row small,
+  label small:not(.field-error)
+) {
+  color: var(--linear-muted) !important;
+}
+
+.theme-dark :is(.employee-modal, .client-form-modal) label,
+.theme-light :is(.employee-modal, .client-form-modal) label {
+  color: var(--linear-text) !important;
+}
+
 .theme-dark .new-client-panel input,
 .theme-dark .new-client-panel select,
 .theme-dark .new-client-panel textarea {

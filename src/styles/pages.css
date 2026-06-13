@@ -1396,11 +1396,46 @@ select {
   max-height: calc(100vh - 36px);
   overflow: auto;
   padding: 22px;
-  border: 1px solid #e5e5e3;
+  border: 1px solid var(--line-soft, #e5e5e3);
   border-radius: 8px;
-  background: #fff;
+  color: var(--text-main, #15171c);
+  background: var(--surface-solid, #fff);
   box-shadow: 0 24px 70px rgba(17, 19, 24, 0.22);
   overscroll-behavior: contain;
+}
+
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal),
+.client-form-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) > :not(.modal-header),
+.client-form-modal > :not(.modal-header) {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form-panel,
+.client-form-modal .new-client-panel {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form,
+.client-form-modal .new-client-panel form {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
 }
 
 .employee-modal .employee-form-panel {
@@ -1463,9 +1498,10 @@ select {
   display: grid;
   gap: 12px;
   padding: 14px;
-  border: 1px solid #e5e5e3;
+  border: 1px solid var(--line-soft, #e5e5e3);
   border-radius: 8px;
-  background: #fafaf9;
+  color: var(--text-main, #15171c);
+  background: var(--surface-muted, #fafaf9);
 }
 
 .employee-pricing-panel h3 {
@@ -1476,7 +1512,7 @@ select {
 .employee-pricing-panel small {
   display: block;
   margin-top: 4px;
-  color: #6f737b;
+  color: var(--text-soft, #6f737b);
 }
 
 .employee-premium-rule-grid {
@@ -1541,10 +1577,10 @@ select {
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid #dfdfdd;
+  border: 1px solid var(--line-soft, #dfdfdd);
   border-radius: 8px;
-  color: #15171c;
-  background: #fff;
+  color: var(--text-main, #15171c);
+  background: var(--surface, #fff);
 }
 
 .dialog-backdrop {

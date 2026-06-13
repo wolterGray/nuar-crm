@@ -108,8 +108,7 @@
   .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) > :not(.modal-header) {
     flex: 1;
     min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     -webkit-overflow-scrolling: touch;
   }
 
