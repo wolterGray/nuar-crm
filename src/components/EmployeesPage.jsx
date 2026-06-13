@@ -1,22 +1,34 @@
 import {Pencil, Plus, Trash2} from "lucide-react";
 import {motion} from "framer-motion";
+import DailyPayrollPanel from "./DailyPayrollPanel.jsx";
 import PayrollPanel from "./PayrollPanel.jsx";
 import {formatMoney} from "../utils/formatters.jsx";
+import {isDailyPayrollEmployee} from "../utils/dailyPayroll.js";
 import PageHeader from "./PageHeader.jsx";
 
 function EmployeesPage({
   employees,
+  getDailyPayrollReport,
   getPayrollReport,
+  markAllDailyPayoutsPaid,
   markPayrollPaid,
+  payrollEmployees = [],
   payrollRecords,
   removePayrollRecord,
   reopenPayrollRecord,
+  setVisitMasterPayoutPaid,
   onAdd,
   onEdit,
   onDelete,
 }) {
   return (
     <section className="employees-page">
+      <DailyPayrollPanel
+        employees={payrollEmployees}
+        getDailyPayrollReport={getDailyPayrollReport}
+        markAllDailyPayoutsPaid={markAllDailyPayoutsPaid}
+        setVisitMasterPayoutPaid={setVisitMasterPayoutPaid}
+      />
       <PayrollPanel
         getPayrollReport={getPayrollReport}
         markPayrollPaid={markPayrollPaid}
@@ -75,6 +87,11 @@ function EmployeesPage({
             <div className="employee-meta">
               <span>{employee.phone || "Телефон не указан"}</span>
               <span>Комиссия {employee.commissionRate}%</span>
+              <span>
+                {isDailyPayrollEmployee(employee)
+                  ? "Выплата ежедневно"
+                  : "Выплата по периоду"}
+              </span>
               <span>Смена {employee.shiftStart || "08:00"}–{employee.shiftEnd || "22:00"}</span>
             </div>
 

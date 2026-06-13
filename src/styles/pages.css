@@ -1077,7 +1077,7 @@
 
 .toggle-row small {
   margin-top: 2px;
-  color: #6f737b;
+  color: var(--text-soft, #6f737b);
   font-size: 12px;
 }
 
@@ -1504,9 +1504,22 @@ select {
   background: var(--surface-muted, #fafaf9);
 }
 
+.employee-pricing-panel-heading {
+  display: grid;
+  gap: 6px;
+}
+
 .employee-pricing-panel h3 {
   margin: 0;
   font-size: 15px;
+}
+
+.employee-pricing-panel-lead,
+.employee-premium-days-help {
+  margin: 0;
+  color: var(--text-soft, #6f737b);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .employee-pricing-panel small {
@@ -1521,18 +1534,71 @@ select {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.employee-premium-days {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line-soft, #e5e5e3);
+  border-radius: 8px;
+  color: var(--text-main, #15171c);
+  background: color-mix(in srgb, var(--surface-solid, #fff) 42%, transparent);
+}
+
+.employee-premium-days legend {
+  padding: 0 4px;
+  color: var(--text-main, #15171c);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.employee-premium-days-help {
+  margin-bottom: 10px;
+}
+
 .employee-premium-days-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 14px;
+  gap: 8px;
+}
+
+.employee-premium-day-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line-soft, #e5e5e3);
+  border-radius: 999px;
+  color: var(--text-main, #15171c);
+  background: var(--surface, #fff);
+  cursor: pointer;
+  user-select: none;
+}
+
+.employee-premium-day-option input {
+  width: 16px;
+  min-height: 16px;
+  margin: 0;
+  accent-color: var(--accent-color);
+}
+
+.employee-premium-day-option span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.employee-premium-day-option:has(input:checked) {
+  border-color: color-mix(in srgb, var(--accent-color) 42%, var(--line-soft, #e5e5e3));
+  color: var(--text-main, #15171c);
+  background: color-mix(in srgb, var(--accent-color) 14%, var(--surface, #fff));
 }
 
 .visit-pricing-table {
   margin-top: 4px;
   padding: 12px 14px;
-  border: 1px solid #e5e5e3;
+  border: 1px solid var(--line-soft, #e5e5e3);
   border-radius: 8px;
-  background: #fafaf9;
+  color: var(--text-main, #15171c);
+  background: var(--surface-muted, #fafaf9);
 }
 
 .visit-pricing-table h4 {
@@ -1560,7 +1626,7 @@ select {
 .visit-pricing-table .visit-pricing-total th,
 .visit-pricing-table .visit-pricing-total td {
   padding-top: 10px;
-  border-top: 1px solid #e5e5e3;
+  border-top: 1px solid var(--line-soft, #e5e5e3);
   font-weight: 600;
 }
 
@@ -2807,6 +2873,37 @@ button:focus-visible {
 
 .payroll-panel {
   gap: 14px;
+}
+
+.daily-payroll-panel {
+  gap: 14px;
+}
+
+.daily-payroll-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.daily-payroll-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.daily-payroll-table tr.is-paid td {
+  background: rgba(36, 138, 79, 0.06);
+}
+
+.daily-payroll-table tr.is-unpaid td {
+  background: rgba(195, 155, 109, 0.08);
+}
+
+.daily-payroll-table td:last-child button {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .payroll-status {

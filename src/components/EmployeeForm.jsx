@@ -39,6 +39,19 @@ function EmployeeForm({ employee, onSubmit }) {
             <option>Архив</option>
           </select>
         </label>
+        <label>
+          Расчёт выплат
+          <select
+            name="payrollSchedule"
+            defaultValue={employee?.payrollSchedule ?? "monthly"}>
+            <option value="monthly">Ежемесячно</option>
+            <option value="daily">Ежедневно по визитам</option>
+          </select>
+          <small>
+            Ежедневный режим: комиссия с каждого массажа и отметка «оплачено» по
+            визитам.
+          </small>
+        </label>
         <EmployeePremiumHoursFields employee={employee} />
         <button className="submit-button">
           {employee ? 'Сохранить сотрудника' : 'Добавить сотрудника'}

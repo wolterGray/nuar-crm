@@ -45,6 +45,8 @@ export function useEmployeeHandlers({
         shiftStart: form.get("shiftStart") || "08:00",
         shiftEnd: form.get("shiftEnd") || "22:00",
         status: form.get("status"),
+        payrollSchedule:
+          form.get("payrollSchedule") === "daily" ? "daily" : "monthly",
         ...parseEmployeePricingFromForm(form, editingEmployee),
       };
 

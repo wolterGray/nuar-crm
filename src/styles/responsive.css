@@ -1579,17 +1579,21 @@
     top: 0;
     margin: 0;
     padding: 12px 14px;
-    border-bottom: 1px solid #e5e5e3;
+    background: var(--surface-solid, #fff);
+    border-bottom: 1px solid var(--line-soft, #e5e5e3);
   }
 
   .calendar-entry-form {
     display: block;
     flex: 1;
     min-width: 0;
+    min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
     margin: 0;
-    padding: 12px 14px 74px;
+    color: var(--text-main, inherit);
+    background: transparent;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
   }
 
   .calendar-entry-form > *,
@@ -1614,10 +1618,22 @@
     min-width: 0;
     min-height: 48px;
     padding: 0 10px;
-    border: 1px solid #dfe1e3;
+    border: 1px solid var(--line-soft, #dfe1e3);
     border-radius: 8px;
-    background: #fff;
+    color: var(--text-main, inherit);
+    background: var(--surface, #fff);
     font-size: 13px;
+  }
+
+  .theme-dark .calendar-entry-modal .calendar-entry-form input,
+  .theme-dark .calendar-entry-modal .calendar-entry-form select,
+  .theme-dark .calendar-entry-modal .calendar-entry-form textarea,
+  .theme-light .calendar-entry-modal .calendar-entry-form input,
+  .theme-light .calendar-entry-modal .calendar-entry-form select,
+  .theme-light .calendar-entry-modal .calendar-entry-form textarea {
+    color: var(--linear-text) !important;
+    background: var(--linear-panel-soft) !important;
+    border-color: var(--linear-border) !important;
   }
 
   .calendar-entry-form input[type="date"],
@@ -1633,17 +1649,11 @@
   }
 
   .calendar-entry-form .submit-button {
-    position: fixed;
-    right: 12px;
-    bottom: 0;
-    left: 12px;
-    z-index: 72;
-    width: calc(100% - 24px);
+    position: static;
+    width: 100%;
     min-height: 50px;
-    margin: 0 0 max(12px, env(safe-area-inset-bottom));
+    margin-top: 8px;
     border-radius: 8px;
-    color: #fff;
-    background: #111318;
     box-shadow: 0 10px 24px rgba(17, 19, 24, 0.18);
   }
 

@@ -1,13 +1,13 @@
 import {resolveSiteBookingMaster, resolveSiteBookingService} from "./siteBooking.js";
 
 export const WEEKDAY_OPTIONS = [
-  {value: 1, label: "Пн"},
-  {value: 2, label: "Вт"},
-  {value: 3, label: "Ср"},
-  {value: 4, label: "Чт"},
-  {value: 5, label: "Пт"},
-  {value: 6, label: "Сб"},
-  {value: 0, label: "Вс"},
+  {value: 1, label: "Пн", fullLabel: "Понедельник"},
+  {value: 2, label: "Вт", fullLabel: "Вторник"},
+  {value: 3, label: "Ср", fullLabel: "Среда"},
+  {value: 4, label: "Чт", fullLabel: "Четверг"},
+  {value: 5, label: "Пт", fullLabel: "Пятница"},
+  {value: 6, label: "Сб", fullLabel: "Суббота"},
+  {value: 0, label: "Вс", fullLabel: "Воскресенье"},
 ];
 
 const toMinutes = (time) => {

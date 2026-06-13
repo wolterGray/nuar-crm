@@ -80,6 +80,7 @@
   .form-split,
   .client-form-modal .form-split,
   .financial-operation-form,
+  .employee-premium-rule-grid,
   .calendar-entry-grid,
   .calendar-entry-money-grid,
   .calendar-entry-time-grid,
@@ -151,6 +152,20 @@
   .theme-dark .calendar-entry-modal,
   .theme-light .calendar-entry-modal {
     border-radius: 0 !important;
+  }
+
+  .theme-dark .calendar-entry-modal .calendar-entry-form label,
+  .theme-light .calendar-entry-modal .calendar-entry-form label {
+    color: var(--linear-text) !important;
+  }
+
+  .theme-dark .calendar-entry-modal .visit-pricing-table,
+  .theme-light .calendar-entry-modal .visit-pricing-table,
+  .theme-dark .calendar-entry-modal .visit-pricing-table :is(th, td, h4),
+  .theme-light .calendar-entry-modal .visit-pricing-table :is(th, td, h4) {
+    color: var(--linear-text) !important;
+    background: var(--linear-panel-soft) !important;
+    border-color: var(--linear-border) !important;
   }
 
   /* Settings sticky save */

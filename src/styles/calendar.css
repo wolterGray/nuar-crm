@@ -849,14 +849,25 @@
 }
 
 .calendar-entry-modal {
+  display: flex;
   width: min(620px, 100%);
+  max-height: calc(100vh - 36px);
+  flex-direction: column;
+  overflow: hidden;
   padding: 18px;
 }
 
 .calendar-entry-form {
   display: grid;
+  min-height: 0;
+  flex: 1;
   gap: 9px;
   margin-top: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
 }
 
 .calendar-kind-switch {
@@ -864,21 +875,23 @@
   grid-template-columns: 1fr 1fr;
   gap: 5px;
   padding: 4px;
+  border: 1px solid var(--line-soft, transparent);
   border-radius: 8px;
-  background: #f4f1eb;
+  color: var(--text-soft, #6f737b);
+  background: var(--surface-muted, #f4f1eb);
 }
 
 .calendar-kind-switch button {
   min-height: 30px;
   border: 0;
   border-radius: 7px;
-  color: #6f737b;
+  color: inherit;
   background: transparent;
 }
 
 .calendar-kind-switch button.active {
-  color: #15171c;
-  background: #fff;
+  color: var(--text-main, #15171c);
+  background: var(--surface-solid, #fff);
   box-shadow: 0 8px 20px rgba(17, 19, 24, 0.06);
 }
 
@@ -904,9 +917,10 @@
   gap: 8px;
   margin: -2px 0 2px;
   padding: 8px 9px;
+  border: 1px solid var(--line-soft, transparent);
   border-radius: 8px;
-  background: #f7f7f5;
-  color: #59616d;
+  color: var(--text-soft, #59616d);
+  background: var(--surface-muted, #f7f7f5);
   font-size: 11px;
 }
 
@@ -924,12 +938,13 @@
 
 .calendar-client-template-hint {
   justify-content: flex-start;
-  color: #386247;
-  background: #edf6ef;
+  color: var(--text-main, #386247);
+  background: color-mix(in srgb, #45a873 12%, var(--surface-muted, #edf6ef));
 }
 
 .calendar-entry-form label {
   gap: 4px;
+  color: var(--text-main, inherit);
   font-size: 11px;
 }
 
@@ -938,6 +953,10 @@
 .calendar-entry-form textarea {
   min-height: 34px;
   padding: 0 9px;
+  border: 1px solid var(--line-soft, #dfe1e3);
+  border-radius: 8px;
+  color: var(--text-main, inherit);
+  background: var(--surface, #fff);
   font-size: 12px;
 }
 

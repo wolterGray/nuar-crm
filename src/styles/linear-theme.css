@@ -381,7 +381,40 @@
 .theme-dark :is(.employee-modal, .client-form-modal) .employee-premium-days,
 .theme-light :is(.employee-modal, .client-form-modal) .employee-premium-days {
   color: var(--linear-text) !important;
+  background: color-mix(in srgb, var(--linear-panel-soft) 88%, transparent) !important;
   border-color: var(--linear-border) !important;
+}
+
+.theme-dark :is(.employee-modal, .client-form-modal) .employee-premium-days legend,
+.theme-light :is(.employee-modal, .client-form-modal) .employee-premium-days legend,
+.theme-dark :is(.employee-modal, .client-form-modal) .employee-pricing-panel-lead,
+.theme-light :is(.employee-modal, .client-form-modal) .employee-pricing-panel-lead,
+.theme-dark :is(.employee-modal, .client-form-modal) .employee-premium-days-help,
+.theme-light :is(.employee-modal, .client-form-modal) .employee-premium-days-help {
+  color: var(--linear-muted) !important;
+}
+
+.theme-dark :is(.employee-modal, .client-form-modal) .employee-premium-day-option,
+.theme-light :is(.employee-modal, .client-form-modal) .employee-premium-day-option {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel-soft) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-dark :is(.employee-modal, .client-form-modal) .employee-premium-day-option:has(input:checked),
+.theme-light :is(.employee-modal, .client-form-modal) .employee-premium-day-option:has(input:checked) {
+  color: var(--linear-text) !important;
+  background: color-mix(in srgb, var(--linear-accent) 16%, var(--linear-panel-soft)) !important;
+  border-color: color-mix(in srgb, var(--linear-accent) 42%, var(--linear-border)) !important;
+}
+
+.theme-dark :is(.employee-modal, .client-form-modal) .toggle-row input[type="checkbox"],
+.theme-light :is(.employee-modal, .client-form-modal) .toggle-row input[type="checkbox"],
+.theme-dark :is(.employee-modal, .client-form-modal) .employee-premium-day-option input[type="checkbox"],
+.theme-light :is(.employee-modal, .client-form-modal) .employee-premium-day-option input[type="checkbox"] {
+  width: 16px !important;
+  min-height: 16px !important;
+  accent-color: var(--linear-accent) !important;
 }
 
 .theme-dark :is(.employee-modal, .client-form-modal) :is(
@@ -400,6 +433,50 @@
 .theme-dark :is(.employee-modal, .client-form-modal) label,
 .theme-light :is(.employee-modal, .client-form-modal) label {
   color: var(--linear-text) !important;
+}
+
+.theme-dark :is(.calendar-entry-modal) .visit-pricing-table,
+.theme-light :is(.calendar-entry-modal) .visit-pricing-table {
+  color: var(--linear-text) !important;
+  background: var(--linear-panel-soft) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-dark :is(.calendar-entry-modal) .visit-pricing-table :is(th, td, h4),
+.theme-light :is(.calendar-entry-modal) .visit-pricing-table :is(th, td, h4) {
+  color: var(--linear-text) !important;
+}
+
+.theme-dark :is(.calendar-entry-modal) .calendar-entry-form,
+.theme-light :is(.calendar-entry-modal) .calendar-entry-form {
+  color: var(--linear-text) !important;
+  background: transparent !important;
+}
+
+.theme-dark :is(.calendar-entry-modal) .calendar-kind-switch,
+.theme-light :is(.calendar-entry-modal) .calendar-kind-switch,
+.theme-dark :is(.calendar-entry-modal) .calendar-new-client-hint,
+.theme-light :is(.calendar-entry-modal) .calendar-new-client-hint,
+.theme-dark :is(.calendar-entry-modal) .calendar-client-template-hint,
+.theme-light :is(.calendar-entry-modal) .calendar-client-template-hint {
+  color: var(--linear-muted) !important;
+  background: var(--linear-panel-soft) !important;
+  border-color: var(--linear-border) !important;
+}
+
+.theme-dark :is(.calendar-entry-modal) .calendar-client-template-hint,
+.theme-light :is(.calendar-entry-modal) .calendar-client-template-hint {
+  color: color-mix(in srgb, #45a873 72%, var(--linear-text)) !important;
+}
+
+.theme-dark :is(.calendar-entry-modal) .calendar-entry-form label,
+.theme-light :is(.calendar-entry-modal) .calendar-entry-form label {
+  color: var(--linear-text) !important;
+}
+
+.theme-dark :is(.calendar-entry-modal) .calendar-entry-form label small:not(.field-error),
+.theme-light :is(.calendar-entry-modal) .calendar-entry-form label small:not(.field-error) {
+  color: var(--linear-muted) !important;
 }
 
 .theme-dark .new-client-panel input,

@@ -141,11 +141,15 @@ export default function AppRoutes({activePage, ...props}) {
       return (
         <EmployeesPage
           employees={props.employeeStats}
+          getDailyPayrollReport={props.getDailyPayrollReport}
           getPayrollReport={props.getPayrollReport}
+          markAllDailyPayoutsPaid={props.markAllDailyPayoutsPaid}
           markPayrollPaid={props.markPayrollPaid}
+          payrollEmployees={props.payrollEmployees}
           payrollRecords={props.payrollRecords}
           removePayrollRecord={props.removePayrollRecord}
           reopenPayrollRecord={props.reopenPayrollRecord}
+          setVisitMasterPayoutPaid={props.setVisitMasterPayoutPaid}
           onAdd={props.openCreateEmployee}
           onEdit={props.openEditEmployee}
           onDelete={props.requestDeleteEmployee}

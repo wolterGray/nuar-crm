@@ -89,6 +89,7 @@ import {useBooksyGmailSync} from "./hooks/useBooksyGmailSync.js";
 import {useWaitlistHandlers} from "./hooks/useWaitlistHandlers.js";
 import {useDayCloseHandlers} from "./hooks/useDayCloseHandlers.js";
 import {usePayrollHandlers} from "./hooks/usePayrollHandlers.js";
+import {useDailyPayrollHandlers} from "./hooks/useDailyPayrollHandlers.js";
 import {useInactiveFollowUp} from "./hooks/useInactiveFollowUp.js";
 import {useReviewRequests} from "./hooks/useReviewRequests.js";
 import {useSmsReminders} from "./hooks/useSmsReminders.js";
@@ -960,6 +961,14 @@ function App() {
     visits,
   });
 
+  const dailyPayroll = useDailyPayrollHandlers({
+    clientPackages,
+    employees,
+    pushNotification,
+    setVisits,
+    visits,
+  });
+
   const {handleFinancialOperationSubmit} = useFinancialOperations({
     clientProfiles,
     createLocalId,
@@ -1724,6 +1733,10 @@ function App() {
             payrollRecords={payrollRecords}
             removePayrollRecord={payroll.removePayrollRecord}
             reopenPayrollRecord={payroll.reopenPayrollRecord}
+            getDailyPayrollReport={dailyPayroll.getDailyPayrollReport}
+            markAllDailyPayoutsPaid={dailyPayroll.markAllDailyPayoutsPaid}
+            payrollEmployees={employees}
+            setVisitMasterPayoutPaid={dailyPayroll.setVisitMasterPayoutPaid}
             openCreateCalendarEntry={openCreateCalendarEntry}
             openCreateClient={openCreateClient}
             openCreateClientPackage={openCreateClientPackage}
