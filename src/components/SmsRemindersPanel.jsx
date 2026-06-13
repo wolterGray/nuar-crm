@@ -1,5 +1,6 @@
 import {LoaderCircle, MessageSquareText, Play, RefreshCw, Send} from "lucide-react";
 import {useState} from "react";
+import {SettingsPanelHeading} from "./HintIcon.jsx";
 import {defaultSmsReminderTemplates} from "../utils/smsReminders.js";
 import {sendSmsReminderTest} from "../utils/smsRemindersApi.js";
 
@@ -36,13 +37,11 @@ function SmsRemindersPanel({
 
   return (
     <section className="panel settings-panel booksy-sync-panel">
-      <div className="settings-panel-heading">
-        <MessageSquareText size={18} />
-        <div>
-          <h2>SMS-напоминания о визитах</h2>
-          <p>Автоматические SMS за 24 часа и за 2 часа до записи через SMSAPI.pl</p>
-        </div>
-      </div>
+      <SettingsPanelHeading
+        hint="Автоматические SMS за 24 часа и за 2 часа до записи через SMSAPI.pl"
+        icon={MessageSquareText}
+        title="SMS-напоминания о визитах"
+      />
 
       <div className="booksy-sync-status">
         <strong>

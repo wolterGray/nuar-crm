@@ -1,4 +1,5 @@
 import {WEEKDAY_OPTIONS, buildPremiumHoursRule} from "../utils/siteBookingPricing.js";
+import HintIcon, {FieldLabel} from "./HintIcon.jsx";
 
 function EmployeePremiumHoursFields({employee}) {
   const firstRule = employee?.premiumHoursRules?.[0] ?? buildPremiumHoursRule();
@@ -7,14 +8,18 @@ function EmployeePremiumHoursFields({employee}) {
   return (
     <div className="employee-pricing-panel">
       <div className="employee-pricing-panel-heading">
-        <h3>Цены для заявок с сайта</h3>
-        <p className="employee-pricing-panel-lead">
-          Настройки для онлайн-записи на nuarr.pl и расчёта стоимости в CRM. На
-          зарплату мастера в Payroll не влияют.
-        </p>
+        <h3>
+          Цены для заявок с сайта
+          <HintIcon>
+            Настройки для онлайн-записи на nuarr.pl и расчёта стоимости в CRM. На
+            зарплату мастера в Payroll не влияют.
+          </HintIcon>
+        </h3>
       </div>
       <label>
-        Скидка мастера, %
+        <FieldLabel hint="Постоянная скидка от базовой цены услуги. Например, у Максима сейчас 18%.">
+          Скидка мастера, %
+        </FieldLabel>
         <input
           max="100"
           min="0"
@@ -22,10 +27,6 @@ function EmployeePremiumHoursFields({employee}) {
           type="number"
           defaultValue={employee?.siteDiscountPercent ?? 0}
         />
-        <small>
-          Постоянная скидка от базовой цены услуги. Например, у Максима сейчас
-          18%.
-        </small>
       </label>
       <label className="toggle-row">
         <input
@@ -33,51 +34,54 @@ function EmployeePremiumHoursFields({employee}) {
           name="premiumHoursEnabled"
           type="checkbox"
         />
-        <span>
+        <span className="labeled-hint-row">
           Премиум-часы
-          <small>
+          <HintIcon>
             Дополнительная наценка, если клиент записывается через сайт в
             выбранные дни и время (например, у Ольги вечером в выходные).
-          </small>
+          </HintIcon>
         </span>
       </label>
       <div className="employee-premium-rule-grid">
         <label>
-          Наценка, %
+          <FieldLabel hint="Сколько добавить к цене после скидки мастера.">
+            Наценка, %
+          </FieldLabel>
           <input
             min="0"
             name="premiumHoursPercent"
             type="number"
             defaultValue={firstRule.percent ?? 15}
           />
-          <small>Сколько добавить к цене после скидки мастера.</small>
         </label>
         <label>
-          С
+          <FieldLabel hint="Начало интервала.">С</FieldLabel>
           <input
             defaultValue={firstRule.startTime ?? "17:00"}
             name="premiumHoursStart"
             type="time"
           />
-          <small>Начало интервала.</small>
         </label>
         <label>
-          До
+          <FieldLabel hint="Конец интервала, не включая это время.">До</FieldLabel>
           <input
             defaultValue={firstRule.endTime ?? "22:00"}
             name="premiumHoursEnd"
             type="time"
           />
-          <small>Конец интервала, не включая это время.</small>
         </label>
       </div>
       <fieldset className="employee-premium-days">
-        <legend>Дни, когда действует наценка</legend>
-        <p className="employee-premium-days-help">
-          Отметьте дни недели, в которые сайт должен повысить цену, если клиент
-          выбрал время между «С» и «До». Пример: пятница–воскресенье, 17:00–22:00
-          → +15% к стоимости массажа при записи онлайн.
-        </p>
+        <legend>
+          <span className="labeled-hint-row">
+            Дни, когда действует наценка
+            <HintIcon>
+              Отметьте дни недели, в которые сайт должен повысить цену, если клиент
+              выбрал время между «С» и «До». Пример: пятница–воскресенье, 17:00–22:00
+              → +15% к стоимости массажа при записи онлайн.
+            </HintIcon>
+          </span>
+        </legend>
         <div className="employee-premium-days-grid">
           {WEEKDAY_OPTIONS.map((day) => (
             <label className="employee-premium-day-option" key={day.value}>

@@ -1,5 +1,6 @@
 import {LoaderCircle, MessageSquareText, Play, RefreshCw, Send, Users} from "lucide-react";
 import {useMemo, useState} from "react";
+import {FieldLabel} from "./HintIcon.jsx";
 import {
   BULK_SMS_SEGMENTS,
   defaultBulkSmsTemplate,
@@ -114,7 +115,9 @@ function BulkSmsPanel({
           </select>
         </label>
         <label className="settings-full-width">
-          Текст сообщения
+          <FieldLabel hint='Плейсхолдеры: {name}, {studio}, {days}'>
+            Текст сообщения
+          </FieldLabel>
           <textarea
             rows="4"
             value={bulkSms.template}
@@ -123,7 +126,6 @@ function BulkSmsPanel({
               bulkSms.setPreview([]);
             }}
           />
-          <small>Плейсхолдеры: {"{name}"}, {"{studio}"}, {"{days}"}</small>
         </label>
       </div>
 

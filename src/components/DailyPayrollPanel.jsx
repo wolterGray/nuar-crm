@@ -50,17 +50,13 @@ function DailyPayrollPanel({
     return (
       <section className="panel daily-payroll-panel">
         <PageHeader
-          description="Для мастера с ежедневной выплатой здесь появится расчёт по каждому массажу"
+          description="Для мастера с ежедневной выплатой здесь появится расчёт по каждому массажу. В карточке сотрудника выберите «Ежедневно по визитам» — например, для Максима с комиссией 40%."
           title="Ежедневная выплата">
           <span className="payroll-status is-open">
             <Coins size={15} />
             Не настроено
           </span>
         </PageHeader>
-        <p className="payroll-empty">
-          В карточке сотрудника выберите «Ежедневно по визитам» — например, для
-          Максима с комиссией 40%.
-        </p>
       </section>
     );
   }

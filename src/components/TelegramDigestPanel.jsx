@@ -1,5 +1,6 @@
 import {LoaderCircle, Play, RefreshCw, Send, SendHorizonal} from "lucide-react";
 import {useState} from "react";
+import {SettingsPanelHeading} from "./HintIcon.jsx";
 import {sendTelegramDigestTest} from "../utils/telegramDigestApi.js";
 
 function TelegramDigestPanel({
@@ -48,13 +49,11 @@ function TelegramDigestPanel({
 
   return (
     <section className="panel settings-panel booksy-sync-panel">
-      <div className="settings-panel-heading">
-        <SendHorizonal size={18} />
-        <div>
-          <h2>Telegram-дайджест</h2>
-          <p>Ежедневная сводка: записи, дни рождения, пакеты, сертификаты, выручка</p>
-        </div>
-      </div>
+      <SettingsPanelHeading
+        hint="Ежедневная сводка: записи, дни рождения, пакеты, сертификаты, выручка"
+        icon={SendHorizonal}
+        title="Telegram-дайджест"
+      />
 
       <div className="booksy-sync-status">
         <strong>

@@ -1,28 +1,24 @@
 import {BellRing} from "lucide-react";
+import HintIcon, {FieldLabel, SettingsPanelHeading} from "./HintIcon.jsx";
 
 function SiteBookingNotifySettings({settings}) {
   return (
     <div className="site-booking-notify-settings">
-      <div className="settings-panel-heading">
-        <BellRing size={18} />
-        <div>
-          <h2>Уведомления о заявках с сайта</h2>
-          <p>Telegram и WhatsApp/SMS владельцу при новой брони на nuarr.pl</p>
-        </div>
-      </div>
+      <SettingsPanelHeading
+        hint="Telegram и WhatsApp/SMS владельцу при новой брони на nuarr.pl"
+        icon={BellRing}
+        title="Уведомления о заявках с сайта"
+      />
       <div className="settings-options">
         <label>
-          Telegram Chat ID
+          <FieldLabel hint="Напишите боту /start, затем возьмите id у @userinfobot или через getUpdates. Альтернатива: Supabase Secret TELEGRAM_CHAT_ID. После изменения нажмите «Сохранить настройки» внизу страницы.">
+            Telegram Chat ID
+          </FieldLabel>
           <input
             name="telegramChatId"
             defaultValue={settings.telegramChatId ?? ""}
             placeholder="123456789"
           />
-          <small>
-            Напишите боту /start, затем возьмите id у @userinfobot или через getUpdates.
-            Альтернатива: Supabase Secret TELEGRAM_CHAT_ID. После изменения нажмите
-            «Сохранить настройки» внизу страницы.
-          </small>
         </label>
         <label className="toggle-row">
           <input
@@ -30,9 +26,9 @@ function SiteBookingNotifySettings({settings}) {
             type="checkbox"
             defaultChecked={settings.siteBookingNotifyTelegramEnabled ?? true}
           />
-          <span>
+          <span className="labeled-hint-row">
             Telegram при заявке с сайта
-            <small>Мгновенное сообщение в чат владельца</small>
+            <HintIcon>Мгновенное сообщение в чат владельца</HintIcon>
           </span>
         </label>
         <label className="toggle-row">
@@ -41,26 +37,23 @@ function SiteBookingNotifySettings({settings}) {
             type="checkbox"
             defaultChecked={settings.siteBookingNotifyWhatsappEnabled ?? true}
           />
-          <span>
+          <span className="labeled-hint-row">
             WhatsApp при заявке с сайта
-            <small>
+            <HintIcon>
               Meta WhatsApp API или SMS на номер ниже, если WhatsApp API не настроен
-            </small>
+            </HintIcon>
           </span>
         </label>
         <label>
-          Телефон владельца для WhatsApp/SMS
+          <FieldLabel hint="Supabase → Project Settings → Edge Functions → Secrets. Обязательно: TELEGRAM_BOT_TOKEN (от @BotFather). Опционально: WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, SMSAPI_TOKEN">
+            Телефон владельца для WhatsApp/SMS
+          </FieldLabel>
           <input
             name="ownerNotifyPhone"
             defaultValue={settings.ownerNotifyPhone ?? ""}
             inputMode="tel"
             placeholder="600123456"
           />
-          <small>
-            Supabase → Project Settings → Edge Functions → Secrets. Обязательно:
-            TELEGRAM_BOT_TOKEN (от @BotFather). Опционально: WHATSAPP_ACCESS_TOKEN,
-            WHATSAPP_PHONE_NUMBER_ID, SMSAPI_TOKEN
-          </small>
         </label>
       </div>
     </div>

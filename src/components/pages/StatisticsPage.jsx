@@ -18,6 +18,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import HintIcon from "../HintIcon.jsx";
 import {
   formatCompactMoney,
   toDisplayDate,
@@ -784,8 +785,12 @@ function StatisticsPage({
       <details className="statistics-details-panel">
         <summary>
           <span>
-            <strong>Подробная финансовая аналитика</strong>
-            <small>Разбивка дохода, пакеты, сертификаты и возвратность</small>
+            <strong className="labeled-hint-row">
+              Подробная финансовая аналитика
+              <HintIcon>
+                Разбивка дохода, пакеты, сертификаты и возвратность
+              </HintIcon>
+            </strong>
           </span>
         </summary>
         <div className="statistics-business-grid statistics-business-grid-bottom">

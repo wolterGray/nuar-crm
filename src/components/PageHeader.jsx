@@ -1,4 +1,5 @@
 import {PageNotificationsSlot} from "./PageNotifications.jsx";
+import HintIcon from "./HintIcon.jsx";
 
 export default function PageHeader({
   actions,
@@ -12,8 +13,10 @@ export default function PageHeader({
     <div className={`page-header-unified ${className}`.trim()}>
       <div className="page-header-unified-top">
         <div className="page-header-unified-copy">
-          <h2>{title}</h2>
-          {description ? <p>{description}</p> : null}
+          <h2>
+            {title}
+            {description ? <HintIcon>{description}</HintIcon> : null}
+          </h2>
         </div>
         <div className="page-header-unified-side">
           {headerActions}

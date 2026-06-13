@@ -1,5 +1,6 @@
 import {ExternalLink, LoaderCircle, MessageSquareText, Play, RefreshCw, Send, Star} from "lucide-react";
 import {useState} from "react";
+import {SettingsPanelHeading} from "./HintIcon.jsx";
 import {defaultReviewRequestTemplate} from "../utils/reviewRequests.js";
 import {sendReviewRequestTest} from "../utils/reviewRequestsApi.js";
 
@@ -49,13 +50,11 @@ function ReviewRequestsPanel({
 
   return (
     <section className="panel settings-panel booksy-sync-panel">
-      <div className="settings-panel-heading">
-        <Star size={18} />
-        <div>
-          <h2>Запрос отзыва после визита</h2>
-          <p>Авто-SMS через SMSAPI.pl через N часов после завершённого визита</p>
-        </div>
-      </div>
+      <SettingsPanelHeading
+        hint="Авто-SMS через SMSAPI.pl через N часов после завершённого визита"
+        icon={Star}
+        title="Запрос отзыва после визита"
+      />
 
       <div className="booksy-sync-status">
         <strong>

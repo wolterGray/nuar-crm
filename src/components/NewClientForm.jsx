@@ -3,6 +3,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {useEffect} from "react";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
+import {FieldLabel} from "./HintIcon.jsx";
 
 const optionalEmail = z
   .string()
@@ -79,14 +80,13 @@ function NewClientForm({client, onSubmit}) {
           <FieldError message={errors.name?.message} />
         </label>
         <label>
-          Имя для SMS
+          <FieldLabel hint="Как обращаться в сообщениях. Пусто — возьмём первое слово или часть до «от …».">
+            Имя для SMS
+          </FieldLabel>
           <input
             {...register("messageName")}
             placeholder="Например: Анастасия"
           />
-          <small>
-            Как обращаться в сообщениях. Пусто — возьмём первое слово или часть до «от …».
-          </small>
         </label>
         <label>
           Телефон
@@ -151,7 +151,9 @@ function NewClientForm({client, onSubmit}) {
         </div>
         <div className="form-split">
           <label>
-            Язык SMS
+            <FieldLabel hint="Какой шаблон использовать в автоматических SMS">
+              Язык SMS
+            </FieldLabel>
             <select
               {...register("messageLanguage")}
               aria-invalid={Boolean(errors.messageLanguage)}
@@ -162,7 +164,6 @@ function NewClientForm({client, onSubmit}) {
               <option>Украинский</option>
             </select>
             <FieldError message={errors.messageLanguage?.message} />
-            <small>Какой шаблон использовать в автоматических SMS</small>
           </label>
           <label>
             Статус клиента

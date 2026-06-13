@@ -1,5 +1,6 @@
 import {useState} from "react";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
+import {FieldLabel} from "./HintIcon.jsx";
 import {findClientByName} from "../utils/clientLinks.js";
 import {summarizeWaitlistEntry} from "../utils/waitlist.js";
 
@@ -77,13 +78,12 @@ function WaitlistForm({
         />
       </label>
       <label>
-        Предпочитаемая дата
+        <FieldLabel hint="Пусто — любая дата">Предпочитаемая дата</FieldLabel>
         <input
           type="date"
           value={preferredDate}
           onChange={(event) => setPreferredDate(event.target.value)}
         />
-        <small>Пусто — любая дата</small>
       </label>
       <label>
         Мастер

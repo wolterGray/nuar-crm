@@ -1,4 +1,5 @@
 import EmployeePremiumHoursFields from './EmployeePremiumHoursFields'
+import {FieldLabel} from './HintIcon.jsx'
 
 function EmployeeForm({ employee, onSubmit }) {
   return (
@@ -40,17 +41,15 @@ function EmployeeForm({ employee, onSubmit }) {
           </select>
         </label>
         <label>
-          Расчёт выплат
+          <FieldLabel hint="Ежедневный режим: комиссия с каждого массажа и отметка «оплачено» по визитам.">
+            Расчёт выплат
+          </FieldLabel>
           <select
             name="payrollSchedule"
             defaultValue={employee?.payrollSchedule ?? "monthly"}>
             <option value="monthly">Ежемесячно</option>
             <option value="daily">Ежедневно по визитам</option>
           </select>
-          <small>
-            Ежедневный режим: комиссия с каждого массажа и отметка «оплачено» по
-            визитам.
-          </small>
         </label>
         <EmployeePremiumHoursFields employee={employee} />
         <button className="submit-button">

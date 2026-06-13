@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import {useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
+import HintIcon, {FieldLabel} from "../HintIcon.jsx";
 import PageHeader from "../PageHeader.jsx";
 import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
 import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
@@ -111,8 +112,10 @@ function SettingsPage({
             <div className="settings-panel-heading">
               <SlidersHorizontal size={18} />
               <div>
-                <h2>Интерфейс</h2>
-                <p>Название, оформление и основное меню</p>
+                <h2>
+                  Интерфейс
+                  <HintIcon>Название, оформление и основное меню</HintIcon>
+                </h2>
               </div>
             </div>
             <label>
@@ -152,8 +155,10 @@ function SettingsPage({
                         <span key={color} style={{background: color}} />
                       ))}
                     </div>
-                    <strong>{themeOption.label}</strong>
-                    <small>{themeOption.description}</small>
+                    <strong className="labeled-hint-row">
+                      {themeOption.label}
+                      <HintIcon>{themeOption.description}</HintIcon>
+                    </strong>
                   </label>
                 ))}
               </div>
@@ -165,11 +170,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.compactMode ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Компактный интерфейс
-                  <small>
-                    Меньше вертикальных отступов и больше данных на экране
-                  </small>
+                  <HintIcon>Меньше вертикальных отступов и больше данных на экране</HintIcon>
                 </span>
               </label>
             </div>
@@ -182,8 +185,10 @@ function SettingsPage({
             <div className="settings-panel-heading">
               <BellRing size={18} />
               <div>
-                <h2>Уведомления</h2>
-                <p>Какие события появляются в колокольчике</p>
+                <h2>
+                  Уведомления
+                  <HintIcon>Какие события появляются в колокольчике</HintIcon>
+                </h2>
               </div>
             </div>
             <div className="settings-options">
@@ -193,9 +198,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.notificationsEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Центр уведомлений
-                  <small>Показывать рабочие напоминания в верхней панели</small>
+                  <HintIcon>Показывать рабочие напоминания в верхней панели</HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -204,9 +209,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.packageBalanceAlertsEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Заканчивающиеся пакеты
-                  <small>Напоминать, когда у клиента осталось мало сеансов</small>
+                  <HintIcon>Напоминать, когда у клиента осталось мало сеансов</HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -215,9 +220,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.certificateAlertsEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Сертификаты
-                  <small>Напоминать об истекающих сертификатах и низком остатке</small>
+                  <HintIcon>Напоминать об истекающих сертификатах и низком остатке</HintIcon>
                 </span>
               </label>
               <label>
@@ -245,9 +250,12 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.smsRemindersEnabled ?? false}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   SMS-напоминания о визитах
-                  <small>Автоматически отправлять SMS за 24 часа и за 2 часа</small>
+                  <HintIcon>
+                    Автоматически отправлять SMS за 24 часа и за 2 часа. Тексты — во
+                    вкладке «Шаблоны» (PL / RU / EN). Язык клиента — в карточке клиента.
+                  </HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -272,9 +280,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.smsAutoProcessEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Автопроверка при открытой CRM
-                  <small>Каждые N минут отправлять due-напоминания</small>
+                  <HintIcon>Каждые N минут отправлять due-напоминания</HintIcon>
                 </span>
               </label>
               <label>
@@ -294,45 +302,39 @@ function SettingsPage({
                   placeholder="NUAR"
                 />
               </label>
-              <p className="field-hint">
-                Тексты SMS редактируются во вкладке <strong>Шаблоны</strong>: для каждого
-                назначения (24ч, 2ч, отзыв, follow-up) создайте варианты на PL / RU / EN.
-                Язык клиента задаётся в карточке клиента.
-              </p>
               <label className="toggle-row">
                 <input
                   name="telegramDigestEnabled"
                   type="checkbox"
                   defaultChecked={settings.telegramDigestEnabled ?? false}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Telegram-дайджест
-                  <small>Ежедневная сводка в Telegram владельцу салона</small>
+                  <HintIcon>
+                    Ежедневная сводка в Telegram владельцу салона. Chat ID — во вкладке
+                    «Интеграции» или разделе «Сайт», блок «Уведомления о заявках с сайта».
+                  </HintIcon>
                 </span>
               </label>
               <label>
-                Время отправки дайджеста
+                <FieldLabel hint="Часовой пояс: Europe/Warsaw">
+                  Время отправки дайджеста
+                </FieldLabel>
                 <input
                   name="telegramDigestTime"
                   type="time"
                   defaultValue={settings.telegramDigestTime ?? "08:00"}
                 />
-                <small>Часовой пояс: Europe/Warsaw</small>
               </label>
-              <p className="settings-inline-note">
-                Telegram Chat ID задаётся во вкладке «Интеграции» (или раздел «Сайт» в
-                меню) — блок «Уведомления о заявках с сайта». Тот же Chat ID
-                используется для дайджеста.
-              </p>
               <label className="toggle-row">
                 <input
                   name="reviewRequestsEnabled"
                   type="checkbox"
                   defaultChecked={settings.reviewRequestsEnabled ?? false}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Запрос отзыва после визита
-                  <small>Авто-SMS через N часов после завершённого визита</small>
+                  <HintIcon>Авто-SMS через N часов после завершённого визита</HintIcon>
                 </span>
               </label>
               <label>
@@ -374,9 +376,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.reviewRequestAutoProcessEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Автопроверка запросов отзывов
-                  <small>Каждые N минут отправлять due-запросы при открытой CRM</small>
+                  <HintIcon>Каждые N минут отправлять due-запросы при открытой CRM</HintIcon>
                 </span>
               </label>
               <label>
@@ -394,9 +396,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.inactiveFollowUpEnabled ?? false}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Follow-up неактивных клиентов
-                  <small>Авто-SMS через 14, 30 и 60 дней без визита</small>
+                  <HintIcon>Авто-SMS через 14, 30 и 60 дней без визита</HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -429,9 +431,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.inactiveFollowUpAutoProcessEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Автопроверка follow-up
-                  <small>Каждые N минут при открытой CRM</small>
+                  <HintIcon>Каждые N минут при открытой CRM</HintIcon>
                 </span>
               </label>
               <label>
@@ -449,9 +451,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.waitlistEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Лист ожидания на отмены
-                  <small>Предлагать клиентов из waitlist при освобождении слота</small>
+                  <HintIcon>Предлагать клиентов из waitlist при освобождении слота</HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -460,9 +462,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.forecastAlertsEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Прогноз дохода
-                  <small>Показывать сумму записей на сегодня и завтра</small>
+                  <HintIcon>Показывать сумму записей на сегодня и завтра</HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -471,20 +473,21 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.alertAggregationEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Группировать похожие
-                  <small>Сводить несколько задач, расходников или клиентов в одну строку</small>
+                  <HintIcon>Сводить несколько задач, расходников или клиентов в одну строку</HintIcon>
                 </span>
               </label>
               <label>
-                Лимит клиентов в списке
+                <FieldLabel hint="Если «давно не были» больше этого числа — показывать одной группой">
+                  Лимит клиентов в списке
+                </FieldLabel>
                 <input
                   min="3"
                   name="inactiveClientAlertLimit"
                   type="number"
                   defaultValue={settings.inactiveClientAlertLimit ?? 5}
                 />
-                <small>Если «давно не были» больше этого числа — показывать одной группой</small>
               </label>
               <label className="toggle-row">
                 <input
@@ -492,9 +495,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.inactiveClientAlertsEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Клиенты, которых давно не было
-                  <small>Отдельная секция для повторной связи с клиентами</small>
+                  <HintIcon>Отдельная секция для повторной связи с клиентами</HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -503,11 +506,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.taskAlertsEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Просроченные задачи
-                  <small>
-                    Напоминать о задачах со сроком сегодня и просроченных делах
-                  </small>
+                  <HintIcon>Напоминать о задачах со сроком сегодня и просроченных делах</HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -516,22 +517,19 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.supplyAlertsEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Остатки расходников
-                  <small>
-                    Сообщать, когда запас достиг минимального значения
-                  </small>
+                  <HintIcon>Сообщать, когда запас достиг минимального значения</HintIcon>
                 </span>
               </label>
               <label>
-                Порог отсутствия клиента
+                <FieldLabel hint="Через сколько дней напоминать о клиенте">Порог отсутствия клиента</FieldLabel>
                 <input
                   min="1"
                   name="inactiveClientDays"
                   type="number"
                   defaultValue={settings.inactiveClientDays ?? 14}
                 />
-                <small>Через сколько дней напоминать о клиенте</small>
               </label>
               <label className="toggle-row">
                 <input
@@ -539,20 +537,19 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.birthdayAlertsEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Дни рождения клиентов
-                  <small>Показывать отдельную секцию для поздравлений</small>
+                  <HintIcon>Показывать отдельную секцию для поздравлений</HintIcon>
                 </span>
               </label>
               <label>
-                Напоминать о дне рождения заранее
+                <FieldLabel hint="За сколько дней добавить клиента в колокольчик">Напоминать о дне рождения заранее</FieldLabel>
                 <input
                   min="1"
                   name="birthdayReminderDays"
                   type="number"
                   defaultValue={settings.birthdayReminderDays ?? 7}
                 />
-                <small>За сколько дней добавить клиента в колокольчик</small>
               </label>
               <label className="toggle-row">
                 <input
@@ -560,9 +557,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.todayVisitAlertsEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Сегодняшние визиты
-                  <small>Показывать записи календаря в колокольчике</small>
+                  <HintIcon>Показывать записи календаря в колокольчике</HintIcon>
                 </span>
               </label>
               <label>
@@ -579,7 +576,9 @@ function SettingsPage({
                 </select>
               </label>
               <label>
-                Горизонт ближайших визитов
+                <FieldLabel hint="Используется для режима «Только ближайшие»">
+                  Горизонт ближайших визитов
+                </FieldLabel>
                 <select
                   name="upcomingVisitMinutes"
                   defaultValue={settings.upcomingVisitMinutes ?? 180}>
@@ -589,7 +588,6 @@ function SettingsPage({
                   <option value="360">6 часов</option>
                   <option value="720">12 часов</option>
                 </select>
-                <small>Используется для режима «Только ближайшие»</small>
               </label>
               <label className="toggle-row">
                 <input
@@ -597,11 +595,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.smartVisitPopupsEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Всплывающие напоминания
-                  <small>
-                    Показывать плавную карточку перед ближайшим визитом
-                  </small>
+                  <HintIcon>Показывать плавную карточку перед ближайшим визитом</HintIcon>
                 </span>
               </label>
               <label>
@@ -622,9 +618,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.quietHoursEnabled ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Тихие часы
-                  <small>Ночью показывать только срочные уведомления</small>
+                  <HintIcon>Ночью показывать только срочные уведомления</HintIcon>
                 </span>
               </label>
               <div className="form-split">
@@ -657,8 +653,10 @@ function SettingsPage({
             <div className="settings-panel-heading">
               <CalendarClock size={18} />
               <div>
-                <h2>Календарь</h2>
-                <p>Рабочее время и детализация графика</p>
+                <h2>
+                  Календарь
+                  <HintIcon>Рабочее время и детализация графика</HintIcon>
+                </h2>
               </div>
             </div>
             <div className="settings-options settings-options-grid">
@@ -696,9 +694,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.calendarRemindersVisible ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Панель визитов дня
-                  <small>Показывать справа от календаря по умолчанию</small>
+                  <HintIcon>Показывать справа от календаря по умолчанию</HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -707,9 +705,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.calendarShowTasks ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Задачи в графике
-                  <small>Показывать перерывы и внутренние задачи</small>
+                  <HintIcon>Показывать перерывы и внутренние задачи</HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -718,9 +716,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.calendarNowLineVisible ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Линия текущего времени
-                  <small>Показывать текущий момент на сегодняшнем графике</small>
+                  <HintIcon>Показывать текущий момент на сегодняшнем графике</HintIcon>
                 </span>
               </label>
               <label className="toggle-row">
@@ -729,9 +727,9 @@ function SettingsPage({
                   type="checkbox"
                   defaultChecked={settings.calendarConflictWarnings ?? true}
                 />
-                <span>
+                <span className="labeled-hint-row">
                   Конфликты расписания
-                  <small>Спрашивать подтверждение при пересечении записей</small>
+                  <HintIcon>Спрашивать подтверждение при пересечении записей</HintIcon>
                 </span>
               </label>
             </div>
@@ -741,15 +739,16 @@ function SettingsPage({
           className={`panel settings-panel settings-tab-panel ${
             activeTab === "integrations" ? "active" : ""
           }`}>
-            <p className="settings-inline-note settings-grid-full">
-              Заявки с nuarr.pl, CMS и Telegram-уведомления о брони — в разделе
-              «Сайт» в меню.
-            </p>
             <div className="settings-panel-heading">
               <MailCheck size={18} />
               <div>
-                <h2>Gmail</h2>
-                <p>Чтение писем Booksy и документов расходов</p>
+                <h2>
+                  Gmail
+                  <HintIcon>
+                    Чтение писем Booksy и документов расходов. Заявки с nuarr.pl, CMS и
+                    Telegram-уведомления о брони — в разделе «Сайт» в меню.
+                  </HintIcon>
+                </h2>
               </div>
             </div>
             <div className="settings-options">
@@ -760,10 +759,6 @@ function SettingsPage({
                   defaultValue={settings.gmailClientId ?? ""}
                   placeholder="...apps.googleusercontent.com"
                 />
-                <small>
-                  CRM получает доступ только для чтения писем после входа через
-                  Google
-                </small>
               </label>
             </div>
           </section>
@@ -816,8 +811,10 @@ function SettingsPage({
           <div className="settings-panel-heading">
             <CloudUpload size={18} />
             <div>
-              <h2>Облако</h2>
-              <p>Синхронизация CRM через Supabase</p>
+              <h2>
+                  Облако
+                  <HintIcon>Синхронизация CRM через Supabase</HintIcon>
+                </h2>
             </div>
           </div>
               <div className="settings-options settings-cloud-panel">
@@ -881,8 +878,10 @@ function SettingsPage({
           <div className="settings-panel-heading">
             <DatabaseBackup size={18} />
                 <div>
-                  <h2>Данные</h2>
-                  <p>Резервная копия локальной базы CRM</p>
+                  <h2>
+                  Данные
+                  <HintIcon>Резервная копия локальной базы CRM</HintIcon>
+                </h2>
                 </div>
               </div>
               <div className="settings-options">
