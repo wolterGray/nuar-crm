@@ -13,12 +13,9 @@ import {
 import {useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import PageHeader from "../PageHeader.jsx";
-import SiteAdminPanel from "../SiteAdminPanel.jsx";
-import SiteBookingNotifySettings from "../SiteBookingNotifySettings.jsx";
 import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
 import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
-import SiteBookingPanel from "../SiteBookingPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 
 function SettingsPage({
@@ -29,7 +26,6 @@ function SettingsPage({
   reviewRequests = null,
   inactiveFollowUp = null,
   smsReminders = null,
-  siteBooking = null,
   telegramDigest = null,
   pushNotification,
   cloudConflict = null,
@@ -800,6 +796,10 @@ function SettingsPage({
           className={`panel settings-panel settings-tab-panel ${
             activeTab === "integrations" ? "active" : ""
           }`}>
+            <p className="settings-inline-note settings-grid-full">
+              Заявки с nuarr.pl, CMS и Telegram-уведомления о брони — в разделе
+              «Сайт» в меню.
+            </p>
             <div className="settings-panel-heading">
               <MailCheck size={18} />
               <div>
@@ -827,19 +827,6 @@ function SettingsPage({
           className={`panel settings-panel settings-tab-panel ${
             activeTab === "integrations" ? "active" : ""
           }`}>
-          <SiteAdminPanel compact />
-          <SiteBookingNotifySettings settings={settings} />
-          {siteBooking ? (
-            <SiteBookingPanel
-              loadError={siteBooking.loadError}
-              loading={siteBooking.loading}
-              pendingRequests={siteBooking.pendingRequests}
-              pushNotification={pushNotification}
-              onApply={siteBooking.applyRequest}
-              onRefresh={siteBooking.refreshPendingRequests}
-              onReject={siteBooking.rejectRequest}
-            />
-          ) : null}
           {smsReminders ? (
             <SmsRemindersPanel
               status={smsReminders.status}

@@ -19,7 +19,9 @@ function SiteBookingPanel({
     siteBookingNotifyWhatsappEnabled: true,
     smsConfigured: false,
     telegramChatId: "",
+    telegramChatIdConfigured: false,
     telegramConfigured: false,
+    telegramTokenConfigured: false,
     whatsappConfigured: false,
   });
   const [testingNotify, setTestingNotify] = useState(false);
@@ -38,7 +40,9 @@ function SiteBookingPanel({
           remote.siteBookingNotifyWhatsappEnabled !== false,
         smsConfigured: Boolean(remote.smsConfigured),
         telegramChatId: String(remote.telegramChatId ?? ""),
+        telegramChatIdConfigured: Boolean(remote.telegramChatIdConfigured),
         telegramConfigured: Boolean(remote.telegramConfigured),
+        telegramTokenConfigured: Boolean(remote.telegramTokenConfigured),
         whatsappConfigured: Boolean(remote.whatsappConfigured),
       });
     } catch (error) {
@@ -99,6 +103,14 @@ function SiteBookingPanel({
     }
   };
 
+  const telegramStatusMessage = notifyStatus.telegramConfigured
+    ? "Telegram готов к уведомлениям"
+    : !notifyStatus.telegramTokenConfigured
+      ? "Нет TELEGRAM_BOT_TOKEN в Supabase → Project Settings → Edge Functions → Secrets"
+      : !notifyStatus.telegramChatIdConfigured
+        ? "Укажите Chat ID в блоке выше и сохраните настройки в облако"
+        : "Telegram не готов — проверьте secrets и Chat ID";
+
   return (
     <section className="panel site-booking-panel">
       <div className="settings-panel-heading">
@@ -110,11 +122,7 @@ function SiteBookingPanel({
       </div>
 
       <div className="booksy-sync-status">
-        <strong>
-          {notifyStatus.telegramConfigured
-            ? "Telegram готов к уведомлениям"
-            : "Telegram: нужны TELEGRAM_BOT_TOKEN + Chat ID в облаке CRM"}
-        </strong>
+        <strong>{telegramStatusMessage}</strong>
         <span>
           WhatsApp/SMS:{" "}
           {notifyStatus.whatsappConfigured || notifyStatus.smsConfigured
@@ -123,6 +131,12 @@ function SiteBookingPanel({
         </span>
         {notifyStatus.telegramChatId ? (
           <small>Chat ID: {notifyStatus.telegramChatId}</small>
+        ) : null}
+        {!notifyStatus.telegramTokenConfigured ? (
+          <small>
+            Токен бота задаётся только в Supabase Secrets, не в CRM. Имя секрета:
+            TELEGRAM_BOT_TOKEN
+          </small>
         ) : null}
       </div>
 

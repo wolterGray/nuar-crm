@@ -710,7 +710,7 @@ function App() {
     setters: backupSetters,
   });
 
-  const {handleSettingsSubmit, resetSettings} = useAppSettingsHandlers({
+  const {handleSettingsSubmit, handleSiteSettingsSubmit, resetSettings} = useAppSettingsHandlers({
     appSettings,
     defaultAppSettings,
     pushNotification,
@@ -1692,6 +1692,7 @@ function App() {
             handleGoogleLogin={handleGoogleLogin}
             handleOverwriteRemoteSnapshot={handleOverwriteRemoteSnapshot}
             handleSettingsSubmit={handleSettingsSubmit}
+            handleSiteSettingsSubmit={handleSiteSettingsSubmit}
             importDataBackup={importDataBackup}
             importDocuments={importDocuments}
             importedMailIds={importedMailIds}

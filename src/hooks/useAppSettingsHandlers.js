@@ -1,5 +1,5 @@
 import {useCallback} from "react";
-import {parseSettingsForm} from "../utils/settingsForm.js";
+import {parseSettingsForm, parseSiteBookingNotifyForm} from "../utils/settingsForm.js";
 
 export function useAppSettingsHandlers({
   appSettings,
@@ -21,6 +21,20 @@ export function useAppSettingsHandlers({
     [appSettings, defaultAppSettings, pushNotification, setAppSettings],
   );
 
+  const handleSiteSettingsSubmit = useCallback(
+    (event) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+
+      setAppSettings(parseSiteBookingNotifyForm(form, appSettings));
+      pushNotification({
+        title: "Настройки сайта сохранены",
+        message: "Chat ID и уведомления синхронизируются с облаком",
+      });
+    },
+    [appSettings, pushNotification, setAppSettings],
+  );
+
   const resetSettings = useCallback(() => {
     setAppSettings(defaultAppSettings);
     pushNotification({
@@ -31,6 +45,7 @@ export function useAppSettingsHandlers({
 
   return {
     handleSettingsSubmit,
+    handleSiteSettingsSubmit,
     resetSettings,
   };
 }

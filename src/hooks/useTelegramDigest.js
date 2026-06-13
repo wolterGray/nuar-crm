@@ -25,6 +25,8 @@ export function useTelegramDigest({
     lastRunAt: "",
     loading: false,
     previewMessage: "",
+    telegramChatIdConfigured: false,
+    telegramTokenConfigured: false,
   });
   const processingRef = useRef(false);
 
@@ -66,6 +68,8 @@ export function useTelegramDigest({
           remote.lastRunAt || appSettings.telegramDigestLastRunAt || "",
         loading: false,
         previewMessage: remote.previewMessage || buildLocalPreview(),
+        telegramChatIdConfigured: Boolean(remote.telegramChatIdConfigured),
+        telegramTokenConfigured: Boolean(remote.telegramTokenConfigured),
       });
     } catch (error) {
       setStatus((current) => ({

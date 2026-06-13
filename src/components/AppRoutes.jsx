@@ -10,6 +10,7 @@ import ImportPage from "./pages/ImportPage.jsx";
 import StatisticsPage from "./pages/StatisticsPage.jsx";
 import TodayPage from "./pages/TodayPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
+import SitePage from "./pages/SitePage.jsx";
 
 export default function AppRoutes({activePage, ...props}) {
   switch (activePage) {
@@ -217,31 +218,11 @@ export default function AppRoutes({activePage, ...props}) {
 
     case "site":
       return (
-        <SettingsPage
-          initialTab="integrations"
-          pageDescription="Заявки с nuarr.pl, CMS сайта и уведомления владельцу"
-          pageTitle="Сайт NUAR"
-          cloudConflict={props.cloudConflict}
-          cloudEnabled={props.cloudEnabled}
-          cloudHydrated={props.cloudHydrated}
-          cloudLoadError={props.cloudLoadError}
-          cloudSyncing={props.cloudSyncing}
-          lastCloudSyncAt={props.lastCloudSyncAt}
-          lastCloudSyncError={props.lastCloudSyncError}
+        <SitePage
           settings={props.appSettings}
-          reviewRequests={props.reviewRequests}
-          inactiveFollowUp={props.inactiveFollowUp}
-          smsReminders={props.smsReminders}
           siteBooking={props.siteBooking}
-          telegramDigest={props.telegramDigest}
           pushNotification={props.pushNotification}
-          onApplyRemoteSnapshot={props.handleApplyRemoteSnapshot}
-          onForceCloudSave={props.handleForceCloudSave}
-          onOverwriteRemoteSnapshot={props.handleOverwriteRemoteSnapshot}
-          onSubmit={props.handleSettingsSubmit}
-          onReset={props.resetSettings}
-          onExportData={props.exportDataBackup}
-          onImportData={props.importDataBackup}
+          onSubmit={props.handleSiteSettingsSubmit}
         />
       );
 

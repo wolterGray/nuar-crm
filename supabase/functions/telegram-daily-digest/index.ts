@@ -4,6 +4,7 @@ import {createAdminClient} from "../_shared/supabaseAdmin.ts";
 import {handleOptions, jsonResponse} from "../_shared/cors.ts";
 import {
   getTelegramChatId,
+  isTelegramConfigured,
   isTelegramReady,
   sendTelegramMessage,
 } from "../_shared/telegram.ts";
@@ -114,6 +115,8 @@ serve(async (request) => {
     const {payload} = await loadSnapshotForUser(admin, userId);
     const appSettings = payload.settings ?? {};
     const chatId = getTelegramChatId(appSettings);
+    const telegramTokenConfigured = isTelegramConfigured();
+    const telegramChatIdConfigured = Boolean(chatId);
     const configured = isTelegramReady(appSettings);
 
     if (action === "owner-notify-status") {
@@ -125,7 +128,9 @@ serve(async (request) => {
           appSettings.siteBookingNotifyWhatsappEnabled !== false,
         smsConfigured: isSmsConfigured(),
         telegramChatId: chatId,
+        telegramChatIdConfigured,
         telegramConfigured: configured,
+        telegramTokenConfigured,
         whatsappConfigured: isWhatsappConfigured(),
       });
     }
@@ -158,6 +163,8 @@ serve(async (request) => {
 
       return jsonResponse({
         configured,
+        telegramChatIdConfigured,
+        telegramTokenConfigured,
         lastRunAt: appSettings.telegramDigestLastRunAt ?? "",
         previewMessage: message,
       });

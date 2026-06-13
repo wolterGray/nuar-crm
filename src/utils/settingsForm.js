@@ -126,3 +126,13 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
     defaultAppSettings.calendarSlotMinutes,
   gmailClientId: String(form.get("gmailClientId") ?? "").trim(),
 });
+
+export const parseSiteBookingNotifyForm = (form, appSettings) => ({
+  ...appSettings,
+  telegramChatId: String(form.get("telegramChatId") ?? "").trim(),
+  siteBookingNotifyTelegramEnabled:
+    form.get("siteBookingNotifyTelegramEnabled") === "on",
+  siteBookingNotifyWhatsappEnabled:
+    form.get("siteBookingNotifyWhatsappEnabled") === "on",
+  ownerNotifyPhone: String(form.get("ownerNotifyPhone") ?? "").trim(),
+});

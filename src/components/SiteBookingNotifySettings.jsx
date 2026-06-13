@@ -57,8 +57,9 @@ function SiteBookingNotifySettings({settings}) {
             placeholder="600123456"
           />
           <small>
-            Supabase Secrets: TELEGRAM_BOT_TOKEN, WHATSAPP_ACCESS_TOKEN,
-            WHATSAPP_PHONE_NUMBER_ID или SMSAPI_TOKEN
+            Supabase → Project Settings → Edge Functions → Secrets. Обязательно:
+            TELEGRAM_BOT_TOKEN (от @BotFather). Опционально: WHATSAPP_ACCESS_TOKEN,
+            WHATSAPP_PHONE_NUMBER_ID, SMSAPI_TOKEN
           </small>
         </label>
       </div>

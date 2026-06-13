@@ -1,4 +1,8 @@
-import {getTelegramChatId, sendTelegramMessage} from "./telegram.ts";
+import {
+  getTelegramChatId,
+  isTelegramConfigured,
+  sendTelegramMessage,
+} from "./telegram.ts";
 import {isSmsConfigured, sendSms} from "./smsapi.ts";
 import {getOwnerNotifyPhone, isWhatsappConfigured, sendWhatsappMessage} from "./whatsapp.ts";
 
@@ -61,7 +65,17 @@ export const notifyOwnerAboutSiteBooking = async ({
   if (appSettings.siteBookingNotifyTelegramEnabled !== false) {
     const chatId = getTelegramChatId(appSettings);
 
-    if (chatId) {
+    if (!isTelegramConfigured()) {
+      results.telegram = {
+        ok: false,
+        error: "TELEGRAM_BOT_TOKEN is not configured",
+      };
+    } else if (!chatId) {
+      results.telegram = {
+        ok: false,
+        error: "Telegram chat id is not configured",
+      };
+    } else {
       results.telegram = await sendTelegramMessage({chatId, message});
     }
   }

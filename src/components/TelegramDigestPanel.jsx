@@ -60,7 +60,11 @@ function TelegramDigestPanel({
         <strong>
           {status.configured
             ? "Telegram Bot подключён на сервере"
-            : "Нужны TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID в Supabase"}
+            : !status.telegramTokenConfigured
+              ? "Нет TELEGRAM_BOT_TOKEN в Supabase Edge Functions → Secrets"
+              : !status.telegramChatIdConfigured
+                ? "Укажите Chat ID в блоке «Уведомления о заявках с сайта»"
+                : "Telegram не настроен полностью"}
         </strong>
         {status.lastRunAt ? (
           <small>
@@ -117,10 +121,10 @@ function TelegramDigestPanel({
       </button>
 
       <p className="field-hint">
-        В Supabase → Edge Functions → Secrets добавьте `TELEGRAM_BOT_TOKEN`,
-        `TELEGRAM_CHAT_ID`, `CRM_OWNER_USER_ID` и `TELEGRAM_DIGEST_CRON_SECRET`.
-        Cron раз в час проверит время из настроек и отправит дайджест один раз в
-        день.
+        Supabase → Project Settings → Edge Functions → Secrets. Добавьте
+        `TELEGRAM_BOT_TOKEN` (токен от @BotFather). Chat ID — в CRM выше или
+        secret `TELEGRAM_CHAT_ID`. Также: `CRM_OWNER_USER_ID`,
+        `TELEGRAM_DIGEST_CRON_SECRET` для cron.
       </p>
     </section>
   );
