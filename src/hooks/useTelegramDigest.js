@@ -52,7 +52,7 @@ export function useTelegramDigest({
   ]);
 
   const refreshStatus = useCallback(async () => {
-    if (!authSession || !appSettings.telegramDigestEnabled) {
+    if (!authSession) {
       return;
     }
 
@@ -67,7 +67,7 @@ export function useTelegramDigest({
         loading: false,
         previewMessage: remote.previewMessage || buildLocalPreview(),
       });
-    } catch {
+    } catch (error) {
       setStatus((current) => ({
         ...current,
         configured: false,
@@ -75,8 +75,14 @@ export function useTelegramDigest({
         loading: false,
         previewMessage: buildLocalPreview(),
       }));
+      pushNotification?.({
+        title: "Telegram status недоступен",
+        message:
+          error?.message ||
+          "Задеплойте telegram-daily-digest и проверьте TELEGRAM_BOT_TOKEN",
+      });
     }
-  }, [appSettings, authSession, buildLocalPreview]);
+  }, [appSettings, authSession, buildLocalPreview, pushNotification]);
 
   const runPreview = useCallback(async () => {
     if (!authSession) {
@@ -136,7 +142,7 @@ export function useTelegramDigest({
   }, [authSession, onRemoteSnapshotRefresh, pushNotification, refreshStatus]);
 
   useEffect(() => {
-    if (!authSession || !cloudHydrated || !appSettings.telegramDigestEnabled) {
+    if (!authSession || !cloudHydrated) {
       return undefined;
     }
 
@@ -145,12 +151,7 @@ export function useTelegramDigest({
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [
-    appSettings.telegramDigestEnabled,
-    authSession,
-    cloudHydrated,
-    refreshStatus,
-  ]);
+  }, [authSession, cloudHydrated, refreshStatus]);
 
   return {
     refreshStatus,

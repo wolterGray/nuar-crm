@@ -20,17 +20,8 @@ const invokeTelegramDigest = async (body) => {
   return data;
 };
 
-export const fetchTelegramDigestStatus = () =>
-  invokeTelegramDigest({action: "status"});
+export const fetchOwnerNotifyStatus = () =>
+  invokeTelegramDigest({action: "owner-notify-status"});
 
-export const previewTelegramDigest = () =>
-  invokeTelegramDigest({action: "preview"});
-
-export const sendTelegramDigest = () =>
-  invokeTelegramDigest({action: "process"});
-
-export const sendTelegramDigestTest = ({message}) =>
-  invokeTelegramDigest({
-    action: "test",
-    message,
-  });
+export const testOwnerNotify = () =>
+  invokeTelegramDigest({action: "owner-notify-test"});

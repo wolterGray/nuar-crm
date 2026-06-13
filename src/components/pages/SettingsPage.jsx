@@ -874,6 +874,7 @@ function SettingsPage({
               loadError={siteBooking.loadError}
               loading={siteBooking.loading}
               pendingRequests={siteBooking.pendingRequests}
+              pushNotification={pushNotification}
               onApply={siteBooking.applyRequest}
               onRefresh={siteBooking.refreshPendingRequests}
               onReject={siteBooking.rejectRequest}

@@ -4,13 +4,16 @@ import {createAdminClient} from "../_shared/supabaseAdmin.ts";
 import {handleOptions, jsonResponse} from "../_shared/cors.ts";
 import {
   getTelegramChatId,
-  isTelegramConfigured,
+  isTelegramReady,
   sendTelegramMessage,
 } from "../_shared/telegram.ts";
 import {
   buildTelegramDigestMessage,
   canSendTelegramDigest,
 } from "../_shared/telegramDigest.ts";
+import {notifyOwnerAboutSiteBooking} from "../_shared/siteBookingNotify.ts";
+import {getOwnerNotifyPhone, isWhatsappConfigured} from "../_shared/whatsapp.ts";
+import {isSmsConfigured} from "../_shared/smsapi.ts";
 
 type SnapshotPayload = {
   settings?: Record<string, unknown>;
@@ -111,13 +114,50 @@ serve(async (request) => {
     const {payload} = await loadSnapshotForUser(admin, userId);
     const appSettings = payload.settings ?? {};
     const chatId = getTelegramChatId(appSettings);
-    const configured = isTelegramConfigured() || Boolean(chatId);
+    const configured = isTelegramReady(appSettings);
+
+    if (action === "owner-notify-status") {
+      return jsonResponse({
+        ownerPhone: getOwnerNotifyPhone(appSettings),
+        siteBookingNotifyTelegramEnabled:
+          appSettings.siteBookingNotifyTelegramEnabled !== false,
+        siteBookingNotifyWhatsappEnabled:
+          appSettings.siteBookingNotifyWhatsappEnabled !== false,
+        smsConfigured: isSmsConfigured(),
+        telegramChatId: chatId,
+        telegramConfigured: configured,
+        whatsappConfigured: isWhatsappConfigured(),
+      });
+    }
+
+    if (action === "owner-notify-test") {
+      const results = await notifyOwnerAboutSiteBooking({
+        appSettings,
+        booking: {
+          clientEmail: "test@nuarr.pl",
+          clientName: "Test Klient",
+          clientPhone: "48111222333",
+          durationMinutes: 60,
+          note: "Test powiadomienia z CRM",
+          preferredDate: new Date().toISOString().slice(0, 10),
+          preferredMaster: "Olha",
+          preferredTime: "12:00",
+          serviceName: "Masaz testowy",
+        },
+      });
+
+      return jsonResponse({
+        ok: true,
+        results,
+        telegramConfigured: configured,
+      });
+    }
 
     if (action === "status") {
       const {message} = buildDigestFromPayload(payload);
 
       return jsonResponse({
-        configured: configured && Boolean(getTelegramChatId(appSettings)),
+        configured,
         lastRunAt: appSettings.telegramDigestLastRunAt ?? "",
         previewMessage: message,
       });
@@ -133,7 +173,7 @@ serve(async (request) => {
       const result = await sendTelegramMessage({chatId, message});
 
       return jsonResponse({
-        configured: configured && Boolean(chatId),
+        configured,
         result,
       });
     }
@@ -144,7 +184,7 @@ serve(async (request) => {
     if (dryRun) {
       return jsonResponse({
         action,
-        configured: configured && Boolean(chatId),
+        configured,
         message,
         sections,
       });
@@ -159,7 +199,7 @@ serve(async (request) => {
     if (!decision.allowed) {
       return jsonResponse({
         action,
-        configured: configured && Boolean(chatId),
+        configured,
         message,
         reason: decision.reason,
         sent: false,

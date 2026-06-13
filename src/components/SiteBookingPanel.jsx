@@ -1,4 +1,6 @@
-import {CalendarPlus, Globe, RefreshCw, X} from "lucide-react";
+import {CalendarPlus, Globe, LoaderCircle, MessageSquareText, RefreshCw, X} from "lucide-react";
+import {useCallback, useEffect, useState} from "react";
+import {fetchOwnerNotifyStatus, testOwnerNotify} from "../utils/ownerNotifyApi.js";
 import {formatSiteBookingInputDate} from "../utils/siteBooking.js";
 
 function SiteBookingPanel({
@@ -8,7 +10,95 @@ function SiteBookingPanel({
   onApply,
   onRefresh,
   onReject,
+  pushNotification,
 }) {
+  const [notifyStatus, setNotifyStatus] = useState({
+    loading: false,
+    ownerPhone: "",
+    siteBookingNotifyTelegramEnabled: true,
+    siteBookingNotifyWhatsappEnabled: true,
+    smsConfigured: false,
+    telegramChatId: "",
+    telegramConfigured: false,
+    whatsappConfigured: false,
+  });
+  const [testingNotify, setTestingNotify] = useState(false);
+
+  const refreshNotifyStatus = useCallback(async () => {
+    setNotifyStatus((current) => ({...current, loading: true}));
+
+    try {
+      const remote = await fetchOwnerNotifyStatus();
+      setNotifyStatus({
+        loading: false,
+        ownerPhone: String(remote.ownerPhone ?? ""),
+        siteBookingNotifyTelegramEnabled:
+          remote.siteBookingNotifyTelegramEnabled !== false,
+        siteBookingNotifyWhatsappEnabled:
+          remote.siteBookingNotifyWhatsappEnabled !== false,
+        smsConfigured: Boolean(remote.smsConfigured),
+        telegramChatId: String(remote.telegramChatId ?? ""),
+        telegramConfigured: Boolean(remote.telegramConfigured),
+        whatsappConfigured: Boolean(remote.whatsappConfigured),
+      });
+    } catch (error) {
+      setNotifyStatus((current) => ({...current, loading: false}));
+      pushNotification?.({
+        title: "Статус уведомлений недоступен",
+        message:
+          error?.message ||
+          "Сохраните настройки в облако и задеплойте telegram-daily-digest",
+      });
+    }
+  }, [pushNotification]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void refreshNotifyStatus();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [refreshNotifyStatus]);
+
+  const handleNotifyTest = async () => {
+    setTestingNotify(true);
+
+    try {
+      const result = await testOwnerNotify();
+      const telegramOk = result?.results?.telegram?.ok;
+      const whatsappOk = result?.results?.whatsapp?.ok;
+      const telegramError = result?.results?.telegram?.error;
+      const whatsappError = result?.results?.whatsapp?.error;
+
+      if (telegramOk || whatsappOk) {
+        pushNotification?.({
+          title: "Тест уведомления отправлен",
+          message: [
+            telegramOk ? "Telegram: ok" : null,
+            whatsappOk ? "WhatsApp/SMS: ok" : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+        });
+      } else {
+        pushNotification?.({
+          title: "Уведомление не отправилось",
+          message: [telegramError, whatsappError].filter(Boolean).join(" · ") ||
+            "Проверьте secrets в Supabase и Chat ID в настройках CRM",
+        });
+      }
+
+      await refreshNotifyStatus();
+    } catch (error) {
+      pushNotification?.({
+        title: "Тест не выполнен",
+        message: error?.message || "Не удалось вызвать edge function",
+      });
+    } finally {
+      setTestingNotify(false);
+    }
+  };
+
   return (
     <section className="panel site-booking-panel">
       <div className="settings-panel-heading">
@@ -16,10 +106,24 @@ function SiteBookingPanel({
         <div>
           <h2>Заявки с сайта</h2>
           <p>Форма на nuarr.pl → Supabase → импорт в календарь CRM</p>
-          <small>
-            Уведомления: Настройки → Уведомления → Telegram / WhatsApp при заявке с сайта
-          </small>
         </div>
+      </div>
+
+      <div className="booksy-sync-status">
+        <strong>
+          {notifyStatus.telegramConfigured
+            ? "Telegram готов к уведомлениям"
+            : "Telegram: нужны TELEGRAM_BOT_TOKEN + Chat ID в облаке CRM"}
+        </strong>
+        <span>
+          WhatsApp/SMS:{" "}
+          {notifyStatus.whatsappConfigured || notifyStatus.smsConfigured
+            ? "настроено"
+            : "нужен WhatsApp API или SMSAPI + телефон владельца"}
+        </span>
+        {notifyStatus.telegramChatId ? (
+          <small>Chat ID: {notifyStatus.telegramChatId}</small>
+        ) : null}
       </div>
 
       <div className="settings-actions-row">
@@ -29,12 +133,41 @@ function SiteBookingPanel({
           type="button"
           onClick={onRefresh}>
           <RefreshCw className={loading ? "spin" : ""} size={16} />
-          Обновить
+          Обновить заявки
+        </button>
+        <button
+          className="secondary-button"
+          disabled={notifyStatus.loading}
+          type="button"
+          onClick={refreshNotifyStatus}>
+          {notifyStatus.loading ? (
+            <LoaderCircle className="spin" size={16} />
+          ) : (
+            <RefreshCw size={16} />
+          )}
+          Проверить Telegram
+        </button>
+        <button
+          className="secondary-button"
+          disabled={testingNotify}
+          type="button"
+          onClick={handleNotifyTest}>
+          {testingNotify ? (
+            <LoaderCircle className="spin" size={16} />
+          ) : (
+            <MessageSquareText size={16} />
+          )}
+          Тест уведомления
         </button>
         <span className="site-booking-counter">
           К обработке: <b>{pendingRequests.length}</b>
         </span>
       </div>
+
+      <p className="field-hint">
+        «К обработке» — заявки в CRM, не Telegram. После изменения Chat ID нажмите
+        Сохранить в Настройках и дождитесь синхронизации с облаком.
+      </p>
 
       {loadError ? <p className="field-error">{loadError}</p> : null}
 

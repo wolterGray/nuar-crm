@@ -18,20 +18,20 @@ function TelegramDigestPanel({
   };
 
   const handleTest = async () => {
-    const message = preview.trim() || status.previewMessage?.trim();
-
-    if (!message) {
-      pushNotification?.({
-        title: "Нет текста дайджеста",
-        message: "Сначала откройте предпросмотр",
-      });
-      return;
-    }
+    const message =
+      preview.trim() ||
+      status.previewMessage?.trim() ||
+      "NUAR CRM: test Telegram notification";
 
     setTesting(true);
 
     try {
-      await sendTelegramDigestTest({message});
+      const result = await sendTelegramDigestTest({message});
+
+      if (result?.result?.ok === false) {
+        throw new Error(result.result.error || "Telegram API error");
+      }
+
       pushNotification?.({
         title: "Тестовое сообщение отправлено",
         message: "Проверьте Telegram-чат",

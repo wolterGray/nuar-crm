@@ -1,10 +1,10 @@
 const TELEGRAM_API_BASE = "https://api.telegram.org";
 
 export const isTelegramConfigured = () =>
-  Boolean(
-    String(Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "").trim() &&
-      getTelegramChatId({}),
-  );
+  Boolean(String(Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "").trim());
+
+export const isTelegramReady = (appSettings: Record<string, unknown> = {}) =>
+  isTelegramConfigured() && Boolean(getTelegramChatId(appSettings));
 
 export const getTelegramChatId = (appSettings: Record<string, unknown> = {}) => {
   const fromSettings = String(appSettings.telegramChatId ?? "").trim();
