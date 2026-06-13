@@ -45,6 +45,11 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
     defaultAppSettings.telegramDigestTime,
   telegramChatId: String(form.get("telegramChatId") ?? "").trim(),
   telegramDigestLastRunAt: appSettings.telegramDigestLastRunAt ?? "",
+  siteBookingNotifyTelegramEnabled:
+    form.get("siteBookingNotifyTelegramEnabled") === "on",
+  siteBookingNotifyWhatsappEnabled:
+    form.get("siteBookingNotifyWhatsappEnabled") === "on",
+  ownerNotifyPhone: String(form.get("ownerNotifyPhone") ?? "").trim(),
   reviewRequestsEnabled: form.get("reviewRequestsEnabled") === "on",
   reviewRequestDelayHours:
     Math.max(1, Number(form.get("reviewRequestDelayHours"))) ||

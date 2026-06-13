@@ -1,6 +1,10 @@
 import {serve} from "https://deno.land/std@0.224.0/http/server.ts";
 import {createAdminClient} from "../_shared/supabaseAdmin.ts";
 import {handleOptions, jsonResponse} from "../_shared/cors.ts";
+import {
+  isBookableSlotAvailable,
+} from "../_shared/siteBookingSlots.ts";
+import {notifyOwnerAboutSiteBooking} from "../_shared/siteBookingNotify.ts";
 
 const normalizePhone = (value: unknown) => String(value ?? "").replace(/\D/g, "");
 
@@ -68,6 +72,48 @@ serve(async (request) => {
     }
 
     const admin = createAdminClient();
+    const {data: snapshotRow, error: snapshotError} = await admin
+      .from("crm_snapshots")
+      .select("payload")
+      .eq("user_id", ownerUserId)
+      .maybeSingle();
+
+    if (snapshotError) {
+      throw snapshotError;
+    }
+
+    const payload = (snapshotRow?.payload ?? {}) as {
+      calendarEntries?: Array<Record<string, unknown>>;
+      employees?: Array<Record<string, unknown>>;
+      settings?: Record<string, unknown>;
+    };
+
+    const {data: pendingBookings, error: pendingError} = await admin
+      .from("site_booking_requests")
+      .select("preferred_date, preferred_time, preferred_master, duration_minutes, status")
+      .eq("owner_user_id", ownerUserId)
+      .eq("status", "pending")
+      .eq("preferred_date", preferredDate);
+
+    if (pendingError) {
+      throw pendingError;
+    }
+
+    const slotAvailable = isBookableSlotAvailable({
+      appSettings: payload.settings ?? {},
+      calendarEntries: payload.calendarEntries ?? [],
+      date: preferredDate,
+      durationMinutes,
+      employees: payload.employees ?? [],
+      pendingBookings: pendingBookings ?? [],
+      preferredMaster,
+      preferredTime,
+    });
+
+    if (!slotAvailable) {
+      return jsonResponse({error: "Selected time is no longer available"}, 409);
+    }
+
     const timeValue = preferredTime.length === 5 ? `${preferredTime}:00` : preferredTime;
     const {data, error} = await admin
       .from("site_booking_requests")
@@ -92,6 +138,21 @@ serve(async (request) => {
     if (error) {
       throw error;
     }
+
+    await notifyOwnerAboutSiteBooking({
+      appSettings: payload.settings ?? {},
+      booking: {
+        clientEmail,
+        clientName,
+        clientPhone,
+        durationMinutes,
+        note,
+        preferredDate,
+        preferredMaster,
+        preferredTime: preferredTime.slice(0, 5),
+        serviceName,
+      },
+    }).catch(() => ({}));
 
     return jsonResponse({
       id: data.id,

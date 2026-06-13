@@ -55,6 +55,7 @@ export const submitSiteBookingRequest = async (payload) => {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${key}`,
+      apikey: key,
     },
     body: JSON.stringify(payload),
   });

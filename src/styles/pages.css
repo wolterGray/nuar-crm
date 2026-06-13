@@ -2508,6 +2508,16 @@ button:focus-visible {
   color: #e8eaed;
 }
 
+.bulk-sms-panel {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.bulk-sms-panel .settings-full-width {
+  grid-column: 1 / -1;
+}
+
 .payments-page {
   display: grid;
   gap: 14px;

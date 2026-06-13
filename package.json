@@ -14,7 +14,8 @@
     "deploy:telegram-digest": "npx supabase functions deploy telegram-daily-digest",
     "deploy:review-requests": "npx supabase functions deploy visit-review-requests",
     "deploy:inactive-follow-up": "npx supabase functions deploy inactive-client-follow-up",
-    "deploy:site-booking": "npx supabase functions deploy site-booking-submit"
+    "deploy:site-booking": "npx supabase functions deploy site-booking-submit && npx supabase functions deploy site-booking-availability",
+    "deploy:bulk-sms": "npx supabase functions deploy bulk-sms-send"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

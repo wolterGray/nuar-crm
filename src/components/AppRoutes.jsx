@@ -154,6 +154,7 @@ export default function AppRoutes({activePage, ...props}) {
     case "templates":
       return (
         <MessageTemplatesPage
+          bulkSms={props.bulkSms}
           templates={props.messageTemplates}
           clients={props.clientProfiles}
           preferredClientId={props.preferredMessageClientId}

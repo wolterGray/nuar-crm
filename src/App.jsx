@@ -101,6 +101,7 @@ import {useAuth} from "./hooks/useAuth.js";
 import {useClientAlerts} from "./hooks/useClientAlerts.js";
 import {useCrmLocalPersistence} from "./hooks/useCrmLocalPersistence.js";
 import {useModalScrollLock} from "./hooks/useModalScrollLock.js";
+import {useBulkSms} from "./hooks/useBulkSms.js";
 import {useCommunicationLog} from "./hooks/useCommunicationLog.js";
 import {usePullRefresh} from "./hooks/usePullRefresh.js";
 import {usePersistentState} from "./hooks/usePersistentState.js";
@@ -1396,10 +1397,21 @@ function App() {
     setProcessedMessageIds: setImportedMailIds,
   });
 
-  const {logClientMessage} = useCommunicationLog({
+  const {logBulkSmsCampaign, logClientMessage} = useCommunicationLog({
     createLocalId,
     pushNotification,
     setCommunicationLog,
+  });
+
+  const bulkSms = useBulkSms({
+    appSettings,
+    authSession,
+    calendarEntries,
+    clientPackages,
+    clientProfiles,
+    logBulkSmsCampaign,
+    pushNotification,
+    visits: paymentRows,
   });
 
   useEffect(() => {
@@ -1649,6 +1661,7 @@ function App() {
             appSettings={appSettings}
             applyMailImports={applyMailImports}
             booksyGmailSync={booksyGmailSync}
+            bulkSms={bulkSms}
             calendarEntries={calendarEntries}
             calendarEntriesWithServiceColors={calendarEntriesWithServiceColors}
             calendarEntryModalOpen={calendarEntryModalOpen}

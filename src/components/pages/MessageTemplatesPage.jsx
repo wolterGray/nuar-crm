@@ -14,9 +14,11 @@ import {
 } from "lucide-react";
 import {useMemo, useState} from "react";
 import PageHeader from "../PageHeader.jsx";
+import BulkSmsPanel from "../BulkSmsPanel.jsx";
 import {getClientMessageName} from "../../utils/clientMessageName.js";
 
 function MessageTemplatesPage({
+  bulkSms = null,
   templates,
   clients,
   preferredClientId,
@@ -246,6 +248,15 @@ function MessageTemplatesPage({
           <option>Украинцы</option>
         </select>
       </div>
+
+      {bulkSms ? (
+        <BulkSmsPanel
+          bulkSms={bulkSms}
+          messageTemplates={templates}
+          onNotify={onNotify}
+        />
+      ) : null}
+
       {preferredClient && (
         <div className="preferred-message-client">
           <MessageSquareText size={16} />

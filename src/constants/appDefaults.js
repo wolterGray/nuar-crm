@@ -79,6 +79,9 @@ export const defaultAppSettings = {
   telegramDigestTime: "08:00",
   telegramChatId: "",
   telegramDigestLastRunAt: "",
+  siteBookingNotifyTelegramEnabled: true,
+  siteBookingNotifyWhatsappEnabled: true,
+  ownerNotifyPhone: "",
   reviewRequestsEnabled: false,
   reviewRequestDelayHours: 2,
   reviewRequestTemplate:

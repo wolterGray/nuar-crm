@@ -346,6 +346,43 @@ function SettingsPage({
               </label>
               <label className="toggle-row">
                 <input
+                  name="siteBookingNotifyTelegramEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.siteBookingNotifyTelegramEnabled ?? true}
+                />
+                <span>
+                  Telegram при заявке с сайта
+                  <small>Мгновенное уведомление о новой брони с nuarr.pl</small>
+                </span>
+              </label>
+              <label className="toggle-row">
+                <input
+                  name="siteBookingNotifyWhatsappEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.siteBookingNotifyWhatsappEnabled ?? true}
+                />
+                <span>
+                  WhatsApp при заявке с сайта
+                  <small>
+                    Meta WhatsApp API или SMS на номер ниже, если WhatsApp API не настроен
+                  </small>
+                </span>
+              </label>
+              <label>
+                Телефон владельца для WhatsApp/SMS
+                <input
+                  name="ownerNotifyPhone"
+                  defaultValue={settings.ownerNotifyPhone ?? ""}
+                  inputMode="tel"
+                  placeholder="600123456"
+                />
+                <small>
+                  Supabase Secrets: WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID или
+                  SMSAPI_TOKEN
+                </small>
+              </label>
+              <label className="toggle-row">
+                <input
                   name="reviewRequestsEnabled"
                   type="checkbox"
                   defaultChecked={settings.reviewRequestsEnabled ?? false}

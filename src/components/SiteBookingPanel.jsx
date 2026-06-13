@@ -16,6 +16,9 @@ function SiteBookingPanel({
         <div>
           <h2>Заявки с сайта</h2>
           <p>Форма на nuarr.pl → Supabase → импорт в календарь CRM</p>
+          <small>
+            Уведомления: Настройки → Уведомления → Telegram / WhatsApp при заявке с сайта
+          </small>
         </div>
       </div>
 
