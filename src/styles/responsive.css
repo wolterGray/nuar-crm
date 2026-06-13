@@ -778,10 +778,38 @@
 
   .employees-toolbar,
   .calendar-toolbar,
-  .calendar-page-header,
   .statistics-toolbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .calendar-page-header.page-header-unified {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .calendar-page-header .page-header-unified-top,
+  .calendar-page-header .page-header-unified-actions {
+    display: contents;
+  }
+
+  .calendar-page-header .page-header-unified-copy {
+    display: none;
+  }
+
+  .calendar-page-header .calendar-toolbar-actions {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .calendar-page-header .page-header-unified-trailing {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    margin-left: 0;
   }
 
   .form-split,
@@ -838,7 +866,7 @@
   }
 
   .calendar-content .calendar-toolbar-actions > .page-notifications-slot,
-  .calendar-content .calendar-page-header .page-header-unified-side {
+  .calendar-content .calendar-page-header .page-header-unified-trailing {
     grid-column: 2;
     grid-row: 1;
   }
@@ -852,11 +880,6 @@
   .calendar-page-header {
     align-items: center;
     gap: 0;
-  }
-
-  .calendar-toolbar > div:first-child,
-  .calendar-page-header .page-header-unified-copy {
-    display: none;
   }
 
   .calendar-date-control {
@@ -1135,7 +1158,6 @@
     align-items: end;
   }
 
-  .calendar-entry-service-field,
   .calendar-entry-package-field {
     grid-column: 1 / -1;
   }

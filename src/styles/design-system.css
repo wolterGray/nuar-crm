@@ -413,14 +413,13 @@
 }
 
 .employee-modal :is(
-  .employee-form,
   .catalog-form,
   .modal-form,
   .calendar-entry-form,
   .financial-operation-form,
   .new-client-panel form
 ),
-.employee-modal > :not(.modal-header):is(form, .calendar-entry-form) {
+.employee-modal > :not(.modal-header):is(form:not(.employee-form), .calendar-entry-form) {
   display: grid;
   min-height: 0;
   flex: 1;
@@ -433,6 +432,14 @@
   padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
   scrollbar-color: color-mix(in srgb, var(--accent-color) 42%, transparent) transparent;
   scrollbar-width: thin;
+}
+
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form {
+  gap: 12px 14px;
+  padding: 0;
+  overflow: visible;
+  flex: none;
+  min-height: auto;
 }
 
 .client-form-modal .new-client-panel form {
@@ -544,20 +551,27 @@
   }
 
   .employee-modal :is(
-    .employee-form,
     .catalog-form,
     .modal-form,
     .calendar-entry-form,
     .financial-operation-form,
     .new-client-panel form
   ),
-  .employee-modal > :not(.modal-header):is(form, .calendar-entry-form) {
+  .employee-modal > :not(.modal-header):is(form:not(.employee-form), .calendar-entry-form) {
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form-panel {
     padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   }
 
   .client-form-modal .new-client-panel form,
-  .employee-modal :is(.employee-form, .catalog-form, .modal-form) .form-split,
+  .employee-modal :is(.catalog-form, .modal-form) .form-split,
   .client-form-modal .form-split {
+    grid-template-columns: 1fr;
+  }
+
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form {
     grid-template-columns: 1fr;
   }
 
@@ -935,12 +949,12 @@
   }
 
   .page-header-unified-top {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
   }
 
-  .page-header-unified-side {
-    justify-content: flex-start;
+  .page-header-unified-trailing {
+    margin-left: auto;
   }
 
   .page-header-unified-actions {

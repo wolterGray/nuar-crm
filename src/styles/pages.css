@@ -1422,7 +1422,14 @@ select {
   overflow: hidden;
 }
 
-.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form,
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form-panel {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
 .client-form-modal .new-client-panel form {
   flex: 1;
   min-height: 0;
@@ -1432,9 +1439,31 @@ select {
   overscroll-behavior: contain;
 }
 
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form {
+  display: grid;
+  flex: none;
+  min-height: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  align-items: start;
+  gap: 12px 14px;
+  margin-top: 0;
+  overflow: visible;
+  padding: 0;
+}
+
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form > .form-split,
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form > .employee-pricing-panel,
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form > .submit-button {
+  grid-column: 1 / -1;
+}
+
+.employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form label {
+  min-width: 0;
+}
+
 .employee-modal .employee-form-panel {
   border: 0;
-  padding: 0;
   box-shadow: none;
 }
 
@@ -1789,9 +1818,24 @@ button:focus-visible {
 
 .page-header-unified-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
+  min-height: 42px;
+}
+
+.page-header-unified-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-header-unified-trailing {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  overflow: visible;
 }
 
 .page-header-unified-side {
@@ -1803,6 +1847,11 @@ button:focus-visible {
   overflow: visible;
 }
 
+.page-header-unified-trailing > .page-notifications-slot {
+  margin-left: 0;
+  padding: 0;
+}
+
 .page-header-unified,
 .page-header-unified-top {
   overflow: visible;
@@ -1812,6 +1861,7 @@ button:focus-visible {
   margin-bottom: 8px;
 }
 
+.statistics-hero-header .page-header-unified-trailing,
 .statistics-hero-header .page-header-unified-side {
   align-items: center;
 }

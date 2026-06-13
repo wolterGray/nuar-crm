@@ -18,8 +18,10 @@ export default function PageHeader({
             {description ? <HintIcon>{description}</HintIcon> : null}
           </h2>
         </div>
-        <div className="page-header-unified-side">
-          {headerActions}
+        <div className="page-header-unified-trailing">
+          {headerActions ? (
+            <div className="page-header-unified-side">{headerActions}</div>
+          ) : null}
           <PageNotificationsSlot />
         </div>
       </div>

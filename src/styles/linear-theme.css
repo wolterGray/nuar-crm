@@ -4,6 +4,7 @@
 
 .statistics-header-actions,
 .page-header-actions,
+.page-header-unified-trailing,
 .page-header-unified-side,
 .page-header-unified-top,
 .page-notifications-slot,
@@ -715,7 +716,6 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  .calendar-entry-service-field,
   .calendar-entry-package-field {
     grid-column: 1 / -1;
   }

@@ -59,16 +59,19 @@
     min-height: var(--mobile-touch-target, 44px);
   }
 
-  /* Page headers */
+  /* Page headers: title and bell stay on one row */
   .page-header-unified-top {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
-    align-items: start;
+    min-height: 42px;
   }
 
-  .page-header-unified-side {
-    justify-self: end;
+  .page-header-unified-trailing {
+    flex-shrink: 0;
+    margin-left: auto;
   }
 
   .clients-page .page-header-unified-actions .clients-search,
@@ -81,7 +84,7 @@
   .client-form-modal .form-split,
   .financial-operation-form,
   .employee-premium-rule-grid,
-  .calendar-entry-grid,
+  .calendar-entry-grid:not(.calendar-entry-service-grid),
   .calendar-entry-money-grid,
   .calendar-entry-time-grid,
   .message-template-form-grid,
@@ -91,7 +94,10 @@
     grid-template-columns: 1fr !important;
   }
 
-  .calendar-entry-service-field,
+  .calendar-entry-service-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr) !important;
+  }
+
   .calendar-entry-package-field {
     grid-column: 1 / -1;
   }
