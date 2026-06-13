@@ -45,6 +45,10 @@ export const formatAppDate = (value, outputFormat = APP_DATE_FORMAT) => {
   return parsedDate ? format(parsedDate, outputFormat, {locale: ru}) : "";
 };
 
+/** Calendar entries should use INPUT_DATE_FORMAT; normalize legacy dd.MM.yyyy values. */
+export const normalizeCalendarEntryDate = (value) =>
+  formatAppDate(value, INPUT_DATE_FORMAT) || String(value ?? "").trim();
+
 export const getStartOfDay = (value) => {
   const parsedDate = parseAppDate(value);
 

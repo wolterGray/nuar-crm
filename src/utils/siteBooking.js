@@ -5,6 +5,7 @@ import {toFinanceNumber} from "./finance.js";
 const SITE_MASTER_ALIASES = {
   max: "Максим",
   olha: "Ольга",
+  olga: "Ольга",
   helga: "Ольга",
   максим: "Максим",
   ольга: "Ольга",
@@ -23,7 +24,7 @@ export const resolveSiteBookingMaster = (preferredMaster = "", employees = []) =
   const raw = String(preferredMaster ?? "").trim();
 
   if (!raw) {
-    return "";
+    return String(employees[0]?.name ?? "");
   }
 
   const alias = SITE_MASTER_ALIASES[normalizeText(raw)];

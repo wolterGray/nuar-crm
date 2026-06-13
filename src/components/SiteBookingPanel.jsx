@@ -4,6 +4,7 @@ import {fetchOwnerNotifyStatus, testOwnerNotify} from "../utils/ownerNotifyApi.j
 import {formatSiteBookingInputDate} from "../utils/siteBooking.js";
 
 function SiteBookingPanel({
+  applyingRequestId = "",
   loadError,
   loading,
   pendingRequests = [],
@@ -208,10 +209,15 @@ function SiteBookingPanel({
               <div className="site-booking-card-actions">
                 <button
                   className="add-visit-button"
+                  disabled={Boolean(applyingRequestId)}
                   type="button"
                   onClick={() => onApply?.(request)}>
-                  <CalendarPlus size={15} />
-                  В календарь
+                  {applyingRequestId === request.id ? (
+                    <LoaderCircle className="spin" size={15} />
+                  ) : (
+                    <CalendarPlus size={15} />
+                  )}
+                  {applyingRequestId === request.id ? "Добавляем..." : "В календарь"}
                 </button>
                 <button
                   aria-label="Отклонить"

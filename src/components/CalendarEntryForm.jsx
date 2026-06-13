@@ -174,6 +174,13 @@ function CalendarEntryForm({
     mode: "onChange",
     resolver: zodResolver(calendarEntrySchema),
   });
+  const setFormValue = (name, value, options = {}) =>
+    setValue(name, value, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+      ...options,
+    });
   useEffect(() => {
     trigger();
   }, [trigger]);
@@ -251,13 +258,6 @@ function CalendarEntryForm({
     setFormValue("discount", visitPricing.discountPercent);
   }, [kind, setFormValue, visitPricing]);
   const clientExists = clients.some((item) => item.name === client);
-  const setFormValue = (name, value, options = {}) =>
-    setValue(name, value, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-      ...options,
-    });
   const findServiceByVisit = (visit) =>
     services.find(
       (item) =>

@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import {getTodayInput} from "../../utils/dateHelpers.js";
+import {normalizeCalendarEntryDate} from "../../utils/dateUtils.js";
 import PageHeader from "../PageHeader.jsx";
 import {
   DndContext,
@@ -86,7 +87,8 @@ const isEntryEnded = (entry, selectedDate, now) => {
     return true;
   }
 
-  const entryDate = new Date(`${entry.date || selectedDate}T00:00:00`);
+  const entryDateValue = normalizeCalendarEntryDate(entry.date || selectedDate);
+  const entryDate = new Date(`${entryDateValue}T12:00:00`);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   if (entryDate < today) {
@@ -251,7 +253,7 @@ function CalendarPage({
 
     const setupTimer = window.setTimeout(() => {
       if (entry?.date) {
-        setSelectedDate(entry.date);
+        setSelectedDate(normalizeCalendarEntryDate(entry.date));
       }
 
       window.setTimeout(() => {
@@ -286,7 +288,9 @@ function CalendarPage({
   const dayEntries = useMemo(
     () =>
       entries
-        .filter((entry) => entry.date === selectedDate)
+        .filter(
+          (entry) => normalizeCalendarEntryDate(entry.date) === selectedDate,
+        )
         .filter((entry) => settings.calendarShowTasks || entry.kind !== "task"),
     [entries, selectedDate, settings.calendarShowTasks],
   );

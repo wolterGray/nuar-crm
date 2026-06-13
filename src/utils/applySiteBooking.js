@@ -1,5 +1,4 @@
 import {
-  formatSiteBookingDateForCrm,
   formatSiteBookingInputDate,
   formatSiteBookingTimeForCrm,
   normalizeSiteBookingPhone,
@@ -83,9 +82,10 @@ export const applySiteBookingRequest = (
     status: "scheduled",
     completedAt: "",
     visitId: "",
-    date: formatSiteBookingDateForCrm(
+    date: formatSiteBookingInputDate(
       request.preferred_date ?? request.preferredDate,
-    ),
+    ) ||
+      String(request.preferred_date ?? request.preferredDate ?? "").slice(0, 10),
     time: preferredTime,
     duration: service.duration,
     master,

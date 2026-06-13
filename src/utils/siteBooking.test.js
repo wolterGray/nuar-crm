@@ -1,7 +1,6 @@
 import {describe, expect, it} from "vitest";
 import {applySiteBookingRequest} from "./applySiteBooking.js";
 import {
-  formatSiteBookingDateForCrm,
   formatSiteBookingTimeForCrm,
   resolveSiteBookingMaster,
   resolveSiteBookingService,
@@ -115,7 +114,7 @@ describe("siteBooking", () => {
     expect(result.nextCalendarEntries[0].master).toBe("Ольга");
     expect(result.nextCalendarEntries[0].amount).toBe(255);
     expect(result.nextCalendarEntries[0].discount).toBe(0);
-    expect(formatSiteBookingDateForCrm("2026-06-20")).toBe("20.06.2026");
+    expect(result.nextCalendarEntries[0].date).toBe("2026-06-20");
     expect(formatSiteBookingTimeForCrm("14:30:00")).toBe("14:30");
   });
 

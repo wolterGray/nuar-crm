@@ -28,6 +28,7 @@ function SitePage({
 
         {siteBooking ? (
           <SiteBookingPanel
+            applyingRequestId={siteBooking.applyingRequestId}
             loadError={siteBooking.loadError}
             loading={siteBooking.loading}
             pendingRequests={siteBooking.pendingRequests}

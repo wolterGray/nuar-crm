@@ -4,7 +4,7 @@ import {
   fetchPendingSiteBookings,
   updateSiteBookingRequest,
 } from "../utils/siteBookingApi.js";
-import {summarizeSiteBookingRequest} from "../utils/siteBooking.js";
+import {summarizeSiteBookingRequest, formatSiteBookingInputDate} from "../utils/siteBooking.js";
 
 export function useSiteBookingHandlers({
   calendarEntries,
@@ -20,6 +20,7 @@ export function useSiteBookingHandlers({
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [applyingRequestId, setApplyingRequestId] = useState("");
 
   const refreshPendingRequests = useCallback(async () => {
     setLoading(true);
@@ -46,31 +47,52 @@ export function useSiteBookingHandlers({
 
   const applyRequest = useCallback(
     async (request) => {
-      const result = applySiteBookingRequest(request, {
-        calendarEntries,
-        clientProfiles,
-        createLocalId,
-        employees,
-        getCalendarServiceColor,
-        serviceCatalog,
-      });
+      setApplyingRequestId(request.id);
 
-      setClientProfiles(result.nextClients);
-      setCalendarEntries(result.nextCalendarEntries);
+      try {
+        const result = applySiteBookingRequest(request, {
+          calendarEntries,
+          clientProfiles,
+          createLocalId,
+          employees,
+          getCalendarServiceColor,
+          serviceCatalog,
+        });
 
-      await updateSiteBookingRequest(request.id, {
-        linked_calendar_entry_id: result.calendarEntryId,
-        status: "applied",
-      });
+        setClientProfiles(result.nextClients);
+        setCalendarEntries(result.nextCalendarEntries);
 
-      setPendingRequests((current) =>
-        current.filter((item) => item.id !== request.id),
-      );
+        await updateSiteBookingRequest(request.id, {
+          linked_calendar_entry_id: String(result.calendarEntryId),
+          status: "applied",
+        });
 
-      pushNotification({
-        message: summarizeSiteBookingRequest(request),
-        title: "Заявка с сайта добавлена в календарь",
-      });
+        setPendingRequests((current) =>
+          current.filter((item) => item.id !== request.id),
+        );
+
+        const visitDate =
+          result.nextCalendarEntries.at(-1)?.date ||
+          formatSiteBookingInputDate(
+            request.preferred_date ?? request.preferredDate,
+          );
+
+        pushNotification({
+          message: `${summarizeSiteBookingRequest(request)}${
+            visitDate ? ` · Откройте календарь на ${visitDate}` : ""
+          }`,
+          title: "Заявка с сайта добавлена в календарь",
+        });
+      } catch (error) {
+        pushNotification({
+          message:
+            error?.message ||
+            "Не удалось добавить заявку в календарь. Проверьте вход в CRM и синхронизацию с облаком.",
+          title: "Ошибка импорта заявки",
+        });
+      } finally {
+        setApplyingRequestId("");
+      }
     },
     [
       calendarEntries,
@@ -101,6 +123,7 @@ export function useSiteBookingHandlers({
 
   return {
     applyRequest,
+    applyingRequestId,
     loadError,
     loading,
     pendingRequests,
