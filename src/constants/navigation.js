@@ -3,6 +3,7 @@ import {
   CalendarDays,
   ChartNoAxesCombined,
   ClipboardList,
+  Globe,
   MailSearch,
   MessageSquareText,
   Package,
@@ -50,7 +51,10 @@ export const navGroups = [
   {
     id: "system",
     label: "Система",
-    items: [{label: "Настройки", page: "settings", icon: Settings}],
+    items: [
+      {label: "Сайт", page: "site", icon: Globe},
+      {label: "Настройки", page: "settings", icon: Settings},
+    ],
   },
 ];
 

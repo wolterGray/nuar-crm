@@ -14,6 +14,7 @@ import {useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import PageHeader from "../PageHeader.jsx";
 import SiteAdminPanel from "../SiteAdminPanel.jsx";
+import SiteBookingNotifySettings from "../SiteBookingNotifySettings.jsx";
 import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
 import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
@@ -22,6 +23,8 @@ import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 
 function SettingsPage({
   initialTab = "interface",
+  pageTitle = "Настройки",
+  pageDescription = "Управление интерфейсом, календарём и локальными данными",
   settings,
   reviewRequests = null,
   inactiveFollowUp = null,
@@ -88,10 +91,7 @@ function SettingsPage({
 
   return (
     <section className="settings-page">
-      <PageHeader
-        description="Управление интерфейсом, календарём и локальными данными"
-        title="Настройки"
-      />
+      <PageHeader description={pageDescription} title={pageTitle} />
       <div className="settings-tabs">
         {settingsTabs.map((tab) => (
           <button
@@ -335,52 +335,11 @@ function SettingsPage({
                 />
                 <small>Часовой пояс: Europe/Warsaw</small>
               </label>
-              <label>
-                Telegram Chat ID
-                <input
-                  name="telegramChatId"
-                  defaultValue={settings.telegramChatId ?? ""}
-                  placeholder="123456789"
-                />
-                <small>Можно задать в Supabase Secret TELEGRAM_CHAT_ID вместо этого поля</small>
-              </label>
-              <label className="toggle-row">
-                <input
-                  name="siteBookingNotifyTelegramEnabled"
-                  type="checkbox"
-                  defaultChecked={settings.siteBookingNotifyTelegramEnabled ?? true}
-                />
-                <span>
-                  Telegram при заявке с сайта
-                  <small>Мгновенное уведомление о новой брони с nuarr.pl</small>
-                </span>
-              </label>
-              <label className="toggle-row">
-                <input
-                  name="siteBookingNotifyWhatsappEnabled"
-                  type="checkbox"
-                  defaultChecked={settings.siteBookingNotifyWhatsappEnabled ?? true}
-                />
-                <span>
-                  WhatsApp при заявке с сайта
-                  <small>
-                    Meta WhatsApp API или SMS на номер ниже, если WhatsApp API не настроен
-                  </small>
-                </span>
-              </label>
-              <label>
-                Телефон владельца для WhatsApp/SMS
-                <input
-                  name="ownerNotifyPhone"
-                  defaultValue={settings.ownerNotifyPhone ?? ""}
-                  inputMode="tel"
-                  placeholder="600123456"
-                />
-                <small>
-                  Supabase Secrets: WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID или
-                  SMSAPI_TOKEN
-                </small>
-              </label>
+              <p className="settings-inline-note">
+                Telegram Chat ID задаётся во вкладке «Интеграции» (или раздел «Сайт» в
+                меню) — блок «Уведомления о заявках с сайта». Тот же Chat ID
+                используется для дайджеста.
+              </p>
               <label className="toggle-row">
                 <input
                   name="reviewRequestsEnabled"
@@ -869,6 +828,7 @@ function SettingsPage({
             activeTab === "integrations" ? "active" : ""
           }`}>
           <SiteAdminPanel compact />
+          <SiteBookingNotifySettings settings={settings} />
           {siteBooking ? (
             <SiteBookingPanel
               loadError={siteBooking.loadError}

@@ -219,6 +219,8 @@ export default function AppRoutes({activePage, ...props}) {
       return (
         <SettingsPage
           initialTab="integrations"
+          pageDescription="Заявки с nuarr.pl, CMS сайта и уведомления владельцу"
+          pageTitle="Сайт NUAR"
           cloudConflict={props.cloudConflict}
           cloudEnabled={props.cloudEnabled}
           cloudHydrated={props.cloudHydrated}
