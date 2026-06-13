@@ -1,9 +1,15 @@
 import VisitsTable from "../VisitsTable.jsx";
+import DayClosePanel from "../DayClosePanel.jsx";
 
 function PaymentsPage({
+  closeDay,
+  dayCloseRecords,
   filters,
+  getDayCloseJournal,
   masters,
   openActionMenuId,
+  reopenDayClose,
+  removeDayClose,
   visits,
   onAddPayment,
   onDeleteVisit,
@@ -14,6 +20,13 @@ function PaymentsPage({
 }) {
   return (
     <section className="payments-page">
+      <DayClosePanel
+        dayCloseRecords={dayCloseRecords}
+        getJournalForDate={getDayCloseJournal}
+        onCloseDay={closeDay}
+        onReopenDayClose={reopenDayClose}
+        onRemoveDayClose={removeDayClose}
+      />
       <VisitsTable
         addLabel="Добавить поступление"
         filters={filters}

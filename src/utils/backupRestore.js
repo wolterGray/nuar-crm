@@ -49,6 +49,16 @@ export const restoreBackupSnapshot = (
       Array.isArray(backup.waitlistEntries) ? backup.waitlistEntries : [],
     );
   }
+  if (setters.setDayCloseRecords) {
+    setters.setDayCloseRecords(
+      Array.isArray(backup.dayCloseRecords) ? backup.dayCloseRecords : [],
+    );
+  }
+  if (setters.setPayrollRecords) {
+    setters.setPayrollRecords(
+      Array.isArray(backup.payrollRecords) ? backup.payrollRecords : [],
+    );
+  }
   setters.setMessageTemplates(backup.messageTemplates);
   setters.setCalendarEntries(migrated.calendarEntries);
   setters.setDismissedClientAlertIds(

@@ -63,9 +63,14 @@ export default function AppRoutes({activePage, ...props}) {
     case "payments":
       return (
         <PaymentsPage
+          closeDay={props.closeDay}
+          dayCloseRecords={props.dayCloseRecords}
           filters={props.paymentFilters}
+          getDayCloseJournal={props.getDayCloseJournal}
           masters={props.masters}
           openActionMenuId={props.openPaymentActionMenuId}
+          reopenDayClose={props.reopenDayClose}
+          removeDayClose={props.removeDayClose}
           visits={props.filteredPaymentRows}
           onAddPayment={props.openCreatePayment}
           onDeleteVisit={props.deletePaymentRow}
@@ -135,6 +140,11 @@ export default function AppRoutes({activePage, ...props}) {
       return (
         <EmployeesPage
           employees={props.employeeStats}
+          getPayrollReport={props.getPayrollReport}
+          markPayrollPaid={props.markPayrollPaid}
+          payrollRecords={props.payrollRecords}
+          removePayrollRecord={props.removePayrollRecord}
+          reopenPayrollRecord={props.reopenPayrollRecord}
           onAdd={props.openCreateEmployee}
           onEdit={props.openEditEmployee}
           onDelete={props.requestDeleteEmployee}

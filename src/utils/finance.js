@@ -209,7 +209,7 @@ const getEmployeeRate = (employees = [], employeeName = "") => {
   return toFinanceNumber(employee?.commissionRate);
 };
 
-const getPackageSaleEmployeePayout = (packageItem, employees = []) => {
+export const getPackageSaleEmployeePayout = (packageItem, employees = []) => {
   const rate = getEmployeeRate(employees, packageItem?.master);
 
   return Math.round(Math.max(0, toFinanceNumber(packageItem?.price)) * (rate / 100));
@@ -225,7 +225,7 @@ const getPackageVisitUnitAmount = (visit, clientPackages = []) => {
   return (Math.max(0, toFinanceNumber(packageItem?.price)) / totalVisits) * sessionsUsed;
 };
 
-const getPackageVisitEmployeePayout = (
+export const getPackageVisitEmployeePayout = (
   visit,
   employees = [],
   clientPackages = [],

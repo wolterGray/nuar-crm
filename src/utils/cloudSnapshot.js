@@ -29,6 +29,8 @@ export const applyCrmSnapshot = (
     setReviewRequestLog,
     setInactiveFollowUpLog,
     setWaitlistEntries,
+    setDayCloseRecords,
+    setPayrollRecords,
     setTasks,
     setVisits,
   },
@@ -105,6 +107,12 @@ export const applyCrmSnapshot = (
   if (Array.isArray(snapshot.waitlistEntries)) {
     setWaitlistEntries(snapshot.waitlistEntries);
   }
+  if (Array.isArray(snapshot.dayCloseRecords)) {
+    setDayCloseRecords(snapshot.dayCloseRecords);
+  }
+  if (Array.isArray(snapshot.payrollRecords)) {
+    setPayrollRecords(snapshot.payrollRecords);
+  }
   if (snapshot.settings && typeof snapshot.settings === "object") {
     const safeSettings = {...snapshot.settings};
     delete safeSettings.authLogin;
@@ -141,6 +149,8 @@ export const buildCloudSnapshot = ({
   reviewRequestLog,
   inactiveFollowUpLog,
   waitlistEntries,
+  dayCloseRecords,
+  payrollRecords,
   supplies,
   tasks,
   visits,
@@ -167,6 +177,8 @@ export const buildCloudSnapshot = ({
   reviewRequestLog,
   inactiveFollowUpLog,
   waitlistEntries,
+  dayCloseRecords,
+  payrollRecords,
   autoCompletedCalendarEntryIds,
   settings: appSettings,
 });

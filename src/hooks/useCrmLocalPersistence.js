@@ -20,6 +20,8 @@ import {
   REVIEW_REQUEST_LOG_STORAGE_KEY,
   INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY,
   WAITLIST_STORAGE_KEY,
+  DAY_CLOSE_STORAGE_KEY,
+  PAYROLL_STORAGE_KEY,
   SUPPLIES_STORAGE_KEY,
   TASKS_STORAGE_KEY,
   VISITS_STORAGE_KEY,
@@ -47,6 +49,8 @@ export function useCrmLocalPersistence({
   reviewRequestLog,
   inactiveFollowUpLog,
   waitlistEntries,
+  dayCloseRecords,
+  payrollRecords,
   tasks,
   visits,
 }) {
@@ -147,6 +151,20 @@ export function useCrmLocalPersistence({
       JSON.stringify(waitlistEntries),
     );
   }, [waitlistEntries]);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      DAY_CLOSE_STORAGE_KEY,
+      JSON.stringify(dayCloseRecords),
+    );
+  }, [dayCloseRecords]);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      PAYROLL_STORAGE_KEY,
+      JSON.stringify(payrollRecords),
+    );
+  }, [payrollRecords]);
 
   useLayoutEffect(() => {
     applyColorTheme(appSettings);

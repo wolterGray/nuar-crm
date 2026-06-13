@@ -2445,3 +2445,309 @@ button:focus-visible {
 .theme-dark .waitlist-freed-item small {
   color: #e8eaed;
 }
+
+.payments-page {
+  display: grid;
+  gap: 14px;
+}
+
+.day-close-panel {
+  gap: 14px;
+}
+
+.day-close-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.day-close-status.is-closed {
+  color: #245c43;
+  background: rgba(36, 138, 79, 0.12);
+}
+
+.day-close-status.is-open {
+  color: #7a5d18;
+  background: rgba(195, 155, 109, 0.16);
+}
+
+.day-close-form {
+  display: grid;
+  gap: 12px;
+}
+
+.day-close-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.day-close-summary-card {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #ececea;
+  border-radius: 8px;
+  background: #fafaf9;
+}
+
+.day-close-summary-card span,
+.day-close-summary-card small {
+  color: #6f737b;
+  font-size: 12px;
+}
+
+.day-close-breakdown ul {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day-close-breakdown li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid #ececea;
+  border-radius: 8px;
+}
+
+.day-close-breakdown li span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-close-breakdown li i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.day-close-breakdown li small {
+  color: #6f737b;
+}
+
+.day-close-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.day-close-variance {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ececea;
+}
+
+.day-close-variance span {
+  display: block;
+  color: #6f737b;
+  font-size: 12px;
+}
+
+.day-close-variance.is-balanced {
+  background: rgba(36, 138, 79, 0.08);
+  border-color: rgba(36, 138, 79, 0.18);
+}
+
+.day-close-variance.is-surplus {
+  background: rgba(35, 100, 210, 0.08);
+  border-color: rgba(35, 100, 210, 0.18);
+}
+
+.day-close-variance.is-shortage {
+  background: rgba(196, 74, 74, 0.08);
+  border-color: rgba(196, 74, 74, 0.18);
+}
+
+.day-close-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.day-close-empty {
+  margin: 0;
+  color: #6f737b;
+  font-size: 13px;
+}
+
+.day-close-history ul {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day-close-history button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ececea;
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+}
+
+.day-close-history button small {
+  color: #6f737b;
+}
+
+.theme-dark .day-close-summary-card,
+.theme-dark .day-close-breakdown li,
+.theme-dark .day-close-variance,
+.theme-dark .day-close-history button {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.theme-dark .day-close-status.is-closed {
+  background: rgba(36, 138, 79, 0.18);
+}
+
+.theme-dark .day-close-status.is-open {
+  background: rgba(195, 155, 109, 0.14);
+}
+
+.employees-page {
+  display: grid;
+  gap: 14px;
+}
+
+.payroll-panel {
+  gap: 14px;
+}
+
+.payroll-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.payroll-status.is-paid {
+  color: #245c43;
+  background: rgba(36, 138, 79, 0.12);
+}
+
+.payroll-status.is-open {
+  color: #7a5d18;
+  background: rgba(195, 155, 109, 0.16);
+}
+
+.payroll-quick-ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.payroll-form {
+  display: grid;
+  gap: 12px;
+}
+
+.payroll-period-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.payroll-table-wrap {
+  overflow: auto;
+}
+
+.payroll-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.payroll-table th,
+.payroll-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #ececea;
+  text-align: left;
+  vertical-align: top;
+}
+
+.payroll-table th {
+  color: #6f737b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.payroll-table td small {
+  display: block;
+  color: #6f737b;
+  font-size: 11px;
+}
+
+.payroll-table tfoot td {
+  border-top: 1px solid #dfdfdd;
+}
+
+.payroll-empty {
+  margin: 0;
+  color: #6f737b;
+}
+
+.payroll-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.payroll-history ul {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.payroll-history button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ececea;
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+}
+
+.theme-dark .payroll-table th,
+.theme-dark .payroll-table td,
+.theme-dark .payroll-history button {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .payroll-history button {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.theme-dark .payroll-status.is-paid {
+  background: rgba(36, 138, 79, 0.18);
+}
+
+.theme-dark .payroll-status.is-open {
+  background: rgba(195, 155, 109, 0.14);
+}

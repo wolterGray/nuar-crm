@@ -17,6 +17,8 @@ import {
   REVIEW_REQUEST_LOG_STORAGE_KEY,
   INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY,
   WAITLIST_STORAGE_KEY,
+  DAY_CLOSE_STORAGE_KEY,
+  PAYROLL_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,
@@ -237,6 +239,36 @@ export const loadStoredWaitlistEntries = () => {
   }
 };
 
+export const loadStoredDayCloseRecords = () => {
+  try {
+    const storedRecords = window.localStorage.getItem(DAY_CLOSE_STORAGE_KEY);
+
+    if (!storedRecords) {
+      return [];
+    }
+
+    const parsedRecords = JSON.parse(storedRecords);
+    return Array.isArray(parsedRecords) ? parsedRecords : [];
+  } catch {
+    return [];
+  }
+};
+
+export const loadStoredPayrollRecords = () => {
+  try {
+    const storedRecords = window.localStorage.getItem(PAYROLL_STORAGE_KEY);
+
+    if (!storedRecords) {
+      return [];
+    }
+
+    const parsedRecords = JSON.parse(storedRecords);
+    return Array.isArray(parsedRecords) ? parsedRecords : [];
+  } catch {
+    return [];
+  }
+};
+
 export const loadStoredMessageTemplates = () => {
   try {
     const storedTemplates = window.localStorage.getItem(
@@ -405,6 +437,8 @@ export {
   REVIEW_REQUEST_LOG_STORAGE_KEY,
   INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY,
   WAITLIST_STORAGE_KEY,
+  DAY_CLOSE_STORAGE_KEY,
+  PAYROLL_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,

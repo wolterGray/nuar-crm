@@ -1,11 +1,29 @@
 import {Pencil, Plus, Trash2} from "lucide-react";
 import {motion} from "framer-motion";
+import PayrollPanel from "./PayrollPanel.jsx";
 import {formatMoney} from "../utils/formatters.jsx";
 import PageHeader from "./PageHeader.jsx";
 
-function EmployeesPage({employees, onAdd, onEdit, onDelete}) {
+function EmployeesPage({
+  employees,
+  getPayrollReport,
+  markPayrollPaid,
+  payrollRecords,
+  removePayrollRecord,
+  reopenPayrollRecord,
+  onAdd,
+  onEdit,
+  onDelete,
+}) {
   return (
     <section className="employees-page">
+      <PayrollPanel
+        getPayrollReport={getPayrollReport}
+        markPayrollPaid={markPayrollPaid}
+        payrollRecords={payrollRecords}
+        removePayrollRecord={removePayrollRecord}
+        reopenPayrollRecord={reopenPayrollRecord}
+      />
       <PageHeader
         actions={
           <button className="add-visit-button" type="button" onClick={onAdd}>

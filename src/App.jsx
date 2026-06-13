@@ -48,6 +48,8 @@ import {
   loadStoredReviewRequestLog,
   loadStoredInactiveFollowUpLog,
   loadStoredWaitlistEntries,
+  loadStoredDayCloseRecords,
+  loadStoredPayrollRecords,
   normalizeStoredSettings,
   IMPORT_DOCUMENTS_STORAGE_KEY,
   IMPORTED_MAIL_IDS_STORAGE_KEY,
@@ -85,6 +87,8 @@ import {
 } from "./utils/importDocuments.js";
 import {useBooksyGmailSync} from "./hooks/useBooksyGmailSync.js";
 import {useWaitlistHandlers} from "./hooks/useWaitlistHandlers.js";
+import {useDayCloseHandlers} from "./hooks/useDayCloseHandlers.js";
+import {usePayrollHandlers} from "./hooks/usePayrollHandlers.js";
 import {useInactiveFollowUp} from "./hooks/useInactiveFollowUp.js";
 import {useReviewRequests} from "./hooks/useReviewRequests.js";
 import {useSmsReminders} from "./hooks/useSmsReminders.js";
@@ -121,6 +125,8 @@ function App() {
     loadStoredInactiveFollowUpLog,
   );
   const [waitlistEntries, setWaitlistEntries] = useState(loadStoredWaitlistEntries);
+  const [dayCloseRecords, setDayCloseRecords] = useState(loadStoredDayCloseRecords);
+  const [payrollRecords, setPayrollRecords] = useState(loadStoredPayrollRecords);
   const [messageTemplates, setMessageTemplates] = useState(
     loadStoredMessageTemplates,
   );
@@ -402,6 +408,8 @@ function App() {
     reviewRequestLog,
     inactiveFollowUpLog,
     waitlistEntries,
+    dayCloseRecords,
+    payrollRecords,
     tasks,
     visits,
   });
@@ -444,6 +452,8 @@ function App() {
         reviewRequestLog,
         inactiveFollowUpLog,
         waitlistEntries,
+        dayCloseRecords,
+        payrollRecords,
         tasks,
         visits,
       }),
@@ -469,6 +479,8 @@ function App() {
       reviewRequestLog,
       inactiveFollowUpLog,
       waitlistEntries,
+      dayCloseRecords,
+      payrollRecords,
       tasks,
       visits,
     ],
@@ -504,6 +516,8 @@ function App() {
         setReviewRequestLog,
         setInactiveFollowUpLog,
         setWaitlistEntries,
+        setDayCloseRecords,
+        setPayrollRecords,
         setSupplies,
         setTasks,
         setVisits,
@@ -593,6 +607,8 @@ function App() {
       reviewRequestLog,
       inactiveFollowUpLog,
       waitlistEntries,
+      dayCloseRecords,
+      payrollRecords,
       tasks,
       visits,
     }),
@@ -617,6 +633,8 @@ function App() {
       reviewRequestLog,
       inactiveFollowUpLog,
       waitlistEntries,
+      dayCloseRecords,
+      payrollRecords,
       tasks,
       visits,
     ],
@@ -643,6 +661,8 @@ function App() {
       setReviewRequestLog,
       setInactiveFollowUpLog,
       setWaitlistEntries,
+      setDayCloseRecords,
+      setPayrollRecords,
       setSupplies,
       setTasks,
       setVisits,
@@ -667,6 +687,8 @@ function App() {
       setReviewRequestLog,
       setInactiveFollowUpLog,
       setWaitlistEntries,
+      setDayCloseRecords,
+      setPayrollRecords,
       setSupplies,
       setTasks,
       setVisits,
@@ -909,6 +931,28 @@ function App() {
   useEffect(() => {
     onCalendarSlotFreedRef.current = waitlist.notifyCalendarSlotFreed;
   }, [waitlist.notifyCalendarSlotFreed]);
+
+  const dayClose = useDayCloseHandlers({
+    calendarEntries,
+    certificates,
+    clientPackages,
+    createLocalId,
+    dayCloseRecords,
+    employees,
+    pushNotification,
+    setDayCloseRecords,
+    visits,
+  });
+
+  const payroll = usePayrollHandlers({
+    clientPackages,
+    createLocalId,
+    employees,
+    payrollRecords,
+    pushNotification,
+    setPayrollRecords,
+    visits,
+  });
 
   const {handleFinancialOperationSubmit} = useFinancialOperations({
     clientProfiles,
@@ -1639,6 +1683,16 @@ function App() {
             messageWaitlistEntryFromPanel={waitlist.messageWaitlistEntryFromPanel}
             removeWaitlistEntry={waitlist.removeWaitlistEntry}
             waitlistEntries={waitlistEntries}
+            closeDay={dayClose.closeDay}
+            dayCloseRecords={dayCloseRecords}
+            getDayCloseJournal={dayClose.getJournalForDate}
+            removeDayClose={dayClose.removeDayClose}
+            reopenDayClose={dayClose.reopenDayClose}
+            getPayrollReport={payroll.getPayrollReport}
+            markPayrollPaid={payroll.markPayrollPaid}
+            payrollRecords={payrollRecords}
+            removePayrollRecord={payroll.removePayrollRecord}
+            reopenPayrollRecord={payroll.reopenPayrollRecord}
             openCreateCalendarEntry={openCreateCalendarEntry}
             openCreateClient={openCreateClient}
             openCreateClientPackage={openCreateClientPackage}
