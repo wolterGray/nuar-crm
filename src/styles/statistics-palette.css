@@ -535,6 +535,7 @@ button:focus-visible {
 
 .calendar-reminder-list article {
   border-color: var(--line-subtle);
+  background: color-mix(in srgb, var(--surface) 92%, #ffffff);
 }
 
 .calendar-reminder-actions button {

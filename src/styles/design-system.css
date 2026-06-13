@@ -109,6 +109,7 @@
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  align-content: start;
   margin-top: 8px;
 }
 
