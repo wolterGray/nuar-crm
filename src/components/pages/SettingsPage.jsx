@@ -497,6 +497,26 @@ function SettingsPage({
               </label>
               <label className="toggle-row">
                 <input
+                  name="waitlistEnabled"
+                  type="checkbox"
+                  defaultChecked={settings.waitlistEnabled ?? true}
+                />
+                <span>
+                  Лист ожидания на отмены
+                  <small>Предлагать клиентов из waitlist при освобождении слота</small>
+                </span>
+              </label>
+              <label>
+                Шаблон предложения слота
+                <textarea
+                  name="waitlistOfferTemplate"
+                  defaultValue={settings.waitlistOfferTemplate ?? ""}
+                  rows="2"
+                />
+                <small>{`Плейсхолдеры: {name}, {date}, {time}, {master}, {service}, {studio}`}</small>
+              </label>
+              <label className="toggle-row">
+                <input
                   name="forecastAlertsEnabled"
                   type="checkbox"
                   defaultChecked={settings.forecastAlertsEnabled ?? true}

@@ -58,7 +58,7 @@ function MessageTemplateForm({template, onSubmit}) {
         />
       </label>
       <small className="message-template-hint">
-        Используйте {"{name}"} для имени клиента.
+        {"{name}"} — имя для SMS (короткое, без «от Влады» и меток).
       </small>
       <button className="submit-button">
         {template ? "Сохранить шаблон" : "Добавить шаблон"}

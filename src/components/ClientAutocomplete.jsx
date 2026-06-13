@@ -1,5 +1,6 @@
 function ClientAutocomplete({
   clients,
+  disabled = false,
   id,
   name = "client",
   placeholder = "Начните вводить имя",
@@ -17,6 +18,7 @@ function ClientAutocomplete({
       <input
         autoComplete="off"
         defaultValue={defaultValue}
+        disabled={disabled}
         list={id}
         name={name}
         onChange={onChange}

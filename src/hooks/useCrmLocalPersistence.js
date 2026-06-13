@@ -19,6 +19,7 @@ import {
   SMS_REMINDER_LOG_STORAGE_KEY,
   REVIEW_REQUEST_LOG_STORAGE_KEY,
   INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY,
+  WAITLIST_STORAGE_KEY,
   SUPPLIES_STORAGE_KEY,
   TASKS_STORAGE_KEY,
   VISITS_STORAGE_KEY,
@@ -45,6 +46,7 @@ export function useCrmLocalPersistence({
   smsReminderLog,
   reviewRequestLog,
   inactiveFollowUpLog,
+  waitlistEntries,
   tasks,
   visits,
 }) {
@@ -138,6 +140,13 @@ export function useCrmLocalPersistence({
       JSON.stringify(inactiveFollowUpLog),
     );
   }, [inactiveFollowUpLog]);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      WAITLIST_STORAGE_KEY,
+      JSON.stringify(waitlistEntries),
+    );
+  }, [waitlistEntries]);
 
   useLayoutEffect(() => {
     applyColorTheme(appSettings);

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import {useMemo, useState} from "react";
 import PageHeader from "../PageHeader.jsx";
+import {getClientMessageName} from "../../utils/clientMessageName.js";
 
 function MessageTemplatesPage({
   templates,
@@ -66,7 +67,7 @@ function MessageTemplatesPage({
     (client) => String(client.id) === preferredClientId,
   );
   const getPersonalizedText = (template, client) =>
-    template.body.replaceAll("{name}", client?.name || "клиент");
+    template.body.replaceAll("{name}", getClientMessageName(client) || "клиент");
   const copyText = async (template, client = null) => {
     const text = client ? getPersonalizedText(template, client) : template.body;
 

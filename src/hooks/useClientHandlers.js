@@ -83,6 +83,7 @@ export function useClientHandlers({
       const client = {
         id: editingClient?.id ?? createLocalId(),
         name,
+        messageName: String(form.get("messageName") ?? "").trim(),
         phone: String(form.get("phone") ?? "").trim(),
         email: String(form.get("email") ?? "").trim(),
         birthday: String(form.get("birthday") ?? "").trim(),

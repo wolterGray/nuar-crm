@@ -5,6 +5,7 @@ import AppShell from "./components/AppShell.jsx";
 import AppNavigation from "./components/AppNavigation.jsx";
 import NotificationDrawer from "./components/NotificationDrawer.jsx";
 import AppModals from "./components/AppModals.jsx";
+import WaitlistFreedSlotDialog from "./components/WaitlistFreedSlotDialog.jsx";
 import ClientSearchDialog from "./components/ClientSearchDialog.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import ToastStack from "./components/ToastStack.jsx";
@@ -46,6 +47,7 @@ import {
   loadStoredSmsReminderLog,
   loadStoredReviewRequestLog,
   loadStoredInactiveFollowUpLog,
+  loadStoredWaitlistEntries,
   normalizeStoredSettings,
   IMPORT_DOCUMENTS_STORAGE_KEY,
   IMPORTED_MAIL_IDS_STORAGE_KEY,
@@ -82,6 +84,7 @@ import {
   removeImportDocumentsByIds,
 } from "./utils/importDocuments.js";
 import {useBooksyGmailSync} from "./hooks/useBooksyGmailSync.js";
+import {useWaitlistHandlers} from "./hooks/useWaitlistHandlers.js";
 import {useInactiveFollowUp} from "./hooks/useInactiveFollowUp.js";
 import {useReviewRequests} from "./hooks/useReviewRequests.js";
 import {useSmsReminders} from "./hooks/useSmsReminders.js";
@@ -117,6 +120,7 @@ function App() {
   const [inactiveFollowUpLog, setInactiveFollowUpLog] = useState(
     loadStoredInactiveFollowUpLog,
   );
+  const [waitlistEntries, setWaitlistEntries] = useState(loadStoredWaitlistEntries);
   const [messageTemplates, setMessageTemplates] = useState(
     loadStoredMessageTemplates,
   );
@@ -397,6 +401,7 @@ function App() {
     smsReminderLog,
     reviewRequestLog,
     inactiveFollowUpLog,
+    waitlistEntries,
     tasks,
     visits,
   });
@@ -438,6 +443,7 @@ function App() {
         smsReminderLog,
         reviewRequestLog,
         inactiveFollowUpLog,
+        waitlistEntries,
         tasks,
         visits,
       }),
@@ -462,6 +468,7 @@ function App() {
       smsReminderLog,
       reviewRequestLog,
       inactiveFollowUpLog,
+      waitlistEntries,
       tasks,
       visits,
     ],
@@ -496,6 +503,7 @@ function App() {
         setSmsReminderLog,
         setReviewRequestLog,
         setInactiveFollowUpLog,
+        setWaitlistEntries,
         setSupplies,
         setTasks,
         setVisits,
@@ -584,6 +592,7 @@ function App() {
       smsReminderLog,
       reviewRequestLog,
       inactiveFollowUpLog,
+      waitlistEntries,
       tasks,
       visits,
     }),
@@ -607,6 +616,7 @@ function App() {
       smsReminderLog,
       reviewRequestLog,
       inactiveFollowUpLog,
+      waitlistEntries,
       tasks,
       visits,
     ],
@@ -632,6 +642,7 @@ function App() {
       setSmsReminderLog,
       setReviewRequestLog,
       setInactiveFollowUpLog,
+      setWaitlistEntries,
       setSupplies,
       setTasks,
       setVisits,
@@ -655,6 +666,7 @@ function App() {
       setSmsReminderLog,
       setReviewRequestLog,
       setInactiveFollowUpLog,
+      setWaitlistEntries,
       setSupplies,
       setTasks,
       setVisits,
@@ -836,6 +848,8 @@ function App() {
     });
   }, [setCertificates]);
 
+  const onCalendarSlotFreedRef = useRef(() => {});
+
   const {
     cancelCalendarAction,
     cancelCalendarConflict,
@@ -863,6 +877,7 @@ function App() {
     editingJournalVisit,
     employees,
     getCalendarServiceColor,
+    onCalendarSlotFreed: (entry) => onCalendarSlotFreedRef.current(entry),
     pushNotification,
     serviceCatalog,
     setActiveClientAlertId,
@@ -880,6 +895,20 @@ function App() {
     updatePackageBalance,
     visits,
   });
+
+  const waitlist = useWaitlistHandlers({
+    appSettings,
+    clientProfiles,
+    createLocalId,
+    openClientMessageTemplates,
+    openCreateCalendarEntry,
+    pushNotification,
+    setWaitlistEntries,
+    waitlistEntries,
+  });
+  useEffect(() => {
+    onCalendarSlotFreedRef.current = waitlist.notifyCalendarSlotFreed;
+  }, [waitlist.notifyCalendarSlotFreed]);
 
   const {handleFinancialOperationSubmit} = useFinancialOperations({
     clientProfiles,
@@ -1497,6 +1526,11 @@ function App() {
             onPackageSubmit={handlePackageSubmit}
             onServiceSubmit={handleServiceSubmit}
             onSupplySubmit={handleSupplySubmit}
+            waitlistModalOpen={waitlist.waitlistModalOpen}
+            waitlistDefaults={waitlist.waitlistDefaults}
+            editingWaitlistEntry={waitlist.editingWaitlistEntry}
+            onCloseWaitlistModal={waitlist.closeWaitlistModal}
+            onWaitlistSubmit={waitlist.saveWaitlistEntry}
             onTaskSubmit={handleTaskSubmit}
           />
           <ClientSearchDialog
@@ -1506,6 +1540,16 @@ function App() {
             onMessageClient={messageClientFromSearch}
             onOpenClient={openClientFromSearch}
           />
+          {waitlist.pendingFreedSlot ? (
+            <WaitlistFreedSlotDialog
+              buildOfferMessage={waitlist.buildWaitlistOfferMessage}
+              matches={waitlist.pendingFreedSlot.matches}
+              slot={waitlist.pendingFreedSlot.slot}
+              onBook={waitlist.bookWaitlistClient}
+              onClose={waitlist.closeWaitlistOffer}
+              onMessage={waitlist.messageWaitlistClient}
+            />
+          ) : null}
           <ToastStack
             notifications={notifications}
             onAction={handleToastAction}
@@ -1589,6 +1633,12 @@ function App() {
             messageTemplates={messageTemplates}
             moveCalendarEntry={moveCalendarEntry}
             openClientMessageTemplates={openClientMessageTemplates}
+            openCreateWaitlistEntry={waitlist.openCreateWaitlistEntry}
+            openEditWaitlistEntry={waitlist.openEditWaitlistEntry}
+            bookWaitlistEntryFromPanel={waitlist.bookWaitlistEntryFromPanel}
+            messageWaitlistEntryFromPanel={waitlist.messageWaitlistEntryFromPanel}
+            removeWaitlistEntry={waitlist.removeWaitlistEntry}
+            waitlistEntries={waitlistEntries}
             openCreateCalendarEntry={openCreateCalendarEntry}
             openCreateClient={openCreateClient}
             openCreateClientPackage={openCreateClientPackage}

@@ -80,6 +80,10 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
     Math.max(30, Number(form.get("inactiveFollowUpAutoProcessMinutes"))) ||
     defaultAppSettings.inactiveFollowUpAutoProcessMinutes,
   inactiveFollowUpLastRunAt: appSettings.inactiveFollowUpLastRunAt ?? "",
+  waitlistEnabled: form.get("waitlistEnabled") === "on",
+  waitlistOfferTemplate:
+    String(form.get("waitlistOfferTemplate") ?? "").trim() ||
+    defaultAppSettings.waitlistOfferTemplate,
   forecastAlertsEnabled: form.get("forecastAlertsEnabled") === "on",
   alertAggregationEnabled: form.get("alertAggregationEnabled") === "on",
   quietHoursEnabled: form.get("quietHoursEnabled") === "on",

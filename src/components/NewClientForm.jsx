@@ -15,6 +15,7 @@ const optionalEmail = z
 
 const clientFormSchema = z.object({
   name: z.string().trim().min(1, "Укажите имя клиента"),
+  messageName: z.string().optional(),
   phone: z.string().optional(),
   email: optionalEmail,
   birthday: z.string().optional(),
@@ -36,6 +37,7 @@ function NewClientForm({client, onSubmit}) {
   } = useForm({
     defaultValues: {
       name: client?.name ?? "",
+      messageName: client?.messageName ?? "",
       phone: client?.phone ?? "",
       email: client?.email ?? "",
       birthday: client?.birthday ?? "",
@@ -73,6 +75,16 @@ function NewClientForm({client, onSubmit}) {
             placeholder="Например: Наталья К."
           />
           <FieldError message={errors.name?.message} />
+        </label>
+        <label>
+          Имя для SMS
+          <input
+            {...register("messageName")}
+            placeholder="Например: Анастасия"
+          />
+          <small>
+            Как обращаться в сообщениях. Пусто — возьмём первое слово или часть до «от …».
+          </small>
         </label>
         <label>
           Телефон

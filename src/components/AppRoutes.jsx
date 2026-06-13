@@ -93,6 +93,9 @@ export default function AppRoutes({activePage, ...props}) {
           onUpdateClientNote={props.updateClientNote}
           onDeleteClient={props.requestDeleteClient}
           onMessageClient={props.openClientMessageTemplates}
+          onAddToWaitlist={(client) =>
+            props.openCreateWaitlistEntry({clientId: client.id})
+          }
           onAddVisit={props.addClientCalendarVisit}
           onRepeatVisit={props.repeatClientVisit}
         />
@@ -159,12 +162,18 @@ export default function AppRoutes({activePage, ...props}) {
           alertFocus={props.alertFocus}
           tasks={props.tasks}
           supplies={props.supplies}
+          waitlistEntries={props.waitlistEntries}
           onAddTask={props.openCreateTask}
           onAddNote={props.addQuickNote}
+          onAddWaitlistEntry={props.openCreateWaitlistEntry}
           onAlertFocusHandled={props.clearAlertFocus}
-          onEditTask={props.openEditTask}
-          onDeleteTask={props.requestDeleteTask}
+          onBookWaitlistEntry={props.bookWaitlistEntryFromPanel}
           onCompleteTask={props.completeTask}
+          onDeleteTask={props.requestDeleteTask}
+          onEditTask={props.openEditTask}
+          onEditWaitlistEntry={props.openEditWaitlistEntry}
+          onMessageWaitlistEntry={props.messageWaitlistEntryFromPanel}
+          onRemoveWaitlistEntry={props.removeWaitlistEntry}
           onReorderTasks={props.reorderTasks}
           onAddSupply={props.openCreateSupply}
           onEditSupply={props.openEditSupply}

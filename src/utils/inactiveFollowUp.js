@@ -1,5 +1,6 @@
 import {buildInactiveClients} from "./alertCenter.js";
 import {isCalendarVisitPlanned} from "./calendarVisitStatus.js";
+import {getClientMessageName} from "./clientMessageName.js";
 import {matchesClientRecord} from "./clientLinks.js";
 import {normalizePhoneForSms, personalizeSmsTemplate} from "./smsReminders.js";
 
@@ -150,7 +151,7 @@ export const buildDueInactiveFollowUps = ({
       const phone = normalizePhoneForSms(client.phone);
       const template = resolveInactiveFollowUpTemplate(appSettings, kind);
       const message = personalizeSmsTemplate(template, {
-        clientName: client.name,
+        clientName: getClientMessageName(client),
         date: client.lastVisit,
         studio: studioName,
         time: "",

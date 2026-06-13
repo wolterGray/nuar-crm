@@ -16,6 +16,7 @@ import {
   SMS_REMINDER_LOG_STORAGE_KEY,
   REVIEW_REQUEST_LOG_STORAGE_KEY,
   INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY,
+  WAITLIST_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,
@@ -221,6 +222,21 @@ export const loadStoredInactiveFollowUpLog = () => {
   }
 };
 
+export const loadStoredWaitlistEntries = () => {
+  try {
+    const storedEntries = window.localStorage.getItem(WAITLIST_STORAGE_KEY);
+
+    if (!storedEntries) {
+      return [];
+    }
+
+    const parsedEntries = JSON.parse(storedEntries);
+    return Array.isArray(parsedEntries) ? parsedEntries : [];
+  } catch {
+    return [];
+  }
+};
+
 export const loadStoredMessageTemplates = () => {
   try {
     const storedTemplates = window.localStorage.getItem(
@@ -388,6 +404,7 @@ export {
   SMS_REMINDER_LOG_STORAGE_KEY,
   REVIEW_REQUEST_LOG_STORAGE_KEY,
   INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY,
+  WAITLIST_STORAGE_KEY,
   CLIENTS_STORAGE_KEY,
   COMMUNICATION_LOG_STORAGE_KEY,
   DISMISSED_CLIENT_ALERTS_STORAGE_KEY,

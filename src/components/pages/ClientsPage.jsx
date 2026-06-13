@@ -1,6 +1,7 @@
 import {
   CakeSlice,
   CalendarPlus,
+  Clock3,
   Eye,
   MessageSquareText,
   MoreVertical,
@@ -43,6 +44,7 @@ function ClientsPage({
   onUpdateClientNote,
   onDeleteClient,
   onMessageClient,
+  onAddToWaitlist,
   onAddVisit,
   onRepeatVisit,
 }) {
@@ -413,6 +415,15 @@ function ClientsPage({
                     }}>
                     <MessageSquareText size={15} />
                     Написать
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenClientMenuId(null);
+                      onAddToWaitlist?.(client);
+                    }}>
+                    <Clock3 size={15} />
+                    Лист ожидания
                   </button>
                   <button
                     type="button"

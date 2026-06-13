@@ -1,4 +1,5 @@
 import {differenceInMinutes, isValid, parse, parseISO} from "https://esm.sh/date-fns@4.1.0";
+import {resolveClientMessageName} from "./clientMessageName.ts";
 
 const APP_DATE_FORMAT = "dd.MM.yyyy";
 const REVIEW_REQUEST_TOLERANCE_MINUTES = 30;
@@ -307,7 +308,10 @@ export const buildDueReviewRequests = ({
         String(appSettings.reviewRequestTemplate ?? defaultReviewRequestTemplate),
         {
           booksyUrl: urls.booksyUrl,
-          clientName: entry.client,
+          clientName: resolveClientMessageName(clientProfiles, {
+            client: entry.client,
+            clientId: entry.clientId,
+          }),
           googleUrl: urls.googleUrl,
           master: entry.master,
           reviewUrl: urls.reviewUrl,

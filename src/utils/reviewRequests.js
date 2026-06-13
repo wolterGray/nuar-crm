@@ -1,5 +1,6 @@
 import {differenceInMinutes} from "date-fns";
 import {isCalendarVisitCompleted} from "./calendarVisitStatus.js";
+import {resolveClientMessageName} from "./clientMessageName.js";
 import {matchesClientRecord} from "./clientLinks.js";
 import {
   getCalendarVisitDateTime,
@@ -198,7 +199,7 @@ export const buildDueReviewRequests = ({
         appSettings.reviewRequestTemplate || defaultReviewRequestTemplate,
         {
           booksyUrl: urls.booksyUrl,
-          clientName: entry.client,
+          clientName: resolveClientMessageName(clientProfiles, entry),
           googleUrl: urls.googleUrl,
           master: entry.master,
           reviewUrl: urls.reviewUrl,

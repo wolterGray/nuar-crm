@@ -10,6 +10,7 @@ import {
   StickyNote,
   Trash2,
 } from "lucide-react";
+import WaitlistPanel from "../WaitlistPanel.jsx";
 import PageHeader from "../PageHeader.jsx";
 import {
   closestCenter,
@@ -83,12 +84,18 @@ function OperationsPage({
   alertFocus,
   tasks,
   supplies,
+  waitlistEntries = [],
   onAddTask,
   onAddNote,
+  onAddWaitlistEntry,
   onAlertFocusHandled,
-  onEditTask,
-  onDeleteTask,
+  onBookWaitlistEntry,
   onCompleteTask,
+  onDeleteTask,
+  onEditTask,
+  onEditWaitlistEntry,
+  onMessageWaitlistEntry,
+  onRemoveWaitlistEntry,
   onReorderTasks,
   onAddSupply,
   onEditSupply,
@@ -108,6 +115,9 @@ function OperationsPage({
   const activeTasks = workTasks.filter((task) => task.status !== "completed");
   const completedTasks = workTasks.filter((task) => task.status === "completed");
   const lowStockCount = supplies.filter(isSupplyLowStock).length;
+  const activeWaitlistCount = waitlistEntries.filter(
+    (entry) => entry.status === "active",
+  ).length;
   const sortedSupplies = useMemo(
     () =>
       [...supplies].sort((left, right) => {
@@ -180,6 +190,12 @@ function OperationsPage({
             onClick={() => setMobileSection("supplies")}>
             Склад
           </button>
+          <button
+            className={mobileSection === "waitlist" ? "active" : ""}
+            type="button"
+            onClick={() => setMobileSection("waitlist")}>
+            Лист ожидания
+          </button>
         </div>
         <div className="operations-summary">
           <span>
@@ -187,6 +203,9 @@ function OperationsPage({
           </span>
           <span>
             <b>{notes.length}</b> заметок
+          </span>
+          <span>
+            <b>{activeWaitlistCount}</b> в листе
           </span>
           <span className={lowStockCount > 0 ? "operations-summary-alert" : ""}>
             <b>{lowStockCount}</b> нужно пополнить
@@ -498,6 +517,20 @@ function OperationsPage({
               <p className="operations-empty">Добавьте первый расходник.</p>
             )}
           </div>
+        </section>
+
+        <section
+          className={`panel operations-panel operations-panel-waitlist ${
+            mobileSection === "waitlist" ? "active" : ""
+          }`}>
+          <WaitlistPanel
+            waitlistEntries={waitlistEntries}
+            onAdd={onAddWaitlistEntry}
+            onBook={onBookWaitlistEntry}
+            onEdit={onEditWaitlistEntry}
+            onMessage={onMessageWaitlistEntry}
+            onRemove={onRemoveWaitlistEntry}
+          />
         </section>
       </div>
     </section>

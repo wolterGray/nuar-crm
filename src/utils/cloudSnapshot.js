@@ -28,6 +28,7 @@ export const applyCrmSnapshot = (
     setSmsReminderLog,
     setReviewRequestLog,
     setInactiveFollowUpLog,
+    setWaitlistEntries,
     setTasks,
     setVisits,
   },
@@ -101,6 +102,9 @@ export const applyCrmSnapshot = (
   if (Array.isArray(snapshot.inactiveFollowUpLog)) {
     setInactiveFollowUpLog(snapshot.inactiveFollowUpLog);
   }
+  if (Array.isArray(snapshot.waitlistEntries)) {
+    setWaitlistEntries(snapshot.waitlistEntries);
+  }
   if (snapshot.settings && typeof snapshot.settings === "object") {
     const safeSettings = {...snapshot.settings};
     delete safeSettings.authLogin;
@@ -136,6 +140,7 @@ export const buildCloudSnapshot = ({
   smsReminderLog,
   reviewRequestLog,
   inactiveFollowUpLog,
+  waitlistEntries,
   supplies,
   tasks,
   visits,
@@ -161,6 +166,7 @@ export const buildCloudSnapshot = ({
   smsReminderLog,
   reviewRequestLog,
   inactiveFollowUpLog,
+  waitlistEntries,
   autoCompletedCalendarEntryIds,
   settings: appSettings,
 });

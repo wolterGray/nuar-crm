@@ -102,6 +102,9 @@ export const defaultAppSettings = {
   inactiveFollowUpAutoProcessEnabled: true,
   inactiveFollowUpAutoProcessMinutes: 60,
   inactiveFollowUpLastRunAt: "",
+  waitlistEnabled: true,
+  waitlistOfferTemplate:
+    "Witaj {name}! Zwolnil sie termin {date} o {time} u {master} ({service}). Czy jestes zainteresowana?",
   forecastAlertsEnabled: true,
   alertAggregationEnabled: true,
   inactiveClientAlertLimit: 5,

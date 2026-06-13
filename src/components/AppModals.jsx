@@ -9,6 +9,7 @@ import ClientPackageForm from "./ClientPackageForm.jsx";
 import CertificateForm from "./CertificateForm.jsx";
 import MessageTemplateForm from "./MessageTemplateForm.jsx";
 import CalendarEntryForm from "./CalendarEntryForm.jsx";
+import WaitlistForm from "./WaitlistForm.jsx";
 import TaskForm from "./TaskForm.jsx";
 import SupplyForm from "./SupplyForm.jsx";
 import FinancialOperationForm from "./FinancialOperationForm.jsx";
@@ -74,6 +75,7 @@ export default function AppModals({
   taskModalOpen,
   supplyModalOpen,
   financialOperationModalOpen,
+  waitlistModalOpen,
   editingEmployee,
   editingClient,
   editingService,
@@ -85,6 +87,8 @@ export default function AppModals({
   editingTask,
   editingSupply,
   editingFinancialOperation,
+  editingWaitlistEntry,
+  waitlistDefaults,
   editingJournalVisit,
   serviceNames,
   clientNames,
@@ -117,6 +121,7 @@ export default function AppModals({
   onCloseTaskModal,
   onCloseSupplyModal,
   onCloseFinancialOperationModal,
+  onCloseWaitlistModal,
   onEmployeeSubmit,
   onClientSubmit,
   onServiceSubmit,
@@ -128,6 +133,7 @@ export default function AppModals({
   onTaskSubmit,
   onSupplySubmit,
   onFinancialOperationSubmit,
+  onWaitlistSubmit,
   onCreateCalendarClient,
   onCancelCalendarAction,
   onConfirmCalendarAction,
@@ -544,6 +550,45 @@ export default function AppModals({
         onCancel={onCancelDataBackup}
         onConfirm={onConfirmDataBackup}
       />
+
+      {waitlistModalOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            aria-modal="true"
+            className="employee-modal client-form-modal"
+            role="dialog"
+            aria-labelledby="waitlist-modal-title">
+            <div className="modal-header">
+              <h2 id="waitlist-modal-title">
+                {editingWaitlistEntry
+                  ? "Редактировать лист ожидания"
+                  : "Добавить в лист ожидания"}
+              </h2>
+              <button
+                aria-label="Закрыть форму"
+                className="modal-close"
+                type="button"
+                onClick={onCloseWaitlistModal}>
+                <X size={18} />
+              </button>
+            </div>
+            <WaitlistForm
+              key={
+                editingWaitlistEntry?.id ??
+                `create-${waitlistDefaults?.clientId ?? "none"}`
+              }
+              clientProfiles={clientProfiles}
+              defaults={waitlistDefaults}
+              editingEntry={editingWaitlistEntry}
+              employees={activeEmployees}
+              serviceCatalog={serviceCatalog}
+              onClose={onCloseWaitlistModal}
+              onSubmit={onWaitlistSubmit}
+            />
+          </section>
+        </div>
+      )}
+
       {entityDeleteDialog && (
         <ConfirmDialog
           confirmLabel={entityDeleteDialog.confirmLabel}

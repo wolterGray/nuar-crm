@@ -1,5 +1,6 @@
 import {differenceInMinutes} from "date-fns";
 import {parseAppDate} from "./dateUtils.js";
+import {resolveClientMessageName} from "./clientMessageName.js";
 import {matchesClientRecord} from "./clientLinks.js";
 
 export const SMS_REMINDER_KINDS = ["24h", "2h"];
@@ -186,7 +187,7 @@ export const buildDueSmsReminders = ({
           key: buildSmsReminderKey(entry, kind),
           master: entry.master,
           message: personalizeSmsTemplate(template, {
-            clientName: entry.client,
+            clientName: resolveClientMessageName(clientProfiles, entry),
             date: entry.date,
             master: entry.master,
             service: entry.service,

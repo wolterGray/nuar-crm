@@ -29,6 +29,7 @@ export function useCalendarActions({
   editingJournalVisit,
   employees,
   getCalendarServiceColor,
+  onCalendarSlotFreed,
   pushNotification,
   serviceCatalog,
   setActiveClientAlertId,
@@ -363,13 +364,14 @@ export function useCalendarActions({
 
   const deleteCalendarEntry = useCallback(
     (entry) => {
+      onCalendarSlotFreed?.(entry);
       setCalendarEntries((current) => current.filter((item) => item.id !== entry.id));
       pushNotification({
         title: entry.kind === "visit" ? "Запись отменена" : "Резерв удален",
         message: entry.kind === "visit" ? entry.client : entry.title,
       });
     },
-    [pushNotification, setCalendarEntries],
+    [onCalendarSlotFreed, pushNotification, setCalendarEntries],
   );
 
   const moveCalendarEntry = useCallback(
@@ -449,6 +451,10 @@ export function useCalendarActions({
 
   const updateCalendarEntryStatus = useCallback(
     (entry, status) => {
+      if (status === "cancelled") {
+        onCalendarSlotFreed?.(entry);
+      }
+
       setCalendarEntries((current) =>
         current.map((item) => (item.id === entry.id ? {...item, status} : item)),
       );
@@ -457,7 +463,7 @@ export function useCalendarActions({
         message: `${entry.client}: ${status === "cancelled" ? "отменён" : "обновлён"}`,
       });
     },
-    [pushNotification, setCalendarEntries],
+    [onCalendarSlotFreed, pushNotification, setCalendarEntries],
   );
 
   const remindCalendarClient = useCallback(
@@ -575,7 +581,8 @@ export function useCalendarActions({
     deleteCalendarEntry,
     handleCalendarEntrySubmit,
     moveCalendarEntry,
-    openCreateCalendarEntry,
+    onCalendarSlotFreed,
+  openCreateCalendarEntry,
     openEditCalendarEntry,
     pendingCalendarAction,
     pendingCalendarConflict,

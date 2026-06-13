@@ -44,6 +44,11 @@ export const restoreBackupSnapshot = (
       Array.isArray(backup.inactiveFollowUpLog) ? backup.inactiveFollowUpLog : [],
     );
   }
+  if (setters.setWaitlistEntries) {
+    setters.setWaitlistEntries(
+      Array.isArray(backup.waitlistEntries) ? backup.waitlistEntries : [],
+    );
+  }
   setters.setMessageTemplates(backup.messageTemplates);
   setters.setCalendarEntries(migrated.calendarEntries);
   setters.setDismissedClientAlertIds(

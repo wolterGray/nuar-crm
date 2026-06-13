@@ -2344,3 +2344,104 @@ button:focus-visible {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.waitlist-panel .waitlist-card-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.waitlist-panel .waitlist-card-actions .secondary-button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+.waitlist-offered-block {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #ececea;
+}
+
+.waitlist-offered-block strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.waitlist-offered-block ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  color: #6f737b;
+  font-size: 12px;
+}
+
+.waitlist-freed-dialog {
+  width: min(640px, 100%);
+  max-height: min(86vh, 760px);
+  overflow: auto;
+}
+
+.waitlist-freed-list {
+  display: grid;
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.waitlist-freed-list ul {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.waitlist-freed-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid #ececea;
+  border-radius: 8px;
+  background: #fafaf9;
+}
+
+.waitlist-freed-item strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.waitlist-freed-item span,
+.waitlist-freed-item small {
+  display: block;
+  color: #6f737b;
+  font-size: 12px;
+}
+
+.waitlist-freed-item small {
+  margin-top: 6px;
+  color: #15171c;
+}
+
+.waitlist-freed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.theme-dark .waitlist-offered-block {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .waitlist-freed-item {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.theme-dark .waitlist-freed-item small {
+  color: #e8eaed;
+}

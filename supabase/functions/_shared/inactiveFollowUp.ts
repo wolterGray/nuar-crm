@@ -6,6 +6,7 @@ import {
   startOfDay,
 } from "https://esm.sh/date-fns@4.1.0";
 import {normalizePhoneForSms, personalizeSmsTemplate} from "./visitReminders.ts";
+import {getClientMessageName} from "./clientMessageName.ts";
 
 const APP_DATE_FORMAT = "dd.MM.yyyy";
 const INACTIVE_FOLLOW_UP_KINDS = ["14d", "30d", "60d"] as const;
@@ -389,7 +390,7 @@ export const buildDueInactiveFollowUps = ({
       const phone = normalizePhoneForSms(client.phone);
       const template = resolveInactiveFollowUpTemplate(appSettings, kind);
       const message = personalizeSmsTemplate(template, {
-        clientName: client.name,
+        clientName: getClientMessageName(client),
         date: client.lastVisit,
         studio: studioName,
       }).replaceAll("{days}", String(client.daysAbsent ?? ""));
