@@ -229,6 +229,7 @@ export default function AppRoutes({activePage, ...props}) {
           reviewRequests={props.reviewRequests}
           inactiveFollowUp={props.inactiveFollowUp}
           smsReminders={props.smsReminders}
+          siteBooking={props.siteBooking}
           telegramDigest={props.telegramDigest}
           pushNotification={props.pushNotification}
           onApplyRemoteSnapshot={props.handleApplyRemoteSnapshot}

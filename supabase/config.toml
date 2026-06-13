@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.booksy-gmail-events]
 verify_jwt = true
+
+[functions.site-booking-submit]
+verify_jwt = false

@@ -13,7 +13,8 @@
     "deploy:sms-reminders": "npx supabase functions deploy visit-sms-reminders",
     "deploy:telegram-digest": "npx supabase functions deploy telegram-daily-digest",
     "deploy:review-requests": "npx supabase functions deploy visit-review-requests",
-    "deploy:inactive-follow-up": "npx supabase functions deploy inactive-client-follow-up"
+    "deploy:inactive-follow-up": "npx supabase functions deploy inactive-client-follow-up",
+    "deploy:site-booking": "npx supabase functions deploy site-booking-submit"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

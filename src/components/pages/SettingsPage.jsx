@@ -17,6 +17,7 @@ import SiteAdminPanel from "../SiteAdminPanel.jsx";
 import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
 import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
+import SiteBookingPanel from "../SiteBookingPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 
 function SettingsPage({
@@ -25,6 +26,7 @@ function SettingsPage({
   reviewRequests = null,
   inactiveFollowUp = null,
   smsReminders = null,
+  siteBooking = null,
   telegramDigest = null,
   pushNotification,
   cloudConflict = null,
@@ -830,6 +832,16 @@ function SettingsPage({
             activeTab === "integrations" ? "active" : ""
           }`}>
           <SiteAdminPanel compact />
+          {siteBooking ? (
+            <SiteBookingPanel
+              loadError={siteBooking.loadError}
+              loading={siteBooking.loading}
+              pendingRequests={siteBooking.pendingRequests}
+              onApply={siteBooking.applyRequest}
+              onRefresh={siteBooking.refreshPendingRequests}
+              onReject={siteBooking.rejectRequest}
+            />
+          ) : null}
           {smsReminders ? (
             <SmsRemindersPanel
               status={smsReminders.status}

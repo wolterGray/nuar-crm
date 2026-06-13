@@ -2446,6 +2446,68 @@ button:focus-visible {
   color: #e8eaed;
 }
 
+.site-booking-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.site-booking-counter {
+  font-size: 13px;
+  color: var(--muted-text, #5f6368);
+}
+
+.site-booking-empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted-text, #5f6368);
+}
+
+.site-booking-list {
+  display: grid;
+  gap: 10px;
+}
+
+.site-booking-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.site-booking-card-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.site-booking-card-main span,
+.site-booking-card-main small {
+  font-size: 13px;
+  color: var(--muted-text, #5f6368);
+}
+
+.site-booking-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.theme-dark .site-booking-card {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.theme-dark .site-booking-card-main span,
+.theme-dark .site-booking-card-main small {
+  color: #e8eaed;
+}
+
 .payments-page {
   display: grid;
   gap: 14px;

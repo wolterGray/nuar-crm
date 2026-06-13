@@ -94,6 +94,7 @@ import {useReviewRequests} from "./hooks/useReviewRequests.js";
 import {useSmsReminders} from "./hooks/useSmsReminders.js";
 import {useAppRouting} from "./hooks/useAppRouting.js";
 import {useClientSearch} from "./hooks/useClientSearch.js";
+import {useSiteBookingHandlers} from "./hooks/useSiteBookingHandlers.js";
 import {useTelegramDigest} from "./hooks/useTelegramDigest.js";
 import {useToastNotifications} from "./hooks/useToastNotifications.js";
 import {useAuth} from "./hooks/useAuth.js";
@@ -1363,6 +1364,18 @@ function App() {
     [pushNotification],
   );
 
+  const siteBooking = useSiteBookingHandlers({
+    calendarEntries,
+    clientProfiles,
+    createLocalId,
+    employees,
+    getCalendarServiceColor,
+    pushNotification,
+    serviceCatalog,
+    setCalendarEntries,
+    setClientProfiles,
+  });
+
   const booksyGmailSync = useBooksyGmailSync({
     calendarEntries,
     clientProfiles,
@@ -1742,6 +1755,7 @@ function App() {
             requestDeleteTask={requestDeleteTask}
             resetSettings={resetSettings}
             serviceCatalog={serviceCatalog}
+            siteBooking={siteBooking}
             setActivePage={setActivePage}
             setOpenPaymentActionMenuId={setOpenPaymentActionMenuId}
             supplies={supplies}
