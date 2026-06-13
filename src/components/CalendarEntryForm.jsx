@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useForm, useWatch} from "react-hook-form";
 import {z} from "zod";
@@ -174,13 +174,16 @@ function CalendarEntryForm({
     mode: "onChange",
     resolver: zodResolver(calendarEntrySchema),
   });
-  const setFormValue = (name, value, options = {}) =>
-    setValue(name, value, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-      ...options,
-    });
+  const setFormValue = useCallback(
+    (name, value, options = {}) =>
+      setValue(name, value, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+        ...options,
+      }),
+    [setValue],
+  );
   useEffect(() => {
     trigger();
   }, [trigger]);
@@ -254,9 +257,19 @@ function CalendarEntryForm({
       return;
     }
 
-    setFormValue("amount", visitPricing.subtotal);
-    setFormValue("discount", visitPricing.discountPercent);
-  }, [kind, setFormValue, visitPricing]);
+    const nextAmount = visitPricing.subtotal;
+    const nextDiscount = visitPricing.discountPercent;
+
+    if (
+      Number(amount) === Number(nextAmount) &&
+      Number(discount) === Number(nextDiscount)
+    ) {
+      return;
+    }
+
+    setFormValue("amount", nextAmount, {shouldValidate: false});
+    setFormValue("discount", nextDiscount, {shouldValidate: false});
+  }, [amount, discount, kind, setFormValue, visitPricing]);
   const clientExists = clients.some((item) => item.name === client);
   const findServiceByVisit = (visit) =>
     services.find(
@@ -352,6 +365,7 @@ function CalendarEntryForm({
     if (previousVisit.master) {
       setFormValue("master", previousVisit.master);
     }
+    skipInitialPricingRef.current = true;
     setClientTemplateApplied(true);
   };
   const packageOptions = getAvailablePackagesForClient(client);
