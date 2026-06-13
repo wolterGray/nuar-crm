@@ -92,6 +92,55 @@ describe("calendarBookableSlots", () => {
     expect(slots.some((slot) => slot.startTime === "15:30")).toBe(false);
   });
 
+  it("excludes reserved master windows from bookable slots", () => {
+    const slots = buildBookableSlots({
+      appSettings,
+      calendarEntries: [
+        {
+          id: "2",
+          kind: "reserved",
+          date: "2026-06-20",
+          time: "12:00",
+          duration: 120,
+          master: "Ольга",
+          title: "Обед",
+        },
+      ],
+      date: "2026-06-20",
+      durationMinutes: 60,
+      employees,
+      now: new Date("2026-06-20T08:00:00"),
+      preferredMaster: "Olha",
+    });
+
+    expect(slots.some((slot) => slot.startTime === "12:00")).toBe(false);
+    expect(slots.some((slot) => slot.startTime === "13:00")).toBe(false);
+    expect(slots.some((slot) => slot.startTime === "14:00")).toBe(true);
+  });
+
+  it("matches calendar entries stored in ISO date format", () => {
+    const slots = buildBookableSlots({
+      appSettings,
+      calendarEntries: [
+        {
+          id: "3",
+          kind: "visit",
+          date: "2026-06-20",
+          time: "10:00",
+          duration: 60,
+          master: "Ольга",
+          status: "scheduled",
+        },
+      ],
+      date: "2026-06-20",
+      durationMinutes: 60,
+      employees,
+      now: new Date("2026-06-20T08:00:00"),
+    });
+
+    expect(slots.some((slot) => slot.startTime === "10:00")).toBe(false);
+  });
+
   it("validates selected slot availability", () => {
     expect(
       isBookableSlotAvailable({

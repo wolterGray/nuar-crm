@@ -54,8 +54,19 @@ function PayrollForm({
       {report.employees.length === 0 ? (
         <p className="payroll-empty">За выбранный период начислений нет.</p>
       ) : (
-        <div className="payroll-table-wrap">
-          <table className="payroll-table">
+        <>
+          <div className="payroll-hero">
+            <div className="payroll-hero-main">
+              <span>К выплате за период</span>
+              <strong>{formatMoney(report.totals.totalPayout)}</strong>
+            </div>
+            <div className="payroll-hero-meta">
+              <span>{report.totals.visitsCount} визитов</span>
+              <span>{report.employees.length} мастеров</span>
+            </div>
+          </div>
+          <div className="payroll-table-wrap">
+            <table className="payroll-table">
             <thead>
               <tr>
                 <th>Мастер</th>
@@ -100,8 +111,9 @@ function PayrollForm({
                 </td>
               </tr>
             </tfoot>
-          </table>
-        </div>
+            </table>
+          </div>
+        </>
       )}
 
       <label>

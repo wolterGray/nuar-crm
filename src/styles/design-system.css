@@ -1,0 +1,723 @@
+/* NUAR CRM — global UI polish (tokens + cross-screen consistency) */
+
+:root {
+  --ds-space-1: 4px;
+  --ds-space-2: 8px;
+  --ds-space-3: 12px;
+  --ds-space-4: 16px;
+  --ds-space-5: 20px;
+  --ds-space-6: 24px;
+  --ds-radius-sm: 6px;
+  --ds-radius-md: 8px;
+  --ds-radius-lg: 12px;
+  --ds-radius-xl: 16px;
+  --ds-control-height: 40px;
+  --ds-control-height-sm: 36px;
+  --ds-panel-padding: 18px;
+  --ds-page-gap: 14px;
+  --ds-shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 28px rgba(0, 0, 0, 0.18);
+  --ds-shadow-soft: 0 10px 30px rgba(17, 19, 24, 0.12);
+  --ds-transition-fast: 120ms ease;
+  --ds-status-success-bg: rgba(36, 138, 79, 0.14);
+  --ds-status-success-text: #2f8f57;
+  --ds-status-warning-bg: rgba(195, 155, 109, 0.16);
+  --ds-status-warning-text: #9a7428;
+  --ds-status-muted-bg: rgba(255, 255, 255, 0.06);
+}
+
+/* ---- Layout rhythm ---- */
+
+.content,
+.home-content,
+.visits-content {
+  padding: var(--ds-space-4) var(--ds-space-5) var(--ds-space-6);
+}
+
+.catalog-page,
+.operations-page,
+.import-page,
+.employees-page {
+  gap: var(--ds-page-gap);
+}
+
+/* ---- Sidebar: instant labels, no native title delay ---- */
+
+.crm-shell:not(.sidebar-hidden) .sidebar {
+  overflow: hidden;
+  clip-path: inset(0 -260px 0 0);
+}
+
+.crm-shell:not(.sidebar-hidden) .nav-list {
+  overflow: visible;
+}
+
+.client-search-trigger span,
+.client-search-trigger kbd {
+  display: none;
+}
+
+.client-search-trigger {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  min-height: 42px;
+  margin-bottom: var(--ds-space-2);
+  padding: 10px;
+  border-radius: var(--ds-radius-lg);
+}
+
+.client-search-trigger svg {
+  margin: 0;
+}
+
+/* ---- Panels & cards ---- */
+
+.panel {
+  display: grid;
+  gap: var(--ds-space-3);
+  padding: var(--ds-panel-padding);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-panel);
+}
+
+.panel-header {
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-1);
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.panel-header > span,
+.panel-header > strong {
+  min-width: 28px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: var(--linear-muted, #a3a6b3);
+  background: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.client-packages-panel {
+  gap: var(--ds-space-2);
+}
+
+/* ---- Page headers ---- */
+
+.page-header-unified {
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-2);
+}
+
+.page-header-unified-copy h2 {
+  font-size: 22px;
+  font-weight: 760;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.page-header-unified-actions {
+  gap: var(--ds-space-2);
+}
+
+.page-header-unified-actions .secondary-button,
+.page-header-unified-actions .add-visit-button {
+  min-height: var(--ds-control-height-sm);
+}
+
+.catalog-section-heading {
+  margin: var(--ds-space-2) 0 0;
+  color: var(--linear-text, #f2f3f7);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Buttons ---- */
+
+.secondary-button,
+.date-button,
+.calendar-icon-button,
+.compact-icon-button {
+  min-height: var(--ds-control-height-sm);
+  border-radius: var(--ds-radius-md);
+  transition:
+    background var(--ds-transition-fast),
+    border-color var(--ds-transition-fast),
+    color var(--ds-transition-fast),
+    transform var(--ds-transition-fast);
+}
+
+.secondary-button:focus-visible,
+.date-button:focus-visible,
+.add-visit-button:focus-visible,
+.calendar-icon-button:focus-visible,
+.nav-list button:focus-visible,
+.client-search-trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring, 0 0 0 3px rgba(210, 173, 125, 0.28));
+}
+
+.add-visit-button {
+  min-height: var(--ds-control-height);
+  border-radius: var(--ds-radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.page-header-unified-actions .add-visit-button {
+  box-shadow: var(--button-primary-shadow);
+}
+
+.compact-icon-button {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+}
+
+/* ---- Form controls ---- */
+
+.crm-shell :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.employee-form :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.calendar-entry-form :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.new-client-panel :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  min-height: var(--ds-control-height-sm);
+  border-radius: var(--ds-radius-md);
+  transition:
+    border-color var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast),
+    background var(--ds-transition-fast);
+}
+
+.crm-shell :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus-visible,
+.employee-form :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus-visible,
+.calendar-entry-form :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent-color) 48%, var(--linear-border, rgba(255, 255, 255, 0.1)));
+  box-shadow: var(--focus-ring);
+}
+
+.crm-shell label,
+.employee-form label,
+.calendar-entry-form label {
+  gap: 6px;
+  color: var(--linear-muted, #a3a6b3);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---- Tables ---- */
+
+.table-head,
+.clients-table-head,
+.client-package-head,
+.payroll-table th {
+  padding: 10px 12px;
+  color: var(--linear-dim, #70737f);
+  background: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.table-row:not(.table-head),
+.clients-table-row:not(.clients-table-head),
+.client-package-row,
+.payroll-table td {
+  padding: 11px 12px;
+}
+
+.table-row:not(.table-head):hover,
+.clients-table-row:not(.clients-table-head):hover,
+.client-package-row:hover,
+.payroll-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--accent-color) 5%, transparent);
+}
+
+.table-search {
+  min-height: var(--ds-control-height);
+  margin-bottom: var(--ds-space-3);
+  border-radius: var(--ds-radius-lg);
+}
+
+.table-empty-state,
+.clients-empty,
+.payroll-empty {
+  display: grid;
+  gap: 4px;
+  padding: 18px 14px;
+  border: 1px dashed var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  border-radius: var(--ds-radius-lg);
+  color: var(--linear-muted, #a3a6b3);
+  background: color-mix(in srgb, var(--linear-panel-soft, rgba(26, 28, 34, 0.72)) 72%, transparent);
+  font-size: 12px;
+  text-align: center;
+}
+
+.clients-empty strong,
+.table-empty-state strong {
+  color: var(--linear-text, #f2f3f7);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.clients-empty span {
+  max-width: 36ch;
+  margin: 0 auto;
+  line-height: 1.45;
+}
+
+/* ---- Modals ---- */
+
+.employee-modal,
+.client-form-modal,
+.client-details-modal,
+.calendar-entry-modal,
+.confirm-dialog,
+.client-search-dialog {
+  border-radius: var(--ds-radius-xl);
+  box-shadow: var(--ds-shadow-soft);
+}
+
+.employee-modal:not(.calendar-entry-modal),
+.client-form-modal,
+.client-details-modal,
+.confirm-dialog {
+  width: min(720px, calc(100vw - 24px));
+  max-height: min(88dvh, 900px);
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.modal-header span,
+.modal-header p {
+  color: var(--linear-dim, #70737f);
+  font-size: 12px;
+}
+
+/* ---- Status chips ---- */
+
+.payroll-status,
+.day-close-status {
+  min-height: 30px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.payroll-status.is-paid,
+.day-close-status.is-closed {
+  color: var(--ds-status-success-text);
+  background: var(--ds-status-success-bg);
+}
+
+.payroll-status.is-open,
+.day-close-status.is-open {
+  color: var(--ds-status-warning-text);
+  background: var(--ds-status-warning-bg);
+}
+
+/* ---- Payroll ---- */
+
+.payroll-panel,
+.daily-payroll-panel {
+  gap: var(--ds-space-4);
+}
+
+.payroll-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
+  border: 1px solid color-mix(in srgb, var(--accent-color) 22%, var(--linear-border, rgba(255, 255, 255, 0.1)));
+  border-radius: var(--ds-radius-lg);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(210, 173, 125, 0.12), transparent 42%),
+    var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+}
+
+.payroll-hero-main {
+  display: grid;
+  gap: 4px;
+}
+
+.payroll-hero-main span {
+  color: var(--linear-muted, #a3a6b3);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.payroll-hero-main strong {
+  color: var(--linear-text, #f2f3f7);
+  font-size: clamp(28px, 4vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.payroll-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+}
+
+.payroll-hero-meta span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--linear-muted, #a3a6b3);
+  background: var(--ds-status-muted-bg);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.payroll-table-wrap {
+  border: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  border-radius: var(--ds-radius-lg);
+  background: color-mix(in srgb, var(--linear-panel, rgba(18, 19, 23, 0.86)) 88%, transparent);
+}
+
+.payroll-table th,
+.payroll-table td {
+  padding: 10px 12px;
+}
+
+.payroll-table th:nth-child(n + 3):not(:last-child),
+.payroll-table td:nth-child(n + 3):not(:last-child) {
+  color: var(--linear-muted, #a3a6b3);
+  font-size: 12px;
+}
+
+.payroll-table td:last-child strong,
+.payroll-table tbody td:first-child strong {
+  color: var(--linear-text, #f2f3f7);
+  font-size: 14px;
+}
+
+.payroll-table tfoot td {
+  background: color-mix(in srgb, var(--accent-color) 6%, transparent);
+  font-weight: 700;
+}
+
+.daily-payroll-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ds-space-2);
+}
+
+.daily-payroll-summary-grid .day-close-summary-card {
+  padding: 12px 14px;
+  border-radius: var(--ds-radius-lg);
+}
+
+.daily-payroll-summary-grid .day-close-summary-card strong {
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.daily-payroll-summary-grid .day-close-summary-card:nth-child(2) {
+  border-color: color-mix(in srgb, var(--accent-color) 28%, var(--linear-border, rgba(255, 255, 255, 0.1)));
+  background:
+    radial-gradient(circle at 100% 0%, rgba(210, 173, 125, 0.1), transparent 48%),
+    var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+}
+
+.daily-payroll-summary-grid .day-close-summary-card:nth-child(2) strong {
+  color: var(--accent-color);
+}
+
+.daily-payroll-summary-grid .day-close-summary-card span,
+.daily-payroll-summary-grid .day-close-summary-card small {
+  color: var(--linear-muted, #a3a6b3);
+}
+
+.catalog-page > .panel + .panel,
+.catalog-page > .panel + h2 {
+  margin-top: var(--ds-space-1);
+}
+
+.catalog-page > h2.catalog-section-heading {
+  padding-top: var(--ds-space-2);
+  border-top: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+}
+
+.daily-payroll-table td small {
+  color: var(--linear-dim, #70737f);
+}
+
+.payroll-history {
+  padding-top: var(--ds-space-2);
+  border-top: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+}
+
+.payroll-history > strong {
+  color: var(--linear-muted, #a3a6b3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.payroll-history button {
+  border-radius: var(--ds-radius-md);
+  transition: background var(--ds-transition-fast);
+}
+
+.payroll-history button b {
+  color: var(--linear-text, #f2f3f7);
+  font-size: 14px;
+}
+
+/* ---- Packages & certificates ---- */
+
+.package-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ds-space-2);
+}
+
+.package-summary-grid .catalog-card {
+  gap: 2px;
+  min-height: 72px;
+  padding: 12px 14px;
+  border-radius: var(--ds-radius-lg);
+}
+
+.package-summary-grid .catalog-card span {
+  color: var(--linear-dim, #70737f);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.package-summary-grid h3 {
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.client-packages-list {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--ds-space-2);
+}
+
+.client-package-card {
+  gap: var(--ds-space-2);
+  padding: 12px;
+  border-radius: var(--ds-radius-lg);
+  transition:
+    border-color var(--ds-transition-fast),
+    transform var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast);
+}
+
+.client-package-card:hover {
+  border-color: color-mix(in srgb, var(--accent-color) 24%, var(--linear-border, rgba(255, 255, 255, 0.1)));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.client-package-main strong {
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+.client-package-meta b {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--ds-status-muted-bg);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.client-packages-archive-toggle {
+  border-radius: var(--ds-radius-lg);
+}
+
+.catalog-grid {
+  gap: var(--ds-space-2);
+}
+
+.catalog-row-card {
+  border-radius: var(--ds-radius-lg);
+}
+
+/* ---- Calendar ---- */
+
+.calendar-page {
+  gap: var(--ds-space-3);
+}
+
+.calendar-page-header .page-header-unified-actions .add-visit-button,
+.calendar-toolbar-actions .add-visit-button {
+  min-height: 42px;
+  padding-inline: 16px;
+  font-weight: 700;
+}
+
+.schedule-master header strong {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.schedule-entry {
+  padding: 6px 7px;
+  border-radius: var(--ds-radius-md);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.schedule-entry strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.schedule-entry span {
+  font-size: 10px;
+}
+
+.schedule-entry small {
+  font-size: 9px;
+  opacity: 0.88;
+}
+
+.schedule-entry-money {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.calendar-layout {
+  gap: var(--ds-space-3);
+}
+
+.calendar-reminders {
+  border-radius: var(--ds-radius-lg);
+}
+
+/* ---- Employees ---- */
+
+.employees-grid {
+  gap: var(--ds-space-2);
+}
+
+.employee-card {
+  padding: 12px 14px;
+  border-radius: var(--ds-radius-lg);
+  transition:
+    border-color var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast);
+}
+
+.employee-card:hover {
+  border-color: color-mix(in srgb, var(--accent-color) 22%, var(--linear-border, rgba(255, 255, 255, 0.1)));
+}
+
+/* ---- Settings tabs ---- */
+
+.settings-tabs {
+  gap: var(--ds-space-2);
+  margin-bottom: var(--ds-space-3);
+}
+
+.settings-tabs button {
+  min-height: 34px;
+  transition: background var(--ds-transition-fast);
+}
+
+.settings-panel {
+  border-radius: var(--ds-radius-lg);
+}
+
+/* ---- Statistics de-emphasis ---- */
+
+.statistics-details-panel {
+  border-radius: var(--ds-radius-lg);
+}
+
+.statistics-details-panel summary {
+  font-size: 13px;
+}
+
+@media (max-width: 1260px) {
+  .package-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .daily-payroll-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .content,
+  .home-content,
+  .visits-content {
+    padding: 12px 12px 16px;
+  }
+
+  .page-header-unified-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header-unified-side {
+    justify-content: flex-start;
+  }
+
+  .page-header-unified-actions {
+    width: 100%;
+  }
+
+  .page-header-unified-actions .secondary-button,
+  .page-header-unified-actions .add-visit-button {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
+
+  .package-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .payroll-hero {
+    align-items: stretch;
+  }
+
+  .payroll-table th:nth-child(n + 4):not(:last-child),
+  .payroll-table td:nth-child(n + 4):not(:last-child) {
+    display: none;
+  }
+
+  .daily-payroll-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .client-packages-list {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-shell:not(.sidebar-hidden) .sidebar {
+    clip-path: none;
+  }
+
+  .client-search-trigger span,
+  .client-search-trigger kbd {
+    display: inline;
+  }
+
+  .client-search-trigger {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    justify-items: stretch;
+    padding: 10px 12px;
+  }
+}

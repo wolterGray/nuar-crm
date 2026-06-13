@@ -400,9 +400,9 @@ button {
   position: absolute;
   left: calc(100% + 10px);
   z-index: 90;
-  display: none;
-  padding: 7px 9px;
-  border-radius: 6px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   color: #fff;
   background: #171a20;
   box-shadow: 0 10px 24px rgba(17, 19, 24, 0.18);
@@ -411,11 +411,25 @@ button {
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-6px);
+  transition:
+    opacity 100ms ease,
+    transform 100ms ease,
+    visibility 0s linear 100ms;
+  pointer-events: none;
 }
 
 .nav-list button:hover::after,
 .nav-list button:focus-visible::after {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition:
+    opacity 100ms ease,
+    transform 100ms ease,
+    visibility 0s;
 }
 
 .nav-list button.active,

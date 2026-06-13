@@ -326,7 +326,7 @@ function PackagesPage({
         </div>
       ) : null}
 
-      <h2>Шаблоны пакетов</h2>
+      <h2 className="catalog-section-heading">Шаблоны пакетов</h2>
       <div className="catalog-grid">
         {packages.map((packageItem) => (
           <motion.article

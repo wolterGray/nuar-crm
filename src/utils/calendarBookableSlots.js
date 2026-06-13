@@ -61,6 +61,39 @@ export const normalizeBookingCrmDate = (value) => {
   return parsed ? formatAppDate(parsed) : "";
 };
 
+const entryMatchesBookingDate = (entryDate, inputDate) =>
+  normalizeBookingInputDate(entryDate) === inputDate;
+
+const isBlockingCalendarEntry = (entry, inputDate) => {
+  if (!entryMatchesBookingDate(entry?.date, inputDate)) {
+    return false;
+  }
+
+  const kind = String(entry?.kind ?? "visit");
+
+  if (kind === "visit") {
+    return !["cancelled", "no_show"].includes(String(entry.status ?? ""));
+  }
+
+  if (kind === "reserved" || kind === "task") {
+    return true;
+  }
+
+  return false;
+};
+
+const getEntryOccupiedInterval = (entry, step) => {
+  const start = toMinutes(entry.time);
+  const duration = Number(entry.duration) || 0;
+  let end = start + Math.max(duration, step);
+
+  if (duration <= 0 && entry.endTime) {
+    end = Math.max(start + step, toMinutes(entry.endTime));
+  }
+
+  return {start, end};
+};
+
 export const buildBookableSlots = ({
   appSettings = {},
   calendarEntries = [],
@@ -73,9 +106,8 @@ export const buildBookableSlots = ({
   slotStepMinutes,
 }) => {
   const inputDate = normalizeBookingInputDate(date);
-  const crmDate = normalizeBookingCrmDate(date);
 
-  if (!inputDate || !crmDate) {
+  if (!inputDate) {
     return [];
   }
 
@@ -139,17 +171,10 @@ export const buildBookableSlots = ({
       ...calendarEntries
         .filter(
           (entry) =>
-            entry?.kind === "visit" &&
-            entry.date === crmDate &&
-            resolveSiteBookingMaster(entry.master, employees) === master &&
-            !["cancelled", "no_show"].includes(String(entry.status ?? "")),
+            isBlockingCalendarEntry(entry, inputDate) &&
+            resolveSiteBookingMaster(entry.master, employees) === master,
         )
-        .map((entry) => ({
-          start: toMinutes(entry.time),
-          end:
-            toMinutes(entry.time) +
-            Math.max(Number(entry.duration) || 0, step),
-        })),
+        .map((entry) => getEntryOccupiedInterval(entry, step)),
       ...pendingBookings
         .filter((booking) => {
           const bookingDate = normalizeBookingInputDate(booking.preferred_date);

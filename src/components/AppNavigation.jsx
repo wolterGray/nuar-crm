@@ -84,10 +84,10 @@ export default function AppNavigation({
 
                 return (
                   <button
+                    aria-label={item.label}
                     data-label={item.label}
                     className={activePage === item.page ? "active" : ""}
                     key={item.page}
-                    title={item.label}
                     type="button"
                     onClick={() => handleDesktopPageChange(item.page)}>
                     <Icon size={20} />
