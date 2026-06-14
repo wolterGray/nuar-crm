@@ -1,0 +1,35 @@
+name: Telegram daily digest cron
+
+on:
+  schedule:
+    # Every hour UTC; edge function sends only in the 08:00 ±15 min Warsaw window.
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invoke telegram-daily-digest
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TELEGRAM_DIGEST_CRON_SECRET: ${{ secrets.TELEGRAM_DIGEST_CRON_SECRET }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] || [ -z "$TELEGRAM_DIGEST_CRON_SECRET" ]; then
+            echo "Missing GitHub secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, TELEGRAM_DIGEST_CRON_SECRET"
+            exit 1
+          fi
+
+          response="$(curl -sS -w '\n%{http_code}' -X POST \
+            "$SUPABASE_URL/functions/v1/telegram-daily-digest" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: $TELEGRAM_DIGEST_CRON_SECRET" \
+            -d '{"action":"cron"}')"
+
+          body="${response%$'\n'*}"
+          status="${response##*$'\n'}"
+
+          echo "$body"
+          test "$status" -ge 200 && test "$status" -lt 300

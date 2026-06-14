@@ -76,7 +76,7 @@ function TelegramDigestPanel({
             })}
           </small>
         ) : (
-          <span>Ещё не отправлялся</span>
+          <span>Ещё не отправлялся автоматически</span>
         )}
       </div>
 
@@ -120,10 +120,16 @@ function TelegramDigestPanel({
       </button>
 
       <p className="field-hint">
-        Supabase → Project Settings → Edge Functions → Secrets. Добавьте
-        `TELEGRAM_BOT_TOKEN` (токен от @BotFather). Chat ID — в CRM выше или
-        secret `TELEGRAM_CHAT_ID`. Также: `CRM_OWNER_USER_ID`,
-        `TELEGRAM_DIGEST_CRON_SECRET` для cron.
+        Supabase → Project Settings → Edge Functions → Secrets: `TELEGRAM_BOT_TOKEN`,
+        `TELEGRAM_CHAT_ID`, `CRM_OWNER_USER_ID`, `TELEGRAM_DIGEST_CRON_SECRET`.
+        Chat ID можно указать в CRM в блоке «Уведомления о заявках с сайта».
+      </p>
+      <p className="field-hint">
+        Автоотправка в 08:00 (Warsaw) работает только если настроен cron: GitHub Actions
+        workflow `telegram-daily-digest-cron` (секреты `SUPABASE_URL`,
+        `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_DIGEST_CRON_SECRET`) или внешний
+        cron-job.org каждый час с телом {`{"action":"cron"}`} и заголовком
+        `x-cron-secret`.
       </p>
     </section>
   );
