@@ -1,4 +1,5 @@
 import {pruneExpiredSnoozes} from "./alertSnooze.js";
+import {resolveEmployeeSiteBookingSlotMinutes} from "./calendarBookableSlots.js";
 import {migrateClientLinks} from "./clientLinks.js";
 import {mergeLegacyCertificateSales, syncCertificateStatus} from "./certificates.js";
 import {mergeAutomatedMessageTemplates} from "./messageTemplates.js";
@@ -160,7 +161,19 @@ export const buildCloudSnapshot = ({
 }) => ({
   version: 1,
   visits,
-  employees,
+  employees: Array.isArray(employees)
+    ? employees.map((employee) => {
+        const configured = Number(employee.siteBookingSlotMinutes);
+
+        return {
+          ...employee,
+          siteBookingSlotMinutes:
+            Number.isFinite(configured) && configured >= 15
+              ? Math.max(15, Math.round(configured / 15) * 15)
+              : resolveEmployeeSiteBookingSlotMinutes(employee, appSettings),
+        };
+      })
+    : employees,
   clients: clientProfiles,
   services: serviceCatalog,
   packages: packagesCatalog,

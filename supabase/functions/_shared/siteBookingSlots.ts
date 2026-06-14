@@ -1,6 +1,7 @@
 const SITE_MASTER_ALIASES: Record<string, string> = {
   max: "Максим",
   olha: "Ольга",
+  olga: "Ольга",
   helga: "Ольга",
   максим: "Максим",
   ольга: "Ольга",
@@ -40,6 +41,30 @@ export const resolveEmployeeSiteBookingSlotMinutes = (
   }
 
   return Math.max(15, Number(appSettings.calendarSlotMinutes) || 15);
+};
+
+export const findSiteBookingEmployee = (
+  masterQuery = "",
+  employees: Array<Record<string, unknown>> = [],
+  {includeArchived = false}: {includeArchived?: boolean} = {},
+) => {
+  const resolvedMaster = resolveSiteBookingMaster(masterQuery, employees);
+
+  if (!resolvedMaster) {
+    return null;
+  }
+
+  const pool = includeArchived
+    ? employees
+    : employees.filter((employee) => String(employee.status ?? "") !== "Архив");
+
+  return (
+    pool.find(
+      (employee) =>
+        resolveSiteBookingMaster(String(employee.name ?? ""), employees) ===
+        resolvedMaster,
+    ) ?? null
+  );
 };
 
 const normalizeText = (value: unknown) =>
@@ -260,19 +285,25 @@ export const buildBookableSlots = ({
   );
 
   if (preferredMaster) {
-    const resolvedMaster = resolveSiteBookingMaster(preferredMaster, activeEmployees);
-    activeEmployees = activeEmployees.filter(
+    const resolvedMaster = resolveSiteBookingMaster(preferredMaster, employees);
+    activeEmployees = employees.filter(
       (employee) =>
+        String(employee.status ?? "") !== "Архив" &&
         resolveSiteBookingMaster(String(employee.name ?? ""), employees) ===
-        resolvedMaster,
+          resolvedMaster,
     );
 
     if (activeEmployees.length === 0 && resolvedMaster) {
+      const matched = findSiteBookingEmployee(resolvedMaster, employees);
       activeEmployees = [
-        {
+        matched ?? {
           name: resolvedMaster,
           shiftEnd: appSettings.workdayEnd || "22:00",
           shiftStart: appSettings.workdayStart || "08:00",
+          siteBookingSlotMinutes: resolveEmployeeSiteBookingSlotMinutes(
+            {name: resolvedMaster},
+            appSettings,
+          ),
         },
       ];
     }
@@ -290,19 +321,23 @@ export const buildBookableSlots = ({
   }> = [];
 
   activeEmployees.forEach((employee) => {
-    const master = resolveSiteBookingMaster(String(employee.name ?? ""), employees);
+    const employeeRecord =
+      findSiteBookingEmployee(String(employee.name ?? ""), employees, {
+        includeArchived: true,
+      }) ?? employee;
+    const master = resolveSiteBookingMaster(String(employeeRecord.name ?? ""), employees);
     const step = Math.max(
       15,
       Number(
         slotStepMinutes ??
-          resolveEmployeeSiteBookingSlotMinutes(employee, appSettings),
+          resolveEmployeeSiteBookingSlotMinutes(employeeRecord, appSettings),
       ) || fallbackStep,
     );
     const shiftStart = toMinutes(
-      employee.shiftStart || appSettings.workdayStart || "08:00",
+      employeeRecord.shiftStart || appSettings.workdayStart || "08:00",
     );
     const shiftEnd = toMinutes(
-      employee.shiftEnd || appSettings.workdayEnd || "22:00",
+      employeeRecord.shiftEnd || appSettings.workdayEnd || "22:00",
     );
     const windowStart = isToday
       ? Math.max(shiftStart, roundUpToStep(currentMinutes, step))
@@ -356,6 +391,7 @@ export const buildBookableSlots = ({
           durationMinutes: duration,
           endTime: toClockTime(slotEnd),
           master,
+          slotStepMinutes: step,
           startTime: toClockTime(cursor),
         });
       }
