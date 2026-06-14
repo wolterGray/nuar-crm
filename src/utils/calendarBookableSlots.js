@@ -3,6 +3,39 @@ import {resolveSiteBookingMaster} from "./siteBooking.js";
 
 const DEFAULT_SITE_MASTERS = ["Ольга", "Максим"];
 
+const SITE_BOOKING_SLOT_DEFAULTS = {
+  max: 60,
+  helga: 15,
+  olha: 15,
+  максим: 60,
+  ольга: 15,
+};
+
+const normalizeEmployeeName = (value) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replaceAll("ё", "е");
+
+export const resolveEmployeeSiteBookingSlotMinutes = (
+  employee = {},
+  appSettings = {},
+) => {
+  const configured = Number(employee.siteBookingSlotMinutes);
+
+  if (Number.isFinite(configured) && configured >= 15) {
+    return Math.max(15, Math.round(configured / 15) * 15);
+  }
+
+  const nameDefault = SITE_BOOKING_SLOT_DEFAULTS[normalizeEmployeeName(employee.name)];
+
+  if (nameDefault) {
+    return nameDefault;
+  }
+
+  return Math.max(15, Number(appSettings.calendarSlotMinutes) || 15);
+};
+
 const toMinutes = (time) => {
   const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
 
@@ -47,6 +80,7 @@ const buildDefaultEmployees = (appSettings) =>
     name,
     shiftEnd: appSettings.workdayEnd || "22:00",
     shiftStart: appSettings.workdayStart || "08:00",
+    siteBookingSlotMinutes: resolveEmployeeSiteBookingSlotMinutes({name}, appSettings),
   }));
 
 export const normalizeBookingInputDate = (value) => {
@@ -112,7 +146,7 @@ export const buildBookableSlots = ({
   }
 
   const duration = Math.max(15, Number(durationMinutes) || 60);
-  const step = Math.max(
+  const fallbackStep = Math.max(
     15,
     Number(slotStepMinutes ?? appSettings.calendarSlotMinutes) || 15,
   );
@@ -152,6 +186,13 @@ export const buildBookableSlots = ({
 
   activeEmployees.forEach((employee) => {
     const master = resolveSiteBookingMaster(employee.name, employees);
+    const step = Math.max(
+      15,
+      Number(
+        slotStepMinutes ??
+          resolveEmployeeSiteBookingSlotMinutes(employee, appSettings),
+      ) || fallbackStep,
+    );
     const shiftStart = toMinutes(
       employee.shiftStart || appSettings.workdayStart || "08:00",
     );

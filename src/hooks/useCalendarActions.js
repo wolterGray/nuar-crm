@@ -103,6 +103,7 @@ export function useCalendarActions({
                 extra: toVisitNumber(entry.extra),
                 debt: toVisitNumber(entry.debt),
                 discount: toVisitNumber(entry.discount),
+                paidAmount: entry.paidAmount ?? "",
                 note: entry.note || "",
               })
             : visit,
@@ -223,6 +224,7 @@ export function useCalendarActions({
         extra: toVisitNumber(entry.extra),
         debt: toVisitNumber(entry.debt),
         discount: toVisitNumber(entry.discount),
+        paidAmount: entry.paidAmount ?? "",
         note: entry.note || "",
       });
 

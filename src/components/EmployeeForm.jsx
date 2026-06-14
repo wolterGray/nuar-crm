@@ -1,7 +1,10 @@
 import EmployeePremiumHoursFields from './EmployeePremiumHoursFields'
 import {FieldLabel} from './HintIcon.jsx'
+import {resolveEmployeeSiteBookingSlotMinutes} from '../utils/calendarBookableSlots.js'
 
 function EmployeeForm({ employee, onSubmit }) {
+  const siteBookingSlotMinutes = resolveEmployeeSiteBookingSlotMinutes(employee ?? {});
+
   return (
     <section className="panel employee-form-panel">
       <h2>{employee ? 'Редактировать сотрудника' : 'Новый сотрудник'}</h2>
@@ -32,6 +35,21 @@ function EmployeeForm({ employee, onSubmit }) {
             <input name="shiftEnd" type="time" defaultValue={employee?.shiftEnd ?? '22:00'} />
           </label>
         </div>
+        <label>
+          <FieldLabel hint="Шаг времени, который клиент может выбрать в форме записи на сайте. Учитывается вместе со сменой сотрудника.">
+            Интервал записи с сайта
+          </FieldLabel>
+          <select
+            name="siteBookingSlotMinutes"
+            defaultValue={String(siteBookingSlotMinutes)}>
+            <option value="15">15 минут</option>
+            <option value="30">30 минут</option>
+            <option value="45">45 минут</option>
+            <option value="60">1 час</option>
+            <option value="90">1,5 часа</option>
+            <option value="120">2 часа</option>
+          </select>
+        </label>
         <label>
           Статус
           <select name="status" defaultValue={employee?.status ?? 'Активен'}>

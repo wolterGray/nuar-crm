@@ -118,11 +118,23 @@ export const isCancelledVisit = (visit) =>
 
 export const getVisitGrossAmount = (visit) => toFinanceNumber(visit?.amount);
 
-export const getVisitDiscountAmount = (visit) =>
-  getVisitGrossAmount(visit) * (toFinanceNumber(visit?.discount) / 100);
+export const getVisitStandardDiscountedAmount = (visit) =>
+  Math.max(
+    0,
+    getVisitGrossAmount(visit) -
+      getVisitGrossAmount(visit) * (toFinanceNumber(visit?.discount) / 100),
+  );
 
-export const getVisitDiscountedAmount = (visit) =>
-  getVisitGrossAmount(visit) - getVisitDiscountAmount(visit);
+export const getVisitDiscountedAmount = (visit) => {
+  if (hasExplicitPaidAmount(visit)) {
+    return Math.max(0, toFinanceNumber(visit.paidAmount));
+  }
+
+  return getVisitStandardDiscountedAmount(visit);
+};
+
+export const getVisitDiscountAmount = (visit) =>
+  Math.max(0, getVisitGrossAmount(visit) - getVisitDiscountedAmount(visit));
 
 export const getVisitDebtAmount = (visit) =>
   Math.max(0, toFinanceNumber(visit?.debt));

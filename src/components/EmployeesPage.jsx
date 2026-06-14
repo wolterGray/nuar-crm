@@ -4,6 +4,7 @@ import DailyPayrollPanel from "./DailyPayrollPanel.jsx";
 import PayrollPanel from "./PayrollPanel.jsx";
 import {formatMoney} from "../utils/formatters.jsx";
 import {isDailyPayrollEmployee} from "../utils/dailyPayroll.js";
+import {resolveEmployeeSiteBookingSlotMinutes} from "../utils/calendarBookableSlots.js";
 import PageHeader from "./PageHeader.jsx";
 
 function EmployeesPage({
@@ -93,6 +94,9 @@ function EmployeesPage({
                   : "Выплата по периоду"}
               </span>
               <span>Смена {employee.shiftStart || "08:00"}–{employee.shiftEnd || "22:00"}</span>
+              <span>
+                Сайт: шаг {resolveEmployeeSiteBookingSlotMinutes(employee)} мин
+              </span>
             </div>
 
             <div className="employee-actions">

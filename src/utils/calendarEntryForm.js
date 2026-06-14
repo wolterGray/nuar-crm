@@ -41,6 +41,7 @@ export const buildCalendarEntryFromForm = (
     (variant) => Number(variant.duration) === duration,
   );
   const rawAmount = String(form.get("amount") ?? "").trim();
+  const rawPaidAmount = String(form.get("paidAmount") ?? "").trim();
   const entryDraft = {
     id: editingCalendarEntry?.id ?? createLocalId(),
     status: editingCalendarEntry?.status ?? "scheduled",
@@ -81,6 +82,8 @@ export const buildCalendarEntryFromForm = (
     extra: kind === "visit" ? toVisitNumber(form.get("extra")) : 0,
     debt: kind === "visit" ? toVisitNumber(form.get("debt")) : 0,
     discount: kind === "visit" ? toVisitNumber(form.get("discount")) : 0,
+    paidAmount:
+      kind === "visit" && rawPaidAmount !== "" ? toVisitNumber(rawPaidAmount) : "",
     commissionType:
       kind === "visit"
         ? String(form.get("commissionType") ?? "Без комиссии")
@@ -128,5 +131,6 @@ export const buildJournalVisitUpdateFromEntry = (
     extra: entry.extra,
     debt: entry.debt,
     discount: entry.discount,
+    paidAmount: entry.paidAmount ?? "",
     note: entry.note || "",
   });

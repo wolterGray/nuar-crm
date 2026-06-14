@@ -44,6 +44,10 @@ export function useEmployeeHandlers({
         commissionRate: Number(form.get("commissionRate")) || 0,
         shiftStart: form.get("shiftStart") || "08:00",
         shiftEnd: form.get("shiftEnd") || "22:00",
+        siteBookingSlotMinutes: Math.max(
+          15,
+          Number(form.get("siteBookingSlotMinutes")) || 15,
+        ),
         status: form.get("status"),
         payrollSchedule:
           form.get("payrollSchedule") === "daily" ? "daily" : "monthly",

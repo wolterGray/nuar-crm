@@ -104,6 +104,17 @@ describe("buildFinanceStats", () => {
     expect(stats.serviceReceived).toBe(300);
   });
 
+  it("counts manual paidAmount discount in finance stats", () => {
+    const stats = buildStats({
+      visits: [completedVisit({amount: 400, paidAmount: 370})],
+    });
+
+    expect(stats.grossRevenue).toBe(400);
+    expect(stats.discountedRevenue).toBe(370);
+    expect(stats.discounts).toBe(30);
+    expect(stats.serviceReceived).toBe(370);
+  });
+
   it("filters by master", () => {
     const stats = buildStats({
       master: "Anna",

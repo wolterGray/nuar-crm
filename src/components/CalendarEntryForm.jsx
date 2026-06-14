@@ -9,6 +9,8 @@ import {paymentMethods} from "../constants/paymentMethods.js";
 import {matchesClientRecord} from "../utils/clientLinks.js";
 import {getPackageProgressLabel, isUpcomingPackageVisit} from "../utils/packages.jsx";
 import {calculateSiteBookingPrice} from "../utils/siteBookingPricing.js";
+import {FieldLabel} from "./HintIcon.jsx";
+import {toVisitNumber} from "../utils/visits.jsx";
 
 const fallbackColors = ["#4f8edc", "#8b6fd6", "#45a873", "#d78a42", "#c75b78"];
 const toMinutes = (time) => {
@@ -40,6 +42,7 @@ const calendarEntrySchema = z
     extra: optionalMoneyField,
     debt: optionalMoneyField,
     discount: optionalMoneyField,
+    paidAmount: optionalMoneyField,
     color: z.string().optional(),
     note: z.string().optional(),
   })
@@ -139,6 +142,23 @@ function CalendarEntryForm({
     Boolean(initialEntry),
   );
   const skipInitialPricingRef = useRef(Boolean(initialEntry));
+  const pricingTouchedRef = useRef(
+    Boolean(
+      initialEntry &&
+        ((initialEntry.paidAmount !== undefined &&
+          initialEntry.paidAmount !== null &&
+          String(initialEntry.paidAmount).trim() !== "") ||
+          (initialEntry.amount !== undefined &&
+            initialEntry.amount !== null &&
+            String(initialEntry.amount).trim() !== "")),
+    ),
+  );
+  const allowAutoPricing = useCallback(() => {
+    pricingTouchedRef.current = false;
+  }, []);
+  const markPricingTouched = useCallback(() => {
+    pricingTouchedRef.current = true;
+  }, []);
   const defaultTime = initialEntry?.time ?? selectedTime ?? "10:00";
   const defaultDuration = initialEntry?.duration ?? selectedDuration ?? 60;
   const {
@@ -168,6 +188,7 @@ function CalendarEntryForm({
       extra: initialEntry?.extra ?? "",
       debt: initialEntry?.debt ?? "",
       discount: initialEntry?.discount ?? "",
+      paidAmount: initialEntry?.paidAmount ?? "",
       color: initialEntry?.color ?? "#748091",
       note: initialEntry?.note ?? "",
     },
@@ -203,6 +224,7 @@ function CalendarEntryForm({
     extra,
     debt,
     discount,
+    paidAmount,
     note,
   ] = useWatch({
     control,
@@ -222,6 +244,7 @@ function CalendarEntryForm({
       "extra",
       "debt",
       "discount",
+      "paidAmount",
       "note",
     ],
   });
@@ -248,7 +271,7 @@ function CalendarEntryForm({
     });
   }, [date, duration, employees, kind, master, serviceVariant, time]);
   useEffect(() => {
-    if (kind !== "visit" || !visitPricing) {
+    if (kind !== "visit" || !visitPricing || pricingTouchedRef.current) {
       return;
     }
 
@@ -270,6 +293,39 @@ function CalendarEntryForm({
     setFormValue("amount", nextAmount, {shouldValidate: false});
     setFormValue("discount", nextDiscount, {shouldValidate: false});
   }, [amount, discount, kind, setFormValue, visitPricing]);
+  const chargedAmount = useMemo(() => {
+    const paidValue = String(paidAmount ?? "").trim();
+
+    if (paidValue !== "") {
+      return Math.max(0, toVisitNumber(paidValue));
+    }
+
+    if (visitPricing) {
+      return visitPricing.finalPrice;
+    }
+
+    const base = toVisitNumber(amount);
+    const discountPercent = toVisitNumber(discount);
+
+    return Math.max(0, Math.round(base * (1 - discountPercent / 100)));
+  }, [amount, discount, paidAmount, visitPricing]);
+  const autoFinalPrice = useMemo(() => {
+    if (visitPricing) {
+      return visitPricing.finalPrice;
+    }
+
+    const base = toVisitNumber(amount);
+    const discountPercent = toVisitNumber(discount);
+
+    return Math.max(0, Math.round(base * (1 - discountPercent / 100)));
+  }, [amount, discount, visitPricing]);
+  const manualDiscountAmount = useMemo(() => {
+    if (String(paidAmount ?? "").trim() === "") {
+      return 0;
+    }
+
+    return Math.max(0, autoFinalPrice - chargedAmount);
+  }, [autoFinalPrice, chargedAmount, paidAmount]);
   const clientExists = clients.some((item) => item.name === client);
   const findServiceByVisit = (visit) =>
     services.find(
@@ -480,7 +536,9 @@ function CalendarEntryForm({
               const nextVariant = service?.variants?.find(
                 (variant) => Number(variant.duration) === nextDuration,
               );
+              allowAutoPricing();
               setFormValue("duration", String(nextDuration));
+              setFormValue("paidAmount", "");
               if (nextVariant) {
                 setFormValue("amount", nextVariant.price);
               }
@@ -549,7 +607,9 @@ function CalendarEntryForm({
                   const nextVariant = nextService?.variants?.find(
                     (variant) => Number(variant.duration) === Number(duration),
                   );
+                  allowAutoPricing();
                   setFormValue("serviceId", event.target.value);
+                  setFormValue("paidAmount", "");
                   setFormValue("amount", nextVariant?.price ?? "");
                 }}>
                 <option value="">Выберите услугу</option>
@@ -562,12 +622,31 @@ function CalendarEntryForm({
               <FieldError message={errors.serviceId?.message} />
             </label>
             <label>
-              Стоимость
+              <FieldLabel hint="Цена из прайса. Можно изменить вручную.">
+                Стоимость
+              </FieldLabel>
               <input
                 {...register("amount")}
                 value={amount}
-                onChange={(event) => setFormValue("amount", event.target.value)}
+                onChange={(event) => {
+                  markPricingTouched();
+                  setFormValue("amount", event.target.value);
+                }}
                 placeholder="0"
+              />
+            </label>
+            <label>
+              <FieldLabel hint="Фактическая сумма от клиента. Если пусто, считается автоматически по прайсу и скидке.">
+                К оплате
+              </FieldLabel>
+              <input
+                {...register("paidAmount")}
+                value={paidAmount}
+                onChange={(event) => {
+                  markPricingTouched();
+                  setFormValue("paidAmount", event.target.value);
+                }}
+                placeholder="авто"
               />
             </label>
             <label>
@@ -675,7 +754,10 @@ function CalendarEntryForm({
               <input
                 {...register("discount")}
                 value={discount}
-                onChange={(event) => setFormValue("discount", event.target.value)}
+                onChange={(event) => {
+                  markPricingTouched();
+                  setFormValue("discount", event.target.value);
+                }}
                 placeholder="0"
               />
             </label>
@@ -705,9 +787,15 @@ function CalendarEntryForm({
                       <td>−{visitPricing.discountAmount} zł</td>
                     </tr>
                   ) : null}
+                  {manualDiscountAmount > 0 ? (
+                    <tr>
+                      <th>Индивидуальная скидка</th>
+                      <td>−{manualDiscountAmount} zł</td>
+                    </tr>
+                  ) : null}
                   <tr className="visit-pricing-total">
                     <th>К оплате</th>
-                    <td>{visitPricing.finalPrice} zł</td>
+                    <td>{chargedAmount} zł</td>
                   </tr>
                 </tbody>
               </table>
