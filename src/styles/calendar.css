@@ -191,7 +191,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
   gap: 12px;
-  align-items: start;
+  flex: 1;
+  align-items: stretch;
   min-height: 0;
 }
 
@@ -201,8 +202,13 @@
 
 .schedule-panel {
   min-width: 0;
+  min-height: 0;
+  max-height: 100%;
   overflow: auto;
   padding: 0;
+  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-color: var(--accent-color) transparent;
   scrollbar-width: thin;
 }
@@ -284,6 +290,7 @@
 .schedule-column {
   position: relative;
   height: var(--schedule-height);
+  touch-action: pan-x pan-y;
   user-select: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;

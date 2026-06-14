@@ -843,6 +843,10 @@
   }
 
   .content.calendar-content {
+    display: flex;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
     padding-top: 0;
   }
 
@@ -994,6 +998,9 @@
 
   .calendar-layout {
     gap: 0;
+    flex: 1;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .mobile-calendar-week {
@@ -1054,7 +1061,8 @@
 
   .schedule-panel {
     width: 100vw;
-    max-height: calc(100dvh - 142px - env(safe-area-inset-bottom));
+    min-height: 0;
+    max-height: 100%;
     overflow-y: auto;
     scrollbar-width: none;
     border-right: 0;

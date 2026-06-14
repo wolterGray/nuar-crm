@@ -503,6 +503,10 @@ button:focus-visible {
 
 .calendar-content {
   background: var(--app-bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .calendar-page,

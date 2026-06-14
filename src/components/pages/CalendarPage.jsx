@@ -418,7 +418,6 @@ function CalendarPage({
     if (event.button !== undefined && event.button !== 0) return;
     if (event.target.closest(".schedule-entry")) return;
 
-    event.preventDefault();
     const slot = getSlotFromPointer(event, employeeName);
     clearSlotLongPress();
     longPressRef.current = {
