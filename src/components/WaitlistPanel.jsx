@@ -23,6 +23,7 @@ function WaitlistPanel({
     <section className="panel operations-panel waitlist-panel">
       <PageHeader
         description="Клиенты, которым можно предложить освободившийся слот"
+        showNotifications={false}
         title="Лист ожидания">
         <button className="add-visit-button" type="button" onClick={onAdd}>
           <Plus size={16} />

@@ -9,6 +9,17 @@
   padding-bottom: 24px;
 }
 
+.content.home-content:not(.calendar-content) {
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}
+
+.content.calendar-content,
+.content.calendar-content.home-content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
 .statistics-hero-header,
 .statistics-filters,
 .statistics-income-top,
@@ -197,7 +208,7 @@
 .statistics-today-upcoming {
   display: grid;
   gap: 8px;
-  margin: 14px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -208,6 +219,7 @@
   gap: 10px;
   align-items: center;
   padding: 10px 12px;
+  border: 1px solid rgba(63, 42, 99, 0.08);
   border-radius: 12px;
   background: rgba(63, 42, 99, 0.05);
 }
@@ -958,13 +970,14 @@
 }
 
 .settings-page {
-  display: grid;
-  justify-items: stretch;
-  align-content: start;
-  gap: 10px;
+  display: flex;
+  flex: 1;
+  width: 100%;
   min-height: 0;
+  flex-direction: column;
+  gap: 14px;
   overflow: auto;
-  padding-bottom: 20px;
+  padding-bottom: 24px;
 }
 
 .settings-toolbar,
@@ -1047,7 +1060,8 @@
 
 .settings-options > p,
 .settings-options > .settings-data-actions,
-.settings-options > label:has(textarea) {
+.settings-options > label:has(textarea),
+.settings-options > .form-checkbox {
   grid-column: 1 / -1;
 }
 
@@ -1819,6 +1833,7 @@ button:focus-visible {
   align-items: center;
   gap: 8px;
   margin-left: auto;
+  padding-top: 0;
   overflow: visible;
 }
 
@@ -1839,6 +1854,170 @@ button:focus-visible {
 .page-header-unified,
 .page-header-unified-top {
   overflow: visible;
+}
+
+/* Collapsible page header — compact summary + expandable actions/tabs */
+.page-header-collapsible {
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.page-header-collapsible-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 10px 8px 12px;
+  border: 1px solid var(--line-soft, #e4e5e4);
+  border-radius: 10px;
+  background: var(--surface-solid, #fff);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.page-header-collapsible-summary::-webkit-details-marker {
+  display: none;
+}
+
+.page-header-collapsible-summary-main {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.page-header-collapsible-title {
+  color: var(--text-main, #15171c);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  line-height: 1.3;
+}
+
+.page-header-collapsible-meta {
+  color: var(--text-soft, #737780);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.page-header-collapsible-summary-trailing {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-header-collapsible-actions {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-header-collapsible-side,
+.page-header-collapsible-notifications,
+.page-header-collapsible-notifications .client-alert-control {
+  display: inline-flex;
+  align-items: center;
+}
+
+.page-header-collapsible-notifications .page-notifications-slot {
+  margin-left: 0;
+  padding: 0;
+}
+
+.page-header-collapsible-toggle,
+.page-header-collapsible-notifications .client-alert-button {
+  position: relative;
+  top: auto;
+  right: auto;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid var(--line-soft, #e4e5e4);
+  border-radius: 10px;
+  color: var(--text-soft, #737780);
+  background: var(--surface-solid, #fff);
+  box-shadow: none !important;
+}
+
+.page-header-collapsible-toggle {
+  cursor: inherit;
+}
+
+.page-header-collapsible-chevron {
+  flex-shrink: 0;
+  opacity: 0.85;
+  transition: transform 0.18s ease;
+}
+
+.page-header-collapsible[open] .page-header-collapsible-summary {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.page-header-collapsible-body {
+  display: grid;
+  gap: 8px;
+  margin-top: -1px;
+  padding: 8px 10px 10px;
+  border: 1px solid var(--line-soft, #e4e5e4);
+  border-top: 1px solid color-mix(in srgb, var(--line-soft, #e4e5e4) 72%, transparent);
+  border-radius: 0 0 10px 10px;
+  background: var(--surface-solid, #fff);
+}
+
+.page-header-collapsible-body .page-header-unified-actions {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+.page-header-collapsible:not([open]) .page-header-collapsible-body {
+  display: none;
+}
+
+.page-header-collapsible[open] .page-header-collapsible-chevron {
+  transform: rotate(180deg);
+}
+
+.theme-dark .page-header-collapsible-title {
+  color: var(--linear-text, #f2f3f7);
+}
+
+.theme-dark .page-header-collapsible-summary {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.theme-dark .page-header-collapsible-body {
+  border-color: rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.theme-dark .page-header-collapsible-toggle,
+.theme-dark .page-header-collapsible-notifications .client-alert-button {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #b3bdcb !important;
+}
+
+.theme-dark .page-header-collapsible-meta,
+.theme-dark .page-header-collapsible-chevron {
+  color: #b3bdcb;
 }
 
 .statistics-hero-header.page-header-unified {
@@ -1948,12 +2127,6 @@ button:focus-visible {
   color: #f8fbff;
 }
 
-.page-header-unified-copy h2 {
-  margin: 0;
-  font-size: 24px;
-  letter-spacing: -0.03em;
-}
-
 .page-header-unified-copy p {
   margin: 4px 0 0;
   color: #737780;
@@ -1984,18 +2157,48 @@ button:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 4px;
+  margin: 0;
+}
+
+.settings-page:not(.settings-page-mobile) > .settings-page-tabs {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(229, 229, 227, 0.92);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 48px rgba(17, 19, 24, 0.06);
+}
+
+.theme-dark .settings-page:not(.settings-page-mobile) > .settings-page-tabs {
+  border-color: var(--line-soft, #344052);
+  background: var(--surface, #1a202b);
+  box-shadow: none;
+}
+
+.settings-page:not(.settings-page-mobile) .settings-form {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
 }
 
 .settings-tabs button {
   min-height: 34px;
-  padding: 0 12px;
+  min-width: 0;
+  padding: 0 8px;
   border: 1px solid #e4e5e4;
   border-radius: 999px;
   color: #5d6168;
   background: #fff;
   font-size: 12px;
   font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .settings-tabs button.active {
@@ -2017,11 +2220,11 @@ button:focus-visible {
 }
 
 .settings-tab-panel {
-  display: none;
+  display: none !important;
 }
 
 .settings-tab-panel.active {
-  display: grid;
+  display: grid !important;
 }
 
 .settings-inline-note {
@@ -2185,11 +2388,20 @@ button:focus-visible {
   gap: 14px;
 }
 
-.today-panel {
+.today-kpi-section {
   display: grid;
-  gap: 12px;
+  gap: 10px;
+  margin-bottom: 2px;
 }
 
+.today-section,
+.today-panel {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.today-section-heading,
 .today-panel-heading {
   display: flex;
   align-items: flex-start;
@@ -2197,11 +2409,13 @@ button:focus-visible {
   gap: 12px;
 }
 
+.today-section-heading h3,
 .today-panel-heading h3 {
   margin: 0;
   font-size: 16px;
 }
 
+.today-section-heading p,
 .today-panel-heading p {
   margin: 4px 0 0;
   color: #667085;
@@ -2234,6 +2448,7 @@ button:focus-visible {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
+  border: 1px solid rgba(63, 42, 99, 0.08);
   border-radius: 12px;
   background: rgba(63, 42, 99, 0.05);
 }
@@ -2289,12 +2504,14 @@ button:focus-visible {
   gap: 10px;
   align-items: center;
   padding: 10px 12px;
+  border: 1px solid rgba(63, 42, 99, 0.08);
   border-radius: 12px;
   background: rgba(63, 42, 99, 0.05);
 }
 
 .today-note-list li {
   padding: 8px 10px;
+  border: 1px solid rgba(63, 42, 99, 0.08);
   border-radius: 10px;
   background: rgba(63, 42, 99, 0.05);
   font-size: 13px;

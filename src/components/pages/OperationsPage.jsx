@@ -256,10 +256,23 @@ function OperationsPage({
   const isFocused = (entityId) =>
     String(alertFocus?.entityId) === String(entityId);
 
+  const mobileSectionLabels = {
+    tasks: "Задачи",
+    supplies: "Склад",
+    waitlist: "Лист ожидания",
+  };
+
+  const operationsCollapsedMeta = isMobile
+    ? `${mobileSectionLabels[mobileSection]} · ${activeTasks.length} задач`
+    : `${activeTasks.length} задач · ${lowStockCount} пополнить`;
+
   return (
     <section
       className={`operations-page ${isMobile ? "operations-page-mobile" : ""}`}>
       <PageHeader
+        collapsedMeta={operationsCollapsedMeta}
+        collapsible
+        defaultExpanded={!isMobile}
         description="Рабочие дела, закупки и остатки расходников"
         title="Операции"
         actions={

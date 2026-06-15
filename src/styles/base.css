@@ -750,7 +750,7 @@ button {
   min-width: 0;
   height: 100vh;
   overflow: hidden !important;
-  padding: 18px 22px 24px;
+  padding: 18px 15px 24px;
 }
 
 .content:is(
@@ -763,10 +763,11 @@ button {
     .templates-content,
     .import-content,
     .statistics-content,
-    .calendar-content
+    .site-content,
+    .settings-content,
+    .today-content
   ),
 .content.clients-content,
-.content.operations-content,
 .content.payments-content,
 .content.services-content,
 .content.packages-content,
@@ -774,12 +775,25 @@ button {
 .content.templates-content,
 .content.import-content,
 .content.statistics-content,
+.content.site-content,
+.content.settings-content,
+.content.today-content {
+  padding: 0 15px;
+  overflow: hidden;
+}
+
+.content.operations-content,
+.content.operations-content.home-content {
+  padding: 0;
+  overflow: hidden;
+}
+
 .content.calendar-content {
   padding: 0;
   overflow: hidden;
 }
 
-.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .packages-content, .employees-content, .templates-content, .import-content, .statistics-content, .calendar-content),
+.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .packages-content, .employees-content, .templates-content, .import-content, .statistics-content, .site-content, .settings-content, .today-content, .calendar-content),
 .home-content.clients-content,
 .home-content.operations-content,
 .home-content.payments-content,
@@ -789,8 +803,20 @@ button {
 .home-content.templates-content,
 .home-content.import-content,
 .home-content.statistics-content,
+.home-content.site-content,
+.home-content.settings-content,
+.home-content.today-content,
 .home-content.calendar-content {
-  padding: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.home-content.calendar-content,
+.home-content.operations-content {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .home-content {
@@ -2825,9 +2851,13 @@ h2 {
   display: grid;
   align-content: start;
   gap: 10px;
+  width: 100%;
+  min-width: 0;
   min-height: 0;
   overflow: auto;
+  padding-right: var(--page-gutter, 15px);
   padding-bottom: 20px;
+  padding-left: var(--page-gutter, 15px);
 }
 
 .import-page {
@@ -4541,6 +4571,90 @@ h2 {
   display: flex;
   align-items: center;
   min-width: 0;
+}
+
+.form-checkbox.site-notify-toggle {
+  align-items: center;
+  gap: 10px;
+}
+
+.form-checkbox.site-notify-toggle .form-checkbox-label {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.form-checkbox.settings-toggle {
+  align-items: center;
+  gap: 10px;
+}
+
+.form-checkbox.settings-toggle .form-checkbox-label {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.settings-page:not(.settings-page-mobile) .settings-panel > .form-checkbox.settings-toggle {
+  width: 100%;
+  min-width: 0;
+}
+
+.settings-page:not(.settings-page-mobile) .settings-panel > .form-checkbox.settings-toggle .labeled-hint-row {
+  align-items: center;
+  gap: 4px;
+}
+
+.settings-page:not(.settings-page-mobile) .settings-scroll {
+  display: contents;
+}
+
+@media (min-width: 769px) {
+  .content.settings-content,
+  .content.settings-content.home-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .settings-page:not(.settings-page-mobile) {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+}
+
+.settings-mobile-section {
+  display: grid;
+  gap: 10px;
+  grid-column: 1 / -1;
+}
+
+.settings-mobile-section-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.settings-mobile-section-body {
+  display: grid;
+  gap: 8px;
+}
+
+.site-booking-notify-options {
+  grid-template-columns: 1fr;
+}
+
+.site-notify-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.site-notify-toggles {
+  display: grid;
+  gap: 8px;
 }
 
 .employee-premium-fields {

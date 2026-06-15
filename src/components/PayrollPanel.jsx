@@ -226,6 +226,7 @@ function PayrollPanel({
       ) : (
         <PageHeader
           description="Комиссии мастеров по завершённым визитам и продажам пакетов"
+          showNotifications={false}
           title="Payroll">
           {existingRecord ? (
             <span className="payroll-status is-paid">

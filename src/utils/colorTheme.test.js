@@ -36,7 +36,7 @@ describe("colorTheme", () => {
 
     expect(synced.colorTheme).toBe("dark-purple");
     expect(synced.theme).toBe("dark");
-    expect(synced.accentColor).toBe("#8b7cf6");
+    expect(synced.accentColor).toBe("#7c5cff");
   });
 
   it("applyColorTheme resolves theme object", () => {

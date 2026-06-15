@@ -9,6 +9,7 @@
 @import "./booksy-sync.css";
 @import "./design-system.css";
 @import "./mobile-overrides.css";
+@import "./theme-dark-purple.css";
 
 .hint-icon-wrap {
   position: relative;
@@ -85,7 +86,7 @@
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: 6px;
 }
 
 .settings-panel-heading h2 {
@@ -112,4 +113,17 @@
   color: var(--linear-text, #f2f3f7) !important;
   background: var(--linear-panel, rgba(18, 19, 23, 0.94)) !important;
   border-color: var(--linear-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+/* Desktop: 15px horizontal gutter on all pages except calendar */
+@media (min-width: 769px) {
+  .crm-shell > main.content.home-content:not(.calendar-content):not(.operations-content) {
+    padding-left: var(--page-gutter, 15px) !important;
+    padding-right: var(--page-gutter, 15px) !important;
+  }
+
+  .crm-shell > main.content.home-content.calendar-content {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 }

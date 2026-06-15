@@ -202,20 +202,6 @@ function ClientsPage({
   }, [clientsData, viewedClient]);
 
   useEffect(() => {
-    if (!viewedClient) return undefined;
-
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-    };
-  }, [viewedClient]);
-
-  useEffect(() => {
     if (!alertFocus?.entityId || alertFocus.type !== "client") {
       return undefined;
     }
@@ -277,6 +263,9 @@ function ClientsPage({
       className={`panel clients-page ${isMobile ? "clients-page-mobile" : ""}`}
       onClick={() => setOpenClientMenuId(null)}>
       <PageHeader
+        collapsedMeta={`${filteredClients.length} из ${clients.length}`}
+        collapsible={isMobile}
+        defaultExpanded={!isMobile}
         actions={
           <>
             <label className="clients-search">

@@ -56,7 +56,7 @@
     padding: 10px;
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content) {
     padding: 22px;
   }
 
@@ -250,7 +250,7 @@
     left: 5px;
     z-index: 57;
     display: block;
-    padding: 28px 5px 5px;
+    padding: 44px 10px 10px;
     overflow: visible;
     border: 1px solid #e5e5e3;
     border-radius: 12px;
@@ -260,8 +260,8 @@
 
   .mobile-more-sheet-close {
     position: absolute;
-    top: 4px;
-    right: 4px;
+    top: 10px;
+    right: 10px;
     z-index: 1;
     display: grid;
     width: 24px;
@@ -276,8 +276,9 @@
   .mobile-more-sheet-nav {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
+    gap: 6px;
     width: 100%;
+    padding-top: 2px;
   }
 
   .mobile-more-sheet-nav button {
@@ -311,6 +312,21 @@
     background: #fff5df;
   }
 
+  .mobile-more-sheet-nav button:hover {
+    color: #15171c;
+    background: #efefed;
+  }
+
+  .mobile-more-sheet-nav button.active:hover {
+    color: #7a4f14;
+    background: #ffefd0;
+  }
+
+  .mobile-more-sheet-close:hover {
+    color: #15171c;
+    background: rgba(17, 19, 24, 0.06);
+  }
+
   .theme-dark .mobile-more-sheet {
     border-color: #344052;
     background: #1a202b;
@@ -327,7 +343,22 @@
     background: rgba(210, 173, 125, 0.14);
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content) {
+  .theme-dark .mobile-more-sheet-nav button:hover {
+    color: #ece8ff;
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  .theme-dark .mobile-more-sheet-nav button.active:hover {
+    color: #ece8ff;
+    background: rgba(124, 92, 255, 0.2);
+  }
+
+  .theme-dark .mobile-more-sheet-close:hover {
+    color: #ece8ff;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content) {
     width: 100%;
     height: auto;
     min-height: 100dvh;
@@ -393,7 +424,7 @@
     border-top-color: #f8fbff;
   }
 
-  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content),
+  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content),
   .visits-content:not(.payments-content) {
     display: block;
     padding: 0 12px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
@@ -406,7 +437,9 @@
   .employees-content,
   .templates-content,
   .import-content,
-  .statistics-content {
+  .statistics-content,
+  .site-content,
+  .settings-content {
     display: flex;
     height: 100dvh;
     min-height: 0;
@@ -424,7 +457,9 @@
   .packages-page,
   .employees-page,
   .message-templates-page,
-  .import-page {
+  .import-page,
+  .site-page,
+  .settings-page {
     width: 100%;
     min-height: 0;
     min-width: 0;

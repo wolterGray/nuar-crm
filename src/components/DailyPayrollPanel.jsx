@@ -51,6 +51,7 @@ function DailyPayrollPanel({
       <section className="panel daily-payroll-panel">
         <PageHeader
           description="Для мастера с ежедневной выплатой здесь появится расчёт по каждому массажу. В карточке сотрудника выберите «Ежедневно по визитам» — например, для Максима с комиссией 40%."
+          showNotifications={false}
           title="Ежедневная выплата">
           <span className="payroll-status is-open">
             <Coins size={15} />
@@ -65,6 +66,7 @@ function DailyPayrollPanel({
     <section className="panel daily-payroll-panel">
       <PageHeader
         description="Комиссия с каждого завершённого массажа за выбранный день"
+        showNotifications={false}
         title="Ежедневная выплата">
         {report?.totals.unpaidCount ? (
           <span className="payroll-status is-open">

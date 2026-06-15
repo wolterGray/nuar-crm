@@ -7,6 +7,7 @@ import {
 const PURPLE_ACCENTS = new Set([
   "#5e6ad2",
   "#7c6cf2",
+  "#7c5cff",
   "#8b7cf6",
   "#6f6b8f",
   "#6975e6",

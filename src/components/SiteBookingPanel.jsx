@@ -5,6 +5,7 @@ import {formatSiteBookingInputDate} from "../utils/siteBooking.js";
 
 function SiteBookingPanel({
   applyingRequestId = "",
+  isMobile = false,
   loadError,
   loading,
   pendingRequests = [],
@@ -113,14 +114,24 @@ function SiteBookingPanel({
         : "Telegram не готов — проверьте secrets и Chat ID";
 
   return (
-    <section className="panel site-booking-panel">
-      <div className="settings-panel-heading">
-        <Globe size={18} />
-        <div>
-          <h2>Заявки с сайта</h2>
-          <p>Форма на nuarr.pl → Supabase → импорт в календарь CRM</p>
+    <section
+      className={`panel site-booking-panel${
+        isMobile ? " site-booking-panel-mobile site-mobile-section" : ""
+      }`}>
+      {!isMobile ? (
+        <div className="settings-panel-heading">
+          <Globe size={18} />
+          <div>
+            <h2>Заявки с сайта</h2>
+            <p>Форма на nuarr.pl → Supabase → импорт в календарь CRM</p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="site-mobile-section-head">
+          <h3>Заявки с сайта</h3>
+          <span className="site-mobile-section-meta">К обработке: {pendingRequests.length}</span>
+        </div>
+      )}
 
       <div className="booksy-sync-status">
         <strong>{telegramStatusMessage}</strong>
@@ -141,7 +152,10 @@ function SiteBookingPanel({
         ) : null}
       </div>
 
-      <div className="settings-actions-row">
+      <div
+        className={`settings-actions-row${
+          isMobile ? " site-booking-toolbar-mobile" : ""
+        }`}>
         <button
           className="secondary-button"
           disabled={loading}
@@ -174,16 +188,20 @@ function SiteBookingPanel({
           )}
           Тест уведомления
         </button>
-        <span className="site-booking-counter">
-          К обработке: <b>{pendingRequests.length}</b>
-        </span>
+        {!isMobile ? (
+          <span className="site-booking-counter">
+            К обработке: <b>{pendingRequests.length}</b>
+          </span>
+        ) : null}
       </div>
 
-      <p className="field-hint">
-        Сначала укажите Chat ID и включите каналы в блоке «Уведомления о заявках с
-        сайта» выше, нажмите «Сохранить настройки» внизу и дождитесь синхронизации с
-        облаком. «К обработке» — заявки в CRM, не Telegram.
-      </p>
+      {!isMobile ? (
+        <p className="field-hint">
+          Сначала укажите Chat ID и включите каналы в блоке «Уведомления о заявках с
+          сайта» выше, нажмите «Сохранить настройки» внизу и дождитесь синхронизации с
+          облаком. «К обработке» — заявки в CRM, не Telegram.
+        </p>
+      ) : null}
 
       {loadError ? <p className="field-error">{loadError}</p> : null}
 
@@ -192,7 +210,11 @@ function SiteBookingPanel({
       ) : (
         <div className="site-booking-list">
           {pendingRequests.map((request) => (
-            <article className="site-booking-card" key={request.id}>
+            <article
+              className={`site-booking-card${
+                isMobile ? " site-booking-mobile-card" : ""
+              }`}
+              key={request.id}>
               <div className="site-booking-card-main">
                 <strong>{request.client_name}</strong>
                 <span>
@@ -225,6 +247,7 @@ function SiteBookingPanel({
                   type="button"
                   onClick={() => onReject?.(request)}>
                   <X size={15} />
+                  {isMobile ? "Отклонить" : null}
                 </button>
               </div>
             </article>

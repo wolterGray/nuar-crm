@@ -247,6 +247,7 @@ function DayClosePanel({
     <section className="panel day-close-panel">
       <PageHeader
         description="Сверка наличных и поступлений по журналу за выбранный день"
+        showNotifications={false}
         title="Закрытие дня">
         {existingRecord ? (
           <span className="day-close-status is-closed">

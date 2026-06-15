@@ -423,6 +423,9 @@ function PackagesPage({
       }`}
       onClick={() => setOpenMenuId(null)}>
       <PageHeader
+        collapsedMeta={mobileDescription}
+        collapsible={isMobile}
+        defaultExpanded={!isMobile}
         actions={
           isMobile ? (
             <>

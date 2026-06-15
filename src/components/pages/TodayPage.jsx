@@ -102,6 +102,9 @@ function TodayPage({
   return (
     <section className={`today-page statistics-page ${isMobile ? "today-page-mobile" : ""}`}>
       <PageHeader
+        collapsedMeta={dashboard.todayDisplay}
+        collapsible={isMobile}
+        defaultExpanded={!isMobile}
         actions={
           isMobile ? (
             <div className="today-header-actions">
@@ -148,8 +151,11 @@ function TodayPage({
         title={`Сегодня · ${dashboard.todayDisplay}`}
       />
 
-      <article className="statistics-panel statistics-today-panel">
-        <div className="statistics-panel-title">
+      {(() => {
+        const todayBody = (
+          <>
+      <section className="today-kpi-section">
+        <div className="statistics-panel-title today-section-heading">
           <div>
             <h3>Ключевые показатели</h3>
             <p>{toDisplayDate(dashboard.today)}</p>
@@ -189,11 +195,11 @@ function TodayPage({
             value={dashboard.snapshot.upcomingCount}
           />
         </div>
-      </article>
+      </section>
 
       <div className="today-dashboard-grid">
-        <article className="panel today-panel">
-          <div className="today-panel-heading">
+        <section className="today-section">
+          <div className="today-section-heading">
             <div>
               <h3>Расписание на сегодня</h3>
               <p>{dashboard.todayVisits.length} записей</p>
@@ -241,7 +247,7 @@ function TodayPage({
               ))}
             </ul>
           )}
-        </article>
+        </section>
 
         {isMobile && (
           <div aria-label="Разделы дня" className="today-mobile-tabs" role="tablist">
@@ -278,8 +284,8 @@ function TodayPage({
 
         <div className="today-side-column">
           {!isMobile && (
-          <article className="panel today-panel">
-            <div className="today-panel-heading">
+          <section className="today-section">
+            <div className="today-section-heading">
               <div>
                 <h3>Ближайшие визиты</h3>
                 <p>Следующие 3 часа</p>
@@ -298,12 +304,12 @@ function TodayPage({
                 ))}
               </ul>
             )}
-          </article>
+          </section>
           )}
 
           {(!isMobile || mobileSection === "slots") && (
-          <article className="panel today-panel">
-            <div className="today-panel-heading">
+          <section className="today-section">
+            <div className="today-section-heading">
               <div>
                 <h3>Свободные окна</h3>
                 <p>Оставшееся время в сменах</p>
@@ -324,12 +330,12 @@ function TodayPage({
                 ))}
               </ul>
             )}
-          </article>
+          </section>
           )}
 
           {(!isMobile || mobileSection === "tasks") && (
-          <article className="panel today-panel">
-            <div className="today-panel-heading">
+          <section className="today-section">
+            <div className="today-section-heading">
               <div>
                 <h3>Задачи на сегодня</h3>
                 <p>{dashboard.dueTasks.length} активных</p>
@@ -362,12 +368,12 @@ function TodayPage({
                 ))}
               </ul>
             )}
-          </article>
+          </section>
           )}
 
           {(!isMobile || mobileSection === "stock") && (
-          <article className="panel today-panel">
-            <div className="today-panel-heading">
+          <section className="today-section">
+            <div className="today-section-heading">
               <div>
                 <h3>Низкий остаток</h3>
                 <p>{dashboard.lowStockSupplies.length} позиций</p>
@@ -399,14 +405,14 @@ function TodayPage({
                 ))}
               </ul>
             )}
-          </article>
+          </section>
           )}
 
           {(!isMobile || mobileSection === "alerts") &&
           (dashboard.todayBirthdays.length > 0 ||
             dashboard.priorityAlerts.length > 0) && (
-            <article className="panel today-panel">
-              <div className="today-panel-heading">
+            <section className="today-section">
+              <div className="today-section-heading">
                 <div>
                   <h3>Важное</h3>
                   <p>Дни рождения и сигналы</p>
@@ -434,10 +440,15 @@ function TodayPage({
                   ))}
                 </ul>
               ) : null}
-            </article>
+            </section>
           )}
         </div>
       </div>
+          </>
+        );
+
+        return isMobile ? <div className="today-scroll">{todayBody}</div> : todayBody;
+      })()}
     </section>
   );
 }

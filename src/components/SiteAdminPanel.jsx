@@ -2,7 +2,7 @@ import {ExternalLink, Globe} from "lucide-react";
 import {useState} from "react";
 import {getPublicSiteUrl, openSiteAdmin} from "../utils/openSiteAdmin.js";
 
-export default function SiteAdminPanel({compact = false}) {
+export default function SiteAdminPanel({compact = false, embeddedMobile = false}) {
   const [openingAdmin, setOpeningAdmin] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -23,18 +23,23 @@ export default function SiteAdminPanel({compact = false}) {
 
   return (
     <>
-      <div className="settings-panel-heading">
-        <Globe size={18} />
-        <div>
-          <h2>Сайт NUAR</h2>
-          <p>
-            {compact
-              ? "CMS сайта и публичная страница nuarr.pl"
-              : "Цены и длительности услуг обновляются на сайте автоматически при изменении в CRM. В админке — только фото, тексты и остальной контент."}
-          </p>
+      {!embeddedMobile ? (
+        <div className="settings-panel-heading">
+          <Globe size={18} />
+          <div>
+            <h2>Сайт NUAR</h2>
+            <p>
+              {compact
+                ? "CMS сайта и публичная страница nuarr.pl"
+                : "Цены и длительности услуг обновляются на сайте автоматически при изменении в CRM. В админке — только фото, тексты и остальной контент."}
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="toolbar-actions">
+      ) : null}
+      <div
+        className={`toolbar-actions${
+          embeddedMobile ? " site-admin-mobile-actions" : ""
+        }`}>
         <button
           className="add-visit-button"
           disabled={openingAdmin}
@@ -43,12 +48,13 @@ export default function SiteAdminPanel({compact = false}) {
           {openingAdmin ? "Открываем…" : "Открыть админку сайта"}
         </button>
         <a
-          className="compact-icon-button"
+          className={embeddedMobile ? "secondary-button" : "compact-icon-button"}
           href={getPublicSiteUrl()}
           rel="noreferrer"
           target="_blank"
           title="Открыть сайт">
           <ExternalLink size={16} />
+          {embeddedMobile ? "Открыть nuarr.pl" : null}
         </a>
       </div>
       {message ? <p className="settings-inline-note">{message}</p> : null}

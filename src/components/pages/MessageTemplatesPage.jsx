@@ -402,6 +402,9 @@ function MessageTemplatesPage({
       }`}
       onClick={() => setOpenMenuId(null)}>
       <PageHeader
+        collapsedMeta={`${templates.length} шаблонов`}
+        collapsible={isMobile}
+        defaultExpanded={!isMobile}
         actions={
           isMobile ? (
             <>

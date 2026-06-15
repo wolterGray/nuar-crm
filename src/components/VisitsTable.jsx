@@ -293,36 +293,90 @@ function VisitsTable({
     URL.revokeObjectURL(link.href);
   };
 
+  const mobileFilters = (
+    <div className="payments-mobile-filters table-filters">
+      <label>
+        Сотрудник
+        <select
+          value={filters.master}
+          onChange={(event) => onFilterChange("master", event.target.value)}>
+          <option value="">Все</option>
+          {masters.map((master) => (
+            <option key={master}>{master}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Оплата
+        <select
+          value={filters.payment}
+          onChange={(event) => onFilterChange("payment", event.target.value)}>
+          <option value="">Все</option>
+          {paymentMethods.map((payment) => (
+            <option key={payment}>{payment}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Клиент
+        <ClientAutocomplete
+          clients={clientOptions}
+          id="visit-filter-client-options-mobile"
+          name="client-filter-mobile"
+          placeholder="Все"
+          value={filters.client}
+          onChange={(event) => onFilterChange("client", event.target.value)}
+        />
+      </label>
+      <label>
+        Дата
+        <input
+          type="date"
+          value={filters.date}
+          onChange={(event) => onFilterChange("date", event.target.value)}
+        />
+      </label>
+    </div>
+  );
+
+  const mobileScrollPanel = (
+    <div className="payments-mobile-scroll-panel">
+      <label className="payments-search">
+        <Search size={16} />
+        <input
+          placeholder="Поиск: клиент, мастер, услуга"
+          type="search"
+          value={globalFilter}
+          onChange={(event) => setGlobalFilter(event.target.value)}
+        />
+        {globalFilter ? (
+          <button
+            aria-label="Очистить поиск"
+            type="button"
+            onClick={() => setGlobalFilter("")}>
+            <X size={15} />
+          </button>
+        ) : null}
+      </label>
+      {onAddVisit ? (
+        <button className="add-visit-button payments-add-button" type="button" onClick={onAddVisit}>
+          <Plus size={18} />
+          Добавить
+        </button>
+      ) : null}
+      {mobileFilters}
+    </div>
+  );
+
   return (
     <Card className={`panel visits-panel ${isMobile ? "visits-panel-mobile" : ""}`}>
       <PageHeader
+        collapsedMeta={isMobile ? `${rows.length} из ${visits.length}` : undefined}
+        collapsible={isMobile}
+        defaultExpanded={!isMobile}
         actions={
           isMobile ? (
-            <>
-              <label className="payments-search">
-                <Search size={16} />
-                <input
-                  placeholder="Поиск: клиент, мастер, услуга"
-                  type="search"
-                  value={globalFilter}
-                  onChange={(event) => setGlobalFilter(event.target.value)}
-                />
-                {globalFilter ? (
-                  <button
-                    aria-label="Очистить поиск"
-                    type="button"
-                    onClick={() => setGlobalFilter("")}>
-                    <X size={15} />
-                  </button>
-                ) : null}
-              </label>
-              {onAddVisit ? (
-                <button className="add-visit-button payments-add-button" type="button" onClick={onAddVisit}>
-                  <Plus size={18} />
-                  Добавить
-                </button>
-              ) : null}
-            </>
+            mobileScrollPanel
           ) : (
             <>
               <Button
@@ -381,51 +435,7 @@ function VisitsTable({
         </div>
       ) : null}
 
-      {isMobile ? (
-        <div className="payments-mobile-filters table-filters">
-          <label>
-            Сотрудник
-            <select
-              value={filters.master}
-              onChange={(event) => onFilterChange("master", event.target.value)}>
-              <option value="">Все</option>
-              {masters.map((master) => (
-                <option key={master}>{master}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Оплата
-            <select
-              value={filters.payment}
-              onChange={(event) => onFilterChange("payment", event.target.value)}>
-              <option value="">Все</option>
-              {paymentMethods.map((payment) => (
-                <option key={payment}>{payment}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Клиент
-            <ClientAutocomplete
-              clients={clientOptions}
-              id="visit-filter-client-options-mobile"
-              name="client-filter-mobile"
-              placeholder="Все"
-              value={filters.client}
-              onChange={(event) => onFilterChange("client", event.target.value)}
-            />
-          </label>
-          <label>
-            Дата
-            <input
-              type="date"
-              value={filters.date}
-              onChange={(event) => onFilterChange("date", event.target.value)}
-            />
-          </label>
-        </div>
-      ) : (
+      {isMobile ? null : (
       <div className="table-filters">
         <label>
           Сотрудник

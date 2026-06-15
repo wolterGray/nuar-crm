@@ -38,6 +38,9 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
       className={`catalog-page services-page ${isMobile ? "services-page-mobile" : ""}`}
       onClick={() => setOpenMenuId(null)}>
       <PageHeader
+        collapsedMeta={`${filteredServices.length} из ${services.length}`}
+        collapsible={isMobile}
+        defaultExpanded={!isMobile}
         actions={
           <>
             <label className="services-search">

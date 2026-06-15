@@ -292,6 +292,9 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
     return (
       <section className="import-page import-page-mobile">
         <PageHeader
+          collapsedMeta={`${visibleSummary.total} документов`}
+          collapsible
+          defaultExpanded={false}
           actions={
             <>
               <label className="import-page-search">
