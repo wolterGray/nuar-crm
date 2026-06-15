@@ -342,7 +342,7 @@
     background: rgba(210, 173, 125, 0.14);
   }
 
-  .content {
+  .content:not(.calendar-content):not(.clients-content) {
     width: 100%;
     height: auto;
     min-height: 100dvh;
@@ -408,7 +408,7 @@
     border-top-color: #f8fbff;
   }
 
-  .home-content,
+  .home-content:not(.clients-content),
   .visits-content {
     display: block;
     padding: 0 12px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
@@ -1369,7 +1369,7 @@
     grid-row: 3;
   }
 
-  .panel {
+  .panel:not(.schedule-panel):not(.clients-page-mobile) {
     padding: 18px;
   }
 
@@ -1699,7 +1699,7 @@
     box-shadow: 0 10px 24px rgba(17, 19, 24, 0.18);
   }
 
-  .client-details-modal {
+  .client-details-modal:not(.mobile-sheet) {
     display: flex;
     width: 100%;
     max-height: calc(100dvh - env(safe-area-inset-top) - 8px);

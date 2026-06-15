@@ -1508,6 +1508,7 @@ function App() {
   });
 
   const isCalendarPage = activePage === "calendar";
+  const isClientsPage = activePage === "clients";
   const isPaymentsPage = activePage === "payments";
   const colorTheme = resolveColorTheme(appSettings);
   const activeEmployees = useMemo(
@@ -1533,6 +1534,7 @@ function App() {
       compactMode={appSettings.compactMode}
       contentRef={contentRef}
       isCalendarPage={isCalendarPage}
+      isClientsPage={isClientsPage}
       isPaymentsPage={isPaymentsPage}
       navigation={
         <AppNavigation

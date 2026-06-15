@@ -64,7 +64,7 @@ function NewClientForm({client, onSubmit}) {
   };
 
   return (
-    <section className="panel new-client-panel">
+    <section className="panel new-client-panel client-form-sheet-root">
       <div className="form-title">
         <UserPlus size={18} />
         <h2>{client ? "Редактировать клиента" : "Новый клиент"}</h2>

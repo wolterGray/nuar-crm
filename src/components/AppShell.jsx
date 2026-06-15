@@ -4,6 +4,7 @@ export default function AppShell({
   compactMode,
   contentRef,
   isCalendarPage,
+  isClientsPage,
   isPaymentsPage,
   navigation,
   pullRefresh,
@@ -34,8 +35,8 @@ export default function AppShell({
       <main
         ref={contentRef}
         className={`content home-content ${isCalendarPage ? "calendar-content" : ""} ${
-          isPaymentsPage ? "visits-content payments-content" : ""
-        }`}
+          isClientsPage ? "clients-content" : ""
+        } ${isPaymentsPage ? "visits-content payments-content" : ""}`}
         onTouchCancel={onTouchCancel}
         onTouchEnd={onTouchEnd}
         onTouchMove={onTouchMove}

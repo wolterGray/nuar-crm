@@ -1439,6 +1439,13 @@ select {
   overscroll-behavior: contain;
 }
 
+.employee-modal.client-form-modal.mobile-sheet .client-form-sheet-root form,
+.employee-modal.client-form-modal.mobile-sheet .new-client-panel form {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+}
+
 .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form {
   display: grid;
   flex: none;
@@ -2161,6 +2168,10 @@ button:focus-visible {
 
 .client-mobile-quick-actions {
   display: none;
+}
+
+.client-card-meta {
+  display: contents;
 }
 
 .client-quick-action {

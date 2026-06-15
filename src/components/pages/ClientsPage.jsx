@@ -274,7 +274,7 @@ function ClientsPage({
 
   return (
     <section
-      className="panel clients-page"
+      className={`panel clients-page ${isMobile ? "clients-page-mobile" : ""}`}
       onClick={() => setOpenClientMenuId(null)}>
       <PageHeader
         actions={
@@ -348,45 +348,49 @@ function ClientsPage({
               <strong>{client.name}</strong>
               <small>{client.phone || "Телефон не указан"}</small>
             </span>
-            <span data-label="Статус">
-              <b
-                className={`client-status ${
-                  (client.status || "Активный") === "Новый"
-                    ? "client-status-new"
-                    : "client-status-active"
-                }`}>
-                {client.status || "Активный"}
-              </b>
-            </span>
-            <span data-label="Визитов">{client.visitsCount}</span>
+            <div className="client-card-meta">
+              <span data-label="Статус">
+                <b
+                  className={`client-status ${
+                    (client.status || "Активный") === "Новый"
+                      ? "client-status-new"
+                      : "client-status-active"
+                  }`}>
+                  {client.status || "Активный"}
+                </b>
+              </span>
+              <span data-label="Визитов">{client.visitsCount}</span>
+              <span data-label="Не был">
+                {client.daysAbsent === null
+                  ? "Новый"
+                  : `${client.daysAbsent} дн.`}
+              </span>
+            </div>
             <span data-label="Пакеты">
               {client.packagesCount} / {client.packagesLeft}
             </span>
             <span data-label="Сумма">{formatMoney(client.totalIncome)}</span>
             <span data-label="Последний визит">{client.lastVisit}</span>
-            <span data-label="Не был">
-              {client.daysAbsent === null
-                ? "Новый"
-                : `${client.daysAbsent} дн.`}
-            </span>
             <span data-label="Заметка">{client.note || "—"}</span>
 
             <div
               className="client-mobile-quick-actions"
               onClick={(event) => event.stopPropagation()}>
               <button
+                aria-label={`Написать ${client.name}`}
                 className="client-quick-action"
                 type="button"
                 onClick={() => onMessageClient(client)}>
                 <MessageSquareText size={14} />
-                Написать
+                <span>Написать</span>
               </button>
               <button
+                aria-label={`Записать ${client.name}`}
                 className="client-quick-action"
                 type="button"
                 onClick={() => onAddVisit(client)}>
                 <CalendarPlus size={14} />
-                Запись
+                <span>Запись</span>
               </button>
             </div>
 
@@ -500,7 +504,7 @@ function ClientsPage({
               </a>
             </div>
           }>
-          <div className="client-details-body">
+          <div className="client-details-body client-details-sheet-root">
             <div className="client-details-grid">
               <span>
                 Телефон <strong>{activeViewedClient.phone || "—"}</strong>

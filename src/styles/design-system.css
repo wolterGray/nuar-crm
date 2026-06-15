@@ -71,7 +71,7 @@
 
 /* ---- Panels & cards ---- */
 
-.panel:not(.schedule-panel):not(.calendar-reminders):not(.client-packages-panel) {
+.panel:not(.schedule-panel):not(.calendar-reminders):not(.client-packages-panel):not(.clients-page-mobile) {
   display: grid;
   gap: var(--ds-space-3);
   padding: var(--ds-panel-padding);
@@ -474,9 +474,10 @@
   .catalog-form,
   .modal-form,
   .calendar-entry-form,
-  .financial-operation-form,
-  .new-client-panel form
+  .financial-operation-form
 ),
+.employee-modal:not(.client-form-modal) .new-client-panel form,
+.employee-modal.client-form-modal:not(.mobile-sheet) .new-client-panel form,
 .employee-modal:not(.mobile-sheet) > :not(.modal-header):is(form:not(.employee-form), .calendar-entry-form) {
   display: grid;
   min-height: 0;
@@ -513,7 +514,7 @@
   grid-column: 1 / -1;
 }
 
-.client-details-modal > :not(.modal-header) {
+.client-details-modal:not(.mobile-sheet) > :not(.modal-header) {
   padding: 0 20px calc(20px + env(safe-area-inset-bottom, 0px));
 }
 
@@ -522,6 +523,13 @@
 .client-details-modal .client-visit-history,
 .client-details-modal .client-communications {
   margin-top: 12px;
+}
+
+.client-details-modal.mobile-sheet .client-details-grid,
+.client-details-modal.mobile-sheet .client-details-note,
+.client-details-modal.mobile-sheet .client-visit-history,
+.client-details-modal.mobile-sheet .client-communications {
+  margin-top: 0;
 }
 
 .modal-header h2 {
@@ -612,9 +620,10 @@
     .catalog-form,
     .modal-form,
     .calendar-entry-form,
-    .financial-operation-form,
-    .new-client-panel form
+    .financial-operation-form
   ),
+  .employee-modal:not(.client-form-modal) .new-client-panel form,
+  .employee-modal.client-form-modal:not(.mobile-sheet) .new-client-panel form,
   .employee-modal:not(.mobile-sheet) > :not(.modal-header):is(form:not(.employee-form), .calendar-entry-form) {
     padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   }
@@ -1000,8 +1009,8 @@
 }
 
 @media (max-width: 768px) {
-  .content,
-  .home-content,
+  .content:not(.clients-content),
+  .home-content:not(.clients-content),
   .visits-content {
     padding: 12px 12px 16px;
   }

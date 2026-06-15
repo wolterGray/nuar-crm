@@ -103,7 +103,7 @@
   }
 
   /* Modals: bottom sheets with internal scroll */
-  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) {
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal):not(.client-form-modal) {
     width: 100%;
     max-height: min(94dvh, 100dvh);
     padding: 0;
@@ -634,6 +634,267 @@
   .employee-actions .compact-icon-button,
   .catalog-row-card .employee-actions .compact-icon-button {
     flex: 0 0 auto;
+  }
+
+  /* Clients page — minimal mobile cards */
+  .content.clients-content,
+  .content.clients-content.home-content {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .clients-page.clients-page-mobile {
+    display: grid;
+    flex: 1;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 8px;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .clients-page-mobile.panel,
+  .theme-dark .clients-page-mobile.panel,
+  .theme-light .clients-page-mobile.panel {
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none;
+  }
+
+  .clients-page-mobile .page-header-unified {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 5px 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  .theme-dark .clients-page-mobile .page-header-unified,
+  .theme-light .clients-page-mobile .page-header-unified {
+    background: transparent;
+  }
+
+  .clients-page-mobile .page-header-unified-actions {
+    gap: 8px;
+  }
+
+  .clients-page-mobile .clients-search {
+    min-height: 40px;
+    padding: 0 8px 0 10px;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 10px;
+    background: var(--surface-solid, #fff);
+  }
+
+  .theme-dark .clients-page-mobile .clients-search {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .clients-page-mobile .clients-search input {
+    min-height: 38px;
+    font-size: 15px;
+  }
+
+  .clients-page-mobile .page-header-unified-actions .add-visit-button {
+    min-height: 40px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .clients-page-mobile .clients-table {
+    gap: 8px;
+    min-height: 0;
+    padding: 0 5px;
+    padding-bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .clients-page-mobile .clients-table::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .clients-page-mobile .clients-table-row:not(.clients-table-head) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+    gap: 10px 8px;
+    align-items: start;
+    align-content: start;
+    min-height: auto;
+    padding: 12px;
+    border: 1px solid var(--line-soft, #e8e8e6);
+    border-radius: 12px;
+    background: var(--surface-solid, #fff);
+    box-shadow: none;
+  }
+
+  .theme-dark .clients-page-mobile .clients-table-row:not(.clients-table-head) {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: #151922;
+  }
+
+  .clients-page-mobile .clients-table-row.client-needs-contact {
+    border-left: 3px solid #c9483c;
+    padding-left: 10px;
+    background: color-mix(in srgb, #c9483c 4%, var(--surface-solid, #fff));
+  }
+
+  .theme-dark .clients-page-mobile .clients-table-row.client-needs-contact {
+    background: color-mix(in srgb, #c9483c 8%, #151922);
+  }
+
+  .clients-page-mobile .client-name-cell {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+    min-width: 0;
+    padding-right: 4px;
+  }
+
+  .clients-page-mobile .client-name-cell strong {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .clients-page-mobile .client-name-cell small {
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
+  .clients-page-mobile .client-row-actions {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .clients-page-mobile .client-row-actions .row-action {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border: 0;
+    border-radius: 8px;
+    color: var(--text-soft, #737780);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .clients-page-mobile .client-mobile-quick-actions {
+    display: flex;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .clients-page-mobile .client-quick-action {
+    flex: 1 1 calc(50% - 3px);
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 8px;
+    color: var(--text-main, #353941);
+    background: transparent;
+    font-size: 12px;
+    font-weight: 650;
+    box-shadow: none;
+  }
+
+  .clients-page-mobile .client-quick-action span {
+    line-height: 1;
+  }
+
+  .theme-dark .clients-page-mobile .client-quick-action {
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #eef1f6;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .clients-page-mobile .client-card-meta {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    min-width: 0;
+  }
+
+  .clients-page-mobile .client-card-meta > span[data-label="Статус"],
+  .clients-page-mobile .client-card-meta > span[data-label="Визитов"],
+  .clients-page-mobile .client-card-meta > span[data-label="Не был"] {
+    display: inline-flex;
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .clients-page-mobile .client-card-meta .client-status {
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.35;
+    border-radius: 999px;
+  }
+
+  .clients-page-mobile .client-card-meta span[data-label="Визитов"],
+  .clients-page-mobile .client-card-meta span[data-label="Не был"] {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 1px 6px;
+    border-radius: 999px;
+    color: var(--text-soft, #737780);
+    background: color-mix(in srgb, var(--surface-muted, #f4f4f3) 88%, transparent);
+    font-size: 10px;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .theme-dark .clients-page-mobile .client-card-meta span[data-label="Визитов"],
+  .theme-dark .clients-page-mobile .client-card-meta span[data-label="Не был"] {
+    color: #b3bdcb;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .clients-page-mobile .client-card-meta span[data-label="Визитов"]::before {
+    content: "Визитов ";
+  }
+
+  .clients-page-mobile .client-card-meta span[data-label="Не был"]::before {
+    content: "Не был ";
+  }
+
+  .clients-page-mobile .clients-table-row span[data-label="Пакеты"],
+  .clients-page-mobile .clients-table-row span[data-label="Сумма"],
+  .clients-page-mobile .clients-table-row span[data-label="Последний визит"],
+  .clients-page-mobile .clients-table-row span[data-label="Заметка"] {
+    display: none;
+  }
+
+  .clients-page-mobile .clients-empty {
+    padding: 32px 5px;
+    font-size: 14px;
   }
 
   /* Calendar day list (mobile alternate view) */
@@ -1230,67 +1491,153 @@
     width: 100%;
   }
 
-  /* Client details sticky footer */
-  .client-details-modal {
+  /* Client details — compact fullscreen sheet */
+  .client-details-modal.mobile-sheet {
     display: flex;
     flex-direction: column;
-    padding: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    gap: 0;
+    padding: 0 !important;
+    border-radius: 0 !important;
     overflow: hidden;
   }
 
-  .client-details-modal .modal-header {
+  .client-details-modal.mobile-sheet .mobile-sheet-header {
     flex: 0 0 auto;
+    gap: 6px;
+    min-height: 0;
+    padding: max(6px, env(safe-area-inset-top, 0px)) 10px 6px !important;
   }
 
-  .client-details-body {
+  .client-details-modal.mobile-sheet .mobile-sheet-header h2 {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .client-details-modal.mobile-sheet .mobile-sheet-header p {
+    display: none;
+  }
+
+  .client-details-modal.mobile-sheet .mobile-sheet-body {
     flex: 1;
     min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
-    padding: 0 16px 12px;
     -webkit-overflow-scrolling: touch;
+    padding: 0 !important;
+    scroll-padding-bottom: 12px;
   }
 
-  .client-details-footer {
+  .client-details-modal.mobile-sheet .client-details-sheet-root,
+  .client-details-modal.mobile-sheet .client-details-body {
+    display: grid;
+    gap: 8px;
+    padding: 6px 10px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow: visible;
+  }
+
+  .client-details-modal.mobile-sheet .client-details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .client-details-modal.mobile-sheet .client-details-grid span {
+    min-height: 0;
+    padding: 7px 8px;
+    gap: 3px;
+    font-size: 10px;
+  }
+
+  .client-details-modal.mobile-sheet .client-details-grid strong {
+    font-size: 12px;
+    white-space: normal;
+  }
+
+  .client-details-modal.mobile-sheet .client-birthday-note {
+    gap: 6px;
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .client-details-modal.mobile-sheet .client-details-note {
+    gap: 4px;
+  }
+
+  .client-details-modal.mobile-sheet .client-details-note > span {
+    font-size: 11px;
+  }
+
+  .client-details-modal.mobile-sheet .client-details-note-input {
+    min-height: 56px;
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .client-details-modal.mobile-sheet .client-details-grid,
+  .client-details-modal.mobile-sheet .client-details-note,
+  .client-details-modal.mobile-sheet .client-visit-history,
+  .client-details-modal.mobile-sheet .client-communications {
+    margin-top: 0 !important;
+  }
+
+  .client-details-modal.mobile-sheet .client-visit-history > div:first-child {
+    gap: 6px;
+  }
+
+  .client-details-modal.mobile-sheet .client-visit-history-tabs {
+    gap: 6px;
+  }
+
+  .client-details-modal.mobile-sheet .client-visit-history-tabs button {
+    min-height: 34px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  .client-details-modal.mobile-sheet .client-visit-history-table {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible;
+  }
+
+  .client-details-modal.mobile-sheet .client-visit-history-row {
+    gap: 6px 8px;
+    padding: 8px;
+  }
+
+  .client-details-modal.mobile-sheet .client-communications > span {
+    font-size: 11px;
+  }
+
+  .client-details-modal.mobile-sheet .client-communications article {
+    padding: 8px;
+  }
+
+  .client-details-modal.mobile-sheet .mobile-sheet-footer {
     flex: 0 0 auto;
-    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
     border-top: 1px solid var(--line-soft, #e5e5e3);
     background: color-mix(in srgb, var(--surface, #fff) 94%, transparent);
     backdrop-filter: blur(12px);
   }
 
-  .client-details-footer .client-details-actions {
+  .client-details-modal.mobile-sheet .mobile-sheet-footer .client-details-actions {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 6px;
   }
 
-  .client-details-footer .client-details-actions button,
-  .client-details-footer .client-details-actions a {
+  .client-details-modal.mobile-sheet .mobile-sheet-footer .client-details-actions button,
+  .client-details-modal.mobile-sheet .mobile-sheet-footer .client-details-actions a {
     width: 100%;
-    min-height: var(--mobile-touch-target, 44px);
+    min-height: 44px;
     justify-content: center;
+    box-shadow: none !important;
   }
 
-  .client-details-modal .mobile-sheet-footer {
-    flex: 0 0 auto;
-    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid var(--line-soft, #e5e5e3);
-    background: color-mix(in srgb, var(--surface, #fff) 94%, transparent);
-    backdrop-filter: blur(12px);
-  }
-
-  .client-details-modal .mobile-sheet-footer .client-details-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .client-details-modal .mobile-sheet-footer .client-details-actions button,
-  .client-details-modal .mobile-sheet-footer .client-details-actions a {
-    width: 100%;
-    min-height: var(--mobile-touch-target, 44px);
-    justify-content: center;
+  .theme-dark .client-details-modal.mobile-sheet .mobile-sheet-footer {
+    background: color-mix(in srgb, var(--app-bg, #10141c) 94%, transparent);
   }
 
   .calendar-client-card.mobile-sheet .mobile-sheet-footer .calendar-client-card-actions {
@@ -1515,6 +1862,13 @@
     overflow: hidden;
   }
 
+  .employee-modal.client-details-modal.mobile-sheet > .mobile-sheet-body,
+  .employee-modal.client-form-modal.mobile-sheet > .mobile-sheet-body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .employee-modal.calendar-entry-modal.mobile-sheet {
     height: 100dvh;
     max-height: 100dvh;
@@ -1556,6 +1910,112 @@
   .theme-dark
     .employee-modal.calendar-entry-modal.mobile-sheet
     .calendar-entry-form
+    .field-error {
+    color: #ff8a7a !important;
+  }
+
+  /* Client form modal — compact fullscreen sheet */
+  .employee-modal.client-form-modal.mobile-sheet {
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0 !important;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet .mobile-sheet-header {
+    gap: 6px;
+    min-height: 0;
+    padding: max(6px, env(safe-area-inset-top, 0px)) 10px 6px !important;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet .mobile-sheet-header h2 {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet .mobile-sheet-body {
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 !important;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet .client-form-sheet-root,
+  .employee-modal.client-form-modal.mobile-sheet .new-client-panel {
+    display: block;
+    flex: none !important;
+    min-height: auto;
+    margin: 0;
+    overflow: visible;
+    padding: 0 !important;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet .client-form-sheet-root form,
+  .employee-modal.client-form-modal.mobile-sheet .new-client-panel form {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    flex: none !important;
+    min-height: auto !important;
+    align-content: start;
+    gap: 6px !important;
+    margin-top: 0 !important;
+    overflow: visible !important;
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet .form-split {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet label {
+    gap: 4px !important;
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet .new-client-panel input,
+  .employee-modal.client-form-modal.mobile-sheet .new-client-panel select,
+  .employee-modal.client-form-modal.mobile-sheet .new-client-panel textarea {
+    min-height: 38px !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet .new-client-panel textarea {
+    min-height: 64px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet .new-client-panel .submit-button {
+    position: static;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .employee-modal.client-form-modal.mobile-sheet .new-client-panel form .field-error {
+    display: block;
+    margin-top: 2px;
+    color: #e85d4c !important;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.3;
+  }
+
+  .theme-dark
+    .employee-modal.client-form-modal.mobile-sheet
+    .new-client-panel
+    form
     .field-error {
     color: #ff8a7a !important;
   }
@@ -1709,7 +2169,7 @@
     box-shadow: 0 20px 52px rgba(17, 19, 24, 0.22);
   }
 
-  .content {
+  .content:not(.calendar-content):not(.clients-content) {
     padding-bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
   }
 }
