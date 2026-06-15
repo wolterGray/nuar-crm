@@ -69,7 +69,126 @@ const getMonthStart = () => {
   return formatAppDate(getStartOfMonth(new Date()), "yyyy-MM-dd");
 };
 
+const getPreviousMonthRange = () => {
+  const monthStart = getMonthStart();
+  const previousEnd = shiftAppDate(monthStart, -1);
+  const previousStart = formatAppDate(getStartOfMonth(previousEnd), "yyyy-MM-dd");
+
+  return {end: previousEnd, start: previousStart};
+};
+
 const formatChartDate = (date) => formatAppDate(date, "dd MMM");
+
+function StatisticsFilters({
+  currency,
+  employees,
+  endDate,
+  master,
+  mobile = false,
+  onCurrencyChange,
+  onEndDateChange,
+  onMasterChange,
+  onStartDateChange,
+  startDate,
+}) {
+  return (
+    <div className={`statistics-filters${mobile ? " statistics-filters-mobile" : ""}`}>
+      <label>
+        <CalendarRange size={15} />
+        <input
+          type="date"
+          value={startDate}
+          onChange={(event) => onStartDateChange(event.target.value)}
+        />
+      </label>
+      {!mobile ? <span>—</span> : null}
+      <label>
+        <CalendarRange size={15} />
+        <input
+          type="date"
+          value={endDate}
+          onChange={(event) => onEndDateChange(event.target.value)}
+        />
+      </label>
+      <select value={master} onChange={(event) => onMasterChange(event.target.value)}>
+        <option value="">Все сотрудники</option>
+        {employees.map((employee) => (
+          <option key={employee.id}>{employee.name}</option>
+        ))}
+      </select>
+      <select
+        aria-label="Валюта отчёта"
+        value={currency}
+        onChange={(event) => onCurrencyChange(event.target.value)}>
+        {currencies.map((item) => (
+          <option key={item.code} value={item.code}>
+            {item.code} · {item.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function RevenueChart({chartData, formatIncome}) {
+  if (chartData.length < 2) {
+    return (
+      <div className="statistics-chart-empty">
+        Недостаточно данных для построения динамики дохода
+      </div>
+    );
+  }
+
+  return (
+    <div className="statistics-revenue-chart">
+      <div className="statistics-revenue-chart-frame">
+        <ResponsiveContainer width="100%" height={190} minWidth={260} minHeight={190}>
+          <AreaChart data={chartData} margin={{top: 10, right: 8, left: -10, bottom: 0}}>
+            <defs>
+              <linearGradient id="statisticsRevenueGradient" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="5%" stopColor={revenueChartColor} stopOpacity={0.22} />
+                <stop offset="95%" stopColor={revenueChartColor} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              stroke="rgba(126, 137, 151, 0.18)"
+              strokeDasharray="4 6"
+              vertical={false}
+            />
+            <XAxis
+              axisLine={false}
+              dataKey="label"
+              interval="preserveStartEnd"
+              minTickGap={12}
+              tick={{fill: "#8a8f98", fontSize: 11}}
+              tickLine={false}
+            />
+            <YAxis
+              axisLine={false}
+              tick={{fill: "#8a8f98", fontSize: 10}}
+              tickFormatter={(value) => formatCompactMoney(value).replace(" zł", "")}
+              tickLine={false}
+              width={52}
+            />
+            <Tooltip
+              content={<RevenueTooltip formatIncome={formatIncome} />}
+              cursor={{fill: "rgba(63, 42, 99, 0.08)"}}
+            />
+            <Area
+              dataKey="income"
+              dot={{fill: "#fff", r: 3, stroke: revenueChartColor, strokeWidth: 2}}
+              fill="url(#statisticsRevenueGradient)"
+              isAnimationActive={false}
+              stroke={revenueChartColor}
+              strokeWidth={2.4}
+              type="monotone"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
 
 function StatisticsPage({
   visits,
@@ -409,6 +528,17 @@ function StatisticsPage({
     });
   }
 
+  const applyCurrentMonthRange = () => {
+    setStartDate(getMonthStart());
+    setEndDate(getTodayInput());
+  };
+
+  const applyPreviousMonthRange = () => {
+    const range = getPreviousMonthRange();
+    setStartDate(range.start);
+    setEndDate(range.end);
+  };
+
   const exportStatistics = () => {
     const rows = [
       {
@@ -480,65 +610,304 @@ function StatisticsPage({
     });
   };
 
+  const exportButton = (
+    <button
+      aria-label="Экспорт Excel"
+      className={`statistics-export-button ${isMobile ? "statistics-toolbar-icon-only" : ""}`}
+      type="button"
+      onClick={exportStatistics}>
+      <Download size={15} />
+      <span>{isMobile ? "Экспорт" : "Экспорт Excel"}</span>
+    </button>
+  );
+
+  const filtersPanel = (
+    <StatisticsFilters
+      currency={currency}
+      employees={employees}
+      endDate={endDate}
+      master={master}
+      mobile={isMobile}
+      startDate={startDate}
+      onCurrencyChange={setCurrency}
+      onEndDateChange={setEndDate}
+      onMasterChange={setMaster}
+      onStartDateChange={setStartDate}
+    />
+  );
+
+  const attentionPanel = (
+    <article className="statistics-panel statistics-attention-panel">
+      <div className="statistics-attention-list">
+        {attentionItems.map((item) => (
+          <div className={`statistics-attention-item ${item.tone}`} key={item.title}>
+            {item.tone === "good" ? (
+              <CheckCircle2 size={17} />
+            ) : (
+              <AlertTriangle size={17} />
+            )}
+            <span>
+              <strong>{item.title}</strong>
+              <small>{item.text}</small>
+            </span>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+
+  const paymentsPanel = (
+    <article className="statistics-panel statistics-payments-panel">
+      <div className="statistics-payment-bars">
+        {paymentRows.map((item) => (
+          <PaymentRow
+            item={item}
+            key={item.label}
+            total={analytics.paymentTotal}
+            value={formatIncome(item.value)}
+          />
+        ))}
+      </div>
+    </article>
+  );
+
+  const financialDetailsGrid = (
+    <div className="statistics-business-grid statistics-business-grid-bottom">
+      <article className="statistics-panel statistics-breakdown-panel">
+        <div className="statistics-panel-title">
+          <div>
+            <h3>Финансовая разбивка</h3>
+            <p>Из чего складывается чистый доход</p>
+          </div>
+          <div
+            className="percent-ring dynamic-payment-ring statistics-ring"
+            style={{
+              "--payment-ring-gradient": createPaymentRingGradient(activePayments),
+            }}>
+            <strong>
+              {formatCompactMoney(analytics.totalIncome / (rates[currency] || 1))}
+            </strong>
+            <span>{currency}</span>
+          </div>
+        </div>
+        <div className="statistics-breakdown-list">
+          {earnings.map(([label, value]) => (
+            <span key={label}>
+              {label}
+              <strong className={value < 0 ? "negative" : ""}>
+                {formatIncome(value)}
+              </strong>
+            </span>
+          ))}
+        </div>
+      </article>
+
+      <article className="statistics-panel statistics-activity-panel">
+        <div className="statistics-panel-title">
+          <div>
+            <h3>Активность</h3>
+            <p>Клиенты, пакеты и сертификаты</p>
+          </div>
+        </div>
+        <div className="statistics-activity-grid">
+          {activityStats.map(([label, value]) => (
+            <span key={label}>
+              {label}
+              <strong>{value}</strong>
+            </span>
+          ))}
+        </div>
+      </article>
+    </div>
+  );
+
+  const detailsPanel = (
+    <details className="statistics-details-panel">
+      <summary>
+        <span>
+          <strong className="labeled-hint-row">
+            Подробная финансовая аналитика
+            <HintIcon>
+              Разбивка дохода, пакеты, сертификаты и возвратность
+            </HintIcon>
+          </strong>
+        </span>
+      </summary>
+      {financialDetailsGrid}
+    </details>
+  );
+
+  const chartChangeLabel =
+    periodChangePercent === null
+      ? null
+      : `${periodChangePercent >= 0 ? "↑" : "↓"} ${Math.abs(
+          Math.round(periodChangePercent),
+        )}% к прошлому периоду`;
+
+  const incomeCard = (
+    <article className="statistics-income-card">
+      <div className="statistics-income-top">
+        <div>
+          <span>{incomeScopeLabel}</span>
+          <strong>{formatIncome(analytics.totalIncome)}</strong>
+          <p>
+            Поступления {formatIncome(analytics.totalReceived)} ·{" "}
+            {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
+          </p>
+          {!isMobile ? (
+            <small className="statistics-income-context">
+              {master
+                ? "Показаны визиты выбранного мастера и проданные им пакеты. Операции без мастера остаются только в общем доходе бизнеса."
+                : businessExtraIncome > 0
+                  ? `Включает доп. доход бизнеса: ${formatIncome(
+                      businessExtraIncome,
+                    )} · пакеты, сертификаты и операции.`
+                  : "Считаются завершённые визиты и финансовые операции за период."}
+            </small>
+          ) : null}
+        </div>
+        <div className="statistics-income-icon">
+          <span>{currencyIcons[currency] || currency}</span>
+        </div>
+      </div>
+      <div className="statistics-income-strip">
+        <span>
+          Прогноз <b>{formatIncome(analytics.forecastIncome)}</b>
+        </span>
+        <span>
+          Завершено <b>{analytics.filteredAppointments.length}</b>
+        </span>
+        <span>
+          Средний чек <b>{formatIncome(analytics.averageCheck)}</b>
+        </span>
+      </div>
+      {!isMobile ? (
+        <>
+          <div className="statistics-chart-heading">
+            <span>Динамика дохода</span>
+            <strong
+              className={
+                periodChangePercent === null
+                  ? ""
+                  : periodChangePercent >= 0
+                    ? "positive"
+                    : "negative"
+              }>
+              {periodChangePercent === null
+                ? "Нет прошлого периода"
+                : `${periodChangePercent >= 0 ? "↑" : "↓"} ${Math.abs(
+                    Math.round(periodChangePercent),
+                  )}% к прошлому периоду`}
+            </strong>
+          </div>
+          <RevenueChart chartData={chartData} formatIncome={formatIncome} />
+        </>
+      ) : null}
+    </article>
+  );
+
+  if (isMobile) {
+    return (
+      <section className="statistics-page statistics-page-mobile">
+        <PageHeader
+          actions={
+            <>
+              <div className="statistics-quick-ranges">
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={applyCurrentMonthRange}>
+                  Этот месяц
+                </button>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={applyPreviousMonthRange}>
+                  Прошлый месяц
+                </button>
+              </div>
+              <div className="statistics-page-summary">
+                {kpiStats.map((item) => (
+                  <article className="statistics-page-summary-card" key={item.label}>
+                    <span>{item.label}</span>
+                    <strong>{item.value}</strong>
+                  </article>
+                ))}
+              </div>
+              <div className="statistics-filters-mobile-wrap">{filtersPanel}</div>
+            </>
+          }
+          className="statistics-hero-header"
+          description={`${formatIncome(analytics.totalIncome)} · ${toDisplayDate(startDate)} — ${toDisplayDate(endDate)}`}
+          headerActions={exportButton}
+          title="Статистика"
+        />
+
+        <div className="statistics-scroll">
+          {incomeCard}
+
+          <section className="statistics-mobile-section">
+            <div className="statistics-mobile-section-head">
+              <h3>График дохода</h3>
+              {chartChangeLabel ? (
+                <span
+                  className={
+                    periodChangePercent >= 0
+                      ? "statistics-mobile-section-meta positive"
+                      : "statistics-mobile-section-meta negative"
+                  }>
+                  {chartChangeLabel}
+                </span>
+              ) : null}
+            </div>
+            <RevenueChart chartData={chartData} formatIncome={formatIncome} />
+          </section>
+
+          <section className="statistics-mobile-section">
+            <div className="statistics-mobile-section-head">
+              <h3>Требует внимания</h3>
+              <span className="statistics-mobile-section-meta">{attentionItems.length}</span>
+            </div>
+            {attentionPanel}
+          </section>
+
+          <section className="statistics-mobile-section">
+            <div className="statistics-mobile-section-head">
+              <h3>Оплаты</h3>
+              <span className="statistics-mobile-section-meta">
+                {formatIncome(analytics.paymentTotal)}
+              </span>
+            </div>
+            {paymentsPanel}
+          </section>
+
+          <section className="statistics-mobile-section statistics-mobile-section-details">
+            <div className="statistics-mobile-section-head">
+              <h3 className="labeled-hint-row">
+                Подробная аналитика
+                <HintIcon>
+                  Разбивка дохода, пакеты, сертификаты и возвратность
+                </HintIcon>
+              </h3>
+            </div>
+            {financialDetailsGrid}
+          </section>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className={`statistics-page ${isMobile ? "statistics-page-mobile" : ""}`}>
+    <section className="statistics-page">
       <PageHeader
         className="statistics-hero-header"
         description="Финансы, визиты и сигналы по клиентам"
-        headerActions={
-          <button
-            aria-label="Экспорт Excel"
-            className={`statistics-export-button ${isMobile ? "statistics-toolbar-icon-only" : ""}`}
-            type="button"
-            onClick={exportStatistics}>
-            <Download size={15} />
-            <span>{isMobile ? "Экспорт" : "Экспорт Excel"}</span>
-          </button>
-        }
+        headerActions={exportButton}
         title="Статистика"
       />
 
-      <div className="statistics-filters-card">
-        <div className="statistics-filters">
-          <label>
-            <CalendarRange size={15} />
-            <input
-              type="date"
-              value={startDate}
-              onChange={(event) => setStartDate(event.target.value)}
-            />
-          </label>
-          <span>—</span>
-          <label>
-            <CalendarRange size={15} />
-            <input
-              type="date"
-              value={endDate}
-              onChange={(event) => setEndDate(event.target.value)}
-            />
-          </label>
-          <select
-            value={master}
-            onChange={(event) => setMaster(event.target.value)}>
-            <option value="">Все сотрудники</option>
-            {employees.map((employee) => (
-              <option key={employee.id}>{employee.name}</option>
-            ))}
-          </select>
-          <select
-            aria-label="Валюта отчёта"
-            value={currency}
-            onChange={(event) => setCurrency(event.target.value)}>
-            {currencies.map((item) => (
-              <option key={item.code} value={item.code}>
-                {item.code} · {item.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <div className="statistics-filters-card">{filtersPanel}</div>
 
-      {!isMobile && (
       <article className="statistics-panel statistics-today-panel">
         <div className="statistics-panel-title">
           <div>
@@ -598,253 +967,9 @@ function StatisticsPage({
           </ul>
         )}
       </article>
-      )}
 
-      <article className="statistics-income-card">
-        <div className="statistics-income-top">
-          <div>
-            <span>{incomeScopeLabel}</span>
-            <strong>{formatIncome(analytics.totalIncome)}</strong>
-            <p>
-              Поступления {formatIncome(analytics.totalReceived)} ·{" "}
-              {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
-            </p>
-            <small className="statistics-income-context">
-              {master
-                ? "Показаны визиты выбранного мастера и проданные им пакеты. Операции без мастера остаются только в общем доходе бизнеса."
-                : businessExtraIncome > 0
-                  ? `Включает доп. доход бизнеса: ${formatIncome(
-                      businessExtraIncome,
-                    )} · пакеты, сертификаты и операции.`
-                  : "Считаются завершённые визиты и финансовые операции за период."}
-            </small>
-          </div>
-          <div className="statistics-income-icon">
-            <span>{currencyIcons[currency] || currency}</span>
-          </div>
-        </div>
-        <div className="statistics-income-strip">
-          <span>
-            Прогноз <b>{formatIncome(analytics.forecastIncome)}</b>
-          </span>
-          <span>
-            Завершено <b>{analytics.filteredAppointments.length}</b>
-          </span>
-          <span>
-            Средний чек <b>{formatIncome(analytics.averageCheck)}</b>
-          </span>
-        </div>
-        <div className="statistics-chart-heading">
-          <span>Динамика дохода</span>
-          <strong
-            className={
-              periodChangePercent === null
-                ? ""
-                : periodChangePercent >= 0
-                  ? "positive"
-                  : "negative"
-            }>
-            {periodChangePercent === null
-              ? "Нет прошлого периода"
-              : `${periodChangePercent >= 0 ? "↑" : "↓"} ${Math.abs(
-                  Math.round(periodChangePercent),
-                )}% к прошлому периоду`}
-          </strong>
-        </div>
-        {isMobile ? (
-          <details className="statistics-mobile-collapsible">
-            <summary>График дохода</summary>
-            {chartData.length < 2 ? (
-              <div className="statistics-chart-empty">
-                Недостаточно данных для построения динамики дохода
-              </div>
-            ) : (
-              <div className="statistics-revenue-chart">
-                <div className="statistics-revenue-chart-frame">
-                  <ResponsiveContainer
-                    width="100%"
-                    height={190}
-                    minWidth={260}
-                    minHeight={190}>
-                    <AreaChart
-                      data={chartData}
-                      margin={{top: 10, right: 8, left: -10, bottom: 0}}>
-                      <defs>
-                        <linearGradient
-                          id="statisticsRevenueGradient"
-                          x1="0"
-                          x2="0"
-                          y1="0"
-                          y2="1">
-                          <stop
-                            offset="5%"
-                            stopColor={revenueChartColor}
-                            stopOpacity={0.22}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor={revenueChartColor}
-                            stopOpacity={0.02}
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        stroke="rgba(126, 137, 151, 0.18)"
-                        strokeDasharray="4 6"
-                        vertical={false}
-                      />
-                      <XAxis
-                        axisLine={false}
-                        dataKey="label"
-                        interval="preserveStartEnd"
-                        minTickGap={12}
-                        tick={{fill: "#8a8f98", fontSize: 11}}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tick={{
-                          fill: "#8a8f98",
-                          fontSize: 10,
-                        }}
-                        tickFormatter={(value) =>
-                          formatCompactMoney(value).replace(" zł", "")
-                        }
-                        tickLine={false}
-                        width={52}
-                      />
-                      <Tooltip
-                        content={<RevenueTooltip formatIncome={formatIncome} />}
-                        cursor={{fill: "rgba(63, 42, 99, 0.08)"}}
-                      />
-                      <Area
-                        dataKey="income"
-                        dot={{
-                          fill: "#fff",
-                          r: 3,
-                          stroke: revenueChartColor,
-                          strokeWidth: 2,
-                        }}
-                        fill="url(#statisticsRevenueGradient)"
-                        isAnimationActive={false}
-                        stroke={revenueChartColor}
-                        strokeWidth={2.4}
-                        type="monotone"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
-          </details>
-        ) : chartData.length < 2 ? (
-          <div className="statistics-chart-empty">
-            Недостаточно данных для построения динамики дохода
-          </div>
-        ) : (
-          <div className="statistics-revenue-chart">
-            <div className="statistics-revenue-chart-frame">
-              <ResponsiveContainer
-                width="100%"
-                height={190}
-                minWidth={260}
-                minHeight={190}>
-                <AreaChart
-                  data={chartData}
-                  margin={{top: 10, right: 8, left: -10, bottom: 0}}>
-                  <defs>
-                    <linearGradient
-                      id="statisticsRevenueGradient"
-                      x1="0"
-                      x2="0"
-                      y1="0"
-                      y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor={revenueChartColor}
-                        stopOpacity={0.22}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor={revenueChartColor}
-                        stopOpacity={0.02}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    stroke="rgba(126, 137, 151, 0.18)"
-                    strokeDasharray="4 6"
-                    vertical={false}
-                  />
-                  <XAxis
-                    axisLine={false}
-                    dataKey="label"
-                    interval="preserveStartEnd"
-                    minTickGap={12}
-                    tick={{fill: "#8a8f98", fontSize: 11}}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tick={{
-                      fill: "#8a8f98",
-                      fontSize: 10,
-                    }}
-                    tickFormatter={(value) =>
-                      formatCompactMoney(value).replace(" zł", "")
-                    }
-                    tickLine={false}
-                    width={52}
-                  />
-                  <Tooltip
-                    content={<RevenueTooltip formatIncome={formatIncome} />}
-                    cursor={{fill: "rgba(63, 42, 99, 0.08)"}}
-                  />
-                  <Area
-                    dataKey="income"
-                    dot={{
-                      fill: "#fff",
-                      r: 3,
-                      stroke: revenueChartColor,
-                      strokeWidth: 2,
-                    }}
-                    fill="url(#statisticsRevenueGradient)"
-                    isAnimationActive={false}
-                    stroke={revenueChartColor}
-                    strokeWidth={2.4}
-                    type="monotone"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-      </article>
+      {incomeCard}
 
-      {isMobile ? (
-        <details className="statistics-mobile-collapsible">
-          <summary>Требует внимания · {attentionItems.length}</summary>
-          <article className="statistics-panel statistics-attention-panel">
-            <div className="statistics-attention-list">
-              {attentionItems.map((item) => (
-                <div
-                  className={`statistics-attention-item ${item.tone}`}
-                  key={item.title}>
-                  {item.tone === "good" ? (
-                    <CheckCircle2 size={17} />
-                  ) : (
-                    <AlertTriangle size={17} />
-                  )}
-                  <span>
-                    <strong>{item.title}</strong>
-                    <small>{item.text}</small>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </article>
-        </details>
-      ) : (
       <article className="statistics-panel statistics-attention-panel">
         <div className="statistics-panel-title">
           <div>
@@ -854,9 +979,7 @@ function StatisticsPage({
         </div>
         <div className="statistics-attention-list">
           {attentionItems.map((item) => (
-            <div
-              className={`statistics-attention-item ${item.tone}`}
-              key={item.title}>
+            <div className={`statistics-attention-item ${item.tone}`} key={item.title}>
               {item.tone === "good" ? (
                 <CheckCircle2 size={17} />
               ) : (
@@ -870,42 +993,13 @@ function StatisticsPage({
           ))}
         </div>
       </article>
-      )}
 
-      {isMobile ? (
-        <details className="statistics-mobile-collapsible">
-          <summary>KPI · {kpiStats.length} показателей</summary>
-          <div className="statistics-kpi-grid">
-            {kpiStats.map((item) => (
-              <StatisticsCard item={item} key={item.label} />
-            ))}
-          </div>
-        </details>
-      ) : (
       <div className="statistics-kpi-grid">
         {kpiStats.map((item) => (
           <StatisticsCard item={item} key={item.label} />
         ))}
       </div>
-      )}
 
-      {isMobile ? (
-        <details className="statistics-mobile-collapsible">
-          <summary>Оплаты · {formatIncome(analytics.paymentTotal)}</summary>
-          <article className="statistics-panel statistics-payments-panel">
-            <div className="statistics-payment-bars">
-              {paymentRows.map((item) => (
-                <PaymentRow
-                  item={item}
-                  key={item.label}
-                  total={analytics.paymentTotal}
-                  value={formatIncome(item.value)}
-                />
-              ))}
-            </div>
-          </article>
-        </details>
-      ) : (
       <article className="statistics-panel statistics-payments-panel">
         <div className="statistics-panel-title">
           <div>
@@ -925,70 +1019,8 @@ function StatisticsPage({
           ))}
         </div>
       </article>
-      )}
 
-      <details className="statistics-details-panel">
-        <summary>
-          <span>
-            <strong className="labeled-hint-row">
-              Подробная финансовая аналитика
-              <HintIcon>
-                Разбивка дохода, пакеты, сертификаты и возвратность
-              </HintIcon>
-            </strong>
-          </span>
-        </summary>
-        <div className="statistics-business-grid statistics-business-grid-bottom">
-          <article className="statistics-panel statistics-breakdown-panel">
-            <div className="statistics-panel-title">
-              <div>
-                <h3>Финансовая разбивка</h3>
-                <p>Из чего складывается чистый доход</p>
-              </div>
-              <div
-                className="percent-ring dynamic-payment-ring statistics-ring"
-                style={{
-                  "--payment-ring-gradient":
-                    createPaymentRingGradient(activePayments),
-                }}>
-                <strong>
-                  {formatCompactMoney(
-                    analytics.totalIncome / (rates[currency] || 1),
-                  )}
-                </strong>
-                <span>{currency}</span>
-              </div>
-            </div>
-            <div className="statistics-breakdown-list">
-              {earnings.map(([label, value]) => (
-                <span key={label}>
-                  {label}
-                  <strong className={value < 0 ? "negative" : ""}>
-                    {formatIncome(value)}
-                  </strong>
-                </span>
-              ))}
-            </div>
-          </article>
-
-          <article className="statistics-panel statistics-activity-panel">
-            <div className="statistics-panel-title">
-              <div>
-                <h3>Активность</h3>
-                <p>Клиенты, пакеты и сертификаты</p>
-              </div>
-            </div>
-            <div className="statistics-activity-grid">
-              {activityStats.map(([label, value]) => (
-                <span key={label}>
-                  {label}
-                  <strong>{value}</strong>
-                </span>
-              ))}
-            </div>
-          </article>
-        </div>
-      </details>
+      {detailsPanel}
     </section>
   );
 }

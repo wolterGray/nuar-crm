@@ -762,6 +762,7 @@ button {
     .employees-content,
     .templates-content,
     .import-content,
+    .statistics-content,
     .calendar-content
   ),
 .content.clients-content,
@@ -772,12 +773,13 @@ button {
 .content.employees-content,
 .content.templates-content,
 .content.import-content,
+.content.statistics-content,
 .content.calendar-content {
   padding: 0;
   overflow: hidden;
 }
 
-.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .packages-content, .employees-content, .templates-content, .import-content, .calendar-content),
+.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .packages-content, .employees-content, .templates-content, .import-content, .statistics-content, .calendar-content),
 .home-content.clients-content,
 .home-content.operations-content,
 .home-content.payments-content,
@@ -786,6 +788,7 @@ button {
 .home-content.employees-content,
 .home-content.templates-content,
 .home-content.import-content,
+.home-content.statistics-content,
 .home-content.calendar-content {
   padding: 0;
 }
