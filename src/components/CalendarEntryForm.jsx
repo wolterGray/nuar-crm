@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {useForm, useWatch} from "react-hook-form";
+import {Controller, useForm, useWatch} from "react-hook-form";
 import {z} from "zod";
 import {isActiveClientPackage} from "../utils/clientPackages.js";
 import {getActiveCertificatesForClient} from "../utils/certificates.js";
@@ -51,7 +51,7 @@ const calendarEntrySchema = z
       if (!String(data.client ?? "").trim()) {
         context.addIssue({
           code: "custom",
-          message: "Выберите или введите клиента",
+          message: "Выберите имя клиента",
           path: ["client"],
         });
       }
@@ -167,7 +167,6 @@ function CalendarEntryForm({
     handleSubmit,
     register,
     setValue,
-    trigger,
   } = useForm({
     defaultValues: {
       kind: initialEntry?.kind ?? selectedKind ?? "visit",
@@ -192,7 +191,8 @@ function CalendarEntryForm({
       color: initialEntry?.color ?? "#748091",
       note: initialEntry?.note ?? "",
     },
-    mode: "onChange",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     resolver: zodResolver(calendarEntrySchema),
   });
   const setFormValue = useCallback(
@@ -205,9 +205,6 @@ function CalendarEntryForm({
       }),
     [setValue],
   );
-  useEffect(() => {
-    trigger();
-  }, [trigger]);
   const [
     kind,
     client,
@@ -471,20 +468,26 @@ function CalendarEntryForm({
           <legend>Клиент</legend>
           <label className="calendar-entry-client-field">
             Клиент
-            <ClientAutocomplete
-              clients={clients}
-              id="calendar-client-options"
+            <Controller
+              control={control}
               name="client"
-              value={client}
-              required
-              onChange={(event) => {
-                const nextClient = event.target.value;
-                setFormValue("client", nextClient);
-                setClientTemplateApplied(false);
-                if (clients.some((item) => item.name === nextClient)) {
-                  applyClientTemplate(nextClient);
-                }
-              }}
+              render={({field}) => (
+                <ClientAutocomplete
+                  clients={clients}
+                  id="calendar-client-options"
+                  name={field.name}
+                  required
+                  value={field.value ?? ""}
+                  onChange={(event) => {
+                    const nextClient = event.target.value;
+                    field.onChange(nextClient);
+                    setClientTemplateApplied(false);
+                    if (clients.some((item) => item.name === nextClient)) {
+                      applyClientTemplate(nextClient);
+                    }
+                  }}
+                />
+              )}
             />
             <FieldError message={errors.client?.message} />
           </label>

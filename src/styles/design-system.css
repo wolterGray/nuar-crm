@@ -444,7 +444,7 @@
   background: inherit;
 }
 
-.employee-modal > :not(.modal-header) {
+.employee-modal:not(.mobile-sheet) > :not(.modal-header) {
   display: flex;
   min-height: 0;
   flex: 1;
@@ -477,7 +477,7 @@
   .financial-operation-form,
   .new-client-panel form
 ),
-.employee-modal > :not(.modal-header):is(form:not(.employee-form), .calendar-entry-form) {
+.employee-modal:not(.mobile-sheet) > :not(.modal-header):is(form:not(.employee-form), .calendar-entry-form) {
   display: grid;
   min-height: 0;
   flex: 1;
@@ -615,7 +615,7 @@
     .financial-operation-form,
     .new-client-panel form
   ),
-  .employee-modal > :not(.modal-header):is(form:not(.employee-form), .calendar-entry-form) {
+  .employee-modal:not(.mobile-sheet) > :not(.modal-header):is(form:not(.employee-form), .calendar-entry-form) {
     padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   }
 

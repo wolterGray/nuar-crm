@@ -314,18 +314,13 @@ function CalendarPage({
     reminderFilter === "active" ? activeVisitEntries : visitEntries
   ).sort((first, second) => String(first.time).localeCompare(String(second.time)));
   const isToday = selectedDate === getTodayInput();
-  const carouselDates = useMemo(() => {
-    const today = getTodayInput();
-    const startDate = selectedDate < today ? selectedDate : today;
-    const endDate = shiftDate(today, 730);
-    const dates = [];
-
-    for (let date = startDate; date <= endDate; date = shiftDate(date, 1)) {
-      dates.push(date);
-    }
-
-    return dates;
-  }, [selectedDate]);
+  const carouselDates = useMemo(
+    () =>
+      Array.from({length: 1461}, (_, index) =>
+        shiftDate(getTodayInput(), index - 730),
+      ),
+    [],
+  );
   const selectCalendarDate = (nextDate) => {
     setSelectedDate(nextDate);
   };
@@ -367,18 +362,11 @@ function CalendarPage({
 
     previousSelectedDateRef.current = selectedDate;
 
-    const selectedButton = weekCarouselRef.current.querySelector(
+    const container = weekCarouselRef.current;
+    const selectedButton = container.querySelector(
       `[data-date="${selectedDate}"]`,
     );
     if (!selectedButton) return;
-
-    const today = getTodayInput();
-    const container = weekCarouselRef.current;
-
-    if (selectedDate >= today && selectedDate === today) {
-      container.scrollLeft = 0;
-      return;
-    }
 
     container.scrollLeft = Math.max(0, selectedButton.offsetLeft - 10);
   }, [carouselDates, selectedDate]);
@@ -486,7 +474,7 @@ function CalendarPage({
                 <ChevronRight size={17} />
               </button>
             </div>
-            {!isToday && (
+            {!isToday && !isMobile && (
               <button
                 className="secondary-button calendar-today-button"
                 type="button"
@@ -569,6 +557,15 @@ function CalendarPage({
           );
         })}
       </div>
+
+      {isMobile && !isToday && (
+        <button
+          className={`calendar-today-button ${overlayOpen ? "mobile-calendar-action-hidden" : ""}`}
+          type="button"
+          onClick={() => selectCalendarDate(getTodayInput())}>
+          Сегодня
+        </button>
+      )}
 
       <div className={`calendar-layout ${remindersVisible ? "" : "reminders-hidden"} ${showDayList ? "calendar-layout-day-list" : ""}`}>
         {showDayList && (
@@ -757,7 +754,7 @@ function CalendarPage({
                               ) : null;
                             })()}
                             {entry.kind === "visit" && (
-                              <b>
+                              <b className="schedule-entry-status">
                                 {["no_show", "cancelled"].includes(entry.status)
                                   ? statusLabels[entry.status]
                                   : ended

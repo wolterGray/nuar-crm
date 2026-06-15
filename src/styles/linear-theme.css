@@ -509,9 +509,12 @@
   color: var(--linear-text) !important;
 }
 
-.theme-dark .schedule-entry b {
+.theme-dark .schedule-entry b,
+.theme-dark .schedule-entry-status {
   color: color-mix(in srgb, var(--entry-color) 42%, white) !important;
   background: color-mix(in srgb, var(--entry-color) 15%, transparent) !important;
+  border-radius: 3px;
+  padding: 1px 4px;
 }
 
 .theme-dark .schedule-reserved {
@@ -770,11 +773,12 @@
   color: color-mix(in srgb, var(--entry-color) 28%, #d9ffe8) !important;
 }
 
-.theme-dark .schedule-entry b {
+.theme-dark .schedule-entry b,
+.theme-dark .schedule-entry-status {
   color: #ffffff !important;
   background: color-mix(in srgb, var(--entry-color) 32%, rgba(255, 255, 255, 0.08)) !important;
-  border-radius: 4px;
-  padding: 2px 4px;
+  border-radius: 3px;
+  padding: 1px 4px;
 }
 
 @keyframes schedule-entry-flow {

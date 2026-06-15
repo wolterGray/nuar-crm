@@ -853,7 +853,7 @@
 
   .calendar-content .calendar-page {
     gap: 0;
-    margin: 0 -12px;
+    margin: 0;
   }
 
   .content.calendar-content {
@@ -861,7 +861,7 @@
     height: 100dvh;
     min-height: 0;
     overflow: hidden;
-    padding-top: 0;
+    padding: 0;
   }
 
   .calendar-content .calendar-toolbar,
@@ -1076,7 +1076,8 @@
   }
 
   .schedule-panel {
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
     min-height: 0;
     max-height: 100%;
     overflow-y: auto;
