@@ -3320,10 +3320,31 @@
     font-weight: 700;
   }
 
+  .employees-page-mobile .page-header-unified-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .employees-page-mobile .page-header-unified-copy {
+    flex: 1;
+    min-width: 0;
+  }
+
   .employees-page-mobile .page-header-unified-trailing {
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .employees-page-mobile .page-notifications-slot {
+    display: flex;
+    padding: 0;
   }
 
   .employees-page-mobile .client-alert-button {
@@ -3408,6 +3429,61 @@
 
   .employees-page-mobile .employees-payroll-scroll .page-header-unified {
     padding: 0 0 4px;
+  }
+
+  .employees-page-mobile .payroll-panel-embedded-mobile {
+    gap: 8px;
+  }
+
+  .employees-page-mobile .payroll-embedded-status {
+    display: flex;
+    align-items: center;
+    min-height: 0;
+  }
+
+  .employees-page-mobile .payroll-embedded-status .payroll-status {
+    width: 100%;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+
+  .employees-page-mobile .payroll-quick-ranges-embedded-mobile {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+
+  .employees-page-mobile .payroll-quick-ranges-embedded-mobile .secondary-button {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+    padding: 0 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .employees-page-mobile .payroll-form-embedded-mobile .payroll-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    width: 100%;
+  }
+
+  .employees-page-mobile .payroll-form-embedded-mobile .payroll-actions .add-visit-button,
+  .employees-page-mobile .payroll-form-embedded-mobile .payroll-actions .secondary-button {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 42px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
   }
 
   .employees-page-mobile .employee-mobile-card {

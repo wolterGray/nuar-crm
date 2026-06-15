@@ -357,6 +357,7 @@ function EmployeesPage({
             }`}>
             <div className="employees-scroll employees-payroll-scroll">
               <PayrollPanel
+                embeddedMobile
                 getPayrollReport={getPayrollReport}
                 markPayrollPaid={markPayrollPaid}
                 payrollRecords={payrollRecords}

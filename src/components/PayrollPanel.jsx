@@ -12,6 +12,7 @@ import {
 import {formatMoney} from "../utils/formatters.jsx";
 
 function PayrollForm({
+  embeddedMobile = false,
   endDate,
   existingRecord,
   initialNote = "",
@@ -27,29 +28,31 @@ function PayrollForm({
 
   return (
     <form
-      className="payroll-form"
+      className={`payroll-form${embeddedMobile ? " payroll-form-embedded-mobile" : ""}`}
       onSubmit={(event) => {
         event.preventDefault();
         onMarkPaid?.({endDate, note, startDate});
       }}>
-      <div className="payroll-period-row">
-        <label>
-          С
-          <input
-            type="date"
-            value={startDate}
-            onChange={(event) => onStartDateChange(event.target.value)}
-          />
-        </label>
-        <label>
-          По
-          <input
-            type="date"
-            value={endDate}
-            onChange={(event) => onEndDateChange(event.target.value)}
-          />
-        </label>
-      </div>
+      {!embeddedMobile ? (
+        <div className="payroll-period-row">
+          <label>
+            С
+            <input
+              type="date"
+              value={startDate}
+              onChange={(event) => onStartDateChange(event.target.value)}
+            />
+          </label>
+          <label>
+            По
+            <input
+              type="date"
+              value={endDate}
+              onChange={(event) => onEndDateChange(event.target.value)}
+            />
+          </label>
+        </div>
+      ) : null}
 
       {report.employees.length === 0 ? (
         <p className="payroll-empty">За выбранный период начислений нет.</p>
@@ -157,6 +160,7 @@ function PayrollForm({
 }
 
 function PayrollPanel({
+  embeddedMobile = false,
   getPayrollReport,
   markPayrollPaid,
   payrollRecords = [],
@@ -195,30 +199,58 @@ function PayrollPanel({
   }
 
   return (
-    <section className="panel payroll-panel">
-      <PageHeader
-        description="Комиссии мастеров по завершённым визитам и продажам пакетов"
-        title="Payroll">
-        {existingRecord ? (
-          <span className="payroll-status is-paid">
-            <Lock size={15} />
-            Выплачено{" "}
-            {new Date(existingRecord.paidAt).toLocaleString("ru-RU", {
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              month: "2-digit",
-            })}
-          </span>
-        ) : (
-          <span className="payroll-status is-open">
-            <Unlock size={15} />
-            Не закрыто
-          </span>
-        )}
-      </PageHeader>
+    <section
+      className={`panel payroll-panel${
+        embeddedMobile ? " payroll-panel-embedded-mobile" : ""
+      }`}>
+      {embeddedMobile ? (
+        <div className="payroll-embedded-status">
+          {existingRecord ? (
+            <span className="payroll-status is-paid">
+              <Lock size={15} />
+              Выплачено{" "}
+              {new Date(existingRecord.paidAt).toLocaleString("ru-RU", {
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                month: "2-digit",
+              })}
+            </span>
+          ) : (
+            <span className="payroll-status is-open">
+              <Unlock size={15} />
+              Не закрыто
+            </span>
+          )}
+        </div>
+      ) : (
+        <PageHeader
+          description="Комиссии мастеров по завершённым визитам и продажам пакетов"
+          title="Payroll">
+          {existingRecord ? (
+            <span className="payroll-status is-paid">
+              <Lock size={15} />
+              Выплачено{" "}
+              {new Date(existingRecord.paidAt).toLocaleString("ru-RU", {
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                month: "2-digit",
+              })}
+            </span>
+          ) : (
+            <span className="payroll-status is-open">
+              <Unlock size={15} />
+              Не закрыто
+            </span>
+          )}
+        </PageHeader>
+      )}
 
-      <div className="payroll-quick-ranges">
+      <div
+        className={`payroll-quick-ranges${
+          embeddedMobile ? " payroll-quick-ranges-embedded-mobile" : ""
+        }`}>
         <button
           className="secondary-button"
           type="button"
@@ -235,6 +267,7 @@ function PayrollPanel({
       </div>
 
       <PayrollForm
+        embeddedMobile={embeddedMobile}
         key={`${formSeed}-${existingRecord?.id ?? "open"}`}
         endDate={endDate}
         existingRecord={existingRecord}
