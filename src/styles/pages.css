@@ -1446,6 +1446,13 @@ select {
   overflow: visible;
 }
 
+.employee-modal.client-form-modal.mobile-sheet .client-form-sheet-root form,
+.employee-modal.client-form-modal.mobile-sheet .new-client-panel form {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+}
+
 .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form {
   display: grid;
   flex: none;
@@ -2570,14 +2577,59 @@ button:focus-visible {
 }
 
 .waitlist-panel .waitlist-card-actions {
-  justify-content: flex-end;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  justify-content: stretch;
 }
 
-.waitlist-panel .waitlist-card-actions .secondary-button {
-  min-width: 36px;
-  min-height: 36px;
+.waitlist-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
   padding: 0 10px;
+  border: 1px solid #dfdfdd;
+  border-radius: 8px;
+  color: #4b5563;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.waitlist-action-button:hover {
+  border-color: color-mix(in srgb, var(--accent-color) 40%, #dfdfdd);
+  color: #15171c;
+}
+
+.waitlist-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.waitlist-meta-item {
+  display: inline-flex;
+  padding: 3px 8px;
+  border: 1px solid #ececea;
+  border-radius: 6px;
+  color: #6f737b;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.waitlist-card-icon {
+  color: #8d5b18;
+  background: #f6efe6;
+}
+
+.waitlist-panel > .operations-empty {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .waitlist-offered-block {
@@ -2660,6 +2712,22 @@ button:focus-visible {
 
 .theme-dark .waitlist-offered-block {
   border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .waitlist-action-button {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #eef4fb;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.theme-dark .waitlist-meta-item {
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #b3bdcb;
+}
+
+.theme-dark .waitlist-card-icon {
+  color: #eed5b2;
+  background: rgba(210, 173, 125, 0.16);
 }
 
 .theme-dark .waitlist-freed-item {

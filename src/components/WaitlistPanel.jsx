@@ -1,11 +1,14 @@
-import {CalendarPlus, Clock3, MessageSquareText, Pencil, Plus, Trash2} from "lucide-react";
+import {CalendarPlus, Clock3, MessageSquareText, Plus} from "lucide-react";
 import PageHeader from "./PageHeader.jsx";
+import {RowActionsMenu} from "./RowActionMenuPortal.jsx";
 import {
   getActiveWaitlistEntries,
   summarizeWaitlistEntry,
 } from "../utils/waitlist.js";
 
 function WaitlistPanel({
+  openMenuId,
+  setOpenMenuId,
   waitlistEntries = [],
   onAdd,
   onBook,
@@ -32,42 +35,48 @@ function WaitlistPanel({
       ) : (
         <div className="client-packages-list">
           {activeEntries.map((entry) => (
-            <article className="client-package-card certificate-card" key={entry.id}>
-              <div className="client-package-main">
-                <strong>{entry.clientName}</strong>
-                <span>{summarizeWaitlistEntry(entry)}</span>
-                {entry.note ? <small>{entry.note}</small> : null}
+            <article
+              className="client-package-card waitlist-card certificate-card"
+              key={entry.id}>
+              <div className="operations-card-head">
+                <span className="operations-card-icon waitlist-card-icon">
+                  <Clock3 size={15} />
+                </span>
+                <div className="operations-card-body">
+                  <strong>{entry.clientName}</strong>
+                  {entry.note ? (
+                    <span className="waitlist-row-note">{entry.note}</span>
+                  ) : null}
+                </div>
+                <RowActionsMenu
+                  itemId={entry.id}
+                  openMenuId={openMenuId}
+                  setOpenMenuId={setOpenMenuId}
+                  onDelete={() => onRemove?.(entry)}
+                  onEdit={() => onEdit?.(entry)}
+                />
               </div>
-              <div className="client-package-meta waitlist-card-actions">
+              <div className="waitlist-meta">
+                <span className="waitlist-meta-item">
+                  {summarizeWaitlistEntry(entry)}
+                </span>
+              </div>
+              <div className="waitlist-card-actions">
                 <button
-                  aria-label="Написать"
-                  className="secondary-button"
+                  className="waitlist-action-button"
                   title="Шаблоны сообщений"
                   type="button"
                   onClick={() => onMessage?.(entry)}>
                   <MessageSquareText size={14} />
+                  Написать
                 </button>
                 <button
-                  aria-label="Записать"
-                  className="secondary-button"
+                  className="waitlist-action-button"
                   title="Новая запись"
                   type="button"
                   onClick={() => onBook?.(entry)}>
                   <CalendarPlus size={14} />
-                </button>
-                <button
-                  aria-label="Редактировать"
-                  className="secondary-button"
-                  type="button"
-                  onClick={() => onEdit?.(entry)}>
-                  <Pencil size={14} />
-                </button>
-                <button
-                  aria-label="Удалить"
-                  className="secondary-button"
-                  type="button"
-                  onClick={() => onRemove?.(entry)}>
-                  <Trash2 size={14} />
+                  Записать
                 </button>
               </div>
             </article>

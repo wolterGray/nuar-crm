@@ -5,6 +5,7 @@ export default function AppShell({
   contentRef,
   isCalendarPage,
   isClientsPage,
+  isOperationsPage,
   isPaymentsPage,
   navigation,
   pullRefresh,
@@ -36,7 +37,9 @@ export default function AppShell({
         ref={contentRef}
         className={`content home-content ${isCalendarPage ? "calendar-content" : ""} ${
           isClientsPage ? "clients-content" : ""
-        } ${isPaymentsPage ? "visits-content payments-content" : ""}`}
+        } ${isOperationsPage ? "operations-content" : ""} ${
+          isPaymentsPage ? "visits-content payments-content" : ""
+        }`}
         onTouchCancel={onTouchCancel}
         onTouchEnd={onTouchEnd}
         onTouchMove={onTouchMove}

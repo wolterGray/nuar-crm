@@ -1,4 +1,5 @@
 import {useCallback} from "react";
+import {reorderWorkTasksByDrop} from "../utils/taskSort.js";
 
 export function useTaskHandlers({
   createLocalId,
@@ -100,17 +101,19 @@ export function useTaskHandlers({
   const reorderTasks = useCallback(
     (draggedTaskId, targetTaskId) => {
       setTasks((current) => {
-        const draggedIndex = current.findIndex((item) => item.id === draggedTaskId);
-        const targetIndex = current.findIndex((item) => item.id === targetTaskId);
+        const notes = current.filter((item) => item.type === "note");
+        const work = current.filter((item) => item.type !== "note");
+        const reordered = reorderWorkTasksByDrop(
+          work,
+          draggedTaskId,
+          targetTaskId,
+        );
 
-        if (draggedIndex === -1 || targetIndex === -1) {
+        if (reordered === work) {
           return current;
         }
 
-        const nextTasks = [...current];
-        const [draggedTask] = nextTasks.splice(draggedIndex, 1);
-        nextTasks.splice(targetIndex, 0, draggedTask);
-        return nextTasks;
+        return [...reordered, ...notes];
       });
     },
     [setTasks],

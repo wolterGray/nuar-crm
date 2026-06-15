@@ -5,10 +5,8 @@ import {
   GripVertical,
   Lightbulb,
   PackagePlus,
-  Pencil,
   Plus,
   StickyNote,
-  Trash2,
 } from "lucide-react";
 import WaitlistPanel from "../WaitlistPanel.jsx";
 import PageHeader from "../PageHeader.jsx";
@@ -17,14 +15,19 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  TouchSensor,
+  pointerWithin,
   useDraggable,
   useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {useMemo, useState, useEffect} from "react";
+import {useEffect, useMemo, useState} from "react";
+import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {getTodayInput} from "../../utils/dateHelpers.js";
 import {formatMoney} from "../../utils/formatters.jsx";
+import {sortWorkTasks} from "../../utils/taskSort.js";
 import {
   getSupplyStockStatus,
   getSupplyStockStatusLabel,
@@ -38,6 +41,72 @@ const getTaskStatusLabel = (task) => {
     return "Просрочено";
   return "В работе";
 };
+
+const getTaskIndicatorClass = (task, status) => {
+  if (task.status === "completed") return "task-indicator-completed";
+  if (task.priority === "Высокий" || status === "Просрочено") {
+    return "task-indicator-urgent";
+  }
+  if (task.priority === "Средний") return "task-indicator-medium";
+  return "task-indicator-low";
+};
+
+const getNoteIconClass = (category) => {
+  if (category === "Идея") return "note-icon-idea";
+  if (category === "Заказать") return "note-icon-order";
+  if (category === "Личное") return "note-icon-personal";
+  return "note-icon-thought";
+};
+
+const getSupplyIndicatorClass = (stockStatus) => {
+  if (stockStatus === "out") return "supply-indicator-critical";
+  if (stockStatus === "low") return "supply-indicator-low";
+  return "supply-indicator-ok";
+};
+
+const getSupplyIconClass = (stockStatus) => {
+  if (stockStatus === "out") return "supply-icon-critical";
+  if (stockStatus === "low") return "supply-icon-low";
+  return "supply-icon-ok";
+};
+
+const taskCollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  if (pointerCollisions.length > 0) {
+    return pointerCollisions;
+  }
+
+  return closestCenter(args);
+};
+
+function TaskDragPreview({task}) {
+  const status = getTaskStatusLabel(task);
+
+  return (
+    <article
+      className={`task-row task-drag-preview task-${task.status} ${getTaskIndicatorClass(task, status)}`}>
+      <div className="task-row-content">
+        <div aria-hidden="true" className="task-drag-handle task-drag-handle-preview">
+          <GripVertical size={15} />
+        </div>
+        <div className="operations-card-head">
+          <span aria-hidden="true" className="task-check task-check-preview" />
+          <div className="operations-card-body">
+            <strong>{task.title}</strong>
+            <span>{task.note || "Без комментария"}</span>
+          </div>
+        </div>
+        <div className="task-meta">
+          <b className={`task-priority priority-${task.priority}`}>
+            {task.priority}
+          </b>
+          <small>{task.dueDate || "Без срока"}</small>
+          <em>{status}</em>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 function DraggableTaskRow({children, className, id, task}) {
   const {
@@ -66,16 +135,18 @@ function DraggableTaskRow({children, className, id, task}) {
       }`}
       id={id}
       ref={setNodeRef}>
-      <button
-        aria-label={`Переместить задачу: ${task.title}`}
-        className="task-drag-handle"
-        title="Переместить"
-        type="button"
-        {...listeners}
-        {...attributes}>
-        <GripVertical size={15} />
-      </button>
-      {children}
+      <div className="task-row-content">
+        <button
+          aria-label={`Переместить задачу: ${task.title}`}
+          className="task-drag-handle"
+          title="Переместить"
+          type="button"
+          {...listeners}
+          {...attributes}>
+          <GripVertical size={15} />
+        </button>
+        {children}
+      </div>
     </article>
   );
 }
@@ -102,16 +173,25 @@ function OperationsPage({
   onDeleteSupply,
   onChangeSupplyStock,
 }) {
+  const {isMobile} = useBreakpoint();
   const [draggedTask, setDraggedTask] = useState(null);
+  const [openItemMenuId, setOpenItemMenuId] = useState(null);
   const [activeMode, setActiveMode] = useState("tasks");
   const [mobileSection, setMobileSection] = useState("tasks");
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
   const sensors = useSensors(
-    useSensor(PointerSensor, {activationConstraint: {distance: 4}}),
+    useSensor(PointerSensor, {activationConstraint: {distance: 6}}),
+    useSensor(TouchSensor, {
+      activationConstraint: {delay: 120, tolerance: 8},
+    }),
   );
   const notes = tasks.filter((task) => task.type === "note");
   const workTasks = tasks.filter((task) => task.type !== "note");
+  const sortedWorkTasks = useMemo(
+    () => sortWorkTasks(workTasks),
+    [workTasks],
+  );
   const activeTasks = workTasks.filter((task) => task.status !== "completed");
   const completedTasks = workTasks.filter((task) => task.status === "completed");
   const lowStockCount = supplies.filter(isSupplyLowStock).length;
@@ -141,6 +221,10 @@ function OperationsPage({
     onAddNote({title, category: noteCategory});
     setNoteText("");
   };
+
+  useEffect(() => {
+    setOpenItemMenuId(null);
+  }, [activeMode, mobileSection]);
 
   useEffect(() => {
     if (!alertFocus?.entityId) {
@@ -173,50 +257,58 @@ function OperationsPage({
     String(alertFocus?.entityId) === String(entityId);
 
   return (
-    <section className="operations-page">
+    <section
+      className={`operations-page ${isMobile ? "operations-page-mobile" : ""}`}>
       <PageHeader
         description="Рабочие дела, закупки и остатки расходников"
-        title="Операции">
-        <div className="operations-page-tabs">
-          <button
-            className={mobileSection === "tasks" ? "active" : ""}
-            type="button"
-            onClick={() => setMobileSection("tasks")}>
-            Задачи
-          </button>
-          <button
-            className={mobileSection === "supplies" ? "active" : ""}
-            type="button"
-            onClick={() => setMobileSection("supplies")}>
-            Склад
-          </button>
-          <button
-            className={mobileSection === "waitlist" ? "active" : ""}
-            type="button"
-            onClick={() => setMobileSection("waitlist")}>
-            Лист ожидания
-          </button>
-        </div>
-        <div className="operations-summary">
-          <span>
-            <b>{activeTasks.length}</b> задач
-          </span>
-          <span>
-            <b>{notes.length}</b> заметок
-          </span>
-          <span>
-            <b>{activeWaitlistCount}</b> в листе
-          </span>
-          <span className={lowStockCount > 0 ? "operations-summary-alert" : ""}>
-            <b>{lowStockCount}</b> нужно пополнить
-          </span>
-        </div>
-      </PageHeader>
+        title="Операции"
+        actions={
+          <>
+            <div className="operations-page-tabs">
+              <button
+                className={mobileSection === "tasks" ? "active" : ""}
+                type="button"
+                onClick={() => setMobileSection("tasks")}>
+                Задачи
+              </button>
+              <button
+                className={mobileSection === "supplies" ? "active" : ""}
+                type="button"
+                onClick={() => setMobileSection("supplies")}>
+                Склад
+              </button>
+              <button
+                className={mobileSection === "waitlist" ? "active" : ""}
+                type="button"
+                onClick={() => setMobileSection("waitlist")}>
+                Лист ожидания
+              </button>
+            </div>
+            <div className="operations-summary">
+              <span>
+                <b>{activeTasks.length}</b> задач
+              </span>
+              <span>
+                <b>{notes.length}</b> заметок
+              </span>
+              <span>
+                <b>{activeWaitlistCount}</b> в листе
+              </span>
+              <span
+                className={
+                  lowStockCount > 0 ? "operations-summary-alert" : ""
+                }>
+                <b>{lowStockCount}</b> нужно пополнить
+              </span>
+            </div>
+          </>
+        }
+      />
 
       <div className="operations-grid">
         <section
           className={`panel operations-panel operations-panel-tasks ${
-            mobileSection === "supplies" ? "operations-panel-hidden-mobile" : ""
+            mobileSection !== "tasks" ? "operations-panel-hidden-mobile" : ""
           }`}>
           <div className="operations-panel-header">
             <div>
@@ -258,16 +350,15 @@ function OperationsPage({
           </div>
           {activeMode === "tasks" ? (
             <DndContext
-              autoScroll={false}
-              collisionDetection={closestCenter}
+              collisionDetection={taskCollisionDetection}
               sensors={sensors}
               onDragCancel={() => setDraggedTask(null)}
               onDragStart={({active}) =>
                 setDraggedTask(active.data.current?.task ?? null)
               }
               onDragEnd={({active, over}) => {
-                const draggedTaskId = active.data.current?.task.id;
-                const targetTaskId = over?.data.current?.task.id;
+                const draggedTaskId = active.data.current?.task?.id;
+                const targetTaskId = over?.data.current?.task?.id;
 
                 if (
                   draggedTaskId &&
@@ -280,26 +371,37 @@ function OperationsPage({
                 setDraggedTask(null);
               }}>
               <div className="operations-list">
-                {workTasks.map((task) => {
+                {sortedWorkTasks.map((task) => {
                   const status = getTaskStatusLabel(task);
+                  const isHighPriorityActive =
+                    task.priority === "Высокий" && task.status !== "completed";
                   return (
                     <DraggableTaskRow
-                      className={`task-row task-${task.status} ${status === "Просрочено" ? "task-overdue" : ""} ${isFocused(task.id) ? "alert-focus-pulse" : ""}`}
+                      className={`task-row task-${task.status} ${getTaskIndicatorClass(task, status)} ${isHighPriorityActive ? "task-priority-high-blink" : ""} ${status === "Просрочено" ? "task-overdue" : ""} ${isFocused(task.id) ? "alert-focus-pulse" : ""}`}
                       id={`alert-focus-${task.id}`}
                       key={task.id}
                       task={task}>
-                      <button
-                        aria-label="Завершить задачу"
-                        className="task-check"
-                        disabled={task.status === "completed"}
-                        title="Завершить"
-                        type="button"
-                        onClick={() => onCompleteTask(task)}>
-                        {task.status === "completed" && <Check size={14} />}
-                      </button>
-                      <div>
-                        <strong>{task.title}</strong>
-                        <span>{task.note || "Без комментария"}</span>
+                      <div className="operations-card-head">
+                        <button
+                          aria-label="Завершить задачу"
+                          className="task-check"
+                          disabled={task.status === "completed"}
+                          title="Завершить"
+                          type="button"
+                          onClick={() => onCompleteTask(task)}>
+                          {task.status === "completed" && <Check size={14} />}
+                        </button>
+                        <div className="operations-card-body">
+                          <strong>{task.title}</strong>
+                          <span>{task.note || "Без комментария"}</span>
+                        </div>
+                        <RowActionsMenu
+                          itemId={task.id}
+                          openMenuId={openItemMenuId}
+                          setOpenMenuId={setOpenItemMenuId}
+                          onDelete={() => onDeleteTask(task)}
+                          onEdit={() => onEditTask(task)}
+                        />
                       </div>
                       <div className="task-meta">
                         <b className={`task-priority priority-${task.priority}`}>
@@ -308,24 +410,6 @@ function OperationsPage({
                         <small>{task.dueDate || "Без срока"}</small>
                         <em>{status}</em>
                       </div>
-                      <div className="employee-actions">
-                        <button
-                          aria-label="Редактировать задачу"
-                          className="compact-icon-button"
-                          title="Редактировать"
-                          type="button"
-                          onClick={() => onEditTask(task)}>
-                          <Pencil size={15} />
-                        </button>
-                        <button
-                          aria-label="Удалить задачу"
-                          className="compact-icon-button danger"
-                          title="Удалить"
-                          type="button"
-                          onClick={() => onDeleteTask(task)}>
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
                     </DraggableTaskRow>
                   );
                 })}
@@ -333,13 +417,8 @@ function OperationsPage({
                   <p className="operations-empty">Задач пока нет.</p>
                 )}
               </div>
-              <DragOverlay>
-                {draggedTask && (
-                  <div className="task-drag-overlay">
-                    <GripVertical size={15} />
-                    <strong>{draggedTask.title}</strong>
-                  </div>
-                )}
+              <DragOverlay dropAnimation={{duration: 180, easing: "ease"}}>
+                {draggedTask ? <TaskDragPreview task={draggedTask} /> : null}
               </DragOverlay>
             </DndContext>
           ) : (
@@ -367,34 +446,35 @@ function OperationsPage({
               <div className="operations-list notes-list">
                 {notes.map((note) => (
                   <article className="note-row" key={note.id}>
-                    <span>
-                      {note.priority === "Идея" ? (
-                        <Lightbulb size={15} />
-                      ) : (
-                        <StickyNote size={15} />
-                      )}
-                    </span>
-                    <div>
-                      <strong>{note.title}</strong>
-                      <small>{note.note || note.priority || "Заметка"}</small>
+                    <div className="operations-card-head">
+                      <span
+                        className={`operations-card-icon note-card-icon ${getNoteIconClass(note.priority)}`}>
+                        {note.priority === "Идея" ? (
+                          <Lightbulb size={15} />
+                        ) : (
+                          <StickyNote size={15} />
+                        )}
+                      </span>
+                      <div className="operations-card-body">
+                        <strong>{note.title}</strong>
+                      </div>
+                      <RowActionsMenu
+                        itemId={note.id}
+                        openMenuId={openItemMenuId}
+                        setOpenMenuId={setOpenItemMenuId}
+                        onDelete={() => onDeleteTask(note)}
+                        onEdit={() => onEditTask(note)}
+                      />
                     </div>
-                    <div className="employee-actions">
-                      <button
-                        aria-label="Редактировать заметку"
-                        className="compact-icon-button"
-                        title="Редактировать"
-                        type="button"
-                        onClick={() => onEditTask(note)}>
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        aria-label="Удалить заметку"
-                        className="compact-icon-button danger"
-                        title="Удалить"
-                        type="button"
-                        onClick={() => onDeleteTask(note)}>
-                        <Trash2 size={15} />
-                      </button>
+                    <div className="note-meta">
+                      <span className="note-meta-item">
+                        {note.priority || "Мысль"}
+                      </span>
+                      {note.note && note.note !== note.title ? (
+                        <span className="note-meta-item note-meta-detail">
+                          {note.note}
+                        </span>
+                      ) : null}
                     </div>
                   </article>
                 ))}
@@ -410,7 +490,7 @@ function OperationsPage({
 
         <section
           className={`panel operations-panel operations-panel-supplies ${
-            mobileSection === "tasks" ? "operations-panel-hidden-mobile" : ""
+            mobileSection !== "supplies" ? "operations-panel-hidden-mobile" : ""
           }`}>
           <div className="operations-panel-header">
             <div>
@@ -446,28 +526,43 @@ function OperationsPage({
 
               return (
                 <article
-                  className={`supply-row ${rowClassName} ${isFocused(item.id) ? "alert-focus-pulse" : ""}`}
+                  className={`supply-row ${rowClassName} ${getSupplyIndicatorClass(stockStatus)} ${isFocused(item.id) ? "alert-focus-pulse" : ""}`}
                   id={`alert-focus-${item.id}`}
                   key={item.id}>
-                  <div>
-                    <div className="supply-row-title">
-                      <strong>{item.name}</strong>
-                      {stockBadge ? (
-                        <span className="supply-stock-badge">{stockBadge}</span>
+                  <div className="operations-card-head">
+                    <span
+                      className={`operations-card-icon supply-card-icon ${getSupplyIconClass(stockStatus)}`}>
+                      <PackagePlus size={15} />
+                    </span>
+                    <div className="operations-card-body">
+                      <div className="supply-row-title">
+                        <strong>{item.name}</strong>
+                        {stockBadge ? (
+                          <span className="supply-stock-badge">{stockBadge}</span>
+                        ) : null}
+                      </div>
+                      {item.note && item.note !== "Расходный материал" ? (
+                        <span className="supply-row-note">{item.note}</span>
                       ) : null}
                     </div>
-                    <span>{item.note || "Расходный материал"}</span>
+                    <RowActionsMenu
+                      itemId={item.id}
+                      openMenuId={openItemMenuId}
+                      setOpenMenuId={setOpenItemMenuId}
+                      onDelete={() => onDeleteSupply(item)}
+                      onEdit={() => onEditSupply(item)}
+                    />
                   </div>
-                  <div className="supply-stock">
-                    <small>Остаток</small>
-                    <strong>
-                      {item.stock} {item.unit}
-                    </strong>
-                    <span>минимум {item.minStock}</span>
-                  </div>
-                  <div className="supply-cost">
-                    <small>Стоимость</small>
-                    <strong>{formatMoney(item.cost)}</strong>
+                  <div className="supply-meta">
+                    <span className="supply-meta-item">
+                      <strong>
+                        {item.stock} {item.unit}
+                      </strong>
+                      <small>мин {item.minStock}</small>
+                    </span>
+                    <span className="supply-meta-item supply-meta-cost">
+                      <strong>{formatMoney(item.cost)}</strong>
+                    </span>
                   </div>
                   <div className="supply-actions">
                     <button
@@ -484,30 +579,16 @@ function OperationsPage({
                       Заказать
                     </button>
                     <button
+                      aria-label="Уменьшить остаток"
                       type="button"
                       onClick={() => onChangeSupplyStock(item, -1)}>
                       −
                     </button>
                     <button
+                      aria-label="Увеличить остаток"
                       type="button"
                       onClick={() => onChangeSupplyStock(item, 1)}>
                       +
-                    </button>
-                    <button
-                      aria-label="Редактировать расходник"
-                      className="compact-icon-button"
-                      title="Редактировать"
-                      type="button"
-                      onClick={() => onEditSupply(item)}>
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      aria-label="Удалить расходник"
-                      className="compact-icon-button danger"
-                      title="Удалить"
-                      type="button"
-                      onClick={() => onDeleteSupply(item)}>
-                      <Trash2 size={15} />
                     </button>
                   </div>
                 </article>
@@ -521,9 +602,11 @@ function OperationsPage({
 
         <section
           className={`panel operations-panel operations-panel-waitlist ${
-            mobileSection === "waitlist" ? "active" : ""
+            mobileSection !== "waitlist" ? "operations-panel-hidden-mobile" : ""
           }`}>
           <WaitlistPanel
+            openMenuId={openItemMenuId}
+            setOpenMenuId={setOpenItemMenuId}
             waitlistEntries={waitlistEntries}
             onAdd={onAddWaitlistEntry}
             onBook={onBookWaitlistEntry}
