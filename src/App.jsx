@@ -184,6 +184,7 @@ function App() {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [supplyModalOpen, setSupplyModalOpen] = useState(false);
   const [financialOperationModalOpen, setFinancialOperationModalOpen] = useState(false);
+  const [clientDetailsOpen, setClientDetailsOpen] = useState(false);
   const [editingFinancialOperation, setEditingFinancialOperation] = useState(null);
   const [editingJournalVisit, setEditingJournalVisit] = useState(null);
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -260,19 +261,54 @@ function App() {
     autoCompletedCalendarEntryIdsRef.current = new Set(autoCompletedCalendarEntryIds);
   }, [autoCompletedCalendarEntryIds]);
 
-  const pullRefreshBlocked =
-    employeeModalOpen ||
-    clientModalOpen ||
-    serviceModalOpen ||
-    packageModalOpen ||
-    clientPackageModalOpen ||
-    certificateModalOpen ||
-    messageTemplateModalOpen ||
-    calendarEntryModalOpen ||
-    taskModalOpen ||
-    supplyModalOpen ||
-    financialOperationModalOpen ||
-    clientAlertsOpen;
+  const pullRefreshOnRefreshRef = useRef(async () => {
+    window.location.reload();
+  });
+
+  const pullRefreshBlockedExtrasRef = useRef({
+    clientSearchOpen: false,
+    pendingEntityDelete: null,
+    waitlistModalOpen: false,
+    waitlistOfferOpen: false,
+  });
+
+  const getPullRefreshBlocked = useCallback(() => {
+    const extras = pullRefreshBlockedExtrasRef.current;
+
+    return (
+      employeeModalOpen ||
+      clientModalOpen ||
+      serviceModalOpen ||
+      packageModalOpen ||
+      clientPackageModalOpen ||
+      certificateModalOpen ||
+      messageTemplateModalOpen ||
+      calendarEntryModalOpen ||
+      taskModalOpen ||
+      supplyModalOpen ||
+      financialOperationModalOpen ||
+      clientAlertsOpen ||
+      clientDetailsOpen ||
+      extras.clientSearchOpen ||
+      extras.waitlistModalOpen ||
+      extras.waitlistOfferOpen ||
+      Boolean(extras.pendingEntityDelete)
+    );
+  }, [
+    employeeModalOpen,
+    clientModalOpen,
+    serviceModalOpen,
+    packageModalOpen,
+    clientPackageModalOpen,
+    certificateModalOpen,
+    messageTemplateModalOpen,
+    calendarEntryModalOpen,
+    taskModalOpen,
+    supplyModalOpen,
+    financialOperationModalOpen,
+    clientAlertsOpen,
+    clientDetailsOpen,
+  ]);
 
   const {
     handlePullRefreshEnd,
@@ -281,7 +317,8 @@ function App() {
     pullRefresh,
   } = usePullRefresh({
     contentRef,
-    isBlocked: pullRefreshBlocked,
+    isBlocked: getPullRefreshBlocked,
+    onRefresh: () => pullRefreshOnRefreshRef.current(),
   });
 
   const {
@@ -554,6 +591,16 @@ function App() {
       });
     },
   });
+
+  useEffect(() => {
+    pullRefreshOnRefreshRef.current = async () => {
+      await applyRemoteSnapshot();
+      pushNotificationRef.current({
+        message: "Данные синхронизированы с облаком",
+        title: "Обновлено",
+      });
+    };
+  }, [applyRemoteSnapshot]);
 
   useEffect(() => {
     onSessionLostRef.current = resetCloudSyncState;
@@ -938,6 +985,13 @@ function App() {
   useEffect(() => {
     onCalendarSlotFreedRef.current = waitlist.notifyCalendarSlotFreed;
   }, [waitlist.notifyCalendarSlotFreed]);
+
+  pullRefreshBlockedExtrasRef.current = {
+    clientSearchOpen: clientSearch.isOpen,
+    pendingEntityDelete,
+    waitlistModalOpen: waitlist.waitlistModalOpen,
+    waitlistOfferOpen: Boolean(waitlist.pendingFreedSlot),
+  };
 
   const dayClose = useDayCloseHandlers({
     calendarEntries,
@@ -1774,6 +1828,7 @@ function App() {
             remindCalendarClient={remindCalendarClient}
             reorderTasks={reorderTasks}
             repeatClientVisit={repeatClientVisit}
+            onClientDetailsOpenChange={setClientDetailsOpen}
             requestCalendarAction={requestCalendarAction}
             requestDeleteClient={requestDeleteClient}
             requestDeleteClientPackage={requestDeleteClientPackage}

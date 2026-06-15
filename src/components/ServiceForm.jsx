@@ -1,5 +1,6 @@
 import {useMemo} from "react";
 import {getRandomServiceColor} from "../utils/serviceColors.js";
+import HintIcon, {FieldLabel} from "./HintIcon.jsx";
 
 const serviceDurations = [30, 60, 75, 90, 120];
 
@@ -43,6 +44,67 @@ function ServiceForm({service, onSubmit}) {
               />
             </label>
           ))}
+        </div>
+        <div className="employee-pricing-panel">
+          <div className="employee-pricing-panel-heading">
+            <h3>
+              Интервал между бронированиями
+              <HintIcon>
+                Дополнительное время до и после услуги для онлайн-записи на сайте.
+                Учитывается при расчёте свободных слотов вместе с занятостью календаря.
+              </HintIcon>
+            </h3>
+          </div>
+          <label className="toggle-row">
+            <input
+              defaultChecked={service?.siteBookingBufferBeforeEnabled ?? false}
+              name="siteBookingBufferBeforeEnabled"
+              type="checkbox"
+            />
+            <span className="labeled-hint-row">
+              Буфер до услуги
+              <HintIcon>
+                Сколько минут должно быть свободно перед началом записи. Например,
+                15 минут на подготовку кабинета.
+              </HintIcon>
+            </span>
+          </label>
+          <label>
+            <FieldLabel hint="Минуты до начала услуги, если буфер включён.">
+              Минут до
+            </FieldLabel>
+            <input
+              min="0"
+              name="siteBookingBufferBeforeMinutes"
+              type="number"
+              defaultValue={service?.siteBookingBufferBeforeMinutes ?? 15}
+            />
+          </label>
+          <label className="toggle-row">
+            <input
+              defaultChecked={service?.siteBookingBufferAfterEnabled ?? false}
+              name="siteBookingBufferAfterEnabled"
+              type="checkbox"
+            />
+            <span className="labeled-hint-row">
+              Буфер после услуги
+              <HintIcon>
+                Сколько минут блокировать после окончания услуги. Например, 30 минут
+                на уборку после бандажа или крио.
+              </HintIcon>
+            </span>
+          </label>
+          <label>
+            <FieldLabel hint="Минуты после окончания услуги, если буфер включён.">
+              Минут после
+            </FieldLabel>
+            <input
+              min="0"
+              name="siteBookingBufferAfterMinutes"
+              type="number"
+              defaultValue={service?.siteBookingBufferAfterMinutes ?? 30}
+            />
+          </label>
         </div>
         <button className="submit-button">
           {service ? "Сохранить услугу" : "Добавить услугу"}

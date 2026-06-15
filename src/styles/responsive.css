@@ -134,7 +134,7 @@
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   html,
   body,
   #root {
@@ -465,16 +465,28 @@
 
   .payments-content .visits-panel .page-header-unified-actions button {
     justify-content: center;
+    gap: 5px;
     min-width: 0;
-    min-height: 34px;
-    padding: 0 6px;
-    font-size: 0;
+    min-height: var(--mobile-touch-target, 44px);
+    padding: 0 8px;
+    font-size: 11px;
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  .payments-content .visits-panel .page-header-unified-actions .payments-toolbar-icon-only span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
 
   .payments-content .visits-panel .page-header-unified-actions .add-visit-button {
-    min-height: 40px;
-    padding: 3px 5px;
-    font-size: 10px;
+    min-height: var(--mobile-touch-target, 44px);
+    padding: 0 8px;
+    font-size: 11px;
     line-height: 1.05;
     text-align: center;
   }
@@ -559,8 +571,10 @@
     top: auto;
     right: auto;
     z-index: 47;
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .toast-stack {
@@ -623,7 +637,7 @@
     border-radius: 7px;
     color: #aeb6c4;
     background: transparent;
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .mobile-bottom-nav button.active {
@@ -908,8 +922,10 @@
   }
 
   .calendar-icon-button {
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     border-color: transparent;
     background: transparent;
     box-shadow: none;
@@ -985,10 +1001,10 @@
     bottom: calc(94px + env(safe-area-inset-bottom));
     left: 50%;
     z-index: 48;
-    min-height: 34px;
-    padding: 0 12px;
+    min-height: var(--mobile-touch-target, 44px);
+    padding: 0 14px;
     border-radius: 999px;
-    font-size: 11px;
+    font-size: 12px;
     transform: translateX(-50%);
   }
 
@@ -1550,8 +1566,10 @@
   }
 
   .client-row-actions .row-action {
-    width: 30px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .clients-table-row:nth-last-child(-n + 3) .row-action-menu,

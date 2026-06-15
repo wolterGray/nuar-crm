@@ -74,7 +74,7 @@
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .statistics-header-actions {
     gap: 8px;
   }
@@ -89,7 +89,7 @@
   }
 }
 
-@media (min-width: 701px) {
+@media (min-width: 769px) {
   .content:not(.calendar-content) {
     padding: 12px;
   }
@@ -712,7 +712,7 @@ button:focus-visible {
   border-color: var(--line-soft);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   body {
     background: #f7f7f6;
   }

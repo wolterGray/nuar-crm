@@ -1,6 +1,7 @@
 import {Calculator, CheckCircle2, Lock, Trash2, Unlock} from "lucide-react";
 import {useMemo, useState} from "react";
 import PageHeader from "./PageHeader.jsx";
+import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
 import {
   buildDayCloseBreakdown,
@@ -201,6 +202,7 @@ function DayClosePanel({
   onReopenDayClose,
   onRemoveDayClose,
 }) {
+  const {isMobile} = useBreakpoint();
   const [selectedDate, setSelectedDate] = useState(getTodayInput());
   const journal = useMemo(
     () => getJournalForDate?.(selectedDate),
@@ -227,6 +229,21 @@ function DayClosePanel({
   }
 
   return (
+    <details className="day-close-collapsible" open={!isMobile}>
+      <summary className="day-close-collapsible-summary">
+        <span>Закрытие дня</span>
+        {existingRecord ? (
+          <span className="day-close-status is-closed">
+            <Lock size={14} />
+            Закрыт
+          </span>
+        ) : (
+          <span className="day-close-status is-open">
+            <Unlock size={14} />
+            Открыт
+          </span>
+        )}
+      </summary>
     <section className="panel day-close-panel">
       <PageHeader
         description="Сверка наличных и поступлений по журналу за выбранный день"
@@ -279,6 +296,7 @@ function DayClosePanel({
         </div>
       ) : null}
     </section>
+    </details>
   );
 }
 

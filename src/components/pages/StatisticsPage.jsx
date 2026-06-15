@@ -9,6 +9,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {
   Area,
   AreaChart,
@@ -78,6 +79,7 @@ function StatisticsPage({
   clients,
   employees,
 }) {
+  const {isMobile} = useBreakpoint();
   const [startDate, setStartDate] = useState(getMonthStart);
   const [endDate, setEndDate] = useState(getTodayInput);
   const [master, setMaster] = useState("");
@@ -479,17 +481,18 @@ function StatisticsPage({
   };
 
   return (
-    <section className="statistics-page">
+    <section className={`statistics-page ${isMobile ? "statistics-page-mobile" : ""}`}>
       <PageHeader
         className="statistics-hero-header"
         description="Финансы, визиты и сигналы по клиентам"
         headerActions={
           <button
-            className="statistics-export-button"
+            aria-label="Экспорт Excel"
+            className={`statistics-export-button ${isMobile ? "statistics-toolbar-icon-only" : ""}`}
             type="button"
             onClick={exportStatistics}>
             <Download size={15} />
-            <span>Экспорт Excel</span>
+            <span>{isMobile ? "Экспорт" : "Экспорт Excel"}</span>
           </button>
         }
         title="Статистика"
@@ -535,6 +538,7 @@ function StatisticsPage({
         </div>
       </div>
 
+      {!isMobile && (
       <article className="statistics-panel statistics-today-panel">
         <div className="statistics-panel-title">
           <div>
@@ -594,6 +598,7 @@ function StatisticsPage({
           </ul>
         )}
       </article>
+      )}
 
       <article className="statistics-income-card">
         <div className="statistics-income-top">
@@ -646,7 +651,93 @@ function StatisticsPage({
                 )}% к прошлому периоду`}
           </strong>
         </div>
-        {chartData.length < 2 ? (
+        {isMobile ? (
+          <details className="statistics-mobile-collapsible">
+            <summary>График дохода</summary>
+            {chartData.length < 2 ? (
+              <div className="statistics-chart-empty">
+                Недостаточно данных для построения динамики дохода
+              </div>
+            ) : (
+              <div className="statistics-revenue-chart">
+                <div className="statistics-revenue-chart-frame">
+                  <ResponsiveContainer
+                    width="100%"
+                    height={190}
+                    minWidth={260}
+                    minHeight={190}>
+                    <AreaChart
+                      data={chartData}
+                      margin={{top: 10, right: 8, left: -10, bottom: 0}}>
+                      <defs>
+                        <linearGradient
+                          id="statisticsRevenueGradient"
+                          x1="0"
+                          x2="0"
+                          y1="0"
+                          y2="1">
+                          <stop
+                            offset="5%"
+                            stopColor={revenueChartColor}
+                            stopOpacity={0.22}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor={revenueChartColor}
+                            stopOpacity={0.02}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        stroke="rgba(126, 137, 151, 0.18)"
+                        strokeDasharray="4 6"
+                        vertical={false}
+                      />
+                      <XAxis
+                        axisLine={false}
+                        dataKey="label"
+                        interval="preserveStartEnd"
+                        minTickGap={12}
+                        tick={{fill: "#8a8f98", fontSize: 11}}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tick={{
+                          fill: "#8a8f98",
+                          fontSize: 10,
+                        }}
+                        tickFormatter={(value) =>
+                          formatCompactMoney(value).replace(" zł", "")
+                        }
+                        tickLine={false}
+                        width={52}
+                      />
+                      <Tooltip
+                        content={<RevenueTooltip formatIncome={formatIncome} />}
+                        cursor={{fill: "rgba(63, 42, 99, 0.08)"}}
+                      />
+                      <Area
+                        dataKey="income"
+                        dot={{
+                          fill: "#fff",
+                          r: 3,
+                          stroke: revenueChartColor,
+                          strokeWidth: 2,
+                        }}
+                        fill="url(#statisticsRevenueGradient)"
+                        isAnimationActive={false}
+                        stroke={revenueChartColor}
+                        strokeWidth={2.4}
+                        type="monotone"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+          </details>
+        ) : chartData.length < 2 ? (
           <div className="statistics-chart-empty">
             Недостаточно данных для построения динамики дохода
           </div>
@@ -730,6 +821,30 @@ function StatisticsPage({
         )}
       </article>
 
+      {isMobile ? (
+        <details className="statistics-mobile-collapsible">
+          <summary>Требует внимания · {attentionItems.length}</summary>
+          <article className="statistics-panel statistics-attention-panel">
+            <div className="statistics-attention-list">
+              {attentionItems.map((item) => (
+                <div
+                  className={`statistics-attention-item ${item.tone}`}
+                  key={item.title}>
+                  {item.tone === "good" ? (
+                    <CheckCircle2 size={17} />
+                  ) : (
+                    <AlertTriangle size={17} />
+                  )}
+                  <span>
+                    <strong>{item.title}</strong>
+                    <small>{item.text}</small>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </article>
+        </details>
+      ) : (
       <article className="statistics-panel statistics-attention-panel">
         <div className="statistics-panel-title">
           <div>
@@ -755,13 +870,42 @@ function StatisticsPage({
           ))}
         </div>
       </article>
+      )}
 
+      {isMobile ? (
+        <details className="statistics-mobile-collapsible">
+          <summary>KPI · {kpiStats.length} показателей</summary>
+          <div className="statistics-kpi-grid">
+            {kpiStats.map((item) => (
+              <StatisticsCard item={item} key={item.label} />
+            ))}
+          </div>
+        </details>
+      ) : (
       <div className="statistics-kpi-grid">
         {kpiStats.map((item) => (
           <StatisticsCard item={item} key={item.label} />
         ))}
       </div>
+      )}
 
+      {isMobile ? (
+        <details className="statistics-mobile-collapsible">
+          <summary>Оплаты · {formatIncome(analytics.paymentTotal)}</summary>
+          <article className="statistics-panel statistics-payments-panel">
+            <div className="statistics-payment-bars">
+              {paymentRows.map((item) => (
+                <PaymentRow
+                  item={item}
+                  key={item.label}
+                  total={analytics.paymentTotal}
+                  value={formatIncome(item.value)}
+                />
+              ))}
+            </div>
+          </article>
+        </details>
+      ) : (
       <article className="statistics-panel statistics-payments-panel">
         <div className="statistics-panel-title">
           <div>
@@ -781,6 +925,7 @@ function StatisticsPage({
           ))}
         </div>
       </article>
+      )}
 
       <details className="statistics-details-panel">
         <summary>

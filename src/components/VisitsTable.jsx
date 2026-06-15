@@ -16,6 +16,8 @@ import {
   getVisitTransactionTotal,
 } from "../utils/visits.jsx";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
+import VisitMobileCard from "./VisitMobileCard.jsx";
+import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import PageHeader from "./PageHeader.jsx";
 import {
   Badge,
@@ -66,6 +68,7 @@ function VisitsTable({
   onDeleteVisit,
   addLabel = "Добавить операцию",
 }) {
+  const {isMobile} = useBreakpoint();
   const [sorting, setSorting] = useState([{id: "date", desc: true}]);
   const [globalFilter, setGlobalFilter] = useState("");
   const clientOptions = [...new Set(visits.map((visit) => visit.client))];
@@ -295,22 +298,30 @@ function VisitsTable({
       <PageHeader
         actions={
           <>
-            <Button className="secondary-button" type="button" onClick={exportVisits}>
+            <Button
+              aria-label="Экспорт CSV"
+              className={`secondary-button ${isMobile ? "payments-toolbar-icon-only" : ""}`}
+              type="button"
+              onClick={exportVisits}>
               <Download size={16} />
-              Экспорт CSV
+              <span>{isMobile ? "CSV" : "Экспорт CSV"}</span>
             </Button>
-            <Button className="secondary-button" onClick={onResetFilters}>
+            <Button
+              aria-label="Сбросить фильтры"
+              className={`secondary-button ${isMobile ? "payments-toolbar-icon-only" : ""}`}
+              onClick={onResetFilters}>
               <ListFilter size={16} />
-              Сбросить
+              <span>{isMobile ? "Сброс" : "Сбросить"}</span>
             </Button>
             {onAddVisit && (
               <Button
-                className="add-visit-button"
+                aria-label={addLabel}
+                className={`add-visit-button ${isMobile ? "payments-toolbar-icon-only" : ""}`}
                 type="button"
                 variant="primary"
                 onClick={onAddVisit}>
                 <Plus size={16} />
-                {addLabel}
+                <span>{isMobile ? "Добавить" : addLabel}</span>
               </Button>
             )}
           </>
@@ -378,40 +389,15 @@ function VisitsTable({
           const visit = row.original;
 
           return (
-            <article
-              className={`visit-mobile-card ${visit.isPlanned ? "visit-mobile-card-planned" : ""}`}
+            <VisitMobileCard
+              isPlanned={visit.isPlanned}
               key={visit.id}
-              onClick={() => onEditVisit?.(visit)}>
-              <div className="visit-mobile-card-top">
-                <div>
-                  <strong>{visit.client}</strong>
-                  <span>{visit.date}</span>
-                </div>
-                <b>{formatMoney(getVisitTransactionTotal(visit))}</b>
-              </div>
-              <div className="visit-mobile-card-meta">
-                <span>{visit.service}</span>
-                <span>{visit.payment || "Не указано"}</span>
-              </div>
-              <div
-                className="visit-mobile-card-actions"
-                onClick={(event) => event.stopPropagation()}>
-                <button
-                  className="client-quick-action"
-                  type="button"
-                  onClick={() => onEditVisit?.(visit)}>
-                  Изменить
-                </button>
-                {onDeleteVisit && (
-                  <button
-                    className="client-quick-action visit-mobile-delete"
-                    type="button"
-                    onClick={() => onDeleteVisit(visit)}>
-                    Удалить
-                  </button>
-                )}
-              </div>
-            </article>
+              showMaster
+              showStatus={Boolean(visit.status)}
+              visit={visit}
+              onDelete={onDeleteVisit}
+              onEdit={onEditVisit}
+            />
           );
         })}
       </div>

@@ -1,6 +1,6 @@
 import {useCallback, useRef, useState} from "react";
 
-export function usePullRefresh({contentRef, isBlocked}) {
+export function usePullRefresh({contentRef, isBlocked, onRefresh}) {
   const [pullRefresh, setPullRefresh] = useState({
     distance: 0,
     refreshing: false,
@@ -35,8 +35,8 @@ export function usePullRefresh({contentRef, isBlocked}) {
 
       if (
         pullRefresh.refreshing ||
-        isBlocked ||
-        !window.matchMedia("(max-width: 700px)").matches ||
+        (typeof isBlocked === "function" ? isBlocked() : isBlocked) ||
+        !window.matchMedia("(max-width: 768px)").matches ||
         ["input", "textarea", "select", "button"].includes(tagName)
       ) {
         pullTrackingRef.current = false;
@@ -87,13 +87,28 @@ export function usePullRefresh({contentRef, isBlocked}) {
     pullTrackingRef.current = false;
     setPullRefresh((current) => {
       if (current.distance >= 58) {
-        window.setTimeout(() => window.location.reload(), 180);
+        const finishRefresh = async () => {
+          try {
+            if (onRefresh) {
+              await onRefresh();
+            } else {
+              window.location.reload();
+            }
+          } finally {
+            setPullRefresh({distance: 0, refreshing: false});
+          }
+        };
+
+        window.setTimeout(() => {
+          finishRefresh();
+        }, 180);
+
         return {distance: 68, refreshing: true};
       }
 
       return {distance: 0, refreshing: false};
     });
-  }, []);
+  }, [onRefresh]);
 
   return {
     handlePullRefreshEnd,

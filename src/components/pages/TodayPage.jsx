@@ -10,8 +10,9 @@ import {
   Plus,
   WalletCards,
 } from "lucide-react";
-import {useMemo} from "react";
+import {useMemo, useState} from "react";
 import PageHeader from "../PageHeader.jsx";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {buildTodayDashboard} from "../../utils/todayDashboard.js";
 import {formatCompactMoney, formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
 import {getSupplyStockStatusLabel} from "../../utils/supplyStock.js";
@@ -61,6 +62,8 @@ function TodayPage({
   tasks,
   visits,
 }) {
+  const {isMobile} = useBreakpoint();
+  const [mobileSection, setMobileSection] = useState("tasks");
   const dashboard = useMemo(
     () =>
       buildTodayDashboard({
@@ -97,7 +100,7 @@ function TodayPage({
       : formatMoney(value);
 
   return (
-    <section className="today-page statistics-page">
+    <section className={`today-page statistics-page ${isMobile ? "today-page-mobile" : ""}`}>
       <PageHeader
         actions={
           <>
@@ -214,7 +217,41 @@ function TodayPage({
           )}
         </article>
 
+        {isMobile && (
+          <div aria-label="Разделы дня" className="today-mobile-tabs" role="tablist">
+            <button
+              className={mobileSection === "tasks" ? "active" : ""}
+              role="tab"
+              type="button"
+              onClick={() => setMobileSection("tasks")}>
+              Задачи
+            </button>
+            <button
+              className={mobileSection === "slots" ? "active" : ""}
+              role="tab"
+              type="button"
+              onClick={() => setMobileSection("slots")}>
+              Окна
+            </button>
+            <button
+              className={mobileSection === "stock" ? "active" : ""}
+              role="tab"
+              type="button"
+              onClick={() => setMobileSection("stock")}>
+              Склад
+            </button>
+            <button
+              className={mobileSection === "alerts" ? "active" : ""}
+              role="tab"
+              type="button"
+              onClick={() => setMobileSection("alerts")}>
+              Важное
+            </button>
+          </div>
+        )}
+
         <div className="today-side-column">
+          {!isMobile && (
           <article className="panel today-panel">
             <div className="today-panel-heading">
               <div>
@@ -236,7 +273,9 @@ function TodayPage({
               </ul>
             )}
           </article>
+          )}
 
+          {(!isMobile || mobileSection === "slots") && (
           <article className="panel today-panel">
             <div className="today-panel-heading">
               <div>
@@ -260,7 +299,9 @@ function TodayPage({
               </ul>
             )}
           </article>
+          )}
 
+          {(!isMobile || mobileSection === "tasks") && (
           <article className="panel today-panel">
             <div className="today-panel-heading">
               <div>
@@ -296,7 +337,9 @@ function TodayPage({
               </ul>
             )}
           </article>
+          )}
 
+          {(!isMobile || mobileSection === "stock") && (
           <article className="panel today-panel">
             <div className="today-panel-heading">
               <div>
@@ -331,8 +374,10 @@ function TodayPage({
               </ul>
             )}
           </article>
+          )}
 
-          {(dashboard.todayBirthdays.length > 0 ||
+          {(!isMobile || mobileSection === "alerts") &&
+          (dashboard.todayBirthdays.length > 0 ||
             dashboard.priorityAlerts.length > 0) && (
             <article className="panel today-panel">
               <div className="today-panel-heading">

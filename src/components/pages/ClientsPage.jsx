@@ -28,6 +28,8 @@ import {
   isArchivedClientPackage,
 } from "../../utils/clientPackages.js";
 import PageHeader from "../PageHeader.jsx";
+import MobileSheet from "../MobileSheet.jsx";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 
 function ClientsPage({
   alertFocus,
@@ -47,11 +49,18 @@ function ClientsPage({
   onAddToWaitlist,
   onAddVisit,
   onRepeatVisit,
+  onViewedClientChange,
 }) {
   const [openClientMenuId, setOpenClientMenuId] = useState(null);
   const [viewedClient, setViewedClient] = useState(null);
   const [visitHistoryTab, setVisitHistoryTab] = useState("future");
   const [search, setSearch] = useState("");
+  const {isMobile} = useBreakpoint();
+
+  useEffect(() => {
+    onViewedClientChange?.(Boolean(viewedClient));
+  }, [onViewedClientChange, viewedClient]);
+
   const viewedClientCommunications = communicationLog
     .filter(
       (entry) =>
@@ -456,29 +465,42 @@ function ClientsPage({
         )}
       </div>
       {activeViewedClient && (
-        <div
-          className="modal-backdrop"
-          role="presentation"
-          onClick={() => setViewedClient(null)}>
-          <section
-            aria-labelledby="client-card-title"
-            aria-modal="true"
-            className="employee-modal client-details-modal"
-            role="dialog"
-            onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header">
-              <div>
-                <span>Карточка клиента</span>
-                <h2 id="client-card-title">{activeViewedClient.name}</h2>
-              </div>
+        <MobileSheet
+          className="employee-modal client-details-modal"
+          fullscreen={isMobile}
+          isOpen
+          labelledBy="client-card-title"
+          title={activeViewedClient.name}
+          description="Карточка клиента"
+          onClose={() => setViewedClient(null)}
+          footer={
+            <div className="client-details-actions">
               <button
-                aria-label="Закрыть карточку"
-                className="modal-close"
+                className="submit-button"
                 type="button"
-                onClick={() => setViewedClient(null)}>
-                <X size={18} />
+                onClick={() => onAddVisit(activeViewedClient)}>
+                <CalendarPlus size={15} />
+                Добавить визит
               </button>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => onMessageClient(activeViewedClient)}>
+                <MessageSquareText size={15} />
+                Написать
+              </button>
+              <a
+                aria-disabled={!activeViewedClient.phone}
+                className="secondary-button"
+                href={
+                  activeViewedClient.phone ? `tel:${activeViewedClient.phone}` : undefined
+                }>
+                <Phone size={15} />
+                Позвонить
+              </a>
             </div>
+          }>
+          <div className="client-details-body">
             <div className="client-details-grid">
               <span>
                 Телефон <strong>{activeViewedClient.phone || "—"}</strong>
@@ -546,31 +568,6 @@ function ClientsPage({
               <span>
                 Теги <strong>{activeViewedClient.tags || "—"}</strong>
               </span>
-            </div>
-            <div className="client-details-actions">
-              <button
-                className="submit-button"
-                type="button"
-                onClick={() => onAddVisit(activeViewedClient)}>
-                <CalendarPlus size={15} />
-                Добавить визит
-              </button>
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={() => onMessageClient(activeViewedClient)}>
-                <MessageSquareText size={15} />
-                Написать
-              </button>
-              <a
-                aria-disabled={!activeViewedClient.phone}
-                className="secondary-button"
-                href={
-                  activeViewedClient.phone ? `tel:${activeViewedClient.phone}` : undefined
-                }>
-                <Phone size={15} />
-                Позвонить
-              </a>
             </div>
             {activeViewedClient.birthday && (
               <div className="client-birthday-note">
@@ -708,8 +705,8 @@ function ClientsPage({
                 </p>
               )}
             </div>
-          </section>
-        </div>
+          </div>
+        </MobileSheet>
       )}
     </section>
   );

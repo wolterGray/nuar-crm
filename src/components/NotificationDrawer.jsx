@@ -9,14 +9,14 @@ import NotificationAlertRow from "./NotificationAlertRow.jsx";
 const POPOVER_WIDTH = 360;
 const POPOVER_GAP = 8;
 const VIEWPORT_PADDING = 16;
-const MOBILE_BREAKPOINT = 700;
+import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 
 const getPopoverStyle = (buttonRect) => {
   if (!buttonRect) {
     return {};
   }
 
-  const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+  const isMobile = window.innerWidth <= MOBILE_MAX_WIDTH;
 
   if (isMobile) {
     const top = buttonRect.bottom + POPOVER_GAP;

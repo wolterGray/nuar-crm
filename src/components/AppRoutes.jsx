@@ -104,6 +104,7 @@ export default function AppRoutes({activePage, ...props}) {
           }
           onAddVisit={props.addClientCalendarVisit}
           onRepeatVisit={props.repeatClientVisit}
+          onViewedClientChange={props.onClientDetailsOpenChange}
         />
       );
 

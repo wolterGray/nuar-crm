@@ -13,7 +13,7 @@ function ConfirmDialog({ open, title, message, confirmLabel, onCancel, onConfirm
   return (
     <Dialog open={open}>
       <DialogBackdrop className="dialog-backdrop">
-        <DialogContent className="confirm-dialog" aria-labelledby="confirm-title">
+        <DialogContent className="confirm-dialog mobile-sheet mobile-sheet-compact" aria-labelledby="confirm-title">
           <DialogHeader>
             <DialogTitle id="confirm-title">{title}</DialogTitle>
             <DialogDescription>{message}</DialogDescription>

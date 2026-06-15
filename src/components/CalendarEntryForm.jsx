@@ -467,7 +467,8 @@ function CalendarEntryForm({
       </div>}
       <input {...register("kind")} type="hidden" />
       {kind === "visit" && (
-        <>
+        <fieldset className="calendar-form-section">
+          <legend>Клиент</legend>
           <label className="calendar-entry-client-field">
             Клиент
             <ClientAutocomplete
@@ -500,8 +501,10 @@ function CalendarEntryForm({
               Данные заполнены по предыдущему визиту клиента.
             </p>
           )}
-        </>
+        </fieldset>
       )}
+      <fieldset className="calendar-form-section">
+        <legend>{kind === "visit" ? "Время и мастер" : "Время"}</legend>
       <div className="calendar-entry-grid calendar-entry-time-grid">
         <label className="calendar-entry-date-field">
           Дата
@@ -576,6 +579,7 @@ function CalendarEntryForm({
           <FieldError message={errors.master?.message} />
         </label>
       </div>
+      </fieldset>
 
       {kind !== "visit" ? (
         <>
@@ -593,6 +597,8 @@ function CalendarEntryForm({
         </>
       ) : (
         <>
+          <fieldset className="calendar-form-section">
+            <legend>Услуга и оплата</legend>
           <div className="calendar-entry-grid calendar-entry-service-grid">
             <label className="calendar-entry-service-field">
               Услуга
@@ -721,6 +727,9 @@ function CalendarEntryForm({
               </label>
             )}
           </div>
+          </fieldset>
+          <fieldset className="calendar-form-section">
+            <legend>Дополнительно</legend>
           <div className="calendar-entry-grid calendar-entry-money-grid">
             <label>
               Чай
@@ -801,6 +810,7 @@ function CalendarEntryForm({
               </table>
             </div>
           ) : null}
+          </fieldset>
           <input
             {...register("color")}
             type="hidden"
@@ -820,9 +830,11 @@ function CalendarEntryForm({
           rows="2"
         />
       </label>}
-      <button className="submit-button" type="submit">
-        {initialEntry || kind !== "visit" ? "Сохранить" : "Добавить в календарь"}
-      </button>
+      <div className="calendar-entry-form-footer">
+        <button className="submit-button" type="submit">
+          {initialEntry || kind !== "visit" ? "Сохранить" : "Добавить в календарь"}
+        </button>
+      </div>
     </form>
   );
 }

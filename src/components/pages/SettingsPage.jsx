@@ -12,12 +12,26 @@ import {
 } from "lucide-react";
 import {useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import HintIcon, {FieldLabel} from "../HintIcon.jsx";
 import PageHeader from "../PageHeader.jsx";
 import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
 import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
+
+function SettingsMobileCollapsible({children, isMobile, title}) {
+  if (!isMobile) {
+    return children;
+  }
+
+  return (
+    <details className="settings-mobile-collapsible">
+      <summary>{title}</summary>
+      <div className="settings-mobile-collapsible-body">{children}</div>
+    </details>
+  );
+}
 
 function SettingsPage({
   initialTab = "interface",
@@ -44,6 +58,7 @@ function SettingsPage({
   onExportData,
   onImportData,
 }) {
+  const {isMobile} = useBreakpoint();
   const formRef = useRef(null);
   const [activeTab, setActiveTab] = useState(initialTab);
   const settingsTabs = [
@@ -192,6 +207,7 @@ function SettingsPage({
               </div>
             </div>
             <div className="settings-options">
+              <SettingsMobileCollapsible isMobile={isMobile} title="Колокольчик и пакеты">
               <label className="toggle-row">
                 <input
                   name="notificationsEnabled"
@@ -244,6 +260,8 @@ function SettingsPage({
                   defaultValue={settings.certificateLowBalancePercent ?? 20}
                 />
               </label>
+              </SettingsMobileCollapsible>
+              <SettingsMobileCollapsible isMobile={isMobile} title="SMS, отзывы и follow-up">
               <label className="toggle-row">
                 <input
                   name="smsRemindersEnabled"
@@ -489,6 +507,8 @@ function SettingsPage({
                   defaultValue={settings.inactiveClientAlertLimit ?? 5}
                 />
               </label>
+              </SettingsMobileCollapsible>
+              <SettingsMobileCollapsible isMobile={isMobile} title="Визиты и напоминания">
               <label className="toggle-row">
                 <input
                   name="inactiveClientAlertsEnabled"
@@ -612,6 +632,8 @@ function SettingsPage({
                   <option value="60">За 1 час</option>
                 </select>
               </label>
+              </SettingsMobileCollapsible>
+              <SettingsMobileCollapsible isMobile={isMobile} title="Тихие часы">
               <label className="toggle-row">
                 <input
                   name="quietHoursEnabled"
@@ -643,6 +665,7 @@ function SettingsPage({
                   />
                 </label>
               </div>
+              </SettingsMobileCollapsible>
             </div>
           </section>
 
@@ -660,6 +683,7 @@ function SettingsPage({
               </div>
             </div>
             <div className="settings-options settings-options-grid">
+              <SettingsMobileCollapsible isMobile={isMobile} title="Рабочее время">
               <label>
                 Начало рабочего дня
                 <input
@@ -688,6 +712,8 @@ function SettingsPage({
                   <option value="60">60 минут</option>
                 </select>
               </label>
+              </SettingsMobileCollapsible>
+              <SettingsMobileCollapsible isMobile={isMobile} title="Отображение календаря">
               <label className="toggle-row">
                 <input
                   name="calendarRemindersVisible"
@@ -732,6 +758,7 @@ function SettingsPage({
                   <HintIcon>Спрашивать подтверждение при пересечении записей</HintIcon>
                 </span>
               </label>
+              </SettingsMobileCollapsible>
             </div>
           </section>
 
@@ -739,6 +766,7 @@ function SettingsPage({
           className={`panel settings-panel settings-tab-panel ${
             activeTab === "integrations" ? "active" : ""
           }`}>
+            <SettingsMobileCollapsible isMobile={isMobile} title="Gmail OAuth">
             <div className="settings-panel-heading">
               <MailCheck size={18} />
               <div>
@@ -761,12 +789,14 @@ function SettingsPage({
                 />
               </label>
             </div>
+            </SettingsMobileCollapsible>
           </section>
 
         <section
           className={`panel settings-panel settings-tab-panel ${
             activeTab === "integrations" ? "active" : ""
           }`}>
+          <SettingsMobileCollapsible isMobile={isMobile} title="SMS-напоминания">
           {smsReminders ? (
             <SmsRemindersPanel
               status={smsReminders.status}
@@ -775,6 +805,8 @@ function SettingsPage({
               onRefreshStatus={smsReminders.refreshStatus}
             />
           ) : null}
+          </SettingsMobileCollapsible>
+          <SettingsMobileCollapsible isMobile={isMobile} title="Запросы отзывов">
           {reviewRequests ? (
             <ReviewRequestsPanel
               pushNotification={pushNotification}
@@ -784,6 +816,8 @@ function SettingsPage({
               onRefreshStatus={reviewRequests.refreshStatus}
             />
           ) : null}
+          </SettingsMobileCollapsible>
+          <SettingsMobileCollapsible isMobile={isMobile} title="Неактивные клиенты">
           {inactiveFollowUp ? (
             <InactiveFollowUpPanel
               pushNotification={pushNotification}
@@ -793,6 +827,8 @@ function SettingsPage({
               onRefreshStatus={inactiveFollowUp.refreshStatus}
             />
           ) : null}
+          </SettingsMobileCollapsible>
+          <SettingsMobileCollapsible isMobile={isMobile} title="Telegram-дайджест">
           {telegramDigest ? (
             <TelegramDigestPanel
               pushNotification={pushNotification}
@@ -802,6 +838,7 @@ function SettingsPage({
               onSend={telegramDigest.runSend}
             />
           ) : null}
+          </SettingsMobileCollapsible>
         </section>
 
         <section
@@ -817,6 +854,7 @@ function SettingsPage({
                 </h2>
             </div>
           </div>
+              <SettingsMobileCollapsible isMobile={isMobile} title="Синхронизация Supabase">
               <div className="settings-options settings-cloud-panel">
                 <div className="settings-cloud-status">
                   <span>Последнее сохранение</span>
@@ -869,6 +907,7 @@ function SettingsPage({
                   </button>
                 </div>
             </div>
+              </SettingsMobileCollapsible>
           </section>
 
         <section
@@ -884,6 +923,7 @@ function SettingsPage({
                 </h2>
                 </div>
               </div>
+              <SettingsMobileCollapsible isMobile={isMobile} title="Резервная копия">
               <div className="settings-options">
                 <p>
                   Сохраняйте копию после важных изменений. В файл входят визиты,
@@ -909,6 +949,7 @@ function SettingsPage({
                   </label>
                 </div>
             </div>
+              </SettingsMobileCollapsible>
           </section>
 
         <div className="settings-actions settings-save-bar settings-grid-full">

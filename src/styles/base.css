@@ -835,7 +835,7 @@ h1 {
   overflow: visible;
 }
 
-@media (min-width: 701px) {
+@media (min-width: 769px) {
   .page-header-actions {
     position: static;
   }

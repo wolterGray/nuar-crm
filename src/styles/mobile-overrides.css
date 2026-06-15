@@ -1,6 +1,6 @@
-/* Mobile polish layer — loaded last. Breakpoint matches responsive.css (700px). */
+/* Mobile polish layer — loaded last. Breakpoint matches responsive.css (768px). */
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   /* Shared touch targets */
   .add-visit-button,
   .secondary-button,
@@ -95,7 +95,7 @@
   }
 
   .calendar-entry-service-grid {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr) !important;
+    grid-template-columns: 1fr !important;
   }
 
   .calendar-entry-package-field {
@@ -321,6 +321,794 @@
   .employee-actions .compact-icon-button,
   .catalog-row-card .employee-actions .compact-icon-button {
     flex: 0 0 auto;
+  }
+
+  /* Calendar day list (mobile primary view) */
+  .calendar-layout-day-list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .calendar-day-list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px 10px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar-day-list-empty {
+    align-items: center;
+    justify-content: center;
+    padding-top: 48px;
+    text-align: center;
+  }
+
+  .calendar-day-list-empty p {
+    margin: 0 0 16px;
+    color: var(--text-soft, #737780);
+    font-size: 14px;
+  }
+
+  .calendar-day-list-add {
+    width: min(100%, 280px);
+  }
+
+  .calendar-view-toggle {
+    position: fixed;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    left: 16px;
+    z-index: 48;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 50%;
+    color: var(--text-main, #353941);
+    background: var(--surface, #fff);
+    box-shadow: 0 8px 20px rgba(17, 19, 24, 0.12);
+  }
+
+  .calendar-layout-day-list ~ .calendar-toolbar-actions .mobile-calendar-feed-button,
+  .calendar-layout-day-list .mobile-calendar-feed-button {
+    display: none !important;
+  }
+
+  .visit-mobile-card-time-block {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .visit-mobile-card-time {
+    color: var(--accent-color, #c9483c);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .visit-mobile-card-client {
+    overflow: hidden;
+    color: var(--text-main, #15171c);
+    font-size: 15px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .visit-mobile-card-amount {
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .visit-mobile-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+
+  .visit-mobile-card-meta span {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .visit-mobile-card-status {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-color, #d2ad7d) 14%, transparent);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .visit-mobile-card-status-cancelled,
+  .visit-mobile-card-status-no_show {
+    background: color-mix(in srgb, #c9483c 12%, transparent);
+    color: #c9483c;
+  }
+
+  .visit-mobile-card-status-confirmed {
+    background: color-mix(in srgb, #45a873 14%, transparent);
+    color: #2d8a5c;
+  }
+
+  .visit-mobile-card-debt {
+    color: #c9483c;
+    font-weight: 700;
+  }
+
+  .visit-mobile-card-next {
+    border-color: color-mix(in srgb, var(--accent-color, #d2ad7d) 42%, #ececea);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-color, #d2ad7d) 18%, transparent);
+  }
+
+  .visit-mobile-card-reserved {
+    opacity: 0.92;
+    border-style: dashed;
+  }
+
+  .visit-mobile-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .visit-mobile-action-icon {
+    display: inline-grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    padding: 0;
+    border-radius: 10px;
+  }
+
+  .visit-mobile-action-icon svg {
+    flex-shrink: 0;
+  }
+
+  .visit-mobile-action-confirm {
+    color: #2d8a5c;
+  }
+
+  .visit-mobile-action-cancel {
+    color: #c9483c;
+  }
+
+  /* Client search full-screen on mobile */
+  .client-search-dialog {
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  /* Calendar client card → bottom sheet */
+  .calendar-client-card {
+    width: 100%;
+    max-height: min(94dvh, 100dvh);
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+  }
+
+  /* Calendar entry form sections */
+  .calendar-form-section {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .calendar-form-section legend {
+    width: 100%;
+    margin-bottom: 2px;
+    padding: 0;
+    color: var(--text-soft, #737780);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .calendar-entry-form-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    display: grid;
+    gap: 8px;
+    margin: 4px -16px -16px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line-soft, #e5e5e3);
+    background: color-mix(in srgb, var(--surface, #fff) 94%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .calendar-entry-form-footer .submit-button {
+    width: 100%;
+    min-height: 50px;
+    margin: 0;
+  }
+
+  .visit-pricing-table table {
+    display: block;
+  }
+
+  .visit-pricing-table tbody,
+  .visit-pricing-table tr {
+    display: grid;
+    gap: 6px;
+  }
+
+  .visit-pricing-table tr {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: 8px 10px;
+    border: 1px solid var(--line-soft, #e5e5e3);
+    border-radius: 8px;
+  }
+
+  .visit-pricing-table th,
+  .visit-pricing-table td {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 13px;
+  }
+
+  .visit-pricing-table th {
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .visit-pricing-table td {
+    text-align: right;
+    font-weight: 700;
+  }
+
+  /* Today page: hide extra KPI on small phones */
+  .today-page .statistics-today-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .client-search-backdrop {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .today-page .page-header-unified-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+
+  .today-page .page-header-unified-actions button {
+    min-height: var(--mobile-touch-target, 44px);
+    font-size: 12px;
+  }
+
+  /* Today mobile tabs */
+  .today-page-mobile .today-mobile-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .today-mobile-tabs button {
+    min-height: var(--mobile-touch-target, 44px);
+    padding: 0 6px;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 999px;
+    color: var(--text-soft, #737780);
+    background: var(--surface, #fff);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .today-mobile-tabs button.active {
+    color: var(--text-main, #15171c);
+    border-color: color-mix(in srgb, var(--accent-color, #d2ad7d) 40%, #e4e5e4);
+    background: color-mix(in srgb, var(--accent-color, #d2ad7d) 14%, #fff);
+  }
+
+  .today-page-mobile .today-side-column {
+    display: grid;
+    gap: 10px;
+  }
+
+  .icon-button,
+  .today-visit-actions .icon-button,
+  .today-task-row .icon-button {
+    display: inline-grid;
+    width: var(--mobile-touch-target, 44px);
+    height: var(--mobile-touch-target, 44px);
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 10px;
+    color: var(--text-main, #353941);
+    background: var(--surface, #fff);
+  }
+
+  /* Statistics mobile */
+  .statistics-page-mobile .statistics-mobile-collapsible {
+    margin-bottom: 10px;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 12px;
+    background: var(--surface, #fff);
+    overflow: hidden;
+  }
+
+  .statistics-mobile-collapsible summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: var(--mobile-touch-target, 44px);
+    padding: 12px 14px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .statistics-mobile-collapsible summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .statistics-mobile-collapsible .statistics-panel {
+    margin: 0;
+    padding: 0 14px 14px;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .statistics-toolbar-icon-only span {
+    font-size: 11px;
+  }
+
+  .statistics-export-button {
+    min-height: var(--mobile-touch-target, 44px);
+  }
+
+  .statistics-page-mobile .statistics-details-panel:not([open]) {
+    margin-bottom: 0;
+  }
+
+  /* Payments toolbar compact labels */
+  .payments-toolbar-icon-only {
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 6px !important;
+    line-height: 1.05;
+  }
+
+  .payments-toolbar-icon-only span {
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  /* Day close collapsible */
+  .day-close-collapsible {
+    margin-bottom: 10px;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 12px;
+    background: var(--surface, #fff);
+    overflow: hidden;
+  }
+
+  .day-close-collapsible-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: var(--mobile-touch-target, 44px);
+    padding: 12px 14px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .day-close-collapsible-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .day-close-collapsible .day-close-panel {
+    margin: 0;
+    padding-top: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .day-close-form input,
+  .day-close-form select,
+  .day-close-form textarea,
+  .day-close-form button,
+  .day-close-history button {
+    min-height: var(--mobile-touch-target, 44px);
+  }
+
+  .day-close-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .day-close-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .day-close-actions button {
+    width: 100%;
+  }
+
+  /* Client details sticky footer */
+  .client-details-modal {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .client-details-modal .modal-header {
+    flex: 0 0 auto;
+  }
+
+  .client-details-body {
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0 16px 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .client-details-footer {
+    flex: 0 0 auto;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line-soft, #e5e5e3);
+    background: color-mix(in srgb, var(--surface, #fff) 94%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .client-details-footer .client-details-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .client-details-footer .client-details-actions button,
+  .client-details-footer .client-details-actions a {
+    width: 100%;
+    min-height: var(--mobile-touch-target, 44px);
+    justify-content: center;
+  }
+
+  .client-details-modal .mobile-sheet-footer {
+    flex: 0 0 auto;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line-soft, #e5e5e3);
+    background: color-mix(in srgb, var(--surface, #fff) 94%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .client-details-modal .mobile-sheet-footer .client-details-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .client-details-modal .mobile-sheet-footer .client-details-actions button,
+  .client-details-modal .mobile-sheet-footer .client-details-actions a {
+    width: 100%;
+    min-height: var(--mobile-touch-target, 44px);
+    justify-content: center;
+  }
+
+  .calendar-client-card.mobile-sheet .mobile-sheet-footer .calendar-client-card-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .calendar-client-card.mobile-sheet .mobile-sheet-footer .calendar-client-card-actions button {
+    width: 100%;
+    min-height: var(--mobile-touch-target, 44px);
+    justify-content: center;
+  }
+
+  .client-visit-history-tabs button,
+  .client-repeat-visit,
+  .statistics-filters input,
+  .statistics-filters select,
+  .template-icon-button {
+    min-height: var(--mobile-touch-target, 44px);
+  }
+
+  /* MobileSheet */
+  .mobile-sheet-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .mobile-sheet {
+    display: flex;
+    width: 100%;
+    max-height: min(94dvh, 100dvh);
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 16px 16px 0 0;
+    background: var(--surface, #fff);
+    box-shadow: 0 -18px 42px rgba(17, 19, 24, 0.2);
+  }
+
+  .mobile-sheet-fullscreen {
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .mobile-sheet-compact {
+    max-height: min(80dvh, 100dvh);
+  }
+
+  .mobile-sheet-header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--line-soft, #e5e5e3);
+  }
+
+  .mobile-sheet-header h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .mobile-sheet-header p {
+    margin: 4px 0 0;
+    color: var(--text-soft, #737780);
+    font-size: 12px;
+  }
+
+  .mobile-sheet-body {
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-sheet-footer {
+    flex-shrink: 0;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line-soft, #e5e5e3);
+    background: color-mix(in srgb, var(--surface, #fff) 94%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .client-search-sheet .client-search-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft, #e5e5e3);
+  }
+
+  .client-search-sheet .client-search-header input {
+    flex: 1;
+    min-height: var(--mobile-touch-target, 44px);
+    border: 0;
+    background: transparent;
+    font-size: 16px;
+  }
+
+  .client-search-sheet .client-search-results {
+    padding: 8px 12px 16px;
+  }
+
+  .client-search-sheet .client-search-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    color: var(--text-soft, #737780);
+    font-size: 11px;
+  }
+
+  /* Swipe visit cards */
+  .visit-mobile-card-swipe {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .visit-mobile-card-swipe-behind {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end;
+    gap: 0;
+  }
+
+  .visit-mobile-swipe-action {
+    display: grid;
+    width: 56px;
+    place-items: center;
+    border: 0;
+    color: #fff;
+  }
+
+  .visit-mobile-swipe-call {
+    background: #3b82c4;
+  }
+
+  .visit-mobile-swipe-message {
+    background: #8b6fd6;
+  }
+
+  .visit-mobile-swipe-confirm {
+    background: #45a873;
+  }
+
+  .visit-mobile-swipe-cancel {
+    background: #c9483c;
+  }
+
+  .visit-mobile-swipe-edit {
+    background: #5d6168;
+  }
+
+  .visit-mobile-card-swipe-surface {
+    position: relative;
+    z-index: 1;
+    touch-action: pan-y;
+    transition: transform 0.18s ease;
+    will-change: transform;
+  }
+
+  /* Settings integrations collapsible */
+  .settings-mobile-collapsible {
+    margin-bottom: 10px;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface, #fff) 96%, transparent);
+    overflow: hidden;
+  }
+
+  .settings-mobile-collapsible summary {
+    min-height: var(--mobile-touch-target, 44px);
+    padding: 12px 14px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .settings-mobile-collapsible summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .settings-mobile-collapsible-body {
+    padding: 0 12px 12px;
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .crm-shell {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    grid-template-columns: unset !important;
+    --mobile-nav-offset: calc(76px + env(safe-area-inset-bottom));
+    --mobile-touch-target: 44px;
+  }
+
+  .sidebar {
+    display: none !important;
+  }
+
+  .sidebar-restore-button {
+    display: none !important;
+  }
+
+  .desktop-menu-icon {
+    display: none !important;
+  }
+
+  .mobile-menu-icon {
+    display: block !important;
+  }
+
+  .mobile-bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 52;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 7px 6px calc(7px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: #14171d;
+    box-shadow: 0 -12px 32px rgba(17, 19, 24, 0.16);
+  }
+
+  .mobile-bottom-nav button {
+    display: grid;
+    min-width: 0;
+    min-height: 48px;
+    place-items: center;
+    align-content: center;
+    gap: 4px;
+    border: 0;
+    border-radius: 7px;
+    color: #aeb6c4;
+    background: transparent;
+    font-size: 11px;
+  }
+
+  .mobile-bottom-nav button.active {
+    color: #f1d4ac;
+    background: rgba(210, 173, 125, 0.12);
+  }
+
+  .mobile-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    display: block;
+    border: 0;
+    background: rgba(17, 19, 24, 0.38);
+  }
+
+  .mobile-more-sheet {
+    position: fixed;
+    right: 10px;
+    bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+    left: 10px;
+    z-index: 57;
+    display: grid;
+    gap: 12px;
+    max-height: min(72dvh, 560px);
+    padding: 14px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid #e5e5e3;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 20px 52px rgba(17, 19, 24, 0.22);
+  }
+
+  .content {
+    padding-bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+  }
+}
+
+@media (min-width: 769px) {
+  .day-close-collapsible {
+    border: 0;
+    background: transparent;
+  }
+
+  .day-close-collapsible-summary {
+    display: none;
   }
 }
 

@@ -708,7 +708,7 @@
   min-width: 0;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .calendar-entry-grid,
   .calendar-entry-money-grid,
   .calendar-entry-service-grid,

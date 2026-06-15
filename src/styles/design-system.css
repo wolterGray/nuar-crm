@@ -366,6 +366,63 @@
   padding: 0;
 }
 
+.client-details-modal.mobile-sheet {
+  overflow: hidden;
+}
+
+.client-details-modal.mobile-sheet .mobile-sheet-header {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+}
+
+.client-details-modal.mobile-sheet .mobile-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 20px 12px;
+}
+
+.client-details-modal.mobile-sheet .mobile-sheet-footer {
+  flex-shrink: 0;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--line-soft, #e5e5e3);
+}
+
+.calendar-client-card.mobile-sheet {
+  display: flex;
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(88dvh, 860px);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.calendar-client-card.mobile-sheet .mobile-sheet-body {
+  display: grid;
+  gap: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 20px 16px;
+}
+
+.calendar-client-card-status {
+  display: inline-block;
+  margin-bottom: 4px;
+  color: var(--text-soft, #737780);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.calendar-client-card.mobile-sheet .mobile-sheet-footer .calendar-client-card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 .confirm-dialog {
   width: min(440px, calc(100vw - 32px));
   max-height: min(80dvh, 520px);
@@ -527,7 +584,7 @@
   margin-top: 14px;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .modal-backdrop {
     align-items: flex-end;
     padding: 0;
@@ -942,7 +999,7 @@
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .content,
   .home-content,
   .visits-content {

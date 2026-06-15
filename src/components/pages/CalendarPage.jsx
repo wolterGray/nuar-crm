@@ -1,10 +1,12 @@
 import {
-  BellRing,
   Ban,
+  BellRing,
   CalendarPlus,
   ClipboardList,
   ChevronLeft,
   ChevronRight,
+  LayoutGrid,
+  List,
   Mail,
   MessageSquareText,
   MoreVertical,
@@ -19,6 +21,10 @@ import {
 import {getTodayInput} from "../../utils/dateHelpers.js";
 import {normalizeCalendarEntryDate} from "../../utils/dateUtils.js";
 import PageHeader from "../PageHeader.jsx";
+import CalendarDayList from "../CalendarDayList.jsx";
+import MobileSheet from "../MobileSheet.jsx";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
+import {isMobileViewport} from "../../constants/breakpoints.js";
 import {
   DndContext,
   MouseSensor,
@@ -213,12 +219,14 @@ function CalendarPage({
   onStatus,
   overlayOpen,
 }) {
+  const {isMobile} = useBreakpoint();
   const [selectedDate, setSelectedDate] = useState(
     () => getTodayInput(),
   );
   const [now, setNow] = useState(new Date());
+  const [mobileCalendarView, setMobileCalendarView] = useState("list");
   const [remindersVisible, setRemindersVisible] = useState(
-    () => window.innerWidth > 700 && (settings.calendarRemindersVisible ?? true),
+    () => !isMobileViewport() && (settings.calendarRemindersVisible ?? true),
   );
   const [reminderFilter, setReminderFilter] = useState("active");
   const [openEntryMenuId, setOpenEntryMenuId] = useState(null);
@@ -328,6 +336,10 @@ function CalendarPage({
     const timer = window.setInterval(() => setNow(new Date()), 60000);
     return () => window.clearInterval(timer);
   }, []);
+
+  const showDayList = isMobile && mobileCalendarView === "list";
+  const showScheduleGrid = !isMobile || mobileCalendarView === "grid";
+  const showRemindersPanel = showScheduleGrid && !isMobile && remindersVisible;
 
   useEffect(
     () => () => {
@@ -481,7 +493,7 @@ function CalendarPage({
                 Сегодня
               </button>
             )}
-            {!remindersVisible && (
+            {!remindersVisible && !showDayList && (
               <button
                 aria-label="Открыть ленту дня"
                 className="calendar-feed-toggle calendar-feed-toggle-open"
@@ -491,14 +503,28 @@ function CalendarPage({
                 <ChevronLeft size={17} />
               </button>
             )}
-            <button
-              aria-label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
-              className={`mobile-calendar-feed-button ${overlayOpen ? "mobile-calendar-action-hidden" : ""}`}
-              title="Лента дня"
-              type="button"
-              onClick={() => setRemindersVisible((current) => !current)}>
-              {remindersVisible ? <X size={22} /> : <ClipboardList size={21} />}
-            </button>
+            {isMobile && (
+              <button
+                aria-label={showDayList ? "Показать сетку" : "Показать список"}
+                className={`calendar-view-toggle ${overlayOpen ? "mobile-calendar-action-hidden" : ""}`}
+                title={showDayList ? "Сетка" : "Список"}
+                type="button"
+                onClick={() =>
+                  setMobileCalendarView((current) => (current === "list" ? "grid" : "list"))
+                }>
+                {showDayList ? <LayoutGrid size={20} /> : <List size={20} />}
+              </button>
+            )}
+            {!isMobile && (
+              <button
+                aria-label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
+                className={`mobile-calendar-feed-button ${overlayOpen ? "mobile-calendar-action-hidden" : ""}`}
+                title="Лента дня"
+                type="button"
+                onClick={() => setRemindersVisible((current) => !current)}>
+                {remindersVisible ? <X size={22} /> : <ClipboardList size={21} />}
+              </button>
+            )}
             <button
               className={`add-visit-button calendar-mobile-add-button ${overlayOpen || remindersVisible ? "mobile-calendar-action-hidden" : ""}`}
               type="button"
@@ -548,7 +574,21 @@ function CalendarPage({
         })}
       </div>
 
-      <div className={`calendar-layout ${remindersVisible ? "" : "reminders-hidden"}`}>
+      <div className={`calendar-layout ${remindersVisible ? "" : "reminders-hidden"} ${showDayList ? "calendar-layout-day-list" : ""}`}>
+        {showDayList && (
+          <CalendarDayList
+            clients={clients}
+            entries={dayEntries}
+            nextVisitId={nextVisitId}
+            onAdd={() => onAdd({date: selectedDate})}
+            onDelete={onDelete}
+            onEdit={onEdit}
+            onRemind={onRemind}
+            onStatus={onStatus}
+            onViewClient={setViewedClientEntry}
+          />
+        )}
+        {showScheduleGrid && (
         <DndContext
           sensors={sensors}
           onDragCancel={() => setDragPreview(null)}
@@ -796,8 +836,9 @@ function CalendarPage({
           </div>
         )}
         </DndContext>
+        )}
 
-        {remindersVisible && (
+        {showRemindersPanel && (
           <button
             aria-label="Закрыть ленту дня"
             className="mobile-calendar-reminders-backdrop"
@@ -805,7 +846,7 @@ function CalendarPage({
             onClick={() => setRemindersVisible(false)}
           />
         )}
-        {remindersVisible && <aside className="panel calendar-reminders">
+        {showRemindersPanel && <aside className="panel calendar-reminders">
           <div className="calendar-reminders-header">
             <div>
               <h2>Лента дня</h2>
@@ -941,6 +982,7 @@ function CalendarPage({
           clientPackages={clientPackages}
           currentEntry={viewedClientEntry}
           entries={entries}
+          isMobile={isMobile}
           visits={visits}
           onAdd={() => {
             onAdd({date: selectedDate, client: viewedClientEntry.client});
@@ -960,6 +1002,7 @@ function ClientCalendarCard({
   clientPackages,
   currentEntry,
   entries,
+  isMobile,
   visits,
   onAdd,
   onClose,
@@ -984,18 +1027,15 @@ function ClientCalendarCard({
   );
 
   return (
-    <div className="modal-backdrop" role="presentation">
-      <section aria-modal="true" className="calendar-client-card" role="dialog" aria-labelledby="calendar-client-card-title">
-        <header>
-          <div>
-            <span>{client?.status || "Активный"}</span>
-            <h2 id="calendar-client-card-title">{clientName}</h2>
-            <p>{currentEntry.time}–{getEntryEndTime(currentEntry)} · {currentEntry.service}</p>
-          </div>
-          <button aria-label="Закрыть карточку клиента" className="modal-close" type="button" onClick={onClose}>
-            <X size={18} />
-          </button>
-        </header>
+    <MobileSheet
+      className="calendar-client-card"
+      fullscreen={isMobile}
+      isOpen
+      labelledBy="calendar-client-card-title"
+      title={clientName}
+      description={`${currentEntry.time}–${getEntryEndTime(currentEntry)} · ${currentEntry.service}`}
+      onClose={onClose}
+      footer={
         <div className="calendar-client-card-actions">
           <button className="submit-button" type="button" onClick={onAdd}>
             <CalendarPlus size={15} />
@@ -1006,36 +1046,37 @@ function ClientCalendarCard({
             Написать
           </button>
         </div>
-        <div className="calendar-client-card-grid">
-          <span><Phone size={14} /> Телефон <strong>{client?.phone || "—"}</strong></span>
-          <span><Mail size={14} /> Email <strong>{client?.email || "—"}</strong></span>
-          <span>Instagram <strong>{client?.instagram || "—"}</strong></span>
-          <span>Telegram <strong>{client?.telegram || "—"}</strong></span>
-          <span>Источник <strong>{client?.source || "—"}</strong></span>
-          <span>Предпочтение <strong>{client?.preference || "—"}</strong></span>
-          <span><Tag size={14} /> Теги <strong>{client?.tags || "—"}</strong></span>
-          <span>Пакеты <strong>{packages.length}</strong></span>
+      }>
+      <span className="calendar-client-card-status">{client?.status || "Активный"}</span>
+      <div className="calendar-client-card-grid">
+        <span><Phone size={14} /> Телефон <strong>{client?.phone || "—"}</strong></span>
+        <span><Mail size={14} /> Email <strong>{client?.email || "—"}</strong></span>
+        <span>Instagram <strong>{client?.instagram || "—"}</strong></span>
+        <span>Telegram <strong>{client?.telegram || "—"}</strong></span>
+        <span>Источник <strong>{client?.source || "—"}</strong></span>
+        <span>Предпочтение <strong>{client?.preference || "—"}</strong></span>
+        <span><Tag size={14} /> Теги <strong>{client?.tags || "—"}</strong></span>
+        <span>Пакеты <strong>{packages.length}</strong></span>
+      </div>
+      <div className="calendar-client-summary-counts">
+        <span><b>1</b> текущий визит</span>
+        <span><b>{futureVisits.length}</b> будущих</span>
+        <span><b>{pastVisits.length}</b> прошлых</span>
+        <span><b>{packages.reduce((sum, item) => sum + Number(item.remainingVisits || 0), 0)}</b> сеансов в пакетах</span>
+      </div>
+      <div className="calendar-client-card-note">
+        <strong>Комментарий</strong>
+        <p>{client?.note || "Заметок пока нет."}</p>
+      </div>
+      {futureVisits.length > 0 && (
+        <div className="calendar-client-card-visits">
+          <strong>Будущие записи</strong>
+          {futureVisits.slice(0, 3).map((visit) => (
+            <small key={visit.id}>{toDisplayDate(visit.date)} · {visit.time} · {visit.service}</small>
+          ))}
         </div>
-        <div className="calendar-client-summary-counts">
-          <span><b>1</b> текущий визит</span>
-          <span><b>{futureVisits.length}</b> будущих</span>
-          <span><b>{pastVisits.length}</b> прошлых</span>
-          <span><b>{packages.reduce((sum, item) => sum + Number(item.remainingVisits || 0), 0)}</b> сеансов в пакетах</span>
-        </div>
-        <div className="calendar-client-card-note">
-          <strong>Комментарий</strong>
-          <p>{client?.note || "Заметок пока нет."}</p>
-        </div>
-        {futureVisits.length > 0 && (
-          <div className="calendar-client-card-visits">
-            <strong>Будущие записи</strong>
-            {futureVisits.slice(0, 3).map((visit) => (
-              <small key={visit.id}>{toDisplayDate(visit.date)} · {visit.time} · {visit.service}</small>
-            ))}
-          </div>
-        )}
-      </section>
-    </div>
+      )}
+    </MobileSheet>
   );
 }
 

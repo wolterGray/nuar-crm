@@ -64,7 +64,7 @@
 }
 
 .mobile-calendar-week {
-  display: grid;
+  display: none;
   grid-auto-columns: calc((100% - 24px) / 7);
   grid-auto-flow: column;
   flex: 0 0 66px;
@@ -79,6 +79,12 @@
   scroll-snap-type: x proximity;
   scrollbar-width: none;
   touch-action: pan-x;
+}
+
+@media (max-width: 768px) {
+  .mobile-calendar-week {
+    display: grid;
+  }
 }
 
 .mobile-calendar-week::-webkit-scrollbar {

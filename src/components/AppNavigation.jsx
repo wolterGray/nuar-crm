@@ -7,6 +7,7 @@ import {
   Search,
   X,
 } from "lucide-react";
+import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 import {mobileNavItems, navGroups, navItems} from "../constants/navigation.js";
 
 export default function AppNavigation({
@@ -25,7 +26,7 @@ export default function AppNavigation({
   const handleDesktopPageChange = (page) => {
     onPageChange(page);
 
-    if (window.innerWidth <= 700) {
+    if (window.innerWidth <= MOBILE_MAX_WIDTH) {
       closeSidebar();
     }
   };
