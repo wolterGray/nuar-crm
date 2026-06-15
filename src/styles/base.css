@@ -758,22 +758,25 @@ button {
     .operations-content,
     .payments-content,
     .services-content,
+    .packages-content,
     .calendar-content
   ),
 .content.clients-content,
 .content.operations-content,
 .content.payments-content,
 .content.services-content,
+.content.packages-content,
 .content.calendar-content {
   padding: 0;
   overflow: hidden;
 }
 
-.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .calendar-content),
+.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .packages-content, .calendar-content),
 .home-content.clients-content,
 .home-content.operations-content,
 .home-content.payments-content,
 .home-content.services-content,
+.home-content.packages-content,
 .home-content.calendar-content {
   padding: 0;
 }

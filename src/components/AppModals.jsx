@@ -181,7 +181,7 @@ export default function AppModals({
       </FormModalShell>
 
       <FormModalShell
-        className="employee-modal catalog-modal"
+        className="employee-modal catalog-modal package-form-modal"
         isOpen={packageModalOpen}
         labelledBy="package-modal-title"
         title={editingPackage ? "Редактировать пакет" : "Добавить пакет"}
@@ -194,7 +194,7 @@ export default function AppModals({
       </FormModalShell>
 
       <FormModalShell
-        className="employee-modal catalog-modal"
+        className="employee-modal catalog-modal package-form-modal"
         isOpen={clientPackageModalOpen}
         labelledBy="client-package-modal-title"
         title={
@@ -213,7 +213,7 @@ export default function AppModals({
       </FormModalShell>
 
       <FormModalShell
-        className="employee-modal catalog-modal"
+        className="employee-modal catalog-modal package-form-modal"
         isOpen={certificateModalOpen}
         labelledBy="certificate-modal-title"
         title={

@@ -28,7 +28,7 @@ function ClientPackageForm({
   const price = clientPackage?.price ?? selectedPackage?.price ?? "";
 
   return (
-    <section className="panel package-form-panel">
+    <section className="panel package-form-panel package-form-sheet-root">
       <h2>{clientPackage ? "Остаток пакета" : "Продать пакет"}</h2>
       <form className="catalog-form" onSubmit={onSubmit}>
         <label>

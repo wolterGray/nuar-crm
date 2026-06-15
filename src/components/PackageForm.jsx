@@ -1,6 +1,6 @@
 function PackageForm({packageItem, services, onSubmit}) {
   return (
-    <section className="panel package-form-panel">
+    <section className="panel package-form-panel package-form-sheet-root">
       <h2>{packageItem ? "Редактировать пакет" : "Новый пакет"}</h2>
       <form className="catalog-form" onSubmit={onSubmit}>
         <label>

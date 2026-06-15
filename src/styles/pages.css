@@ -2064,7 +2064,8 @@ button:focus-visible {
   gap: 8px;
 }
 
-.operations-page-tabs {
+.operations-page-tabs,
+.packages-page-tabs {
   display: none;
 }
 

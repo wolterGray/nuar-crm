@@ -1512,6 +1512,7 @@ function App() {
   const isOperationsPage = activePage === "operations";
   const isPaymentsPage = activePage === "payments";
   const isServicesPage = activePage === "services";
+  const isPackagesPage = activePage === "packages";
   const colorTheme = resolveColorTheme(appSettings);
   const activeEmployees = useMemo(
     () => employees.filter((employee) => employee.status !== "Архив"),
@@ -1540,6 +1541,7 @@ function App() {
       isOperationsPage={isOperationsPage}
       isPaymentsPage={isPaymentsPage}
       isServicesPage={isServicesPage}
+      isPackagesPage={isPackagesPage}
       navigation={
         <AppNavigation
           activePage={activePage}

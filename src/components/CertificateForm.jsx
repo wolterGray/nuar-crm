@@ -27,7 +27,7 @@ function CertificateForm({
   );
 
   return (
-    <section className="panel package-form-panel">
+    <section className="panel package-form-panel package-form-sheet-root">
       <h2>{certificate ? "Редактировать сертификат" : "Продать сертификат"}</h2>
       <form className="catalog-form" onSubmit={onSubmit}>
         <label>

@@ -8,6 +8,7 @@ export default function AppShell({
   isOperationsPage,
   isPaymentsPage,
   isServicesPage,
+  isPackagesPage,
   navigation,
   pullRefresh,
   sidebarVisible,
@@ -40,7 +41,9 @@ export default function AppShell({
           isClientsPage ? "clients-content" : ""
         } ${isOperationsPage ? "operations-content" : ""} ${
           isPaymentsPage ? "visits-content payments-content" : ""
-        } ${isServicesPage ? "services-content" : ""}`}
+        } ${isServicesPage ? "services-content" : ""} ${
+          isPackagesPage ? "packages-content" : ""
+        }`}
         onTouchCancel={onTouchCancel}
         onTouchEnd={onTouchEnd}
         onTouchMove={onTouchMove}

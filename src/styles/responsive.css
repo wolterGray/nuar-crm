@@ -56,7 +56,7 @@
     padding: 10px;
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content) {
     padding: 22px;
   }
 
@@ -327,7 +327,7 @@
     background: rgba(210, 173, 125, 0.14);
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content) {
     width: 100%;
     height: auto;
     min-height: 100dvh;
@@ -393,7 +393,7 @@
     border-top-color: #f8fbff;
   }
 
-  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content),
+  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content),
   .visits-content:not(.payments-content) {
     display: block;
     padding: 0 12px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
@@ -401,7 +401,8 @@
 
   .payments-content,
   .visits-content.payments-content,
-  .services-content {
+  .services-content,
+  .packages-content {
     display: flex;
     height: 100dvh;
     min-height: 0;
@@ -415,7 +416,8 @@
     min-width: 0;
   }
 
-  .services-page {
+  .services-page,
+  .packages-page {
     width: 100%;
     min-height: 0;
     min-width: 0;
@@ -589,7 +591,8 @@
     background: color-mix(in srgb, var(--accent-color) 16%, #1a202b);
   }
 
-  .operations-panel-hidden-mobile {
+  .operations-panel-hidden-mobile,
+  .packages-panel-hidden-mobile {
     display: none !important;
   }
 
@@ -1288,12 +1291,13 @@
     grid-row: 3;
   }
 
-  .panel:not(.schedule-panel):not(.clients-page-mobile):not(.visits-panel-mobile):not(.day-close-panel):not(.service-form-sheet-root):not(.operations-page-mobile .operations-panel) {
+  .panel:not(.schedule-panel):not(.clients-page-mobile):not(.visits-panel-mobile):not(.day-close-panel):not(.service-form-sheet-root):not(.package-form-sheet-root):not(.client-packages-panel):not(.operations-page-mobile .operations-panel):not(.packages-page-mobile .packages-panel) {
     padding: 18px;
   }
 
   .clients-page-mobile.panel,
-  .operations-page-mobile .operations-panel {
+  .operations-page-mobile .operations-panel,
+  .packages-page-mobile .packages-panel {
     padding: 0 !important;
   }
 
