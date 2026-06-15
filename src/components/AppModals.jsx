@@ -230,7 +230,7 @@ export default function AppModals({
       </FormModalShell>
 
       <FormModalShell
-        className="employee-modal message-template-modal"
+        className="employee-modal catalog-modal message-template-modal message-template-form-modal"
         isOpen={messageTemplateModalOpen}
         labelledBy="message-template-modal-title"
         title={

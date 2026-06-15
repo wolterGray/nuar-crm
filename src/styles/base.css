@@ -760,6 +760,7 @@ button {
     .services-content,
     .packages-content,
     .employees-content,
+    .templates-content,
     .calendar-content
   ),
 .content.clients-content,
@@ -768,18 +769,20 @@ button {
 .content.services-content,
 .content.packages-content,
 .content.employees-content,
+.content.templates-content,
 .content.calendar-content {
   padding: 0;
   overflow: hidden;
 }
 
-.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .packages-content, .employees-content, .calendar-content),
+.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .packages-content, .employees-content, .templates-content, .calendar-content),
 .home-content.clients-content,
 .home-content.operations-content,
 .home-content.payments-content,
 .home-content.services-content,
 .home-content.packages-content,
 .home-content.employees-content,
+.home-content.templates-content,
 .home-content.calendar-content {
   padding: 0;
 }
@@ -4336,7 +4339,8 @@ h2 {
 }
 
 .catalog-modal .service-form-panel > h2,
-.catalog-modal .package-form-panel > h2 {
+.catalog-modal .package-form-panel > h2,
+.catalog-modal .message-template-form-panel > h2 {
   display: none;
 }
 

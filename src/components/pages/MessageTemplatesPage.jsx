@@ -12,7 +12,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import {useMemo, useState} from "react";
+import {motion} from "framer-motion";
+import {useEffect, useMemo, useState} from "react";
 import PageHeader from "../PageHeader.jsx";
 import BulkSmsPanel from "../BulkSmsPanel.jsx";
 import {getClientMessageName} from "../../utils/clientMessageName.js";
@@ -20,6 +21,125 @@ import {
   getMessageTemplatePurposeLabel,
   MESSAGE_TEMPLATE_PURPOSES,
 } from "../../utils/messageTemplates.js";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
+import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
+
+function MessageTemplateCard({
+  isMobile,
+  onCopy,
+  onDelete,
+  onEdit,
+  onSend,
+  openMenuId,
+  setOpenMenuId,
+  template,
+}) {
+  const Icon = template.channel === "Email" ? Mail : MessageSquareText;
+
+  if (isMobile) {
+    return (
+      <motion.article
+        animate={{opacity: 1, y: 0}}
+        className="catalog-card message-template-card message-template-mobile-card"
+        initial={{opacity: 0, y: 6}}>
+        <div className="message-template-mobile-head">
+          <div className="message-template-card-header">
+            <Icon size={18} />
+            <div>
+              <h3>{template.name}</h3>
+              <span>
+                {getMessageTemplatePurposeLabel(template.purpose)} · {template.channel}
+              </span>
+            </div>
+          </div>
+          <RowActionsMenu
+            className="message-template-row-actions"
+            itemId={template.id}
+            openMenuId={openMenuId}
+            setOpenMenuId={setOpenMenuId}
+            onDelete={() => onDelete(template)}
+            onEdit={() => onEdit(template)}
+          />
+        </div>
+        <div className="message-template-mobile-meta">
+          <span>{template.language}</span>
+          <span>{template.audience}</span>
+        </div>
+        {template.subject ? (
+          <strong className="message-template-mobile-subject">{template.subject}</strong>
+        ) : null}
+        <p>{template.body}</p>
+        <div className="message-template-mobile-actions">
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => onCopy(template)}>
+            <Copy size={15} />
+            Копировать
+          </button>
+          <button
+            className="add-visit-button"
+            type="button"
+            onClick={() => onSend(template)}>
+            <Send size={15} />
+            Отправить
+          </button>
+        </div>
+      </motion.article>
+    );
+  }
+
+  return (
+    <article className="catalog-card message-template-card" key={template.id}>
+      <div className="message-template-card-header">
+        <Icon size={18} />
+        <div>
+          <h3>{template.name}</h3>
+          <span>
+            {getMessageTemplatePurposeLabel(template.purpose)} · {template.channel} ·{" "}
+            {template.language} · {template.audience}
+          </span>
+        </div>
+      </div>
+      {template.subject && <strong>{template.subject}</strong>}
+      <p>{template.body}</p>
+      <div className="message-template-actions">
+        <button
+          aria-label="Копировать текст"
+          className="template-icon-button"
+          title="Копировать"
+          type="button"
+          onClick={() => onCopy(template)}>
+          <Copy size={15} />
+        </button>
+        <button
+          aria-label="Отправить клиенту"
+          className="template-icon-button template-send-button"
+          title="Отправить клиенту"
+          type="button"
+          onClick={() => onSend(template)}>
+          <Send size={15} />
+        </button>
+        <button
+          aria-label="Редактировать шаблон"
+          className="template-icon-button"
+          title="Редактировать"
+          type="button"
+          onClick={() => onEdit(template)}>
+          <Pencil size={15} />
+        </button>
+        <button
+          aria-label="Удалить шаблон"
+          className="template-icon-button template-delete-button"
+          title="Удалить"
+          type="button"
+          onClick={() => onDelete(template)}>
+          <Trash2 size={15} />
+        </button>
+      </div>
+    </article>
+  );
+}
 
 function MessageTemplatesPage({
   bulkSms = null,
@@ -33,10 +153,12 @@ function MessageTemplatesPage({
   onNotify,
   onMessageSent,
 }) {
+  const {isMobile} = useBreakpoint();
   const [sendingTemplate, setSendingTemplate] = useState(null);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [clientQuery, setClientQuery] = useState("");
   const [sendChannel, setSendChannel] = useState("SMS");
+  const [openMenuId, setOpenMenuId] = useState(null);
   const [filters, setFilters] = useState({
     query: "",
     channel: "",
@@ -44,6 +166,7 @@ function MessageTemplatesPage({
     audience: "",
     purpose: "",
   });
+
   const filteredTemplates = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
 
@@ -66,9 +189,30 @@ function MessageTemplatesPage({
     });
   }, [filters, templates]);
 
+  const smsCount = useMemo(
+    () => templates.filter((template) => template.channel === "SMS").length,
+    [templates],
+  );
+  const emailCount = useMemo(
+    () => templates.filter((template) => template.channel === "Email").length,
+    [templates],
+  );
+  const automatedCount = useMemo(
+    () =>
+      templates.filter(
+        (template) => String(template.purpose ?? "general") !== "general",
+      ).length,
+    [templates],
+  );
+
   const setFilter = (name, value) => {
     setFilters((current) => ({...current, [name]: value}));
   };
+
+  useEffect(() => {
+    setOpenMenuId(null);
+  }, [filters.query, filters.channel, filters.language, filters.audience, filters.purpose]);
+
   const selectedClient = clients.find(
     (client) => String(client.id) === selectedClientId,
   );
@@ -77,6 +221,7 @@ function MessageTemplatesPage({
   );
   const getPersonalizedText = (template, client) =>
     template.body.replaceAll("{name}", getClientMessageName(client) || "клиент");
+
   const copyText = async (template, client = null) => {
     const text = client ? getPersonalizedText(template, client) : template.body;
 
@@ -95,6 +240,7 @@ function MessageTemplatesPage({
       });
     }
   };
+
   const openSendDialog = (template) => {
     const preferredClientForDialog = clients.find(
       (client) => String(client.id) === preferredClientId,
@@ -107,11 +253,13 @@ function MessageTemplatesPage({
     setClientQuery(preferredClientForDialog?.name ?? "");
     setSendChannel(template.channel === "Email" ? "Email" : "SMS");
   };
+
   const closeSendDialog = () => {
     setSendingTemplate(null);
     setSelectedClientId("");
     setClientQuery("");
   };
+
   const sendMessage = () => {
     if (!sendingTemplate || !selectedClient) {
       return;
@@ -205,77 +353,154 @@ function MessageTemplatesPage({
     closeSendDialog();
   };
 
+  const filterFields = (
+    <>
+      <select
+        value={filters.channel}
+        onChange={(event) => setFilter("channel", event.target.value)}>
+        <option value="">Все каналы</option>
+        <option>SMS</option>
+        <option>Email</option>
+      </select>
+      <select
+        value={filters.language}
+        onChange={(event) => setFilter("language", event.target.value)}>
+        <option value="">Все языки</option>
+        <option>Русский</option>
+        <option>Польский</option>
+        <option>Английский</option>
+        <option>Украинский</option>
+      </select>
+      <select
+        value={filters.audience}
+        onChange={(event) => setFilter("audience", event.target.value)}>
+        <option value="">Все аудитории</option>
+        <option>Все</option>
+        <option>Девушки</option>
+        <option>Парни</option>
+        <option>Поляки</option>
+        <option>Англичане</option>
+        <option>Украинцы</option>
+      </select>
+      <select
+        value={filters.purpose}
+        onChange={(event) => setFilter("purpose", event.target.value)}>
+        <option value="">Все назначения</option>
+        {Object.entries(MESSAGE_TEMPLATE_PURPOSES).map(([value, meta]) => (
+          <option key={value} value={value}>
+            {meta.label}
+          </option>
+        ))}
+      </select>
+    </>
+  );
+
   return (
-    <section className="catalog-page message-templates-page">
+    <section
+      className={`catalog-page message-templates-page ${
+        isMobile ? "message-templates-page-mobile" : ""
+      }`}
+      onClick={() => setOpenMenuId(null)}>
       <PageHeader
         actions={
-          <button className="add-visit-button" type="button" onClick={onAdd}>
-            <Plus size={18} />
-            Добавить шаблон
-          </button>
+          isMobile ? (
+            <>
+              <label className="message-templates-search">
+                <Search size={16} />
+                <input
+                  placeholder="Поиск шаблона"
+                  type="search"
+                  value={filters.query}
+                  onChange={(event) => setFilter("query", event.target.value)}
+                />
+                {filters.query ? (
+                  <button
+                    aria-label="Очистить поиск"
+                    type="button"
+                    onClick={() => setFilter("query", "")}>
+                    <X size={15} />
+                  </button>
+                ) : null}
+              </label>
+              <div className="message-templates-summary">
+                <article className="message-templates-summary-card is-active">
+                  <span>Всего</span>
+                  <strong>{templates.length}</strong>
+                </article>
+                <article className="message-templates-summary-card">
+                  <span>SMS</span>
+                  <strong>{smsCount}</strong>
+                </article>
+                <article className="message-templates-summary-card">
+                  <span>Email</span>
+                  <strong>{emailCount}</strong>
+                </article>
+                <article className="message-templates-summary-card">
+                  <span>Авто</span>
+                  <strong>{automatedCount}</strong>
+                </article>
+              </div>
+              <details className="message-templates-filters-collapsible">
+                <summary>Фильтры</summary>
+                <div className="message-template-filters message-template-filters-mobile">
+                  {filterFields}
+                </div>
+              </details>
+              <button className="add-visit-button" type="button" onClick={onAdd}>
+                <Plus size={18} />
+                Добавить
+              </button>
+            </>
+          ) : (
+            <button className="add-visit-button" type="button" onClick={onAdd}>
+              <Plus size={18} />
+              Добавить шаблон
+            </button>
+          )
         }
-        description={`${filteredTemplates.length} из ${templates.length} шаблонов`}
-        title="Шаблоны сообщений"
+        description={
+          isMobile
+            ? `${filteredTemplates.length} из ${templates.length} шаблонов`
+            : `${filteredTemplates.length} из ${templates.length} шаблонов`
+        }
+        title="Шаблоны"
       />
 
-      <div className="message-template-filters">
-        <label className="clients-search">
-          <Search size={16} />
-          <input
-            value={filters.query}
-            onChange={(event) => setFilter("query", event.target.value)}
-            placeholder="Поиск шаблона"
-          />
-        </label>
-        <select
-          value={filters.channel}
-          onChange={(event) => setFilter("channel", event.target.value)}>
-          <option value="">Все каналы</option>
-          <option>SMS</option>
-          <option>Email</option>
-        </select>
-        <select
-          value={filters.language}
-          onChange={(event) => setFilter("language", event.target.value)}>
-          <option value="">Все языки</option>
-          <option>Русский</option>
-          <option>Польский</option>
-          <option>Английский</option>
-          <option>Украинский</option>
-        </select>
-        <select
-          value={filters.audience}
-          onChange={(event) => setFilter("audience", event.target.value)}>
-          <option value="">Все аудитории</option>
-          <option>Все</option>
-          <option>Девушки</option>
-          <option>Парни</option>
-          <option>Поляки</option>
-          <option>Англичане</option>
-          <option>Украинцы</option>
-        </select>
-        <select
-          value={filters.purpose}
-          onChange={(event) => setFilter("purpose", event.target.value)}>
-          <option value="">Все назначения</option>
-          {Object.entries(MESSAGE_TEMPLATE_PURPOSES).map(([value, meta]) => (
-            <option key={value} value={value}>
-              {meta.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {bulkSms ? (
-        <BulkSmsPanel
-          bulkSms={bulkSms}
-          messageTemplates={templates}
-          onNotify={onNotify}
-        />
+      {!isMobile ? (
+        <div className="message-template-filters">
+          <label className="clients-search">
+            <Search size={16} />
+            <input
+              placeholder="Поиск шаблона"
+              value={filters.query}
+              onChange={(event) => setFilter("query", event.target.value)}
+            />
+          </label>
+          {filterFields}
+        </div>
       ) : null}
 
-      {preferredClient && (
-        <div className="preferred-message-client">
+      {bulkSms ? (
+        isMobile ? (
+          <details className="message-templates-bulk-collapsible">
+            <summary>Bulk SMS</summary>
+            <BulkSmsPanel
+              bulkSms={bulkSms}
+              messageTemplates={templates}
+              onNotify={onNotify}
+            />
+          </details>
+        ) : (
+          <BulkSmsPanel
+            bulkSms={bulkSms}
+            messageTemplates={templates}
+            onNotify={onNotify}
+          />
+        )
+      ) : null}
+
+      {preferredClient ? (
+        <div className="preferred-message-client message-templates-preferred-mobile">
           <MessageSquareText size={16} />
           <span>
             Сообщение для <strong>{preferredClient.name}</strong>
@@ -288,73 +513,31 @@ function MessageTemplatesPage({
             <X size={14} />
           </button>
         </div>
-      )}
+      ) : null}
 
-      <div className="catalog-grid message-template-grid">
-        {filteredTemplates.map((template) => {
-          const Icon = template.channel === "Email" ? Mail : MessageSquareText;
-
-          return (
-            <article
-              className="catalog-card message-template-card"
-              key={template.id}>
-              <div className="message-template-card-header">
-                <Icon size={18} />
-                <div>
-                  <h3>{template.name}</h3>
-                  <span>
-                    {getMessageTemplatePurposeLabel(template.purpose)} ·{" "}
-                    {template.channel} · {template.language} · {template.audience}
-                  </span>
-                </div>
-              </div>
-              {template.subject && <strong>{template.subject}</strong>}
-              <p>{template.body}</p>
-              <div className="message-template-actions">
-                <button
-                  aria-label="Копировать текст"
-                  className="template-icon-button"
-                  title="Копировать"
-                  type="button"
-                  onClick={() => copyText(template)}>
-                  <Copy size={15} />
-                </button>
-                <button
-                  aria-label="Отправить клиенту"
-                  className="template-icon-button template-send-button"
-                  title="Отправить клиенту"
-                  type="button"
-                  onClick={() => openSendDialog(template)}>
-                  <Send size={15} />
-                </button>
-                <button
-                  aria-label="Редактировать шаблон"
-                  className="template-icon-button"
-                  title="Редактировать"
-                  type="button"
-                  onClick={() => onEdit(template)}>
-                  <Pencil size={15} />
-                </button>
-                <button
-                  aria-label="Удалить шаблон"
-                  className="template-icon-button template-delete-button"
-                  title="Удалить"
-                  type="button"
-                  onClick={() => onDelete(template)}>
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            </article>
-          );
-        })}
+      <div className="catalog-grid message-template-grid message-templates-scroll">
+        {filteredTemplates.map((template) => (
+          <MessageTemplateCard
+            key={template.id}
+            isMobile={isMobile}
+            openMenuId={openMenuId}
+            setOpenMenuId={setOpenMenuId}
+            template={template}
+            onCopy={copyText}
+            onDelete={onDelete}
+            onEdit={onEdit}
+            onSend={openSendDialog}
+          />
+        ))}
+        {filteredTemplates.length === 0 ? (
+          <div className="message-templates-empty">
+            <strong>Шаблоны не найдены</strong>
+            <span>Измените фильтры или добавьте новый шаблон.</span>
+          </div>
+        ) : null}
       </div>
-      {filteredTemplates.length === 0 && (
-        <div className="clients-empty">
-          <strong>Шаблоны не найдены</strong>
-          <span>Измените фильтры или добавьте новый шаблон.</span>
-        </div>
-      )}
-      {sendingTemplate && (
+
+      {sendingTemplate ? (
         <div
           className="modal-backdrop"
           role="presentation"
@@ -466,7 +649,7 @@ function MessageTemplatesPage({
             </div>
           </section>
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

@@ -103,7 +103,7 @@
   }
 
   /* Modals: bottom sheets with internal scroll */
-  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal):not(.client-form-modal):not(.employee-form-modal):not(.service-form-modal):not(.package-form-modal) {
+  .employee-modal:not(.calendar-entry-modal):not(.client-details-modal):not(.client-form-modal):not(.employee-form-modal):not(.message-template-form-modal):not(.service-form-modal):not(.package-form-modal) {
     width: 100%;
     max-height: min(94dvh, 100dvh);
     padding: 0;
@@ -3645,6 +3645,390 @@
     line-height: 1.4;
   }
 
+  /* Message templates page — minimal mobile layout */
+  .content.templates-content,
+  .content.templates-content.home-content {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 !important;
+  }
+
+  .message-templates-page.message-templates-page-mobile {
+    display: grid;
+    flex: 1;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 8px;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 !important;
+  }
+
+  .message-templates-page-mobile .page-header-unified {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    gap: 8px;
+    margin: 0 !important;
+    padding: 10px 5px 0;
+    background: transparent !important;
+    backdrop-filter: none;
+  }
+
+  .theme-dark .message-templates-page-mobile .page-header-unified,
+  .theme-light .message-templates-page-mobile .page-header-unified {
+    background: transparent !important;
+  }
+
+  .message-templates-page-mobile .page-header-unified-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .message-templates-page-mobile .page-header-unified-copy {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .message-templates-page-mobile .page-header-unified-copy h2 {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .message-templates-page-mobile .page-header-unified-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+
+  .message-templates-page-mobile .page-header-unified-trailing {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .message-templates-page-mobile .page-notifications-slot {
+    display: flex;
+    padding: 0;
+  }
+
+  .message-templates-page-mobile .client-alert-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    border: 1px solid var(--line-soft, #e4e5e4) !important;
+    border-radius: 10px;
+    color: var(--text-soft, #737780) !important;
+    background: var(--surface-solid, #fff) !important;
+    box-shadow: none !important;
+  }
+
+  .theme-dark .message-templates-page-mobile .client-alert-button {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #b3bdcb !important;
+  }
+
+  .message-templates-page-mobile .message-templates-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 0 8px 0 10px;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 10px;
+    background: var(--surface-solid, #fff);
+  }
+
+  .theme-dark .message-templates-page-mobile .message-templates-search {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .message-templates-page-mobile .message-templates-search input {
+    min-width: 0;
+    min-height: 38px;
+    flex: 1;
+    border: 0;
+    background: transparent;
+    font-size: 15px;
+  }
+
+  .message-templates-page-mobile .message-templates-search button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    color: var(--text-soft, #737780);
+    background: transparent;
+  }
+
+  .message-templates-page-mobile .message-templates-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    width: 100%;
+  }
+
+  .message-templates-page-mobile .message-templates-summary-card {
+    display: grid;
+    gap: 2px;
+    min-height: 40px;
+    padding: 6px 4px;
+    text-align: center;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 10px;
+    background: var(--surface-solid, #fff);
+    box-shadow: 0 1px 0 rgba(17, 19, 24, 0.03);
+  }
+
+  .message-templates-page-mobile .message-templates-summary-card span {
+    color: var(--text-soft, #737780);
+    font-size: 9px;
+    font-weight: 650;
+    line-height: 1.15;
+  }
+
+  .message-templates-page-mobile .message-templates-summary-card strong {
+    color: var(--text-main, #353941);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .message-templates-page-mobile .message-templates-summary-card.is-active {
+    border-color: color-mix(in srgb, var(--accent-color) 42%, #e4e5e4);
+    background: color-mix(in srgb, var(--accent-color) 10%, #fff);
+  }
+
+  .theme-dark .message-templates-page-mobile .message-templates-summary-card {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .theme-dark .message-templates-page-mobile .message-templates-summary-card strong {
+    color: #eef1f6;
+  }
+
+  .message-templates-page-mobile .message-templates-filters-collapsible,
+  .message-templates-page-mobile .message-templates-bulk-collapsible {
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 10px;
+    background: var(--surface-solid, #fff);
+    overflow: hidden;
+  }
+
+  .theme-dark .message-templates-page-mobile .message-templates-filters-collapsible,
+  .theme-dark .message-templates-page-mobile .message-templates-bulk-collapsible {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .message-templates-page-mobile .message-templates-filters-collapsible summary,
+  .message-templates-page-mobile .message-templates-bulk-collapsible summary {
+    min-height: 40px;
+    padding: 0 12px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 40px;
+  }
+
+  .message-templates-page-mobile .message-templates-filters-collapsible summary::-webkit-details-marker,
+  .message-templates-page-mobile .message-templates-bulk-collapsible summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .message-templates-page-mobile .message-template-filters-mobile {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 0 10px 10px;
+  }
+
+  .message-templates-page-mobile .message-template-filters-mobile select {
+    min-height: 40px;
+    border-radius: 10px;
+  }
+
+  .message-templates-page-mobile .message-templates-bulk-collapsible .bulk-sms-panel {
+    padding: 0 10px 10px !important;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .message-templates-page-mobile .page-header-unified-actions .add-visit-button {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 42px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .message-templates-page-mobile .message-templates-preferred-mobile {
+    margin: 0 5px;
+    border-radius: 10px;
+  }
+
+  .message-templates-page-mobile .message-templates-scroll {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    padding: 0 5px;
+    padding-bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+    scrollbar-width: none;
+    grid-template-columns: none;
+  }
+
+  .message-templates-page-mobile .message-templates-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto auto auto;
+    gap: 6px 8px;
+    align-items: start;
+    padding: 10px 12px;
+    border: 1px solid var(--line-soft, #e8e8e6);
+    border-radius: 10px;
+    background: var(--surface-solid, #fff);
+    box-shadow: none;
+  }
+
+  .theme-dark .message-templates-page-mobile .message-template-mobile-card {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: #151922;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-head {
+    display: contents;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-card .message-template-card-header {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-card .message-template-card-header h3 {
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-card .message-template-card-header span {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  .message-templates-page-mobile .message-template-row-actions {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-meta {
+    display: flex;
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-meta span {
+    padding: 3px 8px;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 999px;
+    color: var(--text-soft, #737780);
+    font-size: 10px;
+    font-weight: 650;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-subject {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-card > p {
+    grid-column: 1 / -1;
+    margin: 0;
+    -webkit-line-clamp: 3;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-actions {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+
+  .message-templates-page-mobile .message-template-mobile-actions .secondary-button,
+  .message-templates-page-mobile .message-template-mobile-actions .add-visit-button {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 38px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .message-templates-page-mobile .message-templates-empty {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 0;
+    text-align: center;
+  }
+
+  .message-templates-page-mobile .message-templates-empty strong {
+    font-size: 15px;
+  }
+
+  .message-templates-page-mobile .message-templates-empty span {
+    max-width: 280px;
+    color: var(--text-soft, #737780);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
   /* Services page — minimal mobile layout */
   .content.services-content,
   .content.services-content.home-content {
@@ -4883,6 +5267,7 @@
   .employee-modal.client-details-modal.mobile-sheet > .mobile-sheet-body,
   .employee-modal.client-form-modal.mobile-sheet > .mobile-sheet-body,
   .employee-modal.employee-form-modal.mobile-sheet > .mobile-sheet-body,
+  .employee-modal.message-template-form-modal.mobile-sheet > .mobile-sheet-body,
   .employee-modal.service-form-modal.mobile-sheet > .mobile-sheet-body,
   .employee-modal.package-form-modal.mobile-sheet > .mobile-sheet-body {
     overflow-x: hidden;
@@ -5548,6 +5933,115 @@
     box-shadow: none !important;
   }
 
+  /* Message template form modal — fullscreen scrollable sheet */
+  .employee-modal.message-template-form-modal.mobile-sheet {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0 !important;
+    background: var(--app-bg, #f7f7f6) !important;
+  }
+
+  .theme-dark .employee-modal.message-template-form-modal.mobile-sheet {
+    background: #10141c !important;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet .mobile-sheet-header {
+    gap: 6px;
+    min-height: 0;
+    padding: max(6px, env(safe-area-inset-top, 0px)) 5px 6px !important;
+    background: var(--app-bg, #f7f7f6);
+  }
+
+  .theme-dark .employee-modal.message-template-form-modal.mobile-sheet .mobile-sheet-header {
+    background: #10141c;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet .mobile-sheet-body {
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 !important;
+    background: var(--app-bg, #f7f7f6);
+    scroll-padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .theme-dark .employee-modal.message-template-form-modal.mobile-sheet .mobile-sheet-body {
+    background: #10141c;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet .message-template-form-sheet-root {
+    display: block;
+    flex: none !important;
+    min-height: auto;
+    margin: 0;
+    overflow: visible;
+    padding: 0 !important;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet
+    .message-template-form-sheet-root
+    > h2 {
+    display: none;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet .message-template-form {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 5px 12px !important;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet .message-template-form-grid {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet label {
+    gap: 4px !important;
+    margin: 0;
+    color: var(--text-soft, #737780);
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.2;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet .message-template-form input,
+  .employee-modal.message-template-form-modal.mobile-sheet .message-template-form select,
+  .employee-modal.message-template-form-modal.mobile-sheet .message-template-form textarea {
+    min-height: 38px !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet .message-template-form textarea {
+    min-height: 120px !important;
+    resize: vertical;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet .message-template-hint {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .employee-modal.message-template-form-modal.mobile-sheet .message-template-form .submit-button {
+    position: static;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 0 !important;
+    margin-bottom: env(safe-area-inset-bottom, 0px) !important;
+    box-shadow: none !important;
+  }
+
   .payments-filters-collapsible {
     margin-bottom: 8px;
     border: 1px solid var(--line-soft, #e4e5e4);
@@ -5795,7 +6289,7 @@
     background: rgba(210, 173, 125, 0.14);
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content) {
     padding-bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
   }
 
@@ -5807,7 +6301,9 @@
   .content.packages-content,
   .content.packages-content.home-content,
   .content.employees-content,
-  .content.employees-content.home-content {
+  .content.employees-content.home-content,
+  .content.templates-content,
+  .content.templates-content.home-content {
     padding: 0 !important;
   }
 
