@@ -64,7 +64,7 @@ button {
   background: #11151b;
 }
 
-.theme-dark .panel,
+.theme-dark .panel:not(.schedule-panel),
 .theme-dark .catalog-card,
 .theme-dark .employee-card,
 .theme-dark .management-card,
@@ -1513,6 +1513,13 @@ h1 {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 4px 14px rgba(17, 19, 24, 0.035);
+}
+
+.panel.schedule-panel {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .panel-header p {

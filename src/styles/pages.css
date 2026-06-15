@@ -1805,24 +1805,6 @@ button:focus-visible {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.mobile-more-group {
-  display: grid;
-  gap: 6px;
-}
-
-.mobile-more-group-label {
-  padding: 8px 4px 0;
-  color: #8f98aa;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.theme-dark .mobile-more-group-label {
-  color: #8f98aa;
-}
-
 /* Unified page header */
 .page-header-unified {
   display: grid;

@@ -184,7 +184,7 @@ body {
   line-height: 1.45;
 }
 
-.panel,
+.panel:not(.schedule-panel):not(.calendar-reminders),
 .catalog-card,
 .employee-card,
 .management-card,
@@ -210,7 +210,7 @@ body {
   backdrop-filter: blur(12px);
 }
 
-.panel,
+.panel:not(.schedule-panel),
 .settings-panel,
 .statistics-panel {
   padding: 20px;
@@ -507,16 +507,21 @@ button:focus-visible {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+  padding: 0;
 }
 
 .calendar-page,
-.calendar-layout,
-.schedule-panel {
+.calendar-layout {
   border-color: var(--line-soft);
 }
 
-.schedule-panel {
-  box-shadow: var(--soft-shadow);
+.schedule-panel,
+.panel.schedule-panel {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  backdrop-filter: none;
 }
 
 .calendar-toolbar,

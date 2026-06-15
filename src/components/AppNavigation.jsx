@@ -40,15 +40,6 @@ export default function AppNavigation({
     (item) => !mobileNavItems.some((mobileItem) => mobileItem.page === item.page),
   );
 
-  const hiddenMobileGroups = navGroups
-    .map((group) => ({
-      ...group,
-      items: group.items.filter((item) =>
-        hiddenMobileItems.some((hiddenItem) => hiddenItem.page === item.page),
-      ),
-    }))
-    .filter((group) => group.items.length > 0);
-
   return (
     <>
       <aside className="sidebar">
@@ -127,36 +118,29 @@ export default function AppNavigation({
 
       {sidebarVisible && (
         <section className="mobile-more-sheet" aria-label="Все разделы">
-          <div className="mobile-more-sheet-header">
-            <strong>Разделы</strong>
-            <button
-              aria-label="Закрыть разделы"
-              type="button"
-              onClick={closeSidebar}>
-              <X size={18} />
-            </button>
-          </div>
-          {hiddenMobileGroups.map((group) => (
-            <div className="mobile-more-group" key={group.id}>
-              <span className="mobile-more-group-label">{group.label}</span>
-              <nav>
-                {group.items.map((item) => {
-                  const Icon = item.icon;
+          <button
+            aria-label="Закрыть разделы"
+            className="mobile-more-sheet-close"
+            type="button"
+            onClick={closeSidebar}>
+            <X size={16} />
+          </button>
+          <nav className="mobile-more-sheet-nav">
+            {hiddenMobileItems.map((item) => {
+              const Icon = item.icon;
 
-                  return (
-                    <button
-                      className={activePage === item.page ? "active" : ""}
-                      key={item.page}
-                      type="button"
-                      onClick={() => handleSheetPageChange(item.page)}>
-                      <Icon size={19} />
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-          ))}
+              return (
+                <button
+                  className={activePage === item.page ? "active" : ""}
+                  key={item.page}
+                  type="button"
+                  onClick={() => handleSheetPageChange(item.page)}>
+                  <Icon size={18} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </section>
       )}
 

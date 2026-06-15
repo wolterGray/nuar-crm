@@ -69,7 +69,7 @@
 .theme-dark .calendar-slot-menu,
 .theme-dark .visits-table,
 .theme-dark .table-search,
-.theme-light .panel,
+.theme-light .panel:not(.schedule-panel),
 .theme-light .catalog-card,
 .theme-light .employee-card,
 .theme-light .management-card,
@@ -1059,11 +1059,12 @@
 }
 
 /* Calendar board should match the Linear dark surface, not the old blue grid. */
-.theme-dark .schedule-panel {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.006)),
-    rgba(18, 19, 23, 0.92) !important;
-  border-color: rgba(255, 255, 255, 0.10) !important;
+.theme-dark .schedule-panel,
+.theme-dark .panel.schedule-panel {
+  background: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .theme-dark .schedule-grid,
@@ -1132,7 +1133,7 @@
 }
 
 .theme-dark :is(
-  .panel,
+  .panel:not(.schedule-panel),
   .catalog-card,
   .employee-card,
   .management-card,
@@ -1265,9 +1266,9 @@
 }
 
 .theme-dark .panel.schedule-panel {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.006)),
-    rgba(18, 19, 23, 0.94) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 .theme-dark .schedule-grid,
