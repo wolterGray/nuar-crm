@@ -46,6 +46,9 @@ serve(async (request) => {
       employees: payload.employees ?? [],
       pendingBookings: pendingBookings ?? [],
       preferredMaster,
+      serviceCatalog: payload.services ?? [],
+      serviceName,
+      serviceSlug,
     });
     const slots = attachPricingToSlots({
       date: preferredDate,

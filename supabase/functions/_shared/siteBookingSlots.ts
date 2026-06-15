@@ -1,3 +1,9 @@
+import {
+  extendIntervalWithServiceBuffers,
+  findCatalogService,
+  getServiceBookingBuffers,
+} from "./siteBookingBuffers.ts";
+
 const SITE_MASTER_ALIASES: Record<string, string> = {
   max: "Максим",
   olha: "Ольга",
@@ -233,17 +239,46 @@ const isBlockingCalendarEntry = (
 const getEntryOccupiedInterval = (
   entry: Record<string, unknown>,
   step: number,
-) => {
-  const start = toMinutes(entry.time);
-  const duration = Number(entry.duration) || 0;
-  let end = start + Math.max(duration, step);
+  serviceCatalog: Array<Record<string, unknown>>,
+) =>
+  extendIntervalWithServiceBuffers(
+    (() => {
+      const start = toMinutes(entry.time);
+      const duration = Number(entry.duration) || 0;
+      let end = start + Math.max(duration, step);
 
-  if (duration <= 0 && entry.endTime) {
-    end = Math.max(start + step, toMinutes(entry.endTime));
-  }
+      if (duration <= 0 && entry.endTime) {
+        end = Math.max(start + step, toMinutes(entry.endTime));
+      }
 
-  return {start, end};
-};
+      return {start, end};
+    })(),
+    serviceCatalog,
+    {
+      serviceId: entry.serviceId,
+      serviceName: entry.service,
+    },
+  );
+
+const getPendingBookingOccupiedInterval = (
+  booking: Record<string, unknown>,
+  step: number,
+  duration: number,
+  serviceCatalog: Array<Record<string, unknown>>,
+) =>
+  extendIntervalWithServiceBuffers(
+    {
+      start: toMinutes(String(booking.preferred_time ?? "").slice(0, 5)),
+      end:
+        toMinutes(String(booking.preferred_time ?? "").slice(0, 5)) +
+        Math.max(Number(booking.duration_minutes) || duration, step),
+    },
+    serviceCatalog,
+    {
+      serviceName: booking.service_name,
+      serviceSlug: booking.service_slug,
+    },
+  );
 
 export const buildBookableSlots = ({
   appSettings = {},
@@ -254,6 +289,9 @@ export const buildBookableSlots = ({
   now = new Date(),
   pendingBookings = [],
   preferredMaster = "",
+  serviceCatalog = [],
+  serviceName = "",
+  serviceSlug = "",
   slotStepMinutes,
 }: {
   appSettings?: Record<string, unknown>;
@@ -264,6 +302,9 @@ export const buildBookableSlots = ({
   now?: Date;
   pendingBookings?: Array<Record<string, unknown>>;
   preferredMaster?: string;
+  serviceCatalog?: Array<Record<string, unknown>>;
+  serviceName?: string;
+  serviceSlug?: string;
   slotStepMinutes?: number;
 }) => {
   const inputDate = normalizeBookingInputDate(date);
@@ -313,6 +354,10 @@ export const buildBookableSlots = ({
     activeEmployees = buildDefaultEmployees(appSettings);
   }
 
+  const requestBuffers = getServiceBookingBuffers(
+    findCatalogService(serviceCatalog, {serviceName, serviceSlug}),
+  );
+
   const slots: Array<{
     durationMinutes: number;
     endTime: string;
@@ -356,7 +401,7 @@ export const buildBookableSlots = ({
             resolveSiteBookingMaster(String(entry.master ?? ""), employees) ===
               master,
         )
-        .map((entry) => getEntryOccupiedInterval(entry, step)),
+        .map((entry) => getEntryOccupiedInterval(entry, step, serviceCatalog)),
       ...pendingBookings
         .filter((booking) => {
           const bookingDate = normalizeBookingInputDate(booking.preferred_date);
@@ -368,12 +413,14 @@ export const buildBookableSlots = ({
             String(booking.status ?? "pending") === "pending"
           );
         })
-        .map((booking) => ({
-          start: toMinutes(String(booking.preferred_time ?? "").slice(0, 5)),
-          end:
-            toMinutes(String(booking.preferred_time ?? "").slice(0, 5)) +
-            Math.max(Number(booking.duration_minutes) || duration, step),
-        })),
+        .map((booking) =>
+          getPendingBookingOccupiedInterval(
+            booking,
+            step,
+            duration,
+            serviceCatalog,
+          ),
+        ),
     ]);
 
     for (
@@ -382,8 +429,10 @@ export const buildBookableSlots = ({
       cursor += step
     ) {
       const slotEnd = cursor + duration;
+      const blockedStart = Math.max(0, cursor - requestBuffers.before);
+      const blockedEnd = slotEnd + requestBuffers.after;
       const isFree = !occupied.some((interval) =>
-        overlapsInterval(cursor, slotEnd, interval),
+        overlapsInterval(blockedStart, blockedEnd, interval),
       );
 
       if (isFree) {
@@ -419,6 +468,9 @@ export const isBookableSlotAvailable = ({
   pendingBookings = [],
   preferredMaster = "",
   preferredTime = "",
+  serviceCatalog = [],
+  serviceName = "",
+  serviceSlug = "",
 }: {
   appSettings?: Record<string, unknown>;
   calendarEntries?: Array<Record<string, unknown>>;
@@ -429,6 +481,9 @@ export const isBookableSlotAvailable = ({
   pendingBookings?: Array<Record<string, unknown>>;
   preferredMaster?: string;
   preferredTime?: string;
+  serviceCatalog?: Array<Record<string, unknown>>;
+  serviceName?: string;
+  serviceSlug?: string;
 }) => {
   const slots = buildBookableSlots({
     appSettings,
@@ -439,6 +494,9 @@ export const isBookableSlotAvailable = ({
     now,
     pendingBookings,
     preferredMaster,
+    serviceCatalog,
+    serviceName,
+    serviceSlug,
   });
   const normalizedTime = String(preferredTime ?? "").trim().slice(0, 5);
   const resolvedMaster = resolveSiteBookingMaster(preferredMaster, employees);

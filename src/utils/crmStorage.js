@@ -6,6 +6,7 @@ import {
   visitsSeed,
 } from "../data/seed.js";
 import {navItems} from "../constants/navigation.js";
+import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 import {
   ACTIVE_PAGE_STORAGE_KEY,
   ALERT_FILTER_STORAGE_KEY,
@@ -52,7 +53,7 @@ export const normalizeStoredSettings = (settings = {}) => {
     ...defaultAppSettings,
     ...safeSettings,
     sidebarVisible:
-      window.innerWidth <= 700 ? false : safeSettings.sidebarVisible ?? true,
+      window.innerWidth <= MOBILE_MAX_WIDTH ? false : safeSettings.sidebarVisible ?? true,
   });
 };
 
@@ -383,7 +384,7 @@ export const loadStoredSettings = () => {
     if (!storedSettings) {
       return {
         ...defaultAppSettings,
-        sidebarVisible: window.innerWidth > 700,
+        sidebarVisible: window.innerWidth > MOBILE_MAX_WIDTH,
       };
     }
 
@@ -392,7 +393,7 @@ export const loadStoredSettings = () => {
   } catch {
     return {
       ...defaultAppSettings,
-      sidebarVisible: window.innerWidth > 700,
+      sidebarVisible: window.innerWidth > MOBILE_MAX_WIDTH,
     };
   }
 };

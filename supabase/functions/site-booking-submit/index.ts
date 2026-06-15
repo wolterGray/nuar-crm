@@ -84,6 +84,9 @@ serve(async (request) => {
       pendingBookings: pendingBookings ?? [],
       preferredMaster,
       preferredTime,
+      serviceCatalog: payload.services ?? [],
+      serviceName,
+      serviceSlug,
     });
 
     if (!slotAvailable) {

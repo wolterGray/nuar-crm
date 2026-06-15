@@ -1,5 +1,6 @@
 import {useCallback} from "react";
 import {getRandomServiceColor} from "../utils/serviceColors.js";
+import {parseServiceBookingBuffersFromForm} from "../utils/siteBookingBuffers.js";
 
 export function useServiceHandlers({
   createLocalId,
@@ -52,6 +53,7 @@ export function useServiceHandlers({
             price: Number(form.get(`price_${duration}`)) || 0,
           }))
           .filter((variant) => variant.price > 0),
+        ...parseServiceBookingBuffersFromForm(form, editingService),
       };
 
       setServiceCatalog((current) =>

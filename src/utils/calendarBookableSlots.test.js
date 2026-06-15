@@ -198,4 +198,43 @@ describe("calendarBookableSlots", () => {
       }).map((slot) => slot.startTime),
     ).toEqual(["08:00", "09:00"]);
   });
+
+  it("respects per-service booking buffers when building site slots", () => {
+    const serviceCatalog = [
+      {
+        id: 1,
+        name: "Бандаж крио",
+        siteBookingBufferAfterEnabled: true,
+        siteBookingBufferAfterMinutes: 30,
+      },
+    ];
+    const slots = buildBookableSlots({
+      appSettings: {workdayStart: "08:00", workdayEnd: "18:00"},
+      calendarEntries: [
+        {
+          id: "1",
+          kind: "visit",
+          date: "2026-06-20",
+          time: "10:00",
+          duration: 60,
+          master: "Ольга",
+          service: "Бандаж крио",
+          serviceId: 1,
+          status: "scheduled",
+        },
+      ],
+      date: "2026-06-20",
+      durationMinutes: 60,
+      employees: [
+        {name: "Ольга", shiftStart: "08:00", shiftEnd: "18:00", siteBookingSlotMinutes: 15},
+      ],
+      serviceCatalog,
+      serviceName: "Бандаж крио",
+      now: new Date("2026-06-20T08:00:00"),
+      preferredMaster: "Olha",
+    });
+
+    expect(slots.some((slot) => slot.startTime === "11:00")).toBe(false);
+    expect(slots.some((slot) => slot.startTime === "11:30")).toBe(true);
+  });
 });

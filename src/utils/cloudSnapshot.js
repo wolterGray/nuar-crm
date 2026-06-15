@@ -1,3 +1,4 @@
+import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 import {pruneExpiredSnoozes} from "./alertSnooze.js";
 import {resolveEmployeeSiteBookingSlotMinutes} from "./calendarBookableSlots.js";
 import {migrateClientLinks} from "./clientLinks.js";
@@ -125,7 +126,7 @@ export const applyCrmSnapshot = (
       ...defaultAppSettings,
       ...safeSettings,
       sidebarVisible:
-        window.innerWidth <= 700
+        window.innerWidth <= MOBILE_MAX_WIDTH
           ? false
           : safeSettings.sidebarVisible ?? defaultAppSettings.sidebarVisible,
     });
