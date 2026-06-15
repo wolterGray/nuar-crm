@@ -10,6 +10,7 @@ export default function AppShell({
   isServicesPage,
   isPackagesPage,
   isEmployeesPage,
+  isImportPage,
   isTemplatesPage,
   navigation,
   pullRefresh,
@@ -47,7 +48,7 @@ export default function AppShell({
           isPackagesPage ? "packages-content" : ""
         } ${isEmployeesPage ? "employees-content" : ""} ${
           isTemplatesPage ? "templates-content" : ""
-        }`}
+        } ${isImportPage ? "import-content" : ""}`}
         onTouchCancel={onTouchCancel}
         onTouchEnd={onTouchEnd}
         onTouchMove={onTouchMove}

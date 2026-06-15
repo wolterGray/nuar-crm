@@ -27,8 +27,8 @@
 
 /* ---- Layout rhythm ---- */
 
-.content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content),
-.home-content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content),
+.content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content),
+.home-content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content),
 .visits-content:not(.calendar-content):not(.payments-content) {
   padding: var(--ds-space-4) var(--ds-space-5) var(--ds-space-6);
 }
@@ -1047,8 +1047,8 @@
 }
 
 @media (max-width: 768px) {
-  .content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content),
-  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content),
+  .content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content),
+  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content),
   .visits-content:not(.payments-content) {
     padding: 12px 12px 16px;
   }
@@ -1062,7 +1062,9 @@
   .content.employees-content,
   .content.employees-content.home-content,
   .content.templates-content,
-  .content.templates-content.home-content {
+  .content.templates-content.home-content,
+  .content.import-content,
+  .content.import-content.home-content {
     padding: 0 !important;
   }
 

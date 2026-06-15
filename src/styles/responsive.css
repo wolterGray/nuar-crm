@@ -56,7 +56,7 @@
     padding: 10px;
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content) {
     padding: 22px;
   }
 
@@ -327,7 +327,7 @@
     background: rgba(210, 173, 125, 0.14);
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content) {
     width: 100%;
     height: auto;
     min-height: 100dvh;
@@ -393,7 +393,7 @@
     border-top-color: #f8fbff;
   }
 
-  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content),
+  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content),
   .visits-content:not(.payments-content) {
     display: block;
     padding: 0 12px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
@@ -404,7 +404,8 @@
   .services-content,
   .packages-content,
   .employees-content,
-  .templates-content {
+  .templates-content,
+  .import-content {
     display: flex;
     height: 100dvh;
     min-height: 0;
@@ -421,7 +422,8 @@
   .services-page,
   .packages-page,
   .employees-page,
-  .message-templates-page {
+  .message-templates-page,
+  .import-page {
     width: 100%;
     min-height: 0;
     min-width: 0;

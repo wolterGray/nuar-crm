@@ -24,6 +24,7 @@ import {
   summarizeImportDocuments,
 } from "../../utils/booksySync/importDocumentDisplay.js";
 import {formatMoney} from "../../utils/formatters.jsx";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import PageHeader from "../PageHeader.jsx";
 
 const amountFilterOptions = [
@@ -42,7 +43,7 @@ const periodFilterOptions = [
   {value: IMPORT_DOCUMENT_PERIOD_FILTERS.year, label: "Год"},
 ];
 
-function ImportDocumentCard({document, onDelete}) {
+function ImportDocumentCard({document, isMobile, onDelete}) {
   const title = getImportDocumentTitle(document);
   const sourceLabel = getImportDocumentSourceLabel(document);
   const metaRows = getImportDocumentMetaRows(document);
@@ -62,6 +63,59 @@ function ImportDocumentCard({document, onDelete}) {
 
     onDelete(document.id);
   };
+
+  if (isMobile) {
+    return (
+      <article className="import-document-card import-document-mobile-card">
+        <div className="import-document-mobile-head">
+          <span className="import-kind import-kind-document">
+            <FileText size={15} />
+          </span>
+          <div className="import-document-card-heading">
+            <strong>{title}</strong>
+            <small>{sourceLabel}</small>
+          </div>
+        </div>
+
+        {document.subject && document.subject !== title ? (
+          <p className="import-document-card-subject">{document.subject}</p>
+        ) : null}
+
+        {(document.summary || document.description) && (
+          <p className="import-document-card-summary">
+            {document.summary || document.description}
+          </p>
+        )}
+
+        <dl className="import-document-meta import-document-meta-mobile">
+          {metaRows.slice(0, 4).map((row) => (
+            <div className="import-document-meta-row" key={row.label}>
+              <dt>{row.label}</dt>
+              <dd className={row.highlight ? "is-highlight" : ""}>{row.value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="import-document-mobile-actions">
+          <a
+            className="secondary-button"
+            href={document.gmailUrl}
+            rel="noreferrer"
+            target="_blank">
+            <ExternalLink size={15} />
+            Gmail
+          </a>
+          <button
+            className="danger-button"
+            type="button"
+            onClick={handleDelete}>
+            <Trash2 size={15} />
+            Удалить
+          </button>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="import-document-card">
@@ -115,7 +169,70 @@ function ImportDocumentCard({document, onDelete}) {
   );
 }
 
+function ImportDocumentFilters({
+  filters,
+  sourceOptions,
+  totalSummary,
+  updateFilter,
+}) {
+  return (
+    <div className="import-document-filters import-document-filters-mobile">
+      <div className="import-document-filter-group">
+        <small>Источник</small>
+        <div className="client-alert-filter-chips">
+          <button
+            className={filters.source === "all" ? "active" : ""}
+            type="button"
+            onClick={() => updateFilter("source", "all")}>
+            Все · {totalSummary.total}
+          </button>
+          {sourceOptions.map((option) => (
+            <button
+              className={filters.source === option.value ? "active" : ""}
+              key={option.value}
+              type="button"
+              onClick={() => updateFilter("source", option.value)}>
+              {option.label} · {option.count}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="import-document-filter-group">
+        <small>Сумма</small>
+        <div className="client-alert-filter-chips">
+          {amountFilterOptions.map((option) => (
+            <button
+              className={filters.amount === option.value ? "active" : ""}
+              key={option.value}
+              type="button"
+              onClick={() => updateFilter("amount", option.value)}>
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="import-document-filter-group">
+        <small>Период</small>
+        <div className="client-alert-filter-chips">
+          {periodFilterOptions.map((option) => (
+            <button
+              className={filters.period === option.value ? "active" : ""}
+              key={option.value}
+              type="button"
+              onClick={() => updateFilter("period", option.value)}>
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocuments}) {
+  const {isMobile} = useBreakpoint();
   const [filters, setFilters] = useState(DEFAULT_IMPORT_DOCUMENT_FILTERS);
   const sourceOptions = useMemo(
     () => getImportDocumentSourceOptions(documents),
@@ -157,6 +274,141 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
 
     onDeleteDocuments(filteredDocuments.map((document) => document.id));
   };
+
+  const documentCards = filteredDocuments.map((document) => (
+    <ImportDocumentCard
+      document={document}
+      isMobile={isMobile}
+      key={document.id}
+      onDelete={onDeleteDocuments}
+    />
+  ));
+
+  const emptyDocumentsMessage = filtersActive
+    ? "По текущим фильтрам документов не найдено. Измените поиск или сбросьте фильтры."
+    : "Импортированные faktury Allegro, Booksy, iPOS и другие появятся здесь с датой, номером, отправителем и вложениями.";
+
+  if (isMobile) {
+    return (
+      <section className="import-page import-page-mobile">
+        <PageHeader
+          actions={
+            <>
+              <label className="import-page-search">
+                <Search size={16} />
+                <input
+                  placeholder="Номер, тема, отправитель, PDF..."
+                  type="search"
+                  value={filters.search}
+                  onChange={(event) => updateFilter("search", event.target.value)}
+                />
+                {filters.search ? (
+                  <button
+                    aria-label="Очистить поиск"
+                    type="button"
+                    onClick={() => updateFilter("search", "")}>
+                    <X size={15} />
+                  </button>
+                ) : null}
+              </label>
+              <div className="import-page-summary">
+                <article
+                  className={`import-page-summary-card${
+                    filtersActive ? "" : " is-active"
+                  }`}>
+                  <span>{filtersActive ? "Показано" : "Всего"}</span>
+                  <strong>
+                    {visibleSummary.total}
+                    {filtersActive ? `/${totalSummary.total}` : ""}
+                  </strong>
+                </article>
+                <article className="import-page-summary-card">
+                  <span>С суммой</span>
+                  <strong>{visibleSummary.withAmount}</strong>
+                </article>
+                <article className="import-page-summary-card">
+                  <span>Расходы</span>
+                  <strong>{formatMoney(visibleSummary.amountTotal)}</strong>
+                </article>
+                <article className="import-page-summary-card">
+                  <span>Источники</span>
+                  <strong>{visibleSummary.sources}</strong>
+                </article>
+              </div>
+              <details className="import-page-filters-collapsible">
+                <summary>Фильтры</summary>
+                <ImportDocumentFilters
+                  filters={filters}
+                  sourceOptions={sourceOptions}
+                  totalSummary={totalSummary}
+                  updateFilter={updateFilter}
+                />
+              </details>
+              {filtersActive ? (
+                <button
+                  className="secondary-button import-page-reset-button"
+                  type="button"
+                  onClick={resetFilters}>
+                  Сбросить фильтры
+                </button>
+              ) : null}
+              {filteredDocuments.length > 0 && onDeleteDocuments ? (
+                <button
+                  className="danger-button import-page-delete-button"
+                  type="button"
+                  onClick={handleDeleteVisible}>
+                  <Trash2 size={15} />
+                  {filtersActive
+                    ? `Удалить показанные (${filteredDocuments.length})`
+                    : `Удалить все (${filteredDocuments.length})`}
+                </button>
+              ) : null}
+            </>
+          }
+          description={`${visibleSummary.total} из ${totalSummary.total} документов`}
+          title="Импорт"
+        />
+
+        {booksyGmailSync ? (
+          <details className="import-page-booksy-collapsible">
+            <summary>Gmail / Booksy</summary>
+            <BooksyGmailSyncPanel
+              calendarEntries={calendarEntries}
+              connection={booksyGmailSync.connection}
+              isConfigured={booksyGmailSync.isConfigured}
+              isGmailConnected={booksyGmailSync.isGmailConnected}
+              isLoading={booksyGmailSync.isLoading}
+              isSyncing={booksyGmailSync.isSyncing}
+              loadError={booksyGmailSync.loadError}
+              parseErrors={booksyGmailSync.parseErrors}
+              pendingEvents={booksyGmailSync.pendingEvents}
+              reviewKindLabel={booksyGmailSync.reviewKindLabel}
+              summary={booksyGmailSync.summary}
+              useServerSync={booksyGmailSync.useServerSync}
+              onApplyDecision={booksyGmailSync.applyDecision}
+              onConnect={booksyGmailSync.connectGmail}
+              onDisconnect={booksyGmailSync.disconnectGmail}
+              onRefresh={booksyGmailSync.refreshDashboard}
+              onSync={booksyGmailSync.syncNow}
+            />
+          </details>
+        ) : null}
+
+        <section className="import-documents-panel import-panel">
+          <div className="import-scroll import-document-grid">
+            {filteredDocuments.length === 0 ? (
+              <div className="import-page-empty">
+                <strong>Документы не найдены</strong>
+                <span>{emptyDocumentsMessage}</span>
+              </div>
+            ) : (
+              documentCards
+            )}
+          </div>
+        </section>
+      </section>
+    );
+  }
 
   return (
     <section className="import-page">
@@ -247,58 +499,12 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
             )}
           </label>
 
-          <div className="import-document-filters">
-            <div className="import-document-filter-group">
-              <small>Источник</small>
-              <div className="client-alert-filter-chips">
-                <button
-                  className={filters.source === "all" ? "active" : ""}
-                  type="button"
-                  onClick={() => updateFilter("source", "all")}>
-                  Все · {totalSummary.total}
-                </button>
-                {sourceOptions.map((option) => (
-                  <button
-                    className={filters.source === option.value ? "active" : ""}
-                    key={option.value}
-                    type="button"
-                    onClick={() => updateFilter("source", option.value)}>
-                    {option.label} · {option.count}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="import-document-filter-group">
-              <small>Сумма</small>
-              <div className="client-alert-filter-chips">
-                {amountFilterOptions.map((option) => (
-                  <button
-                    className={filters.amount === option.value ? "active" : ""}
-                    key={option.value}
-                    type="button"
-                    onClick={() => updateFilter("amount", option.value)}>
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="import-document-filter-group">
-              <small>Период</small>
-              <div className="client-alert-filter-chips">
-                {periodFilterOptions.map((option) => (
-                  <button
-                    className={filters.period === option.value ? "active" : ""}
-                    key={option.value}
-                    type="button"
-                    onClick={() => updateFilter("period", option.value)}>
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <ImportDocumentFilters
+            filters={filters}
+            sourceOptions={sourceOptions}
+            totalSummary={totalSummary}
+            updateFilter={updateFilter}
+          />
 
           {filtersActive && (
             <button
@@ -323,19 +529,9 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
         </div>
 
         <div className="import-document-grid">
-          {filteredDocuments.map((document) => (
-            <ImportDocumentCard
-              document={document}
-              key={document.id}
-              onDelete={onDeleteDocuments}
-            />
-          ))}
+          {documentCards}
           {filteredDocuments.length === 0 && (
-            <p className="operations-empty">
-              {filtersActive
-                ? "По текущим фильтрам документов не найдено. Измените поиск или сбросьте фильтры."
-                : "Импортированные faktury Allegro, Booksy, iPOS и другие появятся здесь с датой, номером, отправителем и вложениями."}
-            </p>
+            <p className="operations-empty">{emptyDocumentsMessage}</p>
           )}
         </div>
       </section>
