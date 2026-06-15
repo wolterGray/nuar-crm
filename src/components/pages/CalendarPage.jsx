@@ -224,7 +224,7 @@ function CalendarPage({
     () => getTodayInput(),
   );
   const [now, setNow] = useState(new Date());
-  const [mobileCalendarView, setMobileCalendarView] = useState("list");
+  const [mobileCalendarView, setMobileCalendarView] = useState("grid");
   const [remindersVisible, setRemindersVisible] = useState(
     () => !isMobileViewport() && (settings.calendarRemindersVisible ?? true),
   );
@@ -233,7 +233,6 @@ function CalendarPage({
   const [viewedClientEntry, setViewedClientEntry] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
   const [pendingSlot, setPendingSlot] = useState(null);
-  const [weekSelectionStyle, setWeekSelectionStyle] = useState(null);
   const schedulePanelRef = useRef(null);
   const weekCarouselRef = useRef(null);
   const longPressRef = useRef(null);
@@ -315,13 +314,18 @@ function CalendarPage({
     reminderFilter === "active" ? activeVisitEntries : visitEntries
   ).sort((first, second) => String(first.time).localeCompare(String(second.time)));
   const isToday = selectedDate === getTodayInput();
-  const carouselDates = useMemo(
-    () =>
-      Array.from({length: 1461}, (_, index) =>
-        shiftDate(getTodayInput(), index - 730),
-      ),
-    [],
-  );
+  const carouselDates = useMemo(() => {
+    const today = getTodayInput();
+    const startDate = selectedDate < today ? selectedDate : today;
+    const endDate = shiftDate(today, 730);
+    const dates = [];
+
+    for (let date = startDate; date <= endDate; date = shiftDate(date, 1)) {
+      dates.push(date);
+    }
+
+    return dates;
+  }, [selectedDate]);
   const selectCalendarDate = (nextDate) => {
     setSelectedDate(nextDate);
   };
@@ -362,24 +366,21 @@ function CalendarPage({
     if (previousSelectedDateRef.current === selectedDate) return;
 
     previousSelectedDateRef.current = selectedDate;
-    const selectedIndex = carouselDates.indexOf(selectedDate);
-    if (selectedIndex < 0) return;
 
     const selectedButton = weekCarouselRef.current.querySelector(
       `[data-date="${selectedDate}"]`,
     );
     if (!selectedButton) return;
 
-    weekCarouselRef.current.scrollLeft = Math.max(
-      0,
-      selectedButton.offsetLeft - (selectedButton.offsetWidth + 4) * 2,
-    );
+    const today = getTodayInput();
+    const container = weekCarouselRef.current;
 
-    setWeekSelectionStyle({
-      transform: `translate3d(${selectedButton.offsetLeft}px, ${selectedButton.offsetTop}px, 0)`,
-      width: `${selectedButton.offsetWidth}px`,
-      height: `${selectedButton.offsetHeight}px`,
-    });
+    if (selectedDate >= today && selectedDate === today) {
+      container.scrollLeft = 0;
+      return;
+    }
+
+    container.scrollLeft = Math.max(0, selectedButton.offsetLeft - 10);
   }, [carouselDates, selectedDate]);
 
   const getDragPosition = ({active, delta, over}) => {
@@ -552,11 +553,6 @@ function CalendarPage({
         className="mobile-calendar-week"
         aria-label="Дни недели"
         ref={weekCarouselRef}>
-        <span
-          aria-hidden="true"
-          className="calendar-week-selection-indicator"
-          style={weekSelectionStyle ?? undefined}
-        />
         {carouselDates.map((date) => {
           const today = date === getTodayInput();
           const dayIndex = (new Date(`${date}T12:00:00`).getDay() + 6) % 7;

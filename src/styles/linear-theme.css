@@ -942,7 +942,7 @@
 }
 
 .mobile-calendar-week + .calendar-layout {
-  margin-top: -12px !important;
+  margin-top: 0 !important;
 }
 
 .calendar-content .calendar-page {
@@ -951,8 +951,8 @@
 
 .theme-dark .schedule-master header,
 .theme-light .schedule-master header {
-  transform: translateY(-20px);
-  margin-bottom: -20px;
+  transform: none;
+  margin-bottom: 0;
 }
 
 .theme-dark .mobile-calendar-week button.today:not(.selected) b,

@@ -103,20 +103,46 @@ function TodayPage({
     <section className={`today-page statistics-page ${isMobile ? "today-page-mobile" : ""}`}>
       <PageHeader
         actions={
-          <>
-            <button className="secondary-button" type="button" onClick={onOpenCalendar}>
-              <CalendarDays size={16} />
-              Календарь
-            </button>
-            <button className="secondary-button" type="button" onClick={onAddVisit}>
-              <CalendarPlus size={16} />
-              Визит
-            </button>
-            <button className="add-visit-button" type="button" onClick={onAddTask}>
-              <Plus size={16} />
-              Задача
-            </button>
-          </>
+          isMobile ? (
+            <div className="today-header-actions">
+              <button
+                className="today-header-chip secondary-button"
+                type="button"
+                onClick={onOpenCalendar}>
+                <CalendarDays size={16} />
+                <span>Календарь</span>
+              </button>
+              <button
+                className="today-header-chip secondary-button"
+                type="button"
+                onClick={onAddVisit}>
+                <CalendarPlus size={16} />
+                <span>Визит</span>
+              </button>
+              <button
+                className="today-header-chip today-header-chip-full add-visit-button"
+                type="button"
+                onClick={onAddTask}>
+                <Plus size={16} />
+                <span>Задача</span>
+              </button>
+            </div>
+          ) : (
+            <>
+              <button className="secondary-button" type="button" onClick={onOpenCalendar}>
+                <CalendarDays size={16} />
+                Календарь
+              </button>
+              <button className="secondary-button" type="button" onClick={onAddVisit}>
+                <CalendarPlus size={16} />
+                Визит
+              </button>
+              <button className="add-visit-button" type="button" onClick={onAddTask}>
+                <Plus size={16} />
+                Задача
+              </button>
+            </>
+          )
         }
         description="Операционная сводка дня: расписание, окна, задачи и остатки"
         title={`Сегодня · ${dashboard.todayDisplay}`}
@@ -172,8 +198,8 @@ function TodayPage({
               <h3>Расписание на сегодня</h3>
               <p>{dashboard.todayVisits.length} записей</p>
             </div>
-            <button className="secondary-button" type="button" onClick={onOpenCalendar}>
-              Открыть календарь
+            <button className="today-panel-link secondary-button" type="button" onClick={onOpenCalendar}>
+              {isMobile ? "Календарь" : "Открыть календарь"}
             </button>
           </div>
 
@@ -197,17 +223,17 @@ function TodayPage({
                     <div className="today-visit-actions">
                       <button
                         aria-label="Написать клиенту"
-                        className="icon-button"
+                        className="today-inline-action"
                         type="button"
                         onClick={() => onRemindVisit?.(entry)}>
-                        <MessageSquareText size={15} />
+                        <MessageSquareText size={14} />
                       </button>
                       <button
                         aria-label="Редактировать запись"
-                        className="icon-button"
+                        className="today-inline-action"
                         type="button"
                         onClick={() => onEditVisit?.(entry)}>
-                        <Pencil size={15} />
+                        <Pencil size={14} />
                       </button>
                     </div>
                   </div>
