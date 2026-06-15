@@ -56,7 +56,7 @@
     padding: 10px;
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content) {
     padding: 22px;
   }
 
@@ -327,7 +327,7 @@
     background: rgba(210, 173, 125, 0.14);
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content) {
     width: 100%;
     height: auto;
     min-height: 100dvh;
@@ -393,14 +393,15 @@
     border-top-color: #f8fbff;
   }
 
-  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content),
+  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content),
   .visits-content:not(.payments-content) {
     display: block;
     padding: 0 12px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
   }
 
   .payments-content,
-  .visits-content.payments-content {
+  .visits-content.payments-content,
+  .services-content {
     display: flex;
     height: 100dvh;
     min-height: 0;
@@ -409,6 +410,12 @@
   }
 
   .payments-page {
+    width: 100%;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  .services-page {
     width: 100%;
     min-height: 0;
     min-width: 0;
@@ -1281,8 +1288,13 @@
     grid-row: 3;
   }
 
-  .panel:not(.schedule-panel):not(.clients-page-mobile):not(.operations-page-mobile .operations-panel) {
+  .panel:not(.schedule-panel):not(.clients-page-mobile):not(.visits-panel-mobile):not(.day-close-panel):not(.service-form-sheet-root):not(.operations-page-mobile .operations-panel) {
     padding: 18px;
+  }
+
+  .clients-page-mobile.panel,
+  .operations-page-mobile .operations-panel {
+    padding: 0 !important;
   }
 
   .panel.schedule-panel {

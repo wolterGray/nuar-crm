@@ -172,7 +172,7 @@ export default function AppModals({
       </FormModalShell>
 
       <FormModalShell
-        className="employee-modal catalog-modal"
+        className="employee-modal catalog-modal service-form-modal"
         isOpen={serviceModalOpen}
         labelledBy="service-modal-title"
         title={editingService ? "Редактировать услугу" : "Добавить услугу"}

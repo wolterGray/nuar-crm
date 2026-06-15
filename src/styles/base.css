@@ -753,6 +753,31 @@ button {
   padding: 18px 22px 24px;
 }
 
+.content:is(
+    .clients-content,
+    .operations-content,
+    .payments-content,
+    .services-content,
+    .calendar-content
+  ),
+.content.clients-content,
+.content.operations-content,
+.content.payments-content,
+.content.services-content,
+.content.calendar-content {
+  padding: 0;
+  overflow: hidden;
+}
+
+.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .calendar-content),
+.home-content.clients-content,
+.home-content.operations-content,
+.home-content.payments-content,
+.home-content.services-content,
+.home-content.calendar-content {
+  padding: 0;
+}
+
 .home-content {
   display: flex;
   flex-direction: column;
@@ -4319,6 +4344,107 @@ h2 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+}
+
+.service-booking-buffers {
+  margin-top: 4px;
+}
+
+.service-booking-buffers-heading h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.service-buffer-group {
+  display: grid;
+  gap: 8px;
+}
+
+.service-buffer-toggle-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+}
+
+.service-buffer-toggle {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.service-buffer-toggle-input {
+  grid-column: 1;
+  grid-row: 1;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.service-buffer-toggle-box {
+  display: inline-flex;
+  grid-column: 1;
+  grid-row: 1;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--line-soft, #d5d7dc);
+  border-radius: 6px;
+  background: var(--surface-solid, #fff);
+  pointer-events: none;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.service-buffer-toggle:has(.service-buffer-toggle-input:checked) .service-buffer-toggle-box {
+  border-color: var(--accent-color, #d2ad7d);
+  background: var(--accent-color, #d2ad7d);
+}
+
+.service-buffer-toggle:has(.service-buffer-toggle-input:checked) .service-buffer-toggle-box::after {
+  content: "";
+  width: 9px;
+  height: 5px;
+  margin-top: -1px;
+  border-bottom: 2px solid #fff;
+  border-left: 2px solid #fff;
+  transform: rotate(-45deg);
+}
+
+.service-buffer-toggle-label {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  color: var(--text-main, #353941);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.service-buffer-toggle-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.service-buffer-field {
+  display: grid;
+  gap: 5px;
 }
 
 .catalog-form .submit-button {
