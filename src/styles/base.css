@@ -759,7 +759,7 @@ button {
   padding-bottom: 24px;
 }
 
-.visits-content {
+.visits-content:not(.payments-content) {
   display: flex;
   flex-direction: column;
   padding: 18px 30px 20px;

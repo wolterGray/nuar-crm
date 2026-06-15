@@ -56,7 +56,7 @@
     padding: 10px;
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content) {
     padding: 22px;
   }
 
@@ -327,7 +327,7 @@
     background: rgba(210, 173, 125, 0.14);
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content) {
     width: 100%;
     height: auto;
     min-height: 100dvh;
@@ -393,117 +393,25 @@
     border-top-color: #f8fbff;
   }
 
-  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content),
-  .visits-content {
+  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content),
+  .visits-content:not(.payments-content) {
     display: block;
     padding: 0 12px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
   }
 
-  .payments-content {
+  .payments-content,
+  .visits-content.payments-content {
     display: flex;
     height: 100dvh;
     min-height: 0;
     overflow: hidden;
-    padding: 4px 8px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
-  }
-
-  .payments-content .visits-panel {
-    display: flex;
-    min-height: 0;
-    flex: 1;
-    flex-direction: column;
-    gap: 10px;
-    padding: 12px 10px 8px;
-  }
-
-  .payments-content .visits-panel .page-header-unified {
-    margin: 0;
-    padding: 0 0 4px;
+    padding: 0 !important;
   }
 
   .payments-page {
     width: 100%;
     min-height: 0;
     min-width: 0;
-  }
-
-  .payments-content .visits-table-desktop,
-  .payments-content .visits-table.visits-table-desktop {
-    display: none;
-  }
-
-  .payments-content .visits-mobile-list {
-    display: grid;
-    flex: 1;
-    gap: 8px;
-    min-height: 0;
-    overflow: auto;
-    padding-right: 2px;
-  }
-
-  .payments-content .visits-panel .page-header-unified-actions {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
-    gap: 5px;
-  }
-
-  .payments-content .visits-panel .page-header-unified-actions button {
-    justify-content: center;
-    gap: 5px;
-    min-width: 0;
-    min-height: var(--mobile-touch-target, 44px);
-    padding: 0 8px;
-    font-size: 11px;
-    line-height: 1.1;
-    text-align: center;
-  }
-
-  .payments-content .visits-panel .page-header-unified-actions .payments-toolbar-icon-only span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-  }
-
-  .payments-content .visits-panel .page-header-unified-actions .add-visit-button {
-    min-height: var(--mobile-touch-target, 44px);
-    padding: 0 8px;
-    font-size: 11px;
-    line-height: 1.05;
-    text-align: center;
-  }
-
-  .payments-content .visits-panel .page-header-unified-actions svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .payments-content .visits-panel .page-header-unified-copy h2 {
-    font-size: 16px;
-  }
-
-  .payments-content .visits-panel .page-header-unified-copy p {
-    font-size: 12px;
-  }
-
-  .payments-content .table-filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-    margin-bottom: 8px;
-  }
-
-  .payments-content .table-filters input,
-  .payments-content .table-filters select {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .payments-content .table-footer {
-    flex-direction: row;
-    padding-top: 7px;
   }
 
   .page-header,

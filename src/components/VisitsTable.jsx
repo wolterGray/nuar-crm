@@ -6,7 +6,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {Download, ListFilter, MoreVertical, Plus, Search} from "lucide-react";
+import {Download, ListFilter, MoreVertical, Plus, Search, X} from "lucide-react";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
 import {formatMoney} from "../utils/formatters.jsx";
@@ -294,99 +294,137 @@ function VisitsTable({
   };
 
   return (
-    <Card className="panel visits-panel">
+    <Card className={`panel visits-panel ${isMobile ? "visits-panel-mobile" : ""}`}>
       <PageHeader
         actions={
-          <>
-            <Button
+          isMobile ? (
+            <>
+              <label className="payments-search">
+                <Search size={16} />
+                <input
+                  placeholder="Поиск: клиент, мастер, услуга"
+                  type="search"
+                  value={globalFilter}
+                  onChange={(event) => setGlobalFilter(event.target.value)}
+                />
+                {globalFilter ? (
+                  <button
+                    aria-label="Очистить поиск"
+                    type="button"
+                    onClick={() => setGlobalFilter("")}>
+                    <X size={15} />
+                  </button>
+                ) : null}
+              </label>
+              {onAddVisit ? (
+                <button className="add-visit-button payments-add-button" type="button" onClick={onAddVisit}>
+                  <Plus size={18} />
+                  Добавить
+                </button>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <Button
+                aria-label="Экспорт CSV"
+                className="secondary-button"
+                type="button"
+                onClick={exportVisits}>
+                <Download size={16} />
+                <span>Экспорт CSV</span>
+              </Button>
+              <Button
+                aria-label="Сбросить фильтры"
+                className="secondary-button"
+                onClick={onResetFilters}>
+                <ListFilter size={16} />
+                <span>Сбросить</span>
+              </Button>
+              {onAddVisit ? (
+                <Button
+                  aria-label={addLabel}
+                  className="add-visit-button"
+                  type="button"
+                  variant="primary"
+                  onClick={onAddVisit}>
+                  <Plus size={16} />
+                  <span>{addLabel}</span>
+                </Button>
+              ) : null}
+            </>
+          )
+        }
+        description={isMobile ? undefined : `${rows.length} из ${visits.length} записей`}
+        headerActions={
+          isMobile ? (
+            <button
               aria-label="Экспорт CSV"
-              className={`secondary-button ${isMobile ? "payments-toolbar-icon-only" : ""}`}
+              className="payments-header-icon"
               type="button"
               onClick={exportVisits}>
-              <Download size={16} />
-              <span>{isMobile ? "CSV" : "Экспорт CSV"}</span>
-            </Button>
-            <Button
-              aria-label="Сбросить фильтры"
-              className={`secondary-button ${isMobile ? "payments-toolbar-icon-only" : ""}`}
-              onClick={onResetFilters}>
-              <ListFilter size={16} />
-              <span>{isMobile ? "Сброс" : "Сбросить"}</span>
-            </Button>
-            {onAddVisit && (
-              <Button
-                aria-label={addLabel}
-                className={`add-visit-button ${isMobile ? "payments-toolbar-icon-only" : ""}`}
-                type="button"
-                variant="primary"
-                onClick={onAddVisit}>
-                <Plus size={16} />
-                <span>{isMobile ? "Добавить" : addLabel}</span>
-              </Button>
-            )}
-          </>
+              <Download size={18} />
+            </button>
+          ) : undefined
         }
-        description={`${rows.length} из ${visits.length} записей`}
-        title={title}
+        title={isMobile ? "Оплаты" : title}
       />
 
-      <div className="table-search">
-        <Search size={16} />
-        <Input
-          type="search"
-          placeholder="Поиск: клиент, мастер, услуга"
-          value={globalFilter}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-        />
-      </div>
+      {!isMobile ? (
+        <div className="table-search">
+          <Search size={16} />
+          <Input
+            type="search"
+            placeholder="Поиск: клиент, мастер, услуга"
+            value={globalFilter}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+          />
+        </div>
+      ) : null}
 
       {isMobile ? (
-        <details className="payments-filters-collapsible">
-          <summary>Фильтры</summary>
-          <div className="table-filters">
-            <label>
-              Сотрудник
-              <select
-                value={filters.master}
-                onChange={(event) => onFilterChange("master", event.target.value)}>
-                <option value="">Все</option>
-                {masters.map((master) => (
-                  <option key={master}>{master}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Оплата
-              <select
-                value={filters.payment}
-                onChange={(event) => onFilterChange("payment", event.target.value)}>
-                <option value="">Все</option>
-                {paymentMethods.map((payment) => (
-                  <option key={payment}>{payment}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Клиент
-              <ClientAutocomplete
-                clients={clientOptions}
-                id="visit-filter-client-options"
-                name="client-filter"
-                placeholder="Все клиенты"
-                value={filters.client}
-                onChange={(event) => onFilterChange("client", event.target.value)}
-              />
-            </label>
-            <label>
-              Дата
-              <input
-                type="date"
-                value={filters.date}
-                onChange={(event) => onFilterChange("date", event.target.value)}
-              />
-            </label>
-          </div>
-        </details>
+        <div className="payments-mobile-filters table-filters">
+          <label>
+            Сотрудник
+            <select
+              value={filters.master}
+              onChange={(event) => onFilterChange("master", event.target.value)}>
+              <option value="">Все</option>
+              {masters.map((master) => (
+                <option key={master}>{master}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Оплата
+            <select
+              value={filters.payment}
+              onChange={(event) => onFilterChange("payment", event.target.value)}>
+              <option value="">Все</option>
+              {paymentMethods.map((payment) => (
+                <option key={payment}>{payment}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Клиент
+            <ClientAutocomplete
+              clients={clientOptions}
+              id="visit-filter-client-options-mobile"
+              name="client-filter-mobile"
+              placeholder="Все"
+              value={filters.client}
+              onChange={(event) => onFilterChange("client", event.target.value)}
+            />
+          </label>
+          <label>
+            Дата
+            <input
+              type="date"
+              value={filters.date}
+              onChange={(event) => onFilterChange("date", event.target.value)}
+            />
+          </label>
+        </div>
       ) : (
       <div className="table-filters">
         <label>
@@ -434,21 +472,40 @@ function VisitsTable({
       )}
 
       <div className="visits-mobile-list">
-        {rows.map((row) => {
-          const visit = row.original;
+        {!hasVisits ? (
+          <div className="visits-mobile-empty">
+            <strong>Визитов пока нет</strong>
+            <span>Добавьте первый визит или поступление, и оно появится здесь.</span>
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="visits-mobile-empty">
+            <strong>Ничего не найдено</strong>
+            <span>
+              {hasSearch
+                ? "Попробуйте изменить поиск по клиенту, мастеру или услуге."
+                : "Попробуйте изменить фильтры."}
+            </span>
+          </div>
+        ) : (
+          rows.map((row) => {
+            const visit = row.original;
 
-          return (
-            <VisitMobileCard
-              isPlanned={visit.isPlanned}
-              key={visit.id}
-              showMaster
-              showStatus={Boolean(visit.status)}
-              visit={visit}
-              onDelete={onDeleteVisit}
-              onEdit={onEditVisit}
-            />
-          );
-        })}
+            return (
+              <VisitMobileCard
+                enableSwipe={false}
+                isPlanned={visit.isPlanned}
+                key={visit.id}
+                openMenuId={openActionMenuId}
+                setOpenMenuId={onToggleActionMenu}
+                showMaster
+                showStatus={Boolean(visit.status)}
+                visit={visit}
+                onDelete={onDeleteVisit}
+                onEdit={onEditVisit}
+              />
+            );
+          })
+        )}
       </div>
 
       <Table className="visits-table visits-table-desktop">
@@ -509,7 +566,7 @@ function VisitsTable({
         )}
       </Table>
 
-      <footer className="table-footer">
+      <footer className={`table-footer ${isMobile ? "table-footer-mobile-hidden" : ""}`}>
         <span>Визитов: {rows.length} из {visits.length}</span>
       </footer>
     </Card>

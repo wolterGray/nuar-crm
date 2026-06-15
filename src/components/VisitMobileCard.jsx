@@ -10,6 +10,7 @@ import {formatMoney} from "../utils/formatters.jsx";
 import {getVisitDebt, getVisitTransactionTotal} from "../utils/visits.jsx";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import {useSwipeReveal} from "../hooks/useSwipeReveal.js";
+import {RowActionsMenu} from "./RowActionMenuPortal.jsx";
 
 const statusLabels = {
   scheduled: "Запланирован",
@@ -34,8 +35,12 @@ function VisitMobileCard({
   onCancel,
   className = "",
   enableSwipe = true,
+  openMenuId,
+  setOpenMenuId,
 }) {
   const {isMobile} = useBreakpoint();
+  const useCompactMenu =
+    Boolean(setOpenMenuId && onEdit && onDelete) && isMobile;
   const debt = getVisitDebt(visit);
   const amount = formatMoney(getVisitTransactionTotal(visit));
   const status = visit.status ? (statusLabels[visit.status] || statusLabels.scheduled) : null;
@@ -44,6 +49,7 @@ function VisitMobileCard({
   const canCancel =
     onCancel && !["cancelled", "no_show", "completed"].includes(visit.status);
   const hasSwipeActions =
+    !useCompactMenu &&
     enableSwipe &&
     isMobile &&
     (clientPhone || onMessage || onConfirm || onCancel || onEdit || onDelete);
@@ -56,7 +62,37 @@ function VisitMobileCard({
     (onOpen ?? onEdit)?.(visit);
   };
 
-  const cardBody = (
+  const cardBody = useCompactMenu ? (
+    <>
+      <div className="visit-mobile-card-head">
+        <strong>{visit.client}</strong>
+        <small>{[visit.date, visit.time].filter(Boolean).join(" · ")}</small>
+      </div>
+      <RowActionsMenu
+        className="visit-row-actions"
+        itemId={visit.id}
+        openMenuId={openMenuId}
+        setOpenMenuId={setOpenMenuId}
+        onDelete={() => onDelete(visit)}
+        onEdit={() => onEdit(visit)}
+      />
+      <div className="visit-mobile-card-line">
+        <span>{visit.service}</span>
+        <b className="visit-mobile-card-amount">{amount}</b>
+      </div>
+      <div className="visit-mobile-card-meta">
+        {showMaster && visit.master ? <span>{visit.master}</span> : null}
+        <span className={debt > 0 ? "visit-mobile-card-payment visit-mobile-card-debt" : "visit-mobile-card-payment"}>
+          {debt > 0 ? `Долг ${formatMoney(debt)}` : visit.payment || "Не указано"}
+        </span>
+        {showStatus && status ? (
+          <span className={`visit-mobile-card-status visit-mobile-card-status-${visit.status || "scheduled"}`}>
+            {status}
+          </span>
+        ) : null}
+      </div>
+    </>
+  ) : (
     <>
       <div className="visit-mobile-card-top">
         <div className="visit-mobile-card-time-block">
@@ -152,10 +188,11 @@ function VisitMobileCard({
 
   return (
     <article
-      className={`visit-mobile-card ${isPlanned ? "visit-mobile-card-planned" : ""} ${isNext ? "visit-mobile-card-next" : ""} ${className}`.trim()}
+      className={`visit-mobile-card ${useCompactMenu ? "visit-mobile-card-compact" : ""} ${isPlanned ? "visit-mobile-card-planned" : ""} ${isNext ? "visit-mobile-card-next" : ""} ${className}`.trim()}
       onClick={handleOpen}>
       {cardBody}
-      {(onMessage || onConfirm || onCancel || onEdit || onDelete || clientPhone) && (
+      {!useCompactMenu &&
+      (onMessage || onConfirm || onCancel || onEdit || onDelete || clientPhone) ? (
         <div className="visit-mobile-card-actions" onClick={(event) => event.stopPropagation()}>
           {clientPhone ? (
             <a
@@ -212,7 +249,7 @@ function VisitMobileCard({
             </button>
           ) : null}
         </div>
-      )}
+      ) : null}
     </article>
   );
 }

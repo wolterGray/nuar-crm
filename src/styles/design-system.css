@@ -27,9 +27,9 @@
 
 /* ---- Layout rhythm ---- */
 
-.content:not(.calendar-content):not(.clients-content):not(.operations-content),
-.home-content:not(.calendar-content):not(.clients-content):not(.operations-content),
-.visits-content:not(.calendar-content) {
+.content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content),
+.home-content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content),
+.visits-content:not(.calendar-content):not(.payments-content) {
   padding: var(--ds-space-4) var(--ds-space-5) var(--ds-space-6);
 }
 
@@ -71,7 +71,7 @@
 
 /* ---- Panels & cards ---- */
 
-.panel:not(.schedule-panel):not(.calendar-reminders):not(.client-packages-panel):not(.clients-page-mobile):not(.operations-page-mobile .operations-panel) {
+.panel:not(.schedule-panel):not(.calendar-reminders):not(.client-packages-panel):not(.clients-page-mobile):not(.visits-panel-mobile):not(.day-close-panel):not(.operations-page-mobile .operations-panel) {
   display: grid;
   gap: var(--ds-space-3);
   padding: var(--ds-panel-padding);
@@ -1041,9 +1041,9 @@
 }
 
 @media (max-width: 768px) {
-  .content:not(.clients-content):not(.operations-content):not(.calendar-content),
-  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content),
-  .visits-content {
+  .content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content),
+  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content),
+  .visits-content:not(.payments-content) {
     padding: 12px 12px 16px;
   }
 

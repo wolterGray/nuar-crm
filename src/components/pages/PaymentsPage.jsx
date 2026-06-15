@@ -1,5 +1,6 @@
 import VisitsTable from "../VisitsTable.jsx";
 import DayClosePanel from "../DayClosePanel.jsx";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 
 function PaymentsPage({
   closeDay,
@@ -18,8 +19,10 @@ function PaymentsPage({
   onResetFilters,
   onToggleActionMenu,
 }) {
+  const {isMobile} = useBreakpoint();
+
   return (
-    <section className="payments-page">
+    <section className={`payments-page ${isMobile ? "payments-page-mobile" : ""}`}>
       <DayClosePanel
         dayCloseRecords={dayCloseRecords}
         getJournalForDate={getDayCloseJournal}
