@@ -46,7 +46,7 @@ function VisitMobileCard({
   const hasSwipeActions =
     enableSwipe &&
     isMobile &&
-    (clientPhone || onMessage || onConfirm || onCancel || onEdit);
+    (clientPhone || onMessage || onConfirm || onCancel || onEdit || onDelete);
   const {close, offset, swipeHandlers} = useSwipeReveal({
     enabled: hasSwipeActions,
   });
@@ -127,6 +127,15 @@ function VisitMobileCard({
               type="button"
               onClick={() => onEdit(visit)}>
               <Pencil size={18} />
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button
+              aria-label="Удалить"
+              className="visit-mobile-swipe-action visit-mobile-swipe-delete"
+              type="button"
+              onClick={() => onDelete(visit)}>
+              <Trash2 size={18} />
             </button>
           ) : null}
         </div>

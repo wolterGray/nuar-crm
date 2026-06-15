@@ -972,6 +972,55 @@
     background: #5d6168;
   }
 
+  .visit-mobile-swipe-delete {
+    color: #fff;
+    background: #a83228;
+  }
+
+  .employee-modal.mobile-sheet {
+    display: flex;
+    overflow: hidden;
+  }
+
+  .employee-modal.mobile-sheet .mobile-sheet-body {
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .employee-modal.calendar-entry-modal.mobile-sheet {
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .payments-filters-collapsible {
+    margin-bottom: 8px;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface, #fff) 96%, transparent);
+    overflow: hidden;
+  }
+
+  .payments-filters-collapsible summary {
+    min-height: var(--mobile-touch-target, 44px);
+    padding: 12px 14px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .payments-filters-collapsible summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .payments-filters-collapsible .table-filters {
+    padding: 0 12px 12px;
+  }
+
   .visit-mobile-card-swipe-surface {
     position: relative;
     z-index: 1;

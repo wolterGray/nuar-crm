@@ -1,5 +1,5 @@
-import {X} from "lucide-react";
 import ConfirmDialog from "./ConfirmDialog.jsx";
+import FormModalShell from "./FormModalShell.jsx";
 import {getEntityDeleteDialogContent} from "../utils/entityDeleteDialog.js";
 import EmployeeForm from "./EmployeeForm.jsx";
 import NewClientForm from "./NewClientForm.jsx";
@@ -151,330 +151,175 @@ export default function AppModals({
 
   return (
     <>
-      {employeeModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal"
-            role="dialog"
-            aria-labelledby="employee-modal-title">
-            <div className="modal-header">
-              <h2 id="employee-modal-title">
-                {editingEmployee
-                  ? "Редактировать сотрудника"
-                  : "Добавить сотрудника"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseEmployeeModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <EmployeeForm employee={editingEmployee} onSubmit={onEmployeeSubmit} />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal"
+        isOpen={employeeModalOpen}
+        labelledBy="employee-modal-title"
+        title={
+          editingEmployee ? "Редактировать сотрудника" : "Добавить сотрудника"
+        }
+        onClose={onCloseEmployeeModal}>
+        <EmployeeForm employee={editingEmployee} onSubmit={onEmployeeSubmit} />
+      </FormModalShell>
 
-      {clientModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal client-form-modal"
-            role="dialog"
-            aria-labelledby="client-modal-title">
-            <div className="modal-header">
-              <h2 id="client-modal-title">
-                {editingClient ? "Редактировать клиента" : "Добавить клиента"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseClientModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <NewClientForm client={editingClient} onSubmit={onClientSubmit} />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal client-form-modal"
+        isOpen={clientModalOpen}
+        labelledBy="client-modal-title"
+        title={editingClient ? "Редактировать клиента" : "Добавить клиента"}
+        onClose={onCloseClientModal}>
+        <NewClientForm client={editingClient} onSubmit={onClientSubmit} />
+      </FormModalShell>
 
-      {serviceModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal catalog-modal"
-            role="dialog"
-            aria-labelledby="service-modal-title">
-            <div className="modal-header">
-              <h2 id="service-modal-title">
-                {editingService ? "Редактировать услугу" : "Добавить услугу"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseServiceModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <ServiceForm service={editingService} onSubmit={onServiceSubmit} />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal catalog-modal"
+        isOpen={serviceModalOpen}
+        labelledBy="service-modal-title"
+        title={editingService ? "Редактировать услугу" : "Добавить услугу"}
+        onClose={onCloseServiceModal}>
+        <ServiceForm service={editingService} onSubmit={onServiceSubmit} />
+      </FormModalShell>
 
-      {packageModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal catalog-modal"
-            role="dialog"
-            aria-labelledby="package-modal-title">
-            <div className="modal-header">
-              <h2 id="package-modal-title">
-                {editingPackage ? "Редактировать пакет" : "Добавить пакет"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onClosePackageModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <PackageForm
-              packageItem={editingPackage}
-              services={serviceNames}
-              onSubmit={onPackageSubmit}
-            />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal catalog-modal"
+        isOpen={packageModalOpen}
+        labelledBy="package-modal-title"
+        title={editingPackage ? "Редактировать пакет" : "Добавить пакет"}
+        onClose={onClosePackageModal}>
+        <PackageForm
+          packageItem={editingPackage}
+          services={serviceNames}
+          onSubmit={onPackageSubmit}
+        />
+      </FormModalShell>
 
-      {clientPackageModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal catalog-modal"
-            role="dialog"
-            aria-labelledby="client-package-modal-title">
-            <div className="modal-header">
-              <h2 id="client-package-modal-title">
-                {editingClientPackage
-                  ? "Редактировать остаток"
-                  : "Продать пакет клиенту"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseClientPackageModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <ClientPackageForm
-              clientPackage={editingClientPackage}
-              clients={clientNames}
-              employees={activeEmployees}
-              packages={packagesCatalog}
-              onSubmit={onClientPackageSubmit}
-            />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal catalog-modal"
+        isOpen={clientPackageModalOpen}
+        labelledBy="client-package-modal-title"
+        title={
+          editingClientPackage
+            ? "Редактировать остаток"
+            : "Продать пакет клиенту"
+        }
+        onClose={onCloseClientPackageModal}>
+        <ClientPackageForm
+          clientPackage={editingClientPackage}
+          clients={clientNames}
+          employees={activeEmployees}
+          packages={packagesCatalog}
+          onSubmit={onClientPackageSubmit}
+        />
+      </FormModalShell>
 
-      {certificateModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal catalog-modal"
-            role="dialog"
-            aria-labelledby="certificate-modal-title">
-            <div className="modal-header">
-              <h2 id="certificate-modal-title">
-                {editingCertificate
-                  ? "Редактировать сертификат"
-                  : "Продать сертификат"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseCertificateModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <CertificateForm
-              certificate={editingCertificate}
-              certificates={certificates}
-              clients={clientNames}
-              employees={activeEmployees}
-              onSubmit={onCertificateSubmit}
-            />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal catalog-modal"
+        isOpen={certificateModalOpen}
+        labelledBy="certificate-modal-title"
+        title={
+          editingCertificate ? "Редактировать сертификат" : "Продать сертификат"
+        }
+        onClose={onCloseCertificateModal}>
+        <CertificateForm
+          certificate={editingCertificate}
+          certificates={certificates}
+          clients={clientNames}
+          employees={activeEmployees}
+          onSubmit={onCertificateSubmit}
+        />
+      </FormModalShell>
 
-      {messageTemplateModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal message-template-modal"
-            role="dialog"
-            aria-labelledby="message-template-modal-title">
-            <div className="modal-header">
-              <h2 id="message-template-modal-title">
-                {editingMessageTemplate
-                  ? "Редактировать шаблон"
-                  : "Добавить шаблон"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseMessageTemplateModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <MessageTemplateForm
-              template={editingMessageTemplate}
-              onSubmit={onMessageTemplateSubmit}
-            />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal message-template-modal"
+        isOpen={messageTemplateModalOpen}
+        labelledBy="message-template-modal-title"
+        title={
+          editingMessageTemplate ? "Редактировать шаблон" : "Добавить шаблон"
+        }
+        onClose={onCloseMessageTemplateModal}>
+        <MessageTemplateForm
+          template={editingMessageTemplate}
+          onSubmit={onMessageTemplateSubmit}
+        />
+      </FormModalShell>
 
-      {calendarEntryModalOpen && (
-        <div className="modal-backdrop calendar-entry-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal calendar-entry-modal"
-            role="dialog"
-            aria-labelledby="calendar-entry-modal-title">
-            <div className="modal-header">
-              <h2 id="calendar-entry-modal-title">
-                {editingJournalVisit
-                  ? "Редактировать визит"
-                  : editingCalendarEntry
-                    ? "Редактировать запись"
-                    : "Добавить в календарь"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseCalendarEntryModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <CalendarEntryForm
-              calendarEntries={calendarEntries}
-              certificates={certificates}
-              clientPackages={clientPackages}
-              clients={clientProfiles}
-              employees={activeEmployees}
-              initialEntry={editingCalendarEntry}
-              selectedAmount={calendarEntryDefaults.amount ?? ""}
-              selectedClient={calendarEntryDefaults.client ?? ""}
-              selectedDate={calendarEntryDefaults.date ?? defaultStatsDate}
-              selectedDuration={calendarEntryDefaults.duration ?? 60}
-              selectedKind={calendarEntryDefaults.kind ?? "visit"}
-              selectedMaster={calendarEntryDefaults.master ?? masters[0] ?? ""}
-              selectedPayment={calendarEntryDefaults.payment ?? "Наличные"}
-              selectedServiceId={calendarEntryDefaults.serviceId ?? ""}
-              selectedTime={calendarEntryDefaults.time ?? "10:00"}
-              services={serviceCatalog}
-              visits={paymentRows}
-              onCreateClient={onCreateCalendarClient}
-              onSubmit={onCalendarEntrySubmit}
-            />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        backdropClassName="calendar-entry-backdrop"
+        className="employee-modal calendar-entry-modal"
+        fullscreen
+        isOpen={calendarEntryModalOpen}
+        labelledBy="calendar-entry-modal-title"
+        title={
+          editingJournalVisit
+            ? "Редактировать визит"
+            : editingCalendarEntry
+              ? "Редактировать запись"
+              : "Добавить в календарь"
+        }
+        onClose={onCloseCalendarEntryModal}>
+        <CalendarEntryForm
+          calendarEntries={calendarEntries}
+          certificates={certificates}
+          clientPackages={clientPackages}
+          clients={clientProfiles}
+          employees={activeEmployees}
+          initialEntry={editingCalendarEntry}
+          selectedAmount={calendarEntryDefaults.amount ?? ""}
+          selectedClient={calendarEntryDefaults.client ?? ""}
+          selectedDate={calendarEntryDefaults.date ?? defaultStatsDate}
+          selectedDuration={calendarEntryDefaults.duration ?? 60}
+          selectedKind={calendarEntryDefaults.kind ?? "visit"}
+          selectedMaster={calendarEntryDefaults.master ?? masters[0] ?? ""}
+          selectedPayment={calendarEntryDefaults.payment ?? "Наличные"}
+          selectedServiceId={calendarEntryDefaults.serviceId ?? ""}
+          selectedTime={calendarEntryDefaults.time ?? "10:00"}
+          services={serviceCatalog}
+          visits={paymentRows}
+          onCreateClient={onCreateCalendarClient}
+          onSubmit={onCalendarEntrySubmit}
+        />
+      </FormModalShell>
 
-      {taskModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal catalog-modal"
-            role="dialog"
-            aria-labelledby="task-modal-title">
-            <div className="modal-header">
-              <h2 id="task-modal-title">
-                {editingTask?.type === "note"
-                  ? "Редактировать заметку"
-                  : editingTask
-                    ? "Редактировать задачу"
-                    : "Новая задача"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseTaskModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <TaskForm task={editingTask} onSubmit={onTaskSubmit} />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal catalog-modal"
+        isOpen={taskModalOpen}
+        labelledBy="task-modal-title"
+        title={
+          editingTask?.type === "note"
+            ? "Редактировать заметку"
+            : editingTask
+              ? "Редактировать задачу"
+              : "Новая задача"
+        }
+        onClose={onCloseTaskModal}>
+        <TaskForm task={editingTask} onSubmit={onTaskSubmit} />
+      </FormModalShell>
 
-      {supplyModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal catalog-modal"
-            role="dialog"
-            aria-labelledby="supply-modal-title">
-            <div className="modal-header">
-              <h2 id="supply-modal-title">
-                {editingSupply ? "Редактировать расходник" : "Новый расходник"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseSupplyModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <SupplyForm supply={editingSupply} onSubmit={onSupplySubmit} />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal catalog-modal"
+        isOpen={supplyModalOpen}
+        labelledBy="supply-modal-title"
+        title={editingSupply ? "Редактировать расходник" : "Новый расходник"}
+        onClose={onCloseSupplyModal}>
+        <SupplyForm supply={editingSupply} onSubmit={onSupplySubmit} />
+      </FormModalShell>
 
-      {financialOperationModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-labelledby="financial-operation-modal-title"
-            aria-modal="true"
-            className="employee-modal"
-            role="dialog">
-            <div className="modal-header">
-              <h2 id="financial-operation-modal-title">
-                {editingFinancialOperation
-                  ? "Редактировать поступление"
-                  : "Добавить поступление"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseFinancialOperationModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <FinancialOperationForm
-              clients={clientProfiles}
-              operation={editingFinancialOperation}
-              onSubmit={onFinancialOperationSubmit}
-            />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal"
+        isOpen={financialOperationModalOpen}
+        labelledBy="financial-operation-modal-title"
+        title={
+          editingFinancialOperation
+            ? "Редактировать поступление"
+            : "Добавить поступление"
+        }
+        onClose={onCloseFinancialOperationModal}>
+        <FinancialOperationForm
+          clients={clientProfiles}
+          operation={editingFinancialOperation}
+          onSubmit={onFinancialOperationSubmit}
+        />
+      </FormModalShell>
 
       <ConfirmDialog
         confirmLabel={
@@ -551,43 +396,30 @@ export default function AppModals({
         onConfirm={onConfirmDataBackup}
       />
 
-      {waitlistModalOpen && (
-        <div className="modal-backdrop" role="presentation">
-          <section
-            aria-modal="true"
-            className="employee-modal client-form-modal"
-            role="dialog"
-            aria-labelledby="waitlist-modal-title">
-            <div className="modal-header">
-              <h2 id="waitlist-modal-title">
-                {editingWaitlistEntry
-                  ? "Редактировать лист ожидания"
-                  : "Добавить в лист ожидания"}
-              </h2>
-              <button
-                aria-label="Закрыть форму"
-                className="modal-close"
-                type="button"
-                onClick={onCloseWaitlistModal}>
-                <X size={18} />
-              </button>
-            </div>
-            <WaitlistForm
-              key={
-                editingWaitlistEntry?.id ??
-                `create-${waitlistDefaults?.clientId ?? "none"}`
-              }
-              clientProfiles={clientProfiles}
-              defaults={waitlistDefaults}
-              editingEntry={editingWaitlistEntry}
-              employees={activeEmployees}
-              serviceCatalog={serviceCatalog}
-              onClose={onCloseWaitlistModal}
-              onSubmit={onWaitlistSubmit}
-            />
-          </section>
-        </div>
-      )}
+      <FormModalShell
+        className="employee-modal client-form-modal"
+        isOpen={waitlistModalOpen}
+        labelledBy="waitlist-modal-title"
+        title={
+          editingWaitlistEntry
+            ? "Редактировать лист ожидания"
+            : "Добавить в лист ожидания"
+        }
+        onClose={onCloseWaitlistModal}>
+        <WaitlistForm
+          key={
+            editingWaitlistEntry?.id ??
+            `create-${waitlistDefaults?.clientId ?? "none"}`
+          }
+          clientProfiles={clientProfiles}
+          defaults={waitlistDefaults}
+          editingEntry={editingWaitlistEntry}
+          employees={activeEmployees}
+          serviceCatalog={serviceCatalog}
+          onClose={onCloseWaitlistModal}
+          onSubmit={onWaitlistSubmit}
+        />
+      </FormModalShell>
 
       {entityDeleteDialog && (
         <ConfirmDialog

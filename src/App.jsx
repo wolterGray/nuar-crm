@@ -20,6 +20,7 @@ import AppRoutes from "./components/AppRoutes.jsx";
 import {supabase} from "./lib/supabase.js";
 import {publishServicesToSite} from "./utils/siteSync.js";
 import {navItems} from "./constants/navigation.js";
+import {isMobileViewport} from "./constants/breakpoints.js";
 import {
   ACTIVE_PAGE_STORAGE_KEY,
   ALERT_FILTER_STORAGE_KEY,
@@ -166,7 +167,11 @@ function App() {
       deserialize: (value) => {
         const pageExists =
           navItems.some((item) => item.page === value) || value === "site";
-        return pageExists && value !== "home" ? value : "calendar";
+        return pageExists && value !== "home"
+          ? value
+          : isMobileViewport()
+            ? "today"
+            : "calendar";
       },
       serialize: (value) => value,
     },
@@ -986,12 +991,19 @@ function App() {
     onCalendarSlotFreedRef.current = waitlist.notifyCalendarSlotFreed;
   }, [waitlist.notifyCalendarSlotFreed]);
 
-  pullRefreshBlockedExtrasRef.current = {
-    clientSearchOpen: clientSearch.isOpen,
+  useEffect(() => {
+    pullRefreshBlockedExtrasRef.current = {
+      clientSearchOpen: clientSearch.isOpen,
+      pendingEntityDelete,
+      waitlistModalOpen: waitlist.waitlistModalOpen,
+      waitlistOfferOpen: Boolean(waitlist.pendingFreedSlot),
+    };
+  }, [
+    clientSearch.isOpen,
     pendingEntityDelete,
-    waitlistModalOpen: waitlist.waitlistModalOpen,
-    waitlistOfferOpen: Boolean(waitlist.pendingFreedSlot),
-  };
+    waitlist.pendingFreedSlot,
+    waitlist.waitlistModalOpen,
+  ]);
 
   const dayClose = useDayCloseHandlers({
     calendarEntries,

@@ -6,7 +6,7 @@ import {
   visitsSeed,
 } from "../data/seed.js";
 import {navItems} from "../constants/navigation.js";
-import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
+import {isMobileViewport, MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 import {
   ACTIVE_PAGE_STORAGE_KEY,
   ALERT_FILTER_STORAGE_KEY,
@@ -76,9 +76,11 @@ export const loadStoredActivePage = () => {
   try {
     const storedPage = window.localStorage.getItem(ACTIVE_PAGE_STORAGE_KEY);
     const pageExists = navItems.some((item) => item.page === storedPage);
-    return pageExists && storedPage !== "home" ? storedPage : "calendar";
+    const defaultPage = isMobileViewport() ? "today" : "calendar";
+
+    return pageExists && storedPage !== "home" ? storedPage : defaultPage;
   } catch {
-    return "calendar";
+    return isMobileViewport() ? "today" : "calendar";
   }
 };
 

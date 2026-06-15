@@ -340,6 +340,54 @@ function VisitsTable({
         />
       </div>
 
+      {isMobile ? (
+        <details className="payments-filters-collapsible">
+          <summary>Фильтры</summary>
+          <div className="table-filters">
+            <label>
+              Сотрудник
+              <select
+                value={filters.master}
+                onChange={(event) => onFilterChange("master", event.target.value)}>
+                <option value="">Все</option>
+                {masters.map((master) => (
+                  <option key={master}>{master}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Оплата
+              <select
+                value={filters.payment}
+                onChange={(event) => onFilterChange("payment", event.target.value)}>
+                <option value="">Все</option>
+                {paymentMethods.map((payment) => (
+                  <option key={payment}>{payment}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Клиент
+              <ClientAutocomplete
+                clients={clientOptions}
+                id="visit-filter-client-options"
+                name="client-filter"
+                placeholder="Все клиенты"
+                value={filters.client}
+                onChange={(event) => onFilterChange("client", event.target.value)}
+              />
+            </label>
+            <label>
+              Дата
+              <input
+                type="date"
+                value={filters.date}
+                onChange={(event) => onFilterChange("date", event.target.value)}
+              />
+            </label>
+          </div>
+        </details>
+      ) : (
       <div className="table-filters">
         <label>
           Сотрудник
@@ -383,6 +431,7 @@ function VisitsTable({
           />
         </label>
       </div>
+      )}
 
       <div className="visits-mobile-list">
         {rows.map((row) => {
