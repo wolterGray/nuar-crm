@@ -759,6 +759,7 @@ button {
     .payments-content,
     .services-content,
     .packages-content,
+    .employees-content,
     .calendar-content
   ),
 .content.clients-content,
@@ -766,17 +767,19 @@ button {
 .content.payments-content,
 .content.services-content,
 .content.packages-content,
+.content.employees-content,
 .content.calendar-content {
   padding: 0;
   overflow: hidden;
 }
 
-.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .packages-content, .calendar-content),
+.home-content:is(.clients-content, .operations-content, .payments-content, .services-content, .packages-content, .employees-content, .calendar-content),
 .home-content.clients-content,
 .home-content.operations-content,
 .home-content.payments-content,
 .home-content.services-content,
 .home-content.packages-content,
+.home-content.employees-content,
 .home-content.calendar-content {
   padding: 0;
 }
@@ -4448,6 +4451,140 @@ h2 {
 .service-buffer-field {
   display: grid;
   gap: 5px;
+}
+
+.form-checkbox {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.form-checkbox-input {
+  grid-column: 1;
+  grid-row: 1;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.form-checkbox-box {
+  display: inline-flex;
+  grid-column: 1;
+  grid-row: 1;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--line-soft, #d5d7dc);
+  border-radius: 6px;
+  background: var(--surface-solid, #fff);
+  pointer-events: none;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.form-checkbox:has(.form-checkbox-input:checked) .form-checkbox-box {
+  border-color: var(--accent-color, #d2ad7d);
+  background: var(--accent-color, #d2ad7d);
+}
+
+.form-checkbox:has(.form-checkbox-input:checked) .form-checkbox-box::after {
+  content: "";
+  width: 9px;
+  height: 5px;
+  margin-top: -1px;
+  border-bottom: 2px solid #fff;
+  border-left: 2px solid #fff;
+  transform: rotate(-45deg);
+}
+
+.form-checkbox-label {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.theme-dark .form-checkbox-box {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.form-checkbox.toggle-row {
+  align-items: center;
+  gap: 10px;
+}
+
+.form-checkbox.employee-premium-toggle {
+  align-items: center;
+  gap: 10px;
+}
+
+.form-checkbox.employee-premium-toggle .form-checkbox-label {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.employee-premium-fields {
+  display: grid;
+  gap: 10px;
+  transition: opacity 0.16s ease;
+}
+
+.employee-premium-fields.is-disabled {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.employee-premium-fields.is-disabled input,
+.employee-premium-fields.is-disabled fieldset,
+.employee-premium-fields.is-disabled .form-checkbox {
+  cursor: not-allowed;
+}
+
+.form-checkbox.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.form-checkbox.is-disabled .form-checkbox-box {
+  opacity: 0.72;
+}
+
+.form-checkbox.employee-premium-day-option {
+  display: inline-grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.form-checkbox.employee-premium-day-option .form-checkbox-input,
+.form-checkbox.employee-premium-day-option .form-checkbox-box {
+  width: 18px;
+  height: 18px;
+}
+
+.form-checkbox.employee-premium-day-option .form-checkbox-box {
+  border-radius: 5px;
+}
+
+.form-checkbox.employee-premium-day-option:has(.form-checkbox-input:checked)
+  .form-checkbox-box::after {
+  width: 8px;
+  height: 4px;
+}
+
+.form-checkbox.employee-premium-day-option .employee-premium-day-label {
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .catalog-form .submit-button {

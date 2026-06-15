@@ -6,7 +6,7 @@ function EmployeeForm({ employee, onSubmit }) {
   const siteBookingSlotMinutes = resolveEmployeeSiteBookingSlotMinutes(employee ?? {});
 
   return (
-    <section className="panel employee-form-panel">
+    <section className="panel employee-form-panel employee-form-sheet-root">
       <h2>{employee ? 'Редактировать сотрудника' : 'Новый сотрудник'}</h2>
       <form className="employee-form" onSubmit={onSubmit}>
         <label>

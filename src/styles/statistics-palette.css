@@ -90,7 +90,7 @@
 }
 
 @media (min-width: 769px) {
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content) {
     padding: 12px;
   }
 
@@ -128,7 +128,7 @@ body {
   background: transparent;
 }
 
-.content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content) {
+.content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content) {
   padding: 24px 28px;
 }
 
@@ -722,7 +722,7 @@ button:focus-visible {
     background: #f7f7f6;
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content),
+  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content),
   .visits-content:not(.payments-content) {
     padding: 14px 12px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
   }
@@ -748,7 +748,7 @@ button:focus-visible {
     font-size: 30px;
   }
 
-  .panel:not(.clients-page-mobile):not(.visits-panel-mobile):not(.day-close-panel):not(.operations-page-mobile .operations-panel),
+  .panel:not(.clients-page-mobile):not(.visits-panel-mobile):not(.day-close-panel):not(.operations-page-mobile .operations-panel):not(.packages-page-mobile .packages-panel):not(.employees-page-mobile .employees-panel),
   .settings-panel,
   .statistics-panel {
     padding: 16px;

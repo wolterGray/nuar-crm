@@ -76,6 +76,11 @@
   flex-wrap: wrap;
 }
 
+.labeled-hint-row-nowrap {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
 .page-header-unified-copy h2 {
   display: inline-flex;
   align-items: center;

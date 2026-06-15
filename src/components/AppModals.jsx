@@ -152,7 +152,7 @@ export default function AppModals({
   return (
     <>
       <FormModalShell
-        className="employee-modal"
+        className="employee-modal employee-form-modal"
         isOpen={employeeModalOpen}
         labelledBy="employee-modal-title"
         title={
