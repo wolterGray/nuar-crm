@@ -104,7 +104,6 @@ function TodayPage({
       <PageHeader
         collapsedMeta={dashboard.todayDisplay}
         collapsible={isMobile}
-        defaultExpanded={!isMobile}
         actions={
           isMobile ? (
             <div className="today-header-actions">

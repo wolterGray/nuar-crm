@@ -271,8 +271,7 @@ function OperationsPage({
       className={`operations-page ${isMobile ? "operations-page-mobile" : ""}`}>
       <PageHeader
         collapsedMeta={operationsCollapsedMeta}
-        collapsible
-        defaultExpanded={!isMobile}
+        collapsible={isMobile}
         description="Рабочие дела, закупки и остатки расходников"
         title="Операции"
         actions={

@@ -373,7 +373,6 @@ function VisitsTable({
       <PageHeader
         collapsedMeta={isMobile ? `${rows.length} из ${visits.length}` : undefined}
         collapsible={isMobile}
-        defaultExpanded={!isMobile}
         actions={
           isMobile ? (
             mobileScrollPanel

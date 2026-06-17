@@ -128,8 +128,8 @@
 
   .confirm-dialog {
     width: 100%;
-    max-height: min(80dvh, 100dvh);
-    border-radius: 16px 16px 0 0;
+    max-height: min(80dvh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px));
+    border-radius: 20px;
   }
 
   .theme-dark :is(
@@ -155,7 +155,7 @@
 
   .theme-dark .calendar-entry-modal,
   .theme-light .calendar-entry-modal {
-    border-radius: 0 !important;
+    border-radius: 20px !important;
   }
 
   .theme-dark .calendar-entry-modal .calendar-entry-form label,
@@ -1992,7 +1992,19 @@
     background: rgba(255, 255, 255, 0.05);
   }
 
-  /* Task / supply modals — compact fullscreen sheet */
+  /* Task / supply / financial modals — inset rounded sheet */
+  .employee-modal.catalog-modal.mobile-sheet:not(.service-form-modal):not(.package-form-modal):not(.message-template-form-modal) {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px) !important;
+    border-radius: 20px !important;
+    overflow: hidden;
+  }
+
+  .employee-modal.catalog-modal.mobile-sheet .mobile-sheet-header {
+    padding: 14px 16px 10px !important;
+  }
+
   .employee-modal.catalog-modal.mobile-sheet .mobile-sheet-body {
     flex: 1;
     min-height: 0;
@@ -6258,15 +6270,16 @@
     width: 100%;
   }
 
-  /* Client details — compact fullscreen sheet */
+  /* Client details — inset rounded sheet */
   .client-details-modal.mobile-sheet {
     display: flex;
     flex-direction: column;
-    height: 100dvh;
-    max-height: 100dvh;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px) !important;
     gap: 0;
     padding: 0 !important;
-    border-radius: 0 !important;
+    border-radius: 20px !important;
     overflow: hidden;
   }
 
@@ -6274,7 +6287,7 @@
     flex: 0 0 auto;
     gap: 6px;
     min-height: 0;
-    padding: max(6px, env(safe-area-inset-top, 0px)) 10px 6px !important;
+    padding: 14px 16px 10px !important;
   }
 
   .client-details-modal.mobile-sheet .mobile-sheet-header h2 {
@@ -6429,31 +6442,37 @@
     min-height: var(--mobile-touch-target, 44px);
   }
 
-  /* MobileSheet */
+  /* MobileSheet — iPhone-style inset sheets with safe areas */
   .mobile-sheet-backdrop {
     align-items: flex-end;
-    padding: 0 !important;
+    padding:
+      max(10px, env(safe-area-inset-top, 0px))
+      max(8px, env(safe-area-inset-left, 0px))
+      max(12px, env(safe-area-inset-bottom, 0px))
+      max(8px, env(safe-area-inset-right, 0px)) !important;
   }
 
   .mobile-sheet-backdrop:has(.mobile-sheet-fullscreen) {
-    align-items: stretch;
+    align-items: flex-end;
   }
 
   .mobile-sheet {
     display: flex;
     width: 100%;
-    max-height: min(94dvh, 100dvh);
+    max-height: min(94dvh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px));
     flex-direction: column;
     overflow: hidden;
-    border-radius: 16px 16px 0 0;
+    border-radius: 20px;
     background: var(--surface, #fff);
-    box-shadow: 0 -18px 42px rgba(17, 19, 24, 0.2);
+    box-shadow: 0 12px 40px rgba(17, 19, 24, 0.22);
   }
 
   .mobile-sheet-fullscreen {
-    height: 100dvh;
-    max-height: none;
-    border-radius: 0;
+    height: auto;
+    min-height: 0;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px);
+    border-radius: 20px;
+    overflow: hidden;
   }
 
   .mobile-sheet-compact {
@@ -6643,13 +6662,14 @@
   }
 
   .employee-modal.calendar-entry-modal.mobile-sheet {
-    height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px) !important;
+    border-radius: 20px !important;
   }
 
   .employee-modal.calendar-entry-modal.mobile-sheet .mobile-sheet-header {
-    padding: max(12px, env(safe-area-inset-top, 0px)) 14px 10px;
+    padding: 14px 16px 10px;
   }
 
   .employee-modal.calendar-entry-modal.mobile-sheet .mobile-sheet-body {
@@ -6671,6 +6691,28 @@
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
   }
 
+  .employee-modal.calendar-entry-modal.mobile-sheet .calendar-entry-time-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .employee-modal.calendar-entry-modal.mobile-sheet .calendar-entry-time-grid label {
+    min-width: 0;
+  }
+
+  .employee-modal.calendar-entry-modal.mobile-sheet .calendar-entry-form input[type="date"],
+  .employee-modal.calendar-entry-modal.mobile-sheet .calendar-entry-form input[type="time"] {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 14px;
+    line-height: 1.25;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
   .employee-modal.calendar-entry-modal.mobile-sheet .calendar-entry-form .field-error {
     display: block;
     margin-top: 4px;
@@ -6689,15 +6731,16 @@
 
   /* Client form modal — compact fullscreen sheet */
   .employee-modal.client-form-modal.mobile-sheet {
-    height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px) !important;
+    border-radius: 20px !important;
   }
 
   .employee-modal.client-form-modal.mobile-sheet .mobile-sheet-header {
     gap: 6px;
     min-height: 0;
-    padding: max(6px, env(safe-area-inset-top, 0px)) 10px 6px !important;
+    padding: 14px 16px 10px !important;
   }
 
   .employee-modal.client-form-modal.mobile-sheet .mobile-sheet-header h2 {
@@ -6795,10 +6838,10 @@
 
   /* Service form modal — compact fullscreen sheet */
   .employee-modal.service-form-modal.mobile-sheet {
-    height: 100dvh;
-    min-height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px) !important;
+    border-radius: 20px !important;
     background: var(--app-bg, #f7f7f6) !important;
   }
 
@@ -6809,7 +6852,7 @@
   .employee-modal.service-form-modal.mobile-sheet .mobile-sheet-header {
     gap: 6px;
     min-height: 0;
-    padding: max(6px, env(safe-area-inset-top, 0px)) 5px 6px !important;
+    padding: 14px 16px 10px !important;
     background: var(--app-bg, #f7f7f6);
   }
 
@@ -7036,10 +7079,10 @@
 
   /* Package / certificate form modals — same sheet layout as service form */
   .employee-modal.package-form-modal.mobile-sheet {
-    height: 100dvh;
-    min-height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px) !important;
+    border-radius: 20px !important;
     background: var(--app-bg, #f7f7f6) !important;
   }
 
@@ -7050,7 +7093,7 @@
   .employee-modal.package-form-modal.mobile-sheet .mobile-sheet-header {
     gap: 8px;
     min-height: 0;
-    padding: max(8px, env(safe-area-inset-top, 0px)) 5px 8px !important;
+    padding: 14px 16px 10px !important;
     background: var(--app-bg, #f7f7f6);
   }
 
@@ -7146,12 +7189,12 @@
     box-shadow: none !important;
   }
 
-  /* Employee form modal — fullscreen scrollable sheet */
+  /* Employee form modal — inset rounded scrollable sheet */
   .employee-modal.employee-form-modal.mobile-sheet {
-    height: 100dvh;
-    min-height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px) !important;
+    border-radius: 20px !important;
     background: var(--app-bg, #f7f7f6) !important;
   }
 
@@ -7162,7 +7205,7 @@
   .employee-modal.employee-form-modal.mobile-sheet .mobile-sheet-header {
     gap: 6px;
     min-height: 0;
-    padding: max(6px, env(safe-area-inset-top, 0px)) 5px 6px !important;
+    padding: 14px 16px 10px !important;
     background: var(--app-bg, #f7f7f6);
   }
 
@@ -7233,8 +7276,19 @@
 
   .employee-modal.employee-form-modal.mobile-sheet .form-split {
     display: grid;
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
     gap: 8px !important;
+  }
+
+  .employee-modal.employee-form-modal.mobile-sheet .form-split label {
+    min-width: 0;
+  }
+
+  .employee-modal.employee-form-modal.mobile-sheet .form-split input[type="time"] {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    font-size: 14px;
   }
 
   .employee-modal.employee-form-modal.mobile-sheet .employee-pricing-panel {
@@ -7300,12 +7354,12 @@
     box-shadow: none !important;
   }
 
-  /* Message template form modal — fullscreen scrollable sheet */
+  /* Message template form modal — inset rounded scrollable sheet */
   .employee-modal.message-template-form-modal.mobile-sheet {
-    height: 100dvh;
-    min-height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px) !important;
+    border-radius: 20px !important;
     background: var(--app-bg, #f7f7f6) !important;
   }
 
@@ -7316,7 +7370,7 @@
   .employee-modal.message-template-form-modal.mobile-sheet .mobile-sheet-header {
     gap: 6px;
     min-height: 0;
-    padding: max(6px, env(safe-area-inset-top, 0px)) 5px 6px !important;
+    padding: 14px 16px 10px !important;
     background: var(--app-bg, #f7f7f6);
   }
 

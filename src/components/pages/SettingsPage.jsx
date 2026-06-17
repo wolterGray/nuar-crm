@@ -145,7 +145,6 @@ function SettingsPage({
           settingsTabs.find((tab) => tab.id === activeTab)?.label ?? "Интерфейс"
         }
         collapsible={isMobile}
-        defaultExpanded={!isMobile}
         actions={
           isMobile ? (
             <>

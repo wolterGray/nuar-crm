@@ -1653,9 +1653,12 @@
   .calendar-entry-form input[type="date"],
   .calendar-entry-form input[type="time"] {
     max-width: 100%;
+    min-height: 40px;
+    padding: 8px 10px;
     appearance: none;
     -webkit-appearance: none;
-    font-size: 12px;
+    font-size: 14px;
+    line-height: 1.25;
   }
 
   .calendar-entry-form textarea {

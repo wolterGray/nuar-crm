@@ -812,7 +812,6 @@ function StatisticsPage({
         <PageHeader
           collapsedMeta={`${toDisplayDate(startDate)} — ${toDisplayDate(endDate)}`}
           collapsible
-          defaultExpanded={!isMobile}
           actions={
             <>
               <div className="statistics-quick-ranges">

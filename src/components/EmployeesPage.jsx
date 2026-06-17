@@ -228,7 +228,6 @@ function EmployeesPage({
       <PageHeader
         collapsedMeta={mobileDescription}
         collapsible={isMobile}
-        defaultExpanded={!isMobile}
         actions={
           isMobile ? (
             <>
