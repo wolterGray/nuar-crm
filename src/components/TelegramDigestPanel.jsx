@@ -125,11 +125,11 @@ function TelegramDigestPanel({
         Chat ID можно указать в CRM в блоке «Уведомления о заявках с сайта».
       </p>
       <p className="field-hint">
-        Автоотправка в 08:00 (Warsaw) работает только если настроен cron: GitHub Actions
-        workflow `telegram-daily-digest-cron` (секреты `SUPABASE_URL`,
-        `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_DIGEST_CRON_SECRET`) или внешний
-        cron-job.org каждый час с телом {`{"action":"cron"}`} и заголовком
-        `x-cron-secret`.
+        Автоотправка в 08:00 (Warsaw): GitHub → Settings → Secrets → Actions — обязательно
+        `SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY` (из Supabase → Settings → API).
+        `TELEGRAM_DIGEST_CRON_SECRET` опционален, если cron идёт через GitHub Actions.
+        В Supabase Edge Functions → Secrets нужны `CRM_OWNER_USER_ID`, `TELEGRAM_BOT_TOKEN`
+        и Chat ID. В CRM включите «Telegram-дайджест» и сохраните настройки в облако.
       </p>
     </section>
   );
