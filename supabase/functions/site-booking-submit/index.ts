@@ -7,10 +7,7 @@ import {
   isBookableSlotAvailable,
 } from "../_shared/siteBookingSlots.ts";
 import {notifyOwnerAboutSiteBooking} from "../_shared/siteBookingNotify.ts";
-import {
-  validateSiteBookingPhoneInput,
-  validateStoredPhoneDigits,
-} from "../_shared/internationalPhone.ts";
+import {validateInternationalPhoneValue} from "../_shared/internationalPhone.ts";
 
 const isValidDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value);
 
@@ -28,8 +25,6 @@ serve(async (request) => {
     const body = await request.json().catch(() => ({}));
     const clientName = String(body.clientName ?? body.client_name ?? "").trim();
     const rawClientPhone = String(body.clientPhone ?? body.client_phone ?? "").trim();
-    const phoneCountry = String(body.phoneCountry ?? body.phone_country ?? "").trim();
-    const phoneLocal = String(body.phoneLocal ?? body.phone_local ?? "").trim();
     const clientEmail = String(body.clientEmail ?? body.client_email ?? "").trim();
     const serviceSlug = String(body.serviceSlug ?? body.service_slug ?? "").trim();
     const serviceName = String(body.serviceName ?? body.service_name ?? "").trim();
@@ -49,9 +44,7 @@ serve(async (request) => {
       return jsonResponse({error: "clientName is required"}, 400);
     }
 
-    const phoneValidation = phoneLocal
-      ? validateSiteBookingPhoneInput(phoneCountry, phoneLocal)
-      : validateStoredPhoneDigits(rawClientPhone);
+    const phoneValidation = validateInternationalPhoneValue(rawClientPhone);
 
     if (!phoneValidation.ok) {
       return jsonResponse({error: "clientPhone is invalid"}, 400);

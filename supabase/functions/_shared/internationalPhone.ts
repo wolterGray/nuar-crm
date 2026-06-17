@@ -1,13 +1,17 @@
 import {parsePhoneNumberFromString} from "https://esm.sh/libphonenumber-js@1.12.9";
 
-export function validateStoredPhoneDigits(digits: unknown) {
-  const cleaned = String(digits ?? "").replace(/\D/g, "");
+export function validateInternationalPhoneValue(value: unknown) {
+  const raw = String(value ?? "").trim();
 
-  if (!cleaned) {
+  if (!raw) {
     return {ok: false as const, error: "empty"};
   }
 
-  const parsed = parsePhoneNumberFromString(`+${cleaned}`);
+  if (!raw.startsWith("+")) {
+    return {ok: false as const, error: "missing_plus"};
+  }
+
+  const parsed = parsePhoneNumberFromString(raw);
 
   if (!parsed?.isValid()) {
     return {ok: false as const, error: "invalid"};
@@ -15,52 +19,37 @@ export function validateStoredPhoneDigits(digits: unknown) {
 
   return {
     ok: true as const,
-    e164: parsed.number.slice(1),
+    e164: parsed.number,
     country: parsed.country ?? "",
   };
 }
 
+/** @deprecated Legacy split country + local fields */
+export function validateStoredPhoneDigits(digits: unknown) {
+  const cleaned = String(digits ?? "").replace(/\D/g, "");
+
+  if (!cleaned) {
+    return {ok: false as const, error: "empty"};
+  }
+
+  return validateInternationalPhoneValue(`+${cleaned}`);
+}
+
+/** @deprecated Legacy split country + local fields */
 export function validateSiteBookingPhoneInput(
   country: unknown,
   localNumber: unknown,
 ) {
-  const countryCode = String(country ?? "").trim().toUpperCase();
   const raw = String(localNumber ?? "").trim();
 
-  if (!countryCode) {
-    return {ok: false as const, error: "no_country"};
-  }
-
-  if (!raw) {
-    return {ok: false as const, error: "empty"};
-  }
-
   if (raw.startsWith("+")) {
-    const international = parsePhoneNumberFromString(raw);
-
-    if (international?.isValid()) {
-      return {
-        ok: true as const,
-        e164: international.number.slice(1),
-        country: international.country ?? countryCode,
-      };
-    }
-
-    return {ok: false as const, error: "invalid"};
+    return validateInternationalPhoneValue(raw);
   }
 
-  const digitsOnly = raw.replace(/\D/g, "");
+  const countryCode = String(country ?? "").trim().toUpperCase();
 
-  if (digitsOnly.length > 10) {
-    const international = parsePhoneNumberFromString(`+${digitsOnly}`);
-
-    if (international?.isValid()) {
-      return {
-        ok: true as const,
-        e164: international.number.slice(1),
-        country: international.country ?? countryCode,
-      };
-    }
+  if (!countryCode || !raw) {
+    return {ok: false as const, error: "invalid"};
   }
 
   const parsed = parsePhoneNumberFromString(raw, countryCode as never);
@@ -71,7 +60,7 @@ export function validateSiteBookingPhoneInput(
 
   return {
     ok: true as const,
-    e164: parsed.number.slice(1),
+    e164: parsed.number,
     country: parsed.country ?? countryCode,
   };
 }
