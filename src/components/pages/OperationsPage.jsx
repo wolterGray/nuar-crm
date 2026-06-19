@@ -1,5 +1,6 @@
 import {
   Check,
+  ChevronDown,
   ClipboardCheck,
   ExternalLink,
   GripVertical,
@@ -34,6 +35,8 @@ import {
   isSupplyLowStock,
 } from "../../utils/supplyStock.js";
 import {openSupplyOrderUrl} from "../../utils/supplyOrder.js";
+
+const NOTE_CATEGORIES = ["Мысль", "Заказать", "Идея", "Личное"];
 
 const getTaskStatusLabel = (task) => {
   if (task.status === "completed") return "Готово";
@@ -180,6 +183,7 @@ function OperationsPage({
   const [mobileSection, setMobileSection] = useState("tasks");
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
+  const [isNoteCategoryOpen, setIsNoteCategoryOpen] = useState(false);
   const sensors = useSensors(
     useSensor(PointerSensor, {activationConstraint: {distance: 6}}),
     useSensor(TouchSensor, {
@@ -220,10 +224,12 @@ function OperationsPage({
 
     onAddNote({title, category: noteCategory});
     setNoteText("");
+    setIsNoteCategoryOpen(false);
   };
 
   useEffect(() => {
     setOpenItemMenuId(null);
+    setIsNoteCategoryOpen(false);
   }, [activeMode, mobileSection]);
 
   useEffect(() => {
@@ -442,14 +448,42 @@ function OperationsPage({
                   placeholder="Мысль, идея или что заказать"
                   onChange={(event) => setNoteText(event.target.value)}
                 />
-                <select
-                  value={noteCategory}
-                  onChange={(event) => setNoteCategory(event.target.value)}>
-                  <option>Мысль</option>
-                  <option>Заказать</option>
-                  <option>Идея</option>
-                  <option>Личное</option>
-                </select>
+                <div
+                  className="quick-note-category"
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) {
+                      setIsNoteCategoryOpen(false);
+                    }
+                  }}>
+                  <button
+                    aria-expanded={isNoteCategoryOpen}
+                    className="quick-note-category-trigger"
+                    type="button"
+                    onClick={() => setIsNoteCategoryOpen((isOpen) => !isOpen)}>
+                    {noteCategory}
+                    <ChevronDown size={14} />
+                  </button>
+                  {isNoteCategoryOpen && (
+                    <div className="quick-note-category-menu" role="listbox">
+                      {NOTE_CATEGORIES.map((category) => (
+                        <button
+                          aria-selected={noteCategory === category}
+                          className={
+                            noteCategory === category ? "is-selected" : ""
+                          }
+                          key={category}
+                          role="option"
+                          type="button"
+                          onClick={() => {
+                            setNoteCategory(category);
+                            setIsNoteCategoryOpen(false);
+                          }}>
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button className="add-visit-button" type="submit">
                   <Plus size={15} />
                   Записать

@@ -3354,10 +3354,71 @@ h2 {
 }
 
 .quick-note-form select {
-  width: 116px;
+  width: 126px;
   min-height: 34px;
   padding: 0 24px 0 9px;
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.quick-note-form select option {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.quick-note-category {
+  position: relative;
+  flex: 0 0 126px;
+  min-width: 126px;
+}
+
+.quick-note-category-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid #dededa;
+  border-radius: 8px;
+  color: var(--text-main, #15171c);
+  background: #fff;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.quick-note-category-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 80;
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-width: 148px;
+  padding: 6px;
+  border: 1px solid #dededa;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(17, 19, 24, 0.18);
+}
+
+.quick-note-category-menu button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text-main, #15171c);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 650;
+  text-align: left;
+}
+
+.quick-note-category-menu button:hover,
+.quick-note-category-menu button.is-selected {
+  background: #f2f2ef;
 }
 
 .quick-note-form .add-visit-button {
@@ -3965,6 +4026,26 @@ h2 {
 .theme-dark .task-check {
   border-color: #344052;
   background: #111722;
+}
+
+.theme-dark .quick-note-category-trigger,
+.theme-dark .quick-note-category-menu {
+  border-color: #344052;
+  color: #f8fbff;
+  background: #111722;
+}
+
+.theme-dark .quick-note-category-menu {
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.36);
+}
+
+.theme-dark .quick-note-category-menu button {
+  color: #f8fbff;
+}
+
+.theme-dark .quick-note-category-menu button:hover,
+.theme-dark .quick-note-category-menu button.is-selected {
+  background: #1a202b;
 }
 
 .theme-dark .operations-tabs button.active {

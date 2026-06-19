@@ -1442,6 +1442,7 @@
   }
 
   .quick-note-form select,
+  .quick-note-category,
   .quick-note-form .add-visit-button {
     flex: 1;
     width: auto;

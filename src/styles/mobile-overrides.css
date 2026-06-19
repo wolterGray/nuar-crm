@@ -283,6 +283,7 @@
 
   .quick-note-form input,
   .quick-note-form select,
+  .quick-note-category,
   .quick-note-form .add-visit-button {
     width: 100%;
   }
@@ -1815,10 +1816,20 @@
   }
 
   .operations-page-mobile .quick-note-form input,
-  .operations-page-mobile .quick-note-form select {
+  .operations-page-mobile .quick-note-form select,
+  .operations-page-mobile .quick-note-category-trigger {
     min-height: 34px;
     border-radius: 8px;
     font-size: 13px;
+  }
+
+  .operations-page-mobile .quick-note-category {
+    min-width: 0;
+  }
+
+  .operations-page-mobile .quick-note-category-menu button {
+    min-height: 38px;
+    font-size: 14px;
   }
 
   .operations-page-mobile .quick-note-form .add-visit-button {
@@ -7737,6 +7748,82 @@
     color: #ece8ff;
     border-color: rgba(255, 255, 255, 0.14);
     background: rgba(255, 255, 255, 0.08);
+  }
+
+  html body .notion-linear-redesign .mobile-sidebar-backdrop.mobile-sidebar-backdrop {
+    background: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(3px) !important;
+    -webkit-backdrop-filter: blur(3px) !important;
+  }
+
+  html body .notion-linear-redesign .mobile-more-sheet.mobile-more-sheet {
+    right: max(10px, env(safe-area-inset-right, 0px)) !important;
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
+    left: max(10px, env(safe-area-inset-left, 0px)) !important;
+    width: auto !important;
+    padding: 34px 12px 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    border-radius: 22px !important;
+    background: rgba(16, 17, 21, 0.94) !important;
+    box-shadow:
+      0 18px 48px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+    backdrop-filter: blur(22px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(130%) !important;
+  }
+
+  html body .notion-linear-redesign .mobile-more-sheet-close.mobile-more-sheet-close {
+    top: 9px !important;
+    right: 10px !important;
+    width: 26px !important;
+    height: 26px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    color: #9ca3af !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .mobile-more-sheet-nav.mobile-more-sheet-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    padding-top: 0 !important;
+  }
+
+  html body .notion-linear-redesign .mobile-more-sheet-nav button {
+    min-height: 50px !important;
+    gap: 5px !important;
+    padding: 6px 4px !important;
+    border: 0 !important;
+    border-radius: 14px !important;
+    color: #b2b2b2 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 10.5px !important;
+    font-weight: 560 !important;
+  }
+
+  html body .notion-linear-redesign .mobile-more-sheet-nav button svg {
+    width: 17px !important;
+    height: 17px !important;
+    color: #a3a3a3 !important;
+    opacity: 1 !important;
+  }
+
+  html body .notion-linear-redesign .mobile-more-sheet-nav button:hover,
+  html body .notion-linear-redesign .mobile-more-sheet-nav button.active {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.055) !important;
+  }
+
+  html body .notion-linear-redesign .mobile-more-sheet-nav button:hover svg,
+  html body .notion-linear-redesign .mobile-more-sheet-nav button.active svg {
+    color: #f2f2f2 !important;
+  }
+
+  html body .notion-linear-redesign .mobile-more-sheet-close:hover {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.06) !important;
   }
 
   .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content):not(.today-content) {
