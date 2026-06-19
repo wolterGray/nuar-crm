@@ -26,17 +26,17 @@ const visitStatusLabels = {
   cancelled: "Отменён",
 };
 
-function TodayKpiCard({color, helper, icon: Icon, label, value}) {
+function TodayKpiCard({helper, icon: Icon, label, tone, value}) {
   return (
-    <article
-      className="statistics-card statistics-card-secondary"
-      style={{"--statistics-card-color": color}}>
-      <div>
-        <Icon size={17} />
+    <article className={`today-summary-card today-summary-card-${tone}`}>
+      <div className="today-summary-icon">
+        <Icon size={15} />
       </div>
-      <span>{label}</span>
-      <strong>{value}</strong>
-      {helper ? <small>{helper}</small> : null}
+      <div>
+        <span>{label}</span>
+        <strong>{value}</strong>
+        {helper ? <small>{helper}</small> : null}
+      </div>
     </article>
   );
 }
@@ -160,23 +160,22 @@ function TodayPage({
             <p>{toDisplayDate(dashboard.today)}</p>
           </div>
         </div>
-        <div className="statistics-today-grid">
+        <div className="today-summary-grid">
           <TodayKpiCard
-            color="#8fc5aa"
             helper={`${dashboard.snapshot.completedVisits} завершено`}
             icon={CalendarDays}
             label="Визиты"
+            tone="visits"
             value={dashboard.snapshot.scheduledVisits}
           />
           <TodayKpiCard
-            color="#b7a0d6"
             helper={`прогноз ~${formatIncome(dashboard.forecastRevenue)}`}
             icon={Banknote}
             label="Поступления"
+            tone="income"
             value={formatIncome(dashboard.snapshot.received)}
           />
           <TodayKpiCard
-            color="#d99a9a"
             helper={
               dashboard.snapshot.debtVisits > 0
                 ? `${dashboard.snapshot.debtVisits} записей`
@@ -184,13 +183,14 @@ function TodayPage({
             }
             icon={WalletCards}
             label="Долги"
+            tone="debt"
             value={formatIncome(dashboard.snapshot.debtAmount)}
           />
           <TodayKpiCard
-            color="#8ba7d8"
             helper="следующие 3 часа"
             icon={Clock3}
             label="Ближайшие"
+            tone="upcoming"
             value={dashboard.snapshot.upcomingCount}
           />
         </div>

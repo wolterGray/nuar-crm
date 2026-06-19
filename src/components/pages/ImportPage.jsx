@@ -5,9 +5,7 @@ import {
   FileText,
   Mail,
   MailCheck,
-  Search,
   Trash2,
-  X,
 } from "lucide-react";
 import {useMemo, useState} from "react";
 import BooksyGmailSyncPanel from "../BooksyGmailSyncPanel.jsx";
@@ -26,6 +24,7 @@ import {
 import {formatMoney} from "../../utils/formatters.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import PageHeader from "../PageHeader.jsx";
+import SearchControl from "../ui/SearchControl.jsx";
 
 const amountFilterOptions = [
   {value: IMPORT_DOCUMENT_AMOUNT_FILTERS.all, label: "Все"},
@@ -293,26 +292,16 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
       <section className="import-page import-page-mobile">
         <PageHeader
           collapsedMeta={`${visibleSummary.total} документов`}
-          collapsible
+          collapsible={false}
           actions={
             <>
-              <label className="import-page-search">
-                <Search size={16} />
-                <input
-                  placeholder="Номер, тема, отправитель, PDF..."
-                  type="search"
-                  value={filters.search}
-                  onChange={(event) => updateFilter("search", event.target.value)}
-                />
-                {filters.search ? (
-                  <button
-                    aria-label="Очистить поиск"
-                    type="button"
-                    onClick={() => updateFilter("search", "")}>
-                    <X size={15} />
-                  </button>
-                ) : null}
-              </label>
+              <SearchControl
+                className="import-page-search-control"
+                placeholder="Номер, тема, отправитель, PDF..."
+                value={filters.search}
+                onChange={(event) => updateFilter("search", event.target.value)}
+                onClear={() => updateFilter("search", "")}
+              />
               <div className="import-page-summary">
                 <article
                   className={`import-page-summary-card${
@@ -484,22 +473,13 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
         </div>
 
         <div className="import-document-toolbar">
-          <label className="clients-search import-document-search">
-            <Search size={16} />
-            <input
-              placeholder="Номер, тема, отправитель, PDF..."
-              value={filters.search}
-              onChange={(event) => updateFilter("search", event.target.value)}
-            />
-            {filters.search && (
-              <button
-                aria-label="Очистить поиск"
-                type="button"
-                onClick={() => updateFilter("search", "")}>
-                <X size={15} />
-              </button>
-            )}
-          </label>
+          <SearchControl
+            className="import-document-search"
+            placeholder="Номер, тема, отправитель, PDF..."
+            value={filters.search}
+            onChange={(event) => updateFilter("search", event.target.value)}
+            onClear={() => updateFilter("search", "")}
+          />
 
           <ImportDocumentFilters
             filters={filters}

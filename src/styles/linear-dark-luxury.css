@@ -95,6 +95,1143 @@
   color-scheme: dark;
 }
 
+/* Settings page: absolute final mobile override after all theme layers. */
+@media (max-width: 768px) {
+  html body .notion-linear-redesign .content.settings-content,
+  html body .notion-linear-redesign .content.settings-content.home-content {
+    display: block !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: #141517 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page.settings-page-mobile {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 10px 15px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible {
+    display: grid !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-summary,
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-body.page-header-unified {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    color: inherit !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-summary {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+    min-height: 34px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-body.page-header-unified {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-title {
+    color: #f2f2f2 !important;
+    font-size: 18px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.035em !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-meta,
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary-card span,
+  html body .notion-linear-redesign .settings-page-mobile .settings-mobile-section-title,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(p, small, .field-hint, .settings-cloud-status span, .settings-cloud-status small, .settings-cloud-conflict p, .booksy-sync-status span, .booksy-sync-status small, .booksy-sync-error li, .client-package-main span, .client-package-main small, .client-package-meta span) {
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary-card,
+  html body .notion-linear-redesign .settings-page-mobile .settings-panel.settings-tab-panel.active,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(.settings-cloud-status, .settings-cloud-conflict, .booksy-sync-status, .booksy-sync-error, .client-package-card, .certificate-card, .settings-options > p, .field-hint),
+  html body .notion-linear-redesign .settings-page-mobile .form-checkbox.settings-toggle,
+  html body .notion-linear-redesign .settings-page-mobile .color-theme-option {
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    background-color: rgba(255, 255, 255, 0.025) !important;
+    background-image: none !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary-card {
+    display: grid !important;
+    min-height: 48px !important;
+    align-content: space-between !important;
+    padding: 8px 10px !important;
+    text-align: left !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary-card strong,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(.settings-cloud-status strong, .booksy-sync-status strong, .booksy-sync-error strong, .client-package-main strong, .client-package-meta b) {
+    color: #f2f2f2 !important;
+    font-size: 13px !important;
+    font-weight: 720 !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary-card strong {
+    font-size: 15px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-tabs button {
+    min-width: 0 !important;
+    min-height: 34px !important;
+    padding: 0 4px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #a7a7a7 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.045) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-tabs button.active {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.075) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+      inset 3px 0 0 rgba(115, 115, 115, 0.52) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-form {
+    display: contents !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-scroll {
+    display: flex !important;
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-panel.settings-tab-panel.active {
+    display: grid !important;
+    width: 100% !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 10px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-panel.settings-tab-panel:not(.active) {
+    display: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(.booksy-sync-panel, .settings-cloud-panel) {
+    display: grid !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(.settings-cloud-status, .settings-cloud-conflict, .booksy-sync-status, .booksy-sync-error, .client-package-card, .certificate-card, .settings-options > p, .field-hint) {
+    display: grid !important;
+    gap: 6px !important;
+    padding: 9px !important;
+    border-radius: 11px !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(.settings-options, .settings-options-grid, .settings-mobile-section, .settings-mobile-section-body, .settings-actions-row, .settings-data-actions, .client-packages-list) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .form-split {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active label:not(.form-checkbox) {
+    display: grid !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    color: #a7a7a7 !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea) {
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #f2f2f2 !important;
+    -webkit-text-fill-color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+    color-scheme: dark !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active textarea {
+    min-height: 88px !important;
+    padding-top: 10px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .form-checkbox.settings-toggle {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    gap: 10px !important;
+    align-items: center !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 9px !important;
+    border-radius: 11px !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(button.secondary-button, button.add-visit-button, .settings-import-button, .settings-save-bar button) {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active button.add-visit-button,
+  html body .notion-linear-redesign .settings-page-mobile .settings-save-bar .submit-button {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.075) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-save-bar {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 45 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: calc(100% + 30px) !important;
+    margin: 0 -15px calc(-92px - env(safe-area-inset-bottom, 0px)) !important;
+    padding: 8px 15px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    border: 0 !important;
+    background: rgba(20, 21, 23, 0.92) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+}
+
+/* Site page: mobile Notion-style alignment. */
+@media (max-width: 768px) {
+  html body .notion-linear-redesign .content.site-content,
+  html body .notion-linear-redesign .content.site-content.home-content {
+    display: block !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html body .notion-linear-redesign .site-page.site-page-mobile,
+  html body .notion-linear-redesign .site-page-mobile *,
+  html body .notion-linear-redesign .site-page-mobile *::before,
+  html body .notion-linear-redesign .site-page-mobile *::after {
+    box-sizing: border-box !important;
+  }
+
+  html body .notion-linear-redesign .site-page.site-page-mobile {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: auto !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 10px 15px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .page-header-unified {
+    display: grid !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .page-header-unified-top {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 34px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .page-header-unified-copy {
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .page-header-unified-copy h2 {
+    margin: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 18px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.035em !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .page-header-unified-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .page-header-unified-trailing {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-page-summary {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-page-summary-card {
+    display: grid !important;
+    min-height: 48px !important;
+    align-content: space-between !important;
+    gap: 4px !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+    text-align: left !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-page-summary-card.is-active {
+    box-shadow:
+      inset 0 0 0 1px rgba(52, 211, 153, 0.18),
+      inset 3px 0 0 rgba(52, 211, 153, 0.72) !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-page-summary-card span {
+    color: #858585 !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+    line-height: 1.15 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-page-summary-card strong {
+    overflow: hidden !important;
+    color: #f2f2f2 !important;
+    font-size: 15px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.05 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-admin-mobile-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-admin-mobile-actions .add-visit-button,
+  html body .notion-linear-redesign .site-page-mobile .site-admin-mobile-actions .secondary-button,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-toolbar-mobile .secondary-button,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-card-actions .add-visit-button,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-card-actions .secondary-button {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-height: 38px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-admin-mobile-actions .add-visit-button,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-card-actions .add-visit-button,
+  html body .notion-linear-redesign .site-page-mobile .settings-save-bar .submit-button {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.075) !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-page-form {
+    display: contents !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-scroll {
+    display: flex !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-mobile-section,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-panel-mobile {
+    display: grid !important;
+    width: 100% !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .settings-panel-heading,
+  html body .notion-linear-redesign .site-page-mobile .site-mobile-section-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .settings-panel-heading h2,
+  html body .notion-linear-redesign .site-page-mobile .site-mobile-section-head h3 {
+    margin: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.3 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .settings-panel-heading p,
+  html body .notion-linear-redesign .site-page-mobile .site-mobile-section-meta,
+  html body .notion-linear-redesign .site-page-mobile .field-hint,
+  html body .notion-linear-redesign .site-page-mobile .settings-inline-note,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-empty,
+  html body .notion-linear-redesign .site-page-mobile .booksy-sync-status span,
+  html body .notion-linear-redesign .site-page-mobile .booksy-sync-status small,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-card-main span,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-card-main small {
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-booking-notify-options,
+  html body .notion-linear-redesign .site-page-mobile .site-notify-toggles,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-list,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-toolbar-mobile {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-notify-field {
+    display: grid !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-notify-field input {
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #f2f2f2 !important;
+    -webkit-text-fill-color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .form-checkbox.site-notify-toggle,
+  html body .notion-linear-redesign .site-page-mobile .booksy-sync-status,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-mobile-card,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-empty {
+    display: grid !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 7px !important;
+    margin: 0 !important;
+    padding: 9px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.045),
+      inset 3px 0 0 rgba(115, 115, 115, 0.34) !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .form-checkbox.site-notify-toggle {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    align-items: center !important;
+    min-height: 44px !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .form-checkbox.site-notify-toggle .form-checkbox-label,
+  html body .notion-linear-redesign .site-page-mobile .form-checkbox.site-notify-toggle .labeled-hint-row {
+    min-width: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .booksy-sync-status strong,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-card-main strong {
+    color: #f2f2f2 !important;
+    font-size: 13px !important;
+    font-weight: 720 !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-booking-card-main {
+    display: grid !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .site-booking-card-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .settings-save-bar {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 45 !important;
+    width: calc(100% + 30px) !important;
+    margin: 0 -15px calc(-92px - env(safe-area-inset-bottom, 0px)) !important;
+    padding: 8px 15px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    border: 0 !important;
+    background: rgba(20, 21, 23, 0.92) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+
+  html body .notion-linear-redesign .site-page-mobile .settings-save-bar .submit-button {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 13px !important;
+    font-weight: 720 !important;
+  }
+}
+
+/* Settings page: mobile Notion-style alignment. */
+@media (max-width: 768px) {
+  html body .notion-linear-redesign .content.settings-content,
+  html body .notion-linear-redesign .content.settings-content.home-content {
+    display: block !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html body .notion-linear-redesign .settings-page.settings-page-mobile,
+  html body .notion-linear-redesign .settings-page-mobile *,
+  html body .notion-linear-redesign .settings-page-mobile *::before,
+  html body .notion-linear-redesign .settings-page-mobile *::after {
+    box-sizing: border-box !important;
+  }
+
+  html body .notion-linear-redesign .settings-page.settings-page-mobile {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: auto !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 10px 15px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible {
+    display: grid !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-summary {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 34px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    list-style: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-summary::-webkit-details-marker {
+    display: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-summary-main {
+    display: flex !important;
+    min-width: 0 !important;
+    align-items: center !important;
+    gap: 7px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-title {
+    overflow: hidden !important;
+    color: #f2f2f2 !important;
+    font-size: 18px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.035em !important;
+    line-height: 1.2 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-meta {
+    color: #858585 !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-summary-trailing,
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-actions,
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-side {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-toggle {
+    display: inline-grid !important;
+    width: 34px !important;
+    height: 34px !important;
+    place-items: center !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.045) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-collapsible-body.page-header-unified {
+    display: grid !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .page-header-unified-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary-card {
+    display: grid !important;
+    min-height: 48px !important;
+    align-content: space-between !important;
+    gap: 4px !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+    text-align: left !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary-card.is-active {
+    box-shadow:
+      inset 0 0 0 1px rgba(52, 211, 153, 0.18),
+      inset 3px 0 0 rgba(52, 211, 153, 0.72) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary-card span {
+    color: #858585 !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+    line-height: 1.15 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-summary-card strong {
+    overflow: hidden !important;
+    color: #f2f2f2 !important;
+    font-size: 15px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.05 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-tabs button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 34px !important;
+    padding: 0 4px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #a7a7a7 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.045) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    overflow: hidden !important;
+    text-align: center !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-tabs button.active {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.075) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+      inset 3px 0 0 rgba(115, 115, 115, 0.52) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-page-form {
+    display: contents !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-scroll {
+    display: flex !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-panel.settings-tab-panel.active {
+    display: grid !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-panel.settings-tab-panel:not(.active) {
+    display: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-panel-heading {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-panel-heading h2,
+  html body .notion-linear-redesign .settings-page-mobile .settings-mobile-section-title {
+    margin: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.3 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-panel-heading svg {
+    color: #a7a7a7 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-options,
+  html body .notion-linear-redesign .settings-page-mobile .settings-options-grid,
+  html body .notion-linear-redesign .settings-page-mobile .settings-mobile-section-body {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-mobile-section {
+    display: grid !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-mobile-section + .settings-mobile-section {
+    margin-top: 2px !important;
+    padding-top: 8px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.055) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-scroll label:not(.form-checkbox) {
+    display: grid !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    color: #a7a7a7 !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-scroll input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  html body .notion-linear-redesign .settings-page-mobile .settings-scroll select,
+  html body .notion-linear-redesign .settings-page-mobile .settings-scroll textarea {
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #f2f2f2 !important;
+    -webkit-text-fill-color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-scroll textarea {
+    min-height: 88px !important;
+    padding-top: 10px !important;
+    resize: vertical !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .form-checkbox.settings-toggle {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 9px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.045),
+      inset 3px 0 0 rgba(115, 115, 115, 0.34) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .form-checkbox.settings-toggle .form-checkbox-label,
+  html body .notion-linear-redesign .settings-page-mobile .form-checkbox.settings-toggle .labeled-hint-row,
+  html body .notion-linear-redesign .settings-page-mobile .labeled-hint-row,
+  html body .notion-linear-redesign .settings-page-mobile .labeled-hint-row-nowrap {
+    min-width: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .color-theme-picker {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .color-theme-option {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    gap: 10px !important;
+    align-items: center !important;
+    min-height: 48px !important;
+    padding: 9px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.045) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .color-theme-option:has(input:checked) {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      inset 3px 0 0 rgba(115, 115, 115, 0.52) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .color-theme-option input {
+    position: absolute !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .color-theme-swatches {
+    display: flex !important;
+    gap: 3px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .color-theme-swatches span {
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 999px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-data-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-data-actions .secondary-button,
+  html body .notion-linear-redesign .settings-page-mobile .settings-data-actions .submit-button,
+  html body .notion-linear-redesign .settings-page-mobile .settings-data-actions .settings-import-button,
+  html body .notion-linear-redesign .settings-page-mobile .settings-save-bar .secondary-button,
+  html body .notion-linear-redesign .settings-page-mobile .settings-save-bar .submit-button {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-save-bar .submit-button {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.075) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-save-bar {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 45 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: calc(100% + 30px) !important;
+    margin: 0 -15px calc(-92px - env(safe-area-inset-bottom, 0px)) !important;
+    padding: 8px 15px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    border: 0 !important;
+    background: rgba(20, 21, 23, 0.92) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+}
+
 /* Services and Packages: exact same icon-only reset as Clients for row actions. */
 html body .notion-linear-redesign :is(
     .services-page,
@@ -12615,6 +13752,2188 @@ html body .notion-linear-redesign .send-template-modal .send-template-actions :i
     width: 100% !important;
     min-height: 40px !important;
     justify-content: center !important;
+  }
+}
+
+/* Today page: final Notion-style mobile alignment. */
+@media (max-width: 768px) {
+  html body .notion-linear-redesign .content.today-content,
+  html body .notion-linear-redesign .content.today-content.home-content {
+    display: block !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html body .notion-linear-redesign .today-page.today-page-mobile {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: auto !important;
+    flex: none !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 10px 15px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .page-header-unified {
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .page-header-unified-top {
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .page-header-unified-copy h2 {
+    margin: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 18px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.035em !important;
+    line-height: 1.15 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .page-header-unified-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-header-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-header-chip {
+    display: inline-flex !important;
+    min-height: 38px !important;
+    justify-content: center !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-header-chip-full {
+    grid-column: 1 / -1 !important;
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.075) !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-scroll {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: auto !important;
+    flex: none !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-kpi-section,
+  html body .notion-linear-redesign .today-page-mobile .today-dashboard-grid,
+  html body .notion-linear-redesign .today-page-mobile .today-side-column,
+  html body .notion-linear-redesign .today-page-mobile .today-section {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: auto !important;
+    flex: none !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-section-heading,
+  html body .notion-linear-redesign .today-page-mobile .statistics-panel-title.today-section-heading {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-section-heading > div,
+  html body .notion-linear-redesign .today-page-mobile .statistics-panel-title.today-section-heading > div {
+    min-width: 0 !important;
+    padding: 1px 0 2px 2px !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-section-heading h3 {
+    margin: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+    padding-left: 1px !important;
+    overflow: visible !important;
+    text-indent: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-section-heading p {
+    margin: 2px 0 0 !important;
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-section-action {
+    min-height: 34px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-today-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card {
+    display: grid !important;
+    align-content: space-between !important;
+    min-height: 72px !important;
+    padding: 9px 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    overflow: hidden !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card::before,
+  html body .notion-linear-redesign .today-page-mobile .statistics-card::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card > div {
+    display: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card span,
+  html body .notion-linear-redesign .today-page-mobile .statistics-card small {
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card strong {
+    color: #f2f2f2 !important;
+    font-size: 17px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.05 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-mobile-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-mobile-tabs button {
+    min-height: 36px !important;
+    padding: 0 8px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #9d9d9d !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow: none !important;
+    font-size: 11px !important;
+    font-weight: 680 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-mobile-tabs button.active {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.085) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-list,
+      .today-task-list,
+      .today-supply-list,
+      .today-slot-list,
+      .today-note-list,
+      .statistics-today-upcoming
+    ) {
+    display: flex !important;
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-row,
+      .today-row-card,
+      .today-task-row,
+      .today-supply-row,
+      .today-slot-row,
+      .today-note-row,
+      .today-slot-list li,
+      .today-note-list li,
+      .statistics-today-upcoming li
+    ) {
+    position: relative !important;
+    display: grid !important;
+    width: 100% !important;
+    min-height: 56px !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-row,
+      .today-row-card,
+      .today-task-row,
+      .today-supply-row,
+      .today-slot-row,
+      .today-note-row,
+      .today-slot-list li,
+      .today-note-list li,
+      .statistics-today-upcoming li
+    ):hover {
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.075) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-row,
+      .today-row-card,
+      .today-task-row,
+      .today-supply-row,
+      .today-slot-row,
+      .today-note-row,
+      .today-slot-list li,
+      .today-note-list li,
+      .statistics-today-upcoming li
+    )::before,
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-row,
+      .today-row-card,
+      .today-task-row,
+      .today-supply-row,
+      .today-slot-row,
+      .today-note-row,
+      .today-slot-list li,
+      .today-note-list li,
+      .statistics-today-upcoming li
+    )::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-visit-row {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: start !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-task-row,
+  html body .notion-linear-redesign .today-page-mobile .today-supply-row {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-note-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-slot-row,
+  html body .notion-linear-redesign .today-page-mobile .today-window-row {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 4px 8px !important;
+    align-items: center !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-main,
+      .today-task-row > div,
+      .today-supply-row > div,
+      .today-slot-row > div,
+      .today-note-row > div
+    ) {
+    min-width: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-main span,
+      .today-task-row strong,
+      .today-supply-row strong,
+      .today-note-row strong,
+      .today-window-master,
+      .statistics-today-upcoming span
+    ) {
+    display: block !important;
+    min-width: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 13px !important;
+    font-weight: 680 !important;
+    line-height: 1.18 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-main small,
+      .today-task-row small,
+      .today-supply-row small,
+      .today-note-row small,
+      .statistics-today-upcoming small
+    ) {
+    display: block !important;
+    margin-top: 3px !important;
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-visit-meta {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: flex-end !important;
+    min-width: 0 !important;
+    gap: 6px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-visit-state {
+    display: grid !important;
+    justify-items: end !important;
+    gap: 3px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-visit-state strong,
+  html body .notion-linear-redesign .today-page-mobile .today-window-time {
+    display: inline-flex !important;
+    min-height: 22px !important;
+    align-items: center !important;
+    padding: 0 7px !important;
+    border-radius: 999px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-visit-state b,
+  html body .notion-linear-redesign .today-page-mobile .today-slot-duration {
+    display: inline-flex !important;
+    min-height: 20px !important;
+    align-items: center !important;
+    padding: 0 7px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    color: #a7a7a7 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    font-size: 10px !important;
+    font-weight: 650 !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-window-row strong,
+  html body .notion-linear-redesign .today-page-mobile .today-window-row span,
+  html body .notion-linear-redesign .today-page-mobile .today-window-row small {
+    margin: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-inline-action,
+  html body .notion-linear-redesign .today-page-mobile .today-inline-action:first-child,
+  html body .notion-linear-redesign .today-page-mobile .today-inline-action:last-child,
+  html body .notion-linear-redesign .today-page-mobile .icon-button {
+    display: inline-grid !important;
+    place-items: center !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    color: #a7a7a7 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-supply-row .secondary-button {
+    min-height: 30px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-empty {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 14px 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #858585 !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+  }
+}
+
+/* Today page cards: match Clients mobile card pattern. */
+@media (max-width: 768px) {
+  html body .notion-linear-redesign .today-page-mobile .today-summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-summary-card {
+    display: grid !important;
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 8px !important;
+    min-height: 66px !important;
+    padding: 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--today-summary-color) 16%, transparent), transparent 58%),
+      rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--today-summary-color) 24%, rgba(255, 255, 255, 0.055)),
+      inset 3px 0 0 color-mix(in srgb, var(--today-summary-color) 70%, rgba(115, 115, 115, 0.42)) !important;
+    overflow: hidden !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-summary-card-visits {
+    --today-summary-color: #60a5fa;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-summary-card-income {
+    --today-summary-color: #34d399;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-summary-card-debt {
+    --today-summary-color: #fb7185;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-summary-card-upcoming {
+    --today-summary-color: #22d3ee;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-summary-icon {
+    display: inline-grid !important;
+    place-items: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 10px !important;
+    color: var(--today-summary-color) !important;
+    background: color-mix(in srgb, var(--today-summary-color) 14%, rgba(255, 255, 255, 0.04)) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--today-summary-color) 22%, transparent) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-summary-card > div:last-child {
+    display: grid !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-summary-card span,
+  html body .notion-linear-redesign .today-page-mobile .today-summary-card small {
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-summary-card strong {
+    color: #f2f2f2 !important;
+    font-size: 16px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.05 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-summary-card small {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card,
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-row,
+      .today-row-card,
+      .today-task-row,
+      .today-supply-row,
+      .today-slot-row,
+      .today-note-row,
+      .today-slot-list li,
+      .today-note-list li,
+      .statistics-today-upcoming li
+    ) {
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card {
+    min-height: 76px !important;
+    padding: 11px 10px !important;
+    gap: 6px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-row,
+      .today-row-card,
+      .today-task-row,
+      .today-supply-row,
+      .today-slot-row,
+      .today-note-row,
+      .today-slot-list li,
+      .today-note-list li,
+      .statistics-today-upcoming li
+    ) {
+    min-height: 0 !important;
+    padding: 11px 10px !important;
+    gap: 8px 9px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card:active,
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-row,
+      .today-row-card,
+      .today-task-row,
+      .today-supply-row,
+      .today-slot-row,
+      .today-note-row,
+      .today-slot-list li,
+      .today-note-list li,
+      .statistics-today-upcoming li
+    ):active {
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card:hover,
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-row,
+      .today-row-card,
+      .today-task-row,
+      .today-supply-row,
+      .today-slot-row,
+      .today-note-row,
+      .today-slot-list li,
+      .today-note-list li,
+      .statistics-today-upcoming li
+    ):hover {
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.075),
+      inset 3px 0 0 rgba(140, 140, 140, 0.44) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card span,
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-main small,
+      .today-task-row small,
+      .today-supply-row small,
+      .today-note-row small,
+      .statistics-today-upcoming small
+    ) {
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .statistics-card strong,
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-main span,
+      .today-task-row strong,
+      .today-supply-row strong,
+      .today-note-row strong,
+      .today-window-master,
+      .statistics-today-upcoming span
+    ) {
+    color: #f2f2f2 !important;
+    font-weight: 680 !important;
+    letter-spacing: -0.015em !important;
+    line-height: 1.16 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-visit-state b,
+      .today-visit-state strong,
+      .today-window-time,
+      .today-slot-duration
+    ) {
+    min-height: 20px !important;
+    padding: 0 7px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    color: #a7a7a7 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    font-size: 10px !important;
+    font-weight: 650 !important;
+    line-height: 20px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-inline-action,
+      .icon-button,
+      .today-supply-row .secondary-button,
+      .today-section-action
+    ) {
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #bcbcbc !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(
+      .today-task-row,
+      .today-supply-row,
+      .today-note-row,
+      .today-note-list li
+    ) {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    min-height: 56px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(.today-task-row, .today-supply-row, .today-note-row, .today-note-list li) > div {
+    min-width: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile :is(.today-task-row, .today-supply-row, .today-note-row, .today-note-list li)::before,
+  html body .notion-linear-redesign .today-page-mobile :is(.today-task-row, .today-supply-row, .today-note-row, .today-note-list li)::after {
+    display: none !important;
+    content: none !important;
+  }
+}
+
+/* Today tabs: force the same real card layout for tasks, stock and important. */
+@media (max-width: 768px) {
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile :is(
+      .today-task-list,
+      .today-supply-list,
+      .today-note-list
+    ) {
+    display: flex !important;
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile :is(
+      .today-task-list,
+      .today-supply-list,
+      .today-note-list
+    ) > li,
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile .today-row-card.today-task-row,
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile .today-row-card.today-supply-row,
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile .today-row-card.today-note-row {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 8px 9px !important;
+    width: 100% !important;
+    min-height: 56px !important;
+    margin: 0 !important;
+    padding: 11px 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile :is(
+      .today-task-list,
+      .today-supply-list,
+      .today-note-list
+    ) > li + li {
+    margin-top: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile :is(
+      .today-task-list,
+      .today-supply-list,
+      .today-note-list
+    ) > li::before,
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile :is(
+      .today-task-list,
+      .today-supply-list,
+      .today-note-list
+    ) > li::after {
+    display: none !important;
+    content: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile :is(
+      .today-task-row,
+      .today-supply-row,
+      .today-note-row
+    ) > div {
+    min-width: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile :is(
+      .today-task-row,
+      .today-supply-row,
+      .today-note-row
+    ) strong {
+    display: block !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 14px !important;
+    font-weight: 680 !important;
+    letter-spacing: -0.015em !important;
+    line-height: 1.16 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile :is(
+      .today-task-row,
+      .today-supply-row,
+      .today-note-row
+    ) small {
+    display: block !important;
+    overflow: hidden !important;
+    margin-top: 3px !important;
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile .today-task-row .icon-button,
+  html body .notion-linear-redesign .today-page-mobile .today-side-column-mobile .today-supply-row .secondary-button {
+    justify-self: end !important;
+    align-self: center !important;
+    min-height: 31px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #bcbcbc !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Import page: mobile Notion-style alignment. */
+@media (max-width: 768px) {
+  html body .notion-linear-redesign .content.import-content,
+  html body .notion-linear-redesign .content.import-content.home-content {
+    display: block !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html body .notion-linear-redesign .import-page.import-page-mobile {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: auto !important;
+    flex: none !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 10px 15px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .page-header-collapsible,
+  html body .notion-linear-redesign .import-page-mobile .page-header-collapsible-summary,
+  html body .notion-linear-redesign .import-page-mobile .page-header-collapsible-body,
+  html body .notion-linear-redesign .import-page-mobile .page-header-unified {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .page-header-unified {
+    display: grid !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .page-header-unified-top {
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .page-header-unified-copy h2 {
+    margin: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 18px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.035em !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .page-header-collapsible-summary {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 0 !important;
+    padding-bottom: 2px !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .page-header-collapsible-title {
+    color: #f2f2f2 !important;
+    font-size: 18px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.035em !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .page-header-collapsible-meta {
+    color: #858585 !important;
+    font-size: 11px !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .page-header-unified-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-page-search-control.crm-search-input-control {
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 0 9px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #a7a7a7 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-page-search-control.crm-search-input-control:focus-within {
+    background: rgba(255, 255, 255, 0.055) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.075) !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-page-search-control .crm-search-input-value {
+    min-height: 38px !important;
+    color: #f2f2f2 !important;
+    -webkit-text-fill-color: #f2f2f2 !important;
+    font-size: 13px !important;
+    line-height: 38px !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-page-search-control :is(.crm-search-input-icon, .crm-search-input-clear) {
+    color: #8f8f8f !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-page-summary {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-page-summary-card {
+    display: grid !important;
+    align-content: space-between !important;
+    min-height: 48px !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-page-summary-card.is-active {
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.075),
+      inset 3px 0 0 rgba(140, 140, 140, 0.44) !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-page-summary-card span {
+    color: #858585 !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+    line-height: 1.15 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-page-summary-card strong {
+    color: #f2f2f2 !important;
+    font-size: 16px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.05 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile :is(.import-page-filters-collapsible, .import-page-booksy-collapsible) {
+    width: 100% !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    overflow: hidden !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile :is(.import-page-filters-collapsible, .import-page-booksy-collapsible) summary {
+    min-height: 38px !important;
+    padding: 0 10px !important;
+    color: #d8d8d8 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 38px !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-filters-mobile {
+    gap: 8px !important;
+    padding: 0 10px 10px !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-filter-group {
+    display: grid !important;
+    gap: 5px !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-filter-group > small {
+    color: #858585 !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .client-alert-filter-chips {
+    gap: 5px !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .client-alert-filter-chips button {
+    min-height: 30px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    color: #a7a7a7 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: none !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .client-alert-filter-chips button.active {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.085) !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile :is(.import-page-reset-button, .import-page-delete-button) {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-height: 38px !important;
+    justify-content: center !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-documents-panel,
+  html body .notion-linear-redesign .import-page-mobile .import-scroll {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: auto !important;
+    flex: none !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    grid-template-columns: none !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-mobile-card {
+    display: grid !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 11px 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-mobile-card:hover {
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.075),
+      inset 3px 0 0 rgba(140, 140, 140, 0.44) !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-mobile-head {
+    display: grid !important;
+    grid-template-columns: 28px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    align-items: start !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-kind {
+    display: inline-grid !important;
+    place-items: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.055) !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-card-heading strong {
+    display: block !important;
+    overflow: hidden !important;
+    color: #f2f2f2 !important;
+    font-size: 14px !important;
+    font-weight: 680 !important;
+    letter-spacing: -0.015em !important;
+    line-height: 1.16 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-card-heading small,
+  html body .notion-linear-redesign .import-page-mobile :is(.import-document-card-subject, .import-document-card-summary),
+  html body .notion-linear-redesign .import-page-mobile .import-document-meta-row dt {
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile :is(.import-document-card-subject, .import-document-card-summary) {
+    display: -webkit-box !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-meta-mobile {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    margin: 0 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-meta-row {
+    display: grid !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-meta-row dd {
+    margin: 0 !important;
+    color: #d8d8d8 !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-meta-row dd.is-highlight {
+    color: #86efac !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-mobile-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-document-mobile-actions :is(.secondary-button, .danger-button) {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-height: 34px !important;
+    justify-content: center !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .import-page-mobile .import-page-empty {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 28px 12px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #858585 !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+  }
+}
+
+/* Statistics page: full mobile Notion-style alignment. */
+@media (max-width: 768px) {
+  html body .notion-linear-redesign .content.statistics-content,
+  html body .notion-linear-redesign .content.statistics-content.home-content {
+    display: block !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page.statistics-page-mobile,
+  html body .notion-linear-redesign .statistics-page-mobile *,
+  html body .notion-linear-redesign .statistics-page-mobile *::before,
+  html body .notion-linear-redesign .statistics-page-mobile *::after {
+    box-sizing: border-box !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page.statistics-page-mobile {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: auto !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 10px 15px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-hero-header.page-header-unified,
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified {
+    display: grid !important;
+    gap: 8px !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    justify-items: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified-top {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-items: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified-copy {
+    display: flex !important;
+    min-height: 34px !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified-copy h2 {
+    display: inline-flex !important;
+    min-height: 34px !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 18px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.035em !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified-copy p {
+    margin: 3px 0 0 !important;
+    overflow: hidden !important;
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    justify-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified > *,
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified-actions > *,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-filters-mobile-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    justify-self: stretch !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified-trailing,
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified-side {
+    display: flex !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 34px !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .page-header-unified-trailing {
+    gap: 6px !important;
+    max-width: 132px !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-export-button {
+    display: inline-flex !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 34px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.045) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-quick-ranges,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-page-summary,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-filters-mobile {
+    display: grid !important;
+    width: 100% !important;
+    gap: 6px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-quick-ranges,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-page-summary,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-filters-mobile {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-quick-ranges .secondary-button,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-filters-mobile label,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-filters-mobile select,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-filter-trigger {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 38px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 0 9px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #d8d8d8 !important;
+    -webkit-text-fill-color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-filters-mobile input {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    min-width: 0 !important;
+    border: 0 !important;
+    color: #d8d8d8 !important;
+    -webkit-text-fill-color: #d8d8d8 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    color-scheme: dark !important;
+    font-size: 12px !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-filters-mobile input[type="date"]::-webkit-date-and-time-value {
+    color: #d8d8d8 !important;
+    text-align: left !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-filters-mobile input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.68 !important;
+    filter: invert(1) grayscale(1) !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-filter-menu {
+    position: relative !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    z-index: 20 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-filter-trigger {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    text-align: left !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-filter-trigger span {
+    color: #858585 !important;
+    font-size: 10px !important;
+    font-weight: 650 !important;
+    line-height: 1.1 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-filter-trigger strong {
+    display: block !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    color: #f2f2f2 !important;
+    font-size: 12px !important;
+    font-weight: 720 !important;
+    line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-filter-list {
+    position: absolute !important;
+    top: calc(100% + 6px) !important;
+    right: 0 !important;
+    left: 0 !important;
+    z-index: 80 !important;
+    display: grid !important;
+    max-height: 220px !important;
+    overflow-y: auto !important;
+    padding: 6px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: #1f1f1f !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 18px 36px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-filter-list button {
+    display: flex !important;
+    width: 100% !important;
+    min-height: 34px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 0 9px !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    color: #d8d8d8 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    text-align: left !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-filter-list button.active,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-filter-list button:hover {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.065) !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-page-summary-card,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-strip span,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-activity-grid span {
+    display: grid !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
+    align-content: space-between !important;
+    gap: 4px !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-page-summary-card span,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-strip span,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-activity-grid span,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-section-meta,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-panel-title p,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-payment-row small,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-attention-item small {
+    color: #858585 !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-page-summary-card strong,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-strip b,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-activity-grid strong,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-payment-row strong,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-attention-item strong,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-breakdown-list strong {
+    overflow: hidden !important;
+    color: #f2f2f2 !important;
+    font-size: 12px !important;
+    font-weight: 720 !important;
+    line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-page-summary-card strong {
+    font-size: 15px !important;
+    letter-spacing: -0.03em !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-scroll {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: auto !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-card,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-section,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-panel,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-details-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-card,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-section,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-panel {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-section > .statistics-panel,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-section .statistics-business-grid > .statistics-panel {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: inherit !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-top {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+    align-items: start !important;
+    width: 100% !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-top > div:first-child {
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-top span,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-top p {
+    margin: 0 !important;
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-top strong {
+    display: block !important;
+    overflow: hidden !important;
+    margin: 4px 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 24px !important;
+    font-weight: 760 !important;
+    letter-spacing: -0.045em !important;
+    line-height: 1.05 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-icon {
+    display: inline-grid !important;
+    width: 36px !important;
+    height: 36px !important;
+    place-items: center !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.055) !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-income-strip {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-section-head,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-panel-title {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-mobile-section-head h3,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-panel-title h3 {
+    margin: 0 !important;
+    color: #f2f2f2 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.3 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-revenue-chart,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-revenue-chart-frame,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-revenue-chart .recharts-responsive-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 190px !important;
+    min-height: 190px !important;
+    max-height: 190px !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-revenue-chart-frame {
+    border: 0 !important;
+    border-radius: 13px !important;
+    background: rgba(255, 255, 255, 0.018) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.045) !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-chart-empty {
+    display: grid !important;
+    min-height: 116px !important;
+    place-items: center !important;
+    padding: 18px 12px !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #858585 !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+    text-align: center !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-attention-list,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-payment-bars,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-breakdown-list,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-business-grid,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-activity-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-activity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-attention-item,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-payment-row,
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-breakdown-list span {
+    display: grid !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 9px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.045),
+      inset 3px 0 0 rgba(115, 115, 115, 0.34) !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-attention-item {
+    grid-template-columns: 24px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 8px !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-attention-item svg {
+    margin-top: 1px !important;
+    color: #a7a7a7 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-attention-item.danger svg {
+    color: #fb7185 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-attention-item.warning svg {
+    color: #fbbf24 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-attention-item.good svg {
+    color: #34d399 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-attention-item span {
+    display: grid !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-payment-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 7px !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-payment-row > div:first-child {
+    display: grid !important;
+    grid-template-columns: 8px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 7px !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-payment-row > div:first-child i {
+    width: 7px !important;
+    height: 7px !important;
+    border-radius: 999px !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-payment-row > div:first-child span {
+    overflow: hidden !important;
+    color: #d8d8d8 !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-payment-row > div:first-child strong {
+    justify-self: end !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-payment-track {
+    width: 100% !important;
+    height: 6px !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.055) !important;
+    overflow: hidden !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-breakdown-list span {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-height: 34px !important;
+    color: #a7a7a7 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-breakdown-list span strong {
+    justify-self: end !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-breakdown-list span strong.negative {
+    color: #fb7185 !important;
+  }
+
+  html body .notion-linear-redesign .statistics-page-mobile .statistics-ring {
+    width: 64px !important;
+    height: 64px !important;
+    flex: 0 0 64px !important;
+  }
+}
+
+/* Settings page: final mobile tab cleanup for non-interface tabs. */
+@media (max-width: 768px) {
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-panel,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-panel,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-status,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-conflict,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-status,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-error,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .client-package-card,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .certificate-card,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-options > p,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .field-hint {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.045),
+      inset 3px 0 0 rgba(115, 115, 115, 0.34) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-panel,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-panel {
+    display: grid !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-status,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-conflict,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-status,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-error,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .client-package-card,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-options > p,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .field-hint {
+    display: grid !important;
+    gap: 6px !important;
+    padding: 9px !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-panel-heading {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    color: #ededed !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-panel-heading h2 {
+    color: #f2f2f2 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-panel-heading svg {
+    color: #a7a7a7 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
+      .settings-cloud-status span,
+      .settings-cloud-status small,
+      .settings-cloud-conflict p,
+      .booksy-sync-status span,
+      .booksy-sync-status small,
+      .booksy-sync-error li,
+      .client-package-main span,
+      .client-package-main small,
+      .client-package-meta span,
+      .field-hint,
+      .settings-options > p
+    ) {
+    color: #858585 !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
+      .settings-cloud-status strong,
+      .booksy-sync-status strong,
+      .booksy-sync-error strong,
+      .client-package-main strong,
+      .client-package-meta b
+    ) {
+    color: #f2f2f2 !important;
+    font-size: 13px !important;
+    font-weight: 720 !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-actions-row,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-data-actions,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .client-packages-list,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .form-split {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .form-split {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
+      .settings-actions-row .secondary-button,
+      .settings-actions-row .add-visit-button,
+      .settings-data-actions .secondary-button,
+      .settings-data-actions .submit-button,
+      .settings-data-actions .settings-import-button,
+      .client-package-meta .secondary-button,
+      button.secondary-button,
+      button.add-visit-button
+    ) {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #d8d8d8 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
+      .settings-actions-row .add-visit-button,
+      .settings-data-actions .submit-button,
+      button.add-visit-button
+    ) {
+    color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.075) !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active label:not(.form-checkbox) {
+    display: grid !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    color: #a7a7a7 !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
+      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+      select,
+      textarea
+    ) {
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #f2f2f2 !important;
+    -webkit-text-fill-color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    font-size: 12px !important;
+    color-scheme: dark !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active textarea {
+    min-height: 88px !important;
+    padding-top: 10px !important;
+    -webkit-text-fill-color: #f2f2f2 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-error ul {
+    display: grid !important;
+    gap: 5px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-status small.error {
+    color: #fb7185 !important;
+  }
+}
+
+/* Settings page: last-word override for mobile tab internals. */
+@media (max-width: 768px) {
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active {
+    background: rgba(255, 255, 255, 0.025) !important;
+    background-color: rgba(255, 255, 255, 0.025) !important;
+    background-image: none !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+      inset 3px 0 0 rgba(115, 115, 115, 0.42) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
+      .settings-mobile-section,
+      .settings-mobile-section-body,
+      .settings-options,
+      .settings-options-grid,
+      .settings-cloud-panel,
+      .booksy-sync-panel,
+      .settings-panel
+    ) {
+    border: 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
+      .form-checkbox.settings-toggle,
+      label:not(.form-checkbox),
+      .settings-cloud-status,
+      .settings-cloud-conflict,
+      .booksy-sync-status,
+      .booksy-sync-error,
+      .client-package-card,
+      .certificate-card,
+      .settings-options > p,
+      .field-hint
+    ) {
+    margin: 0 !important;
+    padding: 9px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    color: #ededed !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    background-color: rgba(255, 255, 255, 0.035) !important;
+    background-image: none !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.045),
+      inset 3px 0 0 rgba(115, 115, 115, 0.34) !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
+      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+      select,
+      textarea
+    ) {
+    border: 0 !important;
+    color: #f2f2f2 !important;
+    -webkit-text-fill-color: #f2f2f2 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    background-image: none !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+    color-scheme: dark !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
+      p,
+      small,
+      .field-hint,
+      .settings-cloud-status span,
+      .settings-cloud-status small,
+      .settings-cloud-conflict p,
+      .booksy-sync-status span,
+      .booksy-sync-status small,
+      .booksy-sync-error li,
+      .client-package-main span,
+      .client-package-main small,
+      .client-package-meta span
+    ) {
+    color: #858585 !important;
+  }
+
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
+      h2,
+      h3,
+      strong,
+      .booksy-sync-status strong,
+      .settings-cloud-status strong,
+      .client-package-main strong,
+      .client-package-meta b,
+      .form-checkbox-label,
+      .labeled-hint-row
+    ) {
+    color: #f2f2f2 !important;
   }
 }
 

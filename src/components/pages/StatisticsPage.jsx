@@ -91,6 +91,45 @@ function StatisticsFilters({
   onStartDateChange,
   startDate,
 }) {
+  const [openMobileFilter, setOpenMobileFilter] = useState(null);
+  const selectedCurrency = currencies.find((item) => item.code === currency) || currencies[0];
+
+  const renderMobileFilter = ({label, options, value, onChange, type}) => {
+    const selectedOption =
+      options.find((option) => option.value === value) || options[0];
+
+    return (
+      <div className="statistics-mobile-filter-menu">
+        <button
+          aria-expanded={openMobileFilter === type}
+          className="statistics-mobile-filter-trigger"
+          type="button"
+          onClick={() =>
+            setOpenMobileFilter((current) => (current === type ? null : type))
+          }>
+          <span>{label}</span>
+          <strong>{selectedOption.label}</strong>
+        </button>
+        {openMobileFilter === type ? (
+          <div className="statistics-mobile-filter-list">
+            {options.map((option) => (
+              <button
+                className={option.value === value ? "active" : ""}
+                key={option.value || "all"}
+                type="button"
+                onClick={() => {
+                  onChange(option.value);
+                  setOpenMobileFilter(null);
+                }}>
+                {option.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
   return (
     <div className={`statistics-filters${mobile ? " statistics-filters-mobile" : ""}`}>
       <label>
@@ -110,22 +149,52 @@ function StatisticsFilters({
           onChange={(event) => onEndDateChange(event.target.value)}
         />
       </label>
-      <select value={master} onChange={(event) => onMasterChange(event.target.value)}>
-        <option value="">Все сотрудники</option>
-        {employees.map((employee) => (
-          <option key={employee.id}>{employee.name}</option>
-        ))}
-      </select>
-      <select
-        aria-label="Валюта отчёта"
-        value={currency}
-        onChange={(event) => onCurrencyChange(event.target.value)}>
-        {currencies.map((item) => (
-          <option key={item.code} value={item.code}>
-            {item.code} · {item.label}
-          </option>
-        ))}
-      </select>
+      {mobile ? (
+        <>
+          {renderMobileFilter({
+            label: "Сотрудник",
+            onChange: onMasterChange,
+            options: [
+              {label: "Все сотрудники", value: ""},
+              ...employees.map((employee) => ({
+                label: employee.name,
+                value: employee.name,
+              })),
+            ],
+            type: "master",
+            value: master,
+          })}
+          {renderMobileFilter({
+            label: "Валюта",
+            onChange: onCurrencyChange,
+            options: currencies.map((item) => ({
+              label: `${item.code} · ${item.label}`,
+              value: item.code,
+            })),
+            type: "currency",
+            value: selectedCurrency.code,
+          })}
+        </>
+      ) : (
+        <>
+          <select value={master} onChange={(event) => onMasterChange(event.target.value)}>
+            <option value="">Все сотрудники</option>
+            {employees.map((employee) => (
+              <option key={employee.id}>{employee.name}</option>
+            ))}
+          </select>
+          <select
+            aria-label="Валюта отчёта"
+            value={currency}
+            onChange={(event) => onCurrencyChange(event.target.value)}>
+            {currencies.map((item) => (
+              <option key={item.code} value={item.code}>
+                {item.code} · {item.label}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
     </div>
   );
 }
@@ -811,7 +880,7 @@ function StatisticsPage({
       <section className="statistics-page statistics-page-mobile">
         <PageHeader
           collapsedMeta={`${toDisplayDate(startDate)} — ${toDisplayDate(endDate)}`}
-          collapsible
+          collapsible={false}
           actions={
             <>
               <div className="statistics-quick-ranges">
