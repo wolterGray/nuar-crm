@@ -33,41 +33,67 @@ function PayrollForm({
         event.preventDefault();
         onMarkPaid?.({endDate, note, startDate});
       }}>
-      {!embeddedMobile ? (
-        <div className="payroll-period-row">
-          <label>
-            С
-            <input
-              type="date"
-              value={startDate}
-              onChange={(event) => onStartDateChange(event.target.value)}
-            />
-          </label>
-          <label>
-            По
-            <input
-              type="date"
-              value={endDate}
-              onChange={(event) => onEndDateChange(event.target.value)}
-            />
-          </label>
-        </div>
-      ) : null}
+      <div
+        className={`payroll-period-row${
+          embeddedMobile ? " payroll-period-row-embedded-mobile" : ""
+        }`}>
+        <label>
+          С
+          <input
+            type="date"
+            value={startDate}
+            onChange={(event) => onStartDateChange(event.target.value)}
+          />
+        </label>
+        <label>
+          По
+          <input
+            type="date"
+            value={endDate}
+            onChange={(event) => onEndDateChange(event.target.value)}
+          />
+        </label>
+      </div>
 
       {report.employees.length === 0 ? (
         <p className="payroll-empty">За выбранный период начислений нет.</p>
       ) : (
         <>
-          <div className="payroll-hero">
-            <div className="payroll-hero-main">
-              <span>К выплате за период</span>
-              <strong>{formatMoney(report.totals.totalPayout)}</strong>
+          {embeddedMobile ? (
+            <div className="payroll-period-summary-grid">
+              <article className="day-close-summary-card">
+                <span>Мастеров</span>
+                <strong>{report.employees.length}</strong>
+                <small>в расчёте</small>
+              </article>
+              <article className="day-close-summary-card">
+                <span>Визитов</span>
+                <strong>{report.totals.visitsCount}</strong>
+                <small>за период</small>
+              </article>
+              <article className="day-close-summary-card">
+                <span>Чаевые</span>
+                <strong>{formatMoney(report.totals.tips)}</strong>
+                <small>учтены</small>
+              </article>
+              <article className="day-close-summary-card">
+                <span>К выплате</span>
+                <strong>{formatMoney(report.totals.totalPayout)}</strong>
+                <small>итого</small>
+              </article>
             </div>
-            <div className="payroll-hero-meta">
-              <span>{report.totals.visitsCount} визитов</span>
-              <span>{report.employees.length} мастеров</span>
+          ) : (
+            <div className="payroll-hero">
+              <div className="payroll-hero-main">
+                <span>К выплате за период</span>
+                <strong>{formatMoney(report.totals.totalPayout)}</strong>
+              </div>
+              <div className="payroll-hero-meta">
+                <span>{report.totals.visitsCount} визитов</span>
+                <span>{report.employees.length} мастеров</span>
+              </div>
             </div>
-          </div>
+          )}
           <div className="payroll-table-wrap">
             <table className="payroll-table">
             <thead>

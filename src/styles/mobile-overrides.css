@@ -18,6 +18,7 @@
   .import-document-delete-bulk,
   .clients-toolbar-actions .add-visit-button,
   .page-header-unified-actions .add-visit-button,
+  .services-page-mobile .page-header-unified-actions .add-visit-button,
   .employees-toolbar .add-visit-button,
   .import-toolbar-actions .add-visit-button,
   .operations-panel-header .add-visit-button,
@@ -928,6 +929,202 @@
   }
 
   .clients-page-mobile .clients-empty {
+    padding: 32px 15px;
+    font-size: 14px;
+  }
+
+  .services-page.services-page-mobile {
+    display: grid;
+    flex: 1;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 8px;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .services-page-mobile.panel,
+  .theme-dark .services-page-mobile.panel,
+  .theme-light .services-page-mobile.panel {
+    gap: 8px;
+    padding: 0 !important;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none;
+  }
+
+  .services-page-mobile .page-header-unified,
+  .services-page-mobile .page-header-collapsible {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 15px 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  .theme-dark .services-page-mobile .page-header-unified,
+  .theme-dark .services-page-mobile .page-header-collapsible,
+  .theme-light .services-page-mobile .page-header-unified,
+  .theme-light .services-page-mobile .page-header-collapsible {
+    background: transparent;
+  }
+
+  .services-page-mobile .page-header-unified-actions {
+    gap: 8px;
+  }
+
+  .services-page-mobile .services-search-control {
+    min-height: 40px;
+    padding: 0 8px 0 10px;
+    border: 1px solid var(--line-soft, #e4e5e4);
+    border-radius: 10px;
+    background: var(--surface-solid, #fff);
+  }
+
+  .theme-dark .services-page-mobile .services-search-control {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .services-page-mobile .services-search-control .crm-search-input-value {
+    min-height: 38px;
+    font-size: 15px;
+  }
+
+  .services-page-mobile .page-header-unified-actions .add-visit-button {
+    min-height: 40px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .services-page-mobile .services-grid {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 15px;
+    padding-bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-bottom: var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .services-page-mobile .services-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .services-page-mobile .service-mobile-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+    gap: 10px 8px;
+    align-items: start;
+    align-content: start;
+    flex-shrink: 0;
+    padding: 12px;
+    border: 1px solid var(--line-soft, #e8e8e6);
+    border-radius: 12px;
+    background: var(--surface-solid, #fff);
+    box-shadow: none;
+  }
+
+  .theme-dark .services-page-mobile .service-mobile-card {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .services-page-mobile .service-card-main {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    padding-right: 4px;
+  }
+
+  .services-page-mobile .service-card-head h3 {
+    display: block;
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .services-page-mobile .service-color-label {
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
+  .services-page-mobile .service-row-actions {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .services-page-mobile .service-row-actions .row-action {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border: 0;
+    border-radius: 8px;
+    color: var(--text-soft, #737780);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .services-page-mobile .service-prices {
+    display: flex;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .services-page-mobile .service-prices span,
+  .services-page-mobile .service-card-meta span {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 1px 6px;
+    border-radius: 999px;
+    color: var(--text-soft, #737780);
+    background: color-mix(in srgb, var(--surface-muted, #f4f4f3) 88%, transparent);
+    font-size: 10px;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .services-page-mobile .service-prices strong {
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .services-page-mobile .service-card-meta {
+    display: flex;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 0;
+  }
+
+  .theme-dark .services-page-mobile .service-prices span,
+  .theme-dark .services-page-mobile .service-card-meta span {
+    color: #b3bdcb;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .services-page-mobile .services-empty {
     padding: 32px 15px;
     font-size: 14px;
   }

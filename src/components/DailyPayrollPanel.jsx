@@ -1,5 +1,5 @@
 import {CheckCircle2, Circle, Coins} from "lucide-react";
-import {useEffect, useMemo, useState} from "react";
+import {useMemo, useState} from "react";
 import PageHeader from "./PageHeader.jsx";
 import {getDailyPayrollEmployees} from "../utils/dailyPayroll.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
@@ -19,27 +19,24 @@ function DailyPayrollPanel({
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(
     () => dailyEmployees[0]?.id ?? "",
   );
-
-  useEffect(() => {
-    if (
-      dailyEmployees.length > 0 &&
-      !dailyEmployees.some(
+  const selectedEmployee = useMemo(
+    () =>
+      dailyEmployees.find(
         (employee) => String(employee.id) === String(selectedEmployeeId),
-      )
-    ) {
-      setSelectedEmployeeId(dailyEmployees[0].id);
-    }
-  }, [dailyEmployees, selectedEmployeeId]);
+      ) ?? dailyEmployees[0],
+    [dailyEmployees, selectedEmployeeId],
+  );
+  const activeEmployeeId = selectedEmployee?.id ?? "";
 
   const report = useMemo(
     () =>
-      selectedEmployeeId
+      activeEmployeeId
         ? getDailyPayrollReport?.({
             date: selectedDate,
-            employeeId: selectedEmployeeId,
+            employeeId: activeEmployeeId,
           })
         : null,
-    [getDailyPayrollReport, selectedDate, selectedEmployeeId],
+    [activeEmployeeId, getDailyPayrollReport, selectedDate],
   );
 
   if (!getDailyPayrollReport || !setVisitMasterPayoutPaid) {
@@ -85,7 +82,7 @@ function DailyPayrollPanel({
         <label>
           Мастер
           <select
-            value={String(selectedEmployeeId)}
+            value={String(activeEmployeeId)}
             onChange={(event) => setSelectedEmployeeId(event.target.value)}>
             {dailyEmployees.map((employee) => (
               <option key={employee.id} value={employee.id}>
@@ -198,7 +195,7 @@ function DailyPayrollPanel({
                 onClick={() =>
                   markAllDailyPayoutsPaid?.({
                     date: selectedDate,
-                    employeeId: selectedEmployeeId,
+                    employeeId: activeEmployeeId,
                   })
                 }>
                 <CheckCircle2 size={16} />

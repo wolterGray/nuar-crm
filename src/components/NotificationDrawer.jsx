@@ -244,7 +244,7 @@ export default function NotificationDrawer({
                 ? `Уведомления: ${totalAlertsCount}`
                 : "Центр уведомлений"
           }
-          className="client-alert-button"
+          className="client-alert-button notification-trigger"
           type="button"
           onClick={onToggleOpen}>
           <Bell size={18} />

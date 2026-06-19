@@ -50,6 +50,7 @@ function WaitlistPanel({
                   ) : null}
                 </div>
                 <RowActionsMenu
+                  className="operations-row-actions"
                   itemId={entry.id}
                   openMenuId={openMenuId}
                   setOpenMenuId={setOpenMenuId}

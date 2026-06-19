@@ -7,7 +7,6 @@ import {
   MessageSquareText,
   Pencil,
   Plus,
-  Search,
   Send,
   Trash2,
   X,
@@ -23,6 +22,7 @@ import {
 } from "../../utils/messageTemplates.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
+import SearchControl from "../ui/SearchControl.jsx";
 
 function MessageTemplateCard({
   isMobile,
@@ -188,22 +188,6 @@ function MessageTemplatesPage({
       );
     });
   }, [filters, templates]);
-
-  const smsCount = useMemo(
-    () => templates.filter((template) => template.channel === "SMS").length,
-    [templates],
-  );
-  const emailCount = useMemo(
-    () => templates.filter((template) => template.channel === "Email").length,
-    [templates],
-  );
-  const automatedCount = useMemo(
-    () =>
-      templates.filter(
-        (template) => String(template.purpose ?? "general") !== "general",
-      ).length,
-    [templates],
-  );
 
   const setFilter = (name, value) => {
     setFilters((current) => ({...current, [name]: value}));
@@ -403,51 +387,17 @@ function MessageTemplatesPage({
       onClick={() => setOpenMenuId(null)}>
       <PageHeader
         collapsedMeta={`${templates.length} шаблонов`}
-        collapsible={isMobile}
+        collapsible={false}
         actions={
           isMobile ? (
             <>
-              <label className="message-templates-search">
-                <Search size={16} />
-                <input
-                  placeholder="Поиск шаблона"
-                  type="search"
-                  value={filters.query}
-                  onChange={(event) => setFilter("query", event.target.value)}
-                />
-                {filters.query ? (
-                  <button
-                    aria-label="Очистить поиск"
-                    type="button"
-                    onClick={() => setFilter("query", "")}>
-                    <X size={15} />
-                  </button>
-                ) : null}
-              </label>
-              <div className="message-templates-summary">
-                <article className="message-templates-summary-card is-active">
-                  <span>Всего</span>
-                  <strong>{templates.length}</strong>
-                </article>
-                <article className="message-templates-summary-card">
-                  <span>SMS</span>
-                  <strong>{smsCount}</strong>
-                </article>
-                <article className="message-templates-summary-card">
-                  <span>Email</span>
-                  <strong>{emailCount}</strong>
-                </article>
-                <article className="message-templates-summary-card">
-                  <span>Авто</span>
-                  <strong>{automatedCount}</strong>
-                </article>
-              </div>
-              <details className="message-templates-filters-collapsible">
-                <summary>Фильтры</summary>
-                <div className="message-template-filters message-template-filters-mobile">
-                  {filterFields}
-                </div>
-              </details>
+              <SearchControl
+                className="message-templates-search-control"
+                placeholder="Поиск шаблона"
+                value={filters.query}
+                onChange={(event) => setFilter("query", event.target.value)}
+                onClear={() => setFilter("query", "")}
+              />
               <button className="add-visit-button" type="button" onClick={onAdd}>
                 <Plus size={18} />
                 Добавить
@@ -468,16 +418,29 @@ function MessageTemplatesPage({
         title="Шаблоны"
       />
 
+      {isMobile ? (
+        <details className="message-templates-filters-collapsible">
+          <summary>
+            Фильтры
+            <span>
+              {filteredTemplates.length} / {templates.length}
+            </span>
+          </summary>
+          <div className="message-template-filters message-template-filters-mobile">
+            {filterFields}
+          </div>
+        </details>
+      ) : null}
+
       {!isMobile ? (
         <div className="message-template-filters">
-          <label className="clients-search">
-            <Search size={16} />
-            <input
-              placeholder="Поиск шаблона"
-              value={filters.query}
-              onChange={(event) => setFilter("query", event.target.value)}
-            />
-          </label>
+          <SearchControl
+            className="message-templates-search-control"
+            placeholder="Поиск шаблона"
+            value={filters.query}
+            onChange={(event) => setFilter("query", event.target.value)}
+            onClear={() => setFilter("query", "")}
+          />
           {filterFields}
         </div>
       ) : null}

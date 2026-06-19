@@ -69,7 +69,10 @@ export default function AppNavigation({
             <kbd>{typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform) ? "⌘K" : "Ctrl+K"}</kbd>
           </button>
           {navGroups.map((group, groupIndex) => (
-            <div className="nav-group" key={group.id}>
+            <div
+              aria-label={group.label}
+              className="nav-group"
+              key={group.id}>
               {groupIndex > 0 ? <span aria-hidden="true" className="nav-group-divider" /> : null}
               {group.items.map((item) => {
                 const Icon = item.icon;

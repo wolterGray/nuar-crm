@@ -2,6 +2,7 @@ import {useMemo, useState} from "react";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {toInputDate} from "../utils/formatters.jsx";
+import {Button} from "./ui/index.js";
 
 const packagePaymentMethods = paymentMethods.filter(
   (method) => method !== "Пакет" && method !== "Сертификат",
@@ -126,9 +127,13 @@ function ClientPackageForm({
             Пакет с нулевым остатком автоматически попадает в архив.
           </small>
         </label>
-        <button className="submit-button">
+        <Button
+          className="crm-primary-action package-form-submit"
+          size="lg"
+          type="submit"
+          variant="primary">
           {clientPackage ? "Сохранить остаток" : "Продать пакет"}
-        </button>
+        </Button>
       </form>
     </section>
   );

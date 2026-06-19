@@ -141,13 +141,13 @@ export function RowActionsMenu({
 
   return (
     <div
-      className={`row-actions client-row-actions${className ? ` ${className}` : ""}`}
+      className={`row-actions row-action-trigger-wrap client-row-actions${className ? ` ${className}` : ""}`}
       onClick={(event) => event.stopPropagation()}>
       <button
         ref={triggerRef}
         aria-label="Действия"
         aria-expanded={isOpen}
-        className="row-action"
+        className="row-action row-action-trigger"
         type="button"
         onClick={() =>
           setOpenMenuId(openMenuId === itemId ? null : itemId)

@@ -1,6 +1,6 @@
-import {Pencil, Plus, Search, Trash2, X} from "lucide-react";
+import {Plus} from "lucide-react";
 import {motion} from "framer-motion";
-import {useEffect, useMemo, useState} from "react";
+import {useMemo, useState} from "react";
 import DailyPayrollPanel from "./DailyPayrollPanel.jsx";
 import PayrollPanel from "./PayrollPanel.jsx";
 import {formatMoney} from "../utils/formatters.jsx";
@@ -9,6 +9,7 @@ import {resolveEmployeeSiteBookingSlotMinutes} from "../utils/calendarBookableSl
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import PageHeader from "./PageHeader.jsx";
 import {RowActionsMenu} from "./RowActionMenuPortal.jsx";
+import SearchControl from "./ui/SearchControl.jsx";
 
 function EmployeeCard({employee, isMobile, onDelete, onEdit, openMenuId, setOpenMenuId}) {
   const isActive = employee.status === "Активен";
@@ -24,18 +25,14 @@ function EmployeeCard({employee, isMobile, onDelete, onEdit, openMenuId, setOpen
           <h3>{employee.name}</h3>
           <span>{employee.role}</span>
         </div>
-        {isMobile ? (
-          <RowActionsMenu
-            className="employee-row-actions"
-            itemId={employee.id}
-            openMenuId={openMenuId}
-            setOpenMenuId={setOpenMenuId}
-            onDelete={() => onDelete(employee)}
-            onEdit={() => onEdit(employee)}
-          />
-        ) : (
-          <b className={isActive ? "status-active" : ""}>{employee.status}</b>
-        )}
+        <RowActionsMenu
+          className="employee-row-actions"
+          itemId={employee.id}
+          openMenuId={openMenuId}
+          setOpenMenuId={setOpenMenuId}
+          onDelete={() => onDelete(employee)}
+          onEdit={() => onEdit(employee)}
+        />
       </div>
 
       {isMobile ? (
@@ -99,26 +96,7 @@ function EmployeeCard({employee, isMobile, onDelete, onEdit, openMenuId, setOpen
         </>
       )}
 
-      {!isMobile ? (
-        <div className="employee-actions">
-          <button
-            aria-label="Редактировать сотрудника"
-            className="compact-icon-button"
-            title="Редактировать"
-            type="button"
-            onClick={() => onEdit(employee)}>
-            <Pencil size={16} />
-          </button>
-          <button
-            aria-label="Удалить сотрудника"
-            className="compact-icon-button danger"
-            title="Удалить"
-            type="button"
-            onClick={() => onDelete(employee)}>
-            <Trash2 size={16} />
-          </button>
-        </div>
-      ) : null}
+      {!isMobile ? <b className={isActive ? "status-active" : ""}>{employee.status}</b> : null}
     </motion.article>
   );
 }
@@ -180,10 +158,6 @@ function EmployeesPage({
     [employees],
   );
 
-  useEffect(() => {
-    setOpenMenuId(null);
-  }, [mobileSection, search]);
-
   const mobileDescription =
     mobileSection === "list"
       ? `${filteredEmployees.length} из ${employees.length} в базе`
@@ -235,44 +209,43 @@ function EmployeesPage({
                 <button
                   className={mobileSection === "list" ? "active" : ""}
                   type="button"
-                  onClick={() => setMobileSection("list")}>
+                  onClick={() => {
+                    setMobileSection("list");
+                    setOpenMenuId(null);
+                  }}>
                   Сотрудники
                 </button>
                 <button
                   className={mobileSection === "daily" ? "active" : ""}
                   type="button"
-                  onClick={() => setMobileSection("daily")}>
+                  onClick={() => {
+                    setMobileSection("daily");
+                    setOpenMenuId(null);
+                  }}>
                   Ежедневно
                 </button>
                 <button
                   className={mobileSection === "period" ? "active" : ""}
                   type="button"
-                  onClick={() => setMobileSection("period")}>
+                  onClick={() => {
+                    setMobileSection("period");
+                    setOpenMenuId(null);
+                  }}>
                   Период
                 </button>
               </div>
               {mobileSection === "list" ? (
                 <>
-                  <label className="employees-search">
-                    <Search size={16} />
-                    <input
-                      placeholder="Поиск сотрудника"
-                      type="search"
-                      value={search}
-                      onChange={(event) => {
-                        setSearch(event.target.value);
-                        setOpenMenuId(null);
-                      }}
-                    />
-                    {search ? (
-                      <button
-                        aria-label="Очистить поиск"
-                        type="button"
-                        onClick={() => setSearch("")}>
-                        <X size={15} />
-                      </button>
-                    ) : null}
-                  </label>
+                  <SearchControl
+                    className="employees-search-control"
+                    placeholder="Поиск сотрудника"
+                    value={search}
+                    onChange={(event) => {
+                      setSearch(event.target.value);
+                      setOpenMenuId(null);
+                    }}
+                    onClear={() => setSearch("")}
+                  />
                   <div className="employees-summary">
                     <article
                       className={`employees-summary-card${

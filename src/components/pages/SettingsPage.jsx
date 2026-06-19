@@ -13,6 +13,7 @@ import {
 import {useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
+import {resolveColorTheme} from "../../utils/colorTheme.js";
 import HintIcon, {FieldLabel} from "../HintIcon.jsx";
 import PageHeader from "../PageHeader.jsx";
 import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
@@ -61,6 +62,7 @@ function SettingsPage({
   onImportData,
 }) {
   const {isMobile} = useBreakpoint();
+  const selectedColorTheme = resolveColorTheme(settings);
   const formRef = useRef(null);
   const [activeTab, setActiveTab] = useState(initialTab);
   const settingsTabs = [
@@ -219,7 +221,7 @@ function SettingsPage({
                     title={themeOption.description}>
                     <input
                       defaultChecked={
-                        (settings.colorTheme ?? "dark-gold") === themeOption.id
+                        selectedColorTheme.id === themeOption.id
                       }
                       name="colorTheme"
                       type="radio"

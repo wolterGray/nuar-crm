@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Clock3,
   MessageSquareText,
+  MoreHorizontal,
   Pencil,
   Plus,
   WalletCards,
@@ -102,8 +103,7 @@ function TodayPage({
   return (
     <section className={`today-page statistics-page ${isMobile ? "today-page-mobile" : ""}`}>
       <PageHeader
-        collapsedMeta={dashboard.todayDisplay}
-        collapsible={isMobile}
+        collapsible={false}
         actions={
           isMobile ? (
             <div className="today-header-actions">
@@ -203,7 +203,11 @@ function TodayPage({
               <h3>Расписание на сегодня</h3>
               <p>{dashboard.todayVisits.length} записей</p>
             </div>
-            <button className="today-panel-link secondary-button" type="button" onClick={onOpenCalendar}>
+            <button
+              className="today-section-action today-panel-link secondary-button"
+              type="button"
+              onClick={onOpenCalendar}>
+              <CalendarDays size={14} />
               {isMobile ? "Календарь" : "Открыть календарь"}
             </button>
           </div>
@@ -215,7 +219,6 @@ function TodayPage({
               {dashboard.todayVisits.map((entry) => (
                 <li className="today-visit-row" key={entry.id}>
                   <div className="today-visit-main">
-                    <strong>{entry.time}</strong>
                     <div>
                       <span>{entry.client || "Без клиента"}</span>
                       <small>
@@ -224,23 +227,25 @@ function TodayPage({
                     </div>
                   </div>
                   <div className="today-visit-meta">
-                    <b>{visitStatusLabels[entry.status] || entry.status || "—"}</b>
-                    <div className="today-visit-actions">
-                      <button
-                        aria-label="Написать клиенту"
-                        className="today-inline-action"
-                        type="button"
-                        onClick={() => onRemindVisit?.(entry)}>
-                        <MessageSquareText size={14} />
-                      </button>
-                      <button
-                        aria-label="Редактировать запись"
-                        className="today-inline-action"
-                        type="button"
-                        onClick={() => onEditVisit?.(entry)}>
-                        <Pencil size={14} />
-                      </button>
+                    <div className="today-visit-state">
+                      <b>{visitStatusLabels[entry.status] || entry.status || "—"}</b>
+                      <strong>{entry.time}</strong>
                     </div>
+                    <details className="today-visit-actions">
+                      <summary aria-label="Действия с визитом" className="today-inline-action">
+                        <MoreHorizontal size={15} />
+                      </summary>
+                      <div className="today-visit-action-menu">
+                        <button type="button" onClick={() => onRemindVisit?.(entry)}>
+                          <MessageSquareText size={13} />
+                          Написать
+                        </button>
+                        <button type="button" onClick={() => onEditVisit?.(entry)}>
+                          <Pencil size={13} />
+                          Редактировать
+                        </button>
+                      </div>
+                    </details>
                   </div>
                 </li>
               ))}
@@ -256,13 +261,6 @@ function TodayPage({
               type="button"
               onClick={() => setMobileSection("tasks")}>
               Задачи
-            </button>
-            <button
-              className={mobileSection === "slots" ? "active" : ""}
-              role="tab"
-              type="button"
-              onClick={() => setMobileSection("slots")}>
-              Окна
             </button>
             <button
               className={mobileSection === "stock" ? "active" : ""}
@@ -281,7 +279,10 @@ function TodayPage({
           </div>
         )}
 
-        <div className="today-side-column">
+        <div
+          className={`today-side-column ${
+            isMobile ? `today-side-column-mobile today-side-column-${mobileSection}` : ""
+          }`}>
           {!isMobile && (
           <section className="today-section">
             <div className="today-section-heading">
@@ -306,7 +307,7 @@ function TodayPage({
           </section>
           )}
 
-          {(!isMobile || mobileSection === "slots") && (
+          {!isMobile && (
           <section className="today-section">
             <div className="today-section-heading">
               <div>
@@ -319,12 +320,12 @@ function TodayPage({
             ) : (
               <ul className="today-slot-list">
                 {dashboard.freeSlots.map((slot) => (
-                  <li key={`${slot.master}-${slot.startTime}`}>
-                    <strong>
-                      {slot.startTime}–{slot.endTime}
-                    </strong>
-                    <span>{slot.master}</span>
-                    <small>{slot.durationMinutes} мин</small>
+                  <li
+                    className="today-row-card today-slot-row today-window-row"
+                    key={`${slot.master}-${slot.startTime}`}>
+                    <strong className="today-window-time">{slot.startTime}–{slot.endTime}</strong>
+                    <span className="today-window-master">{slot.master}</span>
+                    <small className="today-slot-duration">{slot.durationMinutes} мин</small>
                   </li>
                 ))}
               </ul>
@@ -339,7 +340,10 @@ function TodayPage({
                 <h3>Задачи на сегодня</h3>
                 <p>{dashboard.dueTasks.length} активных</p>
               </div>
-              <button className="secondary-button" type="button" onClick={onOpenOperations}>
+              <button
+                className="today-section-action secondary-button"
+                type="button"
+                onClick={onOpenOperations}>
                 <ClipboardList size={16} />
                 Операции
               </button>
@@ -349,7 +353,7 @@ function TodayPage({
             ) : (
               <ul className="today-task-list">
                 {dashboard.dueTasks.slice(0, 6).map((task) => (
-                  <li className="today-task-row" key={task.id}>
+                  <li className="today-row-card today-task-row" key={task.id}>
                     <div>
                       <strong>{task.title}</strong>
                       <small>
@@ -377,7 +381,11 @@ function TodayPage({
                 <h3>Низкий остаток</h3>
                 <p>{dashboard.lowStockSupplies.length} позиций</p>
               </div>
-              <button className="secondary-button" type="button" onClick={onOpenOperations}>
+              <button
+                className="today-section-action secondary-button"
+                type="button"
+                onClick={onOpenOperations}>
+                <ClipboardList size={14} />
                 Склад
               </button>
             </div>
@@ -386,7 +394,7 @@ function TodayPage({
             ) : (
               <ul className="today-supply-list">
                 {dashboard.lowStockSupplies.map((item) => (
-                  <li className="today-supply-row" key={item.id}>
+                  <li className="today-row-card today-supply-row" key={item.id}>
                     <div>
                       <strong>{item.name}</strong>
                       <small>
@@ -407,24 +415,33 @@ function TodayPage({
           </section>
           )}
 
-          {(!isMobile || mobileSection === "alerts") &&
-          (dashboard.todayBirthdays.length > 0 ||
-            dashboard.priorityAlerts.length > 0) && (
+          {(!isMobile || mobileSection === "alerts") && (
             <section className="today-section">
               <div className="today-section-heading">
                 <div>
                   <h3>Важное</h3>
                   <p>Дни рождения и сигналы</p>
                 </div>
-                <button className="secondary-button" type="button" onClick={onOpenPayments}>
+                <button
+                  className="today-section-action secondary-button"
+                  type="button"
+                  onClick={onOpenPayments}>
+                  <WalletCards size={14} />
                   Оплаты
                 </button>
               </div>
+              {dashboard.todayBirthdays.length === 0 &&
+              dashboard.priorityAlerts.length === 0 ? (
+                <p className="today-empty">Важных событий на сегодня нет</p>
+              ) : null}
               {dashboard.todayBirthdays.length > 0 ? (
                 <ul className="today-note-list">
                   {dashboard.todayBirthdays.map((client) => (
-                    <li key={client.id}>
-                      🎂 {client.name} · поздравить сегодня
+                    <li className="today-row-card today-task-row today-note-row" key={client.id}>
+                      <div>
+                        <strong>{client.name}</strong>
+                        <small>День рождения · поздравить сегодня</small>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -432,9 +449,11 @@ function TodayPage({
               {dashboard.priorityAlerts.length > 0 ? (
                 <ul className="today-note-list">
                   {dashboard.priorityAlerts.map((alert) => (
-                    <li key={alert.id}>
-                      {alert.title}
-                      {alert.message ? ` · ${alert.message}` : ""}
+                    <li className="today-row-card today-task-row today-note-row" key={alert.id}>
+                      <div>
+                        <strong>{alert.title}</strong>
+                        {alert.message ? <small>{alert.message}</small> : null}
+                      </div>
                     </li>
                   ))}
                 </ul>

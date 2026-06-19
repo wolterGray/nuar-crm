@@ -6,7 +6,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {Download, ListFilter, MoreVertical, Plus, Search, X} from "lucide-react";
+import {Download, ListFilter, MoreVertical, Plus} from "lucide-react";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
 import {formatMoney} from "../utils/formatters.jsx";
@@ -26,7 +26,7 @@ import {
   Dropdown,
   DropdownContent,
   DropdownItem,
-  Input,
+  SearchControl,
   Table,
   TableCell,
   TableHeader,
@@ -191,20 +191,19 @@ function VisitsTable({
 
           return (
             <Dropdown
-              className="row-actions"
+              className="row-actions row-action-trigger-wrap visit-row-actions"
               onClick={(event) => event.stopPropagation()}>
-              <Button
+              <button
                 aria-label="Действия"
-                className="row-action"
-                size="icon"
-                variant="ghost"
+                className="row-action row-action-trigger"
+                type="button"
                 onClick={() =>
                   onToggleActionMenu(
                     openActionMenuId === visit.id ? null : visit.id,
                   )
                 }>
                 <MoreVertical size={17} />
-              </Button>
+              </button>
               {openActionMenuId === visit.id && (
                 <DropdownContent className="row-action-menu">
                   {onEditVisit && (
@@ -341,23 +340,13 @@ function VisitsTable({
 
   const mobileScrollPanel = (
     <div className="payments-mobile-scroll-panel">
-      <label className="payments-search">
-        <Search size={16} />
-        <input
-          placeholder="Поиск: клиент, мастер, услуга"
-          type="search"
-          value={globalFilter}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-        />
-        {globalFilter ? (
-          <button
-            aria-label="Очистить поиск"
-            type="button"
-            onClick={() => setGlobalFilter("")}>
-            <X size={15} />
-          </button>
-        ) : null}
-      </label>
+      <SearchControl
+        className="payments-search-control"
+        placeholder="Поиск: клиент, мастер, услуга"
+        value={globalFilter}
+        onChange={(event) => setGlobalFilter(event.target.value)}
+        onClear={() => setGlobalFilter("")}
+      />
       {onAddVisit ? (
         <button className="add-visit-button payments-add-button" type="button" onClick={onAddVisit}>
           <Plus size={18} />
@@ -372,7 +361,7 @@ function VisitsTable({
     <Card className={`panel visits-panel ${isMobile ? "visits-panel-mobile" : ""}`}>
       <PageHeader
         collapsedMeta={isMobile ? `${rows.length} из ${visits.length}` : undefined}
-        collapsible={isMobile}
+        collapsible={false}
         actions={
           isMobile ? (
             mobileScrollPanel
@@ -419,19 +408,17 @@ function VisitsTable({
             </button>
           ) : undefined
         }
-        title={isMobile ? "Оплаты" : title}
+        title={isMobile ? "Визиты" : title}
       />
 
       {!isMobile ? (
-        <div className="table-search">
-          <Search size={16} />
-          <Input
-            type="search"
-            placeholder="Поиск: клиент, мастер, услуга"
-            value={globalFilter}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-          />
-        </div>
+        <SearchControl
+          className="table-search-control"
+          placeholder="Поиск: клиент, мастер, услуга"
+          value={globalFilter}
+          onChange={(event) => setGlobalFilter(event.target.value)}
+          onClear={() => setGlobalFilter("")}
+        />
       ) : null}
 
       {isMobile ? null : (

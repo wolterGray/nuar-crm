@@ -233,6 +233,7 @@ function CalendarPage({
   const [viewedClientEntry, setViewedClientEntry] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
   const [pendingSlot, setPendingSlot] = useState(null);
+  const dateInputRef = useRef(null);
   const schedulePanelRef = useRef(null);
   const weekCarouselRef = useRef(null);
   const longPressRef = useRef(null);
@@ -452,23 +453,34 @@ function CalendarPage({
             <div className="calendar-date-control">
               <button
                 aria-label="Предыдущий день"
-                className="calendar-icon-button"
+                className="calendar-date-arrow"
                 type="button"
                 onClick={() => selectCalendarDate(shiftDate(selectedDate, -1))}>
                 <ChevronLeft size={17} />
               </button>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(event) => {
-                  if (isValidInputDate(event.target.value)) {
-                    selectCalendarDate(event.target.value);
-                  }
-                }}
-              />
+              <label
+                className="calendar-date-field"
+                onClick={(event) => {
+                  if (event.target === dateInputRef.current) return;
+                  dateInputRef.current?.showPicker?.();
+                  dateInputRef.current?.focus();
+                }}>
+                <span>{toDisplayDate(selectedDate)}</span>
+                <input
+                  aria-label="Выбрать дату"
+                  ref={dateInputRef}
+                  type="date"
+                  value={selectedDate}
+                  onChange={(event) => {
+                    if (isValidInputDate(event.target.value)) {
+                      selectCalendarDate(event.target.value);
+                    }
+                  }}
+                />
+              </label>
               <button
                 aria-label="Следующий день"
-                className="calendar-icon-button"
+                className="calendar-date-arrow"
                 type="button"
                 onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}>
                 <ChevronRight size={17} />
@@ -514,25 +526,29 @@ function CalendarPage({
                 {remindersVisible ? <X size={22} /> : <ClipboardList size={21} />}
               </button>
             )}
-            <button
-              className={`add-visit-button calendar-mobile-add-button ${overlayOpen || remindersVisible ? "mobile-calendar-action-hidden" : ""}`}
-              type="button"
-              onClick={() => onAdd({date: selectedDate})}>
-              <Plus size={17} />
-              Добавить
-            </button>
+            {!isMobile && (
+              <button
+                className={`add-visit-button calendar-mobile-add-button ${overlayOpen || remindersVisible ? "mobile-calendar-action-hidden" : ""}`}
+                type="button"
+                onClick={() => onAdd({date: selectedDate})}>
+                <Plus size={17} />
+                Добавить
+              </button>
+            )}
           </div>
         }
         className="calendar-toolbar calendar-page-header"
         description={`${visitEntries.length} визитов запланировано`}
         headerActions={
-          <button
-            className="add-visit-button calendar-desktop-add-button"
-            type="button"
-            onClick={() => onAdd({date: selectedDate})}>
-            <Plus size={17} />
-            Добавить
-          </button>
+          !isMobile ? (
+            <button
+              className="add-visit-button calendar-desktop-add-button"
+              type="button"
+              onClick={() => onAdd({date: selectedDate})}>
+              <Plus size={17} />
+              Добавить
+            </button>
+          ) : null
         }
         title="Календарь"
       />
@@ -763,9 +779,10 @@ function CalendarPage({
                               </b>
                             )}
                           </div>
-                          <div className="schedule-entry-actions">
+                          <div className="schedule-entry-actions row-action-trigger-wrap">
                             <button
                               aria-label="Действия записи"
+                              className="row-action-trigger"
                               title="Действия"
                               type="button"
                               onClick={() =>

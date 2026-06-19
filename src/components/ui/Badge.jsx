@@ -1,10 +1,10 @@
 import clsx from "clsx";
 
 const variants = {
-  neutral: "border-neutral-200 bg-neutral-100 text-neutral-600",
-  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  warning: "border-amber-200 bg-amber-50 text-amber-700",
-  danger: "border-red-200 bg-red-50 text-red-700",
+  neutral: "border-[var(--linear-border)] bg-[rgba(255,255,255,0.055)] text-[var(--linear-muted)]",
+  success: "border-[rgba(52,211,153,0.24)] bg-[rgba(52,211,153,0.10)] text-emerald-300",
+  warning: "border-[rgba(251,191,36,0.24)] bg-[rgba(251,191,36,0.10)] text-amber-200",
+  danger: "border-[rgba(244,63,94,0.24)] bg-[rgba(244,63,94,0.10)] text-rose-300",
 };
 
 export default function Badge({className, variant = "neutral", ...props}) {

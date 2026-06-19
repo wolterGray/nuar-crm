@@ -4,16 +4,7 @@ import {
   DEFAULT_COLOR_THEME_ID,
 } from "../constants/colorThemes.js";
 
-const PURPLE_ACCENTS = new Set([
-  "#5e6ad2",
-  "#7c6cf2",
-  "#7c5cff",
-  "#8b7cf6",
-  "#6f6b8f",
-  "#6975e6",
-]);
-
-const GOLD_ACCENTS = new Set(["#d2ad7d", "#b8956b", "#c4a574", "#eed5b2"]);
+const LEGACY_DARK_THEME_IDS = new Set(["dark-purple", "dark-gold"]);
 
 export const isColorThemeId = (value) =>
   COLOR_THEME_IDS.includes(String(value ?? ""));
@@ -23,18 +14,12 @@ export const resolveColorTheme = (settings = {}) => {
     return COLOR_THEMES[settings.colorTheme];
   }
 
+  if (LEGACY_DARK_THEME_IDS.has(String(settings.colorTheme ?? ""))) {
+    return COLOR_THEMES.dark;
+  }
+
   if (settings.theme === "light") {
     return COLOR_THEMES.light;
-  }
-
-  const accent = String(settings.accentColor ?? "").toLowerCase();
-
-  if (PURPLE_ACCENTS.has(accent)) {
-    return COLOR_THEMES["dark-purple"];
-  }
-
-  if (GOLD_ACCENTS.has(accent)) {
-    return COLOR_THEMES["dark-gold"];
   }
 
   return COLOR_THEMES[DEFAULT_COLOR_THEME_ID];

@@ -2,6 +2,7 @@ import {useMemo} from "react";
 import {getRandomServiceColor} from "../utils/serviceColors.js";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import HintIcon, {FieldLabel} from "./HintIcon.jsx";
+import {Button} from "./ui/index.js";
 
 const serviceDurations = [30, 60, 75, 90, 120];
 
@@ -120,7 +121,11 @@ function ServiceForm({service, onSubmit}) {
           ))}
         </div>
         <ServiceBookingBuffers service={service} />
-        <button className="submit-button" type="submit">
+        <Button
+          className="crm-primary-action service-form-submit"
+          size="lg"
+          type="submit"
+          variant="primary">
           {service
             ? isMobile
               ? "Сохранить"
@@ -128,7 +133,7 @@ function ServiceForm({service, onSubmit}) {
             : isMobile
               ? "Добавить"
               : "Добавить услугу"}
-        </button>
+        </Button>
       </form>
     </section>
   );

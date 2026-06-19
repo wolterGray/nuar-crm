@@ -47,7 +47,7 @@ function MobileSheet({
           <header className="mobile-sheet-header">
             <div className="mobile-sheet-header-copy">
               {title ? (
-                <h2 id={labelledBy}>{title}</h2>
+                <h2 className="crm-title" id={labelledBy}>{title}</h2>
               ) : null}
               {description ? <p>{description}</p> : null}
             </div>

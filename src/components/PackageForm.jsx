@@ -1,3 +1,5 @@
+import {Button} from "./ui/index.js";
+
 function PackageForm({packageItem, services, onSubmit}) {
   return (
     <section className="panel package-form-panel package-form-sheet-root">
@@ -35,9 +37,13 @@ function PackageForm({packageItem, services, onSubmit}) {
             <option>Архив</option>
           </select>
         </label>
-        <button className="submit-button">
+        <Button
+          className="crm-primary-action package-form-submit"
+          size="lg"
+          type="submit"
+          variant="primary">
           {packageItem ? "Сохранить пакет" : "Добавить пакет"}
-        </button>
+        </Button>
       </form>
     </section>
   );

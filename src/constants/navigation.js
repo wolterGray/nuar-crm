@@ -63,6 +63,7 @@ export const navItems = navGroups.flatMap((group) => group.items);
 export const mobileNavItems = [
   {label: "Сегодня", page: "today", icon: Sun},
   {label: "Календарь", page: "calendar", icon: CalendarDays},
+  {label: "Визиты", page: "payments", icon: ReceiptText},
   {label: "Клиенты", page: "clients", icon: Users},
   {label: "Операции", page: "operations", icon: ClipboardList},
 ];

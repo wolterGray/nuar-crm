@@ -21,7 +21,7 @@ export default function PageHeader({
       {!collapsible ? (
         <div className="page-header-unified-top">
           <div className="page-header-unified-copy">
-            <h2>
+            <h2 className="crm-title">
               {title}
               {description ? <HintIcon>{description}</HintIcon> : null}
             </h2>
@@ -53,7 +53,7 @@ export default function PageHeader({
       open={defaultExpanded || undefined}>
       <summary className="page-header-collapsible-summary">
         <div className="page-header-collapsible-summary-main">
-          <span className="page-header-collapsible-title">{title}</span>
+          <span className="page-header-collapsible-title crm-title">{title}</span>
           {description ? <HintIcon>{description}</HintIcon> : null}
           {collapsedMeta ? (
             <span className="page-header-collapsible-meta">{collapsedMeta}</span>

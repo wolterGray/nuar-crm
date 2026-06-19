@@ -9,9 +9,7 @@ import {
   Phone,
   Plus,
   RotateCcw,
-  Search,
   Trash2,
-  X,
 } from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {
@@ -29,6 +27,7 @@ import {
 } from "../../utils/clientPackages.js";
 import PageHeader from "../PageHeader.jsx";
 import MobileSheet from "../MobileSheet.jsx";
+import SearchControl from "../ui/SearchControl.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 
 function ClientsPage({
@@ -265,32 +264,23 @@ function ClientsPage({
       <PageHeader
         actions={
           <>
-            <label className="clients-search">
-              <Search size={16} />
-              <input
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                  setOpenClientMenuId(null);
-                }}
-                placeholder="Поиск клиента"
-              />
-              {search && (
-                <button
-                  aria-label="Очистить поиск"
-                  type="button"
-                  onClick={() => setSearch("")}>
-                  <X size={15} />
-                </button>
-              )}
-            </label>
+            <SearchControl
+              className="clients-search-control"
+              placeholder="Поиск клиента"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setOpenClientMenuId(null);
+              }}
+              onClear={() => setSearch("")}
+            />
             <button className="add-visit-button" type="button" onClick={onAddClient}>
               <Plus size={18} />
-              Добавить клиента
+              {isMobile ? "Добавить" : "Добавить клиента"}
             </button>
           </>
         }
-        description={`${filteredClients.length} из ${clients.length} в базе`}
+        description={isMobile ? undefined : `${filteredClients.length} из ${clients.length} в базе`}
         title="Клиенты"
       />
 
@@ -381,10 +371,10 @@ function ClientsPage({
             </div>
 
             <div
-              className="row-actions client-row-actions"
+              className="row-actions row-action-trigger-wrap client-row-actions"
               onClick={(event) => event.stopPropagation()}>
               <button
-                className="row-action"
+                className="row-action row-action-trigger"
                 aria-label="Действия"
                 onClick={() =>
                   setOpenClientMenuId(

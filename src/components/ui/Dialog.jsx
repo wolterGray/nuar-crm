@@ -12,7 +12,7 @@ export function DialogBackdrop({className, ...props}) {
   return (
     <div
       className={clsx(
-        "fixed inset-0 z-[80] grid place-items-center bg-neutral-950/35 p-4 backdrop-blur-sm",
+        "fixed inset-0 z-[80] grid place-items-center bg-black/70 p-4 backdrop-blur-md",
         className,
       )}
       role="presentation"
@@ -26,7 +26,7 @@ export function DialogContent({className, ...props}) {
     <section
       aria-modal="true"
       className={clsx(
-        "w-full max-w-md rounded-lg border border-neutral-200 bg-white p-5 text-neutral-950 shadow-xl",
+        "w-full max-w-md rounded-3xl border border-[var(--linear-border)] bg-[var(--surface-glass-strong,var(--linear-panel))] p-5 text-[var(--linear-text)] shadow-[var(--premium-shadow)]",
         className,
       )}
       role="dialog"
@@ -42,7 +42,7 @@ export function DialogHeader({className, ...props}) {
 export function DialogTitle({className, ...props}) {
   return (
     <h2
-      className={clsx("text-base font-semibold leading-6 text-neutral-950", className)}
+      className={clsx("text-base font-semibold leading-6 text-[var(--linear-text)]", className)}
       {...props}
     />
   );
@@ -51,7 +51,7 @@ export function DialogTitle({className, ...props}) {
 export function DialogDescription({className, ...props}) {
   return (
     <p
-      className={clsx("text-sm leading-6 text-neutral-500", className)}
+      className={clsx("text-sm leading-6 text-[var(--linear-muted)]", className)}
       {...props}
     />
   );

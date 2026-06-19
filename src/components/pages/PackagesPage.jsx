@@ -1,5 +1,5 @@
-import {Archive, ChevronDown, Gift, Pencil, Plus, Search, Trash2, X} from "lucide-react";
-import {useEffect, useMemo, useState} from "react";
+import {Archive, ChevronDown, Gift, Plus} from "lucide-react";
+import {useCallback, useMemo, useState} from "react";
 import {motion} from "framer-motion";
 import {
   isActiveClientPackage,
@@ -18,6 +18,12 @@ import {
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import PageHeader from "../PageHeader.jsx";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
+import SearchControl from "../ui/SearchControl.jsx";
+
+const getPackageStatusClass = (status) =>
+  String(status ?? "").trim().toLowerCase() === "активен"
+    ? "package-status-active"
+    : "";
 
 function ClientPackageCard({
   isMobile,
@@ -40,16 +46,14 @@ function ClientPackageCard({
           <span>{packageItem.packageName}</span>
           <small>{packageItem.service}</small>
         </div>
-        {isMobile ? (
-          <RowActionsMenu
-            className="package-row-actions"
-            itemId={packageItem.id}
-            openMenuId={openMenuId}
-            setOpenMenuId={setOpenMenuId}
-            onDelete={() => onDelete(packageItem)}
-            onEdit={() => onEdit(packageItem)}
-          />
-        ) : null}
+        <RowActionsMenu
+          className="package-row-actions"
+          itemId={packageItem.id}
+          openMenuId={openMenuId}
+          setOpenMenuId={setOpenMenuId}
+          onDelete={() => onDelete(packageItem)}
+          onEdit={() => onEdit(packageItem)}
+        />
       </div>
       {isMobile ? (
         <div className="package-client-mobile-body">
@@ -65,7 +69,9 @@ function ClientPackageCard({
           </div>
           <div className="client-package-meta">
             <span>{formatMoney(packageItem.price)}</span>
-            <b>{packageItem.status}</b>
+            <b className={getPackageStatusClass(packageItem.status)}>
+              {packageItem.status}
+            </b>
           </div>
         </div>
       ) : (
@@ -82,30 +88,12 @@ function ClientPackageCard({
           </div>
           <div className="client-package-meta">
             <span>{formatMoney(packageItem.price)}</span>
-            <b>{packageItem.status}</b>
+            <b className={getPackageStatusClass(packageItem.status)}>
+              {packageItem.status}
+            </b>
           </div>
         </>
       )}
-      {!isMobile ? (
-        <div className="employee-actions">
-          <button
-            aria-label="Редактировать пакет клиента"
-            className="compact-icon-button"
-            title="Редактировать"
-            type="button"
-            onClick={() => onEdit(packageItem)}>
-            <Pencil size={16} />
-          </button>
-          <button
-            aria-label="Удалить пакет клиента"
-            className="compact-icon-button danger"
-            title="Удалить"
-            type="button"
-            onClick={() => onDelete(packageItem)}>
-            <Trash2 size={16} />
-          </button>
-        </div>
-      ) : null}
     </article>
   );
 }
@@ -135,16 +123,14 @@ function CertificateCard({
               : `До ${certificate.expiryDate || "—"}`}
           </small>
         </div>
-        {isMobile ? (
-          <RowActionsMenu
-            className="package-row-actions"
-            itemId={certificate.id}
-            openMenuId={openMenuId}
-            setOpenMenuId={setOpenMenuId}
-            onDelete={() => onDelete(certificate)}
-            onEdit={() => onEdit(certificate)}
-          />
-        ) : null}
+        <RowActionsMenu
+          className="package-row-actions"
+          itemId={certificate.id}
+          openMenuId={openMenuId}
+          setOpenMenuId={setOpenMenuId}
+          onDelete={() => onDelete(certificate)}
+          onEdit={() => onEdit(certificate)}
+        />
       </div>
       <div className="client-package-progress">
         <div>
@@ -161,28 +147,10 @@ function CertificateCard({
       </div>
       <div className="client-package-meta">
         <span>{certificate.purchaseDate}</span>
-        <b>{certificate.status}</b>
+        <b className={getPackageStatusClass(certificate.status)}>
+          {certificate.status}
+        </b>
       </div>
-      {!isMobile ? (
-        <div className="employee-actions">
-          <button
-            aria-label="Редактировать сертификат"
-            className="compact-icon-button"
-            title="Редактировать"
-            type="button"
-            onClick={() => onEdit(certificate)}>
-            <Pencil size={16} />
-          </button>
-          <button
-            aria-label="Удалить сертификат"
-            className="compact-icon-button danger"
-            title="Удалить"
-            type="button"
-            onClick={() => onDelete(certificate)}>
-            <Trash2 size={16} />
-          </button>
-        </div>
-      ) : null}
     </article>
   );
 }
@@ -208,16 +176,14 @@ function PackageTemplateCard({
           <h3>{packageItem.name}</h3>
           <span>{packageItem.service}</span>
         </div>
-        {isMobile ? (
-          <RowActionsMenu
-            className="package-row-actions"
-            itemId={packageItem.id}
-            openMenuId={openMenuId}
-            setOpenMenuId={setOpenMenuId}
-            onDelete={() => onDelete(packageItem)}
-            onEdit={() => onEdit(packageItem)}
-          />
-        ) : null}
+        <RowActionsMenu
+          className="package-row-actions"
+          itemId={packageItem.id}
+          openMenuId={openMenuId}
+          setOpenMenuId={setOpenMenuId}
+          onDelete={() => onDelete(packageItem)}
+          onEdit={() => onEdit(packageItem)}
+        />
       </div>
       <div className="catalog-prices">
         <span>
@@ -261,26 +227,6 @@ function PackageTemplateCard({
           )}
         </span>
       </div>
-      {!isMobile ? (
-        <div className="employee-actions">
-          <button
-            aria-label="Редактировать шаблон пакета"
-            className="compact-icon-button"
-            title="Редактировать"
-            type="button"
-            onClick={() => onEdit(packageItem)}>
-            <Pencil size={16} />
-          </button>
-          <button
-            aria-label="Удалить шаблон пакета"
-            className="compact-icon-button danger"
-            title="Удалить"
-            type="button"
-            onClick={() => onDelete(packageItem)}>
-            <Trash2 size={16} />
-          </button>
-        </div>
-      ) : null}
     </motion.article>
   );
 }
@@ -333,7 +279,7 @@ function PackagesPage({
     0,
   );
 
-  const filterByQuery = (values, fields) => {
+  const filterByQuery = useCallback((values, fields) => {
     const query = search.trim().toLowerCase();
     if (!query) {
       return values;
@@ -346,7 +292,7 @@ function PackagesPage({
         .toLowerCase()
         .includes(query),
     );
-  };
+  }, [search]);
 
   const filteredActiveCertificates = useMemo(
     () =>
@@ -357,7 +303,7 @@ function PackagesPage({
         "status",
         "purchaseDate",
       ]),
-    [activeCertificates, search],
+    [activeCertificates, filterByQuery],
   );
   const filteredArchivedCertificates = useMemo(
     () =>
@@ -367,7 +313,7 @@ function PackagesPage({
         "recipient",
         "status",
       ]),
-    [archivedCertificates, search],
+    [archivedCertificates, filterByQuery],
   );
   const filteredActiveClientPackages = useMemo(
     () =>
@@ -377,7 +323,7 @@ function PackagesPage({
         "service",
         "status",
       ]),
-    [activeClientPackages, search],
+    [activeClientPackages, filterByQuery],
   );
   const filteredArchivedClientPackages = useMemo(
     () =>
@@ -387,7 +333,7 @@ function PackagesPage({
         "service",
         "status",
       ]),
-    [archivedClientPackages, search],
+    [archivedClientPackages, filterByQuery],
   );
   const filteredTemplates = useMemo(
     () =>
@@ -402,12 +348,8 @@ function PackagesPage({
           .toLowerCase()
           .includes(query);
       }),
-    [packages, search],
+    [filterByQuery, packages, search],
   );
-
-  useEffect(() => {
-    setOpenMenuId(null);
-  }, [mobileSection, search]);
 
   const mobileDescription =
     mobileSection === "clientPackages"
@@ -432,48 +374,47 @@ function PackagesPage({
                 <button
                   className={mobileSection === "clientPackages" ? "active" : ""}
                   type="button"
-                  onClick={() => setMobileSection("clientPackages")}>
+                  onClick={() => {
+                    setMobileSection("clientPackages");
+                    setOpenMenuId(null);
+                  }}>
                   Пакеты
                 </button>
                 <button
                   className={mobileSection === "templates" ? "active" : ""}
                   type="button"
-                  onClick={() => setMobileSection("templates")}>
+                  onClick={() => {
+                    setMobileSection("templates");
+                    setOpenMenuId(null);
+                  }}>
                   Шаблоны
                 </button>
                 <button
                   className={mobileSection === "certificates" ? "active" : ""}
                   type="button"
-                  onClick={() => setMobileSection("certificates")}>
+                  onClick={() => {
+                    setMobileSection("certificates");
+                    setOpenMenuId(null);
+                  }}>
                   Сертификаты
                 </button>
               </div>
-              <label className="packages-search">
-                <Search size={16} />
-                <input
-                  placeholder={
+              <SearchControl
+                className="packages-search-control"
+                placeholder={
                     mobileSection === "clientPackages"
                       ? "Поиск пакета клиента"
                       : mobileSection === "templates"
                         ? "Поиск шаблона"
                         : "Поиск сертификата"
-                  }
-                  type="search"
-                  value={search}
-                  onChange={(event) => {
-                    setSearch(event.target.value);
-                    setOpenMenuId(null);
-                  }}
-                />
-                {search ? (
-                  <button
-                    aria-label="Очистить поиск"
-                    type="button"
-                    onClick={() => setSearch("")}>
-                    <X size={15} />
-                  </button>
-                ) : null}
-              </label>
+                }
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setOpenMenuId(null);
+                }}
+                onClear={() => setSearch("")}
+              />
               <div className="packages-summary">
                 <article
                   className={`packages-summary-card${

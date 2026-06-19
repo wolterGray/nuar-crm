@@ -834,7 +834,7 @@ function CalendarEntryForm({
         />
       </label>}
       <div className="calendar-entry-form-footer">
-        <button className="submit-button" type="submit">
+        <button className="submit-button crm-primary-action" type="submit">
           {initialEntry || kind !== "visit" ? "Сохранить" : "Добавить в календарь"}
         </button>
       </div>

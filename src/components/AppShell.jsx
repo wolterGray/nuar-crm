@@ -28,7 +28,7 @@ export default function AppShell({
 }) {
   return (
     <div
-      className={`crm-shell theme-${theme} ${
+      className={`crm-shell notion-linear-redesign theme-${theme} ${
         sidebarVisible ? "" : "sidebar-hidden"
       } ${compactMode ? "compact-mode" : ""}`}
       onClick={onShellClick}>

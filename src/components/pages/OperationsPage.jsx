@@ -277,8 +277,8 @@ function OperationsPage({
       className={`operations-page ${isMobile ? "operations-page-mobile" : ""}`}>
       <PageHeader
         collapsedMeta={operationsCollapsedMeta}
-        collapsible={isMobile}
-        description="Рабочие дела, закупки и остатки расходников"
+        collapsible={false}
+        description={isMobile ? undefined : "Рабочие дела, закупки и остатки расходников"}
         title="Операции"
         actions={
           <>
@@ -325,7 +325,7 @@ function OperationsPage({
 
       <div className="operations-grid">
         <section
-          className={`panel operations-panel operations-panel-tasks ${
+          className={`panel operations-panel operations-panel-tasks operations-panel-mode-${activeMode} ${
             mobileSection !== "tasks" ? "operations-panel-hidden-mobile" : ""
           }`}>
           <div className="operations-panel-header">
@@ -414,6 +414,7 @@ function OperationsPage({
                           <span>{task.note || "Без комментария"}</span>
                         </div>
                         <RowActionsMenu
+                          className="operations-row-actions"
                           itemId={task.id}
                           openMenuId={openItemMenuId}
                           setOpenMenuId={setOpenItemMenuId}
@@ -505,6 +506,7 @@ function OperationsPage({
                         <strong>{note.title}</strong>
                       </div>
                       <RowActionsMenu
+                        className="operations-row-actions"
                         itemId={note.id}
                         openMenuId={openItemMenuId}
                         setOpenMenuId={setOpenItemMenuId}
@@ -592,6 +594,7 @@ function OperationsPage({
                       ) : null}
                     </div>
                     <RowActionsMenu
+                      className="operations-row-actions"
                       itemId={item.id}
                       openMenuId={openItemMenuId}
                       setOpenMenuId={setOpenItemMenuId}

@@ -1,4 +1,5 @@
 import {MESSAGE_TEMPLATE_PURPOSES} from "../utils/messageTemplates.js";
+import {Button} from "./ui/index.js";
 
 function MessageTemplateForm({template, onSubmit}) {
   return (
@@ -75,9 +76,13 @@ function MessageTemplateForm({template, onSubmit}) {
           {"{name}"} — имя для SMS. Для автоматических SMS выберите назначение и язык —
           CRM подставит нужный текст клиенту по полю «Язык SMS» в карточке клиента.
         </small>
-        <button className="submit-button">
+        <Button
+          className="crm-primary-action message-template-form-submit"
+          size="lg"
+          type="submit"
+          variant="primary">
           {template ? "Сохранить шаблон" : "Добавить шаблон"}
-        </button>
+        </Button>
       </form>
     </section>
   );

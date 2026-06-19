@@ -10,6 +10,7 @@
 @import "./design-system.css";
 @import "./mobile-overrides.css";
 @import "./theme-dark-purple.css";
+@import "./linear-dark-luxury.css";
 
 .hint-icon-wrap {
   position: relative;

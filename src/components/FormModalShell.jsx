@@ -42,7 +42,7 @@ function FormModalShell({
         className={className}
         role="dialog">
         <div className="modal-header">
-          <h2 id={labelledBy}>{title}</h2>
+          <h2 className="crm-title" id={labelledBy}>{title}</h2>
           <button
             aria-label="Закрыть форму"
             className="modal-close"

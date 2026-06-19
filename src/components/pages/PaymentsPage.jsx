@@ -23,13 +23,15 @@ function PaymentsPage({
 
   return (
     <section className={`payments-page ${isMobile ? "payments-page-mobile" : ""}`}>
-      <DayClosePanel
-        dayCloseRecords={dayCloseRecords}
-        getJournalForDate={getDayCloseJournal}
-        onCloseDay={closeDay}
-        onReopenDayClose={reopenDayClose}
-        onRemoveDayClose={removeDayClose}
-      />
+      {!isMobile ? (
+        <DayClosePanel
+          dayCloseRecords={dayCloseRecords}
+          getJournalForDate={getDayCloseJournal}
+          onCloseDay={closeDay}
+          onReopenDayClose={reopenDayClose}
+          onRemoveDayClose={removeDayClose}
+        />
+      ) : null}
       <VisitsTable
         addLabel="Добавить поступление"
         filters={filters}

@@ -4,6 +4,7 @@ import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {generateCertificateCode} from "../utils/certificates.js";
 import {toInputDate} from "../utils/formatters.jsx";
 import {getTodayInput} from "../utils/dateHelpers.js";
+import {Button} from "./ui/index.js";
 
 const certificatePaymentMethods = paymentMethods.filter(
   (method) => method !== "Пакет" && method !== "Сертификат",
@@ -160,9 +161,13 @@ function CertificateForm({
             rows="3"
           />
         </label>
-        <button className="submit-button">
+        <Button
+          className="crm-primary-action package-form-submit"
+          size="lg"
+          type="submit"
+          variant="primary">
           {certificate ? "Сохранить сертификат" : "Продать сертификат"}
-        </button>
+        </Button>
       </form>
     </section>
   );

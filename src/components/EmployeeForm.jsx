@@ -1,6 +1,7 @@
 import EmployeePremiumHoursFields from './EmployeePremiumHoursFields'
 import {FieldLabel} from './HintIcon.jsx'
 import {resolveEmployeeSiteBookingSlotMinutes} from '../utils/calendarBookableSlots.js'
+import {Button} from './ui/index.js'
 
 function EmployeeForm({ employee, onSubmit }) {
   const siteBookingSlotMinutes = resolveEmployeeSiteBookingSlotMinutes(employee ?? {});
@@ -70,9 +71,13 @@ function EmployeeForm({ employee, onSubmit }) {
           </select>
         </label>
         <EmployeePremiumHoursFields employee={employee} />
-        <button className="submit-button">
+        <Button
+          className="crm-primary-action employee-form-submit"
+          size="lg"
+          type="submit"
+          variant="primary">
           {employee ? 'Сохранить сотрудника' : 'Добавить сотрудника'}
-        </button>
+        </Button>
       </form>
     </section>
   )

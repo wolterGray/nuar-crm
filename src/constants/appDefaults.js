@@ -51,8 +51,8 @@ export const initialMessageTemplates = [
 export const defaultAppSettings = {
   studioName: "NUAR",
   ownerName: "Влад",
-  accentColor: "#d2ad7d",
-  colorTheme: "dark-gold",
+  accentColor: "#8B7CFF",
+  colorTheme: "dark",
   theme: "dark",
   sidebarVisible: true,
   compactMode: true,

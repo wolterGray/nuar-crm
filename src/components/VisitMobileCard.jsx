@@ -20,6 +20,47 @@ const statusLabels = {
   cancelled: "Отменён",
 };
 
+const badgeStyles = {
+  statusScheduled: {color: "#9fc4ff", background: "rgba(77, 141, 255, 0.13)"},
+  statusCompleted: {color: "#9fd8b8", background: "rgba(34, 197, 94, 0.12)"},
+  statusDanger: {color: "#f3a1a1", background: "rgba(239, 68, 68, 0.12)"},
+  cash: {color: "#9fd8b8", background: "rgba(34, 197, 94, 0.11)"},
+  card: {color: "#9fc4ff", background: "rgba(77, 141, 255, 0.12)"},
+  package: {color: "#d6c2ff", background: "rgba(167, 139, 250, 0.12)"},
+  certificate: {color: "#f0d48f", background: "rgba(251, 191, 36, 0.12)"},
+  crypto: {color: "#91d5e8", background: "rgba(20, 184, 166, 0.12)"},
+  barter: {color: "#e5b7a2", background: "rgba(251, 146, 60, 0.12)"},
+  debt: {color: "#f3a1a1", background: "rgba(239, 68, 68, 0.12)"},
+  unknown: {color: "#f0d48f", background: "rgba(251, 191, 36, 0.12)"},
+};
+
+const toBadgeStyle = ({color, background}) => ({
+  "--visit-badge-bg": background,
+  "--visit-badge-color": color,
+});
+
+const getPaymentBadge = (payment) => {
+  const normalizedPayment = String(payment || "Не указано").toLowerCase();
+
+  if (normalizedPayment.includes("пакет")) return ["visit-mobile-card-payment-package", badgeStyles.package];
+  if (normalizedPayment.includes("сертификат")) return ["visit-mobile-card-payment-certificate", badgeStyles.certificate];
+  if (normalizedPayment.includes("карт") || normalizedPayment.includes("blik") || normalizedPayment.includes("mono")) {
+    return ["visit-mobile-card-payment-card", badgeStyles.card];
+  }
+  if (normalizedPayment.includes("налич")) return ["visit-mobile-card-payment-cash", badgeStyles.cash];
+  if (normalizedPayment.includes("крипт")) return ["visit-mobile-card-payment-crypto", badgeStyles.crypto];
+  if (normalizedPayment.includes("бартер")) return ["visit-mobile-card-payment-barter", badgeStyles.barter];
+
+  return ["visit-mobile-card-payment-unknown", badgeStyles.unknown];
+};
+
+const getStatusBadgeStyle = (status) => {
+  if (["cancelled", "no_show"].includes(status)) return badgeStyles.statusDanger;
+  if (status === "completed") return badgeStyles.statusCompleted;
+
+  return badgeStyles.statusScheduled;
+};
+
 function VisitMobileCard({
   visit,
   clientPhone,
@@ -43,7 +84,11 @@ function VisitMobileCard({
     Boolean(setOpenMenuId && onEdit && onDelete) && isMobile;
   const debt = getVisitDebt(visit);
   const amount = formatMoney(getVisitTransactionTotal(visit));
-  const status = visit.status ? (statusLabels[visit.status] || statusLabels.scheduled) : null;
+  const statusKey = visit.status || (isPlanned ? "scheduled" : "");
+  const status = statusKey ? (statusLabels[statusKey] || statusLabels.scheduled) : null;
+  const [paymentBadgeClass, paymentBadgeStyle] = getPaymentBadge(visit.payment);
+  const paymentStyle = toBadgeStyle(debt > 0 ? badgeStyles.debt : paymentBadgeStyle);
+  const statusStyle = status ? toBadgeStyle(getStatusBadgeStyle(statusKey)) : undefined;
   const canConfirm =
     onConfirm && visit.status !== "confirmed" && visit.status !== "cancelled";
   const canCancel =
@@ -82,11 +127,15 @@ function VisitMobileCard({
       </div>
       <div className="visit-mobile-card-meta">
         {showMaster && visit.master ? <span>{visit.master}</span> : null}
-        <span className={debt > 0 ? "visit-mobile-card-payment visit-mobile-card-debt" : "visit-mobile-card-payment"}>
+        <span
+          className={debt > 0 ? "visit-mobile-card-payment visit-mobile-card-debt" : `visit-mobile-card-payment ${paymentBadgeClass}`}
+          style={paymentStyle}>
           {debt > 0 ? `Долг ${formatMoney(debt)}` : visit.payment || "Не указано"}
         </span>
         {showStatus && status ? (
-          <span className={`visit-mobile-card-status visit-mobile-card-status-${visit.status || "scheduled"}`}>
+          <span
+            className={`visit-mobile-card-status visit-mobile-card-status-${statusKey || "scheduled"}`}
+            style={statusStyle}>
             {status}
           </span>
         ) : null}
@@ -105,11 +154,15 @@ function VisitMobileCard({
         <span>{visit.service}</span>
         {showMaster && visit.master ? <span>{visit.master}</span> : null}
         {showStatus && status ? (
-          <span className={`visit-mobile-card-status visit-mobile-card-status-${visit.status || "scheduled"}`}>
+          <span
+            className={`visit-mobile-card-status visit-mobile-card-status-${statusKey || "scheduled"}`}
+            style={statusStyle}>
             {status}
           </span>
         ) : null}
-        <span className={debt > 0 ? "visit-mobile-card-payment visit-mobile-card-debt" : "visit-mobile-card-payment"}>
+        <span
+          className={debt > 0 ? "visit-mobile-card-payment visit-mobile-card-debt" : `visit-mobile-card-payment ${paymentBadgeClass}`}
+          style={paymentStyle}>
           {debt > 0 ? `Долг ${formatMoney(debt)}` : visit.payment || "Не указано"}
         </span>
       </div>
