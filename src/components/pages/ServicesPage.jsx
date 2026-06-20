@@ -84,8 +84,10 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
                 <div className="service-card-main">
                   <div className="service-card-head">
                     <h3>{service.name}</h3>
-                    <span className="service-color-label">
-                      <i style={{background: service.color ?? serviceColorPalette[0]}} />
+                    <span
+                      className="service-color-label"
+                      style={{"--service-color": service.color ?? serviceColorPalette[0]}}>
+                      <i />
                       {service.category || "Без категории"}
                     </span>
                   </div>

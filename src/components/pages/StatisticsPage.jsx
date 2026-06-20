@@ -1117,16 +1117,19 @@ function PaymentRow({item, total, value}) {
   const percent = Math.round((item.value / Math.max(total, 1)) * 100);
 
   return (
-    <div className="statistics-payment-row">
+    <div
+      className="statistics-payment-row"
+      style={{
+        "--statistics-payment-color": item.color,
+        "--statistics-payment-percent": `${Math.min(percent, 100)}%`,
+      }}>
       <div>
-        <i style={{background: item.color}} />
+        <i />
         <span>{item.label}</span>
         <strong>{value}</strong>
       </div>
       <div className="statistics-payment-track">
-        <b
-          style={{width: `${Math.min(percent, 100)}%`, background: item.color}}
-        />
+        <b />
       </div>
       <small>
         {item.recordsCount} записей · {percent}%

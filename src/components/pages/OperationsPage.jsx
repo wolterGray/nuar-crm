@@ -216,6 +216,11 @@ function OperationsPage({
       }),
     [supplies],
   );
+  const resetTransientOperationState = () => {
+    setOpenItemMenuId(null);
+    setIsNoteCategoryOpen(false);
+  };
+
   const submitQuickNote = (event) => {
     event.preventDefault();
     const title = noteText.trim();
@@ -228,16 +233,14 @@ function OperationsPage({
   };
 
   useEffect(() => {
-    setOpenItemMenuId(null);
-    setIsNoteCategoryOpen(false);
-  }, [activeMode, mobileSection]);
-
-  useEffect(() => {
     if (!alertFocus?.entityId) {
       return undefined;
     }
 
     const setupTimer = window.setTimeout(() => {
+      setOpenItemMenuId(null);
+      setIsNoteCategoryOpen(false);
+
       if (alertFocus.section === "supplies") {
         setMobileSection("supplies");
       } else if (alertFocus.section === "tasks" || alertFocus.type === "task") {
@@ -286,19 +289,28 @@ function OperationsPage({
               <button
                 className={mobileSection === "tasks" ? "active" : ""}
                 type="button"
-                onClick={() => setMobileSection("tasks")}>
+                onClick={() => {
+                  resetTransientOperationState();
+                  setMobileSection("tasks");
+                }}>
                 Задачи
               </button>
               <button
                 className={mobileSection === "supplies" ? "active" : ""}
                 type="button"
-                onClick={() => setMobileSection("supplies")}>
+                onClick={() => {
+                  resetTransientOperationState();
+                  setMobileSection("supplies");
+                }}>
                 Склад
               </button>
               <button
                 className={mobileSection === "waitlist" ? "active" : ""}
                 type="button"
-                onClick={() => setMobileSection("waitlist")}>
+                onClick={() => {
+                  resetTransientOperationState();
+                  setMobileSection("waitlist");
+                }}>
                 Лист ожидания
               </button>
             </div>
@@ -345,13 +357,19 @@ function OperationsPage({
                 <button
                   className={activeMode === "tasks" ? "active" : ""}
                   type="button"
-                  onClick={() => setActiveMode("tasks")}>
+                  onClick={() => {
+                    resetTransientOperationState();
+                    setActiveMode("tasks");
+                  }}>
                   Задачи
                 </button>
                 <button
                   className={activeMode === "notes" ? "active" : ""}
                   type="button"
-                  onClick={() => setActiveMode("notes")}>
+                  onClick={() => {
+                    resetTransientOperationState();
+                    setActiveMode("notes");
+                  }}>
                   Заметки
                 </button>
               </div>

@@ -528,6 +528,7 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
+  background: var(--statistics-payment-color, currentColor);
 }
 
 .statistics-payment-row span {
@@ -555,9 +556,11 @@
 
 .statistics-payment-track b {
   display: block;
+  width: var(--statistics-payment-percent, 0%);
   height: 100%;
   min-width: 3px;
   border-radius: inherit;
+  background: var(--statistics-payment-color, currentColor);
 }
 
 .statistics-attention-list {
@@ -3083,6 +3086,7 @@ button:focus-visible {
   width: 10px;
   height: 10px;
   border-radius: 999px;
+  background: var(--payment-method-color, currentColor);
 }
 
 .day-close-breakdown li small {

@@ -98,9 +98,9 @@ function DayCloseForm({
           <strong>По способам оплаты</strong>
           <ul>
             {breakdown.map((item) => (
-              <li key={item.key}>
+              <li key={item.key} style={{"--payment-method-color": item.color}}>
                 <span>
-                  <i style={{background: item.color}} />
+                  <i />
                   {item.label}
                 </span>
                 <b>{formatMoney(item.value)}</b>

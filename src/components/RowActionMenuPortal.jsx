@@ -12,7 +12,7 @@ function getPortalRoot() {
   return document.querySelector(".crm-shell") ?? document.body;
 }
 
-export function useRowActionMenu({isOpen, setOpenMenuId}) {
+function useRowActionMenu({isOpen, setOpenMenuId}) {
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
   const [menuStyle, setMenuStyle] = useState(null);
@@ -52,7 +52,6 @@ export function useRowActionMenu({isOpen, setOpenMenuId}) {
 
   useLayoutEffect(() => {
     if (!isOpen) {
-      setMenuStyle(null);
       return undefined;
     }
 

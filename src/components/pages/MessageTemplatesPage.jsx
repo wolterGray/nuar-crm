@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import {motion} from "framer-motion";
-import {useEffect, useMemo, useState} from "react";
+import {useMemo, useState} from "react";
 import PageHeader from "../PageHeader.jsx";
 import BulkSmsPanel from "../BulkSmsPanel.jsx";
 import {getClientMessageName} from "../../utils/clientMessageName.js";
@@ -190,12 +190,9 @@ function MessageTemplatesPage({
   }, [filters, templates]);
 
   const setFilter = (name, value) => {
+    setOpenMenuId(null);
     setFilters((current) => ({...current, [name]: value}));
   };
-
-  useEffect(() => {
-    setOpenMenuId(null);
-  }, [filters.query, filters.channel, filters.language, filters.audience, filters.purpose]);
 
   const selectedClient = clients.find(
     (client) => String(client.id) === selectedClientId,
