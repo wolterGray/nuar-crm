@@ -309,6 +309,121 @@ const getVisitTipAmount = (visit: Record<string, unknown>) =>
 const getVisitExtraAmount = (visit: Record<string, unknown>) =>
   Math.max(0, toFinanceNumber(visit?.extra));
 
+const toMinutes = (time: unknown) => {
+  const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
+
+  return (
+    (Number.isFinite(hours) ? hours : 0) * 60 +
+    (Number.isFinite(minutes) ? minutes : 0)
+  );
+};
+
+const toClockTime = (minutes: number) =>
+  `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(
+    minutes % 60,
+  ).padStart(2, "0")}`;
+
+const getExpectedVisitAmount = (entry: Record<string, unknown>) => {
+  const amount = toFinanceNumber(entry?.amount);
+  const discount = amount * (toFinanceNumber(entry?.discount) / 100);
+
+  return Math.max(0, amount - discount);
+};
+
+const buildDigestFreeSlots = ({
+  appSettings = {},
+  calendarEntries = [],
+  employees = [],
+  minSlotMinutes = 60,
+  now = new Date(),
+  todayInput,
+}: {
+  appSettings?: Record<string, unknown>;
+  calendarEntries?: Array<Record<string, unknown>>;
+  employees?: Array<Record<string, unknown>>;
+  minSlotMinutes?: number;
+  now?: Date;
+  todayInput: string;
+}) => {
+  const masters =
+    employees.length > 0
+      ? employees
+      : [
+          ...new Set(
+            calendarEntries
+              .filter(
+                (entry) =>
+                  entry.kind === "visit" && toInputDate(entry.date) === todayInput,
+              )
+              .map((entry) => String(entry.master ?? "").trim())
+              .filter(Boolean),
+          ),
+        ].map((name) => ({name}));
+  const currentMinutes = getMinutesInTimezone(now, DIGEST_TIMEZONE);
+  const freeSlots: Array<Record<string, unknown>> = [];
+
+  masters.forEach((employee) => {
+    const master = String(employee.name ?? "").trim();
+    const shiftStart = toMinutes(
+      employee.shiftStart || appSettings.workdayStart || "08:00",
+    );
+    const shiftEnd = toMinutes(
+      employee.shiftEnd || appSettings.workdayEnd || "22:00",
+    );
+    const windowStart = Math.max(shiftStart, currentMinutes);
+
+    if (!master || windowStart >= shiftEnd) {
+      return;
+    }
+
+    const occupied = calendarEntries
+      .filter(
+        (entry) =>
+          entry.kind === "visit" &&
+          toInputDate(entry.date) === todayInput &&
+          entry.master === master &&
+          !["cancelled", "no_show"].includes(String(entry.status ?? "")),
+      )
+      .map((entry) => ({
+        start: toMinutes(entry.time),
+        end:
+          toMinutes(entry.time) +
+          Math.max(Number(entry.duration) || 60, minSlotMinutes),
+      }))
+      .sort((left, right) => left.start - right.start);
+
+    let cursor = windowStart;
+
+    occupied.forEach((interval) => {
+      if (interval.start > cursor && interval.start - cursor >= minSlotMinutes) {
+        freeSlots.push({
+          durationMinutes: interval.start - cursor,
+          endTime: toClockTime(interval.start),
+          master,
+          startTime: toClockTime(cursor),
+        });
+      }
+
+      cursor = Math.max(cursor, interval.end);
+    });
+
+    if (shiftEnd - cursor >= minSlotMinutes) {
+      freeSlots.push({
+        durationMinutes: shiftEnd - cursor,
+        endTime: toClockTime(shiftEnd),
+        master,
+        startTime: toClockTime(cursor),
+      });
+    }
+  });
+
+  return freeSlots
+    .sort(
+      (left, right) => toMinutes(left.startTime) - toMinutes(right.startTime),
+    )
+    .slice(0, 5);
+};
+
 const getVisitServiceReceivedAmount = (visit: Record<string, unknown>) => {
   const payment = normalizePaymentMethod(visit?.payment);
 
@@ -405,11 +520,34 @@ export const buildTelegramDigestSections = ({
     )
     .sort(sortByTime)
     .map((entry) => ({
+      amount: getExpectedVisitAmount(entry),
       client: entry.client || "Клиент",
+      debt: getVisitDebtAmount(entry),
+      duration: Number(entry.duration) || 60,
       master: entry.master || "—",
       service: entry.service || "—",
       time: entry.time || "—",
     }));
+
+  const todayExpectedRevenue = visitsToday.reduce(
+    (sum, entry) => sum + Number(entry.amount || 0),
+    0,
+  );
+  const todayDebtAlerts = visitsToday
+    .filter((entry) => Number(entry.debt) > 0)
+    .map((entry) => ({
+      amount: entry.debt,
+      client: entry.client,
+      service: entry.service,
+      time: entry.time,
+    }));
+  const freeSlots = buildDigestFreeSlots({
+    appSettings,
+    calendarEntries,
+    employees: _employees,
+    now,
+    todayInput,
+  });
 
   const birthdayReminderDays = Math.max(
     0,
@@ -495,7 +633,10 @@ export const buildTelegramDigestSections = ({
     lowPackages,
     studioName,
     todayBirthdays: birthdays.filter((item) => item.daysLeft === 0),
+    todayDebtAlerts,
     todayDisplay,
+    todayExpectedRevenue,
+    todayFreeSlots: freeSlots,
     upcomingBirthdays: birthdays.filter((item) => item.daysLeft > 0),
     visitsToday,
     yesterdayDisplay: formatDisplayDate(yesterdayInput),
@@ -526,6 +667,41 @@ export const formatTelegramDigestMessage = (sections: Record<string, unknown>) =
   }
 
   lines.push("");
+
+  lines.push(
+    `💵 План на сегодня: ${formatMoney(Number(sections.todayExpectedRevenue) || 0)}`,
+  );
+
+  const todayFreeSlots = Array.isArray(sections.todayFreeSlots)
+    ? sections.todayFreeSlots
+    : [];
+
+  if (todayFreeSlots.length > 0) {
+    lines.push("🟢 Свободные окна");
+    todayFreeSlots.forEach((slot: Record<string, unknown>) => {
+      lines.push(
+        `${slot.startTime}–${slot.endTime} · ${slot.master} · ${slot.durationMinutes} мин.`,
+      );
+    });
+  } else {
+    lines.push("🟢 Свободных окон от 60 мин. нет");
+  }
+
+  lines.push("");
+
+  const todayDebtAlerts = Array.isArray(sections.todayDebtAlerts)
+    ? sections.todayDebtAlerts
+    : [];
+
+  if (todayDebtAlerts.length > 0) {
+    lines.push("⚠️ Долги по сегодняшним записям");
+    todayDebtAlerts.forEach((item: Record<string, unknown>) => {
+      lines.push(
+        `${item.time} · ${item.client} · ${formatMoney(Number(item.amount) || 0)}`,
+      );
+    });
+    lines.push("");
+  }
 
   const todayBirthdays = Array.isArray(sections.todayBirthdays)
     ? sections.todayBirthdays

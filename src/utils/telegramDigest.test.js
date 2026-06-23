@@ -20,8 +20,12 @@ describe("telegramDigest", () => {
       calendarEntries: [
         {
           id: "1",
+          amount: 300,
           kind: "visit",
           date: "12.06.2026",
+          debt: 50,
+          discount: 10,
+          duration: 60,
           time: "10:00",
           client: "Anna",
           service: "Relaks",
@@ -34,7 +38,7 @@ describe("telegramDigest", () => {
       clientProfiles: [
         {id: 1, name: "Anna", birthday: "2000-06-12"},
       ],
-      employees: [],
+      employees: [{name: "Kasia", shiftStart: "08:00", shiftEnd: "14:00"}],
       now: new Date("2026-06-12T07:00:00+02:00"),
       visits: [
         {
@@ -49,8 +53,18 @@ describe("telegramDigest", () => {
     });
 
     expect(sections.visitsToday).toHaveLength(1);
+    expect(sections.todayExpectedRevenue).toBe(270);
+    expect(sections.todayDebtAlerts).toHaveLength(1);
+    expect(sections.todayFreeSlots[0]).toMatchObject({
+      endTime: "10:00",
+      master: "Kasia",
+      startTime: "08:00",
+    });
     expect(message).toContain("NUAR · 12.06.2026");
     expect(message).toContain("Anna · Relaks · Kasia");
+    expect(message).toContain("План на сегодня: 270 zł");
+    expect(message).toContain("Свободные окна");
+    expect(message).toContain("Долги по сегодняшним записям");
     expect(message).toContain("Дни рождения сегодня");
     expect(message).toContain("250 zł");
   });
