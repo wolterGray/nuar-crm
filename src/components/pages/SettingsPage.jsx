@@ -1,6 +1,7 @@
 import {
   BellRing,
   CalendarClock,
+  Activity,
   CloudUpload,
   DatabaseBackup,
   Download,
@@ -10,10 +11,11 @@ import {
   SlidersHorizontal,
   Upload,
 } from "lucide-react";
-import {useRef, useState} from "react";
+import {useMemo, useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {resolveColorTheme} from "../../utils/colorTheme.js";
+import {buildIntegrationHealth} from "../../utils/integrationHealth.js";
 import HintIcon, {FieldLabel} from "../HintIcon.jsx";
 import PageHeader from "../PageHeader.jsx";
 import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
@@ -33,6 +35,48 @@ function SettingsMobileSection({children, isMobile, title}) {
       <h3 className="settings-mobile-section-title">{title}</h3>
       <div className="settings-mobile-section-body">{children}</div>
     </section>
+  );
+}
+
+function IntegrationHealthPanel({report}) {
+  const overallState =
+    report.summary.warning > 0 ? "warning" : report.summary.ok > 0 ? "ok" : "off";
+  const overallLabel =
+    overallState === "warning"
+      ? "Нужно внимание"
+      : overallState === "ok"
+        ? "Автоматизации работают"
+        : "Автоматизации выключены";
+
+  return (
+    <div className={`integration-health-panel is-${overallState}`}>
+      <div className="integration-health-head">
+        <div>
+          <span>Авто-контроль</span>
+          <strong>{overallLabel}</strong>
+        </div>
+        <div className="integration-health-summary">
+          <b>{report.summary.ok}</b>
+          <small>OK</small>
+          <b>{report.summary.warning}</b>
+          <small>Внимание</small>
+          <b>{report.summary.off}</b>
+          <small>Выкл</small>
+        </div>
+      </div>
+      <div className="integration-health-list">
+        {report.items.map((item) => (
+          <article className={`integration-health-item is-${item.state}`} key={item.id}>
+            <span className="integration-health-dot" />
+            <div>
+              <strong>{item.name}</strong>
+              <small>{item.message}</small>
+            </div>
+            <em>{item.lastRunLabel}</em>
+          </article>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -112,6 +156,17 @@ function SettingsPage({
         : cloudHydrated
           ? "OK"
           : "...";
+  const integrationHealth = useMemo(
+    () =>
+      buildIntegrationHealth({
+        inactiveFollowUp,
+        reviewRequests,
+        settings,
+        smsReminders,
+        telegramDigest,
+      }),
+    [inactiveFollowUp, reviewRequests, settings, smsReminders, telegramDigest],
+  );
 
   const settingsTabsRow = (
     <div className="settings-tabs settings-page-tabs">
@@ -676,6 +731,20 @@ function SettingsPage({
           className={`panel settings-panel settings-tab-panel ${
             activeTab === "integrations" ? "active" : ""
           }`}>
+            <SettingsMobileSection isMobile={isMobile} title="Авто-контроль">
+            <div className="settings-panel-heading">
+              <Activity size={18} />
+              <div>
+                <h2>
+                  Здоровье интеграций
+                  <HintIcon>
+                    Быстрый контроль cron-задач, токенов и последнего запуска автоматизаций
+                  </HintIcon>
+                </h2>
+              </div>
+            </div>
+            <IntegrationHealthPanel report={integrationHealth} />
+            </SettingsMobileSection>
             <SettingsMobileSection isMobile={isMobile} title="Gmail OAuth">
             <div className="settings-panel-heading">
               <MailCheck size={18} />

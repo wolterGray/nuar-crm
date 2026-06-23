@@ -15626,10 +15626,13 @@ html body .notion-linear-redesign .send-template-modal .send-template-actions :i
 /* Settings page: final mobile tab cleanup for non-interface tabs. */
 @media (max-width: 768px) {
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-panel,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .integration-health-panel,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-panel,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-status,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-conflict,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-status,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .integration-health-item,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .integration-health-summary,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-error,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .client-package-card,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .certificate-card,
@@ -15650,6 +15653,7 @@ html body .notion-linear-redesign .send-template-modal .send-template-actions :i
   }
 
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-panel,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .integration-health-panel,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-panel {
     display: grid !important;
     gap: 8px !important;
@@ -15662,6 +15666,8 @@ html body .notion-linear-redesign .send-template-modal .send-template-actions :i
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-status,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-cloud-conflict,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-status,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .integration-health-item,
+  html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .integration-health-summary,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .booksy-sync-error,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .client-package-card,
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active .settings-options > p,
@@ -15701,6 +15707,10 @@ html body .notion-linear-redesign .send-template-modal .send-template-actions :i
       .settings-cloud-conflict p,
       .booksy-sync-status span,
       .booksy-sync-status small,
+      .integration-health-head span,
+      .integration-health-item small,
+      .integration-health-item em,
+      .integration-health-summary small,
       .booksy-sync-error li,
       .client-package-main span,
       .client-package-main small,
@@ -15716,6 +15726,9 @@ html body .notion-linear-redesign .send-template-modal .send-template-actions :i
   html body .notion-linear-redesign .settings-page-mobile .settings-tab-panel.active :is(
       .settings-cloud-status strong,
       .booksy-sync-status strong,
+      .integration-health-head strong,
+      .integration-health-item strong,
+      .integration-health-summary b,
       .booksy-sync-error strong,
       .client-package-main strong,
       .client-package-meta b

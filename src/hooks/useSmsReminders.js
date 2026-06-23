@@ -140,7 +140,14 @@ export function useSmsReminders({
       setLocalDue(due);
       return due;
     }
-  }, [appSettings, authSession, calendarEntries, clientProfiles, smsReminderLog]);
+  }, [
+    appSettings,
+    authSession,
+    calendarEntries,
+    clientProfiles,
+    messageTemplates,
+    smsReminderLog,
+  ]);
 
   useEffect(() => {
     if (!authSession || !cloudHydrated || !appSettings.smsRemindersEnabled) {
