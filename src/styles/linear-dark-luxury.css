@@ -15917,3 +15917,1724 @@ html body .notion-linear-redesign .send-template-modal .send-template-actions :i
   }
 }
 
+/* Today page: clean desktop board. Mobile keeps statistics-page/today-page-mobile styles. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .content.today-content,
+  html body .notion-linear-redesign .content.today-content.home-content {
+    height: 100dvh !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 18px 24px 28px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop {
+    display: grid !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 12px !important;
+    color: var(--lux-mobile-text) !important;
+    background: transparent !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified,
+  html body .notion-linear-redesign .today-page-desktop .today-summary-card,
+  html body .notion-linear-redesign .today-page-desktop .today-section {
+    border: 0 !important;
+    border-radius: var(--lux-mobile-card-radius) !important;
+    color: var(--lux-mobile-text) !important;
+    background: var(--lux-mobile-surface) !important;
+    box-shadow: var(--lux-mobile-card-shadow) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified {
+    padding: 14px 16px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-top {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-copy h2 {
+    margin: 0 !important;
+    color: var(--lux-mobile-title) !important;
+    font-size: 20px !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.025em !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-copy p {
+    margin: 5px 0 0 !important;
+    color: var(--lux-mobile-muted) !important;
+    font-size: 12px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-actions :is(.secondary-button, .add-visit-button),
+  html body .notion-linear-redesign .today-page-desktop .today-section-heading > :is(.secondary-button, .today-panel-link, .today-section-action) {
+    width: auto !important;
+    max-width: max-content !important;
+    min-height: 32px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: var(--lux-mobile-control-radius) !important;
+    color: var(--lux-mobile-control-text) !important;
+    background: var(--lux-mobile-control-bg) !important;
+    box-shadow: var(--lux-mobile-control-shadow) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-actions .add-visit-button {
+    color: var(--lux-mobile-title) !important;
+    background: var(--lux-mobile-control-active-bg) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-kpi-section {
+    display: grid !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-kpi-section > .today-section-heading {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+    min-height: 0 !important;
+    padding: 0 2px !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(.today-section-heading h3, .today-panel-heading h3) {
+    margin: 0 !important;
+    color: var(--lux-mobile-title) !important;
+    font-size: 14px !important;
+    font-weight: 720 !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(.today-section-heading p, .today-panel-heading p, .today-empty),
+  html body .notion-linear-redesign .today-page-desktop :is(.today-summary-card span, .today-summary-card small, .today-row-card small, .today-visit-main small, .statistics-today-upcoming small) {
+    display: block !important;
+    margin-top: 3px !important;
+    color: var(--lux-mobile-muted) !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-summary-card {
+    --today-card-accent: var(--lux-mobile-card-accent);
+    display: grid !important;
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 78px !important;
+    padding: 12px !important;
+    box-shadow:
+      inset 0 0 0 1px var(--lux-mobile-hairline),
+      inset 3px 0 0 color-mix(in srgb, var(--today-card-accent) 52%, transparent) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-summary-card-visits { --today-card-accent: #4d8dff; }
+  html body .notion-linear-redesign .today-page-desktop .today-summary-card-income { --today-card-accent: #22c55e; }
+  html body .notion-linear-redesign .today-page-desktop .today-summary-card-debt { --today-card-accent: #f43f5e; }
+  html body .notion-linear-redesign .today-page-desktop .today-summary-card-upcoming { --today-card-accent: #14b8d6; }
+
+  html body .notion-linear-redesign .today-page-desktop .today-summary-icon {
+    display: inline-flex !important;
+    width: 32px !important;
+    height: 32px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 10px !important;
+    color: var(--today-card-accent) !important;
+    background: color-mix(in srgb, var(--today-card-accent) 12%, transparent) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--today-card-accent) 22%, transparent) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-summary-card strong {
+    color: var(--lux-mobile-title) !important;
+    font-size: 20px !important;
+    font-weight: 760 !important;
+    line-height: 1.05 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-dashboard-grid {
+    display: grid !important;
+    grid-template-columns: minmax(420px, 0.95fr) minmax(0, 1.55fr) !important;
+    align-items: start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-dashboard-grid > .today-section:first-child {
+    grid-column: 1 !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-side-column {
+    display: grid !important;
+    grid-column: 2 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-content: start !important;
+    align-items: start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section {
+    display: grid !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 12px !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-side-column > .today-section {
+    width: 100% !important;
+    align-self: start !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-heading {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 0 !important;
+    padding: 0 0 8px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--lux-mobile-hairline) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(.today-visit-list, .today-slot-list, .today-task-list, .today-supply-list, .today-note-list, .statistics-today-upcoming) {
+    display: grid !important;
+    gap: 7px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    list-style: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(.today-visit-row, .today-row-card, .statistics-today-upcoming li) {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 52px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 10px 11px !important;
+    border: 0 !important;
+    border-radius: var(--lux-mobile-control-radius) !important;
+    color: var(--lux-mobile-text) !important;
+    background: var(--lux-mobile-surface-raised) !important;
+    box-shadow:
+      inset 0 0 0 1px var(--lux-mobile-control-hairline),
+      inset 3px 0 0 var(--lux-mobile-row-accent) !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(.today-visit-row, .today-row-card, .statistics-today-upcoming li)::before,
+  html body .notion-linear-redesign .today-page-desktop :is(.today-visit-row, .today-row-card, .statistics-today-upcoming li)::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(.today-visit-main, .today-row-card > div) {
+    min-width: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-main > div {
+    display: grid !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(.today-visit-main span, .today-row-card strong, .statistics-today-upcoming span) {
+    margin: 0 !important;
+    color: var(--lux-mobile-title) !important;
+    background: transparent !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.22 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-meta {
+    display: inline-flex !important;
+    min-width: 124px !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-state {
+    display: grid !important;
+    min-width: 78px !important;
+    justify-items: end !important;
+    gap: 2px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-state :is(b, strong) {
+    position: static !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    line-height: 1.1 !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-state b {
+    color: var(--lux-mobile-muted) !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-state strong,
+  html body .notion-linear-redesign .today-page-desktop .today-window-row .today-window-time,
+  html body .notion-linear-redesign .today-page-desktop .statistics-today-upcoming li strong {
+    color: #8fb8ff !important;
+    font-size: 12px !important;
+    font-weight: 760 !important;
+    font-variant-numeric: tabular-nums !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(.today-inline-action, .icon-button) {
+    display: inline-flex !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    color: var(--lux-mobile-tab-text) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-actions {
+    position: relative !important;
+    z-index: 3 !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-actions > summary {
+    list-style: none !important;
+    cursor: pointer !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-actions > summary::-webkit-details-marker {
+    display: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-action-menu {
+    position: absolute !important;
+    top: 32px !important;
+    right: 0 !important;
+    z-index: 20 !important;
+    display: grid !important;
+    min-width: 150px !important;
+    gap: 2px !important;
+    padding: 6px !important;
+    border: 0 !important;
+    border-radius: var(--lux-mobile-card-radius) !important;
+    background: rgba(18, 19, 22, 0.98) !important;
+    box-shadow: var(--lux-shadow-modal) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-action-menu button {
+    min-height: 32px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    color: var(--lux-mobile-text) !important;
+    background: transparent !important;
+    font-size: 12px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-window-row.today-row-card {
+    grid-template-columns: minmax(92px, auto) minmax(0, 1fr) auto !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-slot-duration {
+    min-height: 22px !important;
+    padding: 0 7px !important;
+    border-radius: 999px !important;
+    color: #94e7f5 !important;
+    background: rgba(20, 184, 214, 0.1) !important;
+    box-shadow: inset 0 0 0 1px rgba(20, 184, 214, 0.2) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .statistics-today-upcoming li {
+    grid-template-columns: 50px minmax(0, 1fr) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .statistics-today-upcoming li strong {
+    grid-row: 1 / span 2 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-empty {
+    min-height: 52px !important;
+    margin: 0 !important;
+    padding: 13px 14px !important;
+    border: 0 !important;
+    border-radius: var(--lux-mobile-control-radius) !important;
+    background: var(--lux-mobile-surface-raised) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+  }
+
+  @media (max-width: 1180px) {
+    html body .notion-linear-redesign .today-page-desktop .today-dashboard-grid {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    html body .notion-linear-redesign .today-page-desktop .today-side-column {
+      grid-column: auto !important;
+    }
+
+    html body .notion-linear-redesign .today-page-desktop .today-summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+  }
+}
+
+/* Today page: desktop cube board layout. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop {
+    min-height: 0 !important;
+    grid-template-rows: auto auto auto !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 12px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-top {
+    display: contents !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-copy {
+    grid-column: 1 !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-copy h2 {
+    font-size: 18px !important;
+    line-height: 1.1 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-actions {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    align-self: center !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .page-header-unified-trailing {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    align-self: center !important;
+    min-width: 34px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-dashboard-grid {
+    display: grid !important;
+    grid-template-columns: minmax(360px, 1.05fr) minmax(300px, 0.98fr) minmax(300px, 0.98fr) !important;
+    grid-auto-rows: 1fr !important;
+    grid-template-rows: repeat(2, minmax(190px, 1fr)) !important;
+    grid-template-areas:
+      "schedule upcoming windows"
+      "tasks stock important" !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-side-column {
+    display: contents !important;
+    column-count: auto !important;
+    column-gap: normal !important;
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-schedule {
+    grid-area: schedule !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-upcoming {
+    grid-area: upcoming !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-windows {
+    grid-area: windows !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks {
+    grid-area: tasks !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock {
+    grid-area: stock !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important {
+    grid-area: important !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section {
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    align-content: stretch !important;
+    align-self: stretch !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-heading {
+    align-self: start !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-list,
+      .today-slot-list,
+      .today-task-list,
+      .today-supply-list,
+      .today-note-list,
+      .statistics-today-upcoming
+    ) {
+    min-height: 0 !important;
+    overflow: hidden !important;
+    scrollbar-width: thin !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li
+    ) {
+    min-height: 46px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section :is(
+      .today-visit-list,
+      .today-slot-list,
+      .today-task-list,
+      .today-supply-list,
+      .today-note-list,
+      .statistics-today-upcoming
+    ) > :nth-child(n + 4) {
+    display: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-list > :nth-child(n + 3) {
+    display: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-content: start !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-list + .today-note-list {
+    margin-top: 7px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-summary-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  @media (max-width: 1180px) {
+    html body .notion-linear-redesign .today-page-desktop .today-dashboard-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      grid-template-rows: auto !important;
+      grid-auto-rows: auto !important;
+      grid-template-areas:
+        "schedule upcoming"
+        "tasks windows"
+        "stock important" !important;
+      min-height: 0 !important;
+    }
+  }
+
+  @media (max-width: 900px) {
+    html body .notion-linear-redesign .today-page-desktop .today-dashboard-grid {
+      grid-template-columns: minmax(0, 1fr) !important;
+      grid-auto-rows: auto !important;
+      grid-template-areas:
+        "schedule"
+        "upcoming"
+        "windows"
+        "tasks"
+        "stock"
+        "important" !important;
+    }
+
+    html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-list {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+  }
+}
+
+/* Today desktop: hover only on section cards, no left accent on inner rows. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop .today-section:hover {
+    background: var(--lux-mobile-surface) !important;
+    box-shadow: var(--lux-mobile-card-shadow) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li
+    ) {
+    background: var(--lux-mobile-surface-raised) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li
+    ):hover {
+    background: var(--lux-mobile-control-bg) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-active-hairline) !important;
+  }
+}
+
+/* Today desktop: bottom blocks match schedule card shape; no hover scaling. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section,
+      .today-summary-card,
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-inline-action,
+      .icon-button,
+      button
+    ),
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section,
+      .today-summary-card,
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-inline-action,
+      .icon-button,
+      button
+    ):hover,
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section,
+      .today-summary-card,
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-inline-action,
+      .icon-button,
+      button
+    ):active {
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-schedule,
+      .today-section-tasks,
+      .today-section-stock,
+      .today-section-important
+    ) {
+    padding: 12px !important;
+    border: 0 !important;
+    border-radius: var(--lux-mobile-card-radius) !important;
+    color: var(--lux-mobile-text) !important;
+    background: var(--lux-mobile-surface) !important;
+    box-shadow: var(--lux-mobile-card-shadow) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-schedule,
+      .today-section-tasks,
+      .today-section-stock,
+      .today-section-important
+    ):hover {
+    background: var(--lux-mobile-surface) !important;
+    box-shadow: var(--lux-mobile-card-shadow) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-tasks,
+      .today-section-stock,
+      .today-section-important
+    ) .today-section-heading {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    padding: 0 0 8px !important;
+    border-bottom: 1px solid var(--lux-mobile-hairline) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-list {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Today desktop: unified inner row cards with color-only hover transition. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    ) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    color: var(--lux-mobile-text) !important;
+    background: var(--lux-mobile-surface-raised) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+    transition: background-color 160ms ease !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    ):hover,
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    ):active {
+    min-height: 46px !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    color: var(--lux-mobile-text) !important;
+    background: var(--lux-mobile-control-bg) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    )::before,
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    )::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-window-row.today-row-card {
+    grid-template-columns: minmax(92px, auto) minmax(0, 1fr) auto !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .statistics-today-upcoming li {
+    grid-template-columns: 50px minmax(0, 1fr) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-task-row.today-row-card,
+  html body .notion-linear-redesign .today-page-desktop .today-supply-row.today-row-card,
+  html body .notion-linear-redesign .today-page-desktop .today-note-row.today-row-card {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-note-row.today-row-card {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important :is(.today-note-list, .today-note-list li) {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* Today desktop: visit action menu is controlled and readable. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop .today-visit-actions {
+    position: relative !important;
+    z-index: 8 !important;
+    display: inline-flex !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-actions.open {
+    z-index: 40 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-inline-action {
+    display: inline-flex !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    color: var(--lux-mobile-tab-text) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-inline-action:hover,
+  html body .notion-linear-redesign .today-page-desktop .today-visit-actions.open .today-inline-action {
+    color: var(--lux-mobile-title) !important;
+    background: var(--lux-mobile-control-bg) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-action-menu {
+    position: absolute !important;
+    top: 32px !important;
+    right: 0 !important;
+    z-index: 45 !important;
+    display: grid !important;
+    width: 170px !important;
+    min-width: 170px !important;
+    gap: 3px !important;
+    padding: 6px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: rgba(18, 19, 22, 0.98) !important;
+    box-shadow:
+      inset 0 0 0 1px var(--lux-mobile-active-hairline),
+      0 18px 42px rgba(0, 0, 0, 0.45) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-action-menu button {
+    display: grid !important;
+    grid-template-columns: 16px minmax(0, 1fr) !important;
+    align-items: center !important;
+    justify-content: start !important;
+    gap: 9px !important;
+    width: 100% !important;
+    min-height: 34px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    color: var(--lux-mobile-text) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    line-height: 1 !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-action-menu button svg {
+    width: 14px !important;
+    height: 14px !important;
+    color: var(--lux-mobile-muted) !important;
+    stroke: currentColor !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-action-menu button:hover {
+    color: var(--lux-mobile-title) !important;
+    background: var(--lux-mobile-control-bg) !important;
+  }
+}
+
+/* Today desktop: visit action dropdown must escape row/card clipping. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop .today-dashboard-grid,
+  html body .notion-linear-redesign .today-page-desktop .today-section-schedule,
+  html body .notion-linear-redesign .today-page-desktop .today-section-schedule .today-visit-list,
+  html body .notion-linear-redesign .today-page-desktop .today-section-schedule .today-visit-row,
+  html body .notion-linear-redesign .today-page-desktop .today-section-schedule .today-visit-meta {
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-schedule {
+    z-index: 20 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-schedule:has(.today-visit-actions.open) {
+    z-index: 80 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-visit-actions.open .today-visit-action-menu {
+    z-index: 120 !important;
+  }
+}
+
+/* Today desktop: stock/important rows use arrow hover, not text highlight. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card {
+    position: relative !important;
+    min-height: 46px !important;
+    padding: 8px 30px 8px 10px !important;
+    color: var(--lux-mobile-text) !important;
+    background: var(--lux-mobile-surface-raised) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+    transition: background-color 160ms ease !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-row-card {
+    padding-right: 46px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card:hover,
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card:active {
+    min-height: 46px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    color: var(--lux-mobile-text) !important;
+    background: var(--lux-mobile-control-bg) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card :is(strong, small, span),
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card:hover :is(strong, small, span) {
+    color: inherit !important;
+    background: transparent !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 50% !important;
+    right: 12px !important;
+    display: block !important;
+    width: 7px !important;
+    height: 7px !important;
+    border-top: 1.5px solid var(--lux-mobile-muted) !important;
+    border-right: 1.5px solid var(--lux-mobile-muted) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    opacity: 0 !important;
+    transform: translateY(-50%) rotate(45deg) !important;
+    transition: opacity 160ms ease, border-color 160ms ease !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-row-card::after {
+    right: 36px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card:hover::after {
+    opacity: 1 !important;
+    border-color: var(--lux-mobile-title) !important;
+  }
+}
+
+/* Today desktop: tasks/stock/important inner cards mirror visit cards. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-tasks,
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 46px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    color: var(--lux-mobile-text) !important;
+    background: var(--lux-mobile-surface-raised) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+    transition: background-color 160ms ease !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-tasks,
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card:hover,
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-tasks,
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card:active {
+    min-height: 46px !important;
+    padding: 8px 10px !important;
+    color: var(--lux-mobile-text) !important;
+    background: var(--lux-mobile-control-bg) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-tasks,
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card::before,
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-tasks,
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-row-card {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Today desktop: inner row dots without changing card geometry. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-row-card,
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-row-card,
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-row-card {
+    padding-left: 30px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-row-card::before,
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-row-card::before,
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-row-card::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 13px !important;
+    display: block !important;
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 999px !important;
+    background: var(--today-row-dot, var(--lux-mobile-muted)) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--today-row-dot, var(--lux-mobile-muted)) 14%, transparent) !important;
+    transform: translateY(-50%) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-row-card {
+    --today-row-dot: #facc15;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-row-card {
+    --today-row-dot: #fb923c;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-row-card {
+    --today-row-dot: #4d8dff;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-row-card,
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-row-card:hover,
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-row-card:active {
+    grid-template-columns: minmax(0, 1fr) 28px !important;
+    min-height: 46px !important;
+    padding: 8px 10px 8px 30px !important;
+    background: var(--lux-mobile-surface-raised) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-row-card:hover {
+    background: var(--lux-mobile-control-bg) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-row-card .icon-button,
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-row-card:hover .icon-button {
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-tasks,
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card > div {
+    min-width: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section-tasks,
+      .today-section-stock,
+      .today-section-important
+    ) .today-row-card:hover > div {
+    padding-left: 0 !important;
+  }
+}
+
+/* Today desktop: card hover may only change color, never geometry. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .page-header-unified,
+      .today-summary-card,
+      .today-section,
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    ),
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .page-header-unified,
+      .today-summary-card,
+      .today-section,
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    ):hover,
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .page-header-unified,
+      .today-summary-card,
+      .today-section,
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    ):active {
+    transform: none !important;
+    scale: 1 !important;
+    translate: none !important;
+    border-width: 0 !important;
+    outline: 0 !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    ):hover {
+    background: var(--lux-mobile-control-bg) !important;
+    transition: background-color 160ms ease !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-section,
+      .today-summary-card,
+      .page-header-unified
+    ):hover {
+    background: var(--lux-mobile-surface) !important;
+    transition: background-color 160ms ease !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-task-row.today-row-card,
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-task-row.today-row-card:hover,
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-task-row.today-row-card:active {
+    box-sizing: border-box !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 28px !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+    padding: 8px 10px 8px 30px !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    background: var(--lux-mobile-surface-raised) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+    scale: 1 !important;
+    translate: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-task-row.today-row-card:hover {
+    background: var(--lux-mobile-control-bg) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-task-row.today-row-card > div,
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-task-row.today-row-card:hover > div {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-task-row.today-row-card .icon-button,
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-task-row.today-row-card:hover .icon-button {
+    align-self: start !important;
+    justify-self: end !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    padding: 0 !important;
+    transform: none !important;
+    scale: 1 !important;
+    translate: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-tasks .today-task-row.today-row-card .icon-button svg {
+    color: var(--lux-mobile-title) !important;
+    stroke: currentColor !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-supply-row.today-row-card,
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-supply-row.today-row-card:hover,
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-supply-row.today-row-card:active {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    min-height: 46px !important;
+    padding: 8px 10px 8px 30px !important;
+    background: var(--lux-mobile-surface-raised) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-supply-row.today-row-card:hover {
+    background: var(--lux-mobile-control-bg) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-supply-row.today-row-card::before,
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-supply-row.today-row-card:hover::before {
+    left: 13px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-supply-row.today-row-card > div,
+  html body .notion-linear-redesign .today-page-desktop .today-section-stock .today-supply-row.today-row-card:hover > div {
+    min-width: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-row.today-row-card,
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-row.today-row-card:hover,
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-row.today-row-card:active {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: 46px !important;
+    padding: 8px 10px 8px 30px !important;
+    background: var(--lux-mobile-surface-raised) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-row.today-row-card:hover {
+    background: var(--lux-mobile-control-bg) !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-row.today-row-card::before,
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-row.today-row-card:hover::before {
+    left: 13px !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-row.today-row-card > div,
+  html body .notion-linear-redesign .today-page-desktop .today-section-important .today-note-row.today-row-card:hover > div {
+    min-width: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+}
+
+/* Calendar desktop: isolate header from mobile toolbar rules. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .calendar-page.calendar-page-desktop {
+    display: grid !important;
+    gap: 14px !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header.page-header-unified {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "title bell"
+      "actions actions" !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 14px 16px !important;
+    border: 0 !important;
+    border-radius: var(--lux-mobile-card-radius) !important;
+    color: var(--lux-mobile-text) !important;
+    background: var(--lux-mobile-surface) !important;
+    box-shadow: var(--lux-mobile-card-shadow) !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header .page-header-unified-top {
+    display: contents !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header .page-header-unified-copy {
+    grid-area: title !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header .page-header-unified-copy h2 {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin: 0 !important;
+    color: var(--lux-mobile-title) !important;
+    font-size: 20px !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.025em !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header .page-header-unified-trailing {
+    grid-area: bell !important;
+    display: inline-flex !important;
+    width: auto !important;
+    min-width: 34px !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header .page-header-unified-actions {
+    grid-area: actions !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-toolbar-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-date-control {
+    display: inline-grid !important;
+    grid-template-columns: 34px minmax(160px, auto) 34px !important;
+    align-items: center !important;
+    width: auto !important;
+    min-width: 248px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 2px !important;
+    border: 0 !important;
+    border-radius: var(--lux-mobile-control-radius) !important;
+    background: var(--lux-mobile-control-bg) !important;
+    box-shadow: var(--lux-mobile-control-shadow) !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-date-arrow,
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-icon-button {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    color: var(--lux-mobile-tab-text) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-date-field {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    height: 34px !important;
+    padding: 0 10px !important;
+    color: var(--lux-mobile-title) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-date-field input {
+    width: 0 !important;
+    min-width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop :is(
+      .calendar-today-button,
+      .calendar-feed-toggle,
+      .mobile-calendar-feed-button,
+      .calendar-mobile-add-button,
+      .calendar-desktop-add-button
+    ) {
+    display: inline-flex !important;
+    width: auto !important;
+    min-width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 0 12px !important;
+    border: 0 !important;
+    border-radius: var(--lux-mobile-control-radius) !important;
+    color: var(--lux-mobile-control-text) !important;
+    background: var(--lux-mobile-control-bg) !important;
+    box-shadow: var(--lux-mobile-control-shadow) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-mobile-add-button {
+    color: var(--lux-mobile-title) !important;
+    background: var(--lux-mobile-control-active-bg) !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .mobile-calendar-week {
+    display: none !important;
+  }
+}
+
+/* Desktop main toolbar: always thin, labels appear instantly on hover. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign {
+    grid-template-columns: 72px minmax(0, 1fr) !important;
+  }
+
+  html body .notion-linear-redesign .sidebar {
+    position: relative !important;
+    z-index: 80 !important;
+    width: 72px !important;
+    min-width: 72px !important;
+    max-width: 72px !important;
+    padding: 14px 10px !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .sidebar-collapse-button,
+  html body .notion-linear-redesign .sidebar-restore-button {
+    display: none !important;
+  }
+
+  html body .notion-linear-redesign .logo {
+    justify-content: center !important;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  html body .notion-linear-redesign .logo-wordmark,
+  html body .notion-linear-redesign .owner-card > div:not(.owner-avatar),
+  html body .notion-linear-redesign .nav-list button span,
+  html body .notion-linear-redesign .client-search-trigger span,
+  html body .notion-linear-redesign .client-search-trigger kbd,
+  html body .notion-linear-redesign .nav-group::before {
+    display: none !important;
+  }
+
+  html body .notion-linear-redesign .nav-list {
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .nav-list button,
+  html body .notion-linear-redesign .client-search-trigger {
+    position: relative !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    font-size: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .owner-card {
+    justify-content: center !important;
+    padding: 8px 4px !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .logout-button {
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  html body .notion-linear-redesign .nav-list button[data-label]::after,
+  html body .notion-linear-redesign .client-search-trigger[data-label]::after,
+  html body .notion-linear-redesign .logout-button[data-label]::after {
+    content: attr(data-label) !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: calc(100% + 10px) !important;
+    z-index: 120 !important;
+    display: block !important;
+    width: max-content !important;
+    max-width: 220px !important;
+    padding: 7px 10px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: var(--lux-mobile-title) !important;
+    background: rgba(18, 19, 22, 0.98) !important;
+    box-shadow:
+      inset 0 0 0 1px var(--lux-mobile-active-hairline),
+      0 12px 30px rgba(0, 0, 0, 0.34) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(-50%) !important;
+  }
+
+  html body .notion-linear-redesign .nav-list button[data-label]:hover::after,
+  html body .notion-linear-redesign .client-search-trigger[data-label]:hover::after,
+  html body .notion-linear-redesign .logout-button[data-label]:hover::after {
+    opacity: 1 !important;
+  }
+}
+
+/* Today desktop: outer blocks do not hover, only inner cards do. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .page-header-unified,
+      .today-summary-card,
+      .today-section
+    ):hover {
+    background: var(--lux-mobile-surface) !important;
+    box-shadow: var(--lux-mobile-card-shadow) !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop .today-kpi-section:hover {
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    ) {
+    cursor: default !important;
+    transition: background-color 160ms ease !important;
+  }
+
+  html body .notion-linear-redesign .today-page-desktop :is(
+      .today-visit-row,
+      .today-row-card,
+      .statistics-today-upcoming li,
+      .today-empty
+    ):hover {
+    cursor: default !important;
+    background: var(--lux-mobile-control-bg) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    transform: none !important;
+  }
+}
+
+/* Calendar desktop: minimal top bar, separated from mobile controls. */
+@media (min-width: 769px) {
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header.page-header-unified {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    grid-template-areas: "title actions bell" !important;
+    align-items: center !important;
+    gap: 12px !important;
+    min-height: 46px !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.018) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header .page-header-unified-top {
+    display: contents !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header .page-header-unified-copy {
+    grid-area: title !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header .page-header-unified-copy h2 {
+    font-size: 15px !important;
+    font-weight: 720 !important;
+    line-height: 1 !important;
+    letter-spacing: -0.02em !important;
+    white-space: nowrap !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header .page-header-unified-actions {
+    grid-area: actions !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-page-header .page-header-unified-trailing {
+    grid-area: bell !important;
+    display: inline-flex !important;
+    min-width: 30px !important;
+    justify-content: flex-end !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-toolbar-actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-date-control {
+    grid-template-columns: 30px minmax(132px, auto) 30px !important;
+    min-width: 206px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 1px !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    background: rgba(255, 255, 255, 0.024) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-date-arrow,
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-icon-button {
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    border-radius: 8px !important;
+    color: var(--lux-mobile-muted) !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-date-field {
+    height: 30px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+    font-weight: 680 !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop :is(
+      .calendar-today-button,
+      .calendar-feed-toggle,
+      .mobile-calendar-feed-button,
+      .calendar-mobile-add-button
+    ) {
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    color: var(--lux-mobile-control-text) !important;
+    background: rgba(255, 255, 255, 0.024) !important;
+    box-shadow: inset 0 0 0 1px var(--lux-mobile-control-hairline) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+  }
+
+  html body .notion-linear-redesign .calendar-page-desktop .calendar-mobile-add-button {
+    color: var(--lux-mobile-title) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+}

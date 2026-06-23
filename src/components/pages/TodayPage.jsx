@@ -11,7 +11,7 @@ import {
   Plus,
   WalletCards,
 } from "lucide-react";
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import PageHeader from "../PageHeader.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {buildTodayDashboard} from "../../utils/todayDashboard.js";
@@ -65,6 +65,8 @@ function TodayPage({
 }) {
   const {isMobile} = useBreakpoint();
   const [mobileSection, setMobileSection] = useState("tasks");
+  const [openVisitMenuId, setOpenVisitMenuId] = useState(null);
+  const openVisitMenuRef = useRef(null);
   const dashboard = useMemo(
     () =>
       buildTodayDashboard({
@@ -100,8 +102,25 @@ function TodayPage({
       ? formatCompactMoney(value)
       : formatMoney(value);
 
+  useEffect(() => {
+    if (openVisitMenuId === null) {
+      return undefined;
+    }
+
+    const closeMenu = (event) => {
+      if (openVisitMenuRef.current?.contains(event.target)) {
+        return;
+      }
+
+      setOpenVisitMenuId(null);
+    };
+
+    document.addEventListener("pointerdown", closeMenu);
+    return () => document.removeEventListener("pointerdown", closeMenu);
+  }, [openVisitMenuId]);
+
   return (
-    <section className={`today-page statistics-page ${isMobile ? "today-page-mobile" : ""}`}>
+    <section className={`today-page ${isMobile ? "statistics-page today-page-mobile" : "today-page-desktop"}`}>
       <PageHeader
         collapsible={false}
         actions={
@@ -197,7 +216,7 @@ function TodayPage({
       </section>
 
       <div className="today-dashboard-grid">
-        <section className="today-section">
+        <section className="today-section today-section-schedule">
           <div className="today-section-heading">
             <div>
               <h3>Расписание на сегодня</h3>
@@ -216,8 +235,12 @@ function TodayPage({
             <p className="today-empty">На сегодня записей нет</p>
           ) : (
             <ul className="today-visit-list">
-              {dashboard.todayVisits.map((entry) => (
-                <li className="today-visit-row" key={entry.id}>
+              {dashboard.todayVisits.map((entry) => {
+                const visitMenuId = entry.id ?? `${entry.time}-${entry.client}`;
+                const visitMenuOpen = openVisitMenuId === visitMenuId;
+
+                return (
+                <li className="today-visit-row" key={visitMenuId}>
                   <div className="today-visit-main">
                     <div>
                       <span>{entry.client || "Без клиента"}</span>
@@ -231,24 +254,47 @@ function TodayPage({
                       <b>{visitStatusLabels[entry.status] || entry.status || "—"}</b>
                       <strong>{entry.time}</strong>
                     </div>
-                    <details className="today-visit-actions">
-                      <summary aria-label="Действия с визитом" className="today-inline-action">
+                    <div
+                      ref={visitMenuOpen ? openVisitMenuRef : null}
+                      className={`today-visit-actions${visitMenuOpen ? " open" : ""}`}>
+                      <button
+                        aria-label="Действия с визитом"
+                        aria-expanded={visitMenuOpen}
+                        className="today-inline-action"
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setOpenVisitMenuId(visitMenuOpen ? null : visitMenuId);
+                        }}>
                         <MoreHorizontal size={15} />
-                      </summary>
-                      <div className="today-visit-action-menu">
-                        <button type="button" onClick={() => onRemindVisit?.(entry)}>
+                      </button>
+                      {visitMenuOpen ? (
+                        <div className="today-visit-action-menu">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenVisitMenuId(null);
+                            onRemindVisit?.(entry);
+                          }}>
                           <MessageSquareText size={13} />
                           Написать
                         </button>
-                        <button type="button" onClick={() => onEditVisit?.(entry)}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenVisitMenuId(null);
+                            onEditVisit?.(entry);
+                          }}>
                           <Pencil size={13} />
                           Редактировать
                         </button>
                       </div>
-                    </details>
+                      ) : null}
+                    </div>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </section>
@@ -284,7 +330,7 @@ function TodayPage({
             isMobile ? `today-side-column-mobile today-side-column-${mobileSection}` : ""
           }`}>
           {!isMobile && (
-          <section className="today-section">
+          <section className="today-section today-section-upcoming">
             <div className="today-section-heading">
               <div>
                 <h3>Ближайшие визиты</h3>
@@ -308,7 +354,7 @@ function TodayPage({
           )}
 
           {!isMobile && (
-          <section className="today-section">
+          <section className="today-section today-section-windows">
             <div className="today-section-heading">
               <div>
                 <h3>Свободные окна</h3>
@@ -334,7 +380,7 @@ function TodayPage({
           )}
 
           {(!isMobile || mobileSection === "tasks") && (
-          <section className="today-section">
+          <section className="today-section today-section-tasks">
             <div className="today-section-heading">
               <div>
                 <h3>Задачи на сегодня</h3>
@@ -375,7 +421,7 @@ function TodayPage({
           )}
 
           {(!isMobile || mobileSection === "stock") && (
-          <section className="today-section">
+          <section className="today-section today-section-stock">
             <div className="today-section-heading">
               <div>
                 <h3>Низкий остаток</h3>
@@ -416,7 +462,7 @@ function TodayPage({
           )}
 
           {(!isMobile || mobileSection === "alerts") && (
-            <section className="today-section">
+            <section className="today-section today-section-important">
               <div className="today-section-heading">
                 <div>
                   <h3>Важное</h3>

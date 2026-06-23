@@ -446,7 +446,7 @@ function CalendarPage({
   };
 
   return (
-    <section className="calendar-page">
+    <section className={`calendar-page ${isMobile ? "calendar-page-mobile" : "calendar-page-desktop"}`}>
       <PageHeader
         actions={
           <div className="calendar-toolbar-actions">
@@ -539,17 +539,7 @@ function CalendarPage({
         }
         className="calendar-toolbar calendar-page-header"
         description={`${visitEntries.length} визитов запланировано`}
-        headerActions={
-          !isMobile ? (
-            <button
-              className="add-visit-button calendar-desktop-add-button"
-              type="button"
-              onClick={() => onAdd({date: selectedDate})}>
-              <Plus size={17} />
-              Добавить
-            </button>
-          ) : null
-        }
+        headerActions={null}
         title="Календарь"
       />
 

@@ -1,9 +1,6 @@
 import {
   LogOut,
-  Menu,
   MoreHorizontal,
-  PanelLeftClose,
-  PanelLeftOpen,
   Search,
   X,
 } from "lucide-react";
@@ -21,7 +18,6 @@ export default function AppNavigation({
   ownerName = "Влад",
 }) {
   const closeSidebar = () => onSidebarVisibleChange(false);
-  const openSidebar = () => onSidebarVisibleChange(true);
 
   const handleDesktopPageChange = (page) => {
     onPageChange(page);
@@ -50,18 +46,11 @@ export default function AppNavigation({
             <small>CRM</small>
           </div>
         </div>
-        <button
-          aria-label="Скрыть меню"
-          className="sidebar-collapse-button"
-          title="Скрыть меню"
-          type="button"
-          onClick={closeSidebar}>
-          <PanelLeftClose size={17} />
-        </button>
-
         <nav className="nav-list" aria-label="Главное меню">
           <button
+            aria-label="Поиск клиентов"
             className="client-search-trigger"
+            data-label="Поиск клиентов"
             type="button"
             onClick={onOpenClientSearch}>
             <Search size={18} />
@@ -104,6 +93,7 @@ export default function AppNavigation({
             className="logout-button"
             type="button"
             aria-label="Выйти"
+            data-label="Выйти"
             onClick={onLogout}>
             <LogOut size={16} />
           </button>
@@ -145,17 +135,6 @@ export default function AppNavigation({
             })}
           </nav>
         </section>
-      )}
-
-      {!sidebarVisible && (
-        <button
-          className="sidebar-restore-button"
-          type="button"
-          aria-label="Показать меню"
-          onClick={openSidebar}>
-          <Menu className="mobile-menu-icon" size={20} />
-          <PanelLeftOpen className="desktop-menu-icon" size={18} />
-        </button>
       )}
 
       <nav className="mobile-bottom-nav" aria-label="Мобильная навигация">
