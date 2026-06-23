@@ -21,6 +21,7 @@ import {
 } from "../../utils/formatters.jsx";
 import {getVisitTotal} from "../../utils/visits.jsx";
 import {matchesClientRecord} from "../../utils/clientLinks.js";
+import {buildClientQualityReport} from "../../utils/clientQuality.js";
 import {
   isActiveClientPackage,
   isArchivedClientPackage,
@@ -224,6 +225,10 @@ function ClientsPage({
       }),
     [calendarEntries, certificates, clientPackages, clients, employees, visits],
   );
+  const clientQualityReport = useMemo(
+    () => buildClientQualityReport(clientsData),
+    [clientsData],
+  );
   const activeViewedClient = useMemo(() => {
     if (!viewedClient) {
       return null;
@@ -314,6 +319,15 @@ function ClientsPage({
         }
         description={isMobile ? undefined : `${filteredClients.length} из ${clients.length} в базе`}
         title="Клиенты"
+      />
+
+      <ClientQualityPanel
+        report={clientQualityReport}
+        onEditClient={onEditClient}
+        onOpenClient={(client) => {
+          setViewedClient(client);
+          setVisitHistoryTab("future");
+        }}
       />
 
       <div className="clients-table">
@@ -807,6 +821,97 @@ function formatAppointmentSummary(appointment) {
   }
 
   return `${appointment.date}${appointment.time !== "—" ? ` · ${appointment.time}` : ""}`;
+}
+
+function ClientQualityPanel({report, onEditClient, onOpenClient}) {
+  const topMissing = [
+    ...report.missingPhone.map((client) => ({
+      client,
+      label: "Нет телефона",
+    })),
+    ...report.missingSource.map((client) => ({
+      client,
+      label: "Нет источника",
+    })),
+    ...report.missingMessageLanguage.map((client) => ({
+      client,
+      label: "Нет языка SMS",
+    })),
+  ].slice(0, 5);
+  const duplicateGroups = [...report.duplicatePhones, ...report.duplicateNames].slice(
+    0,
+    4,
+  );
+
+  return (
+    <section className="client-quality-panel">
+      <div className="client-quality-score">
+        <span>Качество базы</span>
+        <strong>{report.score}%</strong>
+        <small>
+          {report.hasIssues
+            ? `${report.issuesCount} пунктов к проверке`
+            : "База выглядит чисто"}
+        </small>
+      </div>
+
+      <div className="client-quality-metrics">
+        <article>
+          <span>Дубли телефонов</span>
+          <strong>{report.duplicatePhones.length}</strong>
+        </article>
+        <article>
+          <span>Дубли имён</span>
+          <strong>{report.duplicateNames.length}</strong>
+        </article>
+        <article>
+          <span>Без телефона</span>
+          <strong>{report.missingPhone.length}</strong>
+        </article>
+        <article>
+          <span>Без источника/SMS</span>
+          <strong>
+            {report.missingSource.length + report.missingMessageLanguage.length}
+          </strong>
+        </article>
+      </div>
+
+      <div className="client-quality-lists">
+        <div>
+          <span>Быстро исправить</span>
+          {topMissing.length > 0 ? (
+            topMissing.map((item) => (
+              <button
+                key={`${item.label}-${item.client.id}`}
+                type="button"
+                onClick={() => onEditClient(item.client)}>
+                <strong>{item.client.name}</strong>
+                <small>{item.label}</small>
+              </button>
+            ))
+          ) : (
+            <p>Критичных пропусков нет.</p>
+          )}
+        </div>
+        <div>
+          <span>Похожие клиенты</span>
+          {duplicateGroups.length > 0 ? (
+            duplicateGroups.map((group) => (
+              <button
+                key={group.key}
+                type="button"
+                onClick={() => onOpenClient(group.clients[0])}>
+                <strong>{group.clients.map((client) => client.name).join(" / ")}</strong>
+                <small>{group.clients.length} записи · открыть первую</small>
+              </button>
+            ))
+          ) : (
+            <p>Дублей не найдено.</p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function getAppointmentStatus(entry) {
