@@ -23,6 +23,21 @@ export const fetchPendingSiteBookings = async () => {
   return data ?? [];
 };
 
+export const fetchRecentSiteBookings = async ({limit = 50} = {}) => {
+  const client = ensureSupabase();
+  const {data, error} = await client
+    .from("site_booking_requests")
+    .select("*")
+    .order("created_at", {ascending: false})
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+};
+
 export const updateSiteBookingRequest = async (id, patch) => {
   const client = ensureSupabase();
   const {data, error} = await client

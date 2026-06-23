@@ -1,7 +1,35 @@
 import {CalendarPlus, Globe, LoaderCircle, MessageSquareText, RefreshCw, X} from "lucide-react";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {fetchOwnerNotifyStatus, testOwnerNotify} from "../utils/ownerNotifyApi.js";
 import {formatSiteBookingInputDate} from "../utils/siteBooking.js";
+import {buildSiteBookingFunnel} from "../utils/siteBookingFunnel.js";
+
+const STALE_PENDING_HOURS = 2;
+
+const formatCreatedAt = (value) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleString("ru-RU", {
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "2-digit",
+  });
+};
+
+const isStalePendingRequest = (request, now) => {
+  const createdAt = new Date(request?.created_at ?? request?.createdAt);
+
+  if (Number.isNaN(createdAt.getTime())) {
+    return true;
+  }
+
+  return now.getTime() - createdAt.getTime() >= STALE_PENDING_HOURS * 60 * 60 * 1000;
+};
 
 function SiteBookingPanel({
   applyingRequestId = "",
@@ -9,6 +37,7 @@ function SiteBookingPanel({
   loadError,
   loading,
   pendingRequests = [],
+  recentRequests = [],
   onApply,
   onRefresh,
   onReject,
@@ -27,6 +56,16 @@ function SiteBookingPanel({
     whatsappConfigured: false,
   });
   const [testingNotify, setTestingNotify] = useState(false);
+  const [funnelNow] = useState(() => new Date());
+  const funnel = useMemo(
+    () =>
+      buildSiteBookingFunnel({
+        now: funnelNow,
+        pendingStaleHours: STALE_PENDING_HOURS,
+        requests: recentRequests.length ? recentRequests : pendingRequests,
+      }),
+    [funnelNow, pendingRequests, recentRequests],
+  );
 
   const refreshNotifyStatus = useCallback(async () => {
     setNotifyStatus((current) => ({...current, loading: true}));
@@ -195,6 +234,41 @@ function SiteBookingPanel({
         ) : null}
       </div>
 
+      <div className="site-booking-funnel">
+        <div className="site-booking-funnel-head">
+          <div>
+            <strong>Воронка заявок</strong>
+            <span>
+              Последние {funnel.total} · средняя реакция {funnel.averageResponseLabel}
+            </span>
+          </div>
+          <b className={funnel.stalePendingCount > 0 ? "is-warning" : ""}>
+            {funnel.stalePendingCount > 0
+              ? `Зависли: ${funnel.stalePendingCount}`
+              : "Без зависших"}
+          </b>
+        </div>
+        <div className="site-booking-funnel-stages">
+          {funnel.stages.map((stage) => (
+            <article className={`site-booking-funnel-stage is-${stage.id}`} key={stage.id}>
+              <span>{stage.label}</span>
+              <strong>{stage.count}</strong>
+            </article>
+          ))}
+        </div>
+        {funnel.stalePendingRequests.length ? (
+          <div className="site-booking-funnel-warning">
+            <strong>Проверьте старые заявки</strong>
+            <span>
+              {funnel.stalePendingRequests
+                .slice(0, 2)
+                .map((request) => request.client_name || request.clientName || "Клиент")
+                .join(", ")}
+            </span>
+          </div>
+        ) : null}
+      </div>
+
       {!isMobile ? (
         <p className="field-hint">
           Сначала укажите Chat ID и включите каналы в блоке «Уведомления о заявках с
@@ -213,15 +287,21 @@ function SiteBookingPanel({
             <article
               className={`site-booking-card${
                 isMobile ? " site-booking-mobile-card" : ""
-              }`}
+              }${isStalePendingRequest(request, funnelNow) ? " is-stale" : ""}`}
               key={request.id}>
               <div className="site-booking-card-main">
                 <strong>{request.client_name}</strong>
+                {isStalePendingRequest(request, funnelNow) ? (
+                  <small className="site-booking-stale-label">Ждёт больше 2 часов</small>
+                ) : null}
                 <span>
                   {formatSiteBookingInputDate(request.preferred_date)} ·{" "}
                   {String(request.preferred_time ?? "").slice(0, 5)}
                 </span>
                 <span>{request.service_name}</span>
+                {request.created_at ? (
+                  <small>Заявка: {formatCreatedAt(request.created_at)}</small>
+                ) : null}
                 {request.preferred_master ? (
                   <small>Мастер: {request.preferred_master}</small>
                 ) : null}

@@ -2,6 +2,7 @@ import {useCallback, useEffect, useState} from "react";
 import {applySiteBookingRequest} from "../utils/applySiteBooking.js";
 import {
   fetchPendingSiteBookings,
+  fetchRecentSiteBookings,
   updateSiteBookingRequest,
 } from "../utils/siteBookingApi.js";
 import {summarizeSiteBookingRequest, formatSiteBookingInputDate} from "../utils/siteBooking.js";
@@ -18,6 +19,7 @@ export function useSiteBookingHandlers({
   setClientProfiles,
 }) {
   const [pendingRequests, setPendingRequests] = useState([]);
+  const [recentRequests, setRecentRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [applyingRequestId, setApplyingRequestId] = useState("");
@@ -27,11 +29,16 @@ export function useSiteBookingHandlers({
     setLoadError("");
 
     try {
-      const requests = await fetchPendingSiteBookings();
+      const [requests, recent] = await Promise.all([
+        fetchPendingSiteBookings(),
+        fetchRecentSiteBookings(),
+      ]);
       setPendingRequests(requests);
+      setRecentRequests(recent);
     } catch (error) {
       setLoadError(error?.message || "Не удалось загрузить заявки с сайта");
       setPendingRequests([]);
+      setRecentRequests([]);
     } finally {
       setLoading(false);
     }
@@ -69,6 +76,18 @@ export function useSiteBookingHandlers({
 
         setPendingRequests((current) =>
           current.filter((item) => item.id !== request.id),
+        );
+        setRecentRequests((current) =>
+          current.map((item) =>
+            item.id === request.id
+              ? {
+                  ...item,
+                  linked_calendar_entry_id: String(result.calendarEntryId),
+                  status: "applied",
+                  updated_at: new Date().toISOString(),
+                }
+              : item,
+          ),
         );
 
         const visitDate =
@@ -113,6 +132,13 @@ export function useSiteBookingHandlers({
       setPendingRequests((current) =>
         current.filter((item) => item.id !== request.id),
       );
+      setRecentRequests((current) =>
+        current.map((item) =>
+          item.id === request.id
+            ? {...item, status: "rejected", updated_at: new Date().toISOString()}
+            : item,
+        ),
+      );
       pushNotification({
         message: summarizeSiteBookingRequest(request),
         title: "Заявка с сайта отклонена",
@@ -127,6 +153,7 @@ export function useSiteBookingHandlers({
     loadError,
     loading,
     pendingRequests,
+    recentRequests,
     refreshPendingRequests,
     rejectRequest,
   };

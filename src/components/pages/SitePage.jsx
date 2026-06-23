@@ -77,6 +77,7 @@ function SitePage({
                 loadError={siteBooking.loadError}
                 loading={siteBooking.loading}
                 pendingRequests={siteBooking.pendingRequests}
+                recentRequests={siteBooking.recentRequests}
                 pushNotification={pushNotification}
                 onApply={siteBooking.applyRequest}
                 onRefresh={siteBooking.refreshPendingRequests}
@@ -113,6 +114,7 @@ function SitePage({
             loadError={siteBooking.loadError}
             loading={siteBooking.loading}
             pendingRequests={siteBooking.pendingRequests}
+            recentRequests={siteBooking.recentRequests}
             pushNotification={pushNotification}
             onApply={siteBooking.applyRequest}
             onRefresh={siteBooking.refreshPendingRequests}

@@ -657,6 +657,9 @@
   html body .notion-linear-redesign .site-page-mobile .site-booking-empty,
   html body .notion-linear-redesign .site-page-mobile .booksy-sync-status span,
   html body .notion-linear-redesign .site-page-mobile .booksy-sync-status small,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-funnel-head span,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-funnel-stage span,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-funnel-warning span,
   html body .notion-linear-redesign .site-page-mobile .site-booking-card-main span,
   html body .notion-linear-redesign .site-page-mobile .site-booking-card-main small {
     color: var(--lux-mobile-muted) !important;
@@ -666,6 +669,7 @@
 
   html body .notion-linear-redesign .site-page-mobile .site-booking-notify-options,
   html body .notion-linear-redesign .site-page-mobile .site-notify-toggles,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-funnel-stages,
   html body .notion-linear-redesign .site-page-mobile .site-booking-list,
   html body .notion-linear-redesign .site-page-mobile .site-booking-toolbar-mobile {
     display: grid !important;
@@ -697,6 +701,9 @@
 
   html body .notion-linear-redesign .site-page-mobile .form-checkbox.site-notify-toggle,
   html body .notion-linear-redesign .site-page-mobile .booksy-sync-status,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-funnel,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-funnel-stage,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-funnel-warning,
   html body .notion-linear-redesign .site-page-mobile .site-booking-mobile-card,
   html body .notion-linear-redesign .site-page-mobile .site-booking-empty {
     display: grid !important;
@@ -730,6 +737,9 @@
   }
 
   html body .notion-linear-redesign .site-page-mobile .booksy-sync-status strong,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-funnel-head strong,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-funnel-stage strong,
+  html body .notion-linear-redesign .site-page-mobile .site-booking-funnel-warning strong,
   html body .notion-linear-redesign .site-page-mobile .site-booking-card-main strong {
     color: var(--lux-mobile-title) !important;
     font-size: 13px !important;
