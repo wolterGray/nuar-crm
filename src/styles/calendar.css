@@ -1003,6 +1003,56 @@
   background: color-mix(in srgb, #45a873 12%, var(--surface-muted, #edf6ef));
 }
 
+.calendar-client-insights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.calendar-client-insights article {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent-color) 22%, transparent);
+  border-radius: 10px;
+  color: var(--text-main, #386247);
+  background: color-mix(in srgb, var(--accent-color) 8%, transparent);
+  font-size: 12px;
+}
+
+.calendar-client-insights article.warning {
+  border-color: color-mix(in srgb, #c9483c 28%, transparent);
+  color: #8d342d;
+  background: color-mix(in srgb, #c9483c 9%, transparent);
+}
+
+.calendar-client-insights strong,
+.calendar-client-insights span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-client-insights button {
+  width: fit-content;
+  min-height: 28px;
+  margin-top: 2px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  color: #fff;
+  background: var(--accent-color);
+  font-size: 11px;
+}
+
+@media (max-width: 760px) {
+  .calendar-client-insights {
+    grid-template-columns: 1fr;
+  }
+}
+
 .calendar-entry-form label {
   gap: 4px;
   color: var(--text-main, inherit);
@@ -1092,6 +1142,18 @@
 .theme-dark .calendar-client-template-hint {
   color: #b6e1c2;
   background: #132316;
+}
+
+.theme-dark .calendar-client-insights article {
+  color: #d5dfec;
+  border-color: #344052;
+  background: #111722;
+}
+
+.theme-dark .calendar-client-insights article.warning {
+  color: #ffb4ab;
+  border-color: rgba(255, 120, 110, 0.28);
+  background: rgba(120, 34, 34, 0.18);
 }
 
 .theme-dark .calendar-feed-toggle,

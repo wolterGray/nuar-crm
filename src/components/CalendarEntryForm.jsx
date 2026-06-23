@@ -2,6 +2,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Controller, useForm, useWatch} from "react-hook-form";
 import {z} from "zod";
+import {getUpcomingBirthday} from "../utils/clientAlerts.js";
 import {isActiveClientPackage} from "../utils/clientPackages.js";
 import {getActiveCertificatesForClient} from "../utils/certificates.js";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
@@ -11,6 +12,7 @@ import {getPackageProgressLabel, isUpcomingPackageVisit} from "../utils/packages
 import {calculateSiteBookingPrice} from "../utils/siteBookingPricing.js";
 import {FieldLabel} from "./HintIcon.jsx";
 import {toVisitNumber} from "../utils/visits.jsx";
+import {formatMoney, getDaysSinceDisplayDate, toDisplayDate} from "../utils/formatters.jsx";
 
 const fallbackColors = ["#4f8edc", "#8b6fd6", "#45a873", "#d78a42", "#c75b78"];
 const toMinutes = (time) => {
@@ -141,6 +143,7 @@ function CalendarEntryForm({
   const [clientTemplateApplied, setClientTemplateApplied] = useState(
     Boolean(initialEntry),
   );
+  const [insightsNow] = useState(() => new Date());
   const skipInitialPricingRef = useRef(Boolean(initialEntry));
   const pricingTouchedRef = useRef(
     Boolean(
@@ -266,7 +269,7 @@ function CalendarEntryForm({
       employee,
       time,
     });
-  }, [date, duration, employees, kind, master, serviceVariant, time]);
+  }, [date, employees, kind, master, serviceVariant, time]);
   useEffect(() => {
     if (kind !== "visit" || !visitPricing || pricingTouchedRef.current) {
       return;
@@ -427,6 +430,85 @@ function CalendarEntryForm({
     clients,
     client,
   );
+  const clientInsights = useMemo(() => {
+    if (kind !== "visit" || !clientExists) {
+      return null;
+    }
+
+    const selectedClient =
+      clients.find((item) => item.name === client) ??
+      clients.find((item) => matchesClientRecord({client}, clients, item)) ??
+      null;
+    const activePackages = clientPackages.filter(
+      (item) =>
+        matchesClientRecord(item, clients, client) &&
+        isActiveClientPackage(item),
+    );
+    const activeCertificates = getActiveCertificatesForClient(
+      certificates,
+      clients,
+      client,
+    );
+    const clientRecords = [...visits, ...calendarEntries].filter(
+      (visit) =>
+        visit.kind !== "reserved" &&
+        matchesClientRecord(visit, clients, client) &&
+        (!initialEntry || visit.id !== initialEntry.id),
+    );
+    const pastVisits = clientRecords
+      .filter((visit) => {
+        const timestamp = getVisitTimestamp(visit);
+
+        return (
+          Number.isFinite(timestamp) &&
+          timestamp < insightsNow.getTime() &&
+          !["cancelled", "no_show"].includes(String(visit.status ?? ""))
+        );
+      })
+      .sort((first, second) => getVisitTimestamp(second) - getVisitTimestamp(first));
+    const futureVisits = calendarEntries
+      .filter((entry) => {
+        const timestamp = getVisitTimestamp(entry);
+
+        return (
+          entry.kind === "visit" &&
+          matchesClientRecord(entry, clients, client) &&
+          (!initialEntry || entry.id !== initialEntry.id) &&
+          Number.isFinite(timestamp) &&
+          timestamp > insightsNow.getTime() &&
+          !["completed", "cancelled", "no_show"].includes(String(entry.status ?? ""))
+        );
+      })
+      .sort((first, second) => getVisitTimestamp(first) - getVisitTimestamp(second));
+    const lastVisit = pastVisits[0] ?? null;
+    const lastVisitDisplay = lastVisit ? toDisplayDate(lastVisit.date) : "";
+    const daysSinceLastVisit = lastVisitDisplay
+      ? getDaysSinceDisplayDate(lastVisitDisplay)
+      : null;
+    const birthdayInfo = getUpcomingBirthday(selectedClient?.birthday, insightsNow);
+
+    return {
+      activeCertificates,
+      activePackages,
+      birthdayInfo,
+      daysSinceLastVisit,
+      futureVisit: futureVisits[0] ?? null,
+      hasPhone: Boolean(String(selectedClient?.phone ?? "").trim()),
+      lastVisitDisplay,
+      selectedClient,
+    };
+  }, [
+    calendarEntries,
+    certificates,
+    client,
+    clientExists,
+    clientPackages,
+    clients,
+    initialEntry,
+    insightsNow,
+    kind,
+    visits,
+  ]);
   const durationOptions = useMemo(
     () =>
       [...new Set([30, 45, 60, 75, 90, 120, ...(service?.variants ?? []).map((variant) => Number(variant.duration))])]
@@ -503,6 +585,83 @@ function CalendarEntryForm({
             <p className="calendar-client-template-hint">
               Данные заполнены по предыдущему визиту клиента.
             </p>
+          )}
+          {clientInsights && (
+            <div className="calendar-client-insights">
+              {!clientInsights.hasPhone ? (
+                <article className="warning">
+                  <strong>Нет телефона</strong>
+                  <span>SMS-напоминание клиенту не уйдёт.</span>
+                </article>
+              ) : null}
+              {clientInsights.futureVisit ? (
+                <article className="warning">
+                  <strong>Уже есть будущая запись</strong>
+                  <span>
+                    {toDisplayDate(clientInsights.futureVisit.date)} ·{" "}
+                    {clientInsights.futureVisit.time} ·{" "}
+                    {clientInsights.futureVisit.service || "визит"}
+                  </span>
+                </article>
+              ) : null}
+              {clientInsights.daysSinceLastVisit !== null &&
+              clientInsights.daysSinceLastVisit >= 45 ? (
+                <article>
+                  <strong>Вернулся после паузы</strong>
+                  <span>
+                    Не был {clientInsights.daysSinceLastVisit} дн. · последний визит{" "}
+                    {clientInsights.lastVisitDisplay}
+                  </span>
+                </article>
+              ) : null}
+              {clientInsights.birthdayInfo?.daysLeft <= 7 ? (
+                <article>
+                  <strong>День рождения</strong>
+                  <span>
+                    {clientInsights.birthdayInfo.label} ·{" "}
+                    {clientInsights.birthdayInfo.date}
+                  </span>
+                </article>
+              ) : null}
+              {clientInsights.activePackages.length > 0 && payment !== "Пакет" ? (
+                <article>
+                  <strong>Есть активный пакет</strong>
+                  <span>
+                    {clientInsights.activePackages[0].packageName || "Пакет"} ·{" "}
+                    {clientInsights.activePackages[0].remainingVisits} сеанс. осталось
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormValue("payment", "Пакет");
+                      setFormValue("packageUsageId", clientInsights.activePackages[0].id);
+                    }}>
+                    Использовать пакет
+                  </button>
+                </article>
+              ) : null}
+              {clientInsights.activeCertificates.length > 0 &&
+              payment !== "Сертификат" ? (
+                <article>
+                  <strong>Есть сертификат</strong>
+                  <span>
+                    {clientInsights.activeCertificates[0].code || "Сертификат"} ·{" "}
+                    {formatMoney(clientInsights.activeCertificates[0].remainingBalance)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormValue("payment", "Сертификат");
+                      setFormValue(
+                        "certificateUsageId",
+                        clientInsights.activeCertificates[0].id,
+                      );
+                    }}>
+                    Использовать сертификат
+                  </button>
+                </article>
+              ) : null}
+            </div>
           )}
         </fieldset>
       )}
