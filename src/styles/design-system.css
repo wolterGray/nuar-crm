@@ -563,6 +563,8 @@
   padding: 0 20px calc(20px + env(safe-area-inset-bottom, 0px));
 }
 
+.client-details-modal .client-overview-panel,
+.client-details-modal .client-assets-panel,
 .client-details-modal .client-details-grid,
 .client-details-modal .client-details-note,
 .client-details-modal .client-visit-history,
@@ -570,6 +572,8 @@
   margin-top: 12px;
 }
 
+.client-details-modal.mobile-sheet .client-overview-panel,
+.client-details-modal.mobile-sheet .client-assets-panel,
 .client-details-modal.mobile-sheet .client-details-grid,
 .client-details-modal.mobile-sheet .client-details-note,
 .client-details-modal.mobile-sheet .client-visit-history,
@@ -577,6 +581,8 @@
   margin-top: 0;
 }
 
+.client-details-modal.mobile-sheet .client-overview-panel,
+.client-details-modal.mobile-sheet .client-assets-panel,
 .client-details-modal.mobile-sheet .client-details-grid,
 .client-details-modal.mobile-sheet .client-details-note,
 .client-details-modal.mobile-sheet .client-visit-history,

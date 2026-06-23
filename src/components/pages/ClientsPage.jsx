@@ -25,6 +25,10 @@ import {
   isActiveClientPackage,
   isArchivedClientPackage,
 } from "../../utils/clientPackages.js";
+import {
+  getActiveCertificatesForClient,
+  getCertificateBalanceLabel,
+} from "../../utils/certificates.js";
 import PageHeader from "../PageHeader.jsx";
 import MobileSheet from "../MobileSheet.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
@@ -36,6 +40,7 @@ function ClientsPage({
   calendarEntries,
   clients,
   clientPackages,
+  certificates = [],
   communicationLog,
   employees,
   inactiveClientDays,
@@ -149,6 +154,11 @@ function ClientsPage({
           matchesClientRecord(packageItem, clients, client),
         );
         const activePackages = packages.filter(isActiveClientPackage);
+        const activeCertificates = getActiveCertificatesForClient(
+          certificates,
+          clients,
+          client,
+        );
         const totalIncome =
           clientVisits.reduce(
             (sum, visit) => sum + getVisitTotal(visit, employees),
@@ -173,6 +183,19 @@ function ClientsPage({
             ...completedCalendarDates,
           ]) || "—";
         const daysAbsent = getDaysSinceDisplayDate(lastVisit);
+        const completedAppointments = appointments.filter(
+          (appointment) => appointment.status !== "Запланирован",
+        );
+        const futureAppointments = appointments
+          .filter((appointment) => appointment.status === "Запланирован")
+          .sort((first, second) =>
+            `${first.inputDate}T${first.time}`.localeCompare(
+              `${second.inputDate}T${second.time}`,
+            ),
+          );
+        const averageCheck =
+          clientVisits.length > 0 ? Math.round(totalIncome / clientVisits.length) : 0;
+        const favoriteService = getFavoriteService(completedAppointments);
 
         return {
           ...client,
@@ -183,14 +206,23 @@ function ClientsPage({
           ).length,
           appointments,
           totalIncome,
+          averageCheck,
+          favoriteService,
           packagesCount: activePackages.length,
+          activePackages,
+          activeCertificates,
+          activeCertificatesBalance: activeCertificates.reduce(
+            (sum, certificate) => sum + (Number(certificate.remainingBalance) || 0),
+            0,
+          ),
           packagesLeft,
           archivedPackagesCount: packages.filter(isArchivedClientPackage).length,
           lastVisit,
+          nextAppointment: futureAppointments[0] ?? null,
           daysAbsent,
         };
       }),
-    [calendarEntries, clientPackages, clients, employees, visits],
+    [calendarEntries, certificates, clientPackages, clients, employees, visits],
   );
   const activeViewedClient = useMemo(() => {
     if (!viewedClient) {
@@ -481,6 +513,68 @@ function ClientsPage({
             </div>
           }>
           <div className="client-details-body client-details-sheet-root">
+            <div className="client-overview-panel">
+              <article>
+                <span>Следующая запись</span>
+                <strong>{formatAppointmentSummary(activeViewedClient.nextAppointment)}</strong>
+                <small>
+                  {activeViewedClient.nextAppointment?.service ||
+                    "Можно записать в один клик"}
+                </small>
+              </article>
+              <article>
+                <span>Любимая услуга</span>
+                <strong>{activeViewedClient.favoriteService}</strong>
+                <small>{activeViewedClient.completedVisitsCount} завершено</small>
+              </article>
+              <article>
+                <span>Средний чек</span>
+                <strong>{formatMoney(activeViewedClient.averageCheck)}</strong>
+                <small>Всего {formatMoney(activeViewedClient.totalIncome)}</small>
+              </article>
+              <article>
+                <span>Активы клиента</span>
+                <strong>
+                  {activeViewedClient.packagesLeft} сеанс. ·{" "}
+                  {formatMoney(activeViewedClient.activeCertificatesBalance)}
+                </strong>
+                <small>
+                  {activeViewedClient.packagesCount} пак. ·{" "}
+                  {activeViewedClient.activeCertificates.length} серт.
+                </small>
+              </article>
+            </div>
+
+            {(activeViewedClient.activePackages.length > 0 ||
+              activeViewedClient.activeCertificates.length > 0) && (
+              <div className="client-assets-panel">
+                {activeViewedClient.activePackages.length > 0 ? (
+                  <section>
+                    <span>Активные пакеты</span>
+                    {activeViewedClient.activePackages.slice(0, 3).map((packageItem) => (
+                      <p key={packageItem.id}>
+                        <strong>{packageItem.packageName || "Пакет"}</strong>
+                        <small>{packageItem.remainingVisits} сеанс. осталось</small>
+                      </p>
+                    ))}
+                  </section>
+                ) : null}
+                {activeViewedClient.activeCertificates.length > 0 ? (
+                  <section>
+                    <span>Активные сертификаты</span>
+                    {activeViewedClient.activeCertificates
+                      .slice(0, 3)
+                      .map((certificate) => (
+                        <p key={certificate.id}>
+                          <strong>{certificate.code || "Сертификат"}</strong>
+                          <small>{getCertificateBalanceLabel(certificate)}</small>
+                        </p>
+                      ))}
+                  </section>
+                ) : null}
+              </div>
+            )}
+
             <div className="client-details-grid">
               <span>
                 Телефон <strong>{activeViewedClient.phone || "—"}</strong>
@@ -690,6 +784,29 @@ function ClientsPage({
       )}
     </section>
   );
+}
+
+function getFavoriteService(appointments = []) {
+  const serviceCounts = appointments.reduce((counts, appointment) => {
+    const service = appointment.service || "Услуга не указана";
+
+    counts.set(service, (counts.get(service) || 0) + 1);
+
+    return counts;
+  }, new Map());
+
+  return (
+    [...serviceCounts.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] ||
+    "—"
+  );
+}
+
+function formatAppointmentSummary(appointment) {
+  if (!appointment) {
+    return "Нет будущей записи";
+  }
+
+  return `${appointment.date}${appointment.time !== "—" ? ` · ${appointment.time}` : ""}`;
 }
 
 function getAppointmentStatus(entry) {

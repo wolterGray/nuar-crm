@@ -90,6 +90,7 @@ export default function AppRoutes({activePage, ...props}) {
           calendarEntries={props.calendarEntries}
           clients={props.clientProfiles}
           clientPackages={props.clientPackages}
+          certificates={props.certificates}
           communicationLog={props.communicationLog}
           employees={props.employees}
           inactiveClientDays={props.inactiveClientDays}

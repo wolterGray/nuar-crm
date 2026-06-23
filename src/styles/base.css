@@ -2559,6 +2559,65 @@ h2 {
   white-space: nowrap;
 }
 
+.client-overview-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.client-overview-panel article,
+.client-assets-panel section {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f7f7f6;
+}
+
+.client-overview-panel span,
+.client-assets-panel > section > span {
+  color: #6f737b;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.client-overview-panel strong,
+.client-assets-panel strong {
+  overflow: hidden;
+  color: #15171c;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-overview-panel small,
+.client-assets-panel small {
+  overflow: hidden;
+  color: #7b8089;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-assets-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.client-assets-panel p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding-top: 6px;
+  border-top: 1px solid #ececea;
+}
+
 .client-details-note {
   display: grid;
   gap: 6px;
@@ -2827,8 +2886,29 @@ h2 {
 
 .theme-dark .client-communications article,
 .theme-dark .client-communications-empty,
+.theme-dark .client-overview-panel article,
+.theme-dark .client-assets-panel section,
 .theme-dark .client-birthday-note {
   background: #111722;
+}
+
+.theme-dark .client-overview-panel strong,
+.theme-dark .client-assets-panel strong {
+  color: #f8fbff;
+}
+
+.theme-dark .client-assets-panel p {
+  border-color: #344052;
+}
+
+@media (max-width: 760px) {
+  .client-overview-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .client-assets-panel {
+    grid-template-columns: 1fr;
+  }
 }
 
 .theme-dark .client-name-cell strong {
