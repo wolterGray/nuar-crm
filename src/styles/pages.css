@@ -2435,7 +2435,8 @@ button:focus-visible {
 .today-slot-list,
 .today-task-list,
 .today-supply-list,
-.today-note-list {
+.today-note-list,
+.today-action-list {
   display: grid;
   gap: 8px;
   margin: 0;
@@ -2445,7 +2446,8 @@ button:focus-visible {
 
 .today-visit-row,
 .today-task-row,
-.today-supply-row {
+.today-supply-row,
+.today-action-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2470,18 +2472,60 @@ button:focus-visible {
 
 .today-visit-main span,
 .today-task-row strong,
-.today-supply-row strong {
+.today-supply-row strong,
+.today-action-row strong {
   display: block;
   font-size: 13px;
 }
 
 .today-visit-main small,
 .today-task-row small,
-.today-supply-row small {
+.today-supply-row small,
+.today-action-row small {
   display: block;
   margin-top: 2px;
   color: #667085;
   font-size: 12px;
+}
+
+.today-action-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding-left: 16px;
+}
+
+.today-action-row::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 3px;
+  border-radius: 999px;
+  background: #8b7cff;
+}
+
+.today-action-row > div {
+  min-width: 0;
+}
+
+.today-action-row span {
+  display: block;
+  margin-bottom: 2px;
+  color: #667085;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.today-action-critical::before {
+  background: #ef4444;
+}
+
+.today-action-action::before {
+  background: #f59e0b;
 }
 
 .today-visit-meta {

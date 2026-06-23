@@ -14,6 +14,80 @@ const isTodayVisit = (entry, today) =>
   isSameAppDay(entry.date, today) &&
   !["cancelled", "no_show"].includes(String(entry.status ?? ""));
 
+const buildActionItems = ({
+  dueTasks = [],
+  lowStockSupplies = [],
+  priorityAlerts = [],
+  today,
+  todayBirthdays = [],
+  todayStats,
+}) => {
+  const items = [];
+
+  if (todayStats.debtVisits.length > 0) {
+    items.push({
+      id: "today-debts",
+      action: "payments",
+      message: `${todayStats.debtVisits.length} записей · ${todayStats.debtAmount} zł`,
+      priority: "critical",
+      title: "Проверить долги за сегодня",
+      type: "finance",
+    });
+  }
+
+  dueTasks.slice(0, 3).forEach((task) => {
+    items.push({
+      id: `task-${task.id}`,
+      action: "operations",
+      message: task.dueDate ? `Срок: ${task.dueDate}` : "Задача без даты",
+      priority: task.dueDate < today ? "critical" : "action",
+      title: task.title,
+      type: "task",
+    });
+  });
+
+  priorityAlerts.slice(0, 4).forEach((alert) => {
+    items.push({
+      id: `alert-${alert.id}`,
+      action: alert.page === "calendar" ? "calendar" : alert.page || "operations",
+      message: alert.message || "",
+      priority: alert.priority,
+      title: alert.title,
+      type: alert.type || "alert",
+    });
+  });
+
+  todayBirthdays.slice(0, 3).forEach((client) => {
+    items.push({
+      id: `birthday-${client.id}`,
+      action: "clients",
+      message: "Поздравить сегодня",
+      priority: "action",
+      title: client.name,
+      type: "birthday",
+    });
+  });
+
+  lowStockSupplies.slice(0, 3).forEach((item) => {
+    items.push({
+      id: `supply-${item.id}`,
+      action: "operations",
+      message: `${item.stock} ${item.unit} · мин. ${item.minStock}`,
+      priority: Number(item.stock) <= 0 ? "critical" : "action",
+      title: item.name,
+      type: "stock",
+    });
+  });
+
+  return items
+    .sort((left, right) => {
+      const priority = {critical: 0, action: 1, info: 2};
+
+      return (priority[left.priority] ?? 2) - (priority[right.priority] ?? 2);
+    })
+    .slice(0, 8);
+};
+
 export const buildTodayDashboard = ({
   alertSummary = {},
   alerts = [],
@@ -77,8 +151,17 @@ export const buildTodayDashboard = ({
       birthdayInfo: getUpcomingBirthday(client.birthday),
     }))
     .filter((client) => client.birthdayInfo?.daysLeft === 0);
+  const actionItems = buildActionItems({
+    dueTasks,
+    lowStockSupplies,
+    priorityAlerts,
+    today,
+    todayBirthdays,
+    todayStats,
+  });
 
   return {
+    actionItems,
     dueTasks,
     forecastRevenue: Number(alertSummary.revenueToday) || 0,
     freeSlots: freeSlots.slice(0, 8),

@@ -82,6 +82,9 @@ describe("todayDashboard", () => {
     expect(dashboard.lowStockSupplies).toHaveLength(1);
     expect(dashboard.todayBirthdays).toHaveLength(1);
     expect(dashboard.priorityAlerts).toHaveLength(1);
+    expect(dashboard.actionItems.length).toBeGreaterThan(0);
+    expect(dashboard.actionItems.some((item) => item.type === "task")).toBe(true);
+    expect(dashboard.actionItems.some((item) => item.type === "birthday")).toBe(true);
     expect(dashboard.forecastRevenue).toBe(900);
   });
 });

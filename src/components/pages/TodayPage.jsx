@@ -56,6 +56,7 @@ function TodayPage({
   onCompleteTask,
   onEditVisit,
   onOpenCalendar,
+  onOpenClients,
   onOpenOperations,
   onOpenPayments,
   onRemindVisit,
@@ -101,6 +102,17 @@ function TodayPage({
     Math.abs(Number(value) || 0) >= 1000
       ? formatCompactMoney(value)
       : formatMoney(value);
+  const openActionTarget = (action) => {
+    if (action === "calendar") {
+      onOpenCalendar?.();
+    } else if (action === "payments") {
+      onOpenPayments?.();
+    } else if (action === "clients") {
+      onOpenClients?.();
+    } else {
+      onOpenOperations?.();
+    }
+  };
 
   useEffect(() => {
     if (openVisitMenuId === null) {
@@ -465,45 +477,40 @@ function TodayPage({
             <section className="today-section today-section-important">
               <div className="today-section-heading">
                 <div>
-                  <h3>Важное</h3>
-                  <p>Дни рождения и сигналы</p>
+                  <h3>Центр действий</h3>
+                  <p>{dashboard.actionItems.length} пунктов к проверке</p>
                 </div>
                 <button
                   className="today-section-action secondary-button"
                   type="button"
-                  onClick={onOpenPayments}>
-                  <WalletCards size={14} />
-                  Оплаты
+                  onClick={onOpenOperations}>
+                  <ClipboardList size={14} />
+                  Операции
                 </button>
               </div>
-              {dashboard.todayBirthdays.length === 0 &&
-              dashboard.priorityAlerts.length === 0 ? (
-                <p className="today-empty">Важных событий на сегодня нет</p>
-              ) : null}
-              {dashboard.todayBirthdays.length > 0 ? (
-                <ul className="today-note-list">
-                  {dashboard.todayBirthdays.map((client) => (
-                    <li className="today-row-card today-task-row today-note-row" key={client.id}>
+              {dashboard.actionItems.length === 0 ? (
+                <p className="today-empty">Сейчас нет срочных действий.</p>
+              ) : (
+                <ul className="today-action-list">
+                  {dashboard.actionItems.map((item) => (
+                    <li
+                      className={`today-row-card today-action-row today-action-${item.priority}`}
+                      key={item.id}>
                       <div>
-                        <strong>{client.name}</strong>
-                        <small>День рождения · поздравить сегодня</small>
+                        <span>{getActionTypeLabel(item.type)}</span>
+                        <strong>{item.title}</strong>
+                        {item.message ? <small>{item.message}</small> : null}
                       </div>
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        onClick={() => openActionTarget(item.action)}>
+                        Открыть
+                      </button>
                     </li>
                   ))}
                 </ul>
-              ) : null}
-              {dashboard.priorityAlerts.length > 0 ? (
-                <ul className="today-note-list">
-                  {dashboard.priorityAlerts.map((alert) => (
-                    <li className="today-row-card today-task-row today-note-row" key={alert.id}>
-                      <div>
-                        <strong>{alert.title}</strong>
-                        {alert.message ? <small>{alert.message}</small> : null}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+              )}
             </section>
           )}
         </div>
@@ -515,6 +522,20 @@ function TodayPage({
       })()}
     </section>
   );
+}
+
+function getActionTypeLabel(type) {
+  const labels = {
+    birthday: "Клиент",
+    calendar: "Календарь",
+    certificate: "Сертификат",
+    finance: "Финансы",
+    package: "Пакет",
+    stock: "Склад",
+    task: "Задача",
+  };
+
+  return labels[type] || "Сигнал";
 }
 
 export default TodayPage;

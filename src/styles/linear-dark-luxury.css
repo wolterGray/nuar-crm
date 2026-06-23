@@ -4754,7 +4754,8 @@ html[data-color-theme="dark"] .notion-linear-redesign .content.today-content.hom
   .today-task-list,
   .today-slot-list,
   .today-supply-list,
-  .today-note-list
+  .today-note-list,
+  .today-action-list
 ) {
   display: grid !important;
   gap: 8px !important;
@@ -5046,6 +5047,7 @@ html[data-color-theme="dark"] .notion-linear-redesign .content.today-content.hom
   .today-slot-row.today-row-card,
   .today-supply-row.today-row-card,
   .today-note-row.today-row-card,
+  .today-action-row.today-row-card,
   .today-window-row.today-row-card
 ) {
   position: relative !important;
@@ -5072,6 +5074,7 @@ html[data-color-theme="dark"] .notion-linear-redesign .content.today-content.hom
   .today-slot-row.today-row-card,
   .today-supply-row.today-row-card,
   .today-note-row.today-row-card,
+  .today-action-row.today-row-card,
   .today-window-row.today-row-card
 ):hover {
   background: var(--lux-mobile-surface-raised) !important;
@@ -5083,6 +5086,7 @@ html[data-color-theme="dark"] .notion-linear-redesign .content.today-content.hom
   .today-slot-row.today-row-card,
   .today-supply-row.today-row-card,
   .today-note-row.today-row-card,
+  .today-action-row.today-row-card,
   .today-window-row.today-row-card
 )::before {
   content: "" !important;
@@ -5103,6 +5107,7 @@ html[data-color-theme="dark"] .notion-linear-redesign .content.today-content.hom
   .today-slot-row.today-row-card,
   .today-supply-row.today-row-card,
   .today-note-row.today-row-card,
+  .today-action-row.today-row-card,
   .today-window-row.today-row-card
 )::after {
   display: none !important;
@@ -5152,6 +5157,14 @@ html[data-color-theme="dark"] .notion-linear-redesign .content.today-content.hom
   color: var(--lux-mobile-muted) !important;
   font-size: 11px !important;
   line-height: 1.25 !important;
+}
+
+.notion-linear-redesign .today-page .today-action-critical {
+  --row-dot: #ef4444;
+}
+
+.notion-linear-redesign .today-page .today-action-action {
+  --row-dot: #f59e0b;
 }
 
 .notion-linear-redesign .today-page .today-window-row .today-slot-duration {

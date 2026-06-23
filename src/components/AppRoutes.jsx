@@ -34,6 +34,7 @@ export default function AppRoutes({activePage, ...props}) {
           onCompleteTask={props.completeTask}
           onEditVisit={(entry) => props.requestCalendarAction("edit", entry)}
           onOpenCalendar={() => props.setActivePage("calendar")}
+          onOpenClients={() => props.setActivePage("clients")}
           onOpenOperations={() => props.setActivePage("operations")}
           onOpenPayments={() => props.setActivePage("payments")}
           onRemindVisit={props.remindCalendarClient}
