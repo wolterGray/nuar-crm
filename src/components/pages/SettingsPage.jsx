@@ -11,7 +11,7 @@ import {
   SlidersHorizontal,
   Upload,
 } from "lucide-react";
-import {useMemo, useRef, useState} from "react";
+import {useCallback, useMemo, useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {resolveColorTheme} from "../../utils/colorTheme.js";
@@ -38,7 +38,7 @@ function SettingsMobileSection({children, isMobile, title}) {
   );
 }
 
-function IntegrationHealthPanel({report}) {
+function IntegrationHealthPanel({actions = {}, report}) {
   const overallState =
     report.summary.warning > 0 ? "warning" : report.summary.ok > 0 ? "ok" : "off";
   const overallLabel =
@@ -55,26 +55,56 @@ function IntegrationHealthPanel({report}) {
           <span>Авто-контроль</span>
           <strong>{overallLabel}</strong>
         </div>
-        <div className="integration-health-summary">
-          <b>{report.summary.ok}</b>
-          <small>OK</small>
-          <b>{report.summary.warning}</b>
-          <small>Внимание</small>
-          <b>{report.summary.off}</b>
-          <small>Выкл</small>
+        <div className="integration-health-head-actions">
+          <div className="integration-health-summary">
+            <b>{report.summary.ok}</b>
+            <small>OK</small>
+            <b>{report.summary.warning}</b>
+            <small>Внимание</small>
+            <b>{report.summary.off}</b>
+            <small>Выкл</small>
+          </div>
+          <button
+            className="secondary-button"
+            disabled={actions.refreshingAll}
+            type="button"
+            onClick={() => actions.onRefreshAll?.()}>
+            {actions.refreshingAll ? "Проверяю..." : "Проверить всё"}
+          </button>
         </div>
       </div>
       <div className="integration-health-list">
-        {report.items.map((item) => (
-          <article className={`integration-health-item is-${item.state}`} key={item.id}>
-            <span className="integration-health-dot" />
-            <div>
-              <strong>{item.name}</strong>
-              <small>{item.message}</small>
-            </div>
-            <em>{item.lastRunLabel}</em>
-          </article>
-        ))}
+        {report.items.map((item) => {
+          const itemActions = actions.itemActions?.[item.id] ?? [];
+
+          return (
+            <article className={`integration-health-item is-${item.state}`} key={item.id}>
+              <span className="integration-health-dot" />
+              <div>
+                <strong>{item.name}</strong>
+                <small>{item.message}</small>
+                <p>{item.diagnostic}</p>
+              </div>
+              <div className="integration-health-item-side">
+                <em>{item.lastRunLabel}</em>
+                {itemActions.length ? (
+                  <div className="integration-health-item-actions">
+                    {itemActions.map((action) => (
+                      <button
+                        className={action.primary ? "add-visit-button" : "secondary-button"}
+                        disabled={action.disabled}
+                        key={action.label}
+                        type="button"
+                        onClick={action.onClick}>
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
       </div>
     </div>
   );
@@ -109,6 +139,7 @@ function SettingsPage({
   const selectedColorTheme = resolveColorTheme(settings);
   const formRef = useRef(null);
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [integrationDiagnosticsRunning, setIntegrationDiagnosticsRunning] = useState(false);
   const settingsTabs = [
     {id: "interface", label: "Интерфейс", mobileLabel: "UI"},
     {id: "notifications", label: "Уведомления", mobileLabel: "Уведом."},
@@ -166,6 +197,151 @@ function SettingsPage({
         telegramDigest,
       }),
     [inactiveFollowUp, reviewRequests, settings, smsReminders, telegramDigest],
+  );
+  const runIntegrationDiagnostics = useCallback(async () => {
+    const refreshers = [
+      telegramDigest?.refreshStatus,
+      smsReminders?.refreshStatus,
+      reviewRequests?.refreshStatus,
+      inactiveFollowUp?.refreshStatus,
+    ].filter(Boolean);
+
+    if (!refreshers.length || integrationDiagnosticsRunning) {
+      return;
+    }
+
+    setIntegrationDiagnosticsRunning(true);
+
+    try {
+      const results = await Promise.allSettled(refreshers.map((refresh) => refresh()));
+      const failedCount = results.filter((result) => result.status === "rejected").length;
+
+      pushNotification?.({
+        title: failedCount ? "Диагностика завершена с ошибками" : "Диагностика завершена",
+        message: failedCount
+          ? `Не обновились статусы: ${failedCount}`
+          : "Статусы интеграций обновлены",
+      });
+    } finally {
+      setIntegrationDiagnosticsRunning(false);
+    }
+  }, [
+    inactiveFollowUp,
+    integrationDiagnosticsRunning,
+    pushNotification,
+    reviewRequests,
+    smsReminders,
+    telegramDigest,
+  ]);
+  const runIntegrationPreview = useCallback(
+    async (title, preview) => {
+      try {
+        const result = await preview?.();
+        const count = Array.isArray(result) ? result.length : String(result ?? "").length;
+
+        pushNotification?.({
+          title: `${title}: предпросмотр готов`,
+          message: Array.isArray(result)
+            ? `Найдено элементов: ${count}`
+            : "Сообщение собрано без отправки",
+        });
+      } catch (error) {
+        pushNotification?.({
+          title: `${title}: предпросмотр не выполнен`,
+          message: error?.message || "Проверьте настройки интеграции",
+        });
+      }
+    },
+    [pushNotification],
+  );
+  const integrationHealthActions = useMemo(
+    () => ({
+      itemActions: {
+        "inactive-follow-up": [
+          {
+            disabled: inactiveFollowUp?.status?.loading,
+            label: "Обновить",
+            onClick: () => inactiveFollowUp?.refreshStatus?.(),
+          },
+          {
+            label: "Предпросмотр",
+            onClick: () =>
+              runIntegrationPreview("Follow-up", inactiveFollowUp?.runPreview),
+          },
+          {
+            disabled:
+              inactiveFollowUp?.status?.loading || !inactiveFollowUp?.status?.configured,
+            label: "Отправить",
+            onClick: () => inactiveFollowUp?.runProcess?.(),
+            primary: true,
+          },
+        ],
+        "review-requests": [
+          {
+            disabled: reviewRequests?.status?.loading,
+            label: "Обновить",
+            onClick: () => reviewRequests?.refreshStatus?.(),
+          },
+          {
+            label: "Предпросмотр",
+            onClick: () =>
+              runIntegrationPreview("Запросы отзывов", reviewRequests?.runPreview),
+          },
+          {
+            disabled: reviewRequests?.status?.loading || !reviewRequests?.status?.configured,
+            label: "Отправить",
+            onClick: () => reviewRequests?.runProcess?.(),
+            primary: true,
+          },
+        ],
+        "sms-reminders": [
+          {
+            disabled: smsReminders?.status?.loading,
+            label: "Обновить",
+            onClick: () => smsReminders?.refreshStatus?.(),
+          },
+          {
+            label: "Предпросмотр",
+            onClick: () => runIntegrationPreview("SMS reminders", smsReminders?.runPreview),
+          },
+          {
+            disabled: smsReminders?.status?.loading || !smsReminders?.status?.configured,
+            label: "Отправить",
+            onClick: () => smsReminders?.runProcess?.(),
+            primary: true,
+          },
+        ],
+        "telegram-digest": [
+          {
+            disabled: telegramDigest?.status?.loading,
+            label: "Обновить",
+            onClick: () => telegramDigest?.refreshStatus?.(),
+          },
+          {
+            label: "Предпросмотр",
+            onClick: () =>
+              runIntegrationPreview("Telegram digest", telegramDigest?.runPreview),
+          },
+          {
+            disabled: telegramDigest?.status?.loading || !telegramDigest?.status?.configured,
+            label: "Отправить",
+            onClick: () => telegramDigest?.runSend?.(),
+            primary: true,
+          },
+        ],
+      },
+      onRefreshAll: runIntegrationDiagnostics,
+      refreshingAll: integrationDiagnosticsRunning,
+    }),
+    [
+      inactiveFollowUp,
+      integrationDiagnosticsRunning,
+      reviewRequests,
+      runIntegrationDiagnostics,
+      runIntegrationPreview,
+      smsReminders,
+      telegramDigest,
+    ],
   );
 
   const settingsTabsRow = (
@@ -743,7 +919,10 @@ function SettingsPage({
                 </h2>
               </div>
             </div>
-            <IntegrationHealthPanel report={integrationHealth} />
+            <IntegrationHealthPanel
+              actions={integrationHealthActions}
+              report={integrationHealth}
+            />
             </SettingsMobileSection>
             <SettingsMobileSection isMobile={isMobile} title="Gmail OAuth">
             <div className="settings-panel-heading">

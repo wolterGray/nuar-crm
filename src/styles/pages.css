@@ -1095,6 +1095,18 @@
   gap: 12px;
 }
 
+.integration-health-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.integration-health-head-actions .secondary-button {
+  min-height: 32px;
+}
+
 .integration-health-head span,
 .integration-health-item small {
   display: block;
@@ -1168,6 +1180,32 @@
   font-size: 13px;
 }
 
+.integration-health-item p {
+  margin: 4px 0 0;
+  color: var(--text-soft, #6f737b);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.integration-health-item-side {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.integration-health-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.integration-health-item-actions button {
+  min-height: 28px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
 .integration-health-item em {
   flex: 0 0 auto;
   color: var(--text-soft, #6f737b);
@@ -1192,6 +1230,10 @@
 .theme-dark .integration-health-summary b,
 .theme-dark .integration-health-item strong {
   color: #e5edf8;
+}
+
+.theme-dark .integration-health-item p {
+  color: #aeb8c7;
 }
 
 .toggle-row {
@@ -2692,6 +2734,13 @@ button:focus-visible {
     flex-direction: column;
   }
 
+  .integration-health-head-actions,
+  .integration-health-item-side {
+    width: 100%;
+    justify-items: start;
+    justify-content: flex-start;
+  }
+
   .integration-health-summary {
     width: 100%;
     grid-template-columns: repeat(3, 1fr auto);
@@ -2710,6 +2759,10 @@ button:focus-visible {
 
   .integration-health-item em {
     text-align: left;
+  }
+
+  .integration-health-item-actions {
+    justify-content: flex-start;
   }
 
   .today-dashboard-grid {

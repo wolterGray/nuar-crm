@@ -52,8 +52,12 @@ describe("integrationHealth", () => {
     expect(report.items.find((item) => item.id === "telegram-digest")?.state).toBe(
       "off",
     );
-    expect(report.items.find((item) => item.id === "sms-reminders")?.state).toBe(
-      "warning",
+    expect(report.items.find((item) => item.id === "telegram-digest")?.diagnostic).toContain(
+      "Включите автоматизацию",
     );
+    const smsHealth = report.items.find((item) => item.id === "sms-reminders");
+
+    expect(smsHealth?.state).toBe("warning");
+    expect(smsHealth?.diagnostic).toContain("GitHub Actions cron");
   });
 });
