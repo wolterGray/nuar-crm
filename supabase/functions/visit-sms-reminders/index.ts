@@ -17,14 +17,23 @@ type SnapshotPayload = {
 const createLogId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const authorizeCron = (request: Request, body: Record<string, unknown>) => {
-  const cronSecret = String(Deno.env.get("VISIT_SMS_CRON_SECRET") ?? "").trim();
-  const headerSecret = String(request.headers.get("x-cron-secret") ?? "").trim();
-
   if (body.action !== "cron") {
     return false;
   }
 
-  return Boolean(cronSecret && headerSecret && cronSecret === headerSecret);
+  const cronSecret = String(Deno.env.get("VISIT_SMS_CRON_SECRET") ?? "").trim();
+  const headerSecret = String(request.headers.get("x-cron-secret") ?? "").trim();
+
+  if (cronSecret && headerSecret && cronSecret === headerSecret) {
+    return true;
+  }
+
+  const authHeader = String(request.headers.get("Authorization") ?? "").trim();
+  const serviceRoleKey = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+
+  return Boolean(
+    serviceRoleKey && authHeader === `Bearer ${serviceRoleKey}`,
+  );
 };
 
 const loadSnapshotForUser = async (admin: ReturnType<typeof createAdminClient>, userId: string) => {

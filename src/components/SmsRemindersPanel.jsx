@@ -153,9 +153,10 @@ function SmsRemindersPanel({
       </button>
 
       <p className="field-hint">
-        В Supabase → Edge Functions → Secrets добавьте `SMSAPI_TOKEN`, опционально
-        `SMSAPI_SENDER`, `CRM_OWNER_USER_ID` и `VISIT_SMS_CRON_SECRET` для cron каждые
-        15 минут.
+        В Supabase → Edge Functions → Secrets добавьте `SMSAPI_TOKEN`,
+        `CRM_OWNER_USER_ID`, опционально `SMSAPI_SENDER` и `VISIT_SMS_CRON_SECRET`.
+        В GitHub Actions secrets нужны `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+        и опционально `VISIT_SMS_CRON_SECRET` для cron каждые 15 минут.
       </p>
     </section>
   );
