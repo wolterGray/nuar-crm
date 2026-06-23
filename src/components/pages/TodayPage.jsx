@@ -311,6 +311,52 @@ function TodayPage({
           )}
         </section>
 
+        <section
+          className={`today-section today-section-schedule-quality ${
+            dashboard.scheduleQuality.ok ? "is-ok" : "has-issues"
+          }`}>
+          <div className="today-section-heading">
+            <div>
+              <h3>Качество расписания</h3>
+              <p>
+                {dashboard.scheduleQuality.ok
+                  ? "Ошибок в сегодняшних записях не найдено"
+                  : `${dashboard.scheduleQuality.issues.length} пунктов к проверке`}
+              </p>
+            </div>
+            <button
+              className="today-section-action secondary-button"
+              type="button"
+              onClick={onOpenCalendar}>
+              <CalendarDays size={14} />
+              Календарь
+            </button>
+          </div>
+          {dashboard.scheduleQuality.ok ? (
+            <p className="today-empty">Расписание выглядит аккуратно.</p>
+          ) : (
+            <ul className="today-schedule-quality-list">
+              {dashboard.scheduleQuality.issues.slice(0, 5).map((issue) => (
+                <li
+                  className={`today-row-card today-schedule-quality-row today-action-${issue.priority}`}
+                  key={issue.id}>
+                  <div>
+                    <span>{getActionTypeLabel(issue.type)}</span>
+                    <strong>{issue.title}</strong>
+                    <small>{issue.message}</small>
+                  </div>
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={() => openActionTarget(issue.action)}>
+                    Открыть
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
         {isMobile && (
           <div aria-label="Разделы дня" className="today-mobile-tabs" role="tablist">
             <button
@@ -529,6 +575,7 @@ function getActionTypeLabel(type) {
     birthday: "Клиент",
     calendar: "Календарь",
     certificate: "Сертификат",
+    client: "Клиент",
     finance: "Финансы",
     package: "Пакет",
     stock: "Склад",

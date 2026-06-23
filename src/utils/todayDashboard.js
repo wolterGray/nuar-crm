@@ -5,6 +5,7 @@ import {buildFinanceStats, isCancelledVisit} from "./finance.js";
 import {toDisplayDate} from "./formatters.jsx";
 import {buildTodayFreeSlots} from "./calendarFreeSlots.js";
 import {isSupplyLowStock} from "./supplyStock.js";
+import {buildScheduleQualityReport} from "./scheduleQuality.js";
 
 const sortByTime = (left, right) =>
   String(left.time ?? "00:00").localeCompare(String(right.time ?? "00:00"));
@@ -18,6 +19,7 @@ const buildActionItems = ({
   dueTasks = [],
   lowStockSupplies = [],
   priorityAlerts = [],
+  scheduleQualityIssues = [],
   today,
   todayBirthdays = [],
   todayStats,
@@ -54,6 +56,17 @@ const buildActionItems = ({
       priority: alert.priority,
       title: alert.title,
       type: alert.type || "alert",
+    });
+  });
+
+  scheduleQualityIssues.slice(0, 4).forEach((issue) => {
+    items.push({
+      id: `schedule-quality-${issue.id}`,
+      action: issue.action || "calendar",
+      message: issue.message,
+      priority: issue.priority,
+      title: issue.title,
+      type: issue.type || "calendar",
     });
   });
 
@@ -145,6 +158,11 @@ export const buildTodayDashboard = ({
   const priorityAlerts = alerts
     .filter((alert) => alert.priority === "critical" || alert.priority === "action")
     .slice(0, 6);
+  const scheduleQuality = buildScheduleQualityReport({
+    calendarEntries,
+    clientProfiles,
+    date: today,
+  });
   const todayBirthdays = clientProfiles
     .map((client) => ({
       ...client,
@@ -155,6 +173,7 @@ export const buildTodayDashboard = ({
     dueTasks,
     lowStockSupplies,
     priorityAlerts,
+    scheduleQualityIssues: scheduleQuality.issues,
     today,
     todayBirthdays,
     todayStats,
@@ -167,6 +186,7 @@ export const buildTodayDashboard = ({
     freeSlots: freeSlots.slice(0, 8),
     lowStockSupplies: lowStockSupplies.slice(0, 6),
     priorityAlerts,
+    scheduleQuality,
     snapshot: {
       completedVisits: todayStats.completedAppointments.length,
       debtAmount: todayStats.debtAmount,

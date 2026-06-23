@@ -2599,6 +2599,7 @@ button:focus-visible {
 .today-task-list,
 .today-supply-list,
 .today-note-list,
+.today-schedule-quality-list,
 .today-action-list {
   display: grid;
   gap: 8px;
@@ -2610,6 +2611,7 @@ button:focus-visible {
 .today-visit-row,
 .today-task-row,
 .today-supply-row,
+.today-schedule-quality-row,
 .today-action-row {
   display: flex;
   align-items: center;
@@ -2636,6 +2638,7 @@ button:focus-visible {
 .today-visit-main span,
 .today-task-row strong,
 .today-supply-row strong,
+.today-schedule-quality-row strong,
 .today-action-row strong {
   display: block;
   font-size: 13px;
@@ -2644,6 +2647,7 @@ button:focus-visible {
 .today-visit-main small,
 .today-task-row small,
 .today-supply-row small,
+.today-schedule-quality-row small,
 .today-action-row small {
   display: block;
   margin-top: 2px;
@@ -2651,6 +2655,18 @@ button:focus-visible {
   font-size: 12px;
 }
 
+.today-section-schedule-quality {
+  grid-column: 1 / -1;
+}
+
+.today-section-schedule-quality.is-ok {
+  padding: 10px 12px;
+  border: 1px solid rgba(34, 197, 94, 0.16);
+  border-radius: 14px;
+  background: rgba(34, 197, 94, 0.07);
+}
+
+.today-schedule-quality-row,
 .today-action-row {
   position: relative;
   display: grid;
@@ -2658,6 +2674,7 @@ button:focus-visible {
   padding-left: 16px;
 }
 
+.today-schedule-quality-row::before,
 .today-action-row::before {
   content: "";
   position: absolute;
@@ -2669,10 +2686,12 @@ button:focus-visible {
   background: #8b7cff;
 }
 
+.today-schedule-quality-row > div,
 .today-action-row > div {
   min-width: 0;
 }
 
+.today-schedule-quality-row span,
 .today-action-row span {
   display: block;
   margin-bottom: 2px;
@@ -2689,6 +2708,10 @@ button:focus-visible {
 
 .today-action-action::before {
   background: #f59e0b;
+}
+
+.today-action-info::before {
+  background: #94a3b8;
 }
 
 .today-visit-meta {
