@@ -1,5 +1,22 @@
 import {useCallback, useEffect, useState} from "react";
-import {isSupabaseConfigured} from "../lib/supabase.js";
+import {isSupabaseConfigured, supabase as supabaseClient} from "../lib/supabase.js";
+
+export async function getAuthToken() {
+  try {
+    const {data, error} = await supabaseClient.auth.getSession();
+
+    if (error) {
+      console.error("Failed to get auth session:", error);
+      return null;
+    }
+
+    return data.session?.access_token ?? null;
+  } catch (error) {
+    console.error("Unexpected error in getAuthToken:", error);
+    return null;
+  }
+}
+
 
 export function useAuth({onSessionLostRef, pushNotification, supabase}) {
   const [authSession, setAuthSession] = useState(null);
