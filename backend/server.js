@@ -5,9 +5,34 @@ const helmet = require('helmet');
 
 const app = express();
 
-// CORS configuration – use env variable or allow all in dev
-const corsOrigin = process.env.CORS_ORIGIN || '*';
-app.use(cors({ origin: corsOrigin, credentials: true }));
+const defaultAllowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5179',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5179',
+];
+const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const allowedOrigins = new Set([...defaultAllowedOrigins, ...envAllowedOrigins]);
+const isDev = process.env.NODE_ENV !== 'production';
+const isLocalDevOrigin = (origin) =>
+  isDev && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+const corsOptions = {
+  credentials: true,
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin) || isLocalDevOrigin(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`CORS blocked origin: ${origin}`));
+  },
+};
+
+app.use(cors(corsOptions));
+app.options('/api/clients', cors(corsOptions));
 app.use(helmet());
 app.use(express.json());
 
