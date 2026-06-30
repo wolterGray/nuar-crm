@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 function verifyJwt(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing Authorization header' });
+    return res.status(401).json({ success: false, error: 'Missing Authorization header' });
   }
 
   const token = authHeader.slice('Bearer '.length).trim();
@@ -14,8 +14,11 @@ function verifyJwt(req, res, next) {
     next();
   } catch (err) {
     console.error('JWT verification failed:', err);
-    res.status(401).json({ error: 'Invalid JWT' });
+    res.status(401).json({ success: false, error: 'Invalid JWT' });
   }
 }
 
-module.exports = { verifySupabaseJwt: verifyJwt };
+module.exports = {
+  verifyJwt,
+  verifySupabaseJwt: verifyJwt,
+};

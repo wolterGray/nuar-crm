@@ -5,7 +5,6 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { verifySupabaseJwt } = require('../middleware/auth');
 
 // ----- Helper for unified response -----
 const respond = (res, promise) => {
@@ -18,7 +17,7 @@ const respond = (res, promise) => {
 };
 
 // ==================== Client ====================
-router.get('/clients', verifySupabaseJwt, (req, res) => {
+router.get('/clients', (req, res) => {
   respond(
     res,
     prisma.client.findMany({
@@ -35,82 +34,82 @@ router.get('/clients', verifySupabaseJwt, (req, res) => {
   );
 });
 
-router.post('/clients', verifySupabaseJwt, (req, res) => {
+router.post('/clients', (req, res) => {
   const { name, email, phone } = req.body;
   respond(res, prisma.client.create({ data: { name, email, phone } }));
 });
 
-router.get('/clients/:id', verifySupabaseJwt, (req, res) => {
+router.get('/clients/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.client.findUnique({ where: { id } }));
 });
 
-router.put('/clients/:id', verifySupabaseJwt, (req, res) => {
+router.put('/clients/:id', (req, res) => {
   const id = Number(req.params.id);
   const { name, email, phone } = req.body;
   respond(res, prisma.client.update({ where: { id }, data: { name, email, phone } }));
 });
 
-router.delete('/clients/:id', verifySupabaseJwt, (req, res) => {
+router.delete('/clients/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.client.delete({ where: { id } }));
 });
 
 
 // ==================== Service ====================
-router.post('/services', verifySupabaseJwt, (req, res) => {
+router.post('/services', (req, res) => {
   const { name, price, durationMin } = req.body;
   respond(res, prisma.service.create({ data: { name, price, durationMin } }));
 });
 
-router.get('/services/:id', verifySupabaseJwt, (req, res) => {
+router.get('/services/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.service.findUnique({ where: { id } }));
 });
 
-router.put('/services/:id', verifySupabaseJwt, (req, res) => {
+router.put('/services/:id', (req, res) => {
   const id = Number(req.params.id);
   const { name, price, durationMin } = req.body;
   respond(res, prisma.service.update({ where: { id }, data: { name, price, durationMin } }));
 });
 
-router.delete('/services/:id', verifySupabaseJwt, (req, res) => {
+router.delete('/services/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.service.delete({ where: { id } }));
 });
 
-router.get('/services', verifySupabaseJwt, (req, res) => {
+router.get('/services', (req, res) => {
   respond(res, prisma.service.findMany());
 });
 
 // ==================== Employee ====================
-router.post('/employees', verifySupabaseJwt, (req, res) => {
+router.post('/employees', (req, res) => {
   const { name, role, email } = req.body;
   respond(res, prisma.employee.create({ data: { name, role, email } }));
 });
 
-router.get('/employees/:id', verifySupabaseJwt, (req, res) => {
+router.get('/employees/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.employee.findUnique({ where: { id } }));
 });
 
-router.put('/employees/:id', verifySupabaseJwt, (req, res) => {
+router.put('/employees/:id', (req, res) => {
   const id = Number(req.params.id);
   const { name, role, email } = req.body;
   respond(res, prisma.employee.update({ where: { id }, data: { name, role, email } }));
 });
 
-router.delete('/employees/:id', verifySupabaseJwt, (req, res) => {
+router.delete('/employees/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.employee.delete({ where: { id } }));
 });
 
-router.get('/employees', verifySupabaseJwt, (req, res) => {
+router.get('/employees', (req, res) => {
   respond(res, prisma.employee.findMany());
 });
 
 // ==================== Visit ====================
-router.post('/visits', verifySupabaseJwt, (req, res) => {
+router.post('/visits', (req, res) => {
   const { clientId, serviceId, employeeId, scheduledAt, notes } = req.body;
   respond(
     res,
@@ -126,12 +125,12 @@ router.post('/visits', verifySupabaseJwt, (req, res) => {
   );
 });
 
-router.get('/visits/:id', verifySupabaseJwt, (req, res) => {
+router.get('/visits/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.visit.findUnique({ where: { id } }));
 });
 
-router.put('/visits/:id', verifySupabaseJwt, (req, res) => {
+router.put('/visits/:id', (req, res) => {
   const id = Number(req.params.id);
   const { clientId, serviceId, employeeId, scheduledAt, notes } = req.body;
   respond(
@@ -149,17 +148,17 @@ router.put('/visits/:id', verifySupabaseJwt, (req, res) => {
   );
 });
 
-router.delete('/visits/:id', verifySupabaseJwt, (req, res) => {
+router.delete('/visits/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.visit.delete({ where: { id } }));
 });
 
-router.get('/visits', verifySupabaseJwt, (req, res) => {
+router.get('/visits', (req, res) => {
   respond(res, prisma.visit.findMany());
 });
 
 // ==================== Task ====================
-router.post('/tasks', verifySupabaseJwt, (req, res) => {
+router.post('/tasks', (req, res) => {
   const { title, description, dueDate, completed } = req.body;
   respond(
     res,
@@ -174,12 +173,12 @@ router.post('/tasks', verifySupabaseJwt, (req, res) => {
   );
 });
 
-router.get('/tasks/:id', verifySupabaseJwt, (req, res) => {
+router.get('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.task.findUnique({ where: { id } }));
 });
 
-router.put('/tasks/:id', verifySupabaseJwt, (req, res) => {
+router.put('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
   const { title, description, dueDate, completed } = req.body;
   respond(
@@ -196,12 +195,12 @@ router.put('/tasks/:id', verifySupabaseJwt, (req, res) => {
   );
 });
 
-router.delete('/tasks/:id', verifySupabaseJwt, (req, res) => {
+router.delete('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.task.delete({ where: { id } }));
 });
 
-router.get('/tasks', verifySupabaseJwt, (req, res) => {
+router.get('/tasks', (req, res) => {
   respond(res, prisma.task.findMany());
 });
 

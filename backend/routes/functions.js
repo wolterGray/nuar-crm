@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { verifySupabaseJwt } = require('../middleware/auth');
 const { sendBulkSms } = require('../services/smsService');
 const { telegramDigest } = require('../services/telegramService');
 const { smsReminders } = require('../services/remindersService');
@@ -9,7 +8,7 @@ const { reviewRequests } = require('../services/reviewRequestsService');
 const { booksySync } = require('../services/booksySyncService');
 
 // Bulk SMS
-router.post('/bulk-sms', verifySupabaseJwt, async (req, res) => {
+router.post('/bulk-sms', async (req, res) => {
   const { action, recipients, message, testNumber } = req.body;
 
   try {
@@ -35,35 +34,35 @@ router.post('/bulk-sms', verifySupabaseJwt, async (req, res) => {
 });
 
 // Telegram Digest (stub)
-router.post('/telegram-digest', verifySupabaseJwt, async (req, res) => {
+router.post('/telegram-digest', async (req, res) => {
   const payload = req.body;
   const result = await telegramDigest(payload);
   res.json(result);
 });
 
 // SMS Reminders (stub)
-router.post('/sms-reminders', verifySupabaseJwt, async (req, res) => {
+router.post('/sms-reminders', async (req, res) => {
   const payload = req.body;
   const result = await smsReminders(payload);
   res.json(result);
 });
 
 // Owner Notify (stub)
-router.post('/owner-notify', verifySupabaseJwt, async (req, res) => {
+router.post('/owner-notify', async (req, res) => {
   const payload = req.body;
   const result = await ownerNotify(payload);
   res.json(result);
 });
 
 // Review Requests (stub)
-router.post('/review-requests', verifySupabaseJwt, async (req, res) => {
+router.post('/review-requests', async (req, res) => {
   const payload = req.body;
   const result = await reviewRequests(payload);
   res.json(result);
 });
 
 // Booksy Sync (stub)
-router.post('/booksy-sync', verifySupabaseJwt, async (req, res) => {
+router.post('/booksy-sync', async (req, res) => {
   const payload = req.body;
   // TODO: implement actual Booksy synchronization logic
   const result = { success: true, message: 'Booksy sync placeholder (stub)' };

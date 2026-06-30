@@ -6,11 +6,21 @@ const helmet = require('helmet');
 
 const app = express();
 
+const requiredAuthEnv = ['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'JWT_SECRET'];
+const missingAuthEnv = requiredAuthEnv.filter((name) => !process.env[name]);
+if (missingAuthEnv.length > 0) {
+  console.error(
+    `[auth] Missing required environment variables: ${missingAuthEnv.join(', ')}. ` +
+      'Set them in backend/.env before using /api/auth/login or protected CRM APIs.'
+  );
+}
+
 const defaultAllowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5179',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5179',
+  'http://192.168.18.20:5173',
 ];
 const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
@@ -36,7 +46,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('/api/clients', cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(helmet());
 app.use(express.json());
 
@@ -47,11 +57,13 @@ app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 const authRouter = require('./routes/auth');
 app.use('/api/auth', authRouter);
 
+const { verifyJwt } = require('./middleware/auth');
+
 const functionsRouter = require('./routes/functions');
-app.use('/functions', functionsRouter);
+app.use('/functions', verifyJwt, functionsRouter);
 
 const crudRouter = require('./routes/crud');
-app.use('/api', crudRouter);
+app.use('/api', verifyJwt, crudRouter);
 
 // Error handling middleware – must be after routes
 const errorHandler = require('./middleware/errorHandler');

@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from "react";
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_BACKEND_URL || "http://192.168.18.2:3001";
 const AUTH_TOKEN_STORAGE_KEY = "nuar_crm_auth_token";
 const AUTH_SESSION_STORAGE_KEY = "nuar_crm_auth_session";
 

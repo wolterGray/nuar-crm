@@ -1,6 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_BACKEND_URL || "http://192.168.18.2:3001";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
