@@ -6,6 +6,9 @@ import {
 } from "../utils/reviewRequestsApi.js";
 import {buildDueReviewRequests} from "../utils/reviewRequests.js";
 
+const ENABLE_AUTOMATION_STATUS =
+  import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
+
 export function useReviewRequests({
   appSettings,
   authSession,
@@ -151,7 +154,12 @@ export function useReviewRequests({
   ]);
 
   useEffect(() => {
-    if (!authSession || !cloudHydrated || !appSettings.reviewRequestsEnabled) {
+    if (
+      !ENABLE_AUTOMATION_STATUS ||
+      !authSession ||
+      !cloudHydrated ||
+      !appSettings.reviewRequestsEnabled
+    ) {
       return undefined;
     }
 

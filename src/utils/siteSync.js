@@ -2,6 +2,9 @@ import {siteServicesCatalog} from "../data/siteServicesCatalog.js";
 import {isSupabaseConfigured, supabase} from "../lib/supabase.js";
 
 const SITE_CONTENT_ROW_ID = "main";
+const SITE_OVERRIDES_CACHE_TTL_MS = 60_000;
+
+let siteOverridesCache = null;
 
 const CRM_NAME_ALIASES = {
   "masaz drenaz limfatyczny": "masaz limfatyczny",
@@ -53,6 +56,13 @@ export function mapCrmServicesToSite(crmServices, baseServices) {
 }
 
 async function fetchSiteOverrides() {
+  if (
+    siteOverridesCache &&
+    Date.now() - siteOverridesCache.cachedAt < SITE_OVERRIDES_CACHE_TTL_MS
+  ) {
+    return siteOverridesCache.data;
+  }
+
   const {data, error} = await supabase
     .from("site_content")
     .select("data, updated_at")
@@ -61,10 +71,17 @@ async function fetchSiteOverrides() {
 
   if (error) throw error;
 
-  return {
+  const remote = {
     overrides: data?.data && typeof data.data === "object" ? data.data : {},
     updatedAt: data?.updated_at ?? null,
   };
+
+  siteOverridesCache = {
+    cachedAt: Date.now(),
+    data: remote,
+  };
+
+  return remote;
 }
 
 async function saveSiteOverrides(overrides) {
@@ -79,6 +96,15 @@ async function saveSiteOverrides(overrides) {
     .single();
 
   if (error) throw error;
+
+  siteOverridesCache = {
+    cachedAt: Date.now(),
+    data: {
+      overrides,
+      updatedAt: data?.updated_at ?? null,
+    },
+  };
+
   return data?.updated_at ?? null;
 }
 

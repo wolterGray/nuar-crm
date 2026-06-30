@@ -571,8 +571,15 @@ function App() {
     [setAppSettings],
   );
 
+  const handleCloudConflictDetected = useCallback(() => {
+    pushNotificationRef.current({
+      message: "Откройте Настройки → Облако, чтобы выбрать версию данных.",
+      persist: true,
+      title: "Конфликт синхронизации",
+    });
+  }, [pushNotificationRef]);
+
   const {
-    applyRemoteSnapshot,
     cloudConflict,
     cloudHydrated,
     cloudLoadError,
@@ -580,6 +587,7 @@ function App() {
     forceCloudSave,
     lastCloudSyncAt,
     lastCloudSyncError,
+    manualCloudRestore,
     overwriteRemoteSnapshot,
     resetCloudSyncState,
   } = useCloudSync({
@@ -588,24 +596,17 @@ function App() {
     cloudSnapshot,
     cloudSnapshotRef,
     onApplySnapshot: applyCloudSnapshot,
-    onConflictDetected: () => {
-      pushNotificationRef.current({
-        message: "Откройте Настройки → Облако, чтобы выбрать версию данных.",
-        persist: true,
-        title: "Конфликт синхронизации",
-      });
-    },
+    onConflictDetected: handleCloudConflictDetected,
   });
 
   useEffect(() => {
     pullRefreshOnRefreshRef.current = async () => {
-      await applyRemoteSnapshot();
       pushNotificationRef.current({
-        message: "Данные синхронизированы с облаком",
-        title: "Обновлено",
+        message: "Автозагрузка полного облачного снимка отключена. Используйте «Восстановить из облака» в настройках.",
+        title: "Облако защищено",
       });
     };
-  }, [applyRemoteSnapshot]);
+  }, [pushNotificationRef]);
 
   useEffect(() => {
     onSessionLostRef.current = resetCloudSyncState;
@@ -615,8 +616,20 @@ function App() {
     const userId = authSession?.user?.id;
     if (!supabase || !userId || !cloudHydrated) return undefined;
 
-    const servicesKey = JSON.stringify(serviceCatalog);
+    const servicesKey = JSON.stringify(
+      serviceCatalog.map((service) => ({
+        name: service.name,
+        variants: (service.variants ?? []).map((variant) => ({
+          duration: variant.duration,
+          price: variant.price,
+        })),
+      })),
+    );
     if (lastPublishedServicesRef.current === servicesKey) return undefined;
+    if (!lastPublishedServicesRef.current) {
+      lastPublishedServicesRef.current = servicesKey;
+      return undefined;
+    }
 
     const timer = window.setTimeout(async () => {
       try {
@@ -633,7 +646,7 @@ function App() {
     }, 1200);
 
     return () => window.clearTimeout(timer);
-  }, [authSession?.user?.id, cloudHydrated, serviceCatalog]);
+  }, [authSession?.user?.id, cloudHydrated, pushNotificationRef, serviceCatalog]);
 
   const employeeStats = useMemo(
     () => buildEmployeeStats(employees, visits),
@@ -775,8 +788,8 @@ function App() {
     handleForceCloudSave,
     handleOverwriteRemoteSnapshot,
   } = useCloudSaveActions({
-    applyRemoteSnapshot,
     forceCloudSave,
+    manualCloudRestore,
     overwriteRemoteSnapshot,
     pushNotification,
   });
@@ -788,7 +801,6 @@ function App() {
     clientProfiles,
     cloudHydrated,
     messageTemplates,
-    onRemoteSnapshotRefresh: applyRemoteSnapshot,
     pushNotification,
     smsReminderLog,
   });
@@ -800,7 +812,6 @@ function App() {
     clientProfiles,
     cloudHydrated,
     messageTemplates,
-    onRemoteSnapshotRefresh: applyRemoteSnapshot,
     pushNotification,
     reviewRequestLog,
   });
@@ -813,7 +824,6 @@ function App() {
     cloudHydrated,
     inactiveFollowUpLog,
     messageTemplates,
-    onRemoteSnapshotRefresh: applyRemoteSnapshot,
     pushNotification,
     visits,
   });
@@ -827,7 +837,6 @@ function App() {
     clientProfiles,
     cloudHydrated,
     employees,
-    onRemoteSnapshotRefresh: applyRemoteSnapshot,
     pushNotification,
     visits,
   });
@@ -1525,6 +1534,7 @@ function App() {
     () => employees.filter((employee) => employee.status !== "Архив"),
     [employees],
   );
+
   return (
     <AppGate
       appSettings={appSettings}

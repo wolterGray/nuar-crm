@@ -1,8 +1,8 @@
 import {useCallback} from "react";
 
 export function useCloudSaveActions({
-  applyRemoteSnapshot,
   forceCloudSave,
+  manualCloudRestore,
   overwriteRemoteSnapshot,
   pushNotification,
 }) {
@@ -27,7 +27,7 @@ export function useCloudSaveActions({
 
   const handleApplyRemoteSnapshot = useCallback(async () => {
     try {
-      await applyRemoteSnapshot();
+      await manualCloudRestore();
       pushNotification({
         title: "Данные загружены",
         message: "Локальная база заменена версией из облака",
@@ -38,7 +38,7 @@ export function useCloudSaveActions({
         message: error?.message || "Не удалось загрузить данные из облака",
       });
     }
-  }, [applyRemoteSnapshot, pushNotification]);
+  }, [manualCloudRestore, pushNotification]);
 
   const handleOverwriteRemoteSnapshot = useCallback(async () => {
     try {

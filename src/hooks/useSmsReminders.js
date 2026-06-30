@@ -6,6 +6,9 @@ import {
 } from "../utils/smsRemindersApi.js";
 import {buildDueSmsReminders} from "../utils/smsReminders.js";
 
+const ENABLE_AUTOMATION_STATUS =
+  import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
+
 export function useSmsReminders({
   appSettings,
   authSession,
@@ -150,7 +153,12 @@ export function useSmsReminders({
   ]);
 
   useEffect(() => {
-    if (!authSession || !cloudHydrated || !appSettings.smsRemindersEnabled) {
+    if (
+      !ENABLE_AUTOMATION_STATUS ||
+      !authSession ||
+      !cloudHydrated ||
+      !appSettings.smsRemindersEnabled
+    ) {
       return undefined;
     }
 

@@ -7,6 +7,9 @@ import {
   sendTelegramDigest,
 } from "../utils/telegramDigestApi.js";
 
+const ENABLE_AUTOMATION_STATUS =
+  import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
+
 export function useTelegramDigest({
   appSettings,
   authSession,
@@ -146,7 +149,7 @@ export function useTelegramDigest({
   }, [authSession, onRemoteSnapshotRefresh, pushNotification, refreshStatus]);
 
   useEffect(() => {
-    if (!authSession || !cloudHydrated) {
+    if (!ENABLE_AUTOMATION_STATUS || !authSession || !cloudHydrated) {
       return undefined;
     }
 

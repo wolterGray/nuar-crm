@@ -6,6 +6,9 @@ import {
 } from "../utils/inactiveFollowUpApi.js";
 import {buildDueInactiveFollowUps} from "../utils/inactiveFollowUp.js";
 
+const ENABLE_AUTOMATION_STATUS =
+  import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
+
 export function useInactiveFollowUp({
   appSettings,
   authSession,
@@ -140,7 +143,12 @@ export function useInactiveFollowUp({
   }, [authSession, buildLocalDue]);
 
   useEffect(() => {
-    if (!authSession || !cloudHydrated || !appSettings.inactiveFollowUpEnabled) {
+    if (
+      !ENABLE_AUTOMATION_STATUS ||
+      !authSession ||
+      !cloudHydrated ||
+      !appSettings.inactiveFollowUpEnabled
+    ) {
       return undefined;
     }
 
