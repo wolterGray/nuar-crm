@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import {useState} from "react";
 import {formatMoney} from "../utils/formatters.jsx";
+import Button from "./ui/Button.jsx";
+import Select from "./ui/Select.jsx";
 
 const missingFieldLabels = {
   client_name: "имя клиента",
@@ -42,11 +44,11 @@ function BooksyGmailSyncPanel({
 
   if (!isConfigured) {
     return (
-      <section className="panel import-setup import-setup-warning">
-        <MailCheck size={20} />
-        <div>
-          <h2>Booksy Gmail Sync</h2>
-          <p>
+      <section className="crm-card import-sync-panel import-sync-panel-error border border-red-500/20 bg-red-500/5 rounded-card p-4 flex items-center gap-3.5">
+        <MailCheck className="text-red-400 shrink-0" size={20} />
+        <div className="grid gap-0.5">
+          <h2 className="m-0 text-red-200 text-sm font-semibold">Booksy Gmail Sync</h2>
+          <p className="m-0 text-red-300 text-xs">
             Для серверной синхронизации нужны переменные Supabase и Edge Functions.
           </p>
         </div>
@@ -60,110 +62,104 @@ function BooksyGmailSyncPanel({
     : "Gmail не подключён";
 
   return (
-    <section className="booksy-gmail-sync">
-      <section className="panel import-setup">
-        <MailCheck size={20} />
-        <div>
-          <h2>{connectionLabel}</h2>
-          <p>
-            {isConnected
-              ? "Доступ к Gmail активен. Синхронизация подтягивает визиты Booksy и фактуры с PDF."
-              : "Нажмите «Подключить Gmail», войдите в Google и разрешите чтение почты."}
-          </p>
-          {connection?.last_sync_at && (
-            <small>
-              Последняя синхронизация:{" "}
-              {new Date(connection.last_sync_at).toLocaleString("ru-RU")}
-            </small>
-          )}
-          {connection?.last_sync_error && (
-            <b className="booksy-sync-error">{connection.last_sync_error}</b>
-          )}
-          {loadError && <b className="booksy-sync-error">{loadError}</b>}
+    <section className="import-sync-section flex flex-col gap-5 w-full">
+      <section className="crm-card import-sync-panel border border-border bg-surface rounded-card p-4 md:p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3.5 min-w-0">
+          <span className="import-sync-icon flex items-center justify-center w-10 h-10 rounded-lg bg-accent/10 text-accent shrink-0 mt-0.5">
+            <MailCheck size={20} />
+          </span>
+          <div className="grid gap-0.5 min-w-0">
+            <h2 className="m-0 text-text-main text-base font-semibold leading-snug">{connectionLabel}</h2>
+            <p className="m-0 text-text-muted text-xs leading-relaxed max-w-xl">
+              {isConnected
+                ? "Доступ к Gmail активен. Синхронизация подтягивает визиты Booksy и фактуры с PDF."
+                : "Нажмите «Подключить Gmail», войдите в Google и разрешите чтение почты."}
+            </p>
+            {connection?.last_sync_at && (
+              <small className="text-text-faint text-[10px] mt-1 block">
+                Последняя синхронизация:{" "}
+                {new Date(connection.last_sync_at).toLocaleString("ru-RU")}
+              </small>
+            )}
+            {connection?.last_sync_error && (
+              <b className="text-red-400 text-[11px] font-semibold mt-1 block">{connection.last_sync_error}</b>
+            )}
+            {loadError && <b className="text-red-400 text-[11px] font-semibold mt-1 block">{loadError}</b>}
+          </div>
         </div>
-        <div className="import-setup-actions">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           {isConnected ? (
             <>
-              <button
-                className="add-visit-button"
+              <Button
+                variant="primary"
+                size="sm"
                 disabled={isSyncing}
-                type="button"
                 onClick={onSync}>
-                <RefreshCw className={isSyncing ? "spin" : ""} size={15} />
+                <RefreshCw className={isSyncing ? "animate-spin" : ""} size={15} />
                 {isSyncing ? "Синхронизация" : "Синхронизировать сейчас"}
-              </button>
-              <button className="secondary-button" type="button" onClick={onRefresh}>
+              </Button>
+              <Button variant="secondary" size="sm" onClick={onRefresh}>
                 Обновить список
-              </button>
+              </Button>
               {useServerSync ? (
-                <button className="secondary-button" type="button" onClick={onDisconnect}>
+                <Button variant="secondary" size="sm" onClick={onDisconnect}>
                   <Unplug size={15} />
                   Отключить
-                </button>
+                </Button>
               ) : (
-                <button className="secondary-button" type="button" onClick={onConnect}>
+                <Button variant="secondary" size="sm" onClick={onConnect}>
                   <MailCheck size={15} />
                   Обновить доступ
-                </button>
+                </Button>
               )}
             </>
           ) : (
-            <button className="add-visit-button" type="button" onClick={onConnect}>
+            <Button variant="primary" size="sm" onClick={onConnect}>
               <MailCheck size={15} />
               Подключить Gmail
-            </button>
+            </Button>
           )}
         </div>
       </section>
 
-      <div className="import-summary">
-        <span>
-          <CalendarPlus size={15} />
-          <small>Новые</small>
-          <strong>{summary.newVisits}</strong>
-        </span>
-        <span>
-          <Link2 size={15} />
-          <small>Дубликаты</small>
-          <strong>{summary.duplicates}</strong>
-        </span>
-        <span>
-          <RefreshCw size={15} />
-          <small>Изменения</small>
-          <strong>{summary.updates}</strong>
-        </span>
-        <span>
-          <X size={15} />
-          <small>Отмены</small>
-          <strong>{summary.cancellations}</strong>
-        </span>
-        <span>
-          <AlertTriangle size={15} />
-          <small>Проверка</small>
-          <strong>{summary.needsReview}</strong>
-        </span>
-        <span>
-          <AlertTriangle size={15} />
-          <small>Ошибки парсинга</small>
-          <strong>{summary.parseErrors}</strong>
-        </span>
+      {/* Sync Status Cards */}
+      <div className="import-sync-summary grid grid-cols-2 md:grid-cols-6 gap-3">
+        {[
+          {icon: <CalendarPlus size={15} />, label: "Новые", value: summary.newVisits},
+          {icon: <Link2 size={15} />, label: "Дубликаты", value: summary.duplicates},
+          {icon: <RefreshCw size={15} />, label: "Изменения", value: summary.updates},
+          {icon: <X size={15} />, label: "Отмены", value: summary.cancellations},
+          {icon: <AlertTriangle size={15} />, label: "Проверка", value: summary.needsReview},
+          {icon: <AlertTriangle size={15} />, label: "Ошибки", value: summary.parseErrors},
+        ].map((item, idx) => (
+          <div key={idx} className="import-sync-summary-card flex flex-col gap-1 p-3 rounded-card border border-border bg-surface shadow-xs">
+            <span className="flex items-center gap-1.5 text-accent">
+              {item.icon}
+              <small className="text-text-muted text-[10px] font-bold tracking-wider uppercase">{item.label}</small>
+            </span>
+            <strong className="text-lg font-bold text-text-main mt-0.5">{item.value}</strong>
+          </div>
+        ))}
       </div>
 
-      <div className="import-grid">
-        <section className="panel import-panel">
-          <div className="operations-panel-header">
-            <div>
-              <CalendarPlus size={18} />
-              <div>
-                <h2>Импорт из Booksy Gmail</h2>
-                <p>{pendingEvents.length} событий ждут решения</p>
+      <div className="import-sync-columns grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Pending Events */}
+        <section className="crm-card import-sync-list-panel border border-border bg-surface rounded-card shadow-sm flex flex-col">
+          <div className="p-4 md:p-5 border-b border-border-soft flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-text-muted">
+                <CalendarPlus size={18} />
+              </span>
+              <div className="grid gap-0.5">
+                <h2 className="m-0 text-text-main text-base font-semibold">Импорт из Booksy Gmail</h2>
+                <p className="m-0 text-text-muted text-xs">{pendingEvents.length} событий ждут решения</p>
               </div>
             </div>
           </div>
 
-          <div className="import-list">
+          <div className="p-4 md:p-5 flex flex-col gap-3 max-h-[480px] overflow-y-auto">
             {isLoading && (
-              <p className="operations-empty">Загружаем события Booksy Gmail…</p>
+              <p className="text-center py-8 text-text-muted text-sm m-0">Загружаем события Booksy Gmail…</p>
             )}
 
             {!isLoading &&
@@ -176,66 +172,80 @@ function BooksyGmailSyncPanel({
                 );
 
                 return (
-                  <article className="import-row booksy-sync-row" key={event.id}>
-                    <span className={`import-kind import-kind-${event.review_kind}`}>
-                      <CalendarPlus size={15} />
-                    </span>
-                    <span className="booksy-sync-row-body">
-                      <strong>{reviewKindLabel(event.review_kind)}</strong>
-                      <small>
-                        {event.client_name || "Клиент не распознан"} ·{" "}
-                        {event.appointment_date || "дата?"} {event.start_time || "время?"}
-                      </small>
-                      <em>
-                        {event.service_name || "услуга?"} ·{" "}
-                        {event.staff_name || "мастер?"}
-                        {event.price ? ` · ${formatMoney(event.price)}` : ""}
-                      </em>
-                      {event.client_note && <i>{event.client_note}</i>}
-                      {missingText && (
-                        <b>
-                          Найден визит из Booksy, но не хватает данных ({missingText}).
-                          Внести его в график?
-                        </b>
-                      )}
-                      {recommendedMatch && (
-                        <small>
-                          Совпадение {recommendedMatch.match_score}% · визит{" "}
-                          {recommendedMatch.calendar_entry_id}
+                  <article className="import-sync-event-card p-3.5 border border-border rounded-lg bg-field flex flex-col gap-3 min-w-0 transition-colors" key={event.id}>
+                    <div className="flex items-start gap-3">
+                      <span className="flex items-center justify-center w-7.5 h-7.5 rounded-lg bg-accent/10 text-accent shrink-0">
+                        <CalendarPlus size={14} />
+                      </span>
+                      <div className="grid gap-1 min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <strong className="text-text-main text-sm font-semibold truncate">
+                            {reviewKindLabel(event.review_kind)}
+                          </strong>
+                          <span className="text-text-faint text-[10px]">
+                            {event.appointment_date || "дата?"} {event.start_time || "время?"}
+                          </span>
+                        </div>
+                        <small className="text-text-muted text-xs block font-medium">
+                          {event.client_name || "Клиент не распознан"}
                         </small>
-                      )}
-                      <div className="booksy-sync-actions">
-                        <button
-                          className="add-visit-button"
-                          type="button"
-                          onClick={() => onApplyDecision(event, "create")}>
-                          <Check size={14} />
-                          Внести в график
-                        </button>
+                        <em className="text-text-muted text-xs not-italic opacity-85 block leading-normal">
+                          {event.service_name || "услуга?"} · {event.staff_name || "мастер?"}
+                          {event.price ? ` · ${formatMoney(event.price)}` : ""}
+                        </em>
+                        {event.client_note && (
+                          <i className="text-text-faint text-[11px] block mt-1 leading-relaxed border-l-2 border-border/60 pl-2">
+                            {event.client_note}
+                          </i>
+                        )}
+                        {missingText && (
+                          <span className="text-red-400 text-[11px] font-semibold mt-1 block leading-normal">
+                            Найден визит из Booksy, но не хватает данных ({missingText}). Внести его в график?
+                          </span>
+                        )}
                         {recommendedMatch && (
-                          <button
-                            className="secondary-button"
-                            type="button"
-                            onClick={() => onApplyDecision(event, "update")}>
-                            Обновить существующий
-                          </button>
+                          <span className="text-accent text-[11px] font-medium mt-1 block">
+                            Совпадение {recommendedMatch.match_score}% · визит {recommendedMatch.calendar_entry_id}
+                          </span>
                         )}
-                        {event.review_kind === "visit_cancel" && (
-                          <button
-                            className="secondary-button"
-                            type="button"
-                            onClick={() => onApplyDecision(event, "cancel")}>
-                            Отметить как отменённый
-                          </button>
-                        )}
-                        <button
-                          className="secondary-button"
-                          type="button"
-                          onClick={() => onApplyDecision(event, "ignore")}>
-                          Игнорировать
-                        </button>
-                        <select
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border-soft/60">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => onApplyDecision(event, "create")}>
+                        <Check size={14} />
+                        Внести в график
+                      </Button>
+                      {recommendedMatch && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => onApplyDecision(event, "update")}>
+                          Обновить
+                        </Button>
+                      )}
+                      {event.review_kind === "visit_cancel" && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => onApplyDecision(event, "cancel")}>
+                          Отменить визит
+                        </Button>
+                      )}
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => onApplyDecision(event, "ignore")}>
+                        Игнорировать
+                      </Button>
+
+                      <div className="flex items-center gap-1.5 w-full mt-1.5">
+                        <Select
                           value={linkTargetByEvent[event.id] ?? ""}
+                          className="h-8.5 text-xs py-1"
                           onChange={(changeEvent) =>
                             setLinkTargetByEvent((current) => ({
                               ...current,
@@ -251,11 +261,12 @@ function BooksyGmailSyncPanel({
                                 {entry.date} {entry.time} · {entry.client}
                               </option>
                             ))}
-                        </select>
-                        <button
-                          className="secondary-button"
+                        </Select>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="h-8.5"
                           disabled={!linkTargetByEvent[event.id]}
-                          type="button"
                           onClick={() =>
                             onApplyDecision(
                               event,
@@ -265,15 +276,15 @@ function BooksyGmailSyncPanel({
                           }>
                           <Link2 size={14} />
                           Связать
-                        </button>
+                        </Button>
                       </div>
-                    </span>
+                    </div>
                   </article>
                 );
               })}
 
             {!isLoading && pendingEvents.length === 0 && (
-              <p className="operations-empty">
+              <p className="text-center py-8 text-text-muted text-sm m-0">
                 {isConnected
                   ? "Нажмите «Синхронизировать сейчас», чтобы проверить письма Booksy."
                   : "Подключите Gmail, чтобы начать импорт визитов."}
@@ -282,28 +293,30 @@ function BooksyGmailSyncPanel({
           </div>
         </section>
 
-        <section className="panel import-panel">
-          <div className="operations-panel-header">
-            <div>
-              <AlertTriangle size={18} />
-              <div>
-                <h2>Ошибки парсинга</h2>
-                <p>{parseErrors.length} писем</p>
+        {/* Parse Errors */}
+        <section className="crm-card import-sync-list-panel border border-border bg-surface rounded-card shadow-sm flex flex-col">
+          <div className="p-4 md:p-5 border-b border-border-soft flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-text-muted">
+                <AlertTriangle size={18} />
+              </span>
+              <div className="grid gap-0.5">
+                <h2 className="m-0 text-text-main text-base font-semibold">Ошибки парсинга</h2>
+                <p className="m-0 text-text-muted text-xs">{parseErrors.length} писем</p>
               </div>
             </div>
           </div>
-          <div className="import-list">
+
+          <div className="p-4 md:p-5 flex flex-col gap-3 max-h-[480px] overflow-y-auto">
             {parseErrors.map((item) => (
-              <article className="import-document-row" key={item.id}>
-                <span>
-                  <strong>{item.subject || "Без темы"}</strong>
-                  <small>{item.from_address}</small>
-                  <em>{item.parse_error}</em>
-                </span>
+              <article className="import-sync-error-card p-3.5 border border-border rounded-lg bg-field flex flex-col gap-1 min-w-0" key={item.id}>
+                <strong className="text-text-main text-sm font-semibold truncate block">{item.subject || "Без темы"}</strong>
+                <span className="text-text-muted text-xs block">{item.from_address}</span>
+                <span className="text-red-400 text-xs font-medium block mt-1 leading-relaxed">{item.parse_error}</span>
               </article>
             ))}
             {parseErrors.length === 0 && (
-              <p className="operations-empty">Ошибок парсинга пока нет.</p>
+              <p className="text-center py-8 text-text-muted text-sm m-0">Ошибок парсинга пока нет.</p>
             )}
           </div>
         </section>
