@@ -21,7 +21,7 @@ export default function PageHeader({
       {!collapsible ? (
         <div className="page-header-unified-top">
           <div className="page-header-unified-copy">
-            <h2 className="crm-title">
+            <h2 className="crm-title page-title">
               {title}
               {description ? <HintIcon>{description}</HintIcon> : null}
             </h2>
@@ -34,7 +34,7 @@ export default function PageHeader({
           </div>
         </div>
       ) : null}
-      {actions ? <div className="page-header-unified-actions">{actions}</div> : null}
+      {actions ? <div className="page-header-unified-actions page-actions">{actions}</div> : null}
       {children}
     </>
   );

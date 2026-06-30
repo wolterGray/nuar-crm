@@ -1,41 +1,18 @@
-import clsx from "clsx";
+import styles from './Card.module.css';
 
-export function Card({className, ...props}) {
+/**
+ * Premium dark UI Card component.
+ * Accepts any additional props (e.g., data-tone) and merges class names.
+ */
+export default function Card({
+  className = '',
+  children,
+  ...props
+}) {
+  const cls = `${styles.card} ${className}`.trim();
   return (
-    <section
-      className={clsx(
-        "rounded-2xl border border-[var(--linear-border)] bg-[var(--linear-panel)] shadow-[var(--soft-shadow)]",
-        className,
-      )}
-      {...props}
-    />
+    <div className={cls} {...props}>
+      {children}
+    </div>
   );
-}
-
-export function CardHeader({className, ...props}) {
-  return (
-    <div
-      className={clsx(
-        "flex items-center justify-between gap-4 border-b border-[var(--linear-border-soft)] px-5 py-4",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-export function CardTitle({className, ...props}) {
-  return (
-    <h2
-      className={clsx(
-        "text-base font-semibold leading-6 text-[var(--linear-text)]",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-export function CardContent({className, ...props}) {
-  return <div className={clsx("px-5 py-4", className)} {...props} />;
 }

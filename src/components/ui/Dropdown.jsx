@@ -2,7 +2,7 @@ import clsx from "clsx";
 
 export function Dropdown({className, children, ...props}) {
   return (
-    <div className={clsx("relative inline-flex", className)} {...props}>
+    <div className={clsx("crm-dropdown relative inline-flex", className)} {...props}>
       {children}
     </div>
   );
@@ -12,7 +12,7 @@ export function DropdownContent({className, ...props}) {
   return (
     <div
       className={clsx(
-        "absolute right-0 top-[calc(100%+6px)] z-30 min-w-40 overflow-hidden rounded-md border border-neutral-200 bg-white p-1 shadow-lg",
+        "crm-dropdown-content absolute z-30 top-[calc(100%+6px)] right-0 min-w-[160px] overflow-hidden p-1 border border-border rounded-md text-text-main bg-surface shadow-lg",
         className,
       )}
       {...props}
@@ -24,7 +24,7 @@ export function DropdownItem({className, ...props}) {
   return (
     <button
       className={clsx(
-        "flex h-8 w-full items-center rounded-sm px-2.5 text-left text-sm text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-950",
+        "crm-dropdown-item flex w-full min-h-[32px] items-center px-2.5 border-0 rounded-sm text-text-main bg-transparent text-sm text-left hover:bg-surface-soft hover:text-text-main transition-colors duration-100 cursor-pointer",
         className,
       )}
       type="button"

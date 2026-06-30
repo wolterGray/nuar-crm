@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import {motion} from "framer-motion";
 import {useMemo, useState} from "react";
-import PageHeader from "../PageHeader.jsx";
+import PageHeader from "../ui/PageHeader.jsx";
 import BulkSmsPanel from "../BulkSmsPanel.jsx";
 import {getClientMessageName} from "../../utils/clientMessageName.js";
 import {
@@ -23,6 +23,7 @@ import {
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
+import Button from "../ui/Button.jsx";
 
 function MessageTemplateCard({
   isMobile,
@@ -395,16 +396,16 @@ function MessageTemplatesPage({
                 onChange={(event) => setFilter("query", event.target.value)}
                 onClear={() => setFilter("query", "")}
               />
-              <button className="add-visit-button" type="button" onClick={onAdd}>
+              <Button className="message-templates-add-button" variant="primary" type="button" onClick={onAdd}>
                 <Plus size={18} />
                 Добавить
-              </button>
+              </Button>
             </>
           ) : (
-            <button className="add-visit-button" type="button" onClick={onAdd}>
+            <Button className="message-templates-add-button" variant="primary" type="button" onClick={onAdd}>
               <Plus size={18} />
               Добавить шаблон
-            </button>
+            </Button>
           )
         }
         description={
@@ -440,25 +441,6 @@ function MessageTemplatesPage({
           />
           {filterFields}
         </div>
-      ) : null}
-
-      {bulkSms ? (
-        isMobile ? (
-          <details className="message-templates-bulk-collapsible">
-            <summary>Bulk SMS</summary>
-            <BulkSmsPanel
-              bulkSms={bulkSms}
-              messageTemplates={templates}
-              onNotify={onNotify}
-            />
-          </details>
-        ) : (
-          <BulkSmsPanel
-            bulkSms={bulkSms}
-            messageTemplates={templates}
-            onNotify={onNotify}
-          />
-        )
       ) : null}
 
       {preferredClient ? (
@@ -498,6 +480,27 @@ function MessageTemplatesPage({
           </div>
         ) : null}
       </div>
+
+      {bulkSms ? (
+        isMobile ? (
+          <details className="message-templates-bulk-collapsible">
+            <summary>Bulk SMS</summary>
+            <BulkSmsPanel
+              bulkSms={bulkSms}
+              messageTemplates={templates}
+              onNotify={onNotify}
+            />
+          </details>
+        ) : (
+          <div className="message-templates-secondary">
+            <BulkSmsPanel
+              bulkSms={bulkSms}
+              messageTemplates={templates}
+              onNotify={onNotify}
+            />
+          </div>
+        )
+      ) : null}
 
       {sendingTemplate ? (
         <div

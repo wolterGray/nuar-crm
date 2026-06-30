@@ -1,4 +1,5 @@
 /* NUAR CRM — modular styles (import order preserves cascade). */
+@import "./tokens.css";
 @import "./base.css";
 @import "./calendar.css";
 @import "./pages.css";
@@ -8,35 +9,33 @@
 @import "./color-themes.css";
 @import "./booksy-sync.css";
 @import "./design-system.css";
-@import "./mobile-overrides.css";
-@import "./theme-dark-purple.css";
-@import "./linear-dark-luxury.css";
+@import "./components.css";
 
 .hint-icon-wrap {
   position: relative;
   display: inline-flex;
   vertical-align: middle;
   flex: 0 0 auto;
-  margin-left: 6px;
+  margin-left: var(--hint-icon-offset);
 }
 
 .hint-icon {
   display: inline-grid;
-  width: 18px;
-  height: 18px;
+  width: var(--hint-icon-size);
+  height: var(--hint-icon-size);
   place-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--text-soft, #6f737b);
   background: transparent;
-  opacity: 0.45;
+  opacity: var(--hint-icon-opacity);
   cursor: help;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--transition-fast) ease;
 }
 
 .hint-icon-wrap:hover .hint-icon,
 .hint-icon-wrap:focus-within .hint-icon,
 .hint-icon:focus {
-  opacity: 0.95;
+  opacity: var(--hint-icon-opacity-hover);
 }
 
 .hint-tooltip-portal {
@@ -57,13 +56,13 @@
 }
 
 .hint-tooltip {
-  padding: 10px 12px;
+  padding: var(--hint-tooltip-padding-y) var(--hint-tooltip-padding-x);
   border: 1px solid var(--line-soft, #e5e5e3);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: var(--text-main, #15171c);
   background: var(--surface-solid, #fff);
   box-shadow: var(--premium-shadow, 0 16px 40px rgba(17, 19, 24, 0.18));
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 400;
   line-height: 1.45;
   text-align: left;
@@ -74,7 +73,7 @@
 .labeled-hint-row {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--hint-row-gap);
   flex-wrap: wrap;
 }
 
@@ -87,21 +86,21 @@
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--hint-icon-offset);
 }
 
 .settings-panel-heading h2 {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: var(--hint-row-gap);
 }
 
 .employee-pricing-panel h3 {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: var(--hint-row-gap);
 }
 
 .theme-dark .hint-icon,
@@ -111,20 +110,7 @@
 
 .theme-dark .hint-tooltip,
 .theme-light .hint-tooltip {
-  color: var(--linear-text, #f2f3f7) !important;
-  background: var(--linear-panel, rgba(18, 19, 23, 0.94)) !important;
-  border-color: var(--linear-border, rgba(255, 255, 255, 0.12)) !important;
-}
-
-/* Desktop: 15px horizontal gutter on all pages except calendar */
-@media (min-width: 769px) {
-  .crm-shell > main.content.home-content:not(.calendar-content):not(.operations-content) {
-    padding-left: var(--page-gutter, 15px) !important;
-    padding-right: var(--page-gutter, 15px) !important;
-  }
-
-  .crm-shell > main.content.home-content.calendar-content {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
+  color: var(--linear-text, #f2f3f7);
+  background: var(--linear-panel, rgba(18, 19, 23, 0.94));
+  border-color: var(--linear-border, rgba(255, 255, 255, 0.12));
 }

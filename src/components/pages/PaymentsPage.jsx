@@ -22,7 +22,7 @@ function PaymentsPage({
   const {isMobile} = useBreakpoint();
 
   return (
-    <section className={`payments-page ${isMobile ? "payments-page-mobile" : ""}`}>
+    <section className={`payments-page nuar-payments ${isMobile ? "payments-page-mobile" : ""}`}>
       {!isMobile ? (
         <DayClosePanel
           dayCloseRecords={dayCloseRecords}

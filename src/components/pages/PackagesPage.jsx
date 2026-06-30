@@ -16,17 +16,12 @@ import {
   getPackageUsedVisits,
 } from "../../utils/packages.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
-import PageHeader from "../PageHeader.jsx";
+import PageHeader from "../ui/PageHeader.jsx";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
-
-const getPackageStatusClass = (status) =>
-  String(status ?? "").trim().toLowerCase() === "активен"
-    ? "package-status-active"
-    : "";
+import Button from "../ui/Button.jsx";
 
 function ClientPackageCard({
-  isMobile,
   onDelete,
   onEdit,
   openMenuId,
@@ -37,17 +32,14 @@ function ClientPackageCard({
 
   return (
     <article
-      className={`client-package-card${archived ? " is-archived" : ""}${
-        isMobile ? " package-mobile-card" : ""
-      }`}>
-      <div className="package-card-head package-client-head">
-        <div className="client-package-main">
-          <strong>{packageItem.client}</strong>
-          <span>{packageItem.packageName}</span>
-          <small>{packageItem.service}</small>
+      className={`package-card client-package-card ${archived ? "is-archived" : ""}`}>
+      <div className="flex items-start justify-between gap-3 min-w-0">
+        <div className="grid gap-0.5 min-w-0">
+          <strong className="text-text-main text-sm font-semibold truncate block">{packageItem.client}</strong>
+          <span className="text-text-muted text-xs truncate block">{packageItem.packageName}</span>
+          <span className="text-text-faint text-[10px] truncate block font-medium mt-0.5 uppercase tracking-wider">{packageItem.service}</span>
         </div>
         <RowActionsMenu
-          className="package-row-actions"
           itemId={packageItem.id}
           openMenuId={openMenuId}
           setOpenMenuId={setOpenMenuId}
@@ -55,52 +47,31 @@ function ClientPackageCard({
           onEdit={() => onEdit(packageItem)}
         />
       </div>
-      {isMobile ? (
-        <div className="package-client-mobile-body">
-          <div className="client-package-progress">
-            <div className="package-progress-top">
-              <strong>{getPackageRemainingLabel(packageItem)}</strong>
-              <span>{archived ? "исп." : "ост."}</span>
-            </div>
-            <progress
-              max={Math.max(Number(packageItem.totalVisits) || 1, 1)}
-              value={getPackageUsedVisits(packageItem)}
-            />
-          </div>
-          <div className="client-package-meta">
-            <span>{formatMoney(packageItem.price)}</span>
-            <b className={getPackageStatusClass(packageItem.status)}>
-              {packageItem.status}
-            </b>
-          </div>
+
+      <div className="flex flex-col gap-1.5 mt-1.5">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-text-muted">{archived ? "Использовано" : "Осталось"}</span>
+          <strong className="text-text-main font-semibold">{getPackageRemainingLabel(packageItem)}</strong>
         </div>
-      ) : (
-        <>
-          <div className="client-package-progress">
-            <div>
-              <span>{archived ? "Использовано сеансов" : "Осталось сеансов"}</span>
-              <strong>{getPackageRemainingLabel(packageItem)}</strong>
-            </div>
-            <progress
-              max={Math.max(Number(packageItem.totalVisits) || 1, 1)}
-              value={getPackageUsedVisits(packageItem)}
-            />
-          </div>
-          <div className="client-package-meta">
-            <span>{formatMoney(packageItem.price)}</span>
-            <b className={getPackageStatusClass(packageItem.status)}>
-              {packageItem.status}
-            </b>
-          </div>
-        </>
-      )}
+        <progress
+          className="w-full h-1.5 rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-field [&::-webkit-progress-value]:bg-accent [&::-moz-progress-bar]:bg-accent"
+          max={Math.max(Number(packageItem.totalVisits) || 1, 1)}
+          value={getPackageUsedVisits(packageItem)}
+        />
+      </div>
+
+      <div className="flex items-center justify-between mt-1 pt-2 border-t border-border-soft text-xs">
+        <span className="text-text-muted font-medium">{formatMoney(packageItem.price)}</span>
+        <span className={`package-status-pill ${packageItem.status === "Активен" ? "is-active" : ""}`}>
+          {packageItem.status}
+        </span>
+      </div>
     </article>
   );
 }
 
 function CertificateCard({
   certificate,
-  isMobile,
   onDelete,
   onEdit,
   openMenuId,
@@ -110,21 +81,18 @@ function CertificateCard({
 
   return (
     <article
-      className={`client-package-card certificate-card${archived ? " is-archived" : ""}${
-        isMobile ? " package-mobile-card" : ""
-      }`}>
-      <div className="package-card-head">
-        <div className="client-package-main">
-          <strong>{certificate.code}</strong>
-          <span>{certificate.client || "Без покупателя"}</span>
-          <small>
+      className={`package-card certificate-card ${archived ? "is-archived" : ""}`}>
+      <div className="flex items-start justify-between gap-3 min-w-0">
+        <div className="grid gap-0.5 min-w-0">
+          <strong className="text-text-main text-sm font-semibold truncate block">{certificate.code}</strong>
+          <span className="text-text-muted text-xs truncate block">{certificate.client || "Без покупателя"}</span>
+          <span className="text-text-faint text-[10px] truncate block font-medium mt-0.5">
             {certificate.recipient && certificate.recipient !== certificate.client
               ? `Получатель: ${certificate.recipient}`
               : `До ${certificate.expiryDate || "—"}`}
-          </small>
+          </span>
         </div>
         <RowActionsMenu
-          className="package-row-actions"
           itemId={certificate.id}
           openMenuId={openMenuId}
           setOpenMenuId={setOpenMenuId}
@@ -132,12 +100,14 @@ function CertificateCard({
           onEdit={() => onEdit(certificate)}
         />
       </div>
-      <div className="client-package-progress">
-        <div>
-          <span>{archived ? "Использовано" : "Остаток"}</span>
-          <strong>{getCertificateBalanceLabel(certificate)}</strong>
+
+      <div className="flex flex-col gap-1.5 mt-1.5">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-text-muted">{archived ? "Использовано" : "Остаток"}</span>
+          <strong className="text-text-main font-semibold">{getCertificateBalanceLabel(certificate)}</strong>
         </div>
         <progress
+          className="w-full h-1.5 rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-field [&::-webkit-progress-value]:bg-accent [&::-moz-progress-bar]:bg-accent"
           max={Math.max(Number(certificate.nominal) || 1, 1)}
           value={Math.max(
             0,
@@ -145,18 +115,18 @@ function CertificateCard({
           )}
         />
       </div>
-      <div className="client-package-meta">
-        <span>{certificate.purchaseDate}</span>
-        <b className={getPackageStatusClass(certificate.status)}>
+
+      <div className="flex items-center justify-between mt-1 pt-2 border-t border-border-soft text-xs">
+        <span className="text-text-muted font-medium">{certificate.purchaseDate}</span>
+        <span className={`package-status-pill ${certificate.status === "Активен" ? "is-active" : ""}`}>
           {certificate.status}
-        </b>
+        </span>
       </div>
     </article>
   );
 }
 
 function PackageTemplateCard({
-  isMobile,
   onDelete,
   onEdit,
   openMenuId,
@@ -166,18 +136,15 @@ function PackageTemplateCard({
   return (
     <motion.article
       animate={{opacity: 1, y: 0}}
-      className={`catalog-card catalog-row-card ${
-        isMobile ? "package-template-mobile-card" : ""
-      }`}
+      className="package-card package-template-card"
       initial={{opacity: 0, y: 6}}
       key={packageItem.id}>
-      <div className="package-card-head package-template-head">
-        <div className="package-template-copy">
-          <h3>{packageItem.name}</h3>
-          <span>{packageItem.service}</span>
+      <div className="flex items-start justify-between gap-3 min-w-0">
+        <div className="grid gap-0.5 min-w-0">
+          <h3 className="m-0 text-text-main text-sm font-semibold truncate leading-snug">{packageItem.name}</h3>
+          <span className="text-text-muted text-xs truncate block">{packageItem.service}</span>
         </div>
         <RowActionsMenu
-          className="package-row-actions"
           itemId={packageItem.id}
           openMenuId={openMenuId}
           setOpenMenuId={setOpenMenuId}
@@ -185,47 +152,12 @@ function PackageTemplateCard({
           onEdit={() => onEdit(packageItem)}
         />
       </div>
-      <div className="catalog-prices">
-        <span>
-          {isMobile ? (
-            <>
-              <strong>{packageItem.visitsCount}</strong> виз.
-            </>
-          ) : (
-            <>
-              Визитов <strong>{packageItem.visitsCount}</strong>
-            </>
-          )}
-        </span>
-        <span>
-          {isMobile ? (
-            <strong>{formatMoney(packageItem.price)}</strong>
-          ) : (
-            <>
-              Стоимость <strong>{formatMoney(packageItem.price)}</strong>
-            </>
-          )}
-        </span>
-        <span>
-          {isMobile ? (
-            <>
-              <strong>{packageItem.validityDays}</strong> дн.
-            </>
-          ) : (
-            <>
-              Срок <strong>{packageItem.validityDays} дней</strong>
-            </>
-          )}
-        </span>
-        <span>
-          {isMobile ? (
-            <strong>{packageItem.status}</strong>
-          ) : (
-            <>
-              Статус <strong>{packageItem.status}</strong>
-            </>
-          )}
-        </span>
+
+      <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-border-soft text-xs text-text-muted">
+        <div>Визитов: <strong className="text-text-main font-semibold">{packageItem.visitsCount}</strong></div>
+        <div>Стоимость: <strong className="text-text-main font-semibold">{formatMoney(packageItem.price)}</strong></div>
+        <div>Срок: <strong className="text-text-main font-semibold">{packageItem.validityDays} дн.</strong></div>
+        <div>Статус: <strong className="text-text-main font-semibold">{packageItem.status}</strong></div>
       </div>
     </motion.article>
   );
@@ -359,54 +291,47 @@ function PackagesPage({
         : `${filteredActiveCertificates.length} активных сертификатов`;
 
   return (
-    <section
-      className={`catalog-page packages-page ${
-        isMobile ? "packages-page-mobile" : ""
-      }`}
+    <div
+      className={`packages-page ${isMobile ? "packages-page-mobile" : ""}`}
       onClick={() => setOpenMenuId(null)}>
       <PageHeader
+        className="packages-page-header"
         collapsedMeta={mobileDescription}
         collapsible={isMobile}
         actions={
           isMobile ? (
-            <>
-              <div className="packages-page-tabs">
-                <button
-                  className={mobileSection === "clientPackages" ? "active" : ""}
-                  type="button"
-                  onClick={() => {
-                    setMobileSection("clientPackages");
-                    setOpenMenuId(null);
-                  }}>
-                  Пакеты
-                </button>
-                <button
-                  className={mobileSection === "templates" ? "active" : ""}
-                  type="button"
-                  onClick={() => {
-                    setMobileSection("templates");
-                    setOpenMenuId(null);
-                  }}>
-                  Шаблоны
-                </button>
-                <button
-                  className={mobileSection === "certificates" ? "active" : ""}
-                  type="button"
-                  onClick={() => {
-                    setMobileSection("certificates");
-                    setOpenMenuId(null);
-                  }}>
-                  Сертификаты
-                </button>
+            <div className="flex flex-col gap-3 w-full">
+              {/* Custom tabs */}
+              <div className="flex w-full p-1 bg-field border border-border-soft rounded-lg gap-1">
+                {[
+                  {id: "clientPackages", label: "Пакеты"},
+                  {id: "templates", label: "Шаблоны"},
+                  {id: "certificates", label: "Сертификаты"},
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all duration-150 ${
+                      mobileSection === tab.id
+                        ? "bg-surface text-text-main shadow-xs border border-border"
+                        : "text-text-muted hover:text-text-main"
+                    }`}
+                    type="button"
+                    onClick={() => {
+                      setMobileSection(tab.id);
+                      setOpenMenuId(null);
+                    }}>
+                    {tab.label}
+                  </button>
+                ))}
               </div>
+
               <SearchControl
-                className="packages-search-control"
                 placeholder={
-                    mobileSection === "clientPackages"
-                      ? "Поиск пакета клиента"
-                      : mobileSection === "templates"
-                        ? "Поиск шаблона"
-                        : "Поиск сертификата"
+                  mobileSection === "clientPackages"
+                    ? "Поиск пакета клиента"
+                    : mobileSection === "templates"
+                      ? "Поиск шаблона"
+                      : "Поиск сертификата"
                 }
                 value={search}
                 onChange={(event) => {
@@ -415,79 +340,67 @@ function PackagesPage({
                 }}
                 onClear={() => setSearch("")}
               />
-              <div className="packages-summary">
-                <article
-                  className={`packages-summary-card${
-                    mobileSection === "certificates" ? " is-active" : ""
+
+              <div className="grid grid-cols-4 gap-1.5 text-center">
+                {[
+                  {label: "Сертиф.", val: activeCertificates.length, active: mobileSection === "certificates"},
+                  {label: "Пакеты", val: activeClientPackages.length, active: mobileSection === "clientPackages"},
+                  {label: "Шаблоны", val: packages.length, active: mobileSection === "templates"},
+                  {label: "Сеансы", val: remainingVisits},
+                ].map((item, idx) => (
+                  <div key={idx} className={`flex flex-col p-2 rounded-card border ${
+                    item.active ? "border-accent bg-accent/5" : "border-border bg-surface"
                   }`}>
-                  <span>Сертификаты</span>
-                  <strong>{activeCertificates.length}</strong>
-                </article>
-                <article
-                  className={`packages-summary-card${
-                    mobileSection === "clientPackages" ? " is-active" : ""
-                  }`}>
-                  <span>Пакеты</span>
-                  <strong>{activeClientPackages.length}</strong>
-                </article>
-                <article
-                  className={`packages-summary-card${
-                    mobileSection === "templates" ? " is-active" : ""
-                  }`}>
-                  <span>Шаблоны</span>
-                  <strong>{packages.length}</strong>
-                </article>
-                <article className="packages-summary-card">
-                  <span>Сеансов</span>
-                  <strong>{remainingVisits}</strong>
-                </article>
+                    <span className="text-text-muted text-[8px] font-bold tracking-wider uppercase truncate">{item.label}</span>
+                    <strong className="text-text-main text-sm font-extrabold mt-0.5">{item.val}</strong>
+                  </div>
+                ))}
               </div>
-              {mobileSection === "clientPackages" ? (
-                <button
-                  className="add-visit-button"
-                  type="button"
-                  onClick={onSellPackage}>
-                  <Plus size={18} />
+
+              {mobileSection === "clientPackages" && (
+                <Button variant="primary" size="sm" onClick={onSellPackage} className="w-full">
+                  <Plus size={16} />
                   Продать пакет
-                </button>
-              ) : null}
-              {mobileSection === "templates" ? (
-                <button className="add-visit-button" type="button" onClick={onAdd}>
-                  <Plus size={18} />
+                </Button>
+              )}
+              {mobileSection === "templates" && (
+                <Button variant="primary" size="sm" onClick={onAdd} className="w-full">
+                  <Plus size={16} />
                   Добавить пакет
-                </button>
-              ) : null}
-              {mobileSection === "certificates" ? (
-                <button
-                  className="add-visit-button"
-                  type="button"
-                  onClick={onSellCertificate}>
-                  <Gift size={18} />
+                </Button>
+              )}
+              {mobileSection === "certificates" && (
+                <Button variant="primary" size="sm" onClick={onSellCertificate} className="w-full">
+                  <Gift size={16} />
                   Продать сертификат
-                </button>
-              ) : null}
-            </>
+                </Button>
+              )}
+            </div>
           ) : (
-            <>
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={onSellCertificate}>
-                <Gift size={18} />
+            <div className="packages-page-toolbar">
+              <SearchControl
+                className="packages-page-search"
+                placeholder="Поиск пакета"
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setOpenMenuId(null);
+                }}
+                onClear={() => setSearch("")}
+              />
+              <Button variant="secondary" size="sm" onClick={onSellCertificate}>
+                <Gift size={16} />
                 Продать сертификат
-              </button>
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={onSellPackage}>
-                <Plus size={18} />
+              </Button>
+              <Button variant="secondary" size="sm" onClick={onSellPackage}>
+                <Plus size={16} />
                 Продать пакет
-              </button>
-              <button className="add-visit-button" type="button" onClick={onAdd}>
-                <Plus size={18} />
+              </Button>
+              <Button variant="primary" size="sm" onClick={onAdd}>
+                <Plus size={16} />
                 Добавить пакет
-              </button>
-            </>
+              </Button>
+            </div>
           )
         }
         description={
@@ -498,213 +411,300 @@ function PackagesPage({
         title="Пакеты"
       />
 
-      {!isMobile ? (
-        <div className="package-summary-grid">
-          <article className="catalog-card">
-            <span>Пакетов продано</span>
-            <h3>{clientPackages.length}</h3>
-          </article>
-          <article className="catalog-card">
-            <span>Доход от пакетов</span>
-            <h3>{formatMoney(packageSalesIncome)}</h3>
-          </article>
-          <article className="catalog-card">
-            <span>Сертификатов продано</span>
-            <h3>{certificates.length}</h3>
-          </article>
-          <article className="catalog-card">
-            <span>Доход от сертификатов</span>
-            <h3>{formatMoney(certificateSalesIncome)}</h3>
-          </article>
-          <article className="catalog-card">
-            <span>Активный остаток сертификатов</span>
-            <h3>{formatMoney(activeCertificateBalance)}</h3>
-          </article>
-          <article className="catalog-card">
-            <span>Осталось визитов в пакетах</span>
-            <h3>{remainingVisits}</h3>
-          </article>
-        </div>
-      ) : null}
-
-      <div className="packages-grid">
-        <div
-          className={`panel client-packages-panel packages-panel packages-panel-client-packages ${
-            isMobile && mobileSection !== "clientPackages"
-              ? "packages-panel-hidden-mobile"
-              : ""
-          }`}>
-          <div className="panel-header">
-            <h2>Активные пакеты клиентов</h2>
-            <span>{activeClientPackages.length}</span>
-          </div>
-          <div className="packages-scroll client-packages-list">
-            {filteredActiveClientPackages.map((packageItem) => (
-              <ClientPackageCard
-                key={packageItem.id}
-                isMobile={isMobile}
-                openMenuId={openMenuId}
-                packageItem={packageItem}
-                setOpenMenuId={setOpenMenuId}
-                onDelete={onDeleteClientPackage}
-                onEdit={onEditClientPackage}
-              />
-            ))}
-            {filteredActiveClientPackages.length === 0 && (
-              <div className="clients-empty">
-                <strong>
-                  {search.trim() ? "Пакеты не найдены" : "Активных пакетов нет"}
-                </strong>
-                <span>
-                  {search.trim()
-                    ? "Попробуйте изменить запрос."
-                    : "Продайте пакет клиенту или верните нужный пакет из архива."}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {archivedClientPackages.length > 0 ? (
-            <div className="client-packages-archive-panel">
-              <button
-                className="client-packages-archive-toggle"
-                type="button"
-                onClick={() => setArchiveOpen((current) => !current)}>
-                <span>
-                  <Archive size={16} />
-                  Архив завершённых пакетов
-                </span>
-                <strong>{archivedClientPackages.length}</strong>
-                <ChevronDown className={archiveOpen ? "open" : ""} size={16} />
-              </button>
-              {archiveOpen ? (
-                <div className="client-packages-list client-packages-archive-list">
-                  {filteredArchivedClientPackages.map((packageItem) => (
-                    <ClientPackageCard
-                      key={packageItem.id}
-                      isMobile={isMobile}
-                      openMenuId={openMenuId}
-                      packageItem={packageItem}
-                      setOpenMenuId={setOpenMenuId}
-                      onDelete={onDeleteClientPackage}
-                      onEdit={onEditClientPackage}
-                    />
-                  ))}
-                </div>
-              ) : null}
+      {/* Desktop stats cards */}
+      {!isMobile && (
+        <div className="packages-summary-grid">
+          {[
+            {label: "Пакетов продано", val: clientPackages.length},
+            {label: "Доход от пакетов", val: formatMoney(packageSalesIncome)},
+            {label: "Сертиф. продано", val: certificates.length},
+            {label: "Доход от сертиф.", val: formatMoney(certificateSalesIncome)},
+            {label: "Остаток сертиф.", val: formatMoney(activeCertificateBalance)},
+            {label: "Визитов в пакетах", val: remainingVisits},
+          ].map((item, idx) => (
+            <div key={idx} className="packages-summary-card">
+              <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider">{item.label}</span>
+              <strong className="text-base font-extrabold text-text-main mt-0.5">{item.val}</strong>
             </div>
-          ) : null}
+          ))}
         </div>
+      )}
 
-        <div
-          className={`packages-panel packages-panel-templates ${
-            isMobile && mobileSection !== "templates"
-              ? "packages-panel-hidden-mobile"
-              : ""
-          }`}>
-          <h2 className="catalog-section-heading">Шаблоны пакетов</h2>
-          <div className="packages-scroll catalog-grid packages-templates-grid">
-            {filteredTemplates.length === 0 ? (
-              <div className="clients-empty">
-                <strong>
-                  {search.trim() ? "Шаблоны не найдены" : "Шаблонов пока нет"}
-                </strong>
-                <span>
-                  {search.trim()
-                    ? "Попробуйте изменить запрос."
-                    : "Добавьте первый шаблон пакета в каталог."}
-                </span>
+      {/* Main Panels Layout */}
+      {isMobile ? (
+        <div className="w-full">
+          {mobileSection === "clientPackages" && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
+                {filteredActiveClientPackages.map((packageItem) => (
+                  <ClientPackageCard
+                    key={packageItem.id}
+                    onDelete={onDeleteClientPackage}
+                    onEdit={onEditClientPackage}
+                    openMenuId={openMenuId}
+                    packageItem={packageItem}
+                    setOpenMenuId={setOpenMenuId}
+                  />
+                ))}
+                {filteredActiveClientPackages.length === 0 && (
+                  <div className="text-center py-8 text-text-muted flex flex-col gap-1 max-w-sm mx-auto">
+                    <strong className="text-text-main text-sm">Активных пакетов нет</strong>
+                    <span className="text-xs">Продайте пакет клиенту или верните нужный из архива.</span>
+                  </div>
+                )}
               </div>
-            ) : (
-              filteredTemplates.map((packageItem) => (
-                <PackageTemplateCard
+
+              {archivedClientPackages.length > 0 && (
+                <div className="mt-2 border border-border rounded-lg bg-surface overflow-hidden">
+                  <button
+                    className="flex w-full items-center justify-between p-4 text-sm font-semibold text-text-main hover:bg-field transition-colors"
+                    type="button"
+                    onClick={() => setArchiveOpen(!archiveOpen)}>
+                    <span className="flex items-center gap-2">
+                      <Archive size={16} className="text-text-muted" />
+                      Архив завершённых пакетов ({archivedClientPackages.length})
+                    </span>
+                    <ChevronDown className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`} size={16} />
+                  </button>
+                  {archiveOpen && (
+                    <div className="p-4 border-t border-border-soft flex flex-col gap-3 bg-field/30">
+                      {filteredArchivedClientPackages.map((packageItem) => (
+                        <ClientPackageCard
+                          key={packageItem.id}
+                          onDelete={onDeleteClientPackage}
+                          onEdit={onEditClientPackage}
+                          openMenuId={openMenuId}
+                          packageItem={packageItem}
+                          setOpenMenuId={setOpenMenuId}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {mobileSection === "templates" && (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredTemplates.length === 0 ? (
+                <div className="text-center py-8 text-text-muted flex flex-col gap-1 max-w-sm mx-auto">
+                  <strong className="text-text-main text-sm">Шаблоны не найдены</strong>
+                  <span className="text-xs">Добавьте первый шаблон пакета в каталог.</span>
+                </div>
+              ) : (
+                filteredTemplates.map((packageItem) => (
+                  <PackageTemplateCard
+                    key={packageItem.id}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                    openMenuId={openMenuId}
+                    packageItem={packageItem}
+                    setOpenMenuId={setOpenMenuId}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {mobileSection === "certificates" && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
+                {filteredActiveCertificates.map((certificate) => (
+                  <CertificateCard
+                    key={certificate.id}
+                    certificate={certificate}
+                    onDelete={onDeleteCertificate}
+                    onEdit={onEditCertificate}
+                    openMenuId={openMenuId}
+                    setOpenMenuId={setOpenMenuId}
+                  />
+                ))}
+                {filteredActiveCertificates.length === 0 && (
+                  <div className="text-center py-8 text-text-muted flex flex-col gap-1 max-w-sm mx-auto">
+                    <strong className="text-text-main text-sm">Активных сертификатов нет</strong>
+                    <span className="text-xs">Продайте сертификат клиенту.</span>
+                  </div>
+                )}
+              </div>
+
+              {archivedCertificates.length > 0 && (
+                <div className="mt-2 border border-border rounded-lg bg-surface overflow-hidden">
+                  <button
+                    className="flex w-full items-center justify-between p-4 text-sm font-semibold text-text-main hover:bg-field transition-colors"
+                    type="button"
+                    onClick={() => setCertificateArchiveOpen(!certificateArchiveOpen)}>
+                    <span className="flex items-center gap-2">
+                      <Archive size={16} className="text-text-muted" />
+                      Архив сертификатов ({archivedCertificates.length})
+                    </span>
+                    <ChevronDown className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`} size={16} />
+                  </button>
+                  {certificateArchiveOpen && (
+                    <div className="p-4 border-t border-border-soft flex flex-col gap-3 bg-field/30">
+                      {filteredArchivedCertificates.map((certificate) => (
+                        <CertificateCard
+                          key={certificate.id}
+                          certificate={certificate}
+                          onDelete={onDeleteCertificate}
+                          onEdit={onEditCertificate}
+                          openMenuId={openMenuId}
+                          setOpenMenuId={setOpenMenuId}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="packages-board">
+          {/* Active Client Packages */}
+          <div className="packages-panel packages-panel-active">
+            <div className="packages-panel-header">
+              <h2 className="m-0 text-text-main text-base font-semibold">Активные пакеты</h2>
+              <span className="px-2 py-0.5 text-xs font-bold bg-field border border-border rounded-full text-text-muted">
+                {activeClientPackages.length}
+              </span>
+            </div>
+
+            <div className="packages-list">
+              {filteredActiveClientPackages.map((packageItem) => (
+                <ClientPackageCard
                   key={packageItem.id}
-                  isMobile={isMobile}
+                  onDelete={onDeleteClientPackage}
+                  onEdit={onEditClientPackage}
                   openMenuId={openMenuId}
                   packageItem={packageItem}
                   setOpenMenuId={setOpenMenuId}
-                  onDelete={onDelete}
-                  onEdit={onEdit}
                 />
-              ))
-            )}
-          </div>
-        </div>
+              ))}
+              {filteredActiveClientPackages.length === 0 && (
+                <div className="text-center py-10 text-text-muted">
+                  <p className="font-semibold text-sm m-0 text-text-main">Активных пакетов нет</p>
+                </div>
+              )}
+            </div>
 
-        <div
-          className={`panel client-packages-panel packages-panel packages-panel-certificates ${
-            isMobile && mobileSection !== "certificates"
-              ? "packages-panel-hidden-mobile"
-              : ""
-          }`}>
-          <div className="panel-header">
-            <h2>Активные сертификаты</h2>
-            <span>{activeCertificates.length}</span>
-          </div>
-          <div className="packages-scroll client-packages-list">
-            {filteredActiveCertificates.map((certificate) => (
-              <CertificateCard
-                key={certificate.id}
-                certificate={certificate}
-                isMobile={isMobile}
-                openMenuId={openMenuId}
-                setOpenMenuId={setOpenMenuId}
-                onDelete={onDeleteCertificate}
-                onEdit={onEditCertificate}
-              />
-            ))}
-            {filteredActiveCertificates.length === 0 && (
-              <div className="clients-empty">
-                <strong>
-                  {search.trim()
-                    ? "Сертификаты не найдены"
-                    : "Активных сертификатов нет"}
-                </strong>
-                <span>
-                  {search.trim()
-                    ? "Попробуйте изменить запрос."
-                    : "Продайте сертификат клиенту — код, номинал и остаток будут отслеживаться автоматически."}
-                </span>
+            {archivedClientPackages.length > 0 && (
+              <div className="packages-archive">
+                <button
+                  className="flex w-full items-center justify-between p-3.5 text-sm font-semibold text-text-main hover:bg-field transition-colors"
+                  type="button"
+                  onClick={() => setArchiveOpen(!archiveOpen)}>
+                  <span className="flex items-center gap-2">
+                    <Archive size={15} className="text-text-muted" />
+                    Архив завершённых пакетов
+                  </span>
+                  <ChevronDown className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`} size={15} />
+                </button>
+                {archiveOpen && (
+                  <div className="p-3 border-t border-border-soft flex flex-col gap-3 bg-field/30 max-h-[300px] overflow-y-auto">
+                    {filteredArchivedClientPackages.map((packageItem) => (
+                      <ClientPackageCard
+                        key={packageItem.id}
+                        onDelete={onDeleteClientPackage}
+                        onEdit={onEditClientPackage}
+                        openMenuId={openMenuId}
+                        packageItem={packageItem}
+                        setOpenMenuId={setOpenMenuId}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {archivedCertificates.length > 0 ? (
-            <div className="client-packages-archive-panel">
-              <button
-                className="client-packages-archive-toggle"
-                type="button"
-                onClick={() => setCertificateArchiveOpen((current) => !current)}>
-                <span>
-                  <Archive size={16} />
-                  Архив сертификатов
-                </span>
-                <strong>{archivedCertificates.length}</strong>
-                <ChevronDown
-                  className={certificateArchiveOpen ? "open" : ""}
-                  size={16}
-                />
-              </button>
-              {certificateArchiveOpen ? (
-                <div className="client-packages-list client-packages-archive-list">
-                  {filteredArchivedCertificates.map((certificate) => (
-                    <CertificateCard
-                      key={certificate.id}
-                      certificate={certificate}
-                      isMobile={isMobile}
-                      openMenuId={openMenuId}
-                      setOpenMenuId={setOpenMenuId}
-                      onDelete={onDeleteCertificate}
-                      onEdit={onEditCertificate}
-                    />
-                  ))}
-                </div>
-              ) : null}
+          {/* Templates Catalog */}
+          <div className="packages-panel packages-panel-templates">
+            <div className="packages-panel-header">
+              <h2 className="m-0 text-text-main text-base font-semibold">Шаблоны пакетов</h2>
+              <span className="px-2 py-0.5 text-xs font-bold bg-field border border-border rounded-full text-text-muted">
+                {packages.length}
+              </span>
             </div>
-          ) : null}
+
+            <div className="packages-list packages-list-tall">
+              {filteredTemplates.map((packageItem) => (
+                <PackageTemplateCard
+                  key={packageItem.id}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                  openMenuId={openMenuId}
+                  packageItem={packageItem}
+                  setOpenMenuId={setOpenMenuId}
+                />
+              ))}
+              {filteredTemplates.length === 0 && (
+                <div className="text-center py-10 text-text-muted">
+                  <p className="font-semibold text-sm m-0 text-text-main">Шаблоны не найдены</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Active Certificates */}
+          <div className="packages-panel packages-panel-certificates">
+            <div className="packages-panel-header">
+              <h2 className="m-0 text-text-main text-base font-semibold">Активные сертификаты</h2>
+              <span className="px-2 py-0.5 text-xs font-bold bg-field border border-border rounded-full text-text-muted">
+                {activeCertificates.length}
+              </span>
+            </div>
+
+            <div className="packages-list">
+              {filteredActiveCertificates.map((certificate) => (
+                <CertificateCard
+                  key={certificate.id}
+                  certificate={certificate}
+                  onDelete={onDeleteCertificate}
+                  onEdit={onEditCertificate}
+                  openMenuId={openMenuId}
+                  setOpenMenuId={setOpenMenuId}
+                />
+              ))}
+              {filteredActiveCertificates.length === 0 && (
+                <div className="text-center py-10 text-text-muted">
+                  <p className="font-semibold text-sm m-0 text-text-main">Активных сертификатов нет</p>
+                </div>
+              )}
+            </div>
+
+            {archivedCertificates.length > 0 && (
+              <div className="packages-archive">
+                <button
+                  className="flex w-full items-center justify-between p-3.5 text-sm font-semibold text-text-main hover:bg-field transition-colors"
+                  type="button"
+                  onClick={() => setCertificateArchiveOpen(!certificateArchiveOpen)}>
+                  <span className="flex items-center gap-2">
+                    <Archive size={15} className="text-text-muted" />
+                    Архив сертификатов
+                  </span>
+                  <ChevronDown className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`} size={15} />
+                </button>
+                {certificateArchiveOpen && (
+                  <div className="p-3 border-t border-border-soft flex flex-col gap-3 bg-field/30 max-h-[300px] overflow-y-auto">
+                    {filteredArchivedCertificates.map((certificate) => (
+                      <CertificateCard
+                        key={certificate.id}
+                        certificate={certificate}
+                        onDelete={onDeleteCertificate}
+                        onEdit={onEditCertificate}
+                        openMenuId={openMenuId}
+                        setOpenMenuId={setOpenMenuId}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </section>
+      )}
+    </div>
   );
 }
 

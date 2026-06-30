@@ -1,7 +1,7 @@
 .booksy-gmail-sync {
   display: grid;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 
 .booksy-sync-row {
@@ -11,19 +11,19 @@
 
 .booksy-sync-row-body {
   display: grid;
-  gap: 6px;
+  gap: var(--booksy-row-gap);
   width: 100%;
 }
 
 .booksy-sync-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 .booksy-sync-actions select {
-  min-width: 220px;
+  min-width: var(--control-min-width-wide);
 }
 
 @media (max-width: 768px) {
@@ -49,22 +49,10 @@
   }
 }
 
-.booksy-sync-deploy-hint {
-  background: rgba(0, 0, 0, 0.18);
-  border-radius: 10px;
-  color: inherit;
-  font-family: inherit;
-  font-size: 12px;
-  line-height: 1.5;
-  margin-top: 8px;
-  padding: 10px 12px;
-  white-space: pre-wrap;
-}
-
 .booksy-sync-error {
   color: var(--danger, #d64545);
   display: block;
-  margin-top: 6px;
+  margin-top: var(--booksy-row-gap);
 }
 
 .import-kind-new_visit,
@@ -73,5 +61,5 @@
 .import-kind-visit_cancel,
 .import-kind-needs_review,
 .import-kind-parse_error {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }

@@ -1,4 +1,4 @@
-import {CalendarPlus} from "lucide-react";
+import { CalendarPlus } from "lucide-react";
 import VisitMobileCard from "./VisitMobileCard.jsx";
 
 function CalendarDayList({
@@ -25,9 +25,13 @@ function CalendarDayList({
 
   if (visitEntries.length === 0 && reservedEntries.length === 0) {
     return (
-      <section className="calendar-day-list calendar-day-list-empty">
-        <p>На этот день записей пока нет.</p>
-        <button className="add-visit-button calendar-day-list-add" type="button" onClick={onAdd}>
+      <section className="flex flex-col items-center justify-center py-12 px-4 border border-zinc-800 rounded-xl bg-zinc-900/30 text-center">
+        <p className="text-zinc-500 text-sm mb-4">На этот день записей пока нет.</p>
+        <button
+          className="inline-flex items-center gap-2 min-h-[40px] px-5 py-2 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 cursor-pointer shadow-md shadow-indigo-950/20 transition-all"
+          type="button"
+          onClick={onAdd}
+        >
           <CalendarPlus size={17} />
           Добавить визит
         </button>
@@ -36,7 +40,7 @@ function CalendarDayList({
   }
 
   return (
-    <section aria-label="Записи на день" className="calendar-day-list">
+    <section aria-label="Записи на день" className="flex flex-col gap-3">
       {visitEntries.map((entry) => (
         <VisitMobileCard
           clientPhone={getClientPhone(entry.client)}
@@ -54,25 +58,33 @@ function CalendarDayList({
         />
       ))}
       {reservedEntries.map((entry) => (
-        <article className="visit-mobile-card visit-mobile-card-reserved" key={entry.id}>
-          <div className="visit-mobile-card-top">
-            <div className="visit-mobile-card-time-block">
-              <strong className="visit-mobile-card-time">{entry.time}</strong>
-              <span className="visit-mobile-card-client">{entry.title || "Резерв"}</span>
+        <article
+          className="p-4 border border-orange-500/20 rounded-xl bg-orange-500/5 flex flex-col gap-1.5"
+          key={entry.id}
+        >
+          <div className="flex justify-between items-start w-full gap-4">
+            <div className="flex flex-col min-w-0">
+              <strong className="text-orange-400 text-xs font-semibold">{entry.time}</strong>
+              <span className="text-zinc-200 text-sm font-bold truncate mt-0.5">{entry.title || "Резерв"}</span>
             </div>
-            <b className="visit-mobile-card-amount">{entry.master}</b>
+            <b className="text-zinc-400 text-xs font-medium">{entry.master}</b>
           </div>
-          <div className="visit-mobile-card-meta">
+          <div className="flex items-center gap-1.5 text-zinc-500 text-xs">
             <span>Зарезервировано</span>
           </div>
-          <div className="visit-mobile-card-actions">
-            <button className="client-quick-action" type="button" onClick={() => onEdit?.(entry)}>
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-zinc-800/40 w-full justify-end">
+            <button
+              className="inline-flex items-center px-3 py-1.5 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-300 hover:text-zinc-150 hover:bg-zinc-800 transition-colors cursor-pointer"
+              type="button"
+              onClick={() => onEdit?.(entry)}
+            >
               Изменить
             </button>
             <button
-              className="client-quick-action visit-mobile-delete"
+              className="inline-flex items-center px-3 py-1.5 border border-red-505/20 rounded-lg text-xs font-semibold text-red-400 hover:text-white hover:bg-red-550 transition-colors cursor-pointer"
               type="button"
-              onClick={() => onDelete?.(entry)}>
+              onClick={() => onDelete?.(entry)}
+            >
               Удалить
             </button>
           </div>

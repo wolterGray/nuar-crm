@@ -1,1 +1,29 @@
 @import "tailwindcss";
+@import "./design/tokens.css";
+@import "./design/typography.css";
+@theme {
+  --color-app-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-2);
+  --color-field: var(--field);
+  --color-border: var(--border);
+  --color-border-soft: var(--border-soft);
+  --color-text-main: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-accent: var(--accent);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-card: var(--radius-card);
+  --radius-modal: var(--radius-modal);
+  --radius-control: var(--radius-control);
+
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-8: var(--space-8);
+}

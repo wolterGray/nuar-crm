@@ -1,0 +1,33 @@
+/* src/design/tokens.css */
+:root {
+  /* Colors */
+  --color-bg: #090B0F; /* фон приложения */
+  --color-surface: #0F131A; /* карточки, фон элементов */
+  --color-border: #1D2430; /* границы */
+
+  /* Primary accent */
+  --color-accent: #B91C1C;           /* основной фон кнопки */
+  --color-accent-hover: #991B1B;    /* hover */
+  --color-accent-active: #7F1D1D;   /* active */
+  --color-accent-text: #FFFFFF;     /* цвет текста на акцентных кнопках */
+
+  --color-primary: #FFFFFF;         /* основной текст */
+  --color-secondary-bg: #15181D;    /* фон secondary кнопки */
+  --color-secondary-border: #2A2F36;/* граница secondary */
+  --color-secondary-text: #A7AFBD;  /* вторичный текст */
+
+  --color-danger: #D96C75;          /* muted rose */
+  --color-success: #7FA88A;         /* muted sage */
+  --color-muted: #6F7785;          /* muted / disabled */
+
+  /* Global metrics */
+  --radius: 8px;
+  --spacing: 0.5rem; /* 8px */
+}
+
+/* Reset default bright colors that may exist elsewhere */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-primary);
+  font-family: 'Inter', sans-serif;
+}

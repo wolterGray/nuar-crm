@@ -1,93 +1,4 @@
-/* Statistics header alignment: desktop filters in one working row. */
-.statistics-header-actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  flex: 0 0 auto;
-  overflow: visible;
-}
-
-.statistics-header-actions .statistics-export-button {
-  min-height: 44px;
-}
-
-.statistics-filters-card {
-  padding: 8px;
-}
-
-.statistics-filters {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 8px;
-  width: 100%;
-}
-
-.statistics-filters label {
-  flex: 0 0 auto;
-  min-width: 172px;
-}
-
-.statistics-filters select {
-  flex: 1 1 190px;
-  min-width: 170px;
-}
-
-.statistics-filters select:first-of-type {
-  margin-left: 12px;
-}
-
-.statistics-filters > span {
-  color: var(--linear-faint, #a5a9b2);
-  flex: 0 0 auto;
-}
-
-.statistics-income-icon span {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  color: currentColor;
-  font-size: 22px;
-  font-weight: 760;
-  line-height: 1;
-  letter-spacing: -0.04em;
-}
-
-@media (max-width: 900px) {
-  .statistics-filters {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-  }
-
-  .statistics-filters label,
-  .statistics-filters select {
-    width: 100%;
-    min-width: 0;
-    margin-left: 0;
-  }
-
-  .statistics-filters > span {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .statistics-header-actions {
-    gap: 8px;
-  }
-
-  .statistics-header-actions .statistics-export-button {
-    min-width: 44px;
-    padding: 0 12px;
-  }
-
-  .statistics-header-actions .statistics-export-button span {
-    display: none;
-  }
-}
+/* Cleaned up layout filters */
 
 @media (min-width: 769px) {
   .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content) {
@@ -138,11 +49,6 @@ body {
 
 .page-header,
 .statistics-hero-header,
-.employees-toolbar,
-.clients-toolbar,
-.settings-toolbar,
-.import-toolbar,
-.catalog-toolbar,
 .operations-panel-header,
 .payments-content .panel-header {
   align-items: center;
@@ -155,11 +61,6 @@ body {
 .statistics-hero-header h2,
 .statistics-hero-header .page-header-unified-copy h2,
 .page-header-unified-copy h2,
-.clients-toolbar h2,
-.employees-toolbar h2,
-.settings-toolbar h2,
-.catalog-toolbar h2,
-.import-toolbar h2,
 .operations-panel-header h2,
 .payments-content .page-header-unified-copy h2,
 .payments-content .panel-header h2 {
@@ -180,11 +81,6 @@ body {
 
 .page-header p,
 .statistics-hero-header p,
-.clients-toolbar p,
-.employees-toolbar p,
-.settings-toolbar p,
-.catalog-toolbar p,
-.import-toolbar p,
 .panel-header p,
 .statistics-panel-title p {
   max-width: 620px;
@@ -196,7 +92,6 @@ body {
 .panel:not(.schedule-panel):not(.calendar-reminders),
 .catalog-card,
 .employee-card,
-.management-card,
 .settings-panel,
 .statistics-filters-card,
 .statistics-income-card,
@@ -209,7 +104,6 @@ body {
 .client-form-modal,
 .client-details-modal,
 .client-alert-popover,
-.calendar-popover,
 .row-action-menu,
 .calendar-slot-menu {
   border-color: var(--line-soft);
@@ -238,7 +132,6 @@ body {
 
 .statistics-income-strip span,
 .statistics-card,
-.statistics-payment-summary span,
 .statistics-activity-grid span,
 .settings-options,
 .employee-stats span,
@@ -260,7 +153,6 @@ body {
 .employee-avatar,
 .catalog-card > div:first-child,
 .client-alert-button,
-.date-button,
 .secondary-button,
 .calendar-icon-button,
 .row-action,
@@ -268,14 +160,11 @@ body {
   border-radius: var(--radius-md);
 }
 
-.date-button,
 .secondary-button,
 .client-alert-button,
 .calendar-icon-button,
 .row-action,
 .modal-close,
-.inline-field button,
-.clients-search,
 .table-filters input,
 .table-filters select,
 .statistics-filters label,
@@ -332,13 +221,11 @@ button:focus-visible {
   box-shadow: var(--button-primary-shadow, 0 8px 18px color-mix(in srgb, var(--accent-color) 32%, transparent));
 }
 
-.secondary-button,
-.date-button {
+.secondary-button {
   color: var(--text-main);
 }
 
 .secondary-button:hover,
-.date-button:hover,
 .row-action:hover,
 .modal-close:hover,
 .calendar-icon-button:hover {
@@ -361,8 +248,7 @@ button:focus-visible {
 }
 
 .table-head,
-.clients-table-head,
-.client-package-head {
+.clients-table-head {
   color: var(--text-muted);
   background: #fafafa;
   font-size: 11px;
@@ -370,20 +256,17 @@ button:focus-visible {
 }
 
 .table-row,
-.clients-table-row,
-.client-package-row {
+.clients-table-row {
   border-bottom-color: var(--line-subtle);
 }
 
 .table-row:not(.table-head),
-.clients-table-row:not(.clients-table-head),
-.client-package-row {
+.clients-table-row:not(.clients-table-head) {
   background: transparent;
 }
 
 .table-row:not(.table-head):hover,
 .clients-table-row:not(.clients-table-head):hover,
-.client-package-row:hover,
 .calendar-reminder-list article:hover {
   background: #fafafa;
 }
@@ -407,24 +290,6 @@ button:focus-visible {
   border-color: var(--line-soft);
   border-radius: var(--radius-lg);
   background: var(--surface-solid);
-}
-
-.table-search {
-  min-height: 40px;
-  margin-bottom: 12px;
-  border-color: var(--line-soft);
-  border-radius: var(--radius-lg);
-  background: var(--surface-solid);
-}
-
-.table-search input {
-  min-height: 0;
-  border: 0;
-  box-shadow: none;
-}
-
-.table-search input:focus {
-  box-shadow: none;
 }
 
 .table-filters {
@@ -573,10 +438,6 @@ button:focus-visible {
   display: none;
 }
 
-.client-alert-group-toggle {
-  color: var(--text-soft);
-}
-
 .client-alert-row {
   border-color: var(--line-subtle);
 }
@@ -655,14 +516,12 @@ button:focus-visible {
 .theme-dark .panel,
 .theme-dark .catalog-card,
 .theme-dark .employee-card,
-.theme-dark .management-card,
 .theme-dark .settings-panel,
 .theme-dark .statistics-filters-card,
 .theme-dark .statistics-income-card,
 .theme-dark .statistics-panel,
 .theme-dark .statistics-card,
 .theme-dark .statistics-details-panel,
-.theme-dark .calendar-popover,
 .theme-dark .client-alert-popover,
 .theme-dark .row-action-menu,
 .theme-dark .employee-modal,
@@ -673,16 +532,13 @@ button:focus-visible {
 
 .theme-dark .table-head,
 .theme-dark .clients-table-head,
-.theme-dark .client-package-head,
 .theme-dark .table-row:not(.table-head):hover,
 .theme-dark .clients-table-row:not(.clients-table-head):hover,
-.theme-dark .client-package-row:hover,
 .theme-dark .calendar-reminder-list article:hover {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.theme-dark .visits-table,
-.theme-dark .table-search {
+.theme-dark .visits-table {
   background: var(--surface-solid);
   border-color: var(--line-soft);
 }
@@ -698,7 +554,6 @@ button:focus-visible {
 }
 
 .theme-dark .secondary-button:hover,
-.theme-dark .date-button:hover,
 .theme-dark .row-action:hover,
 .theme-dark .modal-close:hover,
 .theme-dark .calendar-icon-button:hover {
@@ -708,7 +563,6 @@ button:focus-visible {
 .theme-dark input,
 .theme-dark select,
 .theme-dark textarea,
-.theme-dark .date-button,
 .theme-dark .secondary-button,
 .theme-dark .client-alert-button,
 .theme-dark .calendar-icon-button,
@@ -716,7 +570,6 @@ button:focus-visible {
 .theme-dark .modal-close,
 .theme-dark .statistics-income-strip span,
 .theme-dark .statistics-card,
-.theme-dark .statistics-payment-summary span,
 .theme-dark .statistics-activity-grid span,
 .theme-dark .settings-options,
 .theme-dark .employee-stats span,
@@ -737,24 +590,14 @@ button:focus-visible {
   }
 
   .page-header,
-  .statistics-hero-header,
-  .clients-toolbar,
-  .employees-toolbar,
-  .settings-toolbar,
-  .catalog-toolbar,
-  .import-toolbar {
+  .statistics-hero-header {
     margin-bottom: 12px;
   }
 
   .page-header h1,
   .statistics-hero-header h2,
   .statistics-hero-header .page-header-unified-copy h2,
-  .page-header-unified-copy h2,
-  .clients-toolbar h2,
-  .employees-toolbar h2,
-  .settings-toolbar h2,
-  .catalog-toolbar h2,
-  .import-toolbar h2 {
+  .page-header-unified-copy h2 {
     font-size: 20px;
   }
 

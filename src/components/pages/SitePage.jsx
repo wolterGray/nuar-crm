@@ -1,6 +1,6 @@
 import {Save} from "lucide-react";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
-import PageHeader from "../PageHeader.jsx";
+import PageHeader from "../ui/PageHeader.jsx";
 import SiteAdminPanel from "../SiteAdminPanel.jsx";
 import SiteBookingNotifySettings from "../SiteBookingNotifySettings.jsx";
 import SiteBookingPanel from "../SiteBookingPanel.jsx";
@@ -102,6 +102,27 @@ function SitePage({
       <form className="settings-form settings-grid" onSubmit={onSubmit}>
         <section className="panel settings-panel settings-grid-full">
           <SiteAdminPanel compact />
+          <div className="site-page-summary site-page-summary-desktop">
+            <article
+              className={`site-page-summary-card${
+                pendingCount > 0 ? " is-active" : ""
+              }`}>
+              <span>Заявки</span>
+              <strong>{pendingCount}</strong>
+            </article>
+            <article className="site-page-summary-card">
+              <span>Telegram</span>
+              <strong>{telegramEnabled ? "Вкл" : "Выкл"}</strong>
+            </article>
+            <article className="site-page-summary-card">
+              <span>WhatsApp</span>
+              <strong>{whatsappEnabled ? "Вкл" : "Выкл"}</strong>
+            </article>
+            <article className="site-page-summary-card">
+              <span>Chat ID</span>
+              <strong>{hasChatId ? "Есть" : "Нет"}</strong>
+            </article>
+          </div>
         </section>
 
         <section className="panel settings-panel settings-grid-full">

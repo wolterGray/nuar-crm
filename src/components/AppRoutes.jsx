@@ -96,17 +96,12 @@ export default function AppRoutes({activePage, ...props}) {
           employees={props.employees}
           inactiveClientDays={props.inactiveClientDays}
           onAddClient={props.openCreateClient}
+          onAddVisit={props.openCreateCalendarEntry}
           onAlertFocusHandled={props.clearAlertFocus}
+          onMessageClient={props.openClientMessageTemplates}
           onEditClient={props.openEditClient}
           onUpdateClientNote={props.updateClientNote}
           onDeleteClient={props.requestDeleteClient}
-          onMessageClient={props.openClientMessageTemplates}
-          onAddToWaitlist={(client) =>
-            props.openCreateWaitlistEntry({clientId: client.id})
-          }
-          onAddVisit={props.addClientCalendarVisit}
-          onRepeatVisit={props.repeatClientVisit}
-          onViewedClientChange={props.onClientDetailsOpenChange}
         />
       );
 

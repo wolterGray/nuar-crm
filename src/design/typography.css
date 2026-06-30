@@ -1,0 +1,29 @@
+/* src/design/typography.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Font sizes – based on a 4‑step modular scale */
+:root {
+  --font-size-h1: 2.5rem;   /* 40px */
+  --font-size-h2: 2rem;     /* 32px */
+  --font-size-h3: 1.5rem;   /* 24px */
+  --font-size-h4: 1.25rem;  /* 20px */
+  --font-size-body: 1rem;   /* 16px */
+  --font-size-caption: 0.875rem; /* 14px */
+  --font-size-button: 0.9375rem; /* 15px */
+}
+
+h1 {font-size: var(--font-size-h1); font-weight: 700; margin: 0;}
+h2 {font-size: var(--font-size-h2); font-weight: 600; margin: 0;}
+h3 {font-size: var(--font-size-h3); font-weight: 600; margin: 0;}
+h4 {font-size: var(--font-size-h4); font-weight: 500; margin: 0;}
+
+body, button, input, select, textarea {
+  font-family: 'Inter', sans-serif;
+  font-size: var(--font-size-body);
+  line-height: 1.5;
+  color: var(--color-primary);
+}
+
+.caption {font-size: var(--font-size-caption); color: var(--color-secondary);}
+
+.button-text {font-size: var(--font-size-button); font-weight: 500;}

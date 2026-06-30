@@ -82,6 +82,33 @@ const taskCollisionDetection = (args) => {
   return closestCenter(args);
 };
 
+const snapTaskOverlayToCursor = ({activatorEvent, draggingNodeRect, transform}) => {
+  if (!activatorEvent || !draggingNodeRect) {
+    return transform;
+  }
+
+  const point =
+    "clientX" in activatorEvent
+      ? activatorEvent
+      : activatorEvent.touches?.[0] ?? activatorEvent.changedTouches?.[0];
+
+  if (!point) {
+    return transform;
+  }
+
+  return {
+    ...transform,
+    x:
+      transform.x +
+      (point.clientX - draggingNodeRect.left) -
+      18,
+    y:
+      transform.y +
+      (point.clientY - draggingNodeRect.top) -
+      18,
+  };
+};
+
 function TaskDragPreview({task}) {
   const status = getTaskStatusLabel(task);
 
@@ -454,7 +481,9 @@ function OperationsPage({
                   <p className="operations-empty">Задач пока нет.</p>
                 )}
               </div>
-              <DragOverlay dropAnimation={{duration: 180, easing: "ease"}}>
+              <DragOverlay
+                dropAnimation={{duration: 180, easing: "ease"}}
+                modifiers={[snapTaskOverlayToCursor]}>
                 {draggedTask ? <TaskDragPreview task={draggedTask} /> : null}
               </DragOverlay>
             </DndContext>

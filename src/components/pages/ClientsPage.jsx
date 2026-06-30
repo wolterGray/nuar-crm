@@ -38,38 +38,57 @@ import {fetchClients} from "../../api/clients.js";
 
 function ClientsPage({
   alertFocus,
-  visits,
-  calendarEntries,
+  calendarEntries = [],
   clients: fallbackClients = [],
-  clientPackages,
+  clientPackages = [],
   certificates = [],
-  communicationLog,
-  employees,
+  communicationLog = [],
+  employees = [],
   inactiveClientDays,
+  visits = [],
   onAddClient,
-  onAlertFocusHandled,
-  onEditClient,
-  onUpdateClientNote,
-  onDeleteClient,
-  onMessageClient,
-  onAddToWaitlist,
   onAddVisit,
-  onRepeatVisit,
-  onViewedClientChange,
+  onAlertFocusHandled,
+  onDeleteClient,
+  onEditClient,
+  onMessageClient,
+  onUpdateClientNote,
 }) {
   const [openClientMenuId, setOpenClientMenuId] = useState(null);
-  const [backendClients, setBackendClients] = useState(null);
+  const [backendClients, setBackendClients] = useState([]);
   const [clientsLoadError, setClientsLoadError] = useState("");
-  const [viewedClient, setViewedClient] = useState(null);
-  const [visitHistoryTab, setVisitHistoryTab] = useState("future");
-  const [search, setSearch] = useState("");
-  const {isMobile} = useBreakpoint();
-  const clients = Array.isArray(backendClients) ? backendClients : fallbackClients;
+
+  const clients = backendClients.length > 0 ? backendClients : fallbackClients;
+
+  const handleMessageClient = (client) => {
+    onMessageClient?.(client);
+  };
+
+  const handleAddVisit = (client) => {
+    onAddVisit?.({
+      client: client.name,
+      clientId: client.id,
+      date: new Date().toISOString().slice(0, 10),
+      kind: "visit",
+    });
+  };
+
+  const handleAddToWaitlist = (client) => {
+    handleAddVisit(client);
+  };
+
+  const handleRepeatVisit = async (client, appointment) => {
+    onAddVisit?.({
+      client: client.name,
+      clientId: client.id,
+      ...appointment.repeatDefaults,
+    });
+  };
 
   useEffect(() => {
     let active = true;
 
-    const loadClientsFromBackend = async () => {
+    const loadData = async () => {
       try {
         const response = await fetchClients();
 
@@ -79,24 +98,26 @@ function ClientsPage({
 
         setBackendClients(Array.isArray(response?.data) ? response.data : []);
         setClientsLoadError("");
-      } catch (error) {
+      } catch (e) {
         if (active) {
-          setBackendClients(null);
-          setClientsLoadError(error?.message || "Не удалось загрузить клиентов из backend");
+          setBackendClients([]);
+          setClientsLoadError(e?.message || "Не удалось загрузить клиентов из backend");
         }
       }
     };
 
-    loadClientsFromBackend();
+    loadData();
 
     return () => {
       active = false;
     };
   }, []);
+  const [viewedClient, setViewedClient] = useState(null);
+  const [visitHistoryTab, setVisitHistoryTab] = useState("future");
+  const [search, setSearch] = useState("");
+  const {isMobile} = useBreakpoint();
 
-  useEffect(() => {
-    onViewedClientChange?.(Boolean(viewedClient));
-  }, [onViewedClientChange, viewedClient]);
+
 
   const viewedClientCommunications = communicationLog
     .filter(
@@ -328,13 +349,14 @@ function ClientsPage({
 
   return (
     <section
-      className={`panel clients-page ${isMobile ? "clients-page-mobile" : ""}`}
+      className="clients-page-shell flex flex-col h-full w-full min-h-0 overflow-hidden bg-background text-foreground"
       onClick={() => setOpenClientMenuId(null)}>
       <PageHeader
+        className="clients-page-header"
         actions={
-          <>
+          <div className="clients-page-toolbar flex items-center gap-2 w-full md:w-auto">
             <SearchControl
-              className="clients-search-control"
+              className="clients-page-search w-full md:w-64"
               placeholder="Поиск клиента"
               value={search}
               onChange={(event) => {
@@ -343,18 +365,21 @@ function ClientsPage({
               }}
               onClear={() => setSearch("")}
             />
-            <button className="add-visit-button" type="button" onClick={onAddClient}>
-              <Plus size={18} />
+            <button
+              className="clients-page-add-button inline-flex items-center justify-center gap-2 min-h-10 md:min-h-9 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover active:scale-95 transition-all text-sm cursor-pointer whitespace-nowrap"
+              type="button"
+              onClick={onAddClient}>
+              <Plus size={16} />
               {isMobile ? "Добавить" : "Добавить клиента"}
             </button>
-          </>
+          </div>
         }
         description={isMobile ? undefined : `${filteredClients.length} из ${clients.length} в базе`}
         title="Клиенты"
       />
 
       {clientsLoadError ? (
-        <p className="client-api-fallback-note">
+        <p className="px-4 pb-2 text-xs text-muted-foreground">
           Backend clients недоступен, показаны текущие данные CRM.
         </p>
       ) : null}
@@ -368,8 +393,9 @@ function ClientsPage({
         }}
       />
 
-      <div className="clients-table">
-        <div className="clients-table-row clients-table-head">
+      <div className="clients-table-shell flex-1 min-h-0 overflow-y-auto pr-1 select-none scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent">
+        {/* Table Head */}
+        <div className="clients-table-head-row sticky top-0 z-10 hidden md:grid grid-cols-[minmax(180px,1.5fr)_110px_70px_90px_100px_130px_90px_minmax(120px,1fr)_50px] items-center gap-3 px-4 py-2 border-b border-border bg-card text-muted-foreground text-xs font-semibold uppercase tracking-wider">
           <span>Клиент</span>
           <span>Статус</span>
           <span>Визитов</span>
@@ -381,156 +407,177 @@ function ClientsPage({
           <span></span>
         </div>
 
-        {filteredClients.map((client) => (
-          <div
-            className={`clients-table-row ${
-              client.daysAbsent === null ||
-              client.daysAbsent >= inactiveClientDays
-                ? "client-needs-contact"
-                : ""
-            } ${isFocusedClient(client) ? "alert-focus-pulse" : ""}`}
-            id={`alert-focus-client-${client.id}`}
-            role="button"
-            tabIndex="0"
-            key={client.id}
-            onClick={() => {
-              setViewedClient(client);
-              setVisitHistoryTab("future");
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                setViewedClient(client);
-                setVisitHistoryTab("future");
-              }
-            }}>
-            <span className="client-name-cell">
-              <strong>{client.name}</strong>
-              <small>{client.phone || "Телефон не указан"}</small>
-            </span>
-            <div className="client-card-meta">
-              <span data-label="Статус">
-                <b
-                  className={`client-status ${
-                    (client.status || "Активный") === "Новый"
-                      ? "client-status-new"
-                      : "client-status-active"
-                  }`}>
-                  {client.status || "Активный"}
-                </b>
-              </span>
-              <span data-label="Визитов">{client.visitsCount}</span>
-              <span data-label="Не был">
-                {client.daysAbsent === null
-                  ? "Новый"
-                  : `${client.daysAbsent} дн.`}
-              </span>
-            </div>
-            <span data-label="Пакеты">
-              {client.packagesCount} / {client.packagesLeft}
-            </span>
-            <span data-label="Сумма">{formatMoney(client.totalIncome)}</span>
-            <span data-label="Последний визит">{client.lastVisit}</span>
-            <span data-label="Заметка">{client.note || "—"}</span>
+        {/* Table Body */}
+        <div className="clients-table-list grid gap-2 p-4 md:p-0">
+          {filteredClients.map((client) => {
+            const needsContact = client.daysAbsent === null || client.daysAbsent >= inactiveClientDays;
+            return (
+              <div
+                className={`clients-table-item relative grid grid-cols-1 md:grid-cols-[minmax(180px,1.5fr)_110px_70px_90px_100px_130px_90px_minmax(120px,1fr)_50px] items-center gap-3 p-4 md:px-4 md:py-3 rounded-xl md:rounded-none border border-border md:border-0 md:border-b md:border-border bg-card md:bg-transparent hover:bg-accent/5 cursor-pointer transition-colors ${
+                  needsContact ? "border-l-4 border-l-red-500 bg-red-500/5 md:bg-red-500/[0.03]" : ""
+                } ${isFocusedClient(client) ? "animate-pulse ring-2 ring-accent" : ""}`}
+                id={`alert-focus-client-${client.id}`}
+                role="button"
+                tabIndex="0"
+                key={client.id}
+                onClick={() => {
+                  setViewedClient(client);
+                  setVisitHistoryTab("future");
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setViewedClient(client);
+                    setVisitHistoryTab("future");
+                  }
+                }}>
+                {/* Client info */}
+                <div className="flex flex-col min-w-0 md:col-span-1">
+                  <strong className="clients-table-name text-foreground font-bold text-sm md:text-base truncate">{client.name}</strong>
+                  <small className="clients-table-phone text-muted-foreground text-xs truncate mt-0.5">{client.phone || "Телефон не указан"}</small>
+                </div>
 
-            <div
-              className="client-mobile-quick-actions"
-              onClick={(event) => event.stopPropagation()}>
-              <button
-                aria-label={`Написать ${client.name}`}
-                className="client-quick-action"
-                type="button"
-                onClick={() => onMessageClient(client)}>
-                <MessageSquareText size={14} />
-                <span>Написать</span>
-              </button>
-              <button
-                aria-label={`Записать ${client.name}`}
-                className="client-quick-action"
-                type="button"
-                onClick={() => onAddVisit(client)}>
-                <CalendarPlus size={14} />
-                <span>Запись</span>
-              </button>
-            </div>
+                {/* Mobile metadata / Status badge on Desktop */}
+                <div className="flex flex-wrap items-center gap-2 md:contents">
+                  <span data-label="Статус">
+                    <b
+                      className={`client-status-pill inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
+                        (client.status || "Активный") === "Новый"
+                          ? "bg-blue-500/10 text-blue-500"
+                          : "bg-green-500/10 text-green-500"
+                      }`}>
+                      {client.status || "Активный"}
+                    </b>
+                  </span>
+                  <span className="inline-flex md:hidden items-center px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                    Визитов: {client.visitsCount}
+                  </span>
+                  <span className="inline-flex md:hidden items-center px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                    Не был: {client.daysAbsent === null ? "Новый" : `${client.daysAbsent} дн.`}
+                  </span>
+                </div>
 
-            <div
-              className="row-actions row-action-trigger-wrap client-row-actions"
-              onClick={(event) => event.stopPropagation()}>
-              <button
-                className="row-action row-action-trigger"
-                aria-label="Действия"
-                onClick={() =>
-                  setOpenClientMenuId(
-                    openClientMenuId === client.id ? null : client.id,
-                  )
-                }>
-                <MoreVertical size={18} />
-              </button>
+                {/* Desktop metadata columns */}
+                <span className="clients-table-number hidden md:inline text-foreground text-sm" data-label="Визитов">{client.visitsCount}</span>
+                <span className="hidden md:inline text-foreground text-sm truncate" data-label="Пакеты">
+                  {client.packagesCount} / {client.packagesLeft}
+                </span>
+                <span className="clients-table-money hidden md:inline text-foreground text-sm font-semibold" data-label="Сумма">{formatMoney(client.totalIncome)}</span>
+                <span className="hidden md:inline text-foreground text-sm" data-label="Последний визит">{client.lastVisit}</span>
+                <span className="hidden md:inline text-foreground text-sm" data-label="Не был">
+                  {client.daysAbsent === null ? "Новый" : `${client.daysAbsent} дн.`}
+                </span>
+                <span className="hidden md:inline text-muted-foreground text-sm truncate" data-label="Заметка">{client.note || "—"}</span>
 
-              {openClientMenuId === client.id && (
-                <div className="row-action-menu">
+                {/* Mobile Quick Actions */}
+                <div
+                  className="flex md:hidden items-center gap-2 mt-2 w-full"
+                  onClick={(event) => event.stopPropagation()}>
                   <button
+                    aria-label={`Написать ${client.name}`}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-lg border border-border text-foreground hover:bg-accent/5 font-semibold text-xs transition-all"
                     type="button"
-                    onClick={() => {
-                      setViewedClient(client);
-                      setVisitHistoryTab("future");
-                      setOpenClientMenuId(null);
-                    }}>
-                    <Eye size={15} />
-                    Посмотреть
+                    onClick={() => handleMessageClient(client)}>
+                    <MessageSquareText size={14} />
+                    <span>Написать</span>
                   </button>
                   <button
+                    aria-label={`Записать ${client.name}`}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-lg border border-border text-foreground hover:bg-accent/5 font-semibold text-xs transition-all"
                     type="button"
-                    onClick={() => {
-                      setOpenClientMenuId(null);
-                      onMessageClient(client);
-                    }}>
-                    <MessageSquareText size={15} />
-                    Написать
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpenClientMenuId(null);
-                      onAddToWaitlist?.(client);
-                    }}>
-                    <Clock3 size={15} />
-                    Лист ожидания
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpenClientMenuId(null);
-                      onEditClient(client);
-                    }}>
-                    <Pencil size={15} />
-                    Редактировать
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpenClientMenuId(null);
-                      onDeleteClient(client);
-                    }}>
-                    <Trash2 size={15} />
-                    Удалить
+                    onClick={() => handleAddVisit(client)}>
+                    <CalendarPlus size={14} />
+                    <span>Запись</span>
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
-        ))}
+
+                {/* Row actions */}
+                <div
+                  className="absolute top-4 right-4 md:relative md:top-auto md:right-auto flex justify-end"
+                  onClick={(event) => event.stopPropagation()}>
+                  <button
+                    className="clients-row-menu-button inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:bg-accent/10 active:scale-95 transition-all"
+                    aria-label="Действия"
+                    onClick={() =>
+                      setOpenClientMenuId(
+                        openClientMenuId === client.id ? null : client.id,
+                      )
+                    }>
+                    <MoreVertical size={16} />
+                  </button>
+
+                  {openClientMenuId === client.id && (
+                    <div className="clients-row-menu absolute right-0 top-10 md:top-8 z-20 w-48 rounded-lg border border-border bg-card p-1 shadow-lg">
+                      <button
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-left text-sm text-foreground hover:bg-accent/10 transition-colors"
+                        type="button"
+                        onClick={() => {
+                          setViewedClient(client);
+                          setVisitHistoryTab("future");
+                          setOpenClientMenuId(null);
+                        }}>
+                        <Eye size={14} />
+                        Посмотреть
+                      </button>
+                      <button
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-left text-sm text-foreground hover:bg-accent/10 transition-colors"
+                        type="button"
+                        onClick={() => {
+                          setOpenClientMenuId(null);
+                          handleMessageClient(client);
+                        }}>
+                        <MessageSquareText size={14} />
+                        Написать
+                      </button>
+                      <button
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-left text-sm text-foreground hover:bg-accent/10 transition-colors"
+                        type="button"
+                        onClick={() => {
+                          setOpenClientMenuId(null);
+                          handleAddToWaitlist(client);
+                        }}>
+                        <Clock3 size={14} />
+                        Лист ожидания
+                      </button>
+                      <button
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-left text-sm text-foreground hover:bg-accent/10 transition-colors"
+                        type="button"
+                        onClick={() => {
+                          setOpenClientMenuId(null);
+                          onEditClient?.(client);
+                        }}>
+                        <Pencil size={14} />
+                        Редактировать
+                      </button>
+                      <button
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-left text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                        type="button"
+                        onClick={() => {
+                          setOpenClientMenuId(null);
+                          onDeleteClient?.(client);
+                        }}>
+                        <Trash2 size={14} />
+                        Удалить
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         {filteredClients.length === 0 && (
-          <div className="clients-empty">
-            <strong>Клиенты не найдены</strong>
-            <span>Попробуйте изменить запрос или очистить поиск.</span>
+          <div className="clients-empty-state flex flex-col items-center justify-center py-12 text-center select-none text-muted-foreground">
+            <strong className="text-foreground font-bold text-lg mb-1">Клиенты не найдены</strong>
+            <span className="text-sm">Попробуйте изменить запрос или очистить поиск.</span>
           </div>
         )}
       </div>
+
       {activeViewedClient && (
         <MobileSheet
-          className="employee-modal client-details-modal"
+          className="w-full md:w-[820px] max-h-[94dvh] md:max-h-[90dvh] flex flex-col p-0 overflow-hidden"
           fullscreen={isMobile}
           isOpen
           labelledBy="client-card-title"
@@ -538,88 +585,90 @@ function ClientsPage({
           description="Карточка клиента"
           onClose={() => setViewedClient(null)}
           footer={
-            <div className="client-details-actions">
+            <div className="grid grid-cols-3 gap-2 w-full">
               <button
-                className="submit-button"
+                className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover transition-colors text-xs cursor-pointer whitespace-nowrap"
                 type="button"
-                onClick={() => onAddVisit(activeViewedClient)}>
-                <CalendarPlus size={15} />
+                onClick={() => handleAddVisit(activeViewedClient)}>
+                <CalendarPlus size={14} />
                 Добавить визит
               </button>
               <button
-                className="secondary-button"
+                className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-colors text-xs font-semibold"
                 type="button"
-                onClick={() => onMessageClient(activeViewedClient)}>
-                <MessageSquareText size={15} />
+                onClick={() => handleMessageClient(activeViewedClient)}>
+                <MessageSquareText size={14} />
                 Написать
               </button>
               <a
                 aria-disabled={!activeViewedClient.phone}
-                className="secondary-button"
+                className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-colors text-xs font-semibold decoration-none whitespace-nowrap aria-[disabled=true]:opacity-50 aria-[disabled=true]:pointer-events-none"
                 href={
                   activeViewedClient.phone ? `tel:${activeViewedClient.phone}` : undefined
                 }>
-                <Phone size={15} />
+                <Phone size={14} />
                 Позвонить
               </a>
             </div>
           }>
-          <div className="client-details-body client-details-sheet-root">
-            <div className="client-overview-panel">
-              <article>
-                <span>Следующая запись</span>
-                <strong>{formatAppointmentSummary(activeViewedClient.nextAppointment)}</strong>
-                <small>
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 select-none scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent">
+            {/* Overview cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <article className="flex flex-col gap-1 p-3 rounded-xl bg-muted">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Следующая запись</span>
+                <strong className="text-foreground text-xs md:text-sm font-bold truncate">{formatAppointmentSummary(activeViewedClient.nextAppointment)}</strong>
+                <small className="text-[10px] text-muted-foreground truncate">
                   {activeViewedClient.nextAppointment?.service ||
                     "Можно записать в один клик"}
                 </small>
               </article>
-              <article>
-                <span>Любимая услуга</span>
-                <strong>{activeViewedClient.favoriteService}</strong>
-                <small>{activeViewedClient.completedVisitsCount} завершено</small>
+              <article className="flex flex-col gap-1 p-3 rounded-xl bg-muted">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Любимая услуга</span>
+                <strong className="text-foreground text-xs md:text-sm font-bold truncate">{activeViewedClient.favoriteService}</strong>
+                <small className="text-[10px] text-muted-foreground truncate">{activeViewedClient.completedVisitsCount} завершено</small>
               </article>
-              <article>
-                <span>Средний чек</span>
-                <strong>{formatMoney(activeViewedClient.averageCheck)}</strong>
-                <small>Всего {formatMoney(activeViewedClient.totalIncome)}</small>
+              <article className="flex flex-col gap-1 p-3 rounded-xl bg-muted">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Средний чек</span>
+                <strong className="text-foreground text-xs md:text-sm font-bold truncate">{formatMoney(activeViewedClient.averageCheck)}</strong>
+                <small className="text-[10px] text-muted-foreground truncate">Всего {formatMoney(activeViewedClient.totalIncome)}</small>
               </article>
-              <article>
-                <span>Активы клиента</span>
-                <strong>
+              <article className="flex flex-col gap-1 p-3 rounded-xl bg-muted">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Активы клиента</span>
+                <strong className="text-foreground text-xs md:text-sm font-bold truncate">
                   {activeViewedClient.packagesLeft} сеанс. ·{" "}
                   {formatMoney(activeViewedClient.activeCertificatesBalance)}
                 </strong>
-                <small>
+                <small className="text-[10px] text-muted-foreground truncate">
                   {activeViewedClient.packagesCount} пак. ·{" "}
                   {activeViewedClient.activeCertificates.length} серт.
                 </small>
               </article>
             </div>
 
+            {/* Assets */}
             {(activeViewedClient.activePackages.length > 0 ||
               activeViewedClient.activeCertificates.length > 0) && (
-              <div className="client-assets-panel">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {activeViewedClient.activePackages.length > 0 ? (
-                  <section>
-                    <span>Активные пакеты</span>
+                  <section className="flex flex-col gap-2 p-3 rounded-xl bg-muted">
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Активные пакеты</span>
                     {activeViewedClient.activePackages.slice(0, 3).map((packageItem) => (
-                      <p key={packageItem.id}>
-                        <strong>{packageItem.packageName || "Пакет"}</strong>
-                        <small>{packageItem.remainingVisits} сеанс. осталось</small>
+                      <p key={packageItem.id} className="flex justify-between items-center text-sm border-t border-border/40 pt-2 mt-1">
+                        <strong className="font-bold text-foreground truncate">{packageItem.packageName || "Пакет"}</strong>
+                        <small className="text-muted-foreground">{packageItem.remainingVisits} сеанс. осталось</small>
                       </p>
                     ))}
                   </section>
                 ) : null}
                 {activeViewedClient.activeCertificates.length > 0 ? (
-                  <section>
-                    <span>Активные сертификаты</span>
+                  <section className="flex flex-col gap-2 p-3 rounded-xl bg-muted">
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Активные сертификаты</span>
                     {activeViewedClient.activeCertificates
                       .slice(0, 3)
                       .map((certificate) => (
-                        <p key={certificate.id}>
-                          <strong>{certificate.code || "Сертификат"}</strong>
-                          <small>{getCertificateBalanceLabel(certificate)}</small>
+                        <p key={certificate.id} className="flex justify-between items-center text-sm border-t border-border/40 pt-2 mt-1">
+                          <strong className="font-bold text-foreground truncate">{certificate.code || "Сертификат"}</strong>
+                          <small className="text-muted-foreground">{getCertificateBalanceLabel(certificate)}</small>
                         </p>
                       ))}
                   </section>
@@ -627,85 +676,85 @@ function ClientsPage({
               </div>
             )}
 
-            <div className="client-details-grid">
-              <span>
-                Телефон <strong>{activeViewedClient.phone || "—"}</strong>
+            {/* Client parameters grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Телефон <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.phone || "—"}</strong>
               </span>
-              <span>
-                Email <strong>{activeViewedClient.email || "—"}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Email <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.email || "—"}</strong>
               </span>
-              <span>
-                Instagram <strong>{activeViewedClient.instagram || "—"}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Instagram <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.instagram || "—"}</strong>
               </span>
-              <span>
-                Telegram <strong>{activeViewedClient.telegram || "—"}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Telegram <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.telegram || "—"}</strong>
               </span>
-              <span>
-                Дата рождения <strong>{activeViewedClient.birthday || "—"}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Дата рождения <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.birthday || "—"}</strong>
               </span>
-              <span>
-                Источник <strong>{activeViewedClient.source || "—"}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Источник <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.source || "—"}</strong>
               </span>
-              <span>
-                Визитов <strong>{activeViewedClient.visitsCount}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Визитов <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.visitsCount}</strong>
               </span>
-              <span>
-                Завершено <strong>{activeViewedClient.completedVisitsCount}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Завершено <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.completedVisitsCount}</strong>
               </span>
-              <span>
-                Запланировано{" "}
-                <strong>{activeViewedClient.upcomingVisitsCount}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Запланировано <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.upcomingVisitsCount}</strong>
               </span>
-              <span>
-                Последний визит <strong>{activeViewedClient.lastVisit}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Последний визит <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.lastVisit}</strong>
               </span>
-              <span>
-                Не был{" "}
-                <strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Не был <strong className="text-foreground text-sm font-semibold truncate mt-1">
                   {activeViewedClient.daysAbsent === null
                     ? "Еще не приходил"
                     : `${activeViewedClient.daysAbsent} дн.`}
                 </strong>
               </span>
-              <span>
-                Пакетов <strong>{activeViewedClient.packagesCount}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Пакетов <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.packagesCount}</strong>
               </span>
-              <span>
-                Остаток сеансов <strong>{activeViewedClient.packagesLeft}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Остаток сеансов <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.packagesLeft}</strong>
               </span>
               {activeViewedClient.archivedPackagesCount > 0 ? (
-                <span>
-                  В архиве <strong>{activeViewedClient.archivedPackagesCount}</strong>
+                <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                  В архиве <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.archivedPackagesCount}</strong>
                 </span>
               ) : null}
-              <span>
-                Общая сумма{" "}
-                <strong>{formatMoney(activeViewedClient.totalIncome)}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Общая сумма <strong className="text-foreground text-sm font-semibold truncate mt-1">{formatMoney(activeViewedClient.totalIncome)}</strong>
               </span>
-              <span>
-                Предпочтения <strong>{activeViewedClient.preference || "—"}</strong>
-                {" · "}
-                Язык SMS{" "}
-                <strong>{activeViewedClient.messageLanguage || "Польский"}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground col-span-2 md:col-span-3">
+                Предпочтения <strong className="text-foreground text-sm font-semibold truncate mt-1">
+                  {activeViewedClient.preference || "—"} · Язык SMS: {activeViewedClient.messageLanguage || "Польский"}
+                </strong>
               </span>
-              <span>
-                Статус <strong>{activeViewedClient.status || "Активный"}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
+                Статус <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.status || "Активный"}</strong>
               </span>
-              <span>
-                Теги <strong>{activeViewedClient.tags || "—"}</strong>
+              <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground col-span-2">
+                Теги <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.tags || "—"}</strong>
               </span>
             </div>
+
             {activeViewedClient.birthday && (
-              <div className="client-birthday-note">
+              <div className="flex items-center gap-2 p-3 rounded-lg text-amber-700 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 text-xs">
                 <CakeSlice size={15} />
                 Дата рождения участвует в уведомлениях CRM.
               </div>
             )}
-            <div className="client-details-note">
-              <span>Заметка</span>
+
+            {/* Note */}
+            <div className="flex flex-col gap-2">
+              <span className="text-xs text-muted-foreground font-semibold">Заметка</span>
               <textarea
                 key={`${activeViewedClient.id}-${activeViewedClient.note || ""}`}
-                className="client-details-note-input"
+                className="w-full min-h-20 p-3 rounded-lg border border-border bg-muted text-foreground text-sm resize-y focus:outline-none focus:border-accent focus:bg-card transition-all"
                 defaultValue={activeViewedClient.note || ""}
                 placeholder="Заметок пока нет."
                 rows={3}
@@ -721,32 +770,39 @@ function ClientsPage({
                 }}
               />
             </div>
-            <div className="client-visit-history">
-              <div>
-                <span>История визитов</span>
-                <b>{activeViewedClient.appointments.length}</b>
+
+            {/* Visit History */}
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center text-xs text-muted-foreground">
+                <span className="font-semibold">История визитов</span>
+                <b className="flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-full bg-muted text-foreground font-bold">{activeViewedClient.appointments.length}</b>
               </div>
-              <div className="client-visit-history-tabs">
+              <div className="flex justify-center gap-1 p-1 rounded-lg bg-muted">
                 <button
-                  className={visitHistoryTab === "future" ? "active" : ""}
+                  className={`flex-1 inline-flex items-center justify-center gap-2 min-h-9 px-3 rounded-md text-xs font-semibold transition-all ${
+                    visitHistoryTab === "future" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-transparent"
+                  }`}
                   type="button"
                   onClick={() => setVisitHistoryTab("future")}>
                   Будущие
-                  <b>{activeViewedClient.upcomingVisitsCount}</b>
+                  <b className="text-[10px]">{activeViewedClient.upcomingVisitsCount}</b>
                 </button>
                 <button
-                  className={visitHistoryTab === "past" ? "active" : ""}
+                  className={`flex-1 inline-flex items-center justify-center gap-2 min-h-9 px-3 rounded-md text-xs font-semibold transition-all ${
+                    visitHistoryTab === "past" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-transparent"
+                  }`}
                   type="button"
                   onClick={() => setVisitHistoryTab("past")}>
                   Прошлые
-                  <b>
+                  <b className="text-[10px]">
                     {activeViewedClient.appointments.length -
                       activeViewedClient.upcomingVisitsCount}
                   </b>
                 </button>
               </div>
-              <div className="client-visit-history-table">
-                <div className="client-visit-history-row client-visit-history-head">
+              <div className="h-64 overflow-y-auto border border-border rounded-lg scrollbar-thin select-none">
+                {/* History Header */}
+                <div className="sticky top-0 z-10 hidden md:grid grid-cols-[100px_minmax(130px,1fr)_80px_80px_90px_80px_90px] gap-2 items-center px-3 py-2 bg-muted text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                   <span>Дата</span>
                   <span>Услуга</span>
                   <span>Мастер</span>
@@ -755,64 +811,72 @@ function ClientsPage({
                   <span>Статус</span>
                   <span></span>
                 </div>
-                {activeViewedClient.appointments
-                  .filter((appointment) =>
+                {/* History rows */}
+                <div className="divide-y divide-border/40">
+                  {activeViewedClient.appointments
+                    .filter((appointment) =>
+                      visitHistoryTab === "future"
+                        ? appointment.status === "Запланирован"
+                        : appointment.status !== "Запланирован",
+                    )
+                    .map((appointment) => (
+                      <div
+                        className="grid grid-cols-1 md:grid-cols-[100px_minmax(130px,1fr)_80px_80px_90px_80px_90px] gap-2 items-center p-3 md:px-3 md:py-2 text-xs text-foreground bg-card md:bg-transparent"
+                        key={appointment.id}>
+                        <span className="font-semibold md:font-normal" data-label="Дата">
+                          {appointment.date}
+                          {appointment.time !== "—"
+                            ? ` · ${appointment.time}`
+                            : ""}
+                        </span>
+                        <span className="truncate" data-label="Услуга">{appointment.service}</span>
+                        <span className="truncate" data-label="Мастер">{appointment.master}</span>
+                        <span className="truncate" data-label="Оплата">{appointment.payment}</span>
+                        <span className="font-semibold" data-label="Прибыль">
+                          {appointment.total === null
+                            ? "После визита"
+                            : formatMoney(appointment.total)}
+                        </span>
+                        <span data-label="Статус">
+                          <b className="font-bold text-muted-foreground">{appointment.status}</b>
+                        </span>
+                        <button
+                          className="inline-flex items-center justify-center gap-1 min-h-[26px] px-2 rounded-md border border-border text-foreground hover:bg-accent/5 font-semibold text-[10px] transition-all cursor-pointer whitespace-nowrap w-full md:w-auto"
+                          type="button"
+                          onClick={() =>
+                            handleRepeatVisit(activeViewedClient, appointment)
+                          }>
+                          <RotateCcw size={10} />
+                          Повторить
+                        </button>
+                      </div>
+                    ))}
+                  {activeViewedClient.appointments.filter((appointment) =>
                     visitHistoryTab === "future"
                       ? appointment.status === "Запланирован"
                       : appointment.status !== "Запланирован",
-                  )
-                  .map((appointment) => (
-                    <div
-                      className="client-visit-history-row"
-                      key={appointment.id}>
-                      <span data-label="Дата">
-                        {appointment.date}
-                        {appointment.time !== "—"
-                          ? ` · ${appointment.time}`
-                          : ""}
-                      </span>
-                      <span data-label="Услуга">{appointment.service}</span>
-                      <span data-label="Мастер">{appointment.master}</span>
-                      <span data-label="Оплата">{appointment.payment}</span>
-                      <span data-label="Прибыль">
-                        {appointment.total === null
-                          ? "После визита"
-                          : formatMoney(appointment.total)}
-                      </span>
-                      <span data-label="Статус">
-                        <b>{appointment.status}</b>
-                      </span>
-                      <button
-                        className="client-repeat-visit"
-                        type="button"
-                        onClick={() =>
-                          onRepeatVisit(activeViewedClient, appointment)
-                        }>
-                        <RotateCcw size={13} />
-                        Повторить визит
-                      </button>
-                    </div>
-                  ))}
-                {activeViewedClient.appointments.filter((appointment) =>
-                  visitHistoryTab === "future"
-                    ? appointment.status === "Запланирован"
-                    : appointment.status !== "Запланирован",
-                ).length === 0 && (
-                  <p className="client-visit-history-empty">
-                    {visitHistoryTab === "future"
-                      ? "Будущих визитов пока нет."
-                      : "Прошлых визитов пока нет."}
-                  </p>
-                )}
+                  ).length === 0 && (
+                    <p className="p-4 text-center text-muted-foreground text-xs">
+                      {visitHistoryTab === "future"
+                        ? "Будущих визитов пока нет."
+                        : "Прошлых визитов пока нет."}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="client-communications">
-              <span>Последние сообщения</span>
-              {viewedClientCommunications.map((entry) => (
-                <article key={entry.id}>
-                  <div>
-                    <strong>{entry.channel}</strong>
-                    <small>
+
+            {/* Communications */}
+            <div className="flex flex-col gap-2">
+              <span className="text-xs text-muted-foreground font-semibold">Последние сообщения</span>
+              <div className="space-y-2">
+                {viewedClientCommunications.map((entry) => (
+                  <article key={entry.id} className="flex justify-between items-center gap-2 p-3 rounded-lg bg-muted text-xs text-foreground">
+                    <div className="flex flex-col gap-0.5">
+                      <strong className="font-bold">{entry.channel}</strong>
+                      <p className="text-muted-foreground text-[11px] mt-0.5">{entry.templateName}</p>
+                    </div>
+                    <small className="text-muted-foreground text-[10px] whitespace-nowrap">
                       {new Date(entry.createdAt).toLocaleString("ru-RU", {
                         day: "2-digit",
                         month: "2-digit",
@@ -821,15 +885,14 @@ function ClientsPage({
                         minute: "2-digit",
                       })}
                     </small>
-                  </div>
-                  <p>{entry.templateName}</p>
-                </article>
-              ))}
-              {viewedClientCommunications.length === 0 && (
-                <p className="client-communications-empty">
-                  Сообщений пока не отправляли.
-                </p>
-              )}
+                  </article>
+                ))}
+                {viewedClientCommunications.length === 0 && (
+                  <p className="p-3 text-center text-muted-foreground text-xs bg-muted rounded-lg">
+                    Сообщений пока не отправляли.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </MobileSheet>
@@ -882,69 +945,81 @@ function ClientQualityPanel({report, onEditClient, onOpenClient}) {
   );
 
   return (
-    <section className="client-quality-panel">
-      <div className="client-quality-score">
-        <span>Качество базы</span>
-        <strong>{report.score}%</strong>
-        <small>
+    <section className="clients-quality-panel grid grid-cols-1 md:grid-cols-[0.8fr_1.2fr_1.4fr] gap-2 mb-2 p-4 md:p-0">
+      {/* Quality Score */}
+      <div className="clients-quality-card clients-quality-score flex flex-col gap-1 p-3 rounded-xl border border-border bg-card">
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Качество базы</span>
+        <strong className="text-foreground text-3xl font-extrabold leading-none mt-1">{report.score}%</strong>
+        <small className="text-[10px] text-muted-foreground mt-2">
           {report.hasIssues
             ? `${report.issuesCount} пунктов к проверке`
             : "База выглядит чисто"}
         </small>
       </div>
 
-      <div className="client-quality-metrics">
-        <article>
-          <span>Дубли телефонов</span>
-          <strong>{report.duplicatePhones.length}</strong>
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-2 gap-2">
+        <article className="clients-quality-card flex flex-col justify-center p-3 rounded-xl border border-border bg-card">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Дубли телефонов</span>
+          <strong className="text-foreground text-xl font-bold mt-1">{report.duplicatePhones.length}</strong>
         </article>
-        <article>
-          <span>Дубли имён</span>
-          <strong>{report.duplicateNames.length}</strong>
+        <article className="clients-quality-card flex flex-col justify-center p-3 rounded-xl border border-border bg-card">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Дубли имён</span>
+          <strong className="text-foreground text-xl font-bold mt-1">{report.duplicateNames.length}</strong>
         </article>
-        <article>
-          <span>Без телефона</span>
-          <strong>{report.missingPhone.length}</strong>
+        <article className="clients-quality-card flex flex-col justify-center p-3 rounded-xl border border-border bg-card">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Без телефона</span>
+          <strong className="text-foreground text-xl font-bold mt-1">{report.missingPhone.length}</strong>
         </article>
-        <article>
-          <span>Без источника/SMS</span>
-          <strong>
+        <article className="clients-quality-card flex flex-col justify-center p-3 rounded-xl border border-border bg-card">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Без источника/SMS</span>
+          <strong className="text-foreground text-xl font-bold mt-1">
             {report.missingSource.length + report.missingMessageLanguage.length}
           </strong>
         </article>
       </div>
 
-      <div className="client-quality-lists">
-        <div>
-          <span>Быстро исправить</span>
+      {/* Quality Lists */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {/* Missing fields */}
+        <div className="clients-quality-card flex flex-col gap-1.5 p-3 rounded-xl border border-border bg-card">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Быстро исправить</span>
           {topMissing.length > 0 ? (
-            topMissing.map((item) => (
-              <button
-                key={`${item.label}-${item.client.id}`}
-                type="button"
-                onClick={() => onEditClient(item.client)}>
-                <strong>{item.client.name}</strong>
-                <small>{item.label}</small>
-              </button>
-            ))
+            <div className="divide-y divide-border/40 overflow-y-auto max-h-36 pr-0.5">
+              {topMissing.map((item) => (
+                <button
+                  key={`${item.label}-${item.client.id}`}
+                  className="flex flex-col text-left py-1.5 w-full bg-transparent border-0 hover:text-accent group transition-colors cursor-pointer"
+                  type="button"
+                  onClick={() => onEditClient?.(item.client)}>
+                  <strong className="text-xs text-foreground group-hover:text-accent font-semibold truncate w-full">{item.client.name}</strong>
+                  <small className="text-[10px] text-muted-foreground truncate w-full">{item.label}</small>
+                </button>
+              ))}
+            </div>
           ) : (
-            <p>Критичных пропусков нет.</p>
+            <p className="text-xs text-muted-foreground py-2">Критичных пропусков нет.</p>
           )}
         </div>
-        <div>
-          <span>Похожие клиенты</span>
+
+        {/* Duplicates */}
+        <div className="clients-quality-card flex flex-col gap-1.5 p-3 rounded-xl border border-border bg-card">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Похожие клиенты</span>
           {duplicateGroups.length > 0 ? (
-            duplicateGroups.map((group) => (
-              <button
-                key={group.key}
-                type="button"
-                onClick={() => onOpenClient(group.clients[0])}>
-                <strong>{group.clients.map((client) => client.name).join(" / ")}</strong>
-                <small>{group.clients.length} записи · открыть первую</small>
-              </button>
-            ))
+            <div className="divide-y divide-border/40 overflow-y-auto max-h-36 pr-0.5">
+              {duplicateGroups.map((group) => (
+                <button
+                  key={group.key}
+                  className="flex flex-col text-left py-1.5 w-full bg-transparent border-0 hover:text-accent group transition-colors cursor-pointer"
+                  type="button"
+                  onClick={() => onOpenClient(group.clients[0])}>
+                  <strong className="text-xs text-foreground group-hover:text-accent font-semibold truncate w-full">{group.clients.map((client) => client.name).join(" / ")}</strong>
+                  <small className="text-[10px] text-muted-foreground truncate w-full">{group.clients.length} записи · открыть первую</small>
+                </button>
+              ))}
+            </div>
           ) : (
-            <p>Дублей не найдено.</p>
+            <p className="text-xs text-muted-foreground py-2">Дублей не найдено.</p>
           )}
         </div>
       </div>

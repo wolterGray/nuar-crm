@@ -11,19 +11,19 @@ import {
   SlidersHorizontal,
   Upload,
 } from "lucide-react";
+import clsx from "clsx";
 import {useCallback, useMemo, useRef, useState} from "react";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {resolveColorTheme} from "../../utils/colorTheme.js";
 import {buildIntegrationHealth} from "../../utils/integrationHealth.js";
 import HintIcon, {FieldLabel} from "../HintIcon.jsx";
-import PageHeader from "../PageHeader.jsx";
 import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
 import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
-
 import SettingsToggle from "../SettingsToggle.jsx";
+import {Button, Card, Input, PageHeader, Select} from "../ui/index.js";
 
 function SettingsMobileSection({children, isMobile, title}) {
   if (!isMobile) {
@@ -31,9 +31,9 @@ function SettingsMobileSection({children, isMobile, title}) {
   }
 
   return (
-    <section className="settings-mobile-section">
-      <h3 className="settings-mobile-section-title">{title}</h3>
-      <div className="settings-mobile-section-body">{children}</div>
+    <section className="flex flex-col gap-4 p-4 border border-border/60 bg-surface/50 rounded-card mb-4">
+      <h3 className="m-0 text-text-main text-sm font-semibold tracking-tight border-b border-border-soft pb-2">{title}</h3>
+      <div className="flex flex-col gap-4">{children}</div>
     </section>
   );
 }
@@ -49,55 +49,65 @@ function IntegrationHealthPanel({actions = {}, report}) {
         : "Автоматизации выключены";
 
   return (
-    <div className={`integration-health-panel is-${overallState}`}>
-      <div className="integration-health-head">
+    <div className={`p-5 border rounded-card bg-surface flex flex-col gap-5 ${
+      overallState === "warning" ? "border-amber-500/20" : overallState === "ok" ? "border-emerald-500/20" : "border-border"
+    }`}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <span>Авто-контроль</span>
-          <strong>{overallLabel}</strong>
+          <span className="block text-text-faint text-xs">Авто-контроль</span>
+          <strong className="block text-text-main text-base font-bold mt-0.5">{overallLabel}</strong>
         </div>
-        <div className="integration-health-head-actions">
-          <div className="integration-health-summary">
-            <b>{report.summary.ok}</b>
-            <small>OK</small>
-            <b>{report.summary.warning}</b>
-            <small>Внимание</small>
-            <b>{report.summary.off}</b>
-            <small>Выкл</small>
+        <div className="flex items-center flex-wrap gap-4">
+          <div className="flex items-center gap-3 bg-field px-3 py-1.5 rounded-control border border-border">
+            <span className="text-text-muted text-xs font-semibold">
+              <b className="text-emerald-400 mr-1">{report.summary.ok}</b> OK
+            </span>
+            <span className="text-text-muted text-xs font-semibold">
+              <b className="text-amber-400 mr-1">{report.summary.warning}</b> Внимание
+            </span>
+            <span className="text-text-muted text-xs font-semibold">
+              <b className="text-text-faint mr-1">{report.summary.off}</b> Выкл
+            </span>
           </div>
-          <button
-            className="secondary-button"
+          <Button
+            variant="secondary"
             disabled={actions.refreshingAll}
-            type="button"
             onClick={() => actions.onRefreshAll?.()}>
             {actions.refreshingAll ? "Проверяю..." : "Проверить всё"}
-          </button>
+          </Button>
         </div>
       </div>
-      <div className="integration-health-list">
+      <div className="flex flex-col gap-3">
         {report.items.map((item) => {
           const itemActions = actions.itemActions?.[item.id] ?? [];
 
           return (
-            <article className={`integration-health-item is-${item.state}`} key={item.id}>
-              <span className="integration-health-dot" />
-              <div>
-                <strong>{item.name}</strong>
-                <small>{item.message}</small>
-                <p>{item.diagnostic}</p>
+            <article key={item.id} className={`p-4 border rounded-control bg-field flex flex-col sm:flex-row sm:items-start justify-between gap-4 transition-all ${
+              item.state === "warning" ? "border-amber-500/20 hover:border-amber-500/30" : item.state === "ok" ? "border-emerald-500/10 hover:border-emerald-500/20" : "border-border/60"
+            }`}>
+              <div className="flex gap-3">
+                <span className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${
+                  item.state === "warning" ? "bg-amber-400" : item.state === "ok" ? "bg-emerald-400" : "bg-text-faint"
+                }`} />
+                <div>
+                  <strong className="block text-text-main text-sm font-semibold">{item.name}</strong>
+                  <small className="block text-text-muted text-xs mt-0.5">{item.message}</small>
+                  {item.diagnostic && <p className="m-0 mt-2 text-text-faint text-xs leading-normal">{item.diagnostic}</p>}
+                </div>
               </div>
-              <div className="integration-health-item-side">
-                <em>{item.lastRunLabel}</em>
+              <div className="flex flex-col sm:items-end gap-2 shrink-0">
+                <em className="text-text-faint text-[10px] not-italic font-medium">{item.lastRunLabel}</em>
                 {itemActions.length ? (
-                  <div className="integration-health-item-actions">
+                  <div className="flex items-center gap-2 mt-1">
                     {itemActions.map((action) => (
-                      <button
-                        className={action.primary ? "add-visit-button" : "secondary-button"}
+                      <Button
+                        variant={action.primary ? "primary" : "secondary"}
+                        size="sm"
                         disabled={action.disabled}
                         key={action.label}
-                        type="button"
                         onClick={action.onClick}>
                         {action.label}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 ) : null}
@@ -150,6 +160,11 @@ function SettingsPage({
   const resetSettings = () => {
     formRef.current?.reset();
     onReset();
+  };
+  const handleMockToggle = (e) => {
+    const enabled = e.target.checked;
+    localStorage.setItem('mockMode', enabled);
+    window.location.reload();
   };
   const formatCloudSyncTime = (value) => {
     if (!value) {
@@ -345,10 +360,13 @@ function SettingsPage({
   );
 
   const settingsTabsRow = (
-    <div className="settings-tabs settings-page-tabs">
+    <div className="flex overflow-x-auto gap-1 border-b border-border pb-px mb-6 scrollbar-none">
       {settingsTabs.map((tab) => (
         <button
-          className={activeTab === tab.id ? "active" : ""}
+          className={clsx(
+            "px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-text-muted hover:text-text-main transition-all whitespace-nowrap cursor-pointer focus:outline-none",
+            activeTab === tab.id && "border-accent text-accent"
+          )}
           key={tab.id}
           type="button"
           onClick={() => setActiveTab(tab.id)}>
@@ -359,20 +377,20 @@ function SettingsPage({
   );
 
   const saveBar = (
-    <div className="settings-actions settings-save-bar settings-grid-full">
-      <button className="secondary-button" type="button" onClick={resetSettings}>
+    <div className="sticky bottom-0 z-40 flex justify-end gap-3 p-4 border-t border-border bg-surface/90 backdrop-blur-md -mx-6 -mb-6 mt-6">
+      <Button variant="secondary" onClick={resetSettings} className="flex items-center gap-2 cursor-pointer">
         <RotateCcw size={17} />
         Сбросить
-      </button>
-      <button className="submit-button" type="submit">
+      </Button>
+      <Button variant="primary" type="submit" className="flex items-center gap-2 font-bold cursor-pointer">
         <Save size={17} />
         Сохранить настройки
-      </button>
+      </Button>
     </div>
   );
 
   return (
-    <section className={`settings-page ${isMobile ? "settings-page-mobile" : ""}`}>
+    <section className="flex flex-col h-full min-h-0 overflow-hidden">
       <PageHeader
         collapsedMeta={
           settingsTabs.find((tab) => tab.id === activeTab)?.label ?? "Интерфейс"
@@ -381,22 +399,22 @@ function SettingsPage({
         actions={
           isMobile ? (
             <>
-              <div className="settings-page-summary">
-                <article className="settings-page-summary-card is-active">
-                  <span>Колокол</span>
-                  <strong>{settings.notificationsEnabled ?? true ? "Вкл" : "Выкл"}</strong>
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                <article className="p-3 border border-border bg-surface/50 rounded-control flex flex-col gap-1 text-center">
+                  <span className="text-[10px] text-text-faint uppercase font-bold">Колокол</span>
+                  <strong className="text-text-main text-xs font-semibold">{settings.notificationsEnabled ?? true ? "Вкл" : "Выкл"}</strong>
                 </article>
-                <article className="settings-page-summary-card">
-                  <span>SMS</span>
-                  <strong>{settings.smsRemindersEnabled ? "Вкл" : "Выкл"}</strong>
+                <article className="p-3 border border-border bg-surface/50 rounded-control flex flex-col gap-1 text-center">
+                  <span className="text-[10px] text-text-faint uppercase font-bold">SMS</span>
+                  <strong className="text-text-main text-xs font-semibold">{settings.smsRemindersEnabled ? "Вкл" : "Выкл"}</strong>
                 </article>
-                <article className="settings-page-summary-card">
-                  <span>Облако</span>
-                  <strong>{cloudKpiLabel}</strong>
+                <article className="p-3 border border-border bg-surface/50 rounded-control flex flex-col gap-1 text-center">
+                  <span className="text-[10px] text-text-faint uppercase font-bold">Облако</span>
+                  <strong className="text-text-main text-xs font-semibold">{cloudKpiLabel}</strong>
                 </article>
-                <article className="settings-page-summary-card">
-                  <span>Компакт</span>
-                  <strong>{settings.compactMode ?? true ? "Вкл" : "Выкл"}</strong>
+                <article className="p-3 border border-border bg-surface/50 rounded-control flex flex-col gap-1 text-center">
+                  <span className="text-[10px] text-text-faint uppercase font-bold">Компакт</span>
+                  <strong className="text-text-main text-xs font-semibold">{settings.compactMode ?? true ? "Вкл" : "Выкл"}</strong>
                 </article>
               </div>
               {settingsTabsRow}
@@ -408,46 +426,49 @@ function SettingsPage({
       />
       {!isMobile ? settingsTabsRow : null}
       <form
-        className={`settings-form settings-grid${isMobile ? " settings-page-form" : ""}`}
+        className="flex-1 min-h-0 flex flex-col overflow-hidden"
         key={`${settings.colorTheme}-${settings.compactMode}`}
         ref={formRef}
         onSubmit={onSubmit}>
-        <div className="settings-scroll">
-        <section
-          className={`panel settings-panel settings-tab-panel ${
-            activeTab === "interface" ? "active" : ""
-          }`}>
-            <div className="settings-panel-heading">
-              <SlidersHorizontal size={18} />
+        <div className="flex-1 overflow-y-auto pr-1 pb-4 flex flex-col gap-6">
+          <Card
+            className={clsx(
+              "p-6 flex flex-col gap-4 transition-all duration-150",
+              activeTab === "interface" ? "block" : "hidden"
+            )}>
+            <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
+              <SlidersHorizontal size={18} className="text-accent" />
               <div>
-                <h2>
+                <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                   Интерфейс
                   <HintIcon>Название, оформление и основное меню</HintIcon>
                 </h2>
               </div>
             </div>
-            <label>
+            <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
               Название студии
-              <input
+              <Input
                 name="studioName"
                 defaultValue={settings.studioName}
                 placeholder="NUAR"
+                className="mt-1"
               />
             </label>
-            <label>
+            <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
               Владелец
-              <input
+              <Input
                 name="ownerName"
                 defaultValue={settings.ownerName}
                 placeholder="Влад"
+                className="mt-1"
               />
             </label>
-            <label>
+            <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
               Тема оформления
-              <div className="color-theme-picker">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
                 {COLOR_THEME_OPTIONS.map((themeOption) => (
                   <label
-                    className="color-theme-option"
+                    className="relative p-4 border border-border rounded-control bg-field cursor-pointer transition-all hover:bg-surface-soft flex flex-col gap-3 group"
                     key={themeOption.id}
                     title={themeOption.description}>
                     <input
@@ -457,659 +478,687 @@ function SettingsPage({
                       name="colorTheme"
                       type="radio"
                       value={themeOption.id}
+                      className="absolute top-4 right-4 accent-accent"
                     />
-                    <div className="color-theme-swatches">
+                    <div className="flex gap-1.5">
                       {themeOption.preview.map((color) => (
-                        <span key={color} style={{background: color}} />
+                        <span key={color} className="flex-1 h-7 rounded-sm border border-black/10 shadow-sm" style={{background: color}} />
                       ))}
                     </div>
-                    <strong className="labeled-hint-row">
+                    <strong className="block text-text-main text-xs font-semibold group-hover:text-accent transition-colors leading-tight">
                       {themeOption.label}
-                      <HintIcon>{themeOption.description}</HintIcon>
                     </strong>
                   </label>
                 ))}
               </div>
             </label>
-            <SettingsToggle defaultChecked={settings.compactMode ?? true} name="compactMode">
-              <span className="labeled-hint-row labeled-hint-row-nowrap">
-                Компактный интерфейс
-                <HintIcon>Меньше вертикальных отступов и больше данных на экране</HintIcon>
-              </span>
-            </SettingsToggle>
-          </section>
+            <div className="pt-2">
+              <SettingsToggle defaultChecked={settings.compactMode ?? true} name="compactMode">
+                <span className="labeled-hint-row labeled-hint-row-nowrap">
+                  Компактный интерфейс
+                  <HintIcon>Меньше вертикальных отступов и больше данных на экране</HintIcon>
+                </span>
+              </SettingsToggle>
+              <SettingsToggle defaultChecked={localStorage.getItem('mockMode') === 'true'} name="mockModeToggle" onChange={handleMockToggle}>
+                <span className="labeled-hint-row labeled-hint-row-nowrap">
+                  Mock data mode
+                  <HintIcon>Использовать локальные данные вместо Supabase (dev only)</HintIcon>
+                </span>
+              </SettingsToggle>
+            </div>
+          </Card>
 
-        <section
-          className={`panel settings-panel settings-tab-panel ${
-            activeTab === "notifications" ? "active" : ""
-          }`}>
-            <div className="settings-panel-heading">
-              <BellRing size={18} />
+          <Card
+            className={clsx(
+              "p-6 flex flex-col gap-4 transition-all duration-150",
+              activeTab === "notifications" ? "block" : "hidden"
+            )}>
+            <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
+              <BellRing size={18} className="text-accent" />
               <div>
-                <h2>
+                <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                   Уведомления
                   <HintIcon>Какие события появляются в колокольчике</HintIcon>
                 </h2>
               </div>
             </div>
-            <div className="settings-options">
+            <div className="flex flex-col gap-6">
               <SettingsMobileSection isMobile={isMobile} title="Колокольчик и пакеты">
-              <SettingsToggle defaultChecked={settings.notificationsEnabled ?? true} name="notificationsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Центр уведомлений
-                  <HintIcon>Показывать рабочие напоминания в верхней панели</HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.packageBalanceAlertsEnabled ?? true} name="packageBalanceAlertsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Заканчивающиеся пакеты
-                  <HintIcon>Напоминать, когда у клиента осталось мало сеансов</HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.certificateAlertsEnabled ?? true} name="certificateAlertsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Сертификаты
-                  <HintIcon>Напоминать об истекающих сертификатах и низком остатке</HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                Напоминать об истечении за, дней
-                <input
-                  min="1"
-                  name="certificateExpiryReminderDays"
-                  type="number"
-                  defaultValue={settings.certificateExpiryReminderDays ?? 30}
-                />
-              </label>
-              <label>
-                Низкий остаток сертификата, %
-                <input
-                  max="100"
-                  min="1"
-                  name="certificateLowBalancePercent"
-                  type="number"
-                  defaultValue={settings.certificateLowBalancePercent ?? 20}
-                />
-              </label>
+                <SettingsToggle defaultChecked={settings.notificationsEnabled ?? true} name="notificationsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Центр уведомлений
+                    <HintIcon>Показывать рабочие напоминания в верхней панели</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <SettingsToggle defaultChecked={settings.packageBalanceAlertsEnabled ?? true} name="packageBalanceAlertsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Заканчивающиеся пакеты
+                    <HintIcon>Напоминать, когда у клиента осталось мало сеансов</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <SettingsToggle defaultChecked={settings.certificateAlertsEnabled ?? true} name="certificateAlertsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Сертификаты
+                    <HintIcon>Напоминать об истекающих сертификатах и низком остатке</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Напоминать об истечении за, дней
+                    <Input
+                      min="1"
+                      name="certificateExpiryReminderDays"
+                      type="number"
+                      defaultValue={settings.certificateExpiryReminderDays ?? 30}
+                      className="mt-1"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Низкий остаток сертификата, %
+                    <Input
+                      max="100"
+                      min="1"
+                      name="certificateLowBalancePercent"
+                      type="number"
+                      defaultValue={settings.certificateLowBalancePercent ?? 20}
+                      className="mt-1"
+                    />
+                  </label>
+                </div>
               </SettingsMobileSection>
+
               <SettingsMobileSection isMobile={isMobile} title="SMS, отзывы и follow-up">
-              <SettingsToggle defaultChecked={settings.smsRemindersEnabled ?? false} name="smsRemindersEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  SMS-напоминания о визитах
-                  <HintIcon>
-                    Автоматически отправлять SMS за 24 часа и за 2 часа. Тексты — во
-                    вкладке «Шаблоны» (PL / RU / EN). Язык клиента — в карточке клиента.
-                  </HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.smsReminder24hEnabled ?? true} name="smsReminder24hEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">Напоминание за 24 часа</span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.smsReminder2hEnabled ?? true} name="smsReminder2hEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">Напоминание за 2 часа</span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.smsAutoProcessEnabled ?? true} name="smsAutoProcessEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Автопроверка при открытой CRM
-                  <HintIcon>Каждые N минут отправлять due-напоминания</HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                Интервал автопроверки, мин
-                <input
-                  min="5"
-                  name="smsAutoProcessMinutes"
-                  type="number"
-                  defaultValue={settings.smsAutoProcessMinutes ?? 10}
-                />
-              </label>
-              <label>
-                Имя отправителя SMS
-                <input
-                  name="smsSenderName"
-                  defaultValue={settings.smsSenderName ?? "NUAR"}
-                  placeholder="NUAR"
-                />
-              </label>
-              <SettingsToggle defaultChecked={settings.telegramDigestEnabled ?? false} name="telegramDigestEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Telegram-дайджест
-                  <HintIcon>
-                    Ежедневная сводка в Telegram владельцу салона. Chat ID — во вкладке
-                    «Интеграции» или разделе «Сайт», блок «Уведомления о заявках с сайта».
-                  </HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                <FieldLabel hint="Часовой пояс: Europe/Warsaw">
-                  Время отправки дайджеста
-                </FieldLabel>
-                <input
-                  name="telegramDigestTime"
-                  type="time"
-                  defaultValue={settings.telegramDigestTime ?? "08:00"}
-                />
-              </label>
-              <SettingsToggle defaultChecked={settings.reviewRequestsEnabled ?? false} name="reviewRequestsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Запрос отзыва после визита
-                  <HintIcon>Авто-SMS через N часов после завершённого визита</HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                Задержка после визита, часов
-                <input
-                  min="1"
-                  name="reviewRequestDelayHours"
-                  type="number"
-                  defaultValue={settings.reviewRequestDelayHours ?? 2}
-                />
-              </label>
-              <label>
-                Ссылка Google Maps
-                <input
-                  name="reviewGoogleUrl"
-                  defaultValue={settings.reviewGoogleUrl ?? ""}
-                  placeholder="https://g.page/nuar/review"
-                />
-              </label>
-              <label>
-                Ссылка Booksy
-                <input
-                  name="reviewBooksyUrl"
-                  defaultValue={settings.reviewBooksyUrl ?? ""}
-                  placeholder="https://booksy.com/..."
-                />
-              </label>
-              <label>
-                Основная ссылка в SMS
-                <input
-                  name="reviewPrimaryUrl"
-                  defaultValue={settings.reviewPrimaryUrl ?? ""}
-                  placeholder="Если пусто — Google, затем Booksy"
-                />
-              </label>
-              <SettingsToggle defaultChecked={settings.reviewRequestAutoProcessEnabled ?? true} name="reviewRequestAutoProcessEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Автопроверка запросов отзывов
-                  <HintIcon>Каждые N минут отправлять due-запросы при открытой CRM</HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                Интервал автопроверки отзывов, мин
-                <input
-                  min="10"
-                  name="reviewRequestAutoProcessMinutes"
-                  type="number"
-                  defaultValue={settings.reviewRequestAutoProcessMinutes ?? 15}
-                />
-              </label>
-              <SettingsToggle defaultChecked={settings.inactiveFollowUpEnabled ?? false} name="inactiveFollowUpEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Follow-up неактивных клиентов
-                  <HintIcon>Авто-SMS через 14, 30 и 60 дней без визита</HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.inactiveFollowUp14Enabled ?? true} name="inactiveFollowUp14Enabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">SMS через 14 дней без визита</span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.inactiveFollowUp30Enabled ?? true} name="inactiveFollowUp30Enabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">SMS через 30 дней</span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.inactiveFollowUp60Enabled ?? true} name="inactiveFollowUp60Enabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">SMS через 60 дней</span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.inactiveFollowUpAutoProcessEnabled ?? true} name="inactiveFollowUpAutoProcessEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Автопроверка follow-up
-                  <HintIcon>Каждые N минут при открытой CRM</HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                Интервал автопроверки follow-up, мин
-                <input
-                  min="30"
-                  name="inactiveFollowUpAutoProcessMinutes"
-                  type="number"
-                  defaultValue={settings.inactiveFollowUpAutoProcessMinutes ?? 60}
-                />
-              </label>
-              <SettingsToggle defaultChecked={settings.waitlistEnabled ?? true} name="waitlistEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Лист ожидания на отмены
-                  <HintIcon>Предлагать клиентов из waitlist при освобождении слота</HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.forecastAlertsEnabled ?? true} name="forecastAlertsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Прогноз дохода
-                  <HintIcon>Показывать сумму записей на сегодня и завтра</HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.alertAggregationEnabled ?? true} name="alertAggregationEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Группировать похожие
-                  <HintIcon>Сводить несколько задач, расходников или клиентов в одну строку</HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                <FieldLabel hint="Если «давно не были» больше этого числа — показывать одной группой">
-                  Лимит клиентов в списке
-                </FieldLabel>
-                <input
-                  min="3"
-                  name="inactiveClientAlertLimit"
-                  type="number"
-                  defaultValue={settings.inactiveClientAlertLimit ?? 5}
-                />
-              </label>
+                <SettingsToggle defaultChecked={settings.smsRemindersEnabled ?? false} name="smsRemindersEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    SMS-напоминания о визитах
+                    <HintIcon>
+                      Автоматически отправлять SMS за 24 часа и за 2 часа. Тексты — во
+                      вкладке «Шаблоны» (PL / RU / EN). Язык клиента — в карточке клиента.
+                    </HintIcon>
+                  </span>
+                </SettingsToggle>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 pl-4 border-l border-border/40">
+                  <SettingsToggle defaultChecked={settings.smsReminder24hEnabled ?? true} name="smsReminder24hEnabled">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">Напоминание за 24 часа</span>
+                  </SettingsToggle>
+                  <SettingsToggle defaultChecked={settings.smsReminder2hEnabled ?? true} name="smsReminder2hEnabled">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">Напоминание за 2 часа</span>
+                  </SettingsToggle>
+                  <SettingsToggle defaultChecked={settings.smsAutoProcessEnabled ?? true} name="smsAutoProcessEnabled">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">
+                      Автопроверка
+                    </span>
+                  </SettingsToggle>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Интервал автопроверки, мин
+                    <Input
+                      min="5"
+                      name="smsAutoProcessMinutes"
+                      type="number"
+                      defaultValue={settings.smsAutoProcessMinutes ?? 10}
+                      className="mt-1"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Имя отправителя SMS
+                    <Input
+                      name="smsSenderName"
+                      defaultValue={settings.smsSenderName ?? "NUAR"}
+                      placeholder="NUAR"
+                      className="mt-1"
+                    />
+                  </label>
+                </div>
+                <div className="border-t border-border-soft/60 my-2" />
+                <SettingsToggle defaultChecked={settings.telegramDigestEnabled ?? false} name="telegramDigestEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Telegram-дайджест
+                    <HintIcon>
+                      Ежедневная сводка в Telegram владельцу салона.
+                    </HintIcon>
+                  </span>
+                </SettingsToggle>
+                <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                  <FieldLabel hint="Часовой пояс: Europe/Warsaw">
+                    Время отправки дайджеста
+                  </FieldLabel>
+                  <Input
+                    name="telegramDigestTime"
+                    type="time"
+                    defaultValue={settings.telegramDigestTime ?? "08:00"}
+                    className="mt-1"
+                  />
+                </label>
+                <div className="border-t border-border-soft/60 my-2" />
+                <SettingsToggle defaultChecked={settings.reviewRequestsEnabled ?? false} name="reviewRequestsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Запрос отзыва после визита
+                    <HintIcon>Авто-SMS через N часов после завершённого визита</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Задержка после визита, часов
+                    <Input
+                      min="1"
+                      name="reviewRequestDelayHours"
+                      type="number"
+                      defaultValue={settings.reviewRequestDelayHours ?? 2}
+                      className="mt-1"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Интервал автопроверки отзывов, мин
+                    <Input
+                      min="10"
+                      name="reviewRequestAutoProcessMinutes"
+                      type="number"
+                      defaultValue={settings.reviewRequestAutoProcessMinutes ?? 15}
+                      className="mt-1"
+                    />
+                  </label>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Ссылка Google Maps
+                    <Input
+                      name="reviewGoogleUrl"
+                      defaultValue={settings.reviewGoogleUrl ?? ""}
+                      placeholder="https://g.page/nuar/review"
+                      className="mt-1"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Ссылка Booksy
+                    <Input
+                      name="reviewBooksyUrl"
+                      defaultValue={settings.reviewBooksyUrl ?? ""}
+                      placeholder="https://booksy.com/..."
+                      className="mt-1"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Основная ссылка в SMS
+                    <Input
+                      name="reviewPrimaryUrl"
+                      defaultValue={settings.reviewPrimaryUrl ?? ""}
+                      placeholder="Если пусто — Google, затем Booksy"
+                      className="mt-1"
+                    />
+                  </label>
+                </div>
+                <SettingsToggle defaultChecked={settings.reviewRequestAutoProcessEnabled ?? true} name="reviewRequestAutoProcessEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Автопроверка запросов отзывов
+                  </span>
+                </SettingsToggle>
+                <div className="border-t border-border-soft/60 my-2" />
+                <SettingsToggle defaultChecked={settings.inactiveFollowUpEnabled ?? false} name="inactiveFollowUpEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Follow-up неактивных клиентов
+                    <HintIcon>Авто-SMS через 14, 30 и 60 дней без визита</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 pl-4 border-l border-border/40">
+                  <SettingsToggle defaultChecked={settings.inactiveFollowUp14Enabled ?? true} name="inactiveFollowUp14Enabled">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">SMS через 14 дней</span>
+                  </SettingsToggle>
+                  <SettingsToggle defaultChecked={settings.inactiveFollowUp30Enabled ?? true} name="inactiveFollowUp30Enabled">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">SMS через 30 дней</span>
+                  </SettingsToggle>
+                  <SettingsToggle defaultChecked={settings.inactiveFollowUp60Enabled ?? true} name="inactiveFollowUp60Enabled">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">SMS через 60 дней</span>
+                  </SettingsToggle>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <SettingsToggle defaultChecked={settings.inactiveFollowUpAutoProcessEnabled ?? true} name="inactiveFollowUpAutoProcessEnabled">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">
+                      Автопроверка follow-up
+                    </span>
+                  </SettingsToggle>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Интервал автопроверки follow-up, мин
+                    <Input
+                      min="30"
+                      name="inactiveFollowUpAutoProcessMinutes"
+                      type="number"
+                      defaultValue={settings.inactiveFollowUpAutoProcessMinutes ?? 60}
+                      className="mt-1"
+                    />
+                  </label>
+                </div>
               </SettingsMobileSection>
+
               <SettingsMobileSection isMobile={isMobile} title="Визиты и напоминания">
-              <SettingsToggle defaultChecked={settings.inactiveClientAlertsEnabled ?? true} name="inactiveClientAlertsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Клиенты, которых давно не было
-                  <HintIcon>Отдельная секция для повторной связи с клиентами</HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.taskAlertsEnabled ?? true} name="taskAlertsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Просроченные задачи
-                  <HintIcon>Напоминать о задачах со сроком сегодня и просроченных делах</HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.supplyAlertsEnabled ?? true} name="supplyAlertsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Остатки расходников
-                  <HintIcon>Сообщать, когда запас достиг минимального значения</HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                <FieldLabel hint="Через сколько дней напоминать о клиенте">Порог отсутствия клиента</FieldLabel>
-                <input
-                  min="1"
-                  name="inactiveClientDays"
-                  type="number"
-                  defaultValue={settings.inactiveClientDays ?? 14}
-                />
-              </label>
-              <SettingsToggle defaultChecked={settings.birthdayAlertsEnabled ?? true} name="birthdayAlertsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Дни рождения клиентов
-                  <HintIcon>Показывать отдельную секцию для поздравлений</HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                <FieldLabel hint="За сколько дней добавить клиента в колокольчик">Напоминать о дне рождения заранее</FieldLabel>
-                <input
-                  min="1"
-                  name="birthdayReminderDays"
-                  type="number"
-                  defaultValue={settings.birthdayReminderDays ?? 7}
-                />
-              </label>
-              <SettingsToggle defaultChecked={settings.todayVisitAlertsEnabled ?? true} name="todayVisitAlertsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Сегодняшние визиты
-                  <HintIcon>Показывать записи календаря в колокольчике</HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                Какие визиты показывать
-                <select
-                  name="todayVisitAlertMode"
-                  defaultValue={
-                    settings.todayVisitAlertMode === "upcoming"
-                      ? "upcoming"
-                      : "remaining"
-                  }>
-                  <option value="remaining">Только оставшиеся</option>
-                  <option value="upcoming">Только ближайшие</option>
-                </select>
-              </label>
-              <label>
-                <FieldLabel hint="Используется для режима «Только ближайшие»">
-                  Горизонт ближайших визитов
-                </FieldLabel>
-                <select
-                  name="upcomingVisitMinutes"
-                  defaultValue={settings.upcomingVisitMinutes ?? 180}>
-                  <option value="60">1 час</option>
-                  <option value="120">2 часа</option>
-                  <option value="180">3 часа</option>
-                  <option value="360">6 часов</option>
-                  <option value="720">12 часов</option>
-                </select>
-              </label>
-              <SettingsToggle defaultChecked={settings.smartVisitPopupsEnabled ?? true} name="smartVisitPopupsEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Всплывающие напоминания
-                  <HintIcon>Показывать плавную карточку перед ближайшим визитом</HintIcon>
-                </span>
-              </SettingsToggle>
-              <label>
-                Когда показать карточку
-                <select
-                  name="smartVisitPopupMinutes"
-                  defaultValue={settings.smartVisitPopupMinutes ?? 15}>
-                  <option value="5">За 5 минут</option>
-                  <option value="10">За 10 минут</option>
-                  <option value="15">За 15 минут</option>
-                  <option value="30">За 30 минут</option>
-                  <option value="60">За 1 час</option>
-                </select>
-              </label>
+                <SettingsToggle defaultChecked={settings.waitlistEnabled ?? true} name="waitlistEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Лист ожидания на отмены
+                    <HintIcon>Предлагать клиентов из waitlist при освобождении слота</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <SettingsToggle defaultChecked={settings.forecastAlertsEnabled ?? true} name="forecastAlertsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Прогноз дохода
+                    <HintIcon>Показывать сумму записей на сегодня и завтра</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <SettingsToggle defaultChecked={settings.alertAggregationEnabled ?? true} name="alertAggregationEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Группировать похожие
+                    <HintIcon>Сводить несколько задач, расходников или клиентов в одну строку</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <SettingsToggle defaultChecked={settings.inactiveClientAlertsEnabled ?? true} name="inactiveClientAlertsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Клиенты, которых давно не было
+                  </span>
+                </SettingsToggle>
+                <SettingsToggle defaultChecked={settings.taskAlertsEnabled ?? true} name="taskAlertsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Просроченные задачи
+                  </span>
+                </SettingsToggle>
+                <SettingsToggle defaultChecked={settings.supplyAlertsEnabled ?? true} name="supplyAlertsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Остатки расходников
+                  </span>
+                </SettingsToggle>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    <FieldLabel hint="Если «давно не были» больше этого числа — показывать одной группой">
+                      Лимит клиентов в списке
+                    </FieldLabel>
+                    <Input
+                      min="3"
+                      name="inactiveClientAlertLimit"
+                      type="number"
+                      defaultValue={settings.inactiveClientAlertLimit ?? 5}
+                      className="mt-1"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    <FieldLabel hint="Через сколько дней напоминать о клиенте">Порог отсутствия клиента</FieldLabel>
+                    <Input
+                      min="1"
+                      name="inactiveClientDays"
+                      type="number"
+                      defaultValue={settings.inactiveClientDays ?? 14}
+                      className="mt-1"
+                    />
+                  </label>
+                </div>
+                <div className="border-t border-border-soft/60 my-2" />
+                <SettingsToggle defaultChecked={settings.birthdayAlertsEnabled ?? true} name="birthdayAlertsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Дни рождения клиентов
+                  </span>
+                </SettingsToggle>
+                <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                  <FieldLabel hint="За сколько дней добавить клиента в колокольчик">Напоминать о дне рождения заранее</FieldLabel>
+                  <Input
+                    min="1"
+                    name="birthdayReminderDays"
+                    type="number"
+                    defaultValue={settings.birthdayReminderDays ?? 7}
+                    className="mt-1"
+                  />
+                </label>
+                <div className="border-t border-border-soft/60 my-2" />
+                <SettingsToggle defaultChecked={settings.todayVisitAlertsEnabled ?? true} name="todayVisitAlertsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Сегодняшние визиты в колокольчике
+                  </span>
+                </SettingsToggle>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Какие визиты показывать
+                    <Select
+                      name="todayVisitAlertMode"
+                      defaultValue={
+                        settings.todayVisitAlertMode === "upcoming"
+                          ? "upcoming"
+                          : "remaining"
+                      }
+                      className="mt-1"
+                    >
+                      <option value="remaining">Только оставшиеся</option>
+                      <option value="upcoming">Только ближайшие</option>
+                    </Select>
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    <FieldLabel hint="Используется для режима «Только ближайшие»">
+                      Горизонт ближайших визитов
+                    </FieldLabel>
+                    <Select
+                      name="upcomingVisitMinutes"
+                      defaultValue={settings.upcomingVisitMinutes ?? 180}
+                      className="mt-1"
+                    >
+                      <option value="60">1 час</option>
+                      <option value="120">2 часа</option>
+                      <option value="180">3 часа</option>
+                      <option value="360">6 часов</option>
+                      <option value="720">12 часов</option>
+                    </Select>
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Когда показать карточку визита
+                    <Select
+                      name="smartVisitPopupMinutes"
+                      defaultValue={settings.smartVisitPopupMinutes ?? 15}
+                      className="mt-1"
+                    >
+                      <option value="5">За 5 минут</option>
+                      <option value="10">За 10 минут</option>
+                      <option value="15">За 15 минут</option>
+                      <option value="30">За 30 минут</option>
+                      <option value="60">За 1 час</option>
+                    </Select>
+                  </label>
+                </div>
+                <SettingsToggle defaultChecked={settings.smartVisitPopupsEnabled ?? true} name="smartVisitPopupsEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Всплывающие напоминания
+                  </span>
+                </SettingsToggle>
               </SettingsMobileSection>
+
               <SettingsMobileSection isMobile={isMobile} title="Тихие часы">
-              <SettingsToggle defaultChecked={settings.quietHoursEnabled ?? true} name="quietHoursEnabled">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Тихие часы
-                  <HintIcon>Ночью показывать только срочные уведомления</HintIcon>
-                </span>
-              </SettingsToggle>
-              <div className="form-split">
-                <label>
-                  Начало тихих часов
-                  <input
-                    name="quietHoursStart"
-                    type="time"
-                    step="3600"
-                    defaultValue={settings.quietHoursStart ?? "22:00"}
-                  />
-                </label>
-                <label>
-                  Конец тихих часов
-                  <input
-                    name="quietHoursEnd"
-                    type="time"
-                    step="3600"
-                    defaultValue={settings.quietHoursEnd ?? "08:00"}
-                  />
-                </label>
-              </div>
+                <SettingsToggle defaultChecked={settings.quietHoursEnabled ?? true} name="quietHoursEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Тихие часы
+                    <HintIcon>Ночью показывать только срочные уведомления</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Начало тихих часов
+                    <Input
+                      name="quietHoursStart"
+                      type="time"
+                      step="3600"
+                      defaultValue={settings.quietHoursStart ?? "22:00"}
+                      className="mt-1"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Конец тихих часов
+                    <Input
+                      name="quietHoursEnd"
+                      type="time"
+                      step="3600"
+                      defaultValue={settings.quietHoursEnd ?? "08:00"}
+                      className="mt-1"
+                    />
+                  </label>
+                </div>
               </SettingsMobileSection>
             </div>
-          </section>
+          </Card>
 
-        <section
-          className={`panel settings-panel settings-tab-panel ${
-            activeTab === "calendar" ? "active" : ""
-          }`}>
-            <div className="settings-panel-heading">
-              <CalendarClock size={18} />
+          <Card
+            className={clsx(
+              "p-6 flex flex-col gap-4 transition-all duration-150",
+              activeTab === "calendar" ? "block" : "hidden"
+            )}>
+            <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
+              <CalendarClock size={18} className="text-accent" />
               <div>
-                <h2>
+                <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                   Календарь
                   <HintIcon>Рабочее время и детализация графика</HintIcon>
                 </h2>
               </div>
             </div>
-            <div className="settings-options settings-options-grid">
+            <div className="flex flex-col gap-6">
               <SettingsMobileSection isMobile={isMobile} title="Рабочее время">
-              <label>
-                Начало рабочего дня
-                <input
-                  name="workdayStart"
-                  type="time"
-                  step="3600"
-                  defaultValue={settings.workdayStart ?? "08:00"}
-                />
-              </label>
-              <label>
-                Конец рабочего дня
-                <input
-                  name="workdayEnd"
-                  type="time"
-                  step="3600"
-                  defaultValue={settings.workdayEnd ?? "22:00"}
-                />
-              </label>
-              <label>
-                Шаг временной сетки
-                <select
-                  name="calendarSlotMinutes"
-                  defaultValue={settings.calendarSlotMinutes ?? 15}>
-                  <option value="15">15 минут</option>
-                  <option value="30">30 минут</option>
-                  <option value="60">60 минут</option>
-                </select>
-              </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Начало рабочего дня
+                    <Input
+                      name="workdayStart"
+                      type="time"
+                      step="3600"
+                      defaultValue={settings.workdayStart ?? "08:00"}
+                      className="mt-1"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Конец рабочего дня
+                    <Input
+                      name="workdayEnd"
+                      type="time"
+                      step="3600"
+                      defaultValue={settings.workdayEnd ?? "22:00"}
+                      className="mt-1"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+                    Шаг временной сетки
+                    <Select
+                      name="calendarSlotMinutes"
+                      defaultValue={settings.calendarSlotMinutes ?? 15}
+                      className="mt-1"
+                    >
+                      <option value="15">15 минут</option>
+                      <option value="30">30 минут</option>
+                      <option value="60">60 минут</option>
+                    </Select>
+                  </label>
+                </div>
               </SettingsMobileSection>
               <SettingsMobileSection isMobile={isMobile} title="Отображение календаря">
-              <SettingsToggle defaultChecked={settings.calendarRemindersVisible ?? true} name="calendarRemindersVisible">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Панель визитов дня
-                  <HintIcon>Показывать справа от календаря по умолчанию</HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.calendarShowTasks ?? true} name="calendarShowTasks">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Задачи в графике
-                  <HintIcon>Показывать перерывы и внутренние задачи</HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.calendarNowLineVisible ?? true} name="calendarNowLineVisible">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Линия текущего времени
-                  <HintIcon>Показывать текущий момент на сегодняшнем графике</HintIcon>
-                </span>
-              </SettingsToggle>
-              <SettingsToggle defaultChecked={settings.calendarConflictWarnings ?? true} name="calendarConflictWarnings">
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Конфликты расписания
-                  <HintIcon>Спрашивать подтверждение при пересечении записей</HintIcon>
-                </span>
-              </SettingsToggle>
+                <div className="flex flex-col gap-4">
+                  <SettingsToggle defaultChecked={settings.calendarRemindersVisible ?? true} name="calendarRemindersVisible">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">
+                      Панель визитов дня
+                    </span>
+                  </SettingsToggle>
+                  <SettingsToggle defaultChecked={settings.calendarShowTasks ?? true} name="calendarShowTasks">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">
+                      Задачи в графике
+                    </span>
+                  </SettingsToggle>
+                  <SettingsToggle defaultChecked={settings.calendarNowLineVisible ?? true} name="calendarNowLineVisible">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">
+                      Линия текущего времени
+                    </span>
+                  </SettingsToggle>
+                  <SettingsToggle defaultChecked={settings.calendarConflictWarnings ?? true} name="calendarConflictWarnings">
+                    <span className="labeled-hint-row labeled-hint-row-nowrap">
+                      Конфликты расписания
+                    </span>
+                  </SettingsToggle>
+                </div>
               </SettingsMobileSection>
             </div>
-          </section>
+          </Card>
 
-        <section
-          className={`panel settings-panel settings-tab-panel ${
-            activeTab === "integrations" ? "active" : ""
-          }`}>
-            <SettingsMobileSection isMobile={isMobile} title="Авто-контроль">
-            <div className="settings-panel-heading">
-              <Activity size={18} />
-              <div>
-                <h2>
-                  Здоровье интеграций
-                  <HintIcon>
-                    Быстрый контроль cron-задач, токенов и последнего запуска автоматизаций
-                  </HintIcon>
-                </h2>
+          <div
+            className={clsx(
+              "flex flex-col gap-6 transition-all duration-150",
+              activeTab === "integrations" ? "flex" : "hidden"
+            )}>
+            <Card className="p-6 flex flex-col gap-4">
+              <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
+                <Activity size={18} className="text-accent" />
+                <div>
+                  <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
+                    Здоровье интеграций
+                    <HintIcon> cron-задачи, токены и последний запуск автоматизаций</HintIcon>
+                  </h2>
+                </div>
               </div>
-            </div>
-            <IntegrationHealthPanel
-              actions={integrationHealthActions}
-              report={integrationHealth}
-            />
-            </SettingsMobileSection>
-            <SettingsMobileSection isMobile={isMobile} title="Gmail OAuth">
-            <div className="settings-panel-heading">
-              <MailCheck size={18} />
-              <div>
-                <h2>
-                  Gmail
-                  <HintIcon>
-                    Чтение писем Booksy и документов расходов. Заявки с nuarr.pl, CMS и
-                    Telegram-уведомления о брони — в разделе «Сайт» в меню.
-                  </HintIcon>
-                </h2>
+              <IntegrationHealthPanel
+                actions={integrationHealthActions}
+                report={integrationHealth}
+              />
+            </Card>
+
+            <Card className="p-6 flex flex-col gap-4">
+              <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
+                <MailCheck size={18} className="text-accent" />
+                <div>
+                  <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
+                    Gmail
+                    <HintIcon>Чтение писем Booksy и документов расходов</HintIcon>
+                  </h2>
+                </div>
               </div>
-            </div>
-            <div className="settings-options">
-              <label>
+              <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
                 Google OAuth Client ID
-                <input
+                <Input
                   name="gmailClientId"
                   defaultValue={settings.gmailClientId ?? ""}
                   placeholder="...apps.googleusercontent.com"
+                  className="mt-1"
                 />
               </label>
-            </div>
-            </SettingsMobileSection>
-          </section>
+            </Card>
 
-        <section
-          className={`panel settings-panel settings-tab-panel ${
-            activeTab === "integrations" ? "active" : ""
-          }`}>
-          <SettingsMobileSection isMobile={isMobile} title="SMS-напоминания">
-          {smsReminders ? (
-            <SmsRemindersPanel
-              status={smsReminders.status}
-              onPreview={smsReminders.runPreview}
-              onProcess={smsReminders.runProcess}
-              onRefreshStatus={smsReminders.refreshStatus}
-            />
-          ) : null}
-          </SettingsMobileSection>
-          <SettingsMobileSection isMobile={isMobile} title="Запросы отзывов">
-          {reviewRequests ? (
-            <ReviewRequestsPanel
-              pushNotification={pushNotification}
-              status={reviewRequests.status}
-              onPreview={reviewRequests.runPreview}
-              onProcess={reviewRequests.runProcess}
-              onRefreshStatus={reviewRequests.refreshStatus}
-            />
-          ) : null}
-          </SettingsMobileSection>
-          <SettingsMobileSection isMobile={isMobile} title="Неактивные клиенты">
-          {inactiveFollowUp ? (
-            <InactiveFollowUpPanel
-              pushNotification={pushNotification}
-              status={inactiveFollowUp.status}
-              onPreview={inactiveFollowUp.runPreview}
-              onProcess={inactiveFollowUp.runProcess}
-              onRefreshStatus={inactiveFollowUp.refreshStatus}
-            />
-          ) : null}
-          </SettingsMobileSection>
-          <SettingsMobileSection isMobile={isMobile} title="Telegram-дайджест">
-          {telegramDigest ? (
-            <TelegramDigestPanel
-              pushNotification={pushNotification}
-              status={telegramDigest.status}
-              onPreview={telegramDigest.runPreview}
-              onRefreshStatus={telegramDigest.refreshStatus}
-              onSend={telegramDigest.runSend}
-            />
-          ) : null}
-          </SettingsMobileSection>
-        </section>
+            {smsReminders && (
+              <Card className="p-6">
+                <SmsRemindersPanel
+                  status={smsReminders.status}
+                  onPreview={smsReminders.runPreview}
+                  onProcess={smsReminders.runProcess}
+                  onRefreshStatus={smsReminders.refreshStatus}
+                />
+              </Card>
+            )}
 
-        <section
-          className={`panel settings-panel settings-tab-panel ${
-            activeTab === "data" ? "active" : ""
-          }`}>
-          <div className="settings-panel-heading">
-            <CloudUpload size={18} />
-            <div>
-              <h2>
-                  Облако
-                  <HintIcon>Синхронизация CRM через Supabase</HintIcon>
-                </h2>
-            </div>
+            {reviewRequests && (
+              <Card className="p-6">
+                <ReviewRequestsPanel
+                  pushNotification={pushNotification}
+                  status={reviewRequests.status}
+                  onPreview={reviewRequests.runPreview}
+                  onProcess={reviewRequests.runProcess}
+                  onRefreshStatus={reviewRequests.refreshStatus}
+                />
+              </Card>
+            )}
+
+            {inactiveFollowUp && (
+              <Card className="p-6">
+                <InactiveFollowUpPanel
+                  pushNotification={pushNotification}
+                  status={inactiveFollowUp.status}
+                  onPreview={inactiveFollowUp.runPreview}
+                  onProcess={inactiveFollowUp.runProcess}
+                  onRefreshStatus={inactiveFollowUp.refreshStatus}
+                />
+              </Card>
+            )}
+
+            {telegramDigest && (
+              <Card className="p-6">
+                <TelegramDigestPanel
+                  pushNotification={pushNotification}
+                  status={telegramDigest.status}
+                  onPreview={telegramDigest.runPreview}
+                  onRefreshStatus={telegramDigest.refreshStatus}
+                  onSend={telegramDigest.runSend}
+                />
+              </Card>
+            )}
           </div>
-              <SettingsMobileSection isMobile={isMobile} title="Синхронизация Supabase">
-              <div className="settings-options settings-cloud-panel">
-                <div className="settings-cloud-status">
-                  <span>Последнее сохранение</span>
-                  <strong>{formatCloudSyncTime(lastCloudSyncAt)}</strong>
-                  <small
-                    className={
-                      cloudLoadError || lastCloudSyncError || cloudConflict
-                        ? "error"
-                        : ""
-                    }>
+
+          <div
+            className={clsx(
+              "flex flex-col gap-6 transition-all duration-150",
+              activeTab === "data" ? "flex" : "hidden"
+            )}>
+            <Card className="p-6 flex flex-col gap-4">
+              <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
+                <CloudUpload size={18} className="text-accent" />
+                <div>
+                  <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
+                    Облако
+                    <HintIcon>Синхронизация CRM через Supabase</HintIcon>
+                  </h2>
+                </div>
+              </div>
+              <div className="p-4 border border-border rounded-control bg-field flex flex-col gap-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-text-faint text-xs">Последнее сохранение</span>
+                  <strong className="text-text-main text-sm font-semibold">{formatCloudSyncTime(lastCloudSyncAt)}</strong>
+                  <small className={clsx("text-xs leading-normal mt-1 block", (cloudLoadError || lastCloudSyncError || cloudConflict) ? "text-red-400 font-medium" : "text-text-muted")}>
                     {cloudStatusMessage}
                   </small>
                 </div>
                 {cloudConflict && (
-                  <div className="settings-cloud-conflict">
-                    <p>
-                      В облаке более свежая версия (
-                      {formatCloudSyncTime(cloudConflict.remoteUpdatedAt)}). Если
-                      сохранить локальные данные сейчас, изменения с другого
-                      устройства будут потеряны.
+                  <div className="mt-2 p-3 border border-red-500/20 bg-red-500/5 rounded-control flex flex-col gap-3">
+                    <p className="m-0 text-red-300 text-xs leading-normal">
+                      В облаке более свежая версия ({formatCloudSyncTime(cloudConflict.remoteUpdatedAt)}). Если сохранить локальные данные сейчас, изменения с другого устройства будут потеряны.
                     </p>
-                    <div className="settings-data-actions">
-                      <button
-                        className="secondary-button"
+                    <div className="flex gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         disabled={cloudSyncing}
-                        type="button"
                         onClick={onApplyRemoteSnapshot}>
                         Загрузить из облака
-                      </button>
-                      <button
-                        className="submit-button"
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
                         disabled={cloudSyncing}
-                        type="button"
                         onClick={onOverwriteRemoteSnapshot}>
                         Сохранить локальные в облако
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
-                <div className="settings-data-actions">
-                  <button
-                    className="secondary-button"
-                    disabled={
-                      !cloudEnabled || !cloudHydrated || cloudSyncing || cloudConflict
-                    }
-                    type="button"
-                    onClick={onForceCloudSave}>
+                <div className="mt-2">
+                  <Button
+                    variant="secondary"
+                    disabled={!cloudEnabled || !cloudHydrated || cloudSyncing || cloudConflict}
+                    onClick={onForceCloudSave}
+                    className="flex items-center gap-2"
+                  >
                     <CloudUpload size={16} />
                     {cloudSyncing ? "Сохранение..." : "Принудительно сохранить сейчас"}
-                  </button>
-                </div>
-            </div>
-              </SettingsMobileSection>
-          </section>
-
-        <section
-          className={`panel settings-panel settings-tab-panel ${
-            activeTab === "data" ? "active" : ""
-          }`}>
-          <div className="settings-panel-heading">
-            <DatabaseBackup size={18} />
-                <div>
-                  <h2>
-                  Данные
-                  <HintIcon>Резервная копия локальной базы CRM</HintIcon>
-                </h2>
+                  </Button>
                 </div>
               </div>
-              <SettingsMobileSection isMobile={isMobile} title="Резервная копия">
-              <div className="settings-options">
-                <p>
-                  Сохраняйте копию после важных изменений. В файл входят визиты,
-                  клиенты, календарь, сотрудники, пакеты, услуги, задачи, расходники
-                  и настройки.
+            </Card>
+
+            <Card className="p-6 flex flex-col gap-4">
+              <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
+                <DatabaseBackup size={18} className="text-accent" />
+                <div>
+                  <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
+                    Данные
+                    <HintIcon>Резервная копия локальной базы CRM</HintIcon>
+                  </h2>
+                </div>
+              </div>
+              <div className="p-4 border border-border rounded-control bg-field flex flex-col gap-4">
+                <p className="m-0 text-text-muted text-sm leading-normal">
+                  Сохраняйте копию после важных изменений. В файл входят визиты, клиенты, календарь, сотрудники, пакеты, услуги, задачи, расходники и настройки.
                 </p>
-                <div className="settings-data-actions">
-                  <button
-                    className="secondary-button"
-                    type="button"
-                    onClick={onExportData}>
+                <div className="flex gap-3">
+                  <Button variant="secondary" onClick={onExportData} className="flex items-center gap-2 cursor-pointer">
                     <Download size={16} />
                     Скачать копию
-                  </button>
-                  <label className="secondary-button settings-import-button">
+                  </Button>
+                  <label className="inline-flex items-center justify-center min-h-[40px] px-3.5 gap-2 border border-border rounded-control text-text-main bg-field text-sm font-medium hover:bg-surface-soft transition-colors cursor-pointer">
                     <Upload size={16} />
                     Восстановить
                     <input
                       accept="application/json,.json"
                       type="file"
+                      className="hidden"
                       onChange={onImportData}
                     />
                   </label>
                 </div>
-            </div>
-              </SettingsMobileSection>
-          </section>
-
+              </div>
+            </Card>
+          </div>
         </div>
         {saveBar}
       </form>

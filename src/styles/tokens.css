@@ -1,0 +1,127 @@
+/* Canonical design tokens. Values intentionally mirror the current interface. */
+:root {
+  --bg: var(--linear-bg, #101214);
+  --surface: var(--linear-panel, #1a1c22);
+  --surface-2: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+  --field: rgba(255, 255, 255, 0.035);
+  --border: var(--linear-border, rgba(255, 255, 255, 0.1));
+  --border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.06));
+  --text: var(--linear-text, #f4f5f7);
+  --text-muted: var(--linear-muted, #a3a6b3);
+  --text-faint: var(--linear-dim, #737782);
+  --accent: var(--accent-color, #b91c1c);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-card: 16px;
+  --radius-modal: 24px;
+  --radius-control: 12px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --font-main: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --transition-fast: 150ms;
+
+  /* Existing final button values, named for reuse rather than recoloured. */
+  --button-secondary-height: 38px;
+  --button-primary-height: 40px;
+  --button-small-height: 36px;
+  --button-large-height: 44px;
+  --button-iрcon-size: 40px;
+  --button-horizontal-padding: 14px;
+  --button-small-gap: 6px;
+  --button-secondary-bg: #252525;
+  --button-secondary-bg-hover: #303030;
+  --button-secondary-text: #b7b7b7;
+  --button-primary-bg: #f1f1f1;
+  --button-primary-bg-hover: #fff;
+  --crm-button-primary-text: #191919;
+  --crm-button-primary-default-text: #fff;
+  --button-primary-shadow: none;
+  --button-secondary-hover-bg: rgba(255, 255, 255, 0.065);
+  --button-ghost-hover-bg: rgba(255, 255, 255, 0.055);
+  --button-danger-border: rgba(244, 63, 94, 0.24);
+  --button-danger-text: #fecdd3;
+  --button-danger-bg: rgba(244, 63, 94, 0.11);
+  --button-danger-bg-hover: rgba(244, 63, 94, 0.16);
+  --button-focus-shadow: 0 0 0 2px var(--accent), 0 0 0 4px var(--bg);
+  --button-disabled-opacity: 0.7;
+  --button-submit-text-size: 13px;
+  --button-submit-weight: 650;
+  --button-primary-hover-text: #101010;
+
+  --header-action-surface: linear-gradient(180deg, #25282d, #1d1f23);
+  --header-action-text: #f0f1f2;
+  --header-title: #f5f5f6;
+  --header-min-height: 42px;
+  --header-margin-bottom: 18px;
+  --header-title-size: 24px;
+  --header-title-weight: 690;
+  --header-title-tracking: -0.035em;
+  --header-actions-gap: 10px;
+  --header-action-height: 38px;
+  --header-action-padding: 14px;
+  --header-action-border: rgba(255, 255, 255, 0.075);
+  --header-action-radius: 10px;
+  --sidebar-width: 232px;
+  --sidebar-padding: 22px 16px 16px;
+  --sidebar-bg: linear-gradient(110deg, #111315, #121416 72%, #101214);
+  --sidebar-divider: rgba(255, 255, 255, 0.075);
+  --sidebar-nav-text: #b0b4bc;
+  --sidebar-nav-icon: #aeb3bb;
+  --sidebar-nav-hover-bg: rgba(255, 255, 255, 0.04);
+  --sidebar-nav-active-bg: rgba(255, 255, 255, 0.08);
+  --sidebar-search-border: rgba(255, 255, 255, 0.065);
+  --sidebar-search-bg: rgba(255, 255, 255, 0.025);
+  --sidebar-owner-hover-bg: rgba(255, 255, 255, 0.035);
+  --card-shadow: var(--soft-shadow);
+  --status-success-border: rgba(52, 211, 153, 0.24);
+  --status-success-text: #6ee7b7;
+  --status-success-bg: rgba(52, 211, 153, 0.1);
+  --status-warning-border: rgba(251, 191, 36, 0.24);
+  --status-warning-text: #fde68a;
+  --status-warning-bg: rgba(251, 191, 36, 0.1);
+  --status-danger-border: rgba(244, 63, 94, 0.24);
+  --status-danger-text: #fda4af;
+  --status-danger-bg: rgba(244, 63, 94, 0.1);
+
+  /* Existing neutral utility colours, named for the UI primitives below. */
+  --neutral-surface: #fff;
+  --neutral-surface-soft: #f9fafb;
+  --neutral-surface-hover: #f3f4f6;
+  --neutral-border: #e5e7eb;
+  --neutral-border-soft: #f3f4f6;
+  --neutral-text: #404040;
+  --neutral-text-muted: #737373;
+  --neutral-text-strong: #0a0a0a;
+  --dropdown-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --dropdown-offset: 6px;
+  --dropdown-min-width: 160px;
+  --dropdown-item-height: 32px;
+  --dropdown-item-padding: 10px;
+  --badge-height: 20px;
+  --badge-bg: rgba(255, 255, 255, 0.055);
+  --control-min-width-wide: 220px;
+  --booksy-row-gap: 6px;
+  --hint-icon-size: 18px;
+  --hint-icon-offset: 6px;
+  --hint-row-gap: 2px;
+  --hint-tooltip-padding-y: 10px;
+  --hint-tooltip-padding-x: 12px;
+  --hint-icon-opacity: 0.45;
+  --hint-icon-opacity-hover: 0.95;
+  --modal-backdrop: rgba(0, 0, 0, 0.7);
+  --modal-backdrop-blur: 16px;
+  --modal-max-width: 448px;
+}

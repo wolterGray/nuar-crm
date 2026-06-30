@@ -1,9 +1,9 @@
 /* Theme tokens are applied via JS (applyColorTheme). These rules consume CSS variables. */
 
 :root {
-  --accent-color: #d2ad7d;
-  --accent-hover: #e0bf8f;
-  --linear-accent: #d2ad7d;
+  --accent-color: #b91c1c;
+  --accent-hover: #991b1b;
+  --linear-accent: #b91c1c;
   --app-bg: #08090b;
   --surface: rgba(18, 19, 23, 0.86);
   --surface-solid: #121317;
@@ -22,16 +22,14 @@
   --linear-text: #f2f3f7;
   --linear-muted: #a3a6b3;
   --linear-dim: #70737f;
-  --focus-ring: 0 0 0 3px rgba(210, 173, 125, 0.28);
-  --content-bg-gradient:
-    radial-gradient(circle at 76% 0%, rgba(210, 173, 125, 0.1), transparent 30%), #08090b;
-  --nav-active-bg: rgba(210, 173, 125, 0.14);
+  --focus-ring: 0 0 0 3px rgba(185, 28, 28, 0.26);
+  --content-bg-gradient: #08090b;
+  --nav-active-bg: rgba(255, 255, 255, 0.075);
   --mobile-nav-bg: rgba(11, 12, 15, 0.96);
-  --loading-gradient:
-    radial-gradient(circle at 50% 42%, rgba(210, 173, 125, 0.16), transparent 30%), #08090b;
-  --button-primary-text: #1a1208;
-  --button-primary-border: rgba(255, 255, 255, 0.32);
-  --button-primary-shadow: 0 10px 26px color-mix(in srgb, #d2ad7d 48%, transparent);
+  --loading-gradient: #08090b;
+  --button-primary-text: #ffffff;
+  --button-primary-border: rgba(185, 28, 28, 0.72);
+  --button-primary-shadow: none;
 }
 
 .crm-shell .content,
@@ -49,44 +47,44 @@
 .theme-light .content,
 .theme-light .visits-content,
 .theme-light .calendar-content {
-  color: var(--linear-text) !important;
-  background: var(--content-bg-gradient, var(--linear-bg)) !important;
+  color: var(--linear-text);
+  background: var(--content-bg-gradient, var(--linear-bg));
 }
 
 .theme-dark .sidebar,
 .theme-light .sidebar {
-  background: var(--linear-sidebar) !important;
-  border-right-color: var(--linear-border) !important;
+  background: var(--linear-sidebar);
+  border-right-color: var(--linear-border);
 }
 
 .theme-dark .nav-list button.active,
 .theme-light .sidebar .nav-list button.active {
-  color: var(--linear-text) !important;
-  background: var(--nav-active-bg, color-mix(in srgb, var(--accent-color) 14%, transparent)) !important;
+  color: var(--linear-text);
+  background: var(--nav-active-bg, color-mix(in srgb, var(--accent-color) 14%, transparent));
 }
 
 .add-visit-button,
 .submit-button,
 .statistics-export-button,
 .login-form .submit-button {
-  color: var(--button-primary-text, #fff) !important;
-  background: var(--accent-color) !important;
-  border: 1px solid var(--button-primary-border, transparent) !important;
-  box-shadow: var(--button-primary-shadow, 0 10px 24px color-mix(in srgb, var(--accent-color) 36%, transparent)) !important;
+  color: var(--button-primary-text, #fff);
+  background: var(--accent-color);
+  border: 1px solid var(--button-primary-border, transparent);
+  box-shadow: var(--button-primary-shadow, 0 10px 24px color-mix(in srgb, var(--accent-color) 36%, transparent));
 }
 
 .add-visit-button svg,
 .submit-button svg,
 .statistics-export-button svg {
-  color: currentColor !important;
+  color: currentColor;
   stroke: currentColor;
 }
 
 .add-visit-button:hover,
 .submit-button:hover,
 .statistics-export-button:hover {
-  color: var(--button-primary-text, #fff) !important;
-  background: var(--accent-hover, color-mix(in srgb, var(--accent-color) 88%, white)) !important;
+  color: var(--button-primary-text, #fff);
+  background: var(--accent-hover, color-mix(in srgb, var(--accent-color) 88%, white));
 }
 
 .theme-dark .submit-button,
@@ -95,10 +93,10 @@
 .theme-light .submit-button,
 .theme-light .add-visit-button,
 .theme-light .statistics-export-button {
-  color: var(--button-primary-text, #fff) !important;
-  background: var(--accent-color) !important;
-  border: 1px solid var(--button-primary-border, transparent) !important;
-  box-shadow: var(--button-primary-shadow, 0 10px 24px color-mix(in srgb, var(--accent-color) 36%, transparent)) !important;
+  color: var(--button-primary-text, #fff);
+  background: var(--accent-color);
+  border: 1px solid var(--button-primary-border, transparent);
+  box-shadow: var(--button-primary-shadow, 0 10px 24px color-mix(in srgb, var(--accent-color) 36%, transparent));
 }
 
 .theme-dark .submit-button:hover,
@@ -107,11 +105,11 @@
 .theme-light .submit-button:hover,
 .theme-light .add-visit-button:hover,
 .theme-light .statistics-export-button:hover {
-  background: var(--accent-hover, color-mix(in srgb, var(--accent-color) 88%, white)) !important;
+  background: var(--accent-hover, color-mix(in srgb, var(--accent-color) 88%, white));
 }
 
 .theme-dark .system-loading-screen {
-  background: var(--loading-gradient, var(--linear-bg)) !important;
+  background: var(--loading-gradient, var(--linear-bg));
 }
 
 .theme-dark .system-loading-spinner,
@@ -122,7 +120,7 @@
 
 @media (max-width: 900px) {
   .mobile-bottom-nav {
-    background: var(--mobile-nav-bg) !important;
+    background: var(--mobile-nav-bg);
   }
 }
 

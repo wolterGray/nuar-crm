@@ -1,6 +1,7 @@
 import {Eye, EyeOff, KeyRound, LockKeyhole, LogIn, Mail, RotateCcw} from "lucide-react";
 import {useState} from "react";
 import {resolveColorTheme} from "../utils/colorTheme.js";
+import {Button, Card, Input} from "./ui/index.js";
 
 function LoginPage({
   isRecovery,
@@ -16,16 +17,20 @@ function LoginPage({
   const themeMode = resolveColorTheme(settings).mode;
 
   return (
-    <main className={`login-screen theme-${themeMode}`}>
-      <section className="login-card">
-        <div className="login-heading">
-          <div className="login-icon">
-            {activeMode === "login" ? <LockKeyhole size={24} /> : <KeyRound size={24} />}
+    <main className={`grid w-screen h-screen place-items-center p-6 bg-app-bg text-text-main theme-${themeMode}`}>
+      <Card className="w-full max-w-[420px] p-8 flex flex-col gap-6 bg-surface/90 border border-border/40 rounded-card shadow-2xl backdrop-blur-md">
+        <div className="flex items-center gap-4">
+          <div className="grid w-12 h-12 place-items-center rounded-control bg-accent/10 text-accent shrink-0">
+            {activeMode === "login" ? <LockKeyhole size={22} /> : <KeyRound size={22} />}
           </div>
-          <div>
-            <small>{settings.studioName}</small>
-            <h1>{activeMode === "login" ? "Вход" : activeMode === "reset" ? "Сброс пароля" : "Новый пароль"}</h1>
-            <p>
+          <div className="min-w-0">
+            <small className="block text-accent text-[10px] font-bold uppercase tracking-wider mb-0.5">
+              {settings.studioName}
+            </small>
+            <h1 className="m-0 text-text-main text-xl font-bold leading-tight">
+              {activeMode === "login" ? "Вход" : activeMode === "reset" ? "Сброс пароля" : "Новый пароль"}
+            </h1>
+            <p className="m-0 mt-1 text-text-muted text-xs leading-normal">
               {activeMode === "login"
                 ? "Доступ только для владельца салона"
                 : activeMode === "reset"
@@ -37,39 +42,54 @@ function LoginPage({
 
         {activeMode === "login" && (
           <>
-            <button className="google-login-button" type="button" onClick={onGoogleLogin}>
-              <span>G</span>
+            <Button
+              variant="secondary"
+              className="w-full flex items-center justify-center gap-3 font-medium cursor-pointer"
+              onClick={onGoogleLogin}
+            >
+              <span className="grid w-5 h-5 place-items-center rounded-full bg-text-main text-surface font-bold text-xs">
+                G
+              </span>
               Войти через Google
-            </button>
-            <div className="login-divider"><span>или по email</span></div>
-            <form className="login-form" onSubmit={onSubmit}>
-              <label>
+            </Button>
+            <div className="flex items-center gap-3 text-text-faint text-xs before:h-[1px] before:flex-1 before:bg-border/60 after:h-[1px] after:flex-1 after:bg-border/60">
+              <span>или по email</span>
+            </div>
+            <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+              <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
                 Email
-                <input name="email" type="email" autoComplete="username" required />
+                <Input name="email" type="email" autoComplete="username" required className="mt-1" />
               </label>
-              <label>
+              <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
                 Пароль
-                <span className="password-field">
-                  <input
+                <span className="relative block mt-1">
+                  <Input
                     name="password"
                     type={passwordVisible ? "text" : "password"}
                     autoComplete="current-password"
                     required
+                    className="pr-10"
                   />
                   <button
                     aria-label={passwordVisible ? "Скрыть пароль" : "Показать пароль"}
                     title={passwordVisible ? "Скрыть пароль" : "Показать пароль"}
                     type="button"
-                    onClick={() => setPasswordVisible((current) => !current)}>
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main focus:outline-none transition-colors cursor-pointer"
+                    onClick={() => setPasswordVisible((current) => !current)}
+                  >
                     {passwordVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </span>
               </label>
-              <button className="submit-button" type="submit">
+              <Button variant="primary" type="submit" className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
                 <LogIn size={17} />
                 Войти
-              </button>
-              <button className="login-link-button" type="button" onClick={() => setMode("reset")}>
+              </Button>
+              <button
+                type="button"
+                className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
+                onClick={() => setMode("reset")}
+              >
                 Забыли пароль?
               </button>
             </form>
@@ -77,48 +97,55 @@ function LoginPage({
         )}
 
         {activeMode === "reset" && (
-          <form className="login-form" onSubmit={onResetPassword}>
-            <label>
+          <form className="flex flex-col gap-4" onSubmit={onResetPassword}>
+            <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
               Email
-              <input name="email" type="email" autoComplete="email" required />
+              <Input name="email" type="email" autoComplete="email" required className="mt-1" />
             </label>
-            <button className="submit-button" type="submit">
+            <Button variant="primary" type="submit" className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
               <Mail size={17} />
               Отправить ссылку
-            </button>
-            <button className="login-link-button" type="button" onClick={() => setMode("login")}>
+            </Button>
+            <button
+              type="button"
+              className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
+              onClick={() => setMode("login")}
+            >
               Вернуться ко входу
             </button>
           </form>
         )}
 
         {activeMode === "recovery" && (
-          <form className="login-form" onSubmit={onUpdatePassword}>
-            <label>
+          <form className="flex flex-col gap-4" onSubmit={onUpdatePassword}>
+            <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
               Новый пароль
-              <span className="password-field">
-                <input
+              <span className="relative block mt-1">
+                <Input
                   name="password"
                   minLength="8"
                   type={passwordVisible ? "text" : "password"}
                   autoComplete="new-password"
                   required
+                  className="pr-10"
                 />
                 <button
                   aria-label={passwordVisible ? "Скрыть пароль" : "Показать пароль"}
                   type="button"
-                  onClick={() => setPasswordVisible((current) => !current)}>
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main focus:outline-none transition-colors cursor-pointer"
+                  onClick={() => setPasswordVisible((current) => !current)}
+                >
                   {passwordVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </span>
             </label>
-            <button className="submit-button" type="submit">
+            <Button variant="primary" type="submit" className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
               <RotateCcw size={17} />
               Сохранить новый пароль
-            </button>
+            </Button>
           </form>
         )}
-      </section>
+      </Card>
     </main>
   );
 }

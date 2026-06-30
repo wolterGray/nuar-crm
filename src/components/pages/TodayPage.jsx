@@ -1,9 +1,6 @@
 import {
   Banknote,
   CalendarDays,
-  CalendarPlus,
-  Check,
-  ClipboardList,
   Clock3,
   MessageSquareText,
   MoreHorizontal,
@@ -11,12 +8,12 @@ import {
   Plus,
   WalletCards,
 } from "lucide-react";
-import {useEffect, useMemo, useRef, useState} from "react";
-import PageHeader from "../PageHeader.jsx";
-import {useBreakpoint} from "../../hooks/useBreakpoint.js";
-import {buildTodayDashboard} from "../../utils/todayDashboard.js";
-import {formatCompactMoney, formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
-import {getSupplyStockStatusLabel} from "../../utils/supplyStock.js";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { PageNotificationsSlot } from "../PageNotifications.jsx";
+import { buildTodayDashboard } from "../../utils/todayDashboard.js";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import { formatCompactMoney, formatMoney } from "../../utils/formatters.jsx";
 
 const visitStatusLabels = {
   scheduled: "Запланирован",
@@ -26,20 +23,477 @@ const visitStatusLabels = {
   cancelled: "Отменён",
 };
 
-function TodayKpiCard({helper, icon: Icon, label, tone, value}) {
+const toneStyles = {
+  visits: "visits",
+  income: "income",
+  upcoming: "upcoming",
+  debt: "debt",
+};
+
+const visitToneClasses = [
+  "is-rose",
+  "is-amber",
+  "is-violet",
+  "is-gold",
+  "is-green",
+];
+
+function TodayKpiCard({ helper, icon: Icon, label, tone, value }) {
+  const styles = toneStyles[tone] || toneStyles.upcoming;
+
   return (
-    <article className={`today-summary-card today-summary-card-${tone}`}>
-      <div className="today-summary-icon">
-        <Icon size={15} />
+    <Card className="today-kpi-card" data-tone={styles}>
+      <div className="today-kpi-icon">
+        <Icon size={18} />
       </div>
-      <div>
+      <div className="today-kpi-copy">
         <span>{label}</span>
         <strong>{value}</strong>
         {helper ? <small>{helper}</small> : null}
       </div>
-    </article>
+    </Card>
   );
 }
+
+function TodayReferenceBoard({
+  dashboard,
+  formatIncome,
+  freeMinutes,
+  onAddTask,
+  onAddVisit,
+  onCompleteTask,
+  onEditVisit,
+  onOpenCalendar,
+  onRemindVisit,
+  openVisitMenuId,
+  openVisitMenuRef,
+  selectedEmployees,
+  selectedVisitId,
+  setSelectedEmployees,
+  setSelectedVisitId,
+  setOpenVisitMenuId,
+}) {
+  const employeeOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          dashboard.todayVisits
+            .map((entry) => String(entry.master ?? "").trim())
+            .filter(Boolean),
+        ),
+      ),
+    [dashboard.todayVisits],
+  );
+  const filteredVisits = selectedEmployees.length
+    ? dashboard.todayVisits.filter((entry) => selectedEmployees.includes(entry.master))
+    : dashboard.todayVisits;
+  const getVisitId = (entry) => entry.id ?? `${entry.time}-${entry.client}`;
+  const visitToneById = useMemo(
+    () =>
+      new Map(
+        dashboard.todayVisits.map((entry, index) => [
+          getVisitId(entry),
+          visitToneClasses[index % visitToneClasses.length],
+        ]),
+      ),
+    [dashboard.todayVisits],
+  );
+  const toggleEmployee = (employee) => {
+    setSelectedEmployees((current) =>
+      current.length === 1 && current[0] === employee ? [] : [employee],
+    );
+  };
+  const selectedVisit =
+    dashboard.todayVisits.find(
+      (entry) => getVisitId(entry) === selectedVisitId,
+    ) ?? null;
+  const nearestScheduleVisit = useMemo(() => {
+    if (!filteredVisits.length) return null;
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    return (
+      filteredVisits.find(
+        (entry) => getTimeMinutes(entry.time ?? entry.startTime) >= currentMinutes,
+      ) ?? filteredVisits[0]
+    );
+  }, [filteredVisits]);
+  const nextVisit = selectedVisit ?? nearestScheduleVisit;
+  const activeVisitId = selectedVisit
+    ? getVisitId(selectedVisit)
+    : nearestScheduleVisit
+      ? getVisitId(nearestScheduleVisit)
+      : null;
+  const nextVisitTone = nextVisit
+    ? visitToneById.get(getVisitId(nextVisit)) ?? "is-gold"
+    : "is-gold";
+
+  return (
+    <section className="today-board">
+      <header className="today-board-header">
+        <div className="today-board-title">
+          <h1>Сегодня</h1>
+          <span>{formatTodayHeading(dashboard.today)}</span>
+          <CalendarDays aria-hidden="true" size={17} />
+        </div>
+        <div className="today-board-actions">
+          <Button className="today-control-button is-secondary" variant="secondary" onClick={onOpenCalendar}>
+            <CalendarDays size={16} />
+            Календарь
+          </Button>
+          <Button className="today-control-button is-primary" variant="primary" onClick={onAddVisit}>
+            <Plus size={16} />
+            Визит
+          </Button>
+          <div className="today-board-notifications">
+            <PageNotificationsSlot />
+          </div>
+        </div>
+      </header>
+
+      <section className="today-kpi-grid" aria-label="Ключевые показатели">
+        <TodayKpiCard
+          helper={`из ${dashboard.snapshot.scheduledVisits} запланировано`}
+          icon={CalendarDays}
+          label="Визиты сегодня"
+          tone="visits"
+          value={dashboard.snapshot.completedVisits}
+        />
+        <TodayKpiCard
+          helper={`прогноз: ${formatIncome(dashboard.forecastRevenue)}`}
+          icon={Banknote}
+          label="Выручка сегодня"
+          tone="income"
+          value={formatIncome(dashboard.snapshot.received)}
+        />
+        <TodayKpiCard
+          helper="сегодня"
+          icon={Clock3}
+          label="Свободного времени"
+          tone="upcoming"
+          value={formatDuration(freeMinutes)}
+        />
+        <TodayKpiCard
+          helper="требуют внимания"
+          icon={WalletCards}
+          label="Проблемы"
+          tone="debt"
+          value={dashboard.actionItems.length}
+        />
+      </section>
+
+      <div className="today-layout">
+        <div className="today-main-column">
+          <section className="today-panel today-schedule-panel">
+            <header className="today-panel-header">
+              <h2>
+                Расписание на сегодня{" "}
+                <span className="today-count-pill">
+                  {dashboard.todayVisits.length} визитов
+                </span>
+              </h2>
+              <div className="today-schedule-controls">
+                <div className="today-segmented-control" aria-label="Период расписания">
+                  <button className="is-active" type="button">День</button>
+                  <button type="button">Неделя</button>
+                  <button type="button">Месяц</button>
+                </div>
+                <button className="today-icon-button" type="button" aria-label="Ещё">
+                  <MoreHorizontal size={16} />
+                </button>
+              </div>
+            </header>
+            <div className="today-visit-timeline">
+              {filteredVisits.length ? (
+                filteredVisits.map((entry, index) => {
+                  const visitMenuId = getVisitId(entry);
+                  const menuOpen = openVisitMenuId === visitMenuId;
+                  const dotBg = visitToneById.get(visitMenuId) ?? visitToneClasses[index % visitToneClasses.length];
+
+                  return (
+                    <article
+                      className={`today-visit-line ${dotBg} ${
+                        activeVisitId === visitMenuId ? "is-current" : ""
+                      } ${selectedVisitId === visitMenuId ? "is-selected" : ""}`}
+                      key={visitMenuId}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedVisitId(visitMenuId)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedVisitId(visitMenuId);
+                        }
+                      }}
+                    >
+                      <div className="today-visit-time">
+                        <strong>{entry.time}</strong>
+                        <small>{formatDuration(entry.duration || 60)}</small>
+                      </div>
+                      <span className={`today-visit-dot ${dotBg}`} />
+                      <div className="today-visit-client">
+                        <strong>
+                          {entry.client || "Без клиента"}
+                        </strong>
+                        <span>
+                          {entry.service || "Визит"} · {formatDuration(entry.duration || 60)}
+                        </span>
+                      </div>
+                      <div className="today-visit-status">
+                        <span
+                          className={`today-status-pill ${
+                            entry.status === "confirmed"
+                              ? "is-confirmed"
+                              : entry.status === "completed"
+                              ? "is-completed"
+                              : "is-scheduled"
+                          }`}
+                        >
+                          {visitStatusLabels[entry.status] || entry.status || "Запланирован"}
+                        </span>
+                      </div>
+                      <strong className="today-visit-price">
+                        {entry.amount ? formatMoney(entry.amount) : "—"}
+                      </strong>
+                      <div className="today-visit-menu" ref={menuOpen ? openVisitMenuRef : null}>
+                        <button
+                          aria-label="Действия с визитом"
+                          type="button"
+                          className="today-icon-button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setOpenVisitMenuId(menuOpen ? null : visitMenuId);
+                          }}
+                        >
+                          <MoreHorizontal size={16} />
+                        </button>
+                        {menuOpen ? (
+                          <div className="today-menu-popover">
+                            <button
+                              type="button"
+                              className="today-menu-item"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setOpenVisitMenuId(null);
+                                onRemindVisit?.(entry);
+                              }}
+                            >
+                              <MessageSquareText size={14} /> Написать
+                            </button>
+                            <button
+                              type="button"
+                              className="today-menu-item"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setOpenVisitMenuId(null);
+                                onEditVisit?.(entry);
+                              }}
+                            >
+                              <Pencil size={14} /> Редактировать
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </article>
+                  );
+                })
+              ) : (
+                <p className="today-empty-state">
+                  {selectedEmployees.length ? "У выбранных сотрудников нет визитов" : "На сегодня визитов нет"}
+                </p>
+              )}
+            </div>
+            {filteredVisits.length > 7 ? <span className="today-scroll-cue" aria-hidden="true">↓</span> : null}
+          </section>
+
+        </div>
+
+        <aside className="today-side-column">
+          <section className="today-panel today-side-panel today-next-panel">
+            <header className="today-panel-header">
+              <h2>{selectedVisit ? "Выбранный визит" : "Следующий визит"}</h2>
+              <span>→</span>
+            </header>
+            {nextVisit ? (
+              <div className={`today-next-visit ${nextVisitTone}`}>
+                <div className="today-next-client-row">
+                  <span className="today-next-marker" aria-hidden="true" />
+                  <b className="today-next-client">{nextVisit.client || "Без клиента"}</b>
+                </div>
+                <div className="today-next-meta">
+                  <span className="today-next-time">{nextVisit.time}</span>
+                  <span>{selectedVisit ? "в расписании" : "ближайший"}</span>
+                </div>
+                <small>
+                  {nextVisit.service || "Визит"} · {formatDuration(nextVisit.duration || 60)}
+                </small>
+                <small>{nextVisit.master || "—"}</small>
+                <Button className="today-control-button is-primary is-compact" variant="primary" onClick={() => onEditVisit?.(nextVisit)}>
+                  Открыть карточку
+                </Button>
+              </div>
+            ) : (
+              <p className="today-empty-state">Ближайших визитов нет</p>
+            )}
+          </section>
+
+          <section className="today-panel today-side-panel today-employees-panel">
+            <header className="today-panel-header">
+              <h2>Сотрудники</h2>
+              {selectedEmployees.length ? (
+                <button
+                  className="today-link-button"
+                  type="button"
+                  onClick={() => setSelectedEmployees([])}
+                >
+                  Все
+                </button>
+              ) : null}
+            </header>
+            <div className="today-employee-list">
+              {employeeOptions.length ? (
+                employeeOptions.map((employee, index) => {
+                  const marker = visitToneClasses[index % visitToneClasses.length];
+                  const checked = selectedEmployees.includes(employee);
+
+                  return (
+                    <label
+                      className={`today-employee-option ${checked ? "is-checked" : ""}`}
+                      key={employee}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleEmployee(employee)}
+                      />
+                      <span className="today-employee-check" aria-hidden="true">
+                        <span className={`today-employee-marker ${marker}`} />
+                      </span>
+                      <span>{employee}</span>
+                    </label>
+                  );
+                })
+              ) : (
+                <p className="today-empty-state">Нет сотрудников в расписании</p>
+              )}
+            </div>
+          </section>
+
+          <section className="today-panel today-side-panel">
+            <header className="today-panel-header">
+              <h2>Свободные окна сегодня</h2>
+              <Button className="today-control-button is-secondary is-compact" variant="secondary" onClick={onOpenCalendar}>
+                В календарь
+              </Button>
+            </header>
+            <div className="today-side-list">
+              {dashboard.freeSlots.slice(0, 3).map((slot) => (
+                <div
+                  key={`${slot.master}-${slot.startTime}`}
+                  className="today-side-row"
+                >
+                  <strong>{slot.startTime} – {slot.endTime}</strong>
+                  <span>{slot.durationMinutes} мин</span>
+                </div>
+              ))}
+              {!dashboard.freeSlots.length ? (
+                <p className="today-empty-state">Свободных окон нет</p>
+              ) : null}
+            </div>
+          </section>
+
+          <section className="today-panel today-side-panel today-tasks-panel">
+            <header className="today-panel-header">
+              <h2>
+                Задачи <span className="today-count-pill">{dashboard.dueTasks.length}</span>
+              </h2>
+              <Button className="today-control-button is-secondary is-compact" variant="secondary" onClick={onAddTask}>
+                <Plus size={14} /> Задача
+              </Button>
+            </header>
+            <div className="today-side-list">
+              {dashboard.dueTasks.slice(0, 3).map((task) => (
+                <div
+                  key={task.id}
+                  className="today-task-line"
+                >
+                  <button
+                    aria-label={`Завершить ${task.title}`}
+                    type="button"
+                    className="today-check-button"
+                    onClick={() => onCompleteTask?.(task)}
+                  />
+                  <strong>{task.title}</strong>
+                  <span>
+                    {task.dueDate < dashboard.today ? "Просрочено" : "Сегодня"}
+                  </span>
+                </div>
+              ))}
+              {!dashboard.dueTasks.length ? (
+                <p className="today-empty-state">Задач нет</p>
+              ) : null}
+            </div>
+          </section>
+
+          <section className="today-panel today-side-panel today-alerts-panel">
+            <header className="today-panel-header">
+              <h2>
+                Уведомления <span className="today-count-pill">{dashboard.actionItems.length}</span>
+              </h2>
+            </header>
+            <div className="today-side-list">
+              {dashboard.actionItems.slice(0, 2).map((item) => (
+                <div
+                  key={item.id}
+                  className={`today-alert-line today-action-${item.priority}`}
+                >
+                  <span aria-hidden="true" />
+                  <div>
+                    <strong>{item.title}</strong>
+                    <small>{item.message}</small>
+                  </div>
+                </div>
+              ))}
+              {!dashboard.actionItems.length ? (
+                <p className="today-empty-state">Нет новых уведомлений</p>
+              ) : null}
+            </div>
+          </section>
+
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+const formatDuration = (value) => {
+  const minutes = Number(value) || 0;
+  if (minutes < 60) return `${minutes} мин`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? `${hours}ч ${remainder}м` : `${hours}ч`;
+};
+
+const getTimeMinutes = (value) => {
+  const [hours = 0, minutes = 0] = String(value ?? "")
+    .split(":")
+    .map((part) => Number(part));
+
+  return (Number.isFinite(hours) ? hours : 0) * 60 + (Number.isFinite(minutes) ? minutes : 0);
+};
+
+const formatTodayHeading = (value) => {
+  const date = new Date(`${value}T12:00:00`);
+  const day = new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+  const weekday = new Intl.DateTimeFormat("ru-RU", { weekday: "long" }).format(date);
+
+  return `${day}, ${weekday}`;
+};
 
 function TodayPage({
   alertSummary,
@@ -52,22 +506,19 @@ function TodayPage({
   employees,
   onAddTask,
   onAddVisit,
-  onChangeSupplyStock,
   onCompleteTask,
   onEditVisit,
   onOpenCalendar,
-  onOpenClients,
-  onOpenOperations,
-  onOpenPayments,
   onRemindVisit,
   supplies,
   tasks,
   visits,
 }) {
-  const {isMobile} = useBreakpoint();
-  const [mobileSection, setMobileSection] = useState("tasks");
   const [openVisitMenuId, setOpenVisitMenuId] = useState(null);
+  const [selectedEmployees, setSelectedEmployees] = useState([]);
+  const [selectedVisitId, setSelectedVisitId] = useState(null);
   const openVisitMenuRef = useRef(null);
+
   const dashboard = useMemo(
     () =>
       buildTodayDashboard({
@@ -99,20 +550,12 @@ function TodayPage({
   );
 
   const formatIncome = (value) =>
-    Math.abs(Number(value) || 0) >= 1000
-      ? formatCompactMoney(value)
-      : formatMoney(value);
-  const openActionTarget = (action) => {
-    if (action === "calendar") {
-      onOpenCalendar?.();
-    } else if (action === "payments") {
-      onOpenPayments?.();
-    } else if (action === "clients") {
-      onOpenClients?.();
-    } else {
-      onOpenOperations?.();
-    }
-  };
+    Math.abs(Number(value) || 0) >= 1000 ? formatCompactMoney(value) : formatMoney(value);
+
+  const freeMinutes = dashboard.freeSlots.reduce(
+    (total, slot) => total + (Number(slot.durationMinutes) || 0),
+    0,
+  );
 
   useEffect(() => {
     if (openVisitMenuId === null) {
@@ -132,457 +575,25 @@ function TodayPage({
   }, [openVisitMenuId]);
 
   return (
-    <section className={`today-page ${isMobile ? "statistics-page today-page-mobile" : "today-page-desktop"}`}>
-      <PageHeader
-        collapsible={false}
-        actions={
-          isMobile ? (
-            <div className="today-header-actions">
-              <button
-                className="today-header-chip secondary-button"
-                type="button"
-                onClick={onOpenCalendar}>
-                <CalendarDays size={16} />
-                <span>Календарь</span>
-              </button>
-              <button
-                className="today-header-chip secondary-button"
-                type="button"
-                onClick={onAddVisit}>
-                <CalendarPlus size={16} />
-                <span>Визит</span>
-              </button>
-              <button
-                className="today-header-chip today-header-chip-full add-visit-button"
-                type="button"
-                onClick={onAddTask}>
-                <Plus size={16} />
-                <span>Задача</span>
-              </button>
-            </div>
-          ) : (
-            <>
-              <button className="secondary-button" type="button" onClick={onOpenCalendar}>
-                <CalendarDays size={16} />
-                Календарь
-              </button>
-              <button className="secondary-button" type="button" onClick={onAddVisit}>
-                <CalendarPlus size={16} />
-                Визит
-              </button>
-              <button className="add-visit-button" type="button" onClick={onAddTask}>
-                <Plus size={16} />
-                Задача
-              </button>
-            </>
-          )
-        }
-        description="Операционная сводка дня: расписание, окна, задачи и остатки"
-        title={`Сегодня · ${dashboard.todayDisplay}`}
-      />
-
-      {(() => {
-        const todayBody = (
-          <>
-      <section className="today-kpi-section">
-        <div className="statistics-panel-title today-section-heading">
-          <div>
-            <h3>Ключевые показатели</h3>
-            <p>{toDisplayDate(dashboard.today)}</p>
-          </div>
-        </div>
-        <div className="today-summary-grid">
-          <TodayKpiCard
-            helper={`${dashboard.snapshot.completedVisits} завершено`}
-            icon={CalendarDays}
-            label="Визиты"
-            tone="visits"
-            value={dashboard.snapshot.scheduledVisits}
-          />
-          <TodayKpiCard
-            helper={`прогноз ~${formatIncome(dashboard.forecastRevenue)}`}
-            icon={Banknote}
-            label="Поступления"
-            tone="income"
-            value={formatIncome(dashboard.snapshot.received)}
-          />
-          <TodayKpiCard
-            helper={
-              dashboard.snapshot.debtVisits > 0
-                ? `${dashboard.snapshot.debtVisits} записей`
-                : "нет долгов"
-            }
-            icon={WalletCards}
-            label="Долги"
-            tone="debt"
-            value={formatIncome(dashboard.snapshot.debtAmount)}
-          />
-          <TodayKpiCard
-            helper="следующие 3 часа"
-            icon={Clock3}
-            label="Ближайшие"
-            tone="upcoming"
-            value={dashboard.snapshot.upcomingCount}
-          />
-        </div>
-      </section>
-
-      <div className="today-dashboard-grid">
-        <section className="today-section today-section-schedule">
-          <div className="today-section-heading">
-            <div>
-              <h3>Расписание на сегодня</h3>
-              <p>{dashboard.todayVisits.length} записей</p>
-            </div>
-            <button
-              className="today-section-action today-panel-link secondary-button"
-              type="button"
-              onClick={onOpenCalendar}>
-              <CalendarDays size={14} />
-              {isMobile ? "Календарь" : "Открыть календарь"}
-            </button>
-          </div>
-
-          {dashboard.todayVisits.length === 0 ? (
-            <p className="today-empty">На сегодня записей нет</p>
-          ) : (
-            <ul className="today-visit-list">
-              {dashboard.todayVisits.map((entry) => {
-                const visitMenuId = entry.id ?? `${entry.time}-${entry.client}`;
-                const visitMenuOpen = openVisitMenuId === visitMenuId;
-
-                return (
-                <li className="today-visit-row" key={visitMenuId}>
-                  <div className="today-visit-main">
-                    <div>
-                      <span>{entry.client || "Без клиента"}</span>
-                      <small>
-                        {entry.service || "Визит"} · {entry.master || "—"}
-                      </small>
-                    </div>
-                  </div>
-                  <div className="today-visit-meta">
-                    <div className="today-visit-state">
-                      <b>{visitStatusLabels[entry.status] || entry.status || "—"}</b>
-                      <strong>{entry.time}</strong>
-                    </div>
-                    <div
-                      ref={visitMenuOpen ? openVisitMenuRef : null}
-                      className={`today-visit-actions${visitMenuOpen ? " open" : ""}`}>
-                      <button
-                        aria-label="Действия с визитом"
-                        aria-expanded={visitMenuOpen}
-                        className="today-inline-action"
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setOpenVisitMenuId(visitMenuOpen ? null : visitMenuId);
-                        }}>
-                        <MoreHorizontal size={15} />
-                      </button>
-                      {visitMenuOpen ? (
-                        <div className="today-visit-action-menu">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOpenVisitMenuId(null);
-                            onRemindVisit?.(entry);
-                          }}>
-                          <MessageSquareText size={13} />
-                          Написать
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOpenVisitMenuId(null);
-                            onEditVisit?.(entry);
-                          }}>
-                          <Pencil size={13} />
-                          Редактировать
-                        </button>
-                      </div>
-                      ) : null}
-                    </div>
-                  </div>
-                </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
-
-        <section
-          className={`today-section today-section-schedule-quality ${
-            dashboard.scheduleQuality.ok ? "is-ok" : "has-issues"
-          }`}>
-          <div className="today-section-heading">
-            <div>
-              <h3>Качество расписания</h3>
-              <p>
-                {dashboard.scheduleQuality.ok
-                  ? "Ошибок в сегодняшних записях не найдено"
-                  : `${dashboard.scheduleQuality.issues.length} пунктов к проверке`}
-              </p>
-            </div>
-            <button
-              className="today-section-action secondary-button"
-              type="button"
-              onClick={onOpenCalendar}>
-              <CalendarDays size={14} />
-              Календарь
-            </button>
-          </div>
-          {dashboard.scheduleQuality.ok ? (
-            <p className="today-empty">Расписание выглядит аккуратно.</p>
-          ) : (
-            <ul className="today-schedule-quality-list">
-              {dashboard.scheduleQuality.issues.slice(0, 5).map((issue) => (
-                <li
-                  className={`today-row-card today-schedule-quality-row today-action-${issue.priority}`}
-                  key={issue.id}>
-                  <div>
-                    <span>{getActionTypeLabel(issue.type)}</span>
-                    <strong>{issue.title}</strong>
-                    <small>{issue.message}</small>
-                  </div>
-                  <button
-                    className="secondary-button"
-                    type="button"
-                    onClick={() => openActionTarget(issue.action)}>
-                    Открыть
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        {isMobile && (
-          <div aria-label="Разделы дня" className="today-mobile-tabs" role="tablist">
-            <button
-              className={mobileSection === "tasks" ? "active" : ""}
-              role="tab"
-              type="button"
-              onClick={() => setMobileSection("tasks")}>
-              Задачи
-            </button>
-            <button
-              className={mobileSection === "stock" ? "active" : ""}
-              role="tab"
-              type="button"
-              onClick={() => setMobileSection("stock")}>
-              Склад
-            </button>
-            <button
-              className={mobileSection === "alerts" ? "active" : ""}
-              role="tab"
-              type="button"
-              onClick={() => setMobileSection("alerts")}>
-              Важное
-            </button>
-          </div>
-        )}
-
-        <div
-          className={`today-side-column ${
-            isMobile ? `today-side-column-mobile today-side-column-${mobileSection}` : ""
-          }`}>
-          {!isMobile && (
-          <section className="today-section today-section-upcoming">
-            <div className="today-section-heading">
-              <div>
-                <h3>Ближайшие визиты</h3>
-                <p>Следующие 3 часа</p>
-              </div>
-            </div>
-            {dashboard.upcomingVisits.length === 0 ? (
-              <p className="today-empty">Ближайших визитов нет</p>
-            ) : (
-              <ul className="statistics-today-upcoming">
-                {dashboard.upcomingVisits.map((entry) => (
-                  <li key={entry.id ?? `${entry.time}-${entry.client}`}>
-                    <strong>{entry.time}</strong>
-                    <span>{entry.client || "Без клиента"}</span>
-                    <small>{entry.service || "Визит"}</small>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-          )}
-
-          {!isMobile && (
-          <section className="today-section today-section-windows">
-            <div className="today-section-heading">
-              <div>
-                <h3>Свободные окна</h3>
-                <p>Оставшееся время в сменах</p>
-              </div>
-            </div>
-            {dashboard.freeSlots.length === 0 ? (
-              <p className="today-empty">Свободных окон не найдено</p>
-            ) : (
-              <ul className="today-slot-list">
-                {dashboard.freeSlots.map((slot) => (
-                  <li
-                    className="today-row-card today-slot-row today-window-row"
-                    key={`${slot.master}-${slot.startTime}`}>
-                    <strong className="today-window-time">{slot.startTime}–{slot.endTime}</strong>
-                    <span className="today-window-master">{slot.master}</span>
-                    <small className="today-slot-duration">{slot.durationMinutes} мин</small>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-          )}
-
-          {(!isMobile || mobileSection === "tasks") && (
-          <section className="today-section today-section-tasks">
-            <div className="today-section-heading">
-              <div>
-                <h3>Задачи на сегодня</h3>
-                <p>{dashboard.dueTasks.length} активных</p>
-              </div>
-              <button
-                className="today-section-action secondary-button"
-                type="button"
-                onClick={onOpenOperations}>
-                <ClipboardList size={16} />
-                Операции
-              </button>
-            </div>
-            {dashboard.dueTasks.length === 0 ? (
-              <p className="today-empty">Задач на сегодня нет</p>
-            ) : (
-              <ul className="today-task-list">
-                {dashboard.dueTasks.slice(0, 6).map((task) => (
-                  <li className="today-row-card today-task-row" key={task.id}>
-                    <div>
-                      <strong>{task.title}</strong>
-                      <small>
-                        {task.dueDate < dashboard.today ? "Просрочено" : "Срок сегодня"}
-                      </small>
-                    </div>
-                    <button
-                      aria-label={`Завершить задачу ${task.title}`}
-                      className="icon-button"
-                      type="button"
-                      onClick={() => onCompleteTask?.(task)}>
-                      <Check size={15} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-          )}
-
-          {(!isMobile || mobileSection === "stock") && (
-          <section className="today-section today-section-stock">
-            <div className="today-section-heading">
-              <div>
-                <h3>Низкий остаток</h3>
-                <p>{dashboard.lowStockSupplies.length} позиций</p>
-              </div>
-              <button
-                className="today-section-action secondary-button"
-                type="button"
-                onClick={onOpenOperations}>
-                <ClipboardList size={14} />
-                Склад
-              </button>
-            </div>
-            {dashboard.lowStockSupplies.length === 0 ? (
-              <p className="today-empty">Все позиции в норме</p>
-            ) : (
-              <ul className="today-supply-list">
-                {dashboard.lowStockSupplies.map((item) => (
-                  <li className="today-row-card today-supply-row" key={item.id}>
-                    <div>
-                      <strong>{item.name}</strong>
-                      <small>
-                        {item.stock} {item.unit} · мин. {item.minStock} ·{" "}
-                        {getSupplyStockStatusLabel(item)}
-                      </small>
-                    </div>
-                    <button
-                      className="secondary-button"
-                      type="button"
-                      onClick={() => onChangeSupplyStock?.(item, 1)}>
-                      +1
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-          )}
-
-          {(!isMobile || mobileSection === "alerts") && (
-            <section className="today-section today-section-important">
-              <div className="today-section-heading">
-                <div>
-                  <h3>Центр действий</h3>
-                  <p>{dashboard.actionItems.length} пунктов к проверке</p>
-                </div>
-                <button
-                  className="today-section-action secondary-button"
-                  type="button"
-                  onClick={onOpenOperations}>
-                  <ClipboardList size={14} />
-                  Операции
-                </button>
-              </div>
-              {dashboard.actionItems.length === 0 ? (
-                <p className="today-empty">Сейчас нет срочных действий.</p>
-              ) : (
-                <ul className="today-action-list">
-                  {dashboard.actionItems.map((item) => (
-                    <li
-                      className={`today-row-card today-action-row today-action-${item.priority}`}
-                      key={item.id}>
-                      <div>
-                        <span>{getActionTypeLabel(item.type)}</span>
-                        <strong>{item.title}</strong>
-                        {item.message ? <small>{item.message}</small> : null}
-                      </div>
-                      <button
-                        className="secondary-button"
-                        type="button"
-                        onClick={() => openActionTarget(item.action)}>
-                        Открыть
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          )}
-        </div>
-      </div>
-          </>
-        );
-
-        return isMobile ? <div className="today-scroll">{todayBody}</div> : todayBody;
-      })()}
-    </section>
+    <TodayReferenceBoard
+      dashboard={dashboard}
+      formatIncome={formatIncome}
+      freeMinutes={freeMinutes}
+      onAddTask={onAddTask}
+      onAddVisit={onAddVisit}
+      onCompleteTask={onCompleteTask}
+      onEditVisit={onEditVisit}
+      onOpenCalendar={onOpenCalendar}
+      onRemindVisit={onRemindVisit}
+      openVisitMenuId={openVisitMenuId}
+      openVisitMenuRef={openVisitMenuRef}
+      selectedEmployees={selectedEmployees}
+      selectedVisitId={selectedVisitId}
+      setSelectedEmployees={setSelectedEmployees}
+      setSelectedVisitId={setSelectedVisitId}
+      setOpenVisitMenuId={setOpenVisitMenuId}
+    />
   );
-}
-
-function getActionTypeLabel(type) {
-  const labels = {
-    birthday: "Клиент",
-    calendar: "Календарь",
-    certificate: "Сертификат",
-    client: "Клиент",
-    finance: "Финансы",
-    package: "Пакет",
-    stock: "Склад",
-    task: "Задача",
-  };
-
-  return labels[type] || "Сигнал";
 }
 
 export default TodayPage;

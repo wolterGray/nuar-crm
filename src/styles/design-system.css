@@ -202,7 +202,6 @@
 /* ---- Buttons ---- */
 
 .secondary-button,
-.date-button,
 .calendar-icon-button,
 .compact-icon-button {
   min-height: var(--ds-control-height-sm);
@@ -215,13 +214,12 @@
 }
 
 .secondary-button:focus-visible,
-.date-button:focus-visible,
 .add-visit-button:focus-visible,
 .calendar-icon-button:focus-visible,
 .nav-list button:focus-visible,
 .client-search-trigger:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring, 0 0 0 3px rgba(210, 173, 125, 0.28));
+  box-shadow: var(--focus-ring, 0 0 0 3px rgba(185, 28, 28, 0.26));
 }
 
 .add-visit-button {
@@ -278,7 +276,6 @@
 
 .table-head,
 .clients-table-head,
-.client-package-head,
 .payroll-table th {
   padding: 10px 12px;
   color: var(--linear-dim, #70737f);
@@ -291,22 +288,14 @@
 
 .table-row:not(.table-head),
 .clients-table-row:not(.clients-table-head),
-.client-package-row,
 .payroll-table td {
   padding: 11px 12px;
 }
 
 .table-row:not(.table-head):hover,
 .clients-table-row:not(.clients-table-head):hover,
-.client-package-row:hover,
 .payroll-table tbody tr:hover td {
   background: color-mix(in srgb, var(--accent-color) 5%, transparent);
-}
-
-.table-search {
-  min-height: var(--ds-control-height);
-  margin-bottom: var(--ds-space-3);
-  border-radius: var(--ds-radius-lg);
 }
 
 .table-empty-state,
@@ -345,8 +334,7 @@
 
 .employee-modal,
 .client-details-modal,
-.confirm-dialog,
-.client-search-dialog {
+.confirm-dialog {
   border-radius: var(--ds-radius-xl);
   box-shadow: var(--ds-shadow-soft);
 }
@@ -370,9 +358,71 @@
   width: min(640px, calc(100vw - 32px));
 }
 
+.employee-modal.service-form-modal {
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(88dvh, 760px);
+  background: var(--linear-panel, #121317);
+}
+
+.employee-modal.package-form-modal {
+  --package-modal-panel: var(--linear-panel, #121317);
+  --package-modal-field: var(--linear-panel-soft, #151b23);
+  --package-modal-border: var(--linear-border, #1e2532);
+  --package-modal-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --package-modal-text: var(--linear-text, #f2f3f7);
+  --package-modal-muted: var(--linear-muted, #a3a6b3);
+  --package-modal-faint: var(--linear-dim, #70737f);
+  --package-modal-accent: var(--accent-color, #b91c1c);
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(88dvh, 760px);
+  color: var(--package-modal-text);
+  background: var(--package-modal-panel);
+}
+
+.employee-modal.employee-form-modal {
+  --employee-modal-panel: var(--linear-panel, #121317);
+  --employee-modal-field: var(--linear-panel-soft, #151b23);
+  --employee-modal-border: var(--linear-border, #1e2532);
+  --employee-modal-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --employee-modal-text: var(--linear-text, #f2f3f7);
+  --employee-modal-muted: var(--linear-muted, #a3a6b3);
+  --employee-modal-faint: var(--linear-dim, #70737f);
+  --employee-modal-accent: var(--accent-color, #b91c1c);
+  width: min(680px, calc(100vw - 32px));
+  max-height: min(88dvh, 800px);
+  color: var(--employee-modal-text);
+  background: var(--employee-modal-panel);
+}
+
+.employee-modal.message-template-form-modal,
+.employee-modal.send-template-modal {
+  --template-modal-panel: var(--linear-panel, #121317);
+  --template-modal-field: var(--linear-panel-soft, #151b23);
+  --template-modal-border: var(--linear-border, #1e2532);
+  --template-modal-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --template-modal-text: var(--linear-text, #f2f3f7);
+  --template-modal-muted: var(--linear-muted, #a3a6b3);
+  --template-modal-faint: var(--linear-dim, #70737f);
+  --template-modal-accent: var(--accent-color, #b91c1c);
+  color: var(--template-modal-text);
+  background: var(--template-modal-panel);
+}
+
+.employee-modal.message-template-form-modal {
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(88dvh, 760px);
+}
+
 .employee-modal.calendar-entry-modal {
-  width: min(700px, calc(100vw - 32px));
+  width: min(760px, calc(100vw - 32px));
   max-height: min(92dvh, 920px);
+}
+
+@media (min-width: 769px) {
+  .employee-modal.calendar-entry-modal {
+    width: min(780px, calc(100vw - 48px));
+    max-height: calc(100dvh - 32px);
+  }
 }
 
 .client-details-modal {
@@ -534,8 +584,478 @@
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
-  scrollbar-color: color-mix(in srgb, var(--accent-color) 42%, transparent) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
   scrollbar-width: thin;
+}
+
+.employee-modal.service-form-modal .catalog-form {
+  grid-template-columns: 1fr;
+  grid-auto-flow: row;
+  align-content: start;
+  align-items: start;
+  gap: 12px;
+  padding: 16px 20px 20px;
+  background: transparent;
+}
+
+.employee-modal.package-form-modal .catalog-form {
+  grid-template-columns: 1fr;
+  align-content: start;
+  align-items: start;
+  gap: 12px;
+  padding: 16px 20px 20px;
+  color: var(--package-modal-text);
+  background: transparent;
+}
+
+.employee-modal.package-form-modal .form-split {
+  gap: 10px;
+}
+
+.employee-modal.package-form-modal .catalog-form label {
+  color: var(--package-modal-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.employee-modal.package-form-modal .catalog-form :is(input, select, textarea) {
+  min-height: 38px;
+  border: 1px solid var(--package-modal-border);
+  border-radius: 10px;
+  color: var(--package-modal-text);
+  background: var(--package-modal-field);
+  box-shadow: none;
+}
+
+.employee-modal.package-form-modal .catalog-form textarea {
+  min-height: 78px;
+}
+
+.employee-modal.package-form-modal .field-hint {
+  margin-top: 0;
+  color: var(--package-modal-faint);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.employee-modal.package-form-modal .package-form-submit {
+  grid-column: 1 / -1;
+  justify-self: end;
+  min-height: 38px;
+  margin-top: 2px;
+  border-color: var(--button-primary-border, rgba(185, 28, 28, 0.72));
+  color: var(--button-primary-text, #ffffff);
+  background: var(--package-modal-accent);
+  box-shadow: none;
+}
+
+.employee-modal.employee-form-modal .employee-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  align-items: start;
+  gap: 12px;
+  padding: 16px 20px 20px;
+  color: var(--employee-modal-text);
+  background: transparent;
+}
+
+.employee-modal.employee-form-modal .employee-form > label,
+.employee-modal.employee-form-modal .employee-form > .form-split,
+.employee-modal.employee-form-modal .employee-pricing-panel,
+.employee-modal.employee-form-modal .employee-form-submit {
+  min-width: 0;
+}
+
+.employee-modal.employee-form-modal .employee-form > label:nth-of-type(7),
+.employee-modal.employee-form-modal .employee-form > label:nth-of-type(8),
+.employee-modal.employee-form-modal .employee-pricing-panel,
+.employee-modal.employee-form-modal .employee-form-submit {
+  grid-column: 1 / -1;
+}
+
+.employee-modal.employee-form-modal .employee-form label {
+  color: var(--employee-modal-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.employee-modal.employee-form-modal .employee-form :is(input, select, textarea) {
+  min-height: 38px;
+  border: 1px solid var(--employee-modal-border);
+  border-radius: 10px;
+  color: var(--employee-modal-text);
+  background: var(--employee-modal-field);
+  box-shadow: none;
+}
+
+.employee-modal.employee-form-modal .employee-pricing-panel {
+  margin: 2px 0 0;
+  padding: 14px 0 0;
+  border: 0;
+  border-top: 1px solid var(--employee-modal-border);
+  border-radius: 0;
+  color: var(--employee-modal-text);
+  background: transparent;
+}
+
+.employee-modal.employee-form-modal .employee-form-submit {
+  justify-self: end;
+  min-height: 38px;
+  margin-top: 2px;
+  border-color: var(--button-primary-border, rgba(185, 28, 28, 0.72));
+  color: var(--button-primary-text, #ffffff);
+  background: var(--employee-modal-accent);
+  box-shadow: none;
+}
+
+.employee-modal.service-form-modal .catalog-form > label {
+  min-width: 0;
+}
+
+.employee-modal.service-form-modal .catalog-form label {
+  color: var(--linear-muted, #a7afbd);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.employee-modal.service-form-modal .catalog-form input:not([type="checkbox"]):not([type="color"]) {
+  min-height: 38px;
+  border-radius: 10px;
+}
+
+.employee-modal.service-form-modal .service-color-field {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.employee-modal.service-form-modal .service-color-field .color-input {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.employee-modal.service-form-modal .color-input {
+  width: 64px;
+  min-width: 64px;
+  height: 32px;
+  min-height: 32px;
+  padding: 3px;
+  border: 1px solid var(--linear-border, #1e2532);
+  border-radius: 10px;
+  background: var(--linear-panel-soft, #151b23);
+  cursor: pointer;
+}
+
+.employee-modal.service-form-modal .color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.employee-modal.service-form-modal .color-input::-webkit-color-swatch {
+  border: 0;
+  border-radius: 7px;
+}
+
+.employee-modal.service-form-modal .color-input::-moz-color-swatch {
+  border: 0;
+  border-radius: 7px;
+}
+
+.employee-modal.service-form-modal .catalog-form > label:nth-of-type(1),
+.employee-modal.service-form-modal .catalog-form > label:nth-of-type(2),
+.employee-modal.service-form-modal .catalog-form > label:nth-of-type(3),
+.employee-modal.service-form-modal .service-price-grid {
+  grid-column: 1;
+}
+
+.employee-modal.service-form-modal .service-price-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.employee-modal.service-form-modal .service-price-grid label {
+  gap: 6px;
+}
+
+.employee-modal.service-form-modal .service-booking-buffers {
+  grid-column: 1;
+  grid-row: auto;
+  margin: 2px 0 0;
+  padding: 14px 0 0;
+  border: 0;
+  border-top: 1px solid var(--linear-border, #1e2532);
+  border-radius: 0;
+  background: transparent;
+}
+
+.employee-modal.service-form-modal .service-form-submit {
+  grid-column: 1 / -1;
+  justify-self: end;
+  min-height: 38px;
+  margin-top: 2px;
+}
+
+.employee-modal.service-form-modal .service-booking-buffers-heading h3 {
+  color: var(--linear-text, #ffffff);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.employee-modal.service-form-modal .service-buffer-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 160px);
+  align-items: end;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 0;
+}
+
+.employee-modal.service-form-modal .service-buffer-group:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.employee-modal.service-form-modal .service-buffer-toggle-row {
+  min-height: 30px;
+}
+
+.employee-modal.service-form-modal .service-buffer-toggle {
+  grid-template-columns: 18px minmax(0, 1fr);
+}
+
+.employee-modal.service-form-modal .service-buffer-toggle-input,
+.employee-modal.service-form-modal .service-buffer-toggle-box {
+  width: 18px;
+  height: 18px;
+}
+
+.employee-modal.service-form-modal .service-buffer-toggle-box {
+  border-color: var(--linear-border, #1e2532);
+  background: var(--linear-panel, #11161d);
+}
+
+.employee-modal.service-form-modal .service-buffer-toggle-label {
+  color: var(--linear-text, #ffffff);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.employee-modal.service-form-modal .service-buffer-field {
+  gap: 6px;
+}
+
+@media (min-width: 769px) {
+  .employee-modal.calendar-entry-modal .modal-header {
+    padding: 16px 20px 12px;
+  }
+
+  .employee-modal.calendar-entry-modal .modal-header h2 {
+    font-size: 18px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "client"
+      "time"
+      "payment"
+      "extra"
+      "note"
+      "actions";
+    align-items: start;
+    gap: 12px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 16px 20px 18px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form:has(.calendar-kind-switch) {
+    grid-template-areas:
+      "switch"
+      "client"
+      "time"
+      "payment"
+      "extra"
+      "note"
+      "actions";
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form:not(:has(.calendar-payment-section)) {
+    grid-template-areas:
+      "switch"
+      "time"
+      "note"
+      "actions";
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-kind-switch {
+    grid-area: switch;
+    min-height: 36px;
+    padding: 3px;
+    border-radius: 12px;
+    background: #151b23;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-kind-switch button {
+    border-radius: 9px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-kind-switch button.is-active {
+    color: #fff;
+    background: var(--accent-color, #b91c1c);
+    box-shadow: none;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-client-section {
+    grid-area: client;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-time-section {
+    grid-area: time;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-payment-section {
+    grid-area: payment;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-extra-section {
+    grid-area: extra;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-note-field,
+  .employee-modal.calendar-entry-modal .calendar-reserve-field {
+    grid-area: note;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-form-actions {
+    grid-area: actions;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form > input[type="hidden"] {
+    display: none;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form fieldset {
+    gap: 12px;
+    padding: 14px 16px 16px;
+    border-radius: 16px;
+    background: #151b23;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form legend {
+    padding: 0 6px;
+    color: #8f98a5;
+    background: #151b23;
+    font-size: 10px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form label {
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form :is(input, select, textarea) {
+    min-height: 38px;
+    padding: 0 11px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form textarea {
+    min-height: 66px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form .grid {
+    gap: 10px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-time-grid,
+  .employee-modal.calendar-entry-modal .calendar-extra-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-payment-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-service-field {
+    grid-column: span 2;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-payment-method-field,
+  .employee-modal.calendar-entry-modal .calendar-commission-field {
+    grid-column: span 2;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-package-field,
+  .employee-modal.calendar-entry-modal .calendar-certificate-field {
+    grid-column: 1 / -1;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form article {
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form article span,
+  .employee-modal.calendar-entry-modal .calendar-entry-form article small {
+    font-size: 11px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form div:has(> h4 + table) {
+    margin-top: 8px;
+    padding: 12px 14px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form tr {
+    height: 28px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form h4 {
+    font-size: 13px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-form-actions {
+    margin-top: 0;
+    padding-top: 12px;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-entry-form .submit-button,
+  .employee-modal.calendar-entry-modal .calendar-entry-form button[type="submit"],
+  .employee-modal.calendar-entry-modal .calendar-submit-button {
+    min-height: 38px;
+    padding: 0 18px;
+    color: #fff;
+    background: var(--accent-color, #b91c1c);
+    border: 1px solid var(--button-primary-border, rgba(185, 28, 28, 0.72));
+    border-radius: 12px;
+    box-shadow: none;
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-submit-button:hover {
+    background: var(--accent-hover, #991b1b);
+    border-color: var(--button-primary-border, rgba(185, 28, 28, 0.72));
+  }
+}
+
+@media (max-width: 768px) {
+  .employee-modal.calendar-entry-modal .calendar-time-grid,
+  .employee-modal.calendar-entry-modal .calendar-payment-grid,
+  .employee-modal.calendar-entry-modal .calendar-extra-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .employee-modal.calendar-entry-modal .calendar-service-field,
+  .employee-modal.calendar-entry-modal .calendar-payment-method-field,
+  .employee-modal.calendar-entry-modal .calendar-commission-field,
+  .employee-modal.calendar-entry-modal .calendar-package-field,
+  .employee-modal.calendar-entry-modal .calendar-certificate-field {
+    grid-column: 1 / -1;
+  }
 }
 
 .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form {
@@ -650,6 +1170,68 @@
   margin-top: 14px;
 }
 
+.employee-modal.message-template-form-modal .message-template-form-panel {
+  display: block;
+  margin: 0;
+  padding: 0;
+  color: var(--template-modal-text);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.employee-modal.message-template-form-modal .message-template-form-panel > h2 {
+  display: none;
+}
+
+.employee-modal.message-template-form-modal .message-template-form {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  color: var(--template-modal-text);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.employee-modal.message-template-form-modal .message-template-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.employee-modal.message-template-form-modal .message-template-form label {
+  gap: 7px;
+  color: var(--template-modal-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.employee-modal.message-template-form-modal .message-template-form :is(input, select, textarea) {
+  min-height: 38px;
+  color: var(--template-modal-text);
+  background: var(--template-modal-field);
+  border: 1px solid var(--template-modal-border);
+  border-radius: 10px;
+}
+
+.employee-modal.message-template-form-modal .message-template-form textarea {
+  min-height: 128px;
+  resize: vertical;
+}
+
+.employee-modal.message-template-form-modal .message-template-hint {
+  color: var(--template-modal-faint);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.employee-modal.message-template-form-modal .message-template-form-submit {
+  justify-self: end;
+  min-height: 40px;
+  margin-top: 0;
+  border-radius: 12px;
+}
+
 @media (max-width: 768px) {
   .modal-backdrop {
     align-items: flex-end;
@@ -660,6 +1242,10 @@
     width: 100%;
     max-height: min(94dvh, 100dvh);
     border-radius: 16px 16px 0 0;
+  }
+
+  .employee-modal.message-template-form-modal .message-template-form-grid {
+    grid-template-columns: 1fr;
   }
 
   .employee-modal.calendar-entry-modal {
@@ -694,6 +1280,24 @@
   .employee-modal :is(.catalog-form, .modal-form) .form-split,
   .client-form-modal .form-split {
     grid-template-columns: 1fr;
+  }
+
+  .employee-modal.service-form-modal .catalog-form {
+    grid-template-columns: 1fr;
+  }
+
+  .employee-modal.service-form-modal .catalog-form > label:nth-of-type(1),
+  .employee-modal.service-form-modal .catalog-form > label:nth-of-type(2),
+  .employee-modal.service-form-modal .catalog-form > label:nth-of-type(3),
+  .employee-modal.service-form-modal .service-price-grid,
+  .employee-modal.service-form-modal .service-booking-buffers,
+  .employee-modal.service-form-modal .service-form-submit {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .employee-modal.service-form-modal .service-price-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .employee-modal:not(.calendar-entry-modal):not(.client-details-modal) .employee-form {
@@ -753,9 +1357,7 @@
   padding: var(--ds-space-4);
   border: 1px solid color-mix(in srgb, var(--accent-color) 22%, var(--linear-border, rgba(255, 255, 255, 0.1)));
   border-radius: var(--ds-radius-lg);
-  background:
-    radial-gradient(circle at 100% 0%, rgba(210, 173, 125, 0.12), transparent 42%),
-    var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+  background: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
 }
 
 .payroll-hero-main {
@@ -837,9 +1439,7 @@
 
 .daily-payroll-summary-grid .day-close-summary-card:nth-child(2) {
   border-color: color-mix(in srgb, var(--accent-color) 28%, var(--linear-border, rgba(255, 255, 255, 0.1)));
-  background:
-    radial-gradient(circle at 100% 0%, rgba(210, 173, 125, 0.1), transparent 48%),
-    var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+  background: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
 }
 
 .daily-payroll-summary-grid .day-close-summary-card:nth-child(2) strong {
@@ -1097,7 +1697,7 @@
   .content.settings-content.home-content,
   .content.today-content,
   .content.today-content.home-content {
-    padding: 0 !important;
+    padding: 0;
   }
 
   .page-header-unified-top {

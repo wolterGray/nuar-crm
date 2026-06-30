@@ -99,7 +99,7 @@ function ServiceForm({service, onSubmit}) {
           Категория
           <input name="category" defaultValue={service?.category ?? "Массаж"} />
         </label>
-        <label>
+        <label className="service-color-field">
           Цвет в календаре
           <input
             className="color-input"

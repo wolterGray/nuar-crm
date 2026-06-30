@@ -6,11 +6,11 @@ import {
   Phone,
   Trash2,
 } from "lucide-react";
-import {formatMoney} from "../utils/formatters.jsx";
-import {getVisitDebt, getVisitTransactionTotal} from "../utils/visits.jsx";
-import {useBreakpoint} from "../hooks/useBreakpoint.js";
-import {useSwipeReveal} from "../hooks/useSwipeReveal.js";
-import {RowActionsMenu} from "./RowActionMenuPortal.jsx";
+import { formatMoney } from "../utils/formatters.jsx";
+import { getVisitDebt, getVisitTransactionTotal } from "../utils/visits.jsx";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
+import { useSwipeReveal } from "../hooks/useSwipeReveal.js";
+import { RowActionsMenu } from "./RowActionMenuPortal.jsx";
 
 const statusLabels = {
   scheduled: "Запланирован",
@@ -20,45 +20,41 @@ const statusLabels = {
   cancelled: "Отменён",
 };
 
-const badgeStyles = {
-  statusScheduled: {color: "#9fc4ff", background: "rgba(77, 141, 255, 0.13)"},
-  statusCompleted: {color: "#9fd8b8", background: "rgba(34, 197, 94, 0.12)"},
-  statusDanger: {color: "#f3a1a1", background: "rgba(239, 68, 68, 0.12)"},
-  cash: {color: "#9fd8b8", background: "rgba(34, 197, 94, 0.11)"},
-  card: {color: "#9fc4ff", background: "rgba(77, 141, 255, 0.12)"},
-  package: {color: "#d6c2ff", background: "rgba(167, 139, 250, 0.12)"},
-  certificate: {color: "#f0d48f", background: "rgba(251, 191, 36, 0.12)"},
-  crypto: {color: "#91d5e8", background: "rgba(20, 184, 166, 0.12)"},
-  barter: {color: "#e5b7a2", background: "rgba(251, 146, 60, 0.12)"},
-  debt: {color: "#f3a1a1", background: "rgba(239, 68, 68, 0.12)"},
-  unknown: {color: "#f0d48f", background: "rgba(251, 191, 36, 0.12)"},
-};
-
-const toBadgeStyle = ({color, background}) => ({
-  "--visit-badge-bg": background,
-  "--visit-badge-color": color,
-});
-
-const getPaymentBadge = (payment) => {
-  const normalizedPayment = String(payment || "Не указано").toLowerCase();
-
-  if (normalizedPayment.includes("пакет")) return ["visit-mobile-card-payment-package", badgeStyles.package];
-  if (normalizedPayment.includes("сертификат")) return ["visit-mobile-card-payment-certificate", badgeStyles.certificate];
-  if (normalizedPayment.includes("карт") || normalizedPayment.includes("blik") || normalizedPayment.includes("mono")) {
-    return ["visit-mobile-card-payment-card", badgeStyles.card];
+// Map payment type to modern Tailwind classes
+const getPaymentBadgeStyles = (payment, debt) => {
+  if (debt > 0) {
+    return "text-red-400 bg-red-500/10 border-red-500/20";
   }
-  if (normalizedPayment.includes("налич")) return ["visit-mobile-card-payment-cash", badgeStyles.cash];
-  if (normalizedPayment.includes("крипт")) return ["visit-mobile-card-payment-crypto", badgeStyles.crypto];
-  if (normalizedPayment.includes("бартер")) return ["visit-mobile-card-payment-barter", badgeStyles.barter];
-
-  return ["visit-mobile-card-payment-unknown", badgeStyles.unknown];
+  const norm = String(payment || "").toLowerCase();
+  if (norm.includes("пакет")) {
+    return "text-purple-400 bg-purple-500/10 border-purple-500/20";
+  }
+  if (norm.includes("сертификат")) {
+    return "text-amber-400 bg-amber-500/10 border-amber-500/20";
+  }
+  if (norm.includes("карт") || norm.includes("blik") || norm.includes("mono")) {
+    return "text-blue-400 bg-blue-500/10 border-blue-500/20";
+  }
+  if (norm.includes("налич")) {
+    return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+  }
+  if (norm.includes("крипт")) {
+    return "text-teal-400 bg-teal-500/10 border-teal-500/20";
+  }
+  if (norm.includes("бартер")) {
+    return "text-orange-400 bg-orange-500/10 border-orange-500/20";
+  }
+  return "text-amber-400 bg-amber-500/10 border-amber-500/20";
 };
 
-const getStatusBadgeStyle = (status) => {
-  if (["cancelled", "no_show"].includes(status)) return badgeStyles.statusDanger;
-  if (status === "completed") return badgeStyles.statusCompleted;
-
-  return badgeStyles.statusScheduled;
+const getStatusBadgeStyles = (status) => {
+  if (["cancelled", "no_show"].includes(status)) {
+    return "text-red-400 bg-red-500/10 border-red-500/20";
+  }
+  if (status === "completed") {
+    return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+  }
+  return "text-blue-400 bg-blue-500/10 border-blue-500/20";
 };
 
 function VisitMobileCard({
@@ -79,26 +75,22 @@ function VisitMobileCard({
   openMenuId,
   setOpenMenuId,
 }) {
-  const {isMobile} = useBreakpoint();
-  const useCompactMenu =
-    Boolean(setOpenMenuId && onEdit && onDelete) && isMobile;
+  const { isMobile } = useBreakpoint();
+  const useCompactMenu = Boolean(setOpenMenuId && onEdit && onDelete) && isMobile;
   const debt = getVisitDebt(visit);
   const amount = formatMoney(getVisitTransactionTotal(visit));
   const statusKey = visit.status || (isPlanned ? "scheduled" : "");
   const status = statusKey ? (statusLabels[statusKey] || statusLabels.scheduled) : null;
-  const [paymentBadgeClass, paymentBadgeStyle] = getPaymentBadge(visit.payment);
-  const paymentStyle = toBadgeStyle(debt > 0 ? badgeStyles.debt : paymentBadgeStyle);
-  const statusStyle = status ? toBadgeStyle(getStatusBadgeStyle(statusKey)) : undefined;
-  const canConfirm =
-    onConfirm && visit.status !== "confirmed" && visit.status !== "cancelled";
-  const canCancel =
-    onCancel && !["cancelled", "no_show", "completed"].includes(visit.status);
+  const canConfirm = onConfirm && visit.status !== "confirmed" && visit.status !== "cancelled";
+  const canCancel = onCancel && !["cancelled", "no_show", "completed"].includes(visit.status);
+
   const hasSwipeActions =
     !useCompactMenu &&
     enableSwipe &&
     isMobile &&
     (clientPhone || onMessage || onConfirm || onCancel || onEdit || onDelete);
-  const {close, offset, swipeHandlers} = useSwipeReveal({
+
+  const { close, offset, swipeHandlers } = useSwipeReveal({
     enabled: hasSwipeActions,
   });
 
@@ -109,33 +101,33 @@ function VisitMobileCard({
 
   const cardBody = useCompactMenu ? (
     <>
-      <div className="visit-mobile-card-head">
-        <strong>{visit.client}</strong>
-        <small>{[visit.date, visit.time].filter(Boolean).join(" · ")}</small>
+      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+        <strong className="text-zinc-200 text-sm font-semibold truncate">{visit.client}</strong>
+        <small className="text-zinc-500 text-xs">{[visit.date, visit.time].filter(Boolean).join(" · ")}</small>
       </div>
       <RowActionsMenu
-        className="visit-row-actions"
+        className="ml-2 flex-none"
         itemId={visit.id}
         openMenuId={openMenuId}
         setOpenMenuId={setOpenMenuId}
         onDelete={() => onDelete(visit)}
         onEdit={() => onEdit(visit)}
       />
-      <div className="visit-mobile-card-line">
-        <span>{visit.service}</span>
-        <b className="visit-mobile-card-amount">{amount}</b>
+      <div className="flex justify-between items-center w-full mt-2 pt-2 border-t border-zinc-800/40">
+        <span className="text-zinc-300 text-xs truncate flex-1 pr-3">{visit.service}</span>
+        <b className="text-zinc-200 text-xs font-bold whitespace-nowrap">{amount}</b>
       </div>
-      <div className="visit-mobile-card-meta">
-        {showMaster && visit.master ? <span>{visit.master}</span> : null}
-        <span
-          className={debt > 0 ? "visit-mobile-card-payment visit-mobile-card-debt" : `visit-mobile-card-payment ${paymentBadgeClass}`}
-          style={paymentStyle}>
+      <div className="flex flex-wrap gap-1.5 mt-2">
+        {showMaster && visit.master ? (
+          <span className="px-2 py-0.5 rounded-md text-3xs font-medium text-zinc-400 bg-zinc-800/60 border border-zinc-800">
+            {visit.master}
+          </span>
+        ) : null}
+        <span className={`px-2 py-0.5 border rounded-md text-3xs font-medium ${getPaymentBadgeStyles(visit.payment, debt)}`}>
           {debt > 0 ? `Долг ${formatMoney(debt)}` : visit.payment || "Не указано"}
         </span>
         {showStatus && status ? (
-          <span
-            className={`visit-mobile-card-status visit-mobile-card-status-${statusKey || "scheduled"}`}
-            style={statusStyle}>
+          <span className={`px-2 py-0.5 border rounded-md text-3xs font-medium ${getStatusBadgeStyles(statusKey)}`}>
             {status}
           </span>
         ) : null}
@@ -143,26 +135,24 @@ function VisitMobileCard({
     </>
   ) : (
     <>
-      <div className="visit-mobile-card-top">
-        <div className="visit-mobile-card-time-block">
-          <strong className="visit-mobile-card-time">{visit.time || visit.date}</strong>
-          <span className="visit-mobile-card-client">{visit.client}</span>
+      <div className="flex justify-between items-start w-full gap-4">
+        <div className="flex flex-col min-w-0">
+          <strong className="text-indigo-400 text-xs font-semibold">{visit.time || visit.date}</strong>
+          <span className="text-zinc-200 text-sm font-bold truncate mt-0.5">{visit.client}</span>
         </div>
-        <b className="visit-mobile-card-amount">{amount}</b>
+        <b className="text-zinc-200 text-sm font-bold whitespace-nowrap">{amount}</b>
       </div>
-      <div className="visit-mobile-card-meta">
-        <span>{visit.service}</span>
-        {showMaster && visit.master ? <span>{visit.master}</span> : null}
+      <div className="flex flex-wrap gap-1.5 mt-2 items-center">
+        <span className="text-zinc-400 text-xs truncate max-w-[150px]">{visit.service}</span>
+        {showMaster && visit.master ? (
+          <span className="text-zinc-500 text-xs">· {visit.master}</span>
+        ) : null}
         {showStatus && status ? (
-          <span
-            className={`visit-mobile-card-status visit-mobile-card-status-${statusKey || "scheduled"}`}
-            style={statusStyle}>
+          <span className={`px-2 py-0.5 border rounded-md text-3xs font-medium ${getStatusBadgeStyles(statusKey)}`}>
             {status}
           </span>
         ) : null}
-        <span
-          className={debt > 0 ? "visit-mobile-card-payment visit-mobile-card-debt" : `visit-mobile-card-payment ${paymentBadgeClass}`}
-          style={paymentStyle}>
+        <span className={`px-2 py-0.5 border rounded-md text-3xs font-medium ${getPaymentBadgeStyles(visit.payment, debt)}`}>
           {debt > 0 ? `Долг ${formatMoney(debt)}` : visit.payment || "Не указано"}
         </span>
       </div>
@@ -171,68 +161,81 @@ function VisitMobileCard({
 
   if (hasSwipeActions) {
     return (
-      <div className={`visit-mobile-card-swipe ${className}`.trim()}>
-        <div aria-hidden="true" className="visit-mobile-card-swipe-behind">
+      <div className={`relative overflow-hidden w-full rounded-xl bg-zinc-950/30 ${className}`}>
+        <div aria-hidden="true" className="absolute inset-0 flex items-center justify-end px-4 gap-2 bg-zinc-900/40">
           {clientPhone ? (
             <a
               aria-label="Позвонить"
-              className="visit-mobile-swipe-action visit-mobile-swipe-call"
+              className="grid w-9 h-9 place-items-center rounded-lg text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white transition-colors"
               href={`tel:${clientPhone}`}
-              onClick={(event) => event.stopPropagation()}>
+              onClick={(event) => event.stopPropagation()}
+            >
               <Phone size={18} />
             </a>
           ) : null}
           {onMessage ? (
             <button
               aria-label="Написать"
-              className="visit-mobile-swipe-action visit-mobile-swipe-message"
+              className="grid w-9 h-9 place-items-center rounded-lg text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white transition-colors cursor-pointer"
               type="button"
-              onClick={() => onMessage(visit)}>
+              onClick={() => onMessage(visit)}
+            >
               <MessageSquareText size={18} />
             </button>
           ) : null}
           {canConfirm ? (
             <button
               aria-label="Подтвердить"
-              className="visit-mobile-swipe-action visit-mobile-swipe-confirm"
+              className="grid w-9 h-9 place-items-center rounded-lg text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-550 hover:text-white transition-colors cursor-pointer"
               type="button"
-              onClick={() => onConfirm(visit)}>
+              onClick={() => onConfirm(visit)}
+            >
               <Check size={18} />
             </button>
           ) : null}
           {canCancel ? (
             <button
               aria-label="Отменить"
-              className="visit-mobile-swipe-action visit-mobile-swipe-cancel"
+              className="grid w-9 h-9 place-items-center rounded-lg text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-550 hover:text-white transition-colors cursor-pointer"
               type="button"
-              onClick={() => onCancel(visit)}>
+              onClick={() => onCancel(visit)}
+            >
               <Ban size={18} />
             </button>
           ) : null}
           {onEdit ? (
             <button
               aria-label="Изменить"
-              className="visit-mobile-swipe-action visit-mobile-swipe-edit"
+              className="grid w-9 h-9 place-items-center rounded-lg text-zinc-300 bg-zinc-855 hover:bg-zinc-800 transition-colors cursor-pointer"
               type="button"
-              onClick={() => onEdit(visit)}>
+              onClick={() => onEdit(visit)}
+            >
               <Pencil size={18} />
             </button>
           ) : null}
           {onDelete ? (
             <button
               aria-label="Удалить"
-              className="visit-mobile-swipe-action visit-mobile-swipe-delete"
+              className="grid w-9 h-9 place-items-center rounded-lg text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
               type="button"
-              onClick={() => onDelete(visit)}>
+              onClick={() => onDelete(visit)}
+            >
               <Trash2 size={18} />
             </button>
           ) : null}
         </div>
         <article
-          className={`visit-mobile-card ${isPlanned ? "visit-mobile-card-planned" : ""} ${isNext ? "visit-mobile-card-next" : ""} visit-mobile-card-swipe-surface`}
-          style={{transform: `translate3d(${offset}px, 0, 0)`}}
+          className={`relative p-4 border rounded-xl transition-transform ${
+            isNext
+              ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-zinc-900/90 shadow-md"
+              : isPlanned
+              ? "border-zinc-800 bg-zinc-900/60"
+              : "border-zinc-850 bg-zinc-900/30"
+          }`}
+          style={{ transform: `translate3d(${offset}px, 0, 0)` }}
           onClick={handleOpen}
-          {...swipeHandlers}>
+          {...swipeHandlers}
+        >
           {cardBody}
         </article>
       </div>
@@ -241,63 +244,80 @@ function VisitMobileCard({
 
   return (
     <article
-      className={`visit-mobile-card ${useCompactMenu ? "visit-mobile-card-compact" : ""} ${isPlanned ? "visit-mobile-card-planned" : ""} ${isNext ? "visit-mobile-card-next" : ""} ${className}`.trim()}
-      onClick={handleOpen}>
+      className={`p-4 border rounded-xl transition-all cursor-pointer ${
+        useCompactMenu ? "flex flex-col" : "flex flex-col gap-1"
+      } ${
+        isNext
+          ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-zinc-900/90 shadow-md"
+          : isPlanned
+          ? "border-zinc-800 bg-zinc-900/60 shadow-sm"
+          : "border-zinc-850 bg-zinc-900/30"
+      } ${className}`.trim()}
+      onClick={handleOpen}
+    >
       {cardBody}
-      {!useCompactMenu &&
-      (onMessage || onConfirm || onCancel || onEdit || onDelete || clientPhone) ? (
-        <div className="visit-mobile-card-actions" onClick={(event) => event.stopPropagation()}>
+      {!useCompactMenu && (onMessage || onConfirm || onCancel || onEdit || onDelete || clientPhone) ? (
+        <div
+          className="flex items-center gap-2 mt-3 pt-3 border-t border-zinc-800/40 w-full justify-end"
+          onClick={(event) => event.stopPropagation()}
+        >
           {clientPhone ? (
             <a
               aria-label="Позвонить"
-              className="client-quick-action visit-mobile-action-icon"
+              className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
               href={`tel:${clientPhone}`}
-              onClick={(event) => event.stopPropagation()}>
-              <Phone size={16} />
+              onClick={(event) => event.stopPropagation()}
+            >
+              <Phone size={14} />
             </a>
           ) : null}
           {onMessage ? (
             <button
               aria-label="Написать"
-              className="client-quick-action visit-mobile-action-icon"
+              className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
               type="button"
-              onClick={() => onMessage(visit)}>
-              <MessageSquareText size={16} />
+              onClick={() => onMessage(visit)}
+            >
+              <MessageSquareText size={14} />
             </button>
           ) : null}
           {canConfirm ? (
             <button
               aria-label="Подтвердить"
-              className="client-quick-action visit-mobile-action-icon visit-mobile-action-confirm"
+              className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-emerald-400 hover:bg-zinc-800 cursor-pointer"
               type="button"
-              onClick={() => onConfirm(visit)}>
-              <Check size={16} />
+              onClick={() => onConfirm(visit)}
+            >
+              <Check size={14} />
             </button>
           ) : null}
           {canCancel ? (
             <button
               aria-label="Отменить"
-              className="client-quick-action visit-mobile-action-icon visit-mobile-action-cancel"
+              className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-zinc-800 cursor-pointer"
               type="button"
-              onClick={() => onCancel(visit)}>
-              <Ban size={16} />
+              onClick={() => onCancel(visit)}
+            >
+              <Ban size={14} />
             </button>
           ) : null}
           {onEdit ? (
             <button
-              className="client-quick-action"
+              className="inline-flex items-center gap-1 min-h-[32px] px-3.5 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-300 hover:text-zinc-150 hover:bg-zinc-800 transition-colors cursor-pointer"
               type="button"
-              onClick={() => onEdit(visit)}>
-              <Pencil size={14} />
+              onClick={() => onEdit(visit)}
+            >
+              <Pencil size={12} />
               Изменить
             </button>
           ) : null}
           {onDelete ? (
             <button
-              className="client-quick-action visit-mobile-delete"
+              className="inline-flex items-center gap-1 min-h-[32px] px-3.5 border border-red-500/20 rounded-lg text-xs font-semibold text-red-400 hover:text-white hover:bg-red-550 transition-colors cursor-pointer"
               type="button"
-              onClick={() => onDelete(visit)}>
-              <Trash2 size={14} />
+              onClick={() => onDelete(visit)}
+            >
+              <Trash2 size={12} />
               Удалить
             </button>
           ) : null}

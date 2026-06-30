@@ -117,6 +117,22 @@ const statusLabels = {
   cancelled: "Отменён",
 };
 
+const employeeAccentPalette = ["#b91c1c", "#7aa2ff", "#88e071", "#ff5f5f", "#a78bfa", "#38bdf8"];
+const monthNames = [
+  "Январь",
+  "Февраль",
+  "Март",
+  "Апрель",
+  "Май",
+  "Июнь",
+  "Июль",
+  "Август",
+  "Сентябрь",
+  "Октябрь",
+  "Ноябрь",
+  "Декабрь",
+];
+
 const layoutOverlappingEntries = (entries) => {
   const sortedEntries = [...entries].sort(
     (first, second) => toMinutes(first.time) - toMinutes(second.time),
@@ -223,6 +239,9 @@ function CalendarPage({
   const [selectedDate, setSelectedDate] = useState(
     () => getTodayInput(),
   );
+  const [calendarPanelMonth, setCalendarPanelMonth] = useState(
+    () => getTodayInput().slice(0, 7),
+  );
   const [now, setNow] = useState(new Date());
   const [mobileCalendarView, setMobileCalendarView] = useState("grid");
   const [remindersVisible, setRemindersVisible] = useState(
@@ -230,10 +249,11 @@ function CalendarPage({
   );
   const [reminderFilter, setReminderFilter] = useState("active");
   const [openEntryMenuId, setOpenEntryMenuId] = useState(null);
+  const [openReminderMenuId, setOpenReminderMenuId] = useState(null);
+  const [openCalendarPickerMenu, setOpenCalendarPickerMenu] = useState(null);
   const [viewedClientEntry, setViewedClientEntry] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
   const [pendingSlot, setPendingSlot] = useState(null);
-  const dateInputRef = useRef(null);
   const schedulePanelRef = useRef(null);
   const weekCarouselRef = useRef(null);
   const longPressRef = useRef(null);
@@ -314,6 +334,43 @@ function CalendarPage({
   const visibleReminderEntries = (
     reminderFilter === "active" ? activeVisitEntries : visitEntries
   ).sort((first, second) => String(first.time).localeCompare(String(second.time)));
+  const employeeAccentByName = useMemo(
+    () =>
+      new Map(
+        employees.map((employee, index) => [
+          employee.name,
+          employee.color || employeeAccentPalette[index % employeeAccentPalette.length],
+        ]),
+      ),
+    [employees],
+  );
+  const calendarPanelDate = useMemo(
+    () => new Date(`${calendarPanelMonth}-01T12:00:00`),
+    [calendarPanelMonth],
+  );
+  const calendarPanelYear = calendarPanelDate.getFullYear();
+  const calendarPanelMonthIndex = calendarPanelDate.getMonth();
+  const calendarPanelYears = useMemo(
+    () => Array.from({length: 11}, (_, index) => calendarPanelYear - 5 + index),
+    [calendarPanelYear],
+  );
+  const calendarPanelDays = useMemo(() => {
+    const year = calendarPanelDate.getFullYear();
+    const month = calendarPanelDate.getMonth();
+    const firstDay = new Date(year, month, 1, 12);
+    const startOffset = (firstDay.getDay() + 6) % 7;
+    const startDate = new Date(year, month, 1 - startOffset, 12);
+
+    return Array.from({length: 42}, (_, index) => {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + index);
+      return {
+        currentMonth: date.getMonth() === month,
+        day: date.getDate(),
+        value: date.toISOString().slice(0, 10),
+      };
+    });
+  }, [calendarPanelDate]);
   const isToday = selectedDate === getTodayInput();
   const carouselDates = useMemo(
     () =>
@@ -324,6 +381,16 @@ function CalendarPage({
   );
   const selectCalendarDate = (nextDate) => {
     setSelectedDate(nextDate);
+    setCalendarPanelMonth(nextDate.slice(0, 7));
+  };
+  const shiftCalendarPanelMonth = (offset) => {
+    const nextDate = new Date(calendarPanelDate);
+    nextDate.setMonth(nextDate.getMonth() + offset);
+    setCalendarPanelMonth(nextDate.toISOString().slice(0, 7));
+  };
+  const setCalendarPanelPart = ({month = calendarPanelMonthIndex, year = calendarPanelYear}) => {
+    setCalendarPanelMonth(`${year}-${String(month + 1).padStart(2, "0")}`);
+    setOpenCalendarPickerMenu(null);
   };
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const currentTop =
@@ -336,6 +403,31 @@ function CalendarPage({
     const timer = window.setInterval(() => setNow(new Date()), 60000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!openCalendarPickerMenu && !openReminderMenuId && !openEntryMenuId) {
+      return undefined;
+    }
+
+    const closeOpenMenus = (event) => {
+      const target = event.target;
+
+      if (!target.closest(".nuar-calendar-picker-menu")) {
+        setOpenCalendarPickerMenu(null);
+      }
+
+      if (!target.closest(".nuar-calendar-reminder-menu")) {
+        setOpenReminderMenuId(null);
+      }
+
+      if (!target.closest(".nuar-calendar-entry-menu")) {
+        setOpenEntryMenuId(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOpenMenus);
+    return () => document.removeEventListener("pointerdown", closeOpenMenus);
+  }, [openCalendarPickerMenu, openEntryMenuId, openReminderMenuId]);
 
   const showDayList = isMobile && mobileCalendarView === "list";
   const showScheduleGrid = !isMobile || mobileCalendarView === "grid";
@@ -445,120 +537,133 @@ function CalendarPage({
     }
   };
 
-  return (
-    <section className={`calendar-page ${isMobile ? "calendar-page-mobile" : "calendar-page-desktop"}`}>
+return (
+    <section className="nuar-calendar flex flex-col flex-1 gap-3 min-h-0 text-zinc-200">
       <PageHeader
         actions={
-          <div className="calendar-toolbar-actions">
-            <div className="calendar-date-control">
+          <div className="nuar-calendar-actions flex items-center gap-2">
+            <div className="nuar-calendar-date-nav flex items-center gap-1.5">
               <button
                 aria-label="Предыдущий день"
-                className="calendar-date-arrow"
+                className="grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
                 type="button"
-                onClick={() => selectCalendarDate(shiftDate(selectedDate, -1))}>
+                onClick={() => selectCalendarDate(shiftDate(selectedDate, -1))}
+              >
                 <ChevronLeft size={17} />
               </button>
-              <label
-                className="calendar-date-field"
-                onClick={(event) => {
-                  if (event.target === dateInputRef.current) return;
-                  dateInputRef.current?.showPicker?.();
-                  dateInputRef.current?.focus();
-                }}>
-                <span>{toDisplayDate(selectedDate)}</span>
-                <input
-                  aria-label="Выбрать дату"
-                  ref={dateInputRef}
-                  type="date"
-                  value={selectedDate}
-                  onChange={(event) => {
-                    if (isValidInputDate(event.target.value)) {
-                      selectCalendarDate(event.target.value);
-                    }
-                  }}
-                />
-              </label>
+              <span className="nuar-calendar-date-display">
+                {toDisplayDate(selectedDate)}
+              </span>
               <button
                 aria-label="Следующий день"
-                className="calendar-date-arrow"
+                className="grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
                 type="button"
-                onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}>
+                onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}
+              >
                 <ChevronRight size={17} />
               </button>
             </div>
             {!isToday && !isMobile && (
               <button
-                className="secondary-button calendar-today-button"
+                className="inline-flex items-center min-h-[38px] px-4 py-1.5 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-350 bg-zinc-900/50 hover:bg-zinc-800 cursor-pointer"
                 type="button"
-                onClick={() => selectCalendarDate(getTodayInput())}>
+                onClick={() => selectCalendarDate(getTodayInput())}
+              >
                 Сегодня
               </button>
             )}
             {!remindersVisible && !showDayList && (
               <button
                 aria-label="Открыть ленту дня"
-                className="calendar-feed-toggle calendar-feed-toggle-open"
+                className="grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 bg-zinc-900/50 hover:bg-zinc-800 cursor-pointer"
                 title="Открыть ленту дня"
                 type="button"
-                onClick={() => setRemindersVisible(true)}>
+                onClick={() => setRemindersVisible(true)}
+              >
                 <ChevronLeft size={17} />
               </button>
             )}
             {isMobile && (
               <button
                 aria-label={showDayList ? "Показать сетку" : "Показать список"}
-                className={`calendar-view-toggle ${overlayOpen ? "mobile-calendar-action-hidden" : ""}`}
+                className={`grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 bg-zinc-900/50 hover:bg-zinc-800 cursor-pointer ${
+                  overlayOpen ? "hidden" : ""
+                }`}
                 title={showDayList ? "Сетка" : "Список"}
                 type="button"
                 onClick={() =>
                   setMobileCalendarView((current) => (current === "list" ? "grid" : "list"))
-                }>
+                }
+              >
                 {showDayList ? <LayoutGrid size={20} /> : <List size={20} />}
               </button>
             )}
             {!isMobile && (
               <button
                 aria-label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
-                className={`mobile-calendar-feed-button ${overlayOpen ? "mobile-calendar-action-hidden" : ""}`}
+                className={`grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 bg-zinc-900/50 hover:bg-zinc-850 cursor-pointer ${
+                  overlayOpen ? "hidden" : ""
+                }`}
                 title="Лента дня"
                 type="button"
-                onClick={() => setRemindersVisible((current) => !current)}>
-                {remindersVisible ? <X size={22} /> : <ClipboardList size={21} />}
+                onClick={() => setRemindersVisible((current) => !current)}
+              >
+                {remindersVisible ? <X size={20} /> : <ClipboardList size={18} />}
               </button>
             )}
             {!isMobile && (
               <button
-                className={`add-visit-button calendar-mobile-add-button ${overlayOpen || remindersVisible ? "mobile-calendar-action-hidden" : ""}`}
+                className={`inline-flex items-center gap-1.5 min-h-[38px] px-4 py-1.5 border border-red-800 rounded-lg text-xs font-semibold text-white bg-red-800 hover:bg-red-900 cursor-pointer transition-colors ${
+                  overlayOpen || remindersVisible ? "hidden" : ""
+                }`}
                 type="button"
-                onClick={() => onAdd({date: selectedDate})}>
-                <Plus size={17} />
+                onClick={() => onAdd({date: selectedDate})}
+              >
+                <Plus size={16} />
                 Добавить
               </button>
             )}
           </div>
         }
-        className="calendar-toolbar calendar-page-header"
+        className="nuar-calendar-header border-b border-zinc-800/60 pb-2"
         description={`${visitEntries.length} визитов запланировано`}
         headerActions={null}
         title="Календарь"
       />
 
       <div
-        className="mobile-calendar-week"
+        className="hidden max-md:grid grid-flow-col auto-cols-[calc((100%-24px)/7)] h-16 shrink-0 gap-1 overflow-x-auto border-b border-zinc-805/60 bg-zinc-950/20 p-2 scroll-snap-x scrollbar-none touch-pan-x"
         aria-label="Дни недели"
-        ref={weekCarouselRef}>
+        ref={weekCarouselRef}
+      >
         {carouselDates.map((date) => {
           const today = date === getTodayInput();
           const dayIndex = (new Date(`${date}T12:00:00`).getDay() + 6) % 7;
+          const isSelected = date === selectedDate;
           return (
             <button
-              className={`${date === selectedDate ? "selected" : ""} ${today ? "today" : ""}`}
+              className={`grid grid-rows-[13px_28px] min-h-[50px] place-items-center align-content-center gap-0.5 border-0 rounded-lg text-zinc-400 bg-transparent scroll-snap-start cursor-pointer transition-colors ${
+                isSelected ? "text-red-300 font-bold" : ""
+              }`}
               data-date={date}
               key={date}
               type="button"
-              onClick={() => selectCalendarDate(date)}>
-              <span>{["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"][dayIndex]}</span>
-              <b>{Number(date.slice(-2))}</b>
+              onClick={() => selectCalendarDate(date)}
+            >
+              <span className="block text-[9px] text-zinc-500 uppercase font-semibold leading-tight">
+                {["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"][dayIndex]}
+              </span>
+              <b
+                className={`grid w-7 h-7 place-items-center rounded-full text-sm transition-all ${
+                  isSelected
+                    ? "bg-red-800 text-white font-bold"
+                    : today
+                    ? "border border-zinc-800 text-red-300 font-bold"
+                    : "text-zinc-300"
+                }`}
+              >
+                {Number(date.slice(-2))}
+              </b>
             </button>
           );
         })}
@@ -566,410 +671,622 @@ function CalendarPage({
 
       {isMobile && !isToday && (
         <button
-          className={`calendar-today-button ${overlayOpen ? "mobile-calendar-action-hidden" : ""}`}
+          className={`fixed bottom-20 right-4 z-40 px-4 py-2 border border-zinc-800 rounded-full text-xs font-semibold text-zinc-200 bg-zinc-900 shadow-lg cursor-pointer ${
+            overlayOpen ? "hidden" : ""
+          }`}
           type="button"
-          onClick={() => selectCalendarDate(getTodayInput())}>
+          onClick={() => selectCalendarDate(getTodayInput())}
+        >
           Сегодня
         </button>
       )}
 
-      <div className={`calendar-layout ${remindersVisible ? "" : "reminders-hidden"} ${showDayList ? "calendar-layout-day-list" : ""}`}>
+      <div
+        className={`nuar-calendar-layout grid gap-3 flex-1 items-stretch min-h-0 ${
+          remindersVisible ? "grid-cols-[1fr_320px]" : "grid-cols-[1fr]"
+        } ${showDayList ? "flex flex-col" : ""}`}
+      >
         {showDayList && (
-          <CalendarDayList
-            clients={clients}
-            entries={dayEntries}
-            nextVisitId={nextVisitId}
-            onAdd={() => onAdd({date: selectedDate})}
-            onDelete={onDelete}
-            onEdit={onEdit}
-            onRemind={onRemind}
-            onStatus={onStatus}
-            onViewClient={setViewedClientEntry}
-          />
+          <div className="flex-1 overflow-y-auto px-4 pb-20">
+            <CalendarDayList
+              clients={clients}
+              entries={dayEntries}
+              nextVisitId={nextVisitId}
+              onAdd={() => onAdd({date: selectedDate})}
+              onDelete={onDelete}
+              onEdit={onEdit}
+              onRemind={onRemind}
+              onStatus={onStatus}
+              onViewClient={setViewedClientEntry}
+            />
+          </div>
         )}
         {showScheduleGrid && (
-        <DndContext
-          sensors={sensors}
-          onDragCancel={() => setDragPreview(null)}
-          onDragMove={(event) => setDragPreview(getDragPosition(event))}
-          onDragEnd={(event) => {
-            const position = getDragPosition(event);
-            setDragPreview(null);
-            if (position) onMove(position.entry.id, {master: position.master, time: position.time});
-          }}>
-        <section
-          className={`panel schedule-panel ${employees.length <= 2 ? "schedule-panel-fixed" : ""}`}
-          ref={schedulePanelRef}>
-          <div
-            className="schedule-grid"
-            style={{
-              "--master-count": employees.length,
-              "--mobile-master-width": `calc((100vw - 24px) / ${Math.min(Math.max(employees.length, 1), 2)})`,
-              "--schedule-height": `${gridHeight}px`,
-              "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,
-            }}>
-            <div className="schedule-times">
-              {Array.from({length: endHour - startHour}, (_, index) => (
-                <div className="schedule-hour-label" key={index}>
-                  <strong>{String(startHour + index).padStart(2, "0")}:00</strong>
-                  {Array.from({length: 60 / slotMinutes - 1}, (_, slotIndex) => (
-                    <span key={slotIndex}>{(slotIndex + 1) * slotMinutes}</span>
-                  ))}
-                </div>
-              ))}
-              <strong className="schedule-end-hour">{String(endHour).padStart(2, "0")}:00</strong>
-            </div>
-            {employees.map((employee) => (
-              <div className="schedule-master" key={employee.id}>
-                <header>
-                  <strong>{employee.name}</strong>
-                  <span>
-                    {employee.shiftStart || settings.workdayStart || "08:00"}–
-                    {employee.shiftEnd || settings.workdayEnd || "22:00"}
-                  </span>
-                </header>
-                <DroppableScheduleColumn
-                  master={employee.name}
-                  onPointerCancel={clearSlotLongPress}
-                  onPointerDown={(event) => startSlotLongPress(event, employee.name)}
-                  onPointerMove={moveSlotLongPress}
-                  onPointerUp={clearSlotLongPress}>
-                  {(() => {
-                    const shiftStart = Math.max(
-                      visualStartMinutes,
-                      toMinutes(employee.shiftStart || settings.workdayStart),
-                    );
-                    const shiftEnd = Math.min(
-                      visualEndMinutes,
-                      toMinutes(employee.shiftEnd || settings.workdayEnd),
-                    );
-                    const topHeight =
-                      (Math.max(0, shiftStart - visualStartMinutes) / minutesInDay) * gridHeight;
-                    const bottomTop =
-                      (Math.max(0, shiftEnd - visualStartMinutes) / minutesInDay) * gridHeight;
-
-                    return (
-                      <>
-                        {topHeight > 0 && (
-                          <div className="schedule-off-hours" style={{height: topHeight, top: 0}} />
-                        )}
-                        {bottomTop < gridHeight && (
-                          <div
-                            className="schedule-off-hours"
-                            style={{height: gridHeight - bottomTop, top: bottomTop}}
-                          />
-                        )}
-                      </>
-                    );
-                  })()}
-                  {settings.calendarNowLineVisible && isToday && currentTop >= 0 && currentTop <= gridHeight && (
-                    <div className="calendar-now-line" style={{top: currentTop}}>
-                      <i />
-                      <span>{toTime(currentMinutes, startMinutes, endMinutes, slotMinutes)}</span>
+          <DndContext
+            sensors={sensors}
+            onDragCancel={() => setDragPreview(null)}
+            onDragMove={(event) => setDragPreview(getDragPosition(event))}
+            onDragEnd={(event) => {
+              const position = getDragPosition(event);
+              setDragPreview(null);
+              if (position) onMove(position.entry.id, {master: position.master, time: position.time});
+            }}
+          >
+            <section
+              className="nuar-calendar-schedule min-w-0 min-h-0 max-h-full overflow-auto p-0 overscroll-contain scrollbar-thin rounded-xl border border-zinc-800/80 bg-zinc-950/20"
+              ref={schedulePanelRef}
+            >
+              <div
+                className="nuar-calendar-grid grid min-w-[700px] select-none"
+                style={{
+                  gridTemplateColumns: `58px repeat(${employees.length}, minmax(190px, 1fr))`,
+                  width: `calc(58px + ${employees.length} * var(--mobile-master-width, 190px))`,
+                  "--master-count": employees.length,
+                  "--mobile-master-width": isMobile
+                    ? `calc((100vw - 24px) / ${Math.min(Math.max(employees.length, 1), 2)})`
+                    : "1fr",
+                  "--schedule-height": `${gridHeight}px`,
+                  "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,
+                }}
+              >
+                <div
+                  className="nuar-calendar-time-axis sticky left-0 z-10 pt-12 text-zinc-500 bg-zinc-950/95"
+                  style={{ height: `${gridHeight + 48}px` }}
+                >
+                  {Array.from({length: endHour - startHour}, (_, index) => (
+                    <div className="relative" style={{ height: `${(60 / slotMinutes) * slotHeight}px` }} key={index}>
+                      <strong className="block px-1.5 text-[10px] font-bold text-zinc-400 tracking-tight transform translateY-[-7px]">
+                        {String(startHour + index).padStart(2, "0")}:00
+                      </strong>
+                      {Array.from({length: 60 / slotMinutes - 1}, (_, slotIndex) => (
+                        <span
+                          key={slotIndex}
+                          className="absolute right-2 text-[9px] text-zinc-600 font-medium"
+                          style={{ top: `${(slotIndex + 1) * slotHeight}px` }}
+                        >
+                          {(slotIndex + 1) * slotMinutes}
+                        </span>
+                      ))}
                     </div>
-                  )}
-                  <div className="schedule-quarter-lines" aria-hidden="true">
-                    {Array.from(
-                      {length: minutesInDay / slotMinutes},
-                      (_, index) => (
-                        <i
-                          className={index % (60 / slotMinutes) === 0 ? "hour" : ""}
-                          key={index}
-                          style={{top: index * slotHeight}}
+                  ))}
+                  <strong className="block px-1.5 text-[10px] font-bold text-zinc-400 transform translateY-[-7px]">
+                    {String(endHour).padStart(2, "0")}:00
+                  </strong>
+                </div>
+                {employees.map((employee) => (
+                  <div className="nuar-calendar-master min-w-0 border-l border-zinc-800/80" key={employee.id}>
+                    <header className="nuar-calendar-master-header sticky top-0 z-12 grid h-12 align-content-center gap-0.5 px-3 bg-zinc-900 border-b border-zinc-850">
+                      <strong className="text-zinc-200 text-xs font-semibold truncate">
+                        <span
+                          className="nuar-calendar-master-dot"
+                          style={{backgroundColor: employeeAccentByName.get(employee.name)}}
+                          aria-hidden="true"
                         />
-                      ),
-                    )}
-                  </div>
-                  {layoutOverlappingEntries(
-                    dayEntries.filter((entry) => entry.master === employee.name),
-                  )
-                    .map((entry) => {
-                      const displayedEntry =
-                        dragPreview?.entry.id === entry.id
-                          ? {...entry, time: dragPreview.time}
-                          : entry;
-                      const ended = isEntryEnded(entry, selectedDate, now);
-                      const activeVisit = isEntryActive(entry, selectedDate, now);
-                      const top =
-                        ((toMinutes(entry.time) - visualStartMinutes) / minutesInDay) *
-                        gridHeight;
-                      const height = Math.max(
-                        (Number(entry.duration) / minutesInDay) * gridHeight,
-                        slotHeight,
-                      );
+                        {employee.name}
+                      </strong>
+                      <span className="text-zinc-500 text-[10px]">
+                        {employee.shiftStart || settings.workdayStart || "08:00"}–
+                        {employee.shiftEnd || settings.workdayEnd || "22:00"}
+                      </span>
+                    </header>
+                    <DroppableScheduleColumn
+                      master={employee.name}
+                      onPointerCancel={clearSlotLongPress}
+                      onPointerDown={(event) => startSlotLongPress(event, employee.name)}
+                      onPointerMove={moveSlotLongPress}
+                      onPointerUp={clearSlotLongPress}
+                    >
+                      {(() => {
+                        const shiftStart = Math.max(
+                          visualStartMinutes,
+                          toMinutes(employee.shiftStart || settings.workdayStart),
+                        );
+                        const shiftEnd = Math.min(
+                          visualEndMinutes,
+                          toMinutes(employee.shiftEnd || settings.workdayEnd),
+                        );
+                        const topHeight =
+                          (Math.max(0, shiftStart - visualStartMinutes) / minutesInDay) * gridHeight;
+                        const bottomTop =
+                          (Math.max(0, shiftEnd - visualStartMinutes) / minutesInDay) * gridHeight;
 
-                      return (
-                        <DraggableScheduleEntry
-                          className={`schedule-entry schedule-${entry.kind} schedule-status-${entry.status || "scheduled"} ${ended ? "schedule-entry-ended" : ""} ${isFocusedEntry(entry.id) ? "alert-focus-pulse" : ""}`}
-                          domId={`alert-focus-calendar-${entry.id}`}
-                          entry={entry}
-                          key={entry.id}
-                          style={{
-                            "--entry-color": entry.color,
-                            "--overlap-column": entry.overlapColumn,
-                            "--overlap-count": entry.overlapCount,
-                            height,
-                            top,
-                          }}>
-                          {entry.kind === "visit" &&
-                            entry.commissionType === "Booksy 45%" && (
-                              <span className="schedule-entry-booksy-badge" title="Booksy 45%">
-                                <Rocket size={16} strokeWidth={2.4} />
+                        return (
+                          <>
+                            {topHeight > 0 && (
+                              <div
+                                className="absolute right-0 left-0 z-1 pointer-events-none bg-zinc-900/20 border-b border-zinc-900/60"
+                                style={{height: topHeight, top: 0}}
+                              />
+                            )}
+                            {bottomTop < gridHeight && (
+                              <div
+                                className="absolute right-0 left-0 z-1 pointer-events-none bg-zinc-900/20 border-t border-zinc-900/60"
+                                style={{height: gridHeight - bottomTop, top: bottomTop}}
+                              />
+                            )}
+                          </>
+                        );
+                      })()}
+                      {settings.calendarNowLineVisible && isToday && currentTop >= 0 && currentTop <= gridHeight && (
+                        <div className="absolute right-0 left-0 z-5 h-[1px] bg-red-500 pointer-events-none" style={{top: currentTop}}>
+                          <i className="absolute top-[-4px] left-[-4px] w-2.5 h-2.5 rounded-full bg-red-500" />
+                          <span className="absolute top-[-18px] left-1 text-red-400 text-[9px] font-bold">
+                            {toTime(currentMinutes, startMinutes, endMinutes, slotMinutes)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 z-2 pointer-events-none" aria-hidden="true">
+                        {Array.from(
+                          {length: minutesInDay / slotMinutes},
+                          (_, index) => (
+                            <i
+                              className={`absolute right-0 left-0 border-t ${
+                                index % (60 / slotMinutes) === 0 ? "border-solid border-zinc-800/80" : "border-dashed border-zinc-900"
+                              }`}
+                              key={index}
+                              style={{top: index * slotHeight}}
+                            />
+                          ),
+                        )}
+                      </div>
+                      {layoutOverlappingEntries(
+                        dayEntries.filter((entry) => entry.master === employee.name),
+                      ).map((entry) => {
+                        const displayedEntry =
+                          dragPreview?.entry.id === entry.id
+                            ? {...entry, time: dragPreview.time}
+                            : entry;
+                        const ended = isEntryEnded(entry, selectedDate, now);
+                        const activeVisit = isEntryActive(entry, selectedDate, now);
+                        const top =
+                          ((toMinutes(entry.time) - visualStartMinutes) / minutesInDay) *
+                          gridHeight;
+                        const height = Math.max(
+                          (Number(entry.duration) / minutesInDay) * gridHeight,
+                          slotHeight,
+                        );
+
+                        return (
+                          <DraggableScheduleEntry
+                            className={`absolute z-3 flex flex-col items-stretch justify-start gap-1 p-2 overflow-hidden border-l-4 rounded-lg cursor-grab select-none w-[calc(100%/var(--overlap-count,1)-8px)] ${
+                              entry.kind === "task" ? "border-dashed" : "border-solid"
+                            } ${ended ? "opacity-80" : ""} ${
+                              isFocusedEntry(entry.id) ? "animate-pulse" : ""
+                            }`}
+                            domId={`alert-focus-calendar-${entry.id}`}
+                            entry={entry}
+                            key={entry.id}
+                            style={{
+                              borderLeftColor: entry.color,
+                              backgroundColor: `${entry.color}26`,
+                              left: `calc((100% / ${entry.overlapCount || 1}) * ${entry.overlapColumn || 0} + 4px)`,
+                              height,
+                              top,
+                            }}
+                          >
+                            {entry.kind === "visit" &&
+                              entry.commissionType === "Booksy 45%" && (
+                                <span className="nuar-calendar-booksy-badge absolute top-1.5 right-6 inline-flex w-4 h-4 items-center justify-center rounded-full text-red-300 bg-red-900/20 border border-red-800/40 pointer-events-none z-10">
+                                  <Rocket size={11} strokeWidth={2.4} />
+                                </span>
+                              )}
+                            <div className="flex flex-col min-w-0 h-full flex-1">
+                              <strong className="text-[10px] font-bold text-zinc-100 truncate">
+                                {entry.kind === "visit" ? entry.client : entry.title}
+                              </strong>
+                              <span className="text-[9px] text-zinc-400 mt-0.5 truncate">
+                                {displayedEntry.time}–{getEntryEndTime(displayedEntry)}
                               </span>
-                            )}
-                          <div className="schedule-entry-content">
-                            <strong>{entry.kind === "visit" ? entry.client : entry.title}</strong>
-                            <span>
-                              {displayedEntry.time}–{getEntryEndTime(displayedEntry)}
-                            </span>
-                            {entry.kind === "visit" && <small>{entry.service}</small>}
-                            {entry.kind === "visit" && (
-                              <small
-                                className={
-                                  getVisitDebt(entry) > 0
-                                    ? "schedule-entry-money schedule-entry-debt"
-                                    : "schedule-entry-money"
-                                }>
-                                {getEntryMoneyLabel(entry)}
-                              </small>
-                            )}
-                            {entry.kind === "visit" && entry.packageUsageId && (() => {
-                              const packageItem = clientPackages.find(
-                                (item) => item.id === entry.packageUsageId,
-                              );
-                              const plannedPosition = entries
-                                .filter(
-                                  (item) =>
-                                    String(item.packageUsageId) ===
-                                      String(entry.packageUsageId) &&
-                                    isUpcomingPackageVisit(item),
-                                )
-                                .sort((first, second) =>
-                                  `${first.date}T${first.time}`.localeCompare(
-                                    `${second.date}T${second.time}`,
-                                  ),
-                                )
-                                .findIndex((item) => item.id === entry.id) + 1;
-                              return packageItem ? (
-                                <small className="schedule-entry-package">
-                                  Пакет {getPackageProgressLabel(
-                                    packageItem,
-                                    plannedPosition,
-                                  )}
+                              {entry.kind === "visit" && (
+                                <small className="text-[9px] text-zinc-500 truncate mt-0.5">
+                                  {entry.service}
                                 </small>
-                              ) : null;
-                            })()}
-                            {entry.kind === "visit" && (
-                              <b className="schedule-entry-status">
-                                {["no_show", "cancelled"].includes(entry.status)
-                                  ? statusLabels[entry.status]
-                                  : ended
+                              )}
+                              {entry.kind === "visit" && (
+                                <small
+                                  className={`text-[9px] font-bold mt-0.5 truncate ${
+                                    getVisitDebt(entry) > 0 ? "text-rose-400" : "text-emerald-400"
+                                  }`}
+                                >
+                                  {getEntryMoneyLabel(entry)}
+                                </small>
+                              )}
+                              {entry.kind === "visit" && entry.packageUsageId && (() => {
+                                const packageItem = clientPackages.find(
+                                  (item) => item.id === entry.packageUsageId,
+                                );
+                                const plannedPosition = entries
+                                  .filter(
+                                    (item) =>
+                                      String(item.packageUsageId) ===
+                                        String(entry.packageUsageId) &&
+                                      isUpcomingPackageVisit(item),
+                                  )
+                                  .sort((first, second) =>
+                                    `${first.date}T${first.time}`.localeCompare(
+                                      `${second.date}T${second.time}`,
+                                    ),
+                                  )
+                                  .findIndex((item) => item.id === entry.id) + 1;
+                                return packageItem ? (
+                                  <small className="text-[9px] text-red-300 mt-0.5 truncate">
+                                    Пакет {getPackageProgressLabel(packageItem, plannedPosition)}
+                                  </small>
+                                ) : null;
+                              })()}
+                              {entry.kind === "visit" && (
+                                <b className="mt-auto text-[8px] font-bold text-zinc-500 uppercase tracking-wide bg-zinc-800/40 px-1 py-0.5 rounded-sm self-start">
+                                  {["no_show", "cancelled"].includes(entry.status)
+                                    ? statusLabels[entry.status]
+                                    : ended
                                     ? "Окончен"
                                     : statusLabels[entry.status] || statusLabels.scheduled}
-                              </b>
-                            )}
-                          </div>
-                          <div className="schedule-entry-actions row-action-trigger-wrap">
-                            <button
-                              aria-label="Действия записи"
-                              className="row-action-trigger"
-                              title="Действия"
-                              type="button"
-                              onClick={() =>
-                                setOpenEntryMenuId((current) =>
-                                  current === entry.id ? null : entry.id,
-                                )
-                              }>
-                              <MoreVertical size={14} />
-                            </button>
-                            {openEntryMenuId === entry.id && (
-                              <div className="schedule-entry-menu">
-                                {entry.kind === "visit" && activeVisit && <button
-                                  aria-label="Напомнить клиенту"
-                                  title="Напомнить"
-                                  type="button"
-                                  onClick={() => onRemind(entry)}>
-                                  <BellRing size={13} />
-                                  Напомнить
-                                </button>}
-                                {activeVisit && (
+                                </b>
+                              )}
+                            </div>
+                            <div className="nuar-calendar-entry-menu absolute top-1 right-1 opacity-0 hover:opacity-100 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex flex-col gap-1 z-10">
+                              <button
+                                aria-label="Действия записи"
+                                className="grid w-5.5 h-5.5 place-items-center rounded bg-zinc-950/80 hover:bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                                title="Действия"
+                                type="button"
+                                onClick={() =>
+                                  setOpenEntryMenuId((current) =>
+                                    current === entry.id ? null : entry.id,
+                                  )
+                                }
+                              >
+                                <MoreVertical size={12} />
+                              </button>
+                              {openEntryMenuId === entry.id && (
+                                <div className="absolute right-0 top-6 z-20 grid min-w-[132px] p-1 border border-zinc-800 rounded-lg bg-zinc-950 shadow-xl">
+                                  {entry.kind === "visit" && activeVisit && (
+                                    <button
+                                      aria-label="Напомнить клиенту"
+                                      className="flex items-center gap-2 h-7 px-2 text-[10px] text-zinc-350 hover:text-white hover:bg-zinc-900 rounded-md cursor-pointer text-left"
+                                      title="Напомнить"
+                                      type="button"
+                                      onClick={() => onRemind(entry)}
+                                    >
+                                      <BellRing size={13} />
+                                      Напомнить
+                                    </button>
+                                  )}
+                                  {activeVisit && (
+                                    <button
+                                      aria-label="Отменить визит"
+                                      className="flex items-center gap-2 h-7 px-2 text-[10px] text-rose-400 hover:bg-rose-500/10 rounded-md cursor-pointer text-left"
+                                      title="Отменить"
+                                      type="button"
+                                      onClick={() => onStatus(entry, "cancelled")}
+                                    >
+                                      <Ban size={13} />
+                                      Отменить
+                                    </button>
+                                  )}
                                   <button
-                                    aria-label="Отменить визит"
-                                    title="Отменить"
+                                    aria-label="Редактировать"
+                                    className="flex items-center gap-2 h-7 px-2 text-[10px] text-zinc-350 hover:text-white hover:bg-zinc-900 rounded-md cursor-pointer text-left"
+                                    title="Редактировать"
                                     type="button"
-                                    onClick={() => onStatus(entry, "cancelled")}>
-                                    <Ban size={13} />
-                                    Отменить
+                                    onClick={() => onEdit(entry)}
+                                  >
+                                    <Pencil size={13} />
+                                    Редактировать
                                   </button>
-                                )}
-                                <button
-                              aria-label="Редактировать"
-                              title="Редактировать"
-                              type="button"
-                              onClick={() => onEdit(entry)}>
-                              <Pencil size={13} />
-                              Редактировать
-                            </button>
-                            <button
-                              aria-label="Удалить"
-                              title="Удалить"
-                              type="button"
-                              onClick={() => onDelete(entry)}>
-                              <Trash2 size={13} />
-                              Удалить
-                            </button>
-                              </div>
-                            )}
-                          </div>
-                        </DraggableScheduleEntry>
-                      );
-                    })}
-                </DroppableScheduleColumn>
+                                  <button
+                                    aria-label="Удалить"
+                                    className="flex items-center gap-2 h-7 px-2 text-[10px] text-red-400 hover:bg-red-500/10 rounded-md cursor-pointer text-left"
+                                    title="Удалить"
+                                    type="button"
+                                    onClick={() => onDelete(entry)}
+                                  >
+                                    <Trash2 size={13} />
+                                    Удалить
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </DraggableScheduleEntry>
+                        );
+                      })}
+                    </DroppableScheduleColumn>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-        {dragPreview && (
-          <div className="calendar-drag-preview">
-            <strong>{dragPreview.time}–{dragPreview.endTime}</strong>
-            <span>{dragPreview.master}</span>
-          </div>
-        )}
-        </DndContext>
+            </section>
+            {dragPreview && (
+              <div className="fixed right-6 bottom-6 z-50 grid gap-0.5 min-w-[112px] p-3 border border-zinc-800 rounded-lg bg-zinc-900 text-zinc-250 shadow-2xl pointer-events-none">
+                <strong className="text-sm font-bold text-zinc-100">
+                  {dragPreview.time}–{dragPreview.endTime}
+                </strong>
+                <span className="text-[10px] text-zinc-500">{dragPreview.master}</span>
+              </div>
+            )}
+          </DndContext>
         )}
 
         {showRemindersPanel && (
           <button
             aria-label="Закрыть ленту дня"
-            className="mobile-calendar-reminders-backdrop"
+            className="fixed inset-0 z-30 bg-zinc-950/40 backdrop-blur-xs cursor-pointer block md:hidden"
             type="button"
             onClick={() => setRemindersVisible(false)}
           />
         )}
-        {showRemindersPanel && <aside className="panel calendar-reminders">
-          <div className="calendar-reminders-header">
-            <div>
-              <h2>Лента дня</h2>
-              <p>{toDisplayDate(selectedDate)}</p>
+        {showRemindersPanel && (
+          <aside className="nuar-calendar-reminders border border-zinc-800 rounded-xl bg-linear-to-br from-zinc-900/90 to-zinc-950/95 shadow-inner p-4 min-h-0 overflow-y-auto flex flex-col gap-3">
+            <section className="nuar-calendar-picker" aria-label="Календарь месяца">
+              <header>
+                <button
+                  aria-label="Предыдущий месяц"
+                  type="button"
+                  onClick={() => shiftCalendarPanelMonth(-1)}
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <div className="nuar-calendar-picker-title">
+                  <div className="nuar-calendar-picker-menu">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenCalendarPickerMenu((current) =>
+                          current === "month" ? null : "month",
+                        )
+                      }
+                    >
+                      {monthNames[calendarPanelMonthIndex]}
+                    </button>
+                    {openCalendarPickerMenu === "month" ? (
+                      <div className="nuar-calendar-picker-popover is-month">
+                        {monthNames.map((month, index) => (
+                          <button
+                            className={index === calendarPanelMonthIndex ? "is-selected" : ""}
+                            key={month}
+                            type="button"
+                            onClick={() => setCalendarPanelPart({month: index})}
+                          >
+                            {month}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="nuar-calendar-picker-menu">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenCalendarPickerMenu((current) =>
+                          current === "year" ? null : "year",
+                        )
+                      }
+                    >
+                      {calendarPanelYear}
+                    </button>
+                    {openCalendarPickerMenu === "year" ? (
+                      <div className="nuar-calendar-picker-popover is-year">
+                        {calendarPanelYears.map((year) => (
+                          <button
+                            className={year === calendarPanelYear ? "is-selected" : ""}
+                            key={year}
+                            type="button"
+                            onClick={() => setCalendarPanelPart({year})}
+                          >
+                            {year}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                <button
+                  aria-label="Следующий месяц"
+                  type="button"
+                  onClick={() => shiftCalendarPanelMonth(1)}
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </header>
+              <div className="nuar-calendar-picker-weekdays" aria-hidden="true">
+                {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+              <div className="nuar-calendar-picker-grid">
+                {calendarPanelDays.map((day) => (
+                  <button
+                    className={`${day.currentMonth ? "" : "is-muted"} ${
+                      day.value === selectedDate ? "is-selected" : ""
+                    } ${day.value === getTodayInput() ? "is-today" : ""}`}
+                    key={day.value}
+                    type="button"
+                    onClick={() => selectCalendarDate(day.value)}
+                  >
+                    {day.day}
+                  </button>
+                ))}
+              </div>
+            </section>
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div>
+                <h2 className="text-zinc-100 text-sm font-bold tracking-tight">Лента дня</h2>
+                <p className="text-2xs text-zinc-500 mt-0.5">{toDisplayDate(selectedDate)}</p>
+              </div>
+              <button
+                aria-label="Скрыть ленту дня"
+                className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 cursor-pointer"
+                title="Скрыть ленту дня"
+                type="button"
+                onClick={() => setRemindersVisible(false)}
+              >
+                <ChevronRight size={17} />
+              </button>
             </div>
-            <button
-              aria-label="Скрыть ленту дня"
-              className="calendar-feed-toggle"
-              title="Скрыть ленту дня"
-              type="button"
-              onClick={() => setRemindersVisible(false)}>
-              <ChevronRight size={17} />
-            </button>
-          </div>
-          <div className="calendar-reminders-summary">
-            <span><b>{visitEntries.length}</b> всего</span>
-            <span><b>{activeVisitEntries.length}</b> активных</span>
-            <span><b>{completedVisitEntries.length}</b> окончено</span>
-          </div>
-          <div className="calendar-reminders-tabs">
-            <button
-              className={reminderFilter === "active" ? "active" : ""}
-              type="button"
-              onClick={() => setReminderFilter("active")}>
-              Активные
-            </button>
-            <button
-              className={reminderFilter === "all" ? "active" : ""}
-              type="button"
-              onClick={() => setReminderFilter("all")}>
-              Все
-            </button>
-          </div>
-          <div className="calendar-reminder-list">
-            {visibleReminderEntries.map((entry) => {
-              const activeVisit = isEntryActive(entry, selectedDate, now);
+            <div className="flex flex-wrap gap-1.5">
+              <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400 font-semibold">
+                <b className="text-zinc-200 font-bold">{visitEntries.length}</b> всего
+              </span>
+              <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400 font-semibold">
+                <b className="text-zinc-200 font-bold">{activeVisitEntries.length}</b> активных
+              </span>
+              <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400 font-semibold">
+                <b className="text-zinc-200 font-bold">{completedVisitEntries.length}</b> окончено
+              </span>
+            </div>
+            <div className="flex p-0.5 mt-1 rounded-lg bg-zinc-950 border border-zinc-850 w-full">
+              <button
+                className={`flex-1 py-1 text-2xs font-semibold text-center rounded-md cursor-pointer ${
+                  reminderFilter === "active" ? "bg-zinc-850 text-white" : "text-zinc-500 hover:text-zinc-300"
+                }`}
+                type="button"
+                onClick={() => setReminderFilter("active")}
+              >
+                Активные
+              </button>
+              <button
+                className={`flex-1 py-1 text-2xs font-semibold text-center rounded-md cursor-pointer ${
+                  reminderFilter === "all" ? "bg-zinc-850 text-white" : "text-zinc-500 hover:text-zinc-300"
+                }`}
+                type="button"
+                onClick={() => setReminderFilter("all")}
+              >
+                Все
+              </button>
+            </div>
+            <div className="flex flex-col gap-2 mt-2">
+              {visibleReminderEntries.map((entry) => {
+                const activeVisit = isEntryActive(entry, selectedDate, now);
 
-              return (
-              <article className={entry.id === nextVisitId ? "calendar-reminder-next" : ""} key={entry.id}>
-                <div className="calendar-reminder-time">
-                  <strong>{entry.time}</strong>
-                  <span>{getEntryEndTime(entry)}</span>
-                </div>
-                <div className="calendar-reminder-main">
-                  <button
-                    className="calendar-reminder-client"
-                    type="button"
-                    title="Открыть карточку клиента"
-                    onClick={() => setViewedClientEntry(entry)}>
-                    {entry.client}
-                  </button>
-                  <span>{entry.service}</span>
-                  <small
-                    className={
-                      getVisitDebt(entry) > 0
-                        ? "calendar-reminder-money calendar-reminder-debt"
-                        : "calendar-reminder-money"
-                    }>
-                    {getEntryMoneyLabel(entry)}
-                  </small>
-                  <small>
-                    {entry.master} · {activeVisit
-                      ? statusLabels[entry.status] || statusLabels.scheduled
-                      : statusLabels[entry.status] || "Окончен"}
-                  </small>
-                </div>
-                <div className="calendar-reminder-actions">
-                  {activeVisit && <button
-                    aria-label="Напомнить клиенту"
-                    title="Напомнить клиенту"
-                    type="button"
-                    onClick={() => onRemind(entry)}>
-                    <MessageSquareText size={14} />
-                  </button>}
-                  <button
-                    aria-label="Редактировать визит"
-                    title="Редактировать"
-                    type="button"
-                    onClick={() => onEdit(entry)}>
-                    <Pencil size={14} />
-                  </button>
-                </div>
-              </article>
-              );
-            })}
-            {visibleReminderEntries.length === 0 && (
-              <p>{visitEntries.length === 0 ? "На этот день визитов пока нет." : "Активных визитов больше нет."}</p>
-            )}
-          </div>
-        </aside>}
+                return (
+                  <article
+                    className={`nuar-calendar-reminder-card grid grid-cols-[44px_1fr_auto] gap-x-2 gap-y-1 w-full p-3 border rounded-xl bg-zinc-900/30 ${
+                      entry.id === nextVisitId ? "is-next border-red-800/50 bg-zinc-900/40" : "border-zinc-850"
+                    }`}
+                    key={entry.id}
+                  >
+                    <div className="nuar-calendar-reminder-main">
+                      <span className="nuar-calendar-reminder-time">
+                        {entry.time}
+                      </span>
+                      <button
+                        className="nuar-calendar-reminder-client"
+                        type="button"
+                        title="Открыть карточку клиента"
+                        onClick={() => setViewedClientEntry(entry)}
+                      >
+                        {entry.client}
+                      </button>
+                      <span className={`nuar-calendar-reminder-money ${getVisitDebt(entry) > 0 ? "is-debt" : ""}`}>
+                        {getEntryMoneyLabel(entry)}
+                      </span>
+                    </div>
+                    <div className="nuar-calendar-reminder-meta">
+                      <span>{entry.service}</span>
+                      <span>{entry.time}–{getEntryEndTime(entry)}</span>
+                      <span>{entry.master}</span>
+                      <span>{activeVisit ? statusLabels[entry.status] || statusLabels.scheduled : statusLabels[entry.status] || "Окончен"}</span>
+                    </div>
+                    <div className="nuar-calendar-reminder-menu">
+                      <button
+                        aria-label="Действия визита"
+                        type="button"
+                        onClick={() =>
+                          setOpenReminderMenuId((current) =>
+                            current === entry.id ? null : entry.id,
+                          )
+                        }
+                      >
+                        <MoreVertical size={14} />
+                      </button>
+                      {openReminderMenuId === entry.id && (
+                        <div className="nuar-calendar-reminder-popover">
+                          {activeVisit && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenReminderMenuId(null);
+                                onRemind(entry);
+                              }}
+                            >
+                              <MessageSquareText size={13} />
+                              Напомнить
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenReminderMenuId(null);
+                              onEdit(entry);
+                            }}
+                          >
+                            <Pencil size={13} />
+                            Редактировать
+                          </button>
+                          <button
+                            className="is-danger"
+                            type="button"
+                            onClick={() => {
+                              setOpenReminderMenuId(null);
+                              onDelete(entry);
+                            }}
+                          >
+                            <Trash2 size={13} />
+                            Удалить
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+              {visibleReminderEntries.length === 0 && (
+                <p className="text-zinc-500 text-xs text-center py-6">
+                  {visitEntries.length === 0 ? "На этот день визитов пока нет." : "Активных визитов больше нет."}
+                </p>
+              )}
+            </div>
+          </aside>
+        )}
       </div>
+
       {pendingSlot && (
         <div
-          className="calendar-slot-backdrop"
+          className="fixed inset-0 z-50 grid place-items-center p-4 bg-zinc-950/60 backdrop-blur-xs select-none"
           role="presentation"
-          onClick={() => setPendingSlot(null)}>
+          onClick={() => setPendingSlot(null)}
+        >
           <section
             aria-label="Добавить запись"
-            className="calendar-slot-menu"
+            className="nuar-calendar-add-popover grid w-[360px] max-w-full overflow-hidden border border-zinc-800 rounded-xl bg-zinc-900 shadow-2xl"
             role="dialog"
-            onClick={(event) => event.stopPropagation()}>
+            onClick={(event) => event.stopPropagation()}
+          >
             <button
               type="button"
+              className="flex items-center gap-3.5 h-[68px] px-5 border-b border-zinc-800/60 bg-transparent text-left cursor-pointer hover:bg-zinc-850/40 text-zinc-200"
               onClick={() => {
                 onAdd({...pendingSlot, kind: "visit"});
                 setPendingSlot(null);
-              }}>
-              <CalendarPlus size={18} />
-              <span>
-                <strong>Новый визит</strong>
-                <small>Записать клиента</small>
+              }}
+            >
+              <CalendarPlus size={18} className="text-red-400" />
+              <span className="grid gap-0.5">
+                <strong className="text-sm font-bold text-zinc-100">Новый визит</strong>
+                <small className="text-zinc-500 text-xs font-medium">Записать клиента</small>
               </span>
             </button>
             <button
               type="button"
+              className="flex items-center gap-3.5 h-[68px] px-5 bg-transparent text-left cursor-pointer hover:bg-zinc-850/40 text-zinc-200"
               onClick={() => {
                 onAdd({...pendingSlot, kind: "reserved"});
                 setPendingSlot(null);
-              }}>
-              <Ban size={18} />
-              <span>
-                <strong>Зарезервировать время</strong>
-                <small>Закрыть слот без клиента</small>
+              }}
+            >
+              <Ban size={18} className="text-zinc-400" />
+              <span className="grid gap-0.5">
+                <strong className="text-sm font-bold text-zinc-100">Зарезервировать время</strong>
+                <small className="text-zinc-500 text-xs font-medium">Закрыть слот без клиента</small>
               </span>
             </button>
           </section>

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import {resolveColorTheme} from "../utils/colorTheme.js";
+import {Button, Card} from "./ui/index.js";
 
 const icons = {
   error: TriangleAlert,
@@ -29,49 +30,59 @@ function SystemScreen({
 
   if (mode === "loading") {
     return (
-      <main className={`system-loading-screen theme-${themeMode}`}>
-        <span className="system-loading-spinner" aria-hidden="true" />
-        <p>Загрузка</p>
+      <main className={`grid w-screen h-screen place-items-center p-6 bg-app-bg text-text-main theme-${themeMode}`}>
+        <div className="flex flex-col items-center gap-4">
+          <LoaderCircle className="animate-spin text-accent" size={36} />
+          <p className="text-text-muted text-sm font-medium">Загрузка</p>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className={`login-screen system-screen theme-${themeMode}`}>
-      <section className="login-card system-card">
-        <div className="login-brand">
-          <span className="login-brand-mark">N</span>
-          <div>
-            <strong>{settings?.studioName ?? "NUAR"}</strong>
-            <small>CRM</small>
-          </div>
-        </div>
-        <div className="system-state">
-          <span className={`system-icon system-icon-${mode}`}>
-            <Icon size={22} />
+    <main className={`grid w-screen h-screen place-items-center p-6 bg-app-bg text-text-main theme-${themeMode}`}>
+      <Card className="w-full max-w-[420px] p-8 flex flex-col gap-6 bg-surface/90 border border-border/40 rounded-card shadow-2xl backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <span className="grid w-8 h-8 place-items-center rounded-control bg-accent/10 text-accent font-extrabold text-sm shrink-0">
+            N
           </span>
           <div>
-            <h1>{title}</h1>
-            <p>{message}</p>
+            <strong className="block text-text-main text-sm font-bold tracking-tight">
+              {settings?.studioName ?? "NUAR"}
+            </strong>
+            <small className="block text-text-faint text-[9px] font-bold tracking-widest uppercase">
+              CRM
+            </small>
           </div>
         </div>
+
+        <div className="flex flex-col items-center text-center gap-4 py-4">
+          <span className={`grid w-14 h-14 place-items-center rounded-full bg-border-soft ${mode === "error" ? "text-red-400 bg-red-500/10" : "text-accent bg-accent/10"}`}>
+            <Icon size={24} />
+          </span>
+          <div>
+            <h1 className="m-0 text-text-main text-lg font-bold leading-snug">{title}</h1>
+            <p className="m-0 mt-2 text-text-muted text-sm leading-relaxed">{message}</p>
+          </div>
+        </div>
+
         {(onAction || onLogout) && (
-          <div className="system-actions">
+          <div className="flex flex-col gap-3">
             {onAction && (
-              <button className="submit-button" type="button" onClick={onAction}>
+              <Button variant="primary" className="w-full flex items-center justify-center gap-2 font-bold cursor-pointer" onClick={onAction}>
                 {mode === "not-found" ? <Home size={16} /> : <RefreshCw size={16} />}
                 {actionLabel}
-              </button>
+              </Button>
             )}
             {onLogout && (
-              <button className="secondary-button" type="button" onClick={onLogout}>
+              <Button variant="secondary" className="w-full flex items-center justify-center gap-2 font-medium cursor-pointer" onClick={onLogout}>
                 <LogOut size={16} />
                 Выйти
-              </button>
+              </Button>
             )}
           </div>
         )}
-      </section>
+      </Card>
     </main>
   );
 }

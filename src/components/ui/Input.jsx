@@ -1,18 +1,19 @@
 import {forwardRef} from "react";
 import clsx from "clsx";
 
-const Input = forwardRef(({className, ...props}, ref) => (
-  <input
-    className={clsx(
-      "h-10 w-full rounded-xl border border-[var(--linear-border)] bg-[rgba(255,255,255,0.035)] px-3 text-sm text-[var(--linear-text)] shadow-none transition-colors",
-      "placeholder:text-[var(--linear-dim)] focus:border-[rgba(139,124,255,0.42)] focus:outline-none focus:ring-2 focus:ring-[rgba(139,124,255,0.22)]",
-      "disabled:cursor-not-allowed disabled:bg-[rgba(255,255,255,0.025)] disabled:text-[var(--linear-dim)]",
-      className,
-    )}
-    ref={ref}
-    {...props}
-  />
-));
+const Input = forwardRef(({className, type = "text", ...props}, ref) => {
+  return (
+    <input
+      ref={ref}
+      type={type}
+      className={clsx(
+        "w-full min-h-[40px] px-3 border border-border rounded-control text-text-main bg-field font-normal text-sm transition-all duration-150 placeholder:text-text-faint focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed",
+        className,
+      )}
+      {...props}
+    />
+  );
+});
 
 Input.displayName = "Input";
 
