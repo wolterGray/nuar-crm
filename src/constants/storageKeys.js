@@ -27,3 +27,5 @@ export const IMPORT_DOCUMENTS_STORAGE_KEY = "nuar-crm-import-documents";
 export const IMPORTED_MAIL_IDS_STORAGE_KEY = "nuar-crm-imported-mail-ids";
 export const AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY =
   "nuar-crm-auto-completed-calendar-entry-ids";
+export const CLOUD_SYNC_UPDATED_AT_STORAGE_KEY =
+  "nuar-crm-cloud-updated-at-by-user";

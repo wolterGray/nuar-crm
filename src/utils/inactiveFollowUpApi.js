@@ -1,4 +1,10 @@
 import {supabase} from "../lib/supabase.js";
+import {
+  clearFunctionStatusCache,
+  withFunctionStatusCache,
+} from "./functionStatusCache.js";
+
+const INACTIVE_FOLLOW_UP_STATUS_CACHE_KEY = "inactive-client-follow-up:status";
 
 const invokeInactiveFollowUp = async (body) => {
   if (!supabase) {
@@ -24,13 +30,17 @@ const invokeInactiveFollowUp = async (body) => {
 };
 
 export const fetchInactiveFollowUpStatus = () =>
-  invokeInactiveFollowUp({action: "status"});
+  withFunctionStatusCache(INACTIVE_FOLLOW_UP_STATUS_CACHE_KEY, () =>
+    invokeInactiveFollowUp({action: "status"}),
+  );
 
 export const previewInactiveFollowUp = () =>
   invokeInactiveFollowUp({action: "preview"});
 
-export const processInactiveFollowUp = () =>
-  invokeInactiveFollowUp({action: "process"});
+export const processInactiveFollowUp = async () => {
+  clearFunctionStatusCache(INACTIVE_FOLLOW_UP_STATUS_CACHE_KEY);
+  return invokeInactiveFollowUp({action: "process"});
+};
 
 export const sendInactiveFollowUpTest = ({message, phone}) =>
   invokeInactiveFollowUp({

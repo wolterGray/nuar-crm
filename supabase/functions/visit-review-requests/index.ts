@@ -179,6 +179,22 @@ serve(async (request) => {
       userId = user.id;
     }
 
+    if (action === "test") {
+      const phone = String(body.phone ?? "").trim();
+      const message = String(body.message ?? "NUAR CRM review test").trim();
+
+      if (!phone || !message) {
+        return jsonResponse({error: "phone and message are required"}, 400);
+      }
+
+      const result = await sendSms({to: phone, message});
+
+      return jsonResponse({
+        configured: isSmsConfigured(),
+        result,
+      });
+    }
+
     const admin = createAdminClient();
     const {payload} = await loadSnapshotForUser(admin, userId);
 
@@ -197,22 +213,6 @@ serve(async (request) => {
         lastRunAt: payload.settings?.reviewRequestLastRunAt ?? "",
         recentLog: (payload.reviewRequestLog ?? []).slice(0, 10),
         skippedCount: due.filter((item) => item.status === "skipped").length,
-      });
-    }
-
-    if (action === "test") {
-      const phone = String(body.phone ?? "").trim();
-      const message = String(body.message ?? "NUAR CRM review test").trim();
-
-      if (!phone || !message) {
-        return jsonResponse({error: "phone and message are required"}, 400);
-      }
-
-      const result = await sendSms({to: phone, message});
-
-      return jsonResponse({
-        configured: isSmsConfigured(),
-        result,
       });
     }
 

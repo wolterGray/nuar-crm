@@ -1,4 +1,10 @@
 import {supabase} from "../lib/supabase.js";
+import {
+  clearFunctionStatusCache,
+  withFunctionStatusCache,
+} from "./functionStatusCache.js";
+
+const REVIEW_REQUESTS_STATUS_CACHE_KEY = "visit-review-requests:status";
 
 const invokeVisitReviewRequests = async (body) => {
   if (!supabase) {
@@ -21,13 +27,17 @@ const invokeVisitReviewRequests = async (body) => {
 };
 
 export const fetchReviewRequestStatus = () =>
-  invokeVisitReviewRequests({action: "status"});
+  withFunctionStatusCache(REVIEW_REQUESTS_STATUS_CACHE_KEY, () =>
+    invokeVisitReviewRequests({action: "status"}),
+  );
 
 export const previewReviewRequests = () =>
   invokeVisitReviewRequests({action: "preview"});
 
-export const processReviewRequests = () =>
-  invokeVisitReviewRequests({action: "process"});
+export const processReviewRequests = async () => {
+  clearFunctionStatusCache(REVIEW_REQUESTS_STATUS_CACHE_KEY);
+  return invokeVisitReviewRequests({action: "process"});
+};
 
 export const sendReviewRequestTest = ({message, phone}) =>
   invokeVisitReviewRequests({

@@ -21,9 +21,30 @@ const hasSnapshotData = (payload: unknown) => {
   );
 };
 
+type SiteBookingSnapshot = {
+  ownerUserId: string;
+  payload: CrmSnapshotPayload;
+};
+
+let siteBookingSnapshotCache:
+  | {
+      cachedAt: number;
+      data: SiteBookingSnapshot;
+    }
+  | null = null;
+
 export const loadCrmSnapshotForSiteBooking = async (
   admin: ReturnType<typeof createAdminClient>,
+  {cacheTtlMs = 0}: {cacheTtlMs?: number} = {},
 ) => {
+  if (
+    cacheTtlMs > 0 &&
+    siteBookingSnapshotCache &&
+    Date.now() - siteBookingSnapshotCache.cachedAt < cacheTtlMs
+  ) {
+    return siteBookingSnapshotCache.data;
+  }
+
   const configuredOwnerId = String(Deno.env.get("CRM_OWNER_USER_ID") ?? "").trim();
 
   if (configuredOwnerId) {
@@ -38,10 +59,16 @@ export const loadCrmSnapshotForSiteBooking = async (
     }
 
     if (data?.payload && hasSnapshotData(data.payload)) {
-      return {
+      const snapshot = {
         ownerUserId: configuredOwnerId,
         payload: data.payload as CrmSnapshotPayload,
       };
+
+      if (cacheTtlMs > 0) {
+        siteBookingSnapshotCache = {cachedAt: Date.now(), data: snapshot};
+      }
+
+      return snapshot;
     }
   }
 
@@ -60,8 +87,14 @@ export const loadCrmSnapshotForSiteBooking = async (
     throw new Error("CRM snapshot not found");
   }
 
-  return {
+  const snapshot = {
     ownerUserId: data.user_id,
     payload: (data.payload ?? {}) as CrmSnapshotPayload,
   };
+
+  if (cacheTtlMs > 0) {
+    siteBookingSnapshotCache = {cachedAt: Date.now(), data: snapshot};
+  }
+
+  return snapshot;
 };

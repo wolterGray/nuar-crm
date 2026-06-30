@@ -1,5 +1,47 @@
 import {isSupabaseConfigured, supabase} from "../lib/supabase.js";
 
+const SITE_BOOKING_SELECT = [
+  "id",
+  "client_name",
+  "client_phone",
+  "client_email",
+  "service_slug",
+  "service_name",
+  "preferred_date",
+  "preferred_time",
+  "preferred_master",
+  "duration_minutes",
+  "status",
+  "note",
+  "linked_calendar_entry_id",
+  "created_at",
+  "updated_at",
+].join(", ");
+const PENDING_SITE_BOOKINGS_LIMIT = 25;
+const RECENT_SITE_BOOKINGS_LIMIT = 25;
+const SITE_BOOKING_CACHE_TTL_MS = 60_000;
+
+const requestCache = new Map();
+
+const getCached = (key) => {
+  const cached = requestCache.get(key);
+
+  if (!cached || Date.now() - cached.cachedAt > SITE_BOOKING_CACHE_TTL_MS) {
+    requestCache.delete(key);
+    return null;
+  }
+
+  return cached.data;
+};
+
+const setCached = (key, data) => {
+  requestCache.set(key, {cachedAt: Date.now(), data});
+};
+
+export const clearSiteBookingCache = () => {
+  requestCache.clear();
+};
+
 const ensureSupabase = () => {
   if (!isSupabaseConfigured || !supabase) {
     throw new Error("Supabase не настроен");
@@ -9,25 +51,41 @@ const ensureSupabase = () => {
 };
 
 export const fetchPendingSiteBookings = async () => {
+  const cached = getCached("pending");
+
+  if (cached) {
+    return cached;
+  }
+
   const client = ensureSupabase();
   const {data, error} = await client
     .from("site_booking_requests")
-    .select("*")
+    .select(SITE_BOOKING_SELECT)
     .eq("status", "pending")
-    .order("created_at", {ascending: false});
+    .order("created_at", {ascending: false})
+    .limit(PENDING_SITE_BOOKINGS_LIMIT);
 
   if (error) {
     throw error;
   }
 
-  return data ?? [];
+  const requests = data ?? [];
+  setCached("pending", requests);
+  return requests;
 };
 
-export const fetchRecentSiteBookings = async ({limit = 50} = {}) => {
+export const fetchRecentSiteBookings = async ({limit = RECENT_SITE_BOOKINGS_LIMIT} = {}) => {
+  const cacheKey = `recent:${limit}`;
+  const cached = getCached(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
   const client = ensureSupabase();
   const {data, error} = await client
     .from("site_booking_requests")
-    .select("*")
+    .select(SITE_BOOKING_SELECT)
     .order("created_at", {ascending: false})
     .limit(limit);
 
@@ -35,7 +93,9 @@ export const fetchRecentSiteBookings = async ({limit = 50} = {}) => {
     throw error;
   }
 
-  return data ?? [];
+  const requests = data ?? [];
+  setCached(cacheKey, requests);
+  return requests;
 };
 
 export const updateSiteBookingRequest = async (id, patch) => {
@@ -47,13 +107,14 @@ export const updateSiteBookingRequest = async (id, patch) => {
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
-    .select("*")
+    .select(SITE_BOOKING_SELECT)
     .single();
 
   if (error) {
     throw error;
   }
 
+  clearSiteBookingCache();
   return data;
 };
 

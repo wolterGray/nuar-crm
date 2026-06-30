@@ -1,4 +1,7 @@
 import {supabase} from "../lib/supabase.js";
+import {withFunctionStatusCache} from "./functionStatusCache.js";
+
+const OWNER_NOTIFY_STATUS_CACHE_KEY = "telegram-daily-digest:owner-notify-status";
 
 const invokeTelegramDigest = async (body) => {
   if (!supabase) {
@@ -21,7 +24,9 @@ const invokeTelegramDigest = async (body) => {
 };
 
 export const fetchOwnerNotifyStatus = () =>
-  invokeTelegramDigest({action: "owner-notify-status"});
+  withFunctionStatusCache(OWNER_NOTIFY_STATUS_CACHE_KEY, () =>
+    invokeTelegramDigest({action: "owner-notify-status"}),
+  );
 
 export const testOwnerNotify = () =>
   invokeTelegramDigest({action: "owner-notify-test"});

@@ -1,33 +1,28 @@
-import {supabase} from "../lib/supabase.js";
+import {
+  clearFunctionStatusCache,
+  withFunctionStatusCache,
+} from "./functionStatusCache.js";
+import {bulkSms} from "../api/functions.js";
+
+const BULK_SMS_STATUS_CACHE_KEY = "bulk-sms-send:status";
 
 const invokeBulkSms = async (body) => {
-  if (!supabase) {
-    throw new Error("Supabase не настроен");
-  }
-
-  const {data, error} = await supabase.functions.invoke("bulk-sms-send", {
-    body,
-  });
-
-  if (error) {
-    throw error;
-  }
-
-  if (data?.error) {
-    throw new Error(String(data.error));
-  }
-
-  return data;
+  // Forward the request to the custom backend
+  return bulkSms(body);
 };
 
-export const fetchBulkSmsStatus = () => invokeBulkSms({action: "status"});
+export const fetchBulkSmsStatus = () =>
+  withFunctionStatusCache(BULK_SMS_STATUS_CACHE_KEY, () =>
+    invokeBulkSms({action: "status"}),
+  );
 
-export const sendBulkSmsCampaign = ({
+export const sendBulkSmsCampaign = async ({
   recipients = [],
   segmentId = "",
   templateName = "",
-}) =>
-  invokeBulkSms({
+}) => {
+  clearFunctionStatusCache(BULK_SMS_STATUS_CACHE_KEY);
+  return invokeBulkSms({
     action: "send",
     recipients: recipients
       .filter((item) => item.status === "ready")
@@ -40,6 +35,7 @@ export const sendBulkSmsCampaign = ({
     segmentId,
     templateName,
   });
+};
 
 export const sendBulkSmsTest = ({message, phone}) =>
   invokeBulkSms({

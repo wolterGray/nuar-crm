@@ -1,4 +1,10 @@
 import {supabase} from "../lib/supabase.js";
+import {
+  clearFunctionStatusCache,
+  withFunctionStatusCache,
+} from "./functionStatusCache.js";
+
+const SMS_REMINDERS_STATUS_CACHE_KEY = "visit-sms-reminders:status";
 
 const invokeVisitSmsReminders = async (body) => {
   if (!supabase) {
@@ -21,13 +27,17 @@ const invokeVisitSmsReminders = async (body) => {
 };
 
 export const fetchSmsReminderStatus = () =>
-  invokeVisitSmsReminders({action: "status"});
+  withFunctionStatusCache(SMS_REMINDERS_STATUS_CACHE_KEY, () =>
+    invokeVisitSmsReminders({action: "status"}),
+  );
 
 export const previewSmsReminders = () =>
   invokeVisitSmsReminders({action: "preview"});
 
-export const processSmsReminders = () =>
-  invokeVisitSmsReminders({action: "process"});
+export const processSmsReminders = async () => {
+  clearFunctionStatusCache(SMS_REMINDERS_STATUS_CACHE_KEY);
+  return invokeVisitSmsReminders({action: "process"});
+};
 
 export const sendSmsReminderTest = ({message, phone}) =>
   invokeVisitSmsReminders({

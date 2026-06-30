@@ -33,7 +33,7 @@ serve(async (request) => {
 
     const {data: connection, error: connectionError} = await admin
       .from("google_connections")
-      .select("*")
+      .select("access_token, refresh_token, token_expires_at")
       .eq("user_id", user.id)
       .maybeSingle();
 

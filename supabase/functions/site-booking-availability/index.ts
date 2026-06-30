@@ -32,7 +32,9 @@ serve(async (request) => {
     }
 
     const admin = createAdminClient();
-    const {ownerUserId, payload} = await loadCrmSnapshotForSiteBooking(admin);
+    const {ownerUserId, payload} = await loadCrmSnapshotForSiteBooking(admin, {
+      cacheTtlMs: 30_000,
+    });
     const pendingBookings = await loadPendingSiteBookings(admin, {
       ownerUserId,
       preferredDate,

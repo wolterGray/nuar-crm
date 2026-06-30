@@ -1,4 +1,10 @@
 import {supabase} from "../lib/supabase.js";
+import {
+  clearFunctionStatusCache,
+  withFunctionStatusCache,
+} from "./functionStatusCache.js";
+
+const TELEGRAM_DIGEST_STATUS_CACHE_KEY = "telegram-daily-digest:status";
 
 const invokeTelegramDigest = async (body) => {
   if (!supabase) {
@@ -21,13 +27,17 @@ const invokeTelegramDigest = async (body) => {
 };
 
 export const fetchTelegramDigestStatus = () =>
-  invokeTelegramDigest({action: "status"});
+  withFunctionStatusCache(TELEGRAM_DIGEST_STATUS_CACHE_KEY, () =>
+    invokeTelegramDigest({action: "status"}),
+  );
 
 export const previewTelegramDigest = () =>
   invokeTelegramDigest({action: "preview"});
 
-export const sendTelegramDigest = () =>
-  invokeTelegramDigest({action: "process"});
+export const sendTelegramDigest = async () => {
+  clearFunctionStatusCache(TELEGRAM_DIGEST_STATUS_CACHE_KEY);
+  return invokeTelegramDigest({action: "process"});
+};
 
 export const sendTelegramDigestTest = ({message}) =>
   invokeTelegramDigest({
