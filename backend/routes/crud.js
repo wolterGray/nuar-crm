@@ -18,6 +18,23 @@ const respond = (res, promise) => {
 };
 
 // ==================== Client ====================
+router.get('/clients', verifySupabaseJwt, (req, res) => {
+  respond(
+    res,
+    prisma.client.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { name: 'asc' },
+    })
+  );
+});
+
 router.post('/clients', verifySupabaseJwt, (req, res) => {
   const { name, email, phone } = req.body;
   respond(res, prisma.client.create({ data: { name, email, phone } }));
@@ -39,9 +56,6 @@ router.delete('/clients/:id', verifySupabaseJwt, (req, res) => {
   respond(res, prisma.client.delete({ where: { id } }));
 });
 
-router.get('/clients', verifySupabaseJwt, (req, res) => {
-  respond(res, prisma.client.findMany());
-});
 
 // ==================== Service ====================
 router.post('/services', verifySupabaseJwt, (req, res) => {
