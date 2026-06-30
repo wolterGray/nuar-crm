@@ -14,6 +14,12 @@ if errorlevel 1 (
 cd /d "%PROJECT_ROOT%"
 if errorlevel 1 exit /b 1
 
+echo Stopping nuar-backend if it is running...
+pm2 stop nuar-backend >nul 2>nul
+if errorlevel 1 (
+  echo nuar-backend is not running yet. Continuing...
+)
+
 echo Pulling latest main...
 git pull origin main
 if errorlevel 1 exit /b 1
@@ -26,16 +32,21 @@ call npm install
 if errorlevel 1 exit /b 1
 
 echo Generating Prisma Client...
-call npm run prisma:generate
+call npx prisma generate
 if errorlevel 1 exit /b 1
 
 echo Applying Prisma migrations...
-call npm run prisma:deploy
+call npx prisma migrate deploy
 if errorlevel 1 exit /b 1
 
-echo Restarting backend...
+cd /d "%PROJECT_ROOT%"
+if errorlevel 1 exit /b 1
+
+echo Starting backend...
 call "%~dp0start-backend.bat"
 if errorlevel 1 exit /b 1
+
+pm2 status
 
 echo Backend update complete.
 endlocal
