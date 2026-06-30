@@ -1,0 +1,68 @@
+// backend/prisma/schema.prisma
+// Prisma schema for the custom backend (PostgreSQL).
+// Adjust the connection URL in .env (DATABASE_URL) to match your PostgreSQL instance.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Minimal set of tables needed by the CRM. Extend as required.
+model Client {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  visits      Visit[]
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  name        String
+  price       Decimal
+  durationMin Int      // duration in minutes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  visits      Visit[]
+}
+
+model Employee {
+  id        Int      @id @default(autoincrement())
+  name      String
+  role      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visits   Visit[]
+}
+
+model Visit {
+  id          Int      @id @default(autoincrement())
+  clientId    Int
+  serviceId   Int
+  employeeId  Int?
+  scheduledAt DateTime
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  client    Client   @relation(fields: [clientId], references: [id])
+  service   Service  @relation(fields: [serviceId], references: [id])
+  employee  Employee? @relation(fields: [employeeId], references: [id])
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  dueDate     DateTime?
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
