@@ -9,6 +9,8 @@ function LoginPage({
   onResetPassword,
   onSubmit,
   onUpdatePassword,
+  showGoogleLogin = true,
+  showPasswordReset = true,
   settings,
 }) {
   const [mode, setMode] = useState(isRecovery ? "recovery" : "login");
@@ -42,19 +44,23 @@ function LoginPage({
 
         {activeMode === "login" && (
           <>
-            <Button
-              variant="secondary"
-              className="w-full flex items-center justify-center gap-3 font-medium cursor-pointer"
-              onClick={onGoogleLogin}
-            >
-              <span className="grid w-5 h-5 place-items-center rounded-full bg-text-main text-surface font-bold text-xs">
-                G
-              </span>
-              Войти через Google
-            </Button>
-            <div className="flex items-center gap-3 text-text-faint text-xs before:h-[1px] before:flex-1 before:bg-border/60 after:h-[1px] after:flex-1 after:bg-border/60">
-              <span>или по email</span>
-            </div>
+            {showGoogleLogin && (
+              <>
+                <Button
+                  variant="secondary"
+                  className="w-full flex items-center justify-center gap-3 font-medium cursor-pointer"
+                  onClick={onGoogleLogin}
+                >
+                  <span className="grid w-5 h-5 place-items-center rounded-full bg-text-main text-surface font-bold text-xs">
+                    G
+                  </span>
+                  Войти через Google
+                </Button>
+                <div className="flex items-center gap-3 text-text-faint text-xs before:h-[1px] before:flex-1 before:bg-border/60 after:h-[1px] after:flex-1 after:bg-border/60">
+                  <span>или по email</span>
+                </div>
+              </>
+            )}
             <form className="flex flex-col gap-4" onSubmit={onSubmit}>
               <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
                 Email
@@ -85,13 +91,15 @@ function LoginPage({
                 <LogIn size={17} />
                 Войти
               </Button>
-              <button
-                type="button"
-                className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
-                onClick={() => setMode("reset")}
-              >
-                Забыли пароль?
-              </button>
+              {showPasswordReset && (
+                <button
+                  type="button"
+                  className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
+                  onClick={() => setMode("reset")}
+                >
+                  Забыли пароль?
+                </button>
+              )}
             </form>
           </>
         )}

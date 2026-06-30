@@ -1,4 +1,4 @@
-import {getAuthToken} from "../hooks/useAuth.js";
+import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 
@@ -15,6 +15,9 @@ export const fetchClients = async () => {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      notifyAuthTokenRejected();
+    }
     throw new Error(`Clients API request failed: ${response.status}`);
   }
 

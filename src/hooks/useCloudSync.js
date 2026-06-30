@@ -334,7 +334,7 @@ export function useCloudSync({
 
   return {
     cloudConflict,
-    cloudHydrated,
+    cloudHydrated: !supabase || !userId || cloudHydrated,
     cloudLoadError,
     cloudSyncing,
     forceCloudSave,

@@ -241,7 +241,6 @@ function App() {
   } = useAuth({
     onSessionLostRef,
     pushNotification,
-    supabase,
   });
 
   const masters = useMemo(
@@ -591,8 +590,8 @@ function App() {
     overwriteRemoteSnapshot,
     resetCloudSyncState,
   } = useCloudSync({
-    supabase,
-    userId: authSession?.user?.id,
+    supabase: authSession?.provider === "local" ? null : supabase,
+    userId: authSession?.provider === "local" ? null : authSession?.user?.id,
     cloudSnapshot,
     cloudSnapshotRef,
     onApplySnapshot: applyCloudSnapshot,
@@ -613,6 +612,8 @@ function App() {
   }, [resetCloudSyncState]);
 
   useEffect(() => {
+    if (authSession?.provider === "local") return undefined;
+
     const userId = authSession?.user?.id;
     if (!supabase || !userId || !cloudHydrated) return undefined;
 
@@ -646,7 +647,13 @@ function App() {
     }, 1200);
 
     return () => window.clearTimeout(timer);
-  }, [authSession?.user?.id, cloudHydrated, pushNotificationRef, serviceCatalog]);
+  }, [
+    authSession?.provider,
+    authSession?.user?.id,
+    cloudHydrated,
+    pushNotificationRef,
+    serviceCatalog,
+  ]);
 
   const employeeStats = useMemo(
     () => buildEmployeeStats(employees, visits),
@@ -1784,7 +1791,9 @@ function App() {
             clientPackages={clientPackages}
             clientProfiles={clientProfiles}
             cloudConflict={cloudConflict}
-            cloudEnabled={Boolean(supabase && authSession?.user?.id)}
+            cloudEnabled={Boolean(
+              supabase && authSession?.provider !== "local" && authSession?.user?.id,
+            )}
             cloudHydrated={cloudHydrated}
             cloudLoadError={cloudLoadError}
             cloudSyncing={cloudSyncing}

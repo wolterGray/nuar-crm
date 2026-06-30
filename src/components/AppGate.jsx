@@ -57,6 +57,8 @@ export default function AppGate({
           onResetPassword={handleResetPassword}
           onSubmit={handleLogin}
           onUpdatePassword={handleUpdatePassword}
+          showGoogleLogin={false}
+          showPasswordReset={false}
         />
         <ToastStack notifications={notifications} onClose={closeNotification} />
       </>

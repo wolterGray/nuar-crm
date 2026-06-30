@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -18,7 +19,10 @@ const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
 const allowedOrigins = new Set([...defaultAllowedOrigins, ...envAllowedOrigins]);
 const isDev = process.env.NODE_ENV !== 'production';
 const isLocalDevOrigin = (origin) =>
-  isDev && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+  isDev &&
+  /^http:\/\/(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+):\d+$/.test(
+    origin
+  );
 const corsOptions = {
   credentials: true,
   origin(origin, callback) {
@@ -40,6 +44,9 @@ app.use(express.json());
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 
 // Routes
+const authRouter = require('./routes/auth');
+app.use('/api/auth', authRouter);
+
 const functionsRouter = require('./routes/functions');
 app.use('/functions', functionsRouter);
 

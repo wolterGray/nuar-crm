@@ -1,10 +1,18 @@
-import {getAuthToken} from "../hooks/useAuth.js";
+import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
   return token ? {Authorization: `Bearer ${token}`} : {};
+};
+
+const parseResponse = async (res) => {
+  if (res.status === 401) {
+    notifyAuthTokenRejected();
+  }
+
+  return res.json();
 };
 
 export const bulkSms = async (payload) => {
@@ -14,7 +22,7 @@ export const bulkSms = async (payload) => {
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return parseResponse(res);
 };
 
 export const telegramDigest = async (payload) => {
@@ -24,7 +32,7 @@ export const telegramDigest = async (payload) => {
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return parseResponse(res);
 };
 
 export const smsReminders = async (payload) => {
@@ -34,7 +42,7 @@ export const smsReminders = async (payload) => {
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return parseResponse(res);
 };
 
 export const ownerNotify = async (payload) => {
@@ -44,7 +52,7 @@ export const ownerNotify = async (payload) => {
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return parseResponse(res);
 };
 
 export const reviewRequests = async (payload) => {
@@ -54,7 +62,7 @@ export const reviewRequests = async (payload) => {
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return parseResponse(res);
 };
 
 export const booksySync = async (payload) => {
@@ -64,5 +72,5 @@ export const booksySync = async (payload) => {
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return parseResponse(res);
 };
