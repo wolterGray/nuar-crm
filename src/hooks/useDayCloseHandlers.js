@@ -8,12 +8,16 @@ import {
   normalizeCloseDate,
   sortDayCloseRecords,
 } from "../utils/dayClose.js";
+import {
+  createDayCloseRecord,
+  deleteDayCloseRecord,
+  updateDayCloseRecord,
+} from "../api/financial.js";
 
 export function useDayCloseHandlers({
   calendarEntries,
   certificates,
   clientPackages,
-  createLocalId,
   dayCloseRecords,
   employees,
   pushNotification,
@@ -34,7 +38,7 @@ export function useDayCloseHandlers({
   );
 
   const closeDay = useCallback(
-    ({actualCashInDrawer, cashWithdrawal = 0, date, note = ""}) => {
+    async ({actualCashInDrawer, cashWithdrawal = 0, date, note = ""}) => {
       const normalizedDate = normalizeCloseDate(date);
 
       if (!normalizedDate) {
@@ -47,14 +51,29 @@ export function useDayCloseHandlers({
         actualCashInDrawer,
         cashWithdrawal,
         date: normalizedDate,
-        id: existing?.id ?? createLocalId(),
+        id: existing?.id,
         journal,
         note,
       });
+      let savedRecord;
+
+      try {
+        const response = existing
+          ? await updateDayCloseRecord(existing.id, record)
+          : await createDayCloseRecord(record);
+        savedRecord = response?.data ?? record;
+      } catch (error) {
+        pushNotification({
+          message: error?.message || "Backend не принял закрытие дня",
+          persist: false,
+          title: "Закрытие дня не сохранено",
+        });
+        return;
+      }
 
       setDayCloseRecords((current) =>
         sortDayCloseRecords([
-          record,
+          savedRecord,
           ...current.filter(
             (item) => normalizeCloseDate(item.date) !== normalizedDate,
           ),
@@ -62,12 +81,11 @@ export function useDayCloseHandlers({
       );
 
       pushNotification({
-        message: `${formatDayCloseLabel(normalizedDate)} · ${formatDayCloseVariance(record.variance)}`,
+        message: `${formatDayCloseLabel(normalizedDate)} · ${formatDayCloseVariance(savedRecord.variance)}`,
         title: existing ? "Закрытие дня обновлено" : "День закрыт",
       });
     },
     [
-      createLocalId,
       dayCloseRecords,
       getJournalForDate,
       pushNotification,
@@ -76,7 +94,18 @@ export function useDayCloseHandlers({
   );
 
   const removeDayClose = useCallback(
-    (record) => {
+    async (record) => {
+      try {
+        await deleteDayCloseRecord(record.id);
+      } catch (error) {
+        pushNotification({
+          message: error?.message || "Backend не удалил закрытие дня",
+          persist: false,
+          title: "Закрытие дня не удалено",
+        });
+        return;
+      }
+
       setDayCloseRecords((current) =>
         current.filter((item) => item.id !== record.id),
       );
@@ -89,10 +118,21 @@ export function useDayCloseHandlers({
   );
 
   const reopenDayClose = useCallback(
-    (record) => {
+    async (record) => {
+      try {
+        await deleteDayCloseRecord(record.id);
+      } catch (error) {
+        pushNotification({
+          message: error?.message || "Backend не переоткрыл день",
+          persist: false,
+          title: "День не переоткрыт",
+        });
+        return;
+      }
+
       setDayCloseRecords((current) => current.filter((item) => item.id !== record.id));
     },
-    [setDayCloseRecords],
+    [pushNotification, setDayCloseRecords],
   );
 
   return {

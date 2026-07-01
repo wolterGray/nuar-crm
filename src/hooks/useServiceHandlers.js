@@ -4,11 +4,15 @@ import {
   deleteService,
   updateService,
 } from "../api/services.js";
+import {
+  createPackage,
+  deletePackage,
+  updatePackage,
+} from "../api/financial.js";
 import {getRandomServiceColor} from "../utils/serviceColors.js";
 import {parseServiceBookingBuffersFromForm} from "../utils/siteBookingBuffers.js";
 
 export function useServiceHandlers({
-  createLocalId,
   editingPackage,
   editingService,
   pushNotification,
@@ -176,7 +180,7 @@ export function useServiceHandlers({
   );
 
   const handlePackageSubmit = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const name = String(form.get("name") ?? "").trim();
@@ -186,7 +190,7 @@ export function useServiceHandlers({
       }
 
       const packageItem = {
-        id: editingPackage?.id ?? createLocalId(),
+        ...(editingPackage?.id ? {id: editingPackage.id} : {}),
         name,
         service: form.get("service"),
         visitsCount: Number(form.get("visitsCount")) || 0,
@@ -194,21 +198,35 @@ export function useServiceHandlers({
         validityDays: Number(form.get("validityDays")) || 0,
         status: form.get("status"),
       };
+      let savedPackage;
+
+      try {
+        const response = editingPackage
+          ? await updatePackage(editingPackage.id, packageItem)
+          : await createPackage(packageItem);
+        savedPackage = response?.data ?? packageItem;
+      } catch (error) {
+        pushNotification({
+          title: editingPackage ? "Пакет не обновлен" : "Пакет не добавлен",
+          message: error?.message || "Backend не принял пакет",
+          persist: false,
+        });
+        return;
+      }
 
       setPackagesCatalog((current) =>
         editingPackage
-          ? current.map((item) => (item.id === packageItem.id ? packageItem : item))
-          : [packageItem, ...current],
+          ? current.map((item) => (item.id === savedPackage.id ? savedPackage : item))
+          : [savedPackage, ...current],
       );
       setPackageModalOpen(false);
       setEditingPackage(null);
       pushNotification({
         title: editingPackage ? "Пакет обновлен" : "Пакет добавлен",
-        message: `${packageItem.name} сохранен в базе пакетов`,
+        message: `${savedPackage.name} сохранен в базе пакетов`,
       });
     },
     [
-      createLocalId,
       editingPackage,
       pushNotification,
       setEditingPackage,
@@ -225,7 +243,18 @@ export function useServiceHandlers({
   );
 
   const performDeletePackage = useCallback(
-    (packageItem) => {
+    async (packageItem) => {
+      try {
+        await deletePackage(packageItem.id);
+      } catch (error) {
+        pushNotification({
+          title: "Пакет не удален",
+          message: error?.message || "Backend не удалил пакет",
+          persist: false,
+        });
+        return;
+      }
+
       setPackagesCatalog((current) =>
         current.filter((item) => item.id !== packageItem.id),
       );

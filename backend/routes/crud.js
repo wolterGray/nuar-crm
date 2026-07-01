@@ -228,6 +228,108 @@ const buildSupplyData = (payload) => ({
   payload,
 });
 
+const buildPackageData = (payload) => ({
+  name: String(payload?.name ?? '').trim(),
+  service: cleanOptionalString(payload?.service),
+  visitsCount:
+    payload?.visitsCount !== undefined && payload?.visitsCount !== null
+      ? Number(payload.visitsCount) || 0
+      : null,
+  price:
+    payload?.price !== undefined && payload?.price !== null
+      ? Number(payload.price) || 0
+      : null,
+  validityDays:
+    payload?.validityDays !== undefined && payload?.validityDays !== null
+      ? Number(payload.validityDays) || 0
+      : null,
+  status: cleanOptionalString(payload?.status),
+  active: payload?.active !== undefined ? Boolean(payload.active) : payload?.status !== 'Неактивен',
+  payload,
+});
+
+const buildClientPackageData = (payload) => ({
+  clientId: payload?.clientId ? Number(payload.clientId) : null,
+  packageId: payload?.packageId ? Number(payload.packageId) : null,
+  employeeId: payload?.employeeId ? Number(payload.employeeId) : null,
+  clientName: cleanOptionalString(payload?.client),
+  packageName: cleanOptionalString(payload?.packageName),
+  service: cleanOptionalString(payload?.service),
+  totalVisits:
+    payload?.totalVisits !== undefined && payload?.totalVisits !== null
+      ? Number(payload.totalVisits) || 0
+      : null,
+  remainingVisits:
+    payload?.remainingVisits !== undefined && payload?.remainingVisits !== null
+      ? Number(payload.remainingVisits) || 0
+      : null,
+  price:
+    payload?.price !== undefined && payload?.price !== null
+      ? Number(payload.price) || 0
+      : null,
+  purchaseDate: cleanOptionalString(payload?.purchaseDate),
+  expiryDate: cleanOptionalString(payload?.expiryDate),
+  payment: cleanOptionalString(payload?.payment),
+  status: cleanOptionalString(payload?.status),
+  writeOffHistory: Array.isArray(payload?.writeOffHistory) ? payload.writeOffHistory : [],
+  payload,
+});
+
+const buildCertificateData = (payload) => ({
+  code: String(payload?.code ?? '').trim(),
+  clientId: payload?.clientId ? Number(payload.clientId) : null,
+  recipientId: payload?.recipientId ? Number(payload.recipientId) : null,
+  employeeId: payload?.employeeId ? Number(payload.employeeId) : null,
+  saleVisitId: payload?.saleVisitId ? Number(payload.saleVisitId) : null,
+  clientName: cleanOptionalString(payload?.client),
+  recipientName: cleanOptionalString(payload?.recipient),
+  nominal:
+    payload?.nominal !== undefined && payload?.nominal !== null
+      ? Number(payload.nominal) || 0
+      : null,
+  remainingBalance:
+    payload?.remainingBalance !== undefined && payload?.remainingBalance !== null
+      ? Number(payload.remainingBalance) || 0
+      : null,
+  purchaseDate: cleanOptionalString(payload?.purchaseDate),
+  usedDate: cleanOptionalString(payload?.usedDate),
+  expiryDate: cleanOptionalString(payload?.expiryDate),
+  payment: cleanOptionalString(payload?.payment),
+  status: cleanOptionalString(payload?.status),
+  note: cleanOptionalString(payload?.note),
+  payload,
+});
+
+const buildDayCloseRecordData = (payload) => {
+  const payments = payload?.journal?.paymentsByMethod ?? {};
+
+  return {
+    date: String(payload?.date ?? '').trim(),
+    cash: Number(payments.cash ?? payments['Наличные'] ?? payload?.cash ?? payload?.journal?.cashReceived) || 0,
+    card: Number(payments.card ?? payments['Карта'] ?? payload?.card ?? payload?.journal?.cardReceived) || 0,
+    blik: Number(payments.blik ?? payments['BLIK'] ?? payload?.blik) || 0,
+    certificates: Number(payload?.certificates ?? payments.certificate ?? payments['Сертификат']) || 0,
+    packages: Number(payload?.packages ?? payments.package ?? payments['Пакет']) || 0,
+    total: Number(payload?.journal?.receivedRevenue ?? payload?.total) || 0,
+    status: cleanOptionalString(payload?.status),
+    note: cleanOptionalString(payload?.note),
+    payload,
+  };
+};
+
+const buildPayrollRecordData = (payload) => ({
+  employeeId: payload?.employeeId ? Number(payload.employeeId) : null,
+  employeeName: cleanOptionalString(payload?.employeeName),
+  startDate: cleanOptionalString(payload?.startDate),
+  endDate: cleanOptionalString(payload?.endDate),
+  periodKey: String(payload?.periodKey ?? '').trim(),
+  amount: Number(payload?.amount ?? payload?.report?.totals?.totalPayout) || 0,
+  status: cleanOptionalString(payload?.status),
+  paidAt: payload?.paidAt ? new Date(payload.paidAt) : null,
+  note: cleanOptionalString(payload?.note),
+  payload,
+});
+
 // ==================== Visit state used by the CRM UI ====================
 router.get('/visit-state', async (req, res) => {
   try {
@@ -577,6 +679,194 @@ router.get('/supplies', (req, res) => {
       .findMany({orderBy: {name: 'asc'}})
       .then((records) => records.map(withStoredId)),
   );
+});
+
+// ==================== Financial core ====================
+router.get('/financial-state', async (req, res) => {
+  try {
+    const [
+      packages,
+      clientPackages,
+      certificates,
+      dayCloseRecords,
+      payrollRecords,
+    ] = await Promise.all([
+      prisma.package.findMany({orderBy: {name: 'asc'}}),
+      prisma.clientPackage.findMany({orderBy: {createdAt: 'desc'}}),
+      prisma.certificate.findMany({orderBy: {createdAt: 'desc'}}),
+      prisma.dayCloseRecord.findMany({orderBy: {date: 'desc'}}),
+      prisma.payrollRecord.findMany({orderBy: {paidAt: 'desc'}}),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        packages: packages.map(withStoredId),
+        clientPackages: clientPackages.map(withStoredId),
+        certificates: certificates.map(withStoredId),
+        dayCloseRecords: dayCloseRecords.map(withStoredId),
+        payrollRecords: payrollRecords.map(withStoredId),
+      },
+    });
+  } catch (err) {
+    console.error('Financial state error:', err);
+    res.status(400).json({success: false, error: err.message});
+  }
+});
+
+router.post('/packages', (req, res) => {
+  const data = buildPackageData(req.body ?? {});
+  if (!data.name) {
+    return res.status(400).json({success: false, error: 'Package name is required'});
+  }
+
+  respond(res, prisma.package.create({data}).then(withStoredId));
+});
+
+router.get('/packages/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.package.findUnique({where: {id}}).then(withStoredId));
+});
+
+router.put('/packages/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const data = buildPackageData({...(req.body ?? {}), id});
+  if (!data.name) {
+    return res.status(400).json({success: false, error: 'Package name is required'});
+  }
+
+  respond(res, prisma.package.update({where: {id}, data}).then(withStoredId));
+});
+
+router.delete('/packages/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.package.delete({where: {id}}).then(withStoredId));
+});
+
+router.get('/packages', (req, res) => {
+  respond(res, prisma.package.findMany({orderBy: {name: 'asc'}}).then((records) => records.map(withStoredId)));
+});
+
+router.post('/client-packages', (req, res) => {
+  const data = buildClientPackageData(req.body ?? {});
+  if (!data.clientName || !data.packageName) {
+    return res.status(400).json({success: false, error: 'Client package requires client and package'});
+  }
+
+  respond(res, prisma.clientPackage.create({data}).then(withStoredId));
+});
+
+router.get('/client-packages/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.clientPackage.findUnique({where: {id}}).then(withStoredId));
+});
+
+router.put('/client-packages/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const data = buildClientPackageData({...(req.body ?? {}), id});
+  if (!data.clientName || !data.packageName) {
+    return res.status(400).json({success: false, error: 'Client package requires client and package'});
+  }
+
+  respond(res, prisma.clientPackage.update({where: {id}, data}).then(withStoredId));
+});
+
+router.delete('/client-packages/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.clientPackage.delete({where: {id}}).then(withStoredId));
+});
+
+router.get('/client-packages', (req, res) => {
+  respond(res, prisma.clientPackage.findMany({orderBy: {createdAt: 'desc'}}).then((records) => records.map(withStoredId)));
+});
+
+router.post('/certificates', (req, res) => {
+  const data = buildCertificateData(req.body ?? {});
+  if (!data.code || !data.clientName) {
+    return res.status(400).json({success: false, error: 'Certificate code and client are required'});
+  }
+
+  respond(res, prisma.certificate.create({data}).then(withStoredId));
+});
+
+router.get('/certificates/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.certificate.findUnique({where: {id}}).then(withStoredId));
+});
+
+router.put('/certificates/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const data = buildCertificateData({...(req.body ?? {}), id});
+  if (!data.code || !data.clientName) {
+    return res.status(400).json({success: false, error: 'Certificate code and client are required'});
+  }
+
+  respond(res, prisma.certificate.update({where: {id}, data}).then(withStoredId));
+});
+
+router.delete('/certificates/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.certificate.delete({where: {id}}).then(withStoredId));
+});
+
+router.get('/certificates', (req, res) => {
+  respond(res, prisma.certificate.findMany({orderBy: {createdAt: 'desc'}}).then((records) => records.map(withStoredId)));
+});
+
+router.post('/day-close-records', (req, res) => {
+  const data = buildDayCloseRecordData(req.body ?? {});
+  if (!data.date) {
+    return res.status(400).json({success: false, error: 'Day close date is required'});
+  }
+
+  respond(res, prisma.dayCloseRecord.create({data}).then(withStoredId));
+});
+
+router.put('/day-close-records/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const data = buildDayCloseRecordData({...(req.body ?? {}), id});
+  if (!data.date) {
+    return res.status(400).json({success: false, error: 'Day close date is required'});
+  }
+
+  respond(res, prisma.dayCloseRecord.update({where: {id}, data}).then(withStoredId));
+});
+
+router.delete('/day-close-records/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.dayCloseRecord.delete({where: {id}}).then(withStoredId));
+});
+
+router.get('/day-close-records', (req, res) => {
+  respond(res, prisma.dayCloseRecord.findMany({orderBy: {date: 'desc'}}).then((records) => records.map(withStoredId)));
+});
+
+router.post('/payroll-records', (req, res) => {
+  const data = buildPayrollRecordData(req.body ?? {});
+  if (!data.periodKey) {
+    return res.status(400).json({success: false, error: 'Payroll period is required'});
+  }
+
+  respond(res, prisma.payrollRecord.create({data}).then(withStoredId));
+});
+
+router.put('/payroll-records/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const data = buildPayrollRecordData({...(req.body ?? {}), id});
+  if (!data.periodKey) {
+    return res.status(400).json({success: false, error: 'Payroll period is required'});
+  }
+
+  respond(res, prisma.payrollRecord.update({where: {id}, data}).then(withStoredId));
+});
+
+router.delete('/payroll-records/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.payrollRecord.delete({where: {id}}).then(withStoredId));
+});
+
+router.get('/payroll-records', (req, res) => {
+  respond(res, prisma.payrollRecord.findMany({orderBy: {paidAt: 'desc'}}).then((records) => records.map(withStoredId)));
 });
 
 module.exports = router;

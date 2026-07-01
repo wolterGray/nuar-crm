@@ -30,6 +30,9 @@ model Client {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   visits          Visit[]
+  clientPackages  ClientPackage[]
+  certificates    Certificate[] @relation("CertificateBuyer")
+  certificateUses Certificate[] @relation("CertificateRecipient")
 }
 
 model Service {
@@ -73,6 +76,9 @@ model Employee {
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
   visits                 Visit[]
+  soldClientPackages     ClientPackage[]
+  soldCertificates       Certificate[]
+  payrollRecords         PayrollRecord[]
 }
 
 model Visit {
@@ -91,6 +97,8 @@ model Visit {
   client    Client?  @relation(fields: [clientId], references: [id])
   service   Service? @relation(fields: [serviceId], references: [id])
   employee  Employee? @relation(fields: [employeeId], references: [id])
+  packageUsages ClientPackageUsage[]
+  certificateUsages CertificateUsage[]
 }
 
 model CalendarEntry {
@@ -151,4 +159,134 @@ model Supply {
   payload   Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Package {
+  id             Int      @id @default(autoincrement())
+  name           String
+  service        String?
+  visitsCount    Int?
+  price          Decimal?
+  validityDays   Int?
+  status         String?
+  active         Boolean  @default(true)
+  payload        Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  clientPackages ClientPackage[]
+}
+
+model ClientPackage {
+  id              Int      @id @default(autoincrement())
+  clientId        Int?
+  packageId       Int?
+  employeeId      Int?
+  clientName      String?
+  packageName     String?
+  service         String?
+  totalVisits     Int?
+  remainingVisits Int?
+  price           Decimal?
+  purchaseDate    String?
+  expiryDate      String?
+  payment         String?
+  status          String?
+  writeOffHistory Json?
+  payload         Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client          Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  package         Package? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  employee        Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  usages          ClientPackageUsage[]
+}
+
+model ClientPackageUsage {
+  id              Int      @id @default(autoincrement())
+  clientPackageId Int
+  visitId         Int?
+  sessionsUsed    Int      @default(1)
+  usedAt          DateTime @default(now())
+  payload         Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  clientPackage   ClientPackage @relation(fields: [clientPackageId], references: [id], onDelete: Cascade)
+  visit           Visit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+}
+
+model Certificate {
+  id               Int      @id @default(autoincrement())
+  code             String   @unique
+  clientId         Int?
+  recipientId      Int?
+  employeeId       Int?
+  saleVisitId      Int?
+  clientName       String?
+  recipientName    String?
+  nominal          Decimal?
+  remainingBalance Decimal?
+  purchaseDate     String?
+  usedDate         String?
+  expiryDate       String?
+  payment          String?
+  status           String?
+  note             String?
+  payload          Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  client           Client? @relation("CertificateBuyer", fields: [clientId], references: [id], onDelete: SetNull)
+  recipient        Client? @relation("CertificateRecipient", fields: [recipientId], references: [id], onDelete: SetNull)
+  employee         Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  usages           CertificateUsage[]
+}
+
+model CertificateUsage {
+  id            Int      @id @default(autoincrement())
+  certificateId Int
+  visitId       Int?
+  amount        Decimal?
+  usedAt        DateTime @default(now())
+  payload       Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  certificate   Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  visit         Visit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+}
+
+model DayCloseRecord {
+  id             Int      @id @default(autoincrement())
+  date           String   @unique
+  cash           Decimal?
+  card           Decimal?
+  blik           Decimal?
+  certificates   Decimal?
+  packages       Decimal?
+  total          Decimal?
+  status         String?
+  note           String?
+  payload        Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model PayrollRecord {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int?
+  employeeName String?
+  startDate   String?
+  endDate     String?
+  periodKey   String   @unique
+  amount      Decimal?
+  status      String?
+  paidAt      DateTime?
+  note        String?
+  payload     Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employee    Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
 }

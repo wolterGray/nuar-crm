@@ -114,6 +114,11 @@ import {fetchEmployees} from "./api/employees.js";
 import {fetchTasks} from "./api/tasks.js";
 import {fetchWaitlist} from "./api/waitlist.js";
 import {fetchSupplies} from "./api/supplies.js";
+import {
+  fetchFinancialState,
+  updateCertificate,
+  updateClientPackage,
+} from "./api/financial.js";
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
 function App() {
@@ -402,6 +407,52 @@ function App() {
     };
 
     loadBackendOperations();
+
+    return () => {
+      active = false;
+    };
+  }, [authSession, pushNotification]);
+
+  useEffect(() => {
+    if (!authSession) {
+      return undefined;
+    }
+
+    let active = true;
+
+    const loadBackendFinancialState = async () => {
+      try {
+        const response = await fetchFinancialState();
+        if (!active) {
+          return;
+        }
+
+        const data = response?.data ?? {};
+        setPackagesCatalog(Array.isArray(data.packages) ? data.packages : []);
+        setClientPackages(
+          Array.isArray(data.clientPackages) ? data.clientPackages : [],
+        );
+        setCertificates(Array.isArray(data.certificates) ? data.certificates : []);
+        setDayCloseRecords(
+          Array.isArray(data.dayCloseRecords) ? data.dayCloseRecords : [],
+        );
+        setPayrollRecords(
+          Array.isArray(data.payrollRecords) ? data.payrollRecords : [],
+        );
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        pushNotification({
+          title: "Финансы не загружены",
+          message: error?.message || "Не удалось загрузить финансовый блок из backend",
+          persist: false,
+        });
+      }
+    };
+
+    loadBackendFinancialState();
 
     return () => {
       active = false;
@@ -1047,7 +1098,7 @@ function App() {
           packageItem.remainingVisits +
           (Number(previousVisit.packageSessionsUsed) || 0);
 
-        return {
+        const restoredPackage = {
           ...packageItem,
           remainingVisits: Math.min(restored, packageItem.totalVisits),
           status: resolveClientPackageStatus(
@@ -1055,6 +1106,16 @@ function App() {
             packageItem.status,
           ),
         };
+
+        void updateClientPackage(restoredPackage.id, restoredPackage).catch((error) => {
+          pushNotificationRef.current({
+            title: "Пакет не обновился",
+            message: error?.message || "Backend не восстановил остаток пакета",
+            persist: false,
+          });
+        });
+
+        return restoredPackage;
       });
 
       return restorePrevious.map((packageItem) => {
@@ -1065,14 +1126,34 @@ function App() {
         const used = Number(nextVisit.packageSessionsUsed) || 0;
         const nextRemaining = Math.max(0, packageItem.remainingVisits - used);
 
-        return {
+        const nextPackage = {
           ...packageItem,
           remainingVisits: nextRemaining,
           status: resolveClientPackageStatus(nextRemaining, packageItem.status),
+          writeOffHistory: [
+            ...(Array.isArray(packageItem.writeOffHistory)
+              ? packageItem.writeOffHistory
+              : []),
+            {
+              sessionsUsed: used,
+              usedAt: new Date().toISOString(),
+              visitId: nextVisit?.id ?? "",
+            },
+          ],
         };
+
+        void updateClientPackage(nextPackage.id, nextPackage).catch((error) => {
+          pushNotificationRef.current({
+            title: "Пакет не обновился",
+            message: error?.message || "Backend не списал посещение пакета",
+            persist: false,
+          });
+        });
+
+        return nextPackage;
       });
     });
-  }, [setClientPackages]);
+  }, [pushNotificationRef, setClientPackages]);
 
   const updateCertificateBalance = useCallback((previousVisit, nextVisit) => {
     setCertificates((current) => {
@@ -1087,10 +1168,20 @@ function App() {
           Number(certificate.remainingBalance) +
           (Number(previousVisit.certificateAmountUsed) || 0);
 
-        return syncCertificateStatus({
+        const restoredCertificate = syncCertificateStatus({
           ...certificate,
           remainingBalance: Math.min(restoredBalance, certificate.nominal),
         });
+
+        void updateCertificate(restoredCertificate.id, restoredCertificate).catch((error) => {
+          pushNotificationRef.current({
+            title: "Сертификат не обновился",
+            message: error?.message || "Backend не восстановил баланс сертификата",
+            persist: false,
+          });
+        });
+
+        return restoredCertificate;
       });
 
       return restored.map((certificate) => {
@@ -1101,13 +1192,24 @@ function App() {
         const used = Number(nextVisit.certificateAmountUsed) || 0;
         const nextBalance = Math.max(0, certificate.remainingBalance - used);
 
-        return syncCertificateStatus({
+        const nextCertificate = syncCertificateStatus({
           ...certificate,
           remainingBalance: nextBalance,
+          usedDate: nextBalance <= 0 ? nextVisit?.date || certificate.usedDate : certificate.usedDate,
         });
+
+        void updateCertificate(nextCertificate.id, nextCertificate).catch((error) => {
+          pushNotificationRef.current({
+            title: "Сертификат не обновился",
+            message: error?.message || "Backend не списал оплату сертификатом",
+            persist: false,
+          });
+        });
+
+        return nextCertificate;
       });
     });
-  }, [setCertificates]);
+  }, [pushNotificationRef, setCertificates]);
 
   const onCalendarSlotFreedRef = useRef(() => {});
 

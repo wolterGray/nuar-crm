@@ -7,11 +7,16 @@ import {
 } from "../utils/certificates.js";
 import {toDisplayDate} from "../utils/formatters.jsx";
 import {toVisitNumber} from "../utils/visits.jsx";
+import {
+  createCertificate,
+  deleteCertificate,
+  updateCertificate,
+} from "../api/financial.js";
+import {createVisit} from "../api/visits.js";
 
 export function useCertificateHandlers({
   certificates,
   clientProfiles,
-  createLocalId,
   editingCertificate,
   pushNotification,
   requestEntityDelete,
@@ -34,7 +39,7 @@ export function useCertificateHandlers({
   );
 
   const handleCertificateSubmit = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const nominal = toVisitNumber(form.get("nominal"));
@@ -60,7 +65,7 @@ export function useCertificateHandlers({
       }
 
       const certificate = syncCertificateStatus({
-        id: editingCertificate?.id ?? createLocalId(),
+        ...(editingCertificate?.id ? {id: editingCertificate.id} : {}),
         code,
         client: buyer.client,
         clientId: buyer.clientId || "",
@@ -80,19 +85,43 @@ export function useCertificateHandlers({
       });
 
       if (editingCertificate) {
+        let savedCertificate;
+        try {
+          const response = await updateCertificate(editingCertificate.id, certificate);
+          savedCertificate = response?.data ?? certificate;
+        } catch (error) {
+          pushNotification({
+            title: "Сертификат не обновлён",
+            message: error?.message || "Backend не принял сертификат",
+            persist: false,
+          });
+          return;
+        }
+
         setCertificates((current) =>
           current.map((item) =>
-            item.id === certificate.id ? certificate : item,
+            item.id === savedCertificate.id ? savedCertificate : item,
           ),
         );
         pushNotification({
           title: "Сертификат обновлён",
-          message: `${certificate.code} · ${certificate.client}`,
+          message: `${savedCertificate.code} · ${savedCertificate.client}`,
         });
       } else {
-        const saleVisitId = createLocalId();
-        const saleVisit = attachClientLink(clientProfiles, {
-          id: saleVisitId,
+        let savedCertificate;
+        try {
+          const response = await createCertificate(certificate);
+          savedCertificate = response?.data ?? certificate;
+        } catch (error) {
+          pushNotification({
+            title: "Сертификат не продан",
+            message: error?.message || "Backend не принял сертификат",
+            persist: false,
+          });
+          return;
+        }
+
+        const saleVisitPayload = attachClientLink(clientProfiles, {
           amount: 0,
           client: certificate.client,
           clientId: certificate.clientId,
@@ -112,14 +141,41 @@ export function useCertificateHandlers({
           recordType: "operation",
           service: "Продажа сертификата",
           tip: 0,
-          certificateId: certificate.id,
+          certificateId: savedCertificate.id,
         });
+        let savedVisit = saleVisitPayload;
+
+        try {
+          const response = await createVisit(saleVisitPayload);
+          savedVisit = response?.data ?? saleVisitPayload;
+        } catch (error) {
+          pushNotification({
+            title: "Операция продажи не сохранена",
+            message: error?.message || "Сертификат создан, но визит продажи не записан",
+            persist: false,
+          });
+        }
+
+        const certificateWithSale = {
+          ...savedCertificate,
+          saleVisitId: savedVisit.id ?? "",
+        };
+
+        try {
+          await updateCertificate(savedCertificate.id, certificateWithSale);
+        } catch (error) {
+          pushNotification({
+            title: "Связь продажи не сохранена",
+            message: error?.message || "Сертификат создан, но saleVisitId не обновился",
+            persist: false,
+          });
+        }
 
         setCertificates((current) => [
-          {...certificate, saleVisitId},
+          certificateWithSale,
           ...current,
         ]);
-        setVisits((current) => [saleVisit, ...current]);
+        setVisits((current) => [savedVisit, ...current]);
         pushNotification({
           title: "Сертификат продан",
           message: `${certificate.code} · ${nominal} zł`,
@@ -132,7 +188,6 @@ export function useCertificateHandlers({
     [
       certificates,
       clientProfiles,
-      createLocalId,
       editingCertificate,
       pushNotification,
       setCertificateModalOpen,
@@ -150,7 +205,18 @@ export function useCertificateHandlers({
   );
 
   const performDeleteCertificate = useCallback(
-    (certificate) => {
+    async (certificate) => {
+      try {
+        await deleteCertificate(certificate.id);
+      } catch (error) {
+        pushNotification({
+          title: "Сертификат не удалён",
+          message: error?.message || "Backend не удалил сертификат",
+          persist: false,
+        });
+        return;
+      }
+
       setCertificates((current) =>
         current.filter((item) => item.id !== certificate.id),
       );

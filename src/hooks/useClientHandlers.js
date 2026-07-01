@@ -14,10 +14,14 @@ import {
   deleteClient,
   updateClient,
 } from "../api/clients.js";
+import {
+  createClientPackage,
+  deleteClientPackage,
+  updateClientPackage,
+} from "../api/financial.js";
 
 export function useClientHandlers({
   clientProfiles,
-  createLocalId,
   editingClient,
   editingClientPackage,
   openCreateCalendarEntry,
@@ -332,7 +336,7 @@ export function useClientHandlers({
   );
 
   const handleClientPackageSubmit = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const packageTemplateId = Number(form.get("packageTemplateId"));
@@ -351,7 +355,7 @@ export function useClientHandlers({
         0;
       const remainingVisits = Number(form.get("remainingVisits")) || 0;
       const clientPackage = attachClientLink(clientProfiles, {
-        id: editingClientPackage?.id ?? createLocalId(),
+        ...(editingClientPackage?.id ? {id: editingClientPackage.id} : {}),
         client: form.get("client"),
         packageId: packageTemplate?.id ?? editingClientPackage?.packageId,
         packageName:
@@ -368,24 +372,38 @@ export function useClientHandlers({
           form.get("status"),
         ),
       });
+      let savedClientPackage;
+
+      try {
+        const response = editingClientPackage
+          ? await updateClientPackage(editingClientPackage.id, clientPackage)
+          : await createClientPackage(clientPackage);
+        savedClientPackage = response?.data ?? clientPackage;
+      } catch (error) {
+        pushNotification({
+          title: editingClientPackage ? "Остаток не обновлен" : "Пакет не продан",
+          message: error?.message || "Backend не принял пакет клиента",
+          persist: false,
+        });
+        return;
+      }
 
       setClientPackages((current) =>
         editingClientPackage
           ? current.map((item) =>
-              item.id === clientPackage.id ? clientPackage : item,
+              item.id === savedClientPackage.id ? savedClientPackage : item,
             )
-          : [clientPackage, ...current],
+          : [savedClientPackage, ...current],
       );
       setClientPackageModalOpen(false);
       setEditingClientPackage(null);
       pushNotification({
         title: editingClientPackage ? "Остаток обновлен" : "Пакет продан",
-        message: `${clientPackage.client}: использовано ${getPackageProgressLabel(clientPackage)}`,
+        message: `${savedClientPackage.client}: использовано ${getPackageProgressLabel(savedClientPackage)}`,
       });
     },
     [
       clientProfiles,
-      createLocalId,
       editingClientPackage,
       packagesCatalog,
       pushNotification,
@@ -403,7 +421,18 @@ export function useClientHandlers({
   );
 
   const performDeleteClientPackage = useCallback(
-    (packageItem) => {
+    async (packageItem) => {
+      try {
+        await deleteClientPackage(packageItem.id);
+      } catch (error) {
+        pushNotification({
+          title: "Пакет клиента не удален",
+          message: error?.message || "Backend не удалил пакет клиента",
+          persist: false,
+        });
+        return;
+      }
+
       setClientPackages((current) =>
         current.filter((item) => item.id !== packageItem.id),
       );
