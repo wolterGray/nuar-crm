@@ -1,7 +1,11 @@
 import {useCallback} from "react";
+import {
+  createSupply,
+  deleteSupply,
+  updateSupply,
+} from "../api/supplies.js";
 
 export function useSupplyHandlers({
-  createLocalId,
   editingSupply,
   pushNotification,
   requestEntityDelete,
@@ -23,7 +27,7 @@ export function useSupplyHandlers({
   );
 
   const handleSupplySubmit = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const name = String(form.get("name") ?? "").trim();
@@ -33,7 +37,7 @@ export function useSupplyHandlers({
       }
 
       const supply = {
-        id: editingSupply?.id ?? createLocalId(),
+        ...(editingSupply?.id ? {id: editingSupply.id} : {}),
         name,
         stock: Math.max(0, Number(form.get("stock")) || 0),
         minStock: Math.max(0, Number(form.get("minStock")) || 0),
@@ -42,18 +46,32 @@ export function useSupplyHandlers({
         note: String(form.get("note") ?? "").trim(),
         orderUrl: String(form.get("orderUrl") ?? "").trim(),
       };
+      let savedSupply;
+
+      try {
+        const response = editingSupply
+          ? await updateSupply(editingSupply.id, supply)
+          : await createSupply(supply);
+        savedSupply = response?.data ?? supply;
+      } catch (error) {
+        pushNotification({
+          title: "Расходник не сохранён",
+          message: error?.message || "Backend не принял изменения",
+          persist: false,
+        });
+        return;
+      }
 
       setSupplies((current) =>
         editingSupply
-          ? current.map((item) => (item.id === supply.id ? supply : item))
-          : [supply, ...current],
+          ? current.map((item) => (item.id === savedSupply.id ? savedSupply : item))
+          : [savedSupply, ...current],
       );
       setSupplyModalOpen(false);
       setEditingSupply(null);
-      pushNotification({title: "Расходник сохранён", message: supply.name});
+      pushNotification({title: "Расходник сохранён", message: savedSupply.name});
     },
     [
-      createLocalId,
       editingSupply,
       pushNotification,
       setEditingSupply,
@@ -63,16 +81,29 @@ export function useSupplyHandlers({
   );
 
   const changeSupplyStock = useCallback(
-    (supply, difference) => {
+    async (supply, difference) => {
+      const nextSupply = {
+        ...supply,
+        stock: Math.max(0, Number(supply.stock) + difference),
+      };
+      try {
+        await updateSupply(supply.id, nextSupply);
+      } catch (error) {
+        pushNotification({
+          title: "Остаток не обновлён",
+          message: error?.message || "Backend не принял остаток",
+          persist: false,
+        });
+        return;
+      }
+
       setSupplies((current) =>
         current.map((item) =>
-          item.id === supply.id
-            ? {...item, stock: Math.max(0, Number(item.stock) + difference)}
-            : item,
+          item.id === supply.id ? nextSupply : item,
         ),
       );
     },
-    [setSupplies],
+    [pushNotification, setSupplies],
   );
 
   const requestDeleteSupply = useCallback(
@@ -83,7 +114,18 @@ export function useSupplyHandlers({
   );
 
   const performDeleteSupply = useCallback(
-    (supply) => {
+    async (supply) => {
+      try {
+        await deleteSupply(supply.id);
+      } catch (error) {
+        pushNotification({
+          title: "Расходник не удалён",
+          message: error?.message || "Backend не удалил расходник",
+          persist: false,
+        });
+        return;
+      }
+
       setSupplies((current) => current.filter((item) => item.id !== supply.id));
       pushNotification({title: "Расходник удалён", message: supply.name});
     },

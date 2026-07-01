@@ -1,4 +1,9 @@
 import {useCallback, useState} from "react";
+import {
+  createWaitlistEntry,
+  deleteWaitlistEntry,
+  updateWaitlistEntry,
+} from "../api/waitlist.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
 import {getClientMessageName} from "../utils/clientMessageName.js";
 import {resolveAutomatedMessageTemplate} from "../utils/messageTemplates.js";
@@ -14,7 +19,6 @@ import {
 export function useWaitlistHandlers({
   appSettings,
   clientProfiles,
-  createLocalId,
   messageTemplates = [],
   openClientMessageTemplates,
   openCreateCalendarEntry,
@@ -46,32 +50,45 @@ export function useWaitlistHandlers({
   }, []);
 
   const saveWaitlistEntry = useCallback(
-    (formValues) => {
+    async (formValues) => {
       if (editingWaitlistEntry) {
+        const nextEntry = {
+          ...editingWaitlistEntry,
+          note: formValues.note,
+          preferredDate: formValues.preferredDate,
+          preferredMaster: formValues.preferredMaster,
+          preferredService: formValues.preferredService,
+          preferredTimeFrom: formValues.preferredTimeFrom,
+          preferredTimeTo: formValues.preferredTimeTo,
+        };
+
+        let savedEntry;
+        try {
+          const response = await updateWaitlistEntry(editingWaitlistEntry.id, nextEntry);
+          savedEntry = response?.data ?? nextEntry;
+        } catch (error) {
+          pushNotification({
+            title: "Лист ожидания не обновлён",
+            message: error?.message || "Backend не принял изменения",
+            persist: false,
+          });
+          return false;
+        }
+
         setWaitlistEntries((current) =>
           current.map((entry) =>
-            entry.id === editingWaitlistEntry.id
-              ? {
-                  ...entry,
-                  note: formValues.note,
-                  preferredDate: formValues.preferredDate,
-                  preferredMaster: formValues.preferredMaster,
-                  preferredService: formValues.preferredService,
-                  preferredTimeFrom: formValues.preferredTimeFrom,
-                  preferredTimeTo: formValues.preferredTimeTo,
-                }
-              : entry,
+            entry.id === editingWaitlistEntry.id ? savedEntry : entry,
           ),
         );
         pushNotification({
           title: "Лист ожидания обновлён",
-          message: editingWaitlistEntry.clientName,
+          message: savedEntry.clientName,
         });
       } else {
         const nextEntry = buildWaitlistEntry({
           client: formValues.client,
           clientProfiles,
-          createId: createLocalId,
+          createId: () => undefined,
           note: formValues.note,
           preferredDate: formValues.preferredDate,
           preferredMaster: formValues.preferredMaster,
@@ -89,10 +106,23 @@ export function useWaitlistHandlers({
           return false;
         }
 
-        setWaitlistEntries((current) => [nextEntry, ...current]);
+        let savedEntry;
+        try {
+          const response = await createWaitlistEntry(nextEntry);
+          savedEntry = response?.data ?? nextEntry;
+        } catch (error) {
+          pushNotification({
+            title: "Не удалось добавить в лист",
+            message: error?.message || "Backend не принял запись ожидания",
+            tone: "urgent",
+          });
+          return false;
+        }
+
+        setWaitlistEntries((current) => [savedEntry, ...current]);
         pushNotification({
           title: "Клиент добавлен в лист ожидания",
-          message: nextEntry.clientName,
+          message: savedEntry.clientName,
         });
       }
 
@@ -102,7 +132,6 @@ export function useWaitlistHandlers({
     [
       clientProfiles,
       closeWaitlistModal,
-      createLocalId,
       editingWaitlistEntry,
       pushNotification,
       setWaitlistEntries,
@@ -110,7 +139,18 @@ export function useWaitlistHandlers({
   );
 
   const removeWaitlistEntry = useCallback(
-    (entry) => {
+    async (entry) => {
+      try {
+        await deleteWaitlistEntry(entry.id);
+      } catch (error) {
+        pushNotification({
+          title: "Не удалено из листа ожидания",
+          message: error?.message || "Backend не удалил запись",
+          persist: false,
+        });
+        return;
+      }
+
       setWaitlistEntries((current) => current.filter((item) => item.id !== entry.id));
       pushNotification({
         title: "Удалено из листа ожидания",
@@ -121,21 +161,31 @@ export function useWaitlistHandlers({
   );
 
   const markWaitlistOffered = useCallback(
-    (entry, slot) => {
+    async (entry, slot) => {
+      const nextEntry = {
+        ...entry,
+        lastOfferedAt: new Date().toISOString(),
+        lastOfferedSlot: slot,
+        status: "offered",
+      };
+      try {
+        await updateWaitlistEntry(entry.id, nextEntry);
+      } catch (error) {
+        pushNotification({
+          title: "Лист ожидания не обновлён",
+          message: error?.message || "Backend не принял предложение слота",
+          persist: false,
+        });
+        return;
+      }
+
       setWaitlistEntries((current) =>
         current.map((item) =>
-          item.id === entry.id
-            ? {
-                ...item,
-                lastOfferedAt: new Date().toISOString(),
-                lastOfferedSlot: slot,
-                status: "offered",
-              }
-            : item,
+          item.id === entry.id ? nextEntry : item,
         ),
       );
     },
-    [setWaitlistEntries],
+    [pushNotification, setWaitlistEntries],
   );
 
   const closeWaitlistOffer = useCallback(() => {
@@ -178,7 +228,7 @@ export function useWaitlistHandlers({
         return;
       }
 
-      markWaitlistOffered(entry, slot);
+      void markWaitlistOffered(entry, slot);
       openClientMessageTemplates(client);
       closeWaitlistOffer();
     },
@@ -192,7 +242,7 @@ export function useWaitlistHandlers({
 
   const bookWaitlistClient = useCallback(
     (entry, slot) => {
-      markWaitlistOffered(entry, slot);
+      void markWaitlistOffered(entry, slot);
       openCreateCalendarEntry({
         client: entry.clientName,
         clientId: entry.clientId,

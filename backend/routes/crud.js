@@ -77,6 +77,13 @@ const toDateTime = (date, time) => {
   return Number.isNaN(value.getTime()) ? null : value;
 };
 
+const toDate = (date) => {
+  if (!date) return null;
+
+  const value = new Date(`${date}T00:00:00`);
+  return Number.isNaN(value.getTime()) ? null : value;
+};
+
 const buildVisitData = (payload) => ({
   clientId: null,
   serviceId: null,
@@ -164,6 +171,60 @@ const buildEmployeeData = (payload) => ({
   },
   payrollSettings: payload?.payrollSettings ?? null,
   shifts: payload?.shifts ?? null,
+  payload,
+});
+
+const buildTaskData = (payload) => ({
+  type: cleanOptionalString(payload?.type) || 'task',
+  title: String(payload?.title ?? '').trim(),
+  description: cleanOptionalString(payload?.description ?? payload?.note),
+  note: cleanOptionalString(payload?.note),
+  dueDate: toDate(payload?.dueDate),
+  priority: cleanOptionalString(payload?.priority),
+  status: cleanOptionalString(payload?.status),
+  sortOrder:
+    payload?.sortOrder !== undefined && payload?.sortOrder !== null
+      ? Number(payload.sortOrder) || 0
+      : null,
+  completed:
+    payload?.completed !== undefined
+      ? Boolean(payload.completed)
+      : payload?.status === 'completed',
+  payload,
+});
+
+const buildWaitlistEntryData = (payload) => ({
+  clientId: payload?.clientId ? Number(payload.clientId) : null,
+  clientName: cleanOptionalString(payload?.clientName),
+  preferredDate: cleanOptionalString(payload?.preferredDate),
+  preferredMaster: cleanOptionalString(payload?.preferredMaster),
+  preferredService: cleanOptionalString(payload?.preferredService),
+  preferredTimeFrom: cleanOptionalString(payload?.preferredTimeFrom),
+  preferredTimeTo: cleanOptionalString(payload?.preferredTimeTo),
+  status: cleanOptionalString(payload?.status) || 'active',
+  note: cleanOptionalString(payload?.note),
+  lastOfferedAt: payload?.lastOfferedAt ? new Date(payload.lastOfferedAt) : null,
+  lastOfferedSlot: payload?.lastOfferedSlot ?? null,
+  payload,
+});
+
+const buildSupplyData = (payload) => ({
+  name: String(payload?.name ?? '').trim(),
+  stock:
+    payload?.stock !== undefined && payload?.stock !== null
+      ? Number(payload.stock) || 0
+      : null,
+  minStock:
+    payload?.minStock !== undefined && payload?.minStock !== null
+      ? Number(payload.minStock) || 0
+      : null,
+  unit: cleanOptionalString(payload?.unit),
+  cost:
+    payload?.cost !== undefined && payload?.cost !== null
+      ? Number(payload.cost) || 0
+      : null,
+  note: cleanOptionalString(payload?.note),
+  orderUrl: cleanOptionalString(payload?.orderUrl),
   payload,
 });
 
@@ -403,49 +464,119 @@ router.get('/visits', (req, res) => {
 
 // ==================== Task ====================
 router.post('/tasks', (req, res) => {
-  const { title, description, dueDate, completed } = req.body;
-  respond(
-    res,
-    prisma.task.create({
-      data: {
-        title,
-        description,
-        dueDate: dueDate ? new Date(dueDate) : undefined,
-        completed: !!completed,
-      },
-    })
-  );
+  const data = buildTaskData(req.body ?? {});
+  if (!data.title) {
+    return res.status(400).json({ success: false, error: 'Task title is required' });
+  }
+
+  respond(res, prisma.task.create({data}).then(withStoredId));
 });
 
 router.get('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.task.findUnique({ where: { id } }));
+  respond(res, prisma.task.findUnique({ where: { id } }).then(withStoredId));
 });
 
 router.put('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
-  const { title, description, dueDate, completed } = req.body;
-  respond(
-    res,
-    prisma.task.update({
-      where: { id },
-      data: {
-        title,
-        description,
-        dueDate: dueDate ? new Date(dueDate) : undefined,
-        completed: completed !== undefined ? !!completed : undefined,
-      },
-    })
-  );
+  const data = buildTaskData({...(req.body ?? {}), id});
+  if (!data.title) {
+    return res.status(400).json({ success: false, error: 'Task title is required' });
+  }
+
+  respond(res, prisma.task.update({where: {id}, data}).then(withStoredId));
 });
 
 router.delete('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.task.delete({ where: { id } }));
+  respond(res, prisma.task.delete({ where: { id } }).then(withStoredId));
 });
 
 router.get('/tasks', (req, res) => {
-  respond(res, prisma.task.findMany());
+  respond(
+    res,
+    prisma.task
+      .findMany({orderBy: [{sortOrder: 'asc'}, {createdAt: 'desc'}]})
+      .then((records) => records.map(withStoredId)),
+  );
+});
+
+// ==================== Waitlist ====================
+router.post('/waitlist', (req, res) => {
+  const data = buildWaitlistEntryData(req.body ?? {});
+  if (!data.clientId || !data.clientName) {
+    return res.status(400).json({ success: false, error: 'Waitlist client is required' });
+  }
+
+  respond(res, prisma.waitlistEntry.create({data}).then(withStoredId));
+});
+
+router.get('/waitlist/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.waitlistEntry.findUnique({where: {id}}).then(withStoredId));
+});
+
+router.put('/waitlist/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const data = buildWaitlistEntryData({...(req.body ?? {}), id});
+  if (!data.clientId || !data.clientName) {
+    return res.status(400).json({ success: false, error: 'Waitlist client is required' });
+  }
+
+  respond(res, prisma.waitlistEntry.update({where: {id}, data}).then(withStoredId));
+});
+
+router.delete('/waitlist/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.waitlistEntry.delete({where: {id}}).then(withStoredId));
+});
+
+router.get('/waitlist', (req, res) => {
+  respond(
+    res,
+    prisma.waitlistEntry
+      .findMany({orderBy: {createdAt: 'asc'}})
+      .then((records) => records.map(withStoredId)),
+  );
+});
+
+// ==================== Supply ====================
+router.post('/supplies', (req, res) => {
+  const data = buildSupplyData(req.body ?? {});
+  if (!data.name) {
+    return res.status(400).json({ success: false, error: 'Supply name is required' });
+  }
+
+  respond(res, prisma.supply.create({data}).then(withStoredId));
+});
+
+router.get('/supplies/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.supply.findUnique({where: {id}}).then(withStoredId));
+});
+
+router.put('/supplies/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const data = buildSupplyData({...(req.body ?? {}), id});
+  if (!data.name) {
+    return res.status(400).json({ success: false, error: 'Supply name is required' });
+  }
+
+  respond(res, prisma.supply.update({where: {id}, data}).then(withStoredId));
+});
+
+router.delete('/supplies/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.supply.delete({where: {id}}).then(withStoredId));
+});
+
+router.get('/supplies', (req, res) => {
+  respond(
+    res,
+    prisma.supply
+      .findMany({orderBy: {name: 'asc'}})
+      .then((records) => records.map(withStoredId)),
+  );
 });
 
 module.exports = router;

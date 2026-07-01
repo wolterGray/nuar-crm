@@ -111,6 +111,9 @@ import {fetchClients} from "./api/clients.js";
 import {fetchVisitState} from "./api/visits.js";
 import {fetchServices} from "./api/services.js";
 import {fetchEmployees} from "./api/employees.js";
+import {fetchTasks} from "./api/tasks.js";
+import {fetchWaitlist} from "./api/waitlist.js";
+import {fetchSupplies} from "./api/supplies.js";
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
 function App() {
@@ -356,6 +359,49 @@ function App() {
     };
 
     loadBackendCatalogs();
+
+    return () => {
+      active = false;
+    };
+  }, [authSession, pushNotification]);
+
+  useEffect(() => {
+    if (!authSession) {
+      return undefined;
+    }
+
+    let active = true;
+
+    const loadBackendOperations = async () => {
+      try {
+        const [tasksResponse, waitlistResponse, suppliesResponse] = await Promise.all([
+          fetchTasks(),
+          fetchWaitlist(),
+          fetchSupplies(),
+        ]);
+        if (!active) {
+          return;
+        }
+
+        setTasks(Array.isArray(tasksResponse?.data) ? tasksResponse.data : []);
+        setWaitlistEntries(
+          Array.isArray(waitlistResponse?.data) ? waitlistResponse.data : [],
+        );
+        setSupplies(Array.isArray(suppliesResponse?.data) ? suppliesResponse.data : []);
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        pushNotification({
+          title: "Операции не загружены",
+          message: error?.message || "Не удалось загрузить задачи, лист ожидания и склад",
+          persist: false,
+        });
+      }
+    };
+
+    loadBackendOperations();
 
     return () => {
       active = false;
