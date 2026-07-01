@@ -3,6 +3,10 @@ import {
   buildJournalVisitEntry,
   resolvePaymentRowCalendarEntry,
 } from "../utils/paymentJournal.js";
+import {
+  deleteCalendarEntry,
+  deleteVisit,
+} from "../api/visits.js";
 
 export function usePaymentJournal({
   calendarEntries,
@@ -82,7 +86,7 @@ export function usePaymentJournal({
     setPendingPaymentDelete(null);
   }, []);
 
-  const confirmPaymentDelete = useCallback(() => {
+  const confirmPaymentDelete = useCallback(async () => {
     if (!pendingPaymentDelete) {
       return;
     }
@@ -91,6 +95,18 @@ export function usePaymentJournal({
       const completedVisit = visits.find(
         (item) => item.calendarEntryId === pendingPaymentDelete.calendarEntryId,
       );
+
+      try {
+        await deleteVisit(pendingPaymentDelete.id);
+        await deleteCalendarEntry(pendingPaymentDelete.calendarEntryId);
+      } catch (error) {
+        pushNotification({
+          title: "Запись не удалена",
+          message: error?.message || "Не удалось удалить визит в backend",
+          persist: false,
+        });
+        return;
+      }
 
       setCalendarEntries((current) =>
         current.filter((entry) => entry.id !== pendingPaymentDelete.calendarEntryId),
@@ -113,6 +129,17 @@ export function usePaymentJournal({
         message: `${pendingPaymentDelete.client}: ${pendingPaymentDelete.service}`,
       });
       setPendingPaymentDelete(null);
+      return;
+    }
+
+    try {
+      await deleteVisit(pendingPaymentDelete.id);
+    } catch (error) {
+      pushNotification({
+        title: "Запись не удалена",
+        message: error?.message || "Не удалось удалить визит в backend",
+        persist: false,
+      });
       return;
     }
 

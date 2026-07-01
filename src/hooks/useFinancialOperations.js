@@ -2,10 +2,13 @@ import {useCallback} from "react";
 import {attachClientLink} from "../utils/clientLinks.js";
 import {toDisplayDate} from "../utils/formatters.jsx";
 import {toVisitNumber} from "../utils/visits.jsx";
+import {
+  createVisit,
+  updateVisit,
+} from "../api/visits.js";
 
 export function useFinancialOperations({
   clientProfiles,
-  createLocalId,
   editingFinancialOperation,
   pushNotification,
   setEditingFinancialOperation,
@@ -13,7 +16,7 @@ export function useFinancialOperations({
   setVisits,
 }) {
   const handleFinancialOperationSubmit = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const extra = toVisitNumber(form.get("extra"));
@@ -45,9 +48,23 @@ export function useFinancialOperations({
       });
 
       if (editingFinancialOperation) {
+        const nextOperation = {...editingFinancialOperation, ...operation};
+        let savedOperation = nextOperation;
+        try {
+          const response = await updateVisit(editingFinancialOperation.id, nextOperation);
+          savedOperation = response?.data ?? nextOperation;
+        } catch (error) {
+          pushNotification({
+            title: "Поступление не обновлено",
+            message: error?.message || "Не удалось обновить запись в backend",
+            persist: false,
+          });
+          return;
+        }
+
         setVisits((current) =>
           current.map((item) =>
-            item.id === editingFinancialOperation.id ? {...item, ...operation} : item,
+            item.id === editingFinancialOperation.id ? savedOperation : item,
           ),
         );
         pushNotification({
@@ -55,13 +72,20 @@ export function useFinancialOperations({
           message: `${operationType}: ${extra} zł`,
         });
       } else {
-        setVisits((current) => [
-          {
-            id: createLocalId(),
-            ...operation,
-          },
-          ...current,
-        ]);
+        let savedOperation = operation;
+        try {
+          const response = await createVisit(operation);
+          savedOperation = response?.data ?? operation;
+        } catch (error) {
+          pushNotification({
+            title: "Поступление не добавлено",
+            message: error?.message || "Не удалось сохранить запись в backend",
+            persist: false,
+          });
+          return;
+        }
+
+        setVisits((current) => [savedOperation, ...current]);
         pushNotification({
           title: "Поступление добавлено",
           message: `${operationType}: ${extra} zł`,
@@ -73,7 +97,6 @@ export function useFinancialOperations({
     },
     [
       clientProfiles,
-      createLocalId,
       editingFinancialOperation,
       pushNotification,
       setEditingFinancialOperation,

@@ -108,6 +108,7 @@ import {useCommunicationLog} from "./hooks/useCommunicationLog.js";
 import {usePullRefresh} from "./hooks/usePullRefresh.js";
 import {usePersistentState} from "./hooks/usePersistentState.js";
 import {fetchClients} from "./api/clients.js";
+import {fetchVisitState} from "./api/visits.js";
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
 function App() {
@@ -273,6 +274,43 @@ function App() {
     };
 
     loadBackendClients();
+
+    return () => {
+      active = false;
+    };
+  }, [authSession, pushNotification]);
+
+  useEffect(() => {
+    if (!authSession) {
+      return undefined;
+    }
+
+    let active = true;
+
+    const loadBackendVisits = async () => {
+      try {
+        const response = await fetchVisitState();
+        if (!active) {
+          return;
+        }
+
+        const data = response?.data ?? {};
+        setCalendarEntries(Array.isArray(data.calendarEntries) ? data.calendarEntries : []);
+        setVisits(Array.isArray(data.visits) ? data.visits : []);
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        pushNotification({
+          title: "Визиты не загружены",
+          message: error?.message || "Не удалось загрузить календарь из backend",
+          persist: false,
+        });
+      }
+    };
+
+    loadBackendVisits();
 
     return () => {
       active = false;

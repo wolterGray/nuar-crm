@@ -56,6 +56,103 @@ const buildClientData = (body) => ({
   note: cleanOptionalString(body?.note),
 });
 
+const withStoredId = (record) => ({
+  ...(record.payload && typeof record.payload === 'object' ? record.payload : {}),
+  id: record.id,
+});
+
+const buildCalendarEntryData = (payload) => ({
+  kind: cleanOptionalString(payload?.kind),
+  date: cleanOptionalString(payload?.date),
+  time: cleanOptionalString(payload?.time),
+  status: cleanOptionalString(payload?.status),
+  visitId: payload?.visitId ? Number(payload.visitId) : null,
+  payload,
+});
+
+const toDateTime = (date, time) => {
+  if (!date) return null;
+
+  const value = new Date(`${date}T${time || '00:00'}:00`);
+  return Number.isNaN(value.getTime()) ? null : value;
+};
+
+const buildVisitData = (payload) => ({
+  clientId: null,
+  serviceId: null,
+  scheduledAt: toDateTime(payload?.inputDate || payload?.date, payload?.time),
+  notes: cleanOptionalString(payload?.note),
+  calendarEntryId: payload?.calendarEntryId ? Number(payload.calendarEntryId) : null,
+  recordType: cleanOptionalString(payload?.recordType),
+  payload,
+});
+
+// ==================== Visit state used by the CRM UI ====================
+router.get('/visit-state', async (req, res) => {
+  try {
+    const [calendarEntries, visits] = await Promise.all([
+      prisma.calendarEntry.findMany({orderBy: [{date: 'asc'}, {time: 'asc'}, {id: 'asc'}]}),
+      prisma.visit.findMany({orderBy: {createdAt: 'desc'}}),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        calendarEntries: calendarEntries.map(withStoredId),
+        visits: visits.map(withStoredId),
+      },
+    });
+  } catch (err) {
+    console.error('Visit state error:', err);
+    res.status(400).json({success: false, error: err.message});
+  }
+});
+
+router.post('/calendar-entries', (req, res) => {
+  const payload = req.body ?? {};
+  respond(
+    res,
+    prisma.calendarEntry
+      .create({data: buildCalendarEntryData(payload)})
+      .then(withStoredId)
+  );
+});
+
+router.put('/calendar-entries/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const payload = {...(req.body ?? {}), id};
+  respond(
+    res,
+    prisma.calendarEntry
+      .update({where: {id}, data: buildCalendarEntryData(payload)})
+      .then(withStoredId)
+  );
+});
+
+router.delete('/calendar-entries/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.calendarEntry.delete({where: {id}}).then(withStoredId));
+});
+
+router.post('/visits/journal', (req, res) => {
+  const payload = req.body ?? {};
+  respond(res, prisma.visit.create({data: buildVisitData(payload)}).then(withStoredId));
+});
+
+router.put('/visits/journal/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const payload = {...(req.body ?? {}), id};
+  respond(
+    res,
+    prisma.visit.update({where: {id}, data: buildVisitData(payload)}).then(withStoredId),
+  );
+});
+
+router.delete('/visits/journal/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.visit.delete({where: {id}}).then(withStoredId));
+});
+
 // ==================== Client ====================
 router.get('/clients', (req, res) => {
   respond(

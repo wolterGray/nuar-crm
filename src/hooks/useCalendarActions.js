@@ -16,6 +16,14 @@ import {
 } from "../utils/certificates.js";
 import {getVisitDiscountedAmount} from "../utils/finance.js";
 import {toVisitNumber} from "../utils/visits.jsx";
+import {
+  createCalendarEntry,
+  createVisit,
+  deleteCalendarEntry as deleteBackendCalendarEntry,
+  deleteVisit,
+  updateCalendarEntry,
+  updateVisit,
+} from "../api/visits.js";
 
 export function useCalendarActions({
   appSettings,
@@ -75,46 +83,67 @@ export function useCalendarActions({
   ]);
 
   const syncCompletedCalendarVisit = useCallback(
-    (entry) => {
+    async (entry) => {
       if (entry.kind !== "visit" || !entry.visitId) {
         return;
+      }
+
+      const previousVisit = visits.find(
+        (visit) => visit.id === entry.visitId || visit.calendarEntryId === entry.id,
+      );
+      if (!previousVisit) {
+        return;
+      }
+
+      const nextVisit = attachClientLink(clientProfiles, {
+        ...previousVisit,
+        date: toDisplayDate(entry.date),
+        client: entry.client,
+        clientId: entry.clientId,
+        master: entry.master,
+        service: entry.service,
+        amount: toVisitNumber(entry.amount),
+        payment: entry.payment || "Не указано",
+        packageUsageId: entry.packageUsageId || "",
+        packageName: entry.packageName || "",
+        packageSessionsUsed: entry.packageSessionsUsed || 0,
+        certificateUsageId: entry.certificateUsageId || "",
+        certificateCode: entry.certificateCode || "",
+        certificateAmountUsed: entry.certificateAmountUsed || 0,
+        tip: toVisitNumber(entry.tip),
+        commissionType: entry.commissionType || "Без комиссии",
+        extra: toVisitNumber(entry.extra),
+        debt: toVisitNumber(entry.debt),
+        discount: toVisitNumber(entry.discount),
+        paidAmount: entry.paidAmount ?? "",
+        note: entry.note || "",
+      });
+
+      let savedVisit = nextVisit;
+      try {
+        const response = await updateVisit(previousVisit.id, nextVisit);
+        savedVisit = response?.data ?? nextVisit;
+      } catch (error) {
+        pushNotification({
+          title: "Визит не синхронизирован",
+          message: error?.message || "Не удалось обновить визит в backend",
+          persist: false,
+        });
       }
 
       setVisits((current) =>
         current.map((visit) =>
           visit.id === entry.visitId || visit.calendarEntryId === entry.id
-            ? attachClientLink(clientProfiles, {
-                ...visit,
-                date: toDisplayDate(entry.date),
-                client: entry.client,
-                clientId: entry.clientId,
-                master: entry.master,
-                service: entry.service,
-                amount: toVisitNumber(entry.amount),
-                payment: entry.payment || "Не указано",
-                packageUsageId: entry.packageUsageId || "",
-                packageName: entry.packageName || "",
-                packageSessionsUsed: entry.packageSessionsUsed || 0,
-                certificateUsageId: entry.certificateUsageId || "",
-                certificateCode: entry.certificateCode || "",
-                certificateAmountUsed: entry.certificateAmountUsed || 0,
-                tip: toVisitNumber(entry.tip),
-                commissionType: entry.commissionType || "Без комиссии",
-                extra: toVisitNumber(entry.extra),
-                debt: toVisitNumber(entry.debt),
-                discount: toVisitNumber(entry.discount),
-                paidAmount: entry.paidAmount ?? "",
-                note: entry.note || "",
-              })
+            ? savedVisit
             : visit,
         ),
       );
     },
-    [clientProfiles, setVisits],
+    [clientProfiles, pushNotification, setVisits, visits],
   );
 
   const removeCompletedVisitLink = useCallback(
-    (previousEntry, nextEntry) => {
+    async (previousEntry, nextEntry) => {
       if (!shouldReopenCompletedCalendarEntry(nextEntry, previousEntry)) {
         return;
       }
@@ -126,6 +155,16 @@ export function useCalendarActions({
       );
 
       if (completedVisit) {
+        try {
+          await deleteVisit(completedVisit.id);
+        } catch (error) {
+          pushNotification({
+            title: "Визит не удален",
+            message: error?.message || "Не удалось удалить завершенный визит",
+            persist: false,
+          });
+          return;
+        }
         updatePackageBalance(completedVisit, null);
         updateCertificateBalance(completedVisit, null);
         setVisits((current) =>
@@ -137,29 +176,53 @@ export function useCalendarActions({
         );
       }
     },
-    [setVisits, updateCertificateBalance, updatePackageBalance, visits],
+    [
+      pushNotification,
+      setVisits,
+      updateCertificateBalance,
+      updatePackageBalance,
+      visits,
+    ],
   );
 
   const saveCalendarEntry = useCallback(
-    (entry, isEditing) => {
+    async (entry, isEditing) => {
       const previousEntry = isEditing
         ? calendarEntries.find((item) => item.id === entry.id)
         : null;
+      let savedEntry = entry;
 
-      removeCompletedVisitLink(previousEntry, entry);
+      await removeCompletedVisitLink(previousEntry, entry);
+
+      try {
+        const response = isEditing
+          ? await updateCalendarEntry(entry.id, entry)
+          : await createCalendarEntry(entry);
+        savedEntry = response?.data ?? entry;
+      } catch (error) {
+        pushNotification({
+          title: isEditing ? "Календарь не обновлен" : "Запись не добавлена",
+          message: error?.message || "Не удалось сохранить запись в backend",
+          persist: false,
+        });
+        return;
+      }
+
       setCalendarEntries((current) =>
         isEditing
-          ? current.map((item) => (item.id === entry.id ? entry : item))
-          : [...current, entry],
+          ? current.map((item) => (item.id === savedEntry.id ? savedEntry : item))
+          : [...current, savedEntry],
       );
-      syncCompletedCalendarVisit(entry);
+      await syncCompletedCalendarVisit(savedEntry);
       setCalendarEntryModalOpen(false);
       setEditingCalendarEntry(null);
       setCalendarEntryDefaults({});
       pushNotification({
         title: isEditing ? "Календарь обновлен" : "Добавлено в календарь",
         message:
-          entry.kind === "visit" ? `${entry.client} · ${entry.time}` : entry.title,
+          savedEntry.kind === "visit"
+            ? `${savedEntry.client} · ${savedEntry.time}`
+            : savedEntry.title,
       });
     },
     [
@@ -175,7 +238,7 @@ export function useCalendarActions({
   );
 
   const completeCalendarVisit = useCallback(
-    (entry, {notify = true} = {}) => {
+    async (entry, {notify = true} = {}) => {
       if (["completed", "cancelled", "no_show"].includes(entry.status)) {
         return;
       }
@@ -230,28 +293,50 @@ export function useCalendarActions({
 
       const existingVisit = visits.find((item) => item.calendarEntryId === entry.id);
       const hasExistingVisit = Boolean(existingVisit);
+      let savedVisit = existingVisit ?? visit;
 
       if (!hasExistingVisit) {
+        try {
+          const response = await createVisit(visit);
+          savedVisit = response?.data ?? visit;
+        } catch (error) {
+          pushNotification({
+            title: "Визит не завершен",
+            message: error?.message || "Не удалось сохранить визит в backend",
+            persist: false,
+          });
+          return;
+        }
         setVisits((current) =>
           current.some((item) => item.calendarEntryId === entry.id)
             ? current
-            : [visit, ...current],
+            : [savedVisit, ...current],
         );
-        updatePackageBalance(null, visit);
-        updateCertificateBalance(null, visit);
+        updatePackageBalance(null, savedVisit);
+        updateCertificateBalance(null, savedVisit);
+      }
+
+      const nextEntry = {
+        ...entry,
+        status: "completed",
+        completedAt: new Date().toISOString(),
+        visitId: savedVisit.id,
+      };
+
+      let savedEntry = nextEntry;
+      try {
+        const response = await updateCalendarEntry(entry.id, nextEntry);
+        savedEntry = response?.data ?? nextEntry;
+      } catch (error) {
+        pushNotification({
+          title: "Статус не сохранен",
+          message: error?.message || "Не удалось обновить календарь в backend",
+          persist: false,
+        });
       }
 
       setCalendarEntries((current) =>
-        current.map((item) =>
-          item.id === entry.id
-            ? {
-                ...item,
-                status: "completed",
-                completedAt: new Date().toISOString(),
-                visitId: existingVisit?.id ?? visit.id,
-              }
-            : item,
-        ),
+        current.map((item) => (item.id === entry.id ? savedEntry : item)),
       );
 
       if (notify && !hasExistingVisit) {
@@ -276,7 +361,7 @@ export function useCalendarActions({
   );
 
   const handleCalendarEntrySubmit = useCallback(
-    (eventOrForm) => {
+    async (eventOrForm) => {
       eventOrForm.preventDefault?.();
       const formElement = eventOrForm.currentTarget ?? eventOrForm;
       const form = new FormData(formElement);
@@ -298,11 +383,24 @@ export function useCalendarActions({
           clientProfiles,
         );
 
-        updatePackageBalance(previousVisit, nextVisit);
-        updateCertificateBalance(previousVisit, nextVisit);
+        let savedVisit = nextVisit;
+        try {
+          const response = await updateVisit(previousVisit.id, nextVisit);
+          savedVisit = response?.data ?? nextVisit;
+        } catch (error) {
+          pushNotification({
+            title: "Визит не обновлен",
+            message: error?.message || "Не удалось обновить визит в backend",
+            persist: false,
+          });
+          return;
+        }
+
+        updatePackageBalance(previousVisit, savedVisit);
+        updateCertificateBalance(previousVisit, savedVisit);
         setVisits((current) =>
           current.map((visit) =>
-            visit.id === previousVisit.id ? nextVisit : visit,
+            visit.id === previousVisit.id ? savedVisit : visit,
           ),
         );
         setCalendarEntryModalOpen(false);
@@ -311,7 +409,7 @@ export function useCalendarActions({
         setCalendarEntryDefaults({});
         pushNotification({
           title: "Визит обновлен",
-          message: `${nextVisit.client} · ${nextVisit.service}`,
+          message: `${savedVisit.client} · ${savedVisit.service}`,
         });
         return;
       }
@@ -338,7 +436,7 @@ export function useCalendarActions({
         return;
       }
 
-      saveCalendarEntry(entry, isEditing);
+      await saveCalendarEntry(entry, isEditing);
     },
     [
       appSettings,
@@ -365,19 +463,50 @@ export function useCalendarActions({
   );
 
   const deleteCalendarEntry = useCallback(
-    (entry) => {
+    async (entry) => {
       onCalendarSlotFreed?.(entry);
+      const linkedVisit = visits.find(
+        (visit) => visit.id === entry.visitId || visit.calendarEntryId === entry.id,
+      );
+
+      try {
+        if (linkedVisit) {
+          await deleteVisit(linkedVisit.id);
+        }
+        await deleteBackendCalendarEntry(entry.id);
+      } catch (error) {
+        pushNotification({
+          title: "Запись не удалена",
+          message: error?.message || "Не удалось удалить запись в backend",
+          persist: false,
+        });
+        return;
+      }
+
       setCalendarEntries((current) => current.filter((item) => item.id !== entry.id));
+      if (linkedVisit) {
+        setVisits((current) => current.filter((visit) => visit.id !== linkedVisit.id));
+        updatePackageBalance(linkedVisit, null);
+        updateCertificateBalance(linkedVisit, null);
+      }
       pushNotification({
         title: entry.kind === "visit" ? "Запись отменена" : "Резерв удален",
         message: entry.kind === "visit" ? entry.client : entry.title,
       });
     },
-    [onCalendarSlotFreed, pushNotification, setCalendarEntries],
+    [
+      onCalendarSlotFreed,
+      pushNotification,
+      setCalendarEntries,
+      setVisits,
+      updateCertificateBalance,
+      updatePackageBalance,
+      visits,
+    ],
   );
 
   const moveCalendarEntry = useCallback(
-    (entryId, nextPosition) => {
+    async (entryId, nextPosition) => {
       const currentEntry = calendarEntries.find((entry) => entry.id === entryId);
       const movedEntry = currentEntry
         ? normalizeCalendarEntryTiming({...currentEntry, ...nextPosition}, currentEntry)
@@ -407,23 +536,38 @@ export function useCalendarActions({
         return;
       }
 
+      await removeCompletedVisitLink(currentEntry, movedEntry);
+
+      let savedEntry = movedEntry;
+      try {
+        const response = await updateCalendarEntry(entryId, movedEntry);
+        savedEntry = response?.data ?? movedEntry;
+      } catch (error) {
+        pushNotification({
+          title: "Запись не перенесена",
+          message: error?.message || "Не удалось обновить календарь в backend",
+          persist: false,
+        });
+        return;
+      }
+
       setCalendarEntries((current) =>
-        current.map((entry) => (entry.id === entryId ? movedEntry : entry)),
+        current.map((entry) => (entry.id === entryId ? savedEntry : entry)),
       );
-      removeCompletedVisitLink(currentEntry, movedEntry);
-      syncCompletedCalendarVisit(movedEntry);
+      await syncCompletedCalendarVisit(savedEntry);
     },
     [
       appSettings,
       calendarEntries,
       employees,
+      pushNotification,
       removeCompletedVisitLink,
       setCalendarEntries,
       syncCompletedCalendarVisit,
     ],
   );
 
-  const confirmCalendarConflict = useCallback(() => {
+  const confirmCalendarConflict = useCallback(async () => {
     if (!pendingCalendarConflict) {
       return;
     }
@@ -432,19 +576,32 @@ export function useCalendarActions({
 
     if (type === "move") {
       const previousEntry = calendarEntries.find((item) => item.id === entry.id);
-      removeCompletedVisitLink(previousEntry, entry);
+      await removeCompletedVisitLink(previousEntry, entry);
+      let savedEntry = entry;
+      try {
+        const response = await updateCalendarEntry(entry.id, entry);
+        savedEntry = response?.data ?? entry;
+      } catch (error) {
+        pushNotification({
+          title: "Запись не сохранена",
+          message: error?.message || "Не удалось обновить календарь в backend",
+          persist: false,
+        });
+        return;
+      }
       setCalendarEntries((current) =>
-        current.map((item) => (item.id === entry.id ? entry : item)),
+        current.map((item) => (item.id === savedEntry.id ? savedEntry : item)),
       );
-      syncCompletedCalendarVisit(entry);
+      await syncCompletedCalendarVisit(savedEntry);
     } else {
-      saveCalendarEntry(entry, isEditing);
+      await saveCalendarEntry(entry, isEditing);
     }
 
     setPendingCalendarConflict(null);
   }, [
     calendarEntries,
     pendingCalendarConflict,
+    pushNotification,
     removeCompletedVisitLink,
     saveCalendarEntry,
     setCalendarEntries,
@@ -452,13 +609,27 @@ export function useCalendarActions({
   ]);
 
   const updateCalendarEntryStatus = useCallback(
-    (entry, status) => {
+    async (entry, status) => {
       if (status === "cancelled") {
         onCalendarSlotFreed?.(entry);
       }
 
+      const nextEntry = {...entry, status};
+      let savedEntry = nextEntry;
+      try {
+        const response = await updateCalendarEntry(entry.id, nextEntry);
+        savedEntry = response?.data ?? nextEntry;
+      } catch (error) {
+        pushNotification({
+          title: "Статус не сохранен",
+          message: error?.message || "Не удалось обновить календарь в backend",
+          persist: false,
+        });
+        return;
+      }
+
       setCalendarEntries((current) =>
-        current.map((item) => (item.id === entry.id ? {...item, status} : item)),
+        current.map((item) => (item.id === entry.id ? savedEntry : item)),
       );
       pushNotification({
         title: "Статус визита обновлён",

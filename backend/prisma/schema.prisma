@@ -54,17 +54,32 @@ model Employee {
 
 model Visit {
   id          Int      @id @default(autoincrement())
-  clientId    Int
-  serviceId   Int
+  clientId    Int?
+  serviceId   Int?
   employeeId  Int?
-  scheduledAt DateTime
+  scheduledAt DateTime?
   notes       String?
+  calendarEntryId Int?
+  recordType  String?
+  payload     Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  client    Client   @relation(fields: [clientId], references: [id])
-  service   Service  @relation(fields: [serviceId], references: [id])
+  client    Client?  @relation(fields: [clientId], references: [id])
+  service   Service? @relation(fields: [serviceId], references: [id])
   employee  Employee? @relation(fields: [employeeId], references: [id])
+}
+
+model CalendarEntry {
+  id          Int      @id @default(autoincrement())
+  kind        String?
+  date        String?
+  time        String?
+  status      String?
+  visitId     Int?
+  payload     Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Task {
