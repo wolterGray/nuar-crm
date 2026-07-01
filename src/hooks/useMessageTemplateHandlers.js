@@ -1,7 +1,11 @@
 import {useCallback} from "react";
+import {
+  createMessageTemplate,
+  deleteMessageTemplate,
+  updateMessageTemplate,
+} from "../api/operations.js";
 
 export function useMessageTemplateHandlers({
-  createLocalId,
   editingMessageTemplate,
   pushNotification,
   requestEntityDelete,
@@ -23,7 +27,7 @@ export function useMessageTemplateHandlers({
   );
 
   const handleMessageTemplateSubmit = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const name = String(form.get("name") ?? "").trim();
@@ -34,7 +38,7 @@ export function useMessageTemplateHandlers({
       }
 
       const template = {
-        id: editingMessageTemplate?.id ?? createLocalId(),
+        ...(editingMessageTemplate?.id ? {id: editingMessageTemplate.id} : {}),
         name,
         channel: form.get("channel"),
         language: form.get("language"),
@@ -43,21 +47,35 @@ export function useMessageTemplateHandlers({
         subject: String(form.get("subject") ?? "").trim(),
         body,
       };
+      let savedTemplate;
+
+      try {
+        const response = editingMessageTemplate
+          ? await updateMessageTemplate(editingMessageTemplate.id, template)
+          : await createMessageTemplate(template);
+        savedTemplate = response?.data ?? template;
+      } catch (error) {
+        pushNotification({
+          title: editingMessageTemplate ? "Шаблон не обновлен" : "Шаблон не добавлен",
+          message: error?.message || "Backend не принял шаблон",
+          persist: false,
+        });
+        return;
+      }
 
       setMessageTemplates((current) =>
         editingMessageTemplate
-          ? current.map((item) => (item.id === template.id ? template : item))
-          : [template, ...current],
+          ? current.map((item) => (item.id === savedTemplate.id ? savedTemplate : item))
+          : [savedTemplate, ...current],
       );
       setMessageTemplateModalOpen(false);
       setEditingMessageTemplate(null);
       pushNotification({
         title: editingMessageTemplate ? "Шаблон обновлен" : "Шаблон добавлен",
-        message: `${template.name} сохранен в шаблонах сообщений`,
+        message: `${savedTemplate.name} сохранен в шаблонах сообщений`,
       });
     },
     [
-      createLocalId,
       editingMessageTemplate,
       pushNotification,
       setEditingMessageTemplate,
@@ -74,7 +92,18 @@ export function useMessageTemplateHandlers({
   );
 
   const performDeleteMessageTemplate = useCallback(
-    (template) => {
+    async (template) => {
+      try {
+        await deleteMessageTemplate(template.id);
+      } catch (error) {
+        pushNotification({
+          title: "Шаблон не удален",
+          message: error?.message || "Backend не удалил шаблон",
+          persist: false,
+        });
+        return;
+      }
+
       setMessageTemplates((current) =>
         current.filter((item) => item.id !== template.id),
       );

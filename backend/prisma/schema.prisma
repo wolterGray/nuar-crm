@@ -33,6 +33,7 @@ model Client {
   clientPackages  ClientPackage[]
   certificates    Certificate[] @relation("CertificateBuyer")
   certificateUses Certificate[] @relation("CertificateRecipient")
+  communicationLog CommunicationLog[]
 }
 
 model Service {
@@ -159,6 +160,34 @@ model Supply {
   payload   Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model MessageTemplate {
+  id        Int      @id @default(autoincrement())
+  name      String
+  channel   String?
+  language  String?
+  audience  String?
+  purpose   String?
+  subject   String?
+  body      String
+  payload   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CommunicationLog {
+  id           Int      @id @default(autoincrement())
+  clientId     Int?
+  clientName   String?
+  channel      String?
+  templateName String?
+  body         String?
+  payload      Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  client       Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
 }
 
 model Package {

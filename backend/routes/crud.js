@@ -228,6 +228,27 @@ const buildSupplyData = (payload) => ({
   payload,
 });
 
+const buildMessageTemplateData = (payload) => ({
+  name: String(payload?.name ?? '').trim(),
+  channel: cleanOptionalString(payload?.channel),
+  language: cleanOptionalString(payload?.language),
+  audience: cleanOptionalString(payload?.audience),
+  purpose: cleanOptionalString(payload?.purpose),
+  subject: cleanOptionalString(payload?.subject),
+  body: String(payload?.body ?? '').trim(),
+  payload,
+});
+
+const buildCommunicationLogData = (payload) => ({
+  clientId: payload?.clientId ? Number(payload.clientId) : null,
+  clientName: cleanOptionalString(payload?.clientName),
+  channel: cleanOptionalString(payload?.channel),
+  templateName: cleanOptionalString(payload?.templateName),
+  body: cleanOptionalString(payload?.body),
+  createdAt: payload?.createdAt ? new Date(payload.createdAt) : undefined,
+  payload,
+});
+
 const buildPackageData = (payload) => ({
   name: String(payload?.name ?? '').trim(),
   service: cleanOptionalString(payload?.service),
@@ -677,6 +698,112 @@ router.get('/supplies', (req, res) => {
     res,
     prisma.supply
       .findMany({orderBy: {name: 'asc'}})
+      .then((records) => records.map(withStoredId)),
+  );
+});
+
+// ==================== Operations state and messaging ====================
+router.get('/operations-state', async (req, res) => {
+  try {
+    const [
+      tasks,
+      supplies,
+      waitlistEntries,
+      messageTemplates,
+      communicationLog,
+    ] = await Promise.all([
+      prisma.task
+        .findMany({orderBy: [{sortOrder: 'asc'}, {createdAt: 'desc'}]}),
+      prisma.supply.findMany({orderBy: {name: 'asc'}}),
+      prisma.waitlistEntry.findMany({orderBy: {createdAt: 'asc'}}),
+      prisma.messageTemplate.findMany({orderBy: {name: 'asc'}}),
+      prisma.communicationLog.findMany({orderBy: {createdAt: 'desc'}}),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        communicationLog: communicationLog.map(withStoredId),
+        messageTemplates: messageTemplates.map(withStoredId),
+        supplies: supplies.map(withStoredId),
+        tasks: tasks.map(withStoredId),
+        waitlistEntries: waitlistEntries.map(withStoredId),
+      },
+    });
+  } catch (err) {
+    console.error('Operations state error:', err);
+    res.status(400).json({success: false, error: err.message});
+  }
+});
+
+router.post('/message-templates', (req, res) => {
+  const data = buildMessageTemplateData(req.body ?? {});
+  if (!data.name || !data.body) {
+    return res.status(400).json({ success: false, error: 'Template name and body are required' });
+  }
+
+  respond(res, prisma.messageTemplate.create({data}).then(withStoredId));
+});
+
+router.get('/message-templates/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.messageTemplate.findUnique({where: {id}}).then(withStoredId));
+});
+
+router.put('/message-templates/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const data = buildMessageTemplateData({...(req.body ?? {}), id});
+  if (!data.name || !data.body) {
+    return res.status(400).json({ success: false, error: 'Template name and body are required' });
+  }
+
+  respond(res, prisma.messageTemplate.update({where: {id}, data}).then(withStoredId));
+});
+
+router.delete('/message-templates/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.messageTemplate.delete({where: {id}}).then(withStoredId));
+});
+
+router.get('/message-templates', (req, res) => {
+  respond(
+    res,
+    prisma.messageTemplate
+      .findMany({orderBy: {name: 'asc'}})
+      .then((records) => records.map(withStoredId)),
+  );
+});
+
+router.post('/communication-log', (req, res) => {
+  const data = buildCommunicationLogData(req.body ?? {});
+  if (!data.clientName && !data.body) {
+    return res.status(400).json({ success: false, error: 'Communication log entry is empty' });
+  }
+
+  respond(res, prisma.communicationLog.create({data}).then(withStoredId));
+});
+
+router.get('/communication-log/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.communicationLog.findUnique({where: {id}}).then(withStoredId));
+});
+
+router.put('/communication-log/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const data = buildCommunicationLogData({...(req.body ?? {}), id});
+  respond(res, prisma.communicationLog.update({where: {id}, data}).then(withStoredId));
+});
+
+router.delete('/communication-log/:id', (req, res) => {
+  const id = Number(req.params.id);
+  respond(res, prisma.communicationLog.delete({where: {id}}).then(withStoredId));
+});
+
+router.get('/communication-log', (req, res) => {
+  respond(
+    res,
+    prisma.communicationLog
+      .findMany({orderBy: {createdAt: 'desc'}})
       .then((records) => records.map(withStoredId)),
   );
 });

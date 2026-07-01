@@ -111,9 +111,7 @@ import {fetchClients} from "./api/clients.js";
 import {fetchVisitState} from "./api/visits.js";
 import {fetchServices} from "./api/services.js";
 import {fetchEmployees} from "./api/employees.js";
-import {fetchTasks} from "./api/tasks.js";
-import {fetchWaitlist} from "./api/waitlist.js";
-import {fetchSupplies} from "./api/supplies.js";
+import {fetchOperationsState} from "./api/operations.js";
 import {
   fetchFinancialState,
   updateCertificate,
@@ -379,20 +377,23 @@ function App() {
 
     const loadBackendOperations = async () => {
       try {
-        const [tasksResponse, waitlistResponse, suppliesResponse] = await Promise.all([
-          fetchTasks(),
-          fetchWaitlist(),
-          fetchSupplies(),
-        ]);
+        const response = await fetchOperationsState();
         if (!active) {
           return;
         }
 
-        setTasks(Array.isArray(tasksResponse?.data) ? tasksResponse.data : []);
+        const data = response?.data ?? {};
+        setTasks(Array.isArray(data.tasks) ? data.tasks : []);
         setWaitlistEntries(
-          Array.isArray(waitlistResponse?.data) ? waitlistResponse.data : [],
+          Array.isArray(data.waitlistEntries) ? data.waitlistEntries : [],
         );
-        setSupplies(Array.isArray(suppliesResponse?.data) ? suppliesResponse.data : []);
+        setSupplies(Array.isArray(data.supplies) ? data.supplies : []);
+        setMessageTemplates(
+          Array.isArray(data.messageTemplates) ? data.messageTemplates : [],
+        );
+        setCommunicationLog(
+          Array.isArray(data.communicationLog) ? data.communicationLog : [],
+        );
       } catch (error) {
         if (!active) {
           return;
@@ -400,7 +401,7 @@ function App() {
 
         pushNotification({
           title: "Операции не загружены",
-          message: error?.message || "Не удалось загрузить задачи, лист ожидания и склад",
+          message: error?.message || "Не удалось загрузить операционный блок из backend",
           persist: false,
         });
       }
@@ -1461,7 +1462,6 @@ function App() {
     performDeleteMessageTemplate,
     requestDeleteMessageTemplate,
   } = useMessageTemplateHandlers({
-    createLocalId,
     editingMessageTemplate,
     pushNotification,
     requestEntityDelete,
@@ -1760,7 +1760,6 @@ function App() {
   });
 
   const {logBulkSmsCampaign, logClientMessage} = useCommunicationLog({
-    createLocalId,
     pushNotification,
     setCommunicationLog,
   });
