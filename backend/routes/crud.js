@@ -351,6 +351,8 @@ const buildPayrollRecordData = (payload) => ({
   payload,
 });
 
+const systemStateRecord = (record) => [record.key, record.payload];
+
 // ==================== Visit state used by the CRM UI ====================
 router.get('/visit-state', async (req, res) => {
   try {
@@ -994,6 +996,65 @@ router.delete('/payroll-records/:id', (req, res) => {
 
 router.get('/payroll-records', (req, res) => {
   respond(res, prisma.payrollRecord.findMany({orderBy: {paidAt: 'desc'}}).then((records) => records.map(withStoredId)));
+});
+
+// ==================== System state ====================
+router.get('/system-state', (req, res) => {
+  respond(
+    res,
+    prisma.systemState.findMany({orderBy: {key: 'asc'}}).then((records) =>
+      Object.fromEntries(records.map(systemStateRecord)),
+    ),
+  );
+});
+
+router.get('/system-state/:key', (req, res) => {
+  const key = String(req.params.key ?? '').trim();
+  respond(res, prisma.systemState.findUnique({where: {key}}).then((record) => record?.payload ?? null));
+});
+
+router.put('/system-state/:key', (req, res) => {
+  const key = String(req.params.key ?? '').trim();
+  const payload = req.body?.payload ?? req.body ?? null;
+
+  if (!key) {
+    return res.status(400).json({success: false, error: 'System state key is required'});
+  }
+
+  respond(
+    res,
+    prisma.systemState
+      .upsert({
+        where: {key},
+        create: {key, payload},
+        update: {payload},
+      })
+      .then((record) => record.payload),
+  );
+});
+
+router.put('/system-state', async (req, res) => {
+  const entries = req.body?.entries ?? req.body ?? {};
+  if (!entries || typeof entries !== 'object' || Array.isArray(entries)) {
+    return res.status(400).json({success: false, error: 'System state entries object is required'});
+  }
+
+  try {
+    await prisma.$transaction(
+      Object.entries(entries).map(([key, payload]) =>
+        prisma.systemState.upsert({
+          where: {key},
+          create: {key, payload},
+          update: {payload},
+        }),
+      ),
+    );
+
+    res.json({success: true, data: entries});
+  } catch (err) {
+    console.error('System state error:', err);
+    res.status(400).json({success: false, error: err.message});
+  }
 });
 
 module.exports = router;

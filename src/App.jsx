@@ -117,6 +117,11 @@ import {
   updateCertificate,
   updateClientPackage,
 } from "./api/financial.js";
+import {
+  fetchSystemState,
+  saveSystemStateEntries,
+  SYSTEM_STATE_KEYS,
+} from "./api/systemState.js";
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
 function App() {
@@ -232,6 +237,7 @@ function App() {
   const cloudSnapshotRef = useRef(null);
   const lastPublishedServicesRef = useRef("");
   const onSessionLostRef = useRef(() => {});
+  const systemStateLoadedRef = useRef(false);
 
   const {closeNotification, notifications, pushNotification, pushNotificationRef} =
     useToastNotifications({
@@ -459,6 +465,122 @@ function App() {
       active = false;
     };
   }, [authSession, pushNotification]);
+
+  useEffect(() => {
+    if (!authSession) {
+      systemStateLoadedRef.current = false;
+      return undefined;
+    }
+
+    let active = true;
+
+    const loadBackendSystemState = async () => {
+      try {
+        const response = await fetchSystemState();
+        if (!active) {
+          return;
+        }
+
+        const state = response?.data ?? {};
+        if (state[SYSTEM_STATE_KEYS.appSettings]) {
+          setAppSettings(normalizeStoredSettings(state[SYSTEM_STATE_KEYS.appSettings]));
+        }
+        if (Array.isArray(state[SYSTEM_STATE_KEYS.importDocuments])) {
+          setImportDocuments(state[SYSTEM_STATE_KEYS.importDocuments]);
+        }
+        if (Array.isArray(state[SYSTEM_STATE_KEYS.importedMailIds])) {
+          setImportedMailIds(state[SYSTEM_STATE_KEYS.importedMailIds]);
+        }
+        if (Array.isArray(state[SYSTEM_STATE_KEYS.dismissedClientAlertIds])) {
+          setDismissedClientAlertIds(state[SYSTEM_STATE_KEYS.dismissedClientAlertIds]);
+        }
+        if (
+          state[SYSTEM_STATE_KEYS.alertSnoozes] &&
+          typeof state[SYSTEM_STATE_KEYS.alertSnoozes] === "object"
+        ) {
+          setAlertSnoozes(state[SYSTEM_STATE_KEYS.alertSnoozes]);
+        }
+        if (Array.isArray(state[SYSTEM_STATE_KEYS.inactiveFollowUpLog])) {
+          setInactiveFollowUpLog(state[SYSTEM_STATE_KEYS.inactiveFollowUpLog]);
+        }
+        if (Array.isArray(state[SYSTEM_STATE_KEYS.reviewRequestLog])) {
+          setReviewRequestLog(state[SYSTEM_STATE_KEYS.reviewRequestLog]);
+        }
+        if (Array.isArray(state[SYSTEM_STATE_KEYS.smsReminderLog])) {
+          setSmsReminderLog(state[SYSTEM_STATE_KEYS.smsReminderLog]);
+        }
+        if (Array.isArray(state[SYSTEM_STATE_KEYS.autoCompletedCalendarEntryIds])) {
+          setAutoCompletedCalendarEntryIds(
+            state[SYSTEM_STATE_KEYS.autoCompletedCalendarEntryIds],
+          );
+        }
+        if (Array.isArray(state[SYSTEM_STATE_KEYS.notificationInbox])) {
+          setNotificationInbox(state[SYSTEM_STATE_KEYS.notificationInbox]);
+        }
+
+        systemStateLoadedRef.current = true;
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        pushNotification({
+          title: "Служебное состояние не загружено",
+          message: error?.message || "Не удалось загрузить настройки и импорт из backend",
+          persist: false,
+        });
+      }
+    };
+
+    loadBackendSystemState();
+
+    return () => {
+      active = false;
+    };
+  }, [authSession, pushNotification, setAppSettings]);
+
+  useEffect(() => {
+    if (!authSession || !systemStateLoadedRef.current) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      saveSystemStateEntries({
+        [SYSTEM_STATE_KEYS.alertSnoozes]: alertSnoozes,
+        [SYSTEM_STATE_KEYS.appSettings]: appSettings,
+        [SYSTEM_STATE_KEYS.autoCompletedCalendarEntryIds]:
+          autoCompletedCalendarEntryIds,
+        [SYSTEM_STATE_KEYS.dismissedClientAlertIds]: dismissedClientAlertIds,
+        [SYSTEM_STATE_KEYS.importDocuments]: importDocuments,
+        [SYSTEM_STATE_KEYS.importedMailIds]: importedMailIds,
+        [SYSTEM_STATE_KEYS.inactiveFollowUpLog]: inactiveFollowUpLog,
+        [SYSTEM_STATE_KEYS.notificationInbox]: notificationInbox,
+        [SYSTEM_STATE_KEYS.reviewRequestLog]: reviewRequestLog,
+        [SYSTEM_STATE_KEYS.smsReminderLog]: smsReminderLog,
+      }).catch((error) => {
+        pushNotificationRef.current({
+          title: "Служебное состояние не сохранено",
+          message: error?.message || "Backend не принял настройки и журналы",
+          persist: false,
+        });
+      });
+    }, 600);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    alertSnoozes,
+    appSettings,
+    authSession,
+    autoCompletedCalendarEntryIds,
+    dismissedClientAlertIds,
+    importDocuments,
+    importedMailIds,
+    inactiveFollowUpLog,
+    notificationInbox,
+    reviewRequestLog,
+    smsReminderLog,
+    pushNotificationRef,
+  ]);
 
   const masters = useMemo(
     () =>
