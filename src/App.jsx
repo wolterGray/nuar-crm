@@ -109,6 +109,8 @@ import {usePullRefresh} from "./hooks/usePullRefresh.js";
 import {usePersistentState} from "./hooks/usePersistentState.js";
 import {fetchClients} from "./api/clients.js";
 import {fetchVisitState} from "./api/visits.js";
+import {fetchServices} from "./api/services.js";
+import {fetchEmployees} from "./api/employees.js";
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
 function App() {
@@ -311,6 +313,49 @@ function App() {
     };
 
     loadBackendVisits();
+
+    return () => {
+      active = false;
+    };
+  }, [authSession, pushNotification]);
+
+  useEffect(() => {
+    if (!authSession) {
+      return undefined;
+    }
+
+    let active = true;
+
+    const loadBackendCatalogs = async () => {
+      try {
+        const [servicesResponse, employeesResponse] = await Promise.all([
+          fetchServices(),
+          fetchEmployees(),
+        ]);
+        if (!active) {
+          return;
+        }
+
+        setServiceCatalog(
+          Array.isArray(servicesResponse?.data) ? servicesResponse.data : [],
+        );
+        setEmployees(
+          Array.isArray(employeesResponse?.data) ? employeesResponse.data : [],
+        );
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        pushNotification({
+          title: "Каталоги не загружены",
+          message: error?.message || "Не удалось загрузить услуги и мастеров из backend",
+          persist: false,
+        });
+      }
+    };
+
+    loadBackendCatalogs();
 
     return () => {
       active = false;

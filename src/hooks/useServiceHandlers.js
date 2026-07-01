@@ -1,4 +1,9 @@
 import {useCallback} from "react";
+import {
+  createService,
+  deleteService,
+  updateService,
+} from "../api/services.js";
 import {getRandomServiceColor} from "../utils/serviceColors.js";
 import {parseServiceBookingBuffersFromForm} from "../utils/siteBookingBuffers.js";
 
@@ -32,7 +37,7 @@ export function useServiceHandlers({
   );
 
   const handleServiceSubmit = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const name = String(form.get("name") ?? "").trim();
@@ -43,7 +48,7 @@ export function useServiceHandlers({
       }
 
       const service = {
-        id: editingService?.id ?? createLocalId(),
+        ...(editingService?.id ? {id: editingService.id} : {}),
         name,
         category: String(form.get("category") ?? "").trim() || "Массаж",
         color: form.get("color") || editingService?.color || getRandomServiceColor(),
@@ -55,39 +60,54 @@ export function useServiceHandlers({
           .filter((variant) => variant.price > 0),
         ...parseServiceBookingBuffersFromForm(form, editingService),
       };
+      let savedService;
+
+      try {
+        const response = editingService
+          ? await updateService(editingService.id, service)
+          : await createService(service);
+        savedService = response?.data ?? service;
+      } catch (error) {
+        pushNotification({
+          title: "Услуга не сохранена",
+          message: error?.message || "Backend не принял изменения услуги",
+          persist: false,
+        });
+        return;
+      }
 
       setServiceCatalog((current) =>
         editingService
-          ? current.map((item) => (item.id === service.id ? service : item))
-          : [service, ...current],
+          ? current.map((item) => (item.id === savedService.id ? savedService : item))
+          : [savedService, ...current],
       );
       setCalendarEntries((current) =>
         current.map((entry) =>
-          entry.serviceId === service.id
-            ? {...entry, service: service.name, color: service.color}
+          entry.serviceId === savedService.id
+            ? {...entry, service: savedService.name, color: savedService.color}
             : entry,
         ),
       );
 
-      if (previousName && previousName !== service.name) {
+      if (previousName && previousName !== savedService.name) {
         setVisits((current) =>
           current.map((visit) =>
             visit.service === previousName
-              ? {...visit, service: service.name}
+              ? {...visit, service: savedService.name}
               : visit,
           ),
         );
         setPackagesCatalog((current) =>
           current.map((packageItem) =>
             packageItem.service === previousName
-              ? {...packageItem, service: service.name}
+              ? {...packageItem, service: savedService.name}
               : packageItem,
           ),
         );
         setClientPackages((current) =>
           current.map((packageItem) =>
             packageItem.service === previousName
-              ? {...packageItem, service: service.name}
+              ? {...packageItem, service: savedService.name}
               : packageItem,
           ),
         );
@@ -97,11 +117,10 @@ export function useServiceHandlers({
       setEditingService(null);
       pushNotification({
         title: editingService ? "Услуга обновлена" : "Услуга добавлена",
-        message: `${service.name} сохранена в базе услуг`,
+        message: `${savedService.name} сохранена в базе услуг`,
       });
     },
     [
-      createLocalId,
       editingService,
       pushNotification,
       setCalendarEntries,
@@ -122,7 +141,18 @@ export function useServiceHandlers({
   );
 
   const performDeleteService = useCallback(
-    (service) => {
+    async (service) => {
+      try {
+        await deleteService(service.id);
+      } catch (error) {
+        pushNotification({
+          title: "Услуга не удалена",
+          message: error?.message || "Backend не удалил услугу",
+          persist: false,
+        });
+        return;
+      }
+
       setServiceCatalog((current) => current.filter((item) => item.id !== service.id));
       pushNotification({
         title: "Услуга удалена",

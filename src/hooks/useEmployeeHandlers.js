@@ -1,8 +1,12 @@
 import {useCallback} from "react";
+import {
+  createEmployee,
+  deleteEmployee,
+  updateEmployee,
+} from "../api/employees.js";
 import {parseEmployeePricingFromForm} from "../utils/siteBookingPricing.js";
 
 export function useEmployeeHandlers({
-  createLocalId,
   editingEmployee,
   pushNotification,
   requestEntityDelete,
@@ -26,7 +30,7 @@ export function useEmployeeHandlers({
   );
 
   const handleEmployeeSubmit = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const name = String(form.get("name") ?? "").trim();
@@ -37,7 +41,7 @@ export function useEmployeeHandlers({
       }
 
       const employee = {
-        id: editingEmployee?.id ?? createLocalId(),
+        ...(editingEmployee?.id ? {id: editingEmployee.id} : {}),
         name,
         role: String(form.get("role") ?? "").trim(),
         phone: String(form.get("phone") ?? "").trim(),
@@ -53,25 +57,40 @@ export function useEmployeeHandlers({
           form.get("payrollSchedule") === "daily" ? "daily" : "monthly",
         ...parseEmployeePricingFromForm(form, editingEmployee),
       };
+      let savedEmployee;
+
+      try {
+        const response = editingEmployee
+          ? await updateEmployee(editingEmployee.id, employee)
+          : await createEmployee(employee);
+        savedEmployee = response?.data ?? employee;
+      } catch (error) {
+        pushNotification({
+          title: "Сотрудник не сохранен",
+          message: error?.message || "Backend не принял изменения сотрудника",
+          persist: false,
+        });
+        return;
+      }
 
       setEmployees((current) =>
         editingEmployee
-          ? current.map((item) => (item.id === employee.id ? employee : item))
-          : [employee, ...current],
+          ? current.map((item) => (item.id === savedEmployee.id ? savedEmployee : item))
+          : [savedEmployee, ...current],
       );
 
-      if (previousName && previousName !== employee.name) {
+      if (previousName && previousName !== savedEmployee.name) {
         setVisits((current) =>
           current.map((visit) =>
             visit.master === previousName
-              ? {...visit, master: employee.name}
+              ? {...visit, master: savedEmployee.name}
               : visit,
           ),
         );
         setCalendarEntries((current) =>
           current.map((entry) =>
             entry.master === previousName
-              ? {...entry, master: employee.name}
+              ? {...entry, master: savedEmployee.name}
               : entry,
           ),
         );
@@ -81,11 +100,10 @@ export function useEmployeeHandlers({
       setEditingEmployee(null);
       pushNotification({
         title: editingEmployee ? "Сотрудник обновлен" : "Сотрудник добавлен",
-        message: `${employee.name} сохранен в базе сотрудников`,
+        message: `${savedEmployee.name} сохранен в базе сотрудников`,
       });
     },
     [
-      createLocalId,
       editingEmployee,
       pushNotification,
       setCalendarEntries,
@@ -104,7 +122,18 @@ export function useEmployeeHandlers({
   );
 
   const performDeleteEmployee = useCallback(
-    (employee) => {
+    async (employee) => {
+      try {
+        await deleteEmployee(employee.id);
+      } catch (error) {
+        pushNotification({
+          title: "Сотрудник не удален",
+          message: error?.message || "Backend не удалил сотрудника",
+          persist: false,
+        });
+        return;
+      }
+
       setEmployees((current) => current.filter((item) => item.id !== employee.id));
       pushNotification({
         title: "Сотрудник удален",

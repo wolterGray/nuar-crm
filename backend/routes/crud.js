@@ -57,8 +57,8 @@ const buildClientData = (body) => ({
 });
 
 const withStoredId = (record) => ({
-  ...(record.payload && typeof record.payload === 'object' ? record.payload : {}),
-  id: record.id,
+  ...(record?.payload && typeof record.payload === 'object' ? record.payload : {}),
+  id: record?.id,
 });
 
 const buildCalendarEntryData = (payload) => ({
@@ -84,6 +84,86 @@ const buildVisitData = (payload) => ({
   notes: cleanOptionalString(payload?.note),
   calendarEntryId: payload?.calendarEntryId ? Number(payload.calendarEntryId) : null,
   recordType: cleanOptionalString(payload?.recordType),
+  payload,
+});
+
+const firstServiceVariant = (variants) => {
+  if (!Array.isArray(variants)) {
+    return null;
+  }
+
+  return (
+    variants.find(
+      (variant) =>
+        Number(variant?.duration) > 0 || Number(variant?.price) > 0,
+    ) ?? null
+  );
+};
+
+const buildServiceData = (payload) => {
+  const variants = Array.isArray(payload?.variants) ? payload.variants : [];
+  const firstVariant = firstServiceVariant(variants);
+
+  return {
+    name: String(payload?.name ?? '').trim(),
+    category: cleanOptionalString(payload?.category),
+    description: cleanOptionalString(payload?.description),
+    color: cleanOptionalString(payload?.color),
+    variants,
+    status: cleanOptionalString(payload?.status),
+    bookingSettings: payload?.bookingSettings ?? null,
+    buffers: {
+      afterEnabled: payload?.siteBookingBufferAfterEnabled === true,
+      afterMinutes: Math.max(0, Number(payload?.siteBookingBufferAfterMinutes) || 0),
+      beforeEnabled: payload?.siteBookingBufferBeforeEnabled === true,
+      beforeMinutes: Math.max(0, Number(payload?.siteBookingBufferBeforeMinutes) || 0),
+    },
+    siteVisible:
+      typeof payload?.siteVisible === 'boolean'
+        ? payload.siteVisible
+        : typeof payload?.siteBookingEnabled === 'boolean'
+          ? payload.siteBookingEnabled
+          : null,
+    price: firstVariant ? Number(firstVariant.price) || null : null,
+    durationMin: firstVariant ? Number(firstVariant.duration) || null : null,
+    payload,
+  };
+};
+
+const buildEmployeeData = (payload) => ({
+  name: String(payload?.name ?? '').trim(),
+  phone: cleanOptionalString(payload?.phone),
+  email: cleanOptionalString(payload?.email),
+  role: cleanOptionalString(payload?.role),
+  status: cleanOptionalString(payload?.status),
+  color: cleanOptionalString(payload?.color),
+  commissionRate:
+    payload?.commissionRate !== undefined && payload?.commissionRate !== null
+      ? Number(payload.commissionRate) || 0
+      : null,
+  shiftStart: cleanOptionalString(payload?.shiftStart),
+  shiftEnd: cleanOptionalString(payload?.shiftEnd),
+  payrollSchedule: cleanOptionalString(payload?.payrollSchedule),
+  siteBookingSlotMinutes:
+    payload?.siteBookingSlotMinutes !== undefined && payload?.siteBookingSlotMinutes !== null
+      ? Number(payload.siteBookingSlotMinutes) || null
+      : null,
+  services: payload?.services ?? payload?.serviceIds ?? null,
+  siteVisible:
+    typeof payload?.siteVisible === 'boolean'
+      ? payload.siteVisible
+      : typeof payload?.siteBookingEnabled === 'boolean'
+        ? payload.siteBookingEnabled
+        : null,
+  pricing: {
+    premiumHoursEnabled: payload?.premiumHoursEnabled === true,
+    premiumHoursRules: Array.isArray(payload?.premiumHoursRules)
+      ? payload.premiumHoursRules
+      : [],
+    siteDiscountPercent: Math.max(0, Number(payload?.siteDiscountPercent) || 0),
+  },
+  payrollSettings: payload?.payrollSettings ?? null,
+  shifts: payload?.shifts ?? null,
   payload,
 });
 
@@ -196,54 +276,80 @@ router.delete('/clients/:id', (req, res) => {
 
 // ==================== Service ====================
 router.post('/services', (req, res) => {
-  const { name, price, durationMin } = req.body;
-  respond(res, prisma.service.create({ data: { name, price, durationMin } }));
+  const data = buildServiceData(req.body ?? {});
+  if (!data.name) {
+    return res.status(400).json({ success: false, error: 'Service name is required' });
+  }
+
+  respond(res, prisma.service.create({ data }).then(withStoredId));
 });
 
 router.get('/services/:id', (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.service.findUnique({ where: { id } }));
+  respond(res, prisma.service.findUnique({ where: { id } }).then(withStoredId));
 });
 
 router.put('/services/:id', (req, res) => {
   const id = Number(req.params.id);
-  const { name, price, durationMin } = req.body;
-  respond(res, prisma.service.update({ where: { id }, data: { name, price, durationMin } }));
+  const data = buildServiceData({...(req.body ?? {}), id});
+  if (!data.name) {
+    return res.status(400).json({ success: false, error: 'Service name is required' });
+  }
+
+  respond(res, prisma.service.update({ where: { id }, data }).then(withStoredId));
 });
 
 router.delete('/services/:id', (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.service.delete({ where: { id } }));
+  respond(res, prisma.service.delete({ where: { id } }).then(withStoredId));
 });
 
 router.get('/services', (req, res) => {
-  respond(res, prisma.service.findMany());
+  respond(
+    res,
+    prisma.service.findMany({orderBy: {name: 'asc'}}).then((records) =>
+      records.map(withStoredId),
+    ),
+  );
 });
 
 // ==================== Employee ====================
 router.post('/employees', (req, res) => {
-  const { name, role, email } = req.body;
-  respond(res, prisma.employee.create({ data: { name, role, email } }));
+  const data = buildEmployeeData(req.body ?? {});
+  if (!data.name) {
+    return res.status(400).json({ success: false, error: 'Employee name is required' });
+  }
+
+  respond(res, prisma.employee.create({ data }).then(withStoredId));
 });
 
 router.get('/employees/:id', (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.employee.findUnique({ where: { id } }));
+  respond(res, prisma.employee.findUnique({ where: { id } }).then(withStoredId));
 });
 
 router.put('/employees/:id', (req, res) => {
   const id = Number(req.params.id);
-  const { name, role, email } = req.body;
-  respond(res, prisma.employee.update({ where: { id }, data: { name, role, email } }));
+  const data = buildEmployeeData({...(req.body ?? {}), id});
+  if (!data.name) {
+    return res.status(400).json({ success: false, error: 'Employee name is required' });
+  }
+
+  respond(res, prisma.employee.update({ where: { id }, data }).then(withStoredId));
 });
 
 router.delete('/employees/:id', (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.employee.delete({ where: { id } }));
+  respond(res, prisma.employee.delete({ where: { id } }).then(withStoredId));
 });
 
 router.get('/employees', (req, res) => {
-  respond(res, prisma.employee.findMany());
+  respond(
+    res,
+    prisma.employee.findMany({orderBy: {name: 'asc'}}).then((records) =>
+      records.map(withStoredId),
+    ),
+  );
 });
 
 // ==================== Visit ====================

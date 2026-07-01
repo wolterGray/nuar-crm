@@ -1,0 +1,30 @@
+ALTER TABLE "Service"
+  ALTER COLUMN "price" DROP NOT NULL,
+  ALTER COLUMN "durationMin" DROP NOT NULL,
+  ADD COLUMN "category" TEXT,
+  ADD COLUMN "description" TEXT,
+  ADD COLUMN "color" TEXT,
+  ADD COLUMN "variants" JSONB,
+  ADD COLUMN "status" TEXT,
+  ADD COLUMN "bookingSettings" JSONB,
+  ADD COLUMN "buffers" JSONB,
+  ADD COLUMN "siteVisible" BOOLEAN,
+  ADD COLUMN "payload" JSONB;
+
+ALTER TABLE "Employee"
+  ALTER COLUMN "role" DROP NOT NULL,
+  ALTER COLUMN "email" DROP NOT NULL,
+  ADD COLUMN "phone" TEXT,
+  ADD COLUMN "status" TEXT,
+  ADD COLUMN "color" TEXT,
+  ADD COLUMN "commissionRate" DECIMAL(65,30),
+  ADD COLUMN "shiftStart" TEXT,
+  ADD COLUMN "shiftEnd" TEXT,
+  ADD COLUMN "payrollSchedule" TEXT,
+  ADD COLUMN "siteBookingSlotMinutes" INTEGER,
+  ADD COLUMN "services" JSONB,
+  ADD COLUMN "siteVisible" BOOLEAN,
+  ADD COLUMN "pricing" JSONB,
+  ADD COLUMN "payrollSettings" JSONB,
+  ADD COLUMN "shifts" JSONB,
+  ADD COLUMN "payload" JSONB;

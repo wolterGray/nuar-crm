@@ -33,23 +33,46 @@ model Client {
 }
 
 model Service {
-  id          Int      @id @default(autoincrement())
-  name        String
-  price       Decimal
-  durationMin Int      // duration in minutes
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  visits      Visit[]
+  id              Int      @id @default(autoincrement())
+  name            String
+  category        String?
+  description     String?
+  color           String?
+  variants        Json?
+  status          String?
+  bookingSettings Json?
+  buffers         Json?
+  siteVisible     Boolean?
+  price           Decimal?
+  durationMin     Int?
+  payload         Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  visits          Visit[]
 }
 
 model Employee {
-  id        Int      @id @default(autoincrement())
-  name      String
-  role      String
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  visits   Visit[]
+  id                     Int      @id @default(autoincrement())
+  name                   String
+  phone                  String?
+  email                  String?  @unique
+  role                   String?
+  status                 String?
+  color                  String?
+  commissionRate         Decimal?
+  shiftStart             String?
+  shiftEnd               String?
+  payrollSchedule        String?
+  siteBookingSlotMinutes Int?
+  services               Json?
+  siteVisible            Boolean?
+  pricing                Json?
+  payrollSettings        Json?
+  shifts                 Json?
+  payload                Json?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  visits                 Visit[]
 }
 
 model Visit {
