@@ -16,38 +16,79 @@ const respond = (res, promise) => {
     });
 };
 
+const clientSelect = {
+  id: true,
+  name: true,
+  messageName: true,
+  phone: true,
+  email: true,
+  birthday: true,
+  instagram: true,
+  telegram: true,
+  source: true,
+  messageLanguage: true,
+  preference: true,
+  status: true,
+  tags: true,
+  note: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const cleanOptionalString = (value) => {
+  const trimmed = String(value ?? '').trim();
+  return trimmed ? trimmed : null;
+};
+
+const buildClientData = (body) => ({
+  name: String(body?.name ?? '').trim(),
+  messageName: cleanOptionalString(body?.messageName),
+  phone: cleanOptionalString(body?.phone),
+  email: cleanOptionalString(body?.email),
+  birthday: cleanOptionalString(body?.birthday),
+  instagram: cleanOptionalString(body?.instagram),
+  telegram: cleanOptionalString(body?.telegram),
+  source: cleanOptionalString(body?.source),
+  messageLanguage: cleanOptionalString(body?.messageLanguage),
+  preference: cleanOptionalString(body?.preference),
+  status: cleanOptionalString(body?.status),
+  tags: cleanOptionalString(body?.tags),
+  note: cleanOptionalString(body?.note),
+});
+
 // ==================== Client ====================
 router.get('/clients', (req, res) => {
   respond(
     res,
     prisma.client.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: clientSelect,
       orderBy: { name: 'asc' },
     })
   );
 });
 
 router.post('/clients', (req, res) => {
-  const { name, email, phone } = req.body;
-  respond(res, prisma.client.create({ data: { name, email, phone } }));
+  const data = buildClientData(req.body);
+  if (!data.name) {
+    return res.status(400).json({ success: false, error: 'Client name is required' });
+  }
+
+  respond(res, prisma.client.create({ data, select: clientSelect }));
 });
 
 router.get('/clients/:id', (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.client.findUnique({ where: { id } }));
+  respond(res, prisma.client.findUnique({ where: { id }, select: clientSelect }));
 });
 
 router.put('/clients/:id', (req, res) => {
   const id = Number(req.params.id);
-  const { name, email, phone } = req.body;
-  respond(res, prisma.client.update({ where: { id }, data: { name, email, phone } }));
+  const data = buildClientData(req.body);
+  if (!data.name) {
+    return res.status(400).json({ success: false, error: 'Client name is required' });
+  }
+
+  respond(res, prisma.client.update({ where: { id }, data, select: clientSelect }));
 });
 
 router.delete('/clients/:id', (req, res) => {

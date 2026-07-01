@@ -1,0 +1,12 @@
+ALTER TABLE "Client" ALTER COLUMN "email" DROP NOT NULL;
+
+ALTER TABLE "Client" ADD COLUMN "messageName" TEXT;
+ALTER TABLE "Client" ADD COLUMN "birthday" TEXT;
+ALTER TABLE "Client" ADD COLUMN "instagram" TEXT;
+ALTER TABLE "Client" ADD COLUMN "telegram" TEXT;
+ALTER TABLE "Client" ADD COLUMN "source" TEXT;
+ALTER TABLE "Client" ADD COLUMN "messageLanguage" TEXT;
+ALTER TABLE "Client" ADD COLUMN "preference" TEXT;
+ALTER TABLE "Client" ADD COLUMN "status" TEXT;
+ALTER TABLE "Client" ADD COLUMN "tags" TEXT;
+ALTER TABLE "Client" ADD COLUMN "note" TEXT;

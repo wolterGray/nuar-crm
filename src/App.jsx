@@ -107,6 +107,7 @@ import {useBulkSms} from "./hooks/useBulkSms.js";
 import {useCommunicationLog} from "./hooks/useCommunicationLog.js";
 import {usePullRefresh} from "./hooks/usePullRefresh.js";
 import {usePersistentState} from "./hooks/usePersistentState.js";
+import {fetchClients} from "./api/clients.js";
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
 function App() {
@@ -242,6 +243,41 @@ function App() {
     onSessionLostRef,
     pushNotification,
   });
+
+  useEffect(() => {
+    if (!authSession) {
+      return undefined;
+    }
+
+    let active = true;
+
+    const loadBackendClients = async () => {
+      try {
+        const response = await fetchClients();
+        if (!active) {
+          return;
+        }
+
+        setClientProfiles(Array.isArray(response?.data) ? response.data : []);
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        pushNotification({
+          title: "Клиенты не загружены",
+          message: error?.message || "Не удалось загрузить клиентов из backend",
+          persist: false,
+        });
+      }
+    };
+
+    loadBackendClients();
+
+    return () => {
+      active = false;
+    };
+  }, [authSession, pushNotification]);
 
   const masters = useMemo(
     () =>

@@ -34,12 +34,11 @@ import PageHeader from "../PageHeader.jsx";
 import MobileSheet from "../MobileSheet.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
-import {fetchClients} from "../../api/clients.js";
 
 function ClientsPage({
   alertFocus,
   calendarEntries = [],
-  clients: fallbackClients = [],
+  clients = [],
   clientPackages = [],
   certificates = [],
   communicationLog = [],
@@ -55,10 +54,6 @@ function ClientsPage({
   onUpdateClientNote,
 }) {
   const [openClientMenuId, setOpenClientMenuId] = useState(null);
-  const [backendClients, setBackendClients] = useState([]);
-  const [clientsLoadError, setClientsLoadError] = useState("");
-
-  const clients = backendClients.length > 0 ? backendClients : fallbackClients;
 
   const handleMessageClient = (client) => {
     onMessageClient?.(client);
@@ -85,33 +80,6 @@ function ClientsPage({
     });
   };
 
-  useEffect(() => {
-    let active = true;
-
-    const loadData = async () => {
-      try {
-        const response = await fetchClients();
-
-        if (!active) {
-          return;
-        }
-
-        setBackendClients(Array.isArray(response?.data) ? response.data : []);
-        setClientsLoadError("");
-      } catch (e) {
-        if (active) {
-          setBackendClients([]);
-          setClientsLoadError(e?.message || "Не удалось загрузить клиентов из backend");
-        }
-      }
-    };
-
-    loadData();
-
-    return () => {
-      active = false;
-    };
-  }, []);
   const [viewedClient, setViewedClient] = useState(null);
   const [visitHistoryTab, setVisitHistoryTab] = useState("future");
   const [search, setSearch] = useState("");
@@ -377,12 +345,6 @@ function ClientsPage({
         description={isMobile ? undefined : `${filteredClients.length} из ${clients.length} в базе`}
         title="Клиенты"
       />
-
-      {clientsLoadError ? (
-        <p className="px-4 pb-2 text-xs text-muted-foreground">
-          Backend clients недоступен, показаны текущие данные CRM.
-        </p>
-      ) : null}
 
       <ClientQualityPanel
         report={clientQualityReport}

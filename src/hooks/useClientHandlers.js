@@ -9,6 +9,11 @@ import {resolveClientPackageStatus} from "../utils/clientPackages.js";
 import {toDisplayDate} from "../utils/formatters.jsx";
 import {getPackageProgressLabel} from "../utils/packages.jsx";
 import {getTodayInput} from "../utils/dateHelpers.js";
+import {
+  createClient,
+  deleteClient,
+  updateClient,
+} from "../api/clients.js";
 
 export function useClientHandlers({
   clientProfiles,
@@ -57,20 +62,29 @@ export function useClientHandlers({
   );
 
   const updateClientNote = useCallback(
-    (client, note) => {
+    async (client, note) => {
       const trimmedNote = String(note ?? "").trim();
+      const nextClient = {...client, note: trimmedNote};
 
-      setClientProfiles((current) =>
-        current.map((item) =>
-          item.id === client.id ? {...item, note: trimmedNote} : item,
-        ),
-      );
+      try {
+        const response = await updateClient(client.id, nextClient);
+        const savedClient = response?.data ?? nextClient;
+        setClientProfiles((current) =>
+          current.map((item) => (item.id === client.id ? savedClient : item)),
+        );
+      } catch (error) {
+        pushNotification({
+          title: "Заметка не сохранена",
+          message: error?.message || "Не удалось обновить клиента в backend",
+          persist: false,
+        });
+      }
     },
-    [setClientProfiles],
+    [pushNotification, setClientProfiles],
   );
 
   const handleClientSubmit = useCallback(
-    (eventOrForm) => {
+    async (eventOrForm) => {
       eventOrForm.preventDefault?.();
       const formElement = eventOrForm.currentTarget ?? eventOrForm;
       const form = new FormData(formElement);
@@ -82,7 +96,6 @@ export function useClientHandlers({
       }
 
       const client = {
-        id: editingClient?.id ?? createLocalId(),
         name,
         messageName: String(form.get("messageName") ?? "").trim(),
         phone: String(form.get("phone") ?? "").trim(),
@@ -98,20 +111,39 @@ export function useClientHandlers({
         note: String(form.get("note") ?? "").trim(),
       };
 
+      if (editingClient?.id) {
+        client.id = editingClient.id;
+      }
+
+      let savedClient = client;
+      try {
+        const response = editingClient?.id
+          ? await updateClient(editingClient.id, client)
+          : await createClient(client);
+        savedClient = response?.data ?? client;
+      } catch (error) {
+        pushNotification({
+          title: editingClient ? "Клиент не обновлен" : "Клиент не добавлен",
+          message: error?.message || "Не удалось сохранить клиента в backend",
+          persist: false,
+        });
+        return;
+      }
+
       setClientProfiles((current) =>
         editingClient
-          ? current.map((item) => (item.id === client.id ? client : item))
-          : [client, ...current],
+          ? current.map((item) => (item.id === savedClient.id ? savedClient : item))
+          : [savedClient, ...current],
       );
 
-      if (previousName && previousName !== client.name) {
-        const previousClient = {...client, name: previousName};
+      if (previousName && previousName !== savedClient.name) {
+        const previousClient = {...savedClient, name: previousName};
 
         setVisits((current) =>
-          remapClientRecords(current, clientProfiles, previousClient, client),
+          remapClientRecords(current, clientProfiles, previousClient, savedClient),
         );
         setClientPackages((current) =>
-          remapClientRecords(current, clientProfiles, previousClient, client),
+          remapClientRecords(current, clientProfiles, previousClient, savedClient),
         );
         setCertificates((current) =>
           current.map((certificate) => {
@@ -130,8 +162,8 @@ export function useClientHandlers({
                 previousClient,
               )
             ) {
-              nextCertificate.client = client.name;
-              nextCertificate.clientId = client.id;
+              nextCertificate.client = savedClient.name;
+              nextCertificate.clientId = savedClient.id;
             }
 
             if (
@@ -145,15 +177,15 @@ export function useClientHandlers({
                 previousClient,
               )
             ) {
-              nextCertificate.recipient = client.name;
-              nextCertificate.recipientId = client.id;
+              nextCertificate.recipient = savedClient.name;
+              nextCertificate.recipientId = savedClient.id;
             }
 
             return nextCertificate;
           }),
         );
         setCalendarEntries((current) =>
-          remapClientRecords(current, clientProfiles, previousClient, client, {
+          remapClientRecords(current, clientProfiles, previousClient, savedClient, {
             visitOnly: true,
           }),
         );
@@ -163,12 +195,11 @@ export function useClientHandlers({
       setEditingClient(null);
       pushNotification({
         title: editingClient ? "Клиент обновлен" : "Клиент добавлен",
-        message: `${client.name} сохранен в базе клиентов`,
+        message: `${savedClient.name} сохранен в базе клиентов`,
       });
     },
     [
       clientProfiles,
-      createLocalId,
       editingClient,
       pushNotification,
       setCalendarEntries,
@@ -189,7 +220,18 @@ export function useClientHandlers({
   );
 
   const performDeleteClient = useCallback(
-    (client) => {
+    async (client) => {
+      try {
+        await deleteClient(client.id);
+      } catch (error) {
+        pushNotification({
+          title: "Клиент не удален",
+          message: error?.message || "Не удалось удалить клиента в backend",
+          persist: false,
+        });
+        return;
+      }
+
       setClientProfiles((current) => current.filter((item) => item.id !== client.id));
       setClientPackages((current) =>
         current.filter(
@@ -225,7 +267,7 @@ export function useClientHandlers({
   );
 
   const addCalendarFormClient = useCallback(
-    (name) => {
+    async (name) => {
       const trimmedName = String(name ?? "").trim();
 
       if (!trimmedName) {
@@ -240,9 +282,8 @@ export function useClientHandlers({
         return;
       }
 
-      setClientProfiles((current) => [
-        {
-          id: createLocalId(),
+      try {
+        const response = await createClient({
           name: trimmedName,
           phone: "",
           email: "",
@@ -255,15 +296,26 @@ export function useClientHandlers({
           status: "Новый",
           tags: "",
           note: "",
-        },
-        ...current,
-      ]);
+        });
+        const savedClient = response?.data;
+        if (savedClient) {
+          setClientProfiles((current) => [savedClient, ...current]);
+        }
+      } catch (error) {
+        pushNotification({
+          title: "Клиент не добавлен",
+          message: error?.message || "Не удалось сохранить клиента в backend",
+          persist: false,
+        });
+        return;
+      }
+
       pushNotification({
         title: "Клиент добавлен",
         message: `${trimmedName} теперь в базе клиентов`,
       });
     },
-    [clientProfiles, createLocalId, pushNotification, setClientProfiles],
+    [clientProfiles, pushNotification, setClientProfiles],
   );
 
   const openCreateClientPackage = useCallback(() => {

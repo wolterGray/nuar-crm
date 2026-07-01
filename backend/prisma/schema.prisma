@@ -13,13 +13,23 @@ generator client {
 
 // Minimal set of tables needed by the CRM. Extend as required.
 model Client {
-  id          Int      @id @default(autoincrement())
-  name        String
-  email       String   @unique
-  phone       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  visits      Visit[]
+  id              Int      @id @default(autoincrement())
+  name            String
+  messageName     String?
+  phone           String?
+  email           String?  @unique
+  birthday        String?
+  instagram       String?
+  telegram        String?
+  source          String?
+  messageLanguage String?
+  preference      String?
+  status          String?
+  tags            String?
+  note            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  visits          Visit[]
 }
 
 model Service {
