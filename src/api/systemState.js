@@ -6,6 +6,7 @@ export const SYSTEM_STATE_KEYS = {
   alertSnoozes: "alertSnoozes",
   appSettings: "appSettings",
   autoCompletedCalendarEntryIds: "autoCompletedCalendarEntryIds",
+  booksyGmailLastSyncAt: "booksyGmailLastSyncAt",
   dismissedClientAlertIds: "dismissedClientAlertIds",
   importDocuments: "importDocuments",
   importedMailIds: "importedMailIds",

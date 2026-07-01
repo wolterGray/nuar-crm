@@ -7,6 +7,7 @@ export default function AppGate({
   appSettings,
   authReady,
   authSession,
+  backendLoadError,
   children,
   closeNotification,
   cloudHydrated,
@@ -78,6 +79,20 @@ export default function AppGate({
         title={cloudLoadError ? "Не удалось загрузить базу" : "Загружаем CRM"}
         onAction={cloudLoadError ? () => window.location.reload() : undefined}
         onLogout={cloudLoadError ? handleLogout : undefined}
+      />
+    );
+  }
+
+  if (backendLoadError) {
+    return (
+      <SystemScreen
+        actionLabel="Повторить загрузку"
+        message="Backend недоступен, данные могут быть устаревшими. Проверьте подключение к серверу и повторите загрузку."
+        mode="error"
+        settings={appSettings}
+        title="Backend недоступен"
+        onAction={() => window.location.reload()}
+        onLogout={handleLogout}
       />
     );
   }

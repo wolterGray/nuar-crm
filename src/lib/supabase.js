@@ -10,8 +10,9 @@ import {
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const isProduction = import.meta.env.PROD;
 const useMock =
-  import.meta.env.DEV &&
+  !isProduction &&
   (import.meta.env.VITE_USE_MOCK_DATA !== "false" ||
     localStorage.getItem("mockMode") === "true");
 
@@ -50,6 +51,10 @@ const loadMockDb = () => {
     today: mockToday,
   };
 
+  if (isProduction) {
+    return fallback;
+  }
+
   try {
     const stored = JSON.parse(localStorage.getItem(MOCK_STORAGE_KEY) || "{}");
     return {...fallback, ...stored};
@@ -59,6 +64,10 @@ const loadMockDb = () => {
 };
 
 const saveMockDb = (db) => {
+  if (isProduction) {
+    return;
+  }
+
   localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(db));
 };
 

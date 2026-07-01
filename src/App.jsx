@@ -124,6 +124,16 @@ import {
 } from "./api/systemState.js";
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
+const BOOKSY_GMAIL_LAST_SYNC_STORAGE_KEY = "nuar-crm-booksy-gmail-last-sync";
+
+const loadStoredBooksyGmailLastSyncAt = () => {
+  try {
+    return window.localStorage.getItem(BOOKSY_GMAIL_LAST_SYNC_STORAGE_KEY) || "";
+  } catch {
+    return "";
+  }
+};
+
 function App() {
   const [visits, setVisits] = useState(() => getInitialCrmCollections().visits);
   const [employees, setEmployees] = useState(loadStoredEmployees);
@@ -168,6 +178,10 @@ function App() {
   );
   const [autoCompletedCalendarEntryIds, setAutoCompletedCalendarEntryIds] =
     useState(() => loadStoredCollection(AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY));
+  const [booksyGmailLastSyncAt, setBooksyGmailLastSyncAt] = useState(
+    loadStoredBooksyGmailLastSyncAt,
+  );
+  const [backendLoadError, setBackendLoadError] = useState("");
   const [appSettings, setAppSettings] = usePersistentState(
     SETTINGS_STORAGE_KEY,
     loadStoredSettings,
@@ -284,6 +298,7 @@ function App() {
           message: error?.message || "Не удалось загрузить клиентов из backend",
           persist: false,
         });
+        setBackendLoadError(error?.message || "Не удалось загрузить клиентов из backend");
       }
     };
 
@@ -321,6 +336,7 @@ function App() {
           message: error?.message || "Не удалось загрузить календарь из backend",
           persist: false,
         });
+        setBackendLoadError(error?.message || "Не удалось загрузить календарь из backend");
       }
     };
 
@@ -364,6 +380,7 @@ function App() {
           message: error?.message || "Не удалось загрузить услуги и мастеров из backend",
           persist: false,
         });
+        setBackendLoadError(error?.message || "Не удалось загрузить каталоги из backend");
       }
     };
 
@@ -410,6 +427,7 @@ function App() {
           message: error?.message || "Не удалось загрузить операционный блок из backend",
           persist: false,
         });
+        setBackendLoadError(error?.message || "Не удалось загрузить операции из backend");
       }
     };
 
@@ -456,6 +474,7 @@ function App() {
           message: error?.message || "Не удалось загрузить финансовый блок из backend",
           persist: false,
         });
+        setBackendLoadError(error?.message || "Не удалось загрузить финансы из backend");
       }
     };
 
@@ -517,6 +536,9 @@ function App() {
         if (Array.isArray(state[SYSTEM_STATE_KEYS.notificationInbox])) {
           setNotificationInbox(state[SYSTEM_STATE_KEYS.notificationInbox]);
         }
+        if (typeof state[SYSTEM_STATE_KEYS.booksyGmailLastSyncAt] === "string") {
+          setBooksyGmailLastSyncAt(state[SYSTEM_STATE_KEYS.booksyGmailLastSyncAt]);
+        }
 
         systemStateLoadedRef.current = true;
       } catch (error) {
@@ -529,6 +551,7 @@ function App() {
           message: error?.message || "Не удалось загрузить настройки и импорт из backend",
           persist: false,
         });
+        setBackendLoadError(error?.message || "Не удалось загрузить служебное состояние из backend");
       }
     };
 
@@ -550,6 +573,7 @@ function App() {
         [SYSTEM_STATE_KEYS.appSettings]: appSettings,
         [SYSTEM_STATE_KEYS.autoCompletedCalendarEntryIds]:
           autoCompletedCalendarEntryIds,
+        [SYSTEM_STATE_KEYS.booksyGmailLastSyncAt]: booksyGmailLastSyncAt,
         [SYSTEM_STATE_KEYS.dismissedClientAlertIds]: dismissedClientAlertIds,
         [SYSTEM_STATE_KEYS.importDocuments]: importDocuments,
         [SYSTEM_STATE_KEYS.importedMailIds]: importedMailIds,
@@ -572,6 +596,7 @@ function App() {
     appSettings,
     authSession,
     autoCompletedCalendarEntryIds,
+    booksyGmailLastSyncAt,
     dismissedClientAlertIds,
     importDocuments,
     importedMailIds,
@@ -581,6 +606,19 @@ function App() {
     smsReminderLog,
     pushNotificationRef,
   ]);
+
+  useEffect(() => {
+    try {
+      if (booksyGmailLastSyncAt) {
+        window.localStorage.setItem(
+          BOOKSY_GMAIL_LAST_SYNC_STORAGE_KEY,
+          booksyGmailLastSyncAt,
+        );
+      }
+    } catch {
+      // localStorage is only a cache for the backend SystemState value.
+    }
+  }, [booksyGmailLastSyncAt]);
 
   const masters = useMemo(
     () =>
@@ -1871,6 +1909,8 @@ function App() {
     gmailClientId: appSettings.gmailClientId,
     googleEmail: authSession?.user?.email ?? "",
     importDocuments,
+    lastSyncAt: booksyGmailLastSyncAt,
+    onLastSyncAtChange: setBooksyGmailLastSyncAt,
     onGoogleLogin: handleGoogleLogin,
     processedMessageIds: importedMailIds,
     pushNotification,
@@ -1935,6 +1975,7 @@ function App() {
       appSettings={appSettings}
       authReady={authReady}
       authSession={authSession}
+      backendLoadError={backendLoadError}
       closeNotification={closeNotification}
       cloudHydrated={cloudHydrated}
       cloudLoadError={cloudLoadError}

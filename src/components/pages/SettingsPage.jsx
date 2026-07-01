@@ -150,6 +150,7 @@ function SettingsPage({
   const formRef = useRef(null);
   const [activeTab, setActiveTab] = useState(initialTab);
   const [integrationDiagnosticsRunning, setIntegrationDiagnosticsRunning] = useState(false);
+  const showDevMockControls = import.meta.env.DEV;
   const settingsTabs = [
     {id: "interface", label: "Интерфейс", mobileLabel: "UI"},
     {id: "notifications", label: "Уведомления", mobileLabel: "Уведом."},
@@ -499,12 +500,14 @@ function SettingsPage({
                   <HintIcon>Меньше вертикальных отступов и больше данных на экране</HintIcon>
                 </span>
               </SettingsToggle>
-              <SettingsToggle defaultChecked={localStorage.getItem('mockMode') === 'true'} name="mockModeToggle" onChange={handleMockToggle}>
-                <span className="labeled-hint-row labeled-hint-row-nowrap">
-                  Mock data mode
-                  <HintIcon>Использовать локальные данные вместо Supabase (dev only)</HintIcon>
-                </span>
-              </SettingsToggle>
+              {showDevMockControls ? (
+                <SettingsToggle defaultChecked={localStorage.getItem('mockMode') === 'true'} name="mockModeToggle" onChange={handleMockToggle}>
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Mock data mode
+                    <HintIcon>Использовать локальные данные вместо Supabase (dev only)</HintIcon>
+                  </span>
+                </SettingsToggle>
+              ) : null}
             </div>
           </Card>
 

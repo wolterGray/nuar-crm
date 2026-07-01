@@ -63,6 +63,8 @@ export function useBooksyGmailSync({
   gmailClientId = "",
   googleEmail = "",
   importDocuments = [],
+  lastSyncAt: externalLastSyncAt,
+  onLastSyncAtChange,
   onGoogleLogin,
   processedMessageIds = [],
   pushNotification,
@@ -79,8 +81,17 @@ export function useBooksyGmailSync({
   const [isSyncing, setIsSyncing] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [useServerSync, setUseServerSync] = useState(false);
-  const [lastSyncAt, setLastSyncAt] = useState(loadLastSyncAt);
+  const [lastSyncAt, setLastSyncAt] = useState(
+    () => externalLastSyncAt || loadLastSyncAt(),
+  );
   const [localGmailToken, setLocalGmailToken] = useState(getStoredGmailAccessToken);
+  const effectiveLastSyncAt = externalLastSyncAt || lastSyncAt;
+
+  useEffect(() => {
+    if (externalLastSyncAt) {
+      saveLastSyncAt(externalLastSyncAt);
+    }
+  }, [externalLastSyncAt]);
 
   const effectiveGmailToken = localGmailToken || gmailAccessToken;
   const isGmailConnected = Boolean(effectiveGmailToken);
@@ -91,9 +102,9 @@ export function useBooksyGmailSync({
         gmailAccessToken: effectiveGmailToken,
         gmailClientId,
         googleEmail,
-        lastSyncAt,
+        lastSyncAt: effectiveLastSyncAt,
       }),
-    [effectiveGmailToken, gmailClientId, googleEmail, lastSyncAt],
+    [effectiveGmailToken, effectiveLastSyncAt, gmailClientId, googleEmail],
   );
 
   const activeConnection = useServerSync ? connection : clientConnection;
@@ -306,6 +317,7 @@ export function useBooksyGmailSync({
       const syncedAt = new Date().toISOString();
       saveLastSyncAt(syncedAt);
       setLastSyncAt(syncedAt);
+      onLastSyncAtChange?.(syncedAt);
 
       const parts = [];
       if (result.pendingEvents.length) {
@@ -348,11 +360,13 @@ export function useBooksyGmailSync({
     googleEmail,
     isGmailConnected,
     importDocuments,
+    onLastSyncAtChange,
     processedMessageIds,
     pushNotification,
     refreshDashboard,
     services,
     setImportDocuments,
+    setProcessedMessageIds,
     useServerSync,
   ]);
 
