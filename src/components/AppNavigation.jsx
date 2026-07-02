@@ -124,7 +124,7 @@ export default function AppNavigation({
 
       {/* Mobile More Sheet */}
       {sidebarVisible && (
-        <section className="fixed right-0 bottom-16 left-0 z-40 max-h-[70vh] overflow-y-auto border-t border-zinc-800 rounded-t-2xl bg-zinc-950 p-5 shadow-2xl block md:hidden" aria-label="Все разделы">
+        <section className="mobile-more-sheet fixed right-0 bottom-16 left-0 z-40 max-h-[70vh] overflow-y-auto border-t border-zinc-800 rounded-t-2xl bg-zinc-950 p-5 shadow-2xl block md:hidden" aria-label="Все разделы">
           <div className="flex justify-between items-center pb-3 mb-3 border-b border-zinc-900">
             <span className="text-zinc-400 text-xs font-bold uppercase tracking-wider">Все разделы</span>
             <button
@@ -162,7 +162,7 @@ export default function AppNavigation({
       )}
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-45 flex h-16 border-t border-zinc-900 bg-zinc-950/95 backdrop-blur-xs select-none md:hidden" aria-label="Мобильная навигация">
+      <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-45 flex h-16 border-t border-zinc-900 bg-zinc-950/95 backdrop-blur-xs select-none md:hidden" aria-label="Мобильная навигация">
         {mobileNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = activePage === item.page;

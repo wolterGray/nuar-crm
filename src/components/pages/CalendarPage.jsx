@@ -322,6 +322,33 @@ function CalendarPage({
         .filter((entry) => settings.calendarShowTasks || entry.kind !== "task"),
     [entries, selectedDate, settings.calendarShowTasks],
   );
+  const calendarMasters = useMemo(() => {
+    if (employees.length > 0) return employees;
+
+    const entryMasters = Array.from(
+      new Set(dayEntries.map((entry) => entry.master).filter(Boolean)),
+    );
+
+    if (entryMasters.length > 0) {
+      return entryMasters.map((name, index) => ({
+        id: `entry-master-${name}`,
+        name,
+        color: employeeAccentPalette[index % employeeAccentPalette.length],
+        shiftStart: settings.workdayStart,
+        shiftEnd: settings.workdayEnd,
+      }));
+    }
+
+    return [
+      {
+        id: "calendar-master-placeholder",
+        name: "Без мастера",
+        color: employeeAccentPalette[0],
+        shiftStart: settings.workdayStart,
+        shiftEnd: settings.workdayEnd,
+      },
+    ];
+  }, [dayEntries, employees, settings.workdayEnd, settings.workdayStart]);
   const visitEntries = dayEntries.filter((entry) => entry.kind === "visit");
   const activeVisitEntries = visitEntries.filter(
     (entry) => isEntryActive(entry, selectedDate, now),
@@ -337,12 +364,12 @@ function CalendarPage({
   const employeeAccentByName = useMemo(
     () =>
       new Map(
-        employees.map((employee, index) => [
+        calendarMasters.map((employee, index) => [
           employee.name,
           employee.color || employeeAccentPalette[index % employeeAccentPalette.length],
         ]),
       ),
-    [employees],
+    [calendarMasters],
   );
   const calendarPanelDate = useMemo(
     () => new Date(`${calendarPanelMonth}-01T12:00:00`),
@@ -632,7 +659,7 @@ return (
       />
 
       <div
-        className="hidden max-md:grid grid-flow-col auto-cols-[calc((100%-24px)/7)] h-16 shrink-0 gap-1 overflow-x-auto border-b border-zinc-805/60 bg-zinc-950/20 p-2 scroll-snap-x scrollbar-none touch-pan-x"
+        className="mobile-calendar-week hidden max-md:grid grid-flow-col overflow-x-auto bg-zinc-950/20 scroll-snap-x scrollbar-none touch-pan-x"
         aria-label="Дни недели"
         ref={weekCarouselRef}
       >
@@ -642,7 +669,7 @@ return (
           const isSelected = date === selectedDate;
           return (
             <button
-              className={`grid grid-rows-[13px_28px] min-h-[50px] place-items-center align-content-center gap-0.5 border-0 rounded-lg text-zinc-400 bg-transparent scroll-snap-start cursor-pointer transition-colors ${
+              className={`grid grid-rows-[13px_28px] min-h-[44px] place-items-center align-content-center gap-0.5 border-0 rounded-lg text-zinc-400 bg-transparent scroll-snap-start cursor-pointer transition-colors ${
                 isSelected ? "text-red-300 font-bold" : ""
               }`}
               data-date={date}
@@ -719,11 +746,16 @@ return (
               <div
                 className="nuar-calendar-grid grid min-w-[700px] select-none"
                 style={{
-                  gridTemplateColumns: `58px repeat(${employees.length}, minmax(190px, 1fr))`,
-                  width: `calc(58px + ${employees.length} * var(--mobile-master-width, 190px))`,
-                  "--master-count": employees.length,
+                  gridTemplateColumns: `var(--calendar-time-axis-width, 58px) repeat(${calendarMasters.length}, minmax(var(--mobile-master-width, 190px), 1fr))`,
+                  width: isMobile
+                    ? `max(100vw, calc(var(--calendar-time-axis-width, 44px) + ${calendarMasters.length} * var(--mobile-master-width, 220px)))`
+                    : `calc(var(--calendar-time-axis-width, 58px) + ${calendarMasters.length} * var(--mobile-master-width, 190px))`,
+                  "--master-count": calendarMasters.length,
+                  "--calendar-time-axis-width": isMobile ? "44px" : "58px",
                   "--mobile-master-width": isMobile
-                    ? `calc((100vw - 24px) / ${Math.min(Math.max(employees.length, 1), 2)})`
+                    ? calendarMasters.length <= 1
+                      ? "calc(100vw - var(--calendar-time-axis-width, 44px))"
+                      : "min(280px, max(220px, calc(50vw - 29px)))"
                     : "1fr",
                   "--schedule-height": `${gridHeight}px`,
                   "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,
@@ -753,7 +785,7 @@ return (
                     {String(endHour).padStart(2, "0")}:00
                   </strong>
                 </div>
-                {employees.map((employee) => (
+                {calendarMasters.map((employee) => (
                   <div className="nuar-calendar-master min-w-0 border-l border-zinc-800/80" key={employee.id}>
                     <header className="nuar-calendar-master-header sticky top-0 z-12 grid h-12 align-content-center gap-0.5 px-3 bg-zinc-900 border-b border-zinc-850">
                       <strong className="text-zinc-200 text-xs font-semibold truncate">

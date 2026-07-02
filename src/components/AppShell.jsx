@@ -1,3 +1,5 @@
+import {MobileLayout, MobilePageContainer} from "./MobileLayout.jsx";
+
 export default function AppShell({
   afterMain,
   children,
@@ -25,6 +27,21 @@ export default function AppShell({
   onTouchMove,
   onTouchStart,
 }) {
+  const pageName =
+    (isTodayPage && "today") ||
+    (isCalendarPage && "calendar") ||
+    (isClientsPage && "clients") ||
+    (isOperationsPage && "operations") ||
+    (isPaymentsPage && "payments") ||
+    (isServicesPage && "services") ||
+    (isPackagesPage && "packages") ||
+    (isEmployeesPage && "employees") ||
+    (isTemplatesPage && "templates") ||
+    (isImportPage && "import") ||
+    (isStatisticsPage && "statistics") ||
+    (isSitePage && "site") ||
+    (isSettingsPage && "settings") ||
+    "default";
   const shellClasses = [
     "crm-shell",
     "grid md:grid-cols-[240px_1fr] w-screen h-screen overflow-hidden",
@@ -77,7 +94,11 @@ export default function AppShell({
         onTouchMove={onTouchMove}
         onTouchStart={onTouchStart}
       >
-        {children}
+        <MobileLayout page={pageName}>
+          <MobilePageContainer page={pageName}>
+            {children}
+          </MobilePageContainer>
+        </MobileLayout>
       </main>
       {afterMain}
     </div>

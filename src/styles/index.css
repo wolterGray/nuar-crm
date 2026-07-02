@@ -10,6 +10,7 @@
 @import "./booksy-sync.css";
 @import "./design-system.css";
 @import "./components.css";
+@import "./mobile-system.css";
 
 .hint-icon-wrap {
   position: relative;
