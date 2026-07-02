@@ -12,6 +12,427 @@
   }
 }
 
+@media (max-width: 768px) {
+  :root {
+    --mobile-bottom-nav-height: calc(68px + env(safe-area-inset-bottom));
+    --mobile-page-padding: 12px;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-width: 0;
+    overscroll-behavior-y: none;
+  }
+
+  .crm-shell {
+    display: block;
+    width: 100%;
+    max-width: 100vw;
+    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .content {
+    width: 100%;
+    max-width: 100vw;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: var(--mobile-page-padding);
+    padding-bottom: calc(var(--mobile-bottom-nav-height) + 16px);
+    overscroll-behavior-y: contain;
+  }
+
+  .content > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .theme-dark .content {
+    background: #0b0f14;
+  }
+
+  .page-header,
+  .page-header-unified,
+  .panel-header,
+  .settings-panel-heading {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .page-header,
+  .page-header-unified {
+    position: sticky;
+    top: 0;
+    z-index: 35;
+    margin: calc(var(--mobile-page-padding) * -1) calc(var(--mobile-page-padding) * -1) 12px;
+    padding: 10px var(--mobile-page-padding);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(11, 15, 20, 0.94);
+    backdrop-filter: blur(16px);
+  }
+
+  .page-header h1,
+  .page-header h2,
+  .page-header-unified h1,
+  .page-header-unified h2 {
+    font-size: clamp(20px, 6vw, 26px);
+    line-height: 1.12;
+  }
+
+  .page-header p,
+  .page-header-unified p,
+  .panel-header p {
+    max-width: 100%;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .page-header-unified-top,
+  .page-header-unified-actions,
+  .page-header-unified-trailing,
+  .calendar-toolbar,
+  .calendar-toolbar-actions,
+  .filters-row,
+  .payments-filters,
+  .services-toolbar,
+  .catalog-toolbar,
+  .clients-toolbar,
+  .settings-actions,
+  .table-footer {
+    flex-wrap: wrap;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  button,
+  input,
+  select,
+  textarea,
+  .primary-button,
+  .secondary-button,
+  .danger-button,
+  .icon-button,
+  .add-button {
+    min-height: 44px;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  textarea {
+    min-height: 96px;
+  }
+
+  .mobile-bottom-nav {
+    height: var(--mobile-bottom-nav-height);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-bottom-nav button {
+    min-width: 0;
+    min-height: 56px;
+  }
+
+  .mobile-bottom-nav span {
+    max-width: 68px;
+  }
+
+  .mobile-more-sheet {
+    right: 8px;
+    bottom: calc(var(--mobile-bottom-nav-height) + 8px);
+    left: 8px;
+    max-height: min(68dvh, 560px);
+    overflow-y: auto;
+    border-radius: 14px;
+  }
+
+  .grid,
+  [class*="grid-cols-"],
+  .settings-grid,
+  .settings-options,
+  .settings-options-grid,
+  .operations-grid,
+  .import-grid,
+  .calendar-layout,
+  .employee-form-grid,
+  .service-form-grid,
+  .package-summary-grid,
+  .message-template-form-grid,
+  .form-split,
+  .client-details-grid {
+    min-width: 0;
+  }
+
+  .settings-grid,
+  .settings-options,
+  .settings-options-grid,
+  .operations-grid,
+  .import-grid,
+  .calendar-layout,
+  .employee-form-grid,
+  .service-form-grid,
+  .package-summary-grid,
+  .message-template-form-grid,
+  .form-split,
+  .client-details-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .catalog-grid,
+  .employees-grid,
+  .packages-grid,
+  .stats-grid,
+  .dashboard-grid,
+  .today-grid,
+  .summary-grid,
+  .quick-stats-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .panel,
+  .catalog-card,
+  .employee-card,
+  .package-card,
+  .settings-panel,
+  .summary-card,
+  .stat-card,
+  .client-profile-panel,
+  .client-details-card,
+  .operations-panel,
+  .calendar-panel,
+  .card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    border-radius: 8px;
+  }
+
+  .table,
+  .table-shell,
+  .table-container,
+  .clients-table,
+  .visits-table,
+  .payments-table,
+  .data-table {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .table-head,
+  .clients-table-head,
+  .visits-table-head,
+  .payments-table-head,
+  [role="rowgroup"].table-head {
+    display: none !important;
+  }
+
+  .table-row,
+  .clients-table-row,
+  .visits-table-row,
+  .payments-table-row,
+  .supply-row,
+  .task-row,
+  .note-row,
+  .waitlist-row {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 10px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .table-row > *,
+  .clients-table-row > *,
+  .visits-table-row > *,
+  .payments-table-row > *,
+  .supply-row > *,
+  .task-row > *,
+  .note-row > *,
+  .waitlist-row > * {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .table-row [class*="grid-cols-"],
+  .clients-table-row [class*="grid-cols-"],
+  .visits-table-row [class*="grid-cols-"],
+  .payments-table-row [class*="grid-cols-"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .row-actions,
+  .client-row-actions,
+  .payment-row-actions,
+  .catalog-card-actions,
+  .employee-card-actions,
+  .supply-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .modal-backdrop,
+  .dialog-backdrop,
+  .form-modal-backdrop {
+    align-items: flex-end;
+    padding: 8px;
+  }
+
+  .modal,
+  .dialog,
+  .form-modal,
+  .employee-modal,
+  .confirm-dialog,
+  .client-search-dialog {
+    width: min(100%, 640px);
+    max-width: 100%;
+    max-height: calc(100dvh - 16px);
+    overflow: auto;
+    border-radius: 14px;
+  }
+
+  .form-modal-shell,
+  form {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .form-actions,
+  .modal-actions,
+  .dialog-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+    background: inherit;
+  }
+
+  .calendar-content {
+    padding: 0;
+    padding-bottom: var(--mobile-bottom-nav-height);
+  }
+
+  .calendar-page,
+  .calendar-content .calendar-page {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .calendar-grid,
+  .calendar-board,
+  .calendar-week-grid,
+  .calendar-day-columns {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar-day-column,
+  .calendar-day-card,
+  .calendar-entry-card {
+    min-width: min(78vw, 320px);
+  }
+
+  .calendar-date-control {
+    min-width: 0;
+  }
+
+  .calendar-date-control input {
+    min-width: 0;
+  }
+
+  .login-page,
+  main[class*="place-items-center"] {
+    width: 100%;
+    min-width: 0;
+    min-height: 100dvh;
+    height: auto;
+    padding: 16px;
+  }
+
+  main[class*="place-items-center"] > * {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .client-alert-popover,
+  .notification-drawer,
+  .row-action-menu {
+    max-width: calc(100vw - 16px);
+  }
+}
+
+@media (max-width: 430px) {
+  :root {
+    --mobile-page-padding: 10px;
+  }
+
+  .content {
+    padding-inline: var(--mobile-page-padding);
+  }
+
+  .page-header,
+  .page-header-unified {
+    margin-inline: calc(var(--mobile-page-padding) * -1);
+    padding-inline: var(--mobile-page-padding);
+  }
+
+  .mobile-more-sheet nav,
+  .mobile-more-sheet-nav {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  .catalog-card,
+  .employee-card,
+  .package-card,
+  .settings-panel,
+  .panel,
+  .table-row,
+  .clients-table-row,
+  .visits-table-row,
+  .payments-table-row {
+    padding: 10px;
+  }
+}
+
 @media (max-width: 940px) {
   .crm-shell {
     grid-template-columns: 88px minmax(0, 1fr);
@@ -1647,5 +2068,214 @@
   .employee-form select,
   .employee-form textarea {
     font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .crm-shell {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  .content,
+  .payments-content,
+  .visits-content.payments-content,
+  .services-content,
+  .packages-content,
+  .employees-content,
+  .templates-content,
+  .import-content,
+  .statistics-content,
+  .site-content,
+  .settings-content,
+  .content.calendar-content {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 12px !important;
+    padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar-content,
+  .content.calendar-content {
+    padding: 0 0 calc(72px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .page-header,
+  .page-header-unified {
+    position: sticky;
+    top: 0;
+    z-index: 42;
+    margin: -12px -12px 12px;
+    padding: 12px;
+    background: rgba(11, 15, 20, 0.94);
+    backdrop-filter: blur(16px);
+  }
+
+  .calendar-content .page-header,
+  .calendar-content .page-header-unified,
+  .calendar-content .calendar-page-header {
+    margin: 0 !important;
+  }
+
+  .page-header h1,
+  .page-header h2,
+  .page-header-unified h1,
+  .page-header-unified h2 {
+    font-size: clamp(20px, 5.8vw, 26px) !important;
+    line-height: 1.12 !important;
+  }
+
+  .page-header-unified-top,
+  .page-header-unified-actions,
+  .page-header-unified-trailing,
+  .calendar-toolbar-actions,
+  .payments-filters,
+  .clients-toolbar,
+  .catalog-toolbar,
+  .settings-actions {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .settings-grid,
+  .settings-options,
+  .settings-options-grid,
+  .operations-grid,
+  .import-grid,
+  .calendar-layout,
+  .form-split,
+  .client-details-grid,
+  .message-template-form-grid,
+  .financial-operation-form,
+  .client-form-modal .form-split {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .catalog-grid,
+  .employees-grid,
+  .packages-grid,
+  .package-summary-grid,
+  .stats-grid,
+  .dashboard-grid,
+  .today-grid,
+  .summary-grid,
+  .quick-stats-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .panel,
+  .catalog-card,
+  .employee-card,
+  .settings-panel,
+  .summary-card,
+  .stat-card,
+  .client-profile-panel,
+  .client-details-card,
+  .operations-panel,
+  .calendar-panel,
+  .card,
+  [class*="Card"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .table-head,
+  .clients-table-head,
+  .visits-table-head,
+  .payments-table-head {
+    display: none !important;
+  }
+
+  .table-row,
+  .clients-table-row,
+  .visits-table-row,
+  .payments-table-row,
+  .supply-row,
+  .task-row,
+  .note-row,
+  .waitlist-row {
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    overflow: hidden;
+  }
+
+  .table-row > *,
+  .clients-table-row > *,
+  .visits-table-row > *,
+  .payments-table-row > *,
+  .supply-row > *,
+  .task-row > *,
+  .note-row > *,
+  .waitlist-row > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: anywhere;
+  }
+
+  .modal,
+  .dialog,
+  .form-modal,
+  .employee-modal,
+  .confirm-dialog,
+  .client-search-dialog,
+  .client-details-modal:not(.mobile-sheet) {
+    width: 100% !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    overflow: auto !important;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  .mobile-bottom-nav {
+    height: calc(68px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .content,
+  .payments-content,
+  .visits-content.payments-content,
+  .services-content,
+  .packages-content,
+  .employees-content,
+  .templates-content,
+  .import-content,
+  .statistics-content,
+  .site-content,
+  .settings-content {
+    padding-right: 10px !important;
+    padding-left: 10px !important;
+  }
+
+  .page-header,
+  .page-header-unified {
+    margin-right: -10px;
+    margin-left: -10px;
+    padding-right: 10px;
+    padding-left: 10px;
   }
 }

@@ -1,16 +1,32 @@
-import CalendarPage from "./pages/CalendarPage.jsx";
-import PaymentsPage from "./pages/PaymentsPage.jsx";
-import ClientsPage from "./pages/ClientsPage.jsx";
+import {lazy, Suspense} from "react";
 import ServicesPage from "./pages/ServicesPage.jsx";
 import PackagesPage from "./pages/PackagesPage.jsx";
 import EmployeesPage from "./EmployeesPage.jsx";
 import MessageTemplatesPage from "./pages/MessageTemplatesPage.jsx";
-import OperationsPage from "./pages/OperationsPage.jsx";
 import ImportPage from "./pages/ImportPage.jsx";
-import StatisticsPage from "./pages/StatisticsPage.jsx";
 import TodayPage from "./pages/TodayPage.jsx";
-import SettingsPage from "./pages/SettingsPage.jsx";
 import SitePage from "./pages/SitePage.jsx";
+
+const CalendarPage = lazy(() => import("./pages/CalendarPage.jsx"));
+const ClientsPage = lazy(() => import("./pages/ClientsPage.jsx"));
+const OperationsPage = lazy(() => import("./pages/OperationsPage.jsx"));
+const PaymentsPage = lazy(() => import("./pages/PaymentsPage.jsx"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage.jsx"));
+const StatisticsPage = lazy(() => import("./pages/StatisticsPage.jsx"));
+
+function PageSuspense({children}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="grid min-h-[240px] place-items-center rounded-lg border border-white/[0.07] bg-white/[0.035] p-6 text-sm font-semibold text-zinc-400">
+          Загружаем раздел...
+        </div>
+      }
+    >
+      {children}
+    </Suspense>
+  );
+}
 
 export default function AppRoutes({activePage, ...props}) {
   switch (activePage) {
@@ -43,66 +59,72 @@ export default function AppRoutes({activePage, ...props}) {
 
     case "calendar":
       return (
-        <CalendarPage
-          alertFocus={props.alertFocus}
-          entries={props.calendarEntriesWithServiceColors}
-          visits={props.visits}
-          clients={props.clientProfiles}
-          clientPackages={props.clientPackages}
-          employees={props.activeEmployees}
-          settings={props.appSettings}
-          onAdd={props.openCreateCalendarEntry}
-          onAlertFocusHandled={props.clearAlertFocus}
-          onEdit={(entry) => props.requestCalendarAction("edit", entry)}
-          onDelete={(entry) => props.requestCalendarAction("delete", entry)}
-          onMove={props.moveCalendarEntry}
-          onRemind={props.remindCalendarClient}
-          onStatus={props.updateCalendarEntryStatus}
-          overlayOpen={props.calendarEntryModalOpen}
-        />
+        <PageSuspense>
+          <CalendarPage
+            alertFocus={props.alertFocus}
+            entries={props.calendarEntriesWithServiceColors}
+            visits={props.visits}
+            clients={props.clientProfiles}
+            clientPackages={props.clientPackages}
+            employees={props.activeEmployees}
+            settings={props.appSettings}
+            onAdd={props.openCreateCalendarEntry}
+            onAlertFocusHandled={props.clearAlertFocus}
+            onEdit={(entry) => props.requestCalendarAction("edit", entry)}
+            onDelete={(entry) => props.requestCalendarAction("delete", entry)}
+            onMove={props.moveCalendarEntry}
+            onRemind={props.remindCalendarClient}
+            onStatus={props.updateCalendarEntryStatus}
+            overlayOpen={props.calendarEntryModalOpen}
+          />
+        </PageSuspense>
       );
 
     case "payments":
       return (
-        <PaymentsPage
-          closeDay={props.closeDay}
-          dayCloseRecords={props.dayCloseRecords}
-          filters={props.paymentFilters}
-          getDayCloseJournal={props.getDayCloseJournal}
-          masters={props.masters}
-          openActionMenuId={props.openPaymentActionMenuId}
-          reopenDayClose={props.reopenDayClose}
-          removeDayClose={props.removeDayClose}
-          visits={props.filteredPaymentRows}
-          onAddPayment={props.openCreatePayment}
-          onDeleteVisit={props.deletePaymentRow}
-          onEditVisit={props.editPaymentRow}
-          onFilterChange={props.onPaymentFilterChange}
-          onResetFilters={props.onPaymentFiltersReset}
-          onToggleActionMenu={props.setOpenPaymentActionMenuId}
-        />
+        <PageSuspense>
+          <PaymentsPage
+            closeDay={props.closeDay}
+            dayCloseRecords={props.dayCloseRecords}
+            filters={props.paymentFilters}
+            getDayCloseJournal={props.getDayCloseJournal}
+            masters={props.masters}
+            openActionMenuId={props.openPaymentActionMenuId}
+            reopenDayClose={props.reopenDayClose}
+            removeDayClose={props.removeDayClose}
+            visits={props.filteredPaymentRows}
+            onAddPayment={props.openCreatePayment}
+            onDeleteVisit={props.deletePaymentRow}
+            onEditVisit={props.editPaymentRow}
+            onFilterChange={props.onPaymentFilterChange}
+            onResetFilters={props.onPaymentFiltersReset}
+            onToggleActionMenu={props.setOpenPaymentActionMenuId}
+          />
+        </PageSuspense>
       );
 
     case "clients":
       return (
-        <ClientsPage
-          alertFocus={props.alertFocus}
-          visits={props.visits}
-          calendarEntries={props.calendarEntries}
-          clients={props.clientProfiles}
-          clientPackages={props.clientPackages}
-          certificates={props.certificates}
-          communicationLog={props.communicationLog}
-          employees={props.employees}
-          inactiveClientDays={props.inactiveClientDays}
-          onAddClient={props.openCreateClient}
-          onAddVisit={props.openCreateCalendarEntry}
-          onAlertFocusHandled={props.clearAlertFocus}
-          onMessageClient={props.openClientMessageTemplates}
-          onEditClient={props.openEditClient}
-          onUpdateClientNote={props.updateClientNote}
-          onDeleteClient={props.requestDeleteClient}
-        />
+        <PageSuspense>
+          <ClientsPage
+            alertFocus={props.alertFocus}
+            visits={props.visits}
+            calendarEntries={props.calendarEntries}
+            clients={props.clientProfiles}
+            clientPackages={props.clientPackages}
+            certificates={props.certificates}
+            communicationLog={props.communicationLog}
+            employees={props.employees}
+            inactiveClientDays={props.inactiveClientDays}
+            onAddClient={props.openCreateClient}
+            onAddVisit={props.openCreateCalendarEntry}
+            onAlertFocusHandled={props.clearAlertFocus}
+            onMessageClient={props.openClientMessageTemplates}
+            onEditClient={props.openEditClient}
+            onUpdateClientNote={props.updateClientNote}
+            onDeleteClient={props.requestDeleteClient}
+          />
+        </PageSuspense>
       );
 
     case "services":
@@ -172,28 +194,30 @@ export default function AppRoutes({activePage, ...props}) {
 
     case "operations":
       return (
-        <OperationsPage
-          alertFocus={props.alertFocus}
-          tasks={props.tasks}
-          supplies={props.supplies}
-          waitlistEntries={props.waitlistEntries}
-          onAddTask={props.openCreateTask}
-          onAddNote={props.addQuickNote}
-          onAddWaitlistEntry={props.openCreateWaitlistEntry}
-          onAlertFocusHandled={props.clearAlertFocus}
-          onBookWaitlistEntry={props.bookWaitlistEntryFromPanel}
-          onCompleteTask={props.completeTask}
-          onDeleteTask={props.requestDeleteTask}
-          onEditTask={props.openEditTask}
-          onEditWaitlistEntry={props.openEditWaitlistEntry}
-          onMessageWaitlistEntry={props.messageWaitlistEntryFromPanel}
-          onRemoveWaitlistEntry={props.removeWaitlistEntry}
-          onReorderTasks={props.reorderTasks}
-          onAddSupply={props.openCreateSupply}
-          onEditSupply={props.openEditSupply}
-          onDeleteSupply={props.requestDeleteSupply}
-          onChangeSupplyStock={props.changeSupplyStock}
-        />
+        <PageSuspense>
+          <OperationsPage
+            alertFocus={props.alertFocus}
+            tasks={props.tasks}
+            supplies={props.supplies}
+            waitlistEntries={props.waitlistEntries}
+            onAddTask={props.openCreateTask}
+            onAddNote={props.addQuickNote}
+            onAddWaitlistEntry={props.openCreateWaitlistEntry}
+            onAlertFocusHandled={props.clearAlertFocus}
+            onBookWaitlistEntry={props.bookWaitlistEntryFromPanel}
+            onCompleteTask={props.completeTask}
+            onDeleteTask={props.requestDeleteTask}
+            onEditTask={props.openEditTask}
+            onEditWaitlistEntry={props.openEditWaitlistEntry}
+            onMessageWaitlistEntry={props.messageWaitlistEntryFromPanel}
+            onRemoveWaitlistEntry={props.removeWaitlistEntry}
+            onReorderTasks={props.reorderTasks}
+            onAddSupply={props.openCreateSupply}
+            onEditSupply={props.openEditSupply}
+            onDeleteSupply={props.requestDeleteSupply}
+            onChangeSupplyStock={props.changeSupplyStock}
+          />
+        </PageSuspense>
       );
 
     case "import":
@@ -208,14 +232,16 @@ export default function AppRoutes({activePage, ...props}) {
 
     case "statistics":
       return (
-        <StatisticsPage
-          visits={props.paymentRows}
-          calendarEntries={props.calendarEntries}
-          certificates={props.certificates}
-          clientPackages={props.clientPackages}
-          clients={props.clientProfiles}
-          employees={props.employees}
-        />
+        <PageSuspense>
+          <StatisticsPage
+            visits={props.paymentRows}
+            calendarEntries={props.calendarEntries}
+            certificates={props.certificates}
+            clientPackages={props.clientPackages}
+            clients={props.clientProfiles}
+            employees={props.employees}
+          />
+        </PageSuspense>
       );
 
     case "site":
@@ -230,39 +256,43 @@ export default function AppRoutes({activePage, ...props}) {
 
     case "settings":
       return (
-        <SettingsPage
-          cloudConflict={props.cloudConflict}
-          cloudEnabled={props.cloudEnabled}
-          cloudHydrated={props.cloudHydrated}
-          cloudLoadError={props.cloudLoadError}
-          cloudSyncing={props.cloudSyncing}
-          lastCloudSyncAt={props.lastCloudSyncAt}
-          lastCloudSyncError={props.lastCloudSyncError}
-          settings={props.appSettings}
-          reviewRequests={props.reviewRequests}
-          inactiveFollowUp={props.inactiveFollowUp}
-          smsReminders={props.smsReminders}
-          telegramDigest={props.telegramDigest}
-          pushNotification={props.pushNotification}
-          onApplyRemoteSnapshot={props.handleApplyRemoteSnapshot}
-          onForceCloudSave={props.handleForceCloudSave}
-          onOverwriteRemoteSnapshot={props.handleOverwriteRemoteSnapshot}
-          onSubmit={props.handleSettingsSubmit}
-          onReset={props.resetSettings}
-          onExportData={props.exportDataBackup}
-          onImportData={props.importDataBackup}
-        />
+        <PageSuspense>
+          <SettingsPage
+            cloudConflict={props.cloudConflict}
+            cloudEnabled={props.cloudEnabled}
+            cloudHydrated={props.cloudHydrated}
+            cloudLoadError={props.cloudLoadError}
+            cloudSyncing={props.cloudSyncing}
+            lastCloudSyncAt={props.lastCloudSyncAt}
+            lastCloudSyncError={props.lastCloudSyncError}
+            settings={props.appSettings}
+            reviewRequests={props.reviewRequests}
+            inactiveFollowUp={props.inactiveFollowUp}
+            smsReminders={props.smsReminders}
+            telegramDigest={props.telegramDigest}
+            pushNotification={props.pushNotification}
+            onApplyRemoteSnapshot={props.handleApplyRemoteSnapshot}
+            onForceCloudSave={props.handleForceCloudSave}
+            onOverwriteRemoteSnapshot={props.handleOverwriteRemoteSnapshot}
+            onSubmit={props.handleSettingsSubmit}
+            onReset={props.resetSettings}
+            onExportData={props.exportDataBackup}
+            onImportData={props.importDataBackup}
+          />
+        </PageSuspense>
       );
 
     default:
       return (
-        <StatisticsPage
-          visits={props.paymentRows}
-          calendarEntries={props.calendarEntries}
-          clientPackages={props.clientPackages}
-          clients={props.clientProfiles}
-          employees={props.employees}
-        />
+        <PageSuspense>
+          <StatisticsPage
+            visits={props.paymentRows}
+            calendarEntries={props.calendarEntries}
+            clientPackages={props.clientPackages}
+            clients={props.clientProfiles}
+            employees={props.employees}
+          />
+        </PageSuspense>
       );
   }
 }

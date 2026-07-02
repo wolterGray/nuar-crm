@@ -3,6 +3,19 @@ export default function AppShell({
   children,
   compactMode,
   contentRef,
+  isCalendarPage,
+  isClientsPage,
+  isEmployeesPage,
+  isImportPage,
+  isOperationsPage,
+  isPackagesPage,
+  isPaymentsPage,
+  isServicesPage,
+  isSettingsPage,
+  isSitePage,
+  isStatisticsPage,
+  isTemplatesPage,
+  isTodayPage,
   navigation,
   pullRefresh,
   theme,
@@ -12,11 +25,37 @@ export default function AppShell({
   onTouchMove,
   onTouchStart,
 }) {
+  const shellClasses = [
+    "crm-shell",
+    "grid md:grid-cols-[240px_1fr] w-screen h-screen overflow-hidden",
+    `theme-${theme}`,
+    compactMode ? "compact-mode" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const contentClasses = [
+    "content",
+    isTodayPage ? "home-content today-content" : "",
+    isCalendarPage ? "calendar-content" : "",
+    isClientsPage ? "clients-content" : "",
+    isOperationsPage ? "operations-content" : "",
+    isPaymentsPage ? "visits-content payments-content" : "",
+    isServicesPage ? "services-content" : "",
+    isPackagesPage ? "packages-content" : "",
+    isEmployeesPage ? "employees-content" : "",
+    isTemplatesPage ? "templates-content" : "",
+    isImportPage ? "import-content" : "",
+    isStatisticsPage ? "statistics-content" : "",
+    isSitePage ? "site-content" : "",
+    isSettingsPage ? "settings-content" : "",
+    "flex-1 min-w-0 min-h-0 bg-[#0B0F14] text-zinc-150 p-4 md:p-6 pb-20 md:pb-6 overflow-y-auto overscroll-contain",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div
-      className={`grid md:grid-cols-[240px_1fr] w-screen h-screen overflow-hidden theme-${theme} ${
-        compactMode ? "compact-mode" : ""
-      }`}
+      className={shellClasses}
       onClick={onShellClick}
     >
       {navigation}
@@ -32,7 +71,7 @@ export default function AppShell({
 
       <main
         ref={contentRef}
-        className="flex-1 min-w-0 min-h-0 bg-[#0B0F14] text-zinc-150 p-4 md:p-6 pb-20 md:pb-6 overflow-y-auto overscroll-contain"
+        className={contentClasses}
         onTouchCancel={onTouchCancel}
         onTouchEnd={onTouchEnd}
         onTouchMove={onTouchMove}

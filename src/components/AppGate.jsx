@@ -72,7 +72,7 @@ export default function AppGate({
         actionLabel="Повторить"
         message={
           cloudLoadError ||
-          "Получаем актуальные данные из защищённого хранилища Supabase."
+          "Получаем актуальные данные из защищённого хранилища CRM."
         }
         mode={cloudLoadError ? "error" : "loading"}
         settings={appSettings}

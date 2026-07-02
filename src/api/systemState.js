@@ -1,6 +1,5 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
-
-const API_URL = import.meta.env.VITE_BACKEND_URL || "http://192.168.18.2:3001";
+import {API_URL} from "./config.js";
 
 export const SYSTEM_STATE_KEYS = {
   alertSnoozes: "alertSnoozes",

@@ -1820,6 +1820,7 @@ function App() {
       navigateFromAlert,
       openClientMessageTemplates,
       resolveAlertClient,
+      setActivePage,
       snoozeAlertDays,
       snoozeAlertToday,
       undoNotificationAction,
