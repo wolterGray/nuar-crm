@@ -2,6 +2,10 @@
 // Service for sending Telegram digest messages.
 // Uses Telegram Bot API – token must be provided via TELEGRAM_BOT_TOKEN env var.
 
+const {PrismaClient} = require('@prisma/client');
+
+const prisma = new PrismaClient();
+
 /**
  * Sends a message via Telegram Bot.
  * @param {Object} payload
@@ -21,6 +25,23 @@ const telegramDigest = async (payload) => {
   if (!text) {
     return { success: false, error: 'text is required' };
   }
+
+  let delivery = null;
+  try {
+    delivery = await prisma.notificationDelivery.create({
+      data: {
+        channel: 'telegram',
+        messageText: String(text),
+        recipient: String(chatId),
+        scheduledAt: new Date(),
+        status: 'pending',
+        templateKey: 'telegram-digest',
+      },
+    });
+  } catch (error) {
+    console.error('Telegram delivery log create failed:', error);
+  }
+
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
   try {
     const response = await fetch(url, {
@@ -30,10 +51,47 @@ const telegramDigest = async (payload) => {
     });
     const data = await response.json();
     if (!response.ok || !data.ok) {
+      if (delivery) {
+        await prisma.notificationDelivery.update({
+          where: {id: delivery.id},
+          data: {
+            attempts: {increment: 1},
+            errorMessage: data.description || `Telegram API error ${response.status}`,
+            status: 'failed',
+          },
+        });
+      }
       return { success: false, error: data.description || `Telegram API error ${response.status}` };
     }
-    return { success: true, messageId: data.result.message_id, chatId: data.result.chat.id };
+    if (delivery) {
+      await prisma.notificationDelivery.update({
+        where: {id: delivery.id},
+        data: {
+          attempts: {increment: 1},
+          errorMessage: null,
+          providerMessageId: String(data.result.message_id),
+          sentAt: new Date(),
+          status: 'sent',
+        },
+      });
+    }
+    return {
+      success: true,
+      deliveryId: delivery?.id,
+      messageId: data.result.message_id,
+      chatId: data.result.chat.id,
+    };
   } catch (err) {
+    if (delivery) {
+      await prisma.notificationDelivery.update({
+        where: {id: delivery.id},
+        data: {
+          attempts: {increment: 1},
+          errorMessage: err instanceof Error ? err.message : 'Telegram request failed',
+          status: 'failed',
+        },
+      });
+    }
     return { success: false, error: err instanceof Error ? err.message : 'Telegram request failed' };
   }
 };

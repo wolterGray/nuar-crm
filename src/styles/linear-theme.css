@@ -836,10 +836,10 @@
 .theme-dark .mobile-calendar-week,
 .theme-light .mobile-calendar-week {
   position: relative;
-  min-height: 70px;
-  height: 70px;
-  padding: 6px 12px;
-  border-bottom: 1px solid var(--linear-border);
+  min-height: 52px;
+  height: 52px;
+  padding: 5px 16px 4px;
+  border-bottom: 0;
   background: color-mix(in srgb, var(--linear-panel) 92%, transparent);
 }
 
@@ -847,10 +847,11 @@
 .theme-light .mobile-calendar-week button {
   position: relative;
   z-index: 1;
-  min-height: 52px;
-  padding: 4px 6px;
+  min-height: 43px;
+  height: 43px;
+  padding: 0 6px;
   border: 1px solid transparent;
-  border-radius: 14px;
+  border-radius: 10px;
   color: var(--linear-muted);
   background: transparent;
   transition:
@@ -870,8 +871,8 @@
 
 .theme-dark .mobile-calendar-week b,
 .theme-light .mobile-calendar-week b {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   color: color-mix(in srgb, var(--linear-text) 78%, var(--linear-muted));
   font-size: 18px;
   font-weight: 850;
@@ -890,10 +891,10 @@
 
 .theme-dark .mobile-calendar-week button.selected,
 .theme-light .mobile-calendar-week button.selected {
-  min-height: 52px;
-  padding: 4px 8px;
+  min-height: 43px;
+  padding: 0 6px;
   border-color: transparent;
-  border-radius: 16px;
+  border-radius: 10px;
   background: transparent;
 }
 
@@ -935,7 +936,7 @@
 
 .theme-dark .calendar-week-selection-indicator[style],
 .theme-light .calendar-week-selection-indicator[style] {
-  height: 52px;
+  height: 43px;
   margin-top: 0;
   opacity: 1;
 }

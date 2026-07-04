@@ -7,8 +7,8 @@ import {
 
 describe("colorTheme", () => {
   it("resolves explicit colorTheme ids", () => {
-    expect(resolveColorTheme({colorTheme: "dark-purple"}).id).toBe("dark-purple");
-    expect(resolveColorTheme({colorTheme: "dark-gold"}).accentColor).toBe("#d2ad7d");
+    expect(resolveColorTheme({colorTheme: "dark"}).id).toBe("dark");
+    expect(resolveColorTheme({colorTheme: "dark"}).accentColor).toBe("#b91c1c");
     expect(resolveColorTheme({colorTheme: "light"}).mode).toBe("light");
   });
 
@@ -16,15 +16,15 @@ describe("colorTheme", () => {
     expect(resolveColorTheme({theme: "light"}).id).toBe("light");
   });
 
-  it("migrates legacy purple accent to dark-purple", () => {
+  it("migrates legacy purple accent to current dark theme", () => {
     expect(resolveColorTheme({theme: "dark", accentColor: "#7c6cf2"}).id).toBe(
-      "dark-purple",
+      "dark",
     );
   });
 
-  it("migrates legacy gold accent to dark-gold", () => {
+  it("migrates legacy gold accent to current dark theme", () => {
     expect(resolveColorTheme({theme: "dark", accentColor: "#d2ad7d"}).id).toBe(
-      "dark-gold",
+      "dark",
     );
   });
 
@@ -34,16 +34,16 @@ describe("colorTheme", () => {
       accentColor: "#7c6cf2",
     });
 
-    expect(synced.colorTheme).toBe("dark-purple");
+    expect(synced.colorTheme).toBe("dark");
     expect(synced.theme).toBe("dark");
-    expect(synced.accentColor).toBe("#7c5cff");
+    expect(synced.accentColor).toBe("#b91c1c");
   });
 
   it("applyColorTheme resolves theme object", () => {
-    const theme = applyColorTheme({colorTheme: "dark-gold"});
+    const theme = applyColorTheme({colorTheme: "dark"});
 
-    expect(theme.id).toBe("dark-gold");
+    expect(theme.id).toBe("dark");
     expect(theme.mode).toBe("dark");
-    expect(theme.accentColor).toBe("#d2ad7d");
+    expect(theme.accentColor).toBe("#b91c1c");
   });
 });

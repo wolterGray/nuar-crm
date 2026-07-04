@@ -2,7 +2,11 @@
 // Service for sending bulk SMS using SMSAPI.
 // This module is used by the /functions/bulk-sms endpoint.
 
+const {PrismaClient} = require('@prisma/client');
+
+const prisma = new PrismaClient();
 const MAX_RECIPIENTS = 100;
+const MAX_DELIVERY_ATTEMPTS = 3;
 
 // Normalizes Polish phone numbers to E.164 format without '+' (e.g., 48xxxxxxxxx)
 const normalizePhone = (value) => {
@@ -53,6 +57,91 @@ const sendSms = async ({ to, message, from }) => {
   }
 };
 
+const getRecipientPhone = (item) =>
+  typeof item === 'string' ? item : item?.phone;
+
+const getRecipientMessage = (item, fallbackMessage) =>
+  typeof item === 'string' ? fallbackMessage : item?.message ?? fallbackMessage;
+
+const queueSmsDelivery = async ({
+  message,
+  phone,
+  scheduledAt = null,
+  status = 'pending',
+  templateKey = null,
+}) => {
+  const normalizedPhone = normalizePhone(phone);
+  const text = String(message ?? '').trim();
+
+  if (!normalizedPhone || !text) {
+    throw new Error('phone or message missing');
+  }
+
+  return prisma.notificationDelivery.create({
+    data: {
+      channel: 'sms',
+      messageText: text,
+      recipient: normalizedPhone,
+      scheduledAt,
+      status,
+      templateKey,
+    },
+  });
+};
+
+const markDeliverySent = (delivery, result) =>
+  prisma.notificationDelivery.update({
+    where: {id: delivery.id},
+    data: {
+      attempts: {increment: 1},
+      errorMessage: null,
+      providerMessageId: result.messageId ?? delivery.providerMessageId,
+      sentAt: new Date(),
+      status: 'sent',
+    },
+  });
+
+const markDeliveryFailed = (delivery, errorMessage, retrying = false) =>
+  prisma.notificationDelivery.update({
+    where: {id: delivery.id},
+    data: {
+      attempts: {increment: 1},
+      errorMessage,
+      status: retrying ? 'retrying' : 'failed',
+    },
+  });
+
+const sendQueuedSmsDelivery = async (delivery) => {
+  const result = await sendSms({
+    message: delivery.messageText,
+    to: delivery.recipient,
+  });
+
+  if (result.ok) {
+    await markDeliverySent(delivery, result);
+    return {
+      deliveryId: delivery.id,
+      phone: delivery.recipient,
+      providerMessageId: result.messageId ?? '',
+      status: 'sent',
+    };
+  }
+
+  const nextAttempts = Number(delivery.attempts || 0) + 1;
+  await markDeliveryFailed(
+    delivery,
+    result.error || 'SMS send failed',
+    nextAttempts < MAX_DELIVERY_ATTEMPTS,
+  );
+
+  return {
+    deliveryId: delivery.id,
+    error: result.error || 'SMS send failed',
+    phone: delivery.recipient,
+    status: nextAttempts < MAX_DELIVERY_ATTEMPTS ? 'retrying' : 'failed',
+  };
+};
+
 /**
  * Sends bulk SMS messages.
  * @param {Object} params
@@ -75,25 +164,45 @@ const sendBulkSms = async ({ recipients = [], message = '' }) => {
   const failed = [];
 
   for (const item of recipients) {
-    const phone = normalizePhone(item.phone);
-    const txt = String(item.message ?? message ?? '').trim();
-    const clientId = String(item.clientId ?? '').trim();
-    const clientName = String(item.clientName ?? '').trim();
+    const phone = normalizePhone(getRecipientPhone(item));
+    const txt = String(getRecipientMessage(item, message) ?? '').trim();
+    const clientId = typeof item === 'string' ? '' : String(item.clientId ?? '').trim();
+    const clientName = typeof item === 'string' ? '' : String(item.clientName ?? '').trim();
     if (!phone || !txt) {
       failed.push({ clientId, clientName, phone, error: 'phone or message missing', status: 'failed' });
       continue;
     }
-    const result = await sendSms({ to: phone, message: txt });
+
+    let delivery;
+    try {
+      delivery = await queueSmsDelivery({
+        message: txt,
+        phone,
+        scheduledAt: new Date(),
+      });
+    } catch (error) {
+      failed.push({
+        clientId,
+        clientName,
+        phone,
+        error: error instanceof Error ? error.message : 'delivery log failed',
+        status: 'failed',
+      });
+      continue;
+    }
+
+    const result = await sendQueuedSmsDelivery(delivery);
     const entry = {
       clientId,
       clientName,
+      deliveryId: delivery.id,
       phone,
       message: txt,
-      providerMessageId: result.messageId ?? '',
-      status: result.ok ? 'sent' : 'failed',
+      providerMessageId: result.providerMessageId ?? '',
+      status: result.status,
       error: result.error ?? '',
     };
-    if (result.ok) sent.push(entry); else failed.push(entry);
+    if (result.status === 'sent') sent.push(entry); else failed.push(entry);
     // pause to respect rate limits
     await new Promise((resolve) => setTimeout(resolve, 150));
   }
@@ -101,4 +210,34 @@ const sendBulkSms = async ({ recipients = [], message = '' }) => {
   return { sent, failed, sentCount: sent.length, failedCount: failed.length };
 };
 
-module.exports = { sendBulkSms, normalizePhone, MAX_RECIPIENTS };
+const processDueSmsDeliveries = async ({limit = 50} = {}) => {
+  const dueDeliveries = await prisma.notificationDelivery.findMany({
+    where: {
+      attempts: {lt: MAX_DELIVERY_ATTEMPTS},
+      channel: 'sms',
+      scheduledAt: {lte: new Date()},
+      status: {in: ['pending', 'retrying']},
+    },
+    orderBy: [{scheduledAt: 'asc'}, {createdAt: 'asc'}],
+    take: limit,
+  });
+
+  const results = [];
+  for (const delivery of dueDeliveries) {
+    results.push(await sendQueuedSmsDelivery(delivery));
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+
+  return {
+    processed: results.length,
+    results,
+  };
+};
+
+module.exports = {
+  MAX_RECIPIENTS,
+  normalizePhone,
+  processDueSmsDeliveries,
+  queueSmsDelivery,
+  sendBulkSms,
+};

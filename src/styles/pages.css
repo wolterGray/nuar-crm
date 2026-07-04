@@ -4247,14 +4247,17 @@ button:focus-visible {
   }
 
   .today-board-header {
-    align-items: flex-start;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36px;
+    align-items: center;
+    gap: 10px;
   }
 
   .today-board-title {
     align-items: flex-start;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
+    min-width: 0;
   }
 
   .today-board-title h1 {
@@ -4266,14 +4269,78 @@ button:focus-visible {
   }
 
   .today-board-actions {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    gap: 8px;
   }
 
-  .today-owner-mark,
-  .today-board-notifications {
+  .today-board-actions .today-control-button {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 10px;
+  }
+
+  .today-owner-mark {
     display: none;
+  }
+
+  .today-board-notifications {
+    display: grid;
+    grid-column: 2;
+    grid-row: 1;
+    width: 36px;
+    min-width: 36px;
+    justify-self: end;
+    place-items: center;
+  }
+
+  .today-board-notifications .page-notifications-slot,
+  .today-board-notifications .client-alert-button {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    border: 0;
+    background: transparent !important;
+    box-shadow: none;
+  }
+
+  .today-board-notifications .notification-trigger.client-alert-button {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .today-board-notifications .client-alert-button svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .today-side-panel .today-panel-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .today-side-panel .today-panel-header h2 {
+    min-width: 0;
+  }
+
+  .today-side-panel .today-control-button.is-compact {
+    width: auto;
+    min-width: 0;
+    height: 34px;
+    min-height: 34px;
+    padding-inline: 10px;
+    white-space: nowrap;
+  }
+
+  .today-tasks-panel .today-control-button.is-compact {
+    padding-inline: 9px;
   }
 
   .today-kpi-grid {
@@ -5585,6 +5652,154 @@ button:focus-visible {
 .nuar-payments .payments-header-icon:hover {
   color: var(--payments-text);
   background: rgba(255, 255, 255, 0.045);
+}
+
+.payments-page-mobile.nuar-payments {
+  display: block;
+  min-height: 100%;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+}
+
+.payments-page-mobile.nuar-payments .visits-panel-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.payments-page-mobile.nuar-payments .visits-panel-mobile .page-header-unified {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.payments-page-mobile.nuar-payments .visits-panel-mobile .page-header-unified-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.payments-page-mobile.nuar-payments .visits-panel-mobile .page-title {
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.payments-page-mobile.nuar-payments .visits-panel-mobile .page-header-unified-actions {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.payments-page-mobile.nuar-payments .payments-header-icon {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.payments-mobile-scroll-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.payments-mobile-scroll-panel .payments-search-control {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.payments-mobile-scroll-panel .payments-add-button {
+  grid-column: 1 / -1;
+  justify-content: center;
+  width: max-content;
+  min-height: 38px;
+  padding-inline: 14px;
+  font-size: 13px;
+}
+
+.payments-mobile-filters {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.payments-mobile-filters label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  color: var(--payments-muted);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.payments-page-mobile.nuar-payments .payments-mobile-filters input,
+.payments-page-mobile.nuar-payments .payments-mobile-filters select,
+.payments-page-mobile.nuar-payments .payments-mobile-filters .client-autocomplete input {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding-inline: 9px;
+  font-size: 12px;
+}
+
+.payments-page-mobile.nuar-payments .visits-mobile-list {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding-bottom: 8px;
+}
+
+.payments-page-mobile.nuar-payments .visits-mobile-empty {
+  display: grid;
+  gap: 5px;
+  min-height: 130px;
+  place-items: center;
+  padding: 22px 16px;
+  border: 1px solid var(--payments-border-soft);
+  border-radius: 12px;
+  color: var(--payments-muted);
+  text-align: center;
+  background: var(--payments-panel);
+}
+
+.payments-page-mobile.nuar-payments .visits-mobile-empty strong {
+  color: var(--payments-text);
+  font-size: 14px;
+}
+
+.payments-page-mobile.nuar-payments .visits-mobile-empty span {
+  max-width: 220px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.payments-page-mobile.nuar-payments .visit-mobile-card,
+.payments-page-mobile.nuar-payments .visits-mobile-list article {
+  width: 100%;
+  min-width: 0;
+  border-radius: 12px;
 }
 
 .nuar-payments .table-search-control.crm-search-input-control,

@@ -1,10 +1,9 @@
 // backend/services/remindersService.js
 // Service for handling SMS reminders.
 // Accepts an array of reminder objects with `phone`, `message`, and optional `sendAt` timestamp.
-// If `sendAt` is in the future, the reminder is scheduled via setTimeout (in‑process). 
-// For production you would move scheduling to a job queue (e.g., Bull, Agenda).
+// Future reminders are stored in NotificationDelivery, so PM2 restarts do not lose them.
 
-const { sendBulkSms } = require('./smsService');
+const { queueSmsDelivery, sendBulkSms } = require('./smsService');
 
 /**
  * Sends or schedules SMS reminders.
@@ -26,25 +25,38 @@ const smsReminders = async (payload) => {
   for (const item of reminders) {
     const { phone, message, sendAt } = item;
     const sendTime = sendAt ? new Date(sendAt).getTime() : now;
-    const task = async () => {
+    if (sendTime <= now) {
       try {
         const result = await sendBulkSms({ recipients: [{ phone, message }], message: '' });
         if (result.sent && result.sent.length) {
-          sent.push({ phone, message, messageId: result.sent[0].providerMessageId });
+          sent.push({
+            deliveryId: result.sent[0].deliveryId,
+            message,
+            messageId: result.sent[0].providerMessageId,
+            phone,
+          });
         } else {
           failed.push({ phone, message, error: result.failed?.[0]?.error || 'unknown' });
         }
       } catch (e) {
         failed.push({ phone, message, error: e instanceof Error ? e.message : 'send error' });
       }
-    };
-
-    if (sendTime <= now) {
-      await task();
     } else {
-      const delay = sendTime - now;
-      scheduled.push({ phone, message, sendAt: new Date(sendTime).toISOString() });
-      setTimeout(task, delay);
+      try {
+        const delivery = await queueSmsDelivery({
+          message,
+          phone,
+          scheduledAt: new Date(sendTime),
+        });
+        scheduled.push({
+          deliveryId: delivery.id,
+          phone: delivery.recipient,
+          message,
+          sendAt: new Date(sendTime).toISOString(),
+        });
+      } catch (e) {
+        failed.push({ phone, message, error: e instanceof Error ? e.message : 'schedule error' });
+      }
     }
   }
 

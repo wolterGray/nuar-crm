@@ -25,10 +25,10 @@ function CalendarDayList({
 
   if (visitEntries.length === 0 && reservedEntries.length === 0) {
     return (
-      <section className="flex flex-col items-center justify-center py-12 px-4 border border-zinc-800 rounded-xl bg-zinc-900/30 text-center">
-        <p className="text-zinc-500 text-sm mb-4">На этот день записей пока нет.</p>
+      <section className="flex flex-col items-center justify-center py-10 px-4 text-center">
+        <p className="text-zinc-500 text-sm mb-2">На этот день записей пока нет.</p>
         <button
-          className="inline-flex items-center gap-2 min-h-[40px] px-5 py-2 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 cursor-pointer shadow-md shadow-indigo-950/20 transition-all"
+          className="add-visit-button inline-flex items-center gap-2 min-h-[40px] px-5 py-2 rounded-lg text-xs font-semibold cursor-pointer transition-all"
           type="button"
           onClick={onAdd}
         >

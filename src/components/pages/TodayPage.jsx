@@ -146,9 +146,9 @@ function TodayReferenceBoard({
             <Plus size={16} />
             Визит
           </Button>
-          <div className="today-board-notifications">
-            <PageNotificationsSlot />
-          </div>
+        </div>
+        <div className="today-board-notifications">
+          <PageNotificationsSlot />
         </div>
       </header>
 

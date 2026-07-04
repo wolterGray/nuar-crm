@@ -45,7 +45,7 @@ button {
 
 .crm-shell {
   display: grid;
-  grid-template-columns: 74px minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr);
   width: 100vw;
   height: 100vh;
   overflow: hidden;

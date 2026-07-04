@@ -709,12 +709,14 @@ return (
       )}
 
       <div
-        className={`nuar-calendar-layout grid gap-3 flex-1 items-stretch min-h-0 ${
-          remindersVisible ? "grid-cols-[1fr_320px]" : "grid-cols-[1fr]"
-        } ${showDayList ? "flex flex-col" : ""}`}
+        className={`nuar-calendar-layout gap-3 flex-1 items-stretch min-h-0 ${
+          showDayList
+            ? "flex flex-col"
+            : `grid ${remindersVisible ? "grid-cols-[1fr_320px]" : "grid-cols-[1fr]"}`
+        }`}
       >
         {showDayList && (
-          <div className="flex-1 overflow-y-auto px-4 pb-20">
+          <div className="nuar-calendar-day-list flex-1 w-full min-w-0 overflow-y-auto px-4 pb-20">
             <CalendarDayList
               clients={clients}
               entries={dayEntries}
@@ -746,17 +748,19 @@ return (
               <div
                 className="nuar-calendar-grid grid min-w-[700px] select-none"
                 style={{
-                  gridTemplateColumns: `var(--calendar-time-axis-width, 58px) repeat(${calendarMasters.length}, minmax(var(--mobile-master-width, 190px), 1fr))`,
+                  gridTemplateColumns: isMobile
+                    ? `var(--calendar-time-axis-width, 44px) repeat(${calendarMasters.length}, minmax(var(--mobile-master-width, 220px), 1fr))`
+                    : `58px repeat(${calendarMasters.length}, minmax(190px, 1fr))`,
                   width: isMobile
                     ? `max(100vw, calc(var(--calendar-time-axis-width, 44px) + ${calendarMasters.length} * var(--mobile-master-width, 220px)))`
-                    : `calc(var(--calendar-time-axis-width, 58px) + ${calendarMasters.length} * var(--mobile-master-width, 190px))`,
+                    : "100%",
                   "--master-count": calendarMasters.length,
                   "--calendar-time-axis-width": isMobile ? "44px" : "58px",
                   "--mobile-master-width": isMobile
                     ? calendarMasters.length <= 1
                       ? "calc(100vw - var(--calendar-time-axis-width, 44px))"
                       : "min(280px, max(220px, calc(50vw - 29px)))"
-                    : "1fr",
+                    : "190px",
                   "--schedule-height": `${gridHeight}px`,
                   "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,
                 }}

@@ -1256,13 +1256,15 @@
     display: grid;
     grid-auto-columns: calc((100% - 24px) / 7);
     grid-auto-flow: column;
-    flex: 0 0 59px;
-    min-height: 59px;
-    height: 59px;
+    flex: 0 0 52px;
+    min-height: 52px;
+    height: 52px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 3px 5px 7px;
-    border-bottom: 1px solid #e4e5e4;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 16px 4px;
+    border-bottom: 0;
     background: #fff;
     scroll-snap-type: x proximity;
     scrollbar-width: none;
@@ -1272,14 +1274,17 @@
   .mobile-calendar-week button {
     display: grid;
     min-width: 0;
-    min-height: 49px;
+    min-height: 43px;
+    height: 43px;
     place-items: center;
     align-content: center;
-    gap: 5px;
+    grid-template-rows: 13px 28px;
+    gap: 1px;
     border: 0;
-    border-radius: 20px;
+    border-radius: 10px;
     color: #353941;
     background: transparent;
+    line-height: 1;
   }
 
   .mobile-calendar-week span {
@@ -1290,8 +1295,8 @@
 
   .mobile-calendar-week b {
     display: grid;
-    width: 27px;
-    height: 27px;
+    width: 28px;
+    height: 28px;
     place-items: center;
     border-radius: 50%;
     color: #353941;

@@ -467,104 +467,108 @@ function VisitsTable({
       </div>
       )}
 
-      <div className="visits-mobile-list">
-        {!hasVisits ? (
-          <div className="visits-mobile-empty">
-            <strong>Визитов пока нет</strong>
-            <span>Добавьте первый визит или поступление, и оно появится здесь.</span>
-          </div>
-        ) : rows.length === 0 ? (
-          <div className="visits-mobile-empty">
-            <strong>Ничего не найдено</strong>
-            <span>
-              {hasSearch
-                ? "Попробуйте изменить поиск по клиенту, мастеру или услуге."
-                : "Попробуйте изменить фильтры."}
-            </span>
-          </div>
-        ) : (
-          rows.map((row) => {
-            const visit = row.original;
+      {isMobile ? (
+        <div className="visits-mobile-list">
+          {!hasVisits ? (
+            <div className="visits-mobile-empty">
+              <strong>Визитов пока нет</strong>
+              <span>Добавьте первый визит или поступление, и оно появится здесь.</span>
+            </div>
+          ) : rows.length === 0 ? (
+            <div className="visits-mobile-empty">
+              <strong>Ничего не найдено</strong>
+              <span>
+                {hasSearch
+                  ? "Попробуйте изменить поиск по клиенту, мастеру или услуге."
+                  : "Попробуйте изменить фильтры."}
+              </span>
+            </div>
+          ) : (
+            rows.map((row) => {
+              const visit = row.original;
 
-            return (
-              <VisitMobileCard
-                enableSwipe={false}
-                isPlanned={visit.isPlanned}
-                key={visit.id}
-                openMenuId={openActionMenuId}
-                setOpenMenuId={onToggleActionMenu}
-                showMaster
-                showStatus={Boolean(visit.status)}
-                visit={visit}
-                onDelete={onDeleteVisit}
-                onEdit={onEditVisit}
-              />
-            );
-          })
-        )}
-      </div>
-
-      <Table className="visits-table visits-table-desktop">
-        <TableHeader className="table-row table-head">
-          {table.getFlatHeaders().map((header) => (
-            <TableCell key={header.id}>
-              {header.column.getCanSort() ? (
-                <Button
-                  className="table-sort-button"
-                  type="button"
-                  variant="ghost"
-                  onClick={header.column.getToggleSortingHandler()}>
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                  <SortMark direction={header.column.getIsSorted()} />
-                </Button>
-              ) : (
-                flexRender(header.column.columnDef.header, header.getContext())
-              )}
-            </TableCell>
-          ))}
-        </TableHeader>
-        {rows.map((row) => (
-          <TableRow
-            className={`table-row ${row.original.isPlanned ? "table-row-planned" : ""}`}
-            key={row.original.id}>
-            {row.getVisibleCells().map((cell) =>
-              cell.column.id === "actions" ? (
-                <TableCell as="div" className="table-actions-cell" key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              return (
+                <VisitMobileCard
+                  enableSwipe={false}
+                  isPlanned={visit.isPlanned}
+                  key={visit.id}
+                  openMenuId={openActionMenuId}
+                  setOpenMenuId={onToggleActionMenu}
+                  showMaster
+                  showStatus={Boolean(visit.status)}
+                  visit={visit}
+                  onDelete={onDeleteVisit}
+                  onEdit={onEditVisit}
+                />
+              );
+            })
+          )}
+        </div>
+      ) : (
+        <>
+          <Table className="visits-table visits-table-desktop">
+            <TableHeader className="table-row table-head">
+              {table.getFlatHeaders().map((header) => (
+                <TableCell key={header.id}>
+                  {header.column.getCanSort() ? (
+                    <Button
+                      className="table-sort-button"
+                      type="button"
+                      variant="ghost"
+                      onClick={header.column.getToggleSortingHandler()}>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      <SortMark direction={header.column.getIsSorted()} />
+                    </Button>
+                  ) : (
+                    flexRender(header.column.columnDef.header, header.getContext())
+                  )}
                 </TableCell>
-              ) : ["client", "payment", "commission"].includes(cell.column.id) ? (
-                <TableCell as="div" className="table-visible-cell" key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ) : (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ),
+              ))}
+            </TableHeader>
+            {rows.map((row) => (
+              <TableRow
+                className={`table-row ${row.original.isPlanned ? "table-row-planned" : ""}`}
+                key={row.original.id}>
+                {row.getVisibleCells().map((cell) =>
+                  cell.column.id === "actions" ? (
+                    <TableCell as="div" className="table-actions-cell" key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ) : ["client", "payment", "commission"].includes(cell.column.id) ? (
+                    <TableCell as="div" className="table-visible-cell" key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ) : (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ),
+                )}
+              </TableRow>
+            ))}
+            {!hasVisits && (
+              <div className="table-empty-state">
+                <strong>Визитов пока нет</strong>
+                <span>Добавьте первый визит или поступление, и оно появится здесь.</span>
+              </div>
             )}
-          </TableRow>
-        ))}
-        {!hasVisits && (
-          <div className="table-empty-state">
-            <strong>Визитов пока нет</strong>
-            <span>Добавьте первый визит или поступление, и оно появится здесь.</span>
-          </div>
-        )}
-        {hasVisits && rows.length === 0 && (
-          <div className="table-empty-state">
-            <strong>Ничего не найдено</strong>
-            <span>
-              {hasSearch
-                ? "Попробуйте изменить поиск по клиенту, мастеру или услуге."
-                : "Попробуйте изменить фильтры таблицы."}
-            </span>
-          </div>
-        )}
-      </Table>
+            {hasVisits && rows.length === 0 && (
+              <div className="table-empty-state">
+                <strong>Ничего не найдено</strong>
+                <span>
+                  {hasSearch
+                    ? "Попробуйте изменить поиск по клиенту, мастеру или услуге."
+                    : "Попробуйте изменить фильтры таблицы."}
+                </span>
+              </div>
+            )}
+          </Table>
 
-      <footer className={`table-footer ${isMobile ? "table-footer-mobile-hidden" : ""}`}>
-        <span>Визитов: {rows.length} из {visits.length}</span>
-      </footer>
+          <footer className="table-footer">
+            <span>Визитов: {rows.length} из {visits.length}</span>
+          </footer>
+        </>
+      )}
     </Card>
   );
 }

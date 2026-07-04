@@ -327,3 +327,71 @@ model PayrollRecord {
 
   employee    Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
 }
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  before    Json?
+  after     Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+  @@index([action])
+}
+
+model ErrorEvent {
+  id        Int      @id @default(autoincrement())
+  source    String
+  message   String
+  stack     String?
+  context   Json?
+  severity  String   @default("error")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([source])
+  @@index([severity])
+}
+
+model NotificationDelivery {
+  id                Int       @id @default(autoincrement())
+  channel           String
+  recipient         String
+  templateKey       String?
+  messageText       String
+  status            String    @default("pending")
+  providerMessageId String?
+  errorMessage      String?
+  attempts          Int       @default(0)
+  scheduledAt       DateTime?
+  sentAt            DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status, scheduledAt])
+  @@index([channel])
+  @@index([createdAt])
+}
+
+model IntegrationJob {
+  id         Int       @id @default(autoincrement())
+  type       String
+  status     String    @default("pending")
+  payload    Json?
+  result     Json?
+  error      String?
+  attempts   Int       @default(0)
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([type, status])
+  @@index([createdAt])
+}

@@ -4,6 +4,8 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
+const { getHttpErrorResponse } = require('../utils/httpErrors');
 const prisma = new PrismaClient();
 
 // ----- Helper for unified response -----
@@ -11,9 +13,58 @@ const respond = (res, promise) => {
   promise
     .then((data) => res.json({ success: true, data }))
     .catch((err) => {
+      const response = getHttpErrorResponse(err);
       console.error('CRUD error:', err);
-      res.status(400).json({ success: false, error: err.message });
+      res.status(response.status).json({ success: false, error: response.message });
     });
+};
+
+const respondWithAudit = (req, res, promise, audit) => {
+  promise
+    .then(async (data) => {
+      await recordAuditLog(prisma, req, {
+        ...audit,
+        after: audit?.after === undefined ? data : audit.after,
+        entityId: audit?.entityId ?? data?.id,
+      });
+      res.json({ success: true, data });
+    })
+    .catch(async (err) => {
+      const response = getHttpErrorResponse(err);
+      console.error('CRUD error:', err);
+      await recordErrorEvent(prisma, {
+        context: {
+          action: audit?.action,
+          entity: audit?.entity,
+          params: req.params,
+        },
+        error: err,
+        message: err.message,
+        source: 'crud',
+      });
+      res.status(response.status).json({ success: false, error: response.message });
+    });
+};
+
+const findById = (model, id) => prisma[model].findUnique({where: {id}});
+
+const auditCreate = (req, res, promise, entity, action) =>
+  respondWithAudit(req, res, promise, {action, entity});
+
+const auditUpdate = async (req, res, model, id, promise, entity, action) => {
+  const before = Number.isFinite(id) ? await findById(model, id) : null;
+  respondWithAudit(req, res, promise, {action, before, entity, entityId: id});
+};
+
+const auditDelete = async (req, res, model, id, promise, entity, action) => {
+  const before = Number.isFinite(id) ? await findById(model, id) : null;
+  respondWithAudit(req, res, promise, {
+    action,
+    after: null,
+    before,
+    entity,
+    entityId: id,
+  });
 };
 
 const clientSelect = {
@@ -376,47 +427,83 @@ router.get('/visit-state', async (req, res) => {
 
 router.post('/calendar-entries', (req, res) => {
   const payload = req.body ?? {};
-  respond(
+  auditCreate(
+    req,
     res,
     prisma.calendarEntry
       .create({data: buildCalendarEntryData(payload)})
-      .then(withStoredId)
+      .then(withStoredId),
+    'CalendarEntry',
+    payload.kind === 'visit' ? 'create visit' : 'create calendar entry',
   );
 });
 
 router.put('/calendar-entries/:id', (req, res) => {
   const id = Number(req.params.id);
   const payload = {...(req.body ?? {}), id};
-  respond(
+  auditUpdate(
+    req,
     res,
+    'calendarEntry',
+    id,
     prisma.calendarEntry
       .update({where: {id}, data: buildCalendarEntryData(payload)})
       .then(withStoredId)
+    ,
+    'CalendarEntry',
+    payload.kind === 'visit' ? 'update visit' : 'update calendar entry',
   );
 });
 
-router.delete('/calendar-entries/:id', (req, res) => {
+router.delete('/calendar-entries/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.calendarEntry.delete({where: {id}}).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'calendarEntry',
+    id,
+    prisma.calendarEntry.delete({where: {id}}).then(withStoredId),
+    'CalendarEntry',
+    'delete/cancel visit',
+  );
 });
 
 router.post('/visits/journal', (req, res) => {
   const payload = req.body ?? {};
-  respond(res, prisma.visit.create({data: buildVisitData(payload)}).then(withStoredId));
-});
-
-router.put('/visits/journal/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const payload = {...(req.body ?? {}), id};
-  respond(
+  auditCreate(
+    req,
     res,
-    prisma.visit.update({where: {id}, data: buildVisitData(payload)}).then(withStoredId),
+    prisma.visit.create({data: buildVisitData(payload)}).then(withStoredId),
+    'Visit',
+    payload.recordType === 'operation' ? 'create payment' : 'create visit',
   );
 });
 
-router.delete('/visits/journal/:id', (req, res) => {
+router.put('/visits/journal/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.visit.delete({where: {id}}).then(withStoredId));
+  const payload = {...(req.body ?? {}), id};
+  await auditUpdate(
+    req,
+    res,
+    'visit',
+    id,
+    prisma.visit.update({where: {id}, data: buildVisitData(payload)}).then(withStoredId),
+    'Visit',
+    payload.recordType === 'operation' ? 'update payment' : 'update visit',
+  );
+});
+
+router.delete('/visits/journal/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  await auditDelete(
+    req,
+    res,
+    'visit',
+    id,
+    prisma.visit.delete({where: {id}}).then(withStoredId),
+    'Visit',
+    'delete/cancel visit',
+  );
 });
 
 // ==================== Client ====================
@@ -436,7 +523,7 @@ router.post('/clients', (req, res) => {
     return res.status(400).json({ success: false, error: 'Client name is required' });
   }
 
-  respond(res, prisma.client.create({ data, select: clientSelect }));
+  auditCreate(req, res, prisma.client.create({ data, select: clientSelect }), 'Client', 'create client');
 });
 
 router.get('/clients/:id', (req, res) => {
@@ -444,19 +531,35 @@ router.get('/clients/:id', (req, res) => {
   respond(res, prisma.client.findUnique({ where: { id }, select: clientSelect }));
 });
 
-router.put('/clients/:id', (req, res) => {
+router.put('/clients/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildClientData(req.body);
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Client name is required' });
   }
 
-  respond(res, prisma.client.update({ where: { id }, data, select: clientSelect }));
+  await auditUpdate(
+    req,
+    res,
+    'client',
+    id,
+    prisma.client.update({ where: { id }, data, select: clientSelect }),
+    'Client',
+    'update client',
+  );
 });
 
-router.delete('/clients/:id', (req, res) => {
+router.delete('/clients/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.client.delete({ where: { id } }));
+  await auditDelete(
+    req,
+    res,
+    'client',
+    id,
+    prisma.client.delete({ where: { id } }),
+    'Client',
+    'delete/archive client',
+  );
 });
 
 
@@ -467,7 +570,7 @@ router.post('/services', (req, res) => {
     return res.status(400).json({ success: false, error: 'Service name is required' });
   }
 
-  respond(res, prisma.service.create({ data }).then(withStoredId));
+  auditCreate(req, res, prisma.service.create({ data }).then(withStoredId), 'Service', 'create service');
 });
 
 router.get('/services/:id', (req, res) => {
@@ -475,19 +578,35 @@ router.get('/services/:id', (req, res) => {
   respond(res, prisma.service.findUnique({ where: { id } }).then(withStoredId));
 });
 
-router.put('/services/:id', (req, res) => {
+router.put('/services/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildServiceData({...(req.body ?? {}), id});
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Service name is required' });
   }
 
-  respond(res, prisma.service.update({ where: { id }, data }).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'service',
+    id,
+    prisma.service.update({ where: { id }, data }).then(withStoredId),
+    'Service',
+    'update service',
+  );
 });
 
-router.delete('/services/:id', (req, res) => {
+router.delete('/services/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.service.delete({ where: { id } }).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'service',
+    id,
+    prisma.service.delete({ where: { id } }).then(withStoredId),
+    'Service',
+    'delete service',
+  );
 });
 
 router.get('/services', (req, res) => {
@@ -506,7 +625,7 @@ router.post('/employees', (req, res) => {
     return res.status(400).json({ success: false, error: 'Employee name is required' });
   }
 
-  respond(res, prisma.employee.create({ data }).then(withStoredId));
+  auditCreate(req, res, prisma.employee.create({ data }).then(withStoredId), 'Employee', 'create employee');
 });
 
 router.get('/employees/:id', (req, res) => {
@@ -514,19 +633,35 @@ router.get('/employees/:id', (req, res) => {
   respond(res, prisma.employee.findUnique({ where: { id } }).then(withStoredId));
 });
 
-router.put('/employees/:id', (req, res) => {
+router.put('/employees/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildEmployeeData({...(req.body ?? {}), id});
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Employee name is required' });
   }
 
-  respond(res, prisma.employee.update({ where: { id }, data }).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'employee',
+    id,
+    prisma.employee.update({ where: { id }, data }).then(withStoredId),
+    'Employee',
+    'update employee',
+  );
 });
 
-router.delete('/employees/:id', (req, res) => {
+router.delete('/employees/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.employee.delete({ where: { id } }).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'employee',
+    id,
+    prisma.employee.delete({ where: { id } }).then(withStoredId),
+    'Employee',
+    'delete employee',
+  );
 });
 
 router.get('/employees', (req, res) => {
@@ -541,7 +676,8 @@ router.get('/employees', (req, res) => {
 // ==================== Visit ====================
 router.post('/visits', (req, res) => {
   const { clientId, serviceId, employeeId, scheduledAt, notes } = req.body;
-  respond(
+  auditCreate(
+    req,
     res,
     prisma.visit.create({
       data: {
@@ -551,7 +687,9 @@ router.post('/visits', (req, res) => {
         scheduledAt: new Date(scheduledAt),
         notes,
       },
-    })
+    }),
+    'Visit',
+    'create visit',
   );
 });
 
@@ -560,11 +698,14 @@ router.get('/visits/:id', (req, res) => {
   respond(res, prisma.visit.findUnique({ where: { id } }));
 });
 
-router.put('/visits/:id', (req, res) => {
+router.put('/visits/:id', async (req, res) => {
   const id = Number(req.params.id);
   const { clientId, serviceId, employeeId, scheduledAt, notes } = req.body;
-  respond(
+  await auditUpdate(
+    req,
     res,
+    'visit',
+    id,
     prisma.visit.update({
       where: { id },
       data: {
@@ -574,13 +715,23 @@ router.put('/visits/:id', (req, res) => {
         scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
         notes,
       },
-    })
+    }),
+    'Visit',
+    'update visit',
   );
 });
 
-router.delete('/visits/:id', (req, res) => {
+router.delete('/visits/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.visit.delete({ where: { id } }));
+  await auditDelete(
+    req,
+    res,
+    'visit',
+    id,
+    prisma.visit.delete({ where: { id } }),
+    'Visit',
+    'delete/cancel visit',
+  );
 });
 
 router.get('/visits', (req, res) => {
@@ -594,7 +745,7 @@ router.post('/tasks', (req, res) => {
     return res.status(400).json({ success: false, error: 'Task title is required' });
   }
 
-  respond(res, prisma.task.create({data}).then(withStoredId));
+  auditCreate(req, res, prisma.task.create({data}).then(withStoredId), 'Task', 'create task');
 });
 
 router.get('/tasks/:id', (req, res) => {
@@ -602,19 +753,35 @@ router.get('/tasks/:id', (req, res) => {
   respond(res, prisma.task.findUnique({ where: { id } }).then(withStoredId));
 });
 
-router.put('/tasks/:id', (req, res) => {
+router.put('/tasks/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildTaskData({...(req.body ?? {}), id});
   if (!data.title) {
     return res.status(400).json({ success: false, error: 'Task title is required' });
   }
 
-  respond(res, prisma.task.update({where: {id}, data}).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'task',
+    id,
+    prisma.task.update({where: {id}, data}).then(withStoredId),
+    'Task',
+    'update task',
+  );
 });
 
-router.delete('/tasks/:id', (req, res) => {
+router.delete('/tasks/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.task.delete({ where: { id } }).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'task',
+    id,
+    prisma.task.delete({ where: { id } }).then(withStoredId),
+    'Task',
+    'delete task',
+  );
 });
 
 router.get('/tasks', (req, res) => {
@@ -633,7 +800,13 @@ router.post('/waitlist', (req, res) => {
     return res.status(400).json({ success: false, error: 'Waitlist client is required' });
   }
 
-  respond(res, prisma.waitlistEntry.create({data}).then(withStoredId));
+  auditCreate(
+    req,
+    res,
+    prisma.waitlistEntry.create({data}).then(withStoredId),
+    'WaitlistEntry',
+    'create waitlist entry',
+  );
 });
 
 router.get('/waitlist/:id', (req, res) => {
@@ -641,19 +814,35 @@ router.get('/waitlist/:id', (req, res) => {
   respond(res, prisma.waitlistEntry.findUnique({where: {id}}).then(withStoredId));
 });
 
-router.put('/waitlist/:id', (req, res) => {
+router.put('/waitlist/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildWaitlistEntryData({...(req.body ?? {}), id});
   if (!data.clientId || !data.clientName) {
     return res.status(400).json({ success: false, error: 'Waitlist client is required' });
   }
 
-  respond(res, prisma.waitlistEntry.update({where: {id}, data}).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'waitlistEntry',
+    id,
+    prisma.waitlistEntry.update({where: {id}, data}).then(withStoredId),
+    'WaitlistEntry',
+    'update waitlist entry',
+  );
 });
 
-router.delete('/waitlist/:id', (req, res) => {
+router.delete('/waitlist/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.waitlistEntry.delete({where: {id}}).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'waitlistEntry',
+    id,
+    prisma.waitlistEntry.delete({where: {id}}).then(withStoredId),
+    'WaitlistEntry',
+    'delete waitlist entry',
+  );
 });
 
 router.get('/waitlist', (req, res) => {
@@ -672,7 +861,7 @@ router.post('/supplies', (req, res) => {
     return res.status(400).json({ success: false, error: 'Supply name is required' });
   }
 
-  respond(res, prisma.supply.create({data}).then(withStoredId));
+  auditCreate(req, res, prisma.supply.create({data}).then(withStoredId), 'Supply', 'create supply');
 });
 
 router.get('/supplies/:id', (req, res) => {
@@ -680,19 +869,35 @@ router.get('/supplies/:id', (req, res) => {
   respond(res, prisma.supply.findUnique({where: {id}}).then(withStoredId));
 });
 
-router.put('/supplies/:id', (req, res) => {
+router.put('/supplies/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildSupplyData({...(req.body ?? {}), id});
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Supply name is required' });
   }
 
-  respond(res, prisma.supply.update({where: {id}, data}).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'supply',
+    id,
+    prisma.supply.update({where: {id}, data}).then(withStoredId),
+    'Supply',
+    'update supply',
+  );
 });
 
-router.delete('/supplies/:id', (req, res) => {
+router.delete('/supplies/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.supply.delete({where: {id}}).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'supply',
+    id,
+    prisma.supply.delete({where: {id}}).then(withStoredId),
+    'Supply',
+    'delete supply',
+  );
 });
 
 router.get('/supplies', (req, res) => {
@@ -744,7 +949,13 @@ router.post('/message-templates', (req, res) => {
     return res.status(400).json({ success: false, error: 'Template name and body are required' });
   }
 
-  respond(res, prisma.messageTemplate.create({data}).then(withStoredId));
+  auditCreate(
+    req,
+    res,
+    prisma.messageTemplate.create({data}).then(withStoredId),
+    'MessageTemplate',
+    'create message template',
+  );
 });
 
 router.get('/message-templates/:id', (req, res) => {
@@ -752,19 +963,35 @@ router.get('/message-templates/:id', (req, res) => {
   respond(res, prisma.messageTemplate.findUnique({where: {id}}).then(withStoredId));
 });
 
-router.put('/message-templates/:id', (req, res) => {
+router.put('/message-templates/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildMessageTemplateData({...(req.body ?? {}), id});
   if (!data.name || !data.body) {
     return res.status(400).json({ success: false, error: 'Template name and body are required' });
   }
 
-  respond(res, prisma.messageTemplate.update({where: {id}, data}).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'messageTemplate',
+    id,
+    prisma.messageTemplate.update({where: {id}, data}).then(withStoredId),
+    'MessageTemplate',
+    'update message template',
+  );
 });
 
-router.delete('/message-templates/:id', (req, res) => {
+router.delete('/message-templates/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.messageTemplate.delete({where: {id}}).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'messageTemplate',
+    id,
+    prisma.messageTemplate.delete({where: {id}}).then(withStoredId),
+    'MessageTemplate',
+    'delete message template',
+  );
 });
 
 router.get('/message-templates', (req, res) => {
@@ -782,7 +1009,13 @@ router.post('/communication-log', (req, res) => {
     return res.status(400).json({ success: false, error: 'Communication log entry is empty' });
   }
 
-  respond(res, prisma.communicationLog.create({data}).then(withStoredId));
+  auditCreate(
+    req,
+    res,
+    prisma.communicationLog.create({data}).then(withStoredId),
+    'CommunicationLog',
+    'create communication log',
+  );
 });
 
 router.get('/communication-log/:id', (req, res) => {
@@ -790,15 +1023,31 @@ router.get('/communication-log/:id', (req, res) => {
   respond(res, prisma.communicationLog.findUnique({where: {id}}).then(withStoredId));
 });
 
-router.put('/communication-log/:id', (req, res) => {
+router.put('/communication-log/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildCommunicationLogData({...(req.body ?? {}), id});
-  respond(res, prisma.communicationLog.update({where: {id}, data}).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'communicationLog',
+    id,
+    prisma.communicationLog.update({where: {id}, data}).then(withStoredId),
+    'CommunicationLog',
+    'update communication log',
+  );
 });
 
-router.delete('/communication-log/:id', (req, res) => {
+router.delete('/communication-log/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.communicationLog.delete({where: {id}}).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'communicationLog',
+    id,
+    prisma.communicationLog.delete({where: {id}}).then(withStoredId),
+    'CommunicationLog',
+    'delete communication log',
+  );
 });
 
 router.get('/communication-log', (req, res) => {
@@ -849,7 +1098,7 @@ router.post('/packages', (req, res) => {
     return res.status(400).json({success: false, error: 'Package name is required'});
   }
 
-  respond(res, prisma.package.create({data}).then(withStoredId));
+  auditCreate(req, res, prisma.package.create({data}).then(withStoredId), 'Package', 'create package');
 });
 
 router.get('/packages/:id', (req, res) => {
@@ -857,19 +1106,35 @@ router.get('/packages/:id', (req, res) => {
   respond(res, prisma.package.findUnique({where: {id}}).then(withStoredId));
 });
 
-router.put('/packages/:id', (req, res) => {
+router.put('/packages/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildPackageData({...(req.body ?? {}), id});
   if (!data.name) {
     return res.status(400).json({success: false, error: 'Package name is required'});
   }
 
-  respond(res, prisma.package.update({where: {id}, data}).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'package',
+    id,
+    prisma.package.update({where: {id}, data}).then(withStoredId),
+    'Package',
+    'update package',
+  );
 });
 
-router.delete('/packages/:id', (req, res) => {
+router.delete('/packages/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.package.delete({where: {id}}).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'package',
+    id,
+    prisma.package.delete({where: {id}}).then(withStoredId),
+    'Package',
+    'delete package',
+  );
 });
 
 router.get('/packages', (req, res) => {
@@ -882,7 +1147,13 @@ router.post('/client-packages', (req, res) => {
     return res.status(400).json({success: false, error: 'Client package requires client and package'});
   }
 
-  respond(res, prisma.clientPackage.create({data}).then(withStoredId));
+  auditCreate(
+    req,
+    res,
+    prisma.clientPackage.create({data}).then(withStoredId),
+    'ClientPackage',
+    'create package sale',
+  );
 });
 
 router.get('/client-packages/:id', (req, res) => {
@@ -890,19 +1161,35 @@ router.get('/client-packages/:id', (req, res) => {
   respond(res, prisma.clientPackage.findUnique({where: {id}}).then(withStoredId));
 });
 
-router.put('/client-packages/:id', (req, res) => {
+router.put('/client-packages/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildClientPackageData({...(req.body ?? {}), id});
   if (!data.clientName || !data.packageName) {
     return res.status(400).json({success: false, error: 'Client package requires client and package'});
   }
 
-  respond(res, prisma.clientPackage.update({where: {id}, data}).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'clientPackage',
+    id,
+    prisma.clientPackage.update({where: {id}, data}).then(withStoredId),
+    'ClientPackage',
+    'use package',
+  );
 });
 
-router.delete('/client-packages/:id', (req, res) => {
+router.delete('/client-packages/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.clientPackage.delete({where: {id}}).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'clientPackage',
+    id,
+    prisma.clientPackage.delete({where: {id}}).then(withStoredId),
+    'ClientPackage',
+    'delete package sale',
+  );
 });
 
 router.get('/client-packages', (req, res) => {
@@ -915,7 +1202,13 @@ router.post('/certificates', (req, res) => {
     return res.status(400).json({success: false, error: 'Certificate code and client are required'});
   }
 
-  respond(res, prisma.certificate.create({data}).then(withStoredId));
+  auditCreate(
+    req,
+    res,
+    prisma.certificate.create({data}).then(withStoredId),
+    'Certificate',
+    'create certificate',
+  );
 });
 
 router.get('/certificates/:id', (req, res) => {
@@ -923,19 +1216,35 @@ router.get('/certificates/:id', (req, res) => {
   respond(res, prisma.certificate.findUnique({where: {id}}).then(withStoredId));
 });
 
-router.put('/certificates/:id', (req, res) => {
+router.put('/certificates/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildCertificateData({...(req.body ?? {}), id});
   if (!data.code || !data.clientName) {
     return res.status(400).json({success: false, error: 'Certificate code and client are required'});
   }
 
-  respond(res, prisma.certificate.update({where: {id}, data}).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'certificate',
+    id,
+    prisma.certificate.update({where: {id}, data}).then(withStoredId),
+    'Certificate',
+    'use certificate',
+  );
 });
 
-router.delete('/certificates/:id', (req, res) => {
+router.delete('/certificates/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.certificate.delete({where: {id}}).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'certificate',
+    id,
+    prisma.certificate.delete({where: {id}}).then(withStoredId),
+    'Certificate',
+    'delete certificate',
+  );
 });
 
 router.get('/certificates', (req, res) => {
@@ -948,22 +1257,44 @@ router.post('/day-close-records', (req, res) => {
     return res.status(400).json({success: false, error: 'Day close date is required'});
   }
 
-  respond(res, prisma.dayCloseRecord.create({data}).then(withStoredId));
+  auditCreate(
+    req,
+    res,
+    prisma.dayCloseRecord.create({data}).then(withStoredId),
+    'DayCloseRecord',
+    'create day close',
+  );
 });
 
-router.put('/day-close-records/:id', (req, res) => {
+router.put('/day-close-records/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildDayCloseRecordData({...(req.body ?? {}), id});
   if (!data.date) {
     return res.status(400).json({success: false, error: 'Day close date is required'});
   }
 
-  respond(res, prisma.dayCloseRecord.update({where: {id}, data}).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'dayCloseRecord',
+    id,
+    prisma.dayCloseRecord.update({where: {id}, data}).then(withStoredId),
+    'DayCloseRecord',
+    'update day close',
+  );
 });
 
-router.delete('/day-close-records/:id', (req, res) => {
+router.delete('/day-close-records/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.dayCloseRecord.delete({where: {id}}).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'dayCloseRecord',
+    id,
+    prisma.dayCloseRecord.delete({where: {id}}).then(withStoredId),
+    'DayCloseRecord',
+    'delete day close',
+  );
 });
 
 router.get('/day-close-records', (req, res) => {
@@ -976,22 +1307,44 @@ router.post('/payroll-records', (req, res) => {
     return res.status(400).json({success: false, error: 'Payroll period is required'});
   }
 
-  respond(res, prisma.payrollRecord.create({data}).then(withStoredId));
+  auditCreate(
+    req,
+    res,
+    prisma.payrollRecord.create({data}).then(withStoredId),
+    'PayrollRecord',
+    'create payroll record',
+  );
 });
 
-router.put('/payroll-records/:id', (req, res) => {
+router.put('/payroll-records/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildPayrollRecordData({...(req.body ?? {}), id});
   if (!data.periodKey) {
     return res.status(400).json({success: false, error: 'Payroll period is required'});
   }
 
-  respond(res, prisma.payrollRecord.update({where: {id}, data}).then(withStoredId));
+  await auditUpdate(
+    req,
+    res,
+    'payrollRecord',
+    id,
+    prisma.payrollRecord.update({where: {id}, data}).then(withStoredId),
+    'PayrollRecord',
+    'update payroll record',
+  );
 });
 
-router.delete('/payroll-records/:id', (req, res) => {
+router.delete('/payroll-records/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.payrollRecord.delete({where: {id}}).then(withStoredId));
+  await auditDelete(
+    req,
+    res,
+    'payrollRecord',
+    id,
+    prisma.payrollRecord.delete({where: {id}}).then(withStoredId),
+    'PayrollRecord',
+    'delete payroll record',
+  );
 });
 
 router.get('/payroll-records', (req, res) => {
@@ -1013,7 +1366,7 @@ router.get('/system-state/:key', (req, res) => {
   respond(res, prisma.systemState.findUnique({where: {key}}).then((record) => record?.payload ?? null));
 });
 
-router.put('/system-state/:key', (req, res) => {
+router.put('/system-state/:key', async (req, res) => {
   const key = String(req.params.key ?? '').trim();
   const payload = req.body?.payload ?? req.body ?? null;
 
@@ -1021,7 +1374,12 @@ router.put('/system-state/:key', (req, res) => {
     return res.status(400).json({success: false, error: 'System state key is required'});
   }
 
-  respond(
+  const before = key
+    ? await prisma.systemState.findUnique({where: {key}}).then((record) => record?.payload ?? null)
+    : null;
+
+  respondWithAudit(
+    req,
     res,
     prisma.systemState
       .upsert({
@@ -1030,6 +1388,12 @@ router.put('/system-state/:key', (req, res) => {
         update: {payload},
       })
       .then((record) => record.payload),
+    {
+      action: 'update settings',
+      before,
+      entity: 'SystemState',
+      entityId: key,
+    },
   );
 });
 
@@ -1040,6 +1404,11 @@ router.put('/system-state', async (req, res) => {
   }
 
   try {
+    const beforeRecords = await prisma.systemState.findMany({
+      where: {key: {in: Object.keys(entries)}},
+    });
+    const before = Object.fromEntries(beforeRecords.map(systemStateRecord));
+
     await prisma.$transaction(
       Object.entries(entries).map(([key, payload]) =>
         prisma.systemState.upsert({
@@ -1049,6 +1418,14 @@ router.put('/system-state', async (req, res) => {
         }),
       ),
     );
+
+    await recordAuditLog(prisma, req, {
+      action: 'update settings',
+      after: entries,
+      before,
+      entity: 'SystemState',
+      entityId: 'bulk',
+    });
 
     res.json({success: true, data: entries});
   } catch (err) {
