@@ -38,12 +38,22 @@ export default function AppGate({
     );
   }
 
-  if (!authReady) {
+  if (!authReady || (authSession && !cloudHydrated)) {
+    const hasCloudError = Boolean(authReady && authSession && cloudLoadError);
+
     return (
       <SystemScreen
-        message="Проверяем защищённую сессию владельца."
+        actionLabel={hasCloudError ? "Повторить" : undefined}
+        message={
+          hasCloudError
+            ? cloudLoadError
+            : "Подключаем защищённую сессию и актуальные данные CRM."
+        }
+        mode={hasCloudError ? "error" : "loading"}
         settings={appSettings}
-        title="Подключаем CRM"
+        title={hasCloudError ? "Не удалось загрузить базу" : "Загружаем CRM"}
+        onAction={hasCloudError ? () => window.location.reload() : undefined}
+        onLogout={hasCloudError ? handleLogout : undefined}
       />
     );
   }
@@ -63,23 +73,6 @@ export default function AppGate({
         />
         <ToastStack notifications={notifications} onClose={closeNotification} />
       </>
-    );
-  }
-
-  if (!cloudHydrated) {
-    return (
-      <SystemScreen
-        actionLabel="Повторить"
-        message={
-          cloudLoadError ||
-          "Получаем актуальные данные из защищённого хранилища CRM."
-        }
-        mode={cloudLoadError ? "error" : "loading"}
-        settings={appSettings}
-        title={cloudLoadError ? "Не удалось загрузить базу" : "Загружаем CRM"}
-        onAction={cloudLoadError ? () => window.location.reload() : undefined}
-        onLogout={cloudLoadError ? handleLogout : undefined}
-      />
     );
   }
 

@@ -742,25 +742,23 @@ return (
             }}
           >
             <section
-              className="nuar-calendar-schedule min-w-0 min-h-0 max-h-full overflow-auto p-0 overscroll-contain scrollbar-thin rounded-xl border border-zinc-800/80 bg-zinc-950/20"
+              className={`nuar-calendar-schedule min-w-0 min-h-0 max-h-full p-0 overscroll-contain scrollbar-thin rounded-xl border border-zinc-800/80 bg-zinc-950/20 ${
+                isMobile ? "overflow-y-auto overflow-x-hidden" : "overflow-auto"
+              }`}
               ref={schedulePanelRef}
             >
               <div
-                className="nuar-calendar-grid grid min-w-[700px] select-none"
+                className={`nuar-calendar-grid grid select-none ${
+                  isMobile ? "w-full min-w-0" : "min-w-[700px]"
+                }`}
                 style={{
                   gridTemplateColumns: isMobile
-                    ? `var(--calendar-time-axis-width, 44px) repeat(${calendarMasters.length}, minmax(var(--mobile-master-width, 220px), 1fr))`
+                    ? `var(--calendar-time-axis-width, 44px) repeat(${calendarMasters.length}, minmax(0, 1fr))`
                     : `58px repeat(${calendarMasters.length}, minmax(190px, 1fr))`,
-                  width: isMobile
-                    ? `max(100vw, calc(var(--calendar-time-axis-width, 44px) + ${calendarMasters.length} * var(--mobile-master-width, 220px)))`
-                    : "100%",
+                  width: "100%",
                   "--master-count": calendarMasters.length,
                   "--calendar-time-axis-width": isMobile ? "44px" : "58px",
-                  "--mobile-master-width": isMobile
-                    ? calendarMasters.length <= 1
-                      ? "calc(100vw - var(--calendar-time-axis-width, 44px))"
-                      : "min(280px, max(220px, calc(50vw - 29px)))"
-                    : "190px",
+                  "--mobile-master-width": "minmax(0, 1fr)",
                   "--schedule-height": `${gridHeight}px`,
                   "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,
                 }}
