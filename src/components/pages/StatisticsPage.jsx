@@ -59,6 +59,17 @@ const currencyIcons = {
 };
 
 const revenueChartColor = "#8f7cff";
+const paymentDisplay = [
+  {color: "#8fc5aa", key: "cash", label: "Наличные"},
+  {color: "#8ba7d8", key: "card", label: "Карта"},
+  {color: "#74b5c8", key: "ukrainianCard", label: "Укр. карта"},
+  {color: "#b7a0d6", key: "package", label: "Пакеты"},
+  {color: "#d6bb7d", key: "certificate", label: "Сертификаты"},
+  {color: "#c8a3d8", key: "blik", label: "BLIK"},
+  {color: "#9ea7b8", key: "crypto", label: "Crypto"},
+  {color: "#a0a0a0", key: "barter", label: "Бартер"},
+  {color: "#d99a9a", key: "unspecified", label: "Не указано"},
+];
 
 const getMonthStart = () => {
   return formatAppDate(getStartOfMonth(new Date()), "yyyy-MM-dd");
@@ -73,6 +84,63 @@ const getPreviousMonthRange = () => {
 };
 
 const formatChartDate = (date) => formatAppDate(date, "dd MMM");
+
+const toSafeFinanceNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+};
+
+const getVisitClientName = (visit) =>
+  String(visit?.client ?? visit?.clientName ?? visit?.name ?? "").trim();
+
+const getClientActivity = (appointments = []) => {
+  const counts = appointments.reduce((items, visit) => {
+    const name = getVisitClientName(visit);
+    if (!name) return items;
+    items.set(name, (items.get(name) ?? 0) + 1);
+    return items;
+  }, new Map());
+
+  return {
+    clientsCount: counts.size,
+    repeatClients: [...counts.values()].filter((count) => count > 1).length,
+  };
+};
+
+const buildPaymentsView = (stats) =>
+  paymentDisplay.map((item) => ({
+    ...item,
+    recordsCount: toSafeFinanceNumber(stats.paymentRecordsByMethod?.[item.key]),
+    value: toSafeFinanceNumber(stats.paymentsByMethod?.[item.key]),
+  }));
+
+const buildStatisticsAnalytics = (stats, clients = []) => {
+  const filteredAppointments = stats.completedAppointments ?? [];
+  const clientActivity = getClientActivity(filteredAppointments);
+  const payments = buildPaymentsView(stats);
+  const paymentTotal = payments.reduce((sum, item) => sum + item.value, 0);
+  const serviceRevenue = toSafeFinanceNumber(stats.serviceReceived);
+  const totalReceived = toSafeFinanceNumber(stats.receivedRevenue);
+  const totalIncome = toSafeFinanceNumber(stats.netProfit);
+
+  return {
+    ...stats,
+    averageCheck: toSafeFinanceNumber(stats.averageReceivedCheck),
+    certificatesCount: stats.filteredCertificates?.length ?? 0,
+    clientsCount: clientActivity.clientsCount || clients.length,
+    debts: toSafeFinanceNumber(stats.debtAmount),
+    filteredAppointments,
+    financialOperationsIncome: toSafeFinanceNumber(stats.operationsIncome),
+    forecastIncome: toSafeFinanceNumber(stats.forecastRevenue),
+    paymentTotal,
+    payments,
+    platformCommissions: toSafeFinanceNumber(stats.platformCommission),
+    repeatClients: clientActivity.repeatClients,
+    serviceRevenue,
+    totalIncome,
+    totalReceived,
+  };
+};
 
 function StatisticsFilters({
   currency,
@@ -320,7 +388,7 @@ function StatisticsPage({
     const previousEnd = shiftAppDate(startDate, -1);
     const now = new Date();
 
-    const currentStats = buildFinanceStats({
+    const currentStats = buildStatisticsAnalytics(buildFinanceStats({
       calendarEntries,
       certificates,
       clientPackages,
@@ -330,8 +398,8 @@ function StatisticsPage({
       now,
       startDate,
       visits,
-    });
-    const previousStats = buildFinanceStats({
+    }), clients);
+    const previousStats = buildStatisticsAnalytics(buildFinanceStats({
       calendarEntries,
       certificates,
       clientPackages,
@@ -341,16 +409,37 @@ function StatisticsPage({
       now,
       startDate: previousStart,
       visits,
+    }), clients);
+    const dates = getPeriodDays(startDate, endDate).map((date) => {
+      const dailyStats = buildStatisticsAnalytics(buildFinanceStats({
+        calendarEntries,
+        certificates,
+        clientPackages,
+        employees,
+        endDate: date,
+        master,
+        now,
+        startDate: date,
+        visits,
+      }), clients);
+
+      return {
+        date,
+        income: dailyStats.totalIncome,
+        visitsCount: dailyStats.filteredAppointments.length,
+      };
     });
 
     return {
       ...currentStats,
+      dates,
       previousPeriodIncome: previousStats.totalIncome,
     };
   }, [
     calendarEntries,
     clientPackages,
     certificates,
+    clients,
     employees,
     endDate,
     master,
@@ -391,6 +480,7 @@ function StatisticsPage({
       debtVisits: todayStats.debtVisits.length,
       received: todayStats.receivedRevenue,
       scheduledVisits: todayCalendarVisits.length,
+      todayVisits: upcomingVisits,
       upcomingVisits,
     };
   }, [calendarEntries, certificates, clientPackages, employees, master, visits]);
@@ -1050,30 +1140,39 @@ function RevenueTooltip({active, payload, formatIncome}) {
 }
 
 const groupChartDates = (dates) => {
-  if (dates.length <= 31) {
-    return dates.map((item) => ({
+  const validDates = (Array.isArray(dates) ? dates : [])
+    .map((item) => ({
       ...item,
+      dateLabel: formatChartDate(item?.date),
+    }))
+    .filter((item) => item.date && item.dateLabel);
+
+  if (validDates.length <= 31) {
+    return validDates.map((item) => ({
       key: item.date,
-      label: formatChartDate(item.date),
-      tooltipDate: formatChartDate(item.date),
+      label: item.dateLabel,
+      tooltipDate: item.dateLabel,
+      income: toSafeFinanceNumber(item.income),
+      visitsCount: toSafeFinanceNumber(item.visitsCount),
     }));
   }
 
   const groups = [];
 
-  for (let index = 0; index < dates.length; index += 7) {
-    const chunk = dates.slice(index, index + 7);
-    const firstDate = chunk[0].date;
-    const lastDate = chunk.at(-1).date;
+  for (let index = 0; index < validDates.length; index += 7) {
+    const chunk = validDates.slice(index, index + 7);
+    const firstDate = chunk[0];
+    const lastDate = chunk.at(-1);
 
     groups.push({
-      key: `${firstDate}-${lastDate}`,
-      label: `${formatChartDate(firstDate)}–${formatChartDate(lastDate)}`,
-      tooltipDate: `${formatChartDate(firstDate)} — ${formatChartDate(
-        lastDate,
-      )}`,
-      income: chunk.reduce((sum, item) => sum + item.income, 0),
-      visitsCount: chunk.reduce((sum, item) => sum + item.visitsCount, 0),
+      key: `${firstDate.date}-${lastDate.date}`,
+      label: `${firstDate.dateLabel}–${lastDate.dateLabel}`,
+      tooltipDate: `${firstDate.dateLabel} — ${lastDate.dateLabel}`,
+      income: chunk.reduce((sum, item) => sum + toSafeFinanceNumber(item.income), 0),
+      visitsCount: chunk.reduce(
+        (sum, item) => sum + toSafeFinanceNumber(item.visitsCount),
+        0,
+      ),
     });
   }
 
