@@ -1,4 +1,4 @@
-import {isSupabaseConfigured, supabase} from "../lib/supabase.js";
+import {getAuthToken} from "../hooks/useAuth.js";
 
 const PRODUCTION_SITE_URL = "https://nuarr.pl";
 
@@ -10,25 +10,14 @@ function getSiteBaseUrl() {
 }
 
 export async function openSiteAdmin(path = "/admin/login") {
-  if (!isSupabaseConfigured || !supabase) {
-    throw new Error("Supabase не настроен.");
-  }
-
-  const {
-    data: {session},
-    error,
-  } = await supabase.auth.getSession();
-
-  if (error) throw error;
-  if (!session?.access_token || !session?.refresh_token) {
+  const token = getAuthToken();
+  if (!token) {
     throw new Error("Сессия CRM не найдена. Войдите заново.");
   }
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const hash = new URLSearchParams({
-    access_token: session.access_token,
-    refresh_token: session.refresh_token,
-    expires_in: String(session.expires_in ?? 3600),
+    crm_token: token,
     token_type: "bearer",
   }).toString();
 
