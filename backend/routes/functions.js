@@ -52,6 +52,9 @@ const auditFunctionCall = (req, action, metadata) =>
     entityId: req.path,
   });
 
+const firstNonEmpty = (...values) =>
+  values.map((value) => String(value ?? '').trim()).find(Boolean) || '';
+
 // Bulk SMS
 router.post('/bulk-sms', requireOwner, async (req, res) => {
   const { action, recipients, message, testNumber } = req.body;
@@ -115,8 +118,8 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
       .findUnique({where: {key: 'appSettings'}})
       .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
       .catch(() => ({}));
-    const telegramChatId = String(settings.telegramChatId ?? process.env.TELEGRAM_CHAT_ID ?? '').trim();
-    const ownerPhone = String(settings.ownerNotifyPhone ?? process.env.OWNER_NOTIFY_PHONE ?? '').trim();
+    const telegramChatId = firstNonEmpty(settings.telegramChatId, process.env.TELEGRAM_CHAT_ID);
+    const ownerPhone = firstNonEmpty(settings.ownerNotifyPhone, process.env.OWNER_NOTIFY_PHONE);
 
     return res.json({
       success: true,
@@ -137,7 +140,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
       .findUnique({where: {key: 'appSettings'}})
       .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
       .catch(() => ({}));
-    const chatId = String(settings.telegramChatId ?? process.env.TELEGRAM_CHAT_ID ?? '').trim();
+    const chatId = firstNonEmpty(settings.telegramChatId, process.env.TELEGRAM_CHAT_ID);
     const telegram = chatId
       ? await telegramDigest({chatId, text: 'NUAR CRM test'})
       : {success: false, error: 'telegramChatId is required'};

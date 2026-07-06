@@ -47,6 +47,8 @@ const toClockTime = (minutes) =>
 
 const cleanString = (value) => String(value ?? '').trim();
 
+const firstNonEmpty = (...values) => values.map(cleanString).find(Boolean) || '';
+
 const isInputDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value ?? ''));
 
 const normalizePhone = (value) => String(value ?? '').replace(/[^\d+]/g, '');
@@ -246,7 +248,7 @@ const notifyOwnerAboutBooking = async (booking) => {
 
   if (settings.siteBookingNotifyTelegramEnabled === false) return;
 
-  const chatId = cleanString(settings.telegramChatId ?? process.env.TELEGRAM_CHAT_ID);
+  const chatId = firstNonEmpty(settings.telegramChatId, process.env.TELEGRAM_CHAT_ID);
   if (!chatId) return;
 
   const lines = [
