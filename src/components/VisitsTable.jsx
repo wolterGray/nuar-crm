@@ -234,6 +234,7 @@ function VisitsTable({
       openActionMenuId,
     ],
   );
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns function-bearing instances by design.
   const table = useReactTable({
     data: visits,
     columns,

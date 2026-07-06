@@ -61,9 +61,7 @@ import {buildPaymentRows, filterPaymentRows} from "./utils/paymentRows.js";
 import {buildEmployeeStats} from "./utils/employeeStats.js";
 import {applyBooksySources} from "./utils/booksySources.js";
 import {openSupplyOrderUrl} from "./utils/supplyOrder.js";
-import {resolveClientPackageStatus} from "./utils/clientPackages.js";
 import {resolveColorTheme} from "./utils/colorTheme.js";
-import {syncCertificateStatus} from "./utils/certificates.js";
 import {buildClientSearchIndex} from "./utils/clientSearch.js";
 import {applyCrmSnapshot, buildCloudSnapshot} from "./utils/cloudSnapshot.js";
 import {useCloudSync} from "./hooks/useCloudSync.js";
@@ -112,11 +110,7 @@ import {fetchVisitState} from "./api/visits.js";
 import {fetchServices} from "./api/services.js";
 import {fetchEmployees} from "./api/employees.js";
 import {fetchOperationsState} from "./api/operations.js";
-import {
-  fetchFinancialState,
-  updateCertificate,
-  updateClientPackage,
-} from "./api/financial.js";
+import {fetchFinancialState} from "./api/financial.js";
 import {
   fetchSystemState,
   saveSystemStateEntries,
@@ -1248,130 +1242,6 @@ function App() {
     },
   });
 
-  const updatePackageBalance = useCallback((previousVisit, nextVisit) => {
-    setClientPackages((current) => {
-      const restorePrevious = current.map((packageItem) => {
-        if (packageItem.id !== previousVisit?.packageUsageId) {
-          return packageItem;
-        }
-
-        const restored =
-          packageItem.remainingVisits +
-          (Number(previousVisit.packageSessionsUsed) || 0);
-
-        const restoredPackage = {
-          ...packageItem,
-          remainingVisits: Math.min(restored, packageItem.totalVisits),
-          status: resolveClientPackageStatus(
-            Math.min(restored, packageItem.totalVisits),
-            packageItem.status,
-          ),
-        };
-
-        void updateClientPackage(restoredPackage.id, restoredPackage).catch((error) => {
-          pushNotificationRef.current({
-            title: "Пакет не обновился",
-            message: error?.message || "Backend не восстановил остаток пакета",
-            persist: false,
-          });
-        });
-
-        return restoredPackage;
-      });
-
-      return restorePrevious.map((packageItem) => {
-        if (packageItem.id !== nextVisit?.packageUsageId) {
-          return packageItem;
-        }
-
-        const used = Number(nextVisit.packageSessionsUsed) || 0;
-        const nextRemaining = Math.max(0, packageItem.remainingVisits - used);
-
-        const nextPackage = {
-          ...packageItem,
-          remainingVisits: nextRemaining,
-          status: resolveClientPackageStatus(nextRemaining, packageItem.status),
-          writeOffHistory: [
-            ...(Array.isArray(packageItem.writeOffHistory)
-              ? packageItem.writeOffHistory
-              : []),
-            {
-              sessionsUsed: used,
-              usedAt: new Date().toISOString(),
-              visitId: nextVisit?.id ?? "",
-            },
-          ],
-        };
-
-        void updateClientPackage(nextPackage.id, nextPackage).catch((error) => {
-          pushNotificationRef.current({
-            title: "Пакет не обновился",
-            message: error?.message || "Backend не списал посещение пакета",
-            persist: false,
-          });
-        });
-
-        return nextPackage;
-      });
-    });
-  }, [pushNotificationRef, setClientPackages]);
-
-  const updateCertificateBalance = useCallback((previousVisit, nextVisit) => {
-    setCertificates((current) => {
-      const restored = current.map((certificate) => {
-        if (
-          String(certificate.id) !== String(previousVisit?.certificateUsageId)
-        ) {
-          return certificate;
-        }
-
-        const restoredBalance =
-          Number(certificate.remainingBalance) +
-          (Number(previousVisit.certificateAmountUsed) || 0);
-
-        const restoredCertificate = syncCertificateStatus({
-          ...certificate,
-          remainingBalance: Math.min(restoredBalance, certificate.nominal),
-        });
-
-        void updateCertificate(restoredCertificate.id, restoredCertificate).catch((error) => {
-          pushNotificationRef.current({
-            title: "Сертификат не обновился",
-            message: error?.message || "Backend не восстановил баланс сертификата",
-            persist: false,
-          });
-        });
-
-        return restoredCertificate;
-      });
-
-      return restored.map((certificate) => {
-        if (String(certificate.id) !== String(nextVisit?.certificateUsageId)) {
-          return certificate;
-        }
-
-        const used = Number(nextVisit.certificateAmountUsed) || 0;
-        const nextBalance = Math.max(0, certificate.remainingBalance - used);
-
-        const nextCertificate = syncCertificateStatus({
-          ...certificate,
-          remainingBalance: nextBalance,
-          usedDate: nextBalance <= 0 ? nextVisit?.date || certificate.usedDate : certificate.usedDate,
-        });
-
-        void updateCertificate(nextCertificate.id, nextCertificate).catch((error) => {
-          pushNotificationRef.current({
-            title: "Сертификат не обновился",
-            message: error?.message || "Backend не списал оплату сертификатом",
-            persist: false,
-          });
-        });
-
-        return nextCertificate;
-      });
-    });
-  }, [pushNotificationRef, setCertificates]);
-
   const onCalendarSlotFreedRef = useRef(() => {});
 
   const {
@@ -1411,12 +1281,12 @@ function App() {
     setCalendarEntryDefaults,
     setCalendarEntryModalOpen,
     setClientAlertsOpen,
+    setClientPackages,
+    setCertificates,
     setEditingCalendarEntry,
     setEditingJournalVisit,
     setPreferredMessageClientId,
     setVisits,
-    updateCertificateBalance,
-    updatePackageBalance,
     visits,
   });
 
@@ -1508,10 +1378,10 @@ function App() {
     setEditingFinancialOperation,
     setEditingJournalVisit,
     setFinancialOperationModalOpen,
+    setClientPackages,
+    setCertificates,
     setOpenPaymentActionMenuId,
     setVisits,
-    updateCertificateBalance,
-    updatePackageBalance,
     visits,
   });
 

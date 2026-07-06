@@ -10,6 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+backups/
+backend/backups/
+*.dump
+*.sql
+*.backup
 *.local
 .env
 .env.*

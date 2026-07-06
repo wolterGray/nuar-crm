@@ -508,7 +508,7 @@ function StatisticsPage({
     setEndDate(range.end);
   };
 
-  const exportStatistics = () => {
+  const exportStatistics = async () => {
     const rows = [
       {
         metric: "Чистая прибыль",
@@ -566,7 +566,7 @@ function StatisticsPage({
       })),
     ];
 
-    exportRowsToExcel({
+    await exportRowsToExcel({
       columns: [
         {label: "Раздел", value: "section"},
         {label: "Метрика", value: "metric"},

@@ -5,7 +5,7 @@ const {getHttpErrorResponse} = require('../utils/httpErrors');
 
 const prisma = new PrismaClient();
 
-module.exports = async function errorHandler(err, req, res, next) {
+module.exports = async function errorHandler(err, req, res, _next) {
   const response = getHttpErrorResponse(err);
   console.error('🔴 Error:', err);
 

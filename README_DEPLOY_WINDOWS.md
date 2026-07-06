@@ -95,14 +95,22 @@ docker compose down
 
 ## Как сделать backup
 
+Подробная стратегия: `BACKUP_RESTORE_STRATEGY.md`.
+
 Из папки `backend`:
 
 ```bat
 cd <project>\backend
-docker compose exec -T db pg_dump -U postgres -d nuar_crm > backup.sql
+npm run db:backup
 ```
 
-Файл `backup.sql` появится в текущей папке.
+Файл появится в `backend\backups`.
+
+Альтернативно вручную:
+
+```bat
+docker compose exec -T db pg_dump -U postgres -d nuar_crm --format=custom --no-owner --no-acl > backups\nuar-crm-local.dump
+```
 
 ## Как восстановить backup
 
@@ -110,7 +118,7 @@ docker compose exec -T db pg_dump -U postgres -d nuar_crm > backup.sql
 
 ```bat
 cd <project>\backend
-docker compose exec -T db psql -U postgres -d nuar_crm < backup.sql
+docker compose exec -T db pg_restore -U postgres -d nuar_crm --clean --if-exists --no-owner --no-acl < backups\nuar-crm-local.dump
 ```
 
 Если нужно восстановить в чистую базу, сначала остановите backend, затем пересоздайте БД или volume осознанно. Не удаляйте volume с рабочими данными без свежего backup.

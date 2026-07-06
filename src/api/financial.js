@@ -76,6 +76,13 @@ export const createCertificate = (certificate) =>
     method: "POST",
   });
 
+export const sellCertificate = (payload) =>
+  request("/api/certificates/sell", {
+    body: payload,
+    label: "Sell certificate",
+    method: "POST",
+  });
+
 export const updateCertificate = (id, certificate) =>
   request(`/api/certificates/${id}`, {
     body: certificate,
@@ -89,18 +96,11 @@ export const deleteCertificate = (id) =>
     method: "DELETE",
   });
 
-export const createDayCloseRecord = (record) =>
-  request("/api/day-close-records", {
-    body: record,
-    label: "Create day close record",
+export const closeDayRecord = (payload) =>
+  request("/api/day-close-records/close", {
+    body: payload,
+    label: "Close day",
     method: "POST",
-  });
-
-export const updateDayCloseRecord = (id, record) =>
-  request(`/api/day-close-records/${id}`, {
-    body: record,
-    label: "Update day close record",
-    method: "PUT",
   });
 
 export const deleteDayCloseRecord = (id) =>
@@ -109,18 +109,26 @@ export const deleteDayCloseRecord = (id) =>
     method: "DELETE",
   });
 
-export const createPayrollRecord = (record) =>
-  request("/api/payroll-records", {
-    body: record,
-    label: "Create payroll record",
-    method: "POST",
+export const fetchPayrollSummary = ({employeeId, endDate, startDate}) => {
+  const params = new URLSearchParams({
+    dateFrom: startDate,
+    dateTo: endDate,
   });
 
-export const updatePayrollRecord = (id, record) =>
-  request(`/api/payroll-records/${id}`, {
-    body: record,
-    label: "Update payroll record",
-    method: "PUT",
+  if (employeeId) {
+    params.set("employeeId", String(employeeId));
+  }
+
+  return request(`/api/payroll/summary?${params.toString()}`, {
+    label: "Payroll summary",
+  });
+};
+
+export const markPayrollPaidRecord = (payload) =>
+  request("/api/payroll/mark-paid", {
+    body: payload,
+    label: "Mark payroll paid",
+    method: "POST",
   });
 
 export const deletePayrollRecord = (id) =>

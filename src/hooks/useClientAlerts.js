@@ -304,6 +304,7 @@ export function useClientAlerts({
 
     return () => window.clearInterval(timer);
   }, [
+    appSettings,
     appSettings.notificationsEnabled,
     appSettings.quietHoursEnabled,
     appSettings.quietHoursEnd,

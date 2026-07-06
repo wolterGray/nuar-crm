@@ -9,7 +9,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "notifications:process-due": "node scripts/process-due-notifications.js"
+    "notifications:process-due": "node scripts/process-due-notifications.js",
+    "db:backup": "node scripts/backup-db.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

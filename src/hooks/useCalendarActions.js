@@ -17,11 +17,15 @@ import {
 import {getVisitDiscountedAmount} from "../utils/finance.js";
 import {toVisitNumber} from "../utils/visits.jsx";
 import {
+  completeVisit,
   createCalendarEntry,
-  createVisit,
+  deleteCompletedCalendarEntry,
   deleteCalendarEntry as deleteBackendCalendarEntry,
   deleteVisit,
+  revertCompletedVisit,
   updateCalendarEntry,
+  updateCompletedVisit,
+  updateJournalFinancialVisit,
   updateVisit,
 } from "../api/visits.js";
 
@@ -47,12 +51,12 @@ export function useCalendarActions({
   setCalendarEntryDefaults,
   setCalendarEntryModalOpen,
   setClientAlertsOpen,
+  setClientPackages,
+  setCertificates,
   setEditingCalendarEntry,
   setEditingJournalVisit,
   setPreferredMessageClientId,
   setVisits,
-  updateCertificateBalance,
-  updatePackageBalance,
   visits,
 }) {
   const [pendingCalendarAction, setPendingCalendarAction] = useState(null);
@@ -89,7 +93,9 @@ export function useCalendarActions({
       }
 
       const previousVisit = visits.find(
-        (visit) => visit.id === entry.visitId || visit.calendarEntryId === entry.id,
+        (visit) =>
+          String(visit.id) === String(entry.visitId) ||
+          String(visit.calendarEntryId) === String(entry.id),
       );
       if (!previousVisit) {
         return;
@@ -120,26 +126,107 @@ export function useCalendarActions({
       });
 
       let savedVisit = nextVisit;
+      let savedEntry = null;
+      let savedClientPackage = null;
+      let savedCertificate = null;
+      let restoredClientPackages = [];
+      let restoredCertificates = [];
+      const canUseCompletedVisitEndpoint = entry.status === "completed";
+
       try {
-        const response = await updateVisit(previousVisit.id, nextVisit);
+        const response = canUseCompletedVisitEndpoint
+          ? await updateCompletedVisit({
+              calendarEntry: {
+                ...entry,
+                status: "completed",
+                visitId: previousVisit.id,
+              },
+              calendarEntryId: entry.id,
+              visit: nextVisit,
+              visitId: previousVisit.id,
+            })
+          : await updateVisit(previousVisit.id, nextVisit);
         savedVisit = response?.data ?? nextVisit;
+        if (canUseCompletedVisitEndpoint) {
+          savedVisit = response?.data?.visit ?? nextVisit;
+          savedEntry = response?.data?.calendarEntry ?? null;
+          savedClientPackage = response?.data?.clientPackage ?? null;
+          restoredClientPackages = Array.isArray(response?.data?.restoredClientPackages)
+            ? response.data.restoredClientPackages
+            : [];
+          savedCertificate = response?.data?.certificate ?? null;
+          restoredCertificates = Array.isArray(response?.data?.restoredCertificates)
+            ? response.data.restoredCertificates
+            : [];
+        }
       } catch (error) {
         pushNotification({
           title: "Визит не синхронизирован",
           message: error?.message || "Не удалось обновить визит в backend",
           persist: false,
         });
+        return;
       }
 
       setVisits((current) =>
         current.map((visit) =>
-          visit.id === entry.visitId || visit.calendarEntryId === entry.id
+          String(visit.id) === String(previousVisit.id) ||
+          String(visit.calendarEntryId) === String(entry.id)
             ? savedVisit
             : visit,
         ),
       );
+      if (savedEntry) {
+        setCalendarEntries((current) =>
+          current.map((calendarEntry) =>
+            String(calendarEntry.id) === String(savedEntry.id) ? savedEntry : calendarEntry,
+          ),
+        );
+      }
+      const clientPackagesToApply = [
+        ...restoredClientPackages,
+        ...(savedClientPackage ? [savedClientPackage] : []),
+      ];
+      if (clientPackagesToApply.length > 0) {
+        setClientPackages((current) =>
+          clientPackagesToApply.reduce(
+            (nextPackages, packageItem) =>
+              nextPackages.some((item) => item.id === packageItem.id)
+                ? nextPackages.map((item) =>
+                    item.id === packageItem.id ? packageItem : item,
+                  )
+                : [packageItem, ...nextPackages],
+            current,
+          ),
+        );
+      }
+      const certificatesToApply = [
+        ...restoredCertificates,
+        ...(savedCertificate ? [savedCertificate] : []),
+      ];
+      if (certificatesToApply.length > 0) {
+        setCertificates((current) =>
+          certificatesToApply.reduce(
+            (nextCertificates, certificateItem) =>
+              nextCertificates.some((item) => item.id === certificateItem.id)
+                ? nextCertificates.map((item) =>
+                    item.id === certificateItem.id ? certificateItem : item,
+                  )
+                : [certificateItem, ...nextCertificates],
+            current,
+          ),
+        );
+      }
     },
-    [clientProfiles, pushNotification, setVisits, visits],
+    [
+      clientProfiles,
+      pushNotification,
+      setCalendarEntries,
+      setCertificates,
+      setClientPackages,
+      setVisits,
+      visits,
+    ],
   );
 
   const removeCompletedVisitLink = useCallback(
@@ -155,6 +242,140 @@ export function useCalendarActions({
       );
 
       if (completedVisit) {
+        const paymentName = String(completedVisit.payment ?? "").trim().toLowerCase();
+        const usesPackage =
+          Boolean(completedVisit.packageUsageId) ||
+          Number(completedVisit.packageSessionsUsed) > 0 ||
+          paymentName.includes("пакет") ||
+          paymentName.includes("pakiet") ||
+          paymentName.includes("package");
+        const usesCertificate =
+          Boolean(completedVisit.certificateUsageId) ||
+          Number(completedVisit.certificateAmountUsed) > 0 ||
+          paymentName.includes("сертификат") ||
+          paymentName.includes("certyfikat") ||
+          paymentName.includes("certificate");
+
+        if (usesPackage) {
+          let response;
+
+          try {
+            response = await revertCompletedVisit({
+              calendarEntryId: previousEntry.id,
+              visitId: completedVisit.id,
+            });
+          } catch (error) {
+            pushNotification({
+              title: "Визит не удален",
+              message: error?.message || "Не удалось откатить пакетный визит",
+              persist: false,
+            });
+            return;
+          }
+
+          const restoredEntry = response?.data?.calendarEntry;
+          const deletedVisitId = response?.data?.deletedVisitId ?? completedVisit.id;
+          const restoredClientPackages = Array.isArray(response?.data?.restoredClientPackages)
+            ? response.data.restoredClientPackages
+            : [];
+          const restoredCertificates = Array.isArray(response?.data?.restoredCertificates)
+            ? response.data.restoredCertificates
+            : [];
+
+          setVisits((current) =>
+            current.filter(
+              (visit) =>
+                visit.id !== deletedVisitId &&
+                visit.id !== completedVisit.id &&
+                visit.calendarEntryId !== previousEntry?.id,
+            ),
+          );
+          if (restoredEntry) {
+            setCalendarEntries((current) =>
+              current.map((entry) => (entry.id === restoredEntry.id ? restoredEntry : entry)),
+            );
+          }
+          if (restoredClientPackages.length > 0) {
+            setClientPackages((current) =>
+              restoredClientPackages.reduce(
+                (nextPackages, restoredPackage) =>
+                  nextPackages.some((item) => item.id === restoredPackage.id)
+                    ? nextPackages.map((item) =>
+                        item.id === restoredPackage.id ? restoredPackage : item,
+                      )
+                    : [restoredPackage, ...nextPackages],
+                current,
+              ),
+            );
+          }
+          if (restoredCertificates.length > 0) {
+            setCertificates((current) =>
+              restoredCertificates.reduce(
+                (nextCertificates, restoredCertificate) =>
+                  nextCertificates.some((item) => item.id === restoredCertificate.id)
+                    ? nextCertificates.map((item) =>
+                        item.id === restoredCertificate.id ? restoredCertificate : item,
+                      )
+                    : [restoredCertificate, ...nextCertificates],
+                current,
+              ),
+            );
+          }
+          return;
+        }
+
+        if (usesCertificate && !usesPackage) {
+          let response;
+
+          try {
+            response = await revertCompletedVisit({
+              calendarEntryId: previousEntry.id,
+              visitId: completedVisit.id,
+            });
+          } catch (error) {
+            pushNotification({
+              title: "Визит не удален",
+              message: error?.message || "Не удалось откатить сертификатный визит",
+              persist: false,
+            });
+            return;
+          }
+
+          const restoredEntry = response?.data?.calendarEntry;
+          const deletedVisitId = response?.data?.deletedVisitId ?? completedVisit.id;
+          const restoredCertificates = Array.isArray(response?.data?.restoredCertificates)
+            ? response.data.restoredCertificates
+            : [];
+
+          setVisits((current) =>
+            current.filter(
+              (visit) =>
+                visit.id !== deletedVisitId &&
+                visit.id !== completedVisit.id &&
+                visit.calendarEntryId !== previousEntry?.id,
+            ),
+          );
+          if (restoredEntry) {
+            setCalendarEntries((current) =>
+              current.map((entry) => (entry.id === restoredEntry.id ? restoredEntry : entry)),
+            );
+          }
+          if (restoredCertificates.length > 0) {
+            setCertificates((current) =>
+              restoredCertificates.reduce(
+                (nextCertificates, restoredCertificate) =>
+                  nextCertificates.some((item) => item.id === restoredCertificate.id)
+                    ? nextCertificates.map((item) =>
+                        item.id === restoredCertificate.id ? restoredCertificate : item,
+                      )
+                    : [restoredCertificate, ...nextCertificates],
+                current,
+              ),
+            );
+          }
+          return;
+        }
+
         try {
           await deleteVisit(completedVisit.id);
         } catch (error) {
@@ -165,8 +386,6 @@ export function useCalendarActions({
           });
           return;
         }
-        updatePackageBalance(completedVisit, null);
-        updateCertificateBalance(completedVisit, null);
         setVisits((current) =>
           current.filter(
             (visit) =>
@@ -178,9 +397,10 @@ export function useCalendarActions({
     },
     [
       pushNotification,
+      setCalendarEntries,
+      setCertificates,
+      setClientPackages,
       setVisits,
-      updateCertificateBalance,
-      updatePackageBalance,
       visits,
     ],
   );
@@ -295,55 +515,78 @@ export function useCalendarActions({
       const hasExistingVisit = Boolean(existingVisit);
       let savedVisit = existingVisit ?? visit;
 
-      if (!hasExistingVisit) {
+      {
+        const completedAt = new Date().toISOString();
+        let savedEntry = {
+          ...entry,
+          completedAt,
+          status: "completed",
+          visitId: savedVisit.id,
+        };
+        let completeResponse;
+
         try {
-          const response = await createVisit(visit);
-          savedVisit = response?.data ?? visit;
+          completeResponse = await completeVisit({
+            calendarEntryId: entry.id,
+            completedAt,
+            visit,
+          });
+          savedVisit = completeResponse?.data?.visit ?? savedVisit;
+          savedEntry = completeResponse?.data?.calendarEntry ?? {
+            ...savedEntry,
+            visitId: savedVisit.id,
+          };
         } catch (error) {
           pushNotification({
             title: "Визит не завершен",
-            message: error?.message || "Не удалось сохранить визит в backend",
+            message: error?.message || "Не удалось завершить визит в backend",
             persist: false,
           });
           return;
         }
+
+        const savedClientPackage = completeResponse?.data?.clientPackage;
+        const savedCertificate = completeResponse?.data?.certificate;
+
         setVisits((current) =>
           current.some((item) => item.calendarEntryId === entry.id)
-            ? current
+            ? current.map((item) =>
+                item.calendarEntryId === entry.id || item.id === savedVisit.id
+                  ? savedVisit
+                  : item,
+              )
             : [savedVisit, ...current],
         );
-        updatePackageBalance(null, savedVisit);
-        updateCertificateBalance(null, savedVisit);
-      }
+        setCalendarEntries((current) =>
+          current.map((item) => (item.id === entry.id ? savedEntry : item)),
+        );
+        if (savedClientPackage) {
+          setClientPackages((current) =>
+            current.some((item) => item.id === savedClientPackage.id)
+              ? current.map((item) =>
+                  item.id === savedClientPackage.id ? savedClientPackage : item,
+                )
+              : [savedClientPackage, ...current],
+          );
+        }
+        if (savedCertificate) {
+          setCertificates((current) =>
+            current.some((item) => item.id === savedCertificate.id)
+              ? current.map((item) =>
+                  item.id === savedCertificate.id ? savedCertificate : item,
+                )
+              : [savedCertificate, ...current],
+          );
+        }
 
-      const nextEntry = {
-        ...entry,
-        status: "completed",
-        completedAt: new Date().toISOString(),
-        visitId: savedVisit.id,
-      };
+        if (notify && !hasExistingVisit) {
+          pushNotification({
+            title: "Визит завершен",
+            message: `${entry.client} добавлен в журнал визитов`,
+          });
+        }
 
-      let savedEntry = nextEntry;
-      try {
-        const response = await updateCalendarEntry(entry.id, nextEntry);
-        savedEntry = response?.data ?? nextEntry;
-      } catch (error) {
-        pushNotification({
-          title: "Статус не сохранен",
-          message: error?.message || "Не удалось обновить календарь в backend",
-          persist: false,
-        });
-      }
-
-      setCalendarEntries((current) =>
-        current.map((item) => (item.id === entry.id ? savedEntry : item)),
-      );
-
-      if (notify && !hasExistingVisit) {
-        pushNotification({
-          title: "Визит завершен",
-          message: `${entry.client} добавлен в журнал визитов`,
-        });
+        return;
       }
     },
     [
@@ -353,9 +596,9 @@ export function useCalendarActions({
       pushNotification,
       serviceCatalog,
       setCalendarEntries,
+      setClientPackages,
+      setCertificates,
       setVisits,
-      updateCertificateBalance,
-      updatePackageBalance,
       visits,
     ],
   );
@@ -382,11 +625,78 @@ export function useCalendarActions({
           entry,
           clientProfiles,
         );
+        const linkedEntry = calendarEntries.find(
+          (calendarEntry) =>
+            String(calendarEntry.id) === String(previousVisit.calendarEntryId) ||
+            String(calendarEntry.visitId) === String(previousVisit.id),
+        );
+        const canUseCompletedVisitEndpoint =
+          Boolean(previousVisit.calendarEntryId) &&
+          linkedEntry?.status === "completed";
+        const previousPaymentName = String(previousVisit.payment ?? "").trim().toLowerCase();
+        const nextPaymentName = String(nextVisit.payment ?? "").trim().toLowerCase();
+        const previousUsesFinancialLedger =
+          Boolean(previousVisit.packageUsageId) ||
+          Boolean(previousVisit.certificateUsageId) ||
+          Number(previousVisit.packageSessionsUsed) > 0 ||
+          Number(previousVisit.certificateAmountUsed) > 0 ||
+          previousPaymentName.includes("пакет") ||
+          previousPaymentName.includes("pakiet") ||
+          previousPaymentName.includes("package") ||
+          previousPaymentName.includes("сертификат") ||
+          previousPaymentName.includes("certyfikat") ||
+          previousPaymentName.includes("certificate");
+        const nextUsesFinancialLedger =
+          Boolean(nextVisit.packageUsageId) ||
+          Boolean(nextVisit.certificateUsageId) ||
+          Number(nextVisit.packageSessionsUsed) > 0 ||
+          Number(nextVisit.certificateAmountUsed) > 0 ||
+          nextPaymentName.includes("пакет") ||
+          nextPaymentName.includes("pakiet") ||
+          nextPaymentName.includes("package") ||
+          nextPaymentName.includes("сертификат") ||
+          nextPaymentName.includes("certyfikat") ||
+          nextPaymentName.includes("certificate");
+        const canUseJournalFinancialEndpoint =
+          !canUseCompletedVisitEndpoint &&
+          !previousVisit.calendarEntryId &&
+          (previousUsesFinancialLedger || nextUsesFinancialLedger);
 
         let savedVisit = nextVisit;
+        let savedEntry = null;
+        let savedClientPackage = null;
+        let savedCertificate = null;
+        let restoredClientPackages = [];
+        let restoredCertificates = [];
         try {
-          const response = await updateVisit(previousVisit.id, nextVisit);
+          const response = canUseCompletedVisitEndpoint
+            ? await updateCompletedVisit({
+                calendarEntry: {
+                  ...linkedEntry,
+                  ...entry,
+                  status: "completed",
+                  visitId: previousVisit.id,
+                },
+                calendarEntryId: previousVisit.calendarEntryId,
+                visit: nextVisit,
+                visitId: previousVisit.id,
+              })
+            : canUseJournalFinancialEndpoint
+              ? await updateJournalFinancialVisit(previousVisit.id, nextVisit)
+              : await updateVisit(previousVisit.id, nextVisit);
           savedVisit = response?.data ?? nextVisit;
+          if (canUseCompletedVisitEndpoint || canUseJournalFinancialEndpoint) {
+            savedVisit = response?.data?.visit ?? nextVisit;
+            savedEntry = response?.data?.calendarEntry ?? null;
+            savedClientPackage = response?.data?.clientPackage ?? null;
+            restoredClientPackages = Array.isArray(response?.data?.restoredClientPackages)
+              ? response.data.restoredClientPackages
+              : [];
+            savedCertificate = response?.data?.certificate ?? null;
+            restoredCertificates = Array.isArray(response?.data?.restoredCertificates)
+              ? response.data.restoredCertificates
+              : [];
+          }
         } catch (error) {
           pushNotification({
             title: "Визит не обновлен",
@@ -396,13 +706,52 @@ export function useCalendarActions({
           return;
         }
 
-        updatePackageBalance(previousVisit, savedVisit);
-        updateCertificateBalance(previousVisit, savedVisit);
         setVisits((current) =>
           current.map((visit) =>
             visit.id === previousVisit.id ? savedVisit : visit,
           ),
         );
+        if (savedEntry) {
+          setCalendarEntries((current) =>
+            current.map((calendarEntry) =>
+              calendarEntry.id === savedEntry.id ? savedEntry : calendarEntry,
+            ),
+          );
+        }
+        const clientPackagesToApply = [
+          ...restoredClientPackages,
+          ...(savedClientPackage ? [savedClientPackage] : []),
+        ];
+        if (clientPackagesToApply.length > 0) {
+          setClientPackages((current) =>
+            clientPackagesToApply.reduce(
+              (nextPackages, packageItem) =>
+                nextPackages.some((item) => item.id === packageItem.id)
+                  ? nextPackages.map((item) =>
+                      item.id === packageItem.id ? packageItem : item,
+                    )
+                  : [packageItem, ...nextPackages],
+              current,
+            ),
+          );
+        }
+        const certificatesToApply = [
+          ...restoredCertificates,
+          ...(savedCertificate ? [savedCertificate] : []),
+        ];
+        if (certificatesToApply.length > 0) {
+          setCertificates((current) =>
+            certificatesToApply.reduce(
+              (nextCertificates, certificateItem) =>
+                nextCertificates.some((item) => item.id === certificateItem.id)
+                  ? nextCertificates.map((item) =>
+                      item.id === certificateItem.id ? certificateItem : item,
+                    )
+                  : [certificateItem, ...nextCertificates],
+              current,
+            ),
+          );
+        }
         setCalendarEntryModalOpen(false);
         setEditingJournalVisit(null);
         setEditingCalendarEntry(null);
@@ -452,22 +801,111 @@ export function useCalendarActions({
       pushNotification,
       saveCalendarEntry,
       serviceCatalog,
+      setCalendarEntries,
+      setClientPackages,
       setCalendarEntryDefaults,
       setCalendarEntryModalOpen,
+      setCertificates,
       setEditingCalendarEntry,
       setEditingJournalVisit,
       setVisits,
-      updateCertificateBalance,
-      updatePackageBalance,
     ],
   );
 
   const deleteCalendarEntry = useCallback(
     async (entry) => {
-      onCalendarSlotFreed?.(entry);
       const linkedVisit = visits.find(
         (visit) => visit.id === entry.visitId || visit.calendarEntryId === entry.id,
       );
+      const paymentName = String(linkedVisit?.payment ?? "").trim().toLowerCase();
+      const usesPackage =
+        Boolean(linkedVisit?.packageUsageId) ||
+        Number(linkedVisit?.packageSessionsUsed) > 0 ||
+        paymentName.includes("пакет") ||
+        paymentName.includes("pakiet") ||
+        paymentName.includes("package");
+      const usesCertificate =
+        Boolean(linkedVisit?.certificateUsageId) ||
+        Number(linkedVisit?.certificateAmountUsed) > 0 ||
+        paymentName.includes("сертификат") ||
+        paymentName.includes("certyfikat") ||
+        paymentName.includes("certificate");
+
+      if (
+        entry.status === "completed" &&
+        linkedVisit &&
+        (usesPackage || usesCertificate)
+      ) {
+        let response;
+
+        try {
+          response = await deleteCompletedCalendarEntry({
+            calendarEntryId: entry.id,
+            visitId: linkedVisit.id,
+          });
+        } catch (error) {
+          pushNotification({
+            title: "Запись не удалена",
+            message: error?.message || "Не удалось удалить запись в backend",
+            persist: false,
+          });
+          return;
+        }
+
+        const deletedCalendarEntryId = response?.data?.deletedCalendarEntryId ?? entry.id;
+        const deletedVisitId = response?.data?.deletedVisitId ?? linkedVisit.id;
+        const restoredClientPackages = Array.isArray(response?.data?.restoredClientPackages)
+          ? response.data.restoredClientPackages
+          : [];
+        const restoredCertificates = Array.isArray(response?.data?.restoredCertificates)
+          ? response.data.restoredCertificates
+          : [];
+
+        setCalendarEntries((current) =>
+          current.filter((item) => item.id !== deletedCalendarEntryId),
+        );
+        setVisits((current) =>
+          current.filter(
+            (visit) =>
+              visit.id !== deletedVisitId &&
+              visit.id !== linkedVisit.id &&
+              visit.calendarEntryId !== entry.id,
+          ),
+        );
+        if (restoredClientPackages.length > 0) {
+          setClientPackages((current) =>
+            restoredClientPackages.reduce(
+              (nextPackages, restoredPackage) =>
+                nextPackages.some((item) => item.id === restoredPackage.id)
+                  ? nextPackages.map((item) =>
+                      item.id === restoredPackage.id ? restoredPackage : item,
+                    )
+                  : [restoredPackage, ...nextPackages],
+              current,
+            ),
+          );
+        }
+        if (restoredCertificates.length > 0) {
+          setCertificates((current) =>
+            restoredCertificates.reduce(
+              (nextCertificates, restoredCertificate) =>
+                nextCertificates.some((item) => item.id === restoredCertificate.id)
+                  ? nextCertificates.map((item) =>
+                      item.id === restoredCertificate.id ? restoredCertificate : item,
+                    )
+                  : [restoredCertificate, ...nextCertificates],
+              current,
+            ),
+          );
+        }
+
+        onCalendarSlotFreed?.(entry);
+        pushNotification({
+          title: entry.kind === "visit" ? "Запись отменена" : "Резерв удален",
+          message: entry.kind === "visit" ? entry.client : entry.title,
+        });
+        return;
+      }
 
       try {
         if (linkedVisit) {
@@ -486,9 +924,8 @@ export function useCalendarActions({
       setCalendarEntries((current) => current.filter((item) => item.id !== entry.id));
       if (linkedVisit) {
         setVisits((current) => current.filter((visit) => visit.id !== linkedVisit.id));
-        updatePackageBalance(linkedVisit, null);
-        updateCertificateBalance(linkedVisit, null);
       }
+      onCalendarSlotFreed?.(entry);
       pushNotification({
         title: entry.kind === "visit" ? "Запись отменена" : "Резерв удален",
         message: entry.kind === "visit" ? entry.client : entry.title,
@@ -498,9 +935,9 @@ export function useCalendarActions({
       onCalendarSlotFreed,
       pushNotification,
       setCalendarEntries,
+      setCertificates,
+      setClientPackages,
       setVisits,
-      updateCertificateBalance,
-      updatePackageBalance,
       visits,
     ],
   );

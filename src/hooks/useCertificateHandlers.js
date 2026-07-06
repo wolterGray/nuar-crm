@@ -8,11 +8,10 @@ import {
 import {toDisplayDate} from "../utils/formatters.jsx";
 import {toVisitNumber} from "../utils/visits.jsx";
 import {
-  createCertificate,
   deleteCertificate,
+  sellCertificate,
   updateCertificate,
 } from "../api/financial.js";
-import {createVisit} from "../api/visits.js";
 
 export function useCertificateHandlers({
   certificates,
@@ -108,19 +107,6 @@ export function useCertificateHandlers({
           message: `${savedCertificate.code} · ${savedCertificate.client}`,
         });
       } else {
-        let savedCertificate;
-        try {
-          const response = await createCertificate(certificate);
-          savedCertificate = response?.data ?? certificate;
-        } catch (error) {
-          pushNotification({
-            title: "Сертификат не продан",
-            message: error?.message || "Backend не принял сертификат",
-            persist: false,
-          });
-          return;
-        }
-
         const saleVisitPayload = attachClientLink(clientProfiles, {
           amount: 0,
           client: certificate.client,
@@ -141,38 +127,28 @@ export function useCertificateHandlers({
           recordType: "operation",
           service: "Продажа сертификата",
           tip: 0,
-          certificateId: savedCertificate.id,
         });
+        let savedCertificate = certificate;
         let savedVisit = saleVisitPayload;
 
         try {
-          const response = await createVisit(saleVisitPayload);
-          savedVisit = response?.data ?? saleVisitPayload;
+          const response = await sellCertificate({
+            certificate,
+            visit: saleVisitPayload,
+          });
+          savedCertificate = response?.data?.certificate ?? certificate;
+          savedVisit = response?.data?.visit ?? saleVisitPayload;
         } catch (error) {
           pushNotification({
-            title: "Операция продажи не сохранена",
-            message: error?.message || "Сертификат создан, но визит продажи не записан",
+            title: "Сертификат не продан",
+            message: error?.message || "Backend не принял продажу сертификата",
             persist: false,
           });
-        }
-
-        const certificateWithSale = {
-          ...savedCertificate,
-          saleVisitId: savedVisit.id ?? "",
-        };
-
-        try {
-          await updateCertificate(savedCertificate.id, certificateWithSale);
-        } catch (error) {
-          pushNotification({
-            title: "Связь продажи не сохранена",
-            message: error?.message || "Сертификат создан, но saleVisitId не обновился",
-            persist: false,
-          });
+          return;
         }
 
         setCertificates((current) => [
-          certificateWithSale,
+          savedCertificate,
           ...current,
         ]);
         setVisits((current) => [savedVisit, ...current]);

@@ -18,7 +18,31 @@ function verifyJwt(req, res, next) {
   }
 }
 
+const isOwnerAuth = (auth = {}) => {
+  const adminEmail = String(process.env.ADMIN_EMAIL ?? '').trim().toLowerCase();
+  const authEmail = String(auth.email ?? '').trim().toLowerCase();
+
+  return (
+    auth.role === 'owner' ||
+    auth.sub === 'local-admin' ||
+    auth.id === 'local-admin' ||
+    (adminEmail && authEmail === adminEmail)
+  );
+};
+
+function requireOwner(req, res, next) {
+  if (isOwnerAuth(req.auth)) {
+    return next();
+  }
+
+  return res.status(403).json({
+    success: false,
+    error: 'Owner role required',
+  });
+}
+
 module.exports = {
+  requireOwner,
   verifyJwt,
   verifySupabaseJwt: verifyJwt,
 };

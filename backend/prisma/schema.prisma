@@ -245,12 +245,15 @@ model ClientPackageUsage {
   visitId         Int?
   sessionsUsed    Int      @default(1)
   usedAt          DateTime @default(now())
+  revertedAt      DateTime?
   payload         Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   clientPackage   ClientPackage @relation(fields: [clientPackageId], references: [id], onDelete: Cascade)
   visit           Visit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  @@unique([clientPackageId, visitId])
 }
 
 model Certificate {
@@ -286,12 +289,15 @@ model CertificateUsage {
   visitId       Int?
   amount        Decimal?
   usedAt        DateTime @default(now())
+  revertedAt    DateTime?
   payload       Json?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   certificate   Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
   visit         Visit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  @@unique([certificateId, visitId])
 }
 
 model DayCloseRecord {

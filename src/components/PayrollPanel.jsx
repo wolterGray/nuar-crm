@@ -1,5 +1,5 @@
 import {CheckCircle2, Lock, Trash2, Unlock, Wallet} from "lucide-react";
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import PageHeader from "./PageHeader.jsx";
 import {
   findPayrollRecord,
@@ -197,11 +197,39 @@ function PayrollPanel({
   const [startDate, setStartDate] = useState(initialRange.startDate);
   const [endDate, setEndDate] = useState(initialRange.endDate);
   const [formSeed, setFormSeed] = useState(`${initialRange.startDate}:${initialRange.endDate}`);
+  const activeRangeKey = `${startDate}:${endDate}`;
+  const [reportState, setReportState] = useState({
+    rangeKey: activeRangeKey,
+    report: null,
+  });
 
-  const report = useMemo(
-    () => getPayrollReport?.({endDate, startDate}),
-    [endDate, getPayrollReport, startDate],
-  );
+  useEffect(() => {
+    let cancelled = false;
+    const rangeKey = `${startDate}:${endDate}`;
+
+    if (!getPayrollReport) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    getPayrollReport({endDate, startDate})
+      .then((nextReport) => {
+        if (!cancelled) {
+          setReportState({rangeKey, report: nextReport});
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setReportState({rangeKey, report: null});
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [endDate, getPayrollReport, startDate]);
+  const report = reportState.rangeKey === activeRangeKey ? reportState.report : null;
   const existingRecord = useMemo(
     () => findPayrollRecord(payrollRecords, startDate, endDate),
     [endDate, payrollRecords, startDate],

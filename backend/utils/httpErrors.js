@@ -24,7 +24,7 @@ function getHttpErrorResponse(error) {
     };
   }
 
-  if (Number.isInteger(error?.status) && error.status >= 400 && error.status < 600) {
+  if (Number.isInteger(error?.status) && error.status >= 400 && error.status < 500) {
     return {
       message: error?.message || 'Request failed',
       status: error.status,
@@ -32,7 +32,7 @@ function getHttpErrorResponse(error) {
   }
 
   return {
-    message: error?.message || 'Internal Server Error',
+    message: 'Internal Server Error',
     status: 500,
   };
 }

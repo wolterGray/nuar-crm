@@ -357,7 +357,6 @@ export function useBooksyGmailSync({
     employees,
     effectiveGmailToken,
     gmailClientId,
-    googleEmail,
     isGmailConnected,
     importDocuments,
     onLastSyncAtChange,

@@ -79,6 +79,61 @@ export const createVisit = async (visit) => {
   return handleResponse(response, "Create visit");
 };
 
+export const createJournalFinancialVisit = async (visit) => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/visits/journal/financial`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", ...headers},
+    body: JSON.stringify(visit),
+  });
+
+  return handleResponse(response, "Create journal financial visit");
+};
+
+export const completeVisit = async (payload) => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/visits/complete`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", ...headers},
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(response, "Complete visit");
+};
+
+export const revertCompletedVisit = async (payload) => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/visits/revert-completed`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", ...headers},
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(response, "Revert completed visit");
+};
+
+export const deleteCompletedCalendarEntry = async (payload) => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/calendar-entries/delete-completed`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", ...headers},
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(response, "Delete completed calendar entry");
+};
+
+export const updateCompletedVisit = async (payload) => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/visits/update-completed`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", ...headers},
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(response, "Update completed visit");
+};
+
 export const updateVisit = async (id, visit) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/visits/journal/${id}`, {
@@ -90,6 +145,17 @@ export const updateVisit = async (id, visit) => {
   return handleResponse(response, "Update visit");
 };
 
+export const updateJournalFinancialVisit = async (id, visit) => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/visits/journal/${id}/financial`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json", ...headers},
+    body: JSON.stringify(visit),
+  });
+
+  return handleResponse(response, "Update journal financial visit");
+};
+
 export const deleteVisit = async (id) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/visits/journal/${id}`, {
@@ -98,4 +164,14 @@ export const deleteVisit = async (id) => {
   });
 
   return handleResponse(response, "Delete visit");
+};
+
+export const deleteJournalFinancialVisit = async (id) => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/visits/journal/${id}/delete-financial`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", ...headers},
+  });
+
+  return handleResponse(response, "Delete journal financial visit");
 };

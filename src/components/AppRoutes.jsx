@@ -1,18 +1,18 @@
 import {lazy, Suspense} from "react";
-import ServicesPage from "./pages/ServicesPage.jsx";
-import PackagesPage from "./pages/PackagesPage.jsx";
-import EmployeesPage from "./EmployeesPage.jsx";
-import MessageTemplatesPage from "./pages/MessageTemplatesPage.jsx";
-import ImportPage from "./pages/ImportPage.jsx";
-import TodayPage from "./pages/TodayPage.jsx";
-import SitePage from "./pages/SitePage.jsx";
 
+const TodayPage = lazy(() => import("./pages/TodayPage.jsx"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage.jsx"));
 const ClientsPage = lazy(() => import("./pages/ClientsPage.jsx"));
+const ServicesPage = lazy(() => import("./pages/ServicesPage.jsx"));
+const PackagesPage = lazy(() => import("./pages/PackagesPage.jsx"));
+const EmployeesPage = lazy(() => import("./EmployeesPage.jsx"));
+const MessageTemplatesPage = lazy(() => import("./pages/MessageTemplatesPage.jsx"));
 const OperationsPage = lazy(() => import("./pages/OperationsPage.jsx"));
+const ImportPage = lazy(() => import("./pages/ImportPage.jsx"));
 const PaymentsPage = lazy(() => import("./pages/PaymentsPage.jsx"));
-const SettingsPage = lazy(() => import("./pages/SettingsPage.jsx"));
 const StatisticsPage = lazy(() => import("./pages/StatisticsPage.jsx"));
+const SitePage = lazy(() => import("./pages/SitePage.jsx"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage.jsx"));
 
 function PageSuspense({children}) {
   return (
@@ -32,29 +32,31 @@ export default function AppRoutes({activePage, ...props}) {
   switch (activePage) {
     case "today":
       return (
-        <TodayPage
-          alertSummary={props.alertSummary}
-          alerts={props.alerts}
-          appSettings={props.appSettings}
-          calendarEntries={props.calendarEntries}
-          certificates={props.certificates}
-          clientPackages={props.clientPackages}
-          clientProfiles={props.clientProfiles}
-          employees={props.activeEmployees}
-          supplies={props.supplies}
-          tasks={props.tasks}
-          visits={props.paymentRows}
-          onAddTask={props.openCreateTask}
-          onAddVisit={props.openCreateCalendarEntry}
-          onChangeSupplyStock={props.changeSupplyStock}
-          onCompleteTask={props.completeTask}
-          onEditVisit={(entry) => props.requestCalendarAction("edit", entry)}
-          onOpenCalendar={() => props.setActivePage("calendar")}
-          onOpenClients={() => props.setActivePage("clients")}
-          onOpenOperations={() => props.setActivePage("operations")}
-          onOpenPayments={() => props.setActivePage("payments")}
-          onRemindVisit={props.remindCalendarClient}
-        />
+        <PageSuspense>
+          <TodayPage
+            alertSummary={props.alertSummary}
+            alerts={props.alerts}
+            appSettings={props.appSettings}
+            calendarEntries={props.calendarEntries}
+            certificates={props.certificates}
+            clientPackages={props.clientPackages}
+            clientProfiles={props.clientProfiles}
+            employees={props.activeEmployees}
+            supplies={props.supplies}
+            tasks={props.tasks}
+            visits={props.paymentRows}
+            onAddTask={props.openCreateTask}
+            onAddVisit={props.openCreateCalendarEntry}
+            onChangeSupplyStock={props.changeSupplyStock}
+            onCompleteTask={props.completeTask}
+            onEditVisit={(entry) => props.requestCalendarAction("edit", entry)}
+            onOpenCalendar={() => props.setActivePage("calendar")}
+            onOpenClients={() => props.setActivePage("clients")}
+            onOpenOperations={() => props.setActivePage("operations")}
+            onOpenPayments={() => props.setActivePage("payments")}
+            onRemindVisit={props.remindCalendarClient}
+          />
+        </PageSuspense>
       );
 
     case "calendar":
@@ -129,67 +131,75 @@ export default function AppRoutes({activePage, ...props}) {
 
     case "services":
       return (
-        <ServicesPage
-          services={props.serviceCatalog}
-          onAdd={props.openCreateService}
-          onEdit={props.openEditService}
-          onDelete={props.requestDeleteService}
-        />
+        <PageSuspense>
+          <ServicesPage
+            services={props.serviceCatalog}
+            onAdd={props.openCreateService}
+            onEdit={props.openEditService}
+            onDelete={props.requestDeleteService}
+          />
+        </PageSuspense>
       );
 
     case "packages":
       return (
-        <PackagesPage
-          packages={props.packagesCatalog}
-          clientPackages={props.clientPackages}
-          certificates={props.certificates}
-          certificateSalesIncome={props.certificateSalesIncome}
-          packageSalesIncome={props.packageSalesIncome}
-          onAdd={props.openCreatePackage}
-          onEdit={props.openEditPackage}
-          onDelete={props.requestDeletePackage}
-          onSellPackage={props.openCreateClientPackage}
-          onSellCertificate={props.openCreateCertificate}
-          onEditClientPackage={props.openEditClientPackage}
-          onDeleteClientPackage={props.requestDeleteClientPackage}
-          onEditCertificate={props.openEditCertificate}
-          onDeleteCertificate={props.requestDeleteCertificate}
-        />
+        <PageSuspense>
+          <PackagesPage
+            packages={props.packagesCatalog}
+            clientPackages={props.clientPackages}
+            certificates={props.certificates}
+            certificateSalesIncome={props.certificateSalesIncome}
+            packageSalesIncome={props.packageSalesIncome}
+            onAdd={props.openCreatePackage}
+            onEdit={props.openEditPackage}
+            onDelete={props.requestDeletePackage}
+            onSellPackage={props.openCreateClientPackage}
+            onSellCertificate={props.openCreateCertificate}
+            onEditClientPackage={props.openEditClientPackage}
+            onDeleteClientPackage={props.requestDeleteClientPackage}
+            onEditCertificate={props.openEditCertificate}
+            onDeleteCertificate={props.requestDeleteCertificate}
+          />
+        </PageSuspense>
       );
 
     case "masters":
       return (
-        <EmployeesPage
-          employees={props.employeeStats}
-          getDailyPayrollReport={props.getDailyPayrollReport}
-          getPayrollReport={props.getPayrollReport}
-          markAllDailyPayoutsPaid={props.markAllDailyPayoutsPaid}
-          markPayrollPaid={props.markPayrollPaid}
-          payrollEmployees={props.payrollEmployees}
-          payrollRecords={props.payrollRecords}
-          removePayrollRecord={props.removePayrollRecord}
-          reopenPayrollRecord={props.reopenPayrollRecord}
-          setVisitMasterPayoutPaid={props.setVisitMasterPayoutPaid}
-          onAdd={props.openCreateEmployee}
-          onEdit={props.openEditEmployee}
-          onDelete={props.requestDeleteEmployee}
-        />
+        <PageSuspense>
+          <EmployeesPage
+            employees={props.employeeStats}
+            getDailyPayrollReport={props.getDailyPayrollReport}
+            getPayrollReport={props.getPayrollReport}
+            markAllDailyPayoutsPaid={props.markAllDailyPayoutsPaid}
+            markPayrollPaid={props.markPayrollPaid}
+            payrollEmployees={props.payrollEmployees}
+            payrollRecords={props.payrollRecords}
+            removePayrollRecord={props.removePayrollRecord}
+            reopenPayrollRecord={props.reopenPayrollRecord}
+            setVisitMasterPayoutPaid={props.setVisitMasterPayoutPaid}
+            onAdd={props.openCreateEmployee}
+            onEdit={props.openEditEmployee}
+            onDelete={props.requestDeleteEmployee}
+          />
+        </PageSuspense>
       );
 
     case "templates":
       return (
-        <MessageTemplatesPage
-          bulkSms={props.bulkSms}
-          templates={props.messageTemplates}
-          clients={props.clientProfiles}
-          preferredClientId={props.preferredMessageClientId}
-          onClearPreferredClient={props.clearPreferredMessageClientId}
-          onAdd={props.openCreateMessageTemplate}
-          onEdit={props.openEditMessageTemplate}
-          onDelete={props.requestDeleteMessageTemplate}
-          onNotify={props.pushNotification}
-          onMessageSent={props.logClientMessage}
-        />
+        <PageSuspense>
+          <MessageTemplatesPage
+            bulkSms={props.bulkSms}
+            templates={props.messageTemplates}
+            clients={props.clientProfiles}
+            preferredClientId={props.preferredMessageClientId}
+            onClearPreferredClient={props.clearPreferredMessageClientId}
+            onAdd={props.openCreateMessageTemplate}
+            onEdit={props.openEditMessageTemplate}
+            onDelete={props.requestDeleteMessageTemplate}
+            onNotify={props.pushNotification}
+            onMessageSent={props.logClientMessage}
+          />
+        </PageSuspense>
       );
 
     case "operations":
@@ -222,12 +232,14 @@ export default function AppRoutes({activePage, ...props}) {
 
     case "import":
       return (
-        <ImportPage
-          booksyGmailSync={props.booksyGmailSync}
-          calendarEntries={props.calendarEntries}
-          documents={props.importDocuments}
-          onDeleteDocuments={props.deleteImportDocuments}
-        />
+        <PageSuspense>
+          <ImportPage
+            booksyGmailSync={props.booksyGmailSync}
+            calendarEntries={props.calendarEntries}
+            documents={props.importDocuments}
+            onDeleteDocuments={props.deleteImportDocuments}
+          />
+        </PageSuspense>
       );
 
     case "statistics":
@@ -246,12 +258,14 @@ export default function AppRoutes({activePage, ...props}) {
 
     case "site":
       return (
-        <SitePage
-          settings={props.appSettings}
-          siteBooking={props.siteBooking}
-          pushNotification={props.pushNotification}
-          onSubmit={props.handleSiteSettingsSubmit}
-        />
+        <PageSuspense>
+          <SitePage
+            settings={props.appSettings}
+            siteBooking={props.siteBooking}
+            pushNotification={props.pushNotification}
+            onSubmit={props.handleSiteSettingsSubmit}
+          />
+        </PageSuspense>
       );
 
     case "settings":

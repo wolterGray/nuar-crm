@@ -1,58 +1,51 @@
 import {useCallback} from "react";
 import {
-  buildPayrollRecord,
-  buildPayrollReport,
-  findPayrollRecord,
   formatPayrollPeriodLabel,
   sortPayrollRecords,
 } from "../utils/payroll.js";
 import {
-  createPayrollRecord,
   deletePayrollRecord,
-  updatePayrollRecord,
+  fetchPayrollSummary,
+  markPayrollPaidRecord,
 } from "../api/financial.js";
 
 export function usePayrollHandlers({
-  clientPackages,
-  employees,
   payrollRecords,
   pushNotification,
   setPayrollRecords,
-  visits,
 }) {
   const getPayrollReport = useCallback(
-    ({endDate, startDate}) =>
-      buildPayrollReport({
-        clientPackages,
-        employees,
-        endDate,
-        startDate,
-        visits,
-      }),
-    [clientPackages, employees, visits],
+    async ({employeeId, endDate, startDate}) => {
+      const response = await fetchPayrollSummary({employeeId, endDate, startDate});
+      return response?.data ?? null;
+    },
+    [],
   );
 
   const markPayrollPaid = useCallback(
-    async ({endDate, note = "", startDate}) => {
-      const report = getPayrollReport({endDate, startDate});
-      const existing = findPayrollRecord(payrollRecords, startDate, endDate);
-      const record = buildPayrollRecord({
-        endDate,
-        id: existing?.id,
-        note,
-        report,
-        startDate,
-      });
+    async ({employeeId, endDate, note = "", startDate}) => {
       let savedRecord;
 
       try {
-        const response = existing
-          ? await updatePayrollRecord(existing.id, record)
-          : await createPayrollRecord(record);
-        savedRecord = response?.data ?? record;
+        const response = await markPayrollPaidRecord({
+          employeeId,
+          endDate,
+          note,
+          startDate,
+        });
+        savedRecord = response?.data;
       } catch (error) {
         pushNotification({
           message: error?.message || "Backend не принял payroll запись",
+          persist: false,
+          title: "Выплата не сохранена",
+        });
+        return;
+      }
+
+      if (!savedRecord) {
+        pushNotification({
+          message: "Backend не вернул payroll запись",
           persist: false,
           title: "Выплата не сохранена",
         });
@@ -67,12 +60,13 @@ export function usePayrollHandlers({
       );
 
       pushNotification({
-        message: `${formatPayrollPeriodLabel(startDate, endDate)} · ${report.totals.totalPayout} zł`,
-        title: existing ? "Выплата обновлена" : "Выплата отмечена",
+        message: `${formatPayrollPeriodLabel(startDate, endDate)} · ${savedRecord.report?.totals?.totalPayout ?? 0} zł`,
+        title: payrollRecords.some((item) => item.periodKey === savedRecord.periodKey)
+          ? "Выплата обновлена"
+          : "Выплата отмечена",
       });
     },
     [
-      getPayrollReport,
       payrollRecords,
       pushNotification,
       setPayrollRecords,

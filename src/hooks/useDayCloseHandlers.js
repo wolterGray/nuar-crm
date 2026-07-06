@@ -1,7 +1,6 @@
 import {useCallback} from "react";
 import {
   buildDayCloseJournal,
-  buildDayCloseRecord,
   findDayCloseRecord,
   formatDayCloseLabel,
   formatDayCloseVariance,
@@ -9,9 +8,8 @@ import {
   sortDayCloseRecords,
 } from "../utils/dayClose.js";
 import {
-  createDayCloseRecord,
+  closeDayRecord,
   deleteDayCloseRecord,
-  updateDayCloseRecord,
 } from "../api/financial.js";
 
 export function useDayCloseHandlers({
@@ -45,26 +43,29 @@ export function useDayCloseHandlers({
         return;
       }
 
-      const journal = getJournalForDate(normalizedDate);
       const existing = findDayCloseRecord(dayCloseRecords, normalizedDate);
-      const record = buildDayCloseRecord({
-        actualCashInDrawer,
-        cashWithdrawal,
-        date: normalizedDate,
-        id: existing?.id,
-        journal,
-        note,
-      });
       let savedRecord;
 
       try {
-        const response = existing
-          ? await updateDayCloseRecord(existing.id, record)
-          : await createDayCloseRecord(record);
-        savedRecord = response?.data ?? record;
+        const response = await closeDayRecord({
+          actualCashInDrawer,
+          cashWithdrawal,
+          date: normalizedDate,
+          note,
+        });
+        savedRecord = response?.data;
       } catch (error) {
         pushNotification({
           message: error?.message || "Backend не принял закрытие дня",
+          persist: false,
+          title: "Закрытие дня не сохранено",
+        });
+        return;
+      }
+
+      if (!savedRecord) {
+        pushNotification({
+          message: "Backend не вернул запись закрытия дня",
           persist: false,
           title: "Закрытие дня не сохранено",
         });
@@ -87,7 +88,6 @@ export function useDayCloseHandlers({
     },
     [
       dayCloseRecords,
-      getJournalForDate,
       pushNotification,
       setDayCloseRecords,
     ],

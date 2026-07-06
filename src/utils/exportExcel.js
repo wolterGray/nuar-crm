@@ -1,13 +1,12 @@
-import * as XLSX from "xlsx";
-
 const toSafeSheetName = (name) => String(name || "Отчет").slice(0, 31);
 
-export const exportRowsToExcel = ({
+export const exportRowsToExcel = async ({
   columns,
   fileName = "nuar-report.xlsx",
   rows,
   sheetName = "Отчет",
 }) => {
+  const XLSX = await import("xlsx");
   const normalizedRows = rows.map((row) =>
     columns.reduce((result, column) => {
       result[column.label] =
