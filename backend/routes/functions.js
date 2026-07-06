@@ -110,6 +110,58 @@ router.post('/bulk-sms', requireOwner, async (req, res) => {
 // Telegram Digest (stub)
 router.post('/telegram-digest', requireOwner, async (req, res) => {
   const payload = req.body;
+  if (payload?.action === 'owner-notify-status') {
+    const settings = await prisma.systemState
+      .findUnique({where: {key: 'appSettings'}})
+      .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
+      .catch(() => ({}));
+    const telegramChatId = String(settings.telegramChatId ?? process.env.TELEGRAM_CHAT_ID ?? '').trim();
+    const ownerPhone = String(settings.ownerNotifyPhone ?? process.env.OWNER_NOTIFY_PHONE ?? '').trim();
+
+    return res.json({
+      success: true,
+      ownerPhone,
+      siteBookingNotifyTelegramEnabled: settings.siteBookingNotifyTelegramEnabled !== false,
+      siteBookingNotifyWhatsappEnabled: settings.siteBookingNotifyWhatsappEnabled !== false,
+      smsConfigured: Boolean(process.env.SMSAPI_TOKEN),
+      telegramChatId,
+      telegramChatIdConfigured: Boolean(telegramChatId),
+      telegramConfigured: Boolean(process.env.TELEGRAM_BOT_TOKEN && telegramChatId),
+      telegramTokenConfigured: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+      whatsappConfigured: Boolean(process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID),
+    });
+  }
+
+  if (payload?.action === 'owner-notify-test') {
+    const settings = await prisma.systemState
+      .findUnique({where: {key: 'appSettings'}})
+      .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
+      .catch(() => ({}));
+    const chatId = String(settings.telegramChatId ?? process.env.TELEGRAM_CHAT_ID ?? '').trim();
+    const telegram = chatId
+      ? await telegramDigest({chatId, text: 'NUAR CRM test'})
+      : {success: false, error: 'telegramChatId is required'};
+
+    await auditFunctionCall(req, 'test owner notification', {
+      result: summarizeResult(telegram),
+      telegramChatIdPresent: Boolean(chatId),
+    });
+
+    return res.json({
+      success: telegram.success,
+      results: {
+        telegram: {
+          ok: telegram.success === true,
+          error: telegram.error ?? '',
+        },
+        whatsapp: {
+          ok: false,
+          error: '',
+        },
+      },
+    });
+  }
+
   const result = await telegramDigest(payload);
   await auditFunctionCall(req, 'send telegram digest', {
     chatIdPresent: Boolean(payload?.chatId),

@@ -61,6 +61,12 @@ app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 const authRouter = require('./routes/auth');
 app.use('/api/auth', authRouter);
 
+const publicSiteRouter = require('./routes/publicSite');
+app.use('/api/public', publicSiteRouter);
+
+const { publicSiteBookingRouter, siteBookingRouter } = require('./routes/siteBooking');
+app.use('/api/public', publicSiteBookingRouter);
+
 const { verifyJwt } = require('./middleware/auth');
 
 const functionsRouter = require('./routes/functions');
@@ -68,6 +74,8 @@ app.use('/functions', verifyJwt, functionsRouter);
 
 const siteCmsRouter = require('./routes/siteCms');
 app.use('/api', verifyJwt, siteCmsRouter);
+
+app.use('/api', verifyJwt, siteBookingRouter);
 
 const crudRouter = require('./routes/crud');
 app.use('/api', verifyJwt, crudRouter);

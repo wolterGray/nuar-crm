@@ -1,22 +1,6 @@
-import {isSupabaseConfigured, supabase} from "../lib/supabase.js";
+import {API_URL} from "../api/config.js";
+import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 
-const SITE_BOOKING_SELECT = [
-  "id",
-  "client_name",
-  "client_phone",
-  "client_email",
-  "service_slug",
-  "service_name",
-  "preferred_date",
-  "preferred_time",
-  "preferred_master",
-  "duration_minutes",
-  "status",
-  "note",
-  "linked_calendar_entry_id",
-  "created_at",
-  "updated_at",
-].join(", ");
 const PENDING_SITE_BOOKINGS_LIMIT = 25;
 const RECENT_SITE_BOOKINGS_LIMIT = 25;
 const SITE_BOOKING_CACHE_TTL_MS = 60_000;
@@ -42,12 +26,37 @@ export const clearSiteBookingCache = () => {
   requestCache.clear();
 };
 
-const ensureSupabase = () => {
-  if (!isSupabaseConfigured || !supabase) {
-    throw new Error("Supabase не настроен");
+const authHeaders = async () => {
+  const token = await getAuthToken?.();
+  return token ? {Authorization: `Bearer ${token}`} : {};
+};
+
+const handleResponse = async (response, label) => {
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || payload?.success === false) {
+    if (response.status === 401) {
+      notifyAuthTokenRejected();
+    }
+    throw new Error(payload?.error || payload?.message || `${label} API request failed`);
   }
 
-  return supabase;
+  return payload?.data ?? payload;
+};
+
+const backendRequest = async (path, {body, label, method = "GET", publicRequest = false} = {}) => {
+  if (!API_URL) {
+    throw new Error("Backend не настроен");
+  }
+
+  const headers = publicRequest ? {} : await authHeaders();
+  const response = await fetch(`${API_URL}${path}`, {
+    method,
+    headers: {"Content-Type": "application/json", ...headers},
+    ...(body === undefined ? {} : {body: JSON.stringify(body)}),
+  });
+
+  return handleResponse(response, label ?? path);
 };
 
 export const fetchPendingSiteBookings = async () => {
@@ -57,19 +66,14 @@ export const fetchPendingSiteBookings = async () => {
     return cached;
   }
 
-  const client = ensureSupabase();
-  const {data, error} = await client
-    .from("site_booking_requests")
-    .select(SITE_BOOKING_SELECT)
-    .eq("status", "pending")
-    .order("created_at", {ascending: false})
-    .limit(PENDING_SITE_BOOKINGS_LIMIT);
+  const params = new URLSearchParams({
+    limit: String(PENDING_SITE_BOOKINGS_LIMIT),
+    status: "pending",
+  });
+  const requests = await backendRequest(`/api/site-bookings?${params.toString()}`, {
+    label: "Site bookings",
+  });
 
-  if (error) {
-    throw error;
-  }
-
-  const requests = data ?? [];
   setCached("pending", requests);
   return requests;
 };
@@ -82,65 +86,30 @@ export const fetchRecentSiteBookings = async ({limit = RECENT_SITE_BOOKINGS_LIMI
     return cached;
   }
 
-  const client = ensureSupabase();
-  const {data, error} = await client
-    .from("site_booking_requests")
-    .select(SITE_BOOKING_SELECT)
-    .order("created_at", {ascending: false})
-    .limit(limit);
+  const params = new URLSearchParams({limit: String(limit)});
+  const requests = await backendRequest(`/api/site-bookings?${params.toString()}`, {
+    label: "Recent site bookings",
+  });
 
-  if (error) {
-    throw error;
-  }
-
-  const requests = data ?? [];
   setCached(cacheKey, requests);
   return requests;
 };
 
 export const updateSiteBookingRequest = async (id, patch) => {
-  const client = ensureSupabase();
-  const {data, error} = await client
-    .from("site_booking_requests")
-    .update({
-      ...patch,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id)
-    .select(SITE_BOOKING_SELECT)
-    .single();
-
-  if (error) {
-    throw error;
-  }
-
-  clearSiteBookingCache();
-  return data;
-};
-
-export const submitSiteBookingRequest = async (payload) => {
-  const url = import.meta.env.VITE_SUPABASE_URL;
-  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-  if (!url || !key) {
-    throw new Error("Supabase не настроен");
-  }
-
-  const response = await fetch(`${url}/functions/v1/site-booking-submit`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-      apikey: key,
-    },
-    body: JSON.stringify(payload),
+  const request = await backendRequest(`/api/site-bookings/${encodeURIComponent(id)}`, {
+    body: patch,
+    label: "Update site booking",
+    method: "PATCH",
   });
 
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data?.error || "Не удалось отправить заявку");
-  }
-
-  return data;
+  clearSiteBookingCache();
+  return request;
 };
+
+export const submitSiteBookingRequest = async (payload) =>
+  backendRequest("/api/public/site-booking-submit", {
+    body: payload,
+    label: "Submit site booking",
+    method: "POST",
+    publicRequest: true,
+  });

@@ -3,6 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const { requireOwner } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
+const { ensureSiteCmsTables } = require('../utils/siteCmsTables');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -40,6 +41,7 @@ const handleRouteError = async (req, res, error, context = {}) => {
 
 router.get('/site-content', requireOwner, async (req, res) => {
   try {
+    await ensureSiteCmsTables(prisma);
     const rows = await prisma.$queryRaw`
       select data, updated_at
       from site_content
@@ -66,6 +68,7 @@ router.put('/site-content', requireOwner, async (req, res) => {
   }
 
   try {
+    await ensureSiteCmsTables(prisma);
     const overridesJson = JSON.stringify(overrides);
     const rows = await prisma.$queryRaw`
       insert into site_content (id, data, updated_at)
@@ -93,6 +96,7 @@ router.put('/site-content', requireOwner, async (req, res) => {
 
 router.delete('/site-content', requireOwner, async (req, res) => {
   try {
+    await ensureSiteCmsTables(prisma);
     const rows = await prisma.$queryRaw`
       insert into site_content (id, data, updated_at)
       values (${SITE_CONTENT_ROW_ID}, '{}'::jsonb, now())
@@ -126,6 +130,7 @@ router.get('/site-images', requireOwner, async (req, res) => {
   const folder = req.query.folder ? sanitizeFolder(req.query.folder) : null;
 
   try {
+    await ensureSiteCmsTables(prisma);
     if (ids.length > 0) {
       const rows = await prisma.$queryRaw`
         select id, folder, mime_type, data_base64, size_bytes, thumb_mime_type,
@@ -161,6 +166,7 @@ router.get('/site-images', requireOwner, async (req, res) => {
 
 router.get('/site-images/storage-usage', requireOwner, async (req, res) => {
   try {
+    await ensureSiteCmsTables(prisma);
     const rows = await prisma.$queryRaw`
       select count(*)::int as count, coalesce(sum(size_bytes), 0)::int as bytes
       from site_images
@@ -183,6 +189,7 @@ router.put('/site-images/:id', requireOwner, async (req, res) => {
   }
 
   try {
+    await ensureSiteCmsTables(prisma);
     const folder = sanitizeFolder(body.folder);
     const rows = await prisma.$queryRaw`
       insert into site_images (
@@ -222,6 +229,7 @@ router.patch('/site-images/:id', requireOwner, async (req, res) => {
   }
 
   try {
+    await ensureSiteCmsTables(prisma);
     const existingRows = await prisma.$queryRaw`
       select id from site_images where id = ${id} limit 1
     `;
@@ -252,6 +260,7 @@ router.delete('/site-images', requireOwner, async (req, res) => {
   if (!ids.length) return res.json({ success: true, data: { removed: 0 } });
 
   try {
+    await ensureSiteCmsTables(prisma);
     const result = await prisma.$executeRaw`
       delete from site_images where id = any(${ids})
     `;
@@ -263,6 +272,7 @@ router.delete('/site-images', requireOwner, async (req, res) => {
 
 router.get('/site-images/orphans', requireOwner, async (req, res) => {
   try {
+    await ensureSiteCmsTables(prisma);
     const rows = await prisma.$queryRaw`
       select id from site_images order by updated_at desc
     `;

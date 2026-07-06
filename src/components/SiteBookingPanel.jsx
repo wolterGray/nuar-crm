@@ -129,7 +129,7 @@ function SiteBookingPanel({
         pushNotification?.({
           title: "Уведомление не отправилось",
           message: [telegramError, whatsappError].filter(Boolean).join(" · ") ||
-            "Проверьте secrets в Supabase и Chat ID в настройках CRM",
+            "Проверьте переменные backend и Chat ID в настройках CRM",
         });
       }
 
@@ -147,7 +147,7 @@ function SiteBookingPanel({
   const telegramStatusMessage = notifyStatus.telegramConfigured
     ? "Telegram готов к уведомлениям"
     : !notifyStatus.telegramTokenConfigured
-      ? "Нет TELEGRAM_BOT_TOKEN в Supabase → Project Settings → Edge Functions → Secrets"
+      ? "Нет TELEGRAM_BOT_TOKEN на backend"
       : !notifyStatus.telegramChatIdConfigured
         ? "Укажите Chat ID в блоке выше и сохраните настройки в облако"
         : "Telegram не готов — проверьте secrets и Chat ID";
@@ -162,7 +162,7 @@ function SiteBookingPanel({
           <Globe size={18} />
           <div>
             <h2>Заявки с сайта</h2>
-            <p>Форма на nuarr.pl → Supabase → импорт в календарь CRM</p>
+            <p>Форма на nuarr.pl → CRM backend → импорт в календарь CRM</p>
           </div>
         </div>
       ) : (
@@ -185,7 +185,7 @@ function SiteBookingPanel({
         ) : null}
         {!notifyStatus.telegramTokenConfigured ? (
           <small>
-            Токен бота задаётся только в Supabase Secrets, не в CRM. Имя секрета:
+            Токен бота задаётся на backend, не в CRM. Имя переменной:
             TELEGRAM_BOT_TOKEN
           </small>
         ) : null}

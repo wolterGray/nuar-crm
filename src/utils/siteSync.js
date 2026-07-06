@@ -1,7 +1,7 @@
 import {siteServicesCatalog} from "../data/siteServicesCatalog.js";
-import {isSupabaseConfigured, supabase} from "../lib/supabase.js";
+import {API_URL} from "../api/config.js";
+import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 
-const SITE_CONTENT_ROW_ID = "main";
 const SITE_OVERRIDES_CACHE_TTL_MS = 60_000;
 
 let siteOverridesCache = null;
@@ -63,17 +63,22 @@ async function fetchSiteOverrides() {
     return siteOverridesCache.data;
   }
 
-  const {data, error} = await supabase
-    .from("site_content")
-    .select("data, updated_at")
-    .eq("id", SITE_CONTENT_ROW_ID)
-    .maybeSingle();
+  const response = await fetch(`${API_URL}/api/public/site-content`, {
+    headers: {"Content-Type": "application/json"},
+  });
 
-  if (error) throw error;
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || payload?.success === false) {
+    throw new Error(payload?.error || payload?.message || "Не удалось загрузить контент сайта.");
+  }
 
   const remote = {
-    overrides: data?.data && typeof data.data === "object" ? data.data : {},
-    updatedAt: data?.updated_at ?? null,
+    overrides:
+      payload?.data?.overrides && typeof payload.data.overrides === "object"
+        ? payload.data.overrides
+        : {},
+    updatedAt: payload?.data?.updatedAt ?? null,
   };
 
   siteOverridesCache = {
@@ -85,42 +90,46 @@ async function fetchSiteOverrides() {
 }
 
 async function saveSiteOverrides(overrides) {
-  const {data, error} = await supabase
-    .from("site_content")
-    .upsert({
-      id: SITE_CONTENT_ROW_ID,
-      data: overrides,
-      updated_at: new Date().toISOString(),
-    })
-    .select("updated_at")
-    .single();
+  const token = await getAuthToken?.();
 
-  if (error) throw error;
+  if (!token) {
+    throw new Error("Сессия CRM не найдена. Войдите заново.");
+  }
+
+  const response = await fetch(`${API_URL}/api/site-content`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({overrides}),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || payload?.success === false) {
+    if (response.status === 401) {
+      notifyAuthTokenRejected();
+    }
+    throw new Error(payload?.error || payload?.message || "Не удалось сохранить контент сайта.");
+  }
+
+  const updatedAt = payload?.data?.updatedAt ?? null;
 
   siteOverridesCache = {
     cachedAt: Date.now(),
     data: {
       overrides,
-      updatedAt: data?.updated_at ?? null,
+      updatedAt,
     },
   };
 
-  return data?.updated_at ?? null;
+  return updatedAt;
 }
 
 export async function publishServicesToSite(crmServices) {
-  if (!isSupabaseConfigured || !supabase) {
-    throw new Error("Supabase не настроен.");
-  }
-
-  const {
-    data: {session},
-    error: sessionError,
-  } = await supabase.auth.getSession();
-
-  if (sessionError) throw sessionError;
-  if (!session?.user?.id) {
-    throw new Error("Сессия CRM не найдена. Войдите заново.");
+  if (!API_URL) {
+    throw new Error("Backend не настроен.");
   }
 
   const remote = await fetchSiteOverrides();

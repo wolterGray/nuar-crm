@@ -47,7 +47,11 @@ const telegramDigest = async (payload) => {
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'MarkdownV2' }),
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        ...(payload?.parseMode ? {parse_mode: payload.parseMode} : {}),
+      }),
     });
     const data = await response.json();
     if (!response.ok || !data.ok) {
