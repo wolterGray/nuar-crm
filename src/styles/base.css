@@ -80,7 +80,7 @@ button {
 .theme-dark textarea {
   color: #eef4fb;
   background-color: #0e1013;
-  border-color: #252a31;
+  border-color: var(--app-window-border);
 }
 
 .theme-dark input::placeholder,
@@ -90,7 +90,7 @@ button {
 
 .theme-dark select option {
   color: #eef4fb;
-  background: #0e1013;
+  background: var(--app-window-bg);
 }
 
 .theme-dark h1,
@@ -144,11 +144,11 @@ button {
 }
 
 .theme-dark .visits-content .table-head {
-  background: #15171a;
+  background: var(--app-card-bg);
 }
 
 .theme-dark .clients-table-head {
-  background: #15171a;
+  background: var(--app-card-bg);
 }
 
 .theme-dark .period-tabs,
@@ -159,8 +159,8 @@ button {
 .theme-dark .client-details-note p,
 .theme-dark .client-details-note-input,
 .theme-dark .package {
-  background: #0e1013;
-  border-color: #252a31;
+  background: var(--app-window-bg);
+  border-color: var(--app-window-border);
 }
 
 .theme-dark .period-tabs button {
@@ -179,8 +179,8 @@ button {
 .theme-dark .toast button,
 .theme-dark .sidebar-restore-button {
   color: #eef4fb;
-  background: #15171a;
-  border-color: #252a31;
+  background: var(--app-card-bg);
+  border-color: var(--app-window-border);
 }
 
 .theme-dark .danger-button {
@@ -195,8 +195,8 @@ button {
 
 .theme-dark .tooltip-cell .cell-tooltip {
   color: #eef4fb;
-  background: #15171a;
-  border-color: #252a31;
+  background: var(--app-card-bg);
+  border-color: var(--app-window-border);
 }
 
 .theme-dark .toast {
@@ -1088,8 +1088,8 @@ h1 {
 }
 
 .theme-dark .client-alert-summary-bar {
-  border-color: #252a31;
-  background: #0e1013;
+  border-color: var(--app-window-border);
+  background: var(--app-window-bg);
 }
 
 .theme-dark .client-alert-summary-bar strong {
@@ -1102,9 +1102,9 @@ h1 {
 }
 
 .theme-dark .client-alert-filter-chips button {
-  border-color: #252a31;
+  border-color: var(--app-window-border);
   color: #c8d0dc;
-  background: #0e1013;
+  background: var(--app-window-bg);
 }
 
 .theme-dark .client-alert-filter-chips button.active {
@@ -1112,8 +1112,8 @@ h1 {
 }
 
 .theme-dark .client-alert-snooze-menu {
-  border-color: #252a31;
-  background: #15171a;
+  border-color: var(--app-window-border);
+  background: var(--app-card-bg);
 }
 
 .theme-dark .client-alert-snooze-menu button {
@@ -1130,9 +1130,9 @@ h1 {
 }
 
 .theme-dark .toast-actions button {
-  border-color: #252a31;
+  border-color: var(--app-window-border);
   color: #f8fbff;
-  background: #0e1013;
+  background: var(--app-window-bg);
 }
 
 .client-alert-summary-bar.quiet-hours {
@@ -1398,7 +1398,7 @@ h1 {
 }
 
 .theme-dark .payments-content .table-head {
-  background: #15171a;
+  background: var(--app-card-bg);
 }
 
 .visits-content .visits-table::-webkit-scrollbar {
@@ -1784,8 +1784,8 @@ h2 {
 
 .theme-dark .compact-icon-button {
   color: #d5dfec;
-  background: #0e1013;
-  border-color: #252a31;
+  background: var(--app-window-bg);
+  border-color: var(--app-window-border);
 }
 
 .theme-dark .compact-icon-button.danger {
@@ -1853,8 +1853,8 @@ h2 {
 .theme-dark .client-quality-score,
 .theme-dark .client-quality-metrics article,
 .theme-dark .client-quality-lists > div {
-  border-color: #252a31;
-  background: #0e1013;
+  border-color: var(--app-window-border);
+  background: var(--app-window-bg);
 }
 
 .theme-dark .client-quality-score strong,
@@ -1864,7 +1864,7 @@ h2 {
 }
 
 .theme-dark .client-quality-lists button {
-  border-color: #252a31;
+  border-color: var(--app-window-border);
 }
 
 .theme-dark .client-birthday-note {
@@ -2698,9 +2698,9 @@ h2 {
 }
 
 .theme-dark .supply-order-button:not(:disabled) {
-  border-color: #252a31;
+  border-color: var(--app-window-border);
   color: #f8fbff;
-  background: #0e1013;
+  background: var(--app-window-bg);
 }
 
 .theme-dark .supply-order-button:not(:disabled):hover {
@@ -2724,7 +2724,7 @@ h2 {
 .theme-dark .task-priority,
 .theme-dark .operations-tabs {
   color: #aeb9c8;
-  background: #0e1013;
+  background: var(--app-window-bg);
 }
 
 .theme-dark .operations-summary b,
@@ -2744,15 +2744,15 @@ h2 {
 .theme-dark .import-summary span,
 .theme-dark .supply-actions > button:not(.compact-icon-button):not(.supply-order-button),
 .theme-dark .task-check {
-  border-color: #252a31;
-  background: #0e1013;
+  border-color: var(--app-window-border);
+  background: var(--app-window-bg);
 }
 
 .theme-dark .quick-note-category-trigger,
 .theme-dark .quick-note-category-menu {
-  border-color: #252a31;
+  border-color: var(--app-window-border);
   color: #f8fbff;
-  background: #0e1013;
+  background: var(--app-window-bg);
 }
 
 .theme-dark .quick-note-category-menu {
@@ -2765,11 +2765,11 @@ h2 {
 
 .theme-dark .quick-note-category-menu button:hover,
 .theme-dark .quick-note-category-menu button.is-selected {
-  background: #15171a;
+  background: var(--app-card-bg);
 }
 
 .theme-dark .operations-tabs button.active {
-  background: #15171a;
+  background: var(--app-card-bg);
 }
 
 .theme-dark .note-row .operations-card-icon {
@@ -2903,7 +2903,7 @@ h2 {
 .theme-dark .task-drag-overlay {
   border-color: color-mix(in srgb, var(--accent-color) 58%, #252a31);
   color: #f8fbff;
-  background: #0e1013;
+  background: var(--app-window-bg);
 }
 
 

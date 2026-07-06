@@ -19,6 +19,12 @@
   --linear-panel-soft: #15171a;
   --linear-border: rgba(255, 255, 255, 0.085);
   --linear-border-soft: rgba(255, 255, 255, 0.055);
+  --app-page-bg: #050607;
+  --app-window-bg: #0e1013;
+  --app-card-bg: #15171a;
+  --app-field-bg: rgba(255, 255, 255, 0.028);
+  --app-window-border: rgba(255, 255, 255, 0.085);
+  --app-card-border: rgba(255, 255, 255, 0.055);
   --linear-text: #f2f3f7;
   --linear-muted: #a3a6b3;
   --linear-dim: #70737f;

@@ -3,7 +3,7 @@
 .theme-dark .statistics-income-strip span,
 .theme-dark .statistics-activity-grid span,
 .theme-dark .statistics-payment-track {
-  background: #0e1013;
+  background: var(--app-window-bg);
 }
 
 .theme-dark .statistics-attention-item.danger {
@@ -27,7 +27,7 @@
 }
 
 .theme-dark .statistics-details-panel summary::after {
-  border-color: #252a31;
+  border-color: var(--app-window-border);
   color: #b3bdcb;
 }
 
@@ -48,11 +48,11 @@
 }
 
 .message-templates-page {
-  --templates-bg: var(--linear-bg, #050607);
-  --templates-panel: var(--surface-solid, #0e1013);
-  --templates-panel-soft: var(--linear-panel-soft, #15171a);
-  --templates-border: var(--linear-border, rgba(255, 255, 255, 0.1));
-  --templates-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --templates-bg: var(--app-page-bg);
+  --templates-panel: var(--app-window-bg);
+  --templates-panel-soft: var(--app-card-bg);
+  --templates-border: var(--app-window-border);
+  --templates-border-soft: var(--app-card-border);
   --templates-text: var(--linear-text, #f2f3f7);
   --templates-muted: var(--linear-muted, #a3a6b3);
   --templates-faint: var(--linear-dim, #70737f);
@@ -390,17 +390,17 @@
 
 .theme-dark .client-alert-actions button {
   color: #d5dfec;
-  background: #0e1013;
-  border-color: #252a31;
+  background: var(--app-window-bg);
+  border-color: var(--app-window-border);
 }
 
 /* Import page */
 .import-page {
-  --import-bg: var(--linear-bg, #050607);
-  --import-panel: var(--surface-solid, #0e1013);
-  --import-panel-soft: var(--linear-panel-soft, #15171a);
-  --import-border: var(--linear-border, rgba(255, 255, 255, 0.1));
-  --import-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --import-bg: var(--app-page-bg);
+  --import-panel: var(--app-window-bg);
+  --import-panel-soft: var(--app-card-bg);
+  --import-border: var(--app-window-border);
+  --import-border-soft: var(--app-card-border);
   --import-text: var(--linear-text, #f2f3f7);
   --import-muted: var(--linear-muted, #a3a6b3);
   --import-faint: var(--linear-dim, #70737f);
@@ -1573,8 +1573,8 @@ button:focus-visible {
 }
 
 .theme-dark .visit-mobile-card {
-  border-color: #252a31;
-  background: #15171a;
+  border-color: var(--app-window-border);
+  background: var(--app-card-bg);
 }
 
 .theme-dark .visit-mobile-card-planned {
@@ -1585,7 +1585,7 @@ button:focus-visible {
 .theme-dark .visit-mobile-card-top span,
 .theme-dark .visit-mobile-card-meta span {
   color: #b3bdcb;
-  background: #0e1013;
+  background: var(--app-window-bg);
 }
 
 .theme-dark .visit-mobile-card-top b {
@@ -1611,11 +1611,11 @@ button:focus-visible {
 
 /* Services page */
 .services-page {
-  --services-bg: var(--linear-bg, #050607);
-  --services-panel: var(--surface-solid, #0e1013);
-  --services-panel-soft: var(--linear-panel-soft, #15171a);
-  --services-border: var(--linear-border, #252a31);
-  --services-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --services-bg: var(--app-page-bg);
+  --services-panel: var(--app-window-bg);
+  --services-panel-soft: var(--app-card-bg);
+  --services-border: var(--app-window-border);
+  --services-border-soft: var(--app-card-border);
   --services-text: var(--linear-text, #ffffff);
   --services-muted: var(--linear-muted, #a7afbd);
   --services-faint: var(--linear-dim, #6f7785);
@@ -1895,11 +1895,11 @@ button:focus-visible {
 
 /* Packages page */
 .packages-page {
-  --packages-bg: var(--linear-bg, #050607);
-  --packages-panel: var(--surface-solid, #0e1013);
-  --packages-panel-soft: var(--linear-panel-soft, #15171a);
-  --packages-border: var(--linear-border, rgba(255, 255, 255, 0.1));
-  --packages-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --packages-bg: var(--app-page-bg);
+  --packages-panel: var(--app-window-bg);
+  --packages-panel-soft: var(--app-card-bg);
+  --packages-border: var(--app-window-border);
+  --packages-border-soft: var(--app-card-border);
   --packages-text: var(--linear-text, #f2f3f7);
   --packages-muted: var(--linear-muted, #a3a6b3);
   --packages-faint: var(--linear-dim, #70737f);
@@ -2267,11 +2267,11 @@ button:focus-visible {
 
 /* Client page */
 .clients-page-shell {
-  --clients-bg: var(--linear-bg, #050607);
-  --clients-panel: var(--linear-panel, rgba(14, 16, 19, 0.86));
-  --clients-card: var(--surface-solid, #0e1013);
-  --clients-card-soft: var(--linear-sidebar, #07090b);
-  --clients-border: var(--linear-border, rgba(255, 255, 255, 0.1));
+  --clients-bg: var(--app-page-bg);
+  --clients-panel: var(--app-window-bg);
+  --clients-card: var(--app-window-bg);
+  --clients-card-soft: var(--app-card-bg);
+  --clients-border: var(--app-window-border);
   --clients-text: var(--linear-text, #f2f3f7);
   --clients-muted: var(--linear-muted, #a3a6b3);
   --clients-faint: var(--linear-dim, #70737f);
@@ -2486,7 +2486,7 @@ button:focus-visible {
 .clients-row-menu {
   border-color: var(--clients-border);
   border-radius: 12px;
-  background: #0e1013;
+  background: var(--app-window-bg);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.32);
 }
 
@@ -2591,11 +2591,11 @@ button:focus-visible {
 
 /* Operations page */
 .operations-page {
-  --operations-bg: var(--linear-bg, #050607);
-  --operations-panel: var(--surface-solid, #0e1013);
-  --operations-panel-soft: var(--linear-panel-soft, #15171a);
-  --operations-border: var(--linear-border, rgba(255, 255, 255, 0.1));
-  --operations-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --operations-bg: var(--app-page-bg);
+  --operations-panel: var(--app-window-bg);
+  --operations-panel-soft: var(--app-card-bg);
+  --operations-border: var(--app-window-border);
+  --operations-border-soft: var(--app-card-border);
   --operations-text: var(--linear-text, #f2f3f7);
   --operations-muted: var(--linear-muted, #a3a6b3);
   --operations-faint: var(--linear-dim, #70737f);
@@ -3038,8 +3038,8 @@ button:focus-visible {
 
 .theme-dark .client-quick-action {
   color: #eef4fb;
-  border-color: #252a31;
-  background: #0e1013;
+  border-color: var(--app-window-border);
+  background: var(--app-window-bg);
 }
 
 .today-dashboard-grid {
@@ -3251,11 +3251,11 @@ button:focus-visible {
 }
 
 .today-board {
-  --today-bg: var(--linear-bg, #050607);
-  --today-panel: var(--surface-solid, #0e1013);
-  --today-panel-soft: var(--linear-panel-soft, rgba(21, 23, 26, 0.72));
-  --today-border: var(--linear-border, rgba(255, 255, 255, 0.1));
-  --today-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --today-bg: var(--app-page-bg);
+  --today-panel: var(--app-window-bg);
+  --today-panel-soft: var(--app-card-bg);
+  --today-border: var(--app-window-border);
+  --today-border-soft: var(--app-card-border);
   --today-text: var(--linear-text, #f2f3f7);
   --today-muted: var(--linear-muted, #a3a6b3);
   --today-faint: var(--linear-dim, #70737f);
@@ -3414,7 +3414,7 @@ button:focus-visible {
 .today-kpi-card {
   border: 1px solid var(--today-border);
   border-radius: 18px;
-  background: rgba(14, 16, 19, 0.92);
+  background: var(--app-window-bg);
   transition:
     border-color 160ms ease,
     background 160ms ease,
@@ -3430,7 +3430,7 @@ button:focus-visible {
 .today-panel {
   border: 1px solid var(--today-border);
   border-radius: 18px;
-  background: rgba(14, 16, 19, 0.92);
+  background: var(--app-window-bg);
   box-shadow: none;
   transition:
     border-color 170ms ease,
@@ -3540,7 +3540,7 @@ button:focus-visible {
   position: relative;
   flex: 1 1 auto;
   min-height: min(690px, calc(100vh - 295px));
-  background: rgba(14, 16, 19, 0.92);
+  background: var(--app-window-bg);
 }
 
 .today-panel {
@@ -3835,7 +3835,7 @@ button:focus-visible {
   padding: 6px;
   border: 1px solid var(--today-border);
   border-radius: 12px;
-  background: #15171a;
+  background: var(--app-card-bg);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
   animation: today-menu-in 170ms ease both;
 }
@@ -4663,7 +4663,7 @@ button:focus-visible {
 }
 
 .theme-dark .app-error-boundary-card {
-  background: #0e1013;
+  background: var(--app-window-bg);
 }
 
 .theme-dark .app-error-boundary-card p,
@@ -4840,11 +4840,11 @@ button:focus-visible {
 
 /* Site page */
 .site-page {
-  --site-bg: var(--linear-bg, #050607);
-  --site-panel: var(--surface-solid, #0e1013);
-  --site-panel-soft: var(--linear-panel-soft, #15171a);
-  --site-border: var(--linear-border, rgba(255, 255, 255, 0.1));
-  --site-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --site-bg: var(--app-page-bg);
+  --site-panel: var(--app-window-bg);
+  --site-panel-soft: var(--app-card-bg);
+  --site-border: var(--app-window-border);
+  --site-border-soft: var(--app-card-border);
   --site-text: var(--linear-text, #f2f3f7);
   --site-muted: var(--linear-muted, #a3a6b3);
   --site-faint: var(--linear-dim, #70737f);
@@ -5459,11 +5459,11 @@ button:focus-visible {
 }
 
 .nuar-payments {
-  --payments-bg: var(--linear-bg, #050607);
-  --payments-panel: var(--surface-solid, #0e1013);
-  --payments-panel-soft: var(--linear-panel-soft, #15171a);
-  --payments-border: var(--linear-border, rgba(255, 255, 255, 0.1));
-  --payments-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --payments-bg: var(--app-page-bg);
+  --payments-panel: var(--app-window-bg);
+  --payments-panel-soft: var(--app-card-bg);
+  --payments-border: var(--app-window-border);
+  --payments-border-soft: var(--app-card-border);
   --payments-text: var(--linear-text, #f2f3f7);
   --payments-muted: var(--linear-muted, #a3a6b3);
   --payments-faint: var(--linear-dim, #70737f);
@@ -6082,11 +6082,11 @@ button:focus-visible {
 }
 
 .employees-page {
-  --employees-bg: var(--linear-bg, #050607);
-  --employees-panel: var(--surface-solid, #0e1013);
-  --employees-panel-soft: var(--linear-panel-soft, #15171a);
-  --employees-border: var(--linear-border, rgba(255, 255, 255, 0.1));
-  --employees-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  --employees-bg: var(--app-page-bg);
+  --employees-panel: var(--app-window-bg);
+  --employees-panel-soft: var(--app-card-bg);
+  --employees-border: var(--app-window-border);
+  --employees-border-soft: var(--app-card-border);
   --employees-text: var(--linear-text, #f2f3f7);
   --employees-muted: var(--linear-muted, #a3a6b3);
   --employees-faint: var(--linear-dim, #70737f);

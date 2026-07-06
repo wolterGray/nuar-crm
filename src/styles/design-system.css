@@ -893,7 +893,7 @@
     min-height: 36px;
     padding: 3px;
     border-radius: 12px;
-    background: #15171a;
+    background: var(--app-card-bg);
     border-color: rgba(255, 255, 255, 0.08);
   }
 
@@ -940,14 +940,14 @@
     gap: 12px;
     padding: 14px 16px 16px;
     border-radius: 16px;
-    background: #15171a;
+    background: var(--app-card-bg);
     border-color: rgba(255, 255, 255, 0.08);
   }
 
   .employee-modal.calendar-entry-modal .calendar-entry-form legend {
     padding: 0 6px;
     color: #8f98a5;
-    background: #15171a;
+    background: var(--app-card-bg);
     font-size: 10px;
   }
 

@@ -667,14 +667,14 @@
   }
 
   .theme-dark .mobile-more-sheet {
-    border-color: #252a31;
-    background: #15171a;
+    border-color: var(--app-window-border);
+    background: var(--app-card-bg);
   }
 
   .theme-dark .mobile-more-sheet-close,
   .theme-dark .mobile-more-sheet-nav button {
     color: #d5dfec;
-    background: #0e1013;
+    background: var(--app-window-bg);
   }
 
   .theme-dark .mobile-more-sheet-nav button.active {
@@ -753,13 +753,13 @@
   }
 
   .theme-dark .pull-refresh-indicator {
-    border-color: #252a31;
+    border-color: var(--app-window-border);
     color: #f8fbff;
     background: rgba(22, 27, 36, 0.94);
   }
 
   .theme-dark .pull-refresh-indicator span {
-    border-color: #252a31;
+    border-color: var(--app-window-border);
     border-top-color: #f8fbff;
   }
 
@@ -829,12 +829,12 @@
   }
 
   .theme-dark .calendar-content .calendar-page-header {
-    background: #0e1013;
+    background: var(--app-window-bg);
   }
 
   .theme-dark .mobile-calendar-week {
     border-bottom-color: #252a31;
-    background: #0e1013;
+    background: var(--app-window-bg);
   }
 
   .theme-dark .mobile-calendar-week button {
@@ -962,8 +962,8 @@
 
   .theme-dark .operations-page-tabs button {
     color: #b3bdcb;
-    border-color: #252a31;
-    background: #15171a;
+    border-color: var(--app-window-border);
+    background: var(--app-card-bg);
   }
 
   .theme-dark .operations-page-tabs button.active {
@@ -1096,7 +1096,7 @@
 
   .theme-dark .calendar-content .calendar-toolbar,
   .theme-dark .calendar-content .calendar-page-header {
-    background: #0e1013;
+    background: var(--app-window-bg);
   }
 
   .calendar-content .calendar-toolbar-actions,
@@ -1725,8 +1725,8 @@
   }
 
   .theme-dark .clients-table-row:not(.clients-table-head) {
-    border-color: #252a31;
-    background: #15171a;
+    border-color: var(--app-window-border);
+    background: var(--app-card-bg);
   }
 
   .client-mobile-quick-actions {
@@ -1774,7 +1774,7 @@
   .theme-dark .clients-table-row span[data-label="Визитов"],
   .theme-dark .clients-table-row span[data-label="Не был"] {
     color: #b3bdcb;
-    background: #0e1013;
+    background: var(--app-window-bg);
   }
 
   .clients-table-row span[data-label="Визитов"]::before {
