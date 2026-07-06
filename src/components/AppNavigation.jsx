@@ -39,9 +39,9 @@ export default function AppNavigation({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="nuar-sidebar hidden md:flex flex-col w-[240px] min-h-screen px-2.5 py-4 bg-[#0B0F14] border-r border-white/[0.07] select-none">
-        <div className="flex items-center gap-3 min-h-[38px] px-1 pb-4" aria-label={`${studioName} CRM`}>
-          <span className="grid w-9 h-9 place-items-center border border-white/[0.09] rounded-xl text-zinc-100 bg-white/[0.045] text-[17px] font-semibold">N</span>
+      <aside className="nuar-sidebar hidden md:flex flex-col w-[240px] min-h-screen px-2.5 py-4 bg-[#07090b] border-r border-white/[0.07] select-none">
+        <div className="flex items-center gap-2.5 min-h-[34px] px-1 pb-4" aria-label={`${studioName} CRM`}>
+          <span className="grid w-7 h-7 place-items-center border border-white/[0.09] rounded-lg text-zinc-100 bg-white/[0.045] text-[13px] font-semibold">N</span>
           <div className="flex flex-col leading-tight">
             <strong className="text-zinc-100 text-sm font-semibold tracking-tight">{studioName}</strong>
             <small className="text-zinc-500 text-[10px] uppercase font-semibold tracking-wider">CRM</small>

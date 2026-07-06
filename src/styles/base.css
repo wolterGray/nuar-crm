@@ -1,7 +1,7 @@
 :root {
   --accent-color: #b91c1c;
   color: #111318;
-  background: #f7f7f6;
+  background: var(--linear-bg, #050607);
   font-family:
     Inter,
     ui-sans-serif,
@@ -30,7 +30,7 @@ body,
 body {
   min-width: 320px;
   margin: 0;
-  background: #f7f7f6;
+  background: var(--linear-bg, #050607);
 }
 
 button,
@@ -47,8 +47,9 @@ button {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
+  background: var(--linear-bg, #050607);
 }
 
 .theme-dark {
@@ -511,7 +512,7 @@ button {
 }
 
 .content.calendar-content {
-  padding: 0;
+  padding: 16px;
   overflow: hidden;
 }
 
@@ -537,8 +538,8 @@ button {
 
 .home-content.calendar-content,
 .home-content.operations-content {
-  padding-left: 0;
-  padding-right: 0;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .home-content {

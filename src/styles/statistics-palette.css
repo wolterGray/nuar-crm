@@ -381,7 +381,7 @@ button:focus-visible {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  padding: 0;
+  padding: 16px;
 }
 
 .calendar-page,

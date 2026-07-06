@@ -65,7 +65,7 @@ export default function AppShell({
     isStatisticsPage ? "statistics-content" : "",
     isSitePage ? "site-content" : "",
     isSettingsPage ? "settings-content" : "",
-    "flex-1 min-w-0 min-h-0 bg-[#0B0F14] text-zinc-150 p-4 md:p-6 pb-20 md:pb-6 overflow-y-auto overscroll-contain",
+    "flex-1 min-w-0 min-h-0 bg-[#050607] text-zinc-150 p-4 md:p-6 pb-20 md:pb-6 overflow-y-auto overscroll-contain",
   ]
     .filter(Boolean)
     .join(" ");
