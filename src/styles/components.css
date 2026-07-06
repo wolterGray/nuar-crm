@@ -432,7 +432,7 @@
   max-height: 100%;
   border-color: rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  background: rgba(17, 22, 29, 0.92);
+  background: rgba(14, 16, 19, 0.92);
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
@@ -470,7 +470,7 @@
   height: 48px;
   align-content: center;
   border-color: rgba(255, 255, 255, 0.08);
-  background: #151b23;
+  background: #15171a;
 }
 
 .nuar-calendar .schedule-column {
@@ -504,7 +504,7 @@
 .nuar-calendar-reminders {
   border-color: rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  background: rgba(17, 22, 29, 0.92);
+  background: rgba(14, 16, 19, 0.92);
   box-shadow: none;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
@@ -516,7 +516,7 @@
   padding: 9px;
   border: 1px solid rgba(255, 255, 255, 0.075);
   border-radius: 14px;
-  background: #11161d;
+  background: #0e1013;
 }
 
 .nuar-calendar-picker header {
@@ -557,7 +557,7 @@
 }
 
 .nuar-calendar-picker-menu > button:hover {
-  background: #1a202b;
+  background: #15171a;
 }
 
 .nuar-calendar-picker-menu:nth-child(2) > button {
@@ -576,7 +576,7 @@
   padding: 6px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  background: #11161d;
+  background: #0e1013;
   transform: translateX(-50%);
   overflow-y: auto;
 }
@@ -632,7 +632,7 @@
 .nuar-calendar-picker header button:hover,
 .nuar-calendar-picker-grid button:hover {
   color: #f4f7fa;
-  background: #1a202b;
+  background: #15171a;
   transform: none;
 }
 
@@ -861,7 +861,7 @@
   padding: 6px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  background: #11161d;
+  background: #0e1013;
 }
 
 .nuar-calendar-reminder-popover button {
@@ -905,7 +905,7 @@
 .nuar-calendar-add-popover {
   border-color: rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  background: #11161d;
+  background: #0e1013;
   box-shadow: none;
 }
 
@@ -925,7 +925,7 @@
 }
 
 .employee-modal.calendar-entry-modal {
-  background: #11161d;
+  background: #0e1013;
 }
 
 .employee-modal.calendar-entry-modal .calendar-kind-switch button.is-active {

@@ -4,29 +4,29 @@
   --accent-color: #b91c1c;
   --accent-hover: #991b1b;
   --linear-accent: #b91c1c;
-  --app-bg: #08090b;
-  --surface: rgba(18, 19, 23, 0.86);
-  --surface-solid: #121317;
-  --surface-muted: rgba(26, 28, 34, 0.72);
-  --line-soft: rgba(255, 255, 255, 0.10);
-  --line-subtle: rgba(255, 255, 255, 0.065);
+  --app-bg: #050607;
+  --surface: #0e1013;
+  --surface-solid: #0e1013;
+  --surface-muted: #15171a;
+  --line-soft: rgba(255, 255, 255, 0.085);
+  --line-subtle: rgba(255, 255, 255, 0.055);
   --text-main: #f2f3f7;
   --text-soft: #a3a6b3;
   --text-muted: #70737f;
-  --linear-bg: #08090b;
-  --linear-sidebar: #0b0c0f;
-  --linear-panel: rgba(18, 19, 23, 0.86);
-  --linear-panel-soft: rgba(26, 28, 34, 0.72);
-  --linear-border: rgba(255, 255, 255, 0.10);
-  --linear-border-soft: rgba(255, 255, 255, 0.065);
+  --linear-bg: #050607;
+  --linear-sidebar: #07090b;
+  --linear-panel: #0e1013;
+  --linear-panel-soft: #15171a;
+  --linear-border: rgba(255, 255, 255, 0.085);
+  --linear-border-soft: rgba(255, 255, 255, 0.055);
   --linear-text: #f2f3f7;
   --linear-muted: #a3a6b3;
   --linear-dim: #70737f;
   --focus-ring: 0 0 0 3px rgba(185, 28, 28, 0.26);
-  --content-bg-gradient: #08090b;
-  --nav-active-bg: rgba(255, 255, 255, 0.075);
-  --mobile-nav-bg: rgba(11, 12, 15, 0.96);
-  --loading-gradient: #08090b;
+  --content-bg-gradient: #050607;
+  --nav-active-bg: rgba(255, 255, 255, 0.07);
+  --mobile-nav-bg: rgba(7, 9, 11, 0.96);
+  --loading-gradient: #050607;
   --button-primary-text: #ffffff;
   --button-primary-border: rgba(185, 28, 28, 0.72);
   --button-primary-shadow: none;
@@ -180,8 +180,8 @@
 }
 
 .theme-dark .color-theme-option {
-  background: var(--surface-solid, #1a202b);
-  border-color: var(--line-soft, #344052);
+  background: var(--surface-solid, #15171a);
+  border-color: var(--line-soft, #252a31);
 }
 
 .theme-dark .color-theme-option strong {

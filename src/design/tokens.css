@@ -1,9 +1,9 @@
 /* src/design/tokens.css */
 :root {
   /* Colors */
-  --color-bg: #090B0F; /* фон приложения */
-  --color-surface: #0F131A; /* карточки, фон элементов */
-  --color-border: #1D2430; /* границы */
+  --color-bg: #050607; /* фон приложения */
+  --color-surface: #0E1013; /* карточки, фон элементов */
+  --color-border: #22262D; /* границы */
 
   /* Primary accent */
   --color-accent: #B91C1C;           /* основной фон кнопки */
@@ -12,8 +12,8 @@
   --color-accent-text: #FFFFFF;     /* цвет текста на акцентных кнопках */
 
   --color-primary: #FFFFFF;         /* основной текст */
-  --color-secondary-bg: #15181D;    /* фон secondary кнопки */
-  --color-secondary-border: #2A2F36;/* граница secondary */
+  --color-secondary-bg: #15171A;    /* фон secondary кнопки */
+  --color-secondary-border: #272B31;/* граница secondary */
   --color-secondary-text: #A7AFBD;  /* вторичный текст */
 
   --color-danger: #D96C75;          /* muted rose */

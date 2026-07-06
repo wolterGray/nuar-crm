@@ -245,7 +245,7 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  color: #111722;
+  color: #0e1013;
   background: color-mix(in srgb, var(--linear-accent) 20%, #f4e3bd);
 }
 
@@ -1074,7 +1074,7 @@
   color: rgba(242, 243, 247, 0.72);
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.012)),
-    rgba(18, 19, 23, 0.86);
+    rgba(14, 16, 19, 0.86);
 }
 
 .theme-dark .schedule-hour-label strong,
@@ -1169,7 +1169,7 @@
   .confirm-dialog
 ) {
   color: var(--linear-text);
-  background: #11161d;
+  background: #0e1013;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 18px;
   box-shadow:
@@ -1183,8 +1183,8 @@
 .theme-dark .employee-modal.message-template-form-modal,
 .theme-dark .employee-modal.send-template-modal {
   color: var(--linear-text);
-  background: var(--linear-panel, #121317);
-  border-color: var(--linear-border, #1e2532);
+  background: var(--linear-panel, #0e1013);
+  border-color: var(--linear-border, #252a31);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.035),
     0 24px 70px rgba(0, 0, 0, 0.36);
@@ -1209,8 +1209,8 @@
 .theme-dark .employee-modal.employee-form-modal .modal-header,
 .theme-dark .employee-modal.message-template-form-modal .modal-header,
 .theme-dark .employee-modal.send-template-modal .modal-header {
-  background: var(--linear-panel, #121317);
-  border-color: var(--linear-border, #1e2532);
+  background: var(--linear-panel, #0e1013);
+  border-color: var(--linear-border, #252a31);
 }
 
 .theme-dark .employee-modal.service-form-modal .catalog-form,
@@ -1218,12 +1218,12 @@
 .theme-dark .employee-modal.employee-form-modal .employee-form,
 .theme-dark .employee-modal.message-template-form-modal .catalog-form {
   background: transparent;
-  border-color: var(--linear-border, #1e2532);
+  border-color: var(--linear-border, #252a31);
 }
 
 .theme-dark .employee-modal.service-form-modal .service-booking-buffers {
   background: transparent;
-  border-color: var(--linear-border, #1e2532);
+  border-color: var(--linear-border, #252a31);
 }
 
 .theme-dark :is(
@@ -1237,7 +1237,7 @@
   .confirm-dialog
 ) :is(input, select, textarea) {
   color: var(--linear-text);
-  background: #151b23;
+  background: #15171a;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
 }
@@ -1248,8 +1248,8 @@
 .theme-dark .employee-modal.message-template-form-modal :is(input, select, textarea),
 .theme-dark .employee-modal.send-template-modal :is(input, select, textarea) {
   color: var(--linear-text);
-  background: var(--linear-panel-soft, #151b23);
-  border-color: var(--linear-border, #1e2532);
+  background: var(--linear-panel-soft, #15171a);
+  border-color: var(--linear-border, #252a31);
 }
 
 .theme-dark :is(

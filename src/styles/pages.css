@@ -3,7 +3,7 @@
 .theme-dark .statistics-income-strip span,
 .theme-dark .statistics-activity-grid span,
 .theme-dark .statistics-payment-track {
-  background: #111722;
+  background: #0e1013;
 }
 
 .theme-dark .statistics-attention-item.danger {
@@ -27,7 +27,7 @@
 }
 
 .theme-dark .statistics-details-panel summary::after {
-  border-color: #344052;
+  border-color: #252a31;
   color: #b3bdcb;
 }
 
@@ -48,9 +48,9 @@
 }
 
 .message-templates-page {
-  --templates-bg: var(--linear-bg, #08090b);
-  --templates-panel: var(--surface-solid, #121317);
-  --templates-panel-soft: var(--linear-panel-soft, #1a1c22);
+  --templates-bg: var(--linear-bg, #050607);
+  --templates-panel: var(--surface-solid, #0e1013);
+  --templates-panel-soft: var(--linear-panel-soft, #15171a);
   --templates-border: var(--linear-border, rgba(255, 255, 255, 0.1));
   --templates-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --templates-text: var(--linear-text, #f2f3f7);
@@ -315,7 +315,7 @@
   padding: 4px;
   border: 1px solid var(--templates-border, rgba(255, 255, 255, 0.1));
   border-radius: 12px;
-  background: var(--templates-panel-soft, #1a1c22);
+  background: var(--templates-panel-soft, #15171a);
 }
 
 .send-channel-control button {
@@ -348,7 +348,7 @@
   border: 1px solid var(--templates-border, rgba(255, 255, 255, 0.1));
   border-radius: 12px;
   color: var(--templates-muted, #a3a6b3);
-  background: var(--templates-panel-soft, #1a1c22);
+  background: var(--templates-panel-soft, #15171a);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -376,7 +376,7 @@
 }
 
 .theme-dark .send-channel-control {
-  background: var(--templates-panel-soft, #1a1c22);
+  background: var(--templates-panel-soft, #15171a);
 }
 
 .theme-dark .send-channel-control button {
@@ -390,15 +390,15 @@
 
 .theme-dark .client-alert-actions button {
   color: #d5dfec;
-  background: #111722;
-  border-color: #344052;
+  background: #0e1013;
+  border-color: #252a31;
 }
 
 /* Import page */
 .import-page {
-  --import-bg: var(--linear-bg, #08090b);
-  --import-panel: var(--surface-solid, #121317);
-  --import-panel-soft: var(--linear-panel-soft, #1a1c22);
+  --import-bg: var(--linear-bg, #050607);
+  --import-panel: var(--surface-solid, #0e1013);
+  --import-panel-soft: var(--linear-panel-soft, #15171a);
   --import-border: var(--linear-border, rgba(255, 255, 255, 0.1));
   --import-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --import-text: var(--linear-text, #f2f3f7);
@@ -1573,19 +1573,19 @@ button:focus-visible {
 }
 
 .theme-dark .visit-mobile-card {
-  border-color: #344052;
-  background: #1a202b;
+  border-color: #252a31;
+  background: #15171a;
 }
 
 .theme-dark .visit-mobile-card-planned {
-  border-color: color-mix(in srgb, var(--accent-color) 34%, #344052);
-  background: color-mix(in srgb, var(--accent-color) 10%, #1a202b);
+  border-color: color-mix(in srgb, var(--accent-color) 34%, #252a31);
+  background: color-mix(in srgb, var(--accent-color) 10%, #15171a);
 }
 
 .theme-dark .visit-mobile-card-top span,
 .theme-dark .visit-mobile-card-meta span {
   color: #b3bdcb;
-  background: #111722;
+  background: #0e1013;
 }
 
 .theme-dark .visit-mobile-card-top b {
@@ -1611,10 +1611,10 @@ button:focus-visible {
 
 /* Services page */
 .services-page {
-  --services-bg: var(--linear-bg, #090b0f);
-  --services-panel: var(--surface-solid, #121722);
-  --services-panel-soft: var(--linear-panel-soft, #151b23);
-  --services-border: var(--linear-border, #1e2532);
+  --services-bg: var(--linear-bg, #050607);
+  --services-panel: var(--surface-solid, #0e1013);
+  --services-panel-soft: var(--linear-panel-soft, #15171a);
+  --services-border: var(--linear-border, #252a31);
   --services-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --services-text: var(--linear-text, #ffffff);
   --services-muted: var(--linear-muted, #a7afbd);
@@ -1895,9 +1895,9 @@ button:focus-visible {
 
 /* Packages page */
 .packages-page {
-  --packages-bg: var(--linear-bg, #08090b);
-  --packages-panel: var(--surface-solid, #121317);
-  --packages-panel-soft: var(--linear-panel-soft, #1a1c22);
+  --packages-bg: var(--linear-bg, #050607);
+  --packages-panel: var(--surface-solid, #0e1013);
+  --packages-panel-soft: var(--linear-panel-soft, #15171a);
   --packages-border: var(--linear-border, rgba(255, 255, 255, 0.1));
   --packages-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --packages-text: var(--linear-text, #f2f3f7);
@@ -2267,10 +2267,10 @@ button:focus-visible {
 
 /* Client page */
 .clients-page-shell {
-  --clients-bg: var(--linear-bg, #08090b);
-  --clients-panel: var(--linear-panel, rgba(18, 19, 23, 0.86));
-  --clients-card: var(--surface-solid, #121317);
-  --clients-card-soft: var(--linear-sidebar, #0b0c0f);
+  --clients-bg: var(--linear-bg, #050607);
+  --clients-panel: var(--linear-panel, rgba(14, 16, 19, 0.86));
+  --clients-card: var(--surface-solid, #0e1013);
+  --clients-card-soft: var(--linear-sidebar, #07090b);
   --clients-border: var(--linear-border, rgba(255, 255, 255, 0.1));
   --clients-text: var(--linear-text, #f2f3f7);
   --clients-muted: var(--linear-muted, #a3a6b3);
@@ -2486,7 +2486,7 @@ button:focus-visible {
 .clients-row-menu {
   border-color: var(--clients-border);
   border-radius: 12px;
-  background: #111722;
+  background: #0e1013;
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.32);
 }
 
@@ -2591,9 +2591,9 @@ button:focus-visible {
 
 /* Operations page */
 .operations-page {
-  --operations-bg: var(--linear-bg, #08090b);
-  --operations-panel: var(--surface-solid, #121317);
-  --operations-panel-soft: var(--linear-panel-soft, #1a1c22);
+  --operations-bg: var(--linear-bg, #050607);
+  --operations-panel: var(--surface-solid, #0e1013);
+  --operations-panel-soft: var(--linear-panel-soft, #15171a);
   --operations-border: var(--linear-border, rgba(255, 255, 255, 0.1));
   --operations-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --operations-text: var(--linear-text, #f2f3f7);
@@ -2994,7 +2994,7 @@ button:focus-visible {
 .theme-dark .note-row,
 .theme-dark .supply-row {
   border-color: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
-  background: var(--surface-solid, #121317);
+  background: var(--surface-solid, #0e1013);
 }
 
 .theme-dark .supply-row strong,
@@ -3038,8 +3038,8 @@ button:focus-visible {
 
 .theme-dark .client-quick-action {
   color: #eef4fb;
-  border-color: #344052;
-  background: #111722;
+  border-color: #252a31;
+  background: #0e1013;
 }
 
 .today-dashboard-grid {
@@ -3251,9 +3251,9 @@ button:focus-visible {
 }
 
 .today-board {
-  --today-bg: var(--linear-bg, #08090b);
-  --today-panel: var(--surface-solid, #121317);
-  --today-panel-soft: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+  --today-bg: var(--linear-bg, #050607);
+  --today-panel: var(--surface-solid, #0e1013);
+  --today-panel-soft: var(--linear-panel-soft, rgba(21, 23, 26, 0.72));
   --today-border: var(--linear-border, rgba(255, 255, 255, 0.1));
   --today-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --today-text: var(--linear-text, #f2f3f7);
@@ -3414,7 +3414,7 @@ button:focus-visible {
 .today-kpi-card {
   border: 1px solid var(--today-border);
   border-radius: 18px;
-  background: rgba(17, 22, 29, 0.92);
+  background: rgba(14, 16, 19, 0.92);
   transition:
     border-color 160ms ease,
     background 160ms ease,
@@ -3430,7 +3430,7 @@ button:focus-visible {
 .today-panel {
   border: 1px solid var(--today-border);
   border-radius: 18px;
-  background: rgba(17, 22, 29, 0.92);
+  background: rgba(14, 16, 19, 0.92);
   box-shadow: none;
   transition:
     border-color 170ms ease,
@@ -3540,7 +3540,7 @@ button:focus-visible {
   position: relative;
   flex: 1 1 auto;
   min-height: min(690px, calc(100vh - 295px));
-  background: rgba(17, 22, 29, 0.92);
+  background: rgba(14, 16, 19, 0.92);
 }
 
 .today-panel {
@@ -3722,7 +3722,7 @@ button:focus-visible {
   border-radius: 999px;
   background: var(--today-blue);
   box-shadow:
-    0 0 0 5px #11161d,
+    0 0 0 5px #0e1013,
     0 0 0 6px rgba(255, 255, 255, 0.06);
 }
 
@@ -3730,7 +3730,7 @@ button:focus-visible {
   width: 14px;
   height: 14px;
   box-shadow:
-    0 0 0 5px #11161d,
+    0 0 0 5px #0e1013,
     0 0 0 7px rgba(255, 255, 255, 0.08);
 }
 
@@ -3835,7 +3835,7 @@ button:focus-visible {
   padding: 6px;
   border: 1px solid var(--today-border);
   border-radius: 12px;
-  background: #151b23;
+  background: #15171a;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
   animation: today-menu-in 170ms ease both;
 }
@@ -4659,11 +4659,11 @@ button:focus-visible {
 }
 
 .theme-dark .app-error-boundary {
-  background: #0b0c0f;
+  background: #07090b;
 }
 
 .theme-dark .app-error-boundary-card {
-  background: #111722;
+  background: #0e1013;
 }
 
 .theme-dark .app-error-boundary-card p,
@@ -4840,9 +4840,9 @@ button:focus-visible {
 
 /* Site page */
 .site-page {
-  --site-bg: var(--linear-bg, #08090b);
-  --site-panel: var(--surface-solid, #121317);
-  --site-panel-soft: var(--linear-panel-soft, #1a1c22);
+  --site-bg: var(--linear-bg, #050607);
+  --site-panel: var(--surface-solid, #0e1013);
+  --site-panel-soft: var(--linear-panel-soft, #15171a);
   --site-border: var(--linear-border, rgba(255, 255, 255, 0.1));
   --site-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --site-text: var(--linear-text, #f2f3f7);
@@ -5459,9 +5459,9 @@ button:focus-visible {
 }
 
 .nuar-payments {
-  --payments-bg: var(--linear-bg, #08090b);
-  --payments-panel: var(--surface-solid, #121317);
-  --payments-panel-soft: var(--linear-panel-soft, #1a1c22);
+  --payments-bg: var(--linear-bg, #050607);
+  --payments-panel: var(--surface-solid, #0e1013);
+  --payments-panel-soft: var(--linear-panel-soft, #15171a);
   --payments-border: var(--linear-border, rgba(255, 255, 255, 0.1));
   --payments-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --payments-text: var(--linear-text, #f2f3f7);
@@ -6082,9 +6082,9 @@ button:focus-visible {
 }
 
 .employees-page {
-  --employees-bg: var(--linear-bg, #08090b);
-  --employees-panel: var(--surface-solid, #121317);
-  --employees-panel-soft: var(--linear-panel-soft, #1a1c22);
+  --employees-bg: var(--linear-bg, #050607);
+  --employees-panel: var(--surface-solid, #0e1013);
+  --employees-panel-soft: var(--linear-panel-soft, #15171a);
   --employees-border: var(--linear-border, rgba(255, 255, 255, 0.1));
   --employees-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --employees-text: var(--linear-text, #f2f3f7);

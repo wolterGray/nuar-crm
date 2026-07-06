@@ -10,7 +10,7 @@
 }
 
 .theme-dark .schedule-column-over {
-  background: color-mix(in srgb, var(--accent) 12%, #1a202b);
+  background: color-mix(in srgb, var(--accent) 12%, #15171a);
 }
 
 .calendar-drag-preview {

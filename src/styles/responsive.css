@@ -667,14 +667,14 @@
   }
 
   .theme-dark .mobile-more-sheet {
-    border-color: #344052;
-    background: #1a202b;
+    border-color: #252a31;
+    background: #15171a;
   }
 
   .theme-dark .mobile-more-sheet-close,
   .theme-dark .mobile-more-sheet-nav button {
     color: #d5dfec;
-    background: #111722;
+    background: #0e1013;
   }
 
   .theme-dark .mobile-more-sheet-nav button.active {
@@ -753,13 +753,13 @@
   }
 
   .theme-dark .pull-refresh-indicator {
-    border-color: #344052;
+    border-color: #252a31;
     color: #f8fbff;
     background: rgba(22, 27, 36, 0.94);
   }
 
   .theme-dark .pull-refresh-indicator span {
-    border-color: #344052;
+    border-color: #252a31;
     border-top-color: #f8fbff;
   }
 
@@ -818,7 +818,7 @@
 
   .theme-dark .page-header,
   .theme-dark .page-header-unified {
-    background: color-mix(in srgb, #10141c 94%, transparent);
+    background: color-mix(in srgb, #050607 94%, transparent);
   }
 
   .calendar-content .calendar-page-header {
@@ -829,12 +829,12 @@
   }
 
   .theme-dark .calendar-content .calendar-page-header {
-    background: #111722;
+    background: #0e1013;
   }
 
   .theme-dark .mobile-calendar-week {
-    border-bottom-color: #344052;
-    background: #111722;
+    border-bottom-color: #252a31;
+    background: #0e1013;
   }
 
   .theme-dark .mobile-calendar-week button {
@@ -962,14 +962,14 @@
 
   .theme-dark .operations-page-tabs button {
     color: #b3bdcb;
-    border-color: #344052;
-    background: #1a202b;
+    border-color: #252a31;
+    background: #15171a;
   }
 
   .theme-dark .operations-page-tabs button.active {
     color: #f8fbff;
-    border-color: color-mix(in srgb, var(--accent-color) 34%, #344052);
-    background: color-mix(in srgb, var(--accent-color) 16%, #1a202b);
+    border-color: color-mix(in srgb, var(--accent-color) 34%, #252a31);
+    background: color-mix(in srgb, var(--accent-color) 16%, #15171a);
   }
 
   .operations-panel-hidden-mobile,
@@ -1096,7 +1096,7 @@
 
   .theme-dark .calendar-content .calendar-toolbar,
   .theme-dark .calendar-content .calendar-page-header {
-    background: #111722;
+    background: #0e1013;
   }
 
   .calendar-content .calendar-toolbar-actions,
@@ -1725,8 +1725,8 @@
   }
 
   .theme-dark .clients-table-row:not(.clients-table-head) {
-    border-color: #344052;
-    background: #1a202b;
+    border-color: #252a31;
+    background: #15171a;
   }
 
   .client-mobile-quick-actions {
@@ -1774,7 +1774,7 @@
   .theme-dark .clients-table-row span[data-label="Визитов"],
   .theme-dark .clients-table-row span[data-label="Не был"] {
     color: #b3bdcb;
-    background: #111722;
+    background: #0e1013;
   }
 
   .clients-table-row span[data-label="Визитов"]::before {

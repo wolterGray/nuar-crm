@@ -496,12 +496,12 @@ button:focus-visible {
 }
 
 .theme-dark {
-  --app-bg: #111318;
-  --surface: rgba(25, 28, 35, 0.92);
-  --surface-solid: #1a1d24;
-  --surface-muted: #151922;
-  --line-soft: rgba(255, 255, 255, 0.1);
-  --line-subtle: rgba(255, 255, 255, 0.07);
+  --app-bg: #050607;
+  --surface: rgba(14, 16, 19, 0.92);
+  --surface-solid: #0e1013;
+  --surface-muted: #15171a;
+  --line-soft: rgba(255, 255, 255, 0.085);
+  --line-subtle: rgba(255, 255, 255, 0.055);
   --text-main: #f5f7fb;
   --text-soft: #aeb8c7;
   --text-muted: #7f8b9d;

@@ -1,11 +1,11 @@
 /* Canonical design tokens. Values intentionally mirror the current interface. */
 :root {
-  --bg: var(--linear-bg, #101214);
-  --surface: var(--linear-panel, #1a1c22);
-  --surface-2: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
-  --field: rgba(255, 255, 255, 0.035);
-  --border: var(--linear-border, rgba(255, 255, 255, 0.1));
-  --border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.06));
+  --bg: var(--linear-bg, #050607);
+  --surface: var(--linear-panel, #0e1013);
+  --surface-2: var(--linear-panel-soft, #15171a);
+  --field: rgba(255, 255, 255, 0.028);
+  --border: var(--linear-border, rgba(255, 255, 255, 0.085));
+  --border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.055));
   --text: var(--linear-text, #f4f5f7);
   --text-muted: var(--linear-muted, #a3a6b3);
   --text-faint: var(--linear-dim, #737782);
@@ -41,8 +41,8 @@
   --button-iрcon-size: 40px;
   --button-horizontal-padding: 14px;
   --button-small-gap: 6px;
-  --button-secondary-bg: #252525;
-  --button-secondary-bg-hover: #303030;
+  --button-secondary-bg: #17191c;
+  --button-secondary-bg-hover: #202226;
   --button-secondary-text: #b7b7b7;
   --button-primary-bg: #f1f1f1;
   --button-primary-bg-hover: #fff;
@@ -61,7 +61,7 @@
   --button-submit-weight: 650;
   --button-primary-hover-text: #101010;
 
-  --header-action-surface: linear-gradient(180deg, #25282d, #1d1f23);
+  --header-action-surface: linear-gradient(180deg, #17191c, #101215);
   --header-action-text: #f0f1f2;
   --header-title: #f5f5f6;
   --header-min-height: 42px;
@@ -76,8 +76,8 @@
   --header-action-radius: 10px;
   --sidebar-width: 232px;
   --sidebar-padding: 22px 16px 16px;
-  --sidebar-bg: linear-gradient(110deg, #111315, #121416 72%, #101214);
-  --sidebar-divider: rgba(255, 255, 255, 0.075);
+  --sidebar-bg: linear-gradient(110deg, #07090b, #080a0c 72%, #060708);
+  --sidebar-divider: rgba(255, 255, 255, 0.06);
   --sidebar-nav-text: #b0b4bc;
   --sidebar-nav-icon: #aeb3bb;
   --sidebar-nav-hover-bg: rgba(255, 255, 255, 0.04);

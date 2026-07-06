@@ -38,7 +38,7 @@
     max-width: 100vw !important;
     height: 100dvh !important;
     overflow: hidden !important;
-    background: var(--linear-bg, #08090b);
+    background: var(--linear-bg, #050607);
   }
 
   .content,
@@ -62,7 +62,7 @@
     min-height: 0 !important;
     overflow: hidden !important;
     padding: 0 !important;
-    background: var(--content-bg-gradient, var(--linear-bg, #08090b));
+    background: var(--content-bg-gradient, var(--linear-bg, #050607));
   }
 
   .mobile-layout {

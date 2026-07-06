@@ -145,7 +145,7 @@
   padding: 4px 8px;
   border-radius: 999px;
   color: var(--linear-muted, #a3a6b3);
-  background: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+  background: var(--linear-panel-soft, rgba(21, 23, 26, 0.72));
   font-size: 11px;
   font-weight: 700;
   text-align: center;
@@ -279,7 +279,7 @@
 .payroll-table th {
   padding: 10px 12px;
   color: var(--linear-dim, #70737f);
-  background: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+  background: var(--linear-panel-soft, rgba(21, 23, 26, 0.72));
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -307,7 +307,7 @@
   border: 1px dashed var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   border-radius: var(--ds-radius-lg);
   color: var(--linear-muted, #a3a6b3);
-  background: color-mix(in srgb, var(--linear-panel-soft, rgba(26, 28, 34, 0.72)) 72%, transparent);
+  background: color-mix(in srgb, var(--linear-panel-soft, rgba(21, 23, 26, 0.72)) 72%, transparent);
   font-size: 12px;
   text-align: center;
 }
@@ -361,13 +361,13 @@
 .employee-modal.service-form-modal {
   width: min(640px, calc(100vw - 32px));
   max-height: min(88dvh, 760px);
-  background: var(--linear-panel, #121317);
+  background: var(--linear-panel, #0e1013);
 }
 
 .employee-modal.package-form-modal {
-  --package-modal-panel: var(--linear-panel, #121317);
-  --package-modal-field: var(--linear-panel-soft, #151b23);
-  --package-modal-border: var(--linear-border, #1e2532);
+  --package-modal-panel: var(--linear-panel, #0e1013);
+  --package-modal-field: var(--linear-panel-soft, #15171a);
+  --package-modal-border: var(--linear-border, #252a31);
   --package-modal-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --package-modal-text: var(--linear-text, #f2f3f7);
   --package-modal-muted: var(--linear-muted, #a3a6b3);
@@ -380,9 +380,9 @@
 }
 
 .employee-modal.employee-form-modal {
-  --employee-modal-panel: var(--linear-panel, #121317);
-  --employee-modal-field: var(--linear-panel-soft, #151b23);
-  --employee-modal-border: var(--linear-border, #1e2532);
+  --employee-modal-panel: var(--linear-panel, #0e1013);
+  --employee-modal-field: var(--linear-panel-soft, #15171a);
+  --employee-modal-border: var(--linear-border, #252a31);
   --employee-modal-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --employee-modal-text: var(--linear-text, #f2f3f7);
   --employee-modal-muted: var(--linear-muted, #a3a6b3);
@@ -396,9 +396,9 @@
 
 .employee-modal.message-template-form-modal,
 .employee-modal.send-template-modal {
-  --template-modal-panel: var(--linear-panel, #121317);
-  --template-modal-field: var(--linear-panel-soft, #151b23);
-  --template-modal-border: var(--linear-border, #1e2532);
+  --template-modal-panel: var(--linear-panel, #0e1013);
+  --template-modal-field: var(--linear-panel-soft, #15171a);
+  --template-modal-border: var(--linear-border, #252a31);
   --template-modal-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   --template-modal-text: var(--linear-text, #f2f3f7);
   --template-modal-muted: var(--linear-muted, #a3a6b3);
@@ -740,9 +740,9 @@
   height: 32px;
   min-height: 32px;
   padding: 3px;
-  border: 1px solid var(--linear-border, #1e2532);
+  border: 1px solid var(--linear-border, #252a31);
   border-radius: 10px;
-  background: var(--linear-panel-soft, #151b23);
+  background: var(--linear-panel-soft, #15171a);
   cursor: pointer;
 }
 
@@ -783,7 +783,7 @@
   margin: 2px 0 0;
   padding: 14px 0 0;
   border: 0;
-  border-top: 1px solid var(--linear-border, #1e2532);
+  border-top: 1px solid var(--linear-border, #252a31);
   border-radius: 0;
   background: transparent;
 }
@@ -830,8 +830,8 @@
 }
 
 .employee-modal.service-form-modal .service-buffer-toggle-box {
-  border-color: var(--linear-border, #1e2532);
-  background: var(--linear-panel, #11161d);
+  border-color: var(--linear-border, #252a31);
+  background: var(--linear-panel, #0e1013);
 }
 
 .employee-modal.service-form-modal .service-buffer-toggle-label {
@@ -893,7 +893,7 @@
     min-height: 36px;
     padding: 3px;
     border-radius: 12px;
-    background: #151b23;
+    background: #15171a;
     border-color: rgba(255, 255, 255, 0.08);
   }
 
@@ -940,14 +940,14 @@
     gap: 12px;
     padding: 14px 16px 16px;
     border-radius: 16px;
-    background: #151b23;
+    background: #15171a;
     border-color: rgba(255, 255, 255, 0.08);
   }
 
   .employee-modal.calendar-entry-modal .calendar-entry-form legend {
     padding: 0 6px;
     color: #8f98a5;
-    background: #151b23;
+    background: #15171a;
     font-size: 10px;
   }
 
@@ -1512,7 +1512,7 @@
   padding: var(--ds-space-4);
   border: 1px solid color-mix(in srgb, var(--accent-color) 22%, var(--linear-border, rgba(255, 255, 255, 0.1)));
   border-radius: var(--ds-radius-lg);
-  background: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+  background: var(--linear-panel-soft, rgba(21, 23, 26, 0.72));
 }
 
 .payroll-hero-main {
@@ -1552,7 +1552,7 @@
 .payroll-table-wrap {
   border: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
   border-radius: var(--ds-radius-lg);
-  background: color-mix(in srgb, var(--linear-panel, rgba(18, 19, 23, 0.86)) 88%, transparent);
+  background: color-mix(in srgb, var(--linear-panel, rgba(14, 16, 19, 0.86)) 88%, transparent);
 }
 
 .payroll-table th,
@@ -1594,7 +1594,7 @@
 
 .daily-payroll-summary-grid .day-close-summary-card:nth-child(2) {
   border-color: color-mix(in srgb, var(--accent-color) 28%, var(--linear-border, rgba(255, 255, 255, 0.1)));
-  background: var(--linear-panel-soft, rgba(26, 28, 34, 0.72));
+  background: var(--linear-panel-soft, rgba(21, 23, 26, 0.72));
 }
 
 .daily-payroll-summary-grid .day-close-summary-card:nth-child(2) strong {
