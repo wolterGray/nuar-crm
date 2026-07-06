@@ -979,8 +979,10 @@
 
 @media (max-width: 640px) {
   .clients-page-shell {
-    width: calc(100vw - 60px);
-    max-width: calc(100vw - 60px);
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    gap: var(--mobile-page-gap, 16px);
   }
 
   .clients-page-shell .page-header-unified,
@@ -996,6 +998,90 @@
 
   .clients-page-toolbar {
     grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .operations-page.operations-page-mobile {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    gap: var(--mobile-page-gap, 16px);
+    overflow: visible;
+    background: transparent;
+  }
+
+  .operations-page-mobile .page-header-unified {
+    margin: 0 0 var(--mobile-page-gap, 16px) !important;
+    padding: 0 !important;
+  }
+
+  .operations-page-mobile .page-header-unified-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .operations-page-mobile .page-header-unified-trailing {
+    width: auto;
+    max-width: max-content;
+    justify-self: end;
+    margin-left: 0;
+  }
+
+  .operations-page-mobile .page-header-unified-actions {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .operations-page-mobile .operations-page-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+
+  .operations-page-mobile .operations-page-tabs button {
+    min-width: 0;
+    min-height: 42px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1.05;
+  }
+
+  .operations-page-mobile .operations-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    width: 100%;
+    margin: 0;
+  }
+
+  .operations-page-mobile .operations-summary span {
+    justify-content: center;
+    min-width: 0;
+    min-height: 28px;
+    padding: 0 8px;
+  }
+
+  .operations-page-mobile .operations-grid {
+    gap: var(--mobile-page-gap, 16px);
+  }
+
+  .operations-page-mobile .operations-panel {
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--operations-border);
+    border-radius: 14px;
+    background: var(--operations-panel);
+  }
+
+  .operations-page-mobile .operations-panel-waitlist {
+    padding: 0;
+    border: 0;
+    background: transparent;
   }
 
   .nuar-calendar {

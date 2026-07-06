@@ -2559,10 +2559,11 @@ button:focus-visible {
 
 @media (max-width: 767px) {
   .clients-page-shell {
-    width: min(100%, calc(100vw - 60px));
-    max-width: calc(100vw - 60px);
+    width: 100%;
+    max-width: 100%;
     margin-inline: 0;
-    padding: 14px;
+    padding: 0;
+    gap: var(--mobile-page-gap, 16px);
     overflow-x: hidden;
     overflow-y: auto;
   }
@@ -2570,7 +2571,8 @@ button:focus-visible {
   .clients-page-toolbar {
     grid-template-columns: 1fr;
     min-width: 0;
-    max-width: calc(100vw - 60px);
+    max-width: 100%;
+    gap: 10px;
   }
 
   .clients-page-header,
@@ -2582,12 +2584,12 @@ button:focus-visible {
 
   .clients-page-search.crm-search-input-control {
     width: 100%;
-    max-width: calc(100vw - 60px);
+    max-width: 100%;
   }
 
   .clients-page-add-button.clients-page-add-button {
     width: 100%;
-    max-width: calc(100vw - 60px);
+    max-width: 100%;
   }
 
   .clients-table-shell {
@@ -2602,7 +2604,7 @@ button:focus-visible {
 
   .clients-table-item {
     border: 1px solid var(--clients-border);
-    border-radius: 16px;
+    border-radius: 12px;
     background: var(--clients-card);
   }
 }

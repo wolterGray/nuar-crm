@@ -116,6 +116,24 @@
     backdrop-filter: none !important;
   }
 
+  .mobile-page-container:not([data-mobile-page="calendar"]) .page-header-unified-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobile-page-container:not([data-mobile-page="calendar"]) .page-header-unified-copy {
+    min-width: 0;
+  }
+
+  .mobile-page-container:not([data-mobile-page="calendar"]) .page-header-unified-trailing {
+    width: auto;
+    max-width: max-content;
+    justify-self: end;
+    margin-left: 0;
+  }
+
   .mobile-page-container:not([data-mobile-page="calendar"]) :is(.page-header h1, .page-header h2, .page-header-unified h1, .page-header-unified h2) {
     font-size: clamp(21px, 5.6vw, 28px) !important;
     line-height: 1.12 !important;
@@ -131,7 +149,6 @@
   .mobile-page-container :is(
     .page-header-unified-top,
     .page-header-unified-actions,
-    .page-header-unified-trailing,
     .calendar-toolbar,
     .calendar-toolbar-actions,
     .filters-row,
