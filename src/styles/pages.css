@@ -3415,16 +3415,7 @@ button:focus-visible {
   border: 1px solid var(--today-border);
   border-radius: 18px;
   background: var(--app-window-bg);
-  transition:
-    border-color 160ms ease,
-    background 160ms ease,
-    transform 160ms ease;
-}
-
-.today-kpi-card:hover {
-  border-color: rgba(255, 255, 255, 0.13);
-  background: rgba(21, 27, 35, 0.96);
-  transform: translateY(-1px);
+  transition: none;
 }
 
 .today-panel {
@@ -3432,14 +3423,7 @@ button:focus-visible {
   border-radius: 18px;
   background: var(--app-window-bg);
   box-shadow: none;
-  transition:
-    border-color 170ms ease,
-    background 170ms ease;
-}
-
-.today-kpi-card:hover,
-.today-panel:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  transition: none;
 }
 
 .today-kpi-card {

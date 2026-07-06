@@ -82,8 +82,8 @@ function IntegrationHealthPanel({actions = {}, report}) {
           const itemActions = actions.itemActions?.[item.id] ?? [];
 
           return (
-            <article key={item.id} className={`p-4 border rounded-control bg-field flex flex-col sm:flex-row sm:items-start justify-between gap-4 transition-all ${
-              item.state === "warning" ? "border-amber-500/20 hover:border-amber-500/30" : item.state === "ok" ? "border-emerald-500/10 hover:border-emerald-500/20" : "border-border/60"
+            <article key={item.id} className={`p-4 border rounded-control bg-field flex flex-col sm:flex-row sm:items-start justify-between gap-4 ${
+              item.state === "warning" ? "border-amber-500/20" : item.state === "ok" ? "border-emerald-500/10" : "border-border/60"
             }`}>
               <div className="flex gap-3">
                 <span className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${
@@ -359,7 +359,7 @@ function SettingsPage({
       {settingsTabs.map((tab) => (
         <button
           className={clsx(
-            "px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-text-muted hover:text-text-main transition-all whitespace-nowrap cursor-pointer focus:outline-none",
+            "px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-text-muted hover:text-text-main transition-colors whitespace-nowrap cursor-pointer focus:outline-none",
             activeTab === tab.id && "border-accent text-accent"
           )}
           key={tab.id}
@@ -428,7 +428,7 @@ function SettingsPage({
         <div className="flex-1 overflow-y-auto pr-1 pb-4 flex flex-col gap-6">
           <Card
             className={clsx(
-              "p-6 flex flex-col gap-4 transition-all duration-150",
+              "p-6 flex flex-col gap-4",
               activeTab === "interface" ? "block" : "hidden"
             )}>
             <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
@@ -458,12 +458,12 @@ function SettingsPage({
                 className="mt-1"
               />
             </label>
-            <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
-              Тема оформления
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
+            <fieldset className="flex flex-col gap-1.5 text-text-muted text-xs font-medium border-0 p-0 m-0">
+              <legend className="mb-1 text-text-muted text-xs font-medium">Тема оформления</legend>
+              <div className="color-theme-picker mt-1">
                 {COLOR_THEME_OPTIONS.map((themeOption) => (
                   <label
-                    className="relative p-4 border border-border rounded-control bg-field cursor-pointer transition-all hover:bg-surface-soft flex flex-col gap-3 group"
+                    className="color-theme-option"
                     key={themeOption.id}
                     title={themeOption.description}>
                     <input
@@ -473,20 +473,18 @@ function SettingsPage({
                       name="colorTheme"
                       type="radio"
                       value={themeOption.id}
-                      className="absolute top-4 right-4 accent-accent"
                     />
-                    <div className="flex gap-1.5">
+                    <div className="color-theme-swatches">
                       {themeOption.preview.map((color) => (
-                        <span key={color} className="flex-1 h-7 rounded-sm border border-black/10 shadow-sm" style={{background: color}} />
+                        <span key={color} style={{background: color}} />
                       ))}
                     </div>
-                    <strong className="block text-text-main text-xs font-semibold group-hover:text-accent transition-colors leading-tight">
-                      {themeOption.label}
-                    </strong>
+                    <strong>{themeOption.label}</strong>
+                    <small>{themeOption.description}</small>
                   </label>
                 ))}
               </div>
-            </label>
+            </fieldset>
             <div className="pt-2">
               <SettingsToggle defaultChecked={settings.compactMode ?? true} name="compactMode">
                 <span className="labeled-hint-row labeled-hint-row-nowrap">
@@ -499,7 +497,7 @@ function SettingsPage({
 
           <Card
             className={clsx(
-              "p-6 flex flex-col gap-4 transition-all duration-150",
+              "p-6 flex flex-col gap-4",
               activeTab === "notifications" ? "block" : "hidden"
             )}>
             <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
@@ -889,7 +887,7 @@ function SettingsPage({
 
           <Card
             className={clsx(
-              "p-6 flex flex-col gap-4 transition-all duration-150",
+              "p-6 flex flex-col gap-4",
               activeTab === "calendar" ? "block" : "hidden"
             )}>
             <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
@@ -967,7 +965,7 @@ function SettingsPage({
 
           <div
             className={clsx(
-              "flex flex-col gap-6 transition-all duration-150",
+              "flex flex-col gap-6",
               activeTab === "integrations" ? "flex" : "hidden"
             )}>
             <Card className="p-6 flex flex-col gap-4">
@@ -1057,7 +1055,7 @@ function SettingsPage({
 
           <div
             className={clsx(
-              "flex flex-col gap-6 transition-all duration-150",
+              "flex flex-col gap-6",
               activeTab === "data" ? "flex" : "hidden"
             )}>
             <Card className="p-6 flex flex-col gap-4">

@@ -255,27 +255,44 @@
 .color-theme-picker {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .color-theme-option {
   position: relative;
   display: grid;
-  gap: 8px;
-  min-height: 118px;
-  padding: 12px;
-  border: 1px solid var(--line-soft, #e4e5e4);
-  border-radius: 14px;
-  background: var(--surface-solid, #fff);
+  align-content: start;
+  gap: 9px;
+  min-height: 126px;
+  padding: 14px;
+  border: 1px solid var(--app-window-border, var(--line-soft, #e4e5e4));
+  border-radius: var(--radius-card, 16px);
+  background: var(--app-window-bg, var(--surface-solid, #fff));
+  box-shadow: none;
   cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: none;
+}
+
+.color-theme-option::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-color) 18%, transparent);
+  opacity: 0;
 }
 
 .color-theme-option:has(input:checked) {
-  border-color: color-mix(in srgb, var(--accent-color) 50%, var(--line-soft, #e4e5e4));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-color) 28%, transparent);
+  border-color: color-mix(in srgb, var(--accent-color) 48%, var(--app-window-border, var(--line-soft, #e4e5e4)));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-color) 24%, transparent);
+}
+
+.color-theme-option:has(input:checked)::after {
+  opacity: 1;
 }
 
 .color-theme-option input {
@@ -286,38 +303,29 @@
 
 .color-theme-swatches {
   display: flex;
-  gap: 5px;
+  gap: 6px;
+  padding-right: 24px;
 }
 
 .color-theme-swatches span {
   flex: 1;
-  height: 28px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
+  height: 30px;
+  min-width: 0;
+  border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.08));
+  border-radius: 9px;
 }
 
 .color-theme-option strong {
-  color: var(--text-main, #15171c);
+  color: var(--app-text-main, var(--text-main, #15171c));
   font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .color-theme-option small {
-  color: var(--text-soft, #737780);
+  color: var(--app-text-muted, var(--text-soft, #737780));
   font-size: 11px;
   line-height: 1.35;
-}
-
-.theme-dark .color-theme-option {
-  background: var(--surface-solid, #15171a);
-  border-color: var(--line-soft, #252a31);
-}
-
-.theme-dark .color-theme-option strong {
-  color: var(--text-main, #f8fbff);
-}
-
-.theme-dark .color-theme-option small {
-  color: var(--text-soft, #b3bdcb);
 }
 
 @media (max-width: 900px) {
