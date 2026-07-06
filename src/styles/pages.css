@@ -5695,9 +5695,10 @@ button:focus-visible {
   gap: 10px;
   min-height: 0;
   padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .payments-page-mobile.nuar-payments .visits-panel-mobile .page-header-unified {

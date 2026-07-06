@@ -62,7 +62,12 @@
     min-height: 0 !important;
     overflow: hidden !important;
     padding: 0 !important;
-    background: var(--content-bg-gradient, var(--linear-bg, #050607));
+    background: var(--app-page-bg, var(--linear-bg, #050607));
+  }
+
+  .content.payments-content,
+  .content.visits-content.payments-content {
+    background: var(--app-page-bg, var(--linear-bg, #050607)) !important;
   }
 
   .mobile-layout {
@@ -85,6 +90,7 @@
       calc(var(--mobile-safe-top) + var(--mobile-page-x))
       var(--mobile-page-x)
       var(--mobile-content-bottom);
+    background: var(--app-page-bg, var(--linear-bg, #050607));
   }
 
   .mobile-page-container > * {
