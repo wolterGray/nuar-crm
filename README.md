@@ -1,8 +1,11 @@
 # NUAR CRM
 
-Локальная CRM массажной студии на React и Vite.
+CRM массажной студии NUAR на React и Vite.
 
 ## Локальный запуск
+
+Локально запускается только frontend. Все API-запросы идут напрямую в Hetzner backend:
+`https://api.nuarr.pl`.
 
 ```bash
 npm install
@@ -11,22 +14,14 @@ npm run dev
 
 Создайте `.env.local` по примеру `.env.example`.
 
-## Supabase
+Минимальный `.env.local`:
 
-1. Откройте SQL Editor в панели Supabase.
-2. Выполните файл `supabase/schema.sql`.
-3. В Authentication создайте пользователя-владельца CRM.
+```text
+VITE_BACKEND_URL=https://api.nuarr.pl
+```
 
-Первая серверная схема хранит единый JSON-снимок CRM с Row Level Security.
-Доступ к снимку получает только авторизованный владелец. После стабилизации
-интеграций данные можно постепенно разнести по отдельным таблицам.
-
-При первом входе существующая локальная база загружается в Supabase. Далее CRM
-получает серверный снимок после авторизации и автоматически сохраняет изменения.
-`localStorage` остается локальным кэшем и резервной копией браузера.
-
-В разделе **Настройки → Облако** видно время последнего сохранения и доступна
-кнопка «Принудительно сохранить сейчас».
+Локальный backend/Postgres больше не поднимаются. Папка `backend/` хранит код,
+который деплоится на Hetzner.
 
 ## Операционный flow
 
@@ -49,28 +44,10 @@ npm run dev
 3. Добавьте environment variables:
 
 ```text
-VITE_SUPABASE_URL
-VITE_SUPABASE_PUBLISHABLE_KEY
+VITE_BACKEND_URL=https://api.nuarr.pl
 ```
 
-Вход владельца работает через Supabase Auth. Пароль не хранится в сборке CRM.
-
-### Google-вход и Gmail
-
-1. В Google Cloud создайте OAuth Web Client и включите Gmail API.
-2. В consent screen добавьте scope `https://www.googleapis.com/auth/gmail.readonly`.
-3. В Supabase откройте Authentication -> Providers -> Google, включите провайдер
-   и добавьте Google Client ID и Client Secret.
-4. В Google OAuth Client добавьте callback URL из настроек Google-провайдера
-   Supabase: `https://<project-ref>.supabase.co/auth/v1/callback`.
-5. В Supabase Authentication -> URL Configuration укажите Vercel-домен как
-   Site URL и добавьте локальный адрес и Vercel-домен в Redirect URLs.
-
-После входа через Google CRM использует выданный токен для чтения Gmail.
-Ручной Google OAuth Client ID в настройках остается запасным вариантом.
-CRM запрашивает только чтение писем и не получает пароль Gmail.
-
-Для тестового OAuth consent screen добавьте email владельца в Test users.
+Вход владельца работает через Hetzner backend. Пароль не хранится в сборке CRM.
 
 ## Маршруты
 

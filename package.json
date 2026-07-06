@@ -8,8 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
-    "db:backup": "npm --prefix backend run db:backup"
+    "test": "vitest run"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

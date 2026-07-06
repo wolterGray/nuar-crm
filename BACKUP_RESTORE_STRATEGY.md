@@ -13,9 +13,6 @@ Key files:
 - Backend env examples:
   - `backend/.env.example`
   - `backend/.env.production.example`
-- Local PostgreSQL for Windows/backend development:
-  - `backend/docker-compose.yml`
-  - Docker volume: `pgdata`
 - Backend deploy/update flow:
   - `npm run prisma:generate`
   - `npm run prisma:deploy`
@@ -29,10 +26,10 @@ Key files:
 | --- | --- | --- |
 | Prisma migrations | Exists | `backend/prisma/migrations` contains the deployable schema history |
 | Prisma deploy script | Exists | `backend/package.json` has `prisma:deploy` |
-| Local Docker PostgreSQL | Exists | `backend/docker-compose.yml` uses Postgres 15 and named volume `pgdata` |
+| Local Docker PostgreSQL | Removed | Local backend/Postgres is no longer used; local frontend calls Hetzner backend |
 | Frontend JSON backup helpers | Exists | `src/utils/backupRestore.js`, `src/utils/backupFormat.js`; useful for UI snapshot import/export, not a full DB dump |
 | Seed data | Partial/legacy | `src/data/seed.js` is frontend seed/static data, not Prisma seed |
-| DB backup script | Added | `npm run db:backup` creates a local PostgreSQL custom dump |
+| DB backup script | Backend-only | Run `npm run db:backup` inside `backend/` on Hetzner when needed |
 | Restore script | Intentionally not added | Restore is destructive and must remain manual/checklisted for now |
 | Dump docs | Added here | See commands below |
 
@@ -46,15 +43,9 @@ Key files:
 
 ## Backup / Export
 
-### Preferred Backend Command
+### Preferred Hetzner Backend Command
 
-From repo root:
-
-```bash
-npm run db:backup
-```
-
-Or from `backend/`:
+Run on the Hetzner backend host from `/opt/nuar-crm/backend`:
 
 ```bash
 npm run db:backup
@@ -91,27 +82,11 @@ Plain SQL format:
 pg_dump "$DATABASE_URL" --no-owner --no-acl --file "backups/nuar-crm-$(date +%Y%m%d-%H%M%S).sql"
 ```
 
-### Docker Local Database Backup
-
-From `backend/` while the local Docker DB is running:
-
-```bash
-docker compose exec -T db pg_dump -U postgres -d nuar_crm --format=custom --no-owner --no-acl > backups/nuar-crm-local.dump
-```
-
-For plain SQL:
-
-```bash
-docker compose exec -T db pg_dump -U postgres -d nuar_crm --no-owner --no-acl > backups/nuar-crm-local.sql
-```
-
 ## Restore Checklist
 
 Do not restore directly into production without a maintenance window and a fresh backup.
 
 1. Identify target database:
-   - local/dev
-   - staging
    - production
 2. Stop writes:
    - stop backend or put CRM into maintenance mode;
@@ -123,7 +98,7 @@ npm run db:backup
 ```
 
 4. Verify the dump file exists and has non-zero size.
-5. Restore into a clean staging/local database first.
+5. Restore into a clean staging database first, when a staging database exists.
 6. Run migrations after restore if the dump is older than the current code:
 
 ```bash
@@ -161,22 +136,9 @@ Plain SQL:
 psql "$DATABASE_URL" < "backups/nuar-crm.sql"
 ```
 
-Local Docker custom dump:
-
-```bash
-docker compose exec -T db pg_restore -U postgres -d nuar_crm --clean --if-exists --no-owner --no-acl < backups/nuar-crm-local.dump
-```
-
-Local Docker plain SQL:
-
-```bash
-docker compose exec -T db psql -U postgres -d nuar_crm < backups/nuar-crm-local.sql
-```
-
 ## Important Safety Notes
 
 - Restore is destructive when `--clean` is used.
-- Never delete Docker volume `pgdata` unless there is a verified external backup.
 - Never commit dump files. `.gitignore` now excludes:
   - `backups/`
   - `backend/backups/`
@@ -201,7 +163,7 @@ pm2 restart nuar-backend --update-env
 Before applying new migrations to production:
 
 1. Create DB backup.
-2. Apply migrations on staging/local copy.
+2. Apply migrations on staging copy, when available.
 3. Run smoke checks.
 4. Apply production migration.
 5. Verify backend health and critical CRM flows.
@@ -217,4 +179,3 @@ Before applying new migrations to production:
 4. Owner-only backend endpoint or admin screen that reports backup freshness, without exposing dump download publicly.
 5. Separate staging database for restore drills.
 6. Runbook for emergency rollback after failed migration.
-
