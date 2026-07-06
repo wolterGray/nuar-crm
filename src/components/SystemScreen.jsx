@@ -30,11 +30,30 @@ function SystemScreen({
 
   if (mode === "loading") {
     return (
-      <main className={`grid w-screen h-screen place-items-center p-6 bg-app-bg text-text-main theme-${themeMode}`}>
-        <div className="flex flex-col items-center gap-4">
-          <LoaderCircle className="animate-spin text-accent" size={36} />
-          <p className="text-text-muted text-sm font-medium">Загрузка</p>
-        </div>
+      <main className={`system-loading-screen grid w-screen h-screen place-items-center p-6 text-text-main theme-${themeMode}`}>
+        <section className="system-loading-card" aria-live="polite" aria-busy="true">
+          <div className="system-loading-brand" aria-label={`${settings?.studioName ?? "NUAR"} CRM`}>
+            <span className="system-loading-mark">N</span>
+            <div>
+              <strong>{settings?.studioName ?? "NUAR"}</strong>
+              <small>CRM</small>
+            </div>
+          </div>
+
+          <div className="system-loading-orbit" aria-hidden="true">
+            <span />
+            <LoaderCircle className="system-loading-spinner animate-spin" size={34} />
+          </div>
+
+          <div className="system-loading-copy">
+            <h1>{title || "Загружаем CRM"}</h1>
+            <p>{message || "Подключаем защищённые данные и готовим рабочее пространство."}</p>
+          </div>
+
+          <div className="system-loading-progress" aria-hidden="true">
+            <span />
+          </div>
+        </section>
       </main>
     );
   }

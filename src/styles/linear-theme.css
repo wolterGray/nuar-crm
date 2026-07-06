@@ -1288,12 +1288,15 @@
 
 .theme-dark .system-loading-screen {
   color: var(--linear-text);
-  background: var(--loading-gradient, var(--linear-bg));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 220px),
+    var(--loading-gradient, var(--app-page-bg, var(--linear-bg)));
 }
 
 .theme-dark .system-loading-spinner,
 .system-loading-spinner {
-  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--accent-color);
+  border-color: color-mix(in srgb, var(--linear-text) 12%, transparent);
   border-top-color: var(--accent-color);
 }
 
