@@ -1494,6 +1494,49 @@ button:focus-visible {
   align-items: center;
 }
 
+.statistics-filters-card {
+  background: var(--app-window-bg, var(--color-surface));
+  border-color: var(--app-window-border, var(--color-border));
+}
+
+.statistics-filters {
+  display: grid;
+  grid-template-columns: minmax(150px, 180px) auto minmax(150px, 180px) minmax(260px, 1fr) minmax(150px, 0.62fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.statistics-filters > span {
+  justify-self: center;
+}
+
+.statistics-filter-field,
+.statistics-filter-select {
+  width: 100%;
+  min-width: 0;
+  background: var(--app-card-bg, var(--color-surface));
+  border-color: var(--app-card-border, var(--color-border));
+}
+
+.statistics-filter-field input {
+  min-width: 0;
+}
+
+@media (max-width: 1180px) {
+  .statistics-filters {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .statistics-filter-select {
+    grid-column: span 1;
+  }
+
+  .statistics-filter-select:not(.statistics-filter-select-currency) {
+    grid-column: 1 / 3;
+  }
+}
+
 .visits-panel .page-header-unified {
   padding-bottom: 4px;
 }

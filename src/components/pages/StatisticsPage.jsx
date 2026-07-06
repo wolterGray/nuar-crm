@@ -196,8 +196,8 @@ function StatisticsFilters({
   };
 
   return (
-    <div className={`flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full p-2`}>
-      <label className="flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs flex-1 min-w-0">
+    <div className="statistics-filters flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full p-2">
+      <label className="statistics-filter-field flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs flex-1 min-w-0">
         <CalendarRange size={14} className="text-muted-foreground" />
         <input
           className="bg-transparent border-0 text-foreground w-full focus:outline-none"
@@ -207,7 +207,7 @@ function StatisticsFilters({
         />
       </label>
       {!mobile ? <span className="text-muted-foreground font-semibold">—</span> : null}
-      <label className="flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs flex-1 min-w-0">
+      <label className="statistics-filter-field flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs flex-1 min-w-0">
         <CalendarRange size={14} className="text-muted-foreground" />
         <input
           className="bg-transparent border-0 text-foreground w-full focus:outline-none"
@@ -245,7 +245,7 @@ function StatisticsFilters({
       ) : (
         <>
           <select
-            className="min-h-10 min-w-[160px] px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
+            className="statistics-filter-select min-h-10 min-w-[160px] px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
             value={master}
             onChange={(event) => onMasterChange(event.target.value)}>
             <option value="">Все сотрудники</option>
@@ -255,7 +255,7 @@ function StatisticsFilters({
           </select>
           <select
             aria-label="Валюта отчёта"
-            className="min-h-10 min-w-[140px] px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
+            className="statistics-filter-select statistics-filter-select-currency min-h-10 min-w-[140px] px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
             value={currency}
             onChange={(event) => onCurrencyChange(event.target.value)}>
             {currencies.map((item) => (
@@ -968,7 +968,7 @@ function StatisticsPage({
         title="Статистика"
       />
 
-      <div className="p-2 border border-border rounded-xl bg-card">{filtersPanel}</div>
+      <div className="statistics-filters-card p-2 border border-border rounded-xl bg-card">{filtersPanel}</div>
 
       <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
         <div className="flex flex-col">
