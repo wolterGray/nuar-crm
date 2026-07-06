@@ -383,7 +383,8 @@ function StatisticsPage({
   };
 
   const analytics = useMemo(() => {
-    const daysCount = getPeriodDays(startDate, endDate);
+    const periodDays = getPeriodDays(startDate, endDate);
+    const daysCount = periodDays.length;
     const previousStart = shiftAppDate(startDate, -daysCount);
     const previousEnd = shiftAppDate(startDate, -1);
     const now = new Date();
@@ -410,7 +411,7 @@ function StatisticsPage({
       startDate: previousStart,
       visits,
     }), clients);
-    const dates = getPeriodDays(startDate, endDate).map((date) => {
+    const dates = periodDays.map((date) => {
       const dailyStats = buildStatisticsAnalytics(buildFinanceStats({
         calendarEntries,
         certificates,

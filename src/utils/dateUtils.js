@@ -161,8 +161,11 @@ export const getEndOfMonth = (value = new Date()) => {
 
 export const shiftAppDate = (value, days) => {
   const parsedDate = parseAppDate(value);
+  const daysNumber = Number(days);
 
-  return parsedDate ? format(addDays(parsedDate, days), INPUT_DATE_FORMAT) : "";
+  return parsedDate && Number.isFinite(daysNumber)
+    ? format(addDays(parsedDate, daysNumber), INPUT_DATE_FORMAT)
+    : "";
 };
 
 export const isSameAppDay = (firstDate, secondDate) => {
