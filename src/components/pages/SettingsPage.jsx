@@ -6,13 +6,25 @@ import {
   DatabaseBackup,
   Download,
   MailCheck,
+  Power,
   RotateCcw,
   Save,
+  Send,
+  ShieldCheck,
   SlidersHorizontal,
   Upload,
+  UserPlus,
 } from "lucide-react";
 import clsx from "clsx";
-import {useCallback, useMemo, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {
+  createUser,
+  disableUser,
+  enableUser,
+  fetchUsers,
+  sendUserReset,
+  updateUser,
+} from "../../api/users.js";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {resolveColorTheme} from "../../utils/colorTheme.js";
@@ -120,6 +132,297 @@ function IntegrationHealthPanel({actions = {}, report}) {
   );
 }
 
+const USER_ROLE_OPTIONS = [
+  {label: "Owner", value: "owner"},
+  {label: "Admin", value: "admin"},
+  {label: "Manager", value: "manager"},
+  {label: "Staff", value: "staff"},
+  {label: "Readonly", value: "readonly"},
+];
+
+const formatUserDate = (value) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return date.toLocaleString("ru-RU", {
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+function UserAccessPanel({pushNotification}) {
+  const [creating, setCreating] = useState(false);
+  const [draft, setDraft] = useState({email: "", name: "", role: "staff"});
+  const [loading, setLoading] = useState(false);
+  const [resetUrl, setResetUrl] = useState("");
+  const [rows, setRows] = useState([]);
+  const [savingId, setSavingId] = useState(null);
+
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const payload = await fetchUsers();
+      setRows(payload.users || []);
+    } catch (error) {
+      pushNotification?.({
+        title: "Доступы не загружены",
+        message: error?.message || "Проверьте права owner",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [pushNotification]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  const patchRow = (id, patch) => {
+    setRows((current) =>
+      current.map((user) => (user.id === id ? {...user, ...patch} : user)),
+    );
+  };
+
+  const handleCreateUser = async () => {
+    setCreating(true);
+    setResetUrl("");
+    try {
+      const payload = await createUser(draft);
+      setRows((current) => [...current, payload.user]);
+      setDraft({email: "", name: "", role: "staff"});
+      if (payload.resetUrl) setResetUrl(payload.resetUrl);
+      pushNotification?.({
+        title: "Пользователь создан",
+        message: payload.resetEmailSent
+          ? "Ссылка сброса отправлена на email."
+          : "Пользователь создан, но письмо сброса не отправлено.",
+      });
+    } catch (error) {
+      pushNotification?.({
+        title: "Пользователь не создан",
+        message: error?.message || "Проверьте email и роль",
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleUpdateUser = async (user) => {
+    setSavingId(user.id);
+    try {
+      const payload = await updateUser(user.id, {
+        email: user.email,
+        isActive: user.isActive,
+        name: user.name,
+        role: user.role,
+      });
+      patchRow(user.id, payload.user);
+      pushNotification?.({
+        title: "Доступ обновлен",
+        message: payload.user.email,
+      });
+    } catch (error) {
+      pushNotification?.({
+        title: "Доступ не обновлен",
+        message: error?.message || "Проверьте, не последний ли это owner",
+      });
+      loadUsers();
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const handleToggleUser = async (user) => {
+    setSavingId(user.id);
+    try {
+      const payload = user.isActive
+        ? await disableUser(user.id)
+        : await enableUser(user.id);
+      patchRow(user.id, payload.user);
+      pushNotification?.({
+        title: payload.user.isActive ? "Пользователь включен" : "Пользователь отключен",
+        message: payload.user.email,
+      });
+    } catch (error) {
+      pushNotification?.({
+        title: "Статус не изменен",
+        message: error?.message || "Проверьте, не последний ли это owner",
+      });
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const handleSendReset = async (user) => {
+    setSavingId(user.id);
+    setResetUrl("");
+    try {
+      const payload = await sendUserReset(user.id);
+      if (payload.resetUrl) setResetUrl(payload.resetUrl);
+      pushNotification?.({
+        title: "Reset запрошен",
+        message: payload.resetEmailSent
+          ? "Ссылка отправлена на email."
+          : "Письмо не отправлено. Проверьте SMTP.",
+      });
+    } catch (error) {
+      pushNotification?.({
+        title: "Reset не отправлен",
+        message: error?.message || "Пользователь должен быть активен",
+      });
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  return (
+    <Card className="p-6 flex flex-col gap-5">
+      <div className="flex items-center gap-3 border-b border-border-soft pb-4">
+        <ShieldCheck size={18} className="text-accent" />
+        <div>
+          <h2 className="m-0 text-text-main text-base font-bold">Доступы</h2>
+          <p className="m-0 mt-1 text-text-muted text-xs">
+            Пользователи CRM, роли и ссылки восстановления пароля.
+          </p>
+        </div>
+      </div>
+
+      <section className="grid grid-cols-1 md:grid-cols-[1fr_180px_140px_auto] gap-3 items-end">
+        <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+          Email
+          <Input
+            autoComplete="off"
+            placeholder="user@example.com"
+            type="email"
+            value={draft.email}
+            onChange={(event) => setDraft((current) => ({...current, email: event.target.value}))}
+          />
+        </label>
+        <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+          Имя
+          <Input
+            autoComplete="off"
+            placeholder="Имя"
+            value={draft.name}
+            onChange={(event) => setDraft((current) => ({...current, name: event.target.value}))}
+          />
+        </label>
+        <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+          Роль
+          <Select
+            value={draft.role}
+            onChange={(event) => setDraft((current) => ({...current, role: event.target.value}))}
+          >
+            {USER_ROLE_OPTIONS.map((role) => (
+              <option key={role.value} value={role.value}>{role.label}</option>
+            ))}
+          </Select>
+        </label>
+        <Button
+          className="flex items-center justify-center gap-2"
+          disabled={creating || !draft.email}
+          type="button"
+          variant="primary"
+          onClick={handleCreateUser}
+        >
+          <UserPlus size={16} />
+          Создать
+        </Button>
+      </section>
+
+      {resetUrl ? (
+        <div className="rounded-control border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200 break-all">
+          Dev reset URL: {resetUrl}
+        </div>
+      ) : null}
+
+      <div className="flex flex-col gap-3">
+        {loading ? (
+          <div className="rounded-control border border-border bg-field p-4 text-sm text-text-muted">
+            Загружаю доступы...
+          </div>
+        ) : rows.length ? (
+          rows.map((user) => (
+            <article
+              className="grid grid-cols-1 xl:grid-cols-[minmax(180px,1.2fr)_minmax(140px,0.8fr)_140px_110px_150px_auto] gap-3 items-center rounded-card border border-border bg-field p-4"
+              key={user.id}
+            >
+              <Input
+                aria-label="Email"
+                type="email"
+                value={user.email}
+                onChange={(event) => patchRow(user.id, {email: event.target.value})}
+              />
+              <Input
+                aria-label="Имя"
+                placeholder="Имя"
+                value={user.name || ""}
+                onChange={(event) => patchRow(user.id, {name: event.target.value})}
+              />
+              <Select
+                aria-label="Роль"
+                value={user.role}
+                onChange={(event) => patchRow(user.id, {role: event.target.value})}
+              >
+                {USER_ROLE_OPTIONS.map((role) => (
+                  <option key={role.value} value={role.value}>{role.label}</option>
+                ))}
+              </Select>
+              <span className={clsx(
+                "inline-flex min-h-9 items-center justify-center rounded-control border px-3 text-xs font-bold",
+                user.isActive
+                  ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+                  : "border-red-500/20 bg-red-500/10 text-red-300",
+              )}>
+                {user.isActive ? "Активен" : "Отключен"}
+              </span>
+              <div className="text-xs text-text-muted leading-normal">
+                <span className="block">Создан: {formatUserDate(user.createdAt)}</span>
+                <span className="block">Вход: {formatUserDate(user.lastLoginAt)}</span>
+              </div>
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button
+                  disabled={savingId === user.id}
+                  type="button"
+                  variant="secondary"
+                  onClick={() => handleUpdateUser(user)}
+                >
+                  Сохранить
+                </Button>
+                <Button
+                  disabled={savingId === user.id || !user.isActive}
+                  type="button"
+                  variant="secondary"
+                  onClick={() => handleSendReset(user)}
+                >
+                  <Send size={15} />
+                </Button>
+                <Button
+                  disabled={savingId === user.id}
+                  type="button"
+                  variant={user.isActive ? "danger" : "secondary"}
+                  onClick={() => handleToggleUser(user)}
+                >
+                  <Power size={15} />
+                  {user.isActive ? "Off" : "On"}
+                </Button>
+              </div>
+            </article>
+          ))
+        ) : (
+          <div className="rounded-control border border-border bg-field p-4 text-sm text-text-muted">
+            Пользователей пока нет.
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 function SettingsPage({
   initialTab = "interface",
   pageTitle = "Настройки",
@@ -152,6 +455,7 @@ function SettingsPage({
   const [integrationDiagnosticsRunning, setIntegrationDiagnosticsRunning] = useState(false);
   const settingsTabs = [
     {id: "interface", label: "Интерфейс", mobileLabel: "UI"},
+    {id: "access", label: "Доступы", mobileLabel: "Доступ"},
     {id: "notifications", label: "Уведомления", mobileLabel: "Уведом."},
     {id: "calendar", label: "Календарь", mobileLabel: "Календ."},
     {id: "integrations", label: "Интеграции", mobileLabel: "Интегр."},
@@ -494,6 +798,14 @@ function SettingsPage({
               </SettingsToggle>
             </div>
           </Card>
+
+          <div
+            className={clsx(
+              "flex flex-col gap-6",
+              activeTab === "access" ? "flex" : "hidden"
+            )}>
+            <UserAccessPanel pushNotification={pushNotification} />
+          </div>
 
           <Card
             className={clsx(

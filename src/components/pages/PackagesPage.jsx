@@ -299,84 +299,7 @@ function PackagesPage({
         collapsedMeta={mobileDescription}
         collapsible={isMobile}
         actions={
-          isMobile ? (
-            <div className="flex flex-col gap-3 w-full">
-              {/* Custom tabs */}
-              <div className="flex w-full p-1 bg-field border border-border-soft rounded-lg gap-1">
-                {[
-                  {id: "clientPackages", label: "Пакеты"},
-                  {id: "templates", label: "Шаблоны"},
-                  {id: "certificates", label: "Сертификаты"},
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all duration-150 ${
-                      mobileSection === tab.id
-                        ? "bg-surface text-text-main shadow-xs border border-border"
-                        : "text-text-muted hover:text-text-main"
-                    }`}
-                    type="button"
-                    onClick={() => {
-                      setMobileSection(tab.id);
-                      setOpenMenuId(null);
-                    }}>
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              <SearchControl
-                placeholder={
-                  mobileSection === "clientPackages"
-                    ? "Поиск пакета клиента"
-                    : mobileSection === "templates"
-                      ? "Поиск шаблона"
-                      : "Поиск сертификата"
-                }
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                  setOpenMenuId(null);
-                }}
-                onClear={() => setSearch("")}
-              />
-
-              <div className="grid grid-cols-4 gap-1.5 text-center">
-                {[
-                  {label: "Сертиф.", val: activeCertificates.length, active: mobileSection === "certificates"},
-                  {label: "Пакеты", val: activeClientPackages.length, active: mobileSection === "clientPackages"},
-                  {label: "Шаблоны", val: packages.length, active: mobileSection === "templates"},
-                  {label: "Сеансы", val: remainingVisits},
-                ].map((item, idx) => (
-                  <div key={idx} className={`flex flex-col p-2 rounded-card border ${
-                    item.active ? "border-accent bg-accent/5" : "border-border bg-surface"
-                  }`}>
-                    <span className="text-text-muted text-[8px] font-bold tracking-wider uppercase truncate">{item.label}</span>
-                    <strong className="text-text-main text-sm font-extrabold mt-0.5">{item.val}</strong>
-                  </div>
-                ))}
-              </div>
-
-              {mobileSection === "clientPackages" && (
-                <Button variant="primary" size="sm" onClick={onSellPackage} className="w-full">
-                  <Plus size={16} />
-                  Продать пакет
-                </Button>
-              )}
-              {mobileSection === "templates" && (
-                <Button variant="primary" size="sm" onClick={onAdd} className="w-full">
-                  <Plus size={16} />
-                  Добавить пакет
-                </Button>
-              )}
-              {mobileSection === "certificates" && (
-                <Button variant="primary" size="sm" onClick={onSellCertificate} className="w-full">
-                  <Gift size={16} />
-                  Продать сертификат
-                </Button>
-              )}
-            </div>
-          ) : (
+          isMobile ? undefined : (
             <div className="packages-page-toolbar">
               <SearchControl
                 className="packages-page-search"
@@ -410,6 +333,79 @@ function PackagesPage({
         }
         title="Пакеты"
       />
+
+      {isMobile && (
+        <div className="packages-page-toolbar packages-page-toolbar-mobile">
+          <SearchControl
+            className="packages-page-search"
+            placeholder={
+              mobileSection === "clientPackages"
+                ? "Поиск пакета"
+                : mobileSection === "templates"
+                  ? "Поиск шаблона"
+                  : "Поиск сертификата"
+            }
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setOpenMenuId(null);
+            }}
+            onClear={() => setSearch("")}
+          />
+
+          {mobileSection === "clientPackages" && (
+            <Button variant="primary" size="sm" onClick={onSellPackage} className="packages-page-primary-action">
+              <Plus size={16} />
+              Продать пакет
+            </Button>
+          )}
+          {mobileSection === "templates" && (
+            <Button variant="primary" size="sm" onClick={onAdd} className="packages-page-primary-action">
+              <Plus size={16} />
+              Добавить пакет
+            </Button>
+          )}
+          {mobileSection === "certificates" && (
+            <Button variant="primary" size="sm" onClick={onSellCertificate} className="packages-page-primary-action">
+              <Gift size={16} />
+              Продать сертификат
+            </Button>
+          )}
+
+          <div className="packages-mobile-tabs">
+            {[
+              {id: "clientPackages", label: "Пакеты"},
+              {id: "templates", label: "Шаблоны"},
+              {id: "certificates", label: "Сертификаты"},
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                className={mobileSection === tab.id ? "is-active" : ""}
+                type="button"
+                onClick={() => {
+                  setMobileSection(tab.id);
+                  setOpenMenuId(null);
+                }}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="packages-mobile-stats">
+            {[
+              {label: "Сертиф.", val: activeCertificates.length, active: mobileSection === "certificates"},
+              {label: "Пакеты", val: activeClientPackages.length, active: mobileSection === "clientPackages"},
+              {label: "Шаблоны", val: packages.length, active: mobileSection === "templates"},
+              {label: "Сеансы", val: remainingVisits},
+            ].map((item, idx) => (
+              <div key={idx} className={item.active ? "is-active" : ""}>
+                <span>{item.label}</span>
+                <strong>{item.val}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Desktop stats cards */}
       {!isMobile && (

@@ -11,7 +11,51 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum UserRole {
+  owner
+  admin
+  manager
+  staff
+  readonly
+}
+
 // Minimal set of tables needed by the CRM. Extend as required.
+model User {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  name              String?
+  passwordHash      String
+  role              UserRole  @default(staff)
+  isActive          Boolean   @default(true)
+  lastLoginAt       DateTime?
+  passwordChangedAt DateTime?
+  failedLoginCount  Int       @default(0)
+  lockedUntil       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([role])
+  @@index([isActive])
+}
+
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  ip        String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
 model Client {
   id              Int      @id @default(autoincrement())
   name            String

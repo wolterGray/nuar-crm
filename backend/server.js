@@ -77,6 +77,9 @@ app.use('/api', verifyJwt, siteCmsRouter);
 
 app.use('/api', verifyJwt, siteBookingRouter);
 
+const usersRouter = require('./routes/users');
+app.use('/api', verifyJwt, usersRouter);
+
 const crudRouter = require('./routes/crud');
 app.use('/api', verifyJwt, crudRouter);
 

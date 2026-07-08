@@ -1,6 +1,7 @@
 import {Eye, EyeOff, KeyRound, LockKeyhole, LogIn, Mail, RotateCcw} from "lucide-react";
 import {useState} from "react";
 import {resolveColorTheme} from "../utils/colorTheme.js";
+import {validatePasswordStrength} from "../utils/passwordStrength.js";
 import {Button, Card, Input} from "./ui/index.js";
 
 function LoginPage({
@@ -15,8 +16,36 @@ function LoginPage({
 }) {
   const [mode, setMode] = useState(isRecovery ? "recovery" : "login");
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [resetRequested, setResetRequested] = useState(false);
+  const [recoveryMessage, setRecoveryMessage] = useState("");
   const activeMode = isRecovery ? "recovery" : mode;
   const themeMode = resolveColorTheme(settings).mode;
+
+  const handleForgotSubmit = async (event) => {
+    const ok = await onResetPassword(event);
+    if (ok) setResetRequested(true);
+  };
+
+  const handleRecoverySubmit = async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const password = String(form.get("password") ?? "");
+    const confirmPassword = String(form.get("confirmPassword") ?? "");
+
+    if (password !== confirmPassword) {
+      setRecoveryMessage("Пароли не совпадают");
+      return;
+    }
+
+    const strength = validatePasswordStrength(password);
+    if (!strength.isValid) {
+      setRecoveryMessage(strength.failures.join(". "));
+      return;
+    }
+
+    setRecoveryMessage("");
+    await onUpdatePassword(event);
+  };
 
   return (
     <main className={`grid w-screen h-screen place-items-center p-6 bg-app-bg text-text-main theme-${themeMode}`}>
@@ -95,9 +124,12 @@ function LoginPage({
                 <button
                   type="button"
                   className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
-                  onClick={() => setMode("reset")}
+                  onClick={() => {
+                    setResetRequested(false);
+                    setMode("reset");
+                  }}
                 >
-                  Забыли пароль?
+                  Nie pamiętasz hasła? / Забыли пароль?
                 </button>
               )}
             </form>
@@ -105,11 +137,16 @@ function LoginPage({
         )}
 
         {activeMode === "reset" && (
-          <form className="flex flex-col gap-4" onSubmit={onResetPassword}>
+          <form className="flex flex-col gap-4" onSubmit={handleForgotSubmit}>
             <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
               Email
               <Input name="email" type="email" autoComplete="email" required className="mt-1" />
             </label>
+            {resetRequested && (
+              <div className="rounded-control border border-border bg-field px-3 py-2 text-xs leading-normal text-text-muted">
+                Если аккаунт существует, ссылка для сброса отправлена.
+              </div>
+            )}
             <Button variant="primary" type="submit" className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
               <Mail size={17} />
               Отправить ссылку
@@ -125,13 +162,13 @@ function LoginPage({
         )}
 
         {activeMode === "recovery" && (
-          <form className="flex flex-col gap-4" onSubmit={onUpdatePassword}>
+          <form className="flex flex-col gap-4" onSubmit={handleRecoverySubmit}>
             <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
               Новый пароль
               <span className="relative block mt-1">
                 <Input
                   name="password"
-                  minLength="8"
+                  minLength="12"
                   type={passwordVisible ? "text" : "password"}
                   autoComplete="new-password"
                   required
@@ -147,10 +184,36 @@ function LoginPage({
                 </button>
               </span>
             </label>
+            <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+              Повторите пароль
+              <Input
+                name="confirmPassword"
+                minLength="12"
+                type={passwordVisible ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                className="mt-1"
+              />
+            </label>
+            <p className="m-0 text-[11px] leading-normal text-text-faint">
+              Минимум 12 символов: заглавная и строчная буква, цифра и специальный символ.
+            </p>
+            {recoveryMessage && (
+              <div className="rounded-control border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs leading-normal text-red-200">
+                {recoveryMessage}
+              </div>
+            )}
             <Button variant="primary" type="submit" className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
               <RotateCcw size={17} />
               Сохранить новый пароль
             </Button>
+            <button
+              type="button"
+              className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
+              onClick={() => window.location.replace("/")}
+            >
+              Вернуться ко входу
+            </button>
           </form>
         )}
       </Card>

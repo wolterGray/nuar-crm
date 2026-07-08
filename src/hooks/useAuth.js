@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useState} from "react";
+import {forgotPassword, resetPassword} from "../api/auth.js";
 import {API_URL} from "../api/config.js";
 
 const AUTH_TOKEN_STORAGE_KEY = "nuar_crm_auth_token";
@@ -42,6 +43,17 @@ const loadStoredSession = () => {
   } catch {
     return null;
   }
+};
+
+const getResetTokenFromUrl = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const tokenFromSearch = searchParams.get("token");
+
+  if (tokenFromSearch) return tokenFromSearch;
+
+  const hash = window.location.hash.replace(/^#/, "");
+  const hashParams = new URLSearchParams(hash);
+  return hashParams.get("token") || hash || "";
 };
 
 export function getAuthToken() {
@@ -167,11 +179,26 @@ export function useAuth({onSessionLostRef, pushNotification}) {
   const handleResetPassword = useCallback(
     async (event) => {
       event.preventDefault();
-      pushNotification({
-        title: "Сброс пароля временно отключён",
-        message: "Пароль задаётся через ADMIN_PASSWORD на backend",
-        persist: false,
-      });
+      const form = new FormData(event.currentTarget);
+      const email = String(form.get("email") ?? "").trim();
+
+      try {
+        await forgotPassword(email);
+        pushNotification({
+          title: "Проверьте почту",
+          message: "Если аккаунт существует, ссылка для сброса отправлена.",
+          persist: false,
+        });
+        return true;
+      } catch (error) {
+        console.error("Forgot password request failed:", error);
+        pushNotification({
+          title: "Запрос принят",
+          message: "Если аккаунт существует, ссылка для сброса отправлена.",
+          persist: false,
+        });
+        return true;
+      }
     },
     [pushNotification],
   );
@@ -179,13 +206,38 @@ export function useAuth({onSessionLostRef, pushNotification}) {
   const handleUpdatePassword = useCallback(
     async (event) => {
       event.preventDefault();
-      setPasswordRecovery(false);
-      window.history.replaceState({}, "", "/");
-      pushNotification({
-        title: "Смена пароля временно отключена",
-        message: "Пароль задаётся через ADMIN_PASSWORD на backend",
-        persist: false,
-      });
+      const form = new FormData(event.currentTarget);
+      const newPassword = String(form.get("password") ?? "");
+      const token = getResetTokenFromUrl();
+
+      if (!token) {
+        pushNotification({
+          title: "Ссылка недействительна",
+          message: "Запросите новую ссылку для сброса пароля.",
+          persist: false,
+        });
+        return false;
+      }
+
+      try {
+        await resetPassword({token, newPassword});
+        setPasswordRecovery(false);
+        window.history.replaceState({}, "", "/");
+        pushNotification({
+          title: "Пароль обновлён",
+          message: "Теперь можно войти с новым паролем.",
+          persist: false,
+        });
+        return true;
+      } catch (error) {
+        console.error("Reset password failed:", error);
+        pushNotification({
+          title: "Пароль не обновлён",
+          message: error?.payload?.message || "Проверьте ссылку и требования к паролю.",
+          persist: false,
+        });
+        return false;
+      }
     },
     [pushNotification],
   );

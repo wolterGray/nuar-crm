@@ -9,17 +9,19 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
+    "auth:create-owner": "node scripts/create-owner-user.js",
     "notifications:process-due": "node scripts/process-due-notifications.js",
     "db:backup": "node scripts/backup-db.js"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
-    "nodemailer": "^6.9.8",
-    "@prisma/client": "^5.22.0"
+    "nodemailer": "^6.9.8"
   },
   "devDependencies": {
     "prisma": "^5.22.0"

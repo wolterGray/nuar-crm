@@ -125,29 +125,25 @@ export default function AppNavigation({
       {/* Mobile More Sheet */}
       {sidebarVisible && (
         <section className="mobile-more-sheet fixed right-0 bottom-16 left-0 z-40 max-h-[70vh] overflow-y-auto border-t border-zinc-800 rounded-t-2xl bg-zinc-950 p-5 shadow-2xl block md:hidden" aria-label="Все разделы">
-          <div className="flex justify-between items-center pb-3 mb-3 border-b border-zinc-900">
-            <span className="text-zinc-400 text-xs font-bold uppercase tracking-wider">Все разделы</span>
+          <div className="mobile-more-sheet-head">
+            <span className="mobile-more-sheet-title">Все разделы</span>
             <button
               aria-label="Закрыть разделы"
-              className="grid w-8 h-8 place-items-center border border-zinc-900 rounded-lg text-zinc-400 hover:text-zinc-300 bg-transparent cursor-pointer"
+              className="mobile-more-sheet-close grid w-8 h-8 place-items-center border border-zinc-900 rounded-lg text-zinc-400 hover:text-zinc-300 bg-transparent cursor-pointer"
               type="button"
               onClick={closeSidebar}
             >
               <X size={15} />
             </button>
           </div>
-          <nav className="grid grid-cols-2 gap-2">
+          <nav className="mobile-more-sheet-nav grid grid-cols-2 gap-2">
             {hiddenMobileItems.map((item) => {
               const Icon = item.icon;
               const isActive = activePage === item.page;
 
               return (
                 <button
-                  className={`flex items-center gap-3 h-11 px-3 border rounded-xl text-xs font-semibold cursor-pointer ${
-                    isActive
-                      ? "text-zinc-100 bg-white/[0.065] border-white/[0.08]"
-                      : "text-zinc-350 bg-zinc-900 border-zinc-850"
-                  }`}
+                  className={isActive ? "active" : ""}
                   key={item.page}
                   type="button"
                   onClick={() => handleSheetPageChange(item.page)}
