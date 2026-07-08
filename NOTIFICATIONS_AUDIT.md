@@ -8,6 +8,7 @@ Notifications now run through the NUAR backend on Hetzner.
 - Frontend API: `src/api/notificationEvents.js`
 - Backend API: `backend/routes/notificationEvents.js`
 - Smart generator: `backend/services/notificationEventsService.js`
+- Delivery planner: `backend/services/notificationDeliveryPlanner.js`
 - Outbound queue: `NotificationDelivery`
 - Smart inbox table: `NotificationEvent`
 
@@ -49,10 +50,18 @@ Recommended Hetzner cron:
 
 The UI also calls generation before fetching active bell events, so the bell stays useful even if cron is temporarily delayed.
 
+## Delivery Planning
+
+`POST /api/notification-events/plan-delivery` previews delivery candidates for active smart events.
+
+- `commit: false` returns a safe preview.
+- `commit: true` queues eligible SMS deliveries, but only when `appSettings.smartNotificationAutoSmsEnabled === true`.
+- SMS planning respects quiet hours by moving delivery to the next quiet-hours end.
+- SMS planning blocks duplicate delivery per event and recent SMS to the same phone for `notificationSmsCooldownDays` days, default `7`.
+
 ## Next Smart Upgrades
 
-- Add event-to-message templates per channel: bell only, SMS, Telegram, or owner-only.
-- Add quiet-hour aware delivery windows on the backend, not only in the UI.
-- Add anti-spam rules per client: max one marketing/follow-up SMS per N days.
+- Add visible delivery planner controls to Settings -> Integrations.
+- Add more event-to-message templates per channel: Telegram owner summaries and staff-only alerts.
 - Add conversion tracking: event created -> action clicked -> booking/payment completed.
 - Add AI ranking later only after enough history exists; current rule-based scoring is safer for production.

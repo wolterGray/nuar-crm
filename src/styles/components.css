@@ -311,15 +311,16 @@
     display: inline-flex !important;
     align-items: center !important;
     width: 100% !important;
-    height: 40px !important;
+    height: auto !important;
     min-width: 0 !important;
-    min-height: 40px !important;
+    min-height: 42px !important;
     max-width: none !important;
     justify-self: stretch !important;
     justify-content: center !important;
     margin: 0 !important;
-    padding: 0 12px !important;
-    line-height: 1 !important;
+    padding: 0 12px 1px !important;
+    line-height: 1.1 !important;
+    text-align: center !important;
   }
 }
 

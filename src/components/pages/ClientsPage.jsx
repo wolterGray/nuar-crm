@@ -32,8 +32,101 @@ import {
 } from "../../utils/certificates.js";
 import PageHeader from "../PageHeader.jsx";
 import MobileSheet from "../MobileSheet.jsx";
+import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
+import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
+
+function ClientRowActions({
+  client,
+  handleAddToWaitlist,
+  handleMessageClient,
+  onDeleteClient,
+  onEditClient,
+  openClientMenuId,
+  setOpenClientMenuId,
+  setViewedClient,
+  setVisitHistoryTab,
+}) {
+  const isOpen = openClientMenuId === client.id;
+  const {menuRef, menuStyle, triggerRef} = useRowActionMenu({
+    isOpen,
+    setOpenMenuId: setOpenClientMenuId,
+  });
+
+  return (
+    <div
+      className="absolute top-4 right-4 md:relative md:top-auto md:right-auto flex justify-end"
+      onClick={(event) => event.stopPropagation()}>
+      <button
+        ref={triggerRef}
+        aria-expanded={isOpen}
+        aria-label="Действия"
+        className="clients-row-menu-button inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:bg-accent/10 active:scale-95 transition-all"
+        type="button"
+        onClick={() =>
+          setOpenClientMenuId(openClientMenuId === client.id ? null : client.id)
+        }>
+        <MoreVertical size={16} />
+      </button>
+
+      <RowActionMenuPortal
+        isOpen={isOpen}
+        menuRef={menuRef}
+        menuStyle={menuStyle}>
+        <div className="clients-row-menu">
+          <button
+            type="button"
+            onClick={() => {
+              setViewedClient(client);
+              setVisitHistoryTab("future");
+              setOpenClientMenuId(null);
+            }}>
+            <Eye size={14} />
+            Посмотреть
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpenClientMenuId(null);
+              handleMessageClient(client);
+            }}>
+            <MessageSquareText size={14} />
+            Написать
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpenClientMenuId(null);
+              handleAddToWaitlist(client);
+            }}>
+            <Clock3 size={14} />
+            Лист ожидания
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpenClientMenuId(null);
+              onEditClient?.(client);
+            }}>
+            <Pencil size={14} />
+            Редактировать
+          </button>
+          <button
+            className="danger"
+            type="button"
+            onClick={() => {
+              setOpenClientMenuId(null);
+              onDeleteClient?.(client);
+            }}>
+            <Trash2 size={14} />
+            Удалить
+          </button>
+        </div>
+      </RowActionMenuPortal>
+    </div>
+  );
+}
 
 function ClientsPage({
   alertFocus,
@@ -454,76 +547,17 @@ function ClientsPage({
                 </div>
 
                 {/* Row actions */}
-                <div
-                  className="absolute top-4 right-4 md:relative md:top-auto md:right-auto flex justify-end"
-                  onClick={(event) => event.stopPropagation()}>
-                  <button
-                    className="clients-row-menu-button inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:bg-accent/10 active:scale-95 transition-all"
-                    aria-label="Действия"
-                    onClick={() =>
-                      setOpenClientMenuId(
-                        openClientMenuId === client.id ? null : client.id,
-                      )
-                    }>
-                    <MoreVertical size={16} />
-                  </button>
-
-                  {openClientMenuId === client.id && (
-                    <div className="clients-row-menu absolute right-0 top-10 md:top-8 z-20 w-48 rounded-lg border border-border bg-card p-1 shadow-lg">
-                      <button
-                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-left text-sm text-foreground hover:bg-accent/10 transition-colors"
-                        type="button"
-                        onClick={() => {
-                          setViewedClient(client);
-                          setVisitHistoryTab("future");
-                          setOpenClientMenuId(null);
-                        }}>
-                        <Eye size={14} />
-                        Посмотреть
-                      </button>
-                      <button
-                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-left text-sm text-foreground hover:bg-accent/10 transition-colors"
-                        type="button"
-                        onClick={() => {
-                          setOpenClientMenuId(null);
-                          handleMessageClient(client);
-                        }}>
-                        <MessageSquareText size={14} />
-                        Написать
-                      </button>
-                      <button
-                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-left text-sm text-foreground hover:bg-accent/10 transition-colors"
-                        type="button"
-                        onClick={() => {
-                          setOpenClientMenuId(null);
-                          handleAddToWaitlist(client);
-                        }}>
-                        <Clock3 size={14} />
-                        Лист ожидания
-                      </button>
-                      <button
-                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-left text-sm text-foreground hover:bg-accent/10 transition-colors"
-                        type="button"
-                        onClick={() => {
-                          setOpenClientMenuId(null);
-                          onEditClient?.(client);
-                        }}>
-                        <Pencil size={14} />
-                        Редактировать
-                      </button>
-                      <button
-                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-left text-sm text-red-500 hover:bg-red-500/10 transition-colors"
-                        type="button"
-                        onClick={() => {
-                          setOpenClientMenuId(null);
-                          onDeleteClient?.(client);
-                        }}>
-                        <Trash2 size={14} />
-                        Удалить
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <ClientRowActions
+                  client={client}
+                  handleAddToWaitlist={handleAddToWaitlist}
+                  handleMessageClient={handleMessageClient}
+                  onDeleteClient={onDeleteClient}
+                  onEditClient={onEditClient}
+                  openClientMenuId={openClientMenuId}
+                  setOpenClientMenuId={setOpenClientMenuId}
+                  setViewedClient={setViewedClient}
+                  setVisitHistoryTab={setVisitHistoryTab}
+                />
               </div>
             );
           })}
@@ -539,7 +573,7 @@ function ClientsPage({
 
       {activeViewedClient && (
         <MobileSheet
-          className="w-full md:w-[820px] max-h-[94dvh] md:max-h-[90dvh] flex flex-col p-0 overflow-hidden"
+          className="client-details-modal client-view-sheet w-full md:w-[820px] max-h-[94dvh] md:max-h-[90dvh] flex flex-col p-0 overflow-hidden"
           fullscreen={isMobile}
           isOpen
           labelledBy="client-card-title"
@@ -734,15 +768,15 @@ function ClientsPage({
             </div>
 
             {/* Visit History */}
-            <div className="flex flex-col gap-3">
-              <div className="flex justify-between items-center text-xs text-muted-foreground">
+            <div className="client-visit-history-section flex flex-col gap-3">
+              <div className="client-visit-history-title flex justify-between items-center text-xs text-muted-foreground">
                 <span className="font-semibold">История визитов</span>
                 <b className="flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-full bg-muted text-foreground font-bold">{activeViewedClient.appointments.length}</b>
               </div>
-              <div className="flex justify-center gap-1 p-1 rounded-lg bg-muted">
+              <div className="client-visit-history-tabs flex justify-center gap-1 p-1 rounded-lg bg-muted">
                 <button
-                  className={`flex-1 inline-flex items-center justify-center gap-2 min-h-9 px-3 rounded-md text-xs font-semibold transition-all ${
-                    visitHistoryTab === "future" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-transparent"
+                  className={`client-visit-history-tab flex-1 inline-flex items-center justify-center gap-2 min-h-9 px-3 rounded-md text-xs font-semibold transition-all ${
+                    visitHistoryTab === "future" ? "is-active bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-transparent"
                   }`}
                   type="button"
                   onClick={() => setVisitHistoryTab("future")}>
@@ -750,8 +784,8 @@ function ClientsPage({
                   <b className="text-[10px]">{activeViewedClient.upcomingVisitsCount}</b>
                 </button>
                 <button
-                  className={`flex-1 inline-flex items-center justify-center gap-2 min-h-9 px-3 rounded-md text-xs font-semibold transition-all ${
-                    visitHistoryTab === "past" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-transparent"
+                  className={`client-visit-history-tab flex-1 inline-flex items-center justify-center gap-2 min-h-9 px-3 rounded-md text-xs font-semibold transition-all ${
+                    visitHistoryTab === "past" ? "is-active bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-transparent"
                   }`}
                   type="button"
                   onClick={() => setVisitHistoryTab("past")}>
@@ -762,7 +796,7 @@ function ClientsPage({
                   </b>
                 </button>
               </div>
-              <div className="h-64 overflow-y-auto border border-border rounded-lg scrollbar-thin select-none">
+              <div className="max-h-64 overflow-y-auto border border-border rounded-lg scrollbar-thin select-none">
                 {/* History Header */}
                 <div className="sticky top-0 z-10 hidden md:grid grid-cols-[100px_minmax(130px,1fr)_80px_80px_90px_80px_90px] gap-2 items-center px-3 py-2 bg-muted text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                   <span>Дата</span>

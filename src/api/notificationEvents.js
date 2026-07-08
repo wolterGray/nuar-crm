@@ -51,6 +51,16 @@ export const upsertNotificationEvent = async (event) => {
   return parseResponse(res);
 };
 
+export const planNotificationDeliveries = async ({commit = false, limit = 50} = {}) => {
+  const headers = await authHeaders();
+  const res = await fetch(`${API_URL}/api/notification-events/plan-delivery`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", ...headers},
+    body: JSON.stringify({commit, limit}),
+  });
+  return parseResponse(res);
+};
+
 export const updateNotificationEvent = async (id, patch) => {
   const headers = await authHeaders();
   const res = await fetch(`${API_URL}/api/notification-events/${id}`, {

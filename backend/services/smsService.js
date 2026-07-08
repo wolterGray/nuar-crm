@@ -65,6 +65,7 @@ const getRecipientMessage = (item, fallbackMessage) =>
 
 const queueSmsDelivery = async ({
   message,
+  notificationEventId = null,
   phone,
   scheduledAt = null,
   status = 'pending',
@@ -81,6 +82,7 @@ const queueSmsDelivery = async ({
     data: {
       channel: 'sms',
       messageText: text,
+      notificationEventId,
       recipient: normalizedPhone,
       scheduledAt,
       status,

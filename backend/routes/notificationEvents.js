@@ -1,6 +1,7 @@
 const express = require('express');
 const {PrismaClient} = require('@prisma/client');
 const {recordAuditLog, recordErrorEvent} = require('../services/loggingService');
+const {planNotificationDeliveries} = require('../services/notificationDeliveryPlanner');
 const {
   generateSmartNotificationEvents,
   listNotificationEvents,
@@ -66,6 +67,37 @@ router.post('/notification-events/generate', async (req, res) => {
       error,
       message: error.message,
       source: 'notification-events',
+    });
+    res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.post('/notification-events/plan-delivery', async (req, res) => {
+  try {
+    const commit = req.body?.commit === true;
+    const result = await planNotificationDeliveries(prisma, {
+      commit,
+      limit: req.body?.limit,
+    });
+    await recordAuditLog(prisma, req, {
+      action: commit ? 'queue notification deliveries' : 'plan notification deliveries',
+      after: {
+        count: result.count,
+        queuedCount: result.queuedCount,
+        quietHoursActive: result.quietHoursActive,
+      },
+      before: null,
+      entity: 'NotificationEvent',
+      entityId: 'delivery-planner',
+    });
+    res.json({success: true, data: result});
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    await recordErrorEvent(prisma, {
+      context: {body: req.body},
+      error,
+      message: error.message,
+      source: 'notification-delivery-planner',
     });
     res.status(response.status).json({success: false, error: response.message});
   }
