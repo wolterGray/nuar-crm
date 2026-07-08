@@ -3937,6 +3937,10 @@
     overflow-x: hidden !important;
   }
 
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel.operations-panel-hidden-mobile {
+    display: none !important;
+  }
+
   .mobile-page-container[data-mobile-page="operations"] .operations-panel-waitlist {
     padding: 0 !important;
     border: 0 !important;
