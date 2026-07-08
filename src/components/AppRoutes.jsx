@@ -14,15 +14,21 @@ const StatisticsPage = lazy(() => import("./pages/StatisticsPage.jsx"));
 const SitePage = lazy(() => import("./pages/SitePage.jsx"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage.jsx"));
 
+function SectionLoadingFallback() {
+  return (
+    <div className="section-loading-fallback" aria-live="polite" aria-busy="true">
+      <span className="section-loading-spinner" aria-hidden="true" />
+      <div className="section-loading-copy">
+        <strong>Загружаем раздел</strong>
+        <small>Подготавливаем данные и интерфейс</small>
+      </div>
+    </div>
+  );
+}
+
 function PageSuspense({children}) {
   return (
-    <Suspense
-      fallback={
-        <div className="grid min-h-[240px] place-items-center rounded-lg border border-white/[0.07] bg-white/[0.035] p-6 text-sm font-semibold text-zinc-400">
-          Загружаем раздел...
-        </div>
-      }
-    >
+    <Suspense fallback={<SectionLoadingFallback />}>
       {children}
     </Suspense>
   );

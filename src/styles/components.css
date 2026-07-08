@@ -6,6 +6,83 @@
   box-shadow: var(--card-shadow);
 }
 
+.section-loading-fallback {
+  display: inline-grid;
+  grid-template-columns: 18px minmax(0, auto);
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: min(100%, 320px);
+  min-height: 72px;
+  margin: 28px auto;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 82%, transparent);
+  border-radius: 10px;
+  color: var(--app-text-main, #f4f5f7);
+  background: color-mix(in srgb, var(--app-window-bg, #050607) 76%, transparent);
+  box-shadow: none;
+}
+
+.section-loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid color-mix(in srgb, var(--app-text-muted, #a3a6b3) 22%, transparent);
+  border-top-color: var(--accent-color, #b91c1c);
+  border-radius: 999px;
+  animation: section-loading-spin 0.85s linear infinite;
+}
+
+.section-loading-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.section-loading-copy strong {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.section-loading-copy small {
+  overflow: hidden;
+  color: var(--app-text-muted, #9ca3af);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes section-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .section-loading-fallback {
+    width: 100%;
+    min-height: 58px;
+    margin: 10px 0;
+    justify-content: start;
+    padding: 11px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .section-loading-copy strong {
+    font-size: 12px;
+  }
+
+  .section-loading-copy small {
+    font-size: 9.5px;
+  }
+}
+
 @media (max-width: 768px) {
   .modal-backdrop .employee-modal.client-form-modal,
   .modal-backdrop .mobile-sheet.employee-modal.client-form-modal {
