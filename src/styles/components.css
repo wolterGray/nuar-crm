@@ -3639,6 +3639,397 @@
     background: transparent;
   }
 
+  .mobile-page-container[data-mobile-page="operations"] .operations-page.operations-page-mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-height: 0 !important;
+    margin-inline: calc(var(--mobile-page-x, 16px) * -1) !important;
+    padding: 0 var(--mobile-page-x, 16px) !important;
+    overflow: hidden !important;
+    background: transparent !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .page-header-unified {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 34px !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 0 12px !important;
+    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    background: transparent !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .page-header-unified-top {
+    display: contents !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .page-header-unified-copy {
+    grid-column: 1 / 2 !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .page-title {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    font-size: 21px !important;
+    line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .page-header-unified-trailing {
+    grid-column: 2 / 3 !important;
+    justify-self: end !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .page-header-unified-actions {
+    display: grid !important;
+    grid-column: 1 / -1 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .page-notifications-slot,
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .client-alert-control {
+    width: 34px !important;
+    min-width: 34px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .client-alert-button,
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .notification-trigger.client-alert-button {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    color: #c9ced6 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-tabs button,
+  .mobile-page-container[data-mobile-page="operations"] .operations-tabs button {
+    min-width: 0 !important;
+    min-height: 38px !important;
+    padding: 0 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    border-radius: 8px !important;
+    color: var(--app-text-muted, #a3a6b3) !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    font-size: 11.5px !important;
+    font-weight: 800 !important;
+    line-height: 1.05 !important;
+    white-space: normal !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-tabs button.active,
+  .mobile-page-container[data-mobile-page="operations"] .operations-tabs button.active {
+    border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 58%, transparent) !important;
+    color: #ffffff !important;
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 22%, transparent) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-color, #b91c1c) 22%, transparent) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-summary {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-summary span {
+    justify-content: center !important;
+    min-width: 0 !important;
+    min-height: 30px !important;
+    padding: 0 8px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    font-size: 10.5px !important;
+    line-height: 1 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden auto !important;
+    padding-bottom: 8px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel {
+    display: grid !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 13px 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    border-radius: 8px !important;
+    background: rgba(10, 12, 14, 0.74) !important;
+    box-shadow: none !important;
+    overflow-x: hidden !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-waitlist {
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-panel.operations-panel {
+    padding: 13px 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    background: rgba(10, 12, 14, 0.74) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+    align-items: start !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-header > div:first-child {
+    display: grid !important;
+    grid-template-columns: 20px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    align-items: center !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-header h2 {
+    font-size: 16px !important;
+    line-height: 1.15 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-header p {
+    margin: 2px 0 0 !important;
+    font-size: 10.5px !important;
+    line-height: 1.2 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-header-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 3px !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page .add-visit-button,
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-header .add-visit-button,
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-form .add-visit-button,
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-panel .add-visit-button {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 0 12px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    white-space: normal !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-list,
+  .mobile-page-container[data-mobile-page="operations"] .client-packages-list {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 9px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] :is(.task-row, .note-row, .supply-row, .waitlist-card) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    padding: 11px !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    overflow: hidden !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-row-content,
+  .mobile-page-container[data-mobile-page="operations"] .operations-card-head {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-row-content > .operations-card-head {
+    grid-column: 2 / 4 !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-card-body,
+  .mobile-page-container[data-mobile-page="operations"] .supply-row-title,
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-meta,
+  .mobile-page-container[data-mobile-page="operations"] .note-meta,
+  .mobile-page-container[data-mobile-page="operations"] .task-meta,
+  .mobile-page-container[data-mobile-page="operations"] .supply-meta {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-card-body strong,
+  .mobile-page-container[data-mobile-page="operations"] .operations-card-body span,
+  .mobile-page-container[data-mobile-page="operations"] .operations-card-body small,
+  .mobile-page-container[data-mobile-page="operations"] .supply-row-note,
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-row-note {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-meta,
+  .mobile-page-container[data-mobile-page="operations"] .note-meta,
+  .mobile-page-container[data-mobile-page="operations"] .supply-meta,
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .supply-actions,
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-card-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 40px 40px !important;
+    gap: 7px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-card-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .supply-actions button,
+  .mobile-page-container[data-mobile-page="operations"] .supply-order-button,
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-action-button {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 38px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 0 10px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: 750 !important;
+    line-height: 1.1 !important;
+    white-space: normal !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .supply-order-button:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 45%, rgba(255, 255, 255, 0.08)) !important;
+    color: #ffffff !important;
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 20%, transparent) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-form {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-form > svg {
+    display: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-form input,
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-category,
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-category-trigger {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-form input,
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-category-trigger {
+    min-height: 38px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-category-menu {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    border-radius: 8px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-empty {
+    min-height: 62px !important;
+    padding: 12px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+  }
+
   .nuar-calendar {
     height: calc(100dvh - 80px);
     max-height: calc(100dvh - 80px);
