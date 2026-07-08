@@ -227,6 +227,7 @@
   .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) .submit-button,
   .mobile-sheet.employee-modal.operations-form-modal .modal-actions :is(.secondary-button, .add-visit-button) {
     display: inline-flex !important;
+    align-items: center !important;
     width: 100% !important;
     min-width: 0 !important;
     min-height: 40px !important;
@@ -249,11 +250,17 @@
 
   .mobile-sheet.employee-modal.task-form-modal .task-submit-button {
     display: inline-flex !important;
+    align-items: center !important;
     width: 100% !important;
+    height: 40px !important;
     min-width: 0 !important;
+    min-height: 40px !important;
     max-width: none !important;
     justify-self: stretch !important;
     justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    line-height: 1 !important;
   }
 }
 
