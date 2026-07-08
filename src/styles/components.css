@@ -3953,6 +3953,20 @@
     background: rgba(10, 12, 14, 0.74) !important;
   }
 
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-panel .page-header-unified {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-panel .page-header-unified > .add-visit-button {
+    justify-self: stretch !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
   .mobile-page-container[data-mobile-page="operations"] .operations-panel-header {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
