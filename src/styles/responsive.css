@@ -1602,7 +1602,7 @@
     grid-row: 3;
   }
 
-  .panel:not(.schedule-panel):not(.clients-page-mobile):not(.visits-panel-mobile):not(.day-close-panel):not(.service-form-sheet-root):not(.package-form-sheet-root):not(.employee-form-sheet-root):not(.message-template-form-sheet-root):not(.client-packages-panel):not(.operations-page-mobile .operations-panel):not(.packages-page-mobile .packages-panel):not(.employees-page-mobile .employees-panel) {
+  .panel:not(.schedule-panel):not(.clients-page-mobile):not(.visits-panel-mobile):not(.day-close-panel):not(.client-form-sheet-root):not(.service-form-sheet-root):not(.package-form-sheet-root):not(.employee-form-sheet-root):not(.message-template-form-sheet-root):not(.client-packages-panel):not(.operations-page-mobile .operations-panel):not(.packages-page-mobile .packages-panel):not(.employees-page-mobile .employees-panel) {
     padding: 18px;
   }
 

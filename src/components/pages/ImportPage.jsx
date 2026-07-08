@@ -118,14 +118,78 @@ function ImportDocumentCard({document, onDelete}) {
   );
 }
 
+function ImportMobileFilterSelect({label, value, options, onChange}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedOption = options.find((option) => option.value === value) ?? options[0];
+
+  const handleSelect = (nextValue) => {
+    onChange(nextValue);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="import-mobile-filter-select">
+      <span>{label}</span>
+      <button
+        aria-expanded={isOpen}
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}>
+        {selectedOption?.label}
+      </button>
+      {isOpen && (
+        <div className="import-mobile-filter-options">
+          {options.map((option) => (
+            <button
+              aria-current={value === option.value ? "true" : undefined}
+              key={option.value}
+              type="button"
+              onClick={() => handleSelect(option.value)}>
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ImportDocumentFilters({
   filters,
   sourceOptions,
   totalSummary,
   updateFilter,
 }) {
+  const sourceFilterOptions = [
+    {value: "all", label: `Все · ${totalSummary.total}`},
+    ...sourceOptions.map((option) => ({
+      value: option.value,
+      label: `${option.label} · ${option.count}`,
+    })),
+  ];
+
   return (
     <div className="import-document-filters flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+      <div className="import-mobile-filter-groups">
+        <ImportMobileFilterSelect
+          label="Источник"
+          options={sourceFilterOptions}
+          value={filters.source}
+          onChange={(value) => updateFilter("source", value)}
+        />
+        <ImportMobileFilterSelect
+          label="Сумма"
+          options={amountFilterOptions}
+          value={filters.amount}
+          onChange={(value) => updateFilter("amount", value)}
+        />
+        <ImportMobileFilterSelect
+          label="Период"
+          options={periodFilterOptions}
+          value={filters.period}
+          onChange={(value) => updateFilter("period", value)}
+        />
+      </div>
+
       <label className="import-filter-field">
         <small className="text-text-faint text-[10px] font-bold tracking-wider uppercase">Источник</small>
         <select
@@ -232,6 +296,7 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
   return (
     <div className="import-page flex flex-col gap-6 p-4 md:p-6 w-full">
       <PageHeader
+        className="import-page-header"
         description="Импорт визитов Booksy и фактур Allegro, Booksy, iPOS из Gmail"
         title="Импорт из Gmail"
       />

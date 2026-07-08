@@ -21,10 +21,12 @@ export function useBreakpoint() {
 
     sync();
     media.addEventListener("change", sync);
+    window.addEventListener("resize", sync);
     window.addEventListener("orientationchange", sync);
 
     return () => {
       media.removeEventListener("change", sync);
+      window.removeEventListener("resize", sync);
       window.removeEventListener("orientationchange", sync);
     };
   }, []);

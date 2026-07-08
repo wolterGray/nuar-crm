@@ -384,11 +384,12 @@ function MessageTemplatesPage({
       }`}
       onClick={() => setOpenMenuId(null)}>
       <PageHeader
+        className="message-templates-page-header"
         collapsedMeta={`${templates.length} шаблонов`}
         collapsible={false}
         actions={
-          isMobile ? (
-            <>
+          <div className="message-templates-page-toolbar">
+            {isMobile ? (
               <SearchControl
                 className="message-templates-search-control"
                 placeholder="Поиск шаблона"
@@ -396,17 +397,12 @@ function MessageTemplatesPage({
                 onChange={(event) => setFilter("query", event.target.value)}
                 onClear={() => setFilter("query", "")}
               />
-              <Button className="message-templates-add-button" variant="primary" type="button" onClick={onAdd}>
-                <Plus size={18} />
-                Добавить
-              </Button>
-            </>
-          ) : (
+            ) : null}
             <Button className="message-templates-add-button" variant="primary" type="button" onClick={onAdd}>
               <Plus size={18} />
-              Добавить шаблон
+              {isMobile ? "Добавить" : "Добавить шаблон"}
             </Button>
-          )
+          </div>
         }
         description={
           isMobile

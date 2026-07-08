@@ -1,4 +1,5 @@
 import {X} from "lucide-react";
+import {useLayoutEffect, useRef} from "react";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import MobileSheet from "./MobileSheet.jsx";
 
@@ -13,6 +14,30 @@ function FormModalShell({
   title,
 }) {
   const {isMobile} = useBreakpoint();
+  const dialogRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!isOpen || !dialogRef.current) {
+      return undefined;
+    }
+
+    const resetScroll = () => {
+      const scrollContainers = [
+        dialogRef.current,
+        ...dialogRef.current.querySelectorAll("*"),
+      ];
+
+      scrollContainers.forEach((element) => {
+        if ("scrollTop" in element) {
+          element.scrollTop = 0;
+        }
+      });
+    };
+
+    resetScroll();
+    const frameId = window.requestAnimationFrame(resetScroll);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [isOpen, title]);
 
   if (!isOpen) {
     return null;
@@ -37,6 +62,7 @@ function FormModalShell({
       className={`modal-backdrop ${backdropClassName}`.trim()}
       role="presentation">
       <section
+        ref={dialogRef}
         aria-labelledby={labelledBy}
         aria-modal="true"
         className={className}

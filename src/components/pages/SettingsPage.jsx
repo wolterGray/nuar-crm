@@ -43,7 +43,7 @@ function SettingsMobileSection({children, isMobile, title}) {
   }
 
   return (
-    <section className="flex flex-col gap-4 p-4 border border-border/60 bg-surface/50 rounded-card mb-4">
+    <section className="settings-mobile-section flex flex-col gap-4 p-4 border border-border/60 bg-surface/50 rounded-card mb-4">
       <h3 className="m-0 text-text-main text-sm font-semibold tracking-tight border-b border-border-soft pb-2">{title}</h3>
       <div className="flex flex-col gap-4">{children}</div>
     </section>
@@ -61,16 +61,16 @@ function IntegrationHealthPanel({actions = {}, report}) {
         : "Автоматизации выключены";
 
   return (
-    <div className={`p-5 border rounded-card bg-surface flex flex-col gap-5 ${
+    <div className={`integration-health-panel p-5 border rounded-card bg-surface flex flex-col gap-5 ${
       overallState === "warning" ? "border-amber-500/20" : overallState === "ok" ? "border-emerald-500/20" : "border-border"
     }`}>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="integration-health-overview flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <span className="block text-text-faint text-xs">Авто-контроль</span>
           <strong className="block text-text-main text-base font-bold mt-0.5">{overallLabel}</strong>
         </div>
-        <div className="flex items-center flex-wrap gap-4">
-          <div className="flex items-center gap-3 bg-field px-3 py-1.5 rounded-control border border-border">
+        <div className="integration-health-actions flex items-center flex-wrap gap-4">
+          <div className="integration-health-counts flex items-center gap-3 bg-field px-3 py-1.5 rounded-control border border-border">
             <span className="text-text-muted text-xs font-semibold">
               <b className="text-emerald-400 mr-1">{report.summary.ok}</b> OK
             </span>
@@ -94,7 +94,7 @@ function IntegrationHealthPanel({actions = {}, report}) {
           const itemActions = actions.itemActions?.[item.id] ?? [];
 
           return (
-            <article key={item.id} className={`p-4 border rounded-control bg-field flex flex-col sm:flex-row sm:items-start justify-between gap-4 ${
+            <article key={item.id} className={`integration-health-item p-4 border rounded-control bg-field flex flex-col sm:flex-row sm:items-start justify-between gap-4 ${
               item.state === "warning" ? "border-amber-500/20" : item.state === "ok" ? "border-emerald-500/10" : "border-border/60"
             }`}>
               <div className="flex gap-3">
@@ -107,7 +107,7 @@ function IntegrationHealthPanel({actions = {}, report}) {
                   {item.diagnostic && <p className="m-0 mt-2 text-text-faint text-xs leading-normal">{item.diagnostic}</p>}
                 </div>
               </div>
-              <div className="flex flex-col sm:items-end gap-2 shrink-0">
+              <div className="integration-health-item-actions flex flex-col sm:items-end gap-2 shrink-0">
                 <em className="text-text-faint text-[10px] not-italic font-medium">{item.lastRunLabel}</em>
                 {itemActions.length ? (
                   <div className="flex items-center gap-2 mt-1">
@@ -659,7 +659,7 @@ function SettingsPage({
   );
 
   const settingsTabsRow = (
-    <div className="flex overflow-x-auto gap-1 border-b border-border pb-px mb-6 scrollbar-none">
+    <div className="settings-tabs-row flex overflow-x-auto gap-1 border-b border-border pb-px mb-6 scrollbar-none">
       {settingsTabs.map((tab) => (
         <button
           className={clsx(
@@ -675,8 +675,29 @@ function SettingsPage({
     </div>
   );
 
+  const settingsMobileSummary = (
+    <div className="settings-mobile-summary">
+      <article>
+        <span>Колокол</span>
+        <strong>{settings.notificationsEnabled ?? true ? "Вкл" : "Выкл"}</strong>
+      </article>
+      <article>
+        <span>SMS</span>
+        <strong>{settings.smsRemindersEnabled ? "Вкл" : "Выкл"}</strong>
+      </article>
+      <article>
+        <span>Облако</span>
+        <strong>{cloudKpiLabel}</strong>
+      </article>
+      <article>
+        <span>Компакт</span>
+        <strong>{settings.compactMode ?? true ? "Вкл" : "Выкл"}</strong>
+      </article>
+    </div>
+  );
+
   const saveBar = (
-    <div className="sticky bottom-0 z-40 flex justify-end gap-3 p-4 border-t border-border bg-surface/90 backdrop-blur-md -mx-6 -mb-6 mt-6">
+    <div className="settings-save-bar sticky bottom-0 z-40 flex justify-end gap-3 p-4 border-t border-border bg-surface/90 backdrop-blur-md -mx-6 -mb-6 mt-6">
       <Button variant="secondary" onClick={resetSettings} className="flex items-center gap-2 cursor-pointer">
         <RotateCcw size={17} />
         Сбросить
@@ -689,47 +710,29 @@ function SettingsPage({
   );
 
   return (
-    <section className="flex flex-col h-full min-h-0 overflow-hidden">
+    <section className={clsx("settings-page flex flex-col h-full min-h-0 overflow-hidden", isMobile && "settings-page-mobile")}>
       <PageHeader
+        className="settings-page-header"
         collapsedMeta={
           settingsTabs.find((tab) => tab.id === activeTab)?.label ?? "Интерфейс"
         }
         collapsible={isMobile}
-        actions={
-          isMobile ? (
-            <>
-              <div className="grid grid-cols-4 gap-2 mb-4">
-                <article className="p-3 border border-border bg-surface/50 rounded-control flex flex-col gap-1 text-center">
-                  <span className="text-[10px] text-text-faint uppercase font-bold">Колокол</span>
-                  <strong className="text-text-main text-xs font-semibold">{settings.notificationsEnabled ?? true ? "Вкл" : "Выкл"}</strong>
-                </article>
-                <article className="p-3 border border-border bg-surface/50 rounded-control flex flex-col gap-1 text-center">
-                  <span className="text-[10px] text-text-faint uppercase font-bold">SMS</span>
-                  <strong className="text-text-main text-xs font-semibold">{settings.smsRemindersEnabled ? "Вкл" : "Выкл"}</strong>
-                </article>
-                <article className="p-3 border border-border bg-surface/50 rounded-control flex flex-col gap-1 text-center">
-                  <span className="text-[10px] text-text-faint uppercase font-bold">Облако</span>
-                  <strong className="text-text-main text-xs font-semibold">{cloudKpiLabel}</strong>
-                </article>
-                <article className="p-3 border border-border bg-surface/50 rounded-control flex flex-col gap-1 text-center">
-                  <span className="text-[10px] text-text-faint uppercase font-bold">Компакт</span>
-                  <strong className="text-text-main text-xs font-semibold">{settings.compactMode ?? true ? "Вкл" : "Выкл"}</strong>
-                </article>
-              </div>
-              {settingsTabsRow}
-            </>
-          ) : undefined
-        }
         description={pageDescription}
         title={pageTitle}
       />
+      {isMobile ? (
+        <>
+          {settingsMobileSummary}
+          {settingsTabsRow}
+        </>
+      ) : null}
       {!isMobile ? settingsTabsRow : null}
       <form
-        className="flex-1 min-h-0 flex flex-col overflow-hidden"
+        className="settings-form-shell flex-1 min-h-0 flex flex-col overflow-hidden"
         key={`${settings.colorTheme}-${settings.compactMode}`}
         ref={formRef}
         onSubmit={onSubmit}>
-        <div className="flex-1 overflow-y-auto pr-1 pb-4 flex flex-col gap-6">
+        <div className="settings-scroll flex-1 overflow-y-auto pr-1 pb-4 flex flex-col gap-6">
           <Card
             className={clsx(
               "p-6 flex flex-col gap-4",
@@ -1277,10 +1280,10 @@ function SettingsPage({
 
           <div
             className={clsx(
-              "flex flex-col gap-6",
+              "settings-integrations-tab flex flex-col gap-6",
               activeTab === "integrations" ? "flex" : "hidden"
             )}>
-            <Card className="p-6 flex flex-col gap-4">
+            <Card className="settings-integration-card p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
                 <Activity size={18} className="text-accent" />
                 <div>
@@ -1296,7 +1299,7 @@ function SettingsPage({
               />
             </Card>
 
-            <Card className="p-6 flex flex-col gap-4">
+            <Card className="settings-integration-card p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
                 <MailCheck size={18} className="text-accent" />
                 <div>
@@ -1318,7 +1321,7 @@ function SettingsPage({
             </Card>
 
             {smsReminders && (
-              <Card className="p-6">
+              <Card className="settings-integration-card p-6">
                 <SmsRemindersPanel
                   status={smsReminders.status}
                   onPreview={smsReminders.runPreview}
@@ -1329,7 +1332,7 @@ function SettingsPage({
             )}
 
             {reviewRequests && (
-              <Card className="p-6">
+              <Card className="settings-integration-card p-6">
                 <ReviewRequestsPanel
                   pushNotification={pushNotification}
                   status={reviewRequests.status}
@@ -1341,7 +1344,7 @@ function SettingsPage({
             )}
 
             {inactiveFollowUp && (
-              <Card className="p-6">
+              <Card className="settings-integration-card p-6">
                 <InactiveFollowUpPanel
                   pushNotification={pushNotification}
                   status={inactiveFollowUp.status}
@@ -1353,7 +1356,7 @@ function SettingsPage({
             )}
 
             {telegramDigest && (
-              <Card className="p-6">
+              <Card className="settings-integration-card p-6">
                 <TelegramDigestPanel
                   pushNotification={pushNotification}
                   status={telegramDigest.status}

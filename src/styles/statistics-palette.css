@@ -89,7 +89,7 @@ body {
   line-height: 1.45;
 }
 
-.panel:not(.schedule-panel):not(.calendar-reminders),
+.panel:not(.schedule-panel):not(.calendar-reminders):not(.client-form-sheet-root),
 .catalog-card,
 .employee-card,
 .settings-panel,
@@ -113,7 +113,7 @@ body {
   backdrop-filter: blur(12px);
 }
 
-.panel:not(.schedule-panel):not(.visits-panel-mobile):not(.day-close-panel),
+.panel:not(.schedule-panel):not(.visits-panel-mobile):not(.day-close-panel):not(.client-form-sheet-root),
 .settings-panel,
 .statistics-panel {
   padding: 20px;
@@ -601,7 +601,7 @@ button:focus-visible {
     font-size: 20px;
   }
 
-  .panel:not(.clients-page-mobile):not(.visits-panel-mobile):not(.day-close-panel):not(.operations-page-mobile .operations-panel):not(.packages-page-mobile .packages-panel):not(.employees-page-mobile .employees-panel),
+  .panel:not(.clients-page-mobile):not(.visits-panel-mobile):not(.day-close-panel):not(.client-form-sheet-root):not(.operations-page-mobile .operations-panel):not(.packages-page-mobile .packages-panel):not(.employees-page-mobile .employees-panel),
   .settings-panel,
   .statistics-panel {
     padding: 16px;

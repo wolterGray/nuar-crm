@@ -1,6 +1,6 @@
 import {UserPlus} from "lucide-react";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {useEffect} from "react";
+import {useEffect, useRef} from "react";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 import {FieldLabel} from "./HintIcon.jsx";
@@ -31,6 +31,7 @@ const clientFormSchema = z.object({
 });
 
 function NewClientForm({client, onSubmit}) {
+  const formRef = useRef(null);
   const {
     formState: {errors, isValid},
     handleSubmit,
@@ -58,6 +59,9 @@ function NewClientForm({client, onSubmit}) {
   useEffect(() => {
     trigger();
   }, [trigger]);
+  useEffect(() => {
+    formRef.current?.scrollTo({top: 0});
+  }, [client?.id]);
   const submitForm = (event) => {
     const form = event.currentTarget;
     handleSubmit(() => onSubmit(form))(event);
@@ -69,7 +73,7 @@ function NewClientForm({client, onSubmit}) {
         <UserPlus size={18} />
         <h2>{client ? "Редактировать клиента" : "Новый клиент"}</h2>
       </div>
-      <form noValidate onSubmit={submitForm}>
+      <form ref={formRef} noValidate onSubmit={submitForm}>
         <label>
           Имя клиента
           <input

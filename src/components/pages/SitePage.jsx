@@ -30,32 +30,7 @@ function SitePage({
     return (
       <section className="site-page site-page-mobile">
         <PageHeader
-          actions={
-            <>
-              <div className="site-page-summary">
-                <article
-                  className={`site-page-summary-card${
-                    pendingCount > 0 ? " is-active" : ""
-                  }`}>
-                  <span>Заявки</span>
-                  <strong>{pendingCount}</strong>
-                </article>
-                <article className="site-page-summary-card">
-                  <span>Telegram</span>
-                  <strong>{telegramEnabled ? "Вкл" : "Выкл"}</strong>
-                </article>
-                <article className="site-page-summary-card">
-                  <span>WhatsApp</span>
-                  <strong>{whatsappEnabled ? "Вкл" : "Выкл"}</strong>
-                </article>
-                <article className="site-page-summary-card">
-                  <span>Chat ID</span>
-                  <strong>{hasChatId ? "Есть" : "Нет"}</strong>
-                </article>
-              </div>
-              <SiteAdminPanel compact embeddedMobile />
-            </>
-          }
+          className="site-page-header"
           description={
             pendingCount > 0
               ? `${pendingCount} заявок ждут обработки`
@@ -63,6 +38,32 @@ function SitePage({
           }
           title="Сайт"
         />
+
+        <div className="site-mobile-admin-panel">
+          <SiteAdminPanel compact embeddedMobile />
+        </div>
+
+        <div className="site-page-summary">
+          <article
+            className={`site-page-summary-card${
+              pendingCount > 0 ? " is-active" : ""
+            }`}>
+            <span>Заявки</span>
+            <strong>{pendingCount}</strong>
+          </article>
+          <article className="site-page-summary-card">
+            <span>Telegram</span>
+            <strong>{telegramEnabled ? "Вкл" : "Выкл"}</strong>
+          </article>
+          <article className="site-page-summary-card">
+            <span>WhatsApp</span>
+            <strong>{whatsappEnabled ? "Вкл" : "Выкл"}</strong>
+          </article>
+          <article className="site-page-summary-card">
+            <span>Chat ID</span>
+            <strong>{hasChatId ? "Есть" : "Нет"}</strong>
+          </article>
+        </div>
 
         <form className="site-page-form settings-form" onSubmit={onSubmit}>
           <div className="site-scroll">

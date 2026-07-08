@@ -195,29 +195,31 @@ function StatisticsFilters({
     );
   };
 
-  return (
-    <div className="statistics-filters flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full p-2">
-      <label className="statistics-filter-field flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs flex-1 min-w-0">
-        <CalendarRange size={14} className="text-muted-foreground" />
-        <input
-          className="bg-transparent border-0 text-foreground w-full focus:outline-none"
-          type="date"
-          value={startDate}
-          onChange={(event) => onStartDateChange(event.target.value)}
-        />
-      </label>
-      {!mobile ? <span className="text-muted-foreground font-semibold">—</span> : null}
-      <label className="statistics-filter-field flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs flex-1 min-w-0">
-        <CalendarRange size={14} className="text-muted-foreground" />
-        <input
-          className="bg-transparent border-0 text-foreground w-full focus:outline-none"
-          type="date"
-          value={endDate}
-          onChange={(event) => onEndDateChange(event.target.value)}
-        />
-      </label>
-      {mobile ? (
-        <div className="flex gap-2 w-full mt-1">
+  if (mobile) {
+    return (
+      <div className="statistics-filters statistics-filters-mobile">
+        <div className="statistics-mobile-date-grid">
+          <label className="statistics-filter-field statistics-mobile-date-field">
+            <CalendarRange size={14} className="text-muted-foreground" />
+            <input
+              className="bg-transparent border-0 text-foreground w-full focus:outline-none"
+              type="date"
+              value={startDate}
+              onChange={(event) => onStartDateChange(event.target.value)}
+            />
+          </label>
+          <label className="statistics-filter-field statistics-mobile-date-field">
+            <CalendarRange size={14} className="text-muted-foreground" />
+            <input
+              className="bg-transparent border-0 text-foreground w-full focus:outline-none"
+              type="date"
+              value={endDate}
+              onChange={(event) => onEndDateChange(event.target.value)}
+            />
+          </label>
+        </div>
+
+        <div className="statistics-mobile-select-grid">
           {renderMobileFilter({
             label: "Сотрудник",
             onChange: onMasterChange,
@@ -242,45 +244,70 @@ function StatisticsFilters({
             value: selectedCurrency.code,
           })}
         </div>
-      ) : (
-        <>
-          <select
-            className="statistics-filter-select min-h-10 min-w-[160px] px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
-            value={master}
-            onChange={(event) => onMasterChange(event.target.value)}>
-            <option value="">Все сотрудники</option>
-            {employees.map((employee) => (
-              <option key={employee.id} value={employee.name}>{employee.name}</option>
-            ))}
-          </select>
-          <select
-            aria-label="Валюта отчёта"
-            className="statistics-filter-select statistics-filter-select-currency min-h-10 min-w-[140px] px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
-            value={currency}
-            onChange={(event) => onCurrencyChange(event.target.value)}>
-            {currencies.map((item) => (
-              <option key={item.code} value={item.code}>
-                {item.code} · {item.label}
-              </option>
-            ))}
-          </select>
-        </>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="statistics-filters flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full p-2">
+      <label className="statistics-filter-field flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs flex-1 min-w-0">
+        <CalendarRange size={14} className="text-muted-foreground" />
+        <input
+          className="bg-transparent border-0 text-foreground w-full focus:outline-none"
+          type="date"
+          value={startDate}
+          onChange={(event) => onStartDateChange(event.target.value)}
+        />
+      </label>
+      {!mobile ? <span className="text-muted-foreground font-semibold">—</span> : null}
+      <label className="statistics-filter-field flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs flex-1 min-w-0">
+        <CalendarRange size={14} className="text-muted-foreground" />
+        <input
+          className="bg-transparent border-0 text-foreground w-full focus:outline-none"
+          type="date"
+          value={endDate}
+          onChange={(event) => onEndDateChange(event.target.value)}
+        />
+      </label>
+      <select
+        className="statistics-filter-select min-h-10 min-w-[160px] px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
+        value={master}
+        onChange={(event) => onMasterChange(event.target.value)}>
+        <option value="">Все сотрудники</option>
+        {employees.map((employee) => (
+          <option key={employee.id} value={employee.name}>{employee.name}</option>
+        ))}
+      </select>
+      <select
+        aria-label="Валюта отчёта"
+        className="statistics-filter-select statistics-filter-select-currency min-h-10 min-w-[140px] px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
+        value={currency}
+        onChange={(event) => onCurrencyChange(event.target.value)}>
+        {currencies.map((item) => (
+          <option key={item.code} value={item.code}>
+            {item.code} · {item.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
 
 function RevenueChart({chartData, formatIncome}) {
-  if (chartData.length < 2) {
+  const hasVisibleData = chartData.some(
+    (item) => toSafeFinanceNumber(item.income) > 0 || toSafeFinanceNumber(item.visitsCount) > 0,
+  );
+
+  if (chartData.length < 2 || !hasVisibleData) {
     return (
-      <div className="flex items-center justify-center min-h-[190px] border border-dashed border-border rounded-xl text-xs text-muted-foreground select-none">
+      <div className="statistics-chart-empty flex items-center justify-center min-h-[190px] border border-dashed border-border rounded-xl text-xs text-muted-foreground select-none">
         Недостаточно данных для построения динамики дохода
       </div>
     );
   }
 
   return (
-    <div className="w-full h-[190px] select-none mt-2">
+    <div className="statistics-revenue-chart w-full h-[190px] select-none mt-2">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{top: 10, right: 8, left: -22, bottom: 0}}>
           <defs>
@@ -696,6 +723,46 @@ function StatisticsPage({
     />
   );
 
+  const mobileFiltersPanel = (
+    <div className="statistics-mobile-controls">
+      <div className="statistics-mobile-date-row">
+        <label className="statistics-mobile-date-control">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(event) => setStartDate(event.target.value)}
+          />
+        </label>
+        <label className="statistics-mobile-date-control">
+          <input
+            type="date"
+            value={endDate}
+            onChange={(event) => setEndDate(event.target.value)}
+          />
+        </label>
+      </div>
+
+      <label className="statistics-mobile-select-control">
+        <span>Сотрудник</span>
+        <select value={master} onChange={(event) => setMaster(event.target.value)}>
+          <option value="">Все</option>
+          {employees.map((employee) => (
+            <option key={employee.id} value={employee.name}>{employee.name}</option>
+          ))}
+        </select>
+      </label>
+
+      <label className="statistics-mobile-select-control">
+        <span>Валюта</span>
+        <select value={currency} onChange={(event) => setCurrency(event.target.value)}>
+          {currencies.map((item) => (
+            <option key={item.code} value={item.code}>{item.code}</option>
+          ))}
+        </select>
+      </label>
+    </div>
+  );
+
   const attentionPanel = (
     <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
       <div className="flex flex-col gap-3">
@@ -721,14 +788,20 @@ function StatisticsPage({
   const paymentsPanel = (
     <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
       <div className="flex flex-col gap-3.5">
-        {paymentRows.map((item) => (
-          <PaymentRow
-            item={item}
-            key={item.label}
-            total={analytics.paymentTotal}
-            value={formatIncome(item.value)}
-          />
-        ))}
+        {paymentRows.length > 0 ? (
+          paymentRows.map((item) => (
+            <PaymentRow
+              item={item}
+              key={item.label}
+              total={analytics.paymentTotal}
+              value={formatIncome(item.value)}
+            />
+          ))
+        ) : (
+          <p className="statistics-empty-note m-0 text-xs text-muted-foreground">
+            Оплат за выбранный период нет.
+          </p>
+        )}
       </div>
     </article>
   );
@@ -870,42 +943,41 @@ function StatisticsPage({
 
   if (isMobile) {
     return (
-      <section className="flex flex-col h-full w-full min-h-0 overflow-hidden bg-background text-foreground">
+      <section className="statistics-page statistics-page-mobile flex flex-col h-full w-full min-h-0 overflow-hidden bg-background text-foreground">
         <PageHeader
           collapsedMeta={`${toDisplayDate(startDate)} — ${toDisplayDate(endDate)}`}
           collapsible={false}
-          actions={
-            <div className="flex flex-col gap-2 w-full">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  className="inline-flex items-center justify-center min-h-10 px-3 rounded-lg border border-border text-foreground hover:bg-accent/5 font-semibold text-xs transition-all"
-                  type="button"
-                  onClick={applyCurrentMonthRange}>
-                  Этот месяц
-                </button>
-                <button
-                  className="inline-flex items-center justify-center min-h-10 px-3 rounded-lg border border-border text-foreground hover:bg-accent/5 font-semibold text-xs transition-all"
-                  type="button"
-                  onClick={applyPreviousMonthRange}>
-                  Прошлый месяц
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                {kpiStats.map((item) => (
-                  <article className="flex flex-col p-3 rounded-xl border border-border bg-card" key={item.label}>
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{item.label}</span>
-                    <strong className="text-foreground text-base font-bold mt-1">{item.value}</strong>
-                  </article>
-                ))}
-              </div>
-              <div className="border-t border-border/40 pt-2 mt-1">{filtersPanel}</div>
-            </div>
-          }
           className="statistics-hero-header"
           description={`${formatIncome(analytics.totalIncome)} · ${toDisplayDate(startDate)} — ${toDisplayDate(endDate)}`}
           headerActions={exportButton}
           title="Статистика"
         />
+
+        <div className="statistics-mobile-header-stack">
+          <div className="statistics-mobile-quick-grid">
+            <button
+              className="inline-flex items-center justify-center min-h-10 px-3 rounded-lg border border-border text-foreground hover:bg-accent/5 font-semibold text-xs transition-all"
+              type="button"
+              onClick={applyCurrentMonthRange}>
+              Этот месяц
+            </button>
+            <button
+              className="inline-flex items-center justify-center min-h-10 px-3 rounded-lg border border-border text-foreground hover:bg-accent/5 font-semibold text-xs transition-all"
+              type="button"
+              onClick={applyPreviousMonthRange}>
+              Прошлый месяц
+            </button>
+          </div>
+          <div className="statistics-mobile-kpi-grid">
+            {kpiStats.map((item) => (
+              <article className="flex flex-col p-3 rounded-xl border border-border bg-card" key={item.label}>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{item.label}</span>
+                <strong className="text-foreground text-base font-bold mt-1">{item.value}</strong>
+              </article>
+            ))}
+          </div>
+          <div className="statistics-mobile-filter-wrap">{mobileFiltersPanel}</div>
+        </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 space-y-4 select-none pr-1 scrollbar-thin">
           {incomeCard}
