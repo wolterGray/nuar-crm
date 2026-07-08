@@ -111,6 +111,139 @@
     min-height: 0 !important;
     margin-top: 0 !important;
   }
+
+  .mobile-sheet.employee-modal.operations-form-modal {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: var(--linear-panel, #0e1013) !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal .mobile-sheet-header {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 32px !important;
+    min-height: 44px !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding:
+      calc(env(safe-area-inset-top, 0px) + 8px)
+      12px
+      8px
+      12px !important;
+    border-bottom: 0 !important;
+    background: transparent !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal .mobile-sheet-header-copy {
+    min-width: 0 !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal .mobile-sheet-header h2 {
+    margin: 0 !important;
+    font-size: 17px !important;
+    line-height: 1.15 !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal .mobile-sheet-close {
+    position: static !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    justify-self: end !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal .mobile-sheet-body {
+    height: calc(100dvh - env(safe-area-inset-top, 0px) - 50px) !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-content: start !important;
+    align-items: start !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 8px 12px calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    background: transparent !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) > label,
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) > div,
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) > p,
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) > button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) label {
+    gap: 6px !important;
+    color: var(--linear-muted, #a3a6b3) !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) :is(input, select, textarea) {
+    min-height: 38px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) textarea {
+    min-height: 112px !important;
+    resize: vertical !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) .form-split,
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) .settings-options-grid,
+  .mobile-sheet.employee-modal.operations-form-modal .modal-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal .modal-actions {
+    margin-top: 2px !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) .submit-button,
+  .mobile-sheet.employee-modal.operations-form-modal .modal-actions :is(.secondary-button, .add-visit-button) {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 0 12px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    white-space: normal !important;
+  }
+
+  .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) .submit-button {
+    justify-self: stretch !important;
+    min-width: 0 !important;
+  }
 }
 
 @media (max-width: 768px) {

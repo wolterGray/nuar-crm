@@ -281,7 +281,7 @@ export default function AppModals({
       </FormModalShell>
 
       <FormModalShell
-        className="employee-modal catalog-modal"
+        className="employee-modal catalog-modal operations-form-modal task-form-modal"
         isOpen={taskModalOpen}
         labelledBy="task-modal-title"
         title={
@@ -296,7 +296,7 @@ export default function AppModals({
       </FormModalShell>
 
       <FormModalShell
-        className="employee-modal catalog-modal"
+        className="employee-modal catalog-modal operations-form-modal supply-form-modal"
         isOpen={supplyModalOpen}
         labelledBy="supply-modal-title"
         title={editingSupply ? "Редактировать расходник" : "Новый расходник"}
@@ -397,7 +397,7 @@ export default function AppModals({
       />
 
       <FormModalShell
-        className="employee-modal client-form-modal"
+        className="employee-modal operations-form-modal waitlist-form-modal"
         isOpen={waitlistModalOpen}
         labelledBy="waitlist-modal-title"
         title={
