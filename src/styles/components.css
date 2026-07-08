@@ -84,6 +84,65 @@
 }
 
 @media (max-width: 768px) {
+  .dialog-backdrop:has(.confirm-dialog) {
+    align-items: center !important;
+    justify-items: center !important;
+    place-items: center !important;
+    padding:
+      calc(12px + env(safe-area-inset-top, 0px))
+      12px
+      calc(var(--mobile-nav-total, 72px) + 16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .dialog-backdrop .confirm-dialog {
+    display: grid !important;
+    gap: 14px !important;
+    width: min(100%, 340px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - var(--mobile-nav-total, 72px) - 44px) !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    overflow: auto !important;
+    border-radius: 10px !important;
+    background: var(--linear-panel, #0e1013) !important;
+  }
+
+  .dialog-backdrop .confirm-dialog h2 {
+    font-size: 17px !important;
+    line-height: 1.2 !important;
+  }
+
+  .dialog-backdrop .confirm-dialog p {
+    margin: 0 !important;
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+  }
+
+  .dialog-backdrop .confirm-dialog .dialog-actions {
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .dialog-backdrop .confirm-dialog .dialog-actions :is(button, .secondary-button, .submit-button) {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+  }
+}
+
+@media (max-width: 768px) {
   .modal-backdrop .employee-modal.client-form-modal,
   .modal-backdrop .mobile-sheet.employee-modal.client-form-modal {
     display: flex !important;
