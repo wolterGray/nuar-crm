@@ -83,7 +83,31 @@ export function useSmsReminders({
     setStatus((current) => ({...current, loading: true}));
 
     try {
-      const result = await processSmsReminders();
+      const due = buildDueSmsReminders({
+        appSettings,
+        calendarEntries,
+        clientProfiles,
+        messageTemplates,
+        smsReminderLog,
+      });
+      const reminders = due
+        .filter((item) => item.status === "pending")
+        .map((item) => ({
+          message: item.message,
+          phone: item.phone,
+          sendAt: item.sendAt,
+        }));
+      setLocalDue(due);
+
+      if (reminders.length === 0) {
+        pushNotification({
+          title: "SMS-напоминания",
+          message: "Сейчас нет напоминаний к отправке",
+        });
+        return {failed: [], scheduled: [], sent: []};
+      }
+
+      const result = await processSmsReminders({reminders});
       const sentCount = Array.isArray(result.sent) ? result.sent.length : 0;
       const failedCount = Array.isArray(result.failed) ? result.failed.length : 0;
 
@@ -95,7 +119,7 @@ export function useSmsReminders({
       } else if (failedCount > 0) {
         pushNotification({
           title: "SMS не отправились",
-          message: `Ошибок: ${failedCount}. Проверьте SMSAPI_TOKEN в Supabase.`,
+          message: `Ошибок: ${failedCount}. Проверьте SMSAPI_TOKEN на backend.`,
         });
       }
 
@@ -105,14 +129,24 @@ export function useSmsReminders({
     } catch (error) {
       pushNotification({
         title: "SMS-напоминания не выполнены",
-        message: error?.message || "Не удалось вызвать edge function",
+        message: error?.message || "Не удалось вызвать backend",
       });
       return null;
     } finally {
       processingRef.current = false;
       setStatus((current) => ({...current, loading: false}));
     }
-  }, [authSession, onRemoteSnapshotRefresh, pushNotification, refreshStatus]);
+  }, [
+    appSettings,
+    authSession,
+    calendarEntries,
+    clientProfiles,
+    messageTemplates,
+    onRemoteSnapshotRefresh,
+    pushNotification,
+    refreshStatus,
+    smsReminderLog,
+  ]);
 
   const runPreview = useCallback(async () => {
     if (!authSession) {

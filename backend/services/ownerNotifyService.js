@@ -4,6 +4,12 @@
 
 const nodemailer = require('nodemailer');
 
+const getDefaultEmailFrom = () => {
+  const publicUrl = String(process.env.APP_PUBLIC_URL || process.env.FRONTEND_URL || 'localhost').trim();
+  const host = publicUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '') || 'localhost';
+  return `no-reply@${host}`;
+};
+
 /**
  * Sends an email notification to the owner.
  * @param {Object} payload
@@ -30,7 +36,7 @@ const ownerNotify = async (payload) => {
 
   try {
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `no-reply@${process.env.VITE_SUPABASE_URL || 'localhost'}`,
+      from: process.env.EMAIL_FROM || getDefaultEmailFrom(),
       to: process.env.OWNER_EMAIL,
       subject,
       text,

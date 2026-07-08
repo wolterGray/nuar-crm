@@ -178,7 +178,10 @@ function UserAccessPanel({pushNotification}) {
   }, [pushNotification]);
 
   useEffect(() => {
-    loadUsers();
+    const timer = window.setTimeout(() => {
+      void loadUsers();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [loadUsers]);
 
   const patchRow = (id, patch) => {
@@ -483,7 +486,7 @@ function SettingsPage({
         });
   };
   const cloudStatusMessage = !cloudEnabled
-    ? "Войдите в CRM, чтобы синхронизировать данные с Supabase."
+    ? "Войдите в CRM, чтобы синхронизировать данные с сервером."
     : cloudLoadError
       ? cloudLoadError
       : cloudConflict
@@ -1379,7 +1382,7 @@ function SettingsPage({
                 <div>
                   <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                     Облако
-                    <HintIcon>Синхронизация CRM через Supabase</HintIcon>
+                    <HintIcon>Синхронизация CRM через backend на Hetzner</HintIcon>
                   </h2>
                 </div>
               </div>

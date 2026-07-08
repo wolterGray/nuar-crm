@@ -13,7 +13,6 @@ import {
   startBooksyGmailOAuth,
 } from "../utils/booksySync/api.js";
 import {reviewKindLabel} from "../utils/booksySync/matching.js";
-import {isSupabaseConfigured} from "../lib/supabase.js";
 import {
   clearStoredGmailAccessToken,
   getStoredGmailAccessToken,
@@ -114,11 +113,6 @@ export function useBooksyGmailSync({
   }, []);
 
   const refreshDashboard = useCallback(async () => {
-    if (!isSupabaseConfigured) {
-      setLoadError("Подключите Supabase, чтобы использовать Booksy Gmail Sync.");
-      return;
-    }
-
     setIsLoading(true);
     setLoadError("");
 
@@ -144,13 +138,6 @@ export function useBooksyGmailSync({
     let active = true;
 
     const init = async () => {
-      if (!isSupabaseConfigured) {
-        if (active) {
-          setLoadError("Подключите Supabase, чтобы использовать Booksy Gmail Sync.");
-        }
-        return;
-      }
-
       const serverReady = await areBooksyGmailFunctionsAvailable();
       if (!active) {
         return;
@@ -470,7 +457,7 @@ export function useBooksyGmailSync({
     syncNow,
     refreshDashboard,
     applyDecision,
-    isConfigured: isSupabaseConfigured,
+    isConfigured: Boolean(gmailClientId?.trim() || useServerSync),
     isGmailConnected,
     useServerSync,
   };

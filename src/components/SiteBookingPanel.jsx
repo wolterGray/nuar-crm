@@ -92,7 +92,7 @@ function SiteBookingPanel({
         title: "Статус уведомлений недоступен",
         message:
           error?.message ||
-          "Сохраните настройки в облако и задеплойте telegram-daily-digest",
+          "Сохраните настройки и проверьте backend Telegram/WhatsApp",
       });
     }
   }, [pushNotification]);
@@ -137,7 +137,7 @@ function SiteBookingPanel({
     } catch (error) {
       pushNotification?.({
         title: "Тест не выполнен",
-        message: error?.message || "Не удалось вызвать edge function",
+        message: error?.message || "Не удалось вызвать backend",
       });
     } finally {
       setTestingNotify(false);

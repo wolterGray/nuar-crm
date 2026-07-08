@@ -57,7 +57,7 @@ function BulkSmsPanel({
     } catch (error) {
       onNotify?.({
         title: "Тест не выполнен",
-        message: error?.message || "Проверьте SMSAPI_TOKEN в Supabase",
+        message: error?.message || "Проверьте SMSAPI_TOKEN на backend",
       });
     } finally {
       setTesting(false);
@@ -78,7 +78,7 @@ function BulkSmsPanel({
         <strong>
           {bulkSms.status.configured
             ? "SMSAPI подключён на сервере"
-            : "Нужен SMSAPI_TOKEN в Supabase Edge Functions"}
+            : "Нужен SMSAPI_TOKEN на backend"}
         </strong>
         <span>
           Готово к отправке: {summary.readyCount}

@@ -58,6 +58,6 @@ describe("integrationHealth", () => {
     const smsHealth = report.items.find((item) => item.id === "sms-reminders");
 
     expect(smsHealth?.state).toBe("warning");
-    expect(smsHealth?.diagnostic).toContain("GitHub Actions cron");
+    expect(smsHealth?.diagnostic).toContain("cron/PM2 worker");
   });
 });

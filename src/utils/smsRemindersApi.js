@@ -1,42 +1,23 @@
-import {supabase} from "../lib/supabase.js";
 import {
   clearFunctionStatusCache,
   withFunctionStatusCache,
 } from "./functionStatusCache.js";
+import {smsReminders} from "../api/functions.js";
 
 const SMS_REMINDERS_STATUS_CACHE_KEY = "visit-sms-reminders:status";
 
-const invokeVisitSmsReminders = async (body) => {
-  if (!supabase) {
-    throw new Error("Supabase не настроен");
-  }
-
-  const {data, error} = await supabase.functions.invoke("visit-sms-reminders", {
-    body,
-  });
-
-  if (error) {
-    throw error;
-  }
-
-  if (data?.error) {
-    throw new Error(String(data.error));
-  }
-
-  return data;
-};
+const invokeVisitSmsReminders = (body) => smsReminders(body);
 
 export const fetchSmsReminderStatus = () =>
   withFunctionStatusCache(SMS_REMINDERS_STATUS_CACHE_KEY, () =>
     invokeVisitSmsReminders({action: "status"}),
   );
 
-export const previewSmsReminders = () =>
-  invokeVisitSmsReminders({action: "preview"});
+export const previewSmsReminders = () => Promise.resolve({due: []});
 
-export const processSmsReminders = async () => {
+export const processSmsReminders = async ({reminders = []} = {}) => {
   clearFunctionStatusCache(SMS_REMINDERS_STATUS_CACHE_KEY);
-  return invokeVisitSmsReminders({action: "process"});
+  return invokeVisitSmsReminders({reminders});
 };
 
 export const sendSmsReminderTest = ({message, phone}) =>

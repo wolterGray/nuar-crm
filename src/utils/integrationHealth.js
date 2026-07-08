@@ -41,7 +41,7 @@ const buildAutomationHealth = ({
   okDiagnostic = "Последний статус выглядит нормально.",
   status = {},
   statusChecks = [],
-  staleDiagnostic = "Обновите статус или проверьте GitHub Actions cron.",
+  staleDiagnostic = "Обновите статус или проверьте cron/PM2 worker на Hetzner.",
   warningMessage = "Проверьте настройки",
   now,
 }) => {
@@ -102,7 +102,7 @@ export const buildIntegrationHealth = ({
       status: telegramDigest?.status,
       statusChecks: [
         {
-          diagnostic: "Добавьте TELEGRAM_BOT_TOKEN в Supabase Edge Functions Secrets.",
+          diagnostic: "Добавьте TELEGRAM_BOT_TOKEN в backend/.env на Hetzner и перезапустите PM2.",
           ok: telegramDigest?.status?.telegramTokenConfigured,
           message: "Нет TELEGRAM_BOT_TOKEN",
         },
@@ -125,7 +125,7 @@ export const buildIntegrationHealth = ({
       status: smsReminders?.status,
       statusChecks: [
         {
-          diagnostic: "Добавьте SMSAPI_TOKEN в Supabase Edge Functions Secrets.",
+          diagnostic: "Добавьте SMSAPI_TOKEN в backend/.env на Hetzner и перезапустите PM2.",
           ok: smsReminders?.status?.configured,
           message: "Нет SMSAPI_TOKEN",
         },
@@ -143,7 +143,7 @@ export const buildIntegrationHealth = ({
       status: reviewRequests?.status,
       statusChecks: [
         {
-          diagnostic: "Добавьте SMSAPI_TOKEN в Supabase Edge Functions Secrets.",
+          diagnostic: "Добавьте SMSAPI_TOKEN в backend/.env на Hetzner и перезапустите PM2.",
           ok: reviewRequests?.status?.configured,
           message: "Нет SMSAPI_TOKEN",
         },
@@ -161,7 +161,7 @@ export const buildIntegrationHealth = ({
       status: inactiveFollowUp?.status,
       statusChecks: [
         {
-          diagnostic: "Добавьте SMSAPI_TOKEN в Supabase Edge Functions Secrets.",
+          diagnostic: "Добавьте SMSAPI_TOKEN в backend/.env на Hetzner и перезапустите PM2.",
           ok: inactiveFollowUp?.status?.configured,
           message: "Нет SMSAPI_TOKEN",
         },

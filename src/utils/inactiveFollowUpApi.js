@@ -1,45 +1,33 @@
-import {supabase} from "../lib/supabase.js";
 import {
   clearFunctionStatusCache,
   withFunctionStatusCache,
 } from "./functionStatusCache.js";
+import {bulkSms, smsReminders} from "../api/functions.js";
 
 const INACTIVE_FOLLOW_UP_STATUS_CACHE_KEY = "inactive-client-follow-up:status";
 
-const invokeInactiveFollowUp = async (body) => {
-  if (!supabase) {
-    throw new Error("Supabase не настроен");
-  }
-
-  const {data, error} = await supabase.functions.invoke(
-    "inactive-client-follow-up",
-    {
-      body,
-    },
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  if (data?.error) {
-    throw new Error(String(data.error));
-  }
-
-  return data;
-};
+const invokeInactiveFollowUp = (body) => smsReminders(body);
 
 export const fetchInactiveFollowUpStatus = () =>
   withFunctionStatusCache(INACTIVE_FOLLOW_UP_STATUS_CACHE_KEY, () =>
-    invokeInactiveFollowUp({action: "status"}),
+    bulkSms({action: "status"}).then((status) => ({
+      ...status,
+      dueCount: 0,
+      recentLog: [],
+      skippedCount: 0,
+    })),
   );
 
-export const previewInactiveFollowUp = () =>
-  invokeInactiveFollowUp({action: "preview"});
+export const previewInactiveFollowUp = () => Promise.resolve({due: []});
 
-export const processInactiveFollowUp = async () => {
+export const processInactiveFollowUp = async ({followUps = []} = {}) => {
   clearFunctionStatusCache(INACTIVE_FOLLOW_UP_STATUS_CACHE_KEY);
-  return invokeInactiveFollowUp({action: "process"});
+  return invokeInactiveFollowUp({
+    reminders: followUps.map((item) => ({
+      message: item.message,
+      phone: item.phone,
+    })),
+  });
 };
 
 export const sendInactiveFollowUpTest = ({message, phone}) =>

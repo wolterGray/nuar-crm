@@ -248,7 +248,11 @@ const notifyOwnerAboutBooking = async (booking) => {
 
   if (settings.siteBookingNotifyTelegramEnabled === false) return;
 
-  const chatId = firstNonEmpty(settings.telegramChatId, process.env.TELEGRAM_CHAT_ID);
+  const chatId = firstNonEmpty(
+    settings.telegramChatId,
+    process.env.TELEGRAM_CHAT_ID,
+    process.env.TELEGRAM_OWNER_CHAT_ID,
+  );
   if (!chatId) return;
 
   const lines = [

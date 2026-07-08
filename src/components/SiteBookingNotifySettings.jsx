@@ -12,7 +12,7 @@ function SiteBookingNotifySettings({settings}) {
       />
       <div className="settings-options site-booking-notify-options">
         <label className="site-notify-field">
-          <FieldLabel hint="Напишите боту /start, затем возьмите id у @userinfobot или через getUpdates. Альтернатива: переменная TELEGRAM_CHAT_ID на backend. После изменения нажмите «Сохранить настройки» внизу страницы.">
+          <FieldLabel hint="Напишите боту /start, затем возьмите id у @userinfobot или через getUpdates. Альтернатива: переменная TELEGRAM_CHAT_ID в backend/.env на Hetzner. После изменения нажмите «Сохранить настройки» внизу страницы.">
             Telegram Chat ID
           </FieldLabel>
           <input

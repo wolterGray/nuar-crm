@@ -139,7 +139,7 @@ const createAndSendResetToken = async (req, user) => {
     }),
   ]);
 
-  let emailResult = {sent: false, reason: 'not attempted'};
+  let emailResult;
   try {
     emailResult = await sendPasswordResetEmail({email: user.email, resetUrl});
   } catch (error) {

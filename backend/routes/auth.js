@@ -8,7 +8,6 @@ const {
   sendPasswordResetEmail,
 } = require('../services/passwordResetEmailService');
 const {
-  PASSWORD_RESET_TTL_MINUTES,
   createPasswordResetTokenPayload,
   hashResetToken,
   isProduction,

@@ -89,7 +89,22 @@ router.post('/bulk-sms', requireOwner, async (req, res) => {
     }
 
     if (action === 'status') {
-      return res.json({ success: true, status: 'idle' });
+      const dueCount = await prisma.notificationDelivery.count({
+        where: {
+          attempts: {lt: 3},
+          channel: 'sms',
+          scheduledAt: {lte: new Date()},
+          status: {in: ['pending', 'retrying']},
+        },
+      });
+
+      return res.json({
+        success: true,
+        configured: Boolean(process.env.SMSAPI_TOKEN),
+        dueCount,
+        maxRecipients: 100,
+        status: 'idle',
+      });
     }
 
     throw Object.assign(new Error('Invalid action'), {status: 400});
@@ -113,12 +128,37 @@ router.post('/bulk-sms', requireOwner, async (req, res) => {
 // Telegram Digest (stub)
 router.post('/telegram-digest', requireOwner, async (req, res) => {
   const payload = req.body;
+  if (payload?.action === 'status') {
+    const settings = await prisma.systemState
+      .findUnique({where: {key: 'appSettings'}})
+      .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
+      .catch(() => ({}));
+    const telegramChatId = firstNonEmpty(
+      settings.telegramChatId,
+      process.env.TELEGRAM_CHAT_ID,
+      process.env.TELEGRAM_OWNER_CHAT_ID,
+    );
+
+    return res.json({
+      success: true,
+      configured: Boolean(process.env.TELEGRAM_BOT_TOKEN && telegramChatId),
+      lastRunAt: settings.telegramDigestLastRunAt || null,
+      previewMessage: '',
+      telegramChatIdConfigured: Boolean(telegramChatId),
+      telegramTokenConfigured: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+    });
+  }
+
   if (payload?.action === 'owner-notify-status') {
     const settings = await prisma.systemState
       .findUnique({where: {key: 'appSettings'}})
       .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
       .catch(() => ({}));
-    const telegramChatId = firstNonEmpty(settings.telegramChatId, process.env.TELEGRAM_CHAT_ID);
+    const telegramChatId = firstNonEmpty(
+      settings.telegramChatId,
+      process.env.TELEGRAM_CHAT_ID,
+      process.env.TELEGRAM_OWNER_CHAT_ID,
+    );
     const ownerPhone = firstNonEmpty(settings.ownerNotifyPhone, process.env.OWNER_NOTIFY_PHONE);
 
     return res.json({
@@ -140,7 +180,11 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
       .findUnique({where: {key: 'appSettings'}})
       .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
       .catch(() => ({}));
-    const chatId = firstNonEmpty(settings.telegramChatId, process.env.TELEGRAM_CHAT_ID);
+    const chatId = firstNonEmpty(
+      settings.telegramChatId,
+      process.env.TELEGRAM_CHAT_ID,
+      process.env.TELEGRAM_OWNER_CHAT_ID,
+    );
     const telegram = chatId
       ? await telegramDigest({chatId, text: 'NUAR CRM test'})
       : {success: false, error: 'telegramChatId is required'};
@@ -165,7 +209,43 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
     });
   }
 
-  const result = await telegramDigest(payload);
+  if (payload?.action === 'test') {
+    const settings = await prisma.systemState
+      .findUnique({where: {key: 'appSettings'}})
+      .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
+      .catch(() => ({}));
+    const chatId = firstNonEmpty(
+      payload.chatId,
+      settings.telegramChatId,
+      process.env.TELEGRAM_CHAT_ID,
+      process.env.TELEGRAM_OWNER_CHAT_ID,
+    );
+    const result = await telegramDigest({
+      chatId,
+      text: payload.message || 'NUAR CRM test',
+    });
+
+    await auditFunctionCall(req, 'send telegram test', {
+      chatIdPresent: Boolean(chatId),
+      result: summarizeResult(result),
+    });
+
+    return res.json(result);
+  }
+
+  const settings = await prisma.systemState
+    .findUnique({where: {key: 'appSettings'}})
+    .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
+    .catch(() => ({}));
+  const result = await telegramDigest({
+    ...payload,
+    chatId: firstNonEmpty(
+      payload?.chatId,
+      settings.telegramChatId,
+      process.env.TELEGRAM_CHAT_ID,
+      process.env.TELEGRAM_OWNER_CHAT_ID,
+    ),
+  });
   await auditFunctionCall(req, 'send telegram digest', {
     chatIdPresent: Boolean(payload?.chatId),
     hasText: Boolean(String(payload?.text ?? '').trim()),
@@ -177,6 +257,42 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
 // SMS Reminders (stub)
 router.post('/sms-reminders', requireOwner, async (req, res) => {
   const payload = req.body;
+  if (payload?.action === 'status') {
+    const dueCount = await prisma.notificationDelivery.count({
+      where: {
+        attempts: {lt: 3},
+        channel: 'sms',
+        scheduledAt: {lte: new Date()},
+        status: {in: ['pending', 'retrying']},
+      },
+    });
+
+    return res.json({
+      success: true,
+      configured: Boolean(process.env.SMSAPI_TOKEN),
+      dueCount,
+      lastRunAt: null,
+      recentLog: [],
+      skippedCount: 0,
+    });
+  }
+
+  if (payload?.action === 'test') {
+    const result = await smsReminders({
+      reminders: [
+        {
+          message: payload.message,
+          phone: payload.phone,
+        },
+      ],
+    });
+    await auditFunctionCall(req, 'send sms reminder test', {
+      result: summarizeResult(result),
+      testPhonePresent: Boolean(payload.phone),
+    });
+    return res.json(result);
+  }
+
   const result = await smsReminders(payload);
   await auditFunctionCall(req, 'send sms reminders', {
     reminderCount: countItems(payload?.reminders),

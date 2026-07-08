@@ -92,7 +92,19 @@ export function useInactiveFollowUp({
     setStatus((current) => ({...current, loading: true}));
 
     try {
-      const result = await processInactiveFollowUp();
+      const due = buildLocalDue();
+      const followUps = due.filter((item) => item.status === "pending");
+      setLocalDue(due);
+
+      if (followUps.length === 0) {
+        pushNotification({
+          title: "Follow-up",
+          message: "Сейчас нет follow-up к отправке",
+        });
+        return {failed: [], scheduled: [], sent: []};
+      }
+
+      const result = await processInactiveFollowUp({followUps});
       const sentCount = Array.isArray(result.sent) ? result.sent.length : 0;
       const failedCount = Array.isArray(result.failed) ? result.failed.length : 0;
 
@@ -104,7 +116,7 @@ export function useInactiveFollowUp({
       } else if (failedCount > 0) {
         pushNotification({
           title: "Follow-up не отправились",
-          message: `Ошибок: ${failedCount}. Проверьте SMSAPI_TOKEN в Supabase.`,
+          message: `Ошибок: ${failedCount}. Проверьте SMSAPI_TOKEN на backend.`,
         });
       }
 
@@ -114,14 +126,14 @@ export function useInactiveFollowUp({
     } catch (error) {
       pushNotification({
         title: "Follow-up не выполнен",
-        message: error?.message || "Не удалось вызвать edge function",
+        message: error?.message || "Не удалось вызвать backend",
       });
       return null;
     } finally {
       processingRef.current = false;
       setStatus((current) => ({...current, loading: false}));
     }
-  }, [authSession, onRemoteSnapshotRefresh, pushNotification, refreshStatus]);
+  }, [authSession, buildLocalDue, onRemoteSnapshotRefresh, pushNotification, refreshStatus]);
 
   const runPreview = useCallback(async () => {
     if (!authSession) {

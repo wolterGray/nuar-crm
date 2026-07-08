@@ -363,6 +363,19 @@ Cron line:
 0 3 * * * /usr/local/bin/backup-nuar-crm-postgres.sh >/var/log/nuar-crm-backup.log 2>&1
 ```
 
+### Notification worker
+
+Отложенные SMS из `NotificationDelivery` обрабатывает backend worker. Запустите его
+по cron каждые 1-5 минут:
+
+```cron
+*/2 * * * * cd /var/www/nuar-crm/backend && npm run notifications:process-due >> /var/log/nuar-crm-notifications.log 2>&1
+*/5 * * * * cd /var/www/nuar-crm/backend && npm run notifications:generate >> /var/log/nuar-crm-notification-events.log 2>&1
+```
+
+Проверьте, что в `backend/.env` заданы `DATABASE_URL`, `SMSAPI_TOKEN` и, при
+необходимости, `SMSAPI_SENDER`.
+
 Restore example:
 
 ```bash

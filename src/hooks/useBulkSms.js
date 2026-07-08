@@ -145,7 +145,7 @@ export function useBulkSms({
       } else {
         pushNotification({
           title: "Bulk SMS не отправились",
-          message: failed[0]?.error || "Проверьте SMSAPI_TOKEN в Supabase",
+          message: failed[0]?.error || "Проверьте SMSAPI_TOKEN на backend",
         });
       }
 
@@ -153,7 +153,7 @@ export function useBulkSms({
     } catch (error) {
       pushNotification({
         title: "Bulk SMS не выполнен",
-        message: error?.message || "Не удалось вызвать edge function",
+        message: error?.message || "Не удалось вызвать backend",
       });
       return null;
     } finally {

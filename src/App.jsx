@@ -715,6 +715,7 @@ function App() {
     appSettings,
     calendarEntries,
     certificates,
+    clientAlertsOpen,
     clientPackages,
     clientProfiles,
     defaultAppSettings,

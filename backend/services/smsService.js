@@ -20,14 +20,14 @@ const normalizePhone = (value) => {
 
 /**
  * Low‑level SMS sender using the SMSAPI token from environment.
- * Returns an object similar to the original Supabase function result.
+ * Returns a normalized provider result for backend routes and workers.
  */
 const sendSms = async ({ to, message, from }) => {
   const token = String(process.env.SMSAPI_TOKEN ?? '').trim();
   if (!token) {
     return { ok: false, error: 'SMSAPI_TOKEN is not configured' };
   }
-  const sender = from || process.env.SMSAPI_SENDER || 'NUAR';
+  const sender = from || process.env.SMSAPI_SENDER || process.env.SMSAPI_FROM || 'NUAR';
   const params = new URLSearchParams({
     to,
     message,

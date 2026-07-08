@@ -60,7 +60,7 @@ function TelegramDigestPanel({
           {status.configured
             ? "Telegram Bot подключён на сервере"
             : !status.telegramTokenConfigured
-              ? "Нет TELEGRAM_BOT_TOKEN в Supabase Edge Functions → Secrets"
+              ? "Нет TELEGRAM_BOT_TOKEN на backend"
               : !status.telegramChatIdConfigured
                 ? "Укажите Chat ID в блоке «Уведомления о заявках с сайта»"
                 : "Telegram не настроен полностью"}
@@ -120,16 +120,14 @@ function TelegramDigestPanel({
       </button>
 
       <p className="field-hint">
-        Supabase → Project Settings → Edge Functions → Secrets: `TELEGRAM_BOT_TOKEN`,
-        `TELEGRAM_CHAT_ID`, `CRM_OWNER_USER_ID`, `TELEGRAM_DIGEST_CRON_SECRET`.
-        Chat ID можно указать в CRM в блоке «Уведомления о заявках с сайта».
+        На Hetzner в `backend/.env` добавьте `TELEGRAM_BOT_TOKEN` и
+        `TELEGRAM_CHAT_ID`. Chat ID можно указать и в CRM в блоке
+        «Уведомления о заявках с сайта».
       </p>
       <p className="field-hint">
-        Автоотправка в 08:00 (Warsaw): GitHub → Settings → Secrets → Actions — обязательно
-        `SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY` (из Supabase → Settings → API).
-        `TELEGRAM_DIGEST_CRON_SECRET` опционален, если cron идёт через GitHub Actions.
-        В Supabase Edge Functions → Secrets нужны `CRM_OWNER_USER_ID`, `TELEGRAM_BOT_TOKEN`
-        и Chat ID. В CRM включите «Telegram-дайджест» и сохраните настройки в облако.
+        Для автоотправки в 08:00 (Warsaw) нужен серверный cron/PM2 job,
+        который вызывает backend-эндпоинт дайджеста или отдельный worker.
+        В CRM включите «Telegram-дайджест» и сохраните настройки.
       </p>
     </section>
   );

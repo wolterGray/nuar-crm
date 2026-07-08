@@ -78,6 +78,7 @@ model Client {
   certificates    Certificate[] @relation("CertificateBuyer")
   certificateUses Certificate[] @relation("CertificateRecipient")
   communicationLog CommunicationLog[]
+  notificationEvents NotificationEvent[]
 }
 
 model Service {
@@ -411,6 +412,7 @@ model ErrorEvent {
 
 model NotificationDelivery {
   id                Int       @id @default(autoincrement())
+  notificationEventId Int?
   channel           String
   recipient         String
   templateKey       String?
@@ -424,8 +426,44 @@ model NotificationDelivery {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
+  notificationEvent NotificationEvent? @relation(fields: [notificationEventId], references: [id], onDelete: SetNull)
+
   @@index([status, scheduledAt])
+  @@index([notificationEventId])
   @@index([channel])
+  @@index([createdAt])
+}
+
+model NotificationEvent {
+  id                Int       @id @default(autoincrement())
+  fingerprint       String    @unique
+  source            String
+  type              String
+  entityType        String?
+  entityId          String?
+  clientId          Int?
+  clientName        String?
+  priority          String    @default("normal")
+  score             Int       @default(0)
+  title             String
+  message           String
+  recommendedAction String?
+  status            String    @default("new")
+  snoozedUntil      DateTime?
+  lastSeenAt        DateTime?
+  resolvedAt        DateTime?
+  payload           Json?
+  actionHistory     Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  client            Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  deliveries        NotificationDelivery[]
+
+  @@index([status, priority, score])
+  @@index([type, status])
+  @@index([clientId])
+  @@index([snoozedUntil])
   @@index([createdAt])
 }
 

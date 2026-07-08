@@ -86,7 +86,7 @@ export function useTelegramDigest({
         title: "Telegram status недоступен",
         message:
           error?.message ||
-          "Задеплойте telegram-daily-digest и проверьте TELEGRAM_BOT_TOKEN",
+          "Проверьте backend, TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID",
       });
     }
   }, [appSettings, authSession, buildLocalPreview, pushNotification]);
@@ -119,9 +119,12 @@ export function useTelegramDigest({
     setStatus((current) => ({...current, loading: true}));
 
     try {
-      const result = await sendTelegramDigest();
+      const result = await sendTelegramDigest({
+        chatId: appSettings.telegramChatId,
+        text: buildLocalPreview(),
+      });
 
-      if (result?.sent) {
+      if (result?.success || result?.sent) {
         pushNotification({
           title: "Telegram-дайджест отправлен",
           message: "Сводка дня отправлена в Telegram",
@@ -139,14 +142,21 @@ export function useTelegramDigest({
     } catch (error) {
       pushNotification({
         title: "Telegram-дайджест не выполнен",
-        message: error?.message || "Не удалось вызвать edge function",
+        message: error?.message || "Не удалось вызвать backend",
       });
       return null;
     } finally {
       processingRef.current = false;
       setStatus((current) => ({...current, loading: false}));
     }
-  }, [authSession, onRemoteSnapshotRefresh, pushNotification, refreshStatus]);
+  }, [
+    appSettings.telegramChatId,
+    authSession,
+    buildLocalPreview,
+    onRemoteSnapshotRefresh,
+    pushNotification,
+    refreshStatus,
+  ]);
 
   useEffect(() => {
     if (!ENABLE_AUTOMATION_STATUS || !authSession || !cloudHydrated) {

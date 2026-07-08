@@ -41,7 +41,7 @@ function InactiveFollowUpPanel({
     } catch (error) {
       pushNotification?.({
         title: "Тест не выполнен",
-        message: error?.message || "Проверьте SMSAPI_TOKEN в Supabase",
+        message: error?.message || "Проверьте SMSAPI_TOKEN на backend",
       });
     } finally {
       setTesting(false);
@@ -60,7 +60,7 @@ function InactiveFollowUpPanel({
         <strong>
           {status.configured
             ? "SMSAPI подключён на сервере"
-            : "Нужен SMSAPI_TOKEN в Supabase Edge Functions"}
+            : "Нужен SMSAPI_TOKEN на backend"}
         </strong>
         <span>
           К отправке сейчас: {status.dueCount}
@@ -168,8 +168,8 @@ function InactiveFollowUpPanel({
       </button>
 
       <p className="field-hint">
-        Клиентам с будущей записью SMS не отправляется. Cron: `inactive-client-follow-up`
-        раз в час с `INACTIVE_FOLLOW_UP_CRON_SECRET`.
+        Клиентам с будущей записью SMS не отправляется. Для автозапуска используйте
+        worker/cron на Hetzner.
       </p>
     </section>
   );

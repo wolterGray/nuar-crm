@@ -84,7 +84,25 @@ export function useReviewRequests({
     setStatus((current) => ({...current, loading: true}));
 
     try {
-      const result = await processReviewRequests();
+      const due = buildDueReviewRequests({
+        appSettings,
+        calendarEntries,
+        clientProfiles,
+        messageTemplates,
+        reviewRequestLog,
+      });
+      const requests = due.filter((item) => item.status === "pending");
+      setLocalDue(due);
+
+      if (requests.length === 0) {
+        pushNotification({
+          title: "Запросы отзывов",
+          message: "Сейчас нет запросов к отправке",
+        });
+        return {failed: [], scheduled: [], sent: []};
+      }
+
+      const result = await processReviewRequests({requests});
       const sentCount = Array.isArray(result.sent) ? result.sent.length : 0;
       const failedCount = Array.isArray(result.failed) ? result.failed.length : 0;
 
@@ -96,7 +114,7 @@ export function useReviewRequests({
       } else if (failedCount > 0) {
         pushNotification({
           title: "Запросы отзывов не отправились",
-          message: `Ошибок: ${failedCount}. Проверьте SMSAPI_TOKEN в Supabase.`,
+          message: `Ошибок: ${failedCount}. Проверьте SMSAPI_TOKEN на backend.`,
         });
       }
 
@@ -106,14 +124,24 @@ export function useReviewRequests({
     } catch (error) {
       pushNotification({
         title: "Запросы отзывов не выполнены",
-        message: error?.message || "Не удалось вызвать edge function",
+        message: error?.message || "Не удалось вызвать backend",
       });
       return null;
     } finally {
       processingRef.current = false;
       setStatus((current) => ({...current, loading: false}));
     }
-  }, [authSession, onRemoteSnapshotRefresh, pushNotification, refreshStatus]);
+  }, [
+    appSettings,
+    authSession,
+    calendarEntries,
+    clientProfiles,
+    messageTemplates,
+    onRemoteSnapshotRefresh,
+    pushNotification,
+    refreshStatus,
+    reviewRequestLog,
+  ]);
 
   const runPreview = useCallback(async () => {
     if (!authSession) {

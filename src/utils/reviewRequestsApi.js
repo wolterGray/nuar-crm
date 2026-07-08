@@ -1,42 +1,34 @@
-import {supabase} from "../lib/supabase.js";
 import {
   clearFunctionStatusCache,
   withFunctionStatusCache,
 } from "./functionStatusCache.js";
+import {bulkSms, smsReminders} from "../api/functions.js";
 
 const REVIEW_REQUESTS_STATUS_CACHE_KEY = "visit-review-requests:status";
 
-const invokeVisitReviewRequests = async (body) => {
-  if (!supabase) {
-    throw new Error("Supabase не настроен");
-  }
-
-  const {data, error} = await supabase.functions.invoke("visit-review-requests", {
-    body,
-  });
-
-  if (error) {
-    throw error;
-  }
-
-  if (data?.error) {
-    throw new Error(String(data.error));
-  }
-
-  return data;
-};
+const invokeVisitReviewRequests = (body) => smsReminders(body);
 
 export const fetchReviewRequestStatus = () =>
-  withFunctionStatusCache(REVIEW_REQUESTS_STATUS_CACHE_KEY, () =>
-    invokeVisitReviewRequests({action: "status"}),
-  );
+  withFunctionStatusCache(REVIEW_REQUESTS_STATUS_CACHE_KEY, async () => {
+    const status = await bulkSms({action: "status"});
+    return {
+      ...status,
+      dueCount: 0,
+      recentLog: [],
+      skippedCount: 0,
+    };
+  });
 
-export const previewReviewRequests = () =>
-  invokeVisitReviewRequests({action: "preview"});
+export const previewReviewRequests = () => Promise.resolve({due: []});
 
-export const processReviewRequests = async () => {
+export const processReviewRequests = async ({requests = []} = {}) => {
   clearFunctionStatusCache(REVIEW_REQUESTS_STATUS_CACHE_KEY);
-  return invokeVisitReviewRequests({action: "process"});
+  return invokeVisitReviewRequests({
+    reminders: requests.map((item) => ({
+      message: item.message,
+      phone: item.phone,
+    })),
+  });
 };
 
 export const sendReviewRequestTest = ({message, phone}) =>

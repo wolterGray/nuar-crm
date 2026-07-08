@@ -47,7 +47,7 @@ function SmsRemindersPanel({
         <strong>
           {status.configured
             ? "SMSAPI подключён на сервере"
-            : "Нужен SMSAPI_TOKEN в Supabase Edge Functions"}
+            : "Нужен SMSAPI_TOKEN на backend"}
         </strong>
         <span>
           К отправке сейчас: {status.dueCount}
@@ -153,10 +153,9 @@ function SmsRemindersPanel({
       </button>
 
       <p className="field-hint">
-        В Supabase → Edge Functions → Secrets добавьте `SMSAPI_TOKEN`,
-        `CRM_OWNER_USER_ID`, опционально `SMSAPI_SENDER` и `VISIT_SMS_CRON_SECRET`.
-        В GitHub Actions secrets нужны `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
-        и опционально `VISIT_SMS_CRON_SECRET` для cron каждые 15 минут.
+        На Hetzner в `backend/.env` добавьте `SMSAPI_TOKEN` и опционально
+        `SMSAPI_SENDER`. Для отложенных SMS запустите cron/PM2 worker:
+        `npm run notifications:process-due` каждые 1-5 минут.
       </p>
     </section>
   );

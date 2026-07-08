@@ -41,7 +41,7 @@ function ReviewRequestsPanel({
     } catch (error) {
       pushNotification?.({
         title: "Тест не выполнен",
-        message: error?.message || "Проверьте SMSAPI_TOKEN в Supabase",
+        message: error?.message || "Проверьте SMSAPI_TOKEN на backend",
       });
     } finally {
       setTesting(false);
@@ -60,7 +60,7 @@ function ReviewRequestsPanel({
         <strong>
           {status.configured
             ? "SMSAPI подключён на сервере"
-            : "Нужен SMSAPI_TOKEN в Supabase Edge Functions"}
+            : "Нужен SMSAPI_TOKEN на backend"}
         </strong>
         <span>
           К отправке сейчас: {status.dueCount}
@@ -163,8 +163,7 @@ function ReviewRequestsPanel({
 
       <p className="field-hint">
         Автоотправка работает через SMS. Для Telegram в предпросмотре доступна
-        ссылка с готовым текстом. Cron: `visit-review-requests` каждые 15 минут с
-        `VISIT_REVIEW_CRON_SECRET`.
+        ссылка с готовым текстом. Для автозапуска используйте worker/cron на Hetzner.
       </p>
     </section>
   );

@@ -1,4 +1,9 @@
-import {useCallback, useEffect, useMemo, useRef} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {
+  fetchNotificationEvents,
+  generateNotificationEvents,
+  updateNotificationEvent,
+} from "../api/notificationEvents.js";
 import {buildAlertCenter, filterAlertsByMode} from "../utils/alertCenter.js";
 import {getAggregateChildIds} from "../utils/alertAggregation.js";
 import {
@@ -29,12 +34,87 @@ const resolveAlertIds = (alertOrId) => {
   return alertOrId?.id ? [alertOrId.id] : [];
 };
 
+const SERVER_ALERT_PREFIX = "server-notification-";
+
+const isServerAlertId = (id) => String(id ?? "").startsWith(SERVER_ALERT_PREFIX);
+
+const getServerEventId = (id) => Number(String(id).replace(SERVER_ALERT_PREFIX, ""));
+
+const getServerAlertPage = (event) => {
+  if (event.entityType === "calendar_entry" || event.type === "visit_upcoming") return "calendar";
+  if (event.entityType === "task" || event.type === "task_due") return "operations";
+  if (event.entityType === "supply" || event.type === "supply_low_stock") return "operations";
+  if (event.entityType === "waitlist_entry" || event.type === "waitlist_active") return "operations";
+  if (event.entityType === "client_package" || event.type === "package_ending") return "packages";
+  if (event.entityType === "certificate" || event.type?.startsWith("certificate_")) return "payments";
+  return "clients";
+};
+
+const getServerAlertType = (event) => {
+  if (event.type === "task_due") return "task";
+  if (event.type === "supply_low_stock") return "supply";
+  if (event.type === "package_ending") return "package";
+  if (event.type?.startsWith("certificate_")) return "package";
+  if (event.type === "waitlist_active") return "task";
+  if (event.type === "visit_upcoming") return "visit";
+  return "inactive";
+};
+
+const getServerAlertGroup = (event) => {
+  if (event.type === "visit_upcoming") return "calendar";
+  if (event.type === "task_due" || event.type === "supply_low_stock" || event.type === "waitlist_active") return "operations";
+  if (event.type === "package_ending" || event.type?.startsWith("certificate_")) return "packages";
+  return "inactive";
+};
+
+const getServerAlertPriority = (event) => {
+  if (event.priority === "critical") return "critical";
+  if (event.priority === "high" || Number(event.score) >= 70) return "action";
+  return "info";
+};
+
+const getServerAlertActions = (event) => {
+  if (event.recommendedAction === "contact_client" || event.recommendedAction === "offer_package") {
+    return ["write", "open", "snooze"];
+  }
+  if (event.recommendedAction === "open_calendar") return ["calendar", "snooze"];
+  if (event.recommendedAction === "order_supply") return ["order", "open", "snooze"];
+  return ["open", "snooze"];
+};
+
+const mapServerEventToAlert = (event) => ({
+  actions: getServerAlertActions(event),
+  entityId: event.clientId ?? event.entityId,
+  group: getServerAlertGroup(event),
+  id: `${SERVER_ALERT_PREFIX}${event.id}`,
+  message: event.message,
+  meta: {
+    serverEvent: event,
+    client: event.clientId ? {id: event.clientId, name: event.clientName} : null,
+    entry:
+      event.entityType === "calendar_entry"
+        ? {
+            id: event.entityId,
+            client: event.clientName,
+            clientId: event.clientId,
+          }
+        : null,
+    item: event.payload,
+  },
+  page: getServerAlertPage(event),
+  priority: getServerAlertPriority(event),
+  section: event.entityType,
+  title: event.title,
+  type: getServerAlertType(event),
+});
+
 export function useClientAlerts({
   alertFilter = "all",
   alertSnoozes,
   appSettings,
   calendarEntries,
   certificates,
+  clientAlertsOpen,
   clientPackages,
   clientProfiles,
   defaultAppSettings,
@@ -57,6 +137,7 @@ export function useClientAlerts({
   visits,
 }) {
   const smartVisitAlertIds = useRef(new Set());
+  const [serverEvents, setServerEvents] = useState([]);
 
   useEffect(() => {
     setAlertSnoozes((current) => pruneExpiredSnoozes(current));
@@ -101,9 +182,75 @@ export function useClientAlerts({
     [appSettings],
   );
 
+  const refreshServerEvents = useCallback(async () => {
+    if (!appSettings.notificationsEnabled) {
+      setServerEvents([]);
+      return;
+    }
+
+    try {
+      await generateNotificationEvents();
+      const events = await fetchNotificationEvents({limit: 40, status: "active"});
+      setServerEvents(Array.isArray(events) ? events : []);
+    } catch {
+      setServerEvents([]);
+    }
+  }, [appSettings.notificationsEnabled]);
+
+  useEffect(() => {
+    const initialTimer = window.setTimeout(() => {
+      void refreshServerEvents();
+    }, 0);
+    const intervalTimer = window.setInterval(refreshServerEvents, 5 * 60 * 1000);
+    return () => {
+      window.clearTimeout(initialTimer);
+      window.clearInterval(intervalTimer);
+    };
+  }, [refreshServerEvents]);
+
+  const serverAlerts = useMemo(
+    () => serverEvents.map(mapServerEventToAlert),
+    [serverEvents],
+  );
+
+  useEffect(() => {
+    if (!clientAlertsOpen || serverEvents.length === 0) {
+      return undefined;
+    }
+
+    const newEvents = serverEvents.filter((event) => event.status === "new");
+    if (newEvents.length === 0) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      const seenAt = new Date().toISOString();
+      newEvents.forEach((event) => {
+        void updateNotificationEvent(event.id, {
+          action: "seen",
+          status: "seen",
+        });
+      });
+      setServerEvents((current) =>
+        current.map((event) =>
+          newEvents.some((newEvent) => newEvent.id === event.id)
+            ? {...event, lastSeenAt: seenAt, status: "seen"}
+            : event,
+        ),
+      );
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [clientAlertsOpen, serverEvents]);
+
+  const combinedAlerts = useMemo(
+    () => [...serverAlerts, ...alertCenter.alerts],
+    [alertCenter.alerts, serverAlerts],
+  );
+
   const quietFilteredAlerts = useMemo(
-    () => applyQuietHoursFilter(alertCenter.alerts, appSettings),
-    [alertCenter.alerts, appSettings],
+    () => applyQuietHoursFilter(combinedAlerts, appSettings),
+    [appSettings, combinedAlerts],
   );
 
   const visibleAlerts = useMemo(
@@ -138,6 +285,23 @@ export function useClientAlerts({
         });
         return next;
       });
+      alertIds
+        .filter(isServerAlertId)
+        .forEach((alertId) => {
+          const eventId = getServerEventId(alertId);
+          if (!Number.isFinite(eventId)) return;
+          void updateNotificationEvent(eventId, {
+            action: "snooze",
+            snoozedUntil: until.toISOString(),
+          });
+        });
+      setServerEvents((current) =>
+        current.map((event) =>
+          alertIds.includes(`${SERVER_ALERT_PREFIX}${event.id}`)
+            ? {...event, snoozedUntil: until.toISOString(), status: "snoozed"}
+            : event,
+        ),
+      );
       setActiveClientAlertId(null);
     },
     [setActiveClientAlertId, setAlertSnoozes],
@@ -179,6 +343,19 @@ export function useClientAlerts({
         });
         return next;
       });
+      alertIds
+        .filter(isServerAlertId)
+        .forEach((alertId) => {
+          const eventId = getServerEventId(alertId);
+          if (!Number.isFinite(eventId)) return;
+          void updateNotificationEvent(eventId, {
+            action: "dismiss",
+            status: "dismissed",
+          });
+        });
+      setServerEvents((current) =>
+        current.filter((event) => !alertIds.includes(`${SERVER_ALERT_PREFIX}${event.id}`)),
+      );
       setActiveClientAlertId(null);
     },
     [setActiveClientAlertId, setAlertSnoozes, setDismissedClientAlertIds],

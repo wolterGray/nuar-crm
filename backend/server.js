@@ -80,6 +80,9 @@ app.use('/api', verifyJwt, siteBookingRouter);
 const usersRouter = require('./routes/users');
 app.use('/api', verifyJwt, usersRouter);
 
+const notificationEventsRouter = require('./routes/notificationEvents');
+app.use('/api', verifyJwt, notificationEventsRouter);
+
 const crudRouter = require('./routes/crud');
 app.use('/api', verifyJwt, crudRouter);
 

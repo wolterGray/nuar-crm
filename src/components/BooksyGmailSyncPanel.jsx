@@ -49,7 +49,7 @@ function BooksyGmailSyncPanel({
         <div className="grid gap-0.5">
           <h2 className="m-0 text-red-200 text-sm font-semibold">Booksy Gmail Sync</h2>
           <p className="m-0 text-red-300 text-xs">
-            Для серверной синхронизации нужны переменные Supabase и Edge Functions.
+            Для серверной синхронизации нужны переменные Hetzner backend и Google OAuth.
           </p>
         </div>
       </section>
