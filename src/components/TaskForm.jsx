@@ -46,7 +46,7 @@ function TaskForm({task, onSubmit}) {
         {isNote ? "Детали" : "Комментарий"}
         <textarea name="note" defaultValue={task?.note ?? ""} rows="3" />
       </label>
-      <button className="submit-button">
+      <button className="submit-button task-submit-button" type="submit">
         {task ? "Сохранить" : "Добавить задачу"}
       </button>
     </form>
