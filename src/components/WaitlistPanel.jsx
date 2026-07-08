@@ -22,16 +22,17 @@ function WaitlistPanel({
   return (
     <section className="panel operations-panel waitlist-panel">
       <PageHeader
-        actions={
-          <button className="add-visit-button" type="button" onClick={onAdd}>
-            <Plus size={16} />
-            Добавить
-          </button>
-        }
         description="Клиенты, которым можно предложить освободившийся слот"
         showNotifications={false}
         title="Лист ожидания"
       />
+      <button
+        className="add-visit-button waitlist-add-button"
+        type="button"
+        onClick={onAdd}>
+        <Plus size={16} />
+        Добавить
+      </button>
 
       {activeEntries.length === 0 ? (
         <p className="operations-empty">Активных заявок пока нет.</p>

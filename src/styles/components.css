@@ -3993,6 +3993,16 @@
     max-width: none !important;
   }
 
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-panel .waitlist-add-button {
+    display: inline-flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    justify-self: stretch !important;
+    align-self: stretch !important;
+    box-sizing: border-box !important;
+  }
+
   .mobile-page-container[data-mobile-page="operations"] .operations-panel-header {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
