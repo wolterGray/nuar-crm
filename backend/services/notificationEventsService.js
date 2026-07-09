@@ -150,6 +150,11 @@ const upsertNotificationEvent = (prisma, input) => {
 };
 
 const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) => {
+  const settings = await prisma.systemState
+    .findUnique({where: {key: 'appSettings'}})
+    .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
+    .catch(() => ({}));
+
   const today = toIsoDate(now);
   const tomorrow = toIsoDate(new Date(now.getTime() + 86400000));
   const generated = [];
@@ -332,6 +337,53 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
         urgency: 4,
       }),
     );
+  }
+
+  // Retention/Inactive Clients
+  const inactiveDaysLimit = Math.max(7, Number(settings.inactiveClientDays) || 45);
+  const clients = await prisma.client.findMany({
+    select: {
+      id: true,
+      name: true,
+      createdAt: true,
+      visits: {
+        select: { scheduledAt: true },
+        orderBy: { scheduledAt: 'desc' },
+        take: 1,
+      },
+    },
+  });
+
+  for (const client of clients) {
+    let lastVisitDate = null;
+    if (client.visits.length > 0 && client.visits[0].scheduledAt) {
+      lastVisitDate = client.visits[0].scheduledAt;
+    } else {
+      lastVisitDate = client.createdAt;
+    }
+
+    if (!lastVisitDate) continue;
+
+    const daysAbsent = Math.floor((now.getTime() - lastVisitDate.getTime()) / 86400000);
+    if (daysAbsent >= inactiveDaysLimit) {
+      generated.push(
+        await upsertNotificationEvent(prisma, {
+          clientId: client.id,
+          clientName: client.name,
+          entityId: String(client.id),
+          entityType: 'client',
+          fingerprint: `client:${client.id}:inactive`,
+          payload: { daysAbsent, lastVisitDate: lastVisitDate.toISOString() },
+          priority: daysAbsent >= inactiveDaysLimit * 2 ? 'high' : 'normal',
+          recommendedAction: 'contact_client',
+          source: 'smart-generator',
+          title: 'Давно не было визитов',
+          message: `${client.name} · отсутствовал ${daysAbsent} дней`,
+          type: 'client_inactive',
+          urgency: Math.min(20, Math.floor(daysAbsent / 10)),
+        })
+      );
+    }
   }
 
   return {

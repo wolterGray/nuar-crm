@@ -58,6 +58,7 @@ const getServerAlertType = (event) => {
   if (event.type === "waitlist_active") return "task";
   if (event.type === "visit_upcoming" || event.type === "visit_cancelled" || event.type === "visit_rescheduled") return "visit";
   if (event.type === "delivery_failed") return "task";
+  if (event.type === "client_inactive") return "inactive";
   return "inactive";
 };
 
@@ -259,7 +260,8 @@ export function useClientAlerts({
             alert.type !== "task" &&
             alert.type !== "supply" &&
             alert.type !== "package" &&
-            alert.type !== "certificate"
+            alert.type !== "certificate" &&
+            alert.type !== "inactive"
         )
       : alertCenter.alerts;
     return [...serverAlerts, ...clientAlerts];
