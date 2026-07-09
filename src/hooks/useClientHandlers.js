@@ -322,8 +322,8 @@ export function useClientHandlers({
     [clientProfiles, pushNotification, setClientProfiles],
   );
 
-  const openCreateClientPackage = useCallback(() => {
-    setEditingClientPackage(null);
+  const openCreateClientPackage = useCallback((clientName) => {
+    setEditingClientPackage(clientName ? { client: clientName } : null);
     setClientPackageModalOpen(true);
   }, [setClientPackageModalOpen, setEditingClientPackage]);
 
@@ -375,13 +375,13 @@ export function useClientHandlers({
       let savedClientPackage;
 
       try {
-        const response = editingClientPackage
+        const response = editingClientPackage?.id
           ? await updateClientPackage(editingClientPackage.id, clientPackage)
           : await createClientPackage(clientPackage);
         savedClientPackage = response?.data ?? clientPackage;
       } catch (error) {
         pushNotification({
-          title: editingClientPackage ? "Остаток не обновлен" : "Пакет не продан",
+          title: editingClientPackage?.id ? "Остаток не обновлен" : "Пакет не продан",
           message: error?.message || "Backend не принял пакет клиента",
           persist: false,
         });
@@ -389,7 +389,7 @@ export function useClientHandlers({
       }
 
       setClientPackages((current) =>
-        editingClientPackage
+        editingClientPackage?.id
           ? current.map((item) =>
               item.id === savedClientPackage.id ? savedClientPackage : item,
             )
@@ -398,7 +398,7 @@ export function useClientHandlers({
       setClientPackageModalOpen(false);
       setEditingClientPackage(null);
       pushNotification({
-        title: editingClientPackage ? "Остаток обновлен" : "Пакет продан",
+        title: editingClientPackage?.id ? "Остаток обновлен" : "Пакет продан",
         message: `${savedClientPackage.client}: использовано ${getPackageProgressLabel(savedClientPackage)}`,
       });
     },

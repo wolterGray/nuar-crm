@@ -1681,6 +1681,15 @@ function App() {
             );
           }
           break;
+        case "sell": {
+          const client = resolveAlertClient(alert);
+          if (client) {
+            openCreateClientPackage(client.name);
+          } else {
+            openCreateClientPackage();
+          }
+          break;
+        }
         default:
           break;
       }
@@ -1690,6 +1699,7 @@ function App() {
       completeTask,
       navigateFromAlert,
       openClientMessageTemplates,
+      openCreateClientPackage,
       resolveAlertClient,
       setActivePage,
       snoozeAlertDays,

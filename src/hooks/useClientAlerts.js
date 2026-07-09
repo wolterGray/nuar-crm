@@ -75,7 +75,10 @@ const getServerAlertPriority = (event) => {
 };
 
 const getServerAlertActions = (event) => {
-  if (event.recommendedAction === "contact_client" || event.recommendedAction === "offer_package") {
+  if (event.recommendedAction === "offer_package") {
+    return ["sell", "write", "open", "snooze"];
+  }
+  if (event.recommendedAction === "contact_client") {
     return ["write", "open", "snooze"];
   }
   if (event.recommendedAction === "open_calendar") return ["calendar", "snooze"];

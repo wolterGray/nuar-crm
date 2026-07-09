@@ -247,7 +247,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
 
   for (const item of clientPackages) {
     const remaining = toNumber(item.remainingVisits);
-    if (remaining === null || remaining > 2) continue;
+    if (remaining === null || remaining > 1) continue;
 
     generated.push(
       await upsertNotificationEvent(prisma, {

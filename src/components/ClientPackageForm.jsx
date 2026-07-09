@@ -30,7 +30,7 @@ function ClientPackageForm({
 
   return (
     <section className="panel package-form-panel package-form-sheet-root">
-      <h2>{clientPackage ? "Остаток пакета" : "Продать пакет"}</h2>
+      <h2>{clientPackage?.id ? "Остаток пакета" : "Продать пакет"}</h2>
       <form className="catalog-form" onSubmit={onSubmit}>
         <label>
           Клиент
@@ -43,7 +43,7 @@ function ClientPackageForm({
         </label>
         <label>
           Пакет
-          {clientPackage && (
+          {clientPackage?.id && (
             <input
               name="packageTemplateId"
               type="hidden"
@@ -53,7 +53,7 @@ function ClientPackageForm({
           <select
             name="packageTemplateId"
             value={selectedPackageId}
-            disabled={Boolean(clientPackage)}
+            disabled={Boolean(clientPackage?.id)}
             required
             onChange={(event) => setSelectedPackageId(event.target.value)}>
             {packages.map((packageItem) => (

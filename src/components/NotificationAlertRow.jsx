@@ -17,6 +17,7 @@ const ACTION_LABELS = {
   dismiss: "Убрать",
   open: "Открыть",
   order: "Заказать",
+  sell: "Продать",
   snooze: "Скрыть",
   stock: "+1",
   undo: "Вернуть",
@@ -28,6 +29,7 @@ const ACTION_ICONS = {
   client: UserRound,
   complete: Check,
   order: ExternalLink,
+  sell: PackagePlus,
   stock: PackagePlus,
   write: MessageSquareText,
 };
