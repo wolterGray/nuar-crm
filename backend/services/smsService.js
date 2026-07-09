@@ -103,8 +103,51 @@ const markDeliverySent = (delivery, result) =>
     },
   });
 
-const markDeliveryFailed = (delivery, errorMessage, retrying = false) =>
-  prisma.notificationDelivery.update({
+const createDeliveryFailureNotification = async (prisma, deliveryId, recipient, channel, errorMessage, notificationEventId) => {
+  try {
+    let clientName = null;
+    let clientId = null;
+
+    if (notificationEventId) {
+      const parentEvent = await prisma.notificationEvent.findUnique({
+        where: { id: notificationEventId },
+        select: { clientId: true, clientName: true },
+      });
+      if (parentEvent) {
+        clientId = parentEvent.clientId;
+        clientName = parentEvent.clientName;
+      }
+    }
+
+    const channelName = channel === 'sms' ? 'SMS' : 'Telegram';
+    await prisma.notificationEvent.upsert({
+      where: { fingerprint: `delivery-failed:${channel}:${deliveryId}` },
+      create: {
+        fingerprint: `delivery-failed:${channel}:${deliveryId}`,
+        source: 'delivery-worker',
+        type: 'delivery_failed',
+        entityType: 'notification_delivery',
+        entityId: String(deliveryId),
+        clientId,
+        clientName,
+        priority: 'high',
+        score: 85,
+        title: `Ошибка отправки ${channelName}`,
+        message: `Для: ${recipient} · ${errorMessage}`,
+        recommendedAction: 'contact_client',
+        status: 'new',
+      },
+      update: {
+        message: `Для: ${recipient} · ${errorMessage}`,
+      },
+    });
+  } catch (err) {
+    console.error('Failed to create delivery failure notification:', err);
+  }
+};
+
+const markDeliveryFailed = async (delivery, errorMessage, retrying = false) => {
+  const updated = await prisma.notificationDelivery.update({
     where: {id: delivery.id},
     data: {
       attempts: {increment: 1},
@@ -112,6 +155,19 @@ const markDeliveryFailed = (delivery, errorMessage, retrying = false) =>
       status: retrying ? 'retrying' : 'failed',
     },
   });
+
+  if (!retrying) {
+    await createDeliveryFailureNotification(
+      prisma,
+      delivery.id,
+      delivery.recipient,
+      'sms',
+      errorMessage,
+      delivery.notificationEventId
+    );
+  }
+  return updated;
+};
 
 const sendQueuedSmsDelivery = async (delivery) => {
   const result = await sendSms({

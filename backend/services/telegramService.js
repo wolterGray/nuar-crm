@@ -6,6 +6,49 @@ const {PrismaClient} = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+const createDeliveryFailureNotification = async (prisma, deliveryId, recipient, channel, errorMessage, notificationEventId) => {
+  try {
+    let clientName = null;
+    let clientId = null;
+
+    if (notificationEventId) {
+      const parentEvent = await prisma.notificationEvent.findUnique({
+        where: { id: notificationEventId },
+        select: { clientId: true, clientName: true },
+      });
+      if (parentEvent) {
+        clientId = parentEvent.clientId;
+        clientName = parentEvent.clientName;
+      }
+    }
+
+    const channelName = channel === 'sms' ? 'SMS' : 'Telegram';
+    await prisma.notificationEvent.upsert({
+      where: { fingerprint: `delivery-failed:${channel}:${deliveryId}` },
+      create: {
+        fingerprint: `delivery-failed:${channel}:${deliveryId}`,
+        source: 'delivery-worker',
+        type: 'delivery_failed',
+        entityType: 'notification_delivery',
+        entityId: String(deliveryId),
+        clientId,
+        clientName,
+        priority: 'high',
+        score: 85,
+        title: `Ошибка отправки ${channelName}`,
+        message: `Для: ${recipient} · ${errorMessage}`,
+        recommendedAction: 'contact_client',
+        status: 'new',
+      },
+      update: {
+        message: `Для: ${recipient} · ${errorMessage}`,
+      },
+    });
+  } catch (err) {
+    console.error('Failed to create delivery failure notification:', err);
+  }
+};
+
 /**
  * Sends a message via Telegram Bot.
  * @param {Object} payload
@@ -55,17 +98,26 @@ const telegramDigest = async (payload) => {
     });
     const data = await response.json();
     if (!response.ok || !data.ok) {
+      const errorMsg = data.description || `Telegram API error ${response.status}`;
       if (delivery) {
         await prisma.notificationDelivery.update({
           where: {id: delivery.id},
           data: {
             attempts: {increment: 1},
-            errorMessage: data.description || `Telegram API error ${response.status}`,
+            errorMessage: errorMsg,
             status: 'failed',
           },
         });
+        await createDeliveryFailureNotification(
+          prisma,
+          delivery.id,
+          String(chatId),
+          'telegram',
+          errorMsg,
+          payload?.notificationEventId
+        );
       }
-      return { success: false, error: data.description || `Telegram API error ${response.status}` };
+      return { success: false, error: errorMsg };
     }
     if (delivery) {
       await prisma.notificationDelivery.update({
@@ -86,17 +138,26 @@ const telegramDigest = async (payload) => {
       chatId: data.result.chat.id,
     };
   } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Telegram request failed';
     if (delivery) {
       await prisma.notificationDelivery.update({
         where: {id: delivery.id},
         data: {
           attempts: {increment: 1},
-          errorMessage: err instanceof Error ? err.message : 'Telegram request failed',
+          errorMessage: errorMsg,
           status: 'failed',
         },
       });
+      await createDeliveryFailureNotification(
+        prisma,
+        delivery.id,
+        String(chatId),
+        'telegram',
+        errorMsg,
+        payload?.notificationEventId
+      );
     }
-    return { success: false, error: err instanceof Error ? err.message : 'Telegram request failed' };
+    return { success: false, error: errorMsg };
   }
 };
 

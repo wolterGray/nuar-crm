@@ -57,12 +57,13 @@ const getServerAlertType = (event) => {
   if (event.type?.startsWith("certificate_")) return "package";
   if (event.type === "waitlist_active") return "task";
   if (event.type === "visit_upcoming" || event.type === "visit_cancelled" || event.type === "visit_rescheduled") return "visit";
+  if (event.type === "delivery_failed") return "task";
   return "inactive";
 };
 
 const getServerAlertGroup = (event) => {
   if (event.type === "visit_upcoming" || event.type === "visit_cancelled" || event.type === "visit_rescheduled") return "calendar";
-  if (event.type === "task_due" || event.type === "supply_low_stock" || event.type === "waitlist_active") return "operations";
+  if (event.type === "task_due" || event.type === "supply_low_stock" || event.type === "waitlist_active" || event.type === "delivery_failed") return "operations";
   if (event.type === "package_ending" || event.type?.startsWith("certificate_")) return "packages";
   return "inactive";
 };
