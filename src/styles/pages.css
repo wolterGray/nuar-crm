@@ -5975,11 +5975,14 @@ button:focus-visible {
 .payments-page-mobile.nuar-payments .payments-mobile-filters input,
 .payments-page-mobile.nuar-payments .payments-mobile-filters select,
 .payments-page-mobile.nuar-payments .payments-mobile-filters .client-autocomplete input {
+  display: block;
   width: 100%;
   min-width: 0;
+  height: 34px;
   min-height: 34px;
   padding-inline: 9px;
   font-size: 12px;
+  box-sizing: border-box;
 }
 
 .payments-page-mobile.nuar-payments .visits-mobile-list {
