@@ -5947,13 +5947,13 @@ button:focus-visible {
 .payments-mobile-scroll-panel .payments-add-button {
   grid-column: 1 / -1;
   justify-content: center;
-  width: max-content;
+  width: 100%;
   min-height: 38px;
   padding-inline: 14px;
   font-size: 13px;
 }
 
-.payments-mobile-filters {
+.payments-page-mobile.nuar-payments .payments-mobile-filters {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5963,7 +5963,7 @@ button:focus-visible {
   margin: 0;
 }
 
-.payments-mobile-filters label {
+.payments-page-mobile.nuar-payments .payments-mobile-filters label {
   display: grid;
   gap: 4px;
   min-width: 0;
