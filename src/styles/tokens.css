@@ -68,6 +68,12 @@
   --button-submit-weight: 650;
   --button-primary-hover-text: #101010;
 
+  --accent-success: #10B981;
+  --accent-warning: #F59E0B;
+  --accent-error: #EF4444;
+  --accent-info: #3B82F6;
+  --brand-accent: #D1BFA7;
+  --shadow-layer: 0 8px 32px rgba(0,0,0,0.25);
   --header-action-surface: linear-gradient(180deg, #17191c, #101215);
   --header-action-text: #f0f1f2;
   --header-title: #f5f5f6;
