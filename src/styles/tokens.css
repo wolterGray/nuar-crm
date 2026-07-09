@@ -13,6 +13,7 @@
   --app-window-border: var(--linear-border, rgba(255, 255, 255, 0.085));
   --app-card-border: var(--linear-border-soft, rgba(255, 255, 255, 0.055));
   --text: var(--linear-text, #f4f5f7);
+  --text-main: var(--linear-text, #f4f5f7);
   --text-muted: var(--linear-muted, #a3a6b3);
   --text-faint: var(--linear-dim, #737782);
   --accent: var(--accent-color, #b91c1c);
