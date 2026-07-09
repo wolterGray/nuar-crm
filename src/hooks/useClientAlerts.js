@@ -138,6 +138,7 @@ export function useClientAlerts({
 }) {
   const smartVisitAlertIds = useRef(new Set());
   const [serverEvents, setServerEvents] = useState([]);
+  const [serverConnected, setServerConnected] = useState(false);
 
   useEffect(() => {
     setAlertSnoozes((current) => pruneExpiredSnoozes(current));
@@ -185,6 +186,7 @@ export function useClientAlerts({
   const refreshServerEvents = useCallback(async () => {
     if (!appSettings.notificationsEnabled) {
       setServerEvents([]);
+      setServerConnected(false);
       return;
     }
 
@@ -192,8 +194,10 @@ export function useClientAlerts({
       await generateNotificationEvents();
       const events = await fetchNotificationEvents({limit: 40, status: "active"});
       setServerEvents(Array.isArray(events) ? events : []);
+      setServerConnected(true);
     } catch {
       setServerEvents([]);
+      setServerConnected(false);
     }
   }, [appSettings.notificationsEnabled]);
 
@@ -243,10 +247,19 @@ export function useClientAlerts({
     return () => window.clearTimeout(timer);
   }, [clientAlertsOpen, serverEvents]);
 
-  const combinedAlerts = useMemo(
-    () => [...serverAlerts, ...alertCenter.alerts],
-    [alertCenter.alerts, serverAlerts],
-  );
+  const combinedAlerts = useMemo(() => {
+    const clientAlerts = serverConnected
+      ? alertCenter.alerts.filter(
+          (alert) =>
+            alert.type !== "calendar" &&
+            alert.type !== "task" &&
+            alert.type !== "supply" &&
+            alert.type !== "package" &&
+            alert.type !== "certificate"
+        )
+      : alertCenter.alerts;
+    return [...serverAlerts, ...clientAlerts];
+  }, [alertCenter.alerts, serverAlerts, serverConnected]);
 
   const quietFilteredAlerts = useMemo(
     () => applyQuietHoursFilter(combinedAlerts, appSettings),
