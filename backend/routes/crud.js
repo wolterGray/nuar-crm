@@ -8,6 +8,81 @@ const { recordAuditLog, recordErrorEvent } = require('../services/loggingService
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { requireOwner } = require('../middleware/auth');
 const prisma = new PrismaClient();
+const { upsertNotificationEvent } = require('../services/notificationEventsService');
+
+const handleCalendarEntryChange = async (before, after, action, req) => {
+  try {
+    const kind = before?.kind || after?.kind;
+    if (kind !== 'visit') return;
+
+    const id = before?.id || after?.id;
+    const beforePayload = before?.payload && typeof before.payload === 'object' ? before.payload : {};
+    const afterPayload = after?.payload && typeof after.payload === 'object' ? after.payload : {};
+
+    const clientName = afterPayload.client || afterPayload.clientName || beforePayload.client || beforePayload.clientName || 'Клиент';
+    const serviceName = afterPayload.service || afterPayload.serviceName || beforePayload.service || beforePayload.serviceName || 'Услуга';
+    const masterName = afterPayload.master || afterPayload.masterName || beforePayload.master || beforePayload.masterName || 'Мастер';
+    const clientId = afterPayload.clientId || beforePayload.clientId || null;
+
+    const isDeleted = !after;
+    const isCancelledStatus = after && ['cancelled', 'no_show'].includes(after.status) && !['cancelled', 'no_show'].includes(before?.status);
+
+    if (isDeleted || isCancelledStatus) {
+      const date = before?.date || '';
+      const time = before?.time || '';
+      
+      await upsertNotificationEvent(prisma, {
+        clientId: clientId ? Number(clientId) : null,
+        clientName,
+        entityId: String(id),
+        entityType: 'calendar_entry',
+        fingerprint: `visit:${id}:cancelled`,
+        payload: { date, time, clientName, serviceName, masterName },
+        priority: 'high',
+        recommendedAction: 'open_calendar',
+        source: 'visit-tracker',
+        title: 'Запись отменена',
+        message: `${clientName} · ${serviceName} · ${date} ${time} · Мастер: ${masterName}`,
+        type: 'visit_cancelled',
+        urgency: 15,
+      });
+      return;
+    }
+
+    if (before && after) {
+      const dateChanged = before.date !== after.date;
+      const timeChanged = before.time !== after.time;
+
+      if (dateChanged || timeChanged) {
+        await upsertNotificationEvent(prisma, {
+          clientId: clientId ? Number(clientId) : null,
+          clientName,
+          entityId: String(id),
+          entityType: 'calendar_entry',
+          fingerprint: `visit:${id}:rescheduled:${after.date}:${after.time}`,
+          payload: {
+            oldDate: before.date,
+            oldTime: before.time,
+            newDate: after.date,
+            newTime: after.time,
+            clientName,
+            serviceName,
+            masterName,
+          },
+          priority: 'normal',
+          recommendedAction: 'open_calendar',
+          source: 'visit-tracker',
+          title: 'Запись перенесена',
+          message: `${clientName} · Было: ${before.date} ${before.time} · Стало: ${after.date} ${after.time}`,
+          type: 'visit_rescheduled',
+          urgency: 10,
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Failed to handle calendar entry change for notifications:', error);
+  }
+};
 
 // ----- Helper for unified response -----
 const respond = (res, promise) => {
@@ -28,6 +103,13 @@ const respondWithAudit = (req, res, promise, audit) => {
         after: audit?.after === undefined ? data : audit.after,
         entityId: audit?.entityId ?? data?.id,
       });
+      
+      if (audit?.entity === 'CalendarEntry') {
+        const before = audit.before;
+        const after = audit?.after === undefined ? data : audit.after;
+        await handleCalendarEntryChange(before, after, audit.action, req);
+      }
+
       res.json({ success: true, data });
     })
     .catch(async (err) => {

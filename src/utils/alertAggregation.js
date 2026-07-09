@@ -51,7 +51,7 @@ export const aggregateDisplayAlerts = (alerts, appSettings = {}) => {
     3,
     Number(appSettings.inactiveClientAlertLimit) || 5,
   );
-  const preservedTypes = new Set(["calendar", "forecast", "undo"]);
+  const preservedTypes = new Set(["calendar", "forecast", "undo", "visit"]);
   const preserved = alerts.filter((alert) => preservedTypes.has(alert.type));
   const aggregatable = alerts.filter((alert) => !preservedTypes.has(alert.type));
 
