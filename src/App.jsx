@@ -970,14 +970,7 @@ function App() {
     onConflictDetected: handleCloudConflictDetected,
   });
 
-  useEffect(() => {
-    pullRefreshOnRefreshRef.current = async () => {
-      pushNotificationRef.current({
-        message: "Автозагрузка полного облачного снимка отключена. Используйте «Восстановить из облака» в настройках.",
-        title: "Облако защищено",
-      });
-    };
-  }, [pushNotificationRef]);
+
 
   useEffect(() => {
     onSessionLostRef.current = resetCloudSyncState;

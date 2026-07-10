@@ -250,7 +250,8 @@ function StatisticsFilters({
 
   return (
     <div className="statistics-filters flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full p-2">
-      <label className="statistics-filter-field flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs flex-1 min-w-0">
+      
+      <label className="statistics-filter-field flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs w-40">
         <CalendarRange size={14} className="text-muted-foreground" />
         <input
           className="bg-transparent border-0 text-foreground w-full focus:outline-none"
@@ -260,7 +261,7 @@ function StatisticsFilters({
         />
       </label>
       {!mobile ? <span className="text-muted-foreground font-semibold">—</span> : null}
-      <label className="statistics-filter-field flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs flex-1 min-w-0">
+      <label className="statistics-filter-field flex items-center gap-2 min-h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs w-40">
         <CalendarRange size={14} className="text-muted-foreground" />
         <input
           className="bg-transparent border-0 text-foreground w-full focus:outline-none"

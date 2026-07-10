@@ -355,7 +355,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
   });
 
   for (const client of clients) {
-    let lastVisitDate = null;
+    let lastVisitDate;
     if (client.visits.length > 0 && client.visits[0].scheduledAt) {
       lastVisitDate = client.visits[0].scheduledAt;
     } else {

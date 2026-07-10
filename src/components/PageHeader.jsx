@@ -26,9 +26,9 @@ export default function PageHeader({
               {description ? <HintIcon>{description}</HintIcon> : null}
             </h2>
           </div>
-          <div className="page-header-unified-trailing">
+          <div className="page-header-unified-trailing flex items-center gap-2">
             {headerActions ? (
-              <div className="page-header-unified-side">{headerActions}</div>
+              <div className="page-header-unified-side flex items-center gap-2">{headerActions}</div>
             ) : null}
             {notifications}
           </div>

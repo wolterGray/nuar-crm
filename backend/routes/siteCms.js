@@ -24,6 +24,22 @@ const normalizeLimit = (value, fallback = 60) => {
   return Math.min(number, 200);
 };
 
+function deepMerge(target, source) {
+  if (typeof target !== 'object' || target === null) return source;
+  if (typeof source !== 'object' || source === null) return source;
+  if (Array.isArray(target) || Array.isArray(source)) return source;
+
+  const result = { ...target };
+  for (const key of Object.keys(source)) {
+    if (source[key] instanceof Object && key in target) {
+      result[key] = deepMerge(target[key], source[key]);
+    } else {
+      result[key] = source[key];
+    }
+  }
+  return result;
+}
+
 const handleRouteError = async (req, res, error, context = {}) => {
   const response = getHttpErrorResponse(error);
   console.error('Site CMS API error:', error);
@@ -89,6 +105,51 @@ router.put('/site-content', requireOwner, async (req, res) => {
     });
 
     res.json({ success: true, data: { updatedAt } });
+  } catch (error) {
+    await handleRouteError(req, res, error);
+  }
+});
+
+router.patch('/site-content', requireOwner, async (req, res) => {
+  const patch = req.body?.overrides ?? req.body?.data ?? req.body;
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+    return res.status(422).json({ success: false, error: 'CMS overrides patch object is required' });
+  }
+
+  try {
+    await ensureSiteCmsTables(prisma);
+    
+    // Получаем текущие данные
+    const existingRows = await prisma.$queryRaw`
+      select data from site_content
+      where id = ${SITE_CONTENT_ROW_ID}
+      limit 1
+    `;
+    const currentData = existingRows?.[0]?.data ?? {};
+    
+    // Выполняем глубокое слияние
+    const mergedData = deepMerge(currentData, patch);
+    const mergedJson = JSON.stringify(mergedData);
+    
+    const rows = await prisma.$queryRaw`
+      insert into site_content (id, data, updated_at)
+      values (${SITE_CONTENT_ROW_ID}, ${mergedJson}::jsonb, now())
+      on conflict (id) do update
+      set data = excluded.data,
+          updated_at = excluded.updated_at
+      returning updated_at
+    `;
+    const updatedAt = rows?.[0]?.updated_at ?? new Date().toISOString();
+
+    await recordAuditLog(prisma, req, {
+      action: 'patch site content',
+      after: { updatedAt },
+      before: null,
+      entity: 'SiteContent',
+      entityId: SITE_CONTENT_ROW_ID,
+    });
+
+    res.json({ success: true, data: { updatedAt, overrides: mergedData } });
   } catch (error) {
     await handleRouteError(req, res, error);
   }

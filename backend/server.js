@@ -83,8 +83,21 @@ app.use('/api', verifyJwt, usersRouter);
 const notificationEventsRouter = require('./routes/notificationEvents');
 app.use('/api', verifyJwt, notificationEventsRouter);
 
-const crudRouter = require('./routes/crud');
-app.use('/api', verifyJwt, crudRouter);
+const clientsRouter = require('./routes/clients');
+const employeesRouter = require('./routes/employees');
+const servicesRouter = require('./routes/services');
+const visitsRouter = require('./routes/visits');
+const financeRouter = require('./routes/finance');
+const operationsRouter = require('./routes/operations');
+const systemStateRouter = require('./routes/systemState');
+
+app.use('/api', verifyJwt, clientsRouter);
+app.use('/api', verifyJwt, employeesRouter);
+app.use('/api', verifyJwt, servicesRouter);
+app.use('/api', verifyJwt, visitsRouter);
+app.use('/api', verifyJwt, financeRouter);
+app.use('/api', verifyJwt, operationsRouter);
+app.use('/api', verifyJwt, systemStateRouter);
 
 // Error handling middleware – must be after routes
 const errorHandler = require('./middleware/errorHandler');
