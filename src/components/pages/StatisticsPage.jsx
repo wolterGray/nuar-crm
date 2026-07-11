@@ -222,19 +222,22 @@ function StatisticsFilters({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full p-2 bg-transparent">
+    <div
+      className="statistics-filters flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full p-2 bg-transparent"
+      style={{ display: 'flex', flexWrap: 'wrap' }}
+    >
       {/* Left side: Range presets and date fields */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Presets */}
         <div className="flex items-center gap-2">
           <button
-            className="!h-10 !min-h-0 px-4 rounded-lg border border-border bg-card text-foreground hover:bg-accent/10 hover:text-accent font-semibold text-xs transition-all cursor-pointer whitespace-nowrap active:scale-98"
+            className="h-8.5 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
             type="button"
             onClick={onApplyCurrentMonthRange}>
             Этот месяц
           </button>
           <button
-            className="!h-10 !min-h-0 px-4 rounded-lg border border-border bg-card text-foreground hover:bg-accent/10 hover:text-accent font-semibold text-xs transition-all cursor-pointer whitespace-nowrap active:scale-98"
+            className="h-8.5 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
             type="button"
             onClick={onApplyPreviousMonthRange}>
             Прошлый месяц
@@ -245,20 +248,22 @@ function StatisticsFilters({
 
         {/* Date Inputs */}
         <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 !h-10 !min-h-0 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs w-38 focus-within:border-accent cursor-pointer">
-            <CalendarRange size={14} className="text-muted-foreground flex-shrink-0" />
+          <label className="statistics-filter-field flex items-center gap-2 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs cursor-pointer" style={{ width: '178px', minWidth: '178px', height: '38px', display: 'flex', alignItems: 'center' }}>
+            <CalendarRange size={14} className="text-muted-foreground flex-shrink-0" style={{ margin: 0 }} />
             <input
-              className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer !h-full !min-h-0 p-0"
+              className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
+              style={{ border: 0, background: 'transparent', height: '100%', padding: 0 }}
               type="date"
               value={startDate}
               onChange={(event) => onStartDateChange(event.target.value)}
             />
           </label>
           <span className="text-muted-foreground font-semibold text-xs">—</span>
-          <label className="flex items-center gap-2 !h-10 !min-h-0 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs w-38 focus-within:border-accent cursor-pointer">
-            <CalendarRange size={14} className="text-muted-foreground flex-shrink-0" />
+          <label className="statistics-filter-field flex items-center gap-2 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs cursor-pointer" style={{ width: '178px', minWidth: '178px', height: '38px', display: 'flex', alignItems: 'center' }}>
+            <CalendarRange size={14} className="text-muted-foreground flex-shrink-0" style={{ margin: 0 }} />
             <input
-              className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer !h-full !min-h-0 p-0"
+              className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
+              style={{ border: 0, background: 'transparent', height: '100%', padding: 0 }}
               type="date"
               value={endDate}
               onChange={(event) => onEndDateChange(event.target.value)}
@@ -270,7 +275,8 @@ function StatisticsFilters({
       {/* Right side: Dropdown Selects */}
       <div className="flex flex-wrap items-center gap-3">
         <select
-          className="!h-10 !min-h-0 px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer min-w-[165px] w-full sm:w-auto"
+          className="statistics-filter-select px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
+          style={{ width: '190px', minWidth: '190px', height: '38px', marginLeft: 0 }}
           value={master}
           onChange={(event) => onMasterChange(event.target.value)}>
           <option value="">Все сотрудники</option>
@@ -280,7 +286,8 @@ function StatisticsFilters({
         </select>
         <select
           aria-label="Валюта отчёта"
-          className="!h-10 !min-h-0 px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer min-w-[125px] w-full sm:w-auto"
+          className="statistics-filter-select px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
+          style={{ width: '150px', minWidth: '150px', height: '38px' }}
           value={currency}
           onChange={(event) => onCurrencyChange(event.target.value)}>
           {currencies.map((item) => (
@@ -701,10 +708,10 @@ function StatisticsPage({
   const exportButton = (
     <button
       aria-label="Экспорт Excel"
-      className="inline-flex items-center justify-center gap-1.5 min-h-10 md:min-h-9 px-3 rounded-lg border border-border text-foreground hover:bg-accent/5 font-semibold text-xs transition-all cursor-pointer whitespace-nowrap"
+      className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
       type="button"
       onClick={exportStatistics}>
-      <Download size={14} />
+      <Download size={13} className="text-muted-foreground" />
       <span>{isMobile ? "Экспорт" : "Экспорт Excel"}</span>
     </button>
   );
