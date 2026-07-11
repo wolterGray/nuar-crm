@@ -714,3 +714,37 @@ button:focus-visible {
     margin-left: 0;
   }
 }
+
+/* Fix header alignment (title on left, export + bell on far right) */
+.statistics-hero-header {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.statistics-hero-header > div:first-child {
+  flex: 1 1 0% !important;
+}
+
+.statistics-hero-header > div:last-child {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+/* Remove background, shadow and border from the notification bell */
+.statistics-hero-header .client-alert-button,
+.client-alert-button.notification-trigger {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.statistics-hero-header .client-alert-button:hover,
+.client-alert-button.notification-trigger:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--accent-color) !important;
+}
+
