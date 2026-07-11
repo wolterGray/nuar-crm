@@ -231,13 +231,15 @@ function StatisticsFilters({
         {/* Presets */}
         <div className="flex items-center gap-2">
           <button
-            className="h-8.5 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            className="px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            style={{ height: '34px', minHeight: '34px' }}
             type="button"
             onClick={onApplyCurrentMonthRange}>
             Этот месяц
           </button>
           <button
-            className="h-8.5 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            className="px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            style={{ height: '34px', minHeight: '34px' }}
             type="button"
             onClick={onApplyPreviousMonthRange}>
             Прошлый месяц
@@ -248,22 +250,22 @@ function StatisticsFilters({
 
         {/* Date Inputs */}
         <div className="flex items-center gap-2">
-          <label className="statistics-filter-field flex items-center gap-2 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs cursor-pointer" style={{ width: '178px', minWidth: '178px', height: '38px', display: 'flex', alignItems: 'center' }}>
+          <label className="statistics-filter-field flex items-center gap-2 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs cursor-pointer" style={{ width: '178px', minWidth: '178px', height: '38px', minHeight: '38px', display: 'flex', alignItems: 'center' }}>
             <CalendarRange size={14} className="text-muted-foreground flex-shrink-0" style={{ margin: 0 }} />
             <input
               className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
-              style={{ border: 0, background: 'transparent', height: '100%', padding: 0 }}
+              style={{ border: 0, background: 'transparent', height: '100%', minHeight: '0', padding: 0 }}
               type="date"
               value={startDate}
               onChange={(event) => onStartDateChange(event.target.value)}
             />
           </label>
           <span className="text-muted-foreground font-semibold text-xs">—</span>
-          <label className="statistics-filter-field flex items-center gap-2 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs cursor-pointer" style={{ width: '178px', minWidth: '178px', height: '38px', display: 'flex', alignItems: 'center' }}>
+          <label className="statistics-filter-field flex items-center gap-2 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs cursor-pointer" style={{ width: '178px', minWidth: '178px', height: '38px', minHeight: '38px', display: 'flex', alignItems: 'center' }}>
             <CalendarRange size={14} className="text-muted-foreground flex-shrink-0" style={{ margin: 0 }} />
             <input
               className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
-              style={{ border: 0, background: 'transparent', height: '100%', padding: 0 }}
+              style={{ border: 0, background: 'transparent', height: '100%', minHeight: '0', padding: 0 }}
               type="date"
               value={endDate}
               onChange={(event) => onEndDateChange(event.target.value)}
@@ -276,7 +278,7 @@ function StatisticsFilters({
       <div className="flex flex-wrap items-center gap-3">
         <select
           className="statistics-filter-select px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
-          style={{ width: '190px', minWidth: '190px', height: '38px', marginLeft: 0 }}
+          style={{ width: '190px', minWidth: '190px', height: '38px', minHeight: '38px', marginLeft: 0 }}
           value={master}
           onChange={(event) => onMasterChange(event.target.value)}>
           <option value="">Все сотрудники</option>
@@ -287,7 +289,7 @@ function StatisticsFilters({
         <select
           aria-label="Валюта отчёта"
           className="statistics-filter-select px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
-          style={{ width: '150px', minWidth: '150px', height: '38px' }}
+          style={{ width: '150px', minWidth: '150px', height: '38px', minHeight: '38px' }}
           value={currency}
           onChange={(event) => onCurrencyChange(event.target.value)}>
           {currencies.map((item) => (
@@ -708,7 +710,8 @@ function StatisticsPage({
   const exportButton = (
     <button
       aria-label="Экспорт Excel"
-      className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+      className="inline-flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+      style={{ height: '34px', minHeight: '34px' }}
       type="button"
       onClick={exportStatistics}>
       <Download size={13} className="text-muted-foreground" />
@@ -1015,7 +1018,7 @@ function StatisticsPage({
   return (
     <section className="flex flex-col h-full w-full min-h-0 overflow-y-auto p-4 md:p-6 space-y-6 select-none scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent">
       <PageHeader
-        className="statistics-hero-header"
+        className="statistics-hero-header w-full"
         description="Финансы, визиты и сигналы по клиентам"
         headerActions={exportButton}
         title="Статистика"
