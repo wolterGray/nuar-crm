@@ -942,6 +942,31 @@ export function useCalendarActions({
     ],
   );
 
+  const performMoveCalendarEntry = useCallback(
+    async (entryId, previousEntry, movedEntry) => {
+      await removeCompletedVisitLink(previousEntry, movedEntry);
+
+      let savedEntry = movedEntry;
+      try {
+        const response = await updateCalendarEntry(entryId, movedEntry);
+        savedEntry = response?.data ?? movedEntry;
+      } catch (error) {
+        pushNotification({
+          title: "Запись не перенесена",
+          message: error?.message || "Не удалось обновить календарь в backend",
+          persist: false,
+        });
+        return;
+      }
+
+      setCalendarEntries((current) =>
+        current.map((entry) => (entry.id === entryId ? savedEntry : entry)),
+      );
+      await syncCompletedCalendarVisit(savedEntry);
+    },
+    [removeCompletedVisitLink, setCalendarEntries, syncCompletedCalendarVisit, pushNotification],
+  );
+
   const moveCalendarEntry = useCallback(
     async (entryId, nextPosition) => {
       const currentEntry = calendarEntries.find((entry) => entry.id === entryId);
@@ -973,34 +998,20 @@ export function useCalendarActions({
         return;
       }
 
-      await removeCompletedVisitLink(currentEntry, movedEntry);
+      // Находим имя мастера для вывода в диалоге подтверждения
+      const masterEmployee = employees.find((e) => String(e.id) === String(nextPosition.master));
+      const masterName = masterEmployee ? masterEmployee.name : nextPosition.master;
 
-      let savedEntry = movedEntry;
-      try {
-        const response = await updateCalendarEntry(entryId, movedEntry);
-        savedEntry = response?.data ?? movedEntry;
-      } catch (error) {
-        pushNotification({
-          title: "Запись не перенесена",
-          message: error?.message || "Не удалось обновить календарь в backend",
-          persist: false,
-        });
-        return;
-      }
-
-      setCalendarEntries((current) =>
-        current.map((entry) => (entry.id === entryId ? savedEntry : entry)),
-      );
-      await syncCompletedCalendarVisit(savedEntry);
+      setPendingCalendarAction({
+        type: "move",
+        entry: currentEntry,
+        nextPosition: { ...nextPosition, masterName }
+      });
     },
     [
       appSettings,
       calendarEntries,
       employees,
-      pushNotification,
-      removeCompletedVisitLink,
-      setCalendarEntries,
-      syncCompletedCalendarVisit,
     ],
   );
 
@@ -1013,23 +1024,7 @@ export function useCalendarActions({
 
     if (type === "move") {
       const previousEntry = calendarEntries.find((item) => item.id === entry.id);
-      await removeCompletedVisitLink(previousEntry, entry);
-      let savedEntry = entry;
-      try {
-        const response = await updateCalendarEntry(entry.id, entry);
-        savedEntry = response?.data ?? entry;
-      } catch (error) {
-        pushNotification({
-          title: "Запись не сохранена",
-          message: error?.message || "Не удалось обновить календарь в backend",
-          persist: false,
-        });
-        return;
-      }
-      setCalendarEntries((current) =>
-        current.map((item) => (item.id === savedEntry.id ? savedEntry : item)),
-      );
-      await syncCompletedCalendarVisit(savedEntry);
+      await performMoveCalendarEntry(entry.id, previousEntry, entry);
     } else {
       await saveCalendarEntry(entry, isEditing);
     }
@@ -1038,14 +1033,11 @@ export function useCalendarActions({
   }, [
     calendarEntries,
     pendingCalendarConflict,
-    pushNotification,
-    removeCompletedVisitLink,
     saveCalendarEntry,
-    setCalendarEntries,
-    syncCompletedCalendarVisit,
+    performMoveCalendarEntry,
   ]);
 
-  const updateCalendarEntryStatus = useCallback(
+  const performUpdateCalendarEntryStatus = useCallback(
     async (entry, status) => {
       if (status === "cancelled") {
         onCalendarSlotFreed?.(entry);
@@ -1074,6 +1066,22 @@ export function useCalendarActions({
       });
     },
     [onCalendarSlotFreed, pushNotification, setCalendarEntries],
+  );
+
+  const updateCalendarEntryStatus = useCallback(
+    async (entry, status) => {
+      if (status === "cancelled") {
+        setPendingCalendarAction({
+          type: "cancel_status",
+          entry,
+          status,
+        });
+        return;
+      }
+
+      await performUpdateCalendarEntryStatus(entry, status);
+    },
+    [performUpdateCalendarEntryStatus],
   );
 
   const remindCalendarClient = useCallback(
@@ -1142,10 +1150,29 @@ export function useCalendarActions({
       openEditCalendarEntry(entry);
     } else if (type === "delete") {
       deleteCalendarEntry(entry);
+    } else if (type === "move") {
+      const {nextPosition} = pendingCalendarAction;
+      const previousEntry = calendarEntries.find((item) => item.id === entry.id);
+      const movedEntry = previousEntry
+        ? normalizeCalendarEntryTiming({...previousEntry, ...nextPosition}, previousEntry)
+        : null;
+      if (movedEntry) {
+        performMoveCalendarEntry(entry.id, previousEntry, movedEntry);
+      }
+    } else if (type === "cancel_status") {
+      const {status} = pendingCalendarAction;
+      performUpdateCalendarEntryStatus(entry, status);
     }
 
     setPendingCalendarAction(null);
-  }, [deleteCalendarEntry, openEditCalendarEntry, pendingCalendarAction]);
+  }, [
+    deleteCalendarEntry,
+    openEditCalendarEntry,
+    pendingCalendarAction,
+    calendarEntries,
+    performMoveCalendarEntry,
+    performUpdateCalendarEntryStatus,
+  ]);
 
   useEffect(() => {
     const now = new Date();

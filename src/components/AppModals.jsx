@@ -108,6 +108,12 @@ export default function AppModals({
   pendingPaymentDelete,
   pendingDataBackup,
   pendingEntityDelete,
+  pendingDayClose,
+  pendingPayrollPaid,
+  onConfirmDayClose,
+  onCancelDayClose,
+  onConfirmPayrollPaid,
+  onCancelPayrollPaid,
   onCancelEntityDelete,
   onConfirmEntityDelete,
   onCloseEmployeeModal,
@@ -323,18 +329,32 @@ export default function AppModals({
 
       <ConfirmDialog
         confirmLabel={
-          pendingCalendarAction?.type === "delete" ? "Удалить" : "Редактировать"
+          pendingCalendarAction?.type === "delete"
+            ? "Удалить"
+            : pendingCalendarAction?.type === "move"
+              ? "Перенести"
+              : pendingCalendarAction?.type === "cancel_status"
+                ? "Отменить визит"
+                : "Редактировать"
         }
         message={
           pendingCalendarAction?.type === "delete"
             ? "Запись исчезнет из календаря."
-            : "Открыть форму и изменить данные записи?"
+            : pendingCalendarAction?.type === "move"
+              ? `Вы действительно хотите перенести запись клиента ${pendingCalendarAction.entry?.client} к мастеру ${pendingCalendarAction.nextPosition?.masterName || pendingCalendarAction.nextPosition?.master} на ${pendingCalendarAction.nextPosition?.time}?`
+              : pendingCalendarAction?.type === "cancel_status"
+                ? `Вы уверены, что хотите отменить визит клиента ${pendingCalendarAction.entry?.client}? Мастер получит уведомление в Telegram.`
+                : "Открыть форму и изменить данные записи?"
         }
         open={Boolean(pendingCalendarAction)}
         title={
           pendingCalendarAction?.type === "delete"
             ? "Удалить запись?"
-            : "Редактировать запись?"
+            : pendingCalendarAction?.type === "move"
+              ? "Перенести запись?"
+              : pendingCalendarAction?.type === "cancel_status"
+                ? "Отменить визит?"
+                : "Редактировать запись?"
         }
         onCancel={onCancelCalendarAction}
         onConfirm={onConfirmCalendarAction}
@@ -429,6 +449,28 @@ export default function AppModals({
           title={entityDeleteDialog.title}
           onCancel={onCancelEntityDelete}
           onConfirm={onConfirmEntityDelete}
+        />
+      )}
+
+      {pendingDayClose && (
+        <ConfirmDialog
+          confirmLabel="Закрыть день"
+          message={`Вы действительно хотите закрыть финансовую смену за ${pendingDayClose.date}? Фактическая сумма наличных в кассе: ${pendingDayClose.actualCashInDrawer} PLN.`}
+          open={Boolean(pendingDayClose)}
+          title="Закрыть смену?"
+          onCancel={onCancelDayClose}
+          onConfirm={onConfirmDayClose}
+        />
+      )}
+
+      {pendingPayrollPaid && (
+        <ConfirmDialog
+          confirmLabel="Подтвердить выплату"
+          message={`Выплатить мастеру ${pendingPayrollPaid.employeeName} зарплату за период с ${pendingPayrollPaid.startDate} по ${pendingPayrollPaid.endDate}?`}
+          open={Boolean(pendingPayrollPaid)}
+          title="Подтвердить выплату?"
+          onCancel={onCancelPayrollPaid}
+          onConfirm={onConfirmPayrollPaid}
         />
       )}
     </>

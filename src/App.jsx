@@ -150,6 +150,8 @@ function App() {
   const [waitlistEntries, setWaitlistEntries] = useState(loadStoredWaitlistEntries);
   const [dayCloseRecords, setDayCloseRecords] = useState(loadStoredDayCloseRecords);
   const [payrollRecords, setPayrollRecords] = useState(loadStoredPayrollRecords);
+  const [pendingDayClose, setPendingDayClose] = useState(null);
+  const [pendingPayrollPaid, setPendingPayrollPaid] = useState(null);
   const [messageTemplates, setMessageTemplates] = useState(
     loadStoredMessageTemplates,
   );
@@ -1343,6 +1345,38 @@ function App() {
     visits,
   });
 
+  const handleCloseDayRequest = useCallback((dayCloseData) => {
+    setPendingDayClose(dayCloseData);
+  }, []);
+
+  const handleConfirmDayClose = useCallback(async () => {
+    if (!pendingDayClose) return;
+    await dayClose.closeDay(pendingDayClose);
+    setPendingDayClose(null);
+  }, [dayClose, pendingDayClose]);
+
+  const handleCancelDayClose = useCallback(() => {
+    setPendingDayClose(null);
+  }, []);
+
+  const handleMarkPayrollPaidRequest = useCallback((payrollData) => {
+    const employee = employees.find(e => String(e.id) === String(payrollData.employeeId));
+    setPendingPayrollPaid({
+      ...payrollData,
+      employeeName: employee ? employee.name : "Мастер"
+    });
+  }, [employees]);
+
+  const handleConfirmPayrollPaid = useCallback(async () => {
+    if (!pendingPayrollPaid) return;
+    await payroll.markPayrollPaid(pendingPayrollPaid);
+    setPendingPayrollPaid(null);
+  }, [payroll, pendingPayrollPaid]);
+
+  const handleCancelPayrollPaid = useCallback(() => {
+    setPendingPayrollPaid(null);
+  }, []);
+
   const {handleFinancialOperationSubmit} = useFinancialOperations({
     clientProfiles,
     createLocalId,
@@ -1945,6 +1979,12 @@ function App() {
             pendingDataBackup={pendingDataBackup}
             pendingEntityDelete={pendingEntityDelete}
             pendingPaymentDelete={pendingPaymentDelete}
+            pendingDayClose={pendingDayClose}
+            pendingPayrollPaid={pendingPayrollPaid}
+            onConfirmDayClose={handleConfirmDayClose}
+            onCancelDayClose={handleCancelDayClose}
+            onConfirmPayrollPaid={handleConfirmPayrollPaid}
+            onCancelPayrollPaid={handleCancelPayrollPaid}
             serviceCatalog={serviceCatalog}
             serviceModalOpen={serviceModalOpen}
             serviceNames={serviceNames}
@@ -2134,13 +2174,13 @@ function App() {
             messageWaitlistEntryFromPanel={waitlist.messageWaitlistEntryFromPanel}
             removeWaitlistEntry={waitlist.removeWaitlistEntry}
             waitlistEntries={waitlistEntries}
-            closeDay={dayClose.closeDay}
+            closeDay={handleCloseDayRequest}
             dayCloseRecords={dayCloseRecords}
             getDayCloseJournal={dayClose.getJournalForDate}
             removeDayClose={dayClose.removeDayClose}
             reopenDayClose={dayClose.reopenDayClose}
             getPayrollReport={payroll.getPayrollReport}
-            markPayrollPaid={payroll.markPayrollPaid}
+            markPayrollPaid={handleMarkPayrollPaidRequest}
             payrollRecords={payrollRecords}
             removePayrollRecord={payroll.removePayrollRecord}
             reopenPayrollRecord={payroll.reopenPayrollRecord}
