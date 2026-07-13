@@ -3816,6 +3816,10 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .club-layout.has-selected-card .club-list {
+    display: none;
+  }
+
   .club-create-panel button,
   .club-card-actions button,
   .club-details-actions button {

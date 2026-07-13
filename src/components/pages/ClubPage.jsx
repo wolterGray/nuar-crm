@@ -411,7 +411,7 @@ export default function ClubPage({clients = [], pushNotification}) {
 
       {error ? <p className="club-error">{error}</p> : null}
 
-      {activeTab === "cards" ? <div className="club-layout">
+      {activeTab === "cards" ? <div className={`club-layout ${selectedCard ? "has-selected-card" : ""}`}>
         <div className="club-list">
           {cards.map((card) => {
             const publicUrl = createdPublicUrls[card.id] || card.publicUrl || "";
@@ -498,6 +498,7 @@ export default function ClubPage({clients = [], pushNotification}) {
               <div className="club-details-progress">
                 <span style={{width: `${getCardProgress(selectedCard)}%`}} />
               </div>
+              <PhysicalCardPreview card={selectedCard} tier={getTierForCard(selectedCard)} />
               <div className="club-details-grid">
                 <span>
                   <small>Статус</small>
