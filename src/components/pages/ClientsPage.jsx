@@ -417,9 +417,9 @@ function ClientsPage({
       <PageHeader
         className="clients-page-header"
         actions={
-          <div className="flex items-center gap-2">
+          <div className="clients-page-toolbar flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <button
-              className="inline-flex items-center justify-center gap-2 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+              className="inline-flex items-center justify-center gap-2 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95 w-full sm:w-auto"
               style={{ height: '34px', minHeight: '34px' }}
               type="button"
               onClick={() => setShowQuality(!showQuality)}>
@@ -427,7 +427,7 @@ function ClientsPage({
               <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
             </button>
             <button
-              className="clients-page-add-button inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover active:scale-95 transition-all text-sm cursor-pointer whitespace-nowrap"
+              className="clients-page-add-button inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover active:scale-95 transition-all text-sm cursor-pointer whitespace-nowrap w-full sm:w-auto"
               style={{ height: '34px', minHeight: '34px' }}
               type="button"
               onClick={onAddClient}>
@@ -459,6 +459,7 @@ function ClientsPage({
       <div className="px-4 py-3 border-b border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
         <SearchControl
           className="clients-page-search w-full sm:w-80"
+          style={{ width: isMobile ? '100%' : undefined, maxWidth: isMobile ? '100%' : undefined }}
           placeholder="Поиск клиента..."
           value={search}
           onChange={(event) => {
