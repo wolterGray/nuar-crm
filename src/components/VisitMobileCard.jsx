@@ -107,7 +107,7 @@ function VisitMobileCard({
           <small className="text-zinc-500 text-xs">{[visit.date, visit.time].filter(Boolean).join(" · ")}</small>
         </div>
         <RowActionsMenu
-          className="ml-2 flex-none"
+          className="ml-2 flex-none visit-row-actions"
           itemId={visit.id}
           openMenuId={openMenuId}
           setOpenMenuId={setOpenMenuId}
@@ -231,8 +231,8 @@ function VisitMobileCard({
             isNext
               ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-zinc-900/90 shadow-md"
               : isPlanned
-              ? "border-zinc-800 bg-zinc-900/60"
-              : "border-zinc-850 bg-zinc-900/30"
+              ? "border-border/40 bg-zinc-900/40 shadow-sm"
+              : "border-border/20 bg-zinc-900/20"
           }`}
           style={{ transform: `translate3d(${offset}px, 0, 0)` }}
           onClick={handleOpen}
@@ -252,8 +252,8 @@ function VisitMobileCard({
         isNext
           ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-zinc-900/90 shadow-md"
           : isPlanned
-          ? "border-zinc-800 bg-zinc-900/60 shadow-sm"
-          : "border-zinc-850 bg-zinc-900/30"
+          ? "border-border/40 bg-zinc-900/40 shadow-sm"
+          : "border-border/20 bg-zinc-900/20"
       } ${className}`.trim()}
       onClick={handleOpen}
     >
