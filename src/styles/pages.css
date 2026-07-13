@@ -3630,47 +3630,108 @@ button:focus-visible {
   font-size: 22px;
 }
 
+.club-details .club-physical-preview {
+  width: 100%;
+  max-width: 320px;
+  align-self: center;
+  padding: 11px 13px;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.26);
+}
+
+.club-details .club-physical-card-title {
+  font-size: 8px;
+}
+
+.club-details .club-physical-signature {
+  gap: 3px;
+}
+
+.club-details .club-physical-signature small {
+  font-size: 7px;
+}
+
+.club-details .club-physical-signature strong {
+  font-size: clamp(24px, 7vw, 34px);
+}
+
+.club-details .club-physical-tier-mark {
+  top: 11px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+}
+
+.club-details .club-physical-stamps {
+  width: min(calc(100% - 38px), 175px);
+  gap: 4px;
+}
+
+.club-details .club-physical-progress {
+  font-size: 11px;
+}
+
 .club-details-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .club-details-grid span {
   display: flex;
-  min-height: 62px;
+  min-height: 48px;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   border: 1px solid var(--club-border);
   border-radius: 8px;
-  padding: 9px;
+  padding: 7px;
   background: var(--club-card);
 }
 
-.club-public-link {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 36px 36px;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid var(--club-border);
-  border-radius: 8px;
-  padding: 6px;
-  background: var(--club-card);
-}
-
-.club-public-link span {
+.club-details-grid small {
   overflow: hidden;
-  padding: 0 6px;
   color: var(--club-muted);
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.05;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.club-public-link :is(button, a) {
-  min-height: 34px;
+.club-details-grid b {
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.club-link-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.club-link-actions :is(button, a) {
+  display: inline-grid;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  place-items: center;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
   padding: 0;
+  color: var(--club-text);
+  background: var(--club-card);
   text-decoration: none;
+}
+
+.club-link-actions :is(button, a).is-active {
+  border-color: color-mix(in srgb, var(--club-accent) 60%, var(--club-border));
+  color: #fff;
+  background: color-mix(in srgb, var(--club-accent) 18%, var(--club-card));
 }
 
 .club-link-hint {
@@ -3835,7 +3896,10 @@ button:focus-visible {
     padding: 12px;
   }
 
-  .club-details-grid,
+  .club-details-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .club-details-actions {
     grid-template-columns: 1fr;
   }

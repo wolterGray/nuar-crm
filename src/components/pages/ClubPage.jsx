@@ -6,6 +6,7 @@ import {
   Gift,
   Medal,
   Link2,
+  QrCode,
   ShieldCheck,
   RefreshCw,
   Search,
@@ -154,6 +155,7 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [reward, setReward] = useState("all");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [visibleQrCardId, setVisibleQrCardId] = useState(null);
 
   const selectedCard = useMemo(
     () => cards.find((card) => card.id === selectedCardId) ?? cards[0] ?? null,
@@ -162,6 +164,7 @@ export default function ClubPage({clients = [], pushNotification}) {
   const selectedPublicUrl = selectedCard
     ? createdPublicUrls[selectedCard.id] || selectedCard.publicUrl || ""
     : "";
+  const showSelectedQr = Boolean(selectedCard?.id && visibleQrCardId === selectedCard.id);
 
   const cardClientIds = useMemo(
     () => new Set(cards.filter((card) => card.isActive).map((card) => card.clientId)),
@@ -519,13 +522,24 @@ export default function ClubPage({clients = [], pushNotification}) {
               </div>
 
               {selectedPublicUrl ? (
-                <div className="club-public-link">
-                  <span>{selectedPublicUrl}</span>
-                  <button type="button" onClick={() => handleCopy(selectedCard)}>
-                    <Copy size={13} />
+                <div className="club-link-actions" aria-label="Ссылка карты">
+                  <button type="button" title="Скопировать ссылку" onClick={() => handleCopy(selectedCard)}>
+                    <Copy size={15} />
+                  </button>
+                  <button
+                    className={showSelectedQr ? "is-active" : ""}
+                    type="button"
+                    title="Показать QR"
+                    onClick={() =>
+                      setVisibleQrCardId((current) =>
+                        current === selectedCard.id ? null : selectedCard.id,
+                      )
+                    }
+                  >
+                    <QrCode size={15} />
                   </button>
                   <a href={selectedPublicUrl} rel="noreferrer" target="_blank">
-                    <ExternalLink size={13} />
+                    <ExternalLink size={15} />
                   </a>
                 </div>
               ) : (
@@ -534,7 +548,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </p>
               )}
 
-              {selectedPublicUrl ? (
+              {selectedPublicUrl && showSelectedQr ? (
                 <div className="club-qr-box">
                   <LoyaltyQrCode value={selectedPublicUrl} />
                 </div>
