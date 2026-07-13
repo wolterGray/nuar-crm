@@ -10,6 +10,7 @@ import {
   Plus,
   RotateCcw,
   Trash2,
+  BarChart2,
 } from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {
@@ -176,6 +177,7 @@ function ClientsPage({
   const [viewedClient, setViewedClient] = useState(null);
   const [visitHistoryTab, setVisitHistoryTab] = useState("future");
   const [search, setSearch] = useState("");
+  const [showQuality, setShowQuality] = useState(false);
   const {isMobile} = useBreakpoint();
 
 
@@ -415,19 +417,18 @@ function ClientsPage({
       <PageHeader
         className="clients-page-header"
         actions={
-          <div className="clients-page-toolbar flex items-center gap-2 w-full md:w-auto">
-            <SearchControl
-              className="clients-page-search w-full md:w-64"
-              placeholder="Поиск клиента"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setOpenClientMenuId(null);
-              }}
-              onClear={() => setSearch("")}
-            />
+          <div className="flex items-center gap-2">
             <button
-              className="clients-page-add-button inline-flex items-center justify-center gap-2 min-h-10 md:min-h-9 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover active:scale-95 transition-all text-sm cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-2 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+              style={{ height: '34px', minHeight: '34px' }}
+              type="button"
+              onClick={() => setShowQuality(!showQuality)}>
+              <BarChart2 size={14} className="text-muted-foreground" />
+              <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
+            </button>
+            <button
+              className="clients-page-add-button inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover active:scale-95 transition-all text-sm cursor-pointer whitespace-nowrap"
+              style={{ height: '34px', minHeight: '34px' }}
               type="button"
               onClick={onAddClient}>
               <Plus size={16} />
@@ -435,18 +436,45 @@ function ClientsPage({
             </button>
           </div>
         }
-        description={isMobile ? undefined : `${filteredClients.length} из ${clients.length} в базе`}
-        title="Клиенты"
+        title={
+          <span className="flex items-baseline gap-2">
+            <span>Клиенты</span>
+            <span className="text-sm font-normal text-muted-foreground">({clients.length})</span>
+          </span>
+        }
       />
 
-      <ClientQualityPanel
-        report={clientQualityReport}
-        onEditClient={onEditClient}
-        onOpenClient={(client) => {
-          setViewedClient(client);
-          setVisitHistoryTab("future");
-        }}
-      />
+      {showQuality && (
+        <ClientQualityPanel
+          report={clientQualityReport}
+          onEditClient={onEditClient}
+          onOpenClient={(client) => {
+            setViewedClient(client);
+            setVisitHistoryTab("future");
+          }}
+        />
+      )}
+
+      {/* Search Toolbar */}
+      <div className="px-4 py-3 border-b border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+        <SearchControl
+          className="clients-page-search w-full sm:w-80"
+          placeholder="Поиск клиента..."
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            setOpenClientMenuId(null);
+          }}
+          onClear={() => setSearch("")}
+        />
+        <div className="text-xs text-muted-foreground font-medium">
+          {search.trim() ? (
+            <span>Найдено: <strong className="text-foreground">{filteredClients.length}</strong> из {clients.length}</span>
+          ) : (
+            <span>Всего в базе: <strong className="text-foreground">{clients.length}</strong></span>
+          )}
+        </div>
+      </div>
 
       <div className="clients-table-shell flex-1 min-h-0 overflow-y-auto pr-1 select-none scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent">
         {/* Table Head */}
