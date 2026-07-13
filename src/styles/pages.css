@@ -3164,6 +3164,7 @@ button:focus-visible {
   padding: 18px 22px;
   color: var(--club-text);
   background:
+    linear-gradient(112deg, transparent 0%, rgba(255, 255, 255, 0.08) 42%, transparent 54%),
     radial-gradient(circle at 82% 18%, var(--physical-glow), transparent 28%),
     linear-gradient(135deg, #090a0b, #303232 48%, #111111 100%);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.34);
@@ -3175,9 +3176,10 @@ button:focus-visible {
   --physical-glow: rgba(220, 227, 238, 0.26);
   --physical-text: #f6f8fb;
   background:
-    linear-gradient(102deg, rgba(255, 255, 255, 0.05) 0%, transparent 20%, rgba(255, 255, 255, 0.22) 43%, transparent 57%, rgba(255, 255, 255, 0.08) 100%),
+    repeating-linear-gradient(105deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 10px),
+    linear-gradient(102deg, rgba(255, 255, 255, 0.08) 0%, transparent 18%, rgba(255, 255, 255, 0.32) 42%, transparent 54%, rgba(255, 255, 255, 0.1) 100%),
     radial-gradient(circle at 82% 18%, var(--physical-glow), transparent 30%),
-    linear-gradient(135deg, #0e1114, #747d86 42%, #2b3138 62%, #111418);
+    linear-gradient(135deg, #0c0f12, #8a939c 40%, #333b43 62%, #101317);
 }
 
 .club-physical-preview.is-gold {
@@ -3185,9 +3187,10 @@ button:focus-visible {
   --physical-glow: rgba(241, 206, 123, 0.3);
   --physical-text: #fff5dc;
   background:
-    linear-gradient(110deg, rgba(255, 236, 178, 0.06) 0%, transparent 22%, rgba(255, 225, 139, 0.24) 44%, transparent 58%, rgba(164, 111, 36, 0.18) 100%),
+    repeating-linear-gradient(105deg, rgba(255, 228, 143, 0.08) 0 1px, transparent 1px 11px),
+    linear-gradient(110deg, rgba(255, 236, 178, 0.08) 0%, transparent 20%, rgba(255, 225, 139, 0.34) 43%, transparent 56%, rgba(164, 111, 36, 0.22) 100%),
     radial-gradient(circle at 80% 18%, var(--physical-glow), transparent 30%),
-    linear-gradient(135deg, #140b05, #7a5524 44%, #3b220d 64%, #090604);
+    linear-gradient(135deg, #170c04, #9b6f2f 42%, #4a2a0e 64%, #090604);
 }
 
 .club-physical-preview.is-diamond {
@@ -3195,10 +3198,11 @@ button:focus-visible {
   --physical-glow: rgba(234, 246, 255, 0.38);
   --physical-text: #f7fbff;
   background:
-    linear-gradient(122deg, transparent 0%, rgba(255, 255, 255, 0.28) 38%, transparent 48%, rgba(166, 220, 255, 0.18) 72%, transparent 100%),
-    radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.34), transparent 28%),
-    conic-gradient(from 210deg at 74% 35%, rgba(255, 255, 255, 0.36), rgba(122, 187, 226, 0.18), transparent 28%, rgba(255, 255, 255, 0.24), transparent 56%),
-    linear-gradient(135deg, #02060c, #354756 48%, #111d29 66%, #05070d);
+    linear-gradient(122deg, transparent 0%, rgba(255, 255, 255, 0.34) 34%, transparent 46%, rgba(166, 220, 255, 0.22) 70%, transparent 100%),
+    linear-gradient(62deg, transparent 0%, rgba(255, 255, 255, 0.16) 49%, transparent 51%),
+    radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.42), transparent 28%),
+    conic-gradient(from 210deg at 74% 35%, rgba(255, 255, 255, 0.42), rgba(122, 187, 226, 0.22), transparent 28%, rgba(255, 255, 255, 0.28), transparent 56%),
+    linear-gradient(135deg, #02060c, #455d70 45%, #152535 68%, #05070d);
 }
 
 .club-physical-preview.is-royal {
@@ -3206,8 +3210,9 @@ button:focus-visible {
   --physical-glow: rgba(160, 54, 115, 0.38);
   --physical-text: #fff1d2;
   background:
-    linear-gradient(118deg, transparent 0%, rgba(224, 189, 104, 0.16) 43%, transparent 56%),
-    linear-gradient(155deg, rgba(255, 255, 255, 0.08), transparent 18%, rgba(255, 255, 255, 0.06) 34%, transparent 52%),
+    repeating-linear-gradient(105deg, rgba(255, 220, 143, 0.05) 0 1px, transparent 1px 12px),
+    linear-gradient(118deg, transparent 0%, rgba(224, 189, 104, 0.2) 42%, transparent 56%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.1), transparent 18%, rgba(255, 255, 255, 0.07) 34%, transparent 52%),
     radial-gradient(circle at 82% 16%, rgba(224, 189, 104, 0.22), transparent 30%),
     radial-gradient(circle at 18% 84%, rgba(88, 31, 105, 0.36), transparent 38%),
     linear-gradient(135deg, #16000d, #3a0926 46%, #14091f 72%, #070107);
@@ -3218,8 +3223,8 @@ button:focus-visible {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.16), transparent 25%),
-    linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.08) 46%, transparent 58%);
+    radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.12), transparent 25%),
+    linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.1) 46%, transparent 58%);
   content: "";
   opacity: 0.55;
 }
@@ -3292,15 +3297,21 @@ button:focus-visible {
   right: 22px;
   z-index: 1;
   display: grid;
-  width: clamp(34px, 10%, 48px);
-  height: clamp(34px, 10%, 48px);
+  width: clamp(28px, 8%, 36px);
+  height: clamp(28px, 8%, 36px);
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--physical-accent) 42%, transparent);
+  border: 0.8px solid color-mix(in srgb, var(--physical-accent) 38%, transparent);
   border-radius: 50%;
   color: var(--physical-accent);
   background: color-mix(in srgb, var(--physical-accent) 9%, rgba(0, 0, 0, 0.18));
-  opacity: 0.86;
-  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--physical-accent) 34%, transparent));
+  opacity: 0.74;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--physical-accent) 24%, transparent));
+}
+
+.club-physical-preview.is-member .club-physical-tier-mark,
+.club-physical-preview.is-silver .club-physical-tier-mark,
+.club-physical-preview.is-gold .club-physical-tier-mark {
+  border-radius: 50%;
 }
 
 .club-physical-topline,
@@ -3311,8 +3322,8 @@ button:focus-visible {
 }
 
 .club-physical-preview.is-diamond .club-physical-tier-mark {
-  border-radius: 10px;
-  opacity: 0.92;
+  border-radius: 8px;
+  opacity: 0.78;
   transform: rotate(45deg);
 }
 
@@ -3321,7 +3332,7 @@ button:focus-visible {
 }
 
 .club-physical-preview.is-royal .club-physical-tier-mark {
-  opacity: 0.92;
+  opacity: 0.8;
 }
 
 .club-physical-stamps {
@@ -3694,8 +3705,8 @@ button:focus-visible {
   .club-physical-tier-mark {
     top: 15px;
     right: 15px;
-    width: 34px;
-    height: 34px;
+    width: 26px;
+    height: 26px;
   }
 
   .club-physical-stamps {

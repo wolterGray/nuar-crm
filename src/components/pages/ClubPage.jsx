@@ -4,11 +4,13 @@ import {
   ExternalLink,
   Gem,
   Gift,
+  Medal,
   Link2,
+  ShieldCheck,
   RefreshCw,
   Search,
-  ShieldCheck,
   Sparkles,
+  Star,
 } from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {
@@ -46,9 +48,9 @@ const getCardProgress = (card) =>
   Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 5)) * 100));
 
 const physicalCardTiers = [
-  {id: "member", name: "Basic", signature: "NUAR MEMBER", title: "NUAR MEMBER", threshold: "0 визитов"},
-  {id: "silver", name: "Silver", signature: "SILVER", title: "NUAR SILVER", threshold: "3 визита"},
-  {id: "gold", name: "Gold", signature: "GOLD", title: "NUAR GOLD", threshold: "10 визитов"},
+  {id: "member", name: "Basic", signature: "NUAR MEMBER", title: "NUAR MEMBER", threshold: "0 визитов", icon: ShieldCheck},
+  {id: "silver", name: "Silver", signature: "SILVER", title: "NUAR SILVER", threshold: "3 визита", icon: Medal},
+  {id: "gold", name: "Gold", signature: "GOLD", title: "NUAR GOLD", threshold: "10 визитов", icon: Star},
   {id: "diamond", name: "Diamond", signature: "DIAMOND", title: "NUAR DIAMOND", threshold: "20 визитов", icon: Gem},
   {id: "royal", name: "Royalty", signature: "ROYALTY", title: "NUAR ROYALTY", threshold: "50 визитов", icon: Crown},
 ];
@@ -93,7 +95,7 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
       <span className="club-physical-shine" />
       {TierIcon ? (
         <span className="club-physical-tier-mark">
-          <TierIcon size={32} />
+          <TierIcon size={21} strokeWidth={1.35} />
         </span>
       ) : null}
       <span className="club-physical-topline">
