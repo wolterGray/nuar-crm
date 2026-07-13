@@ -3431,8 +3431,29 @@ button:focus-visible {
   color: var(--physical-accent);
 }
 
+.club-physical-stamps i.is-gift.is-ready {
+  animation: clubGiftPulse 1.45s ease-in-out infinite;
+  background: color-mix(in srgb, var(--physical-accent) 22%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--physical-accent) 36%, transparent),
+    0 0 18px color-mix(in srgb, var(--physical-accent) 30%, transparent);
+}
+
 .club-physical-stamps i.is-filled {
   background: color-mix(in srgb, var(--physical-accent) 20%, transparent);
+}
+
+@keyframes clubGiftPulse {
+  0%,
+  100% {
+    opacity: 0.82;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
 }
 
 .club-physical-bottomline {
@@ -3942,6 +3963,13 @@ button:focus-visible {
   border-radius: 12px;
   color: #fff;
   background: rgba(213, 31, 31, 0.14);
+}
+
+.public-loyalty-reward.is-ready {
+  animation: clubGiftPulse 1.45s ease-in-out infinite;
+  border: 1px solid rgba(255, 214, 128, 0.32);
+  background: rgba(213, 31, 31, 0.2);
+  box-shadow: 0 0 28px rgba(213, 31, 31, 0.18);
 }
 
 .public-loyalty-reward strong {

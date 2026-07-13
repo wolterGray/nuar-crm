@@ -45,7 +45,7 @@ const formatClubDate = (value) => {
 };
 
 const getCardProgress = (card) =>
-  Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 5)) * 100));
+  Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 6)) * 100));
 
 const physicalCardTiers = [
   {id: "member", name: "Basic", signature: "NUAR MEMBER", title: "NUAR MEMBER", threshold: "0 визитов", icon: ShieldCheck},
@@ -79,6 +79,19 @@ const cardCopyByLanguage = {
   },
 };
 
+const getTierForCard = (card) => {
+  const tier = String(card?.tier || "").toLowerCase();
+  if (tier) {
+    return physicalCardTiers.find((item) => item.id === (tier === "royalty" ? "royal" : tier)) || physicalCardTiers[0];
+  }
+  const visits = Math.max(0, Number(card?.lifetimeVisits ?? card?.stamps) || 0);
+  if (visits >= 50) return physicalCardTiers.find((item) => item.id === "royal");
+  if (visits >= 20) return physicalCardTiers.find((item) => item.id === "diamond");
+  if (visits >= 10) return physicalCardTiers.find((item) => item.id === "gold");
+  if (visits >= 3) return physicalCardTiers.find((item) => item.id === "silver");
+  return physicalCardTiers[0];
+};
+
 const getCardLanguage = (card) =>
   cardLanguageOptions.some((option) => option.value === card?.cardLanguage)
     ? card.cardLanguage
@@ -89,9 +102,10 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
   const copy = cardCopyByLanguage[getCardLanguage(card)];
   const stamps = Math.min(6, Math.max(0, Number(card?.stamps) || 0));
   const TierIcon = tier.icon;
+  const isRewardReady = Boolean(card?.rewardAvailable) && stamps >= 6;
 
   return (
-    <article className={`club-physical-preview is-${tier.id}`}>
+    <article className={`club-physical-preview is-${tier.id} ${isRewardReady ? "is-reward-ready" : ""}`}>
       <span className="club-physical-shine" />
       {TierIcon ? (
         <span className="club-physical-tier-mark">
@@ -113,7 +127,7 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
           {Array.from({length: 6}).map((_, index) => (
             <i
               aria-label={index === 5 ? copy.gift : undefined}
-              className={`${index < stamps ? "is-filled" : ""} ${index === 5 ? "is-gift" : ""}`}
+              className={`${index < stamps ? "is-filled" : ""} ${index === 5 ? "is-gift" : ""} ${index === 5 && isRewardReady ? "is-ready" : ""}`}
               key={index}
               title={index === 5 ? copy.gift : undefined}
             >
@@ -150,7 +164,7 @@ export default function ClubPage({clients = [], pushNotification}) {
     : "";
 
   const cardClientIds = useMemo(
-    () => new Set(cards.map((card) => card.clientId)),
+    () => new Set(cards.filter((card) => card.isActive).map((card) => card.clientId)),
     [cards],
   );
 
@@ -161,9 +175,10 @@ export default function ClubPage({clients = [], pushNotification}) {
 
   const stats = useMemo(() => {
     const active = cards.filter((card) => card.isActive).length;
+    const archived = cards.filter((card) => !card.isActive || card.archivedAt).length;
     const rewards = cards.filter((card) => card.rewardAvailable).length;
     const stamps = cards.reduce((total, card) => total + (Number(card.stamps) || 0), 0);
-    return {active, rewards, stamps, total: cards.length};
+    return {active, archived, rewards, stamps, total: cards.length};
   }, [cards]);
 
   const loadCards = async () => {
@@ -243,7 +258,7 @@ export default function ClubPage({clients = [], pushNotification}) {
   };
 
   const handleRedeem = async (card) => {
-    if (!window.confirm("Списать награду по карте клиента?")) return;
+    if (!window.confirm("Выдать подарок, отправить заполненную карту в архив и выпустить новую?")) return;
     await refreshAfterAction(await redeemLoyaltyReward(card.id, {
       description: "Использование награды NUAR Club",
     }));
@@ -365,6 +380,7 @@ export default function ClubPage({clients = [], pushNotification}) {
             <select value={status} onChange={(event) => setStatus(event.target.value)}>
               <option value="all">Все статусы</option>
               <option value="active">Активные</option>
+              <option value="archived">Архив</option>
               <option value="inactive">Отключённые</option>
             </select>
             <select value={reward} onChange={(event) => setReward(event.target.value)}>
@@ -400,6 +416,7 @@ export default function ClubPage({clients = [], pushNotification}) {
           {cards.map((card) => {
             const publicUrl = createdPublicUrls[card.id] || card.publicUrl || "";
             const progress = getCardProgress(card);
+            const tier = getTierForCard(card);
             return (
               <article
                 className={`club-card ${selectedCard?.id === card.id ? "is-selected" : ""}`}
@@ -419,7 +436,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                   </span>
                   <div>
                     <strong>{card.client?.name || "Клиент"}</strong>
-                    <small>{card.client?.phone || card.client?.smsName || "Без телефона"}</small>
+                    <small>{tier.title} · {card.client?.phone || card.client?.smsName || "Без телефона"}</small>
                   </div>
                 </div>
                 <div className="club-card-progress">
@@ -427,8 +444,8 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </div>
                 <div className="club-card-meta">
                   <span>{card.stamps}/{card.targetStamps}</span>
-                  <span>{card.rewardAvailable ? "Награда" : "В процессе"}</span>
-                  <span>{card.isActive ? "Активна" : "Отключена"}</span>
+                  <span>{card.rewardAvailable ? "Подарок" : "В процессе"}</span>
+                  <span>{card.isActive ? "Активна" : "Архив"}</span>
                 </div>
                 <div className="club-card-actions">
                   <button type="button" onClick={(event) => {
@@ -437,7 +454,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                   }}>
                     +1
                   </button>
-                  <button disabled={!card.rewardAvailable} type="button" onClick={(event) => {
+                  <button disabled={!card.rewardAvailable || !card.isActive} type="button" onClick={(event) => {
                     event.stopPropagation();
                     handleRedeem(card);
                   }}>
@@ -449,7 +466,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                   }}>
                     <Link2 size={13} />
                   </button>
-                  <button disabled={!publicUrl} type="button" onClick={(event) => {
+                  <button disabled={!publicUrl || !card.isActive} type="button" onClick={(event) => {
                     event.stopPropagation();
                     handleCopy(card);
                   }}>
@@ -478,17 +495,22 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </div>
                 <b>{selectedCard.stamps}/{selectedCard.targetStamps}</b>
               </div>
+              <PhysicalCardPreview card={selectedCard} tier={getTierForCard(selectedCard)} />
               <div className="club-details-progress">
                 <span style={{width: `${getCardProgress(selectedCard)}%`}} />
               </div>
               <div className="club-details-grid">
                 <span>
                   <small>Статус</small>
-                  <b>{selectedCard.isActive ? "Активна" : "Отключена"}</b>
+                  <b>{selectedCard.isActive ? "Активна" : "Архив"}</b>
                 </span>
                 <span>
                   <small>Награда</small>
-                  <b>{selectedCard.rewardAvailable ? "Доступна" : "Пока нет"}</b>
+                  <b>{selectedCard.rewardAvailable ? "Подарок доступен" : "Пока нет"}</b>
+                </span>
+                <span>
+                  <small>Всего визитов</small>
+                  <b>{selectedCard.lifetimeVisits ?? selectedCard.stamps}</b>
                 </span>
                 <span>
                   <small>Последняя операция</small>
@@ -520,7 +542,7 @@ export default function ClubPage({clients = [], pushNotification}) {
 
               <div className="club-details-actions">
                 <button type="button" onClick={() => handleEarn(selectedCard)}>Начислить</button>
-                <button disabled={!selectedCard.rewardAvailable} type="button" onClick={() => handleRedeem(selectedCard)}>
+                <button disabled={!selectedCard.rewardAvailable || !selectedCard.isActive} type="button" onClick={() => handleRedeem(selectedCard)}>
                   Использовать награду
                 </button>
                 <button type="button" onClick={() => handleCorrect(selectedCard)}>Корректировка</button>

@@ -11,6 +11,7 @@ const {
   getActorUserId,
   getPublicCardByToken,
   isOwner,
+  redeemRewardAndReissue,
   serializeCard,
   serializeTransaction,
   validationError,
@@ -181,6 +182,7 @@ router.get('/loyalty/cards', async (req, res) => {
     const where = {
       ...(status === 'active' ? { isActive: true } : {}),
       ...(status === 'inactive' ? { isActive: false } : {}),
+      ...(status === 'archived' ? { archivedAt: { not: null } } : {}),
       ...(reward === 'available' ? { rewardAvailable: true } : {}),
       ...(search
         ? {
@@ -205,7 +207,7 @@ router.get('/loyalty/cards', async (req, res) => {
             take: 1,
           },
         },
-        orderBy: [{ rewardAvailable: 'desc' }, { updatedAt: 'desc' }],
+        orderBy: [{ isActive: 'desc' }, { rewardAvailable: 'desc' }, { updatedAt: 'desc' }],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
@@ -297,18 +299,16 @@ router.post('/loyalty/cards/:cardId/redeem', async (req, res) => {
     const result = await prisma.$transaction(async (tx) => {
       const card = await tx.loyaltyCard.findUnique({ where: { id: cardId } });
       if (!card) throw validationError('Loyalty card not found', 404);
-      const amount = -Math.max(1, card.targetStamps || 5);
-      const applied = await applyTransaction(tx, {
-        amount,
+      const applied = await redeemRewardAndReissue(tx, cardId, {
         cardId,
         createdById: getActorUserId(req),
         description,
-        type: 'REDEEM',
       });
       await recordLoyaltyAudit(tx, req, {
         action: 'redeem loyalty reward',
         after: {
-          card: serializeCard(applied.card),
+          archivedCard: serializeCard(applied.archivedCard),
+          card: serializeCard(applied.card, applied.publicToken),
           transaction: serializeTransaction(applied.transaction),
         },
         before: serializeCard(card),
@@ -316,7 +316,15 @@ router.post('/loyalty/cards/:cardId/redeem', async (req, res) => {
       });
       return applied;
     });
-    res.json({ success: true, data: serializeAppliedTransaction(result) });
+    res.json({
+      success: true,
+      data: {
+        archivedCard: serializeCard(result.archivedCard),
+        card: serializeCard(result.card, result.publicToken),
+        publicUrl: result.publicUrl,
+        transaction: serializeTransaction(result.transaction),
+      },
+    });
   } catch (error) {
     await sendRouteError(req, res, error);
   }
@@ -407,6 +415,21 @@ router.patch('/loyalty/cards/:cardId/status', requireOwner, async (req, res) => 
     const result = await prisma.$transaction(async (tx) => {
       const before = await tx.loyaltyCard.findUnique({ where: { id: cardId } });
       if (!before) throw validationError('Loyalty card not found', 404);
+      if (isActive) {
+        if (before.archivedAt) {
+          throw validationError('Archived loyalty cards cannot be activated');
+        }
+        const existingActive = await tx.loyaltyCard.findFirst({
+          where: {
+            clientId: before.clientId,
+            id: { not: before.id },
+            isActive: true,
+          },
+        });
+        if (existingActive) {
+          throw validationError('Client already has an active loyalty card');
+        }
+      }
       const card = await tx.loyaltyCard.update({
         where: { id: cardId },
         data: { isActive },

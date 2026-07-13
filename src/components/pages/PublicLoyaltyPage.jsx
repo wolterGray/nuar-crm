@@ -92,7 +92,7 @@ function PublicLoyaltyPage() {
     };
   }, [token]);
 
-  const target = Math.max(1, Number(card?.targetStamps) || 5);
+  const target = Math.max(1, Number(card?.targetStamps) || 6);
   const stamps = Math.max(0, Number(card?.stamps) || 0);
   const remaining = Math.max(0, target - stamps);
   const progress = Math.min(100, Math.round((stamps / target) * 100));
@@ -140,7 +140,7 @@ function PublicLoyaltyPage() {
               <span style={{width: `${progress}%`}} />
             </div>
 
-            <div className="public-loyalty-reward">
+            <div className={`public-loyalty-reward ${card.rewardAvailable ? "is-ready" : ""}`}>
               <Gift size={18} />
               <div>
                 <strong>

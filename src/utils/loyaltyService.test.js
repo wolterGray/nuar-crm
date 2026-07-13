@@ -22,7 +22,7 @@ const makePrismaStub = () => {
       key: "loyaltyProgramSettings",
       payload: {
         bookingUrl: "https://nuarr.pl/book",
-        targetStamps: 5,
+        targetStamps: 6,
       },
     },
     transactions: [],
@@ -45,7 +45,13 @@ const makePrismaStub = () => {
 
   const findCard = (where) => {
     if (where.id) return db.cards.find((card) => card.id === where.id) ?? null;
-    if (where.clientId) return db.cards.find((card) => card.clientId === where.clientId) ?? null;
+    if (where.clientId) {
+      return db.cards.find((card) =>
+        card.clientId === where.clientId &&
+        (where.isActive === undefined || card.isActive === where.isActive) &&
+        (where.id?.not === undefined || card.id !== where.id.not),
+      ) ?? null;
+    }
     if (where.publicTokenHash) {
       return db.cards.find((card) => card.publicTokenHash === where.publicTokenHash) ?? null;
     }
@@ -62,13 +68,17 @@ const makePrismaStub = () => {
         const now = new Date();
         const card = {
           createdAt: now,
+          archivedAt: null,
+          archiveReason: null,
+          cycleNumber: data.cycleNumber ?? 1,
           id: cardId,
           isActive: true,
+          lifetimeVisits: data.lifetimeVisits ?? 0,
           rewardAvailable: false,
           stamps: data.stamps ?? 0,
           updatedAt: now,
           ...data,
-          targetStamps: data.targetStamps ?? 5,
+          targetStamps: data.targetStamps ?? 6,
         };
         cardId += 1;
         db.cards.push(card);
@@ -82,11 +92,35 @@ const makePrismaStub = () => {
         }
         return cloneCard(card, include);
       }),
+      findFirst: vi.fn(async ({where, include}) => cloneCard(findCard(where), include)),
       update: vi.fn(async ({where, data, include}) => {
         const card = findCard(where);
         if (!card) return null;
-        Object.assign(card, data, {updatedAt: new Date()});
+        const nextData = {...data};
+        if (nextData.lifetimeVisits?.increment) {
+          nextData.lifetimeVisits = card.lifetimeVisits + nextData.lifetimeVisits.increment;
+        } else if (nextData.lifetimeVisits?.decrement) {
+          nextData.lifetimeVisits = Math.max(0, card.lifetimeVisits - nextData.lifetimeVisits.decrement);
+        }
+        Object.assign(card, nextData, {updatedAt: new Date()});
         return cloneCard(card, include);
+      }),
+      updateMany: vi.fn(async ({where, data}) => {
+        const cards = db.cards.filter((card) =>
+          card.clientId === where.clientId &&
+          (where.isActive === undefined || card.isActive === where.isActive) &&
+          (where.id?.not === undefined || card.id !== where.id.not),
+        );
+        cards.forEach((card) => {
+          const nextData = {...data};
+          if (nextData.lifetimeVisits?.increment) {
+            nextData.lifetimeVisits = card.lifetimeVisits + nextData.lifetimeVisits.increment;
+          } else if (nextData.lifetimeVisits?.decrement) {
+            nextData.lifetimeVisits = Math.max(0, card.lifetimeVisits - nextData.lifetimeVisits.decrement);
+          }
+          Object.assign(card, nextData, {updatedAt: new Date()});
+        });
+        return {count: cards.length};
       }),
     },
     loyaltyTransaction: {
@@ -194,7 +228,7 @@ describe("loyalty service safety helpers", () => {
       displayName: "Anna K.",
       tier: "MEMBER",
       stamps: 0,
-      targetStamps: 5,
+      targetStamps: 6,
     });
     expect(publicCard.cardNumber).toMatch(/^\d{4} • \d{4} • \d{4}$/);
     expect(publicCard).not.toHaveProperty("clientId");
@@ -204,12 +238,12 @@ describe("loyalty service safety helpers", () => {
     expect(await loyaltyService.getPublicCardByToken(prisma, "wrong-token")).toBeNull();
   });
 
-  it("derives visual loyalty tiers from stamp balance", () => {
-    expect(loyaltyService.__testing.getCardTier({stamps: 0, targetStamps: 5})).toBe("MEMBER");
-    expect(loyaltyService.__testing.getCardTier({stamps: 3, targetStamps: 5})).toBe("SILVER");
-    expect(loyaltyService.__testing.getCardTier({stamps: 10, targetStamps: 5})).toBe("GOLD");
-    expect(loyaltyService.__testing.getCardTier({stamps: 20, targetStamps: 5})).toBe("DIAMOND");
-    expect(loyaltyService.__testing.getCardTier({stamps: 50, targetStamps: 5})).toBe("ROYAL");
+  it("derives visual loyalty tiers from lifetime visits", () => {
+    expect(loyaltyService.__testing.getCardTier({lifetimeVisits: 0, stamps: 6})).toBe("MEMBER");
+    expect(loyaltyService.__testing.getCardTier({lifetimeVisits: 3, stamps: 0})).toBe("SILVER");
+    expect(loyaltyService.__testing.getCardTier({lifetimeVisits: 10, stamps: 0})).toBe("GOLD");
+    expect(loyaltyService.__testing.getCardTier({lifetimeVisits: 20, stamps: 0})).toBe("DIAMOND");
+    expect(loyaltyService.__testing.getCardTier({lifetimeVisits: 50, stamps: 0})).toBe("ROYAL");
   });
 
   it("normalizes loyalty card languages", () => {
@@ -262,6 +296,7 @@ describe("loyalty service safety helpers", () => {
     expect(first.transaction.type).toBe("EARN");
     expect(second).toMatchObject({earned: false, idempotent: true, reason: "already_earned"});
     expect(stored.stamps).toBe(1);
+    expect(stored.lifetimeVisits).toBe(1);
   });
 
   it("skips unpaid, cancelled-like and reward visits", async () => {
@@ -311,6 +346,53 @@ describe("loyalty service safety helpers", () => {
     expect(redeemed.card.rewardAvailable).toBe(false);
   });
 
+  it("archives a filled reward card and reissues a fresh active card", async () => {
+    const prisma = makePrismaStub();
+    const {card} = await loyaltyService.createCardForClient(prisma, 1);
+
+    for (let index = 0; index < 6; index += 1) {
+      await loyaltyService.earnForCompletedVisit(prisma, {
+        clientId: 1,
+        id: 100 + index,
+        payload: {paidAmount: 400},
+      });
+    }
+
+    const filled = await prisma.loyaltyCard.findUnique({where: {id: card.id}});
+    expect(filled.stamps).toBe(6);
+    expect(filled.lifetimeVisits).toBe(6);
+    expect(filled.rewardAvailable).toBe(true);
+
+    const redeemed = await loyaltyService.redeemRewardAndReissue(prisma, card.id);
+
+    expect(redeemed.archivedCard).toMatchObject({
+      id: card.id,
+      isActive: false,
+      rewardAvailable: false,
+      stamps: 6,
+    });
+    expect(redeemed.archivedCard.archivedAt).toBeInstanceOf(Date);
+    expect(redeemed.transaction).toMatchObject({
+      amount: 0,
+      balanceAfter: 6,
+      balanceBefore: 6,
+      type: "REDEEM",
+    });
+    expect(redeemed.card).toMatchObject({
+      clientId: 1,
+      cycleNumber: 2,
+      isActive: true,
+      lifetimeVisits: 6,
+      rewardAvailable: false,
+      stamps: 0,
+      targetStamps: 6,
+    });
+    expect(await loyaltyService.findCardForClient(prisma, 1)).toMatchObject({
+      id: redeemed.card.id,
+      stamps: 0,
+    });
+  });
+
   it("reverses earned stamps after reverting a completed visit once", async () => {
     const prisma = makePrismaStub();
     const {card} = await loyaltyService.createCardForClient(prisma, 1);
@@ -324,6 +406,7 @@ describe("loyalty service safety helpers", () => {
     expect(reversed).toMatchObject({reason: "reversed", reversed: true});
     expect(repeated).toMatchObject({idempotent: true, reason: "already_reversed", reversed: false});
     expect(stored.stamps).toBe(0);
+    expect(stored.lifetimeVisits).toBe(0);
   });
 
   it("recognizes owner-only correction permissions", () => {

@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-const DEFAULT_TARGET_STAMPS = 5;
+const DEFAULT_TARGET_STAMPS = 6;
 const LOYALTY_SETTINGS_KEY = 'loyaltyProgramSettings';
 const TOKEN_BYTES = 32;
 const CARD_LANGUAGES = new Set(['ru', 'pl', 'en']);
@@ -61,12 +61,12 @@ const getDisplayName = (name) => {
 };
 
 const getCardTier = (card) => {
-  const stamps = Math.max(0, toInt(card?.stamps, 0));
+  const visits = Math.max(0, toInt(card?.lifetimeVisits ?? card?.stamps, 0));
 
-  if (stamps >= 50) return 'ROYAL';
-  if (stamps >= 20) return 'DIAMOND';
-  if (stamps >= 10) return 'GOLD';
-  if (stamps >= 3) return 'SILVER';
+  if (visits >= 50) return 'ROYAL';
+  if (visits >= 20) return 'DIAMOND';
+  if (visits >= 10) return 'GOLD';
+  if (visits >= 3) return 'SILVER';
   return 'MEMBER';
 };
 
@@ -106,12 +106,17 @@ const serializeCard = (card, publicToken = null) => {
     cardLanguage: normalizeCardLanguage(card.cardLanguage),
     clientId: card.clientId,
     createdAt: card.createdAt,
+    archivedAt: card.archivedAt ?? null,
+    archiveReason: card.archiveReason ?? null,
+    cycleNumber: card.cycleNumber,
     isActive: card.isActive,
     lastTransactionAt: latest?.createdAt ?? null,
+    lifetimeVisits: card.lifetimeVisits,
     publicUrl: storedPublicToken ? buildPublicUrl(storedPublicToken) : null,
     rewardAvailable: card.rewardAvailable,
     stamps: card.stamps,
     targetStamps: card.targetStamps,
+    tier: getCardTier(card),
     updatedAt: card.updatedAt,
   };
 };
@@ -121,7 +126,7 @@ const getProgramSettings = async (tx) => {
     where: { key: LOYALTY_SETTINGS_KEY },
   });
   const payload = getPayload(state);
-  const targetStamps = Math.max(1, toInt(payload.targetStamps, DEFAULT_TARGET_STAMPS));
+  const targetStamps = Math.max(DEFAULT_TARGET_STAMPS, toInt(payload.targetStamps, DEFAULT_TARGET_STAMPS));
   return {
     bookingUrl: normalizeText(payload.bookingUrl) || 'https://nuarr.pl',
     eligibleServiceIds: Array.isArray(payload.eligibleServiceIds)
@@ -147,8 +152,9 @@ const createUniqueTokenPayload = async (tx) => {
 };
 
 const findCardForClient = (tx, clientId) =>
-  tx.loyaltyCard.findUnique({
-    where: { clientId },
+  tx.loyaltyCard.findFirst({
+    where: { clientId, isActive: true },
+    orderBy: { createdAt: 'desc' },
     include: {
       transactions: {
         orderBy: { createdAt: 'desc' },
@@ -219,6 +225,8 @@ const applyTransaction = async (tx, {
   }
 
   const targetStamps = Math.max(1, card.targetStamps || DEFAULT_TARGET_STAMPS);
+  const lifetimeIncrement = type === 'EARN' && amount > 0 ? amount : 0;
+  const lifetimeDecrement = type === 'REVERSAL' && amount < 0 ? Math.abs(amount) : 0;
   const transaction = await tx.loyaltyTransaction.create({
     data: {
       amount,
@@ -235,6 +243,8 @@ const applyTransaction = async (tx, {
   const updatedCard = await tx.loyaltyCard.update({
     where: { id: card.id },
     data: {
+      ...(lifetimeIncrement ? { lifetimeVisits: { increment: lifetimeIncrement } } : {}),
+      ...(lifetimeDecrement ? { lifetimeVisits: { decrement: lifetimeDecrement } } : {}),
       rewardAvailable: balanceAfter >= targetStamps,
       stamps: balanceAfter,
     },
@@ -247,6 +257,80 @@ const applyTransaction = async (tx, {
   });
 
   return { card: updatedCard, transaction };
+};
+
+const redeemRewardAndReissue = async (tx, cardId, {
+  createdById = null,
+  description = 'Использование награды NUAR Club',
+} = {}) => {
+  const card = await tx.loyaltyCard.findUnique({
+    where: { id: cardId },
+  });
+  if (!card) {
+    throw validationError('Loyalty card not found', 404);
+  }
+  if (!card.isActive) {
+    throw validationError('Only active loyalty cards can redeem rewards');
+  }
+
+  const targetStamps = Math.max(1, card.targetStamps || DEFAULT_TARGET_STAMPS);
+  if (card.stamps < targetStamps || !card.rewardAvailable) {
+    throw validationError('Not enough loyalty stamps');
+  }
+
+  const settings = await getProgramSettings(tx);
+  const { publicToken, publicTokenHash } = await createUniqueTokenPayload(tx);
+  const transaction = await tx.loyaltyTransaction.create({
+    data: {
+      amount: 0,
+      balanceAfter: card.stamps,
+      balanceBefore: card.stamps,
+      createdById,
+      description: normalizeText(description) || 'Использование награды NUAR Club',
+      loyaltyCardId: card.id,
+      type: 'REDEEM',
+    },
+  });
+  const archivedCard = await tx.loyaltyCard.update({
+    where: { id: card.id },
+    data: {
+      archivedAt: new Date(),
+      archiveReason: 'reward_redeemed',
+      isActive: false,
+      rewardAvailable: false,
+    },
+    include: {
+      transactions: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+      },
+    },
+  });
+  const newCard = await tx.loyaltyCard.create({
+    data: {
+      cardLanguage: normalizeCardLanguage(card.cardLanguage),
+      clientId: card.clientId,
+      cycleNumber: Math.max(1, toInt(card.cycleNumber, 1)) + 1,
+      lifetimeVisits: Math.max(0, toInt(card.lifetimeVisits, card.stamps)),
+      publicToken,
+      publicTokenHash,
+      targetStamps: settings.targetStamps,
+    },
+    include: {
+      transactions: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+      },
+    },
+  });
+
+  return {
+    archivedCard,
+    card: newCard,
+    publicToken,
+    publicUrl: buildPublicUrl(publicToken),
+    transaction,
+  };
 };
 
 const isRewardVisit = (payload) => {
@@ -290,9 +374,7 @@ const earnForCompletedVisit = async (tx, visit, { createdById = null } = {}) => 
     return { card: null, earned: false, reason: 'not_eligible', transaction: null };
   }
 
-  const card = await tx.loyaltyCard.findUnique({
-    where: { clientId: visit.clientId },
-  });
+  const card = await findCardForClient(tx, visit.clientId);
   if (!card || !card.isActive) {
     return { card: null, earned: false, reason: 'no_active_card', transaction: null };
   }
@@ -354,6 +436,19 @@ const reverseEarnForVisit = async (tx, visit, { createdById = null, description 
     type: 'REVERSAL',
   });
 
+  if (earn.loyaltyCard?.clientId) {
+    await tx.loyaltyCard.updateMany({
+      where: {
+        clientId: earn.loyaltyCard.clientId,
+        id: { not: earn.loyaltyCardId },
+        isActive: true,
+      },
+      data: {
+        lifetimeVisits: { decrement: Math.abs(earn.amount) },
+      },
+    });
+  }
+
   return { ...result, reversed: true, reason: 'reversed' };
 };
 
@@ -383,6 +478,7 @@ const getPublicCardByToken = async (tx, token) => {
     cardStatus: card.isActive ? 'active' : 'inactive',
     displayName: getDisplayName(card.client?.name),
     lastTransactionAt: card.transactions?.[0]?.createdAt ?? null,
+    lifetimeVisits: card.lifetimeVisits,
     rewardAvailable: card.rewardAvailable,
     stamps: card.stamps,
     targetStamps: card.targetStamps,
@@ -402,6 +498,7 @@ module.exports = {
   getPublicCardByToken,
   hashPublicToken,
   isOwner,
+  redeemRewardAndReissue,
   reverseEarnForVisit,
   serializeCard,
   serializeTransaction,

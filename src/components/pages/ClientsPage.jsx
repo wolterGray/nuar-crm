@@ -229,7 +229,7 @@ function ClientLoyaltyCard({client}) {
   };
 
   const handleRedeem = async () => {
-    if (!window.confirm("Списать награду по карте клиента?")) return;
+    if (!window.confirm("Выдать подарок, отправить заполненную карту в архив и выпустить новую?")) return;
     await refreshAfterAction(await redeemLoyaltyReward(card.id, {
       description: "Использование награды NUAR Club",
     }));
@@ -261,7 +261,7 @@ function ClientLoyaltyCard({client}) {
   };
 
   const progress = card
-    ? Math.min(100, Math.round((card.stamps / Math.max(1, card.targetStamps)) * 100))
+    ? Math.min(100, Math.round((card.stamps / Math.max(1, card.targetStamps || 6)) * 100))
     : 0;
   const activePublicUrl = publicUrl || card?.publicUrl || "";
 
@@ -297,11 +297,15 @@ function ClientLoyaltyCard({client}) {
             </span>
             <span>
               <small>Статус</small>
-              <b>{card.isActive ? "Активна" : "Отключена"}</b>
+              <b>{card.isActive ? "Активна" : "Архив"}</b>
             </span>
             <span>
               <small>Награда</small>
-              <b>{card.rewardAvailable ? "Доступна" : "Пока нет"}</b>
+              <b>{card.rewardAvailable ? "Подарок" : "Пока нет"}</b>
+            </span>
+            <span>
+              <small>Всего визитов</small>
+              <b>{card.lifetimeVisits ?? card.stamps}</b>
             </span>
             <span>
               <small>Последнее</small>
@@ -327,7 +331,7 @@ function ClientLoyaltyCard({client}) {
 
           <div className="client-loyalty-actions">
             <button type="button" onClick={handleEarn}>Начислить</button>
-            <button disabled={!card.rewardAvailable} type="button" onClick={handleRedeem}>
+            <button disabled={!card.rewardAvailable || !card.isActive} type="button" onClick={handleRedeem}>
               Использовать
             </button>
             <button type="button" onClick={handleCorrect}>Коррекция</button>
