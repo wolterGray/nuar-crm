@@ -124,9 +124,25 @@ const getRouteId = (req, res, fieldName = 'id') => {
   }
 };
 
+const objectPayload = (value) =>
+  value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+
 const withStoredId = (record) => {
   if (!record) return record;
-  return record;
+
+  const payload = objectPayload(record.payload);
+  const storedRecord = Object.entries(record).reduce((next, [key, value]) => {
+    if (value !== null && value !== undefined) {
+      next[key] = value;
+    }
+    return next;
+  }, {});
+
+  return {
+    ...payload,
+    ...storedRecord,
+    payload: record.payload,
+  };
 };
 
 const LEGACY_FINANCIAL_WRITE_FLAG = 'allowLegacyFinancialWrite';
