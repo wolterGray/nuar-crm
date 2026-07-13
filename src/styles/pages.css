@@ -3095,80 +3095,27 @@ button:focus-visible {
   font-size: 18px;
 }
 
-.club-physical-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.club-physical-option {
-  display: grid;
-  gap: 10px;
-  min-width: 0;
-  border: 1px solid var(--club-border);
-  border-radius: 8px;
-  padding: 10px;
-  color: var(--club-text);
-  background: #08090b;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 180ms ease,
-    transform 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.club-physical-option:hover,
-.club-physical-option.is-selected {
-  border-color: rgba(214, 187, 125, 0.58);
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28);
-  transform: translateY(-1px);
-}
-
-.club-physical-option-head {
-  display: grid;
-  gap: 3px;
-}
-
-.club-physical-option-head b {
-  color: #d6bb7d;
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.club-physical-option-head strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.club-physical-stack {
-  display: grid;
-  gap: 8px;
-}
-
-.club-physical-card {
+.club-physical-preview {
+  --physical-accent: #d4bd82;
+  --physical-text: #f5f0e6;
   position: relative;
   display: flex;
   overflow: hidden;
-  min-height: 132px;
+  width: min(100%, 620px);
+  aspect-ratio: 1.586 / 1;
   flex-direction: column;
   justify-content: space-between;
   border-radius: 8px;
-  padding: 14px;
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+  padding: 18px 22px;
+  color: var(--club-text);
+  background:
+    radial-gradient(circle at 88% 14%, rgba(212, 189, 130, 0.15), transparent 28%),
+    linear-gradient(135deg, #151617, #343635 54%, #171717);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.34);
   isolation: isolate;
 }
 
-.club-physical-card::before {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  content: "";
-}
-
-.club-physical-card::after {
+.club-physical-preview::after {
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -3177,48 +3124,6 @@ button:focus-visible {
     linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.08) 46%, transparent 58%);
   content: "";
   opacity: 0.55;
-}
-
-.club-physical-option.is-black {
-  --physical-accent: #d4bd82;
-  --physical-text: #f5f0e6;
-}
-
-.club-physical-option.is-black .club-physical-card::before {
-  background: linear-gradient(135deg, #151617, #343635 54%, #171717);
-}
-
-.club-physical-option.is-gold {
-  --physical-accent: #f1ce7b;
-  --physical-text: #fff5d8;
-}
-
-.club-physical-option.is-gold .club-physical-card::before {
-  background:
-    radial-gradient(circle at 80% 12%, rgba(241, 206, 123, 0.24), transparent 28%),
-    linear-gradient(135deg, #17100d, #3a2b1d 54%, #080706);
-}
-
-.club-physical-option.is-diamond {
-  --physical-accent: #eaf6ff;
-  --physical-text: #f7fbff;
-}
-
-.club-physical-option.is-diamond .club-physical-card::before {
-  background:
-    radial-gradient(circle at 82% 16%, rgba(234, 246, 255, 0.2), transparent 28%),
-    linear-gradient(135deg, #070a10, #27313a 55%, #0a0c12);
-}
-
-.club-physical-option.is-royal {
-  --physical-accent: #d8b35d;
-  --physical-text: #fff0c4;
-}
-
-.club-physical-option.is-royal .club-physical-card::before {
-  background:
-    radial-gradient(circle at 82% 18%, rgba(216, 179, 93, 0.22), transparent 26%),
-    linear-gradient(135deg, #020202, #11100e 58%, #251705);
 }
 
 .club-physical-shine {
@@ -3231,12 +3136,8 @@ button:focus-visible {
   transition: left 900ms ease;
 }
 
-.club-physical-option:hover .club-physical-shine {
+.club-physical-preview:hover .club-physical-shine {
   left: 120%;
-}
-
-.club-physical-front {
-  justify-content: flex-start;
 }
 
 .club-physical-topline {
@@ -3293,57 +3194,30 @@ button:focus-visible {
   opacity: 0.72;
 }
 
-.club-physical-back {
-  min-height: 110px;
-}
-
-.club-physical-back strong {
-  color: var(--physical-text);
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.club-physical-back small,
-.club-physical-note,
-.club-physical-caption {
-  color: rgba(255, 255, 255, 0.62);
-}
-
-.club-physical-back > span:first-child {
-  display: grid;
-  gap: 4px;
-}
-
 .club-physical-stamps {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
+  width: min(100%, 360px);
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  align-self: center;
 }
 
 .club-physical-stamps i {
   display: grid;
   aspect-ratio: 1;
   place-items: center;
-  border: 2px solid color-mix(in srgb, var(--physical-accent) 78%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--physical-accent) 78%, transparent);
   border-radius: 50%;
   color: var(--physical-text);
-  font-size: 12px;
+  font-size: 9px;
+  font-weight: 800;
   font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .club-physical-stamps i.is-filled {
   background: color-mix(in srgb, var(--physical-accent) 20%, transparent);
-}
-
-.club-physical-note {
-  font-size: 12px;
-  letter-spacing: 0.05em;
-}
-
-.club-physical-caption {
-  font-size: 12px;
-  line-height: 1.35;
 }
 
 .club-search {
@@ -3634,10 +3508,6 @@ button:focus-visible {
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
-  }
-
-  .club-physical-grid {
-    grid-template-columns: 1fr;
   }
 
   .club-create-panel,
