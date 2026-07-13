@@ -19,13 +19,9 @@ export default function PageHeader({
         </h1>
       </div>
       <div className="flex items-center gap-3 shrink-0">
-        {(headerActions || showNotifications) && (
-          <div className="flex items-center gap-2">
-            {headerActions}
-            {showNotifications && <PageNotificationsSlot />}
-          </div>
-        )}
+        {headerActions}
         {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {showNotifications && <PageNotificationsSlot />}
       </div>
     </header>
   );

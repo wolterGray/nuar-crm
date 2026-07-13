@@ -60,7 +60,16 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
           </div>
         }
         description={isMobile ? undefined : `${filteredServices.length} из ${services.length} услуг в базе`}
-        title="Услуги"
+        title={
+          isMobile ? (
+            <span className="flex items-baseline gap-2">
+              <span>Услуги</span>
+              <span className="text-sm font-normal text-muted-foreground">({services.length})</span>
+            </span>
+          ) : (
+            "Услуги"
+          )
+        }
       />
 
       <div className="services-grid">
