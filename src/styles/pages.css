@@ -3042,6 +3042,7 @@ button:focus-visible {
 
 .club-create-panel select,
 .club-toolbar select,
+.club-card-settings select,
 .club-search input {
   width: 100%;
   min-width: 0;
@@ -3057,6 +3058,7 @@ button:focus-visible {
 .club-create-panel button,
 .club-card-actions button,
 .club-details-actions button,
+.club-card-settings button,
 .club-public-link :is(button, a) {
   display: inline-flex;
   min-height: 36px;
@@ -3083,6 +3085,7 @@ button:focus-visible {
 .club-create-panel button:disabled,
 .club-card-actions button:disabled,
 .club-details-actions button:disabled,
+.club-card-settings button:disabled,
 .club-public-link button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
@@ -3551,7 +3554,7 @@ button:focus-visible {
 
 .club-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 380px);
   gap: 12px;
   min-height: 0;
 }
@@ -3560,7 +3563,19 @@ button:focus-visible {
   display: grid;
   align-content: start;
   gap: 8px;
+  max-height: calc(100vh - 350px);
   min-width: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.club-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.club-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--club-muted) 26%, transparent);
 }
 
 .club-card {
@@ -3648,10 +3663,23 @@ button:focus-visible {
 
 .club-details {
   display: flex;
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 120px);
   min-width: 0;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto;
   padding: 14px;
+}
+
+.club-details::-webkit-scrollbar {
+  width: 4px;
+}
+
+.club-details::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--club-muted) 26%, transparent);
 }
 
 .club-details-head {
@@ -3756,6 +3784,30 @@ button:focus-visible {
   white-space: nowrap;
 }
 
+.club-card-settings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: 8px;
+}
+
+.club-card-settings label {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.club-card-settings label span {
+  color: var(--club-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.club-card-settings select {
+  height: 36px;
+}
+
 .club-link-actions {
   display: flex;
   align-items: center;
@@ -3809,6 +3861,13 @@ button:focus-visible {
 
 .club-details-actions button {
   width: 100%;
+}
+
+.club-details-actions button.is-danger {
+  grid-column: 1 / -1;
+  border-color: rgba(248, 113, 113, 0.28);
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.2);
 }
 
 .club-transactions {
@@ -3962,6 +4021,9 @@ button:focus-visible {
   }
 
   .club-details {
+    position: static;
+    max-height: none;
+    overflow: visible;
     padding: 12px;
   }
 
@@ -3969,6 +4031,7 @@ button:focus-visible {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+  .club-card-settings,
   .club-details-actions {
     grid-template-columns: 1fr;
   }

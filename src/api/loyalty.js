@@ -100,9 +100,22 @@ export const reissueLoyaltyLink = (cardId) =>
     method: "POST",
   });
 
+export const updateLoyaltyCardLanguage = (cardId, body) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}/language`, {
+    body,
+    label: "Update loyalty card language",
+    method: "PATCH",
+  });
+
 export const updateLoyaltyCardStatus = (cardId, body) =>
   jsonRequest(`/api/loyalty/cards/${cardId}/status`, {
     body,
     label: "Update loyalty card status",
     method: "PATCH",
+  });
+
+export const deleteLoyaltyCard = (cardId) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}`, {
+    label: "Delete loyalty card",
+    method: "DELETE",
   });

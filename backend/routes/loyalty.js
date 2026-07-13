@@ -408,6 +408,41 @@ router.post('/loyalty/cards/:cardId/reissue-link', async (req, res) => {
   }
 });
 
+router.patch('/loyalty/cards/:cardId/language', requireOwner, async (req, res) => {
+  try {
+    const cardId = parseId(req.params.cardId, 'cardId');
+    const cardLanguage = String(req.body?.cardLanguage ?? '').trim();
+    if (!['ru', 'pl', 'en'].includes(cardLanguage)) {
+      throw validationError('cardLanguage is invalid');
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const before = await tx.loyaltyCard.findUnique({ where: { id: cardId } });
+      if (!before) throw validationError('Loyalty card not found', 404);
+      const card = await tx.loyaltyCard.update({
+        where: { id: cardId },
+        data: { cardLanguage },
+        include: {
+          transactions: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
+      });
+      await recordLoyaltyAudit(tx, req, {
+        action: 'update loyalty card language',
+        after: serializeCard(card),
+        before: serializeCard(before),
+        entityId: cardId,
+      });
+      return card;
+    });
+    res.json({ success: true, data: { card: serializeCard(result) } });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
 router.patch('/loyalty/cards/:cardId/status', requireOwner, async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
@@ -449,6 +484,35 @@ router.patch('/loyalty/cards/:cardId/status', requireOwner, async (req, res) => 
       return card;
     });
     res.json({ success: true, data: serializeCard(result) });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
+router.delete('/loyalty/cards/:cardId', requireOwner, async (req, res) => {
+  try {
+    const cardId = parseId(req.params.cardId, 'cardId');
+    const result = await prisma.$transaction(async (tx) => {
+      const before = await tx.loyaltyCard.findUnique({
+        where: { id: cardId },
+        include: {
+          client: { select: { id: true, name: true, phone: true, messageName: true } },
+          transactions: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
+      });
+      if (!before) throw validationError('Loyalty card not found', 404);
+      await tx.loyaltyCard.delete({ where: { id: cardId } });
+      await recordLoyaltyAudit(tx, req, {
+        action: 'delete loyalty card',
+        before: serializeAdminCard(before),
+        entityId: cardId,
+      });
+      return before;
+    });
+    res.json({ success: true, data: { card: serializeAdminCard(result) } });
   } catch (error) {
     await sendRouteError(req, res, error);
   }

@@ -12,16 +12,19 @@ import {
   Search,
   Sparkles,
   Star,
+  Trash2,
 } from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {
   correctLoyaltyBalance,
   createClientLoyaltyCard,
+  deleteLoyaltyCard,
   earnLoyaltyStamp,
   fetchLoyaltyCards,
   fetchLoyaltyTransactions,
   redeemLoyaltyReward,
   reissueLoyaltyLink,
+  updateLoyaltyCardLanguage,
   updateLoyaltyCardStatus,
 } from "../../api/loyalty.js";
 import LoyaltyQrCode from "../LoyaltyQrCode.jsx";
@@ -297,6 +300,29 @@ export default function ClubPage({clients = [], pushNotification}) {
     }));
   };
 
+  const handleLanguageChange = async (card, cardLanguage) => {
+    if (!card?.id || getCardLanguage(card) === cardLanguage) return;
+    await refreshAfterAction(await updateLoyaltyCardLanguage(card.id, {cardLanguage}));
+    notify("Язык карты изменён");
+  };
+
+  const handleDeleteCard = async (card) => {
+    const clientName = card?.client?.name || "клиента";
+    if (!window.confirm(`Удалить карту ${clientName}? История операций этой карты тоже будет удалена.`)) {
+      return;
+    }
+    await deleteLoyaltyCard(card.id);
+    setCreatedPublicUrls((current) => {
+      const next = {...current};
+      delete next[card.id];
+      return next;
+    });
+    setVisibleQrCardId((current) => (current === card.id ? null : current));
+    setTransactions([]);
+    await loadCards();
+    notify("Карта удалена", clientName);
+  };
+
   const handleCopy = async (card) => {
     const publicUrl = createdPublicUrls[card.id] || card.publicUrl;
     if (!publicUrl) return;
@@ -562,6 +588,23 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </div>
               ) : null}
 
+              <div className="club-card-settings">
+                <label>
+                  <span>Язык карты</span>
+                  <select
+                    value={getCardLanguage(selectedCard)}
+                    onChange={(event) => handleLanguageChange(selectedCard, event.target.value)}
+                  >
+                    {cardLanguageOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <button type="button" onClick={() => handleStatus(selectedCard)}>
+                  {selectedCard.isActive ? "Отключить" : "Включить"}
+                </button>
+              </div>
+
               <div className="club-details-actions">
                 <button type="button" onClick={() => handleEarn(selectedCard)}>Начислить</button>
                 <button disabled={!selectedCard.rewardAvailable || !selectedCard.isActive} type="button" onClick={() => handleRedeem(selectedCard)}>
@@ -569,8 +612,9 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </button>
                 <button type="button" onClick={() => handleCorrect(selectedCard)}>Корректировка</button>
                 <button type="button" onClick={() => handleReissue(selectedCard)}>Перевыпустить ссылку</button>
-                <button type="button" onClick={() => handleStatus(selectedCard)}>
-                  {selectedCard.isActive ? "Отключить карту" : "Включить карту"}
+                <button className="is-danger" type="button" onClick={() => handleDeleteCard(selectedCard)}>
+                  <Trash2 size={14} />
+                  Удалить карту
                 </button>
               </div>
 
