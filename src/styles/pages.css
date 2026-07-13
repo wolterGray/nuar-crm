@@ -3458,18 +3458,10 @@ button:focus-visible {
   width: clamp(28px, 8%, 36px);
   height: clamp(28px, 8%, 36px);
   place-items: center;
-  border: 0.8px solid color-mix(in srgb, var(--physical-accent) 38%, transparent);
-  border-radius: 50%;
   color: var(--physical-accent);
-  background: color-mix(in srgb, var(--physical-accent) 9%, rgba(0, 0, 0, 0.18));
-  opacity: 0.74;
+  background: transparent;
+  opacity: 0.82;
   filter: drop-shadow(0 0 12px color-mix(in srgb, var(--physical-accent) 24%, transparent));
-}
-
-.club-physical-preview.is-member .club-physical-tier-mark,
-.club-physical-preview.is-silver .club-physical-tier-mark,
-.club-physical-preview.is-gold .club-physical-tier-mark {
-  border-radius: 50%;
 }
 
 .club-physical-topline,
@@ -3480,13 +3472,7 @@ button:focus-visible {
 }
 
 .club-physical-preview.is-diamond .club-physical-tier-mark {
-  border-radius: 8px;
   opacity: 0.78;
-  transform: rotate(45deg);
-}
-
-.club-physical-preview.is-diamond .club-physical-tier-mark svg {
-  transform: rotate(-45deg);
 }
 
 .club-physical-preview.is-royal .club-physical-tier-mark {
