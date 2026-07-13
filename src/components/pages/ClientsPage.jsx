@@ -521,10 +521,8 @@ function ClientsPage({
                 <div className="flex flex-wrap items-center gap-2 md:contents">
                   <span data-label="Статус">
                     <b
-                      className={`client-status-pill inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
-                        (client.status || "Активный") === "Новый"
-                          ? "bg-blue-500/10 text-blue-500"
-                          : "bg-green-500/10 text-green-500"
+                      className={`client-status-pill ${
+                        (client.status || "Активный") === "Новый" ? "status-new" : "status-active"
                       }`}>
                       {client.status || "Активный"}
                     </b>
@@ -555,7 +553,7 @@ function ClientsPage({
                   onClick={(event) => event.stopPropagation()}>
                   <button
                     aria-label={`Написать ${client.name}`}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-lg border border-border text-foreground hover:bg-accent/5 font-semibold text-xs transition-all"
+                    className="client-action-write flex-1 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-lg border font-semibold text-xs transition-all"
                     type="button"
                     onClick={() => handleMessageClient(client)}>
                     <MessageSquareText size={14} />
@@ -563,7 +561,7 @@ function ClientsPage({
                   </button>
                   <button
                     aria-label={`Записать ${client.name}`}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-lg border border-border text-foreground hover:bg-accent/5 font-semibold text-xs transition-all"
+                    className="client-action-record flex-1 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-lg border font-semibold text-xs transition-all"
                     type="button"
                     onClick={() => handleAddVisit(client)}>
                     <CalendarPlus size={14} />

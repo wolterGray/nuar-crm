@@ -355,7 +355,7 @@
   }
 
   .mobile-bottom-nav button[class*="text-zinc-100"] {
-    color: var(--linear-text, #f2f3f7) !important;
+    color: var(--accent-color, #b91c1c) !important;
   }
 
   .mobile-bottom-nav svg {

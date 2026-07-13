@@ -3449,5 +3449,25 @@ h2 {
   box-shadow: none !important;
 }
 
+/* Style client card mobile action buttons for better visual hierarchy */
+.client-action-write {
+  color: var(--text-soft) !important;
+  border-color: var(--border-soft) !important;
+  background: var(--surface-muted) !important;
+}
 
+.client-action-write:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-main) !important;
+}
 
+.client-action-record {
+  border-color: color-mix(in srgb, var(--accent-color) 22%, transparent) !important;
+  color: var(--text-main) !important;
+  background: color-mix(in srgb, var(--accent-color) 6%, transparent) !important;
+}
+
+.client-action-record:hover {
+  background: color-mix(in srgb, var(--accent-color) 12%, transparent) !important;
+  border-color: var(--accent-color) !important;
+}
