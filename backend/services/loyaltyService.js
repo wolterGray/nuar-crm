@@ -54,6 +54,27 @@ const getDisplayName = (name) => {
   return `${parts[0]} ${parts[1][0]}.`;
 };
 
+const getCardTier = (card) => {
+  const stamps = Math.max(0, toInt(card?.stamps, 0));
+  const target = Math.max(1, toInt(card?.targetStamps, DEFAULT_TARGET_STAMPS));
+
+  if (stamps >= target * 5) return 'ROYAL';
+  if (stamps >= target * 3) return 'DIAMOND';
+  if (stamps >= target * 2) return 'GOLD';
+  if (stamps >= target) return 'SILVER';
+  return 'MEMBER';
+};
+
+const getVisualCardNumber = (card) => {
+  const id = Math.max(0, toInt(card?.id, 0));
+  const clientId = Math.max(0, toInt(card?.clientId, 0));
+  const left = String(id || 1).padStart(4, '0').slice(-4);
+  const middle = String((clientId * 37 + id * 11) % 10000).padStart(4, '0');
+  const right = String((clientId * 91 + id * 17 + 9182) % 10000).padStart(4, '0');
+
+  return `${left} • ${middle} • ${right}`;
+};
+
 const serializeTransaction = (transaction) => ({
   id: transaction.id,
   appointmentId: transaction.appointmentId,
@@ -350,12 +371,14 @@ const getPublicCardByToken = async (tx, token) => {
 
   return {
     bookingUrl: settings.bookingUrl,
+    cardNumber: getVisualCardNumber(card),
     cardStatus: card.isActive ? 'active' : 'inactive',
     displayName: getDisplayName(card.client?.name),
     lastTransactionAt: card.transactions?.[0]?.createdAt ?? null,
     rewardAvailable: card.rewardAvailable,
     stamps: card.stamps,
     targetStamps: card.targetStamps,
+    tier: getCardTier(card),
   };
 };
 
@@ -376,7 +399,9 @@ module.exports = {
   serializeTransaction,
   validationError,
   __testing: {
+    getCardTier,
     getDisplayName,
+    getVisualCardNumber,
     hashPublicToken,
     isPaidVisitPayload,
     isRewardVisit,

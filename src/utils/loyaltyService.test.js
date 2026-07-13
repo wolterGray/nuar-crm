@@ -189,14 +189,24 @@ describe("loyalty service safety helpers", () => {
       bookingUrl: "https://nuarr.pl/book",
       cardStatus: "active",
       displayName: "Anna K.",
+      tier: "MEMBER",
       stamps: 0,
       targetStamps: 5,
     });
+    expect(publicCard.cardNumber).toMatch(/^\d{4} • \d{4} • \d{4}$/);
     expect(publicCard).not.toHaveProperty("clientId");
     expect(publicCard).not.toHaveProperty("phone");
     expect(publicCard).not.toHaveProperty("email");
     expect(publicCard).not.toHaveProperty("note");
     expect(await loyaltyService.getPublicCardByToken(prisma, "wrong-token")).toBeNull();
+  });
+
+  it("derives visual loyalty tiers from stamp balance", () => {
+    expect(loyaltyService.__testing.getCardTier({stamps: 0, targetStamps: 5})).toBe("MEMBER");
+    expect(loyaltyService.__testing.getCardTier({stamps: 5, targetStamps: 5})).toBe("SILVER");
+    expect(loyaltyService.__testing.getCardTier({stamps: 10, targetStamps: 5})).toBe("GOLD");
+    expect(loyaltyService.__testing.getCardTier({stamps: 15, targetStamps: 5})).toBe("DIAMOND");
+    expect(loyaltyService.__testing.getCardTier({stamps: 25, targetStamps: 5})).toBe("ROYAL");
   });
 
   it("does not open disabled cards or old tokens after reissue", async () => {
