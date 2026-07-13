@@ -43,12 +43,20 @@ const formatClubDate = (value) => {
 const getCardProgress = (card) =>
   Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 5)) * 100));
 
-function PhysicalCardPreview({card}) {
+const physicalCardTiers = [
+  {id: "member", name: "Basic", threshold: "0 визитов"},
+  {id: "silver", name: "Silver", threshold: "3 визита"},
+  {id: "gold", name: "Gold", threshold: "10 визитов"},
+  {id: "diamond", name: "Diamond", threshold: "20 визитов"},
+  {id: "royal", name: "Royalty", threshold: "50 визитов"},
+];
+
+function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
   const clientName = card?.client?.name || card?.displayName || "Ira Kurylak";
-  const stamps = Math.max(0, Number(card?.stamps) || 0);
+  const stamps = Math.min(6, Math.max(0, Number(card?.stamps) || 0));
 
   return (
-    <article className="club-physical-preview">
+    <article className={`club-physical-preview is-${tier.id}`}>
       <span className="club-physical-shine" />
       <span className="club-physical-topline">
         <span className="club-physical-logo">NUAR</span>
@@ -60,12 +68,15 @@ function PhysicalCardPreview({card}) {
         <span className="club-physical-club">NUAR CLUB</span>
       </span>
 
-      <span className="club-physical-stamps">
-        {Array.from({length: 6}).map((_, index) => (
-          <i className={index < Math.min(stamps, 6) ? "is-filled" : ""} key={index}>
-            {index === 5 ? "gift" : ""}
-          </i>
-        ))}
+      <span className="club-physical-bottomline">
+        <span className="club-physical-stamps">
+          {Array.from({length: 6}).map((_, index) => (
+            <i className={index < stamps ? "is-filled" : ""} key={index}>
+              {index === 5 ? "gift" : ""}
+            </i>
+          ))}
+        </span>
+        <span className="club-physical-progress">{stamps}/6</span>
       </span>
     </article>
   );
@@ -75,6 +86,7 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [cards, setCards] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [selectedCardId, setSelectedCardId] = useState(null);
+  const [activeTab, setActiveTab] = useState("cards");
   const [createdPublicUrls, setCreatedPublicUrls] = useState({});
   const [newClientId, setNewClientId] = useState("");
   const [search, setSearch] = useState("");
@@ -252,56 +264,87 @@ export default function ClubPage({clients = [], pushNotification}) {
         </article>
       </div>
 
-      <div className="club-create-panel">
-        <div>
-          <strong>Новая карта</strong>
-          <span>Выберите клиента без карты и создайте персональную ссылку.</span>
-        </div>
-        <select value={newClientId} onChange={(event) => setNewClientId(event.target.value)}>
-          <option value="">Клиент</option>
-          {clientsWithoutCards.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.name || client.phone || `Клиент ${client.id}`}
-            </option>
-          ))}
-        </select>
-        <button disabled={!newClientId || loading} type="button" onClick={handleCreate}>
-          <Gift size={15} />
-          Создать карту
+      <div className="club-tabs">
+        <button
+          className={activeTab === "cards" ? "is-active" : ""}
+          type="button"
+          onClick={() => setActiveTab("cards")}
+        >
+          Карты клиентов
+        </button>
+        <button
+          className={activeTab === "design" ? "is-active" : ""}
+          type="button"
+          onClick={() => setActiveTab("design")}
+        >
+          Дизайн карт
         </button>
       </div>
 
-      <div className="club-toolbar">
-        <label className="club-search">
-          <Search size={15} />
-          <input
-            placeholder="Поиск по клиенту или телефону"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </label>
-        <select value={status} onChange={(event) => setStatus(event.target.value)}>
-          <option value="all">Все статусы</option>
-          <option value="active">Активные</option>
-          <option value="inactive">Отключённые</option>
-        </select>
-        <select value={reward} onChange={(event) => setReward(event.target.value)}>
-          <option value="all">Все награды</option>
-          <option value="available">Награда доступна</option>
-        </select>
-      </div>
+      {activeTab === "cards" ? (
+        <>
+          <div className="club-create-panel">
+            <div>
+              <strong>Новая карта</strong>
+              <span>Выберите клиента без карты и создайте персональную ссылку.</span>
+            </div>
+            <select value={newClientId} onChange={(event) => setNewClientId(event.target.value)}>
+              <option value="">Клиент</option>
+              {clientsWithoutCards.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.name || client.phone || `Клиент ${client.id}`}
+                </option>
+              ))}
+            </select>
+            <button disabled={!newClientId || loading} type="button" onClick={handleCreate}>
+              <Gift size={15} />
+              Создать карту
+            </button>
+          </div>
 
-      <section className="club-physical-designs">
-        <div className="club-physical-title">
-          <span>Стандартная физическая карта</span>
-          <strong>NUAR Club</strong>
-        </div>
-        <PhysicalCardPreview card={selectedCard} />
-      </section>
+          <div className="club-toolbar">
+            <label className="club-search">
+              <Search size={15} />
+              <input
+                placeholder="Поиск по клиенту или телефону"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </label>
+            <select value={status} onChange={(event) => setStatus(event.target.value)}>
+              <option value="all">Все статусы</option>
+              <option value="active">Активные</option>
+              <option value="inactive">Отключённые</option>
+            </select>
+            <select value={reward} onChange={(event) => setReward(event.target.value)}>
+              <option value="all">Все награды</option>
+              <option value="available">Награда доступна</option>
+            </select>
+          </div>
+        </>
+      ) : (
+        <section className="club-physical-designs">
+          <div className="club-physical-title">
+            <span>Дизайн физической карты</span>
+            <strong>NUAR Club levels</strong>
+          </div>
+          <div className="club-physical-catalog">
+            {physicalCardTiers.map((tier) => (
+              <article className="club-physical-tier" key={tier.id}>
+                <PhysicalCardPreview card={selectedCard} tier={tier} />
+                <span>
+                  <strong>{tier.name}</strong>
+                  <small>{tier.threshold}</small>
+                </span>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       {error ? <p className="club-error">{error}</p> : null}
 
-      <div className="club-layout">
+      {activeTab === "cards" ? <div className="club-layout">
         <div className="club-list">
           {cards.map((card) => {
             const publicUrl = createdPublicUrls[card.id] || card.publicUrl || "";
@@ -458,7 +501,7 @@ export default function ClubPage({clients = [], pushNotification}) {
             </div>
           )}
         </aside>
-      </div>
+      </div> : null}
     </section>
   );
 }

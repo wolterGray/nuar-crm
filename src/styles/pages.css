@@ -2963,6 +2963,7 @@ button:focus-visible {
 }
 
 .club-summary article,
+.club-tabs,
 .club-create-panel,
 .club-toolbar,
 .club-physical-designs,
@@ -2998,6 +2999,30 @@ button:focus-visible {
   margin-top: 4px;
   font-size: 24px;
   line-height: 1;
+}
+
+.club-tabs {
+  display: inline-grid;
+  width: fit-content;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  gap: 4px;
+  padding: 4px;
+}
+
+.club-tabs button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 14px;
+  color: var(--club-muted);
+  background: transparent;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.club-tabs button.is-active {
+  color: #fff;
+  background: var(--club-card);
 }
 
 .club-create-panel {
@@ -3095,6 +3120,35 @@ button:focus-visible {
   font-size: 18px;
 }
 
+.club-physical-catalog {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.club-physical-tier {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.club-physical-tier > span {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.club-physical-tier strong {
+  font-size: 13px;
+}
+
+.club-physical-tier small {
+  color: var(--club-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .club-physical-preview {
   --physical-accent: #d4bd82;
   --physical-text: #f5f0e6;
@@ -3113,6 +3167,38 @@ button:focus-visible {
     linear-gradient(135deg, #151617, #343635 54%, #171717);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.34);
   isolation: isolate;
+}
+
+.club-physical-preview.is-silver {
+  --physical-accent: #dce3ee;
+  --physical-text: #f6f8fb;
+  background:
+    radial-gradient(circle at 88% 14%, rgba(220, 227, 238, 0.18), transparent 28%),
+    linear-gradient(135deg, #15171a, #3d4248 54%, #111316);
+}
+
+.club-physical-preview.is-gold {
+  --physical-accent: #f1ce7b;
+  --physical-text: #fff5dc;
+  background:
+    radial-gradient(circle at 88% 14%, rgba(241, 206, 123, 0.22), transparent 28%),
+    linear-gradient(135deg, #17100d, #3a2b1d 54%, #080706);
+}
+
+.club-physical-preview.is-diamond {
+  --physical-accent: #eaf6ff;
+  --physical-text: #f7fbff;
+  background:
+    radial-gradient(circle at 84% 14%, rgba(234, 246, 255, 0.28), transparent 28%),
+    linear-gradient(135deg, #070a10, #27313a 55%, #0a0c12);
+}
+
+.club-physical-preview.is-royal {
+  --physical-accent: #d8b35d;
+  --physical-text: #fff0c4;
+  background:
+    radial-gradient(circle at 86% 14%, rgba(216, 179, 93, 0.26), transparent 28%),
+    linear-gradient(135deg, #020202, #11100e 58%, #251705);
 }
 
 .club-physical-preview::after {
@@ -3142,7 +3228,7 @@ button:focus-visible {
 
 .club-physical-topline {
   display: grid;
-  grid-template-columns: minmax(54px, 0.72fr) minmax(0, 1.4fr) minmax(64px, 0.72fr);
+  grid-template-columns: minmax(64px, 1fr) minmax(0, 1.35fr) minmax(64px, 1fr);
   align-items: start;
   gap: 10px;
 }
@@ -3167,10 +3253,11 @@ button:focus-visible {
 .club-physical-signature {
   display: grid;
   min-width: 0;
+  justify-self: center;
   justify-items: center;
-  gap: 7px;
+  gap: 5px;
   color: var(--physical-text);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Snell Roundhand", "Zapfino", "Brush Script MT", "Segoe Script", cursive;
   text-align: center;
 }
 
@@ -3178,10 +3265,10 @@ button:focus-visible {
   overflow: hidden;
   max-width: 100%;
   color: rgba(255, 255, 255, 0.92);
-  font-size: 22px;
+  font-size: clamp(24px, 4vw, 42px);
   font-weight: 400;
-  font-style: italic;
-  line-height: 0.98;
+  line-height: 1.05;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3196,10 +3283,9 @@ button:focus-visible {
 
 .club-physical-stamps {
   display: grid;
-  width: min(100%, 360px);
+  width: min(100%, 300px);
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  align-self: center;
+  gap: 8px;
 }
 
 .club-physical-stamps i {
@@ -3218,6 +3304,22 @@ button:focus-visible {
 
 .club-physical-stamps i.is-filled {
   background: color-mix(in srgb, var(--physical-accent) 20%, transparent);
+}
+
+.club-physical-bottomline {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.club-physical-progress {
+  flex: 0 0 auto;
+  color: var(--physical-accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
 }
 
 .club-search {
@@ -3504,10 +3606,43 @@ button:focus-visible {
     gap: 8px;
   }
 
+  .club-tabs {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .club-physical-title {
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .club-physical-catalog {
+    grid-template-columns: 1fr;
+  }
+
+  .club-physical-preview {
+    padding: 15px;
+  }
+
+  .club-physical-topline {
+    grid-template-columns: minmax(48px, 0.8fr) minmax(0, 1.3fr) minmax(54px, 0.8fr);
+  }
+
+  .club-physical-logo {
+    font-size: 15px;
+  }
+
+  .club-physical-club {
+    font-size: 8px;
+  }
+
+  .club-physical-bottomline {
+    gap: 10px;
+  }
+
+  .club-physical-progress {
+    font-size: 13px;
   }
 
   .club-create-panel,
