@@ -72,14 +72,20 @@ function VisitsTable({
   const {isMobile} = useBreakpoint();
   const [sorting, setSorting] = useState([{id: "date", desc: true}]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const safeVisits = Array.isArray(visits) ? visits.filter(Boolean) : [];
-  const clientOptions = [
-    ...new Set(
-      safeVisits
-        .map((visit) => String(visit.client ?? "").trim())
-        .filter(Boolean),
-    ),
-  ];
+  const safeVisits = useMemo(
+    () => (Array.isArray(visits) ? visits.filter(Boolean) : []),
+    [visits],
+  );
+  const clientOptions = useMemo(
+    () => [
+      ...new Set(
+        safeVisits
+          .map((visit) => String(visit.client ?? "").trim())
+          .filter(Boolean),
+      ),
+    ],
+    [safeVisits],
+  );
   const columns = useMemo(
     () => [
       {
