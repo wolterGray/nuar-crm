@@ -46,11 +46,11 @@ const getCardProgress = (card) =>
   Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 5)) * 100));
 
 const physicalCardTiers = [
-  {id: "member", name: "Basic", threshold: "0 визитов"},
-  {id: "silver", name: "Silver", threshold: "3 визита"},
-  {id: "gold", name: "Gold", threshold: "10 визитов"},
-  {id: "diamond", name: "Diamond", threshold: "20 визитов", icon: Gem},
-  {id: "royal", name: "Royalty", threshold: "50 визитов", icon: Crown},
+  {id: "member", name: "Basic", signature: "NUAR MEMBER", threshold: "0 визитов"},
+  {id: "silver", name: "Silver", signature: "NUAR SILVER", threshold: "3 визита"},
+  {id: "gold", name: "Gold", signature: "NUAR GOLD", threshold: "10 визитов"},
+  {id: "diamond", name: "Diamond", signature: "DIAMOND", threshold: "20 визитов", icon: Gem},
+  {id: "royal", name: "Royalty", signature: "ROYALTY", threshold: "50 визитов", icon: Crown},
 ];
 
 const cardLanguageOptions = [
@@ -62,14 +62,17 @@ const cardLanguageOptions = [
 const cardCopyByLanguage = {
   en: {
     gift: "gift",
+    massageGift: "free massage",
     loyaltyCard: "loyalty card",
   },
   pl: {
     gift: "prezent",
+    massageGift: "darmowy masaz",
     loyaltyCard: "karta lojalnosciowa",
   },
   ru: {
     gift: "подарок",
+    massageGift: "бесплатный массаж",
     loyaltyCard: "карта лояльности",
   },
 };
@@ -93,6 +96,7 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
           <TierIcon size={32} />
         </span>
       ) : null}
+      <span className="club-physical-watermark">{tier.signature}</span>
       <span className="club-physical-topline">
         <span className="club-physical-logo">NUAR</span>
         <span className="club-physical-club">NUAR CLUB</span>
@@ -100,9 +104,7 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
 
       <span className="club-physical-signature">
         <small>{copy.loyaltyCard}</small>
-        <i />
         <strong>{clientName}</strong>
-        <i />
       </span>
 
       <span className="club-physical-bottomline">
@@ -114,7 +116,7 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
               key={index}
               title={index === 5 ? copy.gift : undefined}
             >
-              {index === 5 ? "6" : ""}
+              {index === 5 ? copy.massageGift : ""}
             </i>
           ))}
         </span>
