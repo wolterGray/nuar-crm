@@ -415,7 +415,7 @@ function ClientsPage({
       className="clients-page-shell flex flex-col h-full w-full min-h-0 overflow-hidden bg-background text-foreground"
       onClick={() => setOpenClientMenuId(null)}>
       <PageHeader
-        className="clients-page-header"
+        className="clients-page-header !mb-3 md:!mb-6 pb-3 md:pb-5"
         actions={
           <div className="clients-page-toolbar flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <button
@@ -456,7 +456,7 @@ function ClientsPage({
       )}
 
       {/* Search Toolbar */}
-      <div className="px-4 py-3 border-b border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 select-none">
         <SearchControl
           className="clients-page-search w-full sm:w-80"
           style={{ width: isMobile ? '100%' : undefined, maxWidth: isMobile ? '100%' : undefined }}
