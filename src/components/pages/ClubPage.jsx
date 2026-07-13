@@ -1,6 +1,5 @@
 import {
   Copy,
-  Crown,
   ExternalLink,
   Gift,
   Link2,
@@ -44,14 +43,6 @@ const formatClubDate = (value) => {
 const getCardProgress = (card) =>
   Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 5)) * 100));
 
-const tierLabels = {
-  MEMBER: "NUAR MEMBER",
-  SILVER: "NUAR SILVER",
-  GOLD: "NUAR GOLD",
-  DIAMOND: "NUAR DIAMOND",
-  ROYAL: "NUAR ROYAL",
-};
-
 const physicalCardConcepts = [
   {
     id: "black",
@@ -83,20 +74,8 @@ const physicalCardConcepts = [
   },
 ];
 
-const getFallbackCardNumber = (card) => {
-  const source = Number(card?.id || card?.clientId || 1);
-  const first = String(source % 10000).padStart(4, "0");
-  const second = String((source * 37 + 2458) % 10000).padStart(4, "0");
-  const third = String((source * 91 + 9182) % 10000).padStart(4, "0");
-  const fourth = String((source * 17 + 7887) % 10000).padStart(4, "0");
-  return `${first} ${second} ${third} ${fourth}`;
-};
-
 function PhysicalCardConcept({card, concept, selected, onSelect}) {
-  const tier = String(card?.tier || "MEMBER").toUpperCase();
-  const tierLabel = tierLabels[tier] || tierLabels.MEMBER;
   const clientName = card?.client?.name || card?.displayName || "Ira Kurylak";
-  const cardNumber = String(card?.cardNumber || getFallbackCardNumber(card)).replaceAll("•", " ");
   const target = Math.max(1, Number(card?.targetStamps) || 5);
   const stamps = Math.max(0, Number(card?.stamps) || 0);
 
@@ -116,27 +95,13 @@ function PhysicalCardConcept({card, concept, selected, onSelect}) {
           <span className="club-physical-shine" />
           <span className="club-physical-topline">
             <span className="club-physical-logo">NUAR</span>
+            <span className="club-physical-signature">
+              <i />
+              <strong>{clientName}</strong>
+              <i />
+            </span>
             <span className="club-physical-club">NUAR CLUB</span>
           </span>
-          <span className="club-physical-social">
-            <em>By</em>
-            <span>@nuar_warsaw</span>
-            <span>beauty / massage / lounge</span>
-          </span>
-          <span className="club-physical-midline">
-            <span className="club-physical-qr-mini">
-              <i />
-              <i />
-              <i />
-              <i />
-            </span>
-            <span>
-              <small>{tierLabel}</small>
-              <strong>{clientName}</strong>
-            </span>
-            {concept.tone === "royal" ? <Crown size={22} /> : null}
-          </span>
-          <span className="club-physical-number">{cardNumber}</span>
         </span>
 
         <span className="club-physical-card club-physical-back">

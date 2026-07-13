@@ -3235,12 +3235,15 @@ button:focus-visible {
   left: 120%;
 }
 
-.club-physical-topline,
-.club-physical-midline {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+.club-physical-front {
+  justify-content: flex-start;
+}
+
+.club-physical-topline {
+  display: grid;
+  grid-template-columns: minmax(54px, 0.72fr) minmax(0, 1.4fr) minmax(64px, 0.72fr);
+  align-items: start;
+  gap: 10px;
 }
 
 .club-physical-logo {
@@ -3250,81 +3253,44 @@ button:focus-visible {
   letter-spacing: 0.08em;
 }
 
-.club-physical-club,
-.club-physical-midline small {
+.club-physical-club {
+  justify-self: end;
   color: var(--physical-accent);
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.16em;
+  text-align: right;
   text-transform: uppercase;
 }
 
-.club-physical-social {
-  display: grid;
-  gap: 2px;
-  max-width: 72%;
-  margin-left: 26px;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-}
-
-.club-physical-social em {
-  color: var(--physical-text);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 25px;
-  font-style: italic;
-  letter-spacing: 0;
-}
-
-.club-physical-qr-mini {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 auto;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 4px;
-  border: 1px solid color-mix(in srgb, var(--physical-accent) 64%, transparent);
-  padding: 5px;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px);
-  background-size: 7px 7px;
-}
-
-.club-physical-qr-mini i {
-  border: 1px solid var(--physical-accent);
-  border-radius: 3px;
-}
-
-.club-physical-midline > span:last-of-type {
+.club-physical-signature {
   display: grid;
   min-width: 0;
-  gap: 2px;
+  justify-items: center;
+  gap: 7px;
+  color: var(--physical-text);
+  font-family: Georgia, "Times New Roman", serif;
+  text-align: center;
 }
 
-.club-physical-midline strong {
+.club-physical-signature strong {
   overflow: hidden;
-  color: #fff;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 24px;
+  max-width: 100%;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 22px;
+  font-weight: 400;
   font-style: italic;
-  line-height: 1;
+  line-height: 0.98;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.club-physical-midline svg {
-  flex: 0 0 auto;
-  color: var(--physical-accent);
-}
-
-.club-physical-number {
-  color: rgba(255, 255, 255, 0.86);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  font-size: 17px;
-  letter-spacing: 0.18em;
-  white-space: nowrap;
+.club-physical-signature i {
+  display: block;
+  width: min(100%, 132px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--physical-accent), transparent);
+  opacity: 0.72;
 }
 
 .club-physical-back {
