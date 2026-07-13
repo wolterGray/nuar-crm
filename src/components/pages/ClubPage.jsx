@@ -98,8 +98,16 @@ const getCardLanguage = (card) =>
     ? card.cardLanguage
     : "ru";
 
+const designPreviewCard = {
+  cardLanguage: "ru",
+  client: {name: "Имя клиента"},
+  displayName: "Имя клиента",
+  rewardAvailable: false,
+  stamps: 0,
+};
+
 function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
-  const clientName = card?.client?.name || card?.displayName || "Ira Kurylak";
+  const clientName = card?.client?.name || card?.displayName || "Имя клиента";
   const copy = cardCopyByLanguage[getCardLanguage(card)];
   const stamps = Math.min(6, Math.max(0, Number(card?.stamps) || 0));
   const TierIcon = tier.icon;
@@ -401,7 +409,7 @@ export default function ClubPage({clients = [], pushNotification}) {
           <div className="club-physical-catalog">
             {physicalCardTiers.map((tier) => (
               <article className="club-physical-tier" key={tier.id}>
-                <PhysicalCardPreview card={selectedCard} tier={tier} />
+                <PhysicalCardPreview card={designPreviewCard} tier={tier} />
                 <span>
                   <strong>{tier.name}</strong>
                   <small>{tier.threshold}</small>
