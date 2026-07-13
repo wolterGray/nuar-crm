@@ -72,7 +72,14 @@ function VisitsTable({
   const {isMobile} = useBreakpoint();
   const [sorting, setSorting] = useState([{id: "date", desc: true}]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const clientOptions = [...new Set(visits.map((visit) => visit.client))];
+  const safeVisits = Array.isArray(visits) ? visits.filter(Boolean) : [];
+  const clientOptions = [
+    ...new Set(
+      safeVisits
+        .map((visit) => String(visit.client ?? "").trim())
+        .filter(Boolean),
+    ),
+  ];
   const columns = useMemo(
     () => [
       {
@@ -237,7 +244,7 @@ function VisitsTable({
   );
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns function-bearing instances by design.
   const table = useReactTable({
-    data: visits,
+    data: safeVisits,
     columns,
     state: {
       globalFilter,
@@ -261,7 +268,7 @@ function VisitsTable({
     getSortedRowModel: getSortedRowModel(),
   });
   const rows = table.getRowModel().rows;
-  const hasVisits = visits.length > 0;
+  const hasVisits = safeVisits.length > 0;
   const hasSearch = globalFilter.trim().length > 0;
   const exportVisits = () => {
     const columns = [
@@ -282,7 +289,7 @@ function VisitsTable({
     const escapeCell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
     const csv = [
       columns.map(([label]) => escapeCell(label)).join(";"),
-      ...visits.map((visit) =>
+      ...safeVisits.map((visit) =>
         columns.map(([, getValue]) => escapeCell(getValue(visit))).join(";"),
       ),
     ].join("\n");
@@ -362,7 +369,7 @@ function VisitsTable({
   return (
     <Card className={`panel visits-panel ${isMobile ? "visits-panel-mobile" : ""}`}>
       <PageHeader
-        collapsedMeta={isMobile ? `${rows.length} из ${visits.length}` : undefined}
+        collapsedMeta={isMobile ? `${rows.length} из ${safeVisits.length}` : undefined}
         collapsible={false}
         actions={
           isMobile ? (
@@ -398,7 +405,7 @@ function VisitsTable({
             </>
           )
         }
-        description={isMobile ? undefined : `${rows.length} из ${visits.length} записей`}
+        description={isMobile ? undefined : `${rows.length} из ${safeVisits.length} записей`}
         headerActions={
           isMobile ? (
             <button
@@ -414,7 +421,7 @@ function VisitsTable({
           isMobile ? (
             <span className="flex items-baseline gap-2">
               <span>Визиты</span>
-              <span className="text-sm font-normal text-muted-foreground">({visits.length})</span>
+              <span className="text-sm font-normal text-muted-foreground">({safeVisits.length})</span>
             </span>
           ) : (
             title
@@ -577,7 +584,7 @@ function VisitsTable({
           </Table>
 
           <footer className="table-footer">
-            <span>Визитов: {rows.length} из {visits.length}</span>
+            <span>Визитов: {rows.length} из {safeVisits.length}</span>
           </footer>
         </>
       )}
