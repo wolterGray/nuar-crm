@@ -787,7 +787,7 @@ return (
                     {String(endHour).padStart(2, "0")}:00
                   </strong>
                 </div>
-                {calendarMasters.map((employee) => (
+                {calendarMasters.map((employee, empIndex) => (
                   <div className="nuar-calendar-master min-w-0 border-l border-zinc-800/80" key={employee.id}>
                     <header className="nuar-calendar-master-header sticky top-0 z-12 grid h-12 align-content-center gap-0.5 px-3 bg-zinc-900 border-b border-zinc-850">
                       <strong className="text-zinc-200 text-xs font-semibold truncate">
@@ -843,10 +843,22 @@ return (
                       })()}
                       {settings.calendarNowLineVisible && isToday && currentTop >= 0 && currentTop <= gridHeight && (
                         <div className="absolute right-0 left-0 z-5 h-[1px] bg-red-500 pointer-events-none" style={{top: currentTop}}>
-                          <i className="absolute top-[-4px] left-[-4px] w-2.5 h-2.5 rounded-full bg-red-500" />
-                          <span className="absolute top-[-18px] left-1 text-red-400 text-[9px] font-bold">
-                            {toTime(currentMinutes, startMinutes, endMinutes, slotMinutes)}
-                          </span>
+                          {empIndex === 0 && (
+                            <>
+                              <i
+                                className="absolute rounded-full bg-red-500"
+                                style={{
+                                  width: "6px",
+                                  height: "6px",
+                                  left: "-3px",
+                                  top: "-2.5px"
+                                }}
+                              />
+                              <span className="absolute top-[-18px] left-1.5 text-red-400 text-[9px] font-bold">
+                                {toTime(currentMinutes, startMinutes, endMinutes, slotMinutes)}
+                              </span>
+                            </>
+                          )}
                         </div>
                       )}
                       <div className="absolute inset-0 z-2 pointer-events-none" aria-hidden="true">
