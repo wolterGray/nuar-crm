@@ -100,7 +100,7 @@ const serializeAdminCard = (card) => ({
         id: card.client.id,
         name: card.client.name,
         phone: card.client.phone,
-        smsName: card.client.smsName,
+        smsName: card.client.messageName,
       }
     : null,
 });
@@ -187,7 +187,7 @@ router.get('/loyalty/cards', async (req, res) => {
               OR: [
                 { name: { contains: search, mode: 'insensitive' } },
                 { phone: { contains: search, mode: 'insensitive' } },
-                { smsName: { contains: search, mode: 'insensitive' } },
+                { messageName: { contains: search, mode: 'insensitive' } },
               ],
             },
           }
@@ -198,7 +198,7 @@ router.get('/loyalty/cards', async (req, res) => {
       prisma.loyaltyCard.findMany({
         where,
         include: {
-          client: { select: { id: true, name: true, phone: true, smsName: true } },
+          client: { select: { id: true, name: true, phone: true, messageName: true } },
           transactions: {
             orderBy: { createdAt: 'desc' },
             take: 1,
