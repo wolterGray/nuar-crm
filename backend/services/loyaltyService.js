@@ -128,7 +128,7 @@ const getProgramSettings = async (tx) => {
   const payload = getPayload(state);
   const targetStamps = Math.max(DEFAULT_TARGET_STAMPS, toInt(payload.targetStamps, DEFAULT_TARGET_STAMPS));
   return {
-    bookingUrl: normalizeText(payload.bookingUrl) || 'https://nuarr.pl',
+    bookingUrl: normalizeText(payload.bookingUrl) || 'https://nuarr.booksy.com/a',
     eligibleServiceIds: Array.isArray(payload.eligibleServiceIds)
       ? payload.eligibleServiceIds.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)
       : [],

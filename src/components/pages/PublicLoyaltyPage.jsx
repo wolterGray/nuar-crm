@@ -162,7 +162,7 @@ function PublicLoyaltyPage() {
             </div>
 
             <div className="public-loyalty-actions">
-              <a href={card.bookingUrl || "https://nuarr.pl"} rel="noreferrer" target="_blank">
+              <a href="https://nuarr.booksy.com/a" rel="noreferrer" target="_blank">
                 {strings.booking}
                 <ExternalLink size={15} />
               </a>
