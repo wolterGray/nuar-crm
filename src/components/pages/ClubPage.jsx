@@ -98,6 +98,7 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
           <TierIcon size={21} strokeWidth={1.35} />
         </span>
       ) : null}
+      {tier.id === "royal" ? <span className="club-physical-royal-rosette" /> : null}
       <span className="club-physical-topline">
         <span className="club-physical-card-title">{tier.title}</span>
       </span>
