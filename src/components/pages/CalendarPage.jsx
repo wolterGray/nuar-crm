@@ -828,13 +828,13 @@ return (
                           <>
                             {topHeight > 0 && (
                               <div
-                                className="absolute right-0 left-0 z-1 pointer-events-none bg-zinc-900/20 border-b border-zinc-900/60"
+                                className="schedule-off-hours absolute right-0 left-0 z-1 pointer-events-none border-b border-zinc-900/60"
                                 style={{height: topHeight, top: 0}}
                               />
                             )}
                             {bottomTop < gridHeight && (
                               <div
-                                className="absolute right-0 left-0 z-1 pointer-events-none bg-zinc-900/20 border-t border-zinc-900/60"
+                                className="schedule-off-hours absolute right-0 left-0 z-1 pointer-events-none border-t border-zinc-900/60"
                                 style={{height: gridHeight - bottomTop, top: bottomTop}}
                               />
                             )}

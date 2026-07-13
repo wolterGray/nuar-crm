@@ -1106,12 +1106,12 @@
   background:
     repeating-linear-gradient(
       -45deg,
-      rgba(255, 255, 255, 0.035),
-      rgba(255, 255, 255, 0.035) 4px,
-      rgba(255, 255, 255, 0.012) 4px,
-      rgba(255, 255, 255, 0.012) 10px
+      rgba(255, 255, 255, 0.04) 0,
+      rgba(255, 255, 255, 0.04) 1px,
+      rgba(255, 255, 255, 0.006) 1px,
+      rgba(255, 255, 255, 0.006) 6px
     ),
-    rgba(255, 255, 255, 0.018);
+    rgba(255, 255, 255, 0.014);
 }
 
 .theme-dark .schedule-column-over {
@@ -1348,12 +1348,12 @@
   background:
     repeating-linear-gradient(
       -45deg,
-      rgba(255, 255, 255, 0.034),
-      rgba(255, 255, 255, 0.034) 4px,
-      rgba(255, 255, 255, 0.011) 4px,
-      rgba(255, 255, 255, 0.011) 10px
+      rgba(255, 255, 255, 0.04) 0,
+      rgba(255, 255, 255, 0.04) 1px,
+      rgba(255, 255, 255, 0.006) 1px,
+      rgba(255, 255, 255, 0.006) 6px
     ),
-    rgba(255, 255, 255, 0.018);
+    rgba(255, 255, 255, 0.014);
 }
 
 .theme-dark .schedule-column-over {
