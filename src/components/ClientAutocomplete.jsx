@@ -1,3 +1,5 @@
+import {useMemo, useState} from "react";
+
 function ClientAutocomplete({
   clients,
   disabled = false,
@@ -9,29 +11,145 @@ function ClientAutocomplete({
   defaultValue,
   onChange,
 }) {
-  const clientNames = clients.map((client) =>
-    typeof client === "string" ? client : client.name,
+  const [inputValue, setInputValue] = useState(value ?? defaultValue ?? "");
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const isControlled = value !== undefined;
+  const displayValue = isControlled ? (value ?? "") : inputValue;
+
+  const clientNames = useMemo(
+    () =>
+      [...new Set(
+        clients
+          .map((client) => (typeof client === "string" ? client : client.name))
+          .filter(Boolean),
+      )],
+    [clients],
   );
 
+  const visibleClients = useMemo(() => {
+    const query = String(displayValue ?? "").trim().toLowerCase();
+
+    if (!query) {
+      return clientNames.slice(0, 8);
+    }
+
+    return clientNames
+      .filter((client) => client.toLowerCase().includes(query))
+      .slice(0, 8);
+  }, [clientNames, displayValue]);
+
+  const emitChange = (nextValue) => {
+    onChange?.({
+      target: {
+        name,
+        value: nextValue,
+      },
+      currentTarget: {
+        name,
+        value: nextValue,
+      },
+    });
+  };
+
+  const handleInputChange = (event) => {
+    const nextValue = event.target.value;
+
+    if (!isControlled) {
+      setInputValue(nextValue);
+    }
+
+    setIsOpen(true);
+    setActiveIndex(-1);
+    onChange?.(event);
+  };
+
+  const selectClient = (client) => {
+    if (!isControlled) {
+      setInputValue(client);
+    }
+
+    emitChange(client);
+    setIsOpen(false);
+    setActiveIndex(-1);
+  };
+
+  const handleKeyDown = (event) => {
+    if (!isOpen && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+      setIsOpen(true);
+      return;
+    }
+
+    if (!isOpen || visibleClients.length === 0) {
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveIndex((current) => (current + 1) % visibleClients.length);
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveIndex((current) =>
+        current <= 0 ? visibleClients.length - 1 : current - 1,
+      );
+    }
+
+    if (event.key === "Enter" && activeIndex >= 0) {
+      event.preventDefault();
+      selectClient(visibleClients[activeIndex]);
+    }
+
+    if (event.key === "Escape") {
+      setIsOpen(false);
+      setActiveIndex(-1);
+    }
+  };
+
   return (
-    <>
+    <div className="client-autocomplete relative w-full">
       <input
+        aria-autocomplete="list"
+        aria-controls={id}
+        aria-expanded={isOpen && visibleClients.length > 0}
         autoComplete="off"
-        defaultValue={defaultValue}
         disabled={disabled}
-        list={id}
         name={name}
-        onChange={onChange}
+        onBlur={() => window.setTimeout(() => setIsOpen(false), 120)}
+        onChange={handleInputChange}
+        onFocus={() => setIsOpen(true)}
+        onKeyDown={handleKeyDown}
         placeholder={placeholder}
         required={required}
-        value={value}
+        role="combobox"
+        value={displayValue}
       />
-      <datalist id={id}>
-        {clientNames.map((client) => (
-          <option key={client} value={client} />
-        ))}
-      </datalist>
-    </>
+      {isOpen && visibleClients.length > 0 && !disabled && (
+        <div
+          className="absolute left-0 top-[calc(100%+6px)] z-[120] max-h-56 w-full overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950/98 p-1 shadow-2xl shadow-black/50"
+          id={id}
+          role="listbox">
+          {visibleClients.map((client, index) => (
+            <button
+              aria-selected={index === activeIndex}
+              className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition ${
+                index === activeIndex
+                  ? "bg-red-600 text-white"
+                  : "text-zinc-100 hover:bg-zinc-800"
+              }`}
+              key={client}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                selectClient(client);
+              }}
+              type="button">
+              {client}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
