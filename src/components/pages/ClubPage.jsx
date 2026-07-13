@@ -99,6 +99,7 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
         </span>
       ) : null}
       {tier.id === "royal" ? <span className="club-physical-royal-rosette" /> : null}
+      {tier.id === "diamond" ? <span className="club-physical-diamond-crystal" /> : null}
       <span className="club-physical-topline">
         <span className="club-physical-card-title">{tier.title}</span>
       </span>
