@@ -484,6 +484,7 @@
     align-items: center !important;
     justify-self: end !important;
     margin-left: 0 !important;
+    gap: 4px !important;
   }
 
   .mobile-page-container:not([data-mobile-page="calendar"]) .page-header-unified-actions,
