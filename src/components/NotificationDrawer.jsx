@@ -147,14 +147,35 @@ export default function NotificationDrawer({
   const popover = (
     <AnimatePresence>
       {isOpen ? (
-        <motion.div
-          animate={{opacity: 1, y: 0}}
-          className={`client-alert-popover client-alert-popover-portal theme-${theme}`}
-          exit={{opacity: 0, y: -6}}
-          initial={{opacity: 0, y: -8}}
-          style={popoverStyle}
-          transition={transition}
-          onClick={(event) => event.stopPropagation()}>
+        <>
+          <motion.div
+            key="notification-backdrop"
+            initial={{opacity: 0}}
+            animate={{opacity: 1}}
+            exit={{opacity: 0}}
+            className="client-alert-backdrop"
+            onClick={onToggleOpen}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 110,
+              background: "rgba(0, 0, 0, 0.4)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+            }}
+          />
+          <motion.div
+            key="notification-popover"
+            animate={{opacity: 1, y: 0}}
+            className={`client-alert-popover client-alert-popover-portal theme-${theme}`}
+            exit={{opacity: 0, y: -6}}
+            initial={{opacity: 0, y: -8}}
+            style={{...popoverStyle, zIndex: 120}}
+            transition={transition}
+            onClick={(event) => event.stopPropagation()}>
           <div className="client-alert-heading">
             <div>
               <h2>Уведомления</h2>
@@ -225,6 +246,7 @@ export default function NotificationDrawer({
             )}
           </div>
         </motion.div>
+        </>
       ) : null}
     </AnimatePresence>
   );
