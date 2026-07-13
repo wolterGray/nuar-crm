@@ -46,11 +46,11 @@ const getCardProgress = (card) =>
   Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 5)) * 100));
 
 const physicalCardTiers = [
-  {id: "member", name: "Basic", signature: "NUAR MEMBER", threshold: "0 визитов"},
-  {id: "silver", name: "Silver", signature: "NUAR SILVER", threshold: "3 визита"},
-  {id: "gold", name: "Gold", signature: "NUAR GOLD", threshold: "10 визитов"},
-  {id: "diamond", name: "Diamond", signature: "DIAMOND", threshold: "20 визитов", icon: Gem},
-  {id: "royal", name: "Royalty", signature: "ROYALTY", threshold: "50 визитов", icon: Crown},
+  {id: "member", name: "Basic", signature: "NUAR MEMBER", title: "NUAR MEMBER", threshold: "0 визитов"},
+  {id: "silver", name: "Silver", signature: "SILVER", title: "NUAR SILVER", threshold: "3 визита"},
+  {id: "gold", name: "Gold", signature: "GOLD", title: "NUAR GOLD", threshold: "10 визитов"},
+  {id: "diamond", name: "Diamond", signature: "DIAMOND", title: "NUAR DIAMOND", threshold: "20 визитов", icon: Gem},
+  {id: "royal", name: "Royalty", signature: "ROYALTY", title: "NUAR ROYALTY", threshold: "50 визитов", icon: Crown},
 ];
 
 const cardLanguageOptions = [
@@ -98,8 +98,7 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
       ) : null}
       <span className="club-physical-watermark">{tier.signature}</span>
       <span className="club-physical-topline">
-        <span className="club-physical-logo">NUAR</span>
-        <span className="club-physical-club">NUAR CLUB</span>
+        <span className="club-physical-card-title">{tier.title}</span>
       </span>
 
       <span className="club-physical-signature">
@@ -116,7 +115,7 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
               key={index}
               title={index === 5 ? copy.gift : undefined}
             >
-              {index === 5 ? copy.massageGift : ""}
+              {index === 5 ? <Gift size={13} /> : ""}
             </i>
           ))}
         </span>

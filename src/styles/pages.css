@@ -3239,26 +3239,17 @@ button:focus-visible {
 }
 
 .club-physical-topline {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   align-items: start;
+  justify-content: flex-start;
   gap: 10px;
 }
 
-.club-physical-logo {
+.club-physical-card-title {
   color: var(--physical-text);
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-}
-
-.club-physical-club {
-  justify-self: end;
-  color: var(--physical-accent);
-  font-size: 9px;
+  font-size: clamp(10px, 1.8vw, 14px);
   font-weight: 800;
-  letter-spacing: 0.16em;
-  text-align: right;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
@@ -3315,17 +3306,17 @@ button:focus-visible {
 
 .club-physical-watermark {
   position: absolute;
-  top: 54%;
+  top: 58%;
   left: 50%;
   z-index: 0;
   width: 100%;
   color: var(--physical-accent);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(34px, 7vw, 82px);
+  font-size: clamp(24px, 5vw, 56px);
   font-style: italic;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   line-height: 1;
-  opacity: 0.13;
+  opacity: 0.1;
   text-align: center;
   text-transform: uppercase;
   transform: translate(-50%, -50%);
@@ -3334,7 +3325,7 @@ button:focus-visible {
 
 .club-physical-preview.is-diamond .club-physical-watermark,
 .club-physical-preview.is-royal .club-physical-watermark {
-  opacity: 0.18;
+  opacity: 0.14;
 }
 
 .club-physical-topline,
@@ -3354,8 +3345,8 @@ button:focus-visible {
 
 .club-physical-stamps {
   display: grid;
-  width: min(calc(100% - 58px), 276px);
-  grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(64px, 1.45fr);
+  width: min(calc(100% - 58px), 234px);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -3375,14 +3366,12 @@ button:focus-visible {
 }
 
 .club-physical-stamps i.is-gift {
-  aspect-ratio: auto;
-  min-height: 34px;
-  border-radius: 999px;
-  padding: 0 7px;
-  font-size: 7px;
-  line-height: 1.05;
-  text-align: center;
-  white-space: normal;
+  aspect-ratio: 1;
+  min-height: 0;
+  border-style: double;
+  border-radius: 50%;
+  padding: 0;
+  color: var(--physical-accent);
 }
 
 .club-physical-stamps i.is-filled {
@@ -3710,15 +3699,11 @@ button:focus-visible {
   }
 
   .club-physical-topline {
-    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
-  .club-physical-logo {
-    font-size: 15px;
-  }
-
-  .club-physical-club {
-    font-size: 8px;
+  .club-physical-card-title {
+    font-size: 10px;
   }
 
   .club-physical-bottomline {
@@ -3733,14 +3718,12 @@ button:focus-visible {
 
   .club-physical-stamps {
     width: min(calc(100% - 42px), 220px);
-    grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(56px, 1.65fr);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 4px;
   }
 
   .club-physical-stamps i.is-gift {
-    min-height: 28px;
-    padding: 0 5px;
-    font-size: 6px;
+    padding: 0;
   }
 
   .club-physical-progress {
