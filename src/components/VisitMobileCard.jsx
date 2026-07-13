@@ -227,7 +227,7 @@ function VisitMobileCard({
           ) : null}
         </div>
         <article
-          className={`relative p-4 border rounded-xl transition-transform ${
+          className={`visit-mobile-card relative p-4 border rounded-xl transition-transform ${
             isNext
               ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-surfaceAlt shadow-md"
               : isPlanned
@@ -246,7 +246,7 @@ function VisitMobileCard({
 
   return (
     <article
-      className={`p-4 border rounded-xl transition-all cursor-pointer ${
+      className={`visit-mobile-card p-4 border rounded-xl transition-all cursor-pointer ${
         useCompactMenu ? "flex flex-col" : "flex flex-col gap-1"
       } ${
         isNext
