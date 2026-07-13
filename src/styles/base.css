@@ -3401,4 +3401,53 @@ h2 {
   border-color: var(--border, rgba(255, 255, 255, 0.08)) !important;
 }
 
+/* Align export icon and bell button tightly on payments page mobile header */
+.payments-page-mobile.nuar-payments .page-header-unified-trailing {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.payments-page-mobile.nuar-payments .page-header-unified-side {
+  display: inline-flex !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+.payments-page-mobile.nuar-payments .page-notifications-slot {
+  display: inline-flex !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+.payments-page-mobile.nuar-payments .payments-header-icon {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.payments-page-mobile.nuar-payments .notification-trigger.client-alert-button {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+
 

@@ -409,7 +409,16 @@ function VisitsTable({
             </button>
           ) : undefined
         }
-        title={isMobile ? "Визиты" : title}
+        title={
+          isMobile ? (
+            <span className="flex items-baseline gap-2">
+              <span>Визиты</span>
+              <span className="text-sm font-normal text-muted-foreground">({visits.length})</span>
+            </span>
+          ) : (
+            title
+          )
+        }
       />
 
       {!isMobile ? (
