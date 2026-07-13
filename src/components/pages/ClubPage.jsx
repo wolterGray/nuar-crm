@@ -84,6 +84,31 @@ const getCardLanguage = (card) =>
     ? card.cardLanguage
     : "ru";
 
+function RoyalRoseMark() {
+  return (
+    <svg className="club-physical-royal-rose" viewBox="0 0 420 240" aria-hidden="true">
+      <path className="rose-leaf" d="M20 128C54 96 92 91 128 120C91 138 55 145 20 128Z" />
+      <path className="rose-leaf" d="M305 91C335 58 366 55 398 76C369 98 338 107 305 91Z" />
+      <path className="rose-leaf" d="M316 148C356 145 387 165 405 204C363 204 333 185 316 148Z" />
+      <path className="rose-leaf" d="M72 170C92 141 120 131 151 145C129 171 102 181 72 170Z" />
+      <path className="rose-petal" d="M146 65C173 27 223 28 248 66C215 58 181 59 146 65Z" />
+      <path className="rose-petal" d="M101 105C111 65 153 48 187 73C151 80 125 91 101 105Z" />
+      <path className="rose-petal" d="M246 67C286 51 327 77 330 120C300 99 276 82 246 67Z" />
+      <path className="rose-petal" d="M82 139C91 102 132 83 171 100C134 111 105 124 82 139Z" />
+      <path className="rose-petal" d="M262 101C307 102 341 139 324 183C301 146 284 122 262 101Z" />
+      <path className="rose-petal" d="M111 178C124 139 167 119 205 139C164 151 137 164 111 178Z" />
+      <path className="rose-petal" d="M205 139C241 120 286 139 296 179C260 166 232 152 205 139Z" />
+      <path className="rose-petal" d="M155 206C173 167 215 151 250 178C221 207 187 216 155 206Z" />
+      <path className="rose-core" d="M170 130C183 96 232 92 251 124C225 111 197 113 170 130Z" />
+      <path className="rose-core" d="M168 132C196 118 230 125 239 154C211 153 188 146 168 132Z" />
+      <path className="rose-core" d="M191 157C204 135 237 130 254 150C238 171 212 174 191 157Z" />
+      <path className="rose-vein" d="M34 126C66 122 95 120 123 121" />
+      <path className="rose-vein" d="M317 88C344 82 367 78 391 76" />
+      <path className="rose-vein" d="M333 157C356 173 377 187 397 203" />
+    </svg>
+  );
+}
+
 function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
   const clientName = card?.client?.name || card?.displayName || "Ira Kurylak";
   const copy = cardCopyByLanguage[getCardLanguage(card)];
@@ -98,8 +123,11 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
           <TierIcon size={21} strokeWidth={1.35} />
         </span>
       ) : null}
-      {tier.id === "royal" ? <span className="club-physical-royal-rose" /> : null}
+      {tier.id === "royal" ? <RoyalRoseMark /> : null}
       {tier.id === "diamond" ? <span className="club-physical-diamond-crystal" /> : null}
+      {tier.id === "silver" || tier.id === "gold" ? (
+        <span className="club-physical-ingot" />
+      ) : null}
       <span className="club-physical-topline">
         <span className="club-physical-card-title">{tier.title}</span>
       </span>
