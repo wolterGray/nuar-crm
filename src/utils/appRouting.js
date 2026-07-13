@@ -4,6 +4,7 @@ export const APP_PAGE_PATHS = {
   today: "/today",
   calendar: "/calendar",
   clients: "/clients",
+  club: "/club",
   payments: "/payments",
   operations: "/operations",
   services: "/services",

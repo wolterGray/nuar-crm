@@ -314,16 +314,20 @@ export default function ClubPage({clients = [], pushNotification}) {
     if (!window.confirm(`Удалить карту ${clientName}? История операций этой карты тоже будет удалена.`)) {
       return;
     }
-    await deleteLoyaltyCard(card.id);
-    setCreatedPublicUrls((current) => {
-      const next = {...current};
-      delete next[card.id];
-      return next;
-    });
-    setVisibleQrCardId((current) => (current === card.id ? null : current));
-    setTransactions([]);
-    await loadCards();
-    notify("Карта удалена", clientName);
+    try {
+      await deleteLoyaltyCard(card.id);
+      setCreatedPublicUrls((current) => {
+        const next = {...current};
+        delete next[card.id];
+        return next;
+      });
+      setVisibleQrCardId((current) => (current === card.id ? null : current));
+      setTransactions([]);
+      await loadCards();
+      notify("Карта удалена", clientName);
+    } catch (err) {
+      notify("Карта не удалена", err.message || "Не удалось удалить карту");
+    }
   };
 
   const handleCopy = async (card) => {
