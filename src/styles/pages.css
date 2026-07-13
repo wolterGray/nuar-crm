@@ -3207,15 +3207,12 @@ button:focus-visible {
 
 .club-physical-preview.is-royal {
   --physical-accent: #e0bd68;
-  --physical-glow: rgba(160, 54, 115, 0.38);
+  --physical-glow: rgba(224, 189, 104, 0.2);
   --physical-text: #fff1d2;
   background:
-    repeating-linear-gradient(105deg, rgba(255, 220, 143, 0.05) 0 1px, transparent 1px 12px),
-    linear-gradient(118deg, transparent 0%, rgba(224, 189, 104, 0.2) 42%, transparent 56%),
-    linear-gradient(155deg, rgba(255, 255, 255, 0.1), transparent 18%, rgba(255, 255, 255, 0.07) 34%, transparent 52%),
-    radial-gradient(circle at 82% 16%, rgba(224, 189, 104, 0.22), transparent 30%),
-    radial-gradient(circle at 18% 84%, rgba(88, 31, 105, 0.36), transparent 38%),
-    linear-gradient(135deg, #16000d, #3a0926 46%, #14091f 72%, #070107);
+    radial-gradient(circle at 82% 16%, rgba(224, 189, 104, 0.16), transparent 26%),
+    radial-gradient(circle at 14% 88%, rgba(72, 18, 82, 0.28), transparent 34%),
+    linear-gradient(135deg, #050006, #12000d 42%, #1d0619 68%, #030006);
 }
 
 .club-physical-preview::after {
@@ -3271,24 +3268,52 @@ button:focus-visible {
 }
 
 .club-physical-signature small {
-  color: var(--physical-accent);
+  color: color-mix(in srgb, var(--physical-accent) 70%, var(--physical-text));
   font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.18em;
+  opacity: 0.72;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08),
+    0 -1px 0 rgba(0, 0, 0, 0.55);
   text-transform: uppercase;
 }
 
 .club-physical-signature strong {
   overflow: hidden;
   max-width: 100%;
-  color: rgba(255, 255, 255, 0.92);
+  color: color-mix(in srgb, var(--physical-accent) 58%, var(--physical-text));
   font-size: clamp(32px, 5.2vw, 58px);
   font-weight: 400;
   line-height: 1.08;
-  text-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+  opacity: 0.82;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.1),
+    0 -1px 0 rgba(0, 0, 0, 0.72),
+    0 0 12px color-mix(in srgb, var(--physical-accent) 12%, transparent);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.club-physical-preview.is-silver .club-physical-signature :is(small, strong) {
+  color: #dce3ee;
+}
+
+.club-physical-preview.is-diamond .club-physical-signature :is(small, strong) {
+  color: #eaf6ff;
+}
+
+.club-physical-preview.is-royal .club-physical-signature :is(small, strong) {
+  color: #d8b35d;
+  opacity: 0.78;
+}
+
+.club-physical-preview.is-royal::after {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(224, 189, 104, 0.05), transparent 22%),
+    linear-gradient(120deg, transparent 0%, rgba(224, 189, 104, 0.06) 46%, transparent 58%);
+  opacity: 0.42;
 }
 
 .club-physical-tier-mark {
