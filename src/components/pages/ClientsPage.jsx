@@ -418,22 +418,35 @@ function ClientsPage({
         className="clients-page-header !mb-3 md:!mb-6 pb-3 md:pb-5"
         actions={
           <div className="clients-page-toolbar flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-            <button
-              className="inline-flex items-center justify-center gap-2 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95 w-full sm:w-auto"
-              style={{ height: '34px', minHeight: '34px' }}
-              type="button"
-              onClick={() => setShowQuality(!showQuality)}>
-              <BarChart2 size={14} className="text-muted-foreground" />
-              <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
-            </button>
-            <button
-              className="clients-page-add-button inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover active:scale-95 transition-all text-sm cursor-pointer whitespace-nowrap w-full sm:w-auto"
-              style={{ height: '34px', minHeight: '34px' }}
-              type="button"
-              onClick={onAddClient}>
-              <Plus size={16} />
-              {isMobile ? "Добавить" : "Добавить клиента"}
-            </button>
+            <SearchControl
+              className="clients-page-search w-full sm:w-64"
+              style={{ width: isMobile ? '100%' : undefined, maxWidth: isMobile ? '100%' : undefined }}
+              placeholder="Поиск клиента..."
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setOpenClientMenuId(null);
+              }}
+              onClear={() => setSearch("")}
+            />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              <button
+                className="inline-flex items-center justify-center gap-2 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95 w-full sm:w-auto"
+                style={{ height: '34px', minHeight: '34px' }}
+                type="button"
+                onClick={() => setShowQuality(!showQuality)}>
+                <BarChart2 size={14} className="text-muted-foreground" />
+                <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
+              </button>
+              <button
+                className="clients-page-add-button inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover active:scale-95 transition-all text-sm cursor-pointer whitespace-nowrap w-full sm:w-auto"
+                style={{ height: '34px', minHeight: '34px' }}
+                type="button"
+                onClick={onAddClient}>
+                <Plus size={16} />
+                {isMobile ? "Добавить" : "Добавить клиента"}
+              </button>
+            </div>
           </div>
         }
         title={
@@ -455,29 +468,12 @@ function ClientsPage({
         />
       )}
 
-      {/* Search Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 select-none">
-        <SearchControl
-          className="clients-page-search w-full sm:w-80"
-          style={{ width: isMobile ? '100%' : undefined, maxWidth: isMobile ? '100%' : undefined }}
-          placeholder="Поиск клиента..."
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-            setOpenClientMenuId(null);
-          }}
-          onClear={() => setSearch("")}
-        />
-        <div className="text-xs text-muted-foreground font-medium">
-          {search.trim() ? (
-            <span>Найдено: <strong className="text-foreground">{filteredClients.length}</strong> из {clients.length}</span>
-          ) : (
-            <span>Всего в базе: <strong className="text-foreground">{clients.length}</strong></span>
-          )}
-        </div>
-      </div>
-
       <div className="clients-table-shell flex-1 min-h-0 overflow-y-auto pr-1 select-none scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent">
+        {search.trim() && (
+          <div className="px-4 py-2 text-xs text-muted-foreground font-medium border-b border-border/40 mb-2">
+            Найдено результатов: <strong className="text-foreground">{filteredClients.length}</strong>
+          </div>
+        )}
         {/* Table Head */}
         <div className="clients-table-head-row sticky top-0 z-10 hidden md:grid grid-cols-[minmax(180px,1.5fr)_110px_70px_90px_100px_130px_90px_minmax(120px,1fr)_50px] items-center gap-3 px-4 py-2 border-b border-border bg-card text-muted-foreground text-xs font-semibold uppercase tracking-wider">
           <span>Клиент</span>
