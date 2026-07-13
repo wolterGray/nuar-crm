@@ -1,7 +1,7 @@
 /* Cleaned up layout filters */
 
 @media (min-width: 769px) {
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content) {
+  .content:not(.calendar-content):not(.clients-content):not(.club-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content) {
     padding: 12px;
   }
 
@@ -39,7 +39,7 @@ body {
   background: transparent;
 }
 
-.content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content) {
+.content:not(.calendar-content):not(.clients-content):not(.club-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content) {
   padding: 24px 28px;
 }
 
@@ -584,7 +584,7 @@ button:focus-visible {
     background: #f7f7f6;
   }
 
-  .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content),
+  .content:not(.calendar-content):not(.clients-content):not(.club-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content),
   .visits-content:not(.payments-content) {
     padding: 14px 12px var(--mobile-nav-offset, calc(76px + env(safe-area-inset-bottom)));
   }
@@ -747,4 +747,3 @@ button:focus-visible {
   background: rgba(255, 255, 255, 0.05) !important;
   color: var(--accent-color) !important;
 }
-

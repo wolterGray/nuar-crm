@@ -1862,6 +1862,7 @@ function App() {
 
   const isCalendarPage = activePage === "calendar";
   const isClientsPage = activePage === "clients";
+  const isClubPage = activePage === "club";
   const isOperationsPage = activePage === "operations";
   const isPaymentsPage = activePage === "payments";
   const isServicesPage = activePage === "services";
@@ -1900,6 +1901,7 @@ function App() {
       contentRef={contentRef}
       isCalendarPage={isCalendarPage}
       isClientsPage={isClientsPage}
+      isClubPage={isClubPage}
       isOperationsPage={isOperationsPage}
       isPaymentsPage={isPaymentsPage}
       isServicesPage={isServicesPage}

@@ -93,6 +93,18 @@ const serializeAppliedTransaction = (result) => ({
   transaction: serializeTransaction(result.transaction),
 });
 
+const serializeAdminCard = (card) => ({
+  ...serializeCard(card),
+  client: card.client
+    ? {
+        id: card.client.id,
+        name: card.client.name,
+        phone: card.client.phone,
+        smsName: card.client.smsName,
+      }
+    : null,
+});
+
 publicRouter.get('/loyalty/:token', publicRateLimit, async (req, res) => {
   res.set('X-Robots-Tag', 'noindex, nofollow');
   res.set('Cache-Control', 'private, no-store');
@@ -152,6 +164,62 @@ router.get('/loyalty/cards/client/:clientId', async (req, res) => {
     const clientId = parseId(req.params.clientId, 'clientId');
     const card = await findCardForClient(prisma, clientId);
     res.json({ success: true, data: card ? serializeCard(card) : null });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
+router.get('/loyalty/cards', async (req, res) => {
+  try {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize) || 50));
+    const search = String(req.query.search ?? '').trim();
+    const status = String(req.query.status ?? 'all').trim();
+    const reward = String(req.query.reward ?? 'all').trim();
+
+    const where = {
+      ...(status === 'active' ? { isActive: true } : {}),
+      ...(status === 'inactive' ? { isActive: false } : {}),
+      ...(reward === 'available' ? { rewardAvailable: true } : {}),
+      ...(search
+        ? {
+            client: {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { phone: { contains: search, mode: 'insensitive' } },
+                { smsName: { contains: search, mode: 'insensitive' } },
+              ],
+            },
+          }
+        : {}),
+    };
+
+    const [items, total] = await Promise.all([
+      prisma.loyaltyCard.findMany({
+        where,
+        include: {
+          client: { select: { id: true, name: true, phone: true, smsName: true } },
+          transactions: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
+        orderBy: [{ rewardAvailable: 'desc' }, { updatedAt: 'desc' }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.loyaltyCard.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        items: items.map(serializeAdminCard),
+        page,
+        pageSize,
+        total,
+      },
+    });
   } catch (error) {
     await sendRouteError(req, res, error);
   }

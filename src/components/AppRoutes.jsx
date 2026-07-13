@@ -3,6 +3,7 @@ import {lazy, Suspense} from "react";
 const TodayPage = lazy(() => import("./pages/TodayPage.jsx"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage.jsx"));
 const ClientsPage = lazy(() => import("./pages/ClientsPage.jsx"));
+const ClubPage = lazy(() => import("./pages/ClubPage.jsx"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage.jsx"));
 const PackagesPage = lazy(() => import("./pages/PackagesPage.jsx"));
 const EmployeesPage = lazy(() => import("./EmployeesPage.jsx"));
@@ -133,6 +134,16 @@ export default function AppRoutes({activePage, ...props}) {
             onEditClient={props.openEditClient}
             onUpdateClientNote={props.updateClientNote}
             onDeleteClient={props.requestDeleteClient}
+          />
+        </PageSuspense>
+      );
+
+    case "club":
+      return (
+        <PageSuspense>
+          <ClubPage
+            clients={props.clientProfiles}
+            pushNotification={props.pushNotification}
           />
         </PageSuspense>
       );

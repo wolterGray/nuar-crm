@@ -28,8 +28,8 @@
 
 /* ---- Layout rhythm ---- */
 
-.content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content),
-.home-content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content),
+.content:not(.calendar-content):not(.clients-content):not(.club-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content),
+.home-content:not(.calendar-content):not(.clients-content):not(.club-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content),
 .visits-content:not(.calendar-content):not(.payments-content) {
   padding: var(--ds-space-4) var(--ds-space-5) var(--ds-space-6);
 }
@@ -2019,14 +2019,16 @@
 }
 
 @media (max-width: 768px) {
-  .content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content):not(.today-content),
-  .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content):not(.today-content),
+  .content:not(.clients-content):not(.club-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content):not(.today-content),
+  .home-content:not(.clients-content):not(.club-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content):not(.today-content),
   .visits-content:not(.payments-content) {
     padding: 12px 15px 16px;
   }
 
   .content.clients-content,
   .content.clients-content.home-content,
+  .content.club-content,
+  .content.club-content.home-content,
   .content.operations-content,
   .content.operations-content.home-content,
   .content.payments-content,

@@ -7,6 +7,7 @@ export default function AppShell({
   contentRef,
   isCalendarPage,
   isClientsPage,
+  isClubPage,
   isEmployeesPage,
   isImportPage,
   isOperationsPage,
@@ -31,6 +32,7 @@ export default function AppShell({
     (isTodayPage && "today") ||
     (isCalendarPage && "calendar") ||
     (isClientsPage && "clients") ||
+    (isClubPage && "club") ||
     (isOperationsPage && "operations") ||
     (isPaymentsPage && "payments") ||
     (isServicesPage && "services") ||
@@ -55,6 +57,7 @@ export default function AppShell({
     isTodayPage ? "home-content today-content" : "",
     isCalendarPage ? "calendar-content" : "",
     isClientsPage ? "clients-content" : "",
+    isClubPage ? "club-content" : "",
     isOperationsPage ? "operations-content" : "",
     isPaymentsPage ? "visits-content payments-content" : "",
     isServicesPage ? "services-content" : "",

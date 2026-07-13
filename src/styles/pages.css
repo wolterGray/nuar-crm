@@ -2916,6 +2916,471 @@ button:focus-visible {
   grid-column: 1 / -1;
 }
 
+.club-page {
+  --club-bg: var(--app-page-bg, #050607);
+  --club-panel: var(--app-window-bg, #0b0d10);
+  --club-card: var(--app-card-bg, #111418);
+  --club-border: var(--app-window-border, rgba(255, 255, 255, 0.08));
+  --club-muted: var(--linear-muted, #a3a6b3);
+  --club-faint: var(--linear-dim, #70737f);
+  --club-text: var(--linear-text, #f2f3f7);
+  --club-accent: var(--accent-color, #c91d1d);
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--club-text);
+  background: var(--club-bg);
+}
+
+.club-page,
+.club-page * {
+  box-sizing: border-box;
+}
+
+.club-page-header {
+  margin-bottom: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--club-border);
+}
+
+.club-icon-button {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  color: var(--club-muted);
+  background: var(--club-card);
+  cursor: pointer;
+}
+
+.club-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.club-summary article,
+.club-create-panel,
+.club-toolbar,
+.club-card,
+.club-details,
+.club-empty,
+.club-error {
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  background: var(--club-panel);
+}
+
+.club-summary article {
+  display: flex;
+  min-height: 70px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px;
+}
+
+.club-summary span,
+.club-create-panel span,
+.club-card small,
+.club-card-meta,
+.club-details-head span,
+.club-details-grid small,
+.club-link-hint,
+.club-transactions small {
+  color: var(--club-muted);
+}
+
+.club-summary strong {
+  margin-top: 4px;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.club-create-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 260px) 170px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+
+.club-create-panel div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.club-create-panel select,
+.club-toolbar select,
+.club-search input {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--club-text);
+  background: var(--club-card);
+  outline: none;
+}
+
+.club-create-panel button,
+.club-card-actions button,
+.club-details-actions button,
+.club-public-link :is(button, a) {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--club-text);
+  background: var(--club-card);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.club-create-panel button,
+.club-details-actions button:first-child,
+.club-card-actions button:first-child {
+  border-color: transparent;
+  color: #fff;
+  background: var(--club-accent);
+}
+
+.club-create-panel button:disabled,
+.club-card-actions button:disabled,
+.club-details-actions button:disabled,
+.club-public-link button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.club-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px 180px;
+  gap: 8px;
+  padding: 10px;
+}
+
+.club-search {
+  display: flex;
+  min-width: 0;
+  height: 40px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--club-faint);
+  background: var(--club-card);
+}
+
+.club-search input {
+  height: auto;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.club-error {
+  padding: 10px 12px;
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.2);
+}
+
+.club-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  gap: 12px;
+  min-height: 0;
+}
+
+.club-list {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.club-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 260px) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.club-card.is-selected {
+  border-color: color-mix(in srgb, var(--club-accent) 55%, var(--club-border));
+}
+
+.club-card-main {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.club-card-main div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.club-card-main strong,
+.club-card-main small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.club-card-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--club-accent);
+  background: rgba(201, 29, 29, 0.12);
+}
+
+.club-card-progress,
+.club-details-progress {
+  overflow: hidden;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.club-card-progress span,
+.club-details-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--club-accent);
+}
+
+.club-card-meta,
+.club-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.club-card-meta span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.club-card-actions button {
+  min-width: 38px;
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.club-details {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.club-details-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.club-details-head div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.club-details-head strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 18px;
+}
+
+.club-details-head b {
+  color: var(--club-accent);
+  font-size: 22px;
+}
+
+.club-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.club-details-grid span {
+  display: flex;
+  min-height: 62px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 9px;
+  background: var(--club-card);
+}
+
+.club-public-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px 36px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 6px;
+  background: var(--club-card);
+}
+
+.club-public-link span {
+  overflow: hidden;
+  padding: 0 6px;
+  color: var(--club-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.club-public-link :is(button, a) {
+  min-height: 34px;
+  padding: 0;
+  text-decoration: none;
+}
+
+.club-link-hint {
+  margin: 0;
+  border: 1px dashed var(--club-border);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.club-qr-box {
+  display: flex;
+  justify-content: center;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--club-card);
+}
+
+.club-details-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.club-details-actions button {
+  width: 100%;
+}
+
+.club-transactions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--club-border);
+  padding-top: 12px;
+}
+
+.club-transactions div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 9px;
+  background: var(--club-card);
+}
+
+.club-transactions span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.club-transactions em {
+  color: var(--club-accent);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.club-empty {
+  display: flex;
+  min-height: 160px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px;
+  color: var(--club-muted);
+  text-align: center;
+}
+
+.club-empty strong {
+  color: var(--club-text);
+}
+
+@media (max-width: 768px) {
+  .club-page {
+    gap: 10px;
+  }
+
+  .club-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .club-create-panel,
+  .club-toolbar,
+  .club-layout,
+  .club-card {
+    grid-template-columns: 1fr;
+  }
+
+  .club-create-panel button,
+  .club-card-actions button,
+  .club-details-actions button {
+    width: 100%;
+  }
+
+  .club-card-actions,
+  .club-card-meta {
+    flex-wrap: wrap;
+  }
+
+  .club-details {
+    padding: 12px;
+  }
+
+  .club-details-grid,
+  .club-details-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 .public-loyalty-page {
   display: grid;
   min-height: 100dvh;

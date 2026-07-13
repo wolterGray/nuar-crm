@@ -48,6 +48,19 @@ export const fetchClientLoyaltyCard = (clientId) =>
     label: "Client loyalty card",
   });
 
+export const fetchLoyaltyCards = ({page = 1, pageSize = 50, reward = "all", search = "", status = "all"} = {}) => {
+  const params = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+    reward,
+    search,
+    status,
+  });
+  return jsonRequest(`/api/loyalty/cards?${params.toString()}`, {
+    label: "Loyalty cards",
+  });
+};
+
 export const createClientLoyaltyCard = (clientId) =>
   jsonRequest(`/api/loyalty/cards/${clientId}/create`, {
     label: "Create loyalty card",
