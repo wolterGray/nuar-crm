@@ -495,7 +495,6 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </div>
                 <b>{selectedCard.stamps}/{selectedCard.targetStamps}</b>
               </div>
-              <PhysicalCardPreview card={selectedCard} tier={getTierForCard(selectedCard)} />
               <div className="club-details-progress">
                 <span style={{width: `${getCardProgress(selectedCard)}%`}} />
               </div>
