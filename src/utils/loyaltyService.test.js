@@ -164,14 +164,16 @@ describe("loyalty service safety helpers", () => {
     ).toBe(true);
   });
 
-  it("creates a card once and exposes the public token only in the create response", async () => {
+  it("creates a card once and keeps the current public URL available", async () => {
     const prisma = makePrismaStub();
     const result = await loyaltyService.createCardForClient(prisma, 1);
 
     expect(result.publicToken).toHaveLength(43);
     expect(result.publicUrl).toBe(`https://nuarr.pl/club/${result.publicToken}`);
+    expect(result.card.publicToken).toBe(result.publicToken);
     expect(result.card.publicTokenHash).toBe(loyaltyService.hashPublicToken(result.publicToken));
     expect(result.card.publicTokenHash).not.toContain(result.publicToken);
+    expect(loyaltyService.serializeCard(result.card).publicUrl).toBe(result.publicUrl);
 
     await expect(loyaltyService.createCardForClient(prisma, 1)).rejects.toThrow(
       "Loyalty card already exists",
@@ -208,7 +210,10 @@ describe("loyalty service safety helpers", () => {
     const nextToken = await loyaltyService.createUniqueTokenPayload(prisma);
     await prisma.loyaltyCard.update({
       where: {id: card.id},
-      data: {publicTokenHash: nextToken.publicTokenHash},
+      data: {
+        publicToken: nextToken.publicToken,
+        publicTokenHash: nextToken.publicTokenHash,
+      },
     });
 
     expect(await loyaltyService.getPublicCardByToken(prisma, publicToken)).toBeNull();

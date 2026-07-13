@@ -74,13 +74,14 @@ const serializeTransaction = (transaction) => ({
 const serializeCard = (card, publicToken = null) => {
   if (!card) return null;
   const latest = card.transactions?.[0] ?? null;
+  const storedPublicToken = publicToken || card.publicToken || null;
   return {
     id: card.id,
     clientId: card.clientId,
     createdAt: card.createdAt,
     isActive: card.isActive,
     lastTransactionAt: latest?.createdAt ?? null,
-    publicUrl: publicToken ? buildPublicUrl(publicToken) : null,
+    publicUrl: storedPublicToken ? buildPublicUrl(storedPublicToken) : null,
     rewardAvailable: card.rewardAvailable,
     stamps: card.stamps,
     targetStamps: card.targetStamps,
@@ -145,6 +146,7 @@ const createCardForClient = async (tx, clientId) => {
   const card = await tx.loyaltyCard.create({
     data: {
       clientId,
+      publicToken,
       publicTokenHash,
       targetStamps: settings.targetStamps,
     },

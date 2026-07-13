@@ -368,7 +368,7 @@ router.post('/loyalty/cards/:cardId/reissue-link', async (req, res) => {
       const { publicToken, publicTokenHash } = await createUniqueTokenPayload(tx);
       const card = await tx.loyaltyCard.update({
         where: { id: cardId },
-        data: { publicTokenHash },
+        data: { publicToken, publicTokenHash },
         include: {
           transactions: {
             orderBy: { createdAt: 'desc' },

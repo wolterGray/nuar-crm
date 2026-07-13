@@ -160,6 +160,7 @@ model Visit {
 model LoyaltyCard {
   id              Int      @id @default(autoincrement())
   clientId        Int      @unique
+  publicToken     String?  @unique
   publicTokenHash String   @unique
   stamps          Int      @default(0)
   targetStamps    Int      @default(5)

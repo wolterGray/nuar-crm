@@ -59,6 +59,9 @@ export default function ClubPage({clients = [], pushNotification}) {
     () => cards.find((card) => card.id === selectedCardId) ?? cards[0] ?? null,
     [cards, selectedCardId],
   );
+  const selectedPublicUrl = selectedCard
+    ? createdPublicUrls[selectedCard.id] || selectedCard.publicUrl || ""
+    : "";
 
   const cardClientIds = useMemo(
     () => new Set(cards.map((card) => card.clientId)),
@@ -363,13 +366,13 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </span>
               </div>
 
-              {createdPublicUrls[selectedCard.id] ? (
+              {selectedPublicUrl ? (
                 <div className="club-public-link">
-                  <span>{createdPublicUrls[selectedCard.id]}</span>
+                  <span>{selectedPublicUrl}</span>
                   <button type="button" onClick={() => handleCopy(selectedCard)}>
                     <Copy size={13} />
                   </button>
-                  <a href={createdPublicUrls[selectedCard.id]} rel="noreferrer" target="_blank">
+                  <a href={selectedPublicUrl} rel="noreferrer" target="_blank">
                     <ExternalLink size={13} />
                   </a>
                 </div>
@@ -379,9 +382,9 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </p>
               )}
 
-              {createdPublicUrls[selectedCard.id] ? (
+              {selectedPublicUrl ? (
                 <div className="club-qr-box">
-                  <LoyaltyQrCode value={createdPublicUrls[selectedCard.id]} />
+                  <LoyaltyQrCode value={selectedPublicUrl} />
                 </div>
               ) : null}
 
