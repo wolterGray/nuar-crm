@@ -1,5 +1,6 @@
 import {
   Copy,
+  Crown,
   ExternalLink,
   Gift,
   Link2,
@@ -43,10 +44,127 @@ const formatClubDate = (value) => {
 const getCardProgress = (card) =>
   Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 5)) * 100));
 
+const tierLabels = {
+  MEMBER: "NUAR MEMBER",
+  SILVER: "NUAR SILVER",
+  GOLD: "NUAR GOLD",
+  DIAMOND: "NUAR DIAMOND",
+  ROYAL: "NUAR ROYAL",
+};
+
+const physicalCardConcepts = [
+  {
+    id: "black",
+    label: "A",
+    name: "Premium Black",
+    caption: "Матовый графит, тонкая золотая линия, максимальный минимализм.",
+    tone: "black",
+  },
+  {
+    id: "gold",
+    label: "B",
+    name: "Luxury Gold",
+    caption: "Тёплые металлические акценты и private banking настроение.",
+    tone: "gold",
+  },
+  {
+    id: "diamond",
+    label: "C",
+    name: "Diamond Glass",
+    caption: "Холодное стекло, серебро и мягкое кристальное свечение.",
+    tone: "diamond",
+  },
+  {
+    id: "royal",
+    label: "D",
+    name: "Royal Signature",
+    caption: "Почти чёрная карта, корона и золотая типографика.",
+    tone: "royal",
+  },
+];
+
+const getFallbackCardNumber = (card) => {
+  const source = Number(card?.id || card?.clientId || 1);
+  const first = String(source % 10000).padStart(4, "0");
+  const second = String((source * 37 + 2458) % 10000).padStart(4, "0");
+  const third = String((source * 91 + 9182) % 10000).padStart(4, "0");
+  const fourth = String((source * 17 + 7887) % 10000).padStart(4, "0");
+  return `${first} ${second} ${third} ${fourth}`;
+};
+
+function PhysicalCardConcept({card, concept, selected, onSelect}) {
+  const tier = String(card?.tier || "MEMBER").toUpperCase();
+  const tierLabel = tierLabels[tier] || tierLabels.MEMBER;
+  const clientName = card?.client?.name || card?.displayName || "Ira Kurylak";
+  const cardNumber = String(card?.cardNumber || getFallbackCardNumber(card)).replaceAll("•", " ");
+  const target = Math.max(1, Number(card?.targetStamps) || 5);
+  const stamps = Math.max(0, Number(card?.stamps) || 0);
+
+  return (
+    <button
+      className={`club-physical-option is-${concept.tone} ${selected ? "is-selected" : ""}`}
+      type="button"
+      onClick={onSelect}
+    >
+      <span className="club-physical-option-head">
+        <b>Вариант {concept.label}</b>
+        <strong>{concept.name}</strong>
+      </span>
+
+      <span className="club-physical-stack">
+        <span className="club-physical-card club-physical-front">
+          <span className="club-physical-shine" />
+          <span className="club-physical-topline">
+            <span className="club-physical-logo">NUAR</span>
+            <span className="club-physical-club">NUAR CLUB</span>
+          </span>
+          <span className="club-physical-social">
+            <em>By</em>
+            <span>@nuar_warsaw</span>
+            <span>beauty / massage / lounge</span>
+          </span>
+          <span className="club-physical-midline">
+            <span className="club-physical-qr-mini">
+              <i />
+              <i />
+              <i />
+              <i />
+            </span>
+            <span>
+              <small>{tierLabel}</small>
+              <strong>{clientName}</strong>
+            </span>
+            {concept.tone === "royal" ? <Crown size={22} /> : null}
+          </span>
+          <span className="club-physical-number">{cardNumber}</span>
+        </span>
+
+        <span className="club-physical-card club-physical-back">
+          <span>
+            <strong>КАРТА ПОСТОЯННОГО КЛИЕНТА</strong>
+            <small>NUAR beauty club / Warsaw</small>
+          </span>
+          <span className="club-physical-stamps">
+            {Array.from({length: Math.min(target, 5)}).map((_, index) => (
+              <i className={index < stamps ? "is-filled" : ""} key={index}>
+                {index === 2 ? "10%" : index === 4 ? "30%" : ""}
+              </i>
+            ))}
+          </span>
+          <span className="club-physical-note">Приведи друга и получи привилегию клуба</span>
+        </span>
+      </span>
+
+      <span className="club-physical-caption">{concept.caption}</span>
+    </button>
+  );
+}
+
 export default function ClubPage({clients = [], pushNotification}) {
   const [cards, setCards] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [selectedCardId, setSelectedCardId] = useState(null);
+  const [selectedConceptId, setSelectedConceptId] = useState("black");
   const [createdPublicUrls, setCreatedPublicUrls] = useState({});
   const [newClientId, setNewClientId] = useState("");
   const [search, setSearch] = useState("");
@@ -262,6 +380,24 @@ export default function ClubPage({clients = [], pushNotification}) {
           <option value="available">Награда доступна</option>
         </select>
       </div>
+
+      <section className="club-physical-designs">
+        <div className="club-physical-title">
+          <span>Дизайн физической карты</span>
+          <strong>NUAR Club premium concepts</strong>
+        </div>
+        <div className="club-physical-grid">
+          {physicalCardConcepts.map((concept) => (
+            <PhysicalCardConcept
+              card={selectedCard}
+              concept={concept}
+              key={concept.id}
+              selected={selectedConceptId === concept.id}
+              onSelect={() => setSelectedConceptId(concept.id)}
+            />
+          ))}
+        </div>
+      </section>
 
       {error ? <p className="club-error">{error}</p> : null}
 
