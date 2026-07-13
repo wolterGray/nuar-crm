@@ -576,15 +576,17 @@ export default function ClubPage({clients = [], pushNotification}) {
 
               <div className="club-transactions">
                 <strong>История операций</strong>
-                {transactions.map((transaction) => (
-                  <div key={transaction.id}>
-                    <span>
-                      <b>{transactionLabels[transaction.type] || transaction.type}</b>
-                      <small>{formatClubDate(transaction.createdAt)} · {transaction.comment || "Без комментария"}</small>
-                    </span>
-                    <em>{transaction.amount > 0 ? `+${transaction.amount}` : transaction.amount}</em>
-                  </div>
-                ))}
+                <div className="club-transactions-list">
+                  {transactions.map((transaction) => (
+                    <div key={transaction.id}>
+                      <span>
+                        <b>{transactionLabels[transaction.type] || transaction.type}</b>
+                        <small>{formatClubDate(transaction.createdAt)} · {transaction.comment || "Без комментария"}</small>
+                      </span>
+                      <em>{transaction.amount > 0 ? `+${transaction.amount}` : transaction.amount}</em>
+                    </div>
+                  ))}
+                </div>
                 {!transactions.length ? <small>Операций пока нет.</small> : null}
               </div>
             </>

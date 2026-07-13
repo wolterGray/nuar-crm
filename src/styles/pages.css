@@ -3819,7 +3819,26 @@ button:focus-visible {
   padding-top: 12px;
 }
 
-.club-transactions div {
+.club-transactions-list {
+  display: flex;
+  max-height: 154px;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.club-transactions-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.club-transactions-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--club-muted) 28%, transparent);
+}
+
+.club-transactions-list div {
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -3829,7 +3848,7 @@ button:focus-visible {
   background: var(--club-card);
 }
 
-.club-transactions span {
+.club-transactions-list span {
   display: flex;
   min-width: 0;
   flex-direction: column;
