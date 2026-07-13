@@ -56,9 +56,12 @@ function TodayKpiCard({ helper, icon: Icon, label, tone, value }) {
 }
 
 function TodayReferenceBoard({
+  appSettings,
+  copiedReviewClientId,
   dashboard,
   formatIncome,
   freeMinutes,
+  firstTimersToday,
   onAddTask,
   onAddVisit,
   onCompleteTask,
@@ -69,6 +72,7 @@ function TodayReferenceBoard({
   openVisitMenuRef,
   selectedEmployees,
   selectedVisitId,
+  setCopiedReviewClientId,
   setSelectedEmployees,
   setSelectedVisitId,
   setOpenVisitMenuId,
@@ -661,9 +665,12 @@ function TodayPage({
 
   return (
     <TodayReferenceBoard
+      appSettings={appSettings}
+      copiedReviewClientId={copiedReviewClientId}
       dashboard={dashboard}
       formatIncome={formatIncome}
       freeMinutes={freeMinutes}
+      firstTimersToday={firstTimersToday}
       onAddTask={onAddTask}
       onAddVisit={onAddVisit}
       onCompleteTask={onCompleteTask}
@@ -674,6 +681,7 @@ function TodayPage({
       openVisitMenuRef={openVisitMenuRef}
       selectedEmployees={selectedEmployees}
       selectedVisitId={selectedVisitId}
+      setCopiedReviewClientId={setCopiedReviewClientId}
       setSelectedEmployees={setSelectedEmployees}
       setSelectedVisitId={setSelectedVisitId}
       setOpenVisitMenuId={setOpenVisitMenuId}

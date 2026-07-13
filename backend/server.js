@@ -67,6 +67,9 @@ app.use('/api/public', publicSiteRouter);
 const { publicSiteBookingRouter, siteBookingRouter } = require('./routes/siteBooking');
 app.use('/api/public', publicSiteBookingRouter);
 
+const { publicLoyaltyRouter, loyaltyRouter } = require('./routes/loyalty');
+app.use('/api/public', publicLoyaltyRouter);
+
 const { verifyJwt } = require('./middleware/auth');
 
 const functionsRouter = require('./routes/functions');
@@ -82,6 +85,7 @@ app.use('/api', verifyJwt, usersRouter);
 
 const notificationEventsRouter = require('./routes/notificationEvents');
 app.use('/api', verifyJwt, notificationEventsRouter);
+app.use('/api', verifyJwt, loyaltyRouter);
 
 const clientsRouter = require('./routes/clients');
 const employeesRouter = require('./routes/employees');

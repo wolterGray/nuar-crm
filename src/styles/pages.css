@@ -2709,6 +2709,390 @@ button:focus-visible {
   opacity: 0.82;
 }
 
+.client-loyalty-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.018));
+}
+
+.client-loyalty-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.client-loyalty-header strong {
+  display: block;
+  color: var(--clients-text, #f4f5f7);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.client-loyalty-header small,
+.client-loyalty-stats small,
+.client-loyalty-history small {
+  color: var(--clients-faint, rgba(255, 255, 255, 0.48));
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.client-loyalty-icon {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(213, 31, 31, 0.26);
+  border-radius: 10px;
+  color: var(--linear-red, #d51f1f);
+  background: rgba(213, 31, 31, 0.1);
+}
+
+.client-loyalty-primary,
+.client-loyalty-actions button {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  color: var(--clients-text, #f4f5f7);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.client-loyalty-primary {
+  width: 100%;
+  border-color: rgba(213, 31, 31, 0.62);
+  background: var(--linear-red, #d51f1f);
+}
+
+.client-loyalty-primary:disabled,
+.client-loyalty-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.client-loyalty-error {
+  margin: 0;
+  color: #f87171;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.client-loyalty-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.client-loyalty-stats span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.client-loyalty-stats b {
+  overflow: hidden;
+  color: var(--clients-text, #f4f5f7);
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-loyalty-progress {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.client-loyalty-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d51f1f, #f87171);
+}
+
+.client-loyalty-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px 32px;
+  gap: 6px;
+  align-items: center;
+}
+
+.client-loyalty-link span {
+  min-width: 0;
+  overflow: hidden;
+  padding: 9px 10px;
+  border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  color: var(--clients-muted, rgba(255, 255, 255, 0.64));
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-loyalty-link :is(button, a) {
+  display: inline-flex;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  color: var(--clients-text, #f4f5f7);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.client-loyalty-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.client-loyalty-qr-panel {
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.loyalty-qr,
+.loyalty-qr-placeholder {
+  display: grid;
+  width: 148px;
+  height: 148px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.loyalty-qr svg {
+  width: 100%;
+  height: 100%;
+}
+
+.client-loyalty-history {
+  display: grid;
+  gap: 6px;
+}
+
+.client-loyalty-history > span {
+  color: var(--clients-faint, rgba(255, 255, 255, 0.48));
+  font-size: 11px;
+  text-align: center;
+}
+
+.client-loyalty-history div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.client-loyalty-history strong,
+.client-loyalty-history span {
+  color: var(--clients-text, #f4f5f7);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.client-loyalty-history small {
+  grid-column: 1 / -1;
+}
+
+.public-loyalty-page {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(213, 31, 31, 0.18), transparent 34%),
+    linear-gradient(180deg, #08090b, #050607);
+  color: #f4f5f7;
+}
+
+.public-loyalty-card {
+  display: grid;
+  gap: 18px;
+  width: min(100%, 390px);
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 18px;
+  background: rgba(13, 15, 18, 0.92);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+}
+
+.public-loyalty-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.public-loyalty-brand > span {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  color: #fff;
+  background: #d51f1f;
+}
+
+.public-loyalty-brand h1,
+.public-loyalty-brand p,
+.public-loyalty-person small,
+.public-loyalty-person strong {
+  margin: 0;
+}
+
+.public-loyalty-brand h1 {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.public-loyalty-brand p,
+.public-loyalty-person small,
+.public-loyalty-reward span,
+.public-loyalty-state span {
+  color: rgba(244, 245, 247, 0.58);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.public-loyalty-person {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.public-loyalty-person strong {
+  font-size: 20px;
+  font-weight: 850;
+}
+
+.public-loyalty-progress-ring {
+  display: grid;
+  width: 156px;
+  height: 156px;
+  place-items: center;
+  justify-self: center;
+  border: 12px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #d51f1f;
+  border-right-color: rgba(213, 31, 31, 0.82);
+  border-radius: 999px;
+}
+
+.public-loyalty-progress-ring div {
+  display: grid;
+  place-items: center;
+}
+
+.public-loyalty-progress-ring strong {
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.public-loyalty-progress-ring span {
+  color: rgba(244, 245, 247, 0.62);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.public-loyalty-progress {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.public-loyalty-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d51f1f, #ff6b6b);
+}
+
+.public-loyalty-reward {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(213, 31, 31, 0.14);
+}
+
+.public-loyalty-reward strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.public-loyalty-qr-wrap {
+  display: grid;
+  place-items: center;
+}
+
+.public-loyalty-actions {
+  display: grid;
+  gap: 9px;
+}
+
+.public-loyalty-actions :is(a, button) {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 14px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.public-loyalty-actions a {
+  border-color: rgba(213, 31, 31, 0.7);
+  background: #d51f1f;
+}
+
+.public-loyalty-state {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.public-loyalty-state strong {
+  font-size: 18px;
+  font-weight: 850;
+}
+
 @media (min-width: 768px) {
   .client-view-sheet.mobile-sheet .mobile-sheet-body > div {
     padding: 20px;

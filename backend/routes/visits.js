@@ -6,6 +6,11 @@ const { recordAuditLog, recordErrorEvent } = require('../services/loggingService
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { upsertNotificationEvent } = require('../services/notificationEventsService');
 const {
+  earnForCompletedVisit,
+  getActorUserId,
+  reverseEarnForVisit,
+} = require('../services/loyaltyService');
+const {
   respond,
   respondWithAudit,
   auditCreate,
@@ -475,6 +480,11 @@ router.post('/calendar-entries/delete-completed', requireOwner, async (req, res)
           });
         }
 
+        await reverseEarnForVisit(tx, visit, {
+          createdById: getActorUserId(req),
+          description: 'Откат начисления после удаления завершённого визита',
+        });
+
         await tx.visit.delete({ where: { id: visit.id } });
       }
 
@@ -922,6 +932,9 @@ router.post('/visits/complete', async (req, res) => {
           visitId: visit.id,
         }),
       });
+      const loyalty = await earnForCompletedVisit(tx, visit, {
+        createdById: getActorUserId(req),
+      });
       const data = {
         calendarEntry: withStoredId(updatedCalendarEntry),
         certificate: certificate ? withStoredId(certificate) : null,
@@ -929,6 +942,11 @@ router.post('/visits/complete', async (req, res) => {
         clientPackage: clientPackage ? withStoredId(clientPackage) : null,
         clientPackageUsage: clientPackageUsage ? withStoredId(clientPackageUsage) : null,
         idempotent: false,
+        loyalty: {
+          earned: Boolean(loyalty?.earned),
+          reason: loyalty?.reason ?? null,
+          transactionId: loyalty?.transaction?.id ?? null,
+        },
         visit: withStoredId(visit),
       };
 
@@ -1708,6 +1726,11 @@ router.post('/visits/revert-completed', requireOwner, async (req, res) => {
             entityId: restoredCertificate.id,
           });
         }
+
+        await reverseEarnForVisit(tx, visit, {
+          createdById: getActorUserId(req),
+          description: 'Откат начисления после возврата завершённого визита',
+        });
 
         await tx.visit.delete({ where: { id: visit.id } });
       }

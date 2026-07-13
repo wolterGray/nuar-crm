@@ -1,16 +1,21 @@
 import {
+  BarChart2,
   CakeSlice,
   CalendarPlus,
+  Copy,
   Clock3,
+  ExternalLink,
   Eye,
+  Gift,
   MessageSquareText,
   MoreVertical,
   Pencil,
   Phone,
   Plus,
+  QrCode,
   RotateCcw,
+  ShieldCheck,
   Trash2,
-  BarChart2,
 } from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {
@@ -32,11 +37,22 @@ import {
   getCertificateBalanceLabel,
 } from "../../utils/certificates.js";
 import PageHeader from "../PageHeader.jsx";
+import LoyaltyQrCode from "../LoyaltyQrCode.jsx";
 import MobileSheet from "../MobileSheet.jsx";
 import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
+import {
+  correctLoyaltyBalance,
+  createClientLoyaltyCard,
+  earnLoyaltyStamp,
+  fetchClientLoyaltyCard,
+  fetchLoyaltyTransactions,
+  redeemLoyaltyReward,
+  reissueLoyaltyLink,
+  updateLoyaltyCardStatus,
+} from "../../api/loyalty.js";
 
 function ClientRowActions({
   client,
@@ -129,6 +145,229 @@ function ClientRowActions({
   );
 }
 
+const loyaltyTypeLabels = {
+  CORRECTION: "Корректировка",
+  EARN: "Начисление",
+  REDEEM: "Награда",
+  REVERSAL: "Откат",
+};
+
+const formatLoyaltyDate = (value) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+function ClientLoyaltyCard({client}) {
+  const [card, setCard] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [publicUrl, setPublicUrl] = useState("");
+  const [showQr, setShowQr] = useState(false);
+
+  const loadLoyalty = async () => {
+    if (!client?.id) return;
+    setLoading(true);
+    setError("");
+    try {
+      const cardResponse = await fetchClientLoyaltyCard(client.id);
+      const nextCard = cardResponse?.data ?? null;
+      setCard(nextCard);
+      if (nextCard?.id) {
+        const transactionsResponse = await fetchLoyaltyTransactions(nextCard.id, {
+          pageSize: 8,
+        });
+        setTransactions(transactionsResponse?.data?.items ?? []);
+      } else {
+        setTransactions([]);
+      }
+    } catch (err) {
+      setError(err.message || "Не удалось загрузить карту");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const loadTimer = window.setTimeout(() => {
+      loadLoyalty();
+    }, 0);
+    return () => window.clearTimeout(loadTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client?.id]);
+
+  const refreshAfterAction = async (response) => {
+    const nextCard = response?.data?.card ?? response?.data?.card?.card ?? null;
+    const nextUrl = response?.data?.publicUrl || nextCard?.publicUrl || "";
+    if (nextUrl) {
+      setPublicUrl(nextUrl);
+    }
+    await loadLoyalty();
+  };
+
+  const handleCreate = async () => {
+    const response = await createClientLoyaltyCard(client.id);
+    await refreshAfterAction(response);
+  };
+
+  const handleCopy = async () => {
+    const url = publicUrl || card?.publicUrl;
+    if (!url) return;
+    await navigator.clipboard?.writeText(url);
+  };
+
+  const handleEarn = async () => {
+    const description = window.prompt("Причина начисления отметки");
+    if (!description?.trim()) return;
+    await refreshAfterAction(await earnLoyaltyStamp(card.id, {description}));
+  };
+
+  const handleRedeem = async () => {
+    if (!window.confirm("Списать награду по карте клиента?")) return;
+    await refreshAfterAction(await redeemLoyaltyReward(card.id, {
+      description: "Использование награды NUAR Club",
+    }));
+  };
+
+  const handleCorrect = async () => {
+    const amount = Number(window.prompt("Изменение баланса, например 1 или -1"));
+    if (!Number.isInteger(amount) || amount === 0) return;
+    const description = window.prompt("Причина корректировки");
+    if (!description?.trim()) return;
+    await refreshAfterAction(await correctLoyaltyBalance(card.id, {amount, description}));
+  };
+
+  const handleReissue = async () => {
+    if (
+      !window.confirm(
+        "Старая ссылка перестанет работать. Баланс и история карты сохранятся",
+      )
+    ) {
+      return;
+    }
+    await refreshAfterAction(await reissueLoyaltyLink(card.id));
+  };
+
+  const handleStatus = async () => {
+    await refreshAfterAction(await updateLoyaltyCardStatus(card.id, {
+      isActive: !card.isActive,
+    }));
+  };
+
+  const progress = card
+    ? Math.min(100, Math.round((card.stamps / Math.max(1, card.targetStamps)) * 100))
+    : 0;
+  const activePublicUrl = publicUrl || card?.publicUrl || "";
+
+  return (
+    <section className="client-loyalty-card">
+      <div className="client-loyalty-header">
+        <span className="client-loyalty-icon">
+          <ShieldCheck size={15} />
+        </span>
+        <div>
+          <strong>NUAR Club</strong>
+          <small>Электронная карта лояльности</small>
+        </div>
+      </div>
+
+      {error ? <p className="client-loyalty-error">{error}</p> : null}
+
+      {!card ? (
+        <button
+          className="client-loyalty-primary"
+          disabled={loading}
+          type="button"
+          onClick={handleCreate}>
+          <Gift size={14} />
+          {loading ? "Загружаем..." : "Создать карту лояльности"}
+        </button>
+      ) : (
+        <>
+          <div className="client-loyalty-stats">
+            <span>
+              <small>Баланс</small>
+              <b>{card.stamps}/{card.targetStamps}</b>
+            </span>
+            <span>
+              <small>Статус</small>
+              <b>{card.isActive ? "Активна" : "Отключена"}</b>
+            </span>
+            <span>
+              <small>Награда</small>
+              <b>{card.rewardAvailable ? "Доступна" : "Пока нет"}</b>
+            </span>
+            <span>
+              <small>Последнее</small>
+              <b>{formatLoyaltyDate(card.lastTransactionAt)}</b>
+            </span>
+          </div>
+
+          <div className="client-loyalty-progress">
+            <span style={{width: `${progress}%`}} />
+          </div>
+
+          {activePublicUrl ? (
+            <div className="client-loyalty-link">
+              <span>{activePublicUrl}</span>
+              <button type="button" onClick={handleCopy}>
+                <Copy size={13} />
+              </button>
+              <a href={activePublicUrl} rel="noreferrer" target="_blank">
+                <ExternalLink size={13} />
+              </a>
+            </div>
+          ) : null}
+
+          <div className="client-loyalty-actions">
+            <button type="button" onClick={handleEarn}>Начислить</button>
+            <button disabled={!card.rewardAvailable} type="button" onClick={handleRedeem}>
+              Использовать
+            </button>
+            <button type="button" onClick={handleCorrect}>Коррекция</button>
+            <button type="button" onClick={() => setShowQr((value) => !value)}>
+              <QrCode size={13} />
+              QR
+            </button>
+            <button type="button" onClick={handleReissue}>Перевыпуск</button>
+            <button type="button" onClick={handleStatus}>
+              {card.isActive ? "Отключить" : "Включить"}
+            </button>
+          </div>
+
+          {showQr && activePublicUrl ? (
+            <div className="client-loyalty-qr-panel">
+              <LoyaltyQrCode value={activePublicUrl} />
+            </div>
+          ) : null}
+
+          <div className="client-loyalty-history">
+            {transactions.length === 0 ? (
+              <span>Операций пока нет.</span>
+            ) : (
+              transactions.map((transaction) => (
+                <div key={transaction.id}>
+                  <strong>{loyaltyTypeLabels[transaction.type] || transaction.type}</strong>
+                  <span>{transaction.amount > 0 ? "+" : ""}{transaction.amount}</span>
+                  <small>
+                    {formatLoyaltyDate(transaction.createdAt)} · баланс {transaction.balanceAfter}
+                  </small>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
 function ClientsPage({
   alertFocus,
   calendarEntries = [],
@@ -144,7 +383,6 @@ function ClientsPage({
   onAlertFocusHandled,
   onDeleteClient,
   onEditClient,
-  onMessageClient,
   onUpdateClientNote,
   appSettings,
 }) {
@@ -804,6 +1042,8 @@ function ClientsPage({
               </div>
             )}
 
+            <ClientLoyaltyCard client={activeViewedClient} key={activeViewedClient.id} />
+
             {/* Note */}
             <div className="flex flex-col gap-2">
               <span className="text-xs text-muted-foreground font-semibold">Заметка</span>
@@ -952,6 +1192,81 @@ function ClientsPage({
           </div>
         </MobileSheet>
       )}
+
+      {messageBuilderClient && (
+        <MobileSheet
+          className="message-builder-modal w-full md:w-[500px] flex flex-col p-0 overflow-hidden"
+          fullscreen={isMobile}
+          isOpen
+          title="Конструктор сообщений"
+          description={`Связь с клиентом ${messageBuilderClient.name}`}
+          onClose={() => setMessageBuilderClient(null)}
+          footer={
+            <div className="flex gap-2 w-full">
+              <button
+                className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg bg-accent text-white font-semibold hover:bg-accent-hover transition-colors text-sm cursor-pointer border-0"
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(messageText);
+                  setCopiedState(true);
+                  setTimeout(() => setCopiedState(false), 2000);
+
+                  const cleanTelegram = String(messageBuilderClient.telegram ?? "").trim().replace("@", "");
+                  if (cleanTelegram) {
+                    window.open(`https://t.me/${cleanTelegram}`, "_blank");
+                  } else {
+                    const cleanPhone = String(messageBuilderClient.phone ?? "").trim().replace(/\D/g, "");
+                    if (cleanPhone) {
+                      window.open(`https://t.me/+${cleanPhone}`, "_blank");
+                    } else {
+                      window.open("https://t.me", "_blank");
+                    }
+                  }
+                }}>
+                <MessageSquareText size={16} />
+                Открыть Telegram
+              </button>
+              <button
+                className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-all text-sm font-semibold cursor-pointer bg-transparent"
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(messageText);
+                  setCopiedState(true);
+                  setTimeout(() => setCopiedState(false), 2000);
+                }}>
+                {copiedState ? "Скопировано!" : "Скопировать для SMS"}
+              </button>
+            </div>
+          }>
+          <div className="p-5 space-y-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-muted-foreground text-xs font-semibold">Выберите шаблон</label>
+              <select
+                className="w-full min-h-10 px-3 rounded-lg border border-border bg-surface text-foreground text-sm focus:outline-none focus:border-accent"
+                value={selectedTemplate}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedTemplate(val);
+                  const templates = getTemplates(messageBuilderClient.name);
+                  setMessageText(templates[val]?.text ?? "");
+                }}>
+                <option value="remind">Напоминание о записи</option>
+                <option value="reactivate">Давно не виделись</option>
+                <option value="review">Запрос отзыва</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-muted-foreground text-xs font-semibold">Текст сообщения</label>
+              <textarea
+                className="w-full h-32 p-3 rounded-lg border border-border bg-surface text-foreground text-sm focus:outline-none focus:border-accent resize-none"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+              />
+            </div>
+          </div>
+        </MobileSheet>
+      )}
     </section>
   );
 }
@@ -1078,81 +1393,6 @@ function ClientQualityPanel({report, onEditClient, onOpenClient}) {
           )}
         </div>
       </div>
-
-      {messageBuilderClient && (
-        <MobileSheet
-          className="message-builder-modal w-full md:w-[500px] flex flex-col p-0 overflow-hidden"
-          fullscreen={isMobile}
-          isOpen
-          title="Конструктор сообщений"
-          description={`Связь с клиентом ${messageBuilderClient.name}`}
-          onClose={() => setMessageBuilderClient(null)}
-          footer={
-            <div className="flex gap-2 w-full">
-              <button
-                className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg bg-accent text-white font-semibold hover:bg-accent-hover transition-colors text-sm cursor-pointer border-0"
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(messageText);
-                  setCopiedState(true);
-                  setTimeout(() => setCopiedState(false), 2000);
-                  
-                  const cleanTelegram = String(messageBuilderClient.telegram ?? "").trim().replace("@", "");
-                  if (cleanTelegram) {
-                    window.open(`https://t.me/${cleanTelegram}`, "_blank");
-                  } else {
-                    const cleanPhone = String(messageBuilderClient.phone ?? "").trim().replace(/\D/g, "");
-                    if (cleanPhone) {
-                      window.open(`https://t.me/+${cleanPhone}`, "_blank");
-                    } else {
-                      window.open("https://t.me", "_blank");
-                    }
-                  }
-                }}>
-                <MessageSquareText size={16} />
-                Открыть Telegram
-              </button>
-              <button
-                className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-all text-sm font-semibold cursor-pointer bg-transparent"
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(messageText);
-                  setCopiedState(true);
-                  setTimeout(() => setCopiedState(false), 2000);
-                }}>
-                {copiedState ? "Скопировано!" : "Скопировать для SMS"}
-              </button>
-            </div>
-          }>
-          <div className="p-5 space-y-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-muted-foreground text-xs font-semibold">Выберите шаблон</label>
-              <select
-                className="w-full min-h-10 px-3 rounded-lg border border-border bg-surface text-foreground text-sm focus:outline-none focus:border-accent"
-                value={selectedTemplate}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setSelectedTemplate(val);
-                  const templates = getTemplates(messageBuilderClient.name);
-                  setMessageText(templates[val]?.text ?? "");
-                }}>
-                <option value="remind">Напоминание о записи</option>
-                <option value="reactivate">Давно не виделись</option>
-                <option value="review">Запрос отзыва</option>
-              </select>
-            </div>
-            
-            <div className="flex flex-col gap-1.5">
-              <label className="text-muted-foreground text-xs font-semibold">Текст сообщения</label>
-              <textarea
-                className="w-full h-32 p-3 rounded-lg border border-border bg-surface text-foreground text-sm focus:outline-none focus:border-accent resize-none"
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-              />
-            </div>
-          </div>
-        </MobileSheet>
-      )}
     </section>
   );
 }

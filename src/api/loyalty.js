@@ -1,0 +1,94 @@
+import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
+import {API_URL} from "./config.js";
+
+const authHeaders = async () => {
+  const token = await getAuthToken?.();
+  return token ? {Authorization: `Bearer ${token}`} : {};
+};
+
+const handleResponse = async (response, label) => {
+  if (!response.ok) {
+    if (response.status === 401) {
+      notifyAuthTokenRejected();
+    }
+
+    let message = `${label} API request failed: ${response.status}`;
+    try {
+      const payload = await response.json();
+      message = payload?.error || payload?.message || message;
+    } catch {
+      // Keep status based message.
+    }
+
+    throw new Error(message);
+  }
+
+  return response.json();
+};
+
+const jsonRequest = async (path, {body, label, method = "GET", publicRequest = false} = {}) => {
+  const headers = publicRequest ? {} : await authHeaders();
+  const response = await fetch(`${API_URL}${path}`, {
+    method,
+    headers: {"Content-Type": "application/json", ...headers},
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+
+  return handleResponse(response, label || path);
+};
+
+export const fetchPublicLoyaltyCard = (token) =>
+  jsonRequest(`/api/public/loyalty/${encodeURIComponent(token)}`, {
+    label: "Public loyalty card",
+    publicRequest: true,
+  });
+
+export const fetchClientLoyaltyCard = (clientId) =>
+  jsonRequest(`/api/loyalty/cards/client/${clientId}`, {
+    label: "Client loyalty card",
+  });
+
+export const createClientLoyaltyCard = (clientId) =>
+  jsonRequest(`/api/loyalty/cards/${clientId}/create`, {
+    label: "Create loyalty card",
+    method: "POST",
+  });
+
+export const fetchLoyaltyTransactions = (cardId, {page = 1, pageSize = 25} = {}) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}/transactions?page=${page}&pageSize=${pageSize}`, {
+    label: "Loyalty transactions",
+  });
+
+export const earnLoyaltyStamp = (cardId, body) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}/earn`, {
+    body,
+    label: "Earn loyalty stamp",
+    method: "POST",
+  });
+
+export const redeemLoyaltyReward = (cardId, body) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}/redeem`, {
+    body,
+    label: "Redeem loyalty reward",
+    method: "POST",
+  });
+
+export const correctLoyaltyBalance = (cardId, body) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}/correct`, {
+    body,
+    label: "Correct loyalty balance",
+    method: "POST",
+  });
+
+export const reissueLoyaltyLink = (cardId) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}/reissue-link`, {
+    label: "Reissue loyalty link",
+    method: "POST",
+  });
+
+export const updateLoyaltyCardStatus = (cardId, body) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}/status`, {
+    body,
+    label: "Update loyalty card status",
+    method: "PATCH",
+  });
