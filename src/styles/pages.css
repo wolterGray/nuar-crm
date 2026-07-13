@@ -3175,9 +3175,9 @@ button:focus-visible {
   --physical-glow: rgba(220, 227, 238, 0.26);
   --physical-text: #f6f8fb;
   background:
-    linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.16) 44%, transparent 56%),
+    linear-gradient(102deg, rgba(255, 255, 255, 0.05) 0%, transparent 20%, rgba(255, 255, 255, 0.22) 43%, transparent 57%, rgba(255, 255, 255, 0.08) 100%),
     radial-gradient(circle at 82% 18%, var(--physical-glow), transparent 30%),
-    linear-gradient(135deg, #101214, #59616a 48%, #171a1d);
+    linear-gradient(135deg, #0e1114, #747d86 42%, #2b3138 62%, #111418);
 }
 
 .club-physical-preview.is-gold {
@@ -3185,9 +3185,9 @@ button:focus-visible {
   --physical-glow: rgba(241, 206, 123, 0.3);
   --physical-text: #fff5dc;
   background:
-    linear-gradient(115deg, transparent 0%, rgba(255, 232, 167, 0.18) 44%, transparent 58%),
+    linear-gradient(110deg, rgba(255, 236, 178, 0.06) 0%, transparent 22%, rgba(255, 225, 139, 0.24) 44%, transparent 58%, rgba(164, 111, 36, 0.18) 100%),
     radial-gradient(circle at 80% 18%, var(--physical-glow), transparent 30%),
-    linear-gradient(135deg, #130c08, #5a3d1d 48%, #090706);
+    linear-gradient(135deg, #140b05, #7a5524 44%, #3b220d 64%, #090604);
 }
 
 .club-physical-preview.is-diamond {
@@ -3195,10 +3195,10 @@ button:focus-visible {
   --physical-glow: rgba(234, 246, 255, 0.38);
   --physical-text: #f7fbff;
   background:
-    linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.22) 42%, transparent 54%),
-    radial-gradient(circle at 82% 18%, var(--physical-glow), transparent 32%),
-    conic-gradient(from 210deg at 76% 35%, rgba(255, 255, 255, 0.26), transparent 20%, rgba(132, 190, 226, 0.2), transparent 42%),
-    linear-gradient(135deg, #03070d, #283743 52%, #080b12);
+    linear-gradient(122deg, transparent 0%, rgba(255, 255, 255, 0.28) 38%, transparent 48%, rgba(166, 220, 255, 0.18) 72%, transparent 100%),
+    radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.34), transparent 28%),
+    conic-gradient(from 210deg at 74% 35%, rgba(255, 255, 255, 0.36), rgba(122, 187, 226, 0.18), transparent 28%, rgba(255, 255, 255, 0.24), transparent 56%),
+    linear-gradient(135deg, #02060c, #354756 48%, #111d29 66%, #05070d);
 }
 
 .club-physical-preview.is-royal {
@@ -3288,44 +3288,19 @@ button:focus-visible {
 
 .club-physical-tier-mark {
   position: absolute;
-  top: 47%;
-  right: 18px;
-  z-index: 0;
+  top: 20px;
+  right: 22px;
+  z-index: 1;
   display: grid;
-  width: clamp(46px, 14%, 72px);
-  height: clamp(46px, 14%, 72px);
+  width: clamp(34px, 10%, 48px);
+  height: clamp(34px, 10%, 48px);
   place-items: center;
-  border: 0;
-  border-radius: 0;
+  border: 1px solid color-mix(in srgb, var(--physical-accent) 42%, transparent);
+  border-radius: 50%;
   color: var(--physical-accent);
-  background: transparent;
-  opacity: 0.42;
-  transform: translateY(-50%);
-  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--physical-accent) 32%, transparent));
-}
-
-.club-physical-watermark {
-  position: absolute;
-  top: 58%;
-  left: 50%;
-  z-index: 0;
-  width: 100%;
-  color: var(--physical-accent);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(24px, 5vw, 56px);
-  font-style: italic;
-  letter-spacing: 0.1em;
-  line-height: 1;
-  opacity: 0.1;
-  text-align: center;
-  text-transform: uppercase;
-  transform: translate(-50%, -50%);
-  white-space: nowrap;
-}
-
-.club-physical-preview.is-diamond .club-physical-watermark,
-.club-physical-preview.is-royal .club-physical-watermark {
-  opacity: 0.14;
+  background: color-mix(in srgb, var(--physical-accent) 9%, rgba(0, 0, 0, 0.18));
+  opacity: 0.86;
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--physical-accent) 34%, transparent));
 }
 
 .club-physical-topline,
@@ -3336,11 +3311,17 @@ button:focus-visible {
 }
 
 .club-physical-preview.is-diamond .club-physical-tier-mark {
-  opacity: 0.5;
+  border-radius: 10px;
+  opacity: 0.92;
+  transform: rotate(45deg);
+}
+
+.club-physical-preview.is-diamond .club-physical-tier-mark svg {
+  transform: rotate(-45deg);
 }
 
 .club-physical-preview.is-royal .club-physical-tier-mark {
-  opacity: 0.48;
+  opacity: 0.92;
 }
 
 .club-physical-stamps {
@@ -3711,9 +3692,10 @@ button:focus-visible {
   }
 
   .club-physical-tier-mark {
-    right: 14px;
-    width: 42px;
-    height: 42px;
+    top: 15px;
+    right: 15px;
+    width: 34px;
+    height: 34px;
   }
 
   .club-physical-stamps {

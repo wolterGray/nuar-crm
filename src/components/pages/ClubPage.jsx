@@ -96,7 +96,6 @@ function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
           <TierIcon size={32} />
         </span>
       ) : null}
-      <span className="club-physical-watermark">{tier.signature}</span>
       <span className="club-physical-topline">
         <span className="club-physical-card-title">{tier.title}</span>
       </span>
