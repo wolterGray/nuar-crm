@@ -1299,8 +1299,7 @@ button,
 input:focus,
 select:focus,
 button:focus-visible {
-  outline: 3px solid rgba(185, 28, 28, 0.26);
-  outline-offset: 2px;
+  outline: none;
 }
 
 /* Navigation groups */

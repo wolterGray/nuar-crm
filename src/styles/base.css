@@ -3471,3 +3471,18 @@ h2 {
   background: color-mix(in srgb, var(--accent-color) 12%, transparent) !important;
   border-color: var(--accent-color) !important;
 }
+
+/* Modern clean focus state for all inputs, textareas, and select boxes */
+input:focus,
+select:focus,
+textarea:focus,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.crm-shell :is(input, select, textarea):focus,
+.crm-shell :is(input, select, textarea):focus-visible {
+  outline: none !important;
+  border-color: color-mix(in srgb, var(--accent-color) 45%, rgba(255, 255, 255, 0.12)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 18%, transparent) !important;
+}
+
