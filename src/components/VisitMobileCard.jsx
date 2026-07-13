@@ -101,33 +101,35 @@ function VisitMobileCard({
 
   const cardBody = useCompactMenu ? (
     <>
-      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-        <strong className="text-zinc-200 text-sm font-semibold truncate">{visit.client}</strong>
-        <small className="text-zinc-500 text-xs">{[visit.date, visit.time].filter(Boolean).join(" · ")}</small>
+      <div className="flex items-start justify-between w-full gap-2">
+        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+          <strong className="text-zinc-200 text-sm font-semibold truncate">{visit.client}</strong>
+          <small className="text-zinc-500 text-xs">{[visit.date, visit.time].filter(Boolean).join(" · ")}</small>
+        </div>
+        <RowActionsMenu
+          className="ml-2 flex-none"
+          itemId={visit.id}
+          openMenuId={openMenuId}
+          setOpenMenuId={setOpenMenuId}
+          onDelete={() => onDelete(visit)}
+          onEdit={() => onEdit(visit)}
+        />
       </div>
-      <RowActionsMenu
-        className="ml-2 flex-none"
-        itemId={visit.id}
-        openMenuId={openMenuId}
-        setOpenMenuId={setOpenMenuId}
-        onDelete={() => onDelete(visit)}
-        onEdit={() => onEdit(visit)}
-      />
-      <div className="flex justify-between items-center w-full mt-2 pt-2 border-t border-zinc-800/40">
+      <div className="flex justify-between items-baseline w-full mt-2.5">
         <span className="text-zinc-300 text-xs truncate flex-1 pr-3">{visit.service}</span>
-        <b className="text-zinc-200 text-xs font-bold whitespace-nowrap">{amount}</b>
+        <b className="text-zinc-200 text-xs font-semibold whitespace-nowrap">{amount}</b>
       </div>
-      <div className="flex flex-wrap gap-1.5 mt-2">
+      <div className="flex flex-wrap gap-1.5 mt-2.5">
         {showMaster && visit.master ? (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-medium text-zinc-400 bg-zinc-800/60 border border-zinc-800">
+          <span className="px-2 py-0.5 rounded-md text-[10px] font-medium text-zinc-400 bg-zinc-800/60 border border-zinc-800">
             {visit.master}
           </span>
         ) : null}
-        <span className={`px-2 py-0.5 border rounded-md text-3xs font-medium ${getPaymentBadgeStyles(visit.payment, debt)}`}>
+        <span className={`px-2 py-0.5 border rounded-md text-[10px] font-medium ${getPaymentBadgeStyles(visit.payment, debt)}`}>
           {debt > 0 ? `Долг ${formatMoney(debt)}` : visit.payment || "Не указано"}
         </span>
         {showStatus && status ? (
-          <span className={`px-2 py-0.5 border rounded-md text-3xs font-medium ${getStatusBadgeStyles(statusKey)}`}>
+          <span className={`px-2 py-0.5 border rounded-md text-[10px] font-medium ${getStatusBadgeStyles(statusKey)}`}>
             {status}
           </span>
         ) : null}
