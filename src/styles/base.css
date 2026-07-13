@@ -3486,3 +3486,18 @@ textarea:focus-visible,
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 18%, transparent) !important;
 }
 
+/* Custom focus highlight for contentEditable search inputs */
+.crm-search-input-control:focus-within {
+  outline: none !important;
+  border-color: color-mix(in srgb, var(--accent-color) 45%, rgba(255, 255, 255, 0.12)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 18%, transparent) !important;
+}
+
+/* Remove default browser focus outline from the editable span inside search controls */
+.crm-search-input-value:focus,
+.crm-search-input-value:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+
