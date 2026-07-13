@@ -146,11 +146,35 @@ function ClientsPage({
   onEditClient,
   onMessageClient,
   onUpdateClientNote,
+  appSettings,
 }) {
   const [openClientMenuId, setOpenClientMenuId] = useState(null);
+  const [messageBuilderClient, setMessageBuilderClient] = useState(null);
+  const [messageText, setMessageText] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState("remind");
+  const [copiedState, setCopiedState] = useState(false);
+
+  const getTemplates = (clientName) => ({
+    remind: {
+      name: "Напоминание о записи",
+      text: `Cześć ${clientName || "kliencie"}! Przypominamy o Twojej wizycie w salonie NUAR. Czekamy na Ciebie!`,
+    },
+    reactivate: {
+      name: "Давно не виделись",
+      text: `Cześć ${clientName || "kliencie"}! Dawno się не widzieliśmy w salonie NUAR. Chętnie pomożemy dobrać dogodny termin na kolejną wizytę.`,
+    },
+    review: {
+      name: "Запрос отзыва",
+      text: `Cześć ${clientName || "kliencie"}! Dziękujemy za wizytę w NUAR. Będziemy wdzięczni za krótką opinię na Google: ${appSettings?.reviewGoogleUrl || "https://g.page/r/YOUR_GOOGLE_LINK/review"}`,
+    }
+  });
 
   const handleMessageClient = (client) => {
-    onMessageClient?.(client);
+    const templates = getTemplates(client.name);
+    setSelectedTemplate("remind");
+    setMessageText(templates.remind.text);
+    setCopiedState(false);
+    setMessageBuilderClient(client);
   };
 
   const handleAddVisit = (client) => {
@@ -513,7 +537,14 @@ function ClientsPage({
                 }}>
                 {/* Client info */}
                 <div className="flex flex-col min-w-0 md:col-span-1">
-                  <strong className="clients-table-name text-foreground font-bold text-sm md:text-base truncate">{client.name}</strong>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <strong className="clients-table-name text-foreground font-bold text-sm md:text-base truncate">{client.name}</strong>
+                    {(client.visitsCount >= 10 || (client.totalIncome || 0) >= 2000) && (
+                      <span className="client-vip-badge inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                        👑 VIP
+                      </span>
+                    )}
+                  </div>
                   <small className="clients-table-phone text-muted-foreground text-xs truncate mt-0.5">{client.phone || "Телефон не указан"}</small>
                 </div>
 
@@ -600,7 +631,12 @@ function ClientsPage({
           fullscreen={isMobile}
           isOpen
           labelledBy="client-card-title"
-          title={activeViewedClient.name}
+          title={
+            activeViewedClient.name +
+            (activeViewedClient.visitsCount >= 10 || (activeViewedClient.totalIncome || 0) >= 2000
+              ? " 👑 VIP"
+              : "")
+          }
           description="Карточка клиента"
           onClose={() => setViewedClient(null)}
           footer={
@@ -1042,6 +1078,81 @@ function ClientQualityPanel({report, onEditClient, onOpenClient}) {
           )}
         </div>
       </div>
+
+      {messageBuilderClient && (
+        <MobileSheet
+          className="message-builder-modal w-full md:w-[500px] flex flex-col p-0 overflow-hidden"
+          fullscreen={isMobile}
+          isOpen
+          title="Конструктор сообщений"
+          description={`Связь с клиентом ${messageBuilderClient.name}`}
+          onClose={() => setMessageBuilderClient(null)}
+          footer={
+            <div className="flex gap-2 w-full">
+              <button
+                className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg bg-accent text-white font-semibold hover:bg-accent-hover transition-colors text-sm cursor-pointer border-0"
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(messageText);
+                  setCopiedState(true);
+                  setTimeout(() => setCopiedState(false), 2000);
+                  
+                  const cleanTelegram = String(messageBuilderClient.telegram ?? "").trim().replace("@", "");
+                  if (cleanTelegram) {
+                    window.open(`https://t.me/${cleanTelegram}`, "_blank");
+                  } else {
+                    const cleanPhone = String(messageBuilderClient.phone ?? "").trim().replace(/\D/g, "");
+                    if (cleanPhone) {
+                      window.open(`https://t.me/+${cleanPhone}`, "_blank");
+                    } else {
+                      window.open("https://t.me", "_blank");
+                    }
+                  }
+                }}>
+                <MessageSquareText size={16} />
+                Открыть Telegram
+              </button>
+              <button
+                className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-all text-sm font-semibold cursor-pointer bg-transparent"
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(messageText);
+                  setCopiedState(true);
+                  setTimeout(() => setCopiedState(false), 2000);
+                }}>
+                {copiedState ? "Скопировано!" : "Скопировать для SMS"}
+              </button>
+            </div>
+          }>
+          <div className="p-5 space-y-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-muted-foreground text-xs font-semibold">Выберите шаблон</label>
+              <select
+                className="w-full min-h-10 px-3 rounded-lg border border-border bg-surface text-foreground text-sm focus:outline-none focus:border-accent"
+                value={selectedTemplate}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedTemplate(val);
+                  const templates = getTemplates(messageBuilderClient.name);
+                  setMessageText(templates[val]?.text ?? "");
+                }}>
+                <option value="remind">Напоминание о записи</option>
+                <option value="reactivate">Давно не виделись</option>
+                <option value="review">Запрос отзыва</option>
+              </select>
+            </div>
+            
+            <div className="flex flex-col gap-1.5">
+              <label className="text-muted-foreground text-xs font-semibold">Текст сообщения</label>
+              <textarea
+                className="w-full h-32 p-3 rounded-lg border border-border bg-surface text-foreground text-sm focus:outline-none focus:border-accent resize-none"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+              />
+            </div>
+          </div>
+        </MobileSheet>
+      )}
     </section>
   );
 }

@@ -55,6 +55,7 @@ const toSortableNumber = (value) => {
 };
 
 function VisitsTable({
+  clientProfiles,
   visits,
   title,
   masters,
@@ -499,6 +500,7 @@ function VisitsTable({
 
               return (
                 <VisitMobileCard
+                  clientProfiles={clientProfiles}
                   enableSwipe={false}
                   isPlanned={visit.isPlanned}
                   key={visit.id}

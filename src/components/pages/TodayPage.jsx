@@ -461,6 +461,58 @@ function TodayReferenceBoard({
             </div>
           </section>
 
+          <section className="today-panel today-side-panel today-reviews-panel">
+            <header className="today-panel-header">
+              <h2>
+                Сбор отзывов <span className="today-count-pill">{firstTimersToday.length}</span>
+              </h2>
+            </header>
+            <div className="today-side-list">
+              {firstTimersToday.map((client) => (
+                <div
+                  key={client.id}
+                  className="today-review-row flex flex-col gap-2 p-2.5 rounded-lg border border-border bg-card/40"
+                >
+                  <div className="flex justify-between items-start gap-1">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <strong className="text-foreground text-xs font-semibold truncate">{client.name}</strong>
+                      <small className="text-[10px] text-muted-foreground truncate">{client.service} · {client.master}</small>
+                    </div>
+                    <button
+                      className="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded bg-accent/10 hover:bg-accent/20 text-accent font-semibold text-[10px] cursor-pointer transition-colors border-0 shrink-0"
+                      type="button"
+                      onClick={() => {
+                        const reviewText = `Cześć ${client.name || "kliencie"}! Dziękujemy za wizytę w NUAR. Będziemy wdzięczni za krótką opinię na Google: ${appSettings?.reviewGoogleUrl || "https://g.page/r/YOUR_GOOGLE_LINK/review"}`;
+                        navigator.clipboard.writeText(reviewText);
+                        
+                        setCopiedReviewClientId(client.id);
+                        setTimeout(() => setCopiedReviewClientId(""), 2000);
+                        
+                        const cleanTelegram = String(client.telegram ?? "").trim().replace("@", "");
+                        if (cleanTelegram) {
+                          window.open(`https://t.me/${cleanTelegram}`, "_blank");
+                        } else {
+                          const cleanPhone = String(client.phone ?? "").trim().replace(/\D/g, "");
+                          if (cleanPhone) {
+                            window.open(`https://t.me/+${cleanPhone}`, "_blank");
+                          } else {
+                            window.open("https://t.me", "_blank");
+                          }
+                        }
+                      }}
+                    >
+                      <MessageSquareText size={10} />
+                      {copiedReviewClientId === client.id ? "Скопировано!" : "Запросить"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {!firstTimersToday.length ? (
+                <p className="today-empty-state">Нет новых клиентов сегодня</p>
+              ) : null}
+            </div>
+          </section>
+
         </aside>
       </div>
     </section>
@@ -517,6 +569,7 @@ function TodayPage({
   const [openVisitMenuId, setOpenVisitMenuId] = useState(null);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [selectedVisitId, setSelectedVisitId] = useState(null);
+  const [copiedReviewClientId, setCopiedReviewClientId] = useState("");
   const openVisitMenuRef = useRef(null);
 
   const dashboard = useMemo(
@@ -548,6 +601,38 @@ function TodayPage({
       visits,
     ],
   );
+
+  const firstTimersToday = useMemo(() => {
+    if (!dashboard.today) return [];
+
+    const completedVisitsToday = calendarEntries.filter(
+      (entry) =>
+        entry.date === dashboard.today &&
+        entry.kind === "visit" &&
+        entry.status === "completed" &&
+        entry.client
+    );
+
+    const list = [];
+    completedVisitsToday.forEach((visit) => {
+      const client = clientProfiles.find(
+        (c) =>
+          c.id === visit.clientId ||
+          (visit.client && c.name?.toLowerCase() === visit.client.toLowerCase())
+      );
+      if (client && client.visitsCount === 1) {
+        if (!list.some(item => item.id === client.id)) {
+          list.push({
+            ...client,
+            visitId: visit.id,
+            service: visit.service || "Услуга",
+            master: visit.master || "Мастер",
+          });
+        }
+      }
+    });
+    return list;
+  }, [calendarEntries, clientProfiles, dashboard.today]);
 
   const formatIncome = (value) =>
     Math.abs(Number(value) || 0) >= 1000 ? formatCompactMoney(value) : formatMoney(value);

@@ -58,6 +58,7 @@ const getStatusBadgeStyles = (status) => {
 };
 
 function VisitMobileCard({
+  clientProfiles = [],
   visit,
   clientPhone,
   showMaster = true,
@@ -84,6 +85,13 @@ function VisitMobileCard({
   const canConfirm = onConfirm && visit.status !== "confirmed" && visit.status !== "cancelled";
   const canCancel = onCancel && !["cancelled", "no_show", "completed"].includes(visit.status);
 
+  const clientProfile = clientProfiles.find(
+    (c) =>
+      c.id === visit.clientId ||
+      (visit.client && c.name?.toLowerCase() === visit.client.toLowerCase())
+  );
+  const isVip = clientProfile && (clientProfile.visitsCount >= 10 || (clientProfile.totalIncome || 0) >= 2000);
+
   const hasSwipeActions =
     !useCompactMenu &&
     enableSwipe &&
@@ -103,7 +111,14 @@ function VisitMobileCard({
     <>
       <div className="flex items-start justify-between w-full gap-2">
         <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-          <strong className="text-zinc-200 text-sm font-semibold truncate">{visit.client}</strong>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <strong className="text-zinc-200 text-sm font-semibold truncate">{visit.client}</strong>
+            {isVip && (
+              <span className="client-vip-badge inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                👑 VIP
+              </span>
+            )}
+          </div>
           <small className="text-zinc-500 text-xs">{[visit.date, visit.time].filter(Boolean).join(" · ")}</small>
         </div>
         <RowActionsMenu
@@ -140,7 +155,14 @@ function VisitMobileCard({
       <div className="flex justify-between items-start w-full gap-4">
         <div className="flex flex-col min-w-0">
           <strong className="text-indigo-400 text-xs font-semibold">{visit.time || visit.date}</strong>
-          <span className="text-zinc-200 text-sm font-bold truncate mt-0.5">{visit.client}</span>
+          <div className="flex items-center gap-1.5 min-w-0 mt-0.5">
+            <span className="text-zinc-200 text-sm font-bold truncate">{visit.client}</span>
+            {isVip && (
+              <span className="client-vip-badge inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                👑 VIP
+              </span>
+            )}
+          </div>
         </div>
         <b className="text-zinc-200 text-sm font-bold whitespace-nowrap">{amount}</b>
       </div>

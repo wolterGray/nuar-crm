@@ -3,6 +3,7 @@ import DayClosePanel from "../DayClosePanel.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 
 function PaymentsPage({
+  clientProfiles,
   closeDay,
   dayCloseRecords,
   filters,
@@ -33,6 +34,7 @@ function PaymentsPage({
         />
       ) : null}
       <VisitsTable
+        clientProfiles={clientProfiles}
         addLabel="Добавить поступление"
         filters={filters}
         masters={masters}

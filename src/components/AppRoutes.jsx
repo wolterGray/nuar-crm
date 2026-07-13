@@ -92,6 +92,7 @@ export default function AppRoutes({activePage, ...props}) {
       return (
         <PageSuspense>
           <PaymentsPage
+            clientProfiles={props.clientProfiles}
             closeDay={props.closeDay}
             dayCloseRecords={props.dayCloseRecords}
             filters={props.paymentFilters}
@@ -127,6 +128,7 @@ export default function AppRoutes({activePage, ...props}) {
             onAddClient={props.openCreateClient}
             onAddVisit={props.openCreateCalendarEntry}
             onAlertFocusHandled={props.clearAlertFocus}
+            appSettings={props.appSettings}
             onMessageClient={props.openClientMessageTemplates}
             onEditClient={props.openEditClient}
             onUpdateClientNote={props.updateClientNote}
