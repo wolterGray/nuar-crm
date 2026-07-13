@@ -229,10 +229,10 @@ function VisitMobileCard({
         <article
           className={`relative p-4 border rounded-xl transition-transform ${
             isNext
-              ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-card shadow-md"
+              ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-surfaceAlt shadow-md"
               : isPlanned
-              ? "border-border/40 bg-card shadow-sm"
-              : "border-border/20 bg-card/70"
+              ? "border-border/40 bg-surfaceAlt shadow-sm"
+              : "border-border/20 bg-surfaceAlt/70"
           }`}
           style={{ transform: `translate3d(${offset}px, 0, 0)` }}
           onClick={handleOpen}
@@ -250,10 +250,10 @@ function VisitMobileCard({
         useCompactMenu ? "flex flex-col" : "flex flex-col gap-1"
       } ${
         isNext
-          ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-card shadow-md"
+          ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-surfaceAlt shadow-md"
           : isPlanned
-          ? "border-border/40 bg-card shadow-sm"
-          : "border-border/20 bg-card/70"
+          ? "border-border/40 bg-surfaceAlt shadow-sm"
+          : "border-border/20 bg-surfaceAlt/70"
       } ${className}`.trim()}
       onClick={handleOpen}
     >
