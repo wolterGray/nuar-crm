@@ -3,16 +3,42 @@ import {useEffect, useState} from "react";
 import {fetchPublicLoyaltyCard} from "../../api/loyalty.js";
 import LoyaltyQrCode from "../LoyaltyQrCode.jsx";
 
-const strings = {
-  booking: "Zarezerwuj wizytę",
-  cardInactive: "Karta jest nieaktywna",
-  failed: "Nie udało się otworzyć karty",
-  remaining: "Do nagrody pozostało",
-  rewardAvailable: "Nagroda jest dostępna",
-  stamps: "Wizyty",
-  subtitle: "Twoja karta lojalnościowa",
-  title: "NUAR CLUB",
+const stringsByLanguage = {
+  en: {
+    booking: "Book a visit",
+    cardInactive: "The card is inactive",
+    failed: "Could not open the card",
+    remaining: "Remaining until reward",
+    rewardAvailable: "Reward is available",
+    stamps: "Visits",
+    subtitle: "Your loyalty card",
+    title: "NUAR CLUB",
+    updated: "Last update",
+  },
+  pl: {
+    booking: "Zarezerwuj wizytę",
+    cardInactive: "Karta jest nieaktywna",
+    failed: "Nie udało się otworzyć karty",
+    remaining: "Do nagrody pozostało",
+    rewardAvailable: "Nagroda jest dostępna",
+    stamps: "Wizyty",
+    subtitle: "Twoja karta lojalnościowa",
+    title: "NUAR CLUB",
+    updated: "Ostatnia aktualizacja",
+  },
+  ru: {
+    booking: "Записаться",
+    cardInactive: "Карта неактивна",
+    failed: "Не удалось открыть карту",
+    remaining: "До подарка осталось",
+    rewardAvailable: "Подарок доступен",
+    stamps: "Визиты",
+    subtitle: "Ваша карта лояльности",
+    title: "NUAR CLUB",
+    updated: "Последнее обновление",
+  },
 };
+const defaultStrings = stringsByLanguage.ru;
 
 const getTokenFromPath = () => {
   const match = window.location.pathname.match(/^\/club\/([^/]+)\/?$/);
@@ -21,7 +47,7 @@ const getTokenFromPath = () => {
 
 function PublicLoyaltyPage() {
   const [card, setCard] = useState(null);
-  const [error, setError] = useState(() => (getTokenFromPath() ? "" : strings.failed));
+  const [error, setError] = useState(() => (getTokenFromPath() ? "" : defaultStrings.failed));
   const [loading, setLoading] = useState(() => Boolean(getTokenFromPath()));
   const [token] = useState(getTokenFromPath);
   const publicUrl = typeof window === "undefined" ? "" : window.location.href;
@@ -52,7 +78,7 @@ function PublicLoyaltyPage() {
       })
       .catch(() => {
         if (!cancelled) {
-          setError(strings.failed);
+          setError(defaultStrings.failed);
         }
       })
       .finally(() => {
@@ -70,6 +96,7 @@ function PublicLoyaltyPage() {
   const stamps = Math.max(0, Number(card?.stamps) || 0);
   const remaining = Math.max(0, target - stamps);
   const progress = Math.min(100, Math.round((stamps / target) * 100));
+  const strings = stringsByLanguage[card?.cardLanguage] || stringsByLanguage.ru;
 
   const copyLink = async () => {
     await navigator.clipboard?.writeText(publicUrl);
@@ -122,7 +149,7 @@ function PublicLoyaltyPage() {
                     : `${strings.remaining}: ${remaining}`}
                 </strong>
                 <span>
-                  Ostatnia aktualizacja:{" "}
+                  {strings.updated}:{" "}
                   {card.lastTransactionAt
                     ? new Date(card.lastTransactionAt).toLocaleDateString("pl-PL")
                     : "—"}

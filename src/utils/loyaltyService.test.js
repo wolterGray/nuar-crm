@@ -166,14 +166,16 @@ describe("loyalty service safety helpers", () => {
 
   it("creates a card once and keeps the current public URL available", async () => {
     const prisma = makePrismaStub();
-    const result = await loyaltyService.createCardForClient(prisma, 1);
+    const result = await loyaltyService.createCardForClient(prisma, 1, {cardLanguage: "pl"});
 
     expect(result.publicToken).toHaveLength(43);
     expect(result.publicUrl).toBe(`https://nuarr.pl/club/${result.publicToken}`);
+    expect(result.card.cardLanguage).toBe("pl");
     expect(result.card.publicToken).toBe(result.publicToken);
     expect(result.card.publicTokenHash).toBe(loyaltyService.hashPublicToken(result.publicToken));
     expect(result.card.publicTokenHash).not.toContain(result.publicToken);
     expect(loyaltyService.serializeCard(result.card).publicUrl).toBe(result.publicUrl);
+    expect(loyaltyService.serializeCard(result.card).cardLanguage).toBe("pl");
 
     await expect(loyaltyService.createCardForClient(prisma, 1)).rejects.toThrow(
       "Loyalty card already exists",
@@ -187,6 +189,7 @@ describe("loyalty service safety helpers", () => {
 
     expect(publicCard).toMatchObject({
       bookingUrl: "https://nuarr.pl/book",
+      cardLanguage: "ru",
       cardStatus: "active",
       displayName: "Anna K.",
       tier: "MEMBER",
@@ -203,10 +206,16 @@ describe("loyalty service safety helpers", () => {
 
   it("derives visual loyalty tiers from stamp balance", () => {
     expect(loyaltyService.__testing.getCardTier({stamps: 0, targetStamps: 5})).toBe("MEMBER");
-    expect(loyaltyService.__testing.getCardTier({stamps: 5, targetStamps: 5})).toBe("SILVER");
+    expect(loyaltyService.__testing.getCardTier({stamps: 3, targetStamps: 5})).toBe("SILVER");
     expect(loyaltyService.__testing.getCardTier({stamps: 10, targetStamps: 5})).toBe("GOLD");
-    expect(loyaltyService.__testing.getCardTier({stamps: 15, targetStamps: 5})).toBe("DIAMOND");
-    expect(loyaltyService.__testing.getCardTier({stamps: 25, targetStamps: 5})).toBe("ROYAL");
+    expect(loyaltyService.__testing.getCardTier({stamps: 20, targetStamps: 5})).toBe("DIAMOND");
+    expect(loyaltyService.__testing.getCardTier({stamps: 50, targetStamps: 5})).toBe("ROYAL");
+  });
+
+  it("normalizes loyalty card languages", () => {
+    expect(loyaltyService.__testing.normalizeCardLanguage("pl")).toBe("pl");
+    expect(loyaltyService.__testing.normalizeCardLanguage("EN")).toBe("en");
+    expect(loyaltyService.__testing.normalizeCardLanguage("de")).toBe("ru");
   });
 
   it("does not open disabled cards or old tokens after reissue", async () => {

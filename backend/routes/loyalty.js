@@ -137,8 +137,9 @@ publicRouter.get('/loyalty/:token', publicRateLimit, async (req, res) => {
 router.post('/loyalty/cards/:clientId/create', async (req, res) => {
   try {
     const clientId = parseId(req.params.clientId, 'clientId');
+    const cardLanguage = req.body?.cardLanguage;
     const result = await prisma.$transaction(async (tx) => {
-      const created = await createCardForClient(tx, clientId);
+      const created = await createCardForClient(tx, clientId, { cardLanguage });
       await recordLoyaltyAudit(tx, req, {
         action: 'create loyalty card',
         after: serializeCard(created.card),

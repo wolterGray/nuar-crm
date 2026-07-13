@@ -3027,7 +3027,7 @@ button:focus-visible {
 
 .club-create-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 260px) 170px;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 260px) 150px 170px;
   align-items: center;
   gap: 10px;
   padding: 12px;
@@ -3151,6 +3151,7 @@ button:focus-visible {
 
 .club-physical-preview {
   --physical-accent: #d4bd82;
+  --physical-glow: rgba(212, 189, 130, 0.2);
   --physical-text: #f5f0e6;
   position: relative;
   display: flex;
@@ -3163,42 +3164,51 @@ button:focus-visible {
   padding: 18px 22px;
   color: var(--club-text);
   background:
-    radial-gradient(circle at 88% 14%, rgba(212, 189, 130, 0.15), transparent 28%),
-    linear-gradient(135deg, #151617, #343635 54%, #171717);
+    radial-gradient(circle at 82% 18%, var(--physical-glow), transparent 28%),
+    linear-gradient(135deg, #090a0b, #303232 48%, #111111 100%);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.34);
   isolation: isolate;
 }
 
 .club-physical-preview.is-silver {
   --physical-accent: #dce3ee;
+  --physical-glow: rgba(220, 227, 238, 0.26);
   --physical-text: #f6f8fb;
   background:
-    radial-gradient(circle at 88% 14%, rgba(220, 227, 238, 0.18), transparent 28%),
-    linear-gradient(135deg, #15171a, #3d4248 54%, #111316);
+    linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.16) 44%, transparent 56%),
+    radial-gradient(circle at 82% 18%, var(--physical-glow), transparent 30%),
+    linear-gradient(135deg, #101214, #59616a 48%, #171a1d);
 }
 
 .club-physical-preview.is-gold {
   --physical-accent: #f1ce7b;
+  --physical-glow: rgba(241, 206, 123, 0.3);
   --physical-text: #fff5dc;
   background:
-    radial-gradient(circle at 88% 14%, rgba(241, 206, 123, 0.22), transparent 28%),
-    linear-gradient(135deg, #17100d, #3a2b1d 54%, #080706);
+    linear-gradient(115deg, transparent 0%, rgba(255, 232, 167, 0.18) 44%, transparent 58%),
+    radial-gradient(circle at 80% 18%, var(--physical-glow), transparent 30%),
+    linear-gradient(135deg, #130c08, #5a3d1d 48%, #090706);
 }
 
 .club-physical-preview.is-diamond {
   --physical-accent: #eaf6ff;
+  --physical-glow: rgba(234, 246, 255, 0.38);
   --physical-text: #f7fbff;
   background:
-    radial-gradient(circle at 84% 14%, rgba(234, 246, 255, 0.28), transparent 28%),
-    linear-gradient(135deg, #070a10, #27313a 55%, #0a0c12);
+    linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.22) 42%, transparent 54%),
+    radial-gradient(circle at 82% 18%, var(--physical-glow), transparent 32%),
+    conic-gradient(from 210deg at 76% 35%, rgba(255, 255, 255, 0.26), transparent 20%, rgba(132, 190, 226, 0.2), transparent 42%),
+    linear-gradient(135deg, #03070d, #283743 52%, #080b12);
 }
 
 .club-physical-preview.is-royal {
   --physical-accent: #d8b35d;
+  --physical-glow: rgba(216, 179, 93, 0.34);
   --physical-text: #fff0c4;
   background:
-    radial-gradient(circle at 86% 14%, rgba(216, 179, 93, 0.26), transparent 28%),
-    linear-gradient(135deg, #020202, #11100e 58%, #251705);
+    linear-gradient(118deg, transparent 0%, rgba(216, 179, 93, 0.16) 44%, transparent 58%),
+    radial-gradient(circle at 82% 18%, var(--physical-glow), transparent 30%),
+    linear-gradient(135deg, #000, #0b0906 52%, #2b1a04);
 }
 
 .club-physical-preview::after {
@@ -3228,7 +3238,7 @@ button:focus-visible {
 
 .club-physical-topline {
   display: grid;
-  grid-template-columns: minmax(64px, 1fr) minmax(0, 1.35fr) minmax(64px, 1fr);
+  grid-template-columns: 1fr 1fr;
   align-items: start;
   gap: 10px;
 }
@@ -3253,21 +3263,31 @@ button:focus-visible {
 .club-physical-signature {
   display: grid;
   min-width: 0;
+  align-self: center;
   justify-self: center;
   justify-items: center;
-  gap: 5px;
+  gap: 6px;
   color: var(--physical-text);
   font-family: "Snell Roundhand", "Zapfino", "Brush Script MT", "Segoe Script", cursive;
   text-align: center;
+}
+
+.club-physical-signature small {
+  color: var(--physical-accent);
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .club-physical-signature strong {
   overflow: hidden;
   max-width: 100%;
   color: rgba(255, 255, 255, 0.92);
-  font-size: clamp(24px, 4vw, 42px);
+  font-size: clamp(32px, 5.2vw, 58px);
   font-weight: 400;
-  line-height: 1.05;
+  line-height: 1.08;
   text-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3275,22 +3295,56 @@ button:focus-visible {
 
 .club-physical-signature i {
   display: block;
-  width: min(100%, 132px);
+  width: min(100%, 180px);
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--physical-accent), transparent);
   opacity: 0.72;
 }
 
+.club-physical-tier-mark {
+  position: absolute;
+  top: 47%;
+  right: 18px;
+  z-index: 0;
+  display: grid;
+  width: clamp(46px, 14%, 72px);
+  height: clamp(46px, 14%, 72px);
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  color: var(--physical-accent);
+  background: transparent;
+  opacity: 0.42;
+  transform: translateY(-50%);
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--physical-accent) 32%, transparent));
+}
+
+.club-physical-topline,
+.club-physical-signature,
+.club-physical-bottomline {
+  position: relative;
+  z-index: 1;
+}
+
+.club-physical-preview.is-diamond .club-physical-tier-mark {
+  opacity: 0.5;
+}
+
+.club-physical-preview.is-royal .club-physical-tier-mark {
+  opacity: 0.48;
+}
+
 .club-physical-stamps {
   display: grid;
-  width: min(100%, 300px);
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
+  width: min(calc(100% - 58px), 234px);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .club-physical-stamps i {
   display: grid;
   aspect-ratio: 1;
+  min-width: 0;
   place-items: center;
   border: 1.5px solid color-mix(in srgb, var(--physical-accent) 78%, transparent);
   border-radius: 50%;
@@ -3306,11 +3360,17 @@ button:focus-visible {
   background: color-mix(in srgb, var(--physical-accent) 20%, transparent);
 }
 
+.club-physical-stamps i.is-gift {
+  border-style: double;
+  color: var(--physical-accent);
+}
+
 .club-physical-bottomline {
   display: flex;
   align-items: end;
   justify-content: space-between;
-  gap: 18px;
+  gap: 10px;
+  min-width: 0;
 }
 
 .club-physical-progress {
@@ -3626,7 +3686,7 @@ button:focus-visible {
   }
 
   .club-physical-topline {
-    grid-template-columns: minmax(48px, 0.8fr) minmax(0, 1.3fr) minmax(54px, 0.8fr);
+    grid-template-columns: 1fr 1fr;
   }
 
   .club-physical-logo {
@@ -3639,6 +3699,17 @@ button:focus-visible {
 
   .club-physical-bottomline {
     gap: 10px;
+  }
+
+  .club-physical-tier-mark {
+    right: 14px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .club-physical-stamps {
+    width: min(calc(100% - 48px), 198px);
+    gap: 5px;
   }
 
   .club-physical-progress {

@@ -162,6 +162,7 @@ model LoyaltyCard {
   clientId        Int      @unique
   publicToken     String?  @unique
   publicTokenHash String   @unique
+  cardLanguage    String   @default("ru")
   stamps          Int      @default(0)
   targetStamps    Int      @default(5)
   rewardAvailable Boolean  @default(false)

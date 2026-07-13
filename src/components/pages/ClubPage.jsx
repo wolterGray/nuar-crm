@@ -1,6 +1,8 @@
 import {
   Copy,
+  Crown,
   ExternalLink,
+  Gem,
   Gift,
   Link2,
   RefreshCw,
@@ -47,32 +49,72 @@ const physicalCardTiers = [
   {id: "member", name: "Basic", threshold: "0 визитов"},
   {id: "silver", name: "Silver", threshold: "3 визита"},
   {id: "gold", name: "Gold", threshold: "10 визитов"},
-  {id: "diamond", name: "Diamond", threshold: "20 визитов"},
-  {id: "royal", name: "Royalty", threshold: "50 визитов"},
+  {id: "diamond", name: "Diamond", threshold: "20 визитов", icon: Gem},
+  {id: "royal", name: "Royalty", threshold: "50 визитов", icon: Crown},
 ];
+
+const cardLanguageOptions = [
+  {value: "ru", label: "Русский"},
+  {value: "pl", label: "Polski"},
+  {value: "en", label: "English"},
+];
+
+const cardCopyByLanguage = {
+  en: {
+    gift: "gift",
+    loyaltyCard: "loyalty card",
+  },
+  pl: {
+    gift: "prezent",
+    loyaltyCard: "karta lojalnosciowa",
+  },
+  ru: {
+    gift: "подарок",
+    loyaltyCard: "карта лояльности",
+  },
+};
+
+const getCardLanguage = (card) =>
+  cardLanguageOptions.some((option) => option.value === card?.cardLanguage)
+    ? card.cardLanguage
+    : "ru";
 
 function PhysicalCardPreview({card, tier = physicalCardTiers[0]}) {
   const clientName = card?.client?.name || card?.displayName || "Ira Kurylak";
+  const copy = cardCopyByLanguage[getCardLanguage(card)];
   const stamps = Math.min(6, Math.max(0, Number(card?.stamps) || 0));
+  const TierIcon = tier.icon;
 
   return (
     <article className={`club-physical-preview is-${tier.id}`}>
       <span className="club-physical-shine" />
+      {TierIcon ? (
+        <span className="club-physical-tier-mark">
+          <TierIcon size={32} />
+        </span>
+      ) : null}
       <span className="club-physical-topline">
         <span className="club-physical-logo">NUAR</span>
-        <span className="club-physical-signature">
-          <i />
-          <strong>{clientName}</strong>
-          <i />
-        </span>
         <span className="club-physical-club">NUAR CLUB</span>
+      </span>
+
+      <span className="club-physical-signature">
+        <small>{copy.loyaltyCard}</small>
+        <i />
+        <strong>{clientName}</strong>
+        <i />
       </span>
 
       <span className="club-physical-bottomline">
         <span className="club-physical-stamps">
           {Array.from({length: 6}).map((_, index) => (
-            <i className={index < stamps ? "is-filled" : ""} key={index}>
-              {index === 5 ? "gift" : ""}
+            <i
+              aria-label={index === 5 ? copy.gift : undefined}
+              className={`${index < stamps ? "is-filled" : ""} ${index === 5 ? "is-gift" : ""}`}
+              key={index}
+              title={index === 5 ? copy.gift : undefined}
+            >
+              {index === 5 ? "6" : ""}
             </i>
           ))}
         </span>
@@ -88,6 +130,7 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [activeTab, setActiveTab] = useState("cards");
   const [createdPublicUrls, setCreatedPublicUrls] = useState({});
+  const [newCardLanguage, setNewCardLanguage] = useState("ru");
   const [newClientId, setNewClientId] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -184,7 +227,7 @@ export default function ClubPage({clients = [], pushNotification}) {
   const handleCreate = async () => {
     const clientId = Number(newClientId);
     if (!clientId) return;
-    const response = await createClientLoyaltyCard(clientId);
+    const response = await createClientLoyaltyCard(clientId, {cardLanguage: newCardLanguage});
     await refreshAfterAction(response);
     setNewClientId("");
     notify("Карта создана", "Персональная ссылка доступна в Club");
@@ -294,6 +337,11 @@ export default function ClubPage({clients = [], pushNotification}) {
                 <option key={client.id} value={client.id}>
                   {client.name || client.phone || `Клиент ${client.id}`}
                 </option>
+              ))}
+            </select>
+            <select value={newCardLanguage} onChange={(event) => setNewCardLanguage(event.target.value)}>
+              {cardLanguageOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
             <button disabled={!newClientId || loading} type="button" onClick={handleCreate}>

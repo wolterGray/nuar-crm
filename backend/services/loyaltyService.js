@@ -3,8 +3,14 @@ const crypto = require('crypto');
 const DEFAULT_TARGET_STAMPS = 5;
 const LOYALTY_SETTINGS_KEY = 'loyaltyProgramSettings';
 const TOKEN_BYTES = 32;
+const CARD_LANGUAGES = new Set(['ru', 'pl', 'en']);
 
 const normalizeText = (value) => String(value ?? '').trim();
+
+const normalizeCardLanguage = (value) => {
+  const language = normalizeText(value).toLowerCase();
+  return CARD_LANGUAGES.has(language) ? language : 'ru';
+};
 
 const hashPublicToken = (token) =>
   crypto.createHash('sha256').update(String(token)).digest('hex');
@@ -56,12 +62,11 @@ const getDisplayName = (name) => {
 
 const getCardTier = (card) => {
   const stamps = Math.max(0, toInt(card?.stamps, 0));
-  const target = Math.max(1, toInt(card?.targetStamps, DEFAULT_TARGET_STAMPS));
 
-  if (stamps >= target * 5) return 'ROYAL';
-  if (stamps >= target * 3) return 'DIAMOND';
-  if (stamps >= target * 2) return 'GOLD';
-  if (stamps >= target) return 'SILVER';
+  if (stamps >= 50) return 'ROYAL';
+  if (stamps >= 20) return 'DIAMOND';
+  if (stamps >= 10) return 'GOLD';
+  if (stamps >= 3) return 'SILVER';
   return 'MEMBER';
 };
 
@@ -98,6 +103,7 @@ const serializeCard = (card, publicToken = null) => {
   const storedPublicToken = publicToken || card.publicToken || null;
   return {
     id: card.id,
+    cardLanguage: normalizeCardLanguage(card.cardLanguage),
     clientId: card.clientId,
     createdAt: card.createdAt,
     isActive: card.isActive,
@@ -151,7 +157,7 @@ const findCardForClient = (tx, clientId) =>
     },
   });
 
-const createCardForClient = async (tx, clientId) => {
+const createCardForClient = async (tx, clientId, { cardLanguage = 'ru' } = {}) => {
   const client = await tx.client.findUnique({ where: { id: clientId } });
   if (!client) {
     throw validationError('Client not found', 404);
@@ -167,6 +173,7 @@ const createCardForClient = async (tx, clientId) => {
   const card = await tx.loyaltyCard.create({
     data: {
       clientId,
+      cardLanguage: normalizeCardLanguage(cardLanguage),
       publicToken,
       publicTokenHash,
       targetStamps: settings.targetStamps,
@@ -371,6 +378,7 @@ const getPublicCardByToken = async (tx, token) => {
 
   return {
     bookingUrl: settings.bookingUrl,
+    cardLanguage: normalizeCardLanguage(card.cardLanguage),
     cardNumber: getVisualCardNumber(card),
     cardStatus: card.isActive ? 'active' : 'inactive',
     displayName: getDisplayName(card.client?.name),
@@ -405,5 +413,6 @@ module.exports = {
     hashPublicToken,
     isPaidVisitPayload,
     isRewardVisit,
+    normalizeCardLanguage,
   },
 };

@@ -61,8 +61,9 @@ export const fetchLoyaltyCards = ({page = 1, pageSize = 50, reward = "all", sear
   });
 };
 
-export const createClientLoyaltyCard = (clientId) =>
+export const createClientLoyaltyCard = (clientId, body) =>
   jsonRequest(`/api/loyalty/cards/${clientId}/create`, {
+    body,
     label: "Create loyalty card",
     method: "POST",
   });
