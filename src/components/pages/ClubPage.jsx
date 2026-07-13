@@ -4,8 +4,11 @@ import {
   ExternalLink,
   Gem,
   Gift,
+  PencilLine,
   Medal,
   Link2,
+  Plus,
+  Power,
   QrCode,
   ShieldCheck,
   RefreshCw,
@@ -601,20 +604,31 @@ export default function ClubPage({clients = [], pushNotification}) {
                   </select>
                 </label>
                 <button type="button" onClick={() => handleStatus(selectedCard)}>
-                  {selectedCard.isActive ? "Отключить" : "Включить"}
+                  <Power size={14} />
+                  <span>{selectedCard.isActive ? "Откл." : "Вкл."}</span>
                 </button>
               </div>
 
               <div className="club-details-actions">
-                <button type="button" onClick={() => handleEarn(selectedCard)}>Начислить</button>
-                <button disabled={!selectedCard.rewardAvailable || !selectedCard.isActive} type="button" onClick={() => handleRedeem(selectedCard)}>
-                  Использовать награду
+                <button type="button" title="Начислить отметку" onClick={() => handleEarn(selectedCard)}>
+                  <Plus size={15} />
+                  <span>Отметка</span>
                 </button>
-                <button type="button" onClick={() => handleCorrect(selectedCard)}>Корректировка</button>
-                <button type="button" onClick={() => handleReissue(selectedCard)}>Перевыпустить ссылку</button>
+                <button disabled={!selectedCard.rewardAvailable || !selectedCard.isActive} type="button" onClick={() => handleRedeem(selectedCard)}>
+                  <Gift size={15} />
+                  <span>Награда</span>
+                </button>
+                <button type="button" title="Корректировка баланса" onClick={() => handleCorrect(selectedCard)}>
+                  <PencilLine size={15} />
+                  <span>Правка</span>
+                </button>
+                <button type="button" title="Перевыпустить ссылку" onClick={() => handleReissue(selectedCard)}>
+                  <Link2 size={15} />
+                  <span>Ссылка</span>
+                </button>
                 <button className="is-danger" type="button" onClick={() => handleDeleteCard(selectedCard)}>
                   <Trash2 size={14} />
-                  Удалить карту
+                  <span>Удалить</span>
                 </button>
               </div>
 

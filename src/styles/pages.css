@@ -3786,7 +3786,7 @@ button:focus-visible {
 
 .club-card-settings {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 110px;
+  grid-template-columns: minmax(0, 1fr) 64px;
   gap: 8px;
 }
 
@@ -3806,6 +3806,16 @@ button:focus-visible {
 
 .club-card-settings select {
   height: 36px;
+}
+
+.club-card-settings button {
+  min-height: 36px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 6px;
+  color: var(--club-muted);
+  font-size: 10px;
+  line-height: 1;
 }
 
 .club-link-actions {
@@ -3855,16 +3865,40 @@ button:focus-visible {
 
 .club-details-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .club-details-actions button {
+  min-height: 54px;
   width: 100%;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 4px;
+  color: var(--club-muted);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.club-details-actions button:first-child {
+  color: #fff;
+}
+
+.club-details-actions button svg,
+.club-card-settings button svg {
+  flex: 0 0 auto;
+}
+
+.club-details-actions button span,
+.club-card-settings button span {
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .club-details-actions button.is-danger {
-  grid-column: 1 / -1;
   border-color: rgba(248, 113, 113, 0.28);
   color: #fecaca;
   background: rgba(127, 29, 29, 0.2);
