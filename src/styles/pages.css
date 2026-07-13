@@ -3241,16 +3241,36 @@ button:focus-visible {
 
 .club-physical-shine {
   position: absolute;
-  inset: -30% auto -30% -70%;
+  inset: -30% auto -30% 0;
   width: 42%;
   background: rgba(255, 255, 255, 0.16);
   filter: blur(24px);
-  transform: rotate(16deg);
-  transition: left 900ms ease;
+  animation: clubCardSheen 7s ease-in-out infinite;
+  transform: translateX(-130%) rotate(16deg);
 }
 
-.club-physical-preview:hover .club-physical-shine {
-  left: 120%;
+@keyframes clubCardSheen {
+  0% {
+    opacity: 0;
+    transform: translateX(-130%) rotate(16deg);
+  }
+
+  18% {
+    opacity: 0.3;
+  }
+
+  48% {
+    opacity: 0.18;
+  }
+
+  72% {
+    opacity: 0.28;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(260%) rotate(16deg);
+  }
 }
 
 .club-physical-topline {
@@ -3408,7 +3428,9 @@ button:focus-visible {
 }
 
 .club-physical-stamps i {
+  position: relative;
   display: grid;
+  overflow: hidden;
   aspect-ratio: 1;
   min-width: 0;
   place-items: center;
@@ -3440,7 +3462,35 @@ button:focus-visible {
 }
 
 .club-physical-stamps i.is-filled {
-  background: color-mix(in srgb, var(--physical-accent) 20%, transparent);
+  animation: clubFilledStampGlow 3.8s ease-in-out infinite;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.55), transparent 23%),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--physical-accent) 42%, transparent),
+      color-mix(in srgb, var(--physical-accent) 14%, transparent)
+    );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--physical-accent) 48%, transparent),
+    inset 0 0 14px color-mix(in srgb, var(--physical-accent) 24%, transparent),
+    0 0 8px color-mix(in srgb, var(--physical-accent) 18%, transparent);
+}
+
+@keyframes clubFilledStampGlow {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--physical-accent) 48%, transparent),
+      inset 0 0 14px color-mix(in srgb, var(--physical-accent) 24%, transparent),
+      0 0 8px color-mix(in srgb, var(--physical-accent) 18%, transparent);
+  }
+
+  50% {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--physical-accent) 82%, transparent),
+      inset 0 0 20px color-mix(in srgb, var(--physical-accent) 44%, transparent),
+      0 0 18px color-mix(in srgb, var(--physical-accent) 34%, transparent);
+  }
 }
 
 @keyframes clubGiftPulse {
