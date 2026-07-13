@@ -3198,12 +3198,21 @@ button:focus-visible {
   --physical-glow: rgba(234, 246, 255, 0.38);
   --physical-text: #f7fbff;
   background:
+    radial-gradient(ellipse at 28% 24%, rgba(255, 255, 255, 0.18), transparent 18%),
+    radial-gradient(ellipse at 78% 72%, rgba(166, 220, 255, 0.16), transparent 22%),
     radial-gradient(circle at 50% 46%, rgba(204, 235, 255, 0.18), transparent 34%),
     linear-gradient(122deg, transparent 0%, rgba(255, 255, 255, 0.26) 34%, transparent 46%, rgba(166, 220, 255, 0.18) 70%, transparent 100%),
     linear-gradient(62deg, transparent 0%, rgba(255, 255, 255, 0.12) 49%, transparent 51%),
     radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.34), transparent 28%),
-    repeating-linear-gradient(104deg, rgba(234, 246, 255, 0.035) 0 1px, transparent 1px 11px),
     linear-gradient(135deg, #02060c, #31485a 45%, #122334 68%, #05070d);
+}
+
+.club-physical-preview.is-diamond::after {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.16), transparent 22%),
+    linear-gradient(118deg, transparent 0%, rgba(255, 255, 255, 0.16) 40%, transparent 52%),
+    linear-gradient(38deg, transparent 0%, rgba(166, 220, 255, 0.12) 50%, transparent 62%);
+  opacity: 0.62;
 }
 
 .club-physical-preview.is-royal {
