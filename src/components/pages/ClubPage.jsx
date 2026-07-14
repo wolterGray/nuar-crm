@@ -9,7 +9,6 @@ import {
   Medal,
   Link2,
   MoreHorizontal,
-  Plus,
   Power,
   QrCode,
   ShieldCheck,
@@ -24,7 +23,6 @@ import {
   correctLoyaltyBalance,
   createClientLoyaltyCard,
   deleteLoyaltyCard,
-  earnLoyaltyStamp,
   fetchLoyaltyCards,
   redeemLoyaltyReward,
   reissueLoyaltyLink,
@@ -253,8 +251,8 @@ function ClubCardMenu({
   card,
   isOpen,
   onCopy,
-  onCorrect,
   onDelete,
+  onManualAdjust,
   onOpenQr,
   onRedeem,
   onReissue,
@@ -271,6 +269,8 @@ function ClubCardMenu({
     setOpenMenuId(null);
     callback();
   };
+  const isRewardActionAvailable = card.isActive && Boolean(card.rewardAvailable) &&
+    Number(card.stamps || 0) >= Number(card.targetStamps || 6);
 
   return (
     <div className="club-card-menu" onClick={(event) => event.stopPropagation()}>
@@ -286,15 +286,15 @@ function ClubCardMenu({
 
       <RowActionMenuPortal isOpen={isOpen} menuRef={menuRef} menuStyle={menuStyle}>
         <button
-          disabled={!card.rewardAvailable || !card.isActive}
+          disabled={!isRewardActionAvailable}
           type="button"
           onClick={() => closeAndRun(onRedeem)}>
           <Gift size={15} />
           Награда
         </button>
-        <button type="button" onClick={() => closeAndRun(onCorrect)}>
+        <button disabled={!card.isActive} type="button" onClick={() => closeAndRun(onManualAdjust)}>
           <PencilLine size={15} />
-          Корректировка
+          Начислить / списать
         </button>
         <button type="button" onClick={() => closeAndRun(onReissue)}>
           <Link2 size={15} />
@@ -341,6 +341,10 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [error, setError] = useState("");
   const [visibleQrCardId, setVisibleQrCardId] = useState(null);
   const [openCardMenuId, setOpenCardMenuId] = useState(null);
+  const [manualAdjustmentCardId, setManualAdjustmentCardId] = useState(null);
+  const [manualAdjustmentMode, setManualAdjustmentMode] = useState("earn");
+  const [manualAdjustmentAmount, setManualAdjustmentAmount] = useState("1");
+  const [manualAdjustmentDescription, setManualAdjustmentDescription] = useState("");
 
   const selectedCard = useMemo(
     () => cards.find((card) => card.id === selectedCardId) ?? cards[0] ?? null,
@@ -349,6 +353,10 @@ export default function ClubPage({clients = [], pushNotification}) {
   const qrCard = useMemo(
     () => cards.find((card) => card.id === visibleQrCardId) ?? null,
     [cards, visibleQrCardId],
+  );
+  const manualAdjustmentCard = useMemo(
+    () => cards.find((card) => card.id === manualAdjustmentCardId) ?? null,
+    [cards, manualAdjustmentCardId],
   );
   const qrPublicUrl = qrCard
     ? createdPublicUrls[qrCard.id] || qrCard.publicUrl || ""
@@ -419,12 +427,6 @@ export default function ClubPage({clients = [], pushNotification}) {
     notify("Карта создана", "Персональная ссылка доступна в Club");
   };
 
-  const handleEarn = async (card) => {
-    const description = window.prompt("Причина ручного начисления отметки");
-    if (!description?.trim()) return;
-    await refreshAfterAction(await earnLoyaltyStamp(card.id, {description}));
-  };
-
   const handleRedeem = async (card) => {
     if (!window.confirm("Выдать подарок, отправить заполненную карту в архив и выпустить новую?")) return;
     await refreshAfterAction(await redeemLoyaltyReward(card.id, {
@@ -432,12 +434,48 @@ export default function ClubPage({clients = [], pushNotification}) {
     }));
   };
 
-  const handleCorrect = async (card) => {
-    const amount = Number(window.prompt("Изменение баланса, например 1 или -1"));
-    if (!Number.isInteger(amount) || amount === 0) return;
-    const description = window.prompt("Причина корректировки");
-    if (!description?.trim()) return;
-    await refreshAfterAction(await correctLoyaltyBalance(card.id, {amount, description}));
+  const openManualAdjustment = (card) => {
+    setManualAdjustmentCardId(card.id);
+    setManualAdjustmentMode("earn");
+    setManualAdjustmentAmount("1");
+    setManualAdjustmentDescription("");
+  };
+
+  const closeManualAdjustment = () => {
+    setManualAdjustmentCardId(null);
+    setManualAdjustmentMode("earn");
+    setManualAdjustmentAmount("1");
+    setManualAdjustmentDescription("");
+  };
+
+  const handleManualAdjustmentSubmit = async (event) => {
+    event.preventDefault();
+    if (!manualAdjustmentCard) return;
+
+    const rawAmount = Number(manualAdjustmentAmount);
+    const units = Math.abs(Math.trunc(rawAmount));
+    const description = manualAdjustmentDescription.trim();
+
+    if (!Number.isInteger(rawAmount) || rawAmount < 1 || units < 1) {
+      notify("Укажите количество отметок", "Например 1 или 2");
+      return;
+    }
+
+    if (!description) {
+      notify("Добавьте причину", "Так будет понятно, почему баланс изменился вручную");
+      return;
+    }
+
+    const amount = manualAdjustmentMode === "writeoff" ? -units : units;
+    await refreshAfterAction(await correctLoyaltyBalance(manualAdjustmentCard.id, {
+      amount,
+      description,
+    }));
+    notify(
+      manualAdjustmentMode === "writeoff" ? "Отметки списаны" : "Отметки начислены",
+      manualAdjustmentCard.client?.name || "",
+    );
+    closeManualAdjustment();
   };
 
   const handleReissue = async (card) => {
@@ -692,18 +730,12 @@ export default function ClubPage({clients = [], pushNotification}) {
                   </select>
                 </div>
                 <div className="club-card-actions" aria-label="Действия карты">
-                  <button type="button" title="Начислить отметку" onClick={(event) => {
-                    event.stopPropagation();
-                    handleEarn(card);
-                  }}>
-                    <Plus size={14} />
-                  </button>
                   <ClubCardMenu
                     card={card}
                     isOpen={openCardMenuId === card.id}
                     onCopy={() => handleCopy(card)}
-                    onCorrect={() => handleCorrect(card)}
                     onDelete={() => handleDeleteCard(card)}
+                    onManualAdjust={() => openManualAdjustment(card)}
                     onOpenQr={() => {
                       setVisibleQrCardId((current) => (current === card.id ? null : card.id));
                       setSelectedCardId(card.id);
@@ -762,6 +794,76 @@ export default function ClubPage({clients = [], pushNotification}) {
               </a>
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {manualAdjustmentCard ? (
+        <div
+          className="club-adjust-modal-backdrop"
+          role="presentation"
+          onClick={closeManualAdjustment}>
+          <form
+            aria-label="Ручное начисление или списание"
+            aria-modal="true"
+            className="club-adjust-modal"
+            role="dialog"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={handleManualAdjustmentSubmit}>
+            <div className="club-adjust-modal-head">
+              <span>
+                <small>Ручная операция</small>
+                <strong>{manualAdjustmentCard.client?.name || "Клиент"}</strong>
+              </span>
+              <button type="button" onClick={closeManualAdjustment}>
+                Закрыть
+              </button>
+            </div>
+            <div className="club-adjust-mode" role="group" aria-label="Тип операции">
+              <button
+                className={manualAdjustmentMode === "earn" ? "is-active" : ""}
+                type="button"
+                onClick={() => setManualAdjustmentMode("earn")}>
+                Начислить
+              </button>
+              <button
+                className={manualAdjustmentMode === "writeoff" ? "is-active" : ""}
+                type="button"
+                onClick={() => setManualAdjustmentMode("writeoff")}>
+                Списать
+              </button>
+            </div>
+            <label className="club-adjust-field">
+              <span>Количество отметок</span>
+              <input
+                min="1"
+                step="1"
+                type="number"
+                value={manualAdjustmentAmount}
+                onChange={(event) => setManualAdjustmentAmount(event.target.value)}
+              />
+            </label>
+            <label className="club-adjust-field">
+              <span>Причина</span>
+              <textarea
+                placeholder="Например: компенсация, ручное исправление, возврат отметки"
+                rows={4}
+                value={manualAdjustmentDescription}
+                onChange={(event) => setManualAdjustmentDescription(event.target.value)}
+              />
+            </label>
+            <div className="club-adjust-summary">
+              <span>Будет сохранено в истории операций</span>
+              <strong>{manualAdjustmentMode === "writeoff" ? "-" : "+"}{Math.abs(Number(manualAdjustmentAmount) || 0)}</strong>
+            </div>
+            <div className="club-adjust-actions">
+              <button type="button" onClick={closeManualAdjustment}>
+                Отмена
+              </button>
+              <button type="submit">
+                Сохранить
+              </button>
+            </div>
+          </form>
         </div>
       ) : null}
     </section>
