@@ -29,6 +29,7 @@ const handleResponse = async (response, label) => {
 const jsonRequest = async (path, {body, label, method = "GET", publicRequest = false} = {}) => {
   const headers = publicRequest ? {} : await authHeaders();
   const response = await fetch(`${API_URL}${path}`, {
+    cache: "no-store",
     method,
     headers: {"Content-Type": "application/json", ...headers},
     body: body === undefined ? undefined : JSON.stringify(body),

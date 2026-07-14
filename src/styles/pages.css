@@ -3792,12 +3792,8 @@ button:focus-visible {
   border: 1.35px solid color-mix(in srgb, var(--physical-engrave) 82%, rgba(255, 255, 255, 0.1));
   border-radius: 50%;
   color: var(--physical-engrave);
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.035), transparent 24%),
-    rgba(0, 0, 0, 0.035);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.045),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.42);
+  background: rgba(0, 0, 0, 0.04);
+  box-shadow: none;
   font-size: 9px;
   font-weight: 520;
   font-style: normal;
@@ -3814,31 +3810,18 @@ button:focus-visible {
   border-radius: 50%;
   padding: 0;
   color: var(--physical-engrave);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.045),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.42);
+  box-shadow: none;
 }
 
 .club-physical-stamps i.is-gift.is-ready {
   animation: clubGiftPulse 1.45s ease-in-out infinite;
-  background: color-mix(in srgb, var(--physical-accent) 22%, transparent);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--physical-accent) 36%, transparent),
-    0 0 18px color-mix(in srgb, var(--physical-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--physical-accent) 20%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--physical-accent) 22%, transparent);
 }
 
 .club-physical-stamps i.is-filled {
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.62), transparent 22%),
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--physical-accent) 76%, rgba(255, 255, 255, 0.08)),
-      color-mix(in srgb, var(--physical-accent) 28%, rgba(0, 0, 0, 0.12))
-    );
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--physical-accent) 62%, transparent),
-    inset 0 0 16px color-mix(in srgb, var(--physical-accent) 36%, transparent),
-    0 0 12px color-mix(in srgb, var(--physical-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--physical-accent) 72%, rgba(255, 255, 255, 0.04));
+  box-shadow: none;
 }
 
 @keyframes clubFilledStampGlow {
@@ -4359,6 +4342,21 @@ button:focus-visible {
   padding: 0 12px;
   font-weight: 850;
   cursor: pointer;
+}
+
+.club-adjust-modal button:disabled,
+.club-adjust-field input:disabled,
+.club-adjust-field textarea:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.club-adjust-close {
+  display: inline-grid;
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+  place-items: center;
 }
 
 .club-adjust-mode {

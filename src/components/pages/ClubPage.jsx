@@ -16,12 +16,14 @@ import {
   Sparkles,
   Star,
   Trash2,
+  X,
 } from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {
   correctLoyaltyBalance,
   createClientLoyaltyCard,
   deleteLoyaltyCard,
+  earnLoyaltyStamp,
   fetchLoyaltyCards,
   redeemLoyaltyReward,
   reissueLoyaltyLink,
@@ -383,6 +385,7 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [manualAdjustmentMode, setManualAdjustmentMode] = useState("earn");
   const [manualAdjustmentAmount, setManualAdjustmentAmount] = useState("1");
   const [manualAdjustmentDescription, setManualAdjustmentDescription] = useState("");
+  const [manualAdjustmentSaving, setManualAdjustmentSaving] = useState(false);
 
   const selectedCard = useMemo(
     () => cards.find((card) => card.id === selectedCardId) ?? cards[0] ?? null,
@@ -453,11 +456,54 @@ export default function ClubPage({clients = [], pushNotification}) {
 
   const refreshAfterAction = async (response) => {
     const card = response?.data?.card ?? null;
+    const transaction = response?.data?.transaction ?? null;
     const publicUrl = response?.data?.publicUrl || card?.publicUrl || "";
     if (card?.id && publicUrl) {
       setCreatedPublicUrls((current) => ({...current, [card.id]: publicUrl}));
     }
+    if (card?.id) {
+      setCards((current) =>
+        current.map((item) =>
+          item.id === card.id
+            ? {
+                ...item,
+                ...card,
+                client: card.client || item.client,
+                lastTransaction: transaction || card.lastTransaction || item.lastTransaction,
+                publicUrl: publicUrl || card.publicUrl || item.publicUrl,
+              }
+            : item,
+        ),
+      );
+      setSelectedCardId(card.id);
+    }
     await loadCards();
+  };
+
+  const applyLoyaltyCardResponse = (response) => {
+    const card = response?.data?.card ?? null;
+    const transaction = response?.data?.transaction ?? null;
+    const publicUrl = response?.data?.publicUrl || card?.publicUrl || "";
+
+    if (card?.id && publicUrl) {
+      setCreatedPublicUrls((current) => ({...current, [card.id]: publicUrl}));
+    }
+    if (!card?.id) return;
+
+    setCards((current) =>
+      current.map((item) =>
+        item.id === card.id
+          ? {
+              ...item,
+              ...card,
+              client: card.client || item.client,
+              lastTransaction: transaction || card.lastTransaction || item.lastTransaction,
+              publicUrl: publicUrl || card.publicUrl || item.publicUrl,
+            }
+          : item,
+      ),
+    );
+    setSelectedCardId(card.id);
   };
 
   const handleCreate = async () => {
@@ -484,6 +530,7 @@ export default function ClubPage({clients = [], pushNotification}) {
   };
 
   const closeManualAdjustment = () => {
+    if (manualAdjustmentSaving) return;
     setManualAdjustmentCardId(null);
     setManualAdjustmentMode("earn");
     setManualAdjustmentAmount("1");
@@ -508,16 +555,41 @@ export default function ClubPage({clients = [], pushNotification}) {
       return;
     }
 
-    const amount = manualAdjustmentMode === "writeoff" ? -units : units;
-    await refreshAfterAction(await correctLoyaltyBalance(manualAdjustmentCard.id, {
-      amount,
-      description,
-    }));
-    notify(
-      manualAdjustmentMode === "writeoff" ? "Отметки списаны" : "Отметки начислены",
-      manualAdjustmentCard.client?.name || "",
-    );
-    closeManualAdjustment();
+    setManualAdjustmentSaving(true);
+    try {
+      let response = null;
+      if (manualAdjustmentMode === "writeoff") {
+        response = await correctLoyaltyBalance(manualAdjustmentCard.id, {
+          amount: -units,
+          description,
+        });
+        applyLoyaltyCardResponse(response);
+      } else {
+        for (let index = 0; index < units; index += 1) {
+          response = await earnLoyaltyStamp(manualAdjustmentCard.id, {
+            description: units > 1 ? `${description} (${index + 1}/${units})` : description,
+          });
+          applyLoyaltyCardResponse(response);
+        }
+      }
+      const savedMode = manualAdjustmentMode;
+      const savedClientName = manualAdjustmentCard.client?.name || "";
+      setManualAdjustmentCardId(null);
+      setManualAdjustmentMode("earn");
+      setManualAdjustmentAmount("1");
+      setManualAdjustmentDescription("");
+      notify(
+        savedMode === "writeoff" ? "Отметки списаны" : "Отметки начислены",
+        savedClientName,
+      );
+      loadCards().catch((err) => {
+        notify("Club не обновился", err.message || "Обновите страницу, если отметка не видна");
+      });
+    } catch (err) {
+      notify("Операция не сохранена", err.message || "Не удалось изменить отметки карты");
+    } finally {
+      setManualAdjustmentSaving(false);
+    }
   };
 
   const handleReissue = async (card) => {
@@ -889,19 +961,26 @@ export default function ClubPage({clients = [], pushNotification}) {
                 <small>Ручная операция</small>
                 <strong>{manualAdjustmentCard.client?.name || "Клиент"}</strong>
               </span>
-              <button type="button" onClick={closeManualAdjustment}>
-                Закрыть
+              <button
+                aria-label="Закрыть"
+                className="club-adjust-close"
+                disabled={manualAdjustmentSaving}
+                type="button"
+                onClick={closeManualAdjustment}>
+                <X size={17} />
               </button>
             </div>
             <div className="club-adjust-mode" role="group" aria-label="Тип операции">
               <button
                 className={manualAdjustmentMode === "earn" ? "is-active" : ""}
+                disabled={manualAdjustmentSaving}
                 type="button"
                 onClick={() => setManualAdjustmentMode("earn")}>
                 Начислить
               </button>
               <button
                 className={manualAdjustmentMode === "writeoff" ? "is-active" : ""}
+                disabled={manualAdjustmentSaving}
                 type="button"
                 onClick={() => setManualAdjustmentMode("writeoff")}>
                 Списать
@@ -914,6 +993,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                 step="1"
                 type="number"
                 value={manualAdjustmentAmount}
+                disabled={manualAdjustmentSaving}
                 onChange={(event) => setManualAdjustmentAmount(event.target.value)}
               />
             </label>
@@ -923,6 +1003,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                 placeholder="Например: компенсация, ручное исправление, возврат отметки"
                 rows={4}
                 value={manualAdjustmentDescription}
+                disabled={manualAdjustmentSaving}
                 onChange={(event) => setManualAdjustmentDescription(event.target.value)}
               />
             </label>
@@ -931,11 +1012,11 @@ export default function ClubPage({clients = [], pushNotification}) {
               <strong>{manualAdjustmentMode === "writeoff" ? "-" : "+"}{Math.abs(Number(manualAdjustmentAmount) || 0)}</strong>
             </div>
             <div className="club-adjust-actions">
-              <button type="button" onClick={closeManualAdjustment}>
+              <button disabled={manualAdjustmentSaving} type="button" onClick={closeManualAdjustment}>
                 Отмена
               </button>
-              <button type="submit">
-                Сохранить
+              <button disabled={manualAdjustmentSaving} type="submit">
+                {manualAdjustmentSaving ? "Сохраняю..." : "Сохранить"}
               </button>
             </div>
           </form>
