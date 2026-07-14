@@ -3950,7 +3950,10 @@ button:focus-visible {
 }
 
 .club-card.is-selected {
-  border-color: color-mix(in srgb, var(--club-accent) 55%, var(--club-border));
+  border-color: color-mix(in srgb, #d4bd82 28%, var(--club-border));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 0 1px rgba(212, 189, 130, 0.045);
 }
 
 .club-card-preview {
@@ -4131,14 +4134,16 @@ button:focus-visible {
 .club-card-actions > button:hover,
 .club-card-menu > button:hover,
 .club-card-menu > button.is-active {
-  border-color: color-mix(in srgb, var(--club-accent) 55%, var(--club-border));
+  border-color: color-mix(in srgb, #d4bd82 38%, var(--club-border));
   color: #fff;
 }
 
 .club-card-actions button:first-child {
-  border-color: transparent;
-  color: #fff;
-  background: var(--club-accent);
+  border-color: color-mix(in srgb, #d4bd82 32%, var(--club-border));
+  color: #f1dfac;
+  background:
+    radial-gradient(circle at 25% 0%, rgba(212, 189, 130, 0.16), transparent 42%),
+    rgba(255, 255, 255, 0.028);
 }
 
 .club-card-actions button.is-danger {
@@ -4193,13 +4198,85 @@ button:focus-visible {
   color: #fecaca;
 }
 
-.club-card-qr-popover {
-  grid-column: 1 / -1;
-  justify-self: end;
+.club-qr-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(2, 3, 5, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.club-qr-modal {
+  display: grid;
+  width: min(100%, 360px);
+  gap: 14px;
+  border: 1px solid color-mix(in srgb, #d4bd82 24%, var(--club-border));
+  border-radius: 10px;
+  padding: 16px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(212, 189, 130, 0.08), transparent 38%),
+    var(--club-panel);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.5);
+}
+
+.club-qr-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.club-qr-modal-head span {
+  display: grid;
+  gap: 3px;
+}
+
+.club-qr-modal-head small {
+  color: var(--club-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.club-qr-modal-head strong {
+  color: #fff;
+  font-size: 16px;
+}
+
+.club-qr-modal-head button,
+.club-qr-modal-actions :is(button, a) {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   border: 1px solid var(--club-border);
   border-radius: 8px;
-  padding: 10px;
-  background: var(--club-card);
+  padding: 0 11px;
+  color: color-mix(in srgb, var(--club-text) 76%, var(--club-muted));
+  background: rgba(255, 255, 255, 0.028);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.club-qr-modal-code {
+  display: flex;
+  justify-content: center;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.club-qr-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .club-details {
@@ -4626,9 +4703,55 @@ button:focus-visible {
 
   .club-create-panel,
   .club-toolbar,
-  .club-layout,
-  .club-card {
+  .club-layout {
     grid-template-columns: 1fr;
+  }
+
+  .club-card {
+    grid-template-columns: 94px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 8px;
+  }
+
+  .club-card-preview .club-physical-preview {
+    padding: 8px;
+  }
+
+  .club-card-preview .club-physical-card-title,
+  .club-card-preview .club-physical-tier-mark,
+  .club-card-tierline em,
+  .club-card-meta,
+  .club-card-language {
+    display: none;
+  }
+
+  .club-card-preview .club-physical-signature strong {
+    font-size: 17px;
+  }
+
+  .club-card-tierline strong {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+  }
+
+  .club-card-main {
+    gap: 4px;
+  }
+
+  .club-card-main div {
+    gap: 4px;
+  }
+
+  .club-card-main b {
+    font-size: 13px;
+  }
+
+  .club-card-main small {
+    font-size: 11px;
+  }
+
+  .club-card-progress {
+    width: 100%;
   }
 
   .club-create-panel button,
@@ -4641,9 +4764,18 @@ button:focus-visible {
     flex-wrap: wrap;
   }
 
+  .club-card-actions {
+    grid-column: 3;
+    flex-wrap: nowrap;
+  }
+
   .club-card-actions > button,
   .club-card-menu > button {
     width: 34px;
+  }
+
+  .club-qr-modal-actions {
+    grid-template-columns: 1fr;
   }
 
   .club-details {

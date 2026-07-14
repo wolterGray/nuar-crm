@@ -346,6 +346,13 @@ export default function ClubPage({clients = [], pushNotification}) {
     () => cards.find((card) => card.id === selectedCardId) ?? cards[0] ?? null,
     [cards, selectedCardId],
   );
+  const qrCard = useMemo(
+    () => cards.find((card) => card.id === visibleQrCardId) ?? null,
+    [cards, visibleQrCardId],
+  );
+  const qrPublicUrl = qrCard
+    ? createdPublicUrls[qrCard.id] || qrCard.publicUrl || ""
+    : "";
 
   const cardClientIds = useMemo(
     () => new Set(cards.filter((card) => card.isActive).map((card) => card.clientId)),
@@ -708,11 +715,6 @@ export default function ClubPage({clients = [], pushNotification}) {
                     setOpenMenuId={setOpenCardMenuId}
                   />
                 </div>
-                {publicUrl && visibleQrCardId === card.id ? (
-                  <div className="club-card-qr-popover" onClick={(event) => event.stopPropagation()}>
-                    <LoyaltyQrCode value={publicUrl} />
-                  </div>
-                ) : null}
               </article>
             );
           })}
@@ -725,6 +727,43 @@ export default function ClubPage({clients = [], pushNotification}) {
           ) : null}
         </div>
       </div> : null}
+
+      {qrCard && qrPublicUrl ? (
+        <div
+          className="club-qr-modal-backdrop"
+          role="presentation"
+          onClick={() => setVisibleQrCardId(null)}>
+          <div
+            aria-label="QR код карты лояльности"
+            aria-modal="true"
+            className="club-qr-modal"
+            role="dialog"
+            onClick={(event) => event.stopPropagation()}>
+            <div className="club-qr-modal-head">
+              <span>
+                <small>QR код карты</small>
+                <strong>{qrCard.client?.name || "Клиент"}</strong>
+              </span>
+              <button type="button" onClick={() => setVisibleQrCardId(null)}>
+                Закрыть
+              </button>
+            </div>
+            <div className="club-qr-modal-code">
+              <LoyaltyQrCode value={qrPublicUrl} />
+            </div>
+            <div className="club-qr-modal-actions">
+              <button type="button" onClick={() => handleCopy(qrCard)}>
+                <Copy size={15} />
+                Скопировать ссылку
+              </button>
+              <a href={qrPublicUrl} rel="noreferrer" target="_blank">
+                <ExternalLink size={15} />
+                Открыть карту
+              </a>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
