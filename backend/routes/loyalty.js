@@ -1,7 +1,13 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { requireOwner } = require('../middleware/auth');
+const path = require('path');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
+const {
+  ASSET_DIR,
+  ASSET_FILES,
+  getPublicLoyaltyCardDesign,
+} = require('../services/loyaltyCardDesign');
 const {
   applyTransaction,
   buildPublicUrl,
@@ -104,6 +110,21 @@ const serializeAdminCard = (card) => ({
         smsName: card.client.messageName,
       }
     : null,
+});
+
+publicRouter.get('/loyalty/design', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+  return res.json({ success: true, data: getPublicLoyaltyCardDesign(_req) });
+});
+
+publicRouter.get('/loyalty/design/assets/:file', (req, res) => {
+  const file = String(req.params.file || '');
+  if (!Object.values(ASSET_FILES).includes(file)) {
+    return res.status(404).end();
+  }
+
+  res.set('Cache-Control', 'public, max-age=31536000, immutable');
+  return res.sendFile(path.join(ASSET_DIR, file));
 });
 
 publicRouter.get('/loyalty/:token', publicRateLimit, async (req, res) => {
