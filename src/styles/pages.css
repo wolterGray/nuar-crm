@@ -2920,6 +2920,7 @@ button:focus-visible {
   --club-bg: var(--app-page-bg, #050607);
   --club-panel: var(--app-window-bg, #0b0d10);
   --club-card: var(--app-card-bg, #111418);
+  --club-field: var(--app-field-bg, rgba(255, 255, 255, 0.028));
   --club-border: var(--app-window-border, rgba(255, 255, 255, 0.08));
   --club-muted: var(--linear-muted, #a3a6b3);
   --club-faint: var(--linear-dim, #70737f);
@@ -3928,16 +3929,14 @@ button:focus-visible {
   gap: 18px;
   border: 0;
   padding: 10px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  background: var(--club-card);
+  box-shadow: var(--card-shadow, none);
   cursor: pointer;
   transition: background 220ms ease;
 }
 
 .club-card.is-selected {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: var(--card-shadow, none);
 }
 
 .club-card-preview {
@@ -3998,7 +3997,7 @@ button:focus-visible {
 
 .club-card-tierline strong {
   overflow: hidden;
-  color: #f8fafc;
+  color: var(--club-text);
   font-size: 15px;
   font-weight: 900;
   letter-spacing: 0.22em;
@@ -4009,11 +4008,11 @@ button:focus-visible {
 
 .club-card-tierline em {
   flex: 0 0 auto;
-  border: 1px solid color-mix(in srgb, var(--club-muted) 18%, transparent);
+  border: 1px solid var(--club-border);
   border-radius: 999px;
   padding: 4px 9px;
-  color: color-mix(in srgb, #d4bd82 70%, #fff);
-  background: rgba(255, 255, 255, 0.035);
+  color: color-mix(in srgb, var(--club-accent) 78%, #fff);
+  background: var(--club-field);
   font-size: 10px;
   font-style: normal;
   font-weight: 900;
@@ -4022,7 +4021,7 @@ button:focus-visible {
 
 .club-card-main b {
   overflow: hidden;
-  color: #f8fafc;
+  color: var(--club-text);
   font-size: 14px;
   font-weight: 850;
   text-overflow: ellipsis;
@@ -4044,9 +4043,9 @@ button:focus-visible {
   height: 34px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px);
   color: var(--club-accent);
-  background: rgba(201, 29, 29, 0.12);
+  background: color-mix(in srgb, var(--club-accent) 12%, var(--club-field));
 }
 
 .club-card-progress,
@@ -4054,7 +4053,7 @@ button:focus-visible {
   overflow: hidden;
   height: 7px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--club-field);
 }
 
 .club-card-progress {
@@ -4088,7 +4087,7 @@ button:focus-visible {
   padding: 5px 8px;
   border-radius: 999px;
   color: color-mix(in srgb, var(--club-text) 72%, var(--club-muted));
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--club-field);
 }
 
 .club-card-actions {
@@ -4105,12 +4104,10 @@ button:focus-visible {
   min-height: 34px;
   place-items: center;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px);
   padding: 0;
   color: color-mix(in srgb, var(--club-text) 72%, var(--club-muted));
-  background:
-    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.05), transparent 42%),
-    rgba(255, 255, 255, 0.028);
+  background: var(--button-secondary-bg, var(--club-field));
   font-size: 12px;
   text-decoration: none;
 }
@@ -4118,13 +4115,14 @@ button:focus-visible {
 .club-card-actions > button:hover,
 .club-card-menu > button:hover,
 .club-card-menu > button.is-active {
-  color: #fff;
+  color: var(--club-text);
+  background: var(--button-secondary-bg-hover, var(--club-card));
 }
 
 .club-card-actions button.is-danger {
-  border-color: rgba(248, 113, 113, 0.28);
-  color: #fecaca;
-  background: rgba(127, 29, 29, 0.2);
+  border-color: var(--button-danger-border, transparent);
+  color: var(--button-danger-text, var(--club-text));
+  background: var(--button-danger-bg, var(--club-field));
 }
 
 .club-card-language {
@@ -4135,12 +4133,10 @@ button:focus-visible {
   width: 100%;
   height: 34px;
   border: 1px solid var(--club-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px);
   padding: 0 9px;
   color: color-mix(in srgb, var(--club-text) 72%, var(--club-muted));
-  background:
-    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.05), transparent 42%),
-    rgba(255, 255, 255, 0.028);
+  background: var(--club-field);
   font-size: 12px;
   font-weight: 700;
   outline: none;
@@ -4156,7 +4152,7 @@ button:focus-visible {
   align-items: center;
   gap: 8px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px);
   padding: 8px 10px;
   color: inherit;
   background: transparent;
@@ -4166,11 +4162,11 @@ button:focus-visible {
 }
 
 .row-action-menu a:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--button-secondary-bg-hover, var(--club-card));
 }
 
 .row-action-menu button.danger {
-  color: #fecaca;
+  color: var(--button-danger-text, var(--club-text));
 }
 
 .club-qr-modal-backdrop {
@@ -4180,7 +4176,7 @@ button:focus-visible {
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(2, 3, 5, 0.72);
+  background: color-mix(in srgb, var(--club-bg) 82%, transparent);
   backdrop-filter: blur(8px);
 }
 
@@ -4191,7 +4187,7 @@ button:focus-visible {
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(2, 3, 5, 0.74);
+  background: color-mix(in srgb, var(--club-bg) 82%, transparent);
   backdrop-filter: blur(8px);
 }
 
@@ -4200,14 +4196,11 @@ button:focus-visible {
   width: min(100%, 440px);
   gap: 14px;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-control, 12px);
   padding: 16px;
   color: var(--club-text);
-  background:
-    radial-gradient(circle at 18% 0%, rgba(212, 189, 130, 0.08), transparent 34%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
-    var(--club-panel);
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+  background: var(--club-panel);
+  box-shadow: var(--shadow-layer, 0 28px 90px rgba(0, 0, 0, 0.55));
 }
 
 .club-adjust-modal-head {
@@ -4233,7 +4226,7 @@ button:focus-visible {
 }
 
 .club-adjust-modal-head strong {
-  color: #fff;
+  color: var(--club-text);
   font-size: 17px;
 }
 
@@ -4241,9 +4234,9 @@ button:focus-visible {
 .club-adjust-field input,
 .club-adjust-field textarea {
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px);
   color: var(--club-text);
-  background: rgba(255, 255, 255, 0.055);
+  background: var(--club-field);
   font: inherit;
   outline: none;
 }
@@ -4260,18 +4253,18 @@ button:focus-visible {
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   padding: 4px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.035);
+  border-radius: var(--radius-control, 12px);
+  background: var(--club-card);
 }
 
 .club-adjust-mode button {
-  background: transparent;
+  background: var(--button-secondary-bg, var(--club-field));
   color: var(--club-muted);
 }
 
 .club-adjust-mode button.is-active {
-  color: #120f0a;
-  background: linear-gradient(135deg, #f0d891, #b99750);
+  color: var(--crm-button-primary-default-text, #fff);
+  background: var(--club-accent);
 }
 
 .club-adjust-field {
@@ -4291,13 +4284,13 @@ button:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-control, 12px);
   padding: 11px 12px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--club-card);
 }
 
 .club-adjust-summary strong {
-  color: #f1dfac;
+  color: var(--club-accent);
   font-size: 18px;
 }
 
@@ -4308,21 +4301,19 @@ button:focus-visible {
 }
 
 .club-adjust-actions button[type="submit"] {
-  color: #120f0a;
-  background: linear-gradient(135deg, #f0d891, #b99750);
+  color: var(--crm-button-primary-default-text, #fff);
+  background: var(--club-accent);
 }
 
 .club-qr-modal {
   display: grid;
   width: min(100%, 360px);
   gap: 14px;
-  border: 1px solid color-mix(in srgb, #d4bd82 24%, var(--club-border));
-  border-radius: 10px;
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-control, 12px);
   padding: 16px;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(212, 189, 130, 0.08), transparent 38%),
-    var(--club-panel);
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.5);
+  background: var(--club-panel);
+  box-shadow: var(--shadow-layer, 0 28px 90px rgba(0, 0, 0, 0.5));
 }
 
 .club-qr-modal-head {
@@ -4346,7 +4337,7 @@ button:focus-visible {
 }
 
 .club-qr-modal-head strong {
-  color: #fff;
+  color: var(--club-text);
   font-size: 16px;
 }
 
@@ -4358,10 +4349,10 @@ button:focus-visible {
   justify-content: center;
   gap: 7px;
   border: 1px solid var(--club-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px);
   padding: 0 11px;
   color: color-mix(in srgb, var(--club-text) 76%, var(--club-muted));
-  background: rgba(255, 255, 255, 0.028);
+  background: var(--button-secondary-bg, var(--club-field));
   font-size: 12px;
   font-weight: 800;
   text-decoration: none;
@@ -4371,9 +4362,9 @@ button:focus-visible {
   display: flex;
   justify-content: center;
   border: 1px solid var(--club-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px);
   padding: 14px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--club-field);
 }
 
 .club-qr-modal-actions {
