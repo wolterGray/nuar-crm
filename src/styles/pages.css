@@ -3299,6 +3299,7 @@ button:focus-visible {
   --physical-bg: url("../assets/club-cards/member.jpg");
   --physical-glow: rgba(212, 189, 130, 0.24);
   --physical-ink: color-mix(in srgb, var(--physical-accent) 44%, var(--physical-text));
+  --physical-ink-gradient: linear-gradient(92deg, rgba(255, 243, 204, 0.92), var(--physical-ink) 42%, rgba(165, 128, 64, 0.88) 74%, rgba(255, 230, 156, 0.78));
   --physical-label: color-mix(in srgb, var(--physical-accent) 34%, var(--physical-text));
   --physical-text: #f5f0e6;
   position: relative;
@@ -3367,6 +3368,7 @@ button:focus-visible {
   --physical-bg: url("../assets/club-cards/silver.jpg");
   --physical-glow: rgba(214, 229, 241, 0.34);
   --physical-ink: rgba(232, 237, 245, 0.74);
+  --physical-ink-gradient: linear-gradient(94deg, rgba(255, 255, 255, 0.92), rgba(214, 223, 235, 0.76) 46%, rgba(134, 148, 164, 0.82) 74%, rgba(246, 249, 255, 0.76));
   --physical-label: rgba(238, 242, 248, 0.7);
   --physical-text: #f6f8fb;
 }
@@ -3376,6 +3378,7 @@ button:focus-visible {
   --physical-bg: url("../assets/club-cards/gold.jpg");
   --physical-glow: rgba(231, 189, 98, 0.34);
   --physical-ink: rgba(255, 221, 139, 0.76);
+  --physical-ink-gradient: linear-gradient(92deg, rgba(255, 241, 189, 0.98), rgba(255, 213, 112, 0.82) 42%, rgba(161, 99, 24, 0.84) 74%, rgba(255, 229, 146, 0.88));
   --physical-label: rgba(255, 230, 168, 0.74);
   --physical-text: #fff5dc;
 }
@@ -3385,6 +3388,7 @@ button:focus-visible {
   --physical-bg: url("../assets/club-cards/diamond.jpg");
   --physical-glow: rgba(174, 224, 255, 0.42);
   --physical-ink: rgba(218, 240, 255, 0.72);
+  --physical-ink-gradient: linear-gradient(94deg, rgba(255, 255, 255, 0.94), rgba(204, 233, 255, 0.72) 44%, rgba(101, 164, 210, 0.82) 72%, rgba(239, 249, 255, 0.82));
   --physical-label: rgba(230, 246, 255, 0.7);
   --physical-text: #f7fbff;
 }
@@ -3402,6 +3406,7 @@ button:focus-visible {
   --physical-bg: url("../assets/club-cards/royal.jpg");
   --physical-glow: rgba(105, 55, 142, 0.32);
   --physical-ink: rgba(230, 178, 104, 0.82);
+  --physical-ink-gradient: linear-gradient(92deg, rgba(255, 232, 177, 0.96), rgba(230, 178, 104, 0.84) 42%, rgba(132, 79, 33, 0.86) 74%, rgba(255, 214, 138, 0.9));
   --physical-label: rgba(234, 190, 122, 0.78);
   --physical-text: #f2c88b;
   border-color: rgba(216, 161, 94, 0.34);
@@ -3472,12 +3477,16 @@ button:focus-visible {
 
 .club-physical-brand strong {
   color: var(--physical-ink);
+  background: var(--physical-ink-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
   font-family: "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive;
   font-size: clamp(25px, 3.45vw, 42px);
   font-weight: 400;
   letter-spacing: 0.01em;
   line-height: 0.92;
   opacity: 0.86;
+  -webkit-text-fill-color: transparent;
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.08),
     0 -1px 0 rgba(0, 0, 0, 0.64),
@@ -3516,10 +3525,14 @@ button:focus-visible {
   overflow: visible;
   max-width: 100%;
   color: var(--physical-ink);
+  background: var(--physical-ink-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
   font-size: clamp(34px, 4.9vw, 58px);
   font-weight: 400;
   line-height: 1.28;
   opacity: 0.9;
+  -webkit-text-fill-color: transparent;
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.08),
     0 -1px 0 rgba(0, 0, 0, 0.7),
