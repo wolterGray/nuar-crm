@@ -239,7 +239,6 @@ function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
       className={`club-physical-preview is-${tier.id} ${isRewardReady ? "is-reward-ready" : ""}`}
       tabIndex={0}>
       <span aria-hidden="true" className="club-physical-shine" />
-      {tier.id === "royal" ? <span aria-hidden="true" className="club-physical-monogram">N</span> : null}
       {TierIcon ? (
         <span aria-label={`Уровень ${tier.displayName}`} className="club-physical-tier-mark" role="img">
           <TierIcon size={27} strokeWidth={1.65} />

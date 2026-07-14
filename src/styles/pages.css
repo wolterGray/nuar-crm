@@ -3652,20 +3652,6 @@ button:focus-visible {
   filter: drop-shadow(0 0 12px color-mix(in srgb, var(--physical-accent) 34%, transparent));
 }
 
-.club-physical-monogram {
-  position: absolute;
-  right: 13%;
-  bottom: 19%;
-  z-index: 0;
-  color: rgba(216, 161, 94, 0.075);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(100px, 17vw, 220px);
-  font-weight: 400;
-  line-height: 0.7;
-  pointer-events: none;
-  text-shadow: 0 0 22px rgba(216, 161, 94, 0.035);
-}
-
 .club-physical-preview.is-silver .club-physical-signature :is(small, strong) {
   color: var(--physical-ink);
 }
@@ -3713,6 +3699,8 @@ button:focus-visible {
 
 .club-physical-preview.is-royal .club-physical-signature :is(small, strong) {
   color: var(--physical-ink);
+  background-size: 220% 100%;
+  animation: royalGoldEngraving 6.8s ease-in-out infinite;
   opacity: 0.92;
   text-shadow:
     0 1px 0 rgba(255, 239, 184, 0.12),
@@ -3775,6 +3763,23 @@ button:focus-visible {
     drop-shadow(0 0 12px rgba(226, 173, 86, 0.24))
     drop-shadow(0 1px 0 rgba(255, 236, 174, 0.12))
     drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.48));
+}
+
+@keyframes royalGoldEngraving {
+  0% {
+    background-position: 0% 50%;
+    filter: saturate(0.94) brightness(0.92);
+  }
+
+  45% {
+    background-position: 100% 50%;
+    filter: saturate(1.12) brightness(1.08);
+  }
+
+  100% {
+    background-position: 0% 50%;
+    filter: saturate(0.94) brightness(0.92);
+  }
 }
 
 .club-physical-stamps {
