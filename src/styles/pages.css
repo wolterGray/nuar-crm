@@ -3855,6 +3855,15 @@ button:focus-visible {
     grid-template-columns: minmax(260px, 320px) minmax(240px, 1fr);
   }
 
+  .club-card {
+    grid-template-columns: 190px minmax(190px, 1fr);
+  }
+
+  .club-card-meta,
+  .club-card-actions {
+    justify-content: flex-start;
+  }
+
   .club-link-actions,
   .club-card-settings,
   .club-details-actions {
@@ -3899,7 +3908,7 @@ button:focus-visible {
   display: grid;
   align-content: start;
   gap: 8px;
-  max-height: 220px;
+  max-height: 360px;
   min-width: 0;
   overflow-y: auto;
   padding-right: 2px;
@@ -3916,34 +3925,127 @@ button:focus-visible {
 
 .club-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 260px) auto;
+  grid-template-columns: 220px minmax(220px, 1fr) minmax(260px, auto) minmax(270px, auto);
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 18px;
+  padding: 10px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.04), transparent 36%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
   cursor: pointer;
+  transition:
+    border-color 220ms ease,
+    background 220ms ease,
+    transform 220ms ease;
+}
+
+.club-card:hover {
+  border-color: color-mix(in srgb, var(--club-muted) 30%, var(--club-border));
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 36%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.036), rgba(255, 255, 255, 0.016));
+  transform: translateY(-1px);
 }
 
 .club-card.is-selected {
   border-color: color-mix(in srgb, var(--club-accent) 55%, var(--club-border));
 }
 
+.club-card-preview {
+  min-width: 0;
+}
+
+.club-card-preview .club-physical-preview {
+  width: 100%;
+  padding: 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -16px 32px rgba(0, 0, 0, 0.24),
+    0 14px 32px rgba(0, 0, 0, 0.24);
+}
+
+.club-card-preview .club-physical-signature small,
+.club-card-preview .club-physical-bottomline {
+  display: none;
+}
+
+.club-card-preview .club-physical-signature strong {
+  font-size: clamp(21px, 2.2vw, 30px);
+}
+
+.club-card-preview .club-physical-card-title {
+  font-size: 9px;
+}
+
+.club-card-preview .club-physical-badge {
+  display: none;
+}
+
+.club-card-preview .club-physical-tier-mark {
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+}
+
 .club-card-main {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+}
+
+.club-card-main div {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.club-card-tierline {
   display: flex;
   min-width: 0;
   align-items: center;
   gap: 10px;
 }
 
-.club-card-main div {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 2px;
+.club-card-tierline strong {
+  overflow: hidden;
+  color: #f8fafc;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.club-card-main strong,
+.club-card-tierline em {
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--club-muted) 18%, transparent);
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: color-mix(in srgb, #d4bd82 70%, #fff);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.club-card-main b {
+  overflow: hidden;
+  color: #f8fafc;
+  font-size: 14px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .club-card-main small {
   overflow: hidden;
+  color: var(--club-muted);
+  font-size: 12px;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3965,6 +4067,11 @@ button:focus-visible {
   height: 7px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.07);
+}
+
+.club-card-progress {
+  width: min(100%, 240px);
+  height: 6px;
 }
 
 .club-details-progress {
@@ -3990,16 +4097,51 @@ button:focus-visible {
 }
 
 .club-card-meta span {
-  padding: 4px 7px;
+  padding: 5px 8px;
   border-radius: 999px;
+  color: color-mix(in srgb, var(--club-text) 72%, var(--club-muted));
   background: rgba(255, 255, 255, 0.045);
 }
 
-.club-card-actions button {
-  min-width: 38px;
-  min-height: 32px;
-  padding: 0 10px;
+.club-card-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.club-card-actions :is(button, a) {
+  display: inline-grid;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  place-items: center;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 0;
+  color: color-mix(in srgb, var(--club-text) 72%, var(--club-muted));
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.05), transparent 42%),
+    rgba(255, 255, 255, 0.028);
   font-size: 12px;
+  text-decoration: none;
+}
+
+.club-card-actions :is(button, a):hover,
+.club-card-actions :is(button, a).is-active {
+  border-color: color-mix(in srgb, var(--club-accent) 55%, var(--club-border));
+  color: #fff;
+}
+
+.club-card-actions button:first-child {
+  border-color: transparent;
+  color: #fff;
+  background: var(--club-accent);
+}
+
+.club-card-actions button.is-danger {
+  border-color: rgba(248, 113, 113, 0.28);
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.2);
 }
 
 .club-details {

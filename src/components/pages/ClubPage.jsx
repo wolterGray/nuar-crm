@@ -618,47 +618,91 @@ export default function ClubPage({clients = [], pushNotification}) {
                     setSelectedCardId(card.id);
                   }
                 }}>
-                <div className="club-card-main">
-                  <span className="club-card-icon">
-                    <ShieldCheck size={16} />
-                  </span>
-                  <div>
-                    <strong>{card.client?.name || "Клиент"}</strong>
-                    <small>{tier.title} · {card.client?.phone || card.client?.smsName || "Без телефона"}</small>
-                  </div>
+                <div className="club-card-preview">
+                  <LoyaltyCard card={card} tier={tier} />
                 </div>
-                <div className="club-card-progress">
-                  <span style={{width: `${progress}%`}} />
+                <div className="club-card-main">
+                  <div>
+                    <span className="club-card-tierline">
+                      <strong>{tier.title}</strong>
+                      <em>{tier.badge}</em>
+                    </span>
+                    <b>{card.client?.name || "Клиент"}</b>
+                    <small>{card.client?.phone || card.client?.smsName || "Без телефона"}</small>
+                    <div className="club-card-progress" aria-label={`Прогресс ${card.stamps} из ${card.targetStamps}`}>
+                      <span style={{width: `${progress}%`}} />
+                    </div>
+                  </div>
                 </div>
                 <div className="club-card-meta">
                   <span>{card.stamps}/{card.targetStamps}</span>
                   <span>{card.rewardAvailable ? "Подарок" : "В процессе"}</span>
                   <span>{card.isActive ? "Активна" : "Архив"}</span>
                 </div>
-                <div className="club-card-actions">
-                  <button type="button" onClick={(event) => {
+                <div className="club-card-actions" aria-label="Действия карты">
+                  <button type="button" title="Начислить отметку" onClick={(event) => {
                     event.stopPropagation();
                     handleEarn(card);
                   }}>
-                    +1
+                    <Plus size={14} />
                   </button>
-                  <button disabled={!card.rewardAvailable || !card.isActive} type="button" onClick={(event) => {
+                  <button disabled={!card.rewardAvailable || !card.isActive} type="button" title="Использовать награду" onClick={(event) => {
                     event.stopPropagation();
                     handleRedeem(card);
                   }}>
-                    Награда
+                    <Gift size={14} />
                   </button>
-                  <button type="button" onClick={(event) => {
+                  <button type="button" title="Корректировка" onClick={(event) => {
+                    event.stopPropagation();
+                    handleCorrect(card);
+                  }}>
+                    <PencilLine size={14} />
+                  </button>
+                  <button type="button" title="Перевыпустить ссылку" onClick={(event) => {
                     event.stopPropagation();
                     handleReissue(card);
                   }}>
-                    <Link2 size={13} />
+                    <Link2 size={14} />
                   </button>
-                  <button disabled={!publicUrl || !card.isActive} type="button" onClick={(event) => {
+                  <button disabled={!publicUrl || !card.isActive} type="button" title="Скопировать ссылку" onClick={(event) => {
                     event.stopPropagation();
                     handleCopy(card);
                   }}>
-                    <Copy size={13} />
+                    <Copy size={14} />
+                  </button>
+                  <button
+                    className={visibleQrCardId === card.id ? "is-active" : ""}
+                    disabled={!publicUrl || !card.isActive}
+                    type="button"
+                    title="Показать QR"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setVisibleQrCardId((current) => (current === card.id ? null : card.id));
+                      setSelectedCardId(card.id);
+                    }}>
+                    <QrCode size={14} />
+                  </button>
+                  {publicUrl ? (
+                    <a
+                      href={publicUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                      title="Открыть карту"
+                      onClick={(event) => event.stopPropagation()}>
+                      <ExternalLink size={14} />
+                    </a>
+                  ) : null}
+                  <button type="button" title={card.isActive ? "Отключить карту" : "Включить карту"} onClick={(event) => {
+                    event.stopPropagation();
+                    handleStatus(card);
+                  }}>
+                    <Power size={14} />
+                  </button>
+                  <button className="is-danger" type="button" title="Удалить карту" onClick={(event) => {
+                    event.stopPropagation();
+                    handleDeleteCard(card);
+                  }}>
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </article>
