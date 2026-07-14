@@ -3570,7 +3570,7 @@ button:focus-visible {
 
 .club-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 380px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   min-height: 0;
 }
@@ -3579,7 +3579,7 @@ button:focus-visible {
   display: grid;
   align-content: start;
   gap: 8px;
-  max-height: calc(100vh - 350px);
+  max-height: 220px;
   min-width: 0;
   overflow-y: auto;
   padding-right: 2px;
@@ -3647,6 +3647,11 @@ button:focus-visible {
   background: rgba(255, 255, 255, 0.07);
 }
 
+.club-details-progress {
+  grid-column: 1 / -1;
+  height: 5px;
+}
+
 .club-card-progress span,
 .club-details-progress span {
   display: block;
@@ -3678,15 +3683,14 @@ button:focus-visible {
 }
 
 .club-details {
-  display: flex;
-  position: sticky;
-  top: 12px;
-  max-height: calc(100vh - 120px);
+  display: grid;
+  grid-template-columns: minmax(430px, 1fr) minmax(260px, 340px);
+  align-items: start;
+  max-width: 1120px;
   min-width: 0;
-  flex-direction: column;
   gap: 12px;
-  overflow-y: auto;
-  padding: 14px;
+  overflow: visible;
+  padding: 16px;
 }
 
 .club-details::-webkit-scrollbar {
@@ -3700,6 +3704,7 @@ button:focus-visible {
 
 .club-details-head {
   display: flex;
+  grid-column: 1 / -1;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
@@ -3725,15 +3730,17 @@ button:focus-visible {
 }
 
 .club-details .club-physical-preview {
+  grid-column: 1;
+  grid-row: span 4;
   width: 100%;
-  max-width: 320px;
+  max-width: 640px;
   align-self: center;
-  padding: 11px 13px;
+  padding: 16px 18px;
   box-shadow: 0 14px 38px rgba(0, 0, 0, 0.26);
 }
 
 .club-details .club-physical-card-title {
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .club-details .club-physical-signature {
@@ -3741,22 +3748,22 @@ button:focus-visible {
 }
 
 .club-details .club-physical-signature small {
-  font-size: 7px;
+  font-size: 8px;
 }
 
 .club-details .club-physical-signature strong {
-  font-size: clamp(24px, 7vw, 34px);
+  font-size: clamp(34px, 4vw, 48px);
 }
 
 .club-details .club-physical-tier-mark {
-  top: 11px;
-  right: 12px;
-  width: 22px;
-  height: 22px;
+  top: 16px;
+  right: 17px;
+  width: 26px;
+  height: 26px;
 }
 
 .club-details .club-physical-stamps {
-  width: min(calc(100% - 38px), 175px);
+  width: min(calc(100% - 46px), 230px);
   gap: 4px;
 }
 
@@ -3766,7 +3773,7 @@ button:focus-visible {
 
 .club-details-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -3837,7 +3844,7 @@ button:focus-visible {
 .club-link-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
 }
 
@@ -3881,7 +3888,7 @@ button:focus-visible {
 
 .club-details-actions {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(46px, 1fr));
   gap: 6px;
 }
 
@@ -3922,6 +3929,7 @@ button:focus-visible {
 
 .club-transactions {
   display: flex;
+  grid-column: 1 / -1;
   flex-direction: column;
   gap: 8px;
   border-top: 1px solid var(--club-border);
@@ -4071,10 +4079,18 @@ button:focus-visible {
   }
 
   .club-details {
+    display: flex;
     position: static;
     max-height: none;
+    max-width: none;
+    flex-direction: column;
     overflow: visible;
     padding: 12px;
+  }
+
+  .club-details .club-physical-preview {
+    grid-column: auto;
+    max-width: none;
   }
 
   .club-details-grid {
