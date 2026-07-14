@@ -70,6 +70,27 @@ const getCardTier = (card) => {
   return 'MEMBER';
 };
 
+const normalizeTier = (value) => {
+  const tier = normalizeText(value).toUpperCase();
+  if (tier === 'ROYALTY') return 'ROYAL';
+  return ['MEMBER', 'SILVER', 'GOLD', 'DIAMOND', 'ROYAL'].includes(tier) ? tier : 'MEMBER';
+};
+
+const normalizeStatus = (value) => normalizeText(value).toLowerCase();
+
+const isActiveVisitStatus = (visit) => {
+  const payload = getPayload(visit);
+  const values = [visit?.recordType, payload?.status, payload?.visitStatus, payload?.kind]
+    .map((value) => normalizeStatus(value));
+  return !values.some((value) => ['cancelled', 'canceled', 'no_show', 'deleted', 'blocked'].includes(value));
+};
+
+const addDays = (date, days) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
 const getVisualCardNumber = (card) => {
   const id = Math.max(0, toInt(card?.id, 0));
   const clientId = Math.max(0, toInt(card?.clientId, 0));
@@ -97,6 +118,61 @@ const serializeTransaction = (transaction) => ({
   type: transaction.type,
 });
 
+const serializeChest = (chest) => ({
+  id: chest.id,
+  createdAt: chest.createdAt,
+  openedAt: chest.openedAt,
+  reward: chest.reward ? serializeReward(chest.reward) : null,
+  status: normalizeStatus(chest.status) || 'available',
+  tier: normalizeTier(chest.tier),
+  visitNumber: chest.visitNumber ?? null,
+});
+
+const serializeReward = (reward) => ({
+  id: reward.id,
+  createdAt: reward.createdAt,
+  description: reward.snapshotDescription,
+  durationMin: reward.snapshotDurationMin,
+  expiresAt: reward.expiresAt,
+  name: reward.snapshotName,
+  redeemedAt: reward.redeemedAt,
+  requiresOwnerApproval: Boolean(reward.requiresOwnerApproval),
+  status: normalizeStatus(reward.status) || 'available',
+  tier: normalizeTier(reward.snapshotTier),
+  type: reward.snapshotType,
+  value: reward.snapshotValue === null || reward.snapshotValue === undefined
+    ? null
+    : Number(reward.snapshotValue),
+});
+
+const serializeRewardTemplate = (template) => ({
+  id: template.id,
+  active: Boolean(template.active),
+  description: template.description,
+  durationMin: template.durationMin,
+  expiresAfterDays: template.expiresAfterDays,
+  name: template.name,
+  requiresOwnerApproval: Boolean(template.requiresOwnerApproval),
+  rewardType: template.rewardType,
+  tier: normalizeTier(template.tier),
+  value: template.value === null || template.value === undefined ? null : Number(template.value),
+  weight: template.weight,
+});
+
+const serializeUpcomingVisit = (visit) => {
+  if (!visit) return null;
+  const payload = getPayload(visit);
+  return {
+    id: visit.id,
+    date: payload.inputDate || payload.date || null,
+    durationMin: Number(payload.durationMin || payload.duration || visit.service?.durationMin || 0) || null,
+    employeeName: visit.employee?.name || payload.masterName || payload.employeeName || null,
+    serviceName: visit.service?.name || payload.serviceName || payload.service || null,
+    scheduledAt: visit.scheduledAt,
+    time: payload.time || null,
+  };
+};
+
 const serializeCard = (card, publicToken = null) => {
   if (!card) return null;
   const latest = card.transactions?.[0] ?? null;
@@ -114,10 +190,57 @@ const serializeCard = (card, publicToken = null) => {
     lifetimeVisits: card.lifetimeVisits,
     publicUrl: storedPublicToken ? buildPublicUrl(storedPublicToken) : null,
     rewardAvailable: card.rewardAvailable,
+    chestCounts: card.chests ? {
+      available: card.chests.filter((chest) => normalizeStatus(chest.status) === 'available').length,
+      opened: card.chests.filter((chest) => normalizeStatus(chest.status) === 'opened').length,
+      total: card.chests.length,
+    } : undefined,
+    rewardCounts: card.client?.loyaltyRewards ? {
+      available: card.client.loyaltyRewards.filter((reward) => normalizeStatus(reward.status) === 'available').length,
+      redeemed: card.client.loyaltyRewards.filter((reward) => normalizeStatus(reward.status) === 'redeemed').length,
+      total: card.client.loyaltyRewards.length,
+    } : undefined,
     stamps: card.stamps,
     targetStamps: card.targetStamps,
     tier: getCardTier(card),
     updatedAt: card.updatedAt,
+  };
+};
+
+const getUpcomingVisitForClient = async (tx, clientId) => {
+  const visits = await tx.visit.findMany({
+    where: {
+      clientId,
+      scheduledAt: { gte: new Date() },
+    },
+    include: {
+      employee: { select: { name: true } },
+      service: { select: { durationMin: true, name: true } },
+    },
+    orderBy: { scheduledAt: 'asc' },
+    take: 10,
+  });
+  return visits.find(isActiveVisitStatus) || null;
+};
+
+const getClubCollectionsForClient = async (tx, clientId) => {
+  const [chests, rewards, upcomingVisit] = await Promise.all([
+    tx.loyaltyChest.findMany({
+      where: { clientId },
+      include: { reward: true },
+      orderBy: { createdAt: 'desc' },
+    }),
+    tx.loyaltyReward.findMany({
+      where: { clientId },
+      orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+    }),
+    getUpcomingVisitForClient(tx, clientId),
+  ]);
+
+  return {
+    chests: chests.map(serializeChest),
+    rewards: rewards.map(serializeReward),
+    upcomingVisit: serializeUpcomingVisit(upcomingVisit),
   };
 };
 
@@ -156,6 +279,12 @@ const findCardForClient = (tx, clientId) =>
     where: { clientId, isActive: true },
     orderBy: { createdAt: 'desc' },
     include: {
+      chests: true,
+      client: {
+        include: {
+          loyaltyRewards: true,
+        },
+      },
       transactions: {
         orderBy: { createdAt: 'desc' },
         take: 1,
@@ -218,15 +347,24 @@ const applyTransaction = async (tx, {
     throw validationError('Loyalty card not found', 404);
   }
 
+  const targetStamps = Math.max(1, card.targetStamps || DEFAULT_TARGET_STAMPS);
   const balanceBefore = card.stamps;
-  const balanceAfter = balanceBefore + amount;
+  const previousLifetime = Math.max(0, toInt(card.lifetimeVisits, 0));
+  const lifetimeIncrement = type === 'EARN' && amount > 0 ? amount : 0;
+  const lifetimeDecrement = type === 'REVERSAL' && amount < 0 ? Math.abs(amount) : 0;
+  const nextLifetime = Math.max(0, previousLifetime + lifetimeIncrement - lifetimeDecrement);
+  let balanceAfter = balanceBefore + amount;
+
+  if (lifetimeIncrement) {
+    balanceAfter = nextLifetime % targetStamps;
+  } else if (lifetimeDecrement && balanceAfter < 0) {
+    balanceAfter = Math.max(0, nextLifetime % targetStamps);
+  }
+
   if (balanceAfter < 0) {
     throw validationError('Not enough loyalty stamps');
   }
 
-  const targetStamps = Math.max(1, card.targetStamps || DEFAULT_TARGET_STAMPS);
-  const lifetimeIncrement = type === 'EARN' && amount > 0 ? amount : 0;
-  const lifetimeDecrement = type === 'REVERSAL' && amount < 0 ? Math.abs(amount) : 0;
   const transaction = await tx.loyaltyTransaction.create({
     data: {
       amount,
@@ -240,12 +378,56 @@ const applyTransaction = async (tx, {
     },
   });
 
+  const chestCreates = [];
+  if (lifetimeIncrement) {
+    for (let visitNumber = previousLifetime + 1; visitNumber <= nextLifetime; visitNumber += 1) {
+      if (visitNumber > 0 && visitNumber % targetStamps === 0) {
+        chestCreates.push(
+          tx.loyaltyChest.upsert({
+            where: {
+              loyaltyCardId_visitNumber: {
+                loyaltyCardId: card.id,
+                visitNumber,
+              },
+            },
+            update: {},
+            create: {
+              clientId: card.clientId,
+              loyaltyCardId: card.id,
+              tier: getCardTier({ lifetimeVisits: visitNumber }),
+              visitNumber,
+            },
+          }),
+        );
+      }
+    }
+  }
+
+  if (chestCreates.length) {
+    await Promise.all(chestCreates);
+  }
+
+  const availableClubItems = await Promise.all([
+    tx.loyaltyChest.count({
+      where: {
+        clientId: card.clientId,
+        status: 'available',
+      },
+    }),
+    tx.loyaltyReward.count({
+      where: {
+        clientId: card.clientId,
+        status: 'available',
+      },
+    }),
+  ]);
+
   const updatedCard = await tx.loyaltyCard.update({
     where: { id: card.id },
     data: {
       ...(lifetimeIncrement ? { lifetimeVisits: { increment: lifetimeIncrement } } : {}),
       ...(lifetimeDecrement ? { lifetimeVisits: { decrement: lifetimeDecrement } } : {}),
-      rewardAvailable: balanceAfter >= targetStamps,
+      rewardAvailable: availableClubItems.some((count) => count > 0),
       stamps: balanceAfter,
     },
     include: {
@@ -452,6 +634,162 @@ const reverseEarnForVisit = async (tx, visit, { createdById = null, description 
   return { ...result, reversed: true, reason: 'reversed' };
 };
 
+const defaultRewardForTier = (tier) => ({
+  active: true,
+  description: 'Подарок NUAR Club',
+  durationMin: null,
+  expiresAfterDays: 60,
+  id: null,
+  name: tier === 'ROYAL'
+    ? 'Royal подарок NUAR'
+    : tier === 'DIAMOND'
+      ? 'Diamond подарок NUAR'
+      : 'Подарок NUAR Club',
+  requiresOwnerApproval: false,
+  rewardType: 'gift',
+  tier,
+  value: null,
+  weight: 1,
+});
+
+const chooseWeightedTemplate = (templates) => {
+  const prepared = templates
+    .map((template) => ({ ...template, weight: Math.max(1, toInt(template.weight, 1)) }));
+  const total = prepared.reduce((sum, template) => sum + template.weight, 0);
+  let cursor = Math.floor(Math.random() * total);
+  for (const template of prepared) {
+    cursor -= template.weight;
+    if (cursor < 0) return template;
+  }
+  return prepared[0] || null;
+};
+
+const openChest = async (tx, chestId, { clientId = null } = {}) => {
+  const chest = await tx.loyaltyChest.findUnique({
+    where: { id: chestId },
+    include: { reward: true },
+  });
+  if (!chest) {
+    throw validationError('Chest not found', 404);
+  }
+  if (clientId && chest.clientId !== clientId) {
+    throw validationError('Chest not found', 404);
+  }
+  if (normalizeStatus(chest.status) === 'opened' && chest.reward) {
+    return { chest, reward: chest.reward, idempotent: true };
+  }
+
+  const tier = normalizeTier(chest.tier);
+  const templates = await tx.loyaltyRewardTemplate.findMany({
+    where: { active: true, tier },
+    orderBy: [{ weight: 'desc' }, { updatedAt: 'desc' }],
+  });
+  const template = chooseWeightedTemplate(templates) || defaultRewardForTier(tier);
+  const expiresAfterDays = toInt(template.expiresAfterDays, 0);
+  const expiresAt = expiresAfterDays > 0 ? addDays(new Date(), expiresAfterDays) : null;
+
+  const reward = await tx.loyaltyReward.upsert({
+    where: { sourceChestId: chest.id },
+    update: {},
+    create: {
+      clientId: chest.clientId,
+      expiresAt,
+      requiresOwnerApproval: Boolean(template.requiresOwnerApproval),
+      snapshotDescription: normalizeText(template.description) || null,
+      snapshotDurationMin: template.durationMin ?? null,
+      snapshotName: normalizeText(template.name) || 'Подарок NUAR Club',
+      snapshotTier: tier,
+      snapshotType: normalizeText(template.rewardType) || 'gift',
+      snapshotValue: template.value ?? null,
+      sourceChestId: chest.id,
+      templateId: template.id || null,
+    },
+  });
+
+  const openedChest = await tx.loyaltyChest.update({
+    where: { id: chest.id },
+    data: {
+      openedAt: chest.openedAt || new Date(),
+      status: 'opened',
+    },
+    include: { reward: true },
+  });
+
+  return { chest: openedChest, reward };
+};
+
+const redeemIssuedReward = async (tx, rewardId, {
+  createdById = null,
+  isOwnerActor = false,
+  visitId = null,
+} = {}) => {
+  const reward = await tx.loyaltyReward.findUnique({ where: { id: rewardId } });
+  if (!reward) {
+    throw validationError('Reward not found', 404);
+  }
+  if (normalizeStatus(reward.status) !== 'available') {
+    throw validationError('Reward is not available');
+  }
+  if (reward.expiresAt && reward.expiresAt < new Date()) {
+    await tx.loyaltyReward.update({
+      where: { id: reward.id },
+      data: { status: 'expired' },
+    });
+    throw validationError('Reward expired');
+  }
+  if (reward.requiresOwnerApproval && !isOwnerActor) {
+    throw validationError('Owner approval required', 403);
+  }
+
+  const updatedReward = await tx.loyaltyReward.update({
+    where: { id: reward.id },
+    data: {
+      redeemedAt: new Date(),
+      redeemedById: createdById,
+      status: 'redeemed',
+      visitId,
+    },
+  });
+  const [availableChests, availableRewards] = await Promise.all([
+    tx.loyaltyChest.count({ where: { clientId: reward.clientId, status: 'available' } }),
+    tx.loyaltyReward.count({ where: { clientId: reward.clientId, status: 'available' } }),
+  ]);
+  await tx.loyaltyCard.updateMany({
+    where: { clientId: reward.clientId, isActive: true },
+    data: { rewardAvailable: availableChests + availableRewards > 0 },
+  });
+  return updatedReward;
+};
+
+const listRewardTemplates = async (tx) => {
+  const templates = await tx.loyaltyRewardTemplate.findMany({
+    orderBy: [{ tier: 'asc' }, { active: 'desc' }, { weight: 'desc' }, { updatedAt: 'desc' }],
+  });
+  return templates.map(serializeRewardTemplate);
+};
+
+const saveRewardTemplate = async (tx, data, id = null) => {
+  const name = normalizeText(data?.name);
+  if (!name) throw validationError('Reward name is required');
+  const payload = {
+    active: data?.active === undefined ? true : Boolean(data.active),
+    description: normalizeText(data?.description) || null,
+    durationMin: data?.durationMin ? Math.max(0, toInt(data.durationMin, 0)) : null,
+    expiresAfterDays: data?.expiresAfterDays ? Math.max(0, toInt(data.expiresAfterDays, 0)) : null,
+    name,
+    requiresOwnerApproval: Boolean(data?.requiresOwnerApproval),
+    rewardType: normalizeText(data?.rewardType) || 'gift',
+    tier: normalizeTier(data?.tier),
+    value: data?.value === undefined || data?.value === '' || data?.value === null ? null : Number(data.value),
+    weight: Math.max(1, toInt(data?.weight, 1)),
+  };
+
+  const template = id
+    ? await tx.loyaltyRewardTemplate.update({ where: { id }, data: payload })
+    : await tx.loyaltyRewardTemplate.create({ data: payload });
+  return serializeRewardTemplate(template);
+};
+
 const getPublicCardByToken = async (tx, token) => {
   const publicToken = normalizeText(token);
   if (!publicToken) return null;
@@ -459,7 +797,7 @@ const getPublicCardByToken = async (tx, token) => {
   const card = await tx.loyaltyCard.findUnique({
     where: { publicTokenHash: hashPublicToken(publicToken) },
     include: {
-      client: { select: { name: true } },
+      client: { select: { id: true, name: true } },
       transactions: {
         orderBy: { createdAt: 'desc' },
         take: 1,
@@ -471,18 +809,23 @@ const getPublicCardByToken = async (tx, token) => {
     return null;
   }
 
+  const collections = await getClubCollectionsForClient(tx, card.clientId);
+
   return {
     bookingUrl: settings.bookingUrl,
     cardLanguage: normalizeCardLanguage(card.cardLanguage),
     cardNumber: getVisualCardNumber(card),
     cardStatus: card.isActive ? 'active' : 'inactive',
+    chests: collections.chests,
     displayName: getDisplayName(card.client?.name),
     lastTransactionAt: card.transactions?.[0]?.createdAt ?? null,
     lifetimeVisits: card.lifetimeVisits,
     rewardAvailable: card.rewardAvailable,
+    rewards: collections.rewards,
     stamps: card.stamps,
     targetStamps: card.targetStamps,
     tier: getCardTier(card),
+    upcomingVisit: collections.upcomingVisit,
   };
 };
 
@@ -493,14 +836,22 @@ module.exports = {
   createUniqueTokenPayload,
   earnForCompletedVisit,
   findCardForClient,
+  getClubCollectionsForClient,
   getActorUserId,
   getProgramSettings,
   getPublicCardByToken,
   hashPublicToken,
   isOwner,
+  listRewardTemplates,
+  openChest,
   redeemRewardAndReissue,
+  redeemIssuedReward,
   reverseEarnForVisit,
+  saveRewardTemplate,
   serializeCard,
+  serializeChest,
+  serializeReward,
+  serializeRewardTemplate,
   serializeTransaction,
   validationError,
   __testing: {

@@ -22,11 +22,15 @@ import {useEffect, useMemo, useState} from "react";
 import {
   correctLoyaltyBalance,
   createClientLoyaltyCard,
+  createLoyaltyRewardTemplate,
   deleteLoyaltyCard,
+  deleteLoyaltyRewardTemplate,
   earnLoyaltyStamp,
   fetchLoyaltyCards,
+  fetchLoyaltyRewardTemplates,
   redeemLoyaltyReward,
   reissueLoyaltyLink,
+  updateLoyaltyRewardTemplate,
   updateLoyaltyCardLanguage,
   updateLoyaltyCardStatus,
 } from "../../api/loyalty.js";
@@ -386,6 +390,17 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [manualAdjustmentAmount, setManualAdjustmentAmount] = useState("1");
   const [manualAdjustmentDescription, setManualAdjustmentDescription] = useState("");
   const [manualAdjustmentSaving, setManualAdjustmentSaving] = useState(false);
+  const [rewardTemplates, setRewardTemplates] = useState([]);
+  const [rewardTemplateForm, setRewardTemplateForm] = useState({
+    active: true,
+    description: "",
+    expiresAfterDays: "60",
+    name: "",
+    requiresOwnerApproval: false,
+    rewardType: "gift",
+    tier: "MEMBER",
+    weight: "1",
+  });
 
   const selectedCard = useMemo(
     () => cards.find((card) => card.id === selectedCardId) ?? cards[0] ?? null,
@@ -420,7 +435,10 @@ export default function ClubPage({clients = [], pushNotification}) {
   const stats = useMemo(() => {
     const active = cards.filter((card) => card.isActive).length;
     const archived = cards.filter((card) => !card.isActive || card.archivedAt).length;
-    const rewards = cards.filter((card) => card.rewardAvailable).length;
+    const rewards = cards.reduce(
+      (total, card) => total + (Number(card.chestCounts?.available) || 0) + (Number(card.rewardCounts?.available) || 0),
+      0,
+    );
     const stamps = cards.reduce((total, card) => total + (Number(card.stamps) || 0), 0);
     return {active, archived, rewards, stamps, total: cards.length};
   }, [cards]);
@@ -449,6 +467,19 @@ export default function ClubPage({clients = [], pushNotification}) {
     return () => window.clearTimeout(loadTimer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reward, search, status]);
+
+  const loadRewardTemplates = async () => {
+    const response = await fetchLoyaltyRewardTemplates();
+    setRewardTemplates(response?.data?.items ?? []);
+  };
+
+  useEffect(() => {
+    if (activeTab !== "rewards") return;
+    loadRewardTemplates().catch((err) => {
+      notify("Подарки не загрузились", err.message || "Проверьте права владельца");
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const notify = (title, message = "") => {
     pushNotification?.({message, title});
@@ -516,10 +547,35 @@ export default function ClubPage({clients = [], pushNotification}) {
   };
 
   const handleRedeem = async (card) => {
-    if (!window.confirm("Выдать подарок, отправить заполненную карту в архив и выпустить новую?")) return;
+    if (!card.rewardAvailable && !card.chestCounts?.available && !card.rewardCounts?.available) return;
+    if (!window.confirm("Использовать старую награду и перевыпустить карту? Для новых подарков используйте меню подарков клиента.")) return;
     await refreshAfterAction(await redeemLoyaltyReward(card.id, {
       description: "Использование награды NUAR Club",
     }));
+  };
+
+  const handleRewardTemplateSubmit = async (event) => {
+    event.preventDefault();
+    const body = {
+      ...rewardTemplateForm,
+      expiresAfterDays: Number(rewardTemplateForm.expiresAfterDays) || null,
+      weight: Number(rewardTemplateForm.weight) || 1,
+    };
+    await createLoyaltyRewardTemplate(body);
+    setRewardTemplateForm((current) => ({...current, description: "", name: "", weight: "1"}));
+    await loadRewardTemplates();
+    notify("Подарок добавлен");
+  };
+
+  const toggleRewardTemplate = async (template) => {
+    await updateLoyaltyRewardTemplate(template.id, {...template, active: !template.active});
+    await loadRewardTemplates();
+  };
+
+  const removeRewardTemplate = async (template) => {
+    if (!window.confirm(`Удалить шаблон подарка “${template.name}”? Уже выданные подарки сохранятся.`)) return;
+    await deleteLoyaltyRewardTemplate(template.id);
+    await loadRewardTemplates();
   };
 
   const openManualAdjustment = (card) => {
@@ -688,6 +744,13 @@ export default function ClubPage({clients = [], pushNotification}) {
         >
           Дизайн карт
         </button>
+        <button
+          className={activeTab === "rewards" ? "is-active" : ""}
+          type="button"
+          onClick={() => setActiveTab("rewards")}
+        >
+          Подарки
+        </button>
       </div>
 
       {activeTab === "cards" ? (
@@ -737,7 +800,7 @@ export default function ClubPage({clients = [], pushNotification}) {
             </select>
           </div>
         </>
-      ) : (
+      ) : activeTab === "design" ? (
         <section className="club-physical-designs">
           <div className="club-physical-title">
             <span>Дизайн физической карты</span>
@@ -793,6 +856,69 @@ export default function ClubPage({clients = [], pushNotification}) {
             })}
           </div>
         </section>
+      ) : (
+        <section className="club-physical-designs">
+          <div className="club-physical-title">
+            <span>Шаблоны подарков</span>
+            <strong>Что выпадает из сундуков</strong>
+          </div>
+          <form className="club-reward-template-form" onSubmit={handleRewardTemplateSubmit}>
+            <select
+              value={rewardTemplateForm.tier}
+              onChange={(event) => setRewardTemplateForm((current) => ({...current, tier: event.target.value}))}
+            >
+              {physicalCardTiers.map((tier) => (
+                <option key={tier.id} value={tier.id.toUpperCase()}>{tier.badge}</option>
+              ))}
+            </select>
+            <input
+              placeholder="Название подарка"
+              value={rewardTemplateForm.name}
+              onChange={(event) => setRewardTemplateForm((current) => ({...current, name: event.target.value}))}
+            />
+            <input
+              placeholder="Описание"
+              value={rewardTemplateForm.description}
+              onChange={(event) => setRewardTemplateForm((current) => ({...current, description: event.target.value}))}
+            />
+            <input
+              min="1"
+              placeholder="Вес"
+              type="number"
+              value={rewardTemplateForm.weight}
+              onChange={(event) => setRewardTemplateForm((current) => ({...current, weight: event.target.value}))}
+            />
+            <label>
+              <input
+                checked={rewardTemplateForm.requiresOwnerApproval}
+                type="checkbox"
+                onChange={(event) => setRewardTemplateForm((current) => ({...current, requiresOwnerApproval: event.target.checked}))}
+              />
+              Требует владельца
+            </label>
+            <button disabled={!rewardTemplateForm.name.trim()} type="submit">
+              <Gift size={15} />
+              Добавить
+            </button>
+          </form>
+          <div className="club-reward-template-list">
+            {rewardTemplates.map((template) => (
+              <article className="club-reward-template-row" key={template.id}>
+                <span className={`club-tier-badge is-${String(template.tier).toLowerCase()}`}>{template.tier === "ROYAL" ? "ROYALTY" : template.tier}</span>
+                <strong>{template.name}</strong>
+                <small>{template.description || "Без описания"}</small>
+                <em>Вес {template.weight}</em>
+                <button type="button" onClick={() => toggleRewardTemplate(template)}>
+                  {template.active ? "Отключить" : "Включить"}
+                </button>
+                <button className="is-danger" type="button" onClick={() => removeRewardTemplate(template)}>
+                  Удалить
+                </button>
+              </article>
+            ))}
+            {!rewardTemplates.length ? <p className="club-empty-text">Шаблонов пока нет.</p> : null}
+          </div>
+        </section>
       )}
 
       {error ? <p className="club-error">{error}</p> : null}
@@ -833,7 +959,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </div>
                 <div className="club-card-meta">
                   <span>{card.stamps}/{card.targetStamps}</span>
-                  <span>{card.rewardAvailable ? "Подарок" : "В процессе"}</span>
+                  <span>{card.chestCounts?.available ? `Сундук ${card.chestCounts.available}` : card.rewardCounts?.available ? `Подарок ${card.rewardCounts.available}` : "В процессе"}</span>
                   <span>{card.isActive ? "Активна" : "Архив"}</span>
                 </div>
                 <div className="club-card-language" onClick={(event) => event.stopPropagation()}>

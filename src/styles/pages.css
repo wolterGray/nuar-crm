@@ -3287,6 +3287,78 @@ button:focus-visible {
   color: var(--club-accent);
 }
 
+.club-reward-template-form,
+.club-reward-template-row {
+  display: grid;
+  grid-template-columns: 150px minmax(180px, 1fr) minmax(220px, 2fr) 92px auto auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.club-reward-template-form {
+  padding: 12px;
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--club-panel);
+}
+
+.club-reward-template-form input,
+.club-reward-template-form select {
+  height: 36px;
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-md, 8px);
+  padding: 0 10px;
+  color: var(--club-text);
+  background: var(--club-field);
+}
+
+.club-reward-template-form label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--club-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.club-reward-template-form button,
+.club-reward-template-row button {
+  min-height: 36px;
+  border: 0;
+  border-radius: var(--radius-md, 8px);
+  padding: 0 12px;
+  color: var(--button-primary-text);
+  background: var(--button-primary-bg);
+  font-weight: 800;
+}
+
+.club-reward-template-list {
+  display: grid;
+  gap: 8px;
+}
+
+.club-reward-template-row {
+  grid-template-columns: 120px minmax(180px, 1fr) minmax(220px, 2fr) 80px auto auto;
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--club-panel);
+}
+
+.club-reward-template-row small,
+.club-reward-template-row em,
+.club-empty-text {
+  color: var(--club-muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.club-reward-template-row .is-danger {
+  color: var(--button-danger-text);
+  background: var(--button-danger-bg);
+}
+
 .club-physical-preview {
   --physical-accent: #d4bd82;
   --physical-bg: url("../assets/club-cards/member.jpg");

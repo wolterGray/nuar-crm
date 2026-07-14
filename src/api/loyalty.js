@@ -74,6 +74,43 @@ export const fetchLoyaltyTransactions = (cardId, {page = 1, pageSize = 25} = {})
     label: "Loyalty transactions",
   });
 
+export const fetchLoyaltyClubDetails = (cardId) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}/club`, {
+    label: "Loyalty club details",
+  });
+
+export const fetchLoyaltyRewardTemplates = () =>
+  jsonRequest("/api/loyalty/reward-templates", {
+    label: "Loyalty reward templates",
+  });
+
+export const createLoyaltyRewardTemplate = (body) =>
+  jsonRequest("/api/loyalty/reward-templates", {
+    body,
+    label: "Create loyalty reward template",
+    method: "POST",
+  });
+
+export const updateLoyaltyRewardTemplate = (templateId, body) =>
+  jsonRequest(`/api/loyalty/reward-templates/${templateId}`, {
+    body,
+    label: "Update loyalty reward template",
+    method: "PATCH",
+  });
+
+export const deleteLoyaltyRewardTemplate = (templateId) =>
+  jsonRequest(`/api/loyalty/reward-templates/${templateId}`, {
+    label: "Delete loyalty reward template",
+    method: "DELETE",
+  });
+
+export const redeemIssuedLoyaltyReward = (rewardId, body = {}) =>
+  jsonRequest(`/api/loyalty/rewards/${rewardId}/redeem`, {
+    body,
+    label: "Redeem issued loyalty reward",
+    method: "POST",
+  });
+
 export const earnLoyaltyStamp = (cardId, body) =>
   jsonRequest(`/api/loyalty/cards/${cardId}/earn`, {
     body,

@@ -43,6 +43,7 @@ model User {
 
   passwordResetTokens PasswordResetToken[]
   loyaltyTransactions LoyaltyTransaction[] @relation("LoyaltyTransactionCreatedBy")
+  redeemedLoyaltyRewards LoyaltyReward[] @relation("LoyaltyRewardRedeemedBy")
 
   @@index([role])
   @@index([isActive])
@@ -88,6 +89,8 @@ model Client {
   communicationLog CommunicationLog[]
   notificationEvents NotificationEvent[]
   loyaltyCards LoyaltyCard[]
+  loyaltyChests LoyaltyChest[]
+  loyaltyRewards LoyaltyReward[]
 }
 
 model Service {
@@ -155,6 +158,7 @@ model Visit {
   packageUsages ClientPackageUsage[]
   certificateUsages CertificateUsage[]
   loyaltyTransactions LoyaltyTransaction[]
+  loyaltyRewards LoyaltyReward[]
 }
 
 model LoyaltyCard {
@@ -176,6 +180,7 @@ model LoyaltyCard {
 
   client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   transactions    LoyaltyTransaction[]
+  chests          LoyaltyChest[]
 
   @@index([clientId, isActive])
   @@index([isActive])
@@ -202,6 +207,80 @@ model LoyaltyTransaction {
   @@index([loyaltyCardId, createdAt])
   @@index([appointmentId])
   @@index([type])
+}
+
+model LoyaltyRewardTemplate {
+  id                    Int      @id @default(autoincrement())
+  tier                  String
+  name                  String
+  description           String?
+  rewardType            String?
+  durationMin           Int?
+  value                 Decimal?
+  weight                Int      @default(1)
+  active                Boolean  @default(true)
+  requiresOwnerApproval Boolean  @default(false)
+  expiresAfterDays      Int?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  rewards               LoyaltyReward[]
+
+  @@index([tier, active])
+  @@index([updatedAt])
+}
+
+model LoyaltyChest {
+  id            Int      @id @default(autoincrement())
+  clientId      Int
+  loyaltyCardId Int?
+  tier          String
+  status        String   @default("available")
+  visitNumber   Int?
+  openedAt      DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  client        Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  loyaltyCard   LoyaltyCard? @relation(fields: [loyaltyCardId], references: [id], onDelete: SetNull)
+  reward        LoyaltyReward? @relation("LoyaltyRewardSourceChest")
+
+  @@unique([loyaltyCardId, visitNumber])
+  @@index([clientId, status])
+  @@index([tier, status])
+  @@index([createdAt])
+}
+
+model LoyaltyReward {
+  id                    Int      @id @default(autoincrement())
+  clientId              Int
+  templateId            Int?
+  sourceChestId         Int?     @unique
+  snapshotTier          String
+  snapshotName          String
+  snapshotDescription   String?
+  snapshotType          String?
+  snapshotDurationMin   Int?
+  snapshotValue         Decimal?
+  requiresOwnerApproval Boolean  @default(false)
+  status                String   @default("available")
+  expiresAt             DateTime?
+  redeemedAt            DateTime?
+  redeemedById          Int?
+  visitId               Int?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  client                Client                 @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  template              LoyaltyRewardTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  sourceChest           LoyaltyChest?          @relation("LoyaltyRewardSourceChest", fields: [sourceChestId], references: [id], onDelete: SetNull)
+  redeemedBy            User?                  @relation("LoyaltyRewardRedeemedBy", fields: [redeemedById], references: [id], onDelete: SetNull)
+  visit                 Visit?                 @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  @@index([clientId, status])
+  @@index([templateId])
+  @@index([snapshotTier, status])
+  @@index([expiresAt])
 }
 
 model CalendarEntry {

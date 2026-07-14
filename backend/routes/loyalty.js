@@ -14,11 +14,20 @@ const {
   createCardForClient,
   createUniqueTokenPayload,
   findCardForClient,
+  getClubCollectionsForClient,
   getActorUserId,
   getPublicCardByToken,
+  hashPublicToken,
   isOwner,
+  listRewardTemplates,
+  openChest,
   redeemRewardAndReissue,
+  redeemIssuedReward,
+  saveRewardTemplate,
   serializeCard,
+  serializeChest,
+  serializeReward,
+  serializeRewardTemplate,
   serializeTransaction,
   validationError,
 } = require('../services/loyaltyService');
@@ -159,6 +168,35 @@ publicRouter.get('/loyalty/:token', publicRateLimit, async (req, res) => {
   }
 });
 
+publicRouter.post('/loyalty/:token/chests/:chestId/open', publicRateLimit, async (req, res) => {
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  res.set('Cache-Control', 'private, no-store');
+
+  try {
+    const token = String(req.params.token || '').trim();
+    const chestId = parseId(req.params.chestId, 'chestId');
+    const card = await prisma.loyaltyCard.findUnique({
+      where: {
+        publicTokenHash: hashPublicToken(token),
+      },
+      select: { clientId: true, isActive: true },
+    });
+    if (!card || !card.isActive) {
+      return res.status(404).json({ success: false, error: 'Card unavailable' });
+    }
+    const result = await prisma.$transaction((tx) => openChest(tx, chestId, { clientId: card.clientId }));
+    return res.json({
+      success: true,
+      data: {
+        chest: serializeChest(result.chest),
+        reward: serializeReward(result.reward),
+      },
+    });
+  } catch (error) {
+    await sendRouteError(req, res, error, 'public-loyalty');
+  }
+});
+
 router.post('/loyalty/cards/:clientId/create', async (req, res) => {
   try {
     const clientId = parseId(req.params.clientId, 'clientId');
@@ -225,7 +263,16 @@ router.get('/loyalty/cards', async (req, res) => {
       prisma.loyaltyCard.findMany({
         where,
         include: {
-          client: { select: { id: true, name: true, phone: true, messageName: true } },
+          chests: true,
+          client: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              messageName: true,
+              loyaltyRewards: true,
+            },
+          },
           transactions: {
             orderBy: { createdAt: 'desc' },
             take: 1,
@@ -247,6 +294,69 @@ router.get('/loyalty/cards', async (req, res) => {
         total,
       },
     });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
+router.get('/loyalty/cards/:cardId/club', async (req, res) => {
+  try {
+    const cardId = parseId(req.params.cardId, 'cardId');
+    const card = await prisma.loyaltyCard.findUnique({ where: { id: cardId }, select: { clientId: true } });
+    if (!card) throw validationError('Loyalty card not found', 404);
+    const collections = await getClubCollectionsForClient(prisma, card.clientId);
+    res.json({ success: true, data: collections });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
+router.get('/loyalty/reward-templates', requireOwner, async (_req, res) => {
+  const templates = await listRewardTemplates(prisma);
+  res.json({ success: true, data: { items: templates } });
+});
+
+router.post('/loyalty/reward-templates', requireOwner, async (req, res) => {
+  try {
+    const template = await saveRewardTemplate(prisma, req.body);
+    res.status(201).json({ success: true, data: { template } });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
+router.patch('/loyalty/reward-templates/:templateId', requireOwner, async (req, res) => {
+  try {
+    const templateId = parseId(req.params.templateId, 'templateId');
+    const template = await saveRewardTemplate(prisma, req.body, templateId);
+    res.json({ success: true, data: { template } });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
+router.delete('/loyalty/reward-templates/:templateId', requireOwner, async (req, res) => {
+  try {
+    const templateId = parseId(req.params.templateId, 'templateId');
+    const template = await prisma.loyaltyRewardTemplate.delete({ where: { id: templateId } });
+    res.json({ success: true, data: { template: serializeRewardTemplate(template) } });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
+router.post('/loyalty/rewards/:rewardId/redeem', async (req, res) => {
+  try {
+    const rewardId = parseId(req.params.rewardId, 'rewardId');
+    const visitId = req.body?.visitId ? parseId(req.body.visitId, 'visitId') : null;
+    const reward = await prisma.$transaction((tx) =>
+      redeemIssuedReward(tx, rewardId, {
+        createdById: getActorUserId(req),
+        isOwnerActor: isOwner(req),
+        visitId,
+      }),
+    );
+    res.json({ success: true, data: { reward: serializeReward(reward) } });
   } catch (error) {
     await sendRouteError(req, res, error);
   }

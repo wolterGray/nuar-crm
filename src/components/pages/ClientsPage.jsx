@@ -48,6 +48,7 @@ import {
   createClientLoyaltyCard,
   earnLoyaltyStamp,
   fetchClientLoyaltyCard,
+  fetchLoyaltyClubDetails,
   fetchLoyaltyTransactions,
   redeemLoyaltyReward,
   reissueLoyaltyLink,
@@ -166,6 +167,7 @@ const formatLoyaltyDate = (value) => {
 function ClientLoyaltyCard({client}) {
   const [card, setCard] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [clubDetails, setClubDetails] = useState({chests: [], rewards: [], upcomingVisit: null});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [publicUrl, setPublicUrl] = useState("");
@@ -180,12 +182,15 @@ function ClientLoyaltyCard({client}) {
       const nextCard = cardResponse?.data ?? null;
       setCard(nextCard);
       if (nextCard?.id) {
-        const transactionsResponse = await fetchLoyaltyTransactions(nextCard.id, {
-          pageSize: 8,
-        });
+        const [transactionsResponse, clubResponse] = await Promise.all([
+          fetchLoyaltyTransactions(nextCard.id, {pageSize: 8}),
+          fetchLoyaltyClubDetails(nextCard.id),
+        ]);
         setTransactions(transactionsResponse?.data?.items ?? []);
+        setClubDetails(clubResponse?.data ?? {chests: [], rewards: [], upcomingVisit: null});
       } else {
         setTransactions([]);
+        setClubDetails({chests: [], rewards: [], upcomingVisit: null});
       }
     } catch (err) {
       setError(err.message || "Не удалось загрузить карту");
@@ -264,6 +269,9 @@ function ClientLoyaltyCard({client}) {
     ? Math.min(100, Math.round((card.stamps / Math.max(1, card.targetStamps || 6)) * 100))
     : 0;
   const activePublicUrl = publicUrl || card?.publicUrl || "";
+  const unopenedChests = (clubDetails.chests || []).filter((chest) => chest.status === "available").length;
+  const availableRewards = (clubDetails.rewards || []).filter((reward) => reward.status === "available").length;
+  const legacyRewardReady = Boolean(card?.rewardAvailable) && Number(card?.stamps) >= Number(card?.targetStamps || 6);
 
   return (
     <section className="client-loyalty-card">
@@ -301,7 +309,7 @@ function ClientLoyaltyCard({client}) {
             </span>
             <span>
               <small>Награда</small>
-              <b>{card.rewardAvailable ? "Подарок" : "Пока нет"}</b>
+              <b>{unopenedChests ? `Сундук ${unopenedChests}` : availableRewards ? `Подарок ${availableRewards}` : "Пока нет"}</b>
             </span>
             <span>
               <small>Всего визитов</small>
@@ -331,7 +339,7 @@ function ClientLoyaltyCard({client}) {
 
           <div className="client-loyalty-actions">
             <button type="button" onClick={handleEarn}>Начислить</button>
-            <button disabled={!card.rewardAvailable || !card.isActive} type="button" onClick={handleRedeem}>
+            <button disabled={!legacyRewardReady || !card.isActive} type="button" onClick={handleRedeem}>
               Использовать
             </button>
             <button type="button" onClick={handleCorrect}>Коррекция</button>
