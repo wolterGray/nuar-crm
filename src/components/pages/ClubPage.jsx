@@ -1,4 +1,5 @@
 import {
+  ChevronRight,
   Copy,
   Crown,
   ExternalLink,
@@ -548,24 +549,50 @@ export default function ClubPage({clients = [], pushNotification}) {
             <strong>NUAR Club levels</strong>
           </div>
           <div className="club-physical-catalog">
-            {physicalCardTiers.map((tier) => (
-              <article className="club-physical-tier" key={tier.id}>
-                <LoyaltyCard card={designPreviewCard} tier={tier} />
-                <div className="club-physical-level-info">
-                  <span>
-                    <strong>{getTierProgressInfo(tier).title}</strong>
-                    <small>{tier.threshold}</small>
-                  </span>
-                  <p>{getTierProgressInfo(tier).next}</p>
-                  {tier.description ? <em>{tier.description}</em> : null}
-                  <ul>
+            {physicalCardTiers.map((tier) => {
+              const tierInfo = getTierProgressInfo(tier);
+              const [nextCaption, nextValue] = tierInfo.next.includes(" осталось ")
+                ? tierInfo.next.split(" осталось ")
+                : [tierInfo.next, ""];
+
+              return (
+                <article className="club-physical-tier" key={tier.id}>
+                  <LoyaltyCard
+                    card={{
+                      ...designPreviewCard,
+                      client: {name: tier.signature.replace("NUAR ", "")},
+                      displayName: tier.signature.replace("NUAR ", ""),
+                    }}
+                    tier={tier}
+                  />
+                  <div className="club-physical-level-info">
+                    <span>
+                      <strong>{tier.title}</strong>
+                      <small>{tier.badge}</small>
+                    </span>
+                    <p>{tier.threshold}</p>
+                    <span className="club-physical-mini-stamps" aria-hidden="true">
+                      {Array.from({length: 6}).map((_, index) => (
+                        <i className={index === 0 ? "is-filled" : ""} key={index} />
+                      ))}
+                    </span>
+                  </div>
+                  <ul className="club-physical-benefits">
                     {tier.benefits?.map((benefit) => (
-                      <li key={benefit}>{benefit}</li>
+                      <li key={benefit}>
+                        <Gift size={15} />
+                        <span>{benefit}</span>
+                      </li>
                     ))}
                   </ul>
-                </div>
-              </article>
-            ))}
+                  <div className="club-physical-next">
+                    {tier.description ? <em>{tier.description}</em> : <small>{nextCaption}</small>}
+                    <strong>{nextValue || tierInfo.next}</strong>
+                  </div>
+                  <ChevronRight className="club-physical-row-arrow" size={20} aria-hidden="true" />
+                </article>
+              );
+            })}
           </div>
         </section>
       )}
