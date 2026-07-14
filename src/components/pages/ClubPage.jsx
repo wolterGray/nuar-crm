@@ -1,5 +1,4 @@
 import {
-  ChevronRight,
   Copy,
   Crown,
   ExternalLink,
@@ -93,7 +92,7 @@ const physicalCardTiers = [
     title: "NUAR DIAMOND",
     minVisits: 20,
     threshold: "От 20 визитов",
-    badge: "VIP",
+    badge: "DIAMOND",
     benefits: ["VIP-привилегии", "Приоритетная запись"],
     icon: Gem,
   },
@@ -105,7 +104,7 @@ const physicalCardTiers = [
     title: "NUAR ROYALTY",
     minVisits: 50,
     threshold: "От 50 визитов",
-    badge: "ELITE",
+    badge: "ROYALTY",
     description: "Эксклюзивный статус",
     benefits: ["Эксклюзивные привилегии", "Особые предложения NUAR"],
     isSecret: true,
@@ -646,15 +645,9 @@ export default function ClubPage({clients = [], pushNotification}) {
                   />
                   <div className="club-physical-level-info">
                     <span>
-                      <strong>{tier.title}</strong>
-                      <small>{tier.badge}</small>
+                      <small className={`club-tier-badge is-${tier.id}`}>{tier.badge}</small>
                     </span>
                     <p>{tier.threshold}</p>
-                    <span className="club-physical-mini-stamps" aria-hidden="true">
-                      {Array.from({length: 6}).map((_, index) => (
-                        <i className={index === 0 ? "is-filled" : ""} key={index} />
-                      ))}
-                    </span>
                   </div>
                   <ul className="club-physical-benefits">
                     {tier.benefits?.map((benefit) => (
@@ -668,7 +661,6 @@ export default function ClubPage({clients = [], pushNotification}) {
                     {tier.description ? <em>{tier.description}</em> : <small>{nextCaption}</small>}
                     <strong>{nextValue || tierInfo.next}</strong>
                   </div>
-                  <ChevronRight className="club-physical-row-arrow" size={20} aria-hidden="true" />
                 </article>
               );
             })}
@@ -703,8 +695,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                 <div className="club-card-main">
                   <div>
                     <span className="club-card-tierline">
-                      <strong>{tier.title}</strong>
-                      <em>{tier.badge}</em>
+                      <em className={`club-tier-badge is-${tier.id}`}>{tier.badge}</em>
                     </span>
                     <b>{card.client?.name || "Клиент"}</b>
                     <small>{card.client?.phone || card.client?.smsName || "Без телефона"}</small>

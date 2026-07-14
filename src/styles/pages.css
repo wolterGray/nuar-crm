@@ -3134,29 +3134,15 @@ button:focus-visible {
 
 .club-physical-tier {
   display: grid;
-  grid-template-columns: 220px minmax(220px, 1fr) minmax(260px, 1.2fr) minmax(170px, 220px) 24px;
+  grid-template-columns: 220px minmax(220px, 1fr) minmax(260px, 1.2fr) minmax(170px, 220px);
   align-items: center;
   gap: 22px;
   min-width: 0;
   border: 1px solid var(--club-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px);
   padding: 10px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.035), transparent 36%),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-  transition:
-    border-color 220ms ease,
-    background 220ms ease,
-    transform 220ms ease;
-}
-
-.club-physical-tier:hover {
-  border-color: color-mix(in srgb, var(--club-muted) 30%, var(--club-border));
-  background:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 36%),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.036), rgba(255, 255, 255, 0.016));
-  transform: translateY(-1px);
+  background: var(--club-card);
+  box-shadow: var(--card-shadow, none);
 }
 
 .club-physical-tier .club-physical-preview {
@@ -3215,14 +3201,6 @@ button:focus-visible {
   gap: 10px;
 }
 
-.club-physical-level-info strong {
-  color: #f8fafc;
-  font-size: 16px;
-  font-weight: 900;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-}
-
 .club-physical-level-info small,
 .club-physical-level-info p {
   color: var(--club-muted);
@@ -3236,7 +3214,7 @@ button:focus-visible {
 }
 
 .club-physical-level-info em {
-  color: #d7a46d;
+  color: var(--club-accent);
   font-size: 11px;
   font-style: normal;
   font-weight: 800;
@@ -3244,44 +3222,49 @@ button:focus-visible {
   text-transform: uppercase;
 }
 
-.club-physical-level-info small {
-  border: 1px solid color-mix(in srgb, var(--club-muted) 18%, transparent);
+.club-tier-badge {
+  --tier-badge-accent: var(--club-muted);
+  --tier-badge-bg-strength: 18%;
+  border: 1px solid color-mix(in srgb, var(--tier-badge-accent) 56%, var(--club-border));
   border-radius: 999px;
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.035);
-  color: color-mix(in srgb, var(--physical-accent, #d4bd82) 70%, #fff);
+  padding: 4px 9px;
+  color: color-mix(in srgb, var(--tier-badge-accent) 88%, #fff);
+  background: color-mix(in srgb, var(--tier-badge-accent) var(--tier-badge-bg-strength), var(--club-card));
   font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
   letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.club-physical-mini-stamps {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.club-tier-badge.is-member {
+  --tier-badge-accent: var(--club-muted);
+  --tier-badge-bg-strength: 12%;
 }
 
-.club-physical-mini-stamps i {
-  display: block;
-  width: 19px;
-  height: 19px;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.1);
+.club-tier-badge.is-silver {
+  --tier-badge-accent: #f0f4f8;
+  --tier-badge-bg-strength: 20%;
 }
 
-.club-physical-mini-stamps i:nth-child(3) {
-  border-color: rgba(255, 255, 255, 0.18);
+.club-tier-badge.is-gold {
+  --tier-badge-accent: #f3c969;
+  --tier-badge-bg-strength: 22%;
+}
+
+.club-tier-badge.is-diamond {
+  --tier-badge-accent: #9fe7ff;
+  --tier-badge-bg-strength: 24%;
+}
+
+.club-tier-badge.is-royal {
+  --tier-badge-accent: #7c3aed;
+  --tier-badge-bg-strength: 30%;
+  border-color: color-mix(in srgb, #d7a46d 62%, #7c3aed);
+  color: #f1c986;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent),
-    rgba(255, 255, 255, 0.035);
-}
-
-.club-physical-mini-stamps i.is-filled {
-  border-color: #dfc783;
-  background:
-    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.65), transparent 26%),
-    linear-gradient(135deg, #f2d489, #977242);
-  box-shadow: 0 0 16px rgba(223, 199, 131, 0.18);
+    linear-gradient(135deg, color-mix(in srgb, #2a1238 88%, transparent), color-mix(in srgb, #13081f 92%, transparent)),
+    color-mix(in srgb, #7c3aed 18%, var(--club-card));
 }
 
 .club-physical-benefits {
@@ -3325,18 +3308,14 @@ button:focus-visible {
 }
 
 .club-physical-next strong {
-  color: #fff;
+  color: var(--club-text);
   font-size: 16px;
   font-weight: 900;
 }
 
 .club-physical-next em + strong,
 .club-physical-next em {
-  color: #e7c985;
-}
-
-.club-physical-row-arrow {
-  color: var(--club-muted);
+  color: var(--club-accent);
 }
 
 .club-physical-preview {
@@ -3846,8 +3825,7 @@ button:focus-visible {
     padding-left: 0;
   }
 
-  .club-physical-next,
-  .club-physical-row-arrow {
+  .club-physical-next {
     display: none;
   }
 
@@ -3997,28 +3975,8 @@ button:focus-visible {
   gap: 10px;
 }
 
-.club-card-tierline strong {
-  overflow: hidden;
-  color: var(--club-text);
-  font-size: 15px;
-  font-weight: 900;
-  letter-spacing: 0.22em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
 .club-card-tierline em {
   flex: 0 0 auto;
-  border: 1px solid var(--club-border);
-  border-radius: 999px;
-  padding: 4px 9px;
-  color: color-mix(in srgb, var(--club-accent) 78%, #fff);
-  background: var(--club-field);
-  font-size: 10px;
-  font-style: normal;
-  font-weight: 900;
-  letter-spacing: 0.1em;
 }
 
 .club-card-main b {
@@ -4756,10 +4714,6 @@ button:focus-visible {
     display: grid;
   }
 
-  .club-physical-row-arrow {
-    display: none;
-  }
-
   .club-physical-preview {
     padding: 15px;
   }
@@ -4823,11 +4777,6 @@ button:focus-visible {
 
   .club-card-preview .club-physical-signature strong {
     font-size: 17px;
-  }
-
-  .club-card-tierline strong {
-    font-size: 11px;
-    letter-spacing: 0.14em;
   }
 
   .club-card-main {
