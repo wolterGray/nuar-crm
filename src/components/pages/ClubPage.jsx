@@ -186,20 +186,52 @@ const getCardLanguage = (card) =>
     : "ru";
 
 const designPreviewCard = {
-  cardLanguage: "ru",
-  client: {name: "Имя клиента"},
-  displayName: "Имя клиента",
+  cardLanguage: "pl",
+  client: {name: "Aga Kwaśna"},
+  displayName: "Aga Kwaśna",
+  lifetimeVisits: 0,
   rewardAvailable: false,
   stamps: 0,
 };
 
 function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
   const clientName = card?.client?.name || card?.displayName || "Имя клиента";
-  const copy = cardCopyByLanguage[getCardLanguage(card)];
+  const language = getCardLanguage(card);
+  const copy = cardCopyByLanguage[language];
   const stamps = Math.min(6, Math.max(0, Number(card?.stamps) || 0));
+  const visits = Math.max(0, Number(card?.lifetimeVisits ?? card?.totalVisits ?? card?.stamps) || 0);
+  const tierInfo = getTierProgressInfo(tier, visits);
   const TierIcon = tier.icon;
   const isRewardReady = Boolean(card?.rewardAvailable) && stamps >= 6;
   const tierAria = `${tier.title}, ${clientName}, прогресс ${stamps} из 6`;
+  const tierIndex = physicalCardTiers.findIndex((item) => item.id === tier.id);
+  const nextTier = physicalCardTiers[tierIndex + 1];
+  const visitLabel = language === "pl" ? "WIZYT" : language === "en" ? "VISITS" : "ВИЗИТОВ";
+  const currentLabel = language === "pl"
+    ? `${visits} wizyt`
+    : language === "en"
+      ? `${visits} visits`
+      : `${visits} визит${visits === 1 ? "" : "ов"}`;
+  const fromLabel = language === "pl"
+    ? `OD ${tier.minVisits} ${visitLabel}`
+    : language === "en"
+      ? `FROM ${tier.minVisits} ${visitLabel}`
+      : `ОТ ${tier.minVisits} ${visitLabel}`;
+  const nextLabel = tier.id === "royal"
+    ? language === "pl"
+      ? "EKSKLUZYWNY STATUS"
+      : language === "en"
+        ? "EXCLUSIVE STATUS"
+        : "ЭКСКЛЮЗИВНЫЙ СТАТУС"
+    : nextTier
+      ? language === "pl"
+        ? `DO ${nextTier.badge}: ${nextTier.minVisits} ${visitLabel}`
+        : language === "en"
+          ? `TO ${nextTier.badge}: ${nextTier.minVisits} ${visitLabel}`
+          : `ДО ${nextTier.badge}: ${nextTier.minVisits} ${visitLabel}`
+      : tierInfo.next.replace(" осталось ", ": ");
+  const footerStart = tier.id === "member" ? `${stamps} / 6` : fromLabel;
+  const footerEnd = tier.id === "member" ? currentLabel : nextLabel;
 
   return (
     <article
@@ -207,6 +239,7 @@ function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
       className={`club-physical-preview is-${tier.id} ${isRewardReady ? "is-reward-ready" : ""}`}
       tabIndex={0}>
       <span aria-hidden="true" className="club-physical-shine" />
+      {tier.id === "royal" ? <span aria-hidden="true" className="club-physical-monogram">N</span> : null}
       {TierIcon ? (
         <span aria-label={`Уровень ${tier.displayName}`} className="club-physical-tier-mark" role="img">
           <TierIcon size={27} strokeWidth={1.65} />
@@ -214,12 +247,15 @@ function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
       ) : null}
       {tier.id === "diamond" ? <span aria-hidden="true" className="club-physical-diamond-crystal" /> : null}
       <span className="club-physical-topline">
-        <span className="club-physical-card-title">{tier.title}</span>
-        <span className="club-physical-badge">{tier.badge}</span>
+        <span className="club-physical-brand">
+          <strong>Nuar</strong>
+          <small>{tier.badge}</small>
+        </span>
       </span>
 
       <span className="club-physical-signature">
         <small>{copy.loyaltyCard}</small>
+        {tier.id === "royal" ? <Crown aria-hidden="true" className="club-physical-signature-crown" size={28} strokeWidth={1.55} /> : null}
         <strong>{clientName}</strong>
       </span>
 
@@ -240,7 +276,10 @@ function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
             </i>
           ))}
         </span>
-        <span aria-label={`Цифровой прогресс ${stamps} из 6`} className="club-physical-progress">{stamps}/6</span>
+        <span className="club-physical-card-foot">
+          <span aria-label={`Цифровой прогресс ${stamps} из 6`} className="club-physical-progress">{footerStart}</span>
+          <span>{footerEnd}</span>
+        </span>
       </span>
     </article>
   );
@@ -340,6 +379,7 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [error, setError] = useState("");
   const [visibleQrCardId, setVisibleQrCardId] = useState(null);
   const [openCardMenuId, setOpenCardMenuId] = useState(null);
+  const [previewTierId, setPreviewTierId] = useState(null);
   const [manualAdjustmentCardId, setManualAdjustmentCardId] = useState(null);
   const [manualAdjustmentMode, setManualAdjustmentMode] = useState("earn");
   const [manualAdjustmentAmount, setManualAdjustmentAmount] = useState("1");
@@ -356,6 +396,10 @@ export default function ClubPage({clients = [], pushNotification}) {
   const manualAdjustmentCard = useMemo(
     () => cards.find((card) => card.id === manualAdjustmentCardId) ?? null,
     [cards, manualAdjustmentCardId],
+  );
+  const previewTier = useMemo(
+    () => physicalCardTiers.find((tier) => tier.id === previewTierId) ?? null,
+    [previewTierId],
   );
   const qrPublicUrl = qrCard
     ? createdPublicUrls[qrCard.id] || qrCard.publicUrl || ""
@@ -634,12 +678,22 @@ export default function ClubPage({clients = [], pushNotification}) {
                 : [tierInfo.next, ""];
 
               return (
-                <article className="club-physical-tier" key={tier.id}>
+                <article
+                  className="club-physical-tier"
+                  key={tier.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setPreviewTierId(tier.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setPreviewTierId(tier.id);
+                    }
+                  }}>
                   <LoyaltyCard
                     card={{
                       ...designPreviewCard,
-                      client: {name: tier.signature.replace("NUAR ", "")},
-                      displayName: tier.signature.replace("NUAR ", ""),
+                      lifetimeVisits: tier.minVisits,
                     }}
                     tier={tier}
                   />
@@ -750,6 +804,37 @@ export default function ClubPage({clients = [], pushNotification}) {
           ) : null}
         </div>
       </div> : null}
+
+      {previewTier ? (
+        <div
+          className="club-card-style-modal-backdrop"
+          role="presentation"
+          onClick={() => setPreviewTierId(null)}>
+          <div
+            aria-label={`Стиль карты ${previewTier.displayName}`}
+            aria-modal="true"
+            className="club-card-style-modal"
+            role="dialog"
+            onClick={(event) => event.stopPropagation()}>
+            <div className="club-card-style-modal-head">
+              <span>
+                <small>Стиль карты</small>
+                <strong>{previewTier.title}</strong>
+              </span>
+              <button type="button" onClick={() => setPreviewTierId(null)}>
+                Закрыть
+              </button>
+            </div>
+            <LoyaltyCard
+              card={{
+                ...designPreviewCard,
+                lifetimeVisits: previewTier.minVisits,
+              }}
+              tier={previewTier}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {qrCard && qrPublicUrl ? (
         <div

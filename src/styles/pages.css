@@ -3129,66 +3129,37 @@ button:focus-visible {
 .club-physical-catalog {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 8px;
+  gap: 28px;
+  padding: 8px 0 2px;
 }
 
 .club-physical-tier {
-  display: grid;
-  grid-template-columns: 220px minmax(220px, 1fr) minmax(260px, 1.2fr) minmax(170px, 220px);
-  align-items: center;
-  gap: 22px;
+  display: block;
   min-width: 0;
-  border: 1px solid var(--club-border);
-  border-radius: var(--radius-md, 8px);
-  padding: 10px;
-  background: var(--club-card);
-  box-shadow: var(--card-shadow, none);
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: zoom-in;
 }
 
 .club-physical-tier .club-physical-preview {
   width: 100%;
   min-width: 0;
-  padding: 14px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -16px 32px rgba(0, 0, 0, 0.24),
-    0 14px 32px rgba(0, 0, 0, 0.28);
-}
-
-.club-physical-tier .club-physical-bottomline {
-  display: none;
-}
-
-.club-physical-tier .club-physical-signature small {
-  display: none;
-}
-
-.club-physical-tier .club-physical-signature strong {
-  font-family: Inter, system-ui, sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  opacity: 0.92;
-  text-transform: uppercase;
-}
-
-.club-physical-tier .club-physical-card-title {
-  font-size: 10px;
-}
-
-.club-physical-tier .club-physical-badge {
-  display: none;
+    inset 0 -34px 54px rgba(0, 0, 0, 0.28),
+    0 24px 54px rgba(0, 0, 0, 0.34);
 }
 
 .club-physical-tier .club-physical-tier-mark {
-  top: 12px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
+  top: 22px;
+  right: 25px;
 }
 
 .club-physical-level-info {
-  display: grid;
+  display: none;
   gap: 10px;
   min-width: 0;
   padding: 0;
@@ -3268,7 +3239,7 @@ button:focus-visible {
 }
 
 .club-physical-benefits {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 10px;
   min-width: 0;
@@ -3294,7 +3265,7 @@ button:focus-visible {
 }
 
 .club-physical-next {
-  display: grid;
+  display: none;
   gap: 4px;
   min-width: 0;
 }
@@ -3329,27 +3300,24 @@ button:focus-visible {
   aspect-ratio: 1.586 / 1;
   flex-direction: column;
   justify-content: space-between;
-  border-radius: 8px;
-  padding: 18px 22px;
-  border: 0;
+  border: 1px solid color-mix(in srgb, var(--physical-accent) 42%, rgba(255, 255, 255, 0.12));
+  border-radius: 13px;
+  padding: clamp(18px, 3.2vw, 32px);
   color: var(--club-text);
   background:
-    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.08), transparent 22%),
-    radial-gradient(circle at 82% 18%, var(--physical-glow), transparent 30%),
-    linear-gradient(112deg, transparent 0%, rgba(255, 255, 255, 0.1) 42%, transparent 55%),
-    repeating-linear-gradient(104deg, rgba(255, 255, 255, 0.026) 0 1px, transparent 1px 8px),
-    linear-gradient(135deg, #070809, #343535 48%, #101111 100%);
+    linear-gradient(116deg, rgba(255, 255, 255, 0.02) 0 34%, rgba(0, 0, 0, 0.42) 34.2% 47%, transparent 47.2%),
+    radial-gradient(ellipse at 28% 24%, rgba(255, 245, 210, 0.055), transparent 33%),
+    radial-gradient(ellipse at 88% 18%, rgba(212, 189, 130, 0.13), transparent 26%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.028), transparent 42%, rgba(255, 255, 255, 0.018)),
+    linear-gradient(135deg, #040403, #12120f 46%, #020202 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -22px 42px rgba(0, 0, 0, 0.26),
-    inset 0 0 34px color-mix(in srgb, var(--physical-glow) 70%, transparent),
-    0 24px 64px rgba(0, 0, 0, 0.34);
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    inset 0 -28px 46px rgba(0, 0, 0, 0.34),
+    inset 0 0 42px color-mix(in srgb, var(--physical-glow) 52%, transparent),
+    0 24px 58px rgba(0, 0, 0, 0.38);
   isolation: isolate;
   outline: none;
-  transition:
-    transform 360ms ease,
-    box-shadow 360ms ease,
-    filter 360ms ease;
+  transition: filter 360ms ease;
 }
 
 .club-physical-preview::before {
@@ -3358,15 +3326,15 @@ button:focus-visible {
   z-index: -1;
   border-radius: inherit;
   background:
-    radial-gradient(circle at 22% 28%, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 3px),
-    radial-gradient(circle at 72% 62%, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 4px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02), transparent 30%, rgba(255, 255, 255, 0.025));
+    radial-gradient(ellipse at 30% 12%, rgba(255, 255, 255, 0.075), transparent 30%),
+    radial-gradient(ellipse at 74% 82%, rgba(0, 0, 0, 0.34), transparent 42%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018), transparent 38%, rgba(255, 255, 255, 0.018));
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.045),
     inset 18px 18px 52px rgba(255, 255, 255, 0.035),
     inset -22px -28px 56px rgba(0, 0, 0, 0.34);
   content: "";
-  opacity: 0.38;
+  opacity: 0.42;
   pointer-events: none;
 }
 
@@ -3380,35 +3348,51 @@ button:focus-visible {
   transform: none;
 }
 
-.club-physical-preview:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--physical-accent) 70%, transparent);
-  outline-offset: 3px;
-}
-
 @media (min-width: 1280px) {
   .club-physical-designs {
-    padding: 16px;
+    padding: 18px 22px 24px;
   }
 
   .club-physical-catalog {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 36px;
   }
 
-  .club-physical-tier .club-physical-preview {
-    padding: 14px 16px;
+  .club-physical-tier {
+    grid-column: span 2;
+  }
+
+  .club-physical-tier:nth-child(4) {
+    grid-column: 2 / span 2;
+  }
+
+  .club-physical-tier:nth-child(5) {
+    grid-column: 4 / span 2;
+  }
+}
+
+@media (min-width: 860px) and (max-width: 1279px) {
+  .club-physical-catalog {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .club-physical-tier:nth-child(5) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: min(100%, 560px);
   }
 }
 
 .club-physical-preview.is-silver {
-  --physical-accent: #d9e2ec;
+  --physical-accent: #dce4ef;
   --physical-glow: rgba(214, 229, 241, 0.34);
   --physical-text: #f6f8fb;
   background:
-    radial-gradient(ellipse at 28% 18%, rgba(255, 255, 255, 0.22), transparent 24%),
-    linear-gradient(102deg, rgba(255, 255, 255, 0.04) 0%, transparent 18%, rgba(255, 255, 255, 0.42) 42%, transparent 55%, rgba(255, 255, 255, 0.12) 100%),
-    repeating-linear-gradient(105deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 10px),
-    radial-gradient(circle at 82% 18%, var(--physical-glow), transparent 30%),
-    linear-gradient(135deg, #0b0f13, #7f8a93 40%, #2f3840 63%, #0d1115);
+    radial-gradient(ellipse at 75% 16%, rgba(255, 255, 255, 0.48), transparent 24%),
+    radial-gradient(ellipse at 42% 54%, rgba(255, 255, 255, 0.16), transparent 34%),
+    linear-gradient(104deg, transparent 0 63%, rgba(255, 255, 255, 0.13) 64%, rgba(0, 0, 0, 0.18) 66%, transparent 68%),
+    linear-gradient(97deg, rgba(255, 255, 255, 0.06), transparent 22%, rgba(255, 255, 255, 0.34) 43%, transparent 57%, rgba(255, 255, 255, 0.08)),
+    linear-gradient(135deg, #252b36, #69707f 43%, #323a48 67%, #10151f);
 }
 
 .club-physical-preview.is-gold {
@@ -3416,28 +3400,23 @@ button:focus-visible {
   --physical-glow: rgba(231, 189, 98, 0.34);
   --physical-text: #fff5dc;
   background:
-    radial-gradient(ellipse at 26% 20%, rgba(255, 232, 157, 0.18), transparent 24%),
-    repeating-linear-gradient(105deg, rgba(255, 228, 143, 0.08) 0 1px, transparent 1px 11px),
-    linear-gradient(110deg, rgba(255, 236, 178, 0.08) 0%, transparent 20%, rgba(235, 176, 71, 0.38) 43%, transparent 56%, rgba(116, 66, 18, 0.28) 100%),
-    radial-gradient(circle at 80% 18%, var(--physical-glow), transparent 30%),
-    linear-gradient(135deg, #160b04, #886026 42%, #3d2109 65%, #080503);
+    radial-gradient(ellipse at 83% 18%, rgba(255, 229, 148, 0.38), transparent 25%),
+    radial-gradient(ellipse at 42% 36%, rgba(242, 175, 55, 0.34), transparent 38%),
+    linear-gradient(101deg, transparent 0 78%, rgba(255, 224, 126, 0.5) 79.2%, rgba(47, 22, 6, 0.36) 84.5%, transparent 93%),
+    linear-gradient(110deg, rgba(255, 236, 178, 0.14), transparent 21%, rgba(235, 176, 71, 0.42) 43%, transparent 59%, rgba(84, 44, 10, 0.42)),
+    linear-gradient(135deg, #241102, #8b5a19 42%, #4a2707 68%, #090401);
 }
 
 .club-physical-preview.is-diamond {
-  --physical-accent: #dff5ff;
+  --physical-accent: #90d6ff;
   --physical-glow: rgba(174, 224, 255, 0.42);
   --physical-text: #f7fbff;
   background:
-    radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.38) 0 1px, transparent 2px),
-    radial-gradient(circle at 76% 24%, rgba(186, 232, 255, 0.3) 0 1px, transparent 2px),
-    radial-gradient(circle at 64% 72%, rgba(255, 255, 255, 0.28) 0 1px, transparent 2px),
-    radial-gradient(ellipse at 28% 24%, rgba(255, 255, 255, 0.18), transparent 18%),
-    radial-gradient(ellipse at 78% 72%, rgba(166, 220, 255, 0.16), transparent 22%),
-    radial-gradient(circle at 50% 46%, rgba(204, 235, 255, 0.18), transparent 34%),
-    linear-gradient(122deg, transparent 0%, rgba(255, 255, 255, 0.26) 34%, transparent 46%, rgba(166, 220, 255, 0.18) 70%, transparent 100%),
-    linear-gradient(62deg, transparent 0%, rgba(255, 255, 255, 0.12) 49%, transparent 51%),
-    radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.34), transparent 28%),
-    linear-gradient(135deg, #02060c, #31485a 45%, #122334 68%, #05070d);
+    linear-gradient(76deg, transparent 0 76%, rgba(213, 242, 255, 0.52) 76.2%, rgba(83, 158, 207, 0.16) 77.4%, transparent 79%),
+    radial-gradient(circle at 73% 42%, rgba(204, 235, 255, 0.26), transparent 29%),
+    conic-gradient(from 212deg at 70% 48%, rgba(255, 255, 255, 0.32), rgba(74, 143, 189, 0.08), transparent 24%, rgba(255, 255, 255, 0.2), transparent 59%),
+    linear-gradient(122deg, transparent 0%, rgba(255, 255, 255, 0.16) 35%, transparent 48%, rgba(118, 191, 241, 0.13) 72%, transparent 100%),
+    linear-gradient(135deg, #06111d, #203a52 45%, #0d2234 68%, #02070e);
 }
 
 .club-physical-preview.is-diamond::after {
@@ -3453,13 +3432,12 @@ button:focus-visible {
   --physical-glow: rgba(105, 55, 142, 0.32);
   --physical-text: #f2c88b;
   background:
-    radial-gradient(circle at 54% 48%, rgba(58, 31, 91, 0.78), transparent 34%),
-    radial-gradient(circle at 76% 12%, rgba(216, 161, 94, 0.14), transparent 28%),
-    radial-gradient(circle at 12% 86%, rgba(91, 38, 112, 0.28), transparent 36%),
-    linear-gradient(118deg, transparent 0%, rgba(216, 161, 94, 0.16) 43%, transparent 56%),
-    repeating-linear-gradient(86deg, rgba(255, 255, 255, 0.024) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(176deg, rgba(216, 161, 94, 0.018) 0 1px, transparent 1px 5px),
-    linear-gradient(135deg, #03010a, #11071f 46%, #090315 74%, #020106);
+    radial-gradient(circle at 43% 40%, rgba(93, 34, 133, 0.76), transparent 33%),
+    radial-gradient(circle at 82% 16%, rgba(216, 161, 94, 0.2), transparent 24%),
+    linear-gradient(101deg, transparent 0 79%, rgba(216, 161, 94, 0.5) 80.2%, rgba(70, 25, 93, 0.42) 84.8%, transparent 92%),
+    radial-gradient(ellipse at 58% 38%, rgba(255, 255, 255, 0.04), transparent 45%),
+    linear-gradient(92deg, rgba(255, 255, 255, 0.018), transparent 38%, rgba(255, 255, 255, 0.012)),
+    linear-gradient(135deg, #07020d, #210735 43%, #0b0315 72%, #020105);
   border-color: rgba(216, 161, 94, 0.34);
 }
 
@@ -3519,31 +3497,33 @@ button:focus-visible {
   min-width: 0;
 }
 
-.club-physical-card-title {
-  overflow: hidden;
-  color: var(--physical-text);
-  font-size: clamp(10px, 1.8vw, 14px);
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
+.club-physical-brand {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  min-width: 0;
 }
 
-.club-physical-badge {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  border: 1px solid color-mix(in srgb, var(--physical-accent) 34%, transparent);
-  border-radius: 999px;
-  padding: 3px 8px;
-  color: color-mix(in srgb, var(--physical-accent) 82%, #fff);
-  background: color-mix(in srgb, var(--physical-accent) 8%, rgba(0, 0, 0, 0.22));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
+.club-physical-brand strong {
+  color: color-mix(in srgb, var(--physical-accent) 56%, var(--physical-text));
+  font-family: "Snell Roundhand", "Zapfino", "Brush Script MT", "Segoe Script", cursive;
+  font-size: clamp(34px, 5.1vw, 62px);
+  font-weight: 400;
+  line-height: 0.78;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.1),
+    0 -1px 0 rgba(0, 0, 0, 0.78),
+    0 0 14px color-mix(in srgb, var(--physical-accent) 12%, transparent);
+}
+
+.club-physical-brand small {
+  color: var(--physical-text);
+  font-size: clamp(11px, 1.55vw, 18px);
+  font-weight: 520;
+  letter-spacing: 0.42em;
   line-height: 1;
+  opacity: 0.92;
+  text-transform: uppercase;
 }
 
 .club-physical-signature {
@@ -3552,39 +3532,50 @@ button:focus-visible {
   align-self: center;
   justify-self: center;
   justify-items: center;
-  gap: 6px;
+  gap: 8px;
   color: var(--physical-text);
   font-family: "Snell Roundhand", "Zapfino", "Brush Script MT", "Segoe Script", cursive;
   text-align: center;
 }
 
 .club-physical-signature small {
-  color: color-mix(in srgb, var(--physical-accent) 70%, var(--physical-text));
-  font-family: Inter, system-ui, sans-serif;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  opacity: 0.72;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.08),
-    0 -1px 0 rgba(0, 0, 0, 0.55);
-  text-transform: uppercase;
+  display: none;
 }
 
 .club-physical-signature strong {
   overflow: hidden;
   max-width: 100%;
-  color: color-mix(in srgb, var(--physical-accent) 58%, var(--physical-text));
-  font-size: clamp(32px, 5.2vw, 58px);
+  color: color-mix(in srgb, var(--physical-accent) 54%, var(--physical-text));
+  font-size: clamp(36px, 5.2vw, 60px);
   font-weight: 400;
   line-height: 1.08;
-  opacity: 0.82;
+  opacity: 0.92;
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.1),
     0 -1px 0 rgba(0, 0, 0, 0.72),
     0 0 12px color-mix(in srgb, var(--physical-accent) 12%, transparent);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.club-physical-signature-crown {
+  margin-bottom: -2px;
+  color: var(--physical-accent);
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--physical-accent) 34%, transparent));
+}
+
+.club-physical-monogram {
+  position: absolute;
+  right: 13%;
+  bottom: 19%;
+  z-index: 0;
+  color: rgba(216, 161, 94, 0.075);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(100px, 17vw, 220px);
+  font-weight: 400;
+  line-height: 0.7;
+  pointer-events: none;
+  text-shadow: 0 0 22px rgba(216, 161, 94, 0.035);
 }
 
 .club-physical-preview.is-silver .club-physical-signature :is(small, strong) {
@@ -3689,9 +3680,9 @@ button:focus-visible {
 
 .club-physical-stamps {
   display: grid;
-  width: min(calc(100% - 58px), 234px);
+  width: min(100%, 430px);
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 6px;
+  gap: clamp(8px, 2.5vw, 18px);
 }
 
 .club-physical-stamps i {
@@ -3701,11 +3692,11 @@ button:focus-visible {
   aspect-ratio: 1;
   min-width: 0;
   place-items: center;
-  border: 1.5px solid color-mix(in srgb, var(--physical-accent) 58%, rgba(255, 255, 255, 0.2));
+  border: 1.6px solid color-mix(in srgb, var(--physical-accent) 68%, rgba(255, 255, 255, 0.2));
   border-radius: 50%;
   color: var(--physical-text);
   background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.1), transparent 24%),
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.08), transparent 24%),
     rgba(0, 0, 0, 0.08);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.035),
@@ -3722,7 +3713,7 @@ button:focus-visible {
   min-height: 0;
   border-color: color-mix(in srgb, var(--physical-accent) 82%, rgba(255, 255, 255, 0.24));
   border-style: solid;
-  border-width: 1.7px;
+  border-width: 1.8px;
   border-radius: 50%;
   padding: 0;
   color: var(--physical-accent);
@@ -3784,19 +3775,38 @@ button:focus-visible {
 }
 
 .club-physical-bottomline {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 10px;
+  display: grid;
+  gap: 16px;
   min-width: 0;
 }
 
+.club-physical-card-foot {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: color-mix(in srgb, var(--physical-text) 78%, var(--physical-accent));
+  font-size: clamp(10px, 1.35vw, 14px);
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.club-physical-card-foot span:last-child {
+  overflow: hidden;
+  max-width: 64%;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .club-physical-progress {
-  flex: 0 0 auto;
-  color: var(--physical-accent);
+  color: color-mix(in srgb, var(--physical-accent) 72%, var(--physical-text));
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  font-size: 17px;
-  font-weight: 800;
+  font-size: inherit;
+  font-weight: 760;
   letter-spacing: 0.08em;
 }
 
@@ -3817,12 +3827,11 @@ button:focus-visible {
 
 @media (max-width: 1180px) {
   .club-physical-tier {
-    grid-template-columns: 190px minmax(190px, 1fr) minmax(220px, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .club-physical-benefits {
-    border-left: 0;
-    padding-left: 0;
+    display: none;
   }
 
   .club-physical-next {
@@ -3925,35 +3934,55 @@ button:focus-visible {
 
 .club-card-preview .club-physical-preview {
   width: 100%;
-  padding: 12px;
+  padding: 9px 11px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     inset 0 -16px 32px rgba(0, 0, 0, 0.24),
     0 14px 32px rgba(0, 0, 0, 0.24);
 }
 
-.club-card-preview .club-physical-signature small,
-.club-card-preview .club-physical-bottomline {
-  display: none;
-}
-
 .club-card-preview .club-physical-signature strong {
-  font-size: clamp(21px, 2.2vw, 30px);
+  font-size: clamp(18px, 2vw, 26px);
 }
 
-.club-card-preview .club-physical-card-title {
-  font-size: 9px;
+.club-card-preview .club-physical-brand {
+  gap: 4px;
 }
 
-.club-card-preview .club-physical-badge {
-  display: none;
+.club-card-preview .club-physical-brand strong {
+  font-size: clamp(18px, 2vw, 28px);
+}
+
+.club-card-preview .club-physical-brand small {
+  font-size: 7px;
+  letter-spacing: 0.32em;
 }
 
 .club-card-preview .club-physical-tier-mark {
-  top: 12px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
+  top: 9px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+}
+
+.club-card-preview .club-physical-stamps {
+  gap: 4px;
+  width: min(100%, 124px);
+}
+
+.club-card-preview .club-physical-stamps i {
+  border-width: 1px;
+}
+
+.club-card-preview .club-physical-stamps i svg {
+  width: 9px;
+  height: 9px;
+}
+
+.club-card-preview .club-physical-card-foot {
+  gap: 8px;
+  font-size: 7px;
+  letter-spacing: 0.08em;
 }
 
 .club-card-main {
@@ -4129,7 +4158,8 @@ button:focus-visible {
   color: var(--button-danger-text, var(--club-text));
 }
 
-.club-qr-modal-backdrop {
+.club-qr-modal-backdrop,
+.club-card-style-modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 80;
@@ -4138,6 +4168,10 @@ button:focus-visible {
   padding: 18px;
   background: color-mix(in srgb, var(--club-bg) 82%, transparent);
   backdrop-filter: blur(8px);
+}
+
+.club-card-style-modal-backdrop {
+  z-index: 84;
 }
 
 .club-adjust-modal-backdrop {
@@ -4276,6 +4310,54 @@ button:focus-visible {
   box-shadow: var(--shadow-layer, 0 28px 90px rgba(0, 0, 0, 0.5));
 }
 
+.club-card-style-modal {
+  display: grid;
+  width: min(100%, 760px);
+  gap: 18px;
+  border: 0;
+  border-radius: var(--radius-control, 12px);
+  padding: 18px;
+  background: var(--club-panel);
+  box-shadow: var(--shadow-layer, 0 28px 90px rgba(0, 0, 0, 0.55));
+}
+
+.club-card-style-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.club-card-style-modal-head span {
+  display: grid;
+  gap: 4px;
+}
+
+.club-card-style-modal-head small {
+  color: var(--club-muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.club-card-style-modal-head strong {
+  color: var(--club-text);
+  font-size: 17px;
+}
+
+.club-card-style-modal-head button {
+  min-height: 34px;
+  border: 0;
+  border-radius: var(--radius-md, 8px);
+  padding: 0 12px;
+  color: var(--club-text);
+  background: var(--button-secondary-bg, var(--club-field));
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
 .club-qr-modal-head {
   display: flex;
   align-items: flex-start;
@@ -4394,15 +4476,11 @@ button:focus-visible {
   width: 100%;
   max-width: 320px;
   align-self: start;
-  padding: 13px 14px;
+  padding: 12px 14px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     inset 0 -16px 32px rgba(0, 0, 0, 0.24),
     0 14px 32px rgba(0, 0, 0, 0.28);
-}
-
-.club-details .club-physical-card-title {
-  font-size: 9px;
 }
 
 .club-details .club-physical-signature {
@@ -4417,6 +4495,14 @@ button:focus-visible {
   font-size: clamp(24px, 3vw, 34px);
 }
 
+.club-details .club-physical-brand strong {
+  font-size: clamp(24px, 3.5vw, 38px);
+}
+
+.club-details .club-physical-brand small {
+  font-size: 8px;
+}
+
 .club-details .club-physical-tier-mark {
   top: 12px;
   right: 13px;
@@ -4425,12 +4511,17 @@ button:focus-visible {
 }
 
 .club-details .club-physical-stamps {
-  width: min(calc(100% - 40px), 175px);
+  width: min(100%, 175px);
   gap: 4px;
 }
 
 .club-details .club-physical-progress {
-  font-size: 11px;
+  font-size: inherit;
+}
+
+.club-details .club-physical-card-foot {
+  font-size: 8px;
+  letter-spacing: 0.09em;
 }
 
 .club-details-grid {
@@ -4702,16 +4793,15 @@ button:focus-visible {
   }
 
   .club-physical-tier .club-physical-preview {
-    max-width: 290px;
+    max-width: none;
   }
 
   .club-physical-benefits {
-    border-left: 0;
-    padding-left: 0;
+    display: none;
   }
 
   .club-physical-next {
-    display: grid;
+    display: none;
   }
 
   .club-physical-preview {
@@ -4722,8 +4812,13 @@ button:focus-visible {
     gap: 8px;
   }
 
-  .club-physical-card-title {
-    font-size: 10px;
+  .club-physical-brand strong {
+    font-size: 28px;
+  }
+
+  .club-physical-brand small {
+    font-size: 8px;
+    letter-spacing: 0.34em;
   }
 
   .club-physical-bottomline {
@@ -4738,7 +4833,7 @@ button:focus-visible {
   }
 
   .club-physical-stamps {
-    width: min(calc(100% - 42px), 220px);
+    width: min(100%, 220px);
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 4px;
   }
@@ -4747,8 +4842,9 @@ button:focus-visible {
     padding: 0;
   }
 
-  .club-physical-progress {
-    font-size: 13px;
+  .club-physical-card-foot {
+    font-size: 9px;
+    letter-spacing: 0.08em;
   }
 
   .club-create-panel,
@@ -4767,8 +4863,6 @@ button:focus-visible {
     padding: 8px;
   }
 
-  .club-card-preview .club-physical-card-title,
-  .club-card-preview .club-physical-tier-mark,
   .club-card-tierline em,
   .club-card-meta,
   .club-card-language {
