@@ -2,13 +2,13 @@
 :root {
   --bg: var(--linear-bg, #050607);
   --surface: var(--linear-panel, #0e1013);
-  --surface-2: var(--linear-panel-soft, #202328);
+  --surface-2: var(--linear-panel-soft, #141619);
   --field: rgba(255, 255, 255, 0.028);
   --border: var(--linear-border, rgba(255, 255, 255, 0.085));
   --border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.055));
   --app-page-bg: var(--linear-bg, #050607);
   --app-window-bg: var(--linear-panel, #0e1013);
-  --app-card-bg: var(--linear-panel-soft, #202328);
+  --app-card-bg: var(--linear-panel-soft, #141619);
   --app-field-bg: var(--field);
   --app-window-border: var(--linear-border, rgba(255, 255, 255, 0.085));
   --app-card-border: var(--linear-border-soft, rgba(255, 255, 255, 0.055));
