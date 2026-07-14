@@ -2919,8 +2919,10 @@ button:focus-visible {
 .club-page {
   --club-bg: var(--app-page-bg, #050607);
   --club-panel: var(--app-window-bg, #0b0d10);
-  --club-card: var(--app-card-bg, #111418);
-  --club-field: var(--app-field-bg, rgba(255, 255, 255, 0.028));
+  --club-card: var(--app-card-bg, #202328);
+  --club-field: var(--app-field-bg, color-mix(in srgb, var(--club-card) 88%, white 4%));
+  --button-secondary-bg: var(--club-card);
+  --button-secondary-bg-hover: color-mix(in srgb, var(--club-card) 86%, white 7%);
   --club-border: var(--app-window-border, rgba(255, 255, 255, 0.08));
   --club-muted: var(--linear-muted, #a3a6b3);
   --club-faint: var(--linear-dim, #70737f);

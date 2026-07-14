@@ -7,7 +7,7 @@
   --app-bg: #0c0d0f;
   --surface: #141619;
   --surface-solid: #141619;
-  --surface-muted: #1c1f24;
+  --surface-muted: #202328;
   --line-soft: rgba(255, 255, 255, 0.075);
   --line-subtle: rgba(255, 255, 255, 0.045);
   --text-main: #e3e5e8;
@@ -16,12 +16,12 @@
   --linear-bg: #0c0d0f;
   --linear-sidebar: #08090a;
   --linear-panel: #141619;
-  --linear-panel-soft: #1c1f24;
+  --linear-panel-soft: #202328;
   --linear-border: rgba(255, 255, 255, 0.075);
   --linear-border-soft: rgba(255, 255, 255, 0.045);
   --app-page-bg: #0c0d0f;
   --app-window-bg: #141619;
-  --app-card-bg: #1c1f24;
+  --app-card-bg: #202328;
   --app-field-bg: rgba(255, 255, 255, 0.024);
   --app-window-border: rgba(255, 255, 255, 0.075);
   --app-card-border: rgba(255, 255, 255, 0.045);
