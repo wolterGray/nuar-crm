@@ -3429,9 +3429,9 @@ button:focus-visible {
   --physical-accent: #a855f7;
   --physical-bg: url("../assets/club-cards/royal.jpg");
   --physical-glow: rgba(105, 55, 142, 0.32);
-  --physical-engrave: rgba(186, 121, 255, 0.7);
-  --physical-ink: rgba(151, 79, 205, 0.86);
-  --physical-ink-gradient: linear-gradient(92deg, rgba(211, 167, 255, 0.88), rgba(151, 79, 205, 0.9) 38%, rgba(50, 18, 78, 0.96) 72%, rgba(177, 105, 236, 0.82));
+  --physical-engrave: rgba(226, 173, 86, 0.82);
+  --physical-ink: rgba(226, 173, 86, 0.9);
+  --physical-ink-gradient: linear-gradient(92deg, rgba(255, 236, 174, 0.98), rgba(226, 173, 86, 0.92) 34%, rgba(124, 74, 22, 0.94) 66%, rgba(255, 216, 128, 0.88));
   --physical-label: rgba(197, 139, 255, 0.74);
   --physical-shine: clubCardSheenRoyal 9.4s ease-in-out infinite;
   --physical-shine-blur: 28px;
@@ -3713,12 +3713,20 @@ button:focus-visible {
 
 .club-physical-preview.is-royal .club-physical-signature :is(small, strong) {
   color: var(--physical-ink);
-  opacity: 0.86;
+  opacity: 0.92;
   text-shadow:
-    0 1px 0 rgba(236, 208, 255, 0.08),
-    0 -1px 0 rgba(16, 4, 27, 0.9),
-    0 2px 5px rgba(10, 0, 22, 0.38),
-    0 0 16px rgba(112, 44, 177, 0.16);
+    0 1px 0 rgba(255, 239, 184, 0.12),
+    0 -1px 0 rgba(35, 14, 4, 0.92),
+    0 2px 5px rgba(10, 0, 22, 0.42),
+    0 0 18px rgba(226, 173, 86, 0.14);
+}
+
+.club-physical-preview.is-royal .club-physical-brand strong {
+  opacity: 0.94;
+  text-shadow:
+    0 1px 0 rgba(255, 239, 184, 0.12),
+    0 -1px 0 rgba(35, 14, 4, 0.88),
+    0 0 14px rgba(226, 173, 86, 0.12);
 }
 
 .club-physical-preview.is-royal::after {
@@ -3764,7 +3772,8 @@ button:focus-visible {
   opacity: 1;
   transform: scale(1.12);
   filter:
-    drop-shadow(0 0 12px rgba(168, 85, 247, 0.28))
+    drop-shadow(0 0 12px rgba(226, 173, 86, 0.24))
+    drop-shadow(0 1px 0 rgba(255, 236, 174, 0.12))
     drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.48));
 }
 
