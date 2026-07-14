@@ -4357,6 +4357,14 @@ button:focus-visible {
   min-width: 34px;
   padding: 0;
   place-items: center;
+  color: var(--club-muted);
+  background: transparent;
+}
+
+.club-adjust-close:hover,
+.club-adjust-close:focus-visible {
+  color: var(--club-text);
+  background: transparent;
 }
 
 .club-adjust-mode {

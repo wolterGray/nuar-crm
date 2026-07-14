@@ -550,10 +550,10 @@ export default function ClubPage({clients = [], pushNotification}) {
       return;
     }
 
-    if (!description) {
-      notify("Добавьте причину", "Так будет понятно, почему баланс изменился вручную");
-      return;
-    }
+    const fallbackDescription = manualAdjustmentMode === "writeoff"
+      ? "Ручное списание отметок"
+      : "Ручное начисление визита";
+    const operationDescription = description || fallbackDescription;
 
     setManualAdjustmentSaving(true);
     try {
@@ -561,13 +561,15 @@ export default function ClubPage({clients = [], pushNotification}) {
       if (manualAdjustmentMode === "writeoff") {
         response = await correctLoyaltyBalance(manualAdjustmentCard.id, {
           amount: -units,
-          description,
+          description: operationDescription,
         });
         applyLoyaltyCardResponse(response);
       } else {
         for (let index = 0; index < units; index += 1) {
           response = await earnLoyaltyStamp(manualAdjustmentCard.id, {
-            description: units > 1 ? `${description} (${index + 1}/${units})` : description,
+            description: units > 1
+              ? `${operationDescription} (${index + 1}/${units})`
+              : operationDescription,
           });
           applyLoyaltyCardResponse(response);
         }
