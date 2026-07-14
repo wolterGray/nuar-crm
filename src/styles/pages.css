@@ -3149,18 +3149,11 @@ button:focus-visible {
 .club-physical-tier .club-physical-preview {
   width: 100%;
   min-width: 0;
-  padding: 14px;
+  padding: 11px 12px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     inset 0 -16px 32px rgba(0, 0, 0, 0.24),
     0 14px 32px rgba(0, 0, 0, 0.28);
-}
-
-.club-physical-tier .club-physical-tier-mark {
-  top: 12px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
 }
 
 .club-physical-level-info {
@@ -4045,48 +4038,70 @@ button:focus-visible {
     0 14px 32px rgba(0, 0, 0, 0.24);
 }
 
-.club-card-preview .club-physical-signature strong {
-  font-size: clamp(18px, 2vw, 26px);
+:is(.club-physical-tier, .club-card-preview) .club-physical-topline {
+  align-items: start;
 }
 
-.club-card-preview .club-physical-brand {
-  gap: 4px;
+:is(.club-physical-tier, .club-card-preview) .club-physical-brand {
+  gap: 3px;
 }
 
-.club-card-preview .club-physical-brand strong {
-  font-size: clamp(18px, 2vw, 28px);
+:is(.club-physical-tier, .club-card-preview) .club-physical-brand strong {
+  font-size: clamp(16px, 1.45vw, 25px);
+  line-height: 0.92;
 }
 
-.club-card-preview .club-physical-brand small {
-  font-size: 7px;
-  letter-spacing: 0.32em;
+:is(.club-physical-tier, .club-card-preview) .club-physical-brand small {
+  font-size: 6px;
+  letter-spacing: 0.24em;
+  opacity: 0.72;
 }
 
-.club-card-preview .club-physical-tier-mark {
+:is(.club-physical-tier, .club-card-preview) .club-physical-signature {
+  gap: 2px;
+  padding: 0 8px 2px;
+}
+
+:is(.club-physical-tier, .club-card-preview) .club-physical-signature strong {
+  max-width: 92%;
+  font-size: clamp(18px, 1.85vw, 25px);
+  line-height: 1.12;
+}
+
+:is(.club-physical-tier, .club-card-preview) .club-physical-tier-mark {
   top: 9px;
   right: 10px;
   width: 22px;
   height: 22px;
 }
 
-.club-card-preview .club-physical-stamps {
-  gap: 4px;
-  width: min(100%, 124px);
+:is(.club-physical-tier, .club-card-preview) .club-physical-tier-mark svg {
+  width: 17px;
+  height: 17px;
 }
 
-.club-card-preview .club-physical-stamps i {
+:is(.club-physical-tier, .club-card-preview) .club-physical-stamps {
+  gap: 4px;
+  width: min(100%, 132px);
+}
+
+:is(.club-physical-tier, .club-card-preview) .club-physical-stamps i {
   border-width: 1px;
 }
 
-.club-card-preview .club-physical-stamps i svg {
+:is(.club-physical-tier, .club-card-preview) .club-physical-stamps i svg {
   width: 9px;
   height: 9px;
 }
 
-.club-card-preview .club-physical-card-foot {
+:is(.club-physical-tier, .club-card-preview) .club-physical-card-foot {
   gap: 8px;
   font-size: 7px;
   letter-spacing: 0.08em;
+}
+
+:is(.club-physical-tier, .club-card-preview) .club-physical-progress {
+  font-size: 7px;
 }
 
 .club-card-main {
