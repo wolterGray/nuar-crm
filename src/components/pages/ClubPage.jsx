@@ -8,6 +8,7 @@ import {
   PencilLine,
   Medal,
   Link2,
+  MoreHorizontal,
   Plus,
   Power,
   QrCode,
@@ -25,32 +26,15 @@ import {
   deleteLoyaltyCard,
   earnLoyaltyStamp,
   fetchLoyaltyCards,
-  fetchLoyaltyTransactions,
   redeemLoyaltyReward,
   reissueLoyaltyLink,
   updateLoyaltyCardLanguage,
   updateLoyaltyCardStatus,
 } from "../../api/loyalty.js";
+import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import LoyaltyQrCode from "../LoyaltyQrCode.jsx";
 import PageHeader from "../PageHeader.jsx";
-
-const transactionLabels = {
-  CORRECTION: "Коррекция",
-  EARN: "Начисление",
-  REDEEM: "Награда",
-  REVERSAL: "Откат",
-};
-
-const formatClubDate = (value) => {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
+import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
 
 const getCardProgress = (card) =>
   Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 6)) * 100));
@@ -265,9 +249,86 @@ function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
   );
 }
 
+function ClubCardMenu({
+  card,
+  isOpen,
+  onCopy,
+  onCorrect,
+  onDelete,
+  onOpenQr,
+  onRedeem,
+  onReissue,
+  onStatus,
+  publicUrl,
+  setOpenMenuId,
+}) {
+  const {menuRef, menuStyle, triggerRef} = useRowActionMenu({
+    isOpen,
+    setOpenMenuId,
+  });
+
+  const closeAndRun = (callback) => {
+    setOpenMenuId(null);
+    callback();
+  };
+
+  return (
+    <div className="club-card-menu" onClick={(event) => event.stopPropagation()}>
+      <button
+        ref={triggerRef}
+        aria-label="Действия карты"
+        aria-expanded={isOpen}
+        className={isOpen ? "is-active" : ""}
+        type="button"
+        onClick={() => setOpenMenuId(isOpen ? null : card.id)}>
+        <MoreHorizontal size={16} />
+      </button>
+
+      <RowActionMenuPortal isOpen={isOpen} menuRef={menuRef} menuStyle={menuStyle}>
+        <button
+          disabled={!card.rewardAvailable || !card.isActive}
+          type="button"
+          onClick={() => closeAndRun(onRedeem)}>
+          <Gift size={15} />
+          Награда
+        </button>
+        <button type="button" onClick={() => closeAndRun(onCorrect)}>
+          <PencilLine size={15} />
+          Корректировка
+        </button>
+        <button type="button" onClick={() => closeAndRun(onReissue)}>
+          <Link2 size={15} />
+          Перевыпустить ссылку
+        </button>
+        <button disabled={!publicUrl || !card.isActive} type="button" onClick={() => closeAndRun(onCopy)}>
+          <Copy size={15} />
+          Скопировать ссылку
+        </button>
+        <button disabled={!publicUrl || !card.isActive} type="button" onClick={() => closeAndRun(onOpenQr)}>
+          <QrCode size={15} />
+          Показать QR
+        </button>
+        {publicUrl ? (
+          <a href={publicUrl} rel="noreferrer" target="_blank">
+            <ExternalLink size={15} />
+            Открыть карту
+          </a>
+        ) : null}
+        <button type="button" onClick={() => closeAndRun(onStatus)}>
+          <Power size={15} />
+          {card.isActive ? "Отключить карту" : "Включить карту"}
+        </button>
+        <button className="danger" type="button" onClick={() => closeAndRun(onDelete)}>
+          <Trash2 size={15} />
+          Удалить карту
+        </button>
+      </RowActionMenuPortal>
+    </div>
+  );
+}
+
 export default function ClubPage({clients = [], pushNotification}) {
   const [cards, setCards] = useState([]);
-  const [transactions, setTransactions] = useState([]);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [activeTab, setActiveTab] = useState("cards");
   const [createdPublicUrls, setCreatedPublicUrls] = useState({});
@@ -279,15 +340,12 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [visibleQrCardId, setVisibleQrCardId] = useState(null);
+  const [openCardMenuId, setOpenCardMenuId] = useState(null);
 
   const selectedCard = useMemo(
     () => cards.find((card) => card.id === selectedCardId) ?? cards[0] ?? null,
     [cards, selectedCardId],
   );
-  const selectedPublicUrl = selectedCard
-    ? createdPublicUrls[selectedCard.id] || selectedCard.publicUrl || ""
-    : "";
-  const showSelectedQr = Boolean(selectedCard?.id && visibleQrCardId === selectedCard.id);
 
   const cardClientIds = useMemo(
     () => new Set(cards.filter((card) => card.isActive).map((card) => card.clientId)),
@@ -331,29 +389,6 @@ export default function ClubPage({clients = [], pushNotification}) {
     return () => window.clearTimeout(loadTimer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reward, search, status]);
-
-  useEffect(() => {
-    if (!selectedCard?.id) {
-      return undefined;
-    }
-
-    let cancelled = false;
-    fetchLoyaltyTransactions(selectedCard.id, {pageSize: 12})
-      .then((response) => {
-        if (!cancelled) {
-          setTransactions(response?.data?.items ?? []);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setTransactions([]);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCard?.id]);
 
   const notify = (title, message = "") => {
     pushNotification?.({message, title});
@@ -431,7 +466,6 @@ export default function ClubPage({clients = [], pushNotification}) {
         return next;
       });
       setVisibleQrCardId((current) => (current === card.id ? null : current));
-      setTransactions([]);
       await loadCards();
       notify("Карта удалена", clientName);
     } catch (err) {
@@ -639,6 +673,17 @@ export default function ClubPage({clients = [], pushNotification}) {
                   <span>{card.rewardAvailable ? "Подарок" : "В процессе"}</span>
                   <span>{card.isActive ? "Активна" : "Архив"}</span>
                 </div>
+                <div className="club-card-language" onClick={(event) => event.stopPropagation()}>
+                  <select
+                    aria-label="Язык карты"
+                    value={getCardLanguage(card)}
+                    onChange={(event) => handleLanguageChange(card, event.target.value)}
+                  >
+                    {cardLanguageOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="club-card-actions" aria-label="Действия карты">
                   <button type="button" title="Начислить отметку" onClick={(event) => {
                     event.stopPropagation();
@@ -646,65 +691,28 @@ export default function ClubPage({clients = [], pushNotification}) {
                   }}>
                     <Plus size={14} />
                   </button>
-                  <button disabled={!card.rewardAvailable || !card.isActive} type="button" title="Использовать награду" onClick={(event) => {
-                    event.stopPropagation();
-                    handleRedeem(card);
-                  }}>
-                    <Gift size={14} />
-                  </button>
-                  <button type="button" title="Корректировка" onClick={(event) => {
-                    event.stopPropagation();
-                    handleCorrect(card);
-                  }}>
-                    <PencilLine size={14} />
-                  </button>
-                  <button type="button" title="Перевыпустить ссылку" onClick={(event) => {
-                    event.stopPropagation();
-                    handleReissue(card);
-                  }}>
-                    <Link2 size={14} />
-                  </button>
-                  <button disabled={!publicUrl || !card.isActive} type="button" title="Скопировать ссылку" onClick={(event) => {
-                    event.stopPropagation();
-                    handleCopy(card);
-                  }}>
-                    <Copy size={14} />
-                  </button>
-                  <button
-                    className={visibleQrCardId === card.id ? "is-active" : ""}
-                    disabled={!publicUrl || !card.isActive}
-                    type="button"
-                    title="Показать QR"
-                    onClick={(event) => {
-                      event.stopPropagation();
+                  <ClubCardMenu
+                    card={card}
+                    isOpen={openCardMenuId === card.id}
+                    onCopy={() => handleCopy(card)}
+                    onCorrect={() => handleCorrect(card)}
+                    onDelete={() => handleDeleteCard(card)}
+                    onOpenQr={() => {
                       setVisibleQrCardId((current) => (current === card.id ? null : card.id));
                       setSelectedCardId(card.id);
-                    }}>
-                    <QrCode size={14} />
-                  </button>
-                  {publicUrl ? (
-                    <a
-                      href={publicUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                      title="Открыть карту"
-                      onClick={(event) => event.stopPropagation()}>
-                      <ExternalLink size={14} />
-                    </a>
-                  ) : null}
-                  <button type="button" title={card.isActive ? "Отключить карту" : "Включить карту"} onClick={(event) => {
-                    event.stopPropagation();
-                    handleStatus(card);
-                  }}>
-                    <Power size={14} />
-                  </button>
-                  <button className="is-danger" type="button" title="Удалить карту" onClick={(event) => {
-                    event.stopPropagation();
-                    handleDeleteCard(card);
-                  }}>
-                    <Trash2 size={14} />
-                  </button>
+                    }}
+                    onRedeem={() => handleRedeem(card)}
+                    onReissue={() => handleReissue(card)}
+                    onStatus={() => handleStatus(card)}
+                    publicUrl={publicUrl}
+                    setOpenMenuId={setOpenCardMenuId}
+                  />
                 </div>
+                {publicUrl && visibleQrCardId === card.id ? (
+                  <div className="club-card-qr-popover" onClick={(event) => event.stopPropagation()}>
+                    <LoyaltyQrCode value={publicUrl} />
+                  </div>
+                ) : null}
               </article>
             );
           })}
@@ -716,138 +724,6 @@ export default function ClubPage({clients = [], pushNotification}) {
             </div>
           ) : null}
         </div>
-
-        <aside className="club-details">
-          {selectedCard ? (
-            <>
-              <div className="club-details-head">
-                <div>
-                  <span>Карта клиента</span>
-                  <strong>{selectedCard.client?.name || "Клиент"}</strong>
-                </div>
-                <b>{selectedCard.stamps}/{selectedCard.targetStamps}</b>
-              </div>
-              <div className="club-details-progress">
-                <span style={{width: `${getCardProgress(selectedCard)}%`}} />
-              </div>
-              <LoyaltyCard card={selectedCard} tier={getTierForCard(selectedCard)} />
-              <div className="club-details-grid">
-                <span>
-                  <small>Статус</small>
-                  <b>{selectedCard.isActive ? "Активна" : "Архив"}</b>
-                </span>
-                <span>
-                  <small>Награда</small>
-                  <b>{selectedCard.rewardAvailable ? "Подарок доступен" : "Пока нет"}</b>
-                </span>
-                <span>
-                  <small>Всего визитов</small>
-                  <b>{selectedCard.lifetimeVisits ?? selectedCard.stamps}</b>
-                </span>
-                <span>
-                  <small>Последняя операция</small>
-                  <b>{formatClubDate(selectedCard.lastTransactionAt)}</b>
-                </span>
-              </div>
-
-              {selectedPublicUrl ? (
-                <div className="club-link-actions" aria-label="Ссылка карты">
-                  <button type="button" title="Скопировать ссылку" onClick={() => handleCopy(selectedCard)}>
-                    <Copy size={15} />
-                  </button>
-                  <button
-                    className={showSelectedQr ? "is-active" : ""}
-                    type="button"
-                    title="Показать QR"
-                    onClick={() =>
-                      setVisibleQrCardId((current) =>
-                        current === selectedCard.id ? null : selectedCard.id,
-                      )
-                    }
-                  >
-                    <QrCode size={15} />
-                  </button>
-                  <a href={selectedPublicUrl} rel="noreferrer" target="_blank">
-                    <ExternalLink size={15} />
-                  </a>
-                </div>
-              ) : (
-                <p className="club-link-hint">
-                  Персональная ссылка показывается только после создания или перевыпуска.
-                </p>
-              )}
-
-              {selectedPublicUrl && showSelectedQr ? (
-                <div className="club-qr-box">
-                  <LoyaltyQrCode value={selectedPublicUrl} />
-                </div>
-              ) : null}
-
-              <div className="club-card-settings">
-                <label>
-                  <span>Язык карты</span>
-                  <select
-                    value={getCardLanguage(selectedCard)}
-                    onChange={(event) => handleLanguageChange(selectedCard, event.target.value)}
-                  >
-                    {cardLanguageOptions.map((option) => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <button type="button" onClick={() => handleStatus(selectedCard)}>
-                  <Power size={14} />
-                  <span>{selectedCard.isActive ? "Откл." : "Вкл."}</span>
-                </button>
-              </div>
-
-              <div className="club-details-actions">
-                <button type="button" title="Начислить отметку" onClick={() => handleEarn(selectedCard)}>
-                  <Plus size={15} />
-                  <span>Отметка</span>
-                </button>
-                <button disabled={!selectedCard.rewardAvailable || !selectedCard.isActive} type="button" onClick={() => handleRedeem(selectedCard)}>
-                  <Gift size={15} />
-                  <span>Награда</span>
-                </button>
-                <button type="button" title="Корректировка баланса" onClick={() => handleCorrect(selectedCard)}>
-                  <PencilLine size={15} />
-                  <span>Правка</span>
-                </button>
-                <button type="button" title="Перевыпустить ссылку" onClick={() => handleReissue(selectedCard)}>
-                  <Link2 size={15} />
-                  <span>Ссылка</span>
-                </button>
-                <button className="is-danger" type="button" onClick={() => handleDeleteCard(selectedCard)}>
-                  <Trash2 size={14} />
-                  <span>Удалить</span>
-                </button>
-              </div>
-
-              <div className="club-transactions">
-                <strong>История операций</strong>
-                <div className="club-transactions-list">
-                  {transactions.map((transaction) => (
-                    <div key={transaction.id}>
-                      <span>
-                        <b>{transactionLabels[transaction.type] || transaction.type}</b>
-                        <small>{formatClubDate(transaction.createdAt)} · {transaction.comment || "Без комментария"}</small>
-                      </span>
-                      <em>{transaction.amount > 0 ? `+${transaction.amount}` : transaction.amount}</em>
-                    </div>
-                  ))}
-                </div>
-                {!transactions.length ? <small>Операций пока нет.</small> : null}
-              </div>
-            </>
-          ) : (
-            <div className="club-empty">
-              <Sparkles size={18} />
-              <strong>Выберите карту</strong>
-              <span>Здесь появятся ссылка, QR и история операций.</span>
-            </div>
-          )}
-        </aside>
       </div> : null}
     </section>
   );

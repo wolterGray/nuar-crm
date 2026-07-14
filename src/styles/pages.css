@@ -3860,6 +3860,7 @@ button:focus-visible {
   }
 
   .club-card-meta,
+  .club-card-language,
   .club-card-actions {
     justify-content: flex-start;
   }
@@ -3925,7 +3926,7 @@ button:focus-visible {
 
 .club-card {
   display: grid;
-  grid-template-columns: 220px minmax(220px, 1fr) minmax(260px, auto) minmax(270px, auto);
+  grid-template-columns: 220px minmax(220px, 1fr) minmax(240px, auto) 132px auto;
   align-items: center;
   gap: 18px;
   padding: 10px;
@@ -4105,10 +4106,11 @@ button:focus-visible {
 
 .club-card-actions {
   justify-content: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
-.club-card-actions :is(button, a) {
+.club-card-actions > button,
+.club-card-menu > button {
   display: inline-grid;
   width: 34px;
   min-width: 34px;
@@ -4126,8 +4128,9 @@ button:focus-visible {
   text-decoration: none;
 }
 
-.club-card-actions :is(button, a):hover,
-.club-card-actions :is(button, a).is-active {
+.club-card-actions > button:hover,
+.club-card-menu > button:hover,
+.club-card-menu > button.is-active {
   border-color: color-mix(in srgb, var(--club-accent) 55%, var(--club-border));
   color: #fff;
 }
@@ -4142,6 +4145,61 @@ button:focus-visible {
   border-color: rgba(248, 113, 113, 0.28);
   color: #fecaca;
   background: rgba(127, 29, 29, 0.2);
+}
+
+.club-card-language {
+  min-width: 0;
+}
+
+.club-card-language select {
+  width: 100%;
+  height: 34px;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 0 9px;
+  color: color-mix(in srgb, var(--club-text) 72%, var(--club-muted));
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.05), transparent 42%),
+    rgba(255, 255, 255, 0.028);
+  font-size: 12px;
+  font-weight: 700;
+  outline: none;
+}
+
+.club-card-menu {
+  position: relative;
+}
+
+.row-action-menu a {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+
+.row-action-menu a:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.row-action-menu button.danger {
+  color: #fecaca;
+}
+
+.club-card-qr-popover {
+  grid-column: 1 / -1;
+  justify-self: end;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--club-card);
 }
 
 .club-details {
@@ -4573,12 +4631,7 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 
-  .club-layout.has-selected-card .club-list {
-    display: none;
-  }
-
   .club-create-panel button,
-  .club-card-actions button,
   .club-details-actions button {
     width: 100%;
   }
@@ -4586,6 +4639,11 @@ button:focus-visible {
   .club-card-actions,
   .club-card-meta {
     flex-wrap: wrap;
+  }
+
+  .club-card-actions > button,
+  .club-card-menu > button {
+    width: 34px;
   }
 
   .club-details {
