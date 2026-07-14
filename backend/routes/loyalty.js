@@ -113,6 +113,7 @@ const serializeAdminCard = (card) => ({
 });
 
 publicRouter.get('/loyalty/design', (_req, res) => {
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
   res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
   return res.json({ success: true, data: getPublicLoyaltyCardDesign(_req) });
 });
@@ -123,6 +124,8 @@ publicRouter.get('/loyalty/design/assets/:file', (req, res) => {
     return res.status(404).end();
   }
 
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
   res.set('Cache-Control', 'public, max-age=31536000, immutable');
   return res.sendFile(path.join(ASSET_DIR, file));
 });
