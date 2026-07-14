@@ -3129,37 +3129,42 @@ button:focus-visible {
 .club-physical-catalog {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 28px;
-  padding: 8px 0 2px;
+  gap: 8px;
 }
 
 .club-physical-tier {
-  display: block;
+  display: grid;
+  grid-template-columns: 220px minmax(220px, 1fr) minmax(260px, 1.2fr) minmax(170px, 220px);
+  align-items: center;
+  gap: 22px;
   min-width: 0;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px;
+  background: var(--club-card);
+  box-shadow: var(--card-shadow, none);
   cursor: zoom-in;
 }
 
 .club-physical-tier .club-physical-preview {
   width: 100%;
   min-width: 0;
+  padding: 14px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -34px 54px rgba(0, 0, 0, 0.28),
-    0 24px 54px rgba(0, 0, 0, 0.34);
+    inset 0 -16px 32px rgba(0, 0, 0, 0.24),
+    0 14px 32px rgba(0, 0, 0, 0.28);
 }
 
 .club-physical-tier .club-physical-tier-mark {
-  top: 22px;
-  right: 25px;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
 }
 
 .club-physical-level-info {
-  display: none;
+  display: grid;
   gap: 10px;
   min-width: 0;
   padding: 0;
@@ -3239,7 +3244,7 @@ button:focus-visible {
 }
 
 .club-physical-benefits {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 10px;
   min-width: 0;
@@ -3265,7 +3270,7 @@ button:focus-visible {
 }
 
 .club-physical-next {
-  display: none;
+  display: grid;
   gap: 4px;
   min-width: 0;
 }
@@ -3291,6 +3296,7 @@ button:focus-visible {
 
 .club-physical-preview {
   --physical-accent: #d4bd82;
+  --physical-bg: url("../assets/club-cards/member.jpg");
   --physical-glow: rgba(212, 189, 130, 0.24);
   --physical-text: #f5f0e6;
   position: relative;
@@ -3305,11 +3311,8 @@ button:focus-visible {
   padding: clamp(18px, 3.2vw, 32px);
   color: var(--club-text);
   background:
-    linear-gradient(116deg, rgba(255, 255, 255, 0.02) 0 34%, rgba(0, 0, 0, 0.42) 34.2% 47%, transparent 47.2%),
-    radial-gradient(ellipse at 28% 24%, rgba(255, 245, 210, 0.055), transparent 33%),
-    radial-gradient(ellipse at 88% 18%, rgba(212, 189, 130, 0.13), transparent 26%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.028), transparent 42%, rgba(255, 255, 255, 0.018)),
-    linear-gradient(135deg, #040403, #12120f 46%, #020202 100%);
+    linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.18)),
+    var(--physical-bg) center / cover no-repeat;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.11),
     inset 0 -28px 46px rgba(0, 0, 0, 0.34),
@@ -3326,9 +3329,8 @@ button:focus-visible {
   z-index: -1;
   border-radius: inherit;
   background:
-    radial-gradient(ellipse at 30% 12%, rgba(255, 255, 255, 0.075), transparent 30%),
-    radial-gradient(ellipse at 74% 82%, rgba(0, 0, 0, 0.34), transparent 42%),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.018), transparent 38%, rgba(255, 255, 255, 0.018));
+    radial-gradient(ellipse at 22% 28%, rgba(255, 255, 255, 0.035), transparent 26%),
+    radial-gradient(ellipse at 72% 82%, rgba(0, 0, 0, 0.22), transparent 44%);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.045),
     inset 18px 18px 52px rgba(255, 255, 255, 0.035),
@@ -3350,73 +3352,33 @@ button:focus-visible {
 
 @media (min-width: 1280px) {
   .club-physical-designs {
-    padding: 18px 22px 24px;
+    padding: 16px;
   }
 
   .club-physical-catalog {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 36px;
-  }
-
-  .club-physical-tier {
-    grid-column: span 2;
-  }
-
-  .club-physical-tier:nth-child(4) {
-    grid-column: 2 / span 2;
-  }
-
-  .club-physical-tier:nth-child(5) {
-    grid-column: 4 / span 2;
-  }
-}
-
-@media (min-width: 860px) and (max-width: 1279px) {
-  .club-physical-catalog {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .club-physical-tier:nth-child(5) {
-    grid-column: 1 / -1;
-    justify-self: center;
-    width: min(100%, 560px);
+    grid-template-columns: 1fr;
   }
 }
 
 .club-physical-preview.is-silver {
   --physical-accent: #dce4ef;
+  --physical-bg: url("../assets/club-cards/silver.jpg");
   --physical-glow: rgba(214, 229, 241, 0.34);
   --physical-text: #f6f8fb;
-  background:
-    radial-gradient(ellipse at 75% 16%, rgba(255, 255, 255, 0.48), transparent 24%),
-    radial-gradient(ellipse at 42% 54%, rgba(255, 255, 255, 0.16), transparent 34%),
-    linear-gradient(104deg, transparent 0 63%, rgba(255, 255, 255, 0.13) 64%, rgba(0, 0, 0, 0.18) 66%, transparent 68%),
-    linear-gradient(97deg, rgba(255, 255, 255, 0.06), transparent 22%, rgba(255, 255, 255, 0.34) 43%, transparent 57%, rgba(255, 255, 255, 0.08)),
-    linear-gradient(135deg, #252b36, #69707f 43%, #323a48 67%, #10151f);
 }
 
 .club-physical-preview.is-gold {
   --physical-accent: #e7bd62;
+  --physical-bg: url("../assets/club-cards/gold.jpg");
   --physical-glow: rgba(231, 189, 98, 0.34);
   --physical-text: #fff5dc;
-  background:
-    radial-gradient(ellipse at 83% 18%, rgba(255, 229, 148, 0.38), transparent 25%),
-    radial-gradient(ellipse at 42% 36%, rgba(242, 175, 55, 0.34), transparent 38%),
-    linear-gradient(101deg, transparent 0 78%, rgba(255, 224, 126, 0.5) 79.2%, rgba(47, 22, 6, 0.36) 84.5%, transparent 93%),
-    linear-gradient(110deg, rgba(255, 236, 178, 0.14), transparent 21%, rgba(235, 176, 71, 0.42) 43%, transparent 59%, rgba(84, 44, 10, 0.42)),
-    linear-gradient(135deg, #241102, #8b5a19 42%, #4a2707 68%, #090401);
 }
 
 .club-physical-preview.is-diamond {
   --physical-accent: #90d6ff;
+  --physical-bg: url("../assets/club-cards/diamond.jpg");
   --physical-glow: rgba(174, 224, 255, 0.42);
   --physical-text: #f7fbff;
-  background:
-    linear-gradient(76deg, transparent 0 76%, rgba(213, 242, 255, 0.52) 76.2%, rgba(83, 158, 207, 0.16) 77.4%, transparent 79%),
-    radial-gradient(circle at 73% 42%, rgba(204, 235, 255, 0.26), transparent 29%),
-    conic-gradient(from 212deg at 70% 48%, rgba(255, 255, 255, 0.32), rgba(74, 143, 189, 0.08), transparent 24%, rgba(255, 255, 255, 0.2), transparent 59%),
-    linear-gradient(122deg, transparent 0%, rgba(255, 255, 255, 0.16) 35%, transparent 48%, rgba(118, 191, 241, 0.13) 72%, transparent 100%),
-    linear-gradient(135deg, #06111d, #203a52 45%, #0d2234 68%, #02070e);
 }
 
 .club-physical-preview.is-diamond::after {
@@ -3429,15 +3391,9 @@ button:focus-visible {
 
 .club-physical-preview.is-royal {
   --physical-accent: #d8a15e;
+  --physical-bg: url("../assets/club-cards/royal.jpg");
   --physical-glow: rgba(105, 55, 142, 0.32);
   --physical-text: #f2c88b;
-  background:
-    radial-gradient(circle at 43% 40%, rgba(93, 34, 133, 0.76), transparent 33%),
-    radial-gradient(circle at 82% 16%, rgba(216, 161, 94, 0.2), transparent 24%),
-    linear-gradient(101deg, transparent 0 79%, rgba(216, 161, 94, 0.5) 80.2%, rgba(70, 25, 93, 0.42) 84.8%, transparent 92%),
-    radial-gradient(ellipse at 58% 38%, rgba(255, 255, 255, 0.04), transparent 45%),
-    linear-gradient(92deg, rgba(255, 255, 255, 0.018), transparent 38%, rgba(255, 255, 255, 0.012)),
-    linear-gradient(135deg, #07020d, #210735 43%, #0b0315 72%, #020105);
   border-color: rgba(216, 161, 94, 0.34);
 }
 
@@ -3588,6 +3544,7 @@ button:focus-visible {
 
 .club-physical-diamond-crystal {
   position: absolute;
+  display: none;
   top: 50%;
   left: 50%;
   z-index: 0;
