@@ -3302,6 +3302,11 @@ button:focus-visible {
   --physical-ink: color-mix(in srgb, var(--physical-accent) 44%, var(--physical-text));
   --physical-ink-gradient: linear-gradient(92deg, rgba(255, 243, 204, 0.92), var(--physical-ink) 42%, rgba(165, 128, 64, 0.88) 74%, rgba(255, 230, 156, 0.78));
   --physical-label: color-mix(in srgb, var(--physical-accent) 34%, var(--physical-text));
+  --physical-shine: clubCardSheenMember 8.5s ease-in-out infinite;
+  --physical-shine-blur: 24px;
+  --physical-shine-color: color-mix(in srgb, var(--physical-accent) 13%, transparent);
+  --physical-shine-opacity: 0.22;
+  --physical-shine-width: 34%;
   --physical-text: #f5f0e6;
   position: relative;
   display: flex;
@@ -3372,6 +3377,11 @@ button:focus-visible {
   --physical-ink: rgba(232, 237, 245, 0.74);
   --physical-ink-gradient: linear-gradient(94deg, rgba(255, 255, 255, 0.92), rgba(214, 223, 235, 0.76) 46%, rgba(134, 148, 164, 0.82) 74%, rgba(246, 249, 255, 0.76));
   --physical-label: rgba(238, 242, 248, 0.7);
+  --physical-shine: clubCardSheenSilver 7.6s ease-in-out infinite;
+  --physical-shine-blur: 18px;
+  --physical-shine-color: rgba(225, 235, 245, 0.18);
+  --physical-shine-opacity: 0.34;
+  --physical-shine-width: 26%;
   --physical-text: #f6f8fb;
 }
 
@@ -3383,6 +3393,11 @@ button:focus-visible {
   --physical-ink: rgba(255, 221, 139, 0.76);
   --physical-ink-gradient: linear-gradient(92deg, rgba(255, 241, 189, 0.98), rgba(255, 213, 112, 0.82) 42%, rgba(161, 99, 24, 0.84) 74%, rgba(255, 229, 146, 0.88));
   --physical-label: rgba(255, 230, 168, 0.74);
+  --physical-shine: clubCardSheenGold 8.2s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  --physical-shine-blur: 20px;
+  --physical-shine-color: rgba(255, 205, 90, 0.2);
+  --physical-shine-opacity: 0.38;
+  --physical-shine-width: 30%;
   --physical-text: #fff5dc;
 }
 
@@ -3394,6 +3409,11 @@ button:focus-visible {
   --physical-ink: rgba(218, 240, 255, 0.72);
   --physical-ink-gradient: linear-gradient(94deg, rgba(255, 255, 255, 0.94), rgba(204, 233, 255, 0.72) 44%, rgba(101, 164, 210, 0.82) 72%, rgba(239, 249, 255, 0.82));
   --physical-label: rgba(230, 246, 255, 0.7);
+  --physical-shine: clubCardSheenDiamond 6.8s ease-in-out infinite;
+  --physical-shine-blur: 16px;
+  --physical-shine-color: rgba(170, 225, 255, 0.22);
+  --physical-shine-opacity: 0.46;
+  --physical-shine-width: 24%;
   --physical-text: #f7fbff;
 }
 
@@ -3410,9 +3430,14 @@ button:focus-visible {
   --physical-bg: url("../assets/club-cards/royal.jpg");
   --physical-glow: rgba(105, 55, 142, 0.32);
   --physical-engrave: rgba(186, 121, 255, 0.7);
-  --physical-ink: rgba(206, 153, 255, 0.82);
-  --physical-ink-gradient: linear-gradient(92deg, rgba(235, 210, 255, 0.95), rgba(202, 146, 255, 0.84) 42%, rgba(92, 39, 137, 0.86) 74%, rgba(224, 184, 255, 0.9));
+  --physical-ink: rgba(151, 79, 205, 0.86);
+  --physical-ink-gradient: linear-gradient(92deg, rgba(211, 167, 255, 0.88), rgba(151, 79, 205, 0.9) 38%, rgba(50, 18, 78, 0.96) 72%, rgba(177, 105, 236, 0.82));
   --physical-label: rgba(197, 139, 255, 0.74);
+  --physical-shine: clubCardSheenRoyal 9.4s ease-in-out infinite;
+  --physical-shine-blur: 28px;
+  --physical-shine-color: rgba(143, 67, 214, 0.2);
+  --physical-shine-opacity: 0.28;
+  --physical-shine-width: 32%;
   --physical-text: #f2c88b;
   border-color: rgba(216, 161, 94, 0.34);
 }
@@ -3432,36 +3457,108 @@ button:focus-visible {
 .club-physical-shine {
   position: absolute;
   inset: -34% auto -34% 0;
-  width: 38%;
+  width: var(--physical-shine-width);
   background:
     linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent),
-    color-mix(in srgb, var(--physical-accent) 14%, transparent);
-  filter: blur(22px);
-  animation: clubCardSheen 7s ease-in-out infinite;
+    var(--physical-shine-color);
+  filter: blur(var(--physical-shine-blur));
+  animation: var(--physical-shine);
   transform: translateX(-130%) rotate(16deg);
 }
 
-@keyframes clubCardSheen {
+@keyframes clubCardSheenMember {
   0% {
     opacity: 0;
-    transform: translateX(-130%) rotate(16deg);
+    transform: translateX(-135%) rotate(16deg);
   }
 
-  18% {
-    opacity: 0.3;
+  24% {
+    opacity: var(--physical-shine-opacity);
   }
 
-  48% {
-    opacity: 0.18;
-  }
-
-  72% {
-    opacity: 0.28;
+  54% {
+    opacity: 0.12;
   }
 
   100% {
     opacity: 0;
-    transform: translateX(260%) rotate(16deg);
+    transform: translateX(270%) rotate(16deg);
+  }
+}
+
+@keyframes clubCardSheenSilver {
+  0% {
+    opacity: 0;
+    transform: translateX(285%) rotate(-14deg);
+  }
+
+  28% {
+    opacity: var(--physical-shine-opacity);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-145%) rotate(-14deg);
+  }
+}
+
+@keyframes clubCardSheenGold {
+  0% {
+    opacity: 0;
+    transform: translateX(245%) rotate(9deg);
+  }
+
+  34% {
+    opacity: var(--physical-shine-opacity);
+  }
+
+  64% {
+    opacity: 0.18;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-130%) rotate(9deg);
+  }
+}
+
+@keyframes clubCardSheenDiamond {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%) rotate(31deg) scaleY(1.25);
+  }
+
+  22% {
+    opacity: var(--physical-shine-opacity);
+  }
+
+  42% {
+    opacity: 0.16;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(315%) rotate(31deg) scaleY(1.25);
+  }
+}
+
+@keyframes clubCardSheenRoyal {
+  0% {
+    opacity: 0;
+    transform: translateX(260%) rotate(-8deg) scaleY(1.15);
+  }
+
+  30% {
+    opacity: var(--physical-shine-opacity);
+  }
+
+  58% {
+    opacity: 0.12;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-150%) rotate(-8deg) scaleY(1.15);
   }
 }
 
@@ -3616,11 +3713,12 @@ button:focus-visible {
 
 .club-physical-preview.is-royal .club-physical-signature :is(small, strong) {
   color: var(--physical-ink);
-  opacity: 0.9;
+  opacity: 0.86;
   text-shadow:
-    0 1px 0 rgba(255, 230, 184, 0.12),
-    0 -1px 0 rgba(0, 0, 0, 0.82),
-    0 0 14px rgba(215, 164, 109, 0.1);
+    0 1px 0 rgba(236, 208, 255, 0.08),
+    0 -1px 0 rgba(16, 4, 27, 0.9),
+    0 2px 5px rgba(10, 0, 22, 0.38),
+    0 0 16px rgba(112, 44, 177, 0.16);
 }
 
 .club-physical-preview.is-royal::after {
