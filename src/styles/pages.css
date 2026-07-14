@@ -3298,6 +3298,8 @@ button:focus-visible {
   --physical-accent: #d4bd82;
   --physical-bg: url("../assets/club-cards/member.jpg");
   --physical-glow: rgba(212, 189, 130, 0.24);
+  --physical-ink: color-mix(in srgb, var(--physical-accent) 44%, var(--physical-text));
+  --physical-label: color-mix(in srgb, var(--physical-accent) 34%, var(--physical-text));
   --physical-text: #f5f0e6;
   position: relative;
   display: flex;
@@ -3364,6 +3366,8 @@ button:focus-visible {
   --physical-accent: #dce4ef;
   --physical-bg: url("../assets/club-cards/silver.jpg");
   --physical-glow: rgba(214, 229, 241, 0.34);
+  --physical-ink: rgba(232, 237, 245, 0.74);
+  --physical-label: rgba(238, 242, 248, 0.7);
   --physical-text: #f6f8fb;
 }
 
@@ -3371,6 +3375,8 @@ button:focus-visible {
   --physical-accent: #e7bd62;
   --physical-bg: url("../assets/club-cards/gold.jpg");
   --physical-glow: rgba(231, 189, 98, 0.34);
+  --physical-ink: rgba(255, 221, 139, 0.76);
+  --physical-label: rgba(255, 230, 168, 0.74);
   --physical-text: #fff5dc;
 }
 
@@ -3378,6 +3384,8 @@ button:focus-visible {
   --physical-accent: #90d6ff;
   --physical-bg: url("../assets/club-cards/diamond.jpg");
   --physical-glow: rgba(174, 224, 255, 0.42);
+  --physical-ink: rgba(218, 240, 255, 0.72);
+  --physical-label: rgba(230, 246, 255, 0.7);
   --physical-text: #f7fbff;
 }
 
@@ -3393,6 +3401,8 @@ button:focus-visible {
   --physical-accent: #d8a15e;
   --physical-bg: url("../assets/club-cards/royal.jpg");
   --physical-glow: rgba(105, 55, 142, 0.32);
+  --physical-ink: rgba(230, 178, 104, 0.82);
+  --physical-label: rgba(234, 190, 122, 0.78);
   --physical-text: #f2c88b;
   border-color: rgba(216, 161, 94, 0.34);
 }
@@ -3461,19 +3471,21 @@ button:focus-visible {
 }
 
 .club-physical-brand strong {
-  color: color-mix(in srgb, var(--physical-accent) 56%, var(--physical-text));
-  font-family: "Snell Roundhand", "Zapfino", "Brush Script MT", "Segoe Script", cursive;
-  font-size: clamp(34px, 5.1vw, 62px);
+  color: var(--physical-ink);
+  font-family: "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive;
+  font-size: clamp(25px, 3.45vw, 42px);
   font-weight: 400;
-  line-height: 0.78;
+  letter-spacing: 0.01em;
+  line-height: 0.92;
+  opacity: 0.86;
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.1),
-    0 -1px 0 rgba(0, 0, 0, 0.78),
-    0 0 14px color-mix(in srgb, var(--physical-accent) 12%, transparent);
+    0 1px 0 rgba(255, 255, 255, 0.08),
+    0 -1px 0 rgba(0, 0, 0, 0.64),
+    0 0 10px color-mix(in srgb, var(--physical-accent) 9%, transparent);
 }
 
 .club-physical-brand small {
-  color: var(--physical-text);
+  color: var(--physical-label);
   font-size: clamp(11px, 1.55vw, 18px);
   font-weight: 520;
   letter-spacing: 0.42em;
@@ -3485,12 +3497,14 @@ button:focus-visible {
 .club-physical-signature {
   display: grid;
   min-width: 0;
+  width: 100%;
   align-self: center;
   justify-self: center;
   justify-items: center;
-  gap: 8px;
+  gap: 6px;
   color: var(--physical-text);
   font-family: "Snell Roundhand", "Zapfino", "Brush Script MT", "Segoe Script", cursive;
+  padding: 4px 12px 10px;
   text-align: center;
 }
 
@@ -3499,24 +3513,24 @@ button:focus-visible {
 }
 
 .club-physical-signature strong {
-  overflow: hidden;
+  overflow: visible;
   max-width: 100%;
-  color: color-mix(in srgb, var(--physical-accent) 54%, var(--physical-text));
-  font-size: clamp(36px, 5.2vw, 60px);
+  color: var(--physical-ink);
+  font-size: clamp(34px, 4.9vw, 58px);
   font-weight: 400;
-  line-height: 1.08;
-  opacity: 0.92;
+  line-height: 1.28;
+  opacity: 0.9;
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.1),
-    0 -1px 0 rgba(0, 0, 0, 0.72),
-    0 0 12px color-mix(in srgb, var(--physical-accent) 12%, transparent);
+    0 1px 0 rgba(255, 255, 255, 0.08),
+    0 -1px 0 rgba(0, 0, 0, 0.7),
+    0 0 10px color-mix(in srgb, var(--physical-accent) 8%, transparent);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .club-physical-signature-crown {
   margin-bottom: -2px;
-  color: var(--physical-accent);
+  color: var(--physical-ink);
   filter: drop-shadow(0 0 12px color-mix(in srgb, var(--physical-accent) 34%, transparent));
 }
 
@@ -3535,11 +3549,11 @@ button:focus-visible {
 }
 
 .club-physical-preview.is-silver .club-physical-signature :is(small, strong) {
-  color: #dce3ee;
+  color: var(--physical-ink);
 }
 
 .club-physical-preview.is-diamond .club-physical-signature :is(small, strong) {
-  color: #eaf6ff;
+  color: var(--physical-ink);
 }
 
 .club-physical-diamond-crystal {
@@ -3580,7 +3594,7 @@ button:focus-visible {
 }
 
 .club-physical-preview.is-royal .club-physical-signature :is(small, strong) {
-  color: #d7a46d;
+  color: var(--physical-ink);
   opacity: 0.9;
   text-shadow:
     0 1px 0 rgba(255, 230, 184, 0.12),
