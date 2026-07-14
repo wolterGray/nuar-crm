@@ -188,9 +188,9 @@ const getCardLanguage = (card) =>
     : "ru";
 
 const designPreviewCard = {
-  cardLanguage: "pl",
-  client: {name: "Aga Kwaśna"},
-  displayName: "Aga Kwaśna",
+  cardLanguage: "ru",
+  client: null,
+  displayName: "Имя клиента",
   lifetimeVisits: 0,
   rewardAvailable: false,
   stamps: 0,
