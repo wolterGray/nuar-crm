@@ -810,46 +810,47 @@ export default function ClubPage({clients = [], pushNotification}) {
             <span>Статистика NUAR Club</span>
             <strong>Учет карт, визитов и подарков</strong>
           </div>
-          <div className="club-stats-grid">
-            <article>
-              <span>Всего визитов по клубу</span>
-              <strong>{stats.lifetimeVisits}</strong>
-            </article>
-            <article>
-              <span>Доступные подарки</span>
-              <strong>{stats.rewards}</strong>
-            </article>
-            <article>
-              <span>Использованные подарки</span>
-              <strong>{stats.openedGifts}</strong>
-            </article>
-            <article>
-              <span>Архивные карты</span>
-              <strong>{stats.archived}</strong>
-            </article>
-          </div>
-          <div className="club-tier-stat-list">
-            {physicalCardTiers.map((tier) => (
-              <article key={tier.id}>
-                <span className={`club-tier-badge is-${tier.id}`}>{tier.badge}</span>
-                <strong>{stats.tiers[tier.id] || 0}</strong>
-                <small>{tier.threshold}</small>
+          <div className="club-stats-list">
+            <div className="club-stats-list-head">
+              <span>Раздел</span>
+              <span>Показатель</span>
+              <span>Значение</span>
+              <span>Детали</span>
+            </div>
+            {[
+              ["Сводка", "Всего визитов", stats.lifetimeVisits, "Все визиты по NUAR Club"],
+              ["Сводка", "Доступные подарки", stats.rewards, "Сундуки и подарки к выдаче"],
+              ["Сводка", "Использовано", stats.openedGifts, "Выданные подарки"],
+              ["Сводка", "Архив", stats.archived, "Архивные карты"],
+            ].map(([group, label, value, details]) => (
+              <article className="club-stats-list-row" key={label}>
+                <span>{group}</span>
+                <strong>{label}</strong>
+                <b>{value}</b>
+                <em>{details}</em>
               </article>
             ))}
-          </div>
-          <div className="club-client-ledger">
+            {physicalCardTiers.map((tier) => (
+              <article className="club-stats-list-row" key={tier.id}>
+                <span>Уровень</span>
+                <strong><span className={`club-tier-badge is-${tier.id}`}>{tier.badge}</span></strong>
+                <b>{stats.tiers[tier.id] || 0}</b>
+                <em>{tier.threshold}</em>
+              </article>
+            ))}
             {cards.map((card) => {
               const tier = getTierForCard(card);
               const gifts = (Number(card.chestCounts?.available) || 0) + (Number(card.rewardCounts?.available) || 0);
               return (
-                <article key={card.id}>
-                  <span className={`club-tier-badge is-${tier.id}`}>{tier.badge}</span>
+                <article className="club-stats-list-row" key={card.id}>
+                  <span><span className={`club-tier-badge is-${tier.id}`}>{tier.badge}</span></span>
                   <strong>{card.client?.name || "Клиент"}</strong>
-                  <small>{pluralizeVisits(card.lifetimeVisits || 0)} · {card.stamps}/{card.targetStamps} отметок</small>
-                  <em>{gifts ? `${gifts} подарков` : "без подарков"}</em>
+                  <b>{card.stamps}/{card.targetStamps}</b>
+                  <em>{pluralizeVisits(card.lifetimeVisits || 0)} · {gifts ? `${gifts} подарков` : "без подарков"}</em>
                 </article>
               );
             })}
+            {!cards.length ? <p className="club-empty-text">Карт для статистики пока нет.</p> : null}
           </div>
         </section>
       )}
