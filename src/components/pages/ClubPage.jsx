@@ -26,8 +26,11 @@ import {
   deleteLoyaltyCard,
   deleteLoyaltyRewardTemplate,
   earnLoyaltyStamp,
+  fetchLoyaltyClubDetails,
   fetchLoyaltyCards,
   fetchLoyaltyRewardTemplates,
+  openLoyaltyChest,
+  redeemIssuedLoyaltyReward,
   redeemLoyaltyReward,
   reissueLoyaltyLink,
   updateLoyaltyRewardTemplate,
@@ -122,6 +125,13 @@ const cardLanguageOptions = [
   {value: "ru", label: "Русский"},
   {value: "pl", label: "Polski"},
   {value: "en", label: "English"},
+];
+
+const clubTabs = [
+  {id: "cards", label: "Карты клиентов", icon: ShieldCheck},
+  {id: "design", label: "Дизайн карт", icon: Sparkles},
+  {id: "rewards", label: "Подарки", icon: Gift},
+  {id: "stats", label: "Статистика", icon: Star},
 ];
 
 const cardCopyByLanguage = {
@@ -391,6 +401,8 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [manualAdjustmentDescription, setManualAdjustmentDescription] = useState("");
   const [manualAdjustmentSaving, setManualAdjustmentSaving] = useState(false);
   const [rewardTemplates, setRewardTemplates] = useState([]);
+  const [clubDetails, setClubDetails] = useState(null);
+  const [clubDetailsLoading, setClubDetailsLoading] = useState(false);
   const [rewardTemplateForm, setRewardTemplateForm] = useState({
     active: true,
     description: "",
@@ -440,8 +452,22 @@ export default function ClubPage({clients = [], pushNotification}) {
       0,
     );
     const stamps = cards.reduce((total, card) => total + (Number(card.stamps) || 0), 0);
-    return {active, archived, rewards, stamps, total: cards.length};
+    const lifetimeVisits = cards.reduce((total, card) => total + (Number(card.lifetimeVisits) || 0), 0);
+    const tiers = cards.reduce((acc, card) => {
+      const tier = getTierForCard(card).id;
+      acc[tier] = (acc[tier] || 0) + 1;
+      return acc;
+    }, {});
+    const openedGifts = cards.reduce((total, card) => total + (Number(card.rewardCounts?.redeemed) || 0), 0);
+    return {active, archived, lifetimeVisits, openedGifts, rewards, stamps, tiers, total: cards.length};
   }, [cards]);
+
+  const selectedCardDetails = useMemo(() => ({
+    availableChests: clubDetails?.chests?.filter((chest) => chest.status === "available") ?? [],
+    availableRewards: clubDetails?.rewards?.filter((item) => item.status === "available") ?? [],
+    openedChests: clubDetails?.chests?.filter((chest) => chest.status === "opened") ?? [],
+    redeemedRewards: clubDetails?.rewards?.filter((item) => item.status === "redeemed") ?? [],
+  }), [clubDetails]);
 
   const loadCards = async () => {
     setLoading(true);
@@ -473,6 +499,20 @@ export default function ClubPage({clients = [], pushNotification}) {
     setRewardTemplates(response?.data?.items ?? []);
   };
 
+  const loadSelectedClubDetails = async (card = selectedCard) => {
+    if (!card?.id) {
+      setClubDetails(null);
+      return;
+    }
+    setClubDetailsLoading(true);
+    try {
+      const response = await fetchLoyaltyClubDetails(card.id);
+      setClubDetails(response?.data ?? null);
+    } finally {
+      setClubDetailsLoading(false);
+    }
+  };
+
   const notify = (title, message = "") => {
     pushNotification?.({message, title});
   };
@@ -485,6 +525,15 @@ export default function ClubPage({clients = [], pushNotification}) {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "rewards" || !selectedCard?.id) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadSelectedClubDetails(selectedCard).catch((err) => {
+      notify("Подарки клиента не загрузились", err.message || "Проверьте карту клиента");
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, selectedCard?.id]);
 
   const refreshAfterAction = async (response) => {
     const card = response?.data?.card ?? null;
@@ -566,6 +615,20 @@ export default function ClubPage({clients = [], pushNotification}) {
     setRewardTemplateForm((current) => ({...current, description: "", name: "", weight: "1"}));
     await loadRewardTemplates();
     notify("Подарок добавлен");
+  };
+
+  const handleOpenChest = async (chest) => {
+    if (!selectedCard?.id || !chest?.id) return;
+    await openLoyaltyChest(selectedCard.id, chest.id);
+    await Promise.all([loadSelectedClubDetails(selectedCard), loadCards()]);
+    notify("Сундук открыт", selectedCard.client?.name || "");
+  };
+
+  const handleRedeemIssuedReward = async (rewardItem) => {
+    if (!rewardItem?.id) return;
+    await redeemIssuedLoyaltyReward(rewardItem.id);
+    await Promise.all([loadSelectedClubDetails(selectedCard), loadCards()]);
+    notify("Подарок использован", rewardItem.name || "");
   };
 
   const toggleRewardTemplate = async (template) => {
@@ -731,27 +794,22 @@ export default function ClubPage({clients = [], pushNotification}) {
       </div>
 
       <div className="club-tabs">
-        <button
-          className={activeTab === "cards" ? "is-active" : ""}
-          type="button"
-          onClick={() => setActiveTab("cards")}
-        >
-          Карты клиентов
-        </button>
-        <button
-          className={activeTab === "design" ? "is-active" : ""}
-          type="button"
-          onClick={() => setActiveTab("design")}
-        >
-          Дизайн карт
-        </button>
-        <button
-          className={activeTab === "rewards" ? "is-active" : ""}
-          type="button"
-          onClick={() => setActiveTab("rewards")}
-        >
-          Подарки
-        </button>
+        {clubTabs.map((tab) => {
+          const TabIcon = tab.icon;
+          const badge = tab.id === "rewards" ? stats.rewards : tab.id === "cards" ? stats.total : null;
+          return (
+            <button
+              className={activeTab === tab.id ? "is-active" : ""}
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <TabIcon size={15} />
+              <span>{tab.label}</span>
+              {badge ? <em>{badge}</em> : null}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === "cards" ? (
@@ -857,7 +915,7 @@ export default function ClubPage({clients = [], pushNotification}) {
             })}
           </div>
         </section>
-      ) : (
+      ) : activeTab === "rewards" ? (
         <section className="club-physical-designs">
           <div className="club-physical-title">
             <span>Шаблоны подарков</span>
@@ -919,6 +977,116 @@ export default function ClubPage({clients = [], pushNotification}) {
             ))}
             {!rewardTemplates.length ? <p className="club-empty-text">Шаблонов пока нет.</p> : null}
           </div>
+          <div className="club-reward-accounting">
+            <div className="club-physical-title">
+              <span>Подарки клиента</span>
+              <strong>{selectedCard?.client?.name || "Выберите карту"}</strong>
+            </div>
+            {selectedCard ? (
+              <div className="club-reward-account-grid">
+                <article className="club-reward-client-card">
+                  <LoyaltyCard card={selectedCard} tier={getTierForCard(selectedCard)} />
+                  <div>
+                    <strong>{selectedCard.client?.name || "Клиент"}</strong>
+                    <span>{selectedCard.client?.phone || selectedCard.client?.smsName || "Без телефона"}</span>
+                    <small>{selectedCard.stamps}/{selectedCard.targetStamps} отметок · {pluralizeVisits(selectedCard.lifetimeVisits || 0)}</small>
+                  </div>
+                </article>
+                <div className="club-reward-columns">
+                  <section>
+                    <h3>Сундуки</h3>
+                    {selectedCardDetails.availableChests.map((chest) => (
+                      <article className="club-reward-item" key={chest.id}>
+                        <span className={`club-tier-badge is-${String(chest.tier).toLowerCase()}`}>{chest.tier}</span>
+                        <strong>Сундук за {chest.visitNumber || 6} визит</strong>
+                        <button disabled={clubDetailsLoading} type="button" onClick={() => handleOpenChest(chest)}>
+                          Открыть
+                        </button>
+                      </article>
+                    ))}
+                    {!selectedCardDetails.availableChests.length ? <p className="club-empty-text">Доступных сундуков нет.</p> : null}
+                  </section>
+                  <section>
+                    <h3>Подарки</h3>
+                    {selectedCardDetails.availableRewards.map((item) => (
+                      <article className="club-reward-item" key={item.id}>
+                        <span className={`club-tier-badge is-${String(item.tier).toLowerCase()}`}>{item.tier === "ROYAL" ? "ROYALTY" : item.tier}</span>
+                        <strong>{item.name}</strong>
+                        <small>{item.description || "Без описания"}</small>
+                        <button disabled={clubDetailsLoading} type="button" onClick={() => handleRedeemIssuedReward(item)}>
+                          Использовать
+                        </button>
+                      </article>
+                    ))}
+                    {!selectedCardDetails.availableRewards.length ? <p className="club-empty-text">Активных подарков нет.</p> : null}
+                  </section>
+                  <section>
+                    <h3>История</h3>
+                    {[...selectedCardDetails.openedChests, ...selectedCardDetails.redeemedRewards].slice(0, 8).map((item) => (
+                      <article className="club-reward-item is-muted" key={`${item.reward ? "chest" : "reward"}-${item.id}`}>
+                        <span>{item.reward ? "Сундук" : "Подарок"}</span>
+                        <strong>{item.reward?.name || item.name || "NUAR Club"}</strong>
+                        <small>{new Date(item.openedAt || item.redeemedAt || item.createdAt).toLocaleDateString("ru-RU")}</small>
+                      </article>
+                    ))}
+                    {![...selectedCardDetails.openedChests, ...selectedCardDetails.redeemedRewards].length ? (
+                      <p className="club-empty-text">Истории подарков пока нет.</p>
+                    ) : null}
+                  </section>
+                </div>
+              </div>
+            ) : (
+              <p className="club-empty-text">Создайте или выберите карту клиента.</p>
+            )}
+          </div>
+        </section>
+      ) : (
+        <section className="club-physical-designs">
+          <div className="club-physical-title">
+            <span>Статистика NUAR Club</span>
+            <strong>Учет карт, визитов и подарков</strong>
+          </div>
+          <div className="club-stats-grid">
+            <article>
+              <span>Всего визитов по клубу</span>
+              <strong>{stats.lifetimeVisits}</strong>
+            </article>
+            <article>
+              <span>Доступные подарки</span>
+              <strong>{stats.rewards}</strong>
+            </article>
+            <article>
+              <span>Использованные подарки</span>
+              <strong>{stats.openedGifts}</strong>
+            </article>
+            <article>
+              <span>Архивные карты</span>
+              <strong>{stats.archived}</strong>
+            </article>
+          </div>
+          <div className="club-tier-stat-list">
+            {physicalCardTiers.map((tier) => (
+              <article key={tier.id}>
+                <span className={`club-tier-badge is-${tier.id}`}>{tier.badge}</span>
+                <strong>{stats.tiers[tier.id] || 0}</strong>
+                <small>{tier.threshold}</small>
+              </article>
+            ))}
+          </div>
+          <div className="club-client-ledger">
+            {cards.map((card) => {
+              const tier = getTierForCard(card);
+              const gifts = (Number(card.chestCounts?.available) || 0) + (Number(card.rewardCounts?.available) || 0);
+              return (
+                <article key={card.id}>
+                  <span className={`club-tier-badge is-${tier.id}`}>{tier.badge}</span>
+                  <strong>{card.client?.name || "Клиент"}</strong>
+                  <small>{pluralizeVisits(card.lifetimeVisits || 0)} · {card.stamps}/{card.targetStamps} отметок</small>
+                  <em>{gifts ? `${gifts} подарков` : "без подарков"}</em>
+                </article>
+              );
+            })}
+          </div>
         </section>
       )}
 
@@ -960,6 +1128,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </div>
                 <div className="club-card-meta">
                   <span>{card.stamps}/{card.targetStamps}</span>
+                  <span>{pluralizeVisits(card.lifetimeVisits || 0)}</span>
                   <span>{card.chestCounts?.available ? `Сундук ${card.chestCounts.available}` : card.rewardCounts?.available ? `Подарок ${card.rewardCounts.available}` : "В процессе"}</span>
                   <span>{card.isActive ? "Активна" : "Архив"}</span>
                 </div>

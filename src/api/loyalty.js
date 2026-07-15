@@ -79,6 +79,12 @@ export const fetchLoyaltyClubDetails = (cardId) =>
     label: "Loyalty club details",
   });
 
+export const openLoyaltyChest = (cardId, chestId) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}/chests/${chestId}/open`, {
+    label: "Open loyalty chest",
+    method: "POST",
+  });
+
 export const fetchLoyaltyRewardTemplates = () =>
   jsonRequest("/api/loyalty/reward-templates", {
     label: "Loyalty reward templates",

@@ -3005,27 +3005,68 @@ button:focus-visible {
 }
 
 .club-tabs {
-  display: inline-grid;
-  width: fit-content;
-  grid-template-columns: repeat(2, minmax(150px, 1fr));
-  gap: 4px;
-  padding: 4px;
+  display: grid;
+  width: min(100%, 760px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+  padding: 5px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--club-card) 82%, white 3%), var(--club-panel));
 }
 
 .club-tabs button {
-  min-height: 36px;
-  border: 0;
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
   border-radius: 6px;
-  padding: 0 14px;
+  padding: 0 12px;
   color: var(--club-muted);
   background: transparent;
   font-weight: 800;
   cursor: pointer;
+  transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.club-tabs button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.club-tabs button svg {
+  flex: 0 0 auto;
+  opacity: 0.72;
+}
+
+.club-tabs button em {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  padding: 0 6px;
+  color: var(--club-text);
+  background: color-mix(in srgb, var(--club-accent) 72%, var(--club-card));
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
 }
 
 .club-tabs button.is-active {
   color: #fff;
-  background: var(--club-card);
+  border-color: color-mix(in srgb, var(--club-border) 72%, white 8%);
+  background: color-mix(in srgb, var(--club-card) 88%, white 5%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.club-tabs button.is-active svg {
+  color: var(--club-accent);
+  opacity: 1;
 }
 
 .club-create-panel {
@@ -3357,6 +3398,173 @@ button:focus-visible {
 .club-reward-template-row .is-danger {
   color: var(--button-danger-text);
   background: var(--button-danger-bg);
+}
+
+.club-reward-accounting {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--club-border);
+}
+
+.club-reward-account-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.club-reward-client-card,
+.club-stats-grid article,
+.club-tier-stat-list article,
+.club-client-ledger article,
+.club-reward-columns section,
+.club-reward-item {
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--club-card);
+}
+
+.club-reward-client-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 12px;
+}
+
+.club-reward-client-card .club-physical-preview {
+  width: 100%;
+}
+
+.club-reward-client-card div {
+  display: grid;
+  gap: 5px;
+}
+
+.club-reward-client-card span,
+.club-reward-client-card small {
+  color: var(--club-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.club-reward-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+}
+
+.club-reward-columns section {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.club-reward-columns h3 {
+  margin: 0 0 4px;
+  color: var(--club-text);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.club-reward-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 8px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.club-reward-item .club-tier-badge,
+.club-reward-item > span {
+  grid-column: 1 / -1;
+  width: fit-content;
+}
+
+.club-reward-item strong,
+.club-reward-item small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.club-reward-item small,
+.club-reward-item > span {
+  color: var(--club-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.club-reward-item button {
+  align-self: center;
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-md, 8px);
+  padding: 7px 10px;
+  color: var(--club-text);
+  background: var(--club-field);
+  font-weight: 800;
+}
+
+.club-reward-item.is-muted {
+  opacity: 0.72;
+}
+
+.club-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.club-stats-grid article {
+  display: grid;
+  gap: 8px;
+  min-height: 96px;
+  align-content: center;
+  padding: 14px;
+}
+
+.club-stats-grid span,
+.club-tier-stat-list small,
+.club-client-ledger small,
+.club-client-ledger em {
+  color: var(--club-muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.club-stats-grid strong {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.club-tier-stat-list,
+.club-client-ledger {
+  display: grid;
+  gap: 8px;
+}
+
+.club-tier-stat-list {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.club-tier-stat-list article,
+.club-client-ledger article {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.club-tier-stat-list strong {
+  font-size: 22px;
+}
+
+.club-client-ledger article {
+  grid-template-columns: 120px minmax(0, 1fr) minmax(180px, auto) minmax(120px, auto);
+  align-items: center;
 }
 
 .club-physical-preview {
@@ -4971,7 +5179,20 @@ button:focus-visible {
 
   .club-tabs {
     width: 100%;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .club-tabs button {
+    min-height: 46px;
+    flex-direction: column;
+    gap: 3px;
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+
+  .club-tabs button em {
+    position: absolute;
+    transform: translate(18px, -12px);
   }
 
   .club-physical-title {
@@ -5046,7 +5267,15 @@ button:focus-visible {
 
   .club-create-panel,
   .club-toolbar,
-  .club-layout {
+  .club-layout,
+  .club-reward-account-grid,
+  .club-reward-columns,
+  .club-stats-grid,
+  .club-tier-stat-list {
+    grid-template-columns: 1fr;
+  }
+
+  .club-client-ledger article {
     grid-template-columns: 1fr;
   }
 

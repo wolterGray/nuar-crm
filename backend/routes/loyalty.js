@@ -309,6 +309,39 @@ router.get('/loyalty/cards/:cardId/club', async (req, res) => {
   }
 });
 
+router.post('/loyalty/cards/:cardId/chests/:chestId/open', async (req, res) => {
+  try {
+    const cardId = parseId(req.params.cardId, 'cardId');
+    const chestId = parseId(req.params.chestId, 'chestId');
+    const result = await prisma.$transaction(async (tx) => {
+      const card = await tx.loyaltyCard.findUnique({
+        where: { id: cardId },
+        select: { clientId: true, id: true },
+      });
+      if (!card) throw validationError('Loyalty card not found', 404);
+      const opened = await openChest(tx, chestId, { clientId: card.clientId });
+      await recordLoyaltyAudit(tx, req, {
+        action: 'open loyalty chest',
+        after: {
+          chest: serializeChest(opened.chest),
+          reward: serializeReward(opened.reward),
+        },
+        entityId: cardId,
+      });
+      return opened;
+    });
+    res.json({
+      success: true,
+      data: {
+        chest: serializeChest(result.chest),
+        reward: serializeReward(result.reward),
+      },
+    });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
 router.get('/loyalty/reward-templates', requireOwner, async (_req, res) => {
   const templates = await listRewardTemplates(prisma);
   res.json({ success: true, data: { items: templates } });
