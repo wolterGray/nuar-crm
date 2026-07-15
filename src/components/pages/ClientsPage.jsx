@@ -2,17 +2,13 @@ import {
   BarChart2,
   CakeSlice,
   CalendarPlus,
-  Copy,
   Clock3,
-  ExternalLink,
   Eye,
-  Gift,
   MessageSquareText,
   MoreVertical,
   Pencil,
   Phone,
   Plus,
-  QrCode,
   RotateCcw,
   ShieldCheck,
   Trash2,
@@ -37,22 +33,15 @@ import {
   getCertificateBalanceLabel,
 } from "../../utils/certificates.js";
 import PageHeader from "../PageHeader.jsx";
-import LoyaltyQrCode from "../LoyaltyQrCode.jsx";
 import MobileSheet from "../MobileSheet.jsx";
 import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
+import {LoyaltyCard} from "../LoyaltyCardPreview.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
+import {getLoyaltyTierForCard} from "../../utils/loyaltyCardDesign.jsx";
 import {
-  correctLoyaltyBalance,
-  createClientLoyaltyCard,
-  earnLoyaltyStamp,
   fetchClientLoyaltyCard,
-  fetchLoyaltyClubDetails,
-  fetchLoyaltyTransactions,
-  redeemLoyaltyReward,
-  reissueLoyaltyLink,
-  updateLoyaltyCardStatus,
 } from "../../api/loyalty.js";
 
 function ClientRowActions({
@@ -146,32 +135,10 @@ function ClientRowActions({
   );
 }
 
-const loyaltyTypeLabels = {
-  CORRECTION: "Корректировка",
-  EARN: "Начисление",
-  REDEEM: "Награда",
-  REVERSAL: "Откат",
-};
-
-const formatLoyaltyDate = (value) => {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
-
 function ClientLoyaltyCard({client}) {
   const [card, setCard] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [clubDetails, setClubDetails] = useState({chests: [], rewards: [], upcomingVisit: null});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [publicUrl, setPublicUrl] = useState("");
-  const [showQr, setShowQr] = useState(false);
 
   const loadLoyalty = async () => {
     if (!client?.id) return;
@@ -181,17 +148,6 @@ function ClientLoyaltyCard({client}) {
       const cardResponse = await fetchClientLoyaltyCard(client.id);
       const nextCard = cardResponse?.data ?? null;
       setCard(nextCard);
-      if (nextCard?.id) {
-        const [transactionsResponse, clubResponse] = await Promise.all([
-          fetchLoyaltyTransactions(nextCard.id, {pageSize: 8}),
-          fetchLoyaltyClubDetails(nextCard.id),
-        ]);
-        setTransactions(transactionsResponse?.data?.items ?? []);
-        setClubDetails(clubResponse?.data ?? {chests: [], rewards: [], upcomingVisit: null});
-      } else {
-        setTransactions([]);
-        setClubDetails({chests: [], rewards: [], upcomingVisit: null});
-      }
     } catch (err) {
       setError(err.message || "Не удалось загрузить карту");
     } finally {
@@ -207,71 +163,17 @@ function ClientLoyaltyCard({client}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client?.id]);
 
-  const refreshAfterAction = async (response) => {
-    const nextCard = response?.data?.card ?? response?.data?.card?.card ?? null;
-    const nextUrl = response?.data?.publicUrl || nextCard?.publicUrl || "";
-    if (nextUrl) {
-      setPublicUrl(nextUrl);
+  const clientVisits = Number(client.completedVisitsCount ?? client.visitsCount ?? 0) || 0;
+  const previewCard = card
+    ? {
+      ...card,
+      client: card.client || {name: client.name},
+      displayName: card.displayName || client.name,
+      lifetimeVisits: card.lifetimeVisits ?? card.totalVisits ?? clientVisits,
+      totalVisits: card.totalVisits ?? card.lifetimeVisits ?? clientVisits,
     }
-    await loadLoyalty();
-  };
-
-  const handleCreate = async () => {
-    const response = await createClientLoyaltyCard(client.id);
-    await refreshAfterAction(response);
-  };
-
-  const handleCopy = async () => {
-    const url = publicUrl || card?.publicUrl;
-    if (!url) return;
-    await navigator.clipboard?.writeText(url);
-  };
-
-  const handleEarn = async () => {
-    const description = window.prompt("Причина начисления отметки");
-    if (!description?.trim()) return;
-    await refreshAfterAction(await earnLoyaltyStamp(card.id, {description}));
-  };
-
-  const handleRedeem = async () => {
-    if (!window.confirm("Выдать подарок, отправить заполненную карту в архив и выпустить новую?")) return;
-    await refreshAfterAction(await redeemLoyaltyReward(card.id, {
-      description: "Использование награды NUAR Club",
-    }));
-  };
-
-  const handleCorrect = async () => {
-    const amount = Number(window.prompt("Изменение баланса, например 1 или -1"));
-    if (!Number.isInteger(amount) || amount === 0) return;
-    const description = window.prompt("Причина корректировки");
-    if (!description?.trim()) return;
-    await refreshAfterAction(await correctLoyaltyBalance(card.id, {amount, description}));
-  };
-
-  const handleReissue = async () => {
-    if (
-      !window.confirm(
-        "Старая ссылка перестанет работать. Баланс и история карты сохранятся",
-      )
-    ) {
-      return;
-    }
-    await refreshAfterAction(await reissueLoyaltyLink(card.id));
-  };
-
-  const handleStatus = async () => {
-    await refreshAfterAction(await updateLoyaltyCardStatus(card.id, {
-      isActive: !card.isActive,
-    }));
-  };
-
-  const progress = card
-    ? Math.min(100, Math.round((card.stamps / Math.max(1, card.targetStamps || 6)) * 100))
-    : 0;
-  const activePublicUrl = publicUrl || card?.publicUrl || "";
-  const unopenedChests = (clubDetails.chests || []).filter((chest) => chest.status === "available").length;
-  const availableRewards = (clubDetails.rewards || []).filter((reward) => reward.status === "available").length;
-  const legacyRewardReady = Boolean(card?.rewardAvailable) && Number(card?.stamps) >= Number(card?.targetStamps || 6);
+    : null;
+  const activeTier = previewCard ? getLoyaltyTierForCard(previewCard) : null;
 
   return (
     <section className="client-loyalty-card">
@@ -288,93 +190,13 @@ function ClientLoyaltyCard({client}) {
       {error ? <p className="client-loyalty-error">{error}</p> : null}
 
       {!card ? (
-        <button
-          className="client-loyalty-primary"
-          disabled={loading}
-          type="button"
-          onClick={handleCreate}>
-          <Gift size={14} />
-          {loading ? "Загружаем..." : "Создать карту лояльности"}
-        </button>
+        <p className="client-loyalty-empty">
+          {loading ? "Загружаем карту..." : "Карта лояльности пока не создана."}
+        </p>
       ) : (
-        <>
-          <div className="client-loyalty-stats">
-            <span>
-              <small>Баланс</small>
-              <b>{card.stamps}/{card.targetStamps}</b>
-            </span>
-            <span>
-              <small>Статус</small>
-              <b>{card.isActive ? "Активна" : "Архив"}</b>
-            </span>
-            <span>
-              <small>Награда</small>
-              <b>{unopenedChests ? `Сундук ${unopenedChests}` : availableRewards ? `Подарок ${availableRewards}` : "Пока нет"}</b>
-            </span>
-            <span>
-              <small>Всего визитов</small>
-              <b>{card.lifetimeVisits ?? card.stamps}</b>
-            </span>
-            <span>
-              <small>Последнее</small>
-              <b>{formatLoyaltyDate(card.lastTransactionAt)}</b>
-            </span>
-          </div>
-
-          <div className="client-loyalty-progress">
-            <span style={{width: `${progress}%`}} />
-          </div>
-
-          {activePublicUrl ? (
-            <div className="client-loyalty-link">
-              <span>{activePublicUrl}</span>
-              <button type="button" onClick={handleCopy}>
-                <Copy size={13} />
-              </button>
-              <a href={activePublicUrl} rel="noreferrer" target="_blank">
-                <ExternalLink size={13} />
-              </a>
-            </div>
-          ) : null}
-
-          <div className="client-loyalty-actions">
-            <button type="button" onClick={handleEarn}>Начислить</button>
-            <button disabled={!legacyRewardReady || !card.isActive} type="button" onClick={handleRedeem}>
-              Использовать
-            </button>
-            <button type="button" onClick={handleCorrect}>Коррекция</button>
-            <button type="button" onClick={() => setShowQr((value) => !value)}>
-              <QrCode size={13} />
-              QR
-            </button>
-            <button type="button" onClick={handleReissue}>Перевыпуск</button>
-            <button type="button" onClick={handleStatus}>
-              {card.isActive ? "Отключить" : "Включить"}
-            </button>
-          </div>
-
-          {showQr && activePublicUrl ? (
-            <div className="client-loyalty-qr-panel">
-              <LoyaltyQrCode value={activePublicUrl} />
-            </div>
-          ) : null}
-
-          <div className="client-loyalty-history">
-            {transactions.length === 0 ? (
-              <span>Операций пока нет.</span>
-            ) : (
-              transactions.map((transaction) => (
-                <div key={transaction.id}>
-                  <strong>{loyaltyTypeLabels[transaction.type] || transaction.type}</strong>
-                  <span>{transaction.amount > 0 ? "+" : ""}{transaction.amount}</span>
-                  <small>
-                    {formatLoyaltyDate(transaction.createdAt)} · баланс {transaction.balanceAfter}
-                  </small>
-                </div>
-              ))
-            )}
-          </div>
-        </>
+        <div className="client-loyalty-preview">
+          <LoyaltyCard card={previewCard} tier={activeTier} />
+        </div>
       )}
     </section>
   );

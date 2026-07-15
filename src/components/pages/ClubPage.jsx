@@ -1,11 +1,8 @@
 import {
   Copy,
-  Crown,
   ExternalLink,
-  Gem,
   Gift,
   PencilLine,
-  Medal,
   Link2,
   MoreHorizontal,
   Power,
@@ -19,6 +16,16 @@ import {
   X,
 } from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
+import {LoyaltyCard} from "../LoyaltyCardPreview.jsx";
+import {
+  cardLanguageOptions,
+  designPreviewCard,
+  getCardLanguage,
+  getLoyaltyTierForCard as getTierForCard,
+  getTierProgressInfo,
+  physicalCardTiers,
+  pluralizeVisits,
+} from "../../utils/loyaltyCardDesign.jsx";
 import {
   correctLoyaltyBalance,
   createClientLoyaltyCard,
@@ -45,260 +52,12 @@ import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
 const getCardProgress = (card) =>
   Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 6)) * 100));
 
-const pluralizeVisits = (count) => {
-  const value = Math.abs(Number(count) || 0);
-  const lastTwo = value % 100;
-  const last = value % 10;
-
-  if (lastTwo >= 11 && lastTwo <= 14) return `${count} визитов`;
-  if (last === 1) return `${count} визит`;
-  if (last >= 2 && last <= 4) return `${count} визита`;
-  return `${count} визитов`;
-};
-
-const physicalCardTiers = [
-  {
-    id: "member",
-    name: "Member",
-    displayName: "Member",
-    signature: "NUAR MEMBER",
-    title: "NUAR MEMBER",
-    minVisits: 0,
-    threshold: "От 0 визитов",
-    badge: "MEMBER",
-    benefits: ["Участие в NUAR Club"],
-    icon: ShieldCheck,
-  },
-  {
-    id: "silver",
-    name: "Silver",
-    displayName: "Silver",
-    signature: "SILVER",
-    title: "NUAR SILVER",
-    minVisits: 3,
-    threshold: "От 3 визитов",
-    badge: "SILVER",
-    benefits: ["Персональные предложения", "Дополнительные бонусы"],
-    icon: Medal,
-  },
-  {
-    id: "gold",
-    name: "Gold",
-    displayName: "Gold",
-    signature: "GOLD",
-    title: "NUAR GOLD",
-    minVisits: 10,
-    threshold: "От 10 визитов",
-    badge: "GOLD",
-    benefits: ["Повышенные привилегии", "Приоритетные предложения"],
-    icon: Star,
-  },
-  {
-    id: "diamond",
-    name: "Diamond",
-    displayName: "Diamond",
-    signature: "DIAMOND",
-    title: "NUAR DIAMOND",
-    minVisits: 20,
-    threshold: "От 20 визитов",
-    badge: "DIAMOND",
-    benefits: ["VIP-привилегии", "Приоритетная запись"],
-    icon: Gem,
-  },
-  {
-    id: "royal",
-    name: "Royalty",
-    displayName: "Royalty",
-    signature: "ROYALTY",
-    title: "NUAR ROYALTY",
-    minVisits: 50,
-    threshold: "От 50 визитов",
-    badge: "ROYALTY",
-    description: "Эксклюзивный статус",
-    benefits: ["Эксклюзивные привилегии", "Особые предложения NUAR"],
-    isSecret: true,
-    icon: Crown,
-  },
-];
-
-const cardLanguageOptions = [
-  {value: "ru", label: "Русский"},
-  {value: "pl", label: "Polski"},
-  {value: "en", label: "English"},
-];
-
 const clubTabs = [
   {id: "cards", label: "Карты клиентов", icon: ShieldCheck},
   {id: "design", label: "Дизайн карт", icon: Sparkles},
   {id: "rewards", label: "Подарки", icon: Gift},
   {id: "stats", label: "Статистика", icon: Star},
 ];
-
-const cardCopyByLanguage = {
-  en: {
-    gift: "gift",
-    massageGift: "free massage",
-    loyaltyCard: "loyalty card",
-  },
-  pl: {
-    gift: "prezent",
-    massageGift: "darmowy masaz",
-    loyaltyCard: "karta lojalnosciowa",
-  },
-  ru: {
-    gift: "подарок",
-    massageGift: "бесплатный массаж",
-    loyaltyCard: "карта лояльности",
-  },
-};
-
-const getTierForCard = (card) => {
-  const tier = String(card?.tier || "").toLowerCase();
-  if (tier) {
-    return physicalCardTiers.find((item) => item.id === (tier === "royalty" ? "royal" : tier)) || physicalCardTiers[0];
-  }
-  const visits = Math.max(0, Number(card?.lifetimeVisits ?? card?.stamps) || 0);
-  if (visits >= 50) return physicalCardTiers.find((item) => item.id === "royal");
-  if (visits >= 20) return physicalCardTiers.find((item) => item.id === "diamond");
-  if (visits >= 10) return physicalCardTiers.find((item) => item.id === "gold");
-  if (visits >= 3) return physicalCardTiers.find((item) => item.id === "silver");
-  return physicalCardTiers[0];
-};
-
-const getTierProgressInfo = (tier, visits = tier.minVisits, {publicView = false} = {}) => {
-  const tierIndex = physicalCardTiers.findIndex((item) => item.id === tier.id);
-  const nextTier = physicalCardTiers[tierIndex + 1];
-  const safeVisits = Math.max(0, Number(visits) || 0);
-
-  if (tier.id === "royal") {
-    return {
-      title: tier.displayName,
-      threshold: "Эксклюзивный уровень",
-      next: "Максимальный статус NUAR Club",
-    };
-  }
-
-  if (!nextTier || (publicView && nextTier.isSecret)) {
-    return {
-      title: tier.displayName,
-      threshold: tier.threshold,
-      next: "Дальнейшие привилегии открываются автоматически",
-    };
-  }
-
-  const left = Math.max(0, nextTier.minVisits - safeVisits);
-  return {
-    title: tier.displayName,
-    threshold: tier.threshold,
-    next: left > 0
-      ? `До ${nextTier.displayName} осталось ${pluralizeVisits(left)}`
-      : `${nextTier.displayName} доступен`,
-  };
-};
-
-const getCardLanguage = (card) =>
-  cardLanguageOptions.some((option) => option.value === card?.cardLanguage)
-    ? card.cardLanguage
-    : "ru";
-
-const designPreviewCard = {
-  cardLanguage: "ru",
-  client: null,
-  displayName: "Имя клиента",
-  lifetimeVisits: 0,
-  rewardAvailable: false,
-  stamps: 0,
-};
-
-function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
-  const clientName = card?.client?.name || card?.displayName || "Имя клиента";
-  const language = getCardLanguage(card);
-  const copy = cardCopyByLanguage[language];
-  const stamps = Math.min(6, Math.max(0, Number(card?.stamps) || 0));
-  const visits = Math.max(0, Number(card?.lifetimeVisits ?? card?.totalVisits ?? card?.stamps) || 0);
-  const tierInfo = getTierProgressInfo(tier, visits);
-  const TierIcon = tier.icon;
-  const isRewardReady = Boolean(card?.rewardAvailable) && stamps >= 6;
-  const tierAria = `${tier.title}, ${clientName}, прогресс ${stamps} из 6`;
-  const tierIndex = physicalCardTiers.findIndex((item) => item.id === tier.id);
-  const nextTier = physicalCardTiers[tierIndex + 1];
-  const visitLabel = language === "pl" ? "WIZYT" : language === "en" ? "VISITS" : "ВИЗИТОВ";
-  const currentLabel = language === "pl"
-    ? `${visits} wizyt`
-    : language === "en"
-      ? `${visits} visits`
-      : `${visits} визит${visits === 1 ? "" : "ов"}`;
-  const fromLabel = language === "pl"
-    ? `OD ${tier.minVisits} ${visitLabel}`
-    : language === "en"
-      ? `FROM ${tier.minVisits} ${visitLabel}`
-      : `ОТ ${tier.minVisits} ${visitLabel}`;
-  const nextLabel = tier.id === "royal"
-    ? language === "pl"
-      ? "EKSKLUZYWNY STATUS"
-      : language === "en"
-        ? "EXCLUSIVE STATUS"
-        : "ЭКСКЛЮЗИВНЫЙ СТАТУС"
-    : nextTier
-      ? language === "pl"
-        ? `DO ${nextTier.badge}: ${nextTier.minVisits} ${visitLabel}`
-        : language === "en"
-          ? `TO ${nextTier.badge}: ${nextTier.minVisits} ${visitLabel}`
-          : `ДО ${nextTier.badge}: ${nextTier.minVisits} ${visitLabel}`
-      : tierInfo.next.replace(" осталось ", ": ");
-  const footerStart = tier.id === "member" ? `${stamps} / 6` : fromLabel;
-  const footerEnd = tier.id === "member" ? currentLabel : nextLabel;
-
-  return (
-    <article
-      aria-label={tierAria}
-      className={`club-physical-preview is-${tier.id} ${isRewardReady ? "is-reward-ready" : ""}`}
-      tabIndex={0}>
-      <span aria-hidden="true" className="club-physical-shine" />
-      {TierIcon ? (
-        <span aria-label={`Уровень ${tier.displayName}`} className="club-physical-tier-mark" role="img">
-          <TierIcon size={27} strokeWidth={1.65} />
-        </span>
-      ) : null}
-      {tier.id === "diamond" ? <span aria-hidden="true" className="club-physical-diamond-crystal" /> : null}
-      <span className="club-physical-topline">
-        <span className="club-physical-brand">
-          <strong>Nuar</strong>
-          <small>{tier.badge}</small>
-        </span>
-      </span>
-
-      <span className="club-physical-signature">
-        <small>{copy.loyaltyCard}</small>
-        {tier.id === "royal" ? <Crown aria-hidden="true" className="club-physical-signature-crown" size={28} strokeWidth={1.55} /> : null}
-        <strong>{clientName}</strong>
-      </span>
-
-      <span className="club-physical-bottomline">
-        <span
-          aria-label={`Отметки карты: ${stamps} из 6`}
-          className="club-physical-stamps"
-          role="list">
-          {Array.from({length: 6}).map((_, index) => (
-            <i
-              aria-label={index === 5 ? `Наградная отметка: ${copy.gift}` : `Отметка ${index + 1}`}
-              className={`${index < stamps ? "is-filled" : ""} ${index === 5 ? "is-gift" : ""} ${index === 5 && isRewardReady ? "is-ready" : ""}`}
-              key={index}
-              role="listitem"
-              title={index === 5 ? copy.gift : undefined}
-            >
-              {index === 5 ? <Gift size={13} /> : ""}
-            </i>
-          ))}
-        </span>
-        <span className="club-physical-card-foot">
-          <span aria-label={`Цифровой прогресс ${stamps} из 6`} className="club-physical-progress">{footerStart}</span>
-          <span>{footerEnd}</span>
-        </span>
-      </span>
-    </article>
-  );
-}
 
 function ClubCardMenu({
   card,
@@ -983,56 +742,61 @@ export default function ClubPage({clients = [], pushNotification}) {
               <strong>{selectedCard?.client?.name || "Выберите карту"}</strong>
             </div>
             {selectedCard ? (
-              <div className="club-reward-account-grid">
-                <article className="club-reward-client-card">
-                  <LoyaltyCard card={selectedCard} tier={getTierForCard(selectedCard)} />
+              <div className="club-reward-ledger">
+                <article className="club-reward-client-line">
+                  <span className={`club-tier-badge is-${getTierForCard(selectedCard).id}`}>
+                    {getTierForCard(selectedCard).badge}
+                  </span>
                   <div>
                     <strong>{selectedCard.client?.name || "Клиент"}</strong>
                     <span>{selectedCard.client?.phone || selectedCard.client?.smsName || "Без телефона"}</span>
-                    <small>{selectedCard.stamps}/{selectedCard.targetStamps} отметок · {pluralizeVisits(selectedCard.lifetimeVisits || 0)}</small>
                   </div>
+                  <em>{selectedCard.stamps}/{selectedCard.targetStamps} отметок</em>
+                  <em>{pluralizeVisits(selectedCard.lifetimeVisits || 0)}</em>
+                  <em>{selectedCardDetails.availableChests.length + selectedCardDetails.availableRewards.length} доступно</em>
                 </article>
-                <div className="club-reward-columns">
-                  <section>
-                    <h3>Сундуки</h3>
-                    {selectedCardDetails.availableChests.map((chest) => (
-                      <article className="club-reward-item" key={chest.id}>
-                        <span className={`club-tier-badge is-${String(chest.tier).toLowerCase()}`}>{chest.tier}</span>
+                <div className="club-reward-list">
+                  {selectedCardDetails.availableChests.map((chest) => (
+                    <article className="club-reward-list-row" key={`chest-${chest.id}`}>
+                      <span className="club-reward-kind">Сундук</span>
+                      <span className={`club-tier-badge is-${String(chest.tier).toLowerCase()}`}>{chest.tier}</span>
+                      <div>
                         <strong>Сундук за {chest.visitNumber || 6} визит</strong>
-                        <button disabled={clubDetailsLoading} type="button" onClick={() => handleOpenChest(chest)}>
-                          Открыть
-                        </button>
-                      </article>
-                    ))}
-                    {!selectedCardDetails.availableChests.length ? <p className="club-empty-text">Доступных сундуков нет.</p> : null}
-                  </section>
-                  <section>
-                    <h3>Подарки</h3>
-                    {selectedCardDetails.availableRewards.map((item) => (
-                      <article className="club-reward-item" key={item.id}>
-                        <span className={`club-tier-badge is-${String(item.tier).toLowerCase()}`}>{item.tier === "ROYAL" ? "ROYALTY" : item.tier}</span>
+                        <small>Откройте, чтобы выдать подарок клиенту</small>
+                      </div>
+                      <button disabled={clubDetailsLoading} type="button" onClick={() => handleOpenChest(chest)}>
+                        Открыть
+                      </button>
+                    </article>
+                  ))}
+                  {selectedCardDetails.availableRewards.map((item) => (
+                    <article className="club-reward-list-row" key={`reward-${item.id}`}>
+                      <span className="club-reward-kind">Подарок</span>
+                      <span className={`club-tier-badge is-${String(item.tier).toLowerCase()}`}>{item.tier === "ROYAL" ? "ROYALTY" : item.tier}</span>
+                      <div>
                         <strong>{item.name}</strong>
                         <small>{item.description || "Без описания"}</small>
-                        <button disabled={clubDetailsLoading} type="button" onClick={() => handleRedeemIssuedReward(item)}>
-                          Использовать
-                        </button>
-                      </article>
-                    ))}
-                    {!selectedCardDetails.availableRewards.length ? <p className="club-empty-text">Активных подарков нет.</p> : null}
-                  </section>
-                  <section>
-                    <h3>История</h3>
-                    {[...selectedCardDetails.openedChests, ...selectedCardDetails.redeemedRewards].slice(0, 8).map((item) => (
-                      <article className="club-reward-item is-muted" key={`${item.reward ? "chest" : "reward"}-${item.id}`}>
-                        <span>{item.reward ? "Сундук" : "Подарок"}</span>
+                      </div>
+                      <button disabled={clubDetailsLoading} type="button" onClick={() => handleRedeemIssuedReward(item)}>
+                        Использовать
+                      </button>
+                    </article>
+                  ))}
+                  {[...selectedCardDetails.openedChests, ...selectedCardDetails.redeemedRewards].slice(0, 8).map((item) => (
+                    <article className="club-reward-list-row is-muted" key={`history-${item.reward ? "chest" : "reward"}-${item.id}`}>
+                      <span className="club-reward-kind">{item.reward ? "Сундук" : "Подарок"}</span>
+                      <span>{new Date(item.openedAt || item.redeemedAt || item.createdAt).toLocaleDateString("ru-RU")}</span>
+                      <div>
                         <strong>{item.reward?.name || item.name || "NUAR Club"}</strong>
-                        <small>{new Date(item.openedAt || item.redeemedAt || item.createdAt).toLocaleDateString("ru-RU")}</small>
-                      </article>
-                    ))}
-                    {![...selectedCardDetails.openedChests, ...selectedCardDetails.redeemedRewards].length ? (
-                      <p className="club-empty-text">Истории подарков пока нет.</p>
+                        <small>{item.reward ? "Открыт" : "Использован"}</small>
+                      </div>
+                    </article>
+                  ))}
+                  {!selectedCardDetails.availableChests.length &&
+                    !selectedCardDetails.availableRewards.length &&
+                    ![...selectedCardDetails.openedChests, ...selectedCardDetails.redeemedRewards].length ? (
+                      <p className="club-empty-text">Подарков и сундуков пока нет.</p>
                     ) : null}
-                  </section>
                 </div>
               </div>
             ) : (
