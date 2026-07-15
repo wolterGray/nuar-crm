@@ -473,17 +473,18 @@ export default function ClubPage({clients = [], pushNotification}) {
     setRewardTemplates(response?.data?.items ?? []);
   };
 
+  const notify = (title, message = "") => {
+    pushNotification?.({message, title});
+  };
+
   useEffect(() => {
     if (activeTab !== "rewards") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadRewardTemplates().catch((err) => {
       notify("Подарки не загрузились", err.message || "Проверьте права владельца");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
-
-  const notify = (title, message = "") => {
-    pushNotification?.({message, title});
-  };
 
   const refreshAfterAction = async (response) => {
     const card = response?.data?.card ?? null;

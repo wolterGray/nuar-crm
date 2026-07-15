@@ -6,9 +6,11 @@ const loyaltyService = require("../../backend/services/loyaltyService.js");
 
 const makePrismaStub = () => {
   let cardId = 1;
+  let chestId = 1;
   let transactionId = 1;
   const db = {
     cards: [],
+    chests: [],
     clients: [
       {
         email: "anna@example.com",
@@ -26,6 +28,8 @@ const makePrismaStub = () => {
       },
     },
     transactions: [],
+    rewards: [],
+    visits: [],
   };
 
   const cloneCard = (card, include = {}) => {
@@ -39,6 +43,9 @@ const makePrismaStub = () => {
         .filter((transaction) => transaction.loyaltyCardId === card.id)
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
         .slice(0, include.transactions.take ?? db.transactions.length);
+    }
+    if (include.chests) {
+      next.chests = db.chests.filter((chest) => chest.loyaltyCardId === card.id);
     }
     return next;
   };
@@ -54,6 +61,9 @@ const makePrismaStub = () => {
     }
     if (where.publicTokenHash) {
       return db.cards.find((card) => card.publicTokenHash === where.publicTokenHash) ?? null;
+    }
+    if (where.publicCode) {
+      return db.cards.find((card) => card.publicCode === where.publicCode) ?? null;
     }
     return null;
   };
@@ -123,6 +133,51 @@ const makePrismaStub = () => {
         return {count: cards.length};
       }),
     },
+    loyaltyChest: {
+      count: vi.fn(async ({where}) =>
+        db.chests.filter((chest) =>
+          Object.entries(where).every(([key, value]) => chest[key] === value),
+        ).length,
+      ),
+      findMany: vi.fn(async ({where}) =>
+        db.chests
+          .filter((chest) => Object.entries(where).every(([key, value]) => chest[key] === value))
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
+      ),
+      upsert: vi.fn(async ({where, update, create}) => {
+        const key = where.loyaltyCardId_visitNumber;
+        const existing = db.chests.find((chest) =>
+          chest.loyaltyCardId === key.loyaltyCardId && chest.visitNumber === key.visitNumber,
+        );
+        if (existing) {
+          Object.assign(existing, update);
+          return existing;
+        }
+        const chest = {
+          createdAt: new Date(),
+          id: chestId,
+          openedAt: null,
+          reward: null,
+          status: "available",
+          ...create,
+        };
+        chestId += 1;
+        db.chests.push(chest);
+        return chest;
+      }),
+    },
+    loyaltyReward: {
+      count: vi.fn(async ({where}) =>
+        db.rewards.filter((reward) =>
+          Object.entries(where).every(([key, value]) => reward[key] === value),
+        ).length,
+      ),
+      findMany: vi.fn(async ({where}) =>
+        db.rewards.filter((reward) =>
+          Object.entries(where).every(([key, value]) => reward[key] === value),
+        ),
+      ),
+    },
     loyaltyTransaction: {
       create: vi.fn(async ({data}) => {
         if (
@@ -156,6 +211,9 @@ const makePrismaStub = () => {
     },
     systemState: {
       findUnique: vi.fn(async ({where}) => (where.key === db.systemState.key ? db.systemState : null)),
+    },
+    visit: {
+      findMany: vi.fn(async () => db.visits),
     },
     __db: db,
   };
@@ -203,8 +261,10 @@ describe("loyalty service safety helpers", () => {
     const result = await loyaltyService.createCardForClient(prisma, 1, {cardLanguage: "pl"});
 
     expect(result.publicToken).toHaveLength(43);
-    expect(result.publicUrl).toBe(`https://nuarr.pl/club/${result.publicToken}`);
+    expect(result.publicCode).toMatch(/^[A-Z0-9]{8}$/);
+    expect(result.publicUrl).toBe(`https://nuarr.pl/club/${result.publicCode}`);
     expect(result.card.cardLanguage).toBe("pl");
+    expect(result.card.publicCode).toBe(result.publicCode);
     expect(result.card.publicToken).toBe(result.publicToken);
     expect(result.card.publicTokenHash).toBe(loyaltyService.hashPublicToken(result.publicToken));
     expect(result.card.publicTokenHash).not.toContain(result.publicToken);
@@ -218,8 +278,9 @@ describe("loyalty service safety helpers", () => {
 
   it("opens active public cards by token and returns no private client fields", async () => {
     const prisma = makePrismaStub();
-    const {publicToken} = await loyaltyService.createCardForClient(prisma, 1);
+    const {publicCode, publicToken} = await loyaltyService.createCardForClient(prisma, 1);
     const publicCard = await loyaltyService.getPublicCardByToken(prisma, publicToken);
+    const shortPublicCard = await loyaltyService.getPublicCardByToken(prisma, publicCode);
 
     expect(publicCard).toMatchObject({
       bookingUrl: "https://nuarr.pl/book",
@@ -229,6 +290,11 @@ describe("loyalty service safety helpers", () => {
       tier: "MEMBER",
       stamps: 0,
       targetStamps: 6,
+    });
+    expect(shortPublicCard).toMatchObject({
+      displayName: "Anna K.",
+      publicCode,
+      publicUrl: `https://nuarr.pl/club/${publicCode}`,
     });
     expect(publicCard.cardNumber).toMatch(/^\d{4} • \d{4} • \d{4}$/);
     expect(publicCard).not.toHaveProperty("clientId");
@@ -261,9 +327,11 @@ describe("loyalty service safety helpers", () => {
 
     await prisma.loyaltyCard.update({where: {id: card.id}, data: {isActive: true}});
     const nextToken = await loyaltyService.createUniqueTokenPayload(prisma);
+    const nextPublicCode = await loyaltyService.createUniquePublicCode(prisma);
     await prisma.loyaltyCard.update({
       where: {id: card.id},
       data: {
+        publicCode: nextPublicCode,
         publicToken: nextToken.publicToken,
         publicTokenHash: nextToken.publicTokenHash,
       },
@@ -271,6 +339,9 @@ describe("loyalty service safety helpers", () => {
 
     expect(await loyaltyService.getPublicCardByToken(prisma, publicToken)).toBeNull();
     expect(await loyaltyService.getPublicCardByToken(prisma, nextToken.publicToken)).toMatchObject({
+      displayName: "Anna K.",
+    });
+    expect(await loyaltyService.getPublicCardByToken(prisma, nextPublicCode)).toMatchObject({
       displayName: "Anna K.",
     });
   });
@@ -359,7 +430,7 @@ describe("loyalty service safety helpers", () => {
     }
 
     const filled = await prisma.loyaltyCard.findUnique({where: {id: card.id}});
-    expect(filled.stamps).toBe(6);
+    expect(filled.stamps).toBe(0);
     expect(filled.lifetimeVisits).toBe(6);
     expect(filled.rewardAvailable).toBe(true);
 
@@ -369,13 +440,13 @@ describe("loyalty service safety helpers", () => {
       id: card.id,
       isActive: false,
       rewardAvailable: false,
-      stamps: 6,
+      stamps: 0,
     });
     expect(redeemed.archivedCard.archivedAt).toBeInstanceOf(Date);
     expect(redeemed.transaction).toMatchObject({
       amount: 0,
-      balanceAfter: 6,
-      balanceBefore: 6,
+      balanceAfter: 0,
+      balanceBefore: 0,
       type: "REDEEM",
     });
     expect(redeemed.card).toMatchObject({

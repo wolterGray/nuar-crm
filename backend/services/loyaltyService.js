@@ -3,6 +3,9 @@ const crypto = require('crypto');
 const DEFAULT_TARGET_STAMPS = 6;
 const LOYALTY_SETTINGS_KEY = 'loyaltyProgramSettings';
 const TOKEN_BYTES = 32;
+const PUBLIC_CODE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const PUBLIC_CODE_LENGTH = 8;
+const PUBLIC_CODE_PATTERN = /^[A-Z0-9]{8}$/;
 const CARD_LANGUAGES = new Set(['ru', 'pl', 'en']);
 
 const normalizeText = (value) => String(value ?? '').trim();
@@ -17,11 +20,24 @@ const hashPublicToken = (token) =>
 
 const generatePublicToken = () => crypto.randomBytes(TOKEN_BYTES).toString('base64url');
 
+const generatePublicCode = () => {
+  let code = '';
+  for (let index = 0; index < PUBLIC_CODE_LENGTH; index += 1) {
+    code += PUBLIC_CODE_ALPHABET[crypto.randomInt(PUBLIC_CODE_ALPHABET.length)];
+  }
+  return code;
+};
+
+const normalizePublicCode = (value) => {
+  const code = normalizeText(value).toUpperCase();
+  return PUBLIC_CODE_PATTERN.test(code) ? code : null;
+};
+
 const getPublicBaseUrl = () =>
   String(process.env.LOYALTY_PUBLIC_BASE_URL || process.env.PUBLIC_SITE_URL || 'https://nuarr.pl')
     .replace(/\/$/, '');
 
-const buildPublicUrl = (token) => `${getPublicBaseUrl()}/club/${token}`;
+const buildPublicUrl = (identifier) => `${getPublicBaseUrl()}/club/${identifier}`;
 
 const getActorUserId = (req) => {
   const id = Number(req?.auth?.id || req?.auth?.sub);
@@ -176,7 +192,7 @@ const serializeUpcomingVisit = (visit) => {
 const serializeCard = (card, publicToken = null) => {
   if (!card) return null;
   const latest = card.transactions?.[0] ?? null;
-  const storedPublicToken = publicToken || card.publicToken || null;
+  const storedPublicIdentifier = card.publicCode || publicToken || card.publicToken || null;
   return {
     id: card.id,
     cardLanguage: normalizeCardLanguage(card.cardLanguage),
@@ -188,7 +204,8 @@ const serializeCard = (card, publicToken = null) => {
     isActive: card.isActive,
     lastTransactionAt: latest?.createdAt ?? null,
     lifetimeVisits: card.lifetimeVisits,
-    publicUrl: storedPublicToken ? buildPublicUrl(storedPublicToken) : null,
+    publicCode: card.publicCode,
+    publicUrl: storedPublicIdentifier ? buildPublicUrl(storedPublicIdentifier) : null,
     rewardAvailable: card.rewardAvailable,
     chestCounts: card.chests ? {
       available: card.chests.filter((chest) => normalizeStatus(chest.status) === 'available').length,
@@ -274,6 +291,20 @@ const createUniqueTokenPayload = async (tx) => {
   throw validationError('Could not create unique loyalty link', 500);
 };
 
+const createUniquePublicCode = async (tx) => {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const publicCode = generatePublicCode();
+    const existing = await tx.loyaltyCard.findUnique({
+      where: { publicCode },
+      select: { id: true },
+    });
+    if (!existing) {
+      return publicCode;
+    }
+  }
+  throw validationError('Could not create unique public loyalty code', 500);
+};
+
 const findCardForClient = (tx, clientId) =>
   tx.loyaltyCard.findFirst({
     where: { clientId, isActive: true },
@@ -305,10 +336,12 @@ const createCardForClient = async (tx, clientId, { cardLanguage = 'ru' } = {}) =
 
   const settings = await getProgramSettings(tx);
   const { publicToken, publicTokenHash } = await createUniqueTokenPayload(tx);
+  const publicCode = await createUniquePublicCode(tx);
   const card = await tx.loyaltyCard.create({
     data: {
       clientId,
       cardLanguage: normalizeCardLanguage(cardLanguage),
+      publicCode,
       publicToken,
       publicTokenHash,
       targetStamps: settings.targetStamps,
@@ -323,8 +356,9 @@ const createCardForClient = async (tx, clientId, { cardLanguage = 'ru' } = {}) =
 
   return {
     card,
+    publicCode,
     publicToken,
-    publicUrl: buildPublicUrl(publicToken),
+    publicUrl: buildPublicUrl(publicCode),
   };
 };
 
@@ -455,13 +489,13 @@ const redeemRewardAndReissue = async (tx, cardId, {
     throw validationError('Only active loyalty cards can redeem rewards');
   }
 
-  const targetStamps = Math.max(1, card.targetStamps || DEFAULT_TARGET_STAMPS);
-  if (card.stamps < targetStamps || !card.rewardAvailable) {
+  if (!card.rewardAvailable) {
     throw validationError('Not enough loyalty stamps');
   }
 
   const settings = await getProgramSettings(tx);
   const { publicToken, publicTokenHash } = await createUniqueTokenPayload(tx);
+  const publicCode = await createUniquePublicCode(tx);
   const transaction = await tx.loyaltyTransaction.create({
     data: {
       amount: 0,
@@ -494,6 +528,7 @@ const redeemRewardAndReissue = async (tx, cardId, {
       clientId: card.clientId,
       cycleNumber: Math.max(1, toInt(card.cycleNumber, 1)) + 1,
       lifetimeVisits: Math.max(0, toInt(card.lifetimeVisits, card.stamps)),
+      publicCode,
       publicToken,
       publicTokenHash,
       targetStamps: settings.targetStamps,
@@ -509,8 +544,9 @@ const redeemRewardAndReissue = async (tx, cardId, {
   return {
     archivedCard,
     card: newCard,
+    publicCode,
     publicToken,
-    publicUrl: buildPublicUrl(publicToken),
+    publicUrl: buildPublicUrl(publicCode),
     transaction,
   };
 };
@@ -790,12 +826,30 @@ const saveRewardTemplate = async (tx, data, id = null) => {
   return serializeRewardTemplate(template);
 };
 
+const findCardByPublicIdentifier = async (tx, identifier, query = {}) => {
+  const value = normalizeText(identifier);
+  if (!value) return null;
+
+  const publicCode = normalizePublicCode(value);
+  if (publicCode) {
+    const card = await tx.loyaltyCard.findUnique({
+      ...query,
+      where: { publicCode },
+    });
+    if (card) return card;
+  }
+
+  return tx.loyaltyCard.findUnique({
+    ...query,
+    where: { publicTokenHash: hashPublicToken(value) },
+  });
+};
+
 const getPublicCardByToken = async (tx, token) => {
-  const publicToken = normalizeText(token);
-  if (!publicToken) return null;
+  const publicIdentifier = normalizeText(token);
+  if (!publicIdentifier) return null;
   const settings = await getProgramSettings(tx);
-  const card = await tx.loyaltyCard.findUnique({
-    where: { publicTokenHash: hashPublicToken(publicToken) },
+  const card = await findCardByPublicIdentifier(tx, publicIdentifier, {
     include: {
       client: { select: { id: true, name: true } },
       transactions: {
@@ -820,6 +874,8 @@ const getPublicCardByToken = async (tx, token) => {
     displayName: getDisplayName(card.client?.name),
     lastTransactionAt: card.transactions?.[0]?.createdAt ?? null,
     lifetimeVisits: card.lifetimeVisits,
+    publicCode: card.publicCode,
+    publicUrl: card.publicCode ? buildPublicUrl(card.publicCode) : null,
     rewardAvailable: card.rewardAvailable,
     rewards: collections.rewards,
     stamps: card.stamps,
@@ -833,8 +889,10 @@ module.exports = {
   applyTransaction,
   buildPublicUrl,
   createCardForClient,
+  createUniquePublicCode,
   createUniqueTokenPayload,
   earnForCompletedVisit,
+  findCardByPublicIdentifier,
   findCardForClient,
   getClubCollectionsForClient,
   getActorUserId,
@@ -858,9 +916,11 @@ module.exports = {
     getCardTier,
     getDisplayName,
     getVisualCardNumber,
+    generatePublicCode,
     hashPublicToken,
     isPaidVisitPayload,
     isRewardVisit,
     normalizeCardLanguage,
+    normalizePublicCode,
   },
 };

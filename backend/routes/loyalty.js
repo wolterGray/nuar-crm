@@ -12,12 +12,13 @@ const {
   applyTransaction,
   buildPublicUrl,
   createCardForClient,
+  createUniquePublicCode,
   createUniqueTokenPayload,
+  findCardByPublicIdentifier,
   findCardForClient,
   getClubCollectionsForClient,
   getActorUserId,
   getPublicCardByToken,
-  hashPublicToken,
   isOwner,
   listRewardTemplates,
   openChest,
@@ -38,7 +39,7 @@ const router = express.Router();
 const publicRouter = express.Router();
 
 const PUBLIC_RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const PUBLIC_RATE_LIMIT_MAX = 30;
+const PUBLIC_RATE_LIMIT_MAX = 20;
 const publicHits = new Map();
 
 const getIp = (req) =>
@@ -175,10 +176,7 @@ publicRouter.post('/loyalty/:token/chests/:chestId/open', publicRateLimit, async
   try {
     const token = String(req.params.token || '').trim();
     const chestId = parseId(req.params.chestId, 'chestId');
-    const card = await prisma.loyaltyCard.findUnique({
-      where: {
-        publicTokenHash: hashPublicToken(token),
-      },
+    const card = await findCardByPublicIdentifier(prisma, token, {
       select: { clientId: true, isActive: true },
     });
     if (!card || !card.isActive) {
@@ -509,9 +507,10 @@ router.post('/loyalty/cards/:cardId/reissue-link', async (req, res) => {
       const before = await tx.loyaltyCard.findUnique({ where: { id: cardId } });
       if (!before) throw validationError('Loyalty card not found', 404);
       const { publicToken, publicTokenHash } = await createUniqueTokenPayload(tx);
+      const publicCode = await createUniquePublicCode(tx);
       const card = await tx.loyaltyCard.update({
         where: { id: cardId },
-        data: { publicToken, publicTokenHash },
+        data: { publicCode, publicToken, publicTokenHash },
         include: {
           transactions: {
             orderBy: { createdAt: 'desc' },
@@ -527,6 +526,7 @@ router.post('/loyalty/cards/:cardId/reissue-link', async (req, res) => {
       });
       return {
         card,
+        publicCode,
         publicToken,
       };
     });
@@ -534,7 +534,7 @@ router.post('/loyalty/cards/:cardId/reissue-link', async (req, res) => {
       success: true,
       data: {
         card: serializeCard(result.card, result.publicToken),
-        publicUrl: buildPublicUrl(result.publicToken),
+        publicUrl: buildPublicUrl(result.publicCode),
       },
     });
   } catch (error) {
