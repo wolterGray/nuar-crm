@@ -29,11 +29,15 @@ import {
 import {
   correctLoyaltyBalance,
   createClientLoyaltyCard,
+  createLoyaltyRewardTemplate,
   deleteLoyaltyCard,
+  deleteLoyaltyRewardTemplate,
   earnLoyaltyStamp,
   fetchLoyaltyCards,
+  fetchLoyaltyRewardTemplates,
   redeemLoyaltyReward,
   reissueLoyaltyLink,
+  updateLoyaltyRewardTemplate,
   updateLoyaltyCardLanguage,
   updateLoyaltyCardStatus,
 } from "../../api/loyalty.js";
@@ -64,8 +68,48 @@ const formatCardDate = (card) => {
 const clubTabs = [
   {id: "cards", label: "Карты клиентов", icon: ShieldCheck},
   {id: "design", label: "Дизайн карт", icon: Sparkles},
+  {id: "rewards", label: "Подарки", icon: Gift},
   {id: "stats", label: "Статистика", icon: Star},
 ];
+
+const emptyRewardTemplateForm = {
+  active: true,
+  description: "",
+  durationMin: "",
+  expiresAfterDays: "",
+  name: "",
+  requiresOwnerApproval: false,
+  rewardType: "gift",
+  tier: "member",
+  value: "",
+  weight: "1",
+};
+
+const normalizeRewardTemplateForm = (template) => ({
+  active: template?.active !== false,
+  description: template?.description || "",
+  durationMin: template?.durationMin ?? "",
+  expiresAfterDays: template?.expiresAfterDays ?? "",
+  name: template?.name || "",
+  requiresOwnerApproval: Boolean(template?.requiresOwnerApproval),
+  rewardType: template?.rewardType || "gift",
+  tier: String(template?.tier || "member").toLowerCase() === "royalty" ? "royal" : String(template?.tier || "member").toLowerCase(),
+  value: template?.value ?? "",
+  weight: template?.weight ?? "1",
+});
+
+const buildRewardTemplatePayload = (form) => ({
+  active: Boolean(form.active),
+  description: form.description.trim() || null,
+  durationMin: form.durationMin === "" ? null : Number(form.durationMin),
+  expiresAfterDays: form.expiresAfterDays === "" ? null : Number(form.expiresAfterDays),
+  name: form.name.trim(),
+  requiresOwnerApproval: Boolean(form.requiresOwnerApproval),
+  rewardType: form.rewardType.trim() || "gift",
+  tier: form.tier,
+  value: form.value === "" ? null : Number(form.value),
+  weight: Math.max(1, Math.trunc(Number(form.weight) || 1)),
+});
 
 function ClubCardMenu({
   card,
@@ -167,6 +211,11 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [manualAdjustmentAmount, setManualAdjustmentAmount] = useState("1");
   const [manualAdjustmentDescription, setManualAdjustmentDescription] = useState("");
   const [manualAdjustmentSaving, setManualAdjustmentSaving] = useState(false);
+  const [rewardTemplates, setRewardTemplates] = useState([]);
+  const [rewardTemplatesLoading, setRewardTemplatesLoading] = useState(false);
+  const [rewardTemplateSaving, setRewardTemplateSaving] = useState(false);
+  const [editingRewardTemplateId, setEditingRewardTemplateId] = useState(null);
+  const [rewardTemplateForm, setRewardTemplateForm] = useState(emptyRewardTemplateForm);
   const selectedCard = useMemo(
     () => cards.find((card) => card.id === selectedCardId) ?? cards[0] ?? null,
     [cards, selectedCardId],
@@ -232,6 +281,18 @@ export default function ClubPage({clients = [], pushNotification}) {
     }
   };
 
+  const loadRewardTemplates = async () => {
+    setRewardTemplatesLoading(true);
+    try {
+      const response = await fetchLoyaltyRewardTemplates();
+      setRewardTemplates(response?.data?.items ?? []);
+    } catch (err) {
+      notify("Подарки не загрузились", err.message || "Не удалось получить шаблоны подарков");
+    } finally {
+      setRewardTemplatesLoading(false);
+    }
+  };
+
   useEffect(() => {
     const loadTimer = window.setTimeout(() => {
       loadCards();
@@ -243,6 +304,17 @@ export default function ClubPage({clients = [], pushNotification}) {
   const notify = (title, message = "") => {
     pushNotification?.({message, title});
   };
+
+  useEffect(() => {
+    if (activeTab === "rewards") {
+      const loadTimer = window.setTimeout(() => {
+        loadRewardTemplates();
+      }, 120);
+      return () => window.clearTimeout(loadTimer);
+    }
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const refreshAfterAction = async (response) => {
     const card = response?.data?.card ?? null;
@@ -432,6 +504,75 @@ export default function ClubPage({clients = [], pushNotification}) {
     notify("Ссылка скопирована");
   };
 
+  const resetRewardTemplateForm = () => {
+    setEditingRewardTemplateId(null);
+    setRewardTemplateForm(emptyRewardTemplateForm);
+  };
+
+  const updateRewardTemplateField = (field, value) => {
+    setRewardTemplateForm((current) => ({...current, [field]: value}));
+  };
+
+  const handleRewardTemplateEdit = (template) => {
+    setEditingRewardTemplateId(template.id);
+    setRewardTemplateForm(normalizeRewardTemplateForm(template));
+  };
+
+  const handleRewardTemplateDelete = async (template) => {
+    if (!window.confirm(`Удалить подарок "${template.name}"? Уже выданные подарки у клиентов сохранятся.`)) {
+      return;
+    }
+    try {
+      await deleteLoyaltyRewardTemplate(template.id);
+      if (editingRewardTemplateId === template.id) {
+        resetRewardTemplateForm();
+      }
+      await loadRewardTemplates();
+      notify("Подарок удалён", template.name);
+    } catch (err) {
+      notify("Подарок не удалён", err.message || "Не удалось удалить шаблон подарка");
+    }
+  };
+
+  const handleRewardTemplateSubmit = async (event) => {
+    event.preventDefault();
+    const payload = buildRewardTemplatePayload(rewardTemplateForm);
+
+    if (!payload.name) {
+      notify("Название подарка обязательно");
+      return;
+    }
+    if (payload.durationMin !== null && (!Number.isFinite(payload.durationMin) || payload.durationMin < 0)) {
+      notify("Проверьте длительность", "Укажите минуты или оставьте поле пустым");
+      return;
+    }
+    if (payload.expiresAfterDays !== null && (!Number.isFinite(payload.expiresAfterDays) || payload.expiresAfterDays < 0)) {
+      notify("Проверьте срок действия", "Укажите дни или оставьте поле пустым");
+      return;
+    }
+    if (payload.value !== null && !Number.isFinite(payload.value)) {
+      notify("Проверьте значение", "Сумма или процент должны быть числом");
+      return;
+    }
+
+    setRewardTemplateSaving(true);
+    try {
+      if (editingRewardTemplateId) {
+        await updateLoyaltyRewardTemplate(editingRewardTemplateId, payload);
+        notify("Подарок обновлён", payload.name);
+      } else {
+        await createLoyaltyRewardTemplate(payload);
+        notify("Подарок добавлен", payload.name);
+      }
+      resetRewardTemplateForm();
+      await loadRewardTemplates();
+    } catch (err) {
+      notify("Подарок не сохранён", err.message || "Не удалось сохранить шаблон подарка");
+    } finally {
+      setRewardTemplateSaving(false);
+    }
+  };
+
   return (
     <section className="club-page">
       <PageHeader
@@ -585,6 +726,119 @@ export default function ClubPage({clients = [], pushNotification}) {
                 </article>
               );
             })}
+          </div>
+        </section>
+      ) : activeTab === "rewards" ? (
+        <section className="club-reward-manager">
+          <div className="club-physical-title">
+            <span>Подарки NUAR Club</span>
+            <strong>Шаблоны выпадения из сундуков</strong>
+          </div>
+          <form className="club-reward-template-form" onSubmit={handleRewardTemplateSubmit}>
+            <select
+              aria-label="Уровень карты"
+              disabled={rewardTemplateSaving}
+              value={rewardTemplateForm.tier}
+              onChange={(event) => updateRewardTemplateField("tier", event.target.value)}
+            >
+              {physicalCardTiers.map((tier) => (
+                <option key={tier.id} value={tier.id}>{tier.badge}</option>
+              ))}
+            </select>
+            <input
+              placeholder="Название подарка"
+              disabled={rewardTemplateSaving}
+              value={rewardTemplateForm.name}
+              onChange={(event) => updateRewardTemplateField("name", event.target.value)}
+            />
+            <input
+              placeholder="Описание"
+              disabled={rewardTemplateSaving}
+              value={rewardTemplateForm.description}
+              onChange={(event) => updateRewardTemplateField("description", event.target.value)}
+            />
+            <input
+              aria-label="Вес выпадения"
+              min="1"
+              placeholder="Вес"
+              step="1"
+              type="number"
+              disabled={rewardTemplateSaving}
+              value={rewardTemplateForm.weight}
+              onChange={(event) => updateRewardTemplateField("weight", event.target.value)}
+            />
+            <input
+              aria-label="Срок действия в днях"
+              min="0"
+              placeholder="Дней"
+              step="1"
+              type="number"
+              disabled={rewardTemplateSaving}
+              value={rewardTemplateForm.expiresAfterDays}
+              onChange={(event) => updateRewardTemplateField("expiresAfterDays", event.target.value)}
+            />
+            <label>
+              <input
+                checked={rewardTemplateForm.requiresOwnerApproval}
+                disabled={rewardTemplateSaving}
+                type="checkbox"
+                onChange={(event) => updateRewardTemplateField("requiresOwnerApproval", event.target.checked)}
+              />
+              Владелец
+            </label>
+            <label>
+              <input
+                checked={rewardTemplateForm.active}
+                disabled={rewardTemplateSaving}
+                type="checkbox"
+                onChange={(event) => updateRewardTemplateField("active", event.target.checked)}
+              />
+              Активен
+            </label>
+            <button disabled={rewardTemplateSaving} type="submit">
+              {rewardTemplateSaving ? "Сохраняю..." : editingRewardTemplateId ? "Сохранить" : "Добавить"}
+            </button>
+            {editingRewardTemplateId ? (
+              <button disabled={rewardTemplateSaving} type="button" onClick={resetRewardTemplateForm}>
+                Отмена
+              </button>
+            ) : null}
+          </form>
+
+          <div className="club-reward-template-list">
+            {rewardTemplates.map((template) => {
+              const tierId = String(template.tier || "member").toLowerCase() === "royalty"
+                ? "royal"
+                : String(template.tier || "member").toLowerCase();
+              const tier = physicalCardTiers.find((item) => item.id === tierId) || physicalCardTiers[0];
+              return (
+                <article className={`club-reward-template-row ${template.active ? "" : "is-muted"}`} key={template.id}>
+                  <span className={`club-tier-badge is-${tier.id}`}>{tier.badge}</span>
+                  <div>
+                    <strong>{template.name}</strong>
+                    <small>{template.description || "Без описания"}</small>
+                  </div>
+                  <span>{template.requiresOwnerApproval ? "Требует владельца" : "Можно выдать автоматически"}</span>
+                  <em>Вес {template.weight || 1}</em>
+                  <em>{template.expiresAfterDays ? `${template.expiresAfterDays} дн.` : "Без срока"}</em>
+                  <em>{template.active ? "Активен" : "Отключён"}</em>
+                  <button type="button" onClick={() => handleRewardTemplateEdit(template)}>
+                    <PencilLine size={14} />
+                    Правка
+                  </button>
+                  <button className="is-danger" type="button" onClick={() => handleRewardTemplateDelete(template)}>
+                    <Trash2 size={14} />
+                    Удалить
+                  </button>
+                </article>
+              );
+            })}
+            {rewardTemplatesLoading ? (
+              <p className="club-empty-text">Загружаю подарки...</p>
+            ) : null}
+            {!rewardTemplatesLoading && !rewardTemplates.length ? (
+              <p className="club-empty-text">Шаблонов подарков пока нет. Если список пустой, сундуки будут использовать системный подарок по умолчанию.</p>
+            ) : null}
           </div>
         </section>
       ) : (

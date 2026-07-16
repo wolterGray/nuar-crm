@@ -266,10 +266,11 @@ function CalendarEntryForm({
     return calculateSiteBookingPrice({
       basePrice: serviceVariant.price,
       date,
+      durationMinutes: duration,
       employee,
       time,
     });
-  }, [date, employees, kind, master, serviceVariant, time]);
+  }, [date, duration, employees, kind, master, serviceVariant, time]);
   useEffect(() => {
     if (kind !== "visit" || !visitPricing || pricingTouchedRef.current) {
       return;

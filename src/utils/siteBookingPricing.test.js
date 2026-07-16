@@ -46,6 +46,7 @@ describe("calculateSiteBookingPrice", () => {
     const pricing = calculateSiteBookingPrice({
       basePrice: 255,
       date: "2026-06-13",
+      durationMinutes: 60,
       employee: olgaEmployee,
       time: "18:00",
     });
@@ -60,6 +61,7 @@ describe("calculateSiteBookingPrice", () => {
     const pricing = calculateSiteBookingPrice({
       basePrice: 255,
       date: "2026-06-13",
+      durationMinutes: 60,
       employee: {
         ...maxEmployee,
         premiumHoursEnabled: true,
@@ -79,9 +81,44 @@ describe("getPremiumPercentForSlot", () => {
     expect(
       getPremiumPercentForSlot(olgaEmployee, {
         date: "2026-06-12",
+        durationMinutes: 60,
         time: "12:00",
       }),
     ).toBe(0);
+  });
+
+  it("applies premium when visit overlaps the premium window", () => {
+    expect(
+      getPremiumPercentForSlot(olgaEmployee, {
+        date: "2026-06-13",
+        durationMinutes: 90,
+        time: "16:30",
+      }),
+    ).toBe(15);
+  });
+
+  it("supports premium windows that pass midnight", () => {
+    expect(
+      getPremiumPercentForSlot(
+        {
+          ...olgaEmployee,
+          premiumHoursRules: [
+            {
+              daysOfWeek: [6],
+              enabled: true,
+              endTime: "01:00",
+              percent: 20,
+              startTime: "22:00",
+            },
+          ],
+        },
+        {
+          date: "2026-06-13",
+          durationMinutes: 60,
+          time: "23:30",
+        },
+      ),
+    ).toBe(20);
   });
 });
 

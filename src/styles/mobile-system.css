@@ -172,6 +172,30 @@
     font-size: 16px;
   }
 
+  .mobile-page-container :is(input[type="date"], input[type="time"], input[type="datetime-local"]),
+  .mobile-sheet :is(input[type="date"], input[type="time"], input[type="datetime-local"]) {
+    width: 100%;
+    max-width: 100%;
+    min-height: var(--mobile-touch-target);
+    padding-inline: 12px;
+    font-size: 16px !important;
+    line-height: 1.2;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .mobile-page-container :is(input[type="date"], input[type="time"], input[type="datetime-local"])::-webkit-date-and-time-value,
+  .mobile-sheet :is(input[type="date"], input[type="time"], input[type="datetime-local"])::-webkit-date-and-time-value {
+    min-height: 20px;
+    text-align: left;
+  }
+
+  .mobile-page-container :is(input[type="date"], input[type="time"], input[type="datetime-local"])::-webkit-calendar-picker-indicator,
+  .mobile-sheet :is(input[type="date"], input[type="time"], input[type="datetime-local"])::-webkit-calendar-picker-indicator {
+    margin-right: 0;
+    opacity: 0.9;
+  }
+
   .mobile-page-container textarea {
     min-height: 104px;
   }

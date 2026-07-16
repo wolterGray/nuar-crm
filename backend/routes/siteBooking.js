@@ -128,24 +128,37 @@ const getServiceBasePrice = ({ durationMinutes, serviceName, serviceSlug, servic
   return Math.max(0, Math.round(Number(variant?.price ?? service?.price ?? 0) || 0));
 };
 
-const getPremiumPercent = (employee, { date, time }) => {
+const rangesOverlap = (firstStart, firstEnd, secondStart, secondEnd) =>
+  firstStart < secondEnd && secondStart < firstEnd;
+
+const getPremiumPercent = (employee, { date, durationMinutes = 0, time }) => {
   if (!employee?.premiumHoursEnabled || !isInputDate(date)) return 0;
   const weekday = new Date(`${date}T00:00:00`).getDay();
-  const value = toMinutes(time);
+  const start = toMinutes(time);
+  const duration = Math.max(1, Math.round(Number(durationMinutes) || 0));
+  const end = start + duration;
 
   return (employee.premiumHoursRules ?? []).reduce((maxPercent, rule) => {
     if (rule?.enabled === false) return maxPercent;
     const days = Array.isArray(rule?.daysOfWeek) ? rule.daysOfWeek.map(Number) : [];
     if (!days.includes(weekday)) return maxPercent;
-    if (value < toMinutes(rule?.startTime ?? '00:00') || value >= toMinutes(rule?.endTime ?? '23:59')) {
+    const ruleStart = toMinutes(rule?.startTime ?? '00:00');
+    const rawRuleEnd = toMinutes(rule?.endTime ?? '23:59');
+    const ruleEnd = rawRuleEnd <= ruleStart ? rawRuleEnd + 24 * 60 : rawRuleEnd;
+    const visitStart = rawRuleEnd <= ruleStart && start < ruleStart ? start + 24 * 60 : start;
+    const visitEnd = rawRuleEnd <= ruleStart && end <= ruleStart ? end + 24 * 60 : end;
+    if (
+      !rangesOverlap(visitStart, visitEnd, ruleStart, ruleEnd) &&
+      !rangesOverlap(visitStart + 24 * 60, visitEnd + 24 * 60, ruleStart, ruleEnd)
+    ) {
       return maxPercent;
     }
     return Math.max(maxPercent, Number(rule?.percent) || 0);
   }, 0);
 };
 
-const calculatePrice = ({ basePrice, date, employee, time }) => {
-  const premiumPercent = getPremiumPercent(employee, { date, time });
+const calculatePrice = ({ basePrice, date, durationMinutes = 0, employee, time }) => {
+  const premiumPercent = getPremiumPercent(employee, { date, durationMinutes, time });
   const premiumAmount = Math.round(basePrice * (premiumPercent / 100));
   const subtotal = basePrice + premiumAmount;
   const discountPercent = Math.max(0, Math.min(100, Number(employee?.siteDiscountPercent) || 0));
@@ -232,7 +245,7 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
       slots.push({
         master,
         startTime,
-        ...calculatePrice({ basePrice, date: preferredDate, employee, time: startTime }),
+        ...calculatePrice({ basePrice, date: preferredDate, durationMinutes: duration, employee, time: startTime }),
       });
     }
 

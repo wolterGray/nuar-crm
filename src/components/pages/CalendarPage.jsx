@@ -193,7 +193,7 @@ function DroppableScheduleColumn({
   );
 }
 
-function DraggableScheduleEntry({children, className, domId, entry, style}) {
+function DraggableScheduleEntry({children, className, domId, entry, onOpen, style}) {
   const {attributes, listeners, setNodeRef, transform, isDragging} = useDraggable({
     id: `schedule-entry-${entry.id}`,
     data: {entry},
@@ -210,7 +210,10 @@ function DraggableScheduleEntry({children, className, domId, entry, style}) {
           ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
           : undefined,
       }}
-      onClick={(event) => event.stopPropagation()}
+      onClick={(event) => {
+        event.stopPropagation();
+        onOpen?.(entry);
+      }}
       {...listeners}
       {...attributes}>
       {children}
@@ -252,6 +255,7 @@ function CalendarPage({
   const [openReminderMenuId, setOpenReminderMenuId] = useState(null);
   const [openCalendarPickerMenu, setOpenCalendarPickerMenu] = useState(null);
   const [viewedClientEntry, setViewedClientEntry] = useState(null);
+  const [viewedReservedEntry, setViewedReservedEntry] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
   const [pendingSlot, setPendingSlot] = useState(null);
   const schedulePanelRef = useRef(null);
@@ -727,6 +731,7 @@ return (
               onRemind={onRemind}
               onStatus={onStatus}
               onViewClient={setViewedClientEntry}
+              onViewReserved={setViewedReservedEntry}
             />
           </div>
         )}
@@ -902,6 +907,15 @@ return (
                             domId={`alert-focus-calendar-${entry.id}`}
                             entry={entry}
                             key={entry.id}
+                            onOpen={(item) => {
+                              if (item.kind === "visit") {
+                                setViewedClientEntry(item);
+                                return;
+                              }
+                              if (item.kind === "reserved") {
+                                setViewedReservedEntry(item);
+                              }
+                            }}
                             style={{
                               borderLeftColor: entry.color,
                               backgroundColor: `${entry.color}26`,
@@ -976,11 +990,12 @@ return (
                                 className="grid w-5.5 h-5.5 place-items-center rounded bg-zinc-950/80 hover:bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 cursor-pointer"
                                 title="Действия"
                                 type="button"
-                                onClick={() =>
+                                onClick={(event) => {
+                                  event.stopPropagation();
                                   setOpenEntryMenuId((current) =>
                                     current === entry.id ? null : entry.id,
-                                  )
-                                }
+                                  );
+                                }}
                               >
                                 <MoreVertical size={12} />
                               </button>
@@ -992,7 +1007,10 @@ return (
                                       className="flex items-center gap-2 h-7 px-2 text-[10px] text-zinc-350 hover:text-white hover:bg-zinc-900 rounded-md cursor-pointer text-left"
                                       title="Напомнить"
                                       type="button"
-                                      onClick={() => onRemind(entry)}
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        onRemind(entry);
+                                      }}
                                     >
                                       <BellRing size={13} />
                                       Напомнить
@@ -1004,7 +1022,10 @@ return (
                                       className="flex items-center gap-2 h-7 px-2 text-[10px] text-rose-400 hover:bg-rose-500/10 rounded-md cursor-pointer text-left"
                                       title="Отменить"
                                       type="button"
-                                      onClick={() => onStatus(entry, "cancelled")}
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        onStatus(entry, "cancelled");
+                                      }}
                                     >
                                       <Ban size={13} />
                                       Отменить
@@ -1015,7 +1036,10 @@ return (
                                     className="flex items-center gap-2 h-7 px-2 text-[10px] text-zinc-350 hover:text-white hover:bg-zinc-900 rounded-md cursor-pointer text-left"
                                     title="Редактировать"
                                     type="button"
-                                    onClick={() => onEdit(entry)}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      onEdit(entry);
+                                    }}
                                   >
                                     <Pencil size={13} />
                                     Редактировать
@@ -1025,7 +1049,10 @@ return (
                                     className="flex items-center gap-2 h-7 px-2 text-[10px] text-red-400 hover:bg-red-500/10 rounded-md cursor-pointer text-left"
                                     title="Удалить"
                                     type="button"
-                                    onClick={() => onDelete(entry)}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      onDelete(entry);
+                                    }}
                                   >
                                     <Trash2 size={13} />
                                     Удалить
@@ -1352,7 +1379,26 @@ return (
             setViewedClientEntry(null);
           }}
           onClose={() => setViewedClientEntry(null)}
+          onEdit={() => {
+            onEdit(viewedClientEntry);
+            setViewedClientEntry(null);
+          }}
           onRemind={() => onRemind(viewedClientEntry)}
+        />
+      )}
+      {viewedReservedEntry && (
+        <ReservedCalendarCard
+          entry={viewedReservedEntry}
+          isMobile={isMobile}
+          onClose={() => setViewedReservedEntry(null)}
+          onDelete={() => {
+            onDelete(viewedReservedEntry);
+            setViewedReservedEntry(null);
+          }}
+          onEdit={() => {
+            onEdit(viewedReservedEntry);
+            setViewedReservedEntry(null);
+          }}
         />
       )}
     </section>
@@ -1369,8 +1415,10 @@ function ClientCalendarCard({
   visits,
   onAdd,
   onClose,
+  onEdit,
   onRemind,
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const relatedEntries = entries.filter(
     (entry) =>
       entry.kind === "visit" &&
@@ -1397,20 +1445,36 @@ function ClientCalendarCard({
       labelledBy="calendar-client-card-title"
       title={clientName}
       description={`${currentEntry.time}–${getEntryEndTime(currentEntry)} · ${currentEntry.service}`}
-      onClose={onClose}
-      footer={
-        <div className="calendar-client-card-actions">
-          <button className="submit-button" type="button" onClick={onAdd}>
-            <CalendarPlus size={15} />
-            Новая запись
+      onClose={onClose}>
+      <div className="calendar-sheet-toolbar">
+        <span className="calendar-client-card-status">{client?.status || "Активный"}</span>
+        <div className="calendar-sheet-menu">
+          <button
+            aria-label="Действия клиента"
+            className="calendar-sheet-menu-button"
+            type="button"
+            onClick={() => setMenuOpen((current) => !current)}
+          >
+            <MoreVertical size={18} />
           </button>
-          <button className="secondary-button" type="button" onClick={onRemind}>
-            <MessageSquareText size={15} />
-            Написать
-          </button>
+          {menuOpen ? (
+            <div className="calendar-sheet-popover">
+              <button type="button" onClick={onAdd}>
+                <CalendarPlus size={14} />
+                Новая запись
+              </button>
+              <button type="button" onClick={onEdit}>
+                <Pencil size={14} />
+                Редактировать
+              </button>
+              <button type="button" onClick={onRemind}>
+                <MessageSquareText size={14} />
+                Написать
+              </button>
+            </div>
+          ) : null}
         </div>
-      }>
-      <span className="calendar-client-card-status">{client?.status || "Активный"}</span>
+      </div>
       <div className="calendar-client-card-grid">
         <span><Phone size={14} /> Телефон <strong>{client?.phone || "—"}</strong></span>
         <span><Mail size={14} /> Email <strong>{client?.email || "—"}</strong></span>
@@ -1439,6 +1503,62 @@ function ClientCalendarCard({
           ))}
         </div>
       )}
+    </MobileSheet>
+  );
+}
+
+function ReservedCalendarCard({
+  entry,
+  isMobile,
+  onClose,
+  onDelete,
+  onEdit,
+}) {
+  return (
+    <MobileSheet
+      className="calendar-reserved-card"
+      fullscreen={isMobile}
+      isOpen
+      labelledBy="calendar-reserved-card-title"
+      title={entry.title || "Резерв"}
+      description={`${entry.time}–${getEntryEndTime(entry)} · ${entry.master || "Мастер не указан"}`}
+      onClose={onClose}
+      footer={
+        <div className="calendar-reserved-card-actions">
+          <button className="secondary-button" type="button" onClick={onEdit}>
+            <Pencil size={15} />
+            Редактировать
+          </button>
+          <button className="danger-button" type="button" onClick={onDelete}>
+            <Trash2 size={15} />
+            Удалить
+          </button>
+        </div>
+      }>
+      <div className="calendar-reserved-card-panel">
+        <span>
+          <b>Время</b>
+          <strong>{entry.time}–{getEntryEndTime(entry)}</strong>
+        </span>
+        <span>
+          <b>Мастер</b>
+          <strong>{entry.master || "—"}</strong>
+        </span>
+        <span>
+          <b>Статус</b>
+          <strong>Зарезервировано</strong>
+        </span>
+        <span>
+          <b>Дата</b>
+          <strong>{toDisplayDate(entry.date)}</strong>
+        </span>
+      </div>
+      {entry.comment || entry.notes ? (
+        <div className="calendar-client-card-note">
+          <strong>Комментарий</strong>
+          <p>{entry.comment || entry.notes}</p>
+        </div>
+      ) : null}
     </MobileSheet>
   );
 }

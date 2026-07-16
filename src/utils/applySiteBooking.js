@@ -73,6 +73,7 @@ export const applySiteBookingRequest = (
     date:
       formatSiteBookingInputDate(request.preferred_date ?? request.preferredDate) ||
       String(request.preferred_date ?? request.preferredDate ?? ""),
+    durationMinutes: service.duration,
     employee,
     time: preferredTime,
   });

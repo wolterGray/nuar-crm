@@ -89,6 +89,8 @@ export default function NotificationDrawer({
   const [popoverStyle, setPopoverStyle] = useState({});
   const transition = {duration: animationsEnabled ? 0.18 : 0};
   const groupedAlerts = groupAlerts(alerts);
+  const isMobilePopover =
+    typeof window !== "undefined" && window.innerWidth <= MOBILE_MAX_WIDTH;
 
   useLayoutEffect(() => {
     if (!isOpen || !buttonRef.current) {
@@ -171,10 +173,18 @@ export default function NotificationDrawer({
             key="notification-popover"
             animate={{opacity: 1, y: 0}}
             className={`client-alert-popover client-alert-popover-portal theme-${theme}`}
+            drag={isMobilePopover ? "y" : false}
+            dragConstraints={{bottom: 120, top: 0}}
+            dragElastic={0.22}
             exit={{opacity: 0, y: -6}}
             initial={{opacity: 0, y: -8}}
             style={{...popoverStyle, zIndex: 120}}
             transition={transition}
+            onDragEnd={(_, info) => {
+              if (isMobilePopover && (info.offset.y > 80 || info.velocity.y > 650)) {
+                onToggleOpen();
+              }
+            }}
             onClick={(event) => event.stopPropagation()}>
           <div className="client-alert-heading">
             <div>

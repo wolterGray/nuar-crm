@@ -16,6 +16,12 @@ const toMinutes = (time) => {
   return hours * 60 + minutes;
 };
 
+const normalizeDurationMinutes = (durationMinutes) =>
+  Math.max(0, Math.round(Number(durationMinutes) || 0));
+
+const rangesOverlap = (firstStart, firstEnd, secondStart, secondEnd) =>
+  firstStart < secondEnd && secondStart < firstEnd;
+
 export const normalizePremiumHoursRules = (rules) => {
   if (!Array.isArray(rules)) {
     return [];
@@ -69,6 +75,10 @@ export const isTimeWithinRange = (time, startTime, endTime) => {
   const start = toMinutes(startTime);
   const end = toMinutes(endTime);
 
+  if (end <= start) {
+    return value >= start || value < end;
+  }
+
   return value >= start && value < end;
 };
 
@@ -82,7 +92,10 @@ export const findEmployeeForMaster = (master, employees = []) => {
   );
 };
 
-export const getPremiumPercentForSlot = (employee, {date, time}) => {
+export const getPremiumPercentForSlot = (
+  employee,
+  {date, time, durationMinutes = 0} = {},
+) => {
   if (!employee?.premiumHoursEnabled) {
     return 0;
   }
@@ -94,6 +107,10 @@ export const getPremiumPercentForSlot = (employee, {date, time}) => {
     return 0;
   }
 
+  const startMinutes = toMinutes(String(time ?? "").slice(0, 5));
+  const duration = normalizeDurationMinutes(durationMinutes);
+  const endMinutes = startMinutes + Math.max(duration, 1);
+
   return rules.reduce((maxPercent, rule) => {
     if (!rule.enabled) {
       return maxPercent;
@@ -103,7 +120,22 @@ export const getPremiumPercentForSlot = (employee, {date, time}) => {
       return maxPercent;
     }
 
-    if (!isTimeWithinRange(time, rule.startTime, rule.endTime)) {
+    const ruleStart = toMinutes(rule.startTime);
+    const rawRuleEnd = toMinutes(rule.endTime);
+    const ruleEnd = rawRuleEnd <= ruleStart ? rawRuleEnd + 24 * 60 : rawRuleEnd;
+    const visitStart =
+      rawRuleEnd <= ruleStart && startMinutes < ruleStart
+        ? startMinutes + 24 * 60
+        : startMinutes;
+    const visitEnd =
+      rawRuleEnd <= ruleStart && endMinutes <= ruleStart
+        ? endMinutes + 24 * 60
+        : endMinutes;
+
+    if (
+      !rangesOverlap(visitStart, visitEnd, ruleStart, ruleEnd) &&
+      !rangesOverlap(visitStart + 24 * 60, visitEnd + 24 * 60, ruleStart, ruleEnd)
+    ) {
       return maxPercent;
     }
 
@@ -113,6 +145,7 @@ export const getPremiumPercentForSlot = (employee, {date, time}) => {
 
 export const calculateSiteBookingPrice = ({
   basePrice,
+  durationMinutes = 0,
   employee = null,
   date,
   time,
@@ -122,7 +155,11 @@ export const calculateSiteBookingPrice = ({
     0,
     Math.min(100, Number(employee?.siteDiscountPercent) || 0),
   );
-  const premiumPercent = getPremiumPercentForSlot(employee, {date, time});
+  const premiumPercent = getPremiumPercentForSlot(employee, {
+    date,
+    durationMinutes,
+    time,
+  });
   const premiumAmount = Math.round(base * (premiumPercent / 100));
   const subtotal = base + premiumAmount;
   const discountAmount = Math.round(subtotal * (discountPercent / 100));
@@ -203,6 +240,7 @@ export const attachPricingToSlots = ({
     const pricing = calculateSiteBookingPrice({
       basePrice,
       date,
+      durationMinutes,
       employee,
       time: slot.startTime,
     });

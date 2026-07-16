@@ -1,4 +1,5 @@
 import { CalendarPlus } from "lucide-react";
+import {useState} from "react";
 import VisitMobileCard from "./VisitMobileCard.jsx";
 
 function CalendarDayList({
@@ -11,7 +12,9 @@ function CalendarDayList({
   onRemind,
   onStatus,
   onViewClient,
+  onViewReserved,
 }) {
+  const [openVisitMenuId, setOpenVisitMenuId] = useState(null);
   const visitEntries = entries
     .filter((entry) => entry.kind === "visit")
     .sort((first, second) => String(first.time).localeCompare(String(second.time)));
@@ -55,12 +58,16 @@ function CalendarDayList({
           onDelete={onDelete}
           onMessage={onRemind}
           onOpen={onViewClient}
+          openMenuId={openVisitMenuId}
+          setOpenMenuId={setOpenVisitMenuId}
         />
       ))}
       {reservedEntries.map((entry) => (
-        <article
-          className="p-4 border border-orange-500/20 rounded-xl bg-orange-500/5 flex flex-col gap-1.5"
+        <button
+          className="calendar-reserved-mobile-card"
           key={entry.id}
+          type="button"
+          onClick={() => onViewReserved?.(entry)}
         >
           <div className="flex justify-between items-start w-full gap-4">
             <div className="flex flex-col min-w-0">
@@ -72,23 +79,7 @@ function CalendarDayList({
           <div className="flex items-center gap-1.5 text-zinc-500 text-xs">
             <span>Зарезервировано</span>
           </div>
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-zinc-800/40 w-full justify-end">
-            <button
-              className="inline-flex items-center px-3 py-1.5 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-300 hover:text-zinc-150 hover:bg-zinc-800 transition-colors cursor-pointer"
-              type="button"
-              onClick={() => onEdit?.(entry)}
-            >
-              Изменить
-            </button>
-            <button
-              className="inline-flex items-center px-3 py-1.5 border border-red-505/20 rounded-lg text-xs font-semibold text-red-400 hover:text-white hover:bg-red-550 transition-colors cursor-pointer"
-              type="button"
-              onClick={() => onDelete?.(entry)}
-            >
-              Удалить
-            </button>
-          </div>
-        </article>
+        </button>
       ))}
     </section>
   );

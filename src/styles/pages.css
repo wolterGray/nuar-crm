@@ -1239,10 +1239,11 @@ select {
   position: fixed;
   right: 22px;
   bottom: 22px;
-  z-index: 50;
+  z-index: 2147482000;
   display: grid;
   gap: 10px;
   width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
 }
 
 .toast {
@@ -1251,15 +1252,30 @@ select {
   align-items: center;
   gap: 10px;
   padding: 14px;
-  border: 1px solid rgba(23, 151, 97, 0.28);
+  border: 1px solid rgba(124, 58, 237, 0.24);
   border-radius: 8px;
-  color: #143b2c;
-  background: #f5fbf7;
-  box-shadow: 0 16px 40px rgba(17, 19, 24, 0.12);
+  color: #f5f3ff;
+  background:
+    linear-gradient(145deg, rgba(32, 24, 44, 0.98), rgba(16, 14, 22, 0.98)),
+    var(--app-window-bg, #0e1013);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.42);
+  pointer-events: auto;
+  backdrop-filter: blur(16px);
 }
 
 .toast > svg {
-  color: #179761;
+  color: #a78bfa;
+}
+
+.toast-urgent {
+  border-color: rgba(185, 28, 28, 0.34);
+  background:
+    linear-gradient(145deg, rgba(44, 18, 28, 0.98), rgba(18, 12, 18, 0.98)),
+    var(--app-window-bg, #0e1013);
+}
+
+.toast-urgent > svg {
+  color: #f87171;
 }
 
 .toast strong,
@@ -1269,19 +1285,25 @@ select {
 
 .toast span {
   margin-top: 2px;
-  color: #527064;
+  color: #c4b5fd;
   font-size: 13px;
 }
 
-.toast button {
+.toast > button {
   display: grid;
   width: 28px;
   height: 28px;
   place-items: center;
   border: 0;
   border-radius: 8px;
-  color: #527064;
+  color: #ddd6fe;
   background: transparent;
+}
+
+.toast > button:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.065);
+  transform: none;
 }
 
 button:hover {
@@ -3113,7 +3135,7 @@ button:focus-visible {
 .club-tabs {
   display: grid;
   width: 100%;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
   border-bottom: 1px solid var(--club-border);
   background: transparent;
@@ -3256,6 +3278,15 @@ button:focus-visible {
   display: grid;
   gap: 16px;
   padding: 16px;
+}
+
+.club-reward-manager {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--club-border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--club-panel);
 }
 
 .club-physical-title {
@@ -3441,7 +3472,7 @@ button:focus-visible {
 .club-reward-template-form,
 .club-reward-template-row {
   display: grid;
-  grid-template-columns: 118px minmax(150px, 0.85fr) minmax(220px, 1.25fr) 68px 126px 112px;
+  grid-template-columns: 112px minmax(150px, 1fr) minmax(190px, 1.2fr) 70px 76px 104px 88px 112px auto;
   gap: 8px;
   align-items: center;
 }
@@ -3496,7 +3527,11 @@ button:focus-visible {
 
 .club-reward-template-form button,
 .club-reward-template-row button {
+  display: inline-flex;
   min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   border: 1px solid color-mix(in srgb, var(--club-accent) 60%, var(--club-border));
   border-radius: var(--radius-md, 8px);
   padding: 0 10px;
@@ -3521,12 +3556,22 @@ button:focus-visible {
 }
 
 .club-reward-template-row {
-  grid-template-columns: 120px minmax(180px, 1fr) minmax(220px, 2fr) 80px auto auto;
+  grid-template-columns: 120px minmax(190px, 1fr) minmax(160px, 0.9fr) 76px 86px 86px auto auto;
   min-height: 58px;
   padding: 10px 12px;
   border: 1px solid var(--club-border);
   border-radius: var(--radius-lg, 12px);
   background: var(--club-panel);
+}
+
+.club-reward-template-row strong {
+  display: block;
+  overflow: hidden;
+  color: var(--club-text);
+  font-size: 13px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .club-reward-template-row small,
@@ -5524,7 +5569,7 @@ button:focus-visible {
 
   .club-tabs {
     width: 100%;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     overflow: hidden;
   }
 
