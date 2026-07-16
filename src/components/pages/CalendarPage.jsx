@@ -1418,7 +1418,6 @@ function ClientCalendarCard({
   onEdit,
   onRemind,
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const relatedEntries = entries.filter(
     (entry) =>
       entry.kind === "visit" &&
@@ -1446,34 +1445,20 @@ function ClientCalendarCard({
       title={clientName}
       description={`${currentEntry.time}–${getEntryEndTime(currentEntry)} · ${currentEntry.service}`}
       onClose={onClose}>
-      <div className="calendar-sheet-toolbar">
-        <span className="calendar-client-card-status">{client?.status || "Активный"}</span>
-        <div className="calendar-sheet-menu">
-          <button
-            aria-label="Действия клиента"
-            className="calendar-sheet-menu-button"
-            type="button"
-            onClick={() => setMenuOpen((current) => !current)}
-          >
-            <MoreVertical size={18} />
-          </button>
-          {menuOpen ? (
-            <div className="calendar-sheet-popover">
-              <button type="button" onClick={onAdd}>
-                <CalendarPlus size={14} />
-                Новая запись
-              </button>
-              <button type="button" onClick={onEdit}>
-                <Pencil size={14} />
-                Редактировать
-              </button>
-              <button type="button" onClick={onRemind}>
-                <MessageSquareText size={14} />
-                Написать
-              </button>
-            </div>
-          ) : null}
-        </div>
+      <span className="calendar-client-card-status">{client?.status || "Активный"}</span>
+      <div className="calendar-client-card-actions">
+        <button className="submit-button" type="button" onClick={onAdd}>
+          <CalendarPlus size={15} />
+          Новая запись
+        </button>
+        <button className="secondary-button" type="button" onClick={onEdit}>
+          <Pencil size={15} />
+          Редактировать
+        </button>
+        <button className="secondary-button" type="button" onClick={onRemind}>
+          <MessageSquareText size={15} />
+          Написать
+        </button>
       </div>
       <div className="calendar-client-card-grid">
         <span><Phone size={14} /> Телефон <strong>{client?.phone || "—"}</strong></span>
