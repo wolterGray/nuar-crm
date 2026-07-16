@@ -5,17 +5,18 @@ import {
   ClipboardList,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  CreditCard,
   LayoutGrid,
   List,
-  Mail,
   MessageSquareText,
   MoreVertical,
   Pencil,
   Phone,
   Plus,
   Rocket,
-  Tag,
   Trash2,
+  UserRound,
   X,
 } from "lucide-react";
 import {getTodayInput} from "../../utils/dateHelpers.js";
@@ -36,8 +37,6 @@ import {
 } from "@dnd-kit/core";
 import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
-import {matchesClientRecord} from "../../utils/clientLinks.js";
-import {isActiveClientPackage} from "../../utils/clientPackages.js";
 import {getPackageProgressLabel, isUpcomingPackageVisit} from "../../utils/packages.jsx";
 import {getVisitDebt, getVisitTransactionTotal} from "../../utils/visits.jsx";
 
@@ -224,7 +223,6 @@ function DraggableScheduleEntry({children, className, domId, entry, onOpen, styl
 function CalendarPage({
   alertFocus,
   entries,
-  visits,
   clients,
   clientPackages,
   employees,
@@ -1369,11 +1367,8 @@ return (
         <ClientCalendarCard
           client={clients.find((client) => client.name === viewedClientEntry.client)}
           clientName={viewedClientEntry.client}
-          clientPackages={clientPackages}
           currentEntry={viewedClientEntry}
-          entries={entries}
           isMobile={isMobile}
-          visits={visits}
           onAdd={() => {
             onAdd({date: selectedDate, client: viewedClientEntry.client});
             setViewedClientEntry(null);
@@ -1408,33 +1403,54 @@ return (
 function ClientCalendarCard({
   client,
   clientName,
-  clientPackages,
   currentEntry,
-  entries,
   isMobile,
-  visits,
   onAdd,
   onClose,
   onEdit,
   onRemind,
 }) {
-  const relatedEntries = entries.filter(
-    (entry) =>
-      entry.kind === "visit" &&
-      matchesClientRecord(entry, [client].filter(Boolean), client ?? clientName) &&
-      entry.id !== currentEntry.id,
-  );
-  const futureVisits = relatedEntries.filter(
-    (entry) => `${entry.date}T${entry.time}` > `${currentEntry.date}T${currentEntry.time}`,
-  );
-  const pastVisits = visits.filter((visit) =>
-    matchesClientRecord(visit, [client].filter(Boolean), client ?? clientName),
-  );
-  const packages = clientPackages.filter(
-    (packageItem) =>
-      matchesClientRecord(packageItem, [client].filter(Boolean), client ?? clientName) &&
-      isActiveClientPackage(packageItem),
-  );
+  const entryStatus =
+    statusLabels[currentEntry.status] ||
+    (currentEntry.status === "completed" ? "Окончен" : statusLabels.scheduled);
+  const duration = Number(currentEntry.duration || 0);
+  const serviceAmount =
+    currentEntry.amount !== undefined &&
+    currentEntry.amount !== null &&
+    String(currentEntry.amount).trim() !== ""
+      ? formatMoney(currentEntry.amount)
+      : "—";
+  const paymentTotal = getEntryMoneyLabel(currentEntry);
+  const hasDebt = getVisitDebt(currentEntry) > 0;
+  const note = String(currentEntry.note || "").trim();
+  const clientContact = client?.phone || currentEntry.phone || "Телефон не указан";
+  const visitMeta = [
+    {
+      icon: <Clock size={15} />,
+      label: "Время",
+      value: `${currentEntry.time}–${getEntryEndTime(currentEntry)}`,
+      detail: duration ? `${duration} мин` : "Длительность не указана",
+    },
+    {
+      icon: <CreditCard size={15} />,
+      label: "Стоимость",
+      value: paymentTotal,
+      detail: hasDebt ? `Стоимость услуги ${serviceAmount}` : currentEntry.payment || "Оплата не указана",
+      tone: hasDebt ? "danger" : "",
+    },
+    {
+      icon: <UserRound size={15} />,
+      label: "Мастер",
+      value: currentEntry.master || "—",
+      detail: currentEntry.commissionType || "Без комиссии",
+    },
+    {
+      icon: <Phone size={15} />,
+      label: "Клиент",
+      value: clientName,
+      detail: clientContact,
+    },
+  ];
 
   return (
     <MobileSheet
@@ -1445,13 +1461,22 @@ function ClientCalendarCard({
       title={clientName}
       description={`${currentEntry.time}–${getEntryEndTime(currentEntry)} · ${currentEntry.service}`}
       onClose={onClose}>
-      <span className="calendar-client-card-status">{client?.status || "Активный"}</span>
+      <section
+        className="calendar-visit-summary"
+        style={{"--visit-accent": currentEntry.color || "var(--button-primary-bg, #dc2626)"}}>
+        <div className="calendar-visit-summary-top">
+          <span className="calendar-client-card-status">{entryStatus}</span>
+          <b>{toDisplayDate(currentEntry.date)}</b>
+        </div>
+        <h3>{currentEntry.service || "Услуга не указана"}</h3>
+        <div className="calendar-visit-summary-bottom">
+          <span>{currentEntry.time}–{getEntryEndTime(currentEntry)}</span>
+          <strong>{duration ? `${duration} мин` : "—"}</strong>
+          <strong className={hasDebt ? "is-debt" : ""}>{paymentTotal}</strong>
+        </div>
+      </section>
       <div className="calendar-client-card-actions">
-        <button className="submit-button" type="button" onClick={onAdd}>
-          <CalendarPlus size={15} />
-          Новая запись
-        </button>
-        <button className="secondary-button" type="button" onClick={onEdit}>
+        <button className="submit-button" type="button" onClick={onEdit}>
           <Pencil size={15} />
           Редактировать
         </button>
@@ -1459,35 +1484,25 @@ function ClientCalendarCard({
           <MessageSquareText size={15} />
           Написать
         </button>
+        <button className="secondary-button" type="button" onClick={onAdd}>
+          <CalendarPlus size={15} />
+          Новая запись
+        </button>
       </div>
-      <div className="calendar-client-card-grid">
-        <span><Phone size={14} /> Телефон <strong>{client?.phone || "—"}</strong></span>
-        <span><Mail size={14} /> Email <strong>{client?.email || "—"}</strong></span>
-        <span>Instagram <strong>{client?.instagram || "—"}</strong></span>
-        <span>Telegram <strong>{client?.telegram || "—"}</strong></span>
-        <span>Источник <strong>{client?.source || "—"}</strong></span>
-        <span>Предпочтение <strong>{client?.preference || "—"}</strong></span>
-        <span><Tag size={14} /> Теги <strong>{client?.tags || "—"}</strong></span>
-        <span>Пакеты <strong>{packages.length}</strong></span>
-      </div>
-      <div className="calendar-client-summary-counts">
-        <span><b>1</b> текущий визит</span>
-        <span><b>{futureVisits.length}</b> будущих</span>
-        <span><b>{pastVisits.length}</b> прошлых</span>
-        <span><b>{packages.reduce((sum, item) => sum + Number(item.remainingVisits || 0), 0)}</b> сеансов в пакетах</span>
+      <div className="calendar-visit-detail-grid">
+        {visitMeta.map((item) => (
+          <span className={item.tone ? `is-${item.tone}` : ""} key={item.label}>
+            {item.icon}
+            <small>{item.label}</small>
+            <strong>{item.value}</strong>
+            <em>{item.detail}</em>
+          </span>
+        ))}
       </div>
       <div className="calendar-client-card-note">
-        <strong>Комментарий</strong>
-        <p>{client?.note || "Заметок пока нет."}</p>
+        <strong>Комментарий к визиту</strong>
+        <p>{note || "Комментария к этой записи нет."}</p>
       </div>
-      {futureVisits.length > 0 && (
-        <div className="calendar-client-card-visits">
-          <strong>Будущие записи</strong>
-          {futureVisits.slice(0, 3).map((visit) => (
-            <small key={visit.id}>{toDisplayDate(visit.date)} · {visit.time} · {visit.service}</small>
-          ))}
-        </div>
-      )}
     </MobileSheet>
   );
 }

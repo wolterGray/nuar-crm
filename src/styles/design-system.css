@@ -588,6 +588,60 @@
   white-space: nowrap;
 }
 
+.calendar-visit-summary {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--visit-accent, #dc2626) 34%, transparent);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--visit-accent, #dc2626) 18%, transparent), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018));
+  box-shadow: inset 3px 0 0 var(--visit-accent, #dc2626);
+}
+
+.calendar-visit-summary-top,
+.calendar-visit-summary-bottom {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.calendar-visit-summary-top .calendar-client-card-status {
+  margin: 0;
+}
+
+.calendar-visit-summary-top b {
+  color: var(--text-soft, #8b9099);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.calendar-visit-summary h3 {
+  margin: 0;
+  color: var(--text-primary, #f4f4f5);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.18;
+}
+
+.calendar-visit-summary-bottom {
+  color: var(--text-soft, #a1a1aa);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.calendar-visit-summary-bottom strong {
+  color: var(--text-primary, #f4f4f5);
+}
+
+.calendar-visit-summary-bottom .is-debt {
+  color: var(--destructive, #ef4444);
+}
+
 .calendar-sheet-menu {
   position: relative;
   flex: none;
@@ -652,6 +706,7 @@
   outline: none;
 }
 
+.calendar-visit-detail-grid,
 .calendar-client-card-grid,
 .calendar-reserved-card-panel {
   display: grid;
@@ -659,6 +714,7 @@
   gap: 8px;
 }
 
+.calendar-visit-detail-grid span,
 .calendar-client-card-grid span,
 .calendar-reserved-card-panel span,
 .calendar-client-summary-counts span,
@@ -672,6 +728,52 @@
   border-radius: 12px;
   color: var(--text-soft, #8b9099);
   background: var(--surface-muted, rgba(255, 255, 255, 0.035));
+}
+
+.calendar-visit-detail-grid span {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.calendar-visit-detail-grid svg {
+  grid-row: span 3;
+  margin-top: 2px;
+  color: var(--text-soft, #858b96);
+}
+
+.calendar-visit-detail-grid small,
+.calendar-visit-detail-grid em {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-soft, #858b96);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.calendar-visit-detail-grid strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-primary, #f3f4f6);
+  font-size: 13px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-visit-detail-grid em {
+  color: var(--text-muted, #737780);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.calendar-visit-detail-grid .is-danger strong {
+  color: var(--destructive, #ef4444);
 }
 
 .calendar-client-card-grid span,
@@ -1771,6 +1873,7 @@
       14px;
   }
 
+  .calendar-visit-detail-grid,
   .calendar-client-card-grid,
   .calendar-reserved-card-panel {
     grid-template-columns: 1fr;
