@@ -259,6 +259,7 @@ function CalendarPage({
   const schedulePanelRef = useRef(null);
   const weekCarouselRef = useRef(null);
   const longPressRef = useRef(null);
+  const pendingSlotOpenedAtRef = useRef(0);
   const previousSelectedDateRef = useRef(null);
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -547,6 +548,7 @@ function CalendarPage({
       startX: event.clientX,
       startY: event.clientY,
       timer: window.setTimeout(() => {
+        pendingSlotOpenedAtRef.current = Date.now();
         setPendingSlot(slot);
         longPressRef.current = null;
       }, 520),
@@ -700,7 +702,7 @@ return (
 
       {isMobile && !isToday && (
         <button
-          className={`fixed bottom-20 right-4 z-40 px-4 py-2 border border-zinc-800 rounded-full text-xs font-semibold text-zinc-200 bg-zinc-900 shadow-lg cursor-pointer ${
+          className={`fixed bottom-20 left-1/2 z-40 -translate-x-1/2 px-4 py-2 border border-zinc-800 rounded-full text-xs font-semibold text-zinc-200 bg-zinc-900 shadow-lg cursor-pointer ${
             overlayOpen ? "hidden" : ""
           }`}
           type="button"
@@ -1324,7 +1326,12 @@ return (
         <div
           className="fixed inset-0 z-50 grid place-items-center p-4 bg-zinc-950/60 backdrop-blur-xs select-none"
           role="presentation"
-          onClick={() => setPendingSlot(null)}
+          onClick={() => {
+            if (Date.now() - pendingSlotOpenedAtRef.current < 450) {
+              return;
+            }
+            setPendingSlot(null);
+          }}
         >
           <section
             aria-label="Добавить запись"
