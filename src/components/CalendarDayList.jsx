@@ -1,6 +1,6 @@
-import { CalendarPlus } from "lucide-react";
 import {useState} from "react";
 import VisitMobileCard from "./VisitMobileCard.jsx";
+import {Button, EmptyState} from "./ui/index.js";
 
 function CalendarDayList({
   entries,
@@ -28,16 +28,18 @@ function CalendarDayList({
 
   if (visitEntries.length === 0 && reservedEntries.length === 0) {
     return (
-      <section className="flex flex-col items-center justify-center py-10 px-4 text-center">
-        <p className="text-zinc-500 text-sm mb-2">На этот день записей пока нет.</p>
-        <button
-          className="add-visit-button inline-flex items-center gap-2 min-h-[40px] px-5 py-2 rounded-lg text-xs font-semibold cursor-pointer transition-all"
-          type="button"
-          onClick={onAdd}
-        >
-          <CalendarPlus size={17} />
-          Добавить визит
-        </button>
+      <section className="py-10 px-4">
+        <EmptyState
+          action={
+            <Button leftIcon="calendarPlus" size="sm" type="button" variant="primary" onClick={onAdd}>
+              Добавить визит
+            </Button>
+          }
+          className="border-transparent bg-transparent p-0"
+          description="На этот день записей пока нет."
+          icon="calendar"
+          title="Пустой день"
+        />
       </section>
     );
   }

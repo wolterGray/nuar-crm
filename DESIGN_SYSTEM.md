@@ -53,6 +53,7 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - `WaitlistFreedSlotDialog` actions.
 - `VisitMobileCard` swipe/inline actions and calendar visit/reserved sheet actions.
 - `CalendarEntryForm` kind switch, visible form fields, client helper actions, package/certificate quick actions, and submit action.
+- `CalendarDayList` empty state and add-visit action.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules
