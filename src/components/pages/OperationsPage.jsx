@@ -1,14 +1,3 @@
-import {
-  Check,
-  ChevronDown,
-  ClipboardCheck,
-  ExternalLink,
-  GripVertical,
-  Lightbulb,
-  PackagePlus,
-  Plus,
-  StickyNote,
-} from "lucide-react";
 import WaitlistPanel from "../WaitlistPanel.jsx";
 import PageHeader from "../PageHeader.jsx";
 import {
@@ -35,6 +24,7 @@ import {
   isSupplyLowStock,
 } from "../../utils/supplyStock.js";
 import {openSupplyOrderUrl} from "../../utils/supplyOrder.js";
+import {AppIcon, Button} from "../ui/index.js";
 
 const NOTE_CATEGORIES = ["Мысль", "Заказать", "Идея", "Личное"];
 
@@ -117,7 +107,7 @@ function TaskDragPreview({task}) {
       className={`task-row task-drag-preview task-${task.status} ${getTaskIndicatorClass(task, status)}`}>
       <div className="task-row-content">
         <div aria-hidden="true" className="task-drag-handle task-drag-handle-preview">
-          <GripVertical size={15} />
+          <AppIcon name="grip" size="sm" />
         </div>
         <div className="operations-card-head">
           <span aria-hidden="true" className="task-check task-check-preview" />
@@ -173,7 +163,7 @@ function DraggableTaskRow({children, className, id, task}) {
           type="button"
           {...listeners}
           {...attributes}>
-          <GripVertical size={15} />
+          <AppIcon name="grip" size="sm" />
         </button>
         {children}
       </div>
@@ -369,7 +359,7 @@ function OperationsPage({
           }`}>
           <div className="operations-panel-header">
             <div>
-              <ClipboardCheck size={18} />
+              <AppIcon name="clipboardCheck" size="md" />
               <div>
                 <h2>Задачи</h2>
                 <p>
@@ -405,7 +395,7 @@ function OperationsPage({
                   className="add-visit-button"
                   type="button"
                   onClick={onAddTask}>
-                  <Plus size={16} />
+                  <AppIcon name="plus" size="sm" />
                   Добавить
                 </button>
               )}
@@ -452,7 +442,7 @@ function OperationsPage({
                           title="Завершить"
                           type="button"
                           onClick={() => onCompleteTask(task)}>
-                          {task.status === "completed" && <Check size={14} />}
+                          {task.status === "completed" && <AppIcon name="check" size="xs" />}
                         </button>
                         <div className="operations-card-body">
                           <strong>{task.title}</strong>
@@ -490,7 +480,7 @@ function OperationsPage({
           ) : (
             <div className="operations-notes">
               <form className="quick-note-form" onSubmit={submitQuickNote}>
-                <StickyNote size={16} />
+                <AppIcon name="stickyNote" size="sm" />
                 <input
                   value={noteText}
                   placeholder="Мысль, идея или что заказать"
@@ -509,7 +499,7 @@ function OperationsPage({
                     type="button"
                     onClick={() => setIsNoteCategoryOpen((isOpen) => !isOpen)}>
                     {noteCategory}
-                    <ChevronDown size={14} />
+                    <AppIcon name="chevronDown" size="xs" />
                   </button>
                   {isNoteCategoryOpen && (
                     <div className="quick-note-category-menu" role="listbox">
@@ -532,10 +522,14 @@ function OperationsPage({
                     </div>
                   )}
                 </div>
-                <button className="add-visit-button" type="submit">
-                  <Plus size={15} />
+                <Button
+                  className="add-visit-button"
+                  leftIcon="plus"
+                  size="sm"
+                  type="submit"
+                  variant="primary">
                   Записать
-                </button>
+                </Button>
               </form>
               <div className="operations-list notes-list">
                 {notes.map((note) => (
@@ -544,9 +538,9 @@ function OperationsPage({
                       <span
                         className={`operations-card-icon note-card-icon ${getNoteIconClass(note.priority)}`}>
                         {note.priority === "Идея" ? (
-                          <Lightbulb size={15} />
+                          <AppIcon name="lightbulb" size="sm" />
                         ) : (
-                          <StickyNote size={15} />
+                          <AppIcon name="stickyNote" size="sm" />
                         )}
                       </span>
                       <div className="operations-card-body">
@@ -589,7 +583,7 @@ function OperationsPage({
           }`}>
           <div className="operations-panel-header">
             <div>
-              <PackagePlus size={18} />
+              <AppIcon name="packagePlus" size="md" />
               <div>
                 <h2>Расходники</h2>
                 <p>
@@ -600,13 +594,15 @@ function OperationsPage({
                 </p>
               </div>
             </div>
-            <button
+            <Button
               className="add-visit-button"
+              leftIcon="plus"
+              size="sm"
               type="button"
+              variant="primary"
               onClick={onAddSupply}>
-              <Plus size={16} />
               Добавить
-            </button>
+            </Button>
           </div>
           <div className="operations-list">
             {sortedSupplies.map((item) => {
@@ -627,7 +623,7 @@ function OperationsPage({
                   <div className="operations-card-head">
                     <span
                       className={`operations-card-icon supply-card-icon ${getSupplyIconClass(stockStatus)}`}>
-                      <PackagePlus size={15} />
+                      <AppIcon name="packagePlus" size="sm" />
                     </span>
                     <div className="operations-card-body">
                       <div className="supply-row-title">
@@ -671,7 +667,7 @@ function OperationsPage({
                       }
                       type="button"
                       onClick={() => openSupplyOrderUrl(item.orderUrl)}>
-                      <ExternalLink size={13} />
+                      <AppIcon name="external" size="xs" />
                       Заказать
                     </button>
                     <button

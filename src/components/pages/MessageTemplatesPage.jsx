@@ -1,16 +1,3 @@
-import {
-  AtSign,
-  Copy,
-  ExternalLink,
-  Mail,
-  MessageCircle,
-  MessageSquareText,
-  Pencil,
-  Plus,
-  Send,
-  Trash2,
-  X,
-} from "lucide-react";
 import {motion} from "framer-motion";
 import {useMemo, useState} from "react";
 import PageHeader from "../ui/PageHeader.jsx";
@@ -24,6 +11,7 @@ import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import Button from "../ui/Button.jsx";
+import {AppIcon, Field, IconButton, Input} from "../ui/index.js";
 
 function MessageTemplateCard({
   isMobile,
@@ -35,7 +23,7 @@ function MessageTemplateCard({
   setOpenMenuId,
   template,
 }) {
-  const Icon = template.channel === "Email" ? Mail : MessageSquareText;
+  const iconName = template.channel === "Email" ? "mail" : "message";
 
   if (isMobile) {
     return (
@@ -45,7 +33,7 @@ function MessageTemplateCard({
         initial={{opacity: 0, y: 6}}>
         <div className="message-template-mobile-head">
           <div className="message-template-card-header">
-            <Icon size={18} />
+            <AppIcon name={iconName} size="md" />
             <div>
               <h3>{template.name}</h3>
               <span>
@@ -71,20 +59,24 @@ function MessageTemplateCard({
         ) : null}
         <p>{template.body}</p>
         <div className="message-template-mobile-actions">
-          <button
+          <Button
             className="secondary-button"
+            leftIcon="copy"
+            size="sm"
             type="button"
+            variant="secondary"
             onClick={() => onCopy(template)}>
-            <Copy size={15} />
             Копировать
-          </button>
-          <button
+          </Button>
+          <Button
             className="add-visit-button"
+            leftIcon="send"
+            size="sm"
             type="button"
+            variant="primary"
             onClick={() => onSend(template)}>
-            <Send size={15} />
             Отправить
-          </button>
+          </Button>
         </div>
       </motion.article>
     );
@@ -93,7 +85,7 @@ function MessageTemplateCard({
   return (
     <article className="catalog-card message-template-card" key={template.id}>
       <div className="message-template-card-header">
-        <Icon size={18} />
+        <AppIcon name={iconName} size="md" />
         <div>
           <h3>{template.name}</h3>
           <span>
@@ -105,38 +97,39 @@ function MessageTemplateCard({
       {template.subject && <strong>{template.subject}</strong>}
       <p>{template.body}</p>
       <div className="message-template-actions">
-        <button
-          aria-label="Копировать текст"
+        <IconButton
           className="template-icon-button"
+          icon="copy"
+          label="Копировать текст"
+          size="sm"
           title="Копировать"
-          type="button"
           onClick={() => onCopy(template)}>
-          <Copy size={15} />
-        </button>
-        <button
-          aria-label="Отправить клиенту"
+        </IconButton>
+        <IconButton
           className="template-icon-button template-send-button"
+          icon="send"
+          label="Отправить клиенту"
+          size="sm"
           title="Отправить клиенту"
-          type="button"
           onClick={() => onSend(template)}>
-          <Send size={15} />
-        </button>
-        <button
-          aria-label="Редактировать шаблон"
+        </IconButton>
+        <IconButton
           className="template-icon-button"
+          icon="edit"
+          label="Редактировать шаблон"
+          size="sm"
           title="Редактировать"
-          type="button"
           onClick={() => onEdit(template)}>
-          <Pencil size={15} />
-        </button>
-        <button
-          aria-label="Удалить шаблон"
+        </IconButton>
+        <IconButton
           className="template-icon-button template-delete-button"
+          icon="trash"
+          label="Удалить шаблон"
+          size="sm"
           title="Удалить"
-          type="button"
+          variant="danger"
           onClick={() => onDelete(template)}>
-          <Trash2 size={15} />
-        </button>
+        </IconButton>
       </div>
     </article>
   );
@@ -398,8 +391,12 @@ function MessageTemplatesPage({
                 onClear={() => setFilter("query", "")}
               />
             ) : null}
-            <Button className="message-templates-add-button" variant="primary" type="button" onClick={onAdd}>
-              <Plus size={18} />
+            <Button
+              className="message-templates-add-button"
+              leftIcon="plus"
+              type="button"
+              variant="primary"
+              onClick={onAdd}>
               {isMobile ? "Добавить" : "Добавить шаблон"}
             </Button>
           </div>
@@ -441,17 +438,18 @@ function MessageTemplatesPage({
 
       {preferredClient ? (
         <div className="preferred-message-client message-templates-preferred-mobile">
-          <MessageSquareText size={16} />
+          <AppIcon name="message" size="sm" />
           <span>
             Сообщение для <strong>{preferredClient.name}</strong>
           </span>
-          <button
-            aria-label="Убрать выбранного клиента"
+          <IconButton
+            icon="x"
+            label="Убрать выбранного клиента"
+            size="sm"
             title="Убрать клиента"
-            type="button"
-            onClick={onClearPreferredClient}>
-            <X size={14} />
-          </button>
+            variant="ghost"
+            onClick={onClearPreferredClient}
+          />
         </div>
       ) : null}
 
@@ -514,17 +512,17 @@ function MessageTemplatesPage({
                 <h2 id="send-template-title">Отправить клиенту</h2>
                 <p>{sendingTemplate.name}</p>
               </div>
-              <button
-                aria-label="Закрыть отправку"
+              <IconButton
                 className="modal-close"
-                type="button"
+                icon="x"
+                label="Закрыть отправку"
+                size="sm"
+                variant="ghost"
                 onClick={closeSendDialog}>
-                <X size={18} />
-              </button>
+              </IconButton>
             </div>
-            <label>
-              Клиент
-              <input
+            <Field label="Клиент">
+              <Input
                 list="message-client-options"
                 placeholder="Начните вводить имя"
                 value={clientQuery}
@@ -546,41 +544,41 @@ function MessageTemplatesPage({
                   <option key={client.id} value={client.name} />
                 ))}
               </datalist>
-            </label>
+            </Field>
             <div className="send-channel-control" aria-label="Способ отправки">
               <button
                 className={sendChannel === "Instagram" ? "active" : ""}
                 type="button"
                 onClick={() => setSendChannel("Instagram")}>
-                <ExternalLink size={15} />
+                <AppIcon name="external" size="sm" />
                 Instagram
               </button>
               <button
                 className={sendChannel === "Email" ? "active" : ""}
                 type="button"
                 onClick={() => setSendChannel("Email")}>
-                <Mail size={15} />
+                <AppIcon name="mail" size="sm" />
                 Email
               </button>
               <button
                 className={sendChannel === "SMS" ? "active" : ""}
                 type="button"
                 onClick={() => setSendChannel("SMS")}>
-                <MessageSquareText size={15} />
+                <AppIcon name="message" size="sm" />
                 SMS
               </button>
               <button
                 className={sendChannel === "Telegram" ? "active" : ""}
                 type="button"
                 onClick={() => setSendChannel("Telegram")}>
-                <AtSign size={15} />
+                <AppIcon name="at" size="sm" />
                 Telegram
               </button>
               <button
                 className={sendChannel === "WhatsApp" ? "active" : ""}
                 type="button"
                 onClick={() => setSendChannel("WhatsApp")}>
-                <MessageCircle size={15} />
+                <AppIcon name="message" size="sm" />
                 WhatsApp
               </button>
             </div>
@@ -589,24 +587,28 @@ function MessageTemplatesPage({
               <p>{getPersonalizedText(sendingTemplate, selectedClient)}</p>
             </div>
             <div className="send-template-actions">
-              <button
+              <Button
                 className="secondary-button"
                 disabled={!selectedClient}
+                leftIcon="copy"
+                size="sm"
                 type="button"
+                variant="secondary"
                 onClick={() => copyText(sendingTemplate, selectedClient)}>
-                <Copy size={15} />
                 Копировать
-              </button>
-              <button
+              </Button>
+              <Button
                 className="submit-button"
                 disabled={!selectedClient}
+                leftIcon="send"
+                size="sm"
                 type="button"
+                variant="primary"
                 onClick={sendMessage}>
-                <Send size={15} />
                 {["Instagram", "Telegram"].includes(sendChannel)
                   ? `Открыть ${sendChannel}`
                   : "Отправить"}
-              </button>
+              </Button>
             </div>
           </section>
         </div>

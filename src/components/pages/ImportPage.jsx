@@ -1,9 +1,3 @@
-import {
-  ExternalLink,
-  FileText,
-  Mail,
-  Trash2,
-} from "lucide-react";
 import {useMemo, useState} from "react";
 import BooksyGmailSyncPanel from "../BooksyGmailSyncPanel.jsx";
 import {
@@ -23,6 +17,7 @@ import {formatMoney} from "../../utils/formatters.jsx";
 import PageHeader from "../ui/PageHeader.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import Button from "../ui/Button.jsx";
+import {AppIcon, IconButton} from "../ui/index.js";
 
 const amountFilterOptions = [
   {value: IMPORT_DOCUMENT_AMOUNT_FILTERS.all, label: "Все"},
@@ -66,7 +61,7 @@ function ImportDocumentCard({document, onDelete}) {
       <div className="import-document-main flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
           <span className="import-document-icon flex items-center justify-center w-8 h-8 rounded-lg bg-accent/10 text-accent shrink-0">
-            <FileText size={16} />
+            <AppIcon name="fileText" size="sm" />
           </span>
           <div className="grid gap-0.5 min-w-0">
             <strong className="text-text-main text-sm font-semibold truncate block">{title}</strong>
@@ -103,16 +98,17 @@ function ImportDocumentCard({document, onDelete}) {
           rel="noreferrer"
           target="_blank"
           title="Открыть письмо в Gmail">
-          <ExternalLink size={15} />
+          <AppIcon name="external" size="sm" />
         </a>
-        <button
-          aria-label="Удалить документ"
+        <IconButton
           className="import-document-action import-document-delete"
+          icon="trash"
+          label="Удалить документ"
+          size="sm"
           title="Удалить из CRM"
-          type="button"
+          variant="danger"
           onClick={handleDelete}>
-          <Trash2 size={15} />
-        </button>
+        </IconButton>
       </div>
     </article>
   );
@@ -369,7 +365,7 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
         <div className="p-4 md:p-5 border-b border-border-soft flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <span className="text-text-muted shrink-0">
-              <Mail size={20} />
+              <AppIcon name="mail" size="md" />
             </span>
             <div className="grid gap-0.5">
               <h2 className="m-0 text-text-main text-base font-semibold leading-snug">Документы расходов</h2>
@@ -406,10 +402,10 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
 
               {filteredDocuments.length > 0 && onDeleteDocuments && (
                 <Button
+                  leftIcon="trash"
                   variant="danger"
                   size="sm"
                   onClick={handleDeleteVisible}>
-                  <Trash2 size={15} />
                   {filtersActive
                     ? `Удалить показанные (${filteredDocuments.length})`
                     : `Удалить все (${filteredDocuments.length})`}
