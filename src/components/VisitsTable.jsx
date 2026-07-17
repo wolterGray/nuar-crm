@@ -20,14 +20,15 @@ import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import PageHeader from "./PageHeader.jsx";
 import {
   Badge,
-  AppIcon,
   Button,
   Card,
   Dropdown,
   DropdownContent,
   DropdownItem,
   IconButton,
+  Input,
   SearchControl,
+  Select,
   Table,
   TableCell,
   TableHeader,
@@ -208,17 +209,18 @@ function VisitsTable({
             <Dropdown
               className="row-actions row-action-trigger-wrap visit-row-actions"
               onClick={(event) => event.stopPropagation()}>
-              <button
+              <IconButton
                 aria-label="Действия"
                 className="row-action row-action-trigger"
+                icon="moreVertical"
+                label="Действия"
                 type="button"
                 onClick={() =>
                   onToggleActionMenu(
                     openActionMenuId === visit.id ? null : visit.id,
                   )
-                }>
-                <AppIcon name="moreVertical" size="md" />
-              </button>
+                }
+              />
               {openActionMenuId === visit.id && (
                 <DropdownContent className="row-action-menu">
                   {onEditVisit && (
@@ -312,25 +314,25 @@ function VisitsTable({
     <div className="payments-mobile-filters table-filters">
       <label>
         Сотрудник
-        <select
+        <Select
           value={filters.master}
           onChange={(event) => onFilterChange("master", event.target.value)}>
           <option value="">Все</option>
           {masters.map((master) => (
             <option key={master}>{master}</option>
           ))}
-        </select>
+        </Select>
       </label>
       <label>
         Оплата
-        <select
+        <Select
           value={filters.payment}
           onChange={(event) => onFilterChange("payment", event.target.value)}>
           <option value="">Все</option>
           {paymentMethods.map((payment) => (
             <option key={payment}>{payment}</option>
           ))}
-        </select>
+        </Select>
       </label>
       <label>
         Клиент
@@ -345,7 +347,7 @@ function VisitsTable({
       </label>
       <label>
         Дата
-        <input
+        <Input
           type="date"
           value={filters.date}
           onChange={(event) => onFilterChange("date", event.target.value)}
@@ -457,25 +459,25 @@ function VisitsTable({
       <div className="table-filters">
         <label>
           Сотрудник
-          <select
+          <Select
             value={filters.master}
             onChange={(event) => onFilterChange("master", event.target.value)}>
             <option value="">Все</option>
             {masters.map((master) => (
               <option key={master}>{master}</option>
             ))}
-          </select>
+          </Select>
         </label>
         <label>
           Оплата
-          <select
+          <Select
             value={filters.payment}
             onChange={(event) => onFilterChange("payment", event.target.value)}>
             <option value="">Все</option>
             {paymentMethods.map((payment) => (
               <option key={payment}>{payment}</option>
             ))}
-          </select>
+          </Select>
         </label>
         <label>
           Клиент
@@ -490,7 +492,7 @@ function VisitsTable({
         </label>
         <label>
           Дата
-          <input
+          <Input
             type="date"
             value={filters.date}
             onChange={(event) => onFilterChange("date", event.target.value)}
