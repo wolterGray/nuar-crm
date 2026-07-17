@@ -6,7 +6,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {Download, ListFilter, MoreVertical, Plus} from "lucide-react";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
 import {formatMoney} from "../utils/formatters.jsx";
@@ -21,11 +20,13 @@ import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import PageHeader from "./PageHeader.jsx";
 import {
   Badge,
+  AppIcon,
   Button,
   Card,
   Dropdown,
   DropdownContent,
   DropdownItem,
+  IconButton,
   SearchControl,
   Table,
   TableCell,
@@ -216,7 +217,7 @@ function VisitsTable({
                     openActionMenuId === visit.id ? null : visit.id,
                   )
                 }>
-                <MoreVertical size={17} />
+                <AppIcon name="moreVertical" size="md" />
               </button>
               {openActionMenuId === visit.id && (
                 <DropdownContent className="row-action-menu">
@@ -363,10 +364,14 @@ function VisitsTable({
         onClear={() => setGlobalFilter("")}
       />
       {onAddVisit ? (
-        <button className="add-visit-button payments-add-button" type="button" onClick={onAddVisit}>
-          <Plus size={18} />
+        <Button
+          className="add-visit-button payments-add-button"
+          leftIcon="plus"
+          type="button"
+          variant="primary"
+          onClick={onAddVisit}>
           Добавить
-        </button>
+        </Button>
       ) : null}
       {mobileFilters}
     </div>
@@ -385,26 +390,28 @@ function VisitsTable({
               <Button
                 aria-label="Экспорт CSV"
                 className="secondary-button"
+                leftIcon="download"
                 type="button"
+                variant="secondary"
                 onClick={exportVisits}>
-                <Download size={16} />
                 <span>Экспорт CSV</span>
               </Button>
               <Button
                 aria-label="Сбросить фильтры"
                 className="secondary-button"
+                leftIcon="filter"
+                variant="secondary"
                 onClick={onResetFilters}>
-                <ListFilter size={16} />
                 <span>Сбросить</span>
               </Button>
               {onAddVisit ? (
                 <Button
                   aria-label={addLabel}
                   className="add-visit-button"
+                  leftIcon="plus"
                   type="button"
                   variant="primary"
                   onClick={onAddVisit}>
-                  <Plus size={16} />
                   <span>{addLabel}</span>
                 </Button>
               ) : null}
@@ -414,13 +421,14 @@ function VisitsTable({
         description={isMobile ? undefined : `${rows.length} из ${safeVisits.length} записей`}
         headerActions={
           isMobile ? (
-            <button
-              aria-label="Экспорт CSV"
+            <IconButton
               className="payments-header-icon"
-              type="button"
+              icon="download"
+              label="Экспорт CSV"
+              size="sm"
+              variant="ghost"
               onClick={exportVisits}>
-              <Download size={18} />
-            </button>
+            </IconButton>
           ) : undefined
         }
         title={

@@ -1,7 +1,7 @@
-import {Copy, ExternalLink, Gift, ShieldCheck} from "lucide-react";
 import {useEffect, useState} from "react";
 import {fetchPublicLoyaltyCard} from "../../api/loyalty.js";
 import LoyaltyQrCode from "../LoyaltyQrCode.jsx";
+import {AppIcon} from "../ui/index.js";
 
 const stringsByLanguage = {
   en: {
@@ -107,7 +107,7 @@ function PublicLoyaltyPage() {
       <section className="public-loyalty-card">
         <div className="public-loyalty-brand">
           <span>
-            <ShieldCheck size={18} />
+            <AppIcon name="shield" size="md" />
           </span>
           <div>
             <h1>{strings.title}</h1>
@@ -141,7 +141,7 @@ function PublicLoyaltyPage() {
             </div>
 
             <div className={`public-loyalty-reward ${card.rewardAvailable ? "is-ready" : ""}`}>
-              <Gift size={18} />
+              <AppIcon name="gift" size="md" />
               <div>
                 <strong>
                   {card.rewardAvailable
@@ -164,10 +164,10 @@ function PublicLoyaltyPage() {
             <div className="public-loyalty-actions">
               <a href="https://nuarr.booksy.com/a" rel="noreferrer" target="_blank">
                 {strings.booking}
-                <ExternalLink size={15} />
+                <AppIcon name="external" size="sm" />
               </a>
               <button type="button" onClick={copyLink}>
-                <Copy size={15} />
+                <AppIcon name="copy" size="sm" />
                 Kopiuj link
               </button>
             </div>
