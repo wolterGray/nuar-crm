@@ -1,5 +1,5 @@
 import {Component} from "react";
-import {AlertTriangle, RotateCcw} from "lucide-react";
+import {AppIcon, Button} from "./ui/index.js";
 
 const CHUNK_RELOAD_STORAGE_KEY = "nuar-crm:chunk-reload-attempted";
 
@@ -25,7 +25,7 @@ function ErrorFallback({error, onReload, onRetry}) {
     <section className="app-error-boundary">
       <div className="app-error-boundary-card">
         <span className="app-error-boundary-icon" aria-hidden="true">
-          <AlertTriangle size={28} />
+          <AppIcon name="alert" size="lg" />
         </span>
         <h1>Что-то пошло не так</h1>
         <p>
@@ -36,13 +36,19 @@ function ErrorFallback({error, onReload, onRetry}) {
           <pre className="app-error-boundary-details">{error.message}</pre>
         ) : null}
         <div className="app-error-boundary-actions">
-          <button className="secondary-button" type="button" onClick={onRetry}>
-            <RotateCcw size={16} />
+          <Button
+            className="secondary-button"
+            leftIcon="refresh"
+            variant="secondary"
+            onClick={onRetry}>
             Попробовать снова
-          </button>
-          <button className="add-visit-button" type="button" onClick={onReload}>
+          </Button>
+          <Button
+            className="add-visit-button"
+            variant="primary"
+            onClick={onReload}>
             Перезагрузить CRM
-          </button>
+          </Button>
         </div>
       </div>
     </section>

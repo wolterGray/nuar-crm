@@ -1,12 +1,7 @@
-import {
-  ArrowRight,
-  MessageSquareText,
-  Search,
-  UserRound,
-} from "lucide-react";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {searchClients} from "../utils/clientSearch.js";
 import MobileSheet from "./MobileSheet.jsx";
+import {AppIcon, IconButton, Input} from "./ui/index.js";
 
 function ClientSearchDialog({
   clients,
@@ -106,8 +101,8 @@ function ClientSearchDialog({
         </div>
       }>
       <div className="client-search-header" onKeyDown={handleKeyDown}>
-        <Search size={18} />
-        <input
+        <AppIcon name="search" size="sm" />
+        <Input
           ref={inputRef}
           autoComplete="off"
           placeholder="Имя, телефон, email, Telegram…"
@@ -142,7 +137,7 @@ function ClientSearchDialog({
                 type="button"
                 onClick={() => handleSelect(client)}>
                 <span className="client-search-avatar">
-                  <UserRound size={16} />
+                  <AppIcon name="user" size="sm" />
                 </span>
                 <span className="client-search-copy">
                   <strong>{client.name}</strong>
@@ -153,15 +148,16 @@ function ClientSearchDialog({
                       : ""}
                   </small>
                 </span>
-                <ArrowRight size={15} />
+                <AppIcon name="chevronRight" size="sm" />
               </button>
-              <button
-                aria-label={`Написать ${client.name}`}
+              <IconButton
                 className="client-search-message"
-                type="button"
+                icon="message"
+                label={`Написать ${client.name}`}
+                size="sm"
+                variant="secondary"
                 onClick={() => onMessageClient?.(client)}>
-                <MessageSquareText size={15} />
-              </button>
+              </IconButton>
             </li>
           ))}
         </ul>

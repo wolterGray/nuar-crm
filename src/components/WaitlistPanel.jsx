@@ -1,6 +1,6 @@
-import {CalendarPlus, Clock3, MessageSquareText, Plus} from "lucide-react";
 import PageHeader from "./PageHeader.jsx";
 import {RowActionsMenu} from "./RowActionMenuPortal.jsx";
+import {AppIcon, Button, EmptyState} from "./ui/index.js";
 import {
   getActiveWaitlistEntries,
   summarizeWaitlistEntry,
@@ -26,16 +26,20 @@ function WaitlistPanel({
         showNotifications={false}
         title="Лист ожидания"
       />
-      <button
+      <Button
         className="add-visit-button waitlist-add-button"
-        type="button"
+        leftIcon="plus"
+        variant="primary"
         onClick={onAdd}>
-        <Plus size={16} />
         Добавить
-      </button>
+      </Button>
 
       {activeEntries.length === 0 ? (
-        <p className="operations-empty">Активных заявок пока нет.</p>
+        <EmptyState
+          className="operations-empty"
+          icon="clock"
+          title="Активных заявок пока нет."
+        />
       ) : (
         <div className="client-packages-list">
           {activeEntries.map((entry) => (
@@ -44,7 +48,7 @@ function WaitlistPanel({
               key={entry.id}>
               <div className="operations-card-head">
                 <span className="operations-card-icon waitlist-card-icon">
-                  <Clock3 size={15} />
+                  <AppIcon name="clock" size="sm" />
                 </span>
                 <div className="operations-card-body">
                   <strong>{entry.clientName}</strong>
@@ -67,22 +71,24 @@ function WaitlistPanel({
                 </span>
               </div>
               <div className="waitlist-card-actions">
-                <button
+                <Button
                   className="waitlist-action-button"
+                  leftIcon="message"
+                  size="sm"
                   title="Шаблоны сообщений"
-                  type="button"
+                  variant="secondary"
                   onClick={() => onMessage?.(entry)}>
-                  <MessageSquareText size={14} />
                   Написать
-                </button>
-                <button
+                </Button>
+                <Button
                   className="waitlist-action-button"
+                  leftIcon="calendarPlus"
+                  size="sm"
                   title="Новая запись"
-                  type="button"
+                  variant="secondary"
                   onClick={() => onBook?.(entry)}>
-                  <CalendarPlus size={14} />
                   Записать
-                </button>
+                </Button>
               </div>
             </article>
           ))}
@@ -92,7 +98,7 @@ function WaitlistPanel({
       {offeredEntries.length > 0 ? (
         <div className="waitlist-offered-block">
           <strong>
-            <Clock3 size={15} />
+            <AppIcon name="clock" size="sm" />
             Недавно предложено ({offeredEntries.length})
           </strong>
           <ul>
