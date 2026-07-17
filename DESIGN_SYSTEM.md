@@ -52,6 +52,7 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - `PageHeader` collapsible affordance.
 - `WaitlistFreedSlotDialog` actions.
 - `VisitMobileCard` swipe/inline actions and calendar visit/reserved sheet actions.
+- `CalendarEntryForm` kind switch, client helper actions, package/certificate quick actions, and submit action.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules
@@ -71,12 +72,12 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 
 The app still has a lot of page-local UI from older iterations. Recommended next slices:
 
-1. Calendar modals and mobile visit cards.
+1. Finish `CalendarEntryForm` field migration.
 2. Club page menus, QR/style modals, gift management.
 3. Clients detail modal and loyalty card panel.
 4. Page tabs across Club, Settings, Statistics.
 5. Sidebar/mobile navigation hard-coded colors.
-6. Calendar desktop controls and full `CalendarEntryForm` field migration.
+6. Calendar desktop controls and remaining native calendar form controls.
 
 Run after every slice:
 

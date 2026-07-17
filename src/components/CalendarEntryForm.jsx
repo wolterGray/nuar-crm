@@ -13,6 +13,7 @@ import {calculateSiteBookingPrice} from "../utils/siteBookingPricing.js";
 import {FieldLabel} from "./HintIcon.jsx";
 import {toVisitNumber} from "../utils/visits.jsx";
 import {formatMoney, getDaysSinceDisplayDate, toDisplayDate} from "../utils/formatters.jsx";
+import {Button} from "./ui/index.js";
 
 const fallbackColors = ["#4f8edc", "#8b6fd6", "#45a873", "#d78a42", "#c75b78"];
 const toMinutes = (time) => {
@@ -533,28 +534,32 @@ function CalendarEntryForm({
     <form className="calendar-entry-form flex flex-col gap-4 text-zinc-200" noValidate onSubmit={submitForm}>
       {!initialEntry && (
         <div className="calendar-kind-switch flex rounded-lg bg-zinc-900 p-0.5 border border-zinc-800 w-full">
-          <button
+          <Button
             className={`flex-1 py-1.5 text-xs font-semibold text-center rounded-md cursor-pointer transition-all ${
               kind === "visit"
                 ? "is-active text-white shadow-xs font-bold"
                 : "text-zinc-400 hover:text-zinc-200"
             }`}
+            size="sm"
             type="button"
+            variant={kind === "visit" ? "primary" : "ghost"}
             onClick={() => setFormValue("kind", "visit")}
           >
             Клиент
-          </button>
-          <button
+          </Button>
+          <Button
             className={`flex-1 py-1.5 text-xs font-semibold text-center rounded-md cursor-pointer transition-all ${
               kind === "reserved"
                 ? "is-active text-white shadow-xs font-bold"
                 : "text-zinc-400 hover:text-zinc-200"
             }`}
+            size="sm"
             type="button"
+            variant={kind === "reserved" ? "primary" : "ghost"}
             onClick={() => setFormValue("kind", "reserved")}
           >
             Резерв
-          </button>
+          </Button>
         </div>
       )}
       <input {...register("kind")} type="hidden" />
@@ -589,13 +594,15 @@ function CalendarEntryForm({
           {client && !clientExists && (
             <div className="flex items-center justify-between p-3 border border-red-800/30 rounded-xl bg-red-950/10 text-xs">
               <span className="text-zinc-300">Такого клиента нет в базе.</span>
-              <button
+              <Button
                 type="button"
                 className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 rounded-lg font-semibold text-zinc-250 cursor-pointer"
+                size="sm"
+                variant="secondary"
                 onClick={() => onCreateClient?.(client)}
               >
                 Добавить клиента
-              </button>
+              </Button>
             </div>
           )}
           {client && clientExists && clientTemplateApplied && !initialEntry && (
@@ -649,16 +656,18 @@ function CalendarEntryForm({
                       {clientInsights.activePackages[0].remainingVisits} сеанс. осталось
                     </span>
                   </div>
-                  <button
+                  <Button
                     type="button"
                     className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-2xs font-semibold text-zinc-300 hover:bg-zinc-800 cursor-pointer"
+                    size="sm"
+                    variant="secondary"
                     onClick={() => {
                       setFormValue("payment", "Пакет");
                       setFormValue("packageUsageId", clientInsights.activePackages[0].id);
                     }}
                   >
                     Использовать
-                  </button>
+                  </Button>
                 </article>
               ) : null}
               {clientInsights.activeCertificates.length > 0 &&
@@ -671,9 +680,11 @@ function CalendarEntryForm({
                       {formatMoney(clientInsights.activeCertificates[0].remainingBalance)}
                     </span>
                   </div>
-                  <button
+                  <Button
                     type="button"
                     className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-2xs font-semibold text-zinc-300 hover:bg-zinc-800 cursor-pointer"
+                    size="sm"
+                    variant="secondary"
                     onClick={() => {
                       setFormValue("payment", "Сертификат");
                       setFormValue(
@@ -683,7 +694,7 @@ function CalendarEntryForm({
                     }}
                   >
                     Использовать
-                  </button>
+                  </Button>
                 </article>
               ) : null}
             </div>
@@ -1038,12 +1049,14 @@ function CalendarEntryForm({
         </label>
       )}
       <div className="calendar-form-actions flex justify-end gap-2 mt-2 pt-4 border-t border-zinc-800/60">
-        <button
+        <Button
           className="calendar-submit-button inline-flex items-center gap-1.5 min-h-[38px] px-5 py-2 rounded-lg text-xs font-semibold cursor-pointer transition-all w-full md:w-auto justify-center"
+          size="md"
           type="submit"
+          variant="primary"
         >
           {initialEntry || kind !== "visit" ? "Сохранить" : "Добавить в календарь"}
-        </button>
+        </Button>
       </div>
     </form>
   );
