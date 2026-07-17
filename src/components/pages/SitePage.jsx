@@ -1,6 +1,6 @@
-import {Save} from "lucide-react";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import PageHeader from "../ui/PageHeader.jsx";
+import {Button} from "../ui/index.js";
 import SiteAdminPanel from "../SiteAdminPanel.jsx";
 import SiteBookingNotifySettings from "../SiteBookingNotifySettings.jsx";
 import SiteBookingPanel from "../SiteBookingPanel.jsx";
@@ -19,10 +19,9 @@ function SitePage({
 
   const saveBar = (
     <div className="settings-actions settings-save-bar settings-grid-full">
-      <button className="submit-button" type="submit">
-        <Save size={17} />
+      <Button className="submit-button" leftIcon="save" type="submit" variant="primary">
         Сохранить настройки
-      </button>
+      </Button>
     </div>
   );
 

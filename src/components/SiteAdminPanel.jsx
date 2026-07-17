@@ -1,6 +1,6 @@
-import {ExternalLink, Globe} from "lucide-react";
 import {useState} from "react";
 import {getPublicSiteUrl, openSiteAdmin} from "../utils/openSiteAdmin.js";
+import {AppIcon, Button} from "./ui/index.js";
 
 export default function SiteAdminPanel({compact = false, embeddedMobile = false}) {
   const [openingAdmin, setOpeningAdmin] = useState(false);
@@ -25,7 +25,7 @@ export default function SiteAdminPanel({compact = false, embeddedMobile = false}
     <>
       {!embeddedMobile ? (
         <div className="settings-panel-heading">
-          <Globe size={18} />
+          <AppIcon name="globe" size="md" />
           <div>
             <h2>Сайт NUAR</h2>
             <p>
@@ -40,20 +40,21 @@ export default function SiteAdminPanel({compact = false, embeddedMobile = false}
         className={`toolbar-actions${
           embeddedMobile ? " site-admin-mobile-actions" : ""
         }`}>
-        <button
+        <Button
           className="add-visit-button"
           disabled={openingAdmin}
           type="button"
+          variant="primary"
           onClick={handleOpenAdmin}>
           {openingAdmin ? "Открываем…" : "Открыть админку сайта"}
-        </button>
+        </Button>
         <a
           className={embeddedMobile ? "secondary-button" : "compact-icon-button"}
           href={getPublicSiteUrl()}
           rel="noreferrer"
           target="_blank"
           title="Открыть сайт">
-          <ExternalLink size={16} />
+          <AppIcon name="external" size="sm" />
           {embeddedMobile ? "Открыть nuarr.pl" : null}
         </a>
       </div>
