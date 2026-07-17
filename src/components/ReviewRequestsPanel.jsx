@@ -1,4 +1,3 @@
-import {Star} from "lucide-react";
 import {useState} from "react";
 import {SettingsPanelHeading} from "./HintIcon.jsx";
 import {defaultReviewRequestTemplate} from "../utils/reviewRequests.js";
@@ -53,7 +52,7 @@ function ReviewRequestsPanel({
     <section className="panel settings-panel booksy-sync-panel">
       <SettingsPanelHeading
         hint="Авто-SMS через SMSAPI.pl через N часов после завершённого визита"
-        icon={Star}
+        icon="star"
         title="Запрос отзыва после визита"
       />
 

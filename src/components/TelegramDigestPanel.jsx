@@ -1,4 +1,3 @@
-import {SendHorizonal} from "lucide-react";
 import {useState} from "react";
 import {SettingsPanelHeading} from "./HintIcon.jsx";
 import {sendTelegramDigestTest} from "../utils/telegramDigestApi.js";
@@ -52,7 +51,7 @@ function TelegramDigestPanel({
     <section className="panel settings-panel booksy-sync-panel">
       <SettingsPanelHeading
         hint="Ежедневная сводка: записи, дни рождения, пакеты, сертификаты, выручка"
-        icon={SendHorizonal}
+        icon="message"
         title="Telegram-дайджест"
       />
 

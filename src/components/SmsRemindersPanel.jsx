@@ -1,4 +1,3 @@
-import {MessageSquareText} from "lucide-react";
 import {useState} from "react";
 import {SettingsPanelHeading} from "./HintIcon.jsx";
 import {defaultSmsReminderTemplates} from "../utils/smsReminders.js";
@@ -40,7 +39,7 @@ function SmsRemindersPanel({
     <section className="panel settings-panel booksy-sync-panel">
       <SettingsPanelHeading
         hint="Автоматические SMS за 24 часа и за 2 часа до записи через SMSAPI.pl"
-        icon={MessageSquareText}
+        icon="message"
         title="SMS-напоминания о визитах"
       />
 

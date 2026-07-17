@@ -1,4 +1,3 @@
-import {Users} from "lucide-react";
 import {useMemo, useState} from "react";
 import {FieldLabel} from "./HintIcon.jsx";
 import {
@@ -7,7 +6,7 @@ import {
   summarizeBulkSmsRecipients,
 } from "../utils/bulkSms.js";
 import {sendBulkSmsTest} from "../utils/bulkSmsApi.js";
-import {Button, Field, Input, Select, Textarea} from "./ui/index.js";
+import {AppIcon, Button, Field, Input, Select, Textarea} from "./ui/index.js";
 
 function BulkSmsPanel({
   bulkSms,
@@ -68,7 +67,7 @@ function BulkSmsPanel({
   return (
     <section className="panel bulk-sms-panel">
       <div className="settings-panel-heading">
-        <Users size={18} />
+        <AppIcon name="user" size="md" />
         <div>
           <h2>Bulk SMS по сегментам</h2>
           <p>Сегмент → шаблон → массовая отправка через SMSAPI.pl</p>
@@ -113,10 +112,13 @@ function BulkSmsPanel({
             ))}
           </Select>
         </Field>
-        <label className="settings-full-width">
-          <FieldLabel hint='Плейсхолдеры: {name}, {studio}, {days}'>
-            Текст сообщения
-          </FieldLabel>
+        <Field
+          className="settings-full-width"
+          label={
+            <FieldLabel hint='Плейсхолдеры: {name}, {studio}, {days}'>
+              Текст сообщения
+            </FieldLabel>
+          }>
           <Textarea
             rows="4"
             value={bulkSms.template}
@@ -125,7 +127,7 @@ function BulkSmsPanel({
               bulkSms.setPreview([]);
             }}
           />
-        </label>
+        </Field>
       </div>
 
       <div className="settings-actions-row">

@@ -1,4 +1,3 @@
-import {Users} from "lucide-react";
 import {useState} from "react";
 import {SettingsPanelHeading} from "./HintIcon.jsx";
 import {defaultInactiveFollowUpTemplates} from "../utils/inactiveFollowUp.js";
@@ -53,7 +52,7 @@ function InactiveFollowUpPanel({
     <section className="panel settings-panel booksy-sync-panel">
       <SettingsPanelHeading
         hint="Авто-SMS через 14, 30 и 60 дней без визита через SMSAPI.pl"
-        icon={Users}
+        icon="user"
         title="Follow-up неактивных клиентов"
       />
 

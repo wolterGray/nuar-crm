@@ -67,6 +67,7 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - Payroll and daily-payroll controls, statuses, empty states, and actions.
 - Site booking notification settings, request panel actions, and shared hint icons.
 - Booksy Gmail sync panel, day-close form controls, and login screen icons/actions.
+- Automated SMS, inactive follow-up, review request, Telegram digest, and bulk SMS panel icons/forms.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules
