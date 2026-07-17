@@ -1,5 +1,5 @@
-import {CalendarPlus, MessageSquareText, X} from "lucide-react";
 import {formatWaitlistSlotLabel, summarizeWaitlistEntry} from "../utils/waitlist.js";
+import {Button, IconButton} from "./ui/index.js";
 
 function WaitlistFreedSlotDialog({
   buildOfferMessage,
@@ -21,9 +21,14 @@ function WaitlistFreedSlotDialog({
             <h2>Освободился слот</h2>
             <p>{formatWaitlistSlotLabel(slot)}</p>
           </div>
-          <button aria-label="Закрыть" type="button" onClick={onClose}>
-            <X size={18} />
-          </button>
+          <IconButton
+            icon="x"
+            label="Закрыть"
+            size="sm"
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+          />
         </header>
         <div className="waitlist-freed-list">
           <strong>Подходят из листа ожидания ({matches.length})</strong>
@@ -37,20 +42,22 @@ function WaitlistFreedSlotDialog({
                     <small>{buildOfferMessage?.(entry, slot)}</small>
                   </div>
                   <div className="waitlist-freed-actions">
-                    <button
-                      className="secondary-button"
+                    <Button
+                      leftIcon="message"
+                      size="sm"
                       type="button"
+                      variant="secondary"
                       onClick={() => onMessage?.(entry, slot)}>
-                      <MessageSquareText size={14} />
                       Написать
-                    </button>
-                    <button
-                      className="add-visit-button"
+                    </Button>
+                    <Button
+                      leftIcon="calendarPlus"
+                      size="sm"
                       type="button"
+                      variant="primary"
                       onClick={() => onBook?.(entry, slot)}>
-                      <CalendarPlus size={14} />
                       Записать
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </li>
@@ -58,9 +65,9 @@ function WaitlistFreedSlotDialog({
           </ul>
         </div>
         <footer className="modal-actions">
-          <button className="secondary-button" type="button" onClick={onClose}>
+          <Button size="sm" type="button" variant="secondary" onClick={onClose}>
             Закрыть
-          </button>
+          </Button>
         </footer>
       </section>
     </div>

@@ -1,14 +1,5 @@
-import {
-  CalendarDays,
-  Check,
-  ExternalLink,
-  EyeOff,
-  MessageSquareText,
-  MoreHorizontal,
-  PackagePlus,
-  UserRound,
-} from "lucide-react";
 import {useState} from "react";
+import {Button, IconButton} from "./ui/index.js";
 
 const ACTION_LABELS = {
   calendar: "Календарь",
@@ -25,13 +16,13 @@ const ACTION_LABELS = {
 };
 
 const ACTION_ICONS = {
-  calendar: CalendarDays,
-  client: UserRound,
-  complete: Check,
-  order: ExternalLink,
-  sell: PackagePlus,
-  stock: PackagePlus,
-  write: MessageSquareText,
+  calendar: "calendar",
+  client: "user",
+  complete: "check",
+  order: "external",
+  sell: "package",
+  stock: "package",
+  write: "message",
 };
 
 export default function NotificationAlertRow({
@@ -64,28 +55,29 @@ export default function NotificationAlertRow({
       </div>
       <div className="client-alert-actions">
         {primaryActions.map((action) => {
-          const Icon = ACTION_ICONS[action];
-
           return (
-            <button
+            <Button
               key={action}
+              leftIcon={ACTION_ICONS[action]}
+              size="sm"
               type="button"
+              variant="subtle"
               onClick={() => onAction(alert, action)}>
-              {Icon ? <Icon size={14} /> : null}
               {ACTION_LABELS[action]}
-            </button>
+            </Button>
           );
         })}
         {alert.actions.includes("snooze") ? (
           <div className="client-alert-snooze">
-            <button
+            <IconButton
               aria-expanded={menuOpen}
-              aria-label="Скрыть уведомление"
+              icon="eyeOff"
+              label="Скрыть уведомление"
+              size="sm"
               type="button"
-              onClick={() => setMenuOpen((current) => !current)}>
-              <EyeOff size={14} />
-              <MoreHorizontal size={12} />
-            </button>
+              variant="subtle"
+              onClick={() => setMenuOpen((current) => !current)}
+            />
             {menuOpen ? (
               <div className="client-alert-snooze-menu">
                 <button

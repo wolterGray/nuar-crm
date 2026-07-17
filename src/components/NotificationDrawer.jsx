@@ -1,10 +1,10 @@
 import {AnimatePresence, motion} from "framer-motion";
-import {Bell, ChevronDown} from "lucide-react";
 import {useLayoutEffect, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 import {ALERT_GROUP_LABELS, groupAlerts} from "../utils/alertCenter.js";
 import NotificationAggregateRow from "./NotificationAggregateRow.jsx";
 import NotificationAlertRow from "./NotificationAlertRow.jsx";
+import {AppIcon} from "./ui/index.js";
 
 const POPOVER_WIDTH = 360;
 const POPOVER_GAP = 8;
@@ -157,17 +157,6 @@ export default function NotificationDrawer({
             exit={{opacity: 0}}
             className="client-alert-backdrop"
             onClick={onToggleOpen}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 110,
-              background: "rgba(0, 0, 0, 0.4)",
-              backdropFilter: "blur(4px)",
-              WebkitBackdropFilter: "blur(4px)",
-            }}
           />
           <motion.div
             key="notification-popover"
@@ -236,7 +225,7 @@ export default function NotificationDrawer({
                   <div className="client-alert-group-heading">
                     {ALERT_GROUP_LABELS[groupKey] ?? groupKey}
                     <b>{groupAlertsList.length}</b>
-                    <ChevronDown className="open" size={14} />
+                    <AppIcon className="open" name="chevronDown" size="xs" />
                   </div>
                   {groupAlertsList.map((alert) => renderAlert(alert))}
                 </div>
@@ -279,7 +268,7 @@ export default function NotificationDrawer({
           className="client-alert-button notification-trigger"
           type="button"
           onClick={onToggleOpen}>
-          <Bell size={18} />
+          <AppIcon name="bell" size="md" />
           {urgentAlertsCount > 0 ? (
             <b>{urgentAlertsCount}</b>
           ) : totalAlertsCount > 0 ? (

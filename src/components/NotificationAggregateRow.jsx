@@ -1,6 +1,6 @@
-import {ChevronDown, EyeOff, MoreHorizontal} from "lucide-react";
 import {useState} from "react";
 import NotificationAlertRow from "./NotificationAlertRow.jsx";
+import {AppIcon, Button, IconButton} from "./ui/index.js";
 
 export default function NotificationAggregateRow({
   alert,
@@ -20,7 +20,7 @@ export default function NotificationAggregateRow({
             className="client-alert-aggregate-toggle"
             type="button"
             onClick={() => setExpanded((current) => !current)}>
-            <ChevronDown className={expanded ? "open" : ""} size={14} />
+            <AppIcon className={expanded ? "open" : ""} name="chevronDown" size="xs" />
             <div className="client-alert-row-copy">
               <strong>{alert.title}</strong>
               <span>{alert.message}</span>
@@ -31,18 +31,19 @@ export default function NotificationAggregateRow({
           </span>
         </div>
         <div className="client-alert-actions">
-          <button type="button" onClick={() => onAction(alert, "open")}>
+          <Button size="sm" type="button" variant="subtle" onClick={() => onAction(alert, "open")}>
             Открыть
-          </button>
+          </Button>
           <div className="client-alert-snooze">
-            <button
+            <IconButton
               aria-expanded={menuOpen}
-              aria-label="Скрыть группу"
+              icon="eyeOff"
+              label="Скрыть группу"
+              size="sm"
               type="button"
-              onClick={() => setMenuOpen((current) => !current)}>
-              <EyeOff size={14} />
-              <MoreHorizontal size={12} />
-            </button>
+              variant="subtle"
+              onClick={() => setMenuOpen((current) => !current)}
+            />
             {menuOpen ? (
               <div className="client-alert-snooze-menu">
                 <button

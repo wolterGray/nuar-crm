@@ -1,6 +1,6 @@
-import {ChevronDown} from "lucide-react";
 import {PageNotificationsSlot} from "./PageNotifications.jsx";
 import HintIcon from "./HintIcon.jsx";
+import {AppIcon} from "./ui/index.js";
 
 export default function PageHeader({
   actions,
@@ -69,7 +69,7 @@ export default function PageHeader({
           ) : null}
           <div className="page-header-collapsible-actions">
             <span aria-hidden="true" className="page-header-collapsible-toggle">
-              <ChevronDown className="page-header-collapsible-chevron" size={18} />
+              <AppIcon className="page-header-collapsible-chevron" name="chevronDown" size="md" />
             </span>
             {showNotifications ? (
               <div

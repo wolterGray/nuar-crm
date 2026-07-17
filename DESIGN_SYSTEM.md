@@ -48,6 +48,9 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - `MobileSheet` close action.
 - `ToastStack` status/close icons.
 - `SearchControl` search/clear icons.
+- `NotificationDrawer`, `NotificationAlertRow`, and `NotificationAggregateRow`.
+- `PageHeader` collapsible affordance.
+- `WaitlistFreedSlotDialog` actions.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules
@@ -72,7 +75,7 @@ The app still has a lot of page-local UI from older iterations. Recommended next
 3. Clients detail modal and loyalty card panel.
 4. Page tabs across Club, Settings, Statistics.
 5. Sidebar/mobile navigation hard-coded colors.
-6. Notification drawer row actions and swipe affordances.
+6. Calendar visit cards and reservation detail sheets.
 
 Run after every slice:
 
