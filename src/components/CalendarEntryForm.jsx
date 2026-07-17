@@ -13,7 +13,7 @@ import {calculateSiteBookingPrice} from "../utils/siteBookingPricing.js";
 import {FieldLabel} from "./HintIcon.jsx";
 import {toVisitNumber} from "../utils/visits.jsx";
 import {formatMoney, getDaysSinceDisplayDate, toDisplayDate} from "../utils/formatters.jsx";
-import {Button} from "./ui/index.js";
+import {Button, Input, Select, Textarea} from "./ui/index.js";
 
 const fallbackColors = ["#4f8edc", "#8b6fd6", "#45a873", "#d78a42", "#c75b78"];
 const toMinutes = (time) => {
@@ -708,12 +708,12 @@ function CalendarEntryForm({
         <div className="calendar-time-grid grid grid-cols-2 md:grid-cols-4 gap-3">
           <label className="calendar-date-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
             Дата
-            <input {...register("date")} aria-invalid={Boolean(errors.date)} type="date" className="w-full" />
+            <Input {...register("date")} aria-invalid={Boolean(errors.date)} type="date" className="w-full" />
             <FieldError message={errors.date?.message} />
           </label>
           <label className="calendar-start-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
             Время
-            <input
+            <Input
               {...register("time")}
               aria-invalid={Boolean(errors.time)}
               type="time"
@@ -732,7 +732,7 @@ function CalendarEntryForm({
           {kind === "visit" ? (
             <label className="calendar-duration-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
               Длительность
-              <select
+              <Select
                 {...register("duration")}
                 aria-invalid={Boolean(errors.duration)}
                 value={duration}
@@ -755,13 +755,13 @@ function CalendarEntryForm({
                     {value} мин
                   </option>
                 ))}
-              </select>
+              </Select>
               <FieldError message={errors.duration?.message} />
             </label>
           ) : (
             <label className="calendar-end-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
               Конец
-              <input
+              <Input
                 {...register("endTime")}
                 aria-invalid={Boolean(errors.endTime)}
                 type="time"
@@ -775,7 +775,7 @@ function CalendarEntryForm({
           )}
           <label className="calendar-master-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
             Мастер
-            <select
+            <Select
               {...register("master")}
               aria-invalid={Boolean(errors.master)}
               value={master}
@@ -785,7 +785,7 @@ function CalendarEntryForm({
               {employees.map((employee) => (
                 <option key={employee.id}>{employee.name}</option>
               ))}
-            </select>
+            </Select>
             <FieldError message={errors.master?.message} />
           </label>
         </div>
@@ -795,7 +795,7 @@ function CalendarEntryForm({
         <>
           <label className="calendar-reserve-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
             Причина
-            <textarea
+            <Textarea
               {...register("title")}
               aria-invalid={Boolean(errors.title)}
               placeholder="Причина"
@@ -813,7 +813,7 @@ function CalendarEntryForm({
             <div className="calendar-payment-grid grid grid-cols-2 md:grid-cols-4 gap-3">
               <label className="calendar-service-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400 col-span-2">
                 Услуга
-                <select
+                <Select
                   {...register("serviceId")}
                   aria-invalid={Boolean(errors.serviceId)}
                   value={serviceId}
@@ -837,12 +837,12 @@ function CalendarEntryForm({
                       {item.name}
                     </option>
                   ))}
-                </select>
+                </Select>
                 <FieldError message={errors.serviceId?.message} />
               </label>
               <label className="calendar-amount-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
                 <FieldLabel hint="Цена из прайса. Можно изменить вручную.">Стоимость</FieldLabel>
-                <input
+                <Input
                   {...register("amount")}
                   value={amount}
                   className="w-full"
@@ -857,7 +857,7 @@ function CalendarEntryForm({
                 <FieldLabel hint="Фактическая сумма от клиента. Если пусто, считается автоматически по прайсу и скидке.">
                   К оплате
                 </FieldLabel>
-                <input
+                <Input
                   {...register("paidAmount")}
                   value={paidAmount}
                   className="w-full"
@@ -870,7 +870,7 @@ function CalendarEntryForm({
               </label>
               <label className="calendar-payment-method-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
                 Оплата
-                <select
+                <Select
                   {...register("payment")}
                   aria-invalid={Boolean(errors.payment)}
                   value={payment}
@@ -893,12 +893,12 @@ function CalendarEntryForm({
                   {paymentMethods.map((method) => (
                     <option key={method}>{method}</option>
                   ))}
-                </select>
+                </Select>
                 <FieldError message={errors.payment?.message} />
               </label>
               <label className="calendar-commission-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
                 Комиссия
-                <select
+                <Select
                   {...register("commissionType")}
                   value={commissionType}
                   className="w-full"
@@ -906,33 +906,33 @@ function CalendarEntryForm({
                 >
                   <option>Без комиссии</option>
                   <option>Booksy 45%</option>
-                </select>
+                </Select>
               </label>
               {payment === "Пакет" && (
                 <label className="calendar-package-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400 col-span-2 md:col-span-4">
                   Пакет клиента
-                  <select {...register("packageUsageId")} aria-invalid={Boolean(errors.packageUsageId)} className="w-full">
+                  <Select {...register("packageUsageId")} aria-invalid={Boolean(errors.packageUsageId)} className="w-full">
                     <option value="">Выберите пакет</option>
                     {packageOptions.map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.packageName} · будет {getPackageProgressLabel(item, getPlannedPackageVisits(item))}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <FieldError message={errors.packageUsageId?.message} />
                 </label>
               )}
               {payment === "Сертификат" && (
                 <label className="calendar-certificate-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400 col-span-2 md:col-span-4">
                   Сертификат
-                  <select {...register("certificateUsageId")} aria-invalid={Boolean(errors.certificateUsageId)} className="w-full">
+                  <Select {...register("certificateUsageId")} aria-invalid={Boolean(errors.certificateUsageId)} className="w-full">
                     <option value="">Выберите сертификат</option>
                     {certificateOptions.map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.code} · остаток {item.remainingBalance} zł
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <FieldError message={errors.certificateUsageId?.message} />
                 </label>
               )}
@@ -944,7 +944,7 @@ function CalendarEntryForm({
             <div className="calendar-extra-grid grid grid-cols-2 md:grid-cols-4 gap-3">
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
                 Чай
-                <input
+                <Input
                   {...register("tip")}
                   value={tip}
                   className="w-full"
@@ -954,7 +954,7 @@ function CalendarEntryForm({
               </label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
                 Доп сумма
-                <input
+                <Input
                   {...register("extra")}
                   value={extra}
                   className="w-full"
@@ -964,7 +964,7 @@ function CalendarEntryForm({
               </label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
                 Долг
-                <input
+                <Input
                   {...register("debt")}
                   value={debt}
                   className="w-full"
@@ -974,7 +974,7 @@ function CalendarEntryForm({
               </label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
                 Скидка %
-                <input
+                <Input
                   {...register("discount")}
                   value={discount}
                   className="w-full"
@@ -1039,7 +1039,7 @@ function CalendarEntryForm({
       {kind === "visit" && (
         <label className="calendar-note-field flex flex-col gap-1.5 text-xs font-semibold text-zinc-400">
           Комментарий
-          <textarea
+          <Textarea
             {...register("note")}
             value={note}
             onChange={(event) => setFormValue("note", event.target.value)}
