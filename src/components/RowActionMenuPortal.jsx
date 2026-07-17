@@ -1,6 +1,6 @@
 import {createPortal} from "react-dom";
-import {MoreVertical, Pencil, Trash2} from "lucide-react";
 import {useRowActionMenu} from "../hooks/useRowActionMenu.js";
+import {AppIcon, IconButton} from "./ui/index.js";
 
 function getPortalRoot() {
   if (typeof document === "undefined") {
@@ -49,17 +49,17 @@ export function RowActionsMenu({
     <div
       className={`row-actions row-action-trigger-wrap client-row-actions${className ? ` ${className}` : ""}`}
       onClick={(event) => event.stopPropagation()}>
-      <button
+      <IconButton
         ref={triggerRef}
-        aria-label="Действия"
         aria-expanded={isOpen}
         className="row-action row-action-trigger"
+        icon="more"
+        label="Действия"
         type="button"
         onClick={() =>
           setOpenMenuId(openMenuId === itemId ? null : itemId)
-        }>
-        <MoreVertical size={18} />
-      </button>
+        }
+      />
 
       <RowActionMenuPortal
         isOpen={isOpen}
@@ -71,7 +71,7 @@ export function RowActionsMenu({
             setOpenMenuId(null);
             onEdit();
           }}>
-          <Pencil size={15} />
+          <AppIcon name="edit" size="sm" />
           Редактировать
         </button>
         <button
@@ -80,7 +80,7 @@ export function RowActionsMenu({
             setOpenMenuId(null);
             onDelete();
           }}>
-          <Trash2 size={15} />
+          <AppIcon name="trash" size="sm" />
           Удалить
         </button>
       </RowActionMenuPortal>

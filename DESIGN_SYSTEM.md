@@ -56,6 +56,7 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - `CalendarDayList` empty state and add-visit action.
 - `SiteAdminPanel` and `SitePage` save/admin actions.
 - `ServicesPage` add action and empty states.
+- `RowActionsMenu` trigger and menu icons.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules
