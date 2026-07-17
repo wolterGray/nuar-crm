@@ -4,7 +4,7 @@ import {createPortal} from "react-dom";
 import {ALERT_GROUP_LABELS, groupAlerts} from "../utils/alertCenter.js";
 import NotificationAggregateRow from "./NotificationAggregateRow.jsx";
 import NotificationAlertRow from "./NotificationAlertRow.jsx";
-import {AppIcon} from "./ui/index.js";
+import {AppIcon, Button} from "./ui/index.js";
 
 const POPOVER_WIDTH = 360;
 const POPOVER_GAP = 8;
@@ -200,13 +200,15 @@ export default function NotificationDrawer({
               </div>
               <div className="client-alert-filter-chips">
                 {FILTER_OPTIONS.map((option) => (
-                  <button
+                  <Button
                     className={alertFilter === option.id ? "active" : ""}
                     key={option.id}
+                    size="sm"
                     type="button"
+                    variant="ghost"
                     onClick={() => onFilterChange(option.id)}>
                     {option.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
