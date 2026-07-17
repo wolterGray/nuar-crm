@@ -2,6 +2,7 @@ import {useState} from "react";
 import {WEEKDAY_OPTIONS, buildPremiumHoursRule} from "../utils/siteBookingPricing.js";
 import FormCheckbox from "./FormCheckbox.jsx";
 import HintIcon, {FieldLabel} from "./HintIcon.jsx";
+import {Input} from "./ui/index.js";
 
 function EmployeePremiumHoursFields({employee}) {
   const firstRule = employee?.premiumHoursRules?.[0] ?? buildPremiumHoursRule();
@@ -25,7 +26,7 @@ function EmployeePremiumHoursFields({employee}) {
         <FieldLabel hint="Постоянная скидка от базовой цены услуги. Например, у Максима сейчас 18%.">
           Скидка мастера, %
         </FieldLabel>
-        <input
+        <Input
           max="100"
           min="0"
           name="siteDiscountPercent"
@@ -56,7 +57,7 @@ function EmployeePremiumHoursFields({employee}) {
             <FieldLabel hint="Сколько добавить к цене после скидки мастера.">
               Наценка, %
             </FieldLabel>
-            <input
+            <Input
               disabled={!premiumHoursEnabled}
               min="0"
               name="premiumHoursPercent"
@@ -66,7 +67,7 @@ function EmployeePremiumHoursFields({employee}) {
           </label>
           <label>
             <FieldLabel hint="Начало интервала.">С</FieldLabel>
-            <input
+            <Input
               defaultValue={firstRule.startTime ?? "17:00"}
               disabled={!premiumHoursEnabled}
               name="premiumHoursStart"
@@ -75,7 +76,7 @@ function EmployeePremiumHoursFields({employee}) {
           </label>
           <label>
             <FieldLabel hint="Конец интервала, не включая это время.">До</FieldLabel>
-            <input
+            <Input
               defaultValue={firstRule.endTime ?? "22:00"}
               disabled={!premiumHoursEnabled}
               name="premiumHoursEnd"
