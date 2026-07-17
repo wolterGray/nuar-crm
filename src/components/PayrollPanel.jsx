@@ -1,6 +1,6 @@
-import {CheckCircle2, Lock, Trash2, Unlock, Wallet} from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import PageHeader from "./PageHeader.jsx";
+import {AppIcon, Button, EmptyState, Field, IconButton, Input, Textarea} from "./ui/index.js";
 import {
   findPayrollRecord,
   formatPayrollPeriodLabel,
@@ -37,26 +37,29 @@ function PayrollForm({
         className={`payroll-period-row${
           embeddedMobile ? " payroll-period-row-embedded-mobile" : ""
         }`}>
-        <label>
-          С
-          <input
+        <Field label="С">
+          <Input
             type="date"
             value={startDate}
             onChange={(event) => onStartDateChange(event.target.value)}
           />
-        </label>
-        <label>
-          По
-          <input
+        </Field>
+        <Field label="По">
+          <Input
             type="date"
             value={endDate}
             onChange={(event) => onEndDateChange(event.target.value)}
           />
-        </label>
+        </Field>
       </div>
 
       {report.employees.length === 0 ? (
-        <p className="payroll-empty">За выбранный период начислений нет.</p>
+        <EmptyState
+          className="payroll-empty"
+          icon="wallet"
+          title="Начислений нет"
+          description="За выбранный период начислений нет."
+        />
       ) : (
         <>
           {embeddedMobile ? (
@@ -145,39 +148,39 @@ function PayrollForm({
         </>
       )}
 
-      <label>
-        Заметка
-        <textarea
+      <Field label="Заметка">
+        <Textarea
           placeholder="Например: перевод 05.07"
           rows="2"
           value={note}
           onChange={(event) => setNote(event.target.value)}
         />
-      </label>
+      </Field>
 
       <div className="payroll-actions">
-        <button
+        <Button
           className="add-visit-button"
           disabled={report.employees.length === 0}
+          leftIcon="check"
+          variant="primary"
           type="submit">
-          <CheckCircle2 size={16} />
           {existingRecord ? "Обновить выплату" : "Отметить выплаченным"}
-        </button>
+        </Button>
         {existingRecord ? (
           <>
-            <button
+            <Button
               className="secondary-button"
-              type="button"
+              variant="secondary"
               onClick={() => onReopenPayrollRecord?.(existingRecord)}>
               Отменить отметку
-            </button>
-            <button
-              aria-label="Удалить запись"
+            </Button>
+            <IconButton
               className="secondary-button"
-              type="button"
+              icon="trash"
+              label="Удалить запись"
+              variant="secondary"
               onClick={() => onRemovePayrollRecord?.(existingRecord)}>
-              <Trash2 size={15} />
-            </button>
+            </IconButton>
           </>
         ) : null}
       </div>
@@ -261,7 +264,7 @@ function PayrollPanel({
         <div className="payroll-embedded-status">
           {existingRecord ? (
             <span className="payroll-status is-paid">
-              <Lock size={15} />
+              <AppIcon name="shield" size="sm" />
               Выплачено{" "}
               {new Date(existingRecord.paidAt).toLocaleString("ru-RU", {
                 day: "2-digit",
@@ -272,7 +275,7 @@ function PayrollPanel({
             </span>
           ) : (
             <span className="payroll-status is-open">
-              <Unlock size={15} />
+              <AppIcon name="clock" size="sm" />
               Не закрыто
             </span>
           )}
@@ -284,7 +287,7 @@ function PayrollPanel({
           title="Payroll">
           {existingRecord ? (
             <span className="payroll-status is-paid">
-              <Lock size={15} />
+              <AppIcon name="shield" size="sm" />
               Выплачено{" "}
               {new Date(existingRecord.paidAt).toLocaleString("ru-RU", {
                 day: "2-digit",
@@ -295,7 +298,7 @@ function PayrollPanel({
             </span>
           ) : (
             <span className="payroll-status is-open">
-              <Unlock size={15} />
+              <AppIcon name="clock" size="sm" />
               Не закрыто
             </span>
           )}
@@ -306,19 +309,19 @@ function PayrollPanel({
         className={`payroll-quick-ranges${
           embeddedMobile ? " payroll-quick-ranges-embedded-mobile" : ""
         }`}>
-        <button
+        <Button
           className="secondary-button"
-          type="button"
+          leftIcon="wallet"
+          variant="secondary"
           onClick={() => applyRange(getCurrentMonthPayrollRange())}>
-          <Wallet size={15} />
           Этот месяц
-        </button>
-        <button
+        </Button>
+        <Button
           className="secondary-button"
-          type="button"
+          variant="secondary"
           onClick={() => applyRange(getPreviousMonthPayrollRange())}>
           Прошлый месяц
-        </button>
+        </Button>
       </div>
 
       <PayrollForm
@@ -342,8 +345,10 @@ function PayrollPanel({
           <ul>
             {recentRecords.map((record) => (
               <li key={record.id}>
-                <button
-                  type="button"
+                <Button
+                  className="payroll-history-button"
+                  fullWidth
+                  variant="ghost"
                   onClick={() => {
                     setStartDate(normalizePayrollDate(record.startDate));
                     setEndDate(normalizePayrollDate(record.endDate));
@@ -351,7 +356,7 @@ function PayrollPanel({
                   }}>
                   <span>{formatPayrollPeriodLabel(record.startDate, record.endDate)}</span>
                   <b>{formatMoney(record.report?.totals?.totalPayout ?? 0)}</b>
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

@@ -64,6 +64,7 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - New-client form and automated messaging panels for SMS, follow-up, review requests, bulk SMS, and Telegram digest.
 - Waitlist panel actions/empty states and the global error boundary.
 - Client search dialog input, message action, and icons.
+- Payroll and daily-payroll controls, statuses, empty states, and actions.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules

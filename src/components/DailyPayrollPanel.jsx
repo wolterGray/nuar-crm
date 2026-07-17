@@ -1,6 +1,6 @@
-import {CheckCircle2, Circle, Coins} from "lucide-react";
 import {useMemo, useState} from "react";
 import PageHeader from "./PageHeader.jsx";
+import {AppIcon, Button, EmptyState, Field, Input, Select} from "./ui/index.js";
 import {getDailyPayrollEmployees} from "../utils/dailyPayroll.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
 import {formatMoney, toDisplayDate} from "../utils/formatters.jsx";
@@ -51,7 +51,7 @@ function DailyPayrollPanel({
           showNotifications={false}
           title="Ежедневная выплата">
           <span className="payroll-status is-open">
-            <Coins size={15} />
+            <AppIcon name="wallet" size="sm" />
             Не настроено
           </span>
         </PageHeader>
@@ -67,21 +67,20 @@ function DailyPayrollPanel({
         title="Ежедневная выплата">
         {report?.totals.unpaidCount ? (
           <span className="payroll-status is-open">
-            <Circle size={15} />
+            <AppIcon name="clock" size="sm" />
             {report.totals.unpaidCount} не оплачено
           </span>
         ) : (
           <span className="payroll-status is-paid">
-            <CheckCircle2 size={15} />
+            <AppIcon name="check" size="sm" />
             Всё оплачено
           </span>
         )}
       </PageHeader>
 
       <div className="daily-payroll-controls">
-        <label>
-          Мастер
-          <select
+        <Field label="Мастер">
+          <Select
             value={String(activeEmployeeId)}
             onChange={(event) => setSelectedEmployeeId(event.target.value)}>
             {dailyEmployees.map((employee) => (
@@ -89,16 +88,15 @@ function DailyPayrollPanel({
                 {employee.name} · {employee.commissionRate}%
               </option>
             ))}
-          </select>
-        </label>
-        <label>
-          Дата
-          <input
+          </Select>
+        </Field>
+        <Field label="Дата">
+          <Input
             type="date"
             value={selectedDate}
             onChange={(event) => setSelectedDate(event.target.value)}
           />
-        </label>
+        </Field>
       </div>
 
       {report ? (
@@ -127,10 +125,12 @@ function DailyPayrollPanel({
           </div>
 
           {report.rows.length === 0 ? (
-            <p className="payroll-empty">
-              За {toDisplayDate(report.date)} у {report.employeeName} завершённых
-              визитов нет.
-            </p>
+            <EmptyState
+              className="payroll-empty"
+              icon="wallet"
+              title="Завершённых визитов нет"
+              description={`За ${toDisplayDate(report.date)} у ${report.employeeName} завершённых визитов нет.`}
+            />
           ) : (
             <div className="payroll-table-wrap">
               <table className="payroll-table daily-payroll-table">
@@ -159,26 +159,18 @@ function DailyPayrollPanel({
                         <small>{row.commissionRate}%</small>
                       </td>
                       <td>
-                        <button
+                        <Button
                           className={
                             row.isPaid ? "secondary-button" : "add-visit-button"
                           }
-                          type="button"
+                          leftIcon={row.isPaid ? "check" : "clock"}
+                          size="sm"
+                          variant={row.isPaid ? "secondary" : "primary"}
                           onClick={() =>
                             setVisitMasterPayoutPaid(row.visitId, !row.isPaid)
                           }>
-                          {row.isPaid ? (
-                            <>
-                              <CheckCircle2 size={14} />
-                              Оплачено
-                            </>
-                          ) : (
-                            <>
-                              <Circle size={14} />
-                              Не оплачено
-                            </>
-                          )}
-                        </button>
+                          {row.isPaid ? "Оплачено" : "Не оплачено"}
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -189,18 +181,18 @@ function DailyPayrollPanel({
 
           {report.totals.unpaidCount > 0 ? (
             <div className="payroll-actions">
-              <button
+              <Button
                 className="add-visit-button"
-                type="button"
+                leftIcon="check"
+                variant="primary"
                 onClick={() =>
                   markAllDailyPayoutsPaid?.({
                     date: selectedDate,
                     employeeId: activeEmployeeId,
                   })
                 }>
-                <CheckCircle2 size={16} />
                 Отметить всё оплаченным
-              </button>
+              </Button>
             </div>
           ) : null}
         </>

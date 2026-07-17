@@ -10194,6 +10194,14 @@ button:focus-visible {
   text-align: left;
 }
 
+.payroll-history-button > span {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+}
+
 .theme-dark .payroll-table th,
 .theme-dark .payroll-table td,
 .theme-dark .payroll-history button {
