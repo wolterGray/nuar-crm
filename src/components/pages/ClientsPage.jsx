@@ -1,18 +1,3 @@
-import {
-  BarChart2,
-  CakeSlice,
-  CalendarPlus,
-  Clock3,
-  Eye,
-  MessageSquareText,
-  MoreVertical,
-  Pencil,
-  Phone,
-  Plus,
-  RotateCcw,
-  ShieldCheck,
-  Trash2,
-} from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {
   formatMoney,
@@ -35,6 +20,7 @@ import {
 import PageHeader from "../PageHeader.jsx";
 import MobileSheet from "../MobileSheet.jsx";
 import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
+import AppIcon from "../ui/AppIcon.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import {LoyaltyCard} from "../LoyaltyCardPreview.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
@@ -74,7 +60,7 @@ function ClientRowActions({
         onClick={() =>
           setOpenClientMenuId(openClientMenuId === client.id ? null : client.id)
         }>
-        <MoreVertical size={16} />
+        <AppIcon name="moreVertical" size="sm" />
       </button>
 
       <RowActionMenuPortal
@@ -89,7 +75,7 @@ function ClientRowActions({
               setVisitHistoryTab("future");
               setOpenClientMenuId(null);
             }}>
-            <Eye size={14} />
+            <AppIcon name="eye" size="xs" />
             Посмотреть
           </button>
           <button
@@ -98,7 +84,7 @@ function ClientRowActions({
               setOpenClientMenuId(null);
               handleMessageClient(client);
             }}>
-            <MessageSquareText size={14} />
+            <AppIcon name="message" size="xs" />
             Написать
           </button>
           <button
@@ -107,7 +93,7 @@ function ClientRowActions({
               setOpenClientMenuId(null);
               handleAddToWaitlist(client);
             }}>
-            <Clock3 size={14} />
+            <AppIcon name="clock" size="xs" />
             Лист ожидания
           </button>
           <button
@@ -116,7 +102,7 @@ function ClientRowActions({
               setOpenClientMenuId(null);
               onEditClient?.(client);
             }}>
-            <Pencil size={14} />
+            <AppIcon name="edit" size="xs" />
             Редактировать
           </button>
           <button
@@ -126,7 +112,7 @@ function ClientRowActions({
               setOpenClientMenuId(null);
               onDeleteClient?.(client);
             }}>
-            <Trash2 size={14} />
+            <AppIcon name="trash" size="xs" />
             Удалить
           </button>
         </div>
@@ -179,7 +165,7 @@ function ClientLoyaltyCard({client}) {
     <section className="client-loyalty-card">
       <div className="client-loyalty-header">
         <span className="client-loyalty-icon">
-          <ShieldCheck size={15} />
+          <AppIcon name="shield" size="sm" />
         </span>
         <div>
           <strong>NUAR Club</strong>
@@ -531,7 +517,7 @@ function ClientsPage({
                 style={{ height: '34px', minHeight: '34px' }}
                 type="button"
                 onClick={() => setShowQuality(!showQuality)}>
-                <BarChart2 size={14} className="text-muted-foreground" />
+                <AppIcon name="barChart" size="xs" className="text-muted-foreground" />
                 <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
               </button>
               <button
@@ -539,7 +525,7 @@ function ClientsPage({
                 style={{ height: '34px', minHeight: '34px' }}
                 type="button"
                 onClick={onAddClient}>
-                <Plus size={16} />
+                <AppIcon name="plus" size="sm" />
                 {isMobile ? "Добавить" : "Добавить клиента"}
               </button>
             </div>
@@ -659,7 +645,7 @@ function ClientsPage({
                     className="client-action-write flex-1 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-lg border font-semibold text-xs transition-all"
                     type="button"
                     onClick={() => handleMessageClient(client)}>
-                    <MessageSquareText size={14} />
+                    <AppIcon name="message" size="xs" />
                     <span>Написать</span>
                   </button>
                   <button
@@ -667,7 +653,7 @@ function ClientsPage({
                     className="client-action-record flex-1 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-lg border font-semibold text-xs transition-all"
                     type="button"
                     onClick={() => handleAddVisit(client)}>
-                    <CalendarPlus size={14} />
+                    <AppIcon name="calendarPlus" size="xs" />
                     <span>Запись</span>
                   </button>
                 </div>
@@ -717,14 +703,14 @@ function ClientsPage({
                 className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover transition-colors text-xs cursor-pointer whitespace-nowrap"
                 type="button"
                 onClick={() => handleAddVisit(activeViewedClient)}>
-                <CalendarPlus size={14} />
+                <AppIcon name="calendarPlus" size="xs" />
                 Добавить визит
               </button>
               <button
                 className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-colors text-xs font-semibold"
                 type="button"
                 onClick={() => handleMessageClient(activeViewedClient)}>
-                <MessageSquareText size={14} />
+                <AppIcon name="message" size="xs" />
                 Написать
               </button>
               <a
@@ -733,7 +719,7 @@ function ClientsPage({
                 href={
                   activeViewedClient.phone ? `tel:${activeViewedClient.phone}` : undefined
                 }>
-                <Phone size={14} />
+                <AppIcon name="phone" size="xs" />
                 Позвонить
               </a>
             </div>
@@ -871,7 +857,7 @@ function ClientsPage({
 
             {activeViewedClient.birthday && (
               <div className="flex items-center gap-2 p-3 rounded-lg text-amber-700 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 text-xs">
-                <CakeSlice size={15} />
+                <AppIcon name="cake" size="sm" />
                 Дата рождения участвует в уведомлениях CRM.
               </div>
             )}
@@ -975,7 +961,7 @@ function ClientsPage({
                           onClick={() =>
                             handleRepeatVisit(activeViewedClient, appointment)
                           }>
-                          <RotateCcw size={10} />
+                          <AppIcon name="rotateCcw" size="xs" />
                           Повторить
                         </button>
                       </div>
@@ -1057,7 +1043,7 @@ function ClientsPage({
                     }
                   }
                 }}>
-                <MessageSquareText size={16} />
+                <AppIcon name="message" size="sm" />
                 Открыть Telegram
               </button>
               <button
