@@ -4533,3 +4533,10 @@
   color: var(--color-primary-text);
   background: var(--color-primary);
 }
+
+.row-action-menu-item {
+  justify-content: flex-start;
+  border-color: transparent;
+  color: var(--color-text);
+  text-align: left;
+}

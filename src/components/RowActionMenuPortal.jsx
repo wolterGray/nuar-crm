@@ -1,6 +1,6 @@
 import {createPortal} from "react-dom";
 import {useRowActionMenu} from "../hooks/useRowActionMenu.js";
-import {AppIcon, IconButton} from "./ui/index.js";
+import {Button, IconButton} from "./ui/index.js";
 
 function getPortalRoot() {
   if (typeof document === "undefined") {
@@ -65,24 +65,32 @@ export function RowActionsMenu({
         isOpen={isOpen}
         menuRef={menuRef}
         menuStyle={menuStyle}>
-        <button
+        <Button
+          className="row-action-menu-item"
+          fullWidth
+          leftIcon="edit"
+          size="sm"
           type="button"
+          variant="ghost"
           onClick={() => {
             setOpenMenuId(null);
             onEdit();
           }}>
-          <AppIcon name="edit" size="sm" />
           Редактировать
-        </button>
-        <button
+        </Button>
+        <Button
+          className="row-action-menu-item"
+          fullWidth
+          leftIcon="trash"
+          size="sm"
           type="button"
+          variant="ghost"
           onClick={() => {
             setOpenMenuId(null);
             onDelete();
           }}>
-          <AppIcon name="trash" size="sm" />
           Удалить
-        </button>
+        </Button>
       </RowActionMenuPortal>
     </div>
   );
