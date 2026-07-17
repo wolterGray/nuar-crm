@@ -1,4 +1,5 @@
 import {useMemo, useState} from "react";
+import {Button, Input} from "./ui/index.js";
 
 function ClientAutocomplete({
   clients,
@@ -109,7 +110,7 @@ function ClientAutocomplete({
 
   return (
     <div className="client-autocomplete relative w-full">
-      <input
+      <Input
         aria-autocomplete="list"
         aria-controls={id}
         aria-expanded={isOpen && visibleClients.length > 0}
@@ -131,21 +132,24 @@ function ClientAutocomplete({
           id={id}
           role="listbox">
           {visibleClients.map((client, index) => (
-            <button
+            <Button
               aria-selected={index === activeIndex}
-              className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition ${
+              className={`client-autocomplete-option ${
                 index === activeIndex
-                  ? "bg-red-600 text-white"
-                  : "text-zinc-100 hover:bg-zinc-800"
+                  ? "is-active"
+                  : ""
               }`}
+              fullWidth
               key={client}
+              size="sm"
+              variant="ghost"
               onMouseDown={(event) => {
                 event.preventDefault();
                 selectClient(client);
               }}
               type="button">
               {client}
-            </button>
+            </Button>
           ))}
         </div>
       )}

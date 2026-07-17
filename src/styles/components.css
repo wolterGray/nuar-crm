@@ -4520,3 +4520,16 @@
     bottom: calc(var(--mobile-nav-total, calc(72px + env(safe-area-inset-bottom, 0px))) + 16px);
   }
 }
+
+.client-autocomplete-option {
+  justify-content: flex-start;
+  border-color: transparent;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.client-autocomplete-option:hover:not(:disabled),
+.client-autocomplete-option.is-active {
+  color: var(--color-primary-text);
+  background: var(--color-primary);
+}
