@@ -1,6 +1,5 @@
 import {AnimatePresence, motion} from "framer-motion";
-import AppIcon from "./ui/AppIcon.jsx";
-import IconButton from "./ui/IconButton.jsx";
+import {AppIcon, Button, IconButton} from "./ui/index.js";
 
 const SWIPE_DISMISS_OFFSET = 86;
 const SWIPE_DISMISS_VELOCITY = 620;
@@ -39,12 +38,14 @@ function ToastStack({notifications, onAction, onClose}) {
                 {notification.actions?.length ? (
                   <div className="toast-actions">
                     {notification.actions.map((actionItem) => (
-                      <button
+                      <Button
                         key={`${actionItem.action}-${actionItem.label}`}
+                        size="sm"
                         type="button"
+                        variant="subtle"
                         onClick={() => onAction?.(notification, actionItem)}>
                         {actionItem.label}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 ) : null}
