@@ -60,6 +60,7 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - `EmployeesPage` add actions and empty state.
 - `PackagesPage` action icons, archive affordances, and empty states.
 - `SupplyForm` fields and submit action.
+- Package, certificate, waitlist, employee, service, task, message-template, and financial-operation form controls.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules
@@ -84,7 +85,7 @@ The app still has a lot of page-local UI from older iterations. Recommended next
 3. Clients detail modal and loyalty card panel.
 4. Page tabs across Club, Settings, Statistics.
 5. Sidebar/mobile navigation hard-coded colors.
-6. Remaining page-local form controls outside the calendar entry form.
+6. Remaining specialized controls such as toggles, color pickers, and hidden form values.
 
 Run after every slice:
 

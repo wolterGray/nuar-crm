@@ -1,77 +1,70 @@
 import {MESSAGE_TEMPLATE_PURPOSES} from "../utils/messageTemplates.js";
-import {Button} from "./ui/index.js";
+import {Button, Field, Input, Select, Textarea} from "./ui/index.js";
 
 function MessageTemplateForm({template, onSubmit}) {
   return (
     <section className="panel message-template-form-panel message-template-form-sheet-root">
       <h2>{template ? "Редактировать шаблон" : "Новый шаблон"}</h2>
       <form className="catalog-form message-template-form" onSubmit={onSubmit}>
-        <label>
-          Название шаблона
-          <input
+        <Field label="Название шаблона">
+          <Input
             name="name"
             defaultValue={template?.name ?? ""}
             placeholder="Напоминание о визите"
             required
           />
-        </label>
+        </Field>
         <div className="message-template-form-grid">
-          <label>
-            Канал
-            <select name="channel" defaultValue={template?.channel ?? "SMS"}>
+          <Field label="Канал">
+            <Select name="channel" defaultValue={template?.channel ?? "SMS"}>
               <option>SMS</option>
               <option>Email</option>
-            </select>
-          </label>
-          <label>
-            Язык
-            <select name="language" defaultValue={template?.language ?? "Русский"}>
+            </Select>
+          </Field>
+          <Field label="Язык">
+            <Select name="language" defaultValue={template?.language ?? "Русский"}>
               <option>Русский</option>
               <option>Польский</option>
               <option>Английский</option>
               <option>Украинский</option>
-            </select>
-          </label>
-          <label>
-            Аудитория
-            <select name="audience" defaultValue={template?.audience ?? "Все"}>
+            </Select>
+          </Field>
+          <Field label="Аудитория">
+            <Select name="audience" defaultValue={template?.audience ?? "Все"}>
               <option>Все</option>
               <option>Девушки</option>
               <option>Парни</option>
               <option>Поляки</option>
               <option>Англичане</option>
               <option>Украинцы</option>
-            </select>
-          </label>
-          <label>
-            Назначение
-            <select name="purpose" defaultValue={template?.purpose ?? "general"}>
+            </Select>
+          </Field>
+          <Field label="Назначение">
+            <Select name="purpose" defaultValue={template?.purpose ?? "general"}>
               {Object.entries(MESSAGE_TEMPLATE_PURPOSES).map(([value, meta]) => (
                 <option key={value} value={value}>
                   {meta.label}
                 </option>
               ))}
-            </select>
-          </label>
+            </Select>
+          </Field>
         </div>
-        <label>
-          Тема письма
-          <input
+        <Field label="Тема письма">
+          <Input
             name="subject"
             defaultValue={template?.subject ?? ""}
             placeholder="Для SMS можно оставить пустым"
           />
-        </label>
-        <label>
-          Текст сообщения
-          <textarea
+        </Field>
+        <Field label="Текст сообщения">
+          <Textarea
             name="body"
             defaultValue={template?.body ?? ""}
             placeholder="Здравствуйте, {name}..."
             rows="7"
             required
           />
-        </label>
+        </Field>
         <small className="message-template-hint">
           {"{name}"} — имя для SMS. Для автоматических SMS выберите назначение и язык —
           CRM подставит нужный текст клиенту по полю «Язык SMS» в карточке клиента.

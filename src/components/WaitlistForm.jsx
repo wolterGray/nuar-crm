@@ -3,6 +3,7 @@ import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {FieldLabel} from "./HintIcon.jsx";
 import {findClientByName} from "../utils/clientLinks.js";
 import {summarizeWaitlistEntry} from "../utils/waitlist.js";
+import {Button, Field, Input, Select, Textarea} from "./ui/index.js";
 
 function getInitialClientName(clientProfiles, defaults, editingEntry) {
   if (editingEntry?.clientName) {
@@ -66,8 +67,7 @@ function WaitlistForm({
 
   return (
     <form className="modal-form" onSubmit={handleSubmit}>
-      <label>
-        Клиент
+      <Field label="Клиент">
         <ClientAutocomplete
           clients={clientProfiles}
           disabled={Boolean(editingEntry)}
@@ -76,18 +76,17 @@ function WaitlistForm({
           value={clientName}
           onChange={(event) => setClientName(event.target.value)}
         />
-      </label>
+      </Field>
       <label>
         <FieldLabel hint="Пусто — любая дата">Предпочитаемая дата</FieldLabel>
-        <input
+        <Input
           type="date"
           value={preferredDate}
           onChange={(event) => setPreferredDate(event.target.value)}
         />
       </label>
-      <label>
-        Мастер
-        <select
+      <Field label="Мастер">
+        <Select
           value={preferredMaster}
           onChange={(event) => setPreferredMaster(event.target.value)}>
           <option value="">Любой мастер</option>
@@ -96,11 +95,10 @@ function WaitlistForm({
               {employee.name}
             </option>
           ))}
-        </select>
-      </label>
-      <label>
-        Услуга
-        <select
+        </Select>
+      </Field>
+      <Field label="Услуга">
+        <Select
           value={preferredService}
           onChange={(event) => setPreferredService(event.target.value)}>
           <option value="">Любая услуга</option>
@@ -109,44 +107,41 @@ function WaitlistForm({
               {service.name}
             </option>
           ))}
-        </select>
-      </label>
+        </Select>
+      </Field>
       <div className="settings-options-grid">
-        <label>
-          Время от
-          <input
+        <Field label="Время от">
+          <Input
             type="time"
             value={preferredTimeFrom}
             onChange={(event) => setPreferredTimeFrom(event.target.value)}
           />
-        </label>
-        <label>
-          Время до
-          <input
+        </Field>
+        <Field label="Время до">
+          <Input
             type="time"
             value={preferredTimeTo}
             onChange={(event) => setPreferredTimeTo(event.target.value)}
           />
-        </label>
+        </Field>
       </div>
-      <label>
-        Заметка
-        <textarea
+      <Field label="Заметка">
+        <Textarea
           rows="3"
           value={note}
           onChange={(event) => setNote(event.target.value)}
         />
-      </label>
+      </Field>
       {editingEntry ? (
         <p className="field-hint">Текущие пожелания: {summarizeWaitlistEntry(editingEntry)}</p>
       ) : null}
       <div className="modal-actions">
-        <button className="secondary-button" type="button" onClick={onClose}>
+        <Button type="button" variant="secondary" onClick={onClose}>
           Отмена
-        </button>
-        <button className="add-visit-button" type="submit">
+        </Button>
+        <Button type="submit" variant="primary">
           {editingEntry ? "Сохранить" : "Добавить"}
-        </button>
+        </Button>
       </div>
     </form>
   );

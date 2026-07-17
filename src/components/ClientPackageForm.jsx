@@ -2,7 +2,7 @@ import {useMemo, useState} from "react";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {toInputDate} from "../utils/formatters.jsx";
-import {Button} from "./ui/index.js";
+import {Button, Field, Input, Select} from "./ui/index.js";
 
 const packagePaymentMethods = paymentMethods.filter(
   (method) => method !== "Пакет" && method !== "Сертификат",
@@ -32,17 +32,15 @@ function ClientPackageForm({
     <section className="panel package-form-panel package-form-sheet-root">
       <h2>{clientPackage?.id ? "Остаток пакета" : "Продать пакет"}</h2>
       <form className="catalog-form" onSubmit={onSubmit}>
-        <label>
-          Клиент
+        <Field label="Клиент">
           <ClientAutocomplete
             clients={clients}
             defaultValue={clientPackage?.client ?? ""}
             id="package-client-options"
             required
           />
-        </label>
-        <label>
-          Пакет
+        </Field>
+        <Field label="Пакет">
           {clientPackage?.id && (
             <input
               name="packageTemplateId"
@@ -50,7 +48,7 @@ function ClientPackageForm({
               value={clientPackage.packageId}
             />
           )}
-          <select
+          <Select
             name="packageTemplateId"
             value={selectedPackageId}
             disabled={Boolean(clientPackage?.id)}
@@ -61,72 +59,64 @@ function ClientPackageForm({
                 {packageItem.name}
               </option>
             ))}
-          </select>
-        </label>
+          </Select>
+        </Field>
         <div className="form-split">
-          <label>
-            Дата покупки
-            <input
+          <Field label="Дата покупки">
+            <Input
               name="purchaseDate"
               type="date"
               defaultValue={toInputDate(clientPackage?.purchaseDate)}
             />
-          </label>
-          <label>
-            Кто продал
-            <select name="master" defaultValue={clientPackage?.master ?? ""}>
+          </Field>
+          <Field label="Кто продал">
+            <Select name="master" defaultValue={clientPackage?.master ?? ""}>
               <option value="">Не указан</option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.name}>
                   {employee.name}
                 </option>
               ))}
-            </select>
-          </label>
+            </Select>
+          </Field>
         </div>
         <div className="form-split">
-          <label>
-            Оплата
-            <select name="payment" defaultValue={clientPackage?.payment ?? "Наличные"}>
+          <Field label="Оплата">
+            <Select name="payment" defaultValue={clientPackage?.payment ?? "Наличные"}>
               {packagePaymentMethods.map((method) => (
                 <option key={method}>{method}</option>
               ))}
-            </select>
-          </label>
-          <label>
-            Сумма продажи
-            <input name="price" defaultValue={price} placeholder="0" />
-          </label>
+            </Select>
+          </Field>
+          <Field label="Сумма продажи">
+            <Input name="price" defaultValue={price} placeholder="0" />
+          </Field>
         </div>
         <div className="form-split" key={selectedPackageId}>
-          <label>
-            Всего визитов
-            <input
+          <Field label="Всего визитов">
+            <Input
               name="totalVisits"
               defaultValue={totalVisits}
               placeholder="0"
             />
-          </label>
-          <label>
-            Остаток
-            <input
+          </Field>
+          <Field label="Остаток">
+            <Input
               name="remainingVisits"
               defaultValue={remainingVisits}
               placeholder="0"
             />
-          </label>
+          </Field>
         </div>
-        <label>
-          Статус
-          <select name="status" defaultValue={clientPackage?.status ?? "Активен"}>
+        <Field
+          description="Пакет с нулевым остатком автоматически попадает в архив."
+          label="Статус">
+          <Select name="status" defaultValue={clientPackage?.status ?? "Активен"}>
             <option>Активен</option>
             <option>Пауза</option>
             <option>Архив</option>
-          </select>
-          <small className="field-hint">
-            Пакет с нулевым остатком автоматически попадает в архив.
-          </small>
-        </label>
+          </Select>
+        </Field>
         <Button
           className="crm-primary-action package-form-submit"
           size="lg"

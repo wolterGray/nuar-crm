@@ -2,7 +2,7 @@ import {useMemo} from "react";
 import {getRandomServiceColor} from "../utils/serviceColors.js";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import HintIcon, {FieldLabel} from "./HintIcon.jsx";
-import {Button} from "./ui/index.js";
+import {Button, Field, Input} from "./ui/index.js";
 
 const serviceDurations = [30, 60, 75, 90, 120];
 
@@ -47,7 +47,7 @@ function ServiceBookingBuffers({service}) {
           <FieldLabel hint="Минуты до начала услуги, если буфер включён.">
             Минут до
           </FieldLabel>
-          <input
+          <Input
             min="0"
             name="siteBookingBufferBeforeMinutes"
             type="number"
@@ -66,7 +66,7 @@ function ServiceBookingBuffers({service}) {
           <FieldLabel hint="Минуты после окончания услуги, если буфер включён.">
             Минут после
           </FieldLabel>
-          <input
+          <Input
             min="0"
             name="siteBookingBufferAfterMinutes"
             type="number"
@@ -91,33 +91,29 @@ function ServiceForm({service, onSubmit}) {
     <section className="panel service-form-panel service-form-sheet-root">
       <h2>{service ? "Редактировать услугу" : "Новая услуга"}</h2>
       <form className="catalog-form" onSubmit={onSubmit}>
-        <label>
-          Название
-          <input name="name" defaultValue={service?.name ?? ""} required />
-        </label>
-        <label>
-          Категория
-          <input name="category" defaultValue={service?.category ?? "Массаж"} />
-        </label>
-        <label className="service-color-field">
-          Цвет в календаре
-          <input
+        <Field label="Название">
+          <Input name="name" defaultValue={service?.name ?? ""} required />
+        </Field>
+        <Field label="Категория">
+          <Input name="category" defaultValue={service?.category ?? "Массаж"} />
+        </Field>
+        <Field className="service-color-field" label="Цвет в календаре">
+          <Input
             className="color-input"
             name="color"
             type="color"
             defaultValue={defaultColor}
           />
-        </label>
+        </Field>
         <div className="catalog-price-grid service-price-grid">
           {serviceDurations.map((duration) => (
-            <label key={duration}>
-              {duration} мин
-              <input
+            <Field key={duration} label={`${duration} мин`}>
+              <Input
                 name={`price_${duration}`}
                 defaultValue={getPrice(duration)}
                 placeholder="0"
               />
-            </label>
+            </Field>
           ))}
         </div>
         <ServiceBookingBuffers service={service} />
