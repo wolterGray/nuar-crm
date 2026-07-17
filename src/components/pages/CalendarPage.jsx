@@ -1,30 +1,9 @@
-import {
-  Ban,
-  BellRing,
-  CalendarPlus,
-  ClipboardList,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  CreditCard,
-  LayoutGrid,
-  List,
-  MessageSquareText,
-  MoreVertical,
-  Pencil,
-  Phone,
-  Plus,
-  Rocket,
-  Trash2,
-  UserRound,
-  X,
-} from "lucide-react";
 import {getTodayInput} from "../../utils/dateHelpers.js";
 import {normalizeCalendarEntryDate} from "../../utils/dateUtils.js";
 import PageHeader from "../PageHeader.jsx";
 import CalendarDayList from "../CalendarDayList.jsx";
 import MobileSheet from "../MobileSheet.jsx";
-import {Button} from "../ui/index.js";
+import {AppIcon, Button} from "../ui/index.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {isMobileViewport} from "../../constants/breakpoints.js";
 import {
@@ -581,7 +560,7 @@ return (
                 type="button"
                 onClick={() => selectCalendarDate(shiftDate(selectedDate, -1))}
               >
-                <ChevronLeft size={17} />
+                <AppIcon name="chevronLeft" size="sm" />
               </button>
               <span className="nuar-calendar-date-display">
                 {toDisplayDate(selectedDate)}
@@ -592,7 +571,7 @@ return (
                 type="button"
                 onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}
               >
-                <ChevronRight size={17} />
+                <AppIcon name="chevronRight" size="sm" />
               </button>
             </div>
             {!isToday && !isMobile && (
@@ -612,7 +591,7 @@ return (
                 type="button"
                 onClick={() => setRemindersVisible(true)}
               >
-                <ChevronLeft size={17} />
+                <AppIcon name="chevronLeft" size="sm" />
               </button>
             )}
             {isMobile && (
@@ -627,7 +606,7 @@ return (
                   setMobileCalendarView((current) => (current === "list" ? "grid" : "list"))
                 }
               >
-                {showDayList ? <LayoutGrid size={20} /> : <List size={20} />}
+                <AppIcon name={showDayList ? "layoutGrid" : "list"} size="md" />
               </button>
             )}
             {!isMobile && (
@@ -640,7 +619,7 @@ return (
                 type="button"
                 onClick={() => setRemindersVisible((current) => !current)}
               >
-                {remindersVisible ? <X size={20} /> : <ClipboardList size={18} />}
+                <AppIcon name={remindersVisible ? "x" : "clipboardCheck"} size="md" />
               </button>
             )}
             {!isMobile && (
@@ -651,7 +630,7 @@ return (
                 type="button"
                 onClick={() => onAdd({date: selectedDate})}
               >
-                <Plus size={16} />
+                <AppIcon name="plus" size="sm" />
                 Добавить
               </button>
             )}
@@ -928,7 +907,7 @@ return (
                             {entry.kind === "visit" &&
                               entry.commissionType === "Booksy 45%" && (
                                 <span className="nuar-calendar-booksy-badge absolute top-1.5 right-6 inline-flex w-4 h-4 items-center justify-center rounded-full text-red-300 bg-red-900/20 border border-red-800/40 pointer-events-none z-10">
-                                  <Rocket size={11} strokeWidth={2.4} />
+                                  <AppIcon name="rocket" size="xs" strokeWidth={2.4} />
                                 </span>
                               )}
                             <div className="flex flex-col min-w-0 h-full flex-1">
@@ -998,7 +977,7 @@ return (
                                   );
                                 }}
                               >
-                                <MoreVertical size={12} />
+                                <AppIcon name="moreVertical" size="xs" />
                               </button>
                               {openEntryMenuId === entry.id && (
                                 <div className="absolute right-0 top-6 z-20 grid min-w-[132px] p-1 border border-zinc-800 rounded-lg bg-zinc-950 shadow-xl">
@@ -1013,7 +992,7 @@ return (
                                         onRemind(entry);
                                       }}
                                     >
-                                      <BellRing size={13} />
+                                      <AppIcon name="bellRing" size="xs" />
                                       Напомнить
                                     </button>
                                   )}
@@ -1028,7 +1007,7 @@ return (
                                         onStatus(entry, "cancelled");
                                       }}
                                     >
-                                      <Ban size={13} />
+                                      <AppIcon name="ban" size="xs" />
                                       Отменить
                                     </button>
                                   )}
@@ -1042,7 +1021,7 @@ return (
                                       onEdit(entry);
                                     }}
                                   >
-                                    <Pencil size={13} />
+                                    <AppIcon name="edit" size="xs" />
                                     Редактировать
                                   </button>
                                   <button
@@ -1055,7 +1034,7 @@ return (
                                       onDelete(entry);
                                     }}
                                   >
-                                    <Trash2 size={13} />
+                                    <AppIcon name="trash" size="xs" />
                                     Удалить
                                   </button>
                                 </div>
@@ -1097,7 +1076,7 @@ return (
                   type="button"
                   onClick={() => shiftCalendarPanelMonth(-1)}
                 >
-                  <ChevronLeft size={14} />
+                  <AppIcon name="chevronLeft" size="xs" />
                 </button>
                 <div className="nuar-calendar-picker-title">
                   <div className="nuar-calendar-picker-menu">
@@ -1158,7 +1137,7 @@ return (
                   type="button"
                   onClick={() => shiftCalendarPanelMonth(1)}
                 >
-                  <ChevronRight size={14} />
+                  <AppIcon name="chevronRight" size="xs" />
                 </button>
               </header>
               <div className="nuar-calendar-picker-weekdays" aria-hidden="true">
@@ -1193,7 +1172,7 @@ return (
                 type="button"
                 onClick={() => setRemindersVisible(false)}
               >
-                <ChevronRight size={17} />
+                <AppIcon name="chevronRight" size="sm" />
               </button>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -1270,7 +1249,7 @@ return (
                           )
                         }
                       >
-                        <MoreVertical size={14} />
+                        <AppIcon name="moreVertical" size="xs" />
                       </button>
                       {openReminderMenuId === entry.id && (
                         <div className="nuar-calendar-reminder-popover">
@@ -1282,7 +1261,7 @@ return (
                                 onRemind(entry);
                               }}
                             >
-                              <MessageSquareText size={13} />
+                              <AppIcon name="message" size="xs" />
                               Напомнить
                             </button>
                           )}
@@ -1293,7 +1272,7 @@ return (
                               onEdit(entry);
                             }}
                           >
-                            <Pencil size={13} />
+                            <AppIcon name="edit" size="xs" />
                             Редактировать
                           </button>
                           <button
@@ -1304,7 +1283,7 @@ return (
                               onDelete(entry);
                             }}
                           >
-                            <Trash2 size={13} />
+                            <AppIcon name="trash" size="xs" />
                             Удалить
                           </button>
                         </div>
@@ -1348,7 +1327,7 @@ return (
                 setPendingSlot(null);
               }}
             >
-              <CalendarPlus size={18} className="text-red-400" />
+              <AppIcon name="calendarPlus" size="md" className="text-red-400" />
               <span className="grid gap-0.5">
                 <strong className="text-sm font-bold text-zinc-100">Новый визит</strong>
                 <small className="text-zinc-500 text-xs font-medium">Записать клиента</small>
@@ -1362,7 +1341,7 @@ return (
                 setPendingSlot(null);
               }}
             >
-              <Ban size={18} className="text-zinc-400" />
+              <AppIcon name="ban" size="md" className="text-zinc-400" />
               <span className="grid gap-0.5">
                 <strong className="text-sm font-bold text-zinc-100">Зарезервировать время</strong>
                 <small className="text-zinc-500 text-xs font-medium">Закрыть слот без клиента</small>
@@ -1434,26 +1413,26 @@ function ClientCalendarCard({
   const clientContact = client?.phone || currentEntry.phone || "Телефон не указан";
   const visitMeta = [
     {
-      icon: <Clock size={15} />,
+      icon: "clock",
       label: "Время",
       value: `${currentEntry.time}–${getEntryEndTime(currentEntry)}`,
       detail: duration ? `${duration} мин` : "Длительность не указана",
     },
     {
-      icon: <CreditCard size={15} />,
+      icon: "creditCard",
       label: "Стоимость",
       value: paymentTotal,
       detail: hasDebt ? `Стоимость услуги ${serviceAmount}` : currentEntry.payment || "Оплата не указана",
       tone: hasDebt ? "danger" : "",
     },
     {
-      icon: <UserRound size={15} />,
+      icon: "userRound",
       label: "Мастер",
       value: currentEntry.master || "—",
       detail: currentEntry.commissionType || "Без комиссии",
     },
     {
-      icon: <Phone size={15} />,
+      icon: "phone",
       label: "Клиент",
       value: clientName,
       detail: clientContact,
@@ -1497,7 +1476,7 @@ function ClientCalendarCard({
       <div className="calendar-visit-detail-grid">
         {visitMeta.map((item) => (
           <span className={item.tone ? `is-${item.tone}` : ""} key={item.label}>
-            {item.icon}
+            <AppIcon name={item.icon} size="sm" />
             <small>{item.label}</small>
             <strong>{item.value}</strong>
             <em>{item.detail}</em>
