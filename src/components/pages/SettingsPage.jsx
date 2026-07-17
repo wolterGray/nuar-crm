@@ -1,20 +1,3 @@
-import {
-  BellRing,
-  CalendarClock,
-  Activity,
-  CloudUpload,
-  DatabaseBackup,
-  Download,
-  MailCheck,
-  Power,
-  RotateCcw,
-  Save,
-  Send,
-  ShieldCheck,
-  SlidersHorizontal,
-  Upload,
-  UserPlus,
-} from "lucide-react";
 import clsx from "clsx";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {
@@ -35,7 +18,7 @@ import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 import SettingsToggle from "../SettingsToggle.jsx";
-import {Button, Card, Input, PageHeader, Select} from "../ui/index.js";
+import {AppIcon, Button, Card, Input, PageHeader, Select} from "../ui/index.js";
 
 function SettingsMobileSection({children, isMobile, title}) {
   if (!isMobile) {
@@ -285,7 +268,7 @@ function UserAccessPanel({pushNotification}) {
   return (
     <Card className="p-6 flex flex-col gap-5">
       <div className="flex items-center gap-3 border-b border-border-soft pb-4">
-        <ShieldCheck size={18} className="text-accent" />
+        <AppIcon name="shield" size="md" className="text-accent" />
         <div>
           <h2 className="m-0 text-text-main text-base font-bold">Доступы</h2>
           <p className="m-0 mt-1 text-text-muted text-xs">
@@ -332,7 +315,7 @@ function UserAccessPanel({pushNotification}) {
           variant="primary"
           onClick={handleCreateUser}
         >
-          <UserPlus size={16} />
+          <AppIcon name="userPlus" size="sm" />
           Создать
         </Button>
       </section>
@@ -402,7 +385,7 @@ function UserAccessPanel({pushNotification}) {
                   variant="secondary"
                   onClick={() => handleSendReset(user)}
                 >
-                  <Send size={15} />
+                  <AppIcon name="send" size="sm" />
                 </Button>
                 <Button
                   disabled={savingId === user.id}
@@ -410,7 +393,7 @@ function UserAccessPanel({pushNotification}) {
                   variant={user.isActive ? "danger" : "secondary"}
                   onClick={() => handleToggleUser(user)}
                 >
-                  <Power size={15} />
+                  <AppIcon name="power" size="sm" />
                   {user.isActive ? "Off" : "On"}
                 </Button>
               </div>
@@ -702,11 +685,11 @@ function SettingsPage({
   const saveBar = (
     <div className="settings-save-bar sticky bottom-0 z-40 flex justify-end gap-3 p-4 border-t border-border bg-surface/90 backdrop-blur-md -mx-6 -mb-6 mt-6">
       <Button variant="secondary" onClick={resetSettings} className="flex items-center gap-2 cursor-pointer">
-        <RotateCcw size={17} />
+        <AppIcon name="rotateCcw" size="sm" />
         Сбросить
       </Button>
       <Button variant="primary" type="submit" className="flex items-center gap-2 font-bold cursor-pointer">
-        <Save size={17} />
+        <AppIcon name="save" size="sm" />
         Сохранить настройки
       </Button>
     </div>
@@ -742,7 +725,7 @@ function SettingsPage({
               activeTab === "interface" ? "block" : "hidden"
             )}>
             <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
-              <SlidersHorizontal size={18} className="text-accent" />
+              <AppIcon name="sliders" size="md" className="text-accent" />
               <div>
                 <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                   Интерфейс
@@ -819,7 +802,7 @@ function SettingsPage({
               activeTab === "notifications" ? "block" : "hidden"
             )}>
             <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
-              <BellRing size={18} className="text-accent" />
+              <AppIcon name="bellRing" size="md" className="text-accent" />
               <div>
                 <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                   Уведомления
@@ -1209,7 +1192,7 @@ function SettingsPage({
               activeTab === "calendar" ? "block" : "hidden"
             )}>
             <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
-              <CalendarClock size={18} className="text-accent" />
+              <AppIcon name="calendarClock" size="md" className="text-accent" />
               <div>
                 <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                   Календарь
@@ -1288,7 +1271,7 @@ function SettingsPage({
             )}>
             <Card className="settings-integration-card p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
-                <Activity size={18} className="text-accent" />
+                <AppIcon name="activity" size="md" className="text-accent" />
                 <div>
                   <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                     Здоровье интеграций
@@ -1304,7 +1287,7 @@ function SettingsPage({
 
             <Card className="settings-integration-card p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
-                <MailCheck size={18} className="text-accent" />
+                <AppIcon name="mailCheck" size="md" className="text-accent" />
                 <div>
                   <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                     Gmail
@@ -1378,7 +1361,7 @@ function SettingsPage({
             )}>
             <Card className="p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
-                <CloudUpload size={18} className="text-accent" />
+                <AppIcon name="cloudUpload" size="md" className="text-accent" />
                 <div>
                   <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                     Облако
@@ -1424,7 +1407,7 @@ function SettingsPage({
                     onClick={onForceCloudSave}
                     className="flex items-center gap-2"
                   >
-                    <CloudUpload size={16} />
+                    <AppIcon name="cloudUpload" size="sm" />
                     {cloudSyncing ? "Сохранение..." : "Принудительно сохранить сейчас"}
                   </Button>
                 </div>
@@ -1433,7 +1416,7 @@ function SettingsPage({
 
             <Card className="p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
-                <DatabaseBackup size={18} className="text-accent" />
+                <AppIcon name="databaseBackup" size="md" className="text-accent" />
                 <div>
                   <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
                     Данные
@@ -1447,11 +1430,11 @@ function SettingsPage({
                 </p>
                 <div className="flex gap-3">
                   <Button variant="secondary" onClick={onExportData} className="flex items-center gap-2 cursor-pointer">
-                    <Download size={16} />
+                    <AppIcon name="download" size="sm" />
                     Скачать копию
                   </Button>
                   <label className="inline-flex items-center justify-center min-h-[40px] px-3.5 gap-2 border border-border rounded-control text-text-main bg-field text-sm font-medium hover:bg-surface-soft transition-colors cursor-pointer">
-                    <Upload size={16} />
+                    <AppIcon name="upload" size="sm" />
                     Восстановить
                     <input
                       accept="application/json,.json"
