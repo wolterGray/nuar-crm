@@ -1,20 +1,3 @@
-import {
-  Copy,
-  ExternalLink,
-  Gift,
-  PencilLine,
-  Link2,
-  MoreHorizontal,
-  Power,
-  QrCode,
-  ShieldCheck,
-  RefreshCw,
-  Search,
-  Sparkles,
-  Star,
-  Trash2,
-  X,
-} from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {LoyaltyCard} from "../LoyaltyCardPreview.jsx";
 import {
@@ -44,6 +27,7 @@ import {
 import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import LoyaltyQrCode from "../LoyaltyQrCode.jsx";
 import PageHeader from "../PageHeader.jsx";
+import AppIcon from "../ui/AppIcon.jsx";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
 
 const getCardProgress = (card) =>
@@ -66,10 +50,10 @@ const formatCardDate = (card) => {
 };
 
 const clubTabs = [
-  {id: "cards", label: "Карты клиентов", icon: ShieldCheck},
-  {id: "design", label: "Дизайн карт", icon: Sparkles},
-  {id: "rewards", label: "Подарки", icon: Gift},
-  {id: "stats", label: "Статистика", icon: Star},
+  {id: "cards", label: "Карты клиентов", icon: "shield"},
+  {id: "design", label: "Дизайн карт", icon: "sparkles"},
+  {id: "rewards", label: "Подарки", icon: "gift"},
+  {id: "stats", label: "Статистика", icon: "star"},
 ];
 
 const emptyRewardTemplateForm = {
@@ -145,7 +129,7 @@ function ClubCardMenu({
         className={isOpen ? "is-active" : ""}
         type="button"
         onClick={() => setOpenMenuId(isOpen ? null : card.id)}>
-        <MoreHorizontal size={16} />
+        <AppIcon name="more" size="sm" />
       </button>
 
       <RowActionMenuPortal isOpen={isOpen} menuRef={menuRef} menuStyle={menuStyle}>
@@ -153,37 +137,37 @@ function ClubCardMenu({
           disabled={!isRewardActionAvailable}
           type="button"
           onClick={() => closeAndRun(onRedeem)}>
-          <Gift size={15} />
+          <AppIcon name="gift" size="sm" />
           Награда
         </button>
         <button disabled={!card.isActive} type="button" onClick={() => closeAndRun(onManualAdjust)}>
-          <PencilLine size={15} />
+          <AppIcon name="edit" size="sm" />
           Начислить / списать
         </button>
         <button type="button" onClick={() => closeAndRun(onReissue)}>
-          <Link2 size={15} />
+          <AppIcon name="link" size="sm" />
           Перевыпустить ссылку
         </button>
         <button disabled={!publicUrl || !card.isActive} type="button" onClick={() => closeAndRun(onCopy)}>
-          <Copy size={15} />
+          <AppIcon name="copy" size="sm" />
           Скопировать ссылку
         </button>
         <button disabled={!publicUrl || !card.isActive} type="button" onClick={() => closeAndRun(onOpenQr)}>
-          <QrCode size={15} />
+          <AppIcon name="qr" size="sm" />
           Показать QR
         </button>
         {publicUrl ? (
           <a href={publicUrl} rel="noreferrer" target="_blank">
-            <ExternalLink size={15} />
+            <AppIcon name="external" size="sm" />
             Открыть карту
           </a>
         ) : null}
         <button type="button" onClick={() => closeAndRun(onStatus)}>
-          <Power size={15} />
+          <AppIcon name="power" size="sm" />
           {card.isActive ? "Отключить карту" : "Включить карту"}
         </button>
         <button className="danger" type="button" onClick={() => closeAndRun(onDelete)}>
-          <Trash2 size={15} />
+          <AppIcon name="trash" size="sm" />
           Удалить карту
         </button>
       </RowActionMenuPortal>
@@ -581,34 +565,30 @@ export default function ClubPage({clients = [], pushNotification}) {
         title="Club"
         headerActions={
           <button className="club-icon-button" disabled={loading} type="button" onClick={loadCards}>
-            <RefreshCw size={16} />
+            <AppIcon name="refresh" size="sm" />
           </button>
         }
       />
 
       <div className="club-summary">
         {[
-          {icon: ShieldCheck, label: "Всего карт", value: stats.total},
-          {icon: Sparkles, label: "Активные", value: stats.active},
-          {icon: Gift, label: "Награды", value: stats.rewards},
-          {icon: Star, label: "Отметки", value: stats.stamps},
-        ].map((item) => {
-          const SummaryIcon = item.icon;
-          return (
+          {icon: "shield", label: "Всего карт", value: stats.total},
+          {icon: "sparkles", label: "Активные", value: stats.active},
+          {icon: "gift", label: "Награды", value: stats.rewards},
+          {icon: "star", label: "Отметки", value: stats.stamps},
+        ].map((item) => (
             <article key={item.label}>
-              <span className="club-summary-icon"><SummaryIcon size={16} /></span>
+              <span className="club-summary-icon"><AppIcon name={item.icon} size="sm" /></span>
               <div>
                 <span>{item.label}</span>
                 <strong>{item.value}</strong>
               </div>
             </article>
-          );
-        })}
+        ))}
       </div>
 
       <div className="club-tabs">
         {clubTabs.map((tab) => {
-          const TabIcon = tab.icon;
           const badge = tab.id === "cards" ? stats.total : null;
           return (
             <button
@@ -617,7 +597,7 @@ export default function ClubPage({clients = [], pushNotification}) {
               type="button"
               onClick={() => setActiveTab(tab.id)}
             >
-              <TabIcon size={15} />
+              <AppIcon name={tab.icon} size="sm" />
               <span>{tab.label}</span>
               {badge ? <em>{badge}</em> : null}
             </button>
@@ -646,14 +626,14 @@ export default function ClubPage({clients = [], pushNotification}) {
               ))}
             </select>
             <button disabled={!newClientId || loading} type="button" onClick={handleCreate}>
-              <Gift size={15} />
+              <AppIcon name="gift" size="sm" />
               Создать карту
             </button>
           </div>
 
           <div className="club-toolbar">
             <label className="club-search">
-              <Search size={15} />
+              <AppIcon name="search" size="sm" />
               <input
                 placeholder="Поиск по клиенту или телефону"
                 value={search}
@@ -714,7 +694,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                   <ul className="club-physical-benefits">
                     {tier.benefits?.map((benefit) => (
                       <li key={benefit}>
-                        <Gift size={15} />
+                        <AppIcon name="gift" size="sm" />
                         <span>{benefit}</span>
                       </li>
                     ))}
@@ -823,11 +803,11 @@ export default function ClubPage({clients = [], pushNotification}) {
                   <em>{template.expiresAfterDays ? `${template.expiresAfterDays} дн.` : "Без срока"}</em>
                   <em>{template.active ? "Активен" : "Отключён"}</em>
                   <button type="button" onClick={() => handleRewardTemplateEdit(template)}>
-                    <PencilLine size={14} />
+                    <AppIcon name="edit" size="xs" />
                     Правка
                   </button>
                   <button className="is-danger" type="button" onClick={() => handleRewardTemplateDelete(template)}>
-                    <Trash2 size={14} />
+                    <AppIcon name="trash" size="xs" />
                     Удалить
                   </button>
                 </article>
@@ -849,23 +829,20 @@ export default function ClubPage({clients = [], pushNotification}) {
           </div>
           <div className="club-stats-overview">
             {[
-              {icon: ShieldCheck, label: "Визиты", value: stats.lifetimeVisits, note: "Все визиты NUAR Club"},
-              {icon: Gift, label: "К выдаче", value: stats.rewards, note: "Сундуки и подарки"},
-              {icon: Sparkles, label: "Выдано", value: stats.openedGifts, note: "Использованные подарки"},
-              {icon: Star, label: "Архив", value: stats.archived, note: "Закрытые карты"},
-            ].map((item) => {
-              const StatIcon = item.icon;
-              return (
+              {icon: "shield", label: "Визиты", value: stats.lifetimeVisits, note: "Все визиты NUAR Club"},
+              {icon: "gift", label: "К выдаче", value: stats.rewards, note: "Сундуки и подарки"},
+              {icon: "sparkles", label: "Выдано", value: stats.openedGifts, note: "Использованные подарки"},
+              {icon: "star", label: "Архив", value: stats.archived, note: "Закрытые карты"},
+            ].map((item) => (
                 <article className="club-stat-tile" key={item.label}>
-                  <span><StatIcon size={16} /></span>
+                  <span><AppIcon name={item.icon} size="sm" /></span>
                   <div>
                     <small>{item.label}</small>
                     <strong>{item.value}</strong>
                     <em>{item.note}</em>
                   </div>
                 </article>
-              );
-            })}
+            ))}
           </div>
           <div className="club-stats-grid">
             <article className="club-stats-panel">
@@ -968,10 +945,10 @@ export default function ClubPage({clients = [], pushNotification}) {
                   </div>
                 </div>
                 <div className="club-card-meta is-unopened">
-                  <span className="is-purple"><Gift size={13} /> {unopenedGifts}</span>
+                  <span className="is-purple"><AppIcon name="gift" size="xs" /> {unopenedGifts}</span>
                 </div>
                 <div className="club-card-meta is-opened">
-                  <span className="is-green"><Gift size={13} /> {openedGifts}</span>
+                  <span className="is-green"><AppIcon name="gift" size="xs" /> {openedGifts}</span>
                 </div>
                 <div className="club-card-date">
                   <span>{formatCardDate(card)}</span>
@@ -1021,7 +998,7 @@ export default function ClubPage({clients = [], pushNotification}) {
           })}
           {!cards.length ? (
             <div className="club-empty">
-              <Sparkles size={18} />
+              <AppIcon name="sparkles" size="md" />
               <strong>Карт пока нет</strong>
               <span>Создайте первую карту NUAR Club для клиента.</span>
             </div>
@@ -1085,11 +1062,11 @@ export default function ClubPage({clients = [], pushNotification}) {
             </div>
             <div className="club-qr-modal-actions">
               <button type="button" onClick={() => handleCopy(qrCard)}>
-                <Copy size={15} />
+                <AppIcon name="copy" size="sm" />
                 Скопировать ссылку
               </button>
               <a href={qrPublicUrl} rel="noreferrer" target="_blank">
-                <ExternalLink size={15} />
+                <AppIcon name="external" size="sm" />
                 Открыть карту
               </a>
             </div>
@@ -1120,7 +1097,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                 disabled={manualAdjustmentSaving}
                 type="button"
                 onClick={closeManualAdjustment}>
-                <X size={17} />
+                <AppIcon name="x" size="sm" />
               </button>
             </div>
             <div className="club-adjust-mode" role="group" aria-label="Тип операции">
