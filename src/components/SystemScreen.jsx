@@ -1,19 +1,10 @@
-import {
-  Home,
-  LoaderCircle,
-  LogOut,
-  RefreshCw,
-  SearchX,
-  TriangleAlert,
-} from "lucide-react";
-
 import {resolveColorTheme} from "../utils/colorTheme.js";
-import {Button, Card} from "./ui/index.js";
+import {AppIcon, Button, Card} from "./ui/index.js";
 
 const icons = {
-  error: TriangleAlert,
-  loading: LoaderCircle,
-  "not-found": SearchX,
+  error: "alert",
+  loading: "loader",
+  "not-found": "search",
 };
 
 function SystemScreen({
@@ -25,7 +16,7 @@ function SystemScreen({
   settings,
   title,
 }) {
-  const Icon = icons[mode] ?? TriangleAlert;
+  const iconName = icons[mode] ?? "alert";
   const themeMode = resolveColorTheme(settings).mode;
 
   if (mode === "loading") {
@@ -42,7 +33,7 @@ function SystemScreen({
 
           <div className="system-loading-orbit" aria-hidden="true">
             <span />
-            <LoaderCircle className="system-loading-spinner animate-spin" size={34} />
+            <AppIcon className="system-loading-spinner animate-spin" name="loader" size="lg" spin />
           </div>
 
           <div className="system-loading-copy">
@@ -77,7 +68,7 @@ function SystemScreen({
 
         <div className="flex flex-col items-center text-center gap-4 py-4">
           <span className={`grid w-14 h-14 place-items-center rounded-full bg-border-soft ${mode === "error" ? "text-red-400 bg-red-500/10" : "text-accent bg-accent/10"}`}>
-            <Icon size={24} />
+            <AppIcon name={iconName} size="lg" spin={mode === "loading"} />
           </span>
           <div>
             <h1 className="m-0 text-text-main text-lg font-bold leading-snug">{title}</h1>
@@ -88,14 +79,20 @@ function SystemScreen({
         {(onAction || onLogout) && (
           <div className="flex flex-col gap-3">
             {onAction && (
-              <Button variant="primary" className="w-full flex items-center justify-center gap-2 font-bold cursor-pointer" onClick={onAction}>
-                {mode === "not-found" ? <Home size={16} /> : <RefreshCw size={16} />}
+              <Button
+                className="w-full flex items-center justify-center gap-2 font-bold cursor-pointer"
+                leftIcon={mode === "not-found" ? "home" : "refresh"}
+                variant="primary"
+                onClick={onAction}>
                 {actionLabel}
               </Button>
             )}
             {onLogout && (
-              <Button variant="secondary" className="w-full flex items-center justify-center gap-2 font-medium cursor-pointer" onClick={onLogout}>
-                <LogOut size={16} />
+              <Button
+                className="w-full flex items-center justify-center gap-2 font-medium cursor-pointer"
+                leftIcon="logout"
+                variant="secondary"
+                onClick={onLogout}>
                 Выйти
               </Button>
             )}

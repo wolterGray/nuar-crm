@@ -1,11 +1,6 @@
-import {
-  LogOut,
-  MoreHorizontal,
-  Search,
-  X,
-} from "lucide-react";
 import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 import {mobileNavItems, navGroups, navItems} from "../constants/navigation.js";
+import {AppIcon, IconButton} from "./ui/index.js";
 
 export default function AppNavigation({
   activePage,
@@ -54,7 +49,7 @@ export default function AppNavigation({
             type="button"
             onClick={onOpenClientSearch}
           >
-            <Search size={16} />
+            <AppIcon name="search" size="sm" />
             <span>Поиск</span>
             <kbd className="ml-auto hidden text-[10px] text-zinc-500 bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded font-mono">
               {typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform) ? "⌘K" : "Ctrl+K"}
@@ -100,15 +95,14 @@ export default function AppNavigation({
             <strong className="text-zinc-200 text-xs font-bold truncate">{ownerName}</strong>
             <span className="text-zinc-500 text-[10px] font-semibold">Владелец</span>
           </div>
-          <button
+          <IconButton
             className="grid w-8 h-8 place-items-center rounded bg-transparent text-zinc-500 hover:text-zinc-300 cursor-pointer"
-            type="button"
-            aria-label="Выйти"
-            data-label="Выйти"
+            icon="logout"
+            label="Выйти"
+            size="sm"
+            variant="ghost"
             onClick={onLogout}
-          >
-            <LogOut size={14} />
-          </button>
+          />
         </div>
       </aside>
 
@@ -127,14 +121,14 @@ export default function AppNavigation({
         <section className="mobile-more-sheet fixed right-0 bottom-16 left-0 z-40 max-h-[70vh] overflow-y-auto border-t border-zinc-800 rounded-t-2xl bg-zinc-950 p-5 shadow-2xl block md:hidden" aria-label="Все разделы">
           <div className="mobile-more-sheet-head">
             <span className="mobile-more-sheet-title">Все разделы</span>
-            <button
-              aria-label="Закрыть разделы"
+            <IconButton
               className="mobile-more-sheet-close grid w-8 h-8 place-items-center border border-zinc-900 rounded-lg text-zinc-400 hover:text-zinc-300 bg-transparent cursor-pointer"
-              type="button"
+              icon="x"
+              label="Закрыть разделы"
+              size="sm"
+              variant="ghost"
               onClick={closeSidebar}
-            >
-              <X size={15} />
-            </button>
+            />
           </div>
           <nav className="mobile-more-sheet-nav grid grid-cols-2 gap-2">
             {hiddenMobileItems.map((item) => {
@@ -184,7 +178,7 @@ export default function AppNavigation({
           type="button"
           onClick={() => onSidebarVisibleChange(!sidebarVisible)}
         >
-          <MoreHorizontal size={19} />
+          <AppIcon name="more" size="md" />
           <span className="text-[10px] font-medium leading-none">Еще</span>
         </button>
       </nav>

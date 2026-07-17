@@ -1,4 +1,4 @@
-import {Crown, Gift} from "lucide-react";
+import {AppIcon} from "./ui/index.js";
 import {
   cardCopyByLanguage,
   getCardLanguage,
@@ -53,7 +53,7 @@ export function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
       <span aria-hidden="true" className="club-physical-shine" />
       {TierIcon ? (
         <span aria-label={`Уровень ${tier.displayName}`} className="club-physical-tier-mark" role="img">
-          <TierIcon size={27} strokeWidth={1.65} />
+          <AppIcon icon={TierIcon} size="lg" strokeWidth={1.65} />
         </span>
       ) : null}
       {tier.id === "diamond" ? <span aria-hidden="true" className="club-physical-diamond-crystal" /> : null}
@@ -66,7 +66,15 @@ export function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
 
       <span className="club-physical-signature">
         <small>{copy.loyaltyCard}</small>
-        {tier.id === "royal" ? <Crown aria-hidden="true" className="club-physical-signature-crown" size={28} strokeWidth={1.55} /> : null}
+        {tier.id === "royal" ? (
+          <AppIcon
+            className="club-physical-signature-crown"
+            decorative
+            name="crown"
+            size="lg"
+            strokeWidth={1.55}
+          />
+        ) : null}
         <strong>{clientName}</strong>
       </span>
 
@@ -83,7 +91,7 @@ export function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
               role="listitem"
               title={index === 5 ? copy.gift : undefined}
             >
-              {index === 5 ? <Gift size={13} /> : ""}
+              {index === 5 ? <AppIcon name="gift" size="xs" /> : ""}
             </i>
           ))}
         </span>
