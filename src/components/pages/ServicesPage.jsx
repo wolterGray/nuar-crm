@@ -1,5 +1,4 @@
 import {useMemo, useState} from "react";
-import {Plus} from "lucide-react";
 import {motion} from "framer-motion";
 import {formatMoney} from "../../utils/formatters.jsx";
 import {serviceColorPalette} from "../../utils/serviceColors.js";
@@ -7,7 +6,7 @@ import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import PageHeader from "../ui/PageHeader.jsx";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
-import Button from "../ui/Button.jsx";
+import {Button, EmptyState} from "../ui/index.js";
 
 function ServicesPage({services, onAdd, onEdit, onDelete}) {
   const {isMobile} = useBreakpoint();
@@ -53,8 +52,11 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
               }}
               onClear={() => setSearch("")}
             />
-            <Button variant="primary" onClick={onAdd} className="services-page-add-button">
-              <Plus size={16} />
+            <Button
+              className="services-page-add-button"
+              leftIcon="plus"
+              variant="primary"
+              onClick={onAdd}>
               {isMobile ? "Добавить" : "Добавить услугу"}
             </Button>
           </div>
@@ -74,14 +76,16 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
 
       <div className="services-grid">
         {filteredServices.length === 0 ? (
-          <div className="services-empty-state">
-            <strong>{search.trim() ? "Ничего не найдено" : "Услуг пока нет"}</strong>
-            <span>
-              {search.trim()
+          <EmptyState
+            className="services-empty-state"
+            description={
+              search.trim()
                 ? "Попробуйте изменить запрос."
-                : "Добавьте первую услугу в каталог."}
-            </span>
-          </div>
+                : "Добавьте первую услугу в каталог."
+            }
+            icon={search.trim() ? "search" : "plus"}
+            title={search.trim() ? "Ничего не найдено" : "Услуг пока нет"}
+          />
         ) : (
           filteredServices.map((service) => {
             const variants = service.variants ?? [];

@@ -55,6 +55,7 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - `CalendarEntryForm` kind switch, visible form fields, client helper actions, package/certificate quick actions, and submit action.
 - `CalendarDayList` empty state and add-visit action.
 - `SiteAdminPanel` and `SitePage` save/admin actions.
+- `ServicesPage` add action and empty states.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules
