@@ -80,30 +80,42 @@ export default function NotificationAlertRow({
             />
             {menuOpen ? (
               <div className="client-alert-snooze-menu">
-                <button
+                <Button
+                  className="client-alert-snooze-menu-item"
+                  fullWidth
+                  size="sm"
                   type="button"
+                  variant="ghost"
                   onClick={() => {
                     onSnoozeToday(alert.id);
                     setMenuOpen(false);
                   }}>
                   На сегодня
-                </button>
-                <button
+                </Button>
+                <Button
+                  className="client-alert-snooze-menu-item"
+                  fullWidth
+                  size="sm"
                   type="button"
+                  variant="ghost"
                   onClick={() => {
                     onSnoozeWeek(alert.id);
                     setMenuOpen(false);
                   }}>
                   На 7 дней
-                </button>
-                <button
+                </Button>
+                <Button
+                  className="client-alert-snooze-menu-item"
+                  fullWidth
+                  size="sm"
                   type="button"
+                  variant="ghost"
                   onClick={() => {
                     onDismissPermanent(alert.id);
                     setMenuOpen(false);
                   }}>
                   Больше не показывать
-                </button>
+                </Button>
               </div>
             ) : null}
           </div>

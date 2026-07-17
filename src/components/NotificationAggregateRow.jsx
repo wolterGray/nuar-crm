@@ -46,30 +46,42 @@ export default function NotificationAggregateRow({
             />
             {menuOpen ? (
               <div className="client-alert-snooze-menu">
-                <button
+                <Button
+                  className="client-alert-snooze-menu-item"
+                  fullWidth
+                  size="sm"
                   type="button"
+                  variant="ghost"
                   onClick={() => {
                     onSnoozeToday(alert);
                     setMenuOpen(false);
                   }}>
                   На сегодня
-                </button>
-                <button
+                </Button>
+                <Button
+                  className="client-alert-snooze-menu-item"
+                  fullWidth
+                  size="sm"
                   type="button"
+                  variant="ghost"
                   onClick={() => {
                     onSnoozeWeek(alert);
                     setMenuOpen(false);
                   }}>
                   На 7 дней
-                </button>
-                <button
+                </Button>
+                <Button
+                  className="client-alert-snooze-menu-item"
+                  fullWidth
+                  size="sm"
                   type="button"
+                  variant="ghost"
                   onClick={() => {
                     onDismissPermanent(alert);
                     setMenuOpen(false);
                   }}>
                   Больше не показывать
-                </button>
+                </Button>
               </div>
             ) : null}
           </div>

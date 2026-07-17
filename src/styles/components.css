@@ -4540,3 +4540,10 @@
   color: var(--color-text);
   text-align: left;
 }
+
+.client-alert-snooze-menu-item {
+  justify-content: flex-start;
+  border-color: transparent;
+  color: var(--color-text);
+  text-align: left;
+}
