@@ -1,7 +1,8 @@
-import {LoaderCircle, Play, RefreshCw, Send, SendHorizonal} from "lucide-react";
+import {SendHorizonal} from "lucide-react";
 import {useState} from "react";
 import {SettingsPanelHeading} from "./HintIcon.jsx";
 import {sendTelegramDigestTest} from "../utils/telegramDigestApi.js";
+import {Button, Field, Textarea} from "./ui/index.js";
 
 function TelegramDigestPanel({
   onPreview,
@@ -81,43 +82,43 @@ function TelegramDigestPanel({
       </div>
 
       <div className="settings-actions-row">
-        <button
-          className="secondary-button"
+        <Button
           disabled={status.loading}
+          leftIcon="refresh"
+          loading={status.loading}
           type="button"
+          variant="secondary"
           onClick={() => onRefreshStatus?.()}>
-          {status.loading ? <LoaderCircle className="spin" size={16} /> : <RefreshCw size={16} />}
           Обновить статус
-        </button>
-        <button className="secondary-button" type="button" onClick={handlePreview}>
-          <Play size={16} />
+        </Button>
+        <Button leftIcon="eye" type="button" variant="secondary" onClick={handlePreview}>
           Предпросмотр
-        </button>
-        <button
-          className="add-visit-button"
+        </Button>
+        <Button
           disabled={status.loading || !status.configured}
+          leftIcon="message"
           type="button"
+          variant="primary"
           onClick={() => onSend?.()}>
-          <Send size={16} />
           Отправить сейчас
-        </button>
+        </Button>
       </div>
 
       {preview ? (
-        <label>
-          Предпросмотр сообщения
-          <textarea readOnly rows="12" value={preview} />
-        </label>
+        <Field label="Предпросмотр сообщения">
+          <Textarea readOnly rows="12" value={preview} />
+        </Field>
       ) : null}
 
-      <button
-        className="secondary-button"
+      <Button
         disabled={testing || !status.configured}
+        leftIcon="message"
+        loading={testing}
         type="button"
+        variant="secondary"
         onClick={handleTest}>
-        {testing ? <LoaderCircle className="spin" size={16} /> : <Send size={16} />}
         Отправить тест в Telegram
-      </button>
+      </Button>
 
       <p className="field-hint">
         На Hetzner в `backend/.env` добавьте `TELEGRAM_BOT_TOKEN` и

@@ -61,6 +61,7 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - `PackagesPage` action icons, archive affordances, and empty states.
 - `SupplyForm` fields and submit action.
 - Package, certificate, waitlist, employee, service, task, message-template, and financial-operation form controls.
+- New-client form and automated messaging panels for SMS, follow-up, review requests, bulk SMS, and Telegram digest.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules

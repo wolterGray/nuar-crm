@@ -1,4 +1,4 @@
-import {LoaderCircle, MessageSquareText, Play, RefreshCw, Send, Users} from "lucide-react";
+import {Users} from "lucide-react";
 import {useMemo, useState} from "react";
 import {FieldLabel} from "./HintIcon.jsx";
 import {
@@ -7,6 +7,7 @@ import {
   summarizeBulkSmsRecipients,
 } from "../utils/bulkSms.js";
 import {sendBulkSmsTest} from "../utils/bulkSmsApi.js";
+import {Button, Field, Input, Select, Textarea} from "./ui/index.js";
 
 function BulkSmsPanel({
   bulkSms,
@@ -88,9 +89,8 @@ function BulkSmsPanel({
       </div>
 
       <div className="settings-options settings-options-grid">
-        <label>
-          Сегмент
-          <select
+        <Field label="Сегмент">
+          <Select
             value={bulkSms.segmentId}
             onChange={(event) => {
               bulkSms.setSegmentId(event.target.value);
@@ -101,24 +101,23 @@ function BulkSmsPanel({
                 {segment.label}
               </option>
             ))}
-          </select>
-        </label>
-        <label>
-          Шаблон SMS
-          <select defaultValue="" onChange={(event) => applyTemplate(event.target.value)}>
+          </Select>
+        </Field>
+        <Field label="Шаблон SMS">
+          <Select defaultValue="" onChange={(event) => applyTemplate(event.target.value)}>
             <option value="">Свой текст ниже</option>
             {smsTemplates.map((template) => (
               <option key={template.id} value={template.id}>
                 {template.name}
               </option>
             ))}
-          </select>
-        </label>
+          </Select>
+        </Field>
         <label className="settings-full-width">
           <FieldLabel hint='Плейсхолдеры: {name}, {studio}, {days}'>
             Текст сообщения
           </FieldLabel>
-          <textarea
+          <Textarea
             rows="4"
             value={bulkSms.template}
             onChange={(event) => {
@@ -130,34 +129,30 @@ function BulkSmsPanel({
       </div>
 
       <div className="settings-actions-row">
-        <button
-          className="secondary-button"
+        <Button
           disabled={bulkSms.status.loading}
+          leftIcon="refresh"
+          loading={bulkSms.status.loading}
           type="button"
+          variant="secondary"
           onClick={() => bulkSms.refreshStatus?.()}>
-          {bulkSms.status.loading ? (
-            <LoaderCircle className="spin" size={16} />
-          ) : (
-            <RefreshCw size={16} />
-          )}
           Обновить статус
-        </button>
-        <button className="secondary-button" type="button" onClick={handlePreview}>
-          <Play size={16} />
+        </Button>
+        <Button leftIcon="eye" type="button" variant="secondary" onClick={handlePreview}>
           Предпросмотр
-        </button>
-        <button
-          className="add-visit-button"
+        </Button>
+        <Button
           disabled={
             bulkSms.status.loading ||
             !bulkSms.status.configured ||
             summary.readyCount === 0
           }
+          leftIcon="message"
           type="button"
+          variant="primary"
           onClick={() => bulkSms.runSend?.()}>
-          <Send size={16} />
           Отправить {summary.readyCount || ""}
-        </button>
+        </Button>
       </div>
 
       {bulkSms.preview.length > 0 ? (
@@ -187,31 +182,30 @@ function BulkSmsPanel({
       ) : null}
 
       <div className="settings-options settings-options-grid">
-        <label>
-          Тестовый телефон
-          <input
+        <Field label="Тестовый телефон">
+          <Input
             placeholder="600123456"
             value={testPhone}
             onChange={(event) => setTestPhone(event.target.value)}
           />
-        </label>
-        <label>
-          Тестовое сообщение
-          <textarea
+        </Field>
+        <Field label="Тестовое сообщение">
+          <Textarea
             readOnly
             rows="3"
             value={bulkSms.template}
           />
-        </label>
+        </Field>
       </div>
-      <button
-        className="secondary-button"
+      <Button
         disabled={testing || !testPhone.trim()}
+        leftIcon="message"
+        loading={testing}
         type="button"
+        variant="secondary"
         onClick={handleTest}>
-        {testing ? <LoaderCircle className="spin" size={16} /> : <MessageSquareText size={16} />}
         Отправить тестовое SMS
-      </button>
+      </Button>
     </section>
   );
 }

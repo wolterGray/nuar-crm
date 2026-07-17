@@ -1,9 +1,9 @@
-import {UserPlus} from "lucide-react";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useEffect, useRef} from "react";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 import {FieldLabel} from "./HintIcon.jsx";
+import {AppIcon, Button, Field, Input, Select, Textarea} from "./ui/index.js";
 
 const optionalEmail = z
   .string()
@@ -70,95 +70,83 @@ function NewClientForm({client, onSubmit}) {
   return (
     <section className="panel new-client-panel client-form-sheet-root">
       <div className="form-title">
-        <UserPlus size={18} />
+        <AppIcon name="user" size="sm" />
         <h2>{client ? "Редактировать клиента" : "Новый клиент"}</h2>
       </div>
       <form ref={formRef} noValidate onSubmit={submitForm}>
-        <label>
-          Имя клиента
-          <input
+        <Field error={errors.name?.message} label="Имя клиента">
+          <Input
             {...register("name")}
             aria-invalid={Boolean(errors.name)}
             placeholder="Например: Наталья К."
           />
-          <FieldError message={errors.name?.message} />
-        </label>
+        </Field>
         <label>
           <FieldLabel hint="Как обращаться в сообщениях. Пусто — возьмём первое слово или часть до «от …».">
             Имя для SMS
           </FieldLabel>
-          <input
+          <Input
             {...register("messageName")}
             placeholder="Например: Анастасия"
           />
         </label>
-        <label>
-          Телефон
-          <input
+        <Field label="Телефон">
+          <Input
             {...register("phone")}
             placeholder="+48 000 000 000"
           />
-        </label>
-        <label>
-          Email
-          <input
+        </Field>
+        <Field error={errors.email?.message} label="Email">
+          <Input
             {...register("email")}
             aria-invalid={Boolean(errors.email)}
             inputMode="email"
             placeholder="client@example.com"
           />
-          <FieldError message={errors.email?.message} />
-        </label>
-        <label>
-          Дата рождения
-          <input
+        </Field>
+        <Field label="Дата рождения">
+          <Input
             {...register("birthday")}
             type="date"
           />
-        </label>
-        <label>
-          Instagram
-          <input
+        </Field>
+        <Field label="Instagram">
+          <Input
             {...register("instagram")}
             placeholder="@username или ссылка на профиль"
           />
-        </label>
-        <label>
-          Telegram
-          <input
+        </Field>
+        <Field label="Telegram">
+          <Input
             {...register("telegram")}
             placeholder="@username"
           />
-        </label>
+        </Field>
         <div className="form-split">
-          <label>
-            Источник
-            <select {...register("source")} aria-invalid={Boolean(errors.source)}>
+          <Field error={errors.source?.message} label="Источник">
+            <Select {...register("source")} aria-invalid={Boolean(errors.source)}>
               <option>Instagram</option>
               <option>Booksy</option>
               <option>Google</option>
               <option>Рекомендация</option>
               <option>Проходил мимо</option>
-            </select>
-            <FieldError message={errors.source?.message} />
-          </label>
-          <label>
-            Предпочтение
-            <select {...register("preference")} aria-invalid={Boolean(errors.preference)}>
+            </Select>
+          </Field>
+          <Field error={errors.preference?.message} label="Предпочтение">
+            <Select {...register("preference")} aria-invalid={Boolean(errors.preference)}>
               <option>Любой мастер</option>
               <option>Ольга</option>
               <option>Максим</option>
               <option>Новая мастер</option>
-            </select>
-            <FieldError message={errors.preference?.message} />
-          </label>
+            </Select>
+          </Field>
         </div>
         <div className="form-split">
           <label>
             <FieldLabel hint="Какой шаблон использовать в автоматических SMS">
               Язык SMS
             </FieldLabel>
-            <select
+            <Select
               {...register("messageLanguage")}
               aria-invalid={Boolean(errors.messageLanguage)}
             >
@@ -166,39 +154,40 @@ function NewClientForm({client, onSubmit}) {
               <option>Русский</option>
               <option>Английский</option>
               <option>Украинский</option>
-            </select>
+            </Select>
             <FieldError message={errors.messageLanguage?.message} />
           </label>
-          <label>
-            Статус клиента
-            <select {...register("status")} aria-invalid={Boolean(errors.status)}>
+          <Field error={errors.status?.message} label="Статус клиента">
+            <Select {...register("status")} aria-invalid={Boolean(errors.status)}>
               <option>Активный</option>
               <option>VIP</option>
               <option>Новый</option>
               <option>Пауза</option>
               <option>Не беспокоить</option>
-            </select>
-            <FieldError message={errors.status?.message} />
-          </label>
-          <label>
-            Теги
-            <input
+            </Select>
+          </Field>
+          <Field label="Теги">
+            <Input
               {...register("tags")}
               placeholder="VIP, спорт, поляк"
             />
-          </label>
+          </Field>
         </div>
-        <label>
-          Комментарий
-          <textarea
+        <Field label="Комментарий">
+          <Textarea
             {...register("note")}
             placeholder="Аллергии, противопоказания, пожелания"
             rows="3"
           />
-        </label>
-        <button className="submit-button" disabled={!isValid} type="submit">
+        </Field>
+        <Button
+          className="crm-primary-action"
+          disabled={!isValid}
+          size="lg"
+          type="submit"
+          variant="primary">
           {client ? "Сохранить клиента" : "Добавить клиента"}
-        </button>
+        </Button>
       </form>
     </section>
   );

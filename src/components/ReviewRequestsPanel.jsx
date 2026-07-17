@@ -1,8 +1,9 @@
-import {ExternalLink, LoaderCircle, MessageSquareText, Play, RefreshCw, Send, Star} from "lucide-react";
+import {Star} from "lucide-react";
 import {useState} from "react";
 import {SettingsPanelHeading} from "./HintIcon.jsx";
 import {defaultReviewRequestTemplate} from "../utils/reviewRequests.js";
 import {sendReviewRequestTest} from "../utils/reviewRequestsApi.js";
+import {AppIcon, Button, Field, Input, Textarea} from "./ui/index.js";
 
 function ReviewRequestsPanel({
   onPreview,
@@ -80,26 +81,26 @@ function ReviewRequestsPanel({
       </div>
 
       <div className="settings-actions-row">
-        <button
-          className="secondary-button"
+        <Button
           disabled={status.loading}
+          leftIcon="refresh"
+          loading={status.loading}
           type="button"
+          variant="secondary"
           onClick={() => onRefreshStatus?.()}>
-          {status.loading ? <LoaderCircle className="spin" size={16} /> : <RefreshCw size={16} />}
           Обновить статус
-        </button>
-        <button className="secondary-button" type="button" onClick={handlePreview}>
-          <Play size={16} />
+        </Button>
+        <Button leftIcon="eye" type="button" variant="secondary" onClick={handlePreview}>
           Предпросмотр
-        </button>
-        <button
-          className="add-visit-button"
+        </Button>
+        <Button
           disabled={status.loading || !status.configured}
+          leftIcon="message"
           type="button"
+          variant="primary"
           onClick={() => onProcess?.()}>
-          <Send size={16} />
           Отправить сейчас
-        </button>
+        </Button>
       </div>
 
       {preview.length > 0 ? (
@@ -123,7 +124,7 @@ function ReviewRequestsPanel({
                     href={item.telegramLink}
                     rel="noreferrer"
                     target="_blank">
-                    <ExternalLink size={14} />
+                    <AppIcon name="external" size="xs" />
                     Telegram
                   </a>
                 ) : null}
@@ -135,31 +136,30 @@ function ReviewRequestsPanel({
       ) : null}
 
       <div className="settings-options settings-options-grid">
-        <label>
-          Тестовый телефон
-          <input
+        <Field label="Тестовый телефон">
+          <Input
             placeholder="600123456"
             value={testPhone}
             onChange={(event) => setTestPhone(event.target.value)}
           />
-        </label>
-        <label>
-          Тестовое сообщение
-          <textarea
+        </Field>
+        <Field label="Тестовое сообщение">
+          <Textarea
             rows="3"
             value={testMessage}
             onChange={(event) => setTestMessage(event.target.value)}
           />
-        </label>
+        </Field>
       </div>
-      <button
-        className="secondary-button"
+      <Button
         disabled={testing || !testPhone.trim()}
+        leftIcon="message"
+        loading={testing}
         type="button"
+        variant="secondary"
         onClick={handleTest}>
-        {testing ? <LoaderCircle className="spin" size={16} /> : <MessageSquareText size={16} />}
         Отправить тестовое SMS
-      </button>
+      </Button>
 
       <p className="field-hint">
         Автоотправка работает через SMS. Для Telegram в предпросмотре доступна
