@@ -1,17 +1,6 @@
-import {
-  AlertTriangle,
-  CalendarPlus,
-  Check,
-  Link2,
-  MailCheck,
-  RefreshCw,
-  Unplug,
-  X,
-} from "lucide-react";
 import {useState} from "react";
 import {formatMoney} from "../utils/formatters.jsx";
-import Button from "./ui/Button.jsx";
-import Select from "./ui/Select.jsx";
+import {AppIcon, Button, EmptyState, Select} from "./ui/index.js";
 
 const missingFieldLabels = {
   client_name: "имя клиента",
@@ -45,7 +34,7 @@ function BooksyGmailSyncPanel({
   if (!isConfigured) {
     return (
       <section className="crm-card import-sync-panel import-sync-panel-error border border-red-500/20 bg-red-500/5 rounded-card p-4 flex items-center gap-3.5">
-        <MailCheck className="text-red-400 shrink-0" size={20} />
+        <AppIcon className="text-red-400 shrink-0" name="mailCheck" size="md" />
         <div className="grid gap-0.5">
           <h2 className="m-0 text-red-200 text-sm font-semibold">Booksy Gmail Sync</h2>
           <p className="m-0 text-red-300 text-xs">
@@ -66,7 +55,7 @@ function BooksyGmailSyncPanel({
       <section className="crm-card import-sync-panel border border-border bg-surface rounded-card p-4 md:p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3.5 min-w-0">
           <span className="import-sync-icon flex items-center justify-center w-10 h-10 rounded-lg bg-accent/10 text-accent shrink-0 mt-0.5">
-            <MailCheck size={20} />
+            <AppIcon name="mailCheck" size="md" />
           </span>
           <div className="grid gap-0.5 min-w-0">
             <h2 className="m-0 text-text-main text-base font-semibold leading-snug">{connectionLabel}</h2>
@@ -94,28 +83,35 @@ function BooksyGmailSyncPanel({
                 variant="primary"
                 size="sm"
                 disabled={isSyncing}
+                leftIcon={
+                  <AppIcon name="refresh" size="sm" spin={isSyncing} />
+                }
                 onClick={onSync}>
-                <RefreshCw className={isSyncing ? "animate-spin" : ""} size={15} />
                 {isSyncing ? "Синхронизация" : "Синхронизировать сейчас"}
               </Button>
               <Button variant="secondary" size="sm" onClick={onRefresh}>
                 Обновить список
               </Button>
               {useServerSync ? (
-                <Button variant="secondary" size="sm" onClick={onDisconnect}>
-                  <Unplug size={15} />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon="unplug"
+                  onClick={onDisconnect}>
                   Отключить
                 </Button>
               ) : (
-                <Button variant="secondary" size="sm" onClick={onConnect}>
-                  <MailCheck size={15} />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon="mailCheck"
+                  onClick={onConnect}>
                   Обновить доступ
                 </Button>
               )}
             </>
           ) : (
-            <Button variant="primary" size="sm" onClick={onConnect}>
-              <MailCheck size={15} />
+            <Button variant="primary" size="sm" leftIcon="mailCheck" onClick={onConnect}>
               Подключить Gmail
             </Button>
           )}
@@ -125,16 +121,16 @@ function BooksyGmailSyncPanel({
       {/* Sync Status Cards */}
       <div className="import-sync-summary grid grid-cols-2 md:grid-cols-6 gap-3">
         {[
-          {icon: <CalendarPlus size={15} />, label: "Новые", value: summary.newVisits},
-          {icon: <Link2 size={15} />, label: "Дубликаты", value: summary.duplicates},
-          {icon: <RefreshCw size={15} />, label: "Изменения", value: summary.updates},
-          {icon: <X size={15} />, label: "Отмены", value: summary.cancellations},
-          {icon: <AlertTriangle size={15} />, label: "Проверка", value: summary.needsReview},
-          {icon: <AlertTriangle size={15} />, label: "Ошибки", value: summary.parseErrors},
+          {icon: "calendarPlus", label: "Новые", value: summary.newVisits},
+          {icon: "link", label: "Дубликаты", value: summary.duplicates},
+          {icon: "refresh", label: "Изменения", value: summary.updates},
+          {icon: "x", label: "Отмены", value: summary.cancellations},
+          {icon: "alert", label: "Проверка", value: summary.needsReview},
+          {icon: "alert", label: "Ошибки", value: summary.parseErrors},
         ].map((item, idx) => (
           <div key={idx} className="import-sync-summary-card flex flex-col gap-1 p-3 rounded-card border border-border bg-surface shadow-xs">
             <span className="flex items-center gap-1.5 text-accent">
-              {item.icon}
+              <AppIcon name={item.icon} size="sm" />
               <small className="text-text-muted text-[10px] font-bold tracking-wider uppercase">{item.label}</small>
             </span>
             <strong className="text-lg font-bold text-text-main mt-0.5">{item.value}</strong>
@@ -148,7 +144,7 @@ function BooksyGmailSyncPanel({
           <div className="p-4 md:p-5 border-b border-border-soft flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-text-muted">
-                <CalendarPlus size={18} />
+                <AppIcon name="calendarPlus" size="md" />
               </span>
               <div className="grid gap-0.5">
                 <h2 className="m-0 text-text-main text-base font-semibold">Импорт из Booksy Gmail</h2>
@@ -175,7 +171,7 @@ function BooksyGmailSyncPanel({
                   <article className="import-sync-event-card p-3.5 border border-border rounded-lg bg-field flex flex-col gap-3 min-w-0 transition-colors" key={event.id}>
                     <div className="flex items-start gap-3">
                       <span className="flex items-center justify-center w-7.5 h-7.5 rounded-lg bg-accent/10 text-accent shrink-0">
-                        <CalendarPlus size={14} />
+                        <AppIcon name="calendarPlus" size="sm" />
                       </span>
                       <div className="grid gap-1 min-w-0 flex-1">
                         <div className="flex items-baseline justify-between gap-2">
@@ -215,8 +211,8 @@ function BooksyGmailSyncPanel({
                       <Button
                         variant="primary"
                         size="sm"
+                        leftIcon="check"
                         onClick={() => onApplyDecision(event, "create")}>
-                        <Check size={14} />
                         Внести в график
                       </Button>
                       {recommendedMatch && (
@@ -267,6 +263,7 @@ function BooksyGmailSyncPanel({
                           size="sm"
                           className="h-8.5"
                           disabled={!linkTargetByEvent[event.id]}
+                          leftIcon="link"
                           onClick={() =>
                             onApplyDecision(
                               event,
@@ -274,7 +271,6 @@ function BooksyGmailSyncPanel({
                               linkTargetByEvent[event.id],
                             )
                           }>
-                          <Link2 size={14} />
                           Связать
                         </Button>
                       </div>
@@ -298,7 +294,7 @@ function BooksyGmailSyncPanel({
           <div className="p-4 md:p-5 border-b border-border-soft flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-text-muted">
-                <AlertTriangle size={18} />
+                <AppIcon name="alert" size="md" />
               </span>
               <div className="grid gap-0.5">
                 <h2 className="m-0 text-text-main text-base font-semibold">Ошибки парсинга</h2>
@@ -316,7 +312,11 @@ function BooksyGmailSyncPanel({
               </article>
             ))}
             {parseErrors.length === 0 && (
-              <p className="text-center py-8 text-text-muted text-sm m-0">Ошибок парсинга пока нет.</p>
+              <EmptyState
+                className="py-8"
+                icon="alert"
+                title="Ошибок парсинга пока нет."
+              />
             )}
           </div>
         </section>

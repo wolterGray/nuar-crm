@@ -1,4 +1,3 @@
-import {Calculator, CheckCircle2, Lock, Trash2, Unlock} from "lucide-react";
 import {useMemo, useState} from "react";
 import PageHeader from "./PageHeader.jsx";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
@@ -14,6 +13,7 @@ import {
   parseDayCloseAmount,
 } from "../utils/dayClose.js";
 import {formatMoney} from "../utils/formatters.jsx";
+import {AppIcon, Button, Field, Input, Textarea} from "./ui/index.js";
 
 function DayCloseForm({
   breakdown,
@@ -55,14 +55,13 @@ function DayCloseForm({
 
   return (
     <form className="day-close-form" onSubmit={handleSubmit}>
-      <label>
-        Дата
-        <input
+      <Field label="Дата">
+        <Input
           type="date"
           value={selectedDate}
           onChange={(event) => onSelectedDateChange(event.target.value)}
         />
-      </label>
+      </Field>
 
       <div className="day-close-summary-grid">
         <article className="day-close-summary-card">
@@ -114,9 +113,8 @@ function DayCloseForm({
       )}
 
       <div className="day-close-inputs">
-        <label>
-          Нал в кассе фактически
-          <input
+        <Field label="Нал в кассе фактически">
+          <Input
             inputMode="decimal"
             min="0"
             placeholder="0"
@@ -125,10 +123,9 @@ function DayCloseForm({
             value={actualCash}
             onChange={(event) => setActualCash(event.target.value)}
           />
-        </label>
-        <label>
-          Выемка / сдача
-          <input
+        </Field>
+        <Field label="Выемка / сдача">
+          <Input
             inputMode="decimal"
             min="0"
             placeholder="0"
@@ -137,7 +134,7 @@ function DayCloseForm({
             value={cashWithdrawal}
             onChange={(event) => setCashWithdrawal(event.target.value)}
           />
-        </label>
+        </Field>
       </div>
 
       <div
@@ -148,7 +145,7 @@ function DayCloseForm({
               ? "is-surplus"
               : "is-shortage"
         }`}>
-        <Calculator size={16} />
+        <AppIcon name="calculator" size="sm" />
         <div>
           <strong>{formatDayCloseVariance(previewVariance.variance)}</strong>
           <span>
@@ -158,36 +155,39 @@ function DayCloseForm({
         </div>
       </div>
 
-      <label>
-        Заметка
-        <textarea
+      <Field label="Заметка">
+        <Textarea
           placeholder="Комментарий к закрытию смены"
           rows="2"
           value={note}
           onChange={(event) => setNote(event.target.value)}
         />
-      </label>
+      </Field>
 
       <div className="day-close-actions">
-        <button className="add-visit-button" type="submit">
-          <CheckCircle2 size={16} />
+        <Button
+          className="add-visit-button"
+          leftIcon="check"
+          type="submit"
+          variant="primary">
           {existingRecord ? "Обновить закрытие" : "Закрыть день"}
-        </button>
+        </Button>
         {existingRecord ? (
           <>
-            <button
+            <Button
               className="secondary-button"
               type="button"
               onClick={() => onReopenDayClose?.(existingRecord)}>
               Отменить закрытие
-            </button>
-            <button
+            </Button>
+            <Button
               aria-label="Удалить запись"
               className="secondary-button"
+              icon="trash"
+              size="sm"
               type="button"
-              onClick={() => onRemoveDayClose?.(existingRecord)}>
-              <Trash2 size={15} />
-            </button>
+              onClick={() => onRemoveDayClose?.(existingRecord)}
+            />
           </>
         ) : null}
       </div>
@@ -234,12 +234,12 @@ function DayClosePanel({
         <span>Закрытие дня</span>
         {existingRecord ? (
           <span className="day-close-status is-closed">
-            <Lock size={14} />
+            <AppIcon name="lock" size="sm" />
             Закрыт
           </span>
         ) : (
           <span className="day-close-status is-open">
-            <Unlock size={14} />
+            <AppIcon name="unlock" size="sm" />
             Открыт
           </span>
         )}
@@ -251,7 +251,7 @@ function DayClosePanel({
         title="Закрытие дня">
         {existingRecord ? (
           <span className="day-close-status is-closed">
-            <Lock size={15} />
+            <AppIcon name="lock" size="sm" />
             Закрыт{" "}
             {new Date(existingRecord.closedAt).toLocaleString("ru-RU", {
               day: "2-digit",
@@ -262,7 +262,7 @@ function DayClosePanel({
           </span>
         ) : (
           <span className="day-close-status is-open">
-            <Unlock size={15} />
+            <AppIcon name="unlock" size="sm" />
             Открыт
           </span>
         )}

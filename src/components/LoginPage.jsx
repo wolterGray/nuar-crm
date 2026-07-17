@@ -1,8 +1,7 @@
-import {Eye, EyeOff, KeyRound, LockKeyhole, LogIn, Mail, RotateCcw} from "lucide-react";
 import {useState} from "react";
 import {resolveColorTheme} from "../utils/colorTheme.js";
 import {validatePasswordStrength} from "../utils/passwordStrength.js";
-import {Button, Card, Input} from "./ui/index.js";
+import {AppIcon, Button, Card, IconButton, Input} from "./ui/index.js";
 
 function LoginPage({
   isRecovery,
@@ -52,7 +51,10 @@ function LoginPage({
       <Card className="w-full max-w-[420px] p-8 flex flex-col gap-6 bg-surface/90 border border-border/40 rounded-card shadow-2xl backdrop-blur-md">
         <div className="flex items-center gap-4">
           <div className="grid w-12 h-12 place-items-center rounded-control bg-accent/10 text-accent shrink-0">
-            {activeMode === "login" ? <LockKeyhole size={22} /> : <KeyRound size={22} />}
+            <AppIcon
+              name={activeMode === "login" ? "lockKeyhole" : "key"}
+              size="lg"
+            />
           </div>
           <div className="min-w-0">
             <small className="block text-accent text-[10px] font-bold uppercase tracking-wider mb-0.5">
@@ -105,32 +107,36 @@ function LoginPage({
                     required
                     className="pr-10"
                   />
-                  <button
+                  <IconButton
                     aria-label={passwordVisible ? "Скрыть пароль" : "Показать пароль"}
-                    title={passwordVisible ? "Скрыть пароль" : "Показать пароль"}
-                    type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main focus:outline-none transition-colors cursor-pointer"
+                    icon={passwordVisible ? "eyeOff" : "eye"}
+                    label={passwordVisible ? "Скрыть пароль" : "Показать пароль"}
+                    size="sm"
+                    type="button"
+                    variant="ghost"
                     onClick={() => setPasswordVisible((current) => !current)}
-                  >
-                    {passwordVisible ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                  />
                 </span>
               </label>
-              <Button variant="primary" type="submit" className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
-                <LogIn size={17} />
+              <Button
+                variant="primary"
+                type="submit"
+                leftIcon="login"
+                className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
                 Войти
               </Button>
               {showPasswordReset && (
-                <button
+                <Button
+                  variant="link"
                   type="button"
                   className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
                   onClick={() => {
                     setResetRequested(false);
                     setMode("reset");
-                  }}
-                >
+                  }}>
                   Nie pamiętasz hasła? / Забыли пароль?
-                </button>
+                </Button>
               )}
             </form>
           </>
@@ -147,17 +153,20 @@ function LoginPage({
                 Если аккаунт существует, ссылка для сброса отправлена.
               </div>
             )}
-            <Button variant="primary" type="submit" className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
-              <Mail size={17} />
+            <Button
+              variant="primary"
+              type="submit"
+              leftIcon="mail"
+              className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
               Отправить ссылку
             </Button>
-            <button
+            <Button
+              variant="link"
               type="button"
               className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
-              onClick={() => setMode("login")}
-            >
+              onClick={() => setMode("login")}>
               Вернуться ко входу
-            </button>
+            </Button>
           </form>
         )}
 
@@ -174,14 +183,16 @@ function LoginPage({
                   required
                   className="pr-10"
                 />
-                <button
+                <IconButton
                   aria-label={passwordVisible ? "Скрыть пароль" : "Показать пароль"}
-                  type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main focus:outline-none transition-colors cursor-pointer"
+                  icon={passwordVisible ? "eyeOff" : "eye"}
+                  label={passwordVisible ? "Скрыть пароль" : "Показать пароль"}
+                  size="sm"
+                  type="button"
+                  variant="ghost"
                   onClick={() => setPasswordVisible((current) => !current)}
-                >
-                  {passwordVisible ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+                />
               </span>
             </label>
             <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
@@ -203,17 +214,20 @@ function LoginPage({
                 {recoveryMessage}
               </div>
             )}
-            <Button variant="primary" type="submit" className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
-              <RotateCcw size={17} />
+            <Button
+              variant="primary"
+              type="submit"
+              leftIcon="refresh"
+              className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
               Сохранить новый пароль
             </Button>
-            <button
+            <Button
+              variant="link"
               type="button"
               className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
-              onClick={() => window.location.replace("/")}
-            >
+              onClick={() => window.location.replace("/")}>
               Вернуться ко входу
-            </button>
+            </Button>
           </form>
         )}
       </Card>
