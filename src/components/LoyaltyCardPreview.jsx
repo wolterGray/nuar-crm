@@ -13,7 +13,6 @@ export function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
   const stamps = Math.min(6, Math.max(0, Number(card?.stamps) || 0));
   const visits = Math.max(0, Number(card?.lifetimeVisits ?? card?.totalVisits ?? card?.stamps) || 0);
   const tierInfo = getTierProgressInfo(tier, visits);
-  const TierIcon = tier.icon;
   const isRewardReady = Boolean(card?.rewardAvailable) && stamps >= 6;
   const tierAria = `${tier.title}, ${clientName}, прогресс ${stamps} из 6`;
   const tierIndex = physicalCardTiers.findIndex((item) => item.id === tier.id);
@@ -51,9 +50,9 @@ export function LoyaltyCard({card, tier = physicalCardTiers[0]}) {
       className={`club-physical-preview is-${tier.id} ${isRewardReady ? "is-reward-ready" : ""}`}
       tabIndex={0}>
       <span aria-hidden="true" className="club-physical-shine" />
-      {TierIcon ? (
+      {tier.icon ? (
         <span aria-label={`Уровень ${tier.displayName}`} className="club-physical-tier-mark" role="img">
-          <AppIcon icon={TierIcon} size="lg" strokeWidth={1.65} />
+          <AppIcon name={tier.icon} size="lg" strokeWidth={1.65} />
         </span>
       ) : null}
       {tier.id === "diamond" ? <span aria-hidden="true" className="club-physical-diamond-crystal" /> : null}

@@ -1,61 +1,44 @@
-import {
-  BriefcaseBusiness,
-  CalendarDays,
-  ChartNoAxesCombined,
-  ClipboardList,
-  Crown,
-  Globe,
-  MailSearch,
-  MessageSquareText,
-  Package,
-  ReceiptText,
-  Settings,
-  Sun,
-  User,
-  Users,
-} from "lucide-react";
-
 export const navGroups = [
   {
     id: "work",
     label: "Работа",
     items: [
-      {label: "Сегодня", page: "today", icon: Sun},
-      {label: "Календарь", page: "calendar", icon: CalendarDays},
-      {label: "Клиенты", page: "clients", icon: Users},
-      {label: "Club", page: "club", icon: Crown},
-      {label: "Оплаты", page: "payments", icon: ReceiptText},
-      {label: "Операции", page: "operations", icon: ClipboardList},
+      {label: "Сегодня", page: "today", icon: "sun"},
+      {label: "Календарь", page: "calendar", icon: "calendarDays"},
+      {label: "Клиенты", page: "clients", icon: "users"},
+      {label: "Club", page: "club", icon: "crown"},
+      {label: "Оплаты", page: "payments", icon: "receipt"},
+      {label: "Операции", page: "operations", icon: "clipboardList"},
     ],
   },
   {
     id: "catalog",
     label: "База",
     items: [
-      {label: "Услуги", page: "services", icon: BriefcaseBusiness},
-      {label: "Пакеты", page: "packages", icon: Package},
-      {label: "Сотрудники", page: "masters", icon: User},
+      {label: "Услуги", page: "services", icon: "briefcase"},
+      {label: "Пакеты", page: "packages", icon: "package"},
+      {label: "Сотрудники", page: "masters", icon: "user"},
     ],
   },
   {
     id: "comms",
     label: "Связь",
     items: [
-      {label: "Шаблоны", page: "templates", icon: MessageSquareText},
-      {label: "Импорт", page: "import", icon: MailSearch},
+      {label: "Шаблоны", page: "templates", icon: "messageText"},
+      {label: "Импорт", page: "import", icon: "mailSearch"},
     ],
   },
   {
     id: "analytics",
     label: "Аналитика",
-    items: [{label: "Статистика", page: "statistics", icon: ChartNoAxesCombined}],
+    items: [{label: "Статистика", page: "statistics", icon: "chart"}],
   },
   {
     id: "system",
     label: "Система",
     items: [
-      {label: "Сайт", page: "site", icon: Globe},
-      {label: "Настройки", page: "settings", icon: Settings},
+      {label: "Сайт", page: "site", icon: "globe"},
+      {label: "Настройки", page: "settings", icon: "settings"},
     ],
   },
 ];
@@ -63,9 +46,9 @@ export const navGroups = [
 export const navItems = navGroups.flatMap((group) => group.items);
 
 export const mobileNavItems = [
-  {label: "Сегодня", page: "today", icon: Sun},
-  {label: "Календарь", page: "calendar", icon: CalendarDays},
-  {label: "Визиты", page: "payments", icon: ReceiptText},
-  {label: "Клиенты", page: "clients", icon: Users},
-  {label: "Операции", page: "operations", icon: ClipboardList},
+  {label: "Сегодня", page: "today", icon: "sun"},
+  {label: "Календарь", page: "calendar", icon: "calendarDays"},
+  {label: "Визиты", page: "payments", icon: "receipt"},
+  {label: "Клиенты", page: "clients", icon: "users"},
+  {label: "Операции", page: "operations", icon: "clipboardList"},
 ];

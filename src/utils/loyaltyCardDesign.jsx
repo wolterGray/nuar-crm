@@ -1,5 +1,3 @@
-import {Crown, Gem, Medal, ShieldCheck, Star} from "lucide-react";
-
 export const pluralizeVisits = (count) => {
   const value = Math.abs(Number(count) || 0);
   const lastTwo = value % 100;
@@ -22,7 +20,7 @@ export const physicalCardTiers = [
     threshold: "От 0 визитов",
     badge: "MEMBER",
     benefits: ["Участие в NUAR Club"],
-    icon: ShieldCheck,
+    icon: "shield",
   },
   {
     id: "silver",
@@ -34,7 +32,7 @@ export const physicalCardTiers = [
     threshold: "От 3 визитов",
     badge: "SILVER",
     benefits: ["Персональные предложения", "Дополнительные бонусы"],
-    icon: Medal,
+    icon: "medal",
   },
   {
     id: "gold",
@@ -46,7 +44,7 @@ export const physicalCardTiers = [
     threshold: "От 10 визитов",
     badge: "GOLD",
     benefits: ["Повышенные привилегии", "Приоритетные предложения"],
-    icon: Star,
+    icon: "star",
   },
   {
     id: "diamond",
@@ -58,7 +56,7 @@ export const physicalCardTiers = [
     threshold: "От 20 визитов",
     badge: "DIAMOND",
     benefits: ["VIP-привилегии", "Приоритетная запись"],
-    icon: Gem,
+    icon: "gem",
   },
   {
     id: "royal",
@@ -72,7 +70,7 @@ export const physicalCardTiers = [
     description: "Эксклюзивный статус",
     benefits: ["Эксклюзивные привилегии", "Особые предложения NUAR"],
     isSecret: true,
-    icon: Crown,
+    icon: "crown",
   },
 ];
 

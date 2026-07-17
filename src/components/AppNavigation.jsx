@@ -64,7 +64,6 @@ export default function AppNavigation({
             >
               {groupIndex > 0 ? <span aria-hidden="true" className="block my-1.5 border-t border-white/[0.045]" /> : null}
               {group.items.map((item) => {
-                const Icon = item.icon;
                 const isActive = activePage === item.page;
 
                 return (
@@ -80,7 +79,7 @@ export default function AppNavigation({
                     type="button"
                     onClick={() => handleDesktopPageChange(item.page)}
                   >
-                    <Icon size={18} className={isActive ? "text-zinc-100" : "text-zinc-500"} />
+                    <AppIcon className={isActive ? "text-zinc-100" : "text-zinc-500"} name={item.icon} size="md" />
                     {item.label}
                   </button>
                 );
@@ -132,7 +131,6 @@ export default function AppNavigation({
           </div>
           <nav className="mobile-more-sheet-nav grid grid-cols-2 gap-2">
             {hiddenMobileItems.map((item) => {
-              const Icon = item.icon;
               const isActive = activePage === item.page;
 
               return (
@@ -142,7 +140,7 @@ export default function AppNavigation({
                   type="button"
                   onClick={() => handleSheetPageChange(item.page)}
                 >
-                  <Icon size={16} />
+                  <AppIcon name={item.icon} size="sm" />
                   <span>{item.label}</span>
                 </button>
               );
@@ -154,7 +152,6 @@ export default function AppNavigation({
       {/* Mobile Bottom Navigation Bar */}
       <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-45 flex h-16 border-t border-zinc-900 bg-zinc-950/95 backdrop-blur-xs select-none md:hidden" aria-label="Мобильная навигация">
         {mobileNavItems.map((item) => {
-          const Icon = item.icon;
           const isActive = activePage === item.page;
 
           return (
@@ -166,7 +163,7 @@ export default function AppNavigation({
               type="button"
               onClick={() => handleSheetPageChange(item.page)}
             >
-              <Icon size={18} />
+              <AppIcon name={item.icon} size="md" />
               <span className="text-[10px] font-medium leading-none">{item.label}</span>
             </button>
           );
