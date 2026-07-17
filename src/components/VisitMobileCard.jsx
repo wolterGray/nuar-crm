@@ -1,16 +1,9 @@
-import {
-  Ban,
-  Check,
-  MessageSquareText,
-  Pencil,
-  Phone,
-  Trash2,
-} from "lucide-react";
 import { formatMoney } from "../utils/formatters.jsx";
 import { getVisitDebt, getVisitTransactionTotal } from "../utils/visits.jsx";
 import { useBreakpoint } from "../hooks/useBreakpoint.js";
 import { useSwipeReveal } from "../hooks/useSwipeReveal.js";
 import { RowActionsMenu } from "./RowActionMenuPortal.jsx";
+import {AppIcon, Button, IconButton} from "./ui/index.js";
 
 const statusLabels = {
   scheduled: "Запланирован",
@@ -186,66 +179,66 @@ function VisitMobileCard({
   if (hasSwipeActions) {
     return (
       <div className={`relative overflow-hidden w-full rounded-xl bg-zinc-950/30 ${className}`}>
-        <div aria-hidden="true" className="absolute inset-0 flex items-center justify-end px-4 gap-2 bg-zinc-900/40">
+        <div className="absolute inset-0 flex items-center justify-end px-4 gap-2 bg-zinc-900/40">
           {clientPhone ? (
             <a
               aria-label="Позвонить"
-              className="grid w-9 h-9 place-items-center rounded-lg text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white transition-colors"
+              className="visit-mobile-swipe-link"
               href={`tel:${clientPhone}`}
               onClick={(event) => event.stopPropagation()}
             >
-              <Phone size={18} />
+              <AppIcon name="phone" size="md" />
             </a>
           ) : null}
           {onMessage ? (
-            <button
-              aria-label="Написать"
-              className="grid w-9 h-9 place-items-center rounded-lg text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white transition-colors cursor-pointer"
+            <IconButton
+              icon="message"
+              label="Написать"
+              size="md"
               type="button"
+              variant="subtle"
               onClick={() => onMessage(visit)}
-            >
-              <MessageSquareText size={18} />
-            </button>
+            />
           ) : null}
           {canConfirm ? (
-            <button
-              aria-label="Подтвердить"
-              className="grid w-9 h-9 place-items-center rounded-lg text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-550 hover:text-white transition-colors cursor-pointer"
+            <IconButton
+              icon="check"
+              label="Подтвердить"
+              size="md"
               type="button"
+              variant="success"
               onClick={() => onConfirm(visit)}
-            >
-              <Check size={18} />
-            </button>
+            />
           ) : null}
           {canCancel ? (
-            <button
-              aria-label="Отменить"
-              className="grid w-9 h-9 place-items-center rounded-lg text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-550 hover:text-white transition-colors cursor-pointer"
+            <IconButton
+              icon="ban"
+              label="Отменить"
+              size="md"
               type="button"
+              variant="danger"
               onClick={() => onCancel(visit)}
-            >
-              <Ban size={18} />
-            </button>
+            />
           ) : null}
           {onEdit ? (
-            <button
-              aria-label="Изменить"
-              className="grid w-9 h-9 place-items-center rounded-lg text-zinc-300 bg-zinc-855 hover:bg-zinc-800 transition-colors cursor-pointer"
+            <IconButton
+              icon="edit"
+              label="Изменить"
+              size="md"
               type="button"
+              variant="subtle"
               onClick={() => onEdit(visit)}
-            >
-              <Pencil size={18} />
-            </button>
+            />
           ) : null}
           {onDelete ? (
-            <button
-              aria-label="Удалить"
-              className="grid w-9 h-9 place-items-center rounded-lg text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
+            <IconButton
+              icon="trash"
+              label="Удалить"
+              size="md"
               type="button"
+              variant="danger"
               onClick={() => onDelete(visit)}
-            >
-              <Trash2 size={18} />
-            </button>
+            />
           ) : null}
         </div>
         <article
@@ -288,62 +281,64 @@ function VisitMobileCard({
           {clientPhone ? (
             <a
               aria-label="Позвонить"
-              className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+              className="visit-mobile-inline-link"
               href={`tel:${clientPhone}`}
               onClick={(event) => event.stopPropagation()}
             >
-              <Phone size={14} />
+              <AppIcon name="phone" size="sm" />
             </a>
           ) : null}
           {onMessage ? (
-            <button
-              aria-label="Написать"
-              className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
+            <IconButton
+              icon="message"
+              label="Написать"
+              size="sm"
               type="button"
+              variant="subtle"
               onClick={() => onMessage(visit)}
-            >
-              <MessageSquareText size={14} />
-            </button>
+            />
           ) : null}
           {canConfirm ? (
-            <button
-              aria-label="Подтвердить"
-              className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-emerald-400 hover:bg-zinc-800 cursor-pointer"
+            <IconButton
+              icon="check"
+              label="Подтвердить"
+              size="sm"
               type="button"
+              variant="success"
               onClick={() => onConfirm(visit)}
-            >
-              <Check size={14} />
-            </button>
+            />
           ) : null}
           {canCancel ? (
-            <button
-              aria-label="Отменить"
-              className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-zinc-800 cursor-pointer"
+            <IconButton
+              icon="ban"
+              label="Отменить"
+              size="sm"
               type="button"
+              variant="danger"
               onClick={() => onCancel(visit)}
-            >
-              <Ban size={14} />
-            </button>
+            />
           ) : null}
           {onEdit ? (
-            <button
-              className="inline-flex items-center gap-1 min-h-[32px] px-3.5 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-300 hover:text-zinc-150 hover:bg-zinc-800 transition-colors cursor-pointer"
+            <Button
+              leftIcon="edit"
+              size="sm"
               type="button"
+              variant="secondary"
               onClick={() => onEdit(visit)}
             >
-              <Pencil size={12} />
               Изменить
-            </button>
+            </Button>
           ) : null}
           {onDelete ? (
-            <button
-              className="inline-flex items-center gap-1 min-h-[32px] px-3.5 border border-red-500/20 rounded-lg text-xs font-semibold text-red-400 hover:text-white hover:bg-red-550 transition-colors cursor-pointer"
+            <Button
+              leftIcon="trash"
+              size="sm"
               type="button"
+              variant="danger"
               onClick={() => onDelete(visit)}
             >
-              <Trash2 size={12} />
               Удалить
-            </button>
+            </Button>
           ) : null}
         </div>
       ) : null}

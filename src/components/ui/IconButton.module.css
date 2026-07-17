@@ -80,6 +80,16 @@
   background: var(--button-danger-bg-hover);
 }
 
+.success {
+  color: var(--status-success-text);
+  background: var(--status-success-bg);
+  border-color: var(--status-success-border);
+}
+
+.success:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--status-success-bg) 80%, var(--status-success-text));
+}
+
 .button:disabled {
   cursor: not-allowed;
   opacity: var(--button-disabled-opacity, 0.7);

@@ -9,6 +9,7 @@ const variants = {
   outline: styles.outline,
   primary: styles.primary,
   subtle: styles.subtle,
+  success: styles.success,
 };
 
 const sizes = {

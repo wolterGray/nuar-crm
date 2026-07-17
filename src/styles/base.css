@@ -3404,6 +3404,37 @@ h2 {
   color: var(--accent-color) !important;
 }
 
+.visit-mobile-swipe-link,
+.visit-mobile-inline-link {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control-sm);
+  color: var(--color-text-muted);
+  background: var(--color-field);
+  transition:
+    background var(--transition-ui),
+    border-color var(--transition-ui),
+    color var(--transition-ui);
+}
+
+.visit-mobile-swipe-link {
+  width: var(--icon-button-size-md);
+  height: var(--icon-button-size-md);
+}
+
+.visit-mobile-inline-link {
+  width: var(--icon-button-size-sm);
+  height: var(--icon-button-size-sm);
+}
+
+.visit-mobile-swipe-link:hover,
+.visit-mobile-inline-link:hover {
+  color: var(--color-text);
+  background: var(--color-field-hover);
+}
+
 /* Enforce solid background and border for mobile visit cards so they never merge with black backgrounds */
 .visit-mobile-card {
   background: var(--app-card-bg, #15171a) !important;

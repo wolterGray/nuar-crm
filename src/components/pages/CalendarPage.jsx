@@ -24,6 +24,7 @@ import {normalizeCalendarEntryDate} from "../../utils/dateUtils.js";
 import PageHeader from "../PageHeader.jsx";
 import CalendarDayList from "../CalendarDayList.jsx";
 import MobileSheet from "../MobileSheet.jsx";
+import {Button} from "../ui/index.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {isMobileViewport} from "../../constants/breakpoints.js";
 import {
@@ -1483,18 +1484,15 @@ function ClientCalendarCard({
         </div>
       </section>
       <div className="calendar-client-card-actions">
-        <button className="submit-button" type="button" onClick={onEdit}>
-          <Pencil size={15} />
+        <Button leftIcon="edit" size="sm" type="button" variant="primary" onClick={onEdit}>
           Редактировать
-        </button>
-        <button className="secondary-button" type="button" onClick={onRemind}>
-          <MessageSquareText size={15} />
+        </Button>
+        <Button leftIcon="message" size="sm" type="button" variant="secondary" onClick={onRemind}>
           Написать
-        </button>
-        <button className="secondary-button" type="button" onClick={onAdd}>
-          <CalendarPlus size={15} />
+        </Button>
+        <Button leftIcon="calendarPlus" size="sm" type="button" variant="secondary" onClick={onAdd}>
           Новая запись
-        </button>
+        </Button>
       </div>
       <div className="calendar-visit-detail-grid">
         {visitMeta.map((item) => (
@@ -1532,14 +1530,12 @@ function ReservedCalendarCard({
       onClose={onClose}
       footer={
         <div className="calendar-reserved-card-actions">
-          <button className="secondary-button" type="button" onClick={onEdit}>
-            <Pencil size={15} />
+          <Button leftIcon="edit" size="sm" type="button" variant="secondary" onClick={onEdit}>
             Редактировать
-          </button>
-          <button className="danger-button" type="button" onClick={onDelete}>
-            <Trash2 size={15} />
+          </Button>
+          <Button leftIcon="trash" size="sm" type="button" variant="danger" onClick={onDelete}>
             Удалить
-          </button>
+          </Button>
         </div>
       }>
       <div className="calendar-reserved-card-panel">
