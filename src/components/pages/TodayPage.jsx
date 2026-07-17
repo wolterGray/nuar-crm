@@ -1,16 +1,7 @@
-import {
-  Banknote,
-  CalendarDays,
-  Clock3,
-  MessageSquareText,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  WalletCards,
-} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PageNotificationsSlot } from "../PageNotifications.jsx";
 import { buildTodayDashboard } from "../../utils/todayDashboard.js";
+import AppIcon from "../ui/AppIcon.jsx";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 import { formatCompactMoney, formatMoney } from "../../utils/formatters.jsx";
@@ -38,13 +29,13 @@ const visitToneClasses = [
   "is-green",
 ];
 
-function TodayKpiCard({ helper, icon: Icon, label, tone, value }) {
+function TodayKpiCard({ helper, icon, label, tone, value }) {
   const styles = toneStyles[tone] || toneStyles.upcoming;
 
   return (
     <Card className="today-kpi-card" data-tone={styles}>
       <div className="today-kpi-icon">
-        <Icon size={18} />
+        <AppIcon name={icon} size="md" />
       </div>
       <div className="today-kpi-copy">
         <span>{label}</span>
@@ -139,15 +130,13 @@ function TodayReferenceBoard({
         <div className="today-board-title">
           <h1>Сегодня</h1>
           <span>{formatTodayHeading(dashboard.today)}</span>
-          <CalendarDays aria-hidden="true" size={17} />
+          <AppIcon name="calendarDays" size="md" />
         </div>
         <div className="today-board-actions">
-          <Button className="today-control-button is-secondary" variant="secondary" onClick={onOpenCalendar}>
-            <CalendarDays size={16} />
+          <Button className="today-control-button is-secondary" leftIcon="calendarDays" variant="secondary" onClick={onOpenCalendar}>
             Календарь
           </Button>
-          <Button className="today-control-button is-primary" variant="primary" onClick={onAddVisit}>
-            <Plus size={16} />
+          <Button className="today-control-button is-primary" leftIcon="plus" variant="primary" onClick={onAddVisit}>
             Визит
           </Button>
         </div>
@@ -159,28 +148,28 @@ function TodayReferenceBoard({
       <section className="today-kpi-grid" aria-label="Ключевые показатели">
         <TodayKpiCard
           helper={`из ${dashboard.snapshot.scheduledVisits} запланировано`}
-          icon={CalendarDays}
+          icon="calendarDays"
           label="Визиты сегодня"
           tone="visits"
           value={dashboard.snapshot.completedVisits}
         />
         <TodayKpiCard
           helper={`прогноз: ${formatIncome(dashboard.forecastRevenue)}`}
-          icon={Banknote}
+          icon="banknote"
           label="Выручка сегодня"
           tone="income"
           value={formatIncome(dashboard.snapshot.received)}
         />
         <TodayKpiCard
           helper="сегодня"
-          icon={Clock3}
+          icon="clock"
           label="Свободного времени"
           tone="upcoming"
           value={formatDuration(freeMinutes)}
         />
         <TodayKpiCard
           helper="требуют внимания"
-          icon={WalletCards}
+          icon="walletCards"
           label="Проблемы"
           tone="debt"
           value={dashboard.actionItems.length}
@@ -204,7 +193,7 @@ function TodayReferenceBoard({
                   <button type="button">Месяц</button>
                 </div>
                 <button className="today-icon-button" type="button" aria-label="Ещё">
-                  <MoreHorizontal size={16} />
+                  <AppIcon name="more" size="sm" />
                 </button>
               </div>
             </header>
@@ -270,7 +259,7 @@ function TodayReferenceBoard({
                             setOpenVisitMenuId(menuOpen ? null : visitMenuId);
                           }}
                         >
-                          <MoreHorizontal size={16} />
+                          <AppIcon name="more" size="sm" />
                         </button>
                         {menuOpen ? (
                           <div className="today-menu-popover">
@@ -283,7 +272,7 @@ function TodayReferenceBoard({
                                 onRemindVisit?.(entry);
                               }}
                             >
-                              <MessageSquareText size={14} /> Написать
+                              <AppIcon name="message" size="xs" /> Написать
                             </button>
                             <button
                               type="button"
@@ -294,7 +283,7 @@ function TodayReferenceBoard({
                                 onEditVisit?.(entry);
                               }}
                             >
-                              <Pencil size={14} /> Редактировать
+                              <AppIcon name="edit" size="xs" /> Редактировать
                             </button>
                           </div>
                         ) : null}
@@ -412,8 +401,8 @@ function TodayReferenceBoard({
               <h2>
                 Задачи <span className="today-count-pill">{dashboard.dueTasks.length}</span>
               </h2>
-              <Button className="today-control-button is-secondary is-compact" variant="secondary" onClick={onAddTask}>
-                <Plus size={14} /> Задача
+              <Button className="today-control-button is-secondary is-compact" leftIcon="plus" variant="secondary" onClick={onAddTask}>
+                Задача
               </Button>
             </header>
             <div className="today-side-list">
@@ -505,7 +494,7 @@ function TodayReferenceBoard({
                         }
                       }}
                     >
-                      <MessageSquareText size={10} />
+                      <AppIcon name="message" size="xs" />
                       {copiedReviewClientId === client.id ? "Скопировано!" : "Запросить"}
                     </button>
                   </div>

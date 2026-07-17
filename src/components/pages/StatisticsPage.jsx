@@ -1,13 +1,3 @@
-import {
-  AlertTriangle,
-  Banknote,
-  CalendarRange,
-  CheckCircle2,
-  Clock3,
-  Download,
-  Users,
-  WalletCards,
-} from "lucide-react";
 import {useEffect, useMemo, useState} from "react";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {
@@ -41,6 +31,7 @@ import {
   createPaymentRingGradient,
 } from "../../utils/payments.js";
 import {exportRowsToExcel} from "../../utils/exportExcel.js";
+import AppIcon from "../ui/AppIcon.jsx";
 
 const CURRENCY_CACHE_KEY = "nuar-crm-nbp-rates";
 const defaultRates = {PLN: 1, USD: 3.72, EUR: 4.28, UAH: 0.087};
@@ -176,7 +167,7 @@ function StatisticsFilters({
 
         <div className="grid grid-cols-2 gap-2">
           <label className="flex items-center gap-2 h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs focus-within:border-accent">
-            <CalendarRange size={14} className="text-muted-foreground flex-shrink-0" />
+            <AppIcon name="calendarRange" size="xs" className="text-muted-foreground flex-shrink-0" />
             <input
               className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
               type="date"
@@ -185,7 +176,7 @@ function StatisticsFilters({
             />
           </label>
           <label className="flex items-center gap-2 h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs focus-within:border-accent">
-            <CalendarRange size={14} className="text-muted-foreground flex-shrink-0" />
+            <AppIcon name="calendarRange" size="xs" className="text-muted-foreground flex-shrink-0" />
             <input
               className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
               type="date"
@@ -251,7 +242,7 @@ function StatisticsFilters({
         {/* Date Inputs */}
         <div className="flex items-center gap-2">
           <label className="statistics-filter-field flex items-center gap-2 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs cursor-pointer" style={{ width: '178px', minWidth: '178px', height: '38px', minHeight: '38px', display: 'flex', alignItems: 'center' }}>
-            <CalendarRange size={14} className="text-muted-foreground flex-shrink-0" style={{ margin: 0 }} />
+            <AppIcon name="calendarRange" size="xs" className="text-muted-foreground flex-shrink-0" style={{ margin: 0 }} />
             <input
               className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
               style={{ border: 0, background: 'transparent', height: '100%', minHeight: '0', padding: 0 }}
@@ -262,7 +253,7 @@ function StatisticsFilters({
           </label>
           <span className="text-muted-foreground font-semibold text-xs">—</span>
           <label className="statistics-filter-field flex items-center gap-2 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs cursor-pointer" style={{ width: '178px', minWidth: '178px', height: '38px', minHeight: '38px', display: 'flex', alignItems: 'center' }}>
-            <CalendarRange size={14} className="text-muted-foreground flex-shrink-0" style={{ margin: 0 }} />
+            <AppIcon name="calendarRange" size="xs" className="text-muted-foreground flex-shrink-0" style={{ margin: 0 }} />
             <input
               className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
               style={{ border: 0, background: 'transparent', height: '100%', minHeight: '0', padding: 0 }}
@@ -545,20 +536,20 @@ function StatisticsPage({
       label: "Клиенты",
       value: analytics.clientsCount,
       helper: `${analytics.repeatClients} повторных`,
-      icon: Users,
+      icon: "users",
       color: "#8ba7d8",
     },
     {
       label: "Визиты",
       value: analytics.filteredAppointments.length,
       helper: "завершено",
-      icon: CalendarRange,
+      icon: "calendarRange",
       color: "#8fc5aa",
     },
     {
       label: "Средний чек",
       value: formatIncome(analytics.averageCheck),
-      icon: Banknote,
+      icon: "banknote",
       color: "#b7a0d6",
     },
     {
@@ -568,7 +559,7 @@ function StatisticsPage({
         analytics.debts > 0
           ? `${analytics.debtVisits.length} в периоде`
           : `${analytics.allDebtVisits.length} всего`,
-      icon: WalletCards,
+      icon: "walletCards",
       color: "#d99a9a",
     },
   ];
@@ -714,7 +705,7 @@ function StatisticsPage({
       style={{ height: '34px', minHeight: '34px' }}
       type="button"
       onClick={exportStatistics}>
-      <Download size={13} className="text-muted-foreground" />
+      <AppIcon name="download" size="xs" className="text-muted-foreground" />
       <span>{isMobile ? "Экспорт" : "Экспорт Excel"}</span>
     </button>
   );
@@ -742,11 +733,11 @@ function StatisticsPage({
         {attentionItems.map((item) => (
           <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card" key={item.title}>
             {item.tone === "good" ? (
-              <CheckCircle2 size={17} className="text-green-500 flex-shrink-0" />
+              <AppIcon name="checkCircle" size="sm" className="text-green-500 flex-shrink-0" />
             ) : item.tone === "danger" ? (
-              <AlertTriangle size={17} className="text-red-500 flex-shrink-0" />
+              <AppIcon name="alert" size="sm" className="text-red-500 flex-shrink-0" />
             ) : (
-              <AlertTriangle size={17} className="text-amber-500 flex-shrink-0" />
+              <AppIcon name="alert" size="sm" className="text-amber-500 flex-shrink-0" />
             )}
             <span className="flex flex-col gap-0.5">
               <strong className="text-foreground text-xs font-bold">{item.title}</strong>
@@ -1036,7 +1027,7 @@ function StatisticsPage({
             item={{
               color: "#8fc5aa",
               helper: `${todaySnapshot.completedVisits} завершено`,
-              icon: CalendarRange,
+              icon: "calendarRange",
               label: "Визиты",
               value: todaySnapshot.scheduledVisits,
             }}
@@ -1044,7 +1035,7 @@ function StatisticsPage({
           <StatisticsCard
             item={{
               color: "#b7a0d6",
-              icon: Banknote,
+              icon: "banknote",
               label: "Поступления",
               value: formatIncome(todaySnapshot.received),
             }}
@@ -1056,7 +1047,7 @@ function StatisticsPage({
                 todaySnapshot.debtVisits > 0
                   ? `${todaySnapshot.debtVisits} записей`
                   : "нет долгов",
-              icon: WalletCards,
+              icon: "walletCards",
               label: "Долги",
               value: formatIncome(todaySnapshot.debtAmount),
             }}
@@ -1065,7 +1056,7 @@ function StatisticsPage({
             item={{
               color: "#8ba7d8",
               helper: "следующие 3 часа",
-              icon: Clock3,
+              icon: "clock",
               label: "Ближайшие",
               value: todaySnapshot.upcomingVisits.length,
             }}
@@ -1095,11 +1086,11 @@ function StatisticsPage({
           {attentionItems.map((item) => (
             <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card" key={item.title}>
               {item.tone === "good" ? (
-                <CheckCircle2 size={17} className="text-green-500 flex-shrink-0" />
+                <AppIcon name="checkCircle" size="sm" className="text-green-500 flex-shrink-0" />
               ) : item.tone === "danger" ? (
-                <AlertTriangle size={17} className="text-red-500 flex-shrink-0" />
+                <AppIcon name="alert" size="sm" className="text-red-500 flex-shrink-0" />
               ) : (
-                <AlertTriangle size={17} className="text-amber-500 flex-shrink-0" />
+                <AppIcon name="alert" size="sm" className="text-amber-500 flex-shrink-0" />
               )}
               <span className="flex flex-col gap-0.5">
                 <strong className="text-foreground text-xs font-bold">{item.title}</strong>
@@ -1142,12 +1133,10 @@ function StatisticsPage({
 }
 
 function StatisticsCard({item}) {
-  const Icon = item.icon;
-
   return (
     <article className="flex gap-3.5 p-4 rounded-xl border border-border bg-card select-none">
       <div className="flex items-center justify-center w-9 h-9 rounded-lg" style={{backgroundColor: `${item.color}15`, color: item.color}}>
-        <Icon size={16} />
+        <AppIcon name={item.icon} size="sm" />
       </div>
       <div className="flex flex-col gap-0.5 min-w-0">
         <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{item.label}</span>
