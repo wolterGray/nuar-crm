@@ -702,7 +702,7 @@ return (
 
       {isMobile && !isToday && (
         <button
-          className={`fixed bottom-20 left-1/2 z-40 -translate-x-1/2 px-4 py-2 border border-zinc-800 rounded-full text-xs font-semibold text-zinc-200 bg-zinc-900 shadow-lg cursor-pointer ${
+          className={`fixed bottom-16 left-1/2 z-40 -translate-x-1/2 px-4 py-2 border border-zinc-800 rounded-full text-xs font-semibold text-zinc-200 bg-zinc-900 shadow-lg cursor-pointer ${
             overlayOpen ? "hidden" : ""
           }`}
           type="button"
