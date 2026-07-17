@@ -17,7 +17,7 @@ import {formatMoney} from "../../utils/formatters.jsx";
 import PageHeader from "../ui/PageHeader.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import Button from "../ui/Button.jsx";
-import {AppIcon, IconButton} from "../ui/index.js";
+import {AppIcon, IconButton, Select} from "../ui/index.js";
 
 const amountFilterOptions = [
   {value: IMPORT_DOCUMENT_AMOUNT_FILTERS.all, label: "Все"},
@@ -188,7 +188,7 @@ function ImportDocumentFilters({
 
       <label className="import-filter-field">
         <small className="text-text-faint text-[10px] font-bold tracking-wider uppercase">Источник</small>
-        <select
+        <Select
           className="import-filter-select"
           value={filters.source}
           onChange={(event) => updateFilter("source", event.target.value)}>
@@ -198,12 +198,12 @@ function ImportDocumentFilters({
               {option.label} · {option.count}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <label className="import-filter-field">
         <small className="text-text-faint text-[10px] font-bold tracking-wider uppercase">Сумма</small>
-        <select
+        <Select
           className="import-filter-select"
           value={filters.amount}
           onChange={(event) => updateFilter("amount", event.target.value)}>
@@ -212,12 +212,12 @@ function ImportDocumentFilters({
               {option.label}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <label className="import-filter-field">
         <small className="text-text-faint text-[10px] font-bold tracking-wider uppercase">Период</small>
-        <select
+        <Select
           className="import-filter-select"
           value={filters.period}
           onChange={(event) => updateFilter("period", event.target.value)}>
@@ -226,7 +226,7 @@ function ImportDocumentFilters({
               {option.label}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
     </div>
   );
