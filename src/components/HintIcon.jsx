@@ -1,6 +1,6 @@
-import {HelpCircle} from "lucide-react";
 import {useCallback, useEffect, useId, useRef, useState} from "react";
 import {createPortal} from "react-dom";
+import {AppIcon} from "./ui/index.js";
 
 const TOOLTIP_MAX_WIDTH = 320;
 const VIEWPORT_MARGIN = 12;
@@ -88,7 +88,7 @@ function HintIcon({children, className = ""}) {
           tabIndex={0}
           onBlur={hide}
           onFocus={show}>
-          <HelpCircle aria-hidden size={14} strokeWidth={2} />
+          <AppIcon name="info" size="sm" strokeWidth={2} />
         </span>
       </span>
       {open
@@ -120,10 +120,13 @@ export function FieldLabel({children, hint}) {
   );
 }
 
-export function SettingsPanelHeading({hint, icon: Icon, title}) {
+export function SettingsPanelHeading({hint, icon: Icon = "info", title}) {
+  const headingIcon =
+    typeof Icon === "string" ? <AppIcon name={Icon} size="md" /> : <Icon size={18} />;
+
   return (
     <div className="settings-panel-heading">
-      <Icon size={18} />
+      {headingIcon}
       <div>
         <h2>
           {title}

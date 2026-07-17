@@ -1,8 +1,8 @@
-import {CalendarPlus, Globe, LoaderCircle, MessageSquareText, RefreshCw, X} from "lucide-react";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {fetchOwnerNotifyStatus, testOwnerNotify} from "../utils/ownerNotifyApi.js";
 import {formatSiteBookingInputDate} from "../utils/siteBooking.js";
 import {buildSiteBookingFunnel} from "../utils/siteBookingFunnel.js";
+import {AppIcon, Button, EmptyState} from "./ui/index.js";
 
 const STALE_PENDING_HOURS = 2;
 
@@ -159,7 +159,7 @@ function SiteBookingPanel({
       }`}>
       {!isMobile ? (
         <div className="settings-panel-heading">
-          <Globe size={18} />
+          <AppIcon name="globe" size="md" />
           <div>
             <h2>Заявки с сайта</h2>
             <p>Форма на nuarr.pl → CRM backend → импорт в календарь CRM</p>
@@ -195,38 +195,45 @@ function SiteBookingPanel({
         className={`settings-actions-row${
           isMobile ? " site-booking-toolbar-mobile" : ""
         }`}>
-        <button
+        <Button
           className="secondary-button"
           disabled={loading}
+          leftIcon={<AppIcon name="refresh" size="sm" spin={loading} />}
+          size="sm"
           type="button"
           onClick={onRefresh}>
-          <RefreshCw className={loading ? "spin" : ""} size={16} />
           Обновить заявки
-        </button>
-        <button
+        </Button>
+        <Button
           className="secondary-button"
           disabled={notifyStatus.loading}
+          leftIcon={
+            <AppIcon
+              name={notifyStatus.loading ? "loader" : "refresh"}
+              size="sm"
+              spin={notifyStatus.loading}
+            />
+          }
+          size="sm"
           type="button"
           onClick={refreshNotifyStatus}>
-          {notifyStatus.loading ? (
-            <LoaderCircle className="spin" size={16} />
-          ) : (
-            <RefreshCw size={16} />
-          )}
           Проверить Telegram
-        </button>
-        <button
+        </Button>
+        <Button
           className="secondary-button"
           disabled={testingNotify}
+          leftIcon={
+            <AppIcon
+              name={testingNotify ? "loader" : "message"}
+              size="sm"
+              spin={testingNotify}
+            />
+          }
+          size="sm"
           type="button"
           onClick={handleNotifyTest}>
-          {testingNotify ? (
-            <LoaderCircle className="spin" size={16} />
-          ) : (
-            <MessageSquareText size={16} />
-          )}
           Тест уведомления
-        </button>
+        </Button>
         {!isMobile ? (
           <span className="site-booking-counter">
             К обработке: <b>{pendingRequests.length}</b>
@@ -280,7 +287,11 @@ function SiteBookingPanel({
       {loadError ? <p className="field-error">{loadError}</p> : null}
 
       {pendingRequests.length === 0 && !loading ? (
-        <p className="site-booking-empty">Новых заявок с сайта пока нет.</p>
+        <EmptyState
+          className="site-booking-empty"
+          icon="globe"
+          title="Новых заявок с сайта пока нет."
+        />
       ) : (
         <div className="site-booking-list">
           {pendingRequests.map((request) => (
@@ -309,26 +320,31 @@ function SiteBookingPanel({
                 {request.note ? <small>{request.note}</small> : null}
               </div>
               <div className="site-booking-card-actions">
-                <button
+                <Button
                   className="add-visit-button"
                   disabled={Boolean(applyingRequestId)}
+                  leftIcon={
+                    <AppIcon
+                      name={applyingRequestId === request.id ? "loader" : "calendarPlus"}
+                      size="sm"
+                      spin={applyingRequestId === request.id}
+                    />
+                  }
+                  size="sm"
                   type="button"
                   onClick={() => onApply?.(request)}>
-                  {applyingRequestId === request.id ? (
-                    <LoaderCircle className="spin" size={15} />
-                  ) : (
-                    <CalendarPlus size={15} />
-                  )}
                   {applyingRequestId === request.id ? "Добавляем..." : "В календарь"}
-                </button>
-                <button
+                </Button>
+                <Button
                   aria-label="Отклонить"
                   className="secondary-button"
+                  icon={isMobile ? undefined : "x"}
+                  leftIcon={isMobile ? "x" : undefined}
+                  size="sm"
                   type="button"
                   onClick={() => onReject?.(request)}>
-                  <X size={15} />
                   {isMobile ? "Отклонить" : null}
-                </button>
+                </Button>
               </div>
             </article>
           ))}

@@ -1,26 +1,29 @@
-import {BellRing} from "lucide-react";
 import FormCheckbox from "./FormCheckbox.jsx";
 import HintIcon, {FieldLabel, SettingsPanelHeading} from "./HintIcon.jsx";
+import {Field, Input} from "./ui/index.js";
 
 function SiteBookingNotifySettings({settings}) {
   return (
     <div className="site-booking-notify-settings">
       <SettingsPanelHeading
         hint="Telegram и WhatsApp/SMS владельцу при новой брони на nuarr.pl"
-        icon={BellRing}
+        icon="bell"
         title="Уведомления о заявках с сайта"
       />
       <div className="settings-options site-booking-notify-options">
-        <label className="site-notify-field">
-          <FieldLabel hint="Напишите боту /start, затем возьмите id у @userinfobot или через getUpdates. Альтернатива: переменная TELEGRAM_CHAT_ID в backend/.env на Hetzner. После изменения нажмите «Сохранить настройки» внизу страницы.">
-            Telegram Chat ID
-          </FieldLabel>
-          <input
+        <Field
+          className="site-notify-field"
+          label={
+            <FieldLabel hint="Напишите боту /start, затем возьмите id у @userinfobot или через getUpdates. Альтернатива: переменная TELEGRAM_CHAT_ID в backend/.env на Hetzner. После изменения нажмите «Сохранить настройки» внизу страницы.">
+              Telegram Chat ID
+            </FieldLabel>
+          }>
+          <Input
             name="telegramChatId"
             defaultValue={settings.telegramChatId ?? ""}
             placeholder="123456789"
           />
-        </label>
+        </Field>
 
         <div className="site-notify-toggles">
           <FormCheckbox
@@ -45,17 +48,20 @@ function SiteBookingNotifySettings({settings}) {
           </FormCheckbox>
         </div>
 
-        <label className="site-notify-field">
-          <FieldLabel hint="Backend env. Обязательно: TELEGRAM_BOT_TOKEN (от @BotFather). Опционально: WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, SMSAPI_TOKEN">
-            Телефон владельца для WhatsApp/SMS
-          </FieldLabel>
-          <input
+        <Field
+          className="site-notify-field"
+          label={
+            <FieldLabel hint="Backend env. Обязательно: TELEGRAM_BOT_TOKEN (от @BotFather). Опционально: WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, SMSAPI_TOKEN">
+              Телефон владельца для WhatsApp/SMS
+            </FieldLabel>
+          }>
+          <Input
             name="ownerNotifyPhone"
             defaultValue={settings.ownerNotifyPhone ?? ""}
             inputMode="tel"
             placeholder="600123456"
           />
-        </label>
+        </Field>
       </div>
     </div>
   );

@@ -65,6 +65,7 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - Waitlist panel actions/empty states and the global error boundary.
 - Client search dialog input, message action, and icons.
 - Payroll and daily-payroll controls, statuses, empty states, and actions.
+- Site booking notification settings, request panel actions, and shared hint icons.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules
