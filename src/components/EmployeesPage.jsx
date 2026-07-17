@@ -1,4 +1,3 @@
-import {Plus} from "lucide-react";
 import {motion} from "framer-motion";
 import {useMemo, useState} from "react";
 
@@ -11,7 +10,7 @@ import PageHeader from "./ui/PageHeader.jsx";
 import {RowActionsMenu} from "./RowActionMenuPortal.jsx";
 import SearchControl from "./ui/SearchControl.jsx";
 
-import Button from "./ui/Button.jsx";
+import {Button, EmptyState} from "./ui/index.js";
 
 function EmployeeCard({employee, onDelete, onEdit, openMenuId, setOpenMenuId}) {
   const isActive = employee.status === "Активен";
@@ -149,8 +148,11 @@ function EmployeesPage({
                 }}
                 onClear={() => setSearch("")}
               />
-              <Button variant="primary" onClick={onAdd} className="employees-page-add-button">
-                <Plus size={16} />
+              <Button
+                className="employees-page-add-button"
+                leftIcon="plus"
+                variant="primary"
+                onClick={onAdd}>
                 Добавить сотрудника
               </Button>
             </div>
@@ -172,15 +174,31 @@ function EmployeesPage({
             }}
             onClear={() => setSearch("")}
           />
-          <Button variant="primary" onClick={onAdd} className="employees-page-add-button">
-            <Plus size={16} />
+          <Button
+            className="employees-page-add-button"
+            leftIcon="plus"
+            variant="primary"
+            onClick={onAdd}>
             Добавить
           </Button>
         </div>
       )}
 
       <section className="employees-grid">
-        {employeeCards}
+        {employeeCards.length > 0 ? (
+          employeeCards
+        ) : (
+          <EmptyState
+            className="employees-empty-state"
+            description={
+              search.trim()
+                ? "Попробуйте изменить запрос."
+                : "Добавьте первого сотрудника в расписание."
+            }
+            icon={search.trim() ? "search" : "user"}
+            title={search.trim() ? "Сотрудники не найдены" : "Сотрудников пока нет"}
+          />
+        )}
       </section>
     </div>
   );

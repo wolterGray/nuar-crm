@@ -1,4 +1,3 @@
-import {Archive, ChevronDown, Gift, Plus} from "lucide-react";
 import {useCallback, useMemo, useState} from "react";
 import {motion} from "framer-motion";
 import {
@@ -19,7 +18,7 @@ import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import PageHeader from "../ui/PageHeader.jsx";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
-import Button from "../ui/Button.jsx";
+import {AppIcon, Button, EmptyState} from "../ui/index.js";
 
 function ClientPackageCard({
   onDelete,
@@ -311,16 +310,13 @@ function PackagesPage({
                 }}
                 onClear={() => setSearch("")}
               />
-              <Button variant="secondary" size="sm" onClick={onSellCertificate}>
-                <Gift size={16} />
+              <Button leftIcon="gift" variant="secondary" size="sm" onClick={onSellCertificate}>
                 Продать сертификат
               </Button>
-              <Button variant="secondary" size="sm" onClick={onSellPackage}>
-                <Plus size={16} />
+              <Button leftIcon="plus" variant="secondary" size="sm" onClick={onSellPackage}>
                 Продать пакет
               </Button>
-              <Button variant="primary" size="sm" onClick={onAdd}>
-                <Plus size={16} />
+              <Button leftIcon="plus" variant="primary" size="sm" onClick={onAdd}>
                 Добавить пакет
               </Button>
             </div>
@@ -354,20 +350,32 @@ function PackagesPage({
           />
 
           {mobileSection === "clientPackages" && (
-            <Button variant="primary" size="sm" onClick={onSellPackage} className="packages-page-primary-action">
-              <Plus size={16} />
+            <Button
+              className="packages-page-primary-action"
+              leftIcon="plus"
+              size="sm"
+              variant="primary"
+              onClick={onSellPackage}>
               Продать пакет
             </Button>
           )}
           {mobileSection === "templates" && (
-            <Button variant="primary" size="sm" onClick={onAdd} className="packages-page-primary-action">
-              <Plus size={16} />
+            <Button
+              className="packages-page-primary-action"
+              leftIcon="plus"
+              size="sm"
+              variant="primary"
+              onClick={onAdd}>
               Добавить пакет
             </Button>
           )}
           {mobileSection === "certificates" && (
-            <Button variant="primary" size="sm" onClick={onSellCertificate} className="packages-page-primary-action">
-              <Gift size={16} />
+            <Button
+              className="packages-page-primary-action"
+              leftIcon="gift"
+              size="sm"
+              variant="primary"
+              onClick={onSellCertificate}>
               Продать сертификат
             </Button>
           )}
@@ -443,10 +451,12 @@ function PackagesPage({
                   />
                 ))}
                 {filteredActiveClientPackages.length === 0 && (
-                  <div className="text-center py-8 text-text-muted flex flex-col gap-1 max-w-sm mx-auto">
-                    <strong className="text-text-main text-sm">Активных пакетов нет</strong>
-                    <span className="text-xs">Продайте пакет клиенту или верните нужный из архива.</span>
-                  </div>
+                  <EmptyState
+                    className="packages-empty-state"
+                    description="Продайте пакет клиенту или верните нужный из архива."
+                    icon="package"
+                    title="Активных пакетов нет"
+                  />
                 )}
               </div>
 
@@ -457,10 +467,14 @@ function PackagesPage({
                     type="button"
                     onClick={() => setArchiveOpen(!archiveOpen)}>
                     <span className="flex items-center gap-2">
-                      <Archive size={16} className="text-text-muted" />
+                      <AppIcon className="text-text-muted" name="package" size="sm" />
                       Архив завершённых пакетов ({archivedClientPackages.length})
                     </span>
-                    <ChevronDown className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`} size={16} />
+                    <AppIcon
+                      className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
+                      name="chevronDown"
+                      size="sm"
+                    />
                   </button>
                   {archiveOpen && (
                     <div className="p-4 border-t border-border-soft flex flex-col gap-3 bg-field/30">
@@ -484,10 +498,12 @@ function PackagesPage({
           {mobileSection === "templates" && (
             <div className="grid grid-cols-1 gap-4">
               {filteredTemplates.length === 0 ? (
-                <div className="text-center py-8 text-text-muted flex flex-col gap-1 max-w-sm mx-auto">
-                  <strong className="text-text-main text-sm">Шаблоны не найдены</strong>
-                  <span className="text-xs">Добавьте первый шаблон пакета в каталог.</span>
-                </div>
+                <EmptyState
+                  className="packages-empty-state"
+                  description="Добавьте первый шаблон пакета в каталог."
+                  icon="package"
+                  title="Шаблоны не найдены"
+                />
               ) : (
                 filteredTemplates.map((packageItem) => (
                   <PackageTemplateCard
@@ -517,10 +533,12 @@ function PackagesPage({
                   />
                 ))}
                 {filteredActiveCertificates.length === 0 && (
-                  <div className="text-center py-8 text-text-muted flex flex-col gap-1 max-w-sm mx-auto">
-                    <strong className="text-text-main text-sm">Активных сертификатов нет</strong>
-                    <span className="text-xs">Продайте сертификат клиенту.</span>
-                  </div>
+                  <EmptyState
+                    className="packages-empty-state"
+                    description="Продайте сертификат клиенту."
+                    icon="gift"
+                    title="Активных сертификатов нет"
+                  />
                 )}
               </div>
 
@@ -531,10 +549,14 @@ function PackagesPage({
                     type="button"
                     onClick={() => setCertificateArchiveOpen(!certificateArchiveOpen)}>
                     <span className="flex items-center gap-2">
-                      <Archive size={16} className="text-text-muted" />
+                      <AppIcon className="text-text-muted" name="gift" size="sm" />
                       Архив сертификатов ({archivedCertificates.length})
                     </span>
-                    <ChevronDown className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`} size={16} />
+                    <AppIcon
+                      className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`}
+                      name="chevronDown"
+                      size="sm"
+                    />
                   </button>
                   {certificateArchiveOpen && (
                     <div className="p-4 border-t border-border-soft flex flex-col gap-3 bg-field/30">
@@ -578,9 +600,11 @@ function PackagesPage({
                 />
               ))}
               {filteredActiveClientPackages.length === 0 && (
-                <div className="text-center py-10 text-text-muted">
-                  <p className="font-semibold text-sm m-0 text-text-main">Активных пакетов нет</p>
-                </div>
+                <EmptyState
+                  className="packages-empty-state"
+                  icon="package"
+                  title="Активных пакетов нет"
+                />
               )}
             </div>
 
@@ -591,10 +615,14 @@ function PackagesPage({
                   type="button"
                   onClick={() => setArchiveOpen(!archiveOpen)}>
                   <span className="flex items-center gap-2">
-                    <Archive size={15} className="text-text-muted" />
+                    <AppIcon className="text-text-muted" name="package" size="sm" />
                     Архив завершённых пакетов
                   </span>
-                  <ChevronDown className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`} size={15} />
+                  <AppIcon
+                    className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
+                    name="chevronDown"
+                    size="sm"
+                  />
                 </button>
                 {archiveOpen && (
                   <div className="p-3 border-t border-border-soft flex flex-col gap-3 bg-field/30 max-h-[300px] overflow-y-auto">
@@ -635,9 +663,11 @@ function PackagesPage({
                 />
               ))}
               {filteredTemplates.length === 0 && (
-                <div className="text-center py-10 text-text-muted">
-                  <p className="font-semibold text-sm m-0 text-text-main">Шаблоны не найдены</p>
-                </div>
+                <EmptyState
+                  className="packages-empty-state"
+                  icon="package"
+                  title="Шаблоны не найдены"
+                />
               )}
             </div>
           </div>
@@ -663,9 +693,11 @@ function PackagesPage({
                 />
               ))}
               {filteredActiveCertificates.length === 0 && (
-                <div className="text-center py-10 text-text-muted">
-                  <p className="font-semibold text-sm m-0 text-text-main">Активных сертификатов нет</p>
-                </div>
+                <EmptyState
+                  className="packages-empty-state"
+                  icon="gift"
+                  title="Активных сертификатов нет"
+                />
               )}
             </div>
 
@@ -676,10 +708,14 @@ function PackagesPage({
                   type="button"
                   onClick={() => setCertificateArchiveOpen(!certificateArchiveOpen)}>
                   <span className="flex items-center gap-2">
-                    <Archive size={15} className="text-text-muted" />
+                    <AppIcon className="text-text-muted" name="gift" size="sm" />
                     Архив сертификатов
                   </span>
-                  <ChevronDown className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`} size={15} />
+                  <AppIcon
+                    className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`}
+                    name="chevronDown"
+                    size="sm"
+                  />
                 </button>
                 {certificateArchiveOpen && (
                   <div className="p-3 border-t border-border-soft flex flex-col gap-3 bg-field/30 max-h-[300px] overflow-y-auto">

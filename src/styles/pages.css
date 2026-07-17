@@ -2211,6 +2211,14 @@ button:focus-visible {
   padding-right: 0;
 }
 
+.packages-empty-state {
+  min-height: 160px;
+}
+
+.packages-panel-templates .packages-empty-state {
+  grid-column: 1 / -1;
+}
+
 .package-card {
   display: flex;
   min-width: 0;
@@ -9777,6 +9785,11 @@ button:focus-visible {
   gap: 14px;
   width: 100%;
   min-width: 0;
+}
+
+.employees-empty-state {
+  grid-column: 1 / -1;
+  min-height: 180px;
 }
 
 .theme-dark .employee-card,

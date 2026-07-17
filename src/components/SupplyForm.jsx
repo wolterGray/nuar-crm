@@ -1,54 +1,54 @@
+import {Button, Field, Input, Select, Textarea} from "./ui/index.js";
+
 function SupplyForm({supply, onSubmit}) {
   return (
     <form className="catalog-form" onSubmit={onSubmit}>
-      <label>
-        Название
-        <input name="name" defaultValue={supply?.name ?? ""} placeholder="Например: массажное масло" required />
-      </label>
+      <Field label="Название" required>
+        <Input name="name" defaultValue={supply?.name ?? ""} placeholder="Например: массажное масло" required />
+      </Field>
       <div className="form-split">
-        <label>
-          Остаток
-          <input min="0" name="stock" type="number" defaultValue={supply?.stock ?? 0} />
-        </label>
-        <label>
-          Минимальный остаток
-          <input min="0" name="minStock" type="number" defaultValue={supply?.minStock ?? 0} />
-        </label>
+        <Field label="Остаток">
+          <Input min="0" name="stock" type="number" defaultValue={supply?.stock ?? 0} />
+        </Field>
+        <Field label="Минимальный остаток">
+          <Input min="0" name="minStock" type="number" defaultValue={supply?.minStock ?? 0} />
+        </Field>
       </div>
       <div className="form-split">
-        <label>
-          Единица
-          <select name="unit" defaultValue={supply?.unit ?? "шт."}>
+        <Field label="Единица">
+          <Select name="unit" defaultValue={supply?.unit ?? "шт."}>
             <option>шт.</option>
             <option>л</option>
             <option>мл</option>
             <option>уп.</option>
             <option>рулон</option>
-          </select>
-        </label>
-        <label>
-          Стоимость
-          <input min="0" name="cost" type="number" step="0.01" defaultValue={supply?.cost ?? 0} />
-        </label>
+          </Select>
+        </Field>
+        <Field label="Стоимость">
+          <Input min="0" name="cost" type="number" step="0.01" defaultValue={supply?.cost ?? 0} />
+        </Field>
       </div>
-      <label>
-        Комментарий
-        <textarea name="note" defaultValue={supply?.note ?? ""} rows="3" />
-      </label>
-      <label>
-        Ссылка на заказ
-        <input
+      <Field label="Комментарий">
+        <Textarea name="note" defaultValue={supply?.note ?? ""} rows="3" />
+      </Field>
+      <Field label="Ссылка на заказ">
+        <Input
           name="orderUrl"
           defaultValue={supply?.orderUrl ?? ""}
           inputMode="url"
           placeholder="https://shop.pl/product/123"
           type="url"
         />
-      </label>
-      <button className="submit-button">{supply ? "Сохранить" : "Добавить расходник"}</button>
+      </Field>
+      <Button
+        className="submit-button"
+        fullWidth
+        type="submit"
+        variant="primary">
+        {supply ? "Сохранить" : "Добавить расходник"}
+      </Button>
     </form>
   );
 }
 
 export default SupplyForm;
-

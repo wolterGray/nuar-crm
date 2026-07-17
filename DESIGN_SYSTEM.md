@@ -57,6 +57,9 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - `SiteAdminPanel` and `SitePage` save/admin actions.
 - `ServicesPage` add action and empty states.
 - `RowActionsMenu` trigger and menu icons.
+- `EmployeesPage` add actions and empty state.
+- `PackagesPage` action icons, archive affordances, and empty states.
+- `SupplyForm` fields and submit action.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules
