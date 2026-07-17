@@ -1,0 +1,41 @@
+.icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  color: currentColor;
+  pointer-events: none;
+}
+
+.xs {
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
+}
+
+.sm {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+}
+
+.md {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+}
+
+.lg {
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+}
+
+.xl {
+  width: var(--icon-size-xl);
+  height: var(--icon-size-xl);
+}
+
+.spin {
+  animation: app-icon-spin 0.9s linear infinite;
+}
+
+@keyframes app-icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,7 +1,7 @@
-import {X} from "lucide-react";
 import {useLayoutEffect, useRef} from "react";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import MobileSheet from "./MobileSheet.jsx";
+import IconButton from "./ui/IconButton.jsx";
 
 function FormModalShell({
   backdropClassName = "",
@@ -69,13 +69,15 @@ function FormModalShell({
         role="dialog">
         <div className="modal-header">
           <h2 className="crm-title" id={labelledBy}>{title}</h2>
-          <button
-            aria-label="Закрыть форму"
+          <IconButton
             className="modal-close"
+            icon="x"
+            label="Закрыть форму"
+            size="sm"
             type="button"
-            onClick={onClose}>
-            <X size={18} />
-          </button>
+            variant="ghost"
+            onClick={onClose}
+          />
         </div>
         {children}
       </section>

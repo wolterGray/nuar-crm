@@ -4,7 +4,7 @@ export function Table({className, ...props}) {
   return (
     <div
       className={clsx(
-        "overflow-hidden border border-border rounded-md bg-surface shadow-layer",
+        "overflow-hidden border border-border rounded-card bg-surface shadow-none",
         className,
       )}
       {...props}
@@ -16,7 +16,7 @@ export function TableHeader({className, ...props}) {
   return (
     <div
       className={clsx(
-        "border-b border-border text-text-muted bg-surface-soft text-xs font-semibold uppercase tracking-wider",
+        "border-b border-borderSoft text-textMuted bg-field text-xs font-semibold uppercase tracking-wider",
         className,
       )}
       {...props}
@@ -28,7 +28,7 @@ export function TableRow({className, ...props}) {
   return (
     <div
       className={clsx(
-        "border-b border-border-soft transition-colors duration-150 hover:bg-surface-soft last:border-b-0",
+        "border-b border-borderSoft transition-colors duration-150 hover:bg-field last:border-b-0",
         className,
       )}
       {...props}

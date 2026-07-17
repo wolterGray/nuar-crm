@@ -1,5 +1,6 @@
 import {useEffect, useRef} from "react";
-import {Search, X} from "lucide-react";
+import AppIcon from "./AppIcon.jsx";
+import IconButton from "./IconButton.jsx";
 
 export default function SearchControl({
   className = "",
@@ -40,7 +41,7 @@ export default function SearchControl({
 
   return (
     <label className={`crm-search-input-control ${className}`.trim()}>
-      <Search aria-hidden="true" className="crm-search-input-icon" size={16} />
+      <AppIcon className="crm-search-input-icon" name="search" size="sm" />
       <span
         aria-label={placeholder}
         className="crm-search-input-value"
@@ -56,13 +57,16 @@ export default function SearchControl({
         {...props}
       />
       {showClear ? (
-        <button
+        <IconButton
           aria-label={clearLabel}
           className="crm-search-input-clear"
+          icon="x"
+          label={clearLabel}
+          size="sm"
           type="button"
-          onClick={onClear}>
-          <X size={15} />
-        </button>
+          variant="ghost"
+          onClick={onClear}
+        />
       ) : (
         <span aria-hidden="true" className="crm-search-input-spacer" />
       )}

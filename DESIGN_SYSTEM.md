@@ -1,56 +1,83 @@
-# Design System – NUAR CRM
+# NUAR CRM Design System
 
-## 🎨 Design Tokens
+Last updated: 2026-07-17
 
-The source of truth for all visual values lives in **`src/styles/tokens.css`**. Each token is exposed as a CSS variable (`--*`) and referenced throughout the codebase via Tailwind configuration.
+## Source Of Truth
 
-| Category | Tokens | Example Usage |
-|----------|--------|---------------|
-| **Colors** | `--bg`, `--surface`, `--border`, `--text`, `--text-muted`, `--accent-success`, `--accent-warning`, `--accent-error`, `--accent-info`, `--brand-accent` | `bg-background` → `background: var(--bg);`
-| **Radii** | `--radius-sm`, `--radius-md`, `--radius-card`, `--radius-modal`, `--radius-control`, `--radius-pill` | `rounded-control` → `border-radius: var(--radius-control);`
-| **Spacing** | `--space-1` … `--space-8` | `p-2` → `padding: var(--space-2);`
-| **Typography** | `--font-main`, `--text-xs`, `--text-sm`, `--text-md`, `--text-lg` | `font-sans` → `font-family: var(--font-main);`
-| **Shadows** | `--shadow-layer` | `shadow-layer` → `box-shadow: var(--shadow-layer);`
+The canonical runtime tokens live in `src/styles/tokens.css`.
 
-All tokens are defined in `:root` so they are globally available and automatically switch with the **dark‑mode** class.
+New UI work should use semantic tokens first:
 
-## 🧩 UI Primitives
+- Colors: `--color-page`, `--color-window`, `--color-card`, `--color-field`, `--color-border`, `--color-text`, `--color-primary`, `--color-success`, `--color-warning`, `--color-error`, `--color-info`, `--color-premium`.
+- Typography: `--font-main`, `--text-xs`, `--text-sm`, `--text-md`, `--text-lg`, `--text-xl`, `--text-2xl`, `--font-weight-*`, `--line-height-*`.
+- Spacing: `--space-1` through `--space-12`.
+- Radius: `--radius-sm`, `--radius-md`, `--radius-card`, `--radius-modal`, `--radius-control`, `--radius-control-sm`, `--radius-dropdown`, `--radius-pill`.
+- Effects: `--shadow-card`, `--shadow-dropdown`, `--shadow-modal`, `--shadow-toast`, `--shadow-focus`, `--transition-ui`.
+- Sizes: `--control-height-*`, `--icon-size-*`, `--icon-button-size-*`, `--avatar-size-*`.
 
-Reusable components live under `src/components/ui/` and **must** be used instead of native HTML elements:
+Legacy tokens are intentionally still present for backward compatibility. Do not delete them during page work; migrate page by page.
 
-| Component | Purpose | Key Props |
-|-----------|---------|----------|
-| `Button` | Consistent button styling, handles `disabled` state. | `variant="primary|secondary|danger|success"`, `disabled`, `onClick` |
-| `Input` | Styled text input, forwards all native props. | `type`, `placeholder`, `value`, `onChange`, `autoComplete` |
-| `Select` | Styled dropdown, supports custom options. | `options`, `value`, `onChange`, `disabled` |
-| `Table` | Wrapper for accessible tables with consistent spacing. | `columns`, `data` |
+## UI Primitives
 
-All primitives use the design tokens via Tailwind utility classes (e.g. `text-textPrimary`, `bg-surface`, `rounded-control`).
+Reusable primitives live in `src/components/ui/`.
 
-## 📐 Layout Guidelines
+- `AppIcon` centralizes lucide icons by semantic name.
+- `IconButton` is the default for icon-only actions and close buttons.
+- `Button` supports `primary`, `secondary`, `outline`, `ghost`, `subtle`, `danger`, `success`, `link`; sizes `sm`, `md`, `lg`; `leftIcon`, `rightIcon`, `icon`, `loading`, `fullWidth`.
+- `Input`, `Select`, `Textarea`, `Field`, `Checkbox`, `Switch` cover forms.
+- `Badge`, `Card`, `Dialog`, `Dropdown`, `Tabs`, `Table` cover common structure.
+- `EmptyState`, `LoadingState`, `Skeleton`, `PageHeader`, `SectionHeader` cover page states and headings.
 
-- **Spacing**: use Tailwind spacing utilities (`m-2`, `p-4`, etc.) – they map directly to `--space-*`.
-- **Typography**: head‑ings use `text-xl`/`text-2xl` which resolve to `--text-*` values.
-- **Borders & Radii**: prefer Tailwind classes like `border`, `rounded-card`, `rounded-control`.
-- **Shadows**: use `shadow-layer` for elevated elements (modals, cards).
+Use these primitives before adding new local CSS or raw buttons/inputs.
 
-## ✅ CI / Linting Recommendations
+## Audit Snapshot
 
-1. **Stylelint** – add a rule to forbid hard‑coded `px` values in CSS/JSX:
-    ```json
-    "declaration-no-important": true,
-    "unit-disallowed-list": ["px"]
-    ```
-2. **ESLint** – enable `no-inline-styles` to keep styling inside the design system.
-3. Run `npm run lint` in CI before building.
+Initial scan before this pass:
 
-## 📦 Deployment
+- Inline styles in JS/JSX: 43 occurrences.
+- Raw colors in CSS/JSX/JS: 2008 occurrences.
+- Arbitrary Tailwind values in JS/JSX: 152 occurrences.
+- Manual SVG/unicode icon-like patterns: 89 occurrences.
+- Direct `lucide-react` imports: 50 files.
+- Native buttons: 262 occurrences.
+- Native inputs/selects/textareas: 183 occurrences.
 
-All visual changes are pure CSS/Tailwind. After merging to `main`, Vercel automatically rebuilds:
+This pass introduced shared primitives and migrated high-traffic shell elements:
+
+- `FormModalShell` close action.
+- `MobileSheet` close action.
+- `ToastStack` status/close icons.
+- `SearchControl` search/clear icons.
+- Core field/button/badge/dialog/dropdown/table primitives.
+
+## Migration Rules
+
+1. Do not change business logic while migrating design.
+2. Keep token changes backward compatible.
+3. Prefer `AppIcon` over direct `lucide-react` imports in new or touched UI.
+4. Prefer `IconButton` for icon-only actions, especially close, more, copy, QR, external link, edit, delete.
+5. Prefer `Button` variants over page-local button classes.
+6. Prefer `Field + Input/Select/Textarea` for new forms.
+7. Use `Tabs/TabButton` for page tabs instead of button-like custom tab markup.
+8. Keep cards at `--radius-card`; controls at `--radius-control`.
+9. Avoid inline `style={{...}}`; add tokens/classes instead.
+10. If a component needs a new size/color, add a token first.
+
+## Remaining Debt
+
+The app still has a lot of page-local UI from older iterations. Recommended next slices:
+
+1. Calendar modals and mobile visit cards.
+2. Club page menus, QR/style modals, gift management.
+3. Clients detail modal and loyalty card panel.
+4. Page tabs across Club, Settings, Statistics.
+5. Sidebar/mobile navigation hard-coded colors.
+6. Notification drawer row actions and swipe affordances.
+
+Run after every slice:
+
+```bash
+npm run lint
+npm run build
+npm run test -- --run
 ```
-git push origin main
-```
-Monitor the deployment at **https://nuarr.pl** and verify that the UI matches the token definitions.
-
----
-*Last updated: 2026‑07‑09*

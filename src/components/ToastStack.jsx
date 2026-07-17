@@ -1,13 +1,13 @@
 import {AnimatePresence, motion} from "framer-motion";
-import {AlertTriangle, CheckCircle2, X} from "lucide-react";
+import AppIcon from "./ui/AppIcon.jsx";
+import IconButton from "./ui/IconButton.jsx";
 
 function ToastStack({notifications, onAction, onClose}) {
   return (
     <div className="toast-stack" aria-live="polite" aria-relevant="additions">
       <AnimatePresence initial={false}>
         {notifications.map((notification) => {
-          const Icon =
-            notification.tone === "urgent" ? AlertTriangle : CheckCircle2;
+          const iconName = notification.tone === "urgent" ? "alert" : "check";
 
           return (
             <motion.article
@@ -17,7 +17,7 @@ function ToastStack({notifications, onAction, onClose}) {
               initial={{opacity: 0, x: 90, scale: 0.96}}
               key={notification.id}
               transition={{duration: 0.24}}>
-              <Icon size={19} />
+              <AppIcon name={iconName} size="lg" />
               <div>
                 <strong>{notification.title}</strong>
                 <span>{notification.message}</span>
@@ -34,12 +34,14 @@ function ToastStack({notifications, onAction, onClose}) {
                   </div>
                 ) : null}
               </div>
-              <button
-                aria-label="Закрыть уведомление"
+              <IconButton
+                icon="x"
+                label="Закрыть уведомление"
+                size="sm"
                 type="button"
-                onClick={() => onClose(notification.id)}>
-                <X size={16} />
-              </button>
+                variant="ghost"
+                onClick={() => onClose(notification.id)}
+              />
             </motion.article>
           );
         })}

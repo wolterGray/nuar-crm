@@ -1,18 +1,23 @@
 import clsx from "clsx";
 
 const variants = {
-  neutral: "border-border text-text-muted bg-white/5",
-  success: "crm-badge-success border-emerald-500/20 text-emerald-400 bg-emerald-500/10",
-  warning: "crm-badge-warning border-amber-500/20 text-amber-400 bg-amber-500/10",
-  danger: "crm-badge-danger border-rose-500/20 text-rose-400 bg-rose-500/10",
+  neutral: "border-border text-textSecondary bg-white/5",
+  info: "border-accentInfo/25 text-accentInfo bg-accentInfo/10",
+  success: "crm-badge-success border-accentSuccess/25 text-accentSuccess bg-accentSuccess/10",
+  warning: "crm-badge-warning border-accentWarning/25 text-accentWarning bg-accentWarning/10",
+  error: "crm-badge-danger border-accentError/25 text-accentError bg-accentError/10",
+  danger: "crm-badge-danger border-accentError/25 text-accentError bg-accentError/10",
+  premium: "border-premium/30 text-premium bg-premium/10",
+  disabled: "border-borderSoft text-textMuted bg-field",
 };
 
-export default function Badge({className, variant = "neutral", ...props}) {
+export default function Badge({className, size = "md", variant = "neutral", ...props}) {
   return (
     <span
       className={clsx(
-        "crm-badge inline-flex h-5 items-center px-2 border rounded-full text-[11px] font-medium leading-none whitespace-nowrap",
-        variants[variant],
+        "crm-badge inline-flex items-center border rounded-pill font-semibold leading-none whitespace-nowrap",
+        size === "sm" ? "h-4 px-1.5 text-[10px]" : "h-5 px-2 text-[11px]",
+        variants[variant] ?? variants.neutral,
         className,
       )}
       {...props}

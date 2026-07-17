@@ -1,6 +1,6 @@
-import {X} from "lucide-react";
 import {useEffect} from "react";
 import {useModalScrollLock} from "../hooks/useModalScrollLock.js";
+import IconButton from "./ui/IconButton.jsx";
 
 function MobileSheet({
   children,
@@ -52,13 +52,15 @@ function MobileSheet({
               {description ? <p>{description}</p> : null}
             </div>
             {onClose ? (
-              <button
-                aria-label="Закрыть"
+              <IconButton
                 className="modal-close mobile-sheet-close"
+                icon="x"
+                label="Закрыть"
+                size="sm"
                 type="button"
-                onClick={onClose}>
-                <X size={18} />
-              </button>
+                variant="ghost"
+                onClick={onClose}
+              />
             ) : null}
           </header>
         )}
