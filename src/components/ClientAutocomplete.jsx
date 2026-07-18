@@ -128,7 +128,7 @@ function ClientAutocomplete({
       />
       {isOpen && visibleClients.length > 0 && !disabled && (
         <div
-          className="absolute left-0 top-[calc(100%+6px)] z-[120] max-h-56 w-full overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950/98 p-1 shadow-2xl shadow-black/50"
+          className="client-autocomplete-listbox"
           id={id}
           role="listbox">
           {visibleClients.map((client, index) => (

@@ -20,11 +20,12 @@ export function DropdownContent({className, ...props}) {
   );
 }
 
-export function DropdownItem({className, ...props}) {
+export function DropdownItem({className, variant = "default", ...props}) {
   return (
     <button
       className={clsx(
         "crm-dropdown-item flex w-full min-h-8 items-center px-2.5 border-0 rounded-sm text-textPrimary bg-transparent text-sm text-left hover:bg-field hover:text-textPrimary transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60",
+        variant !== "default" && `crm-dropdown-item-${variant}`,
         className,
       )}
       type="button"

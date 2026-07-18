@@ -231,7 +231,7 @@ function VisitsTable({
                   )}
                   {onDeleteVisit && (
                     <DropdownItem
-                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                      variant="danger"
                       onClick={() => onDeleteVisit(visit)}>
                       Удалить
                     </DropdownItem>

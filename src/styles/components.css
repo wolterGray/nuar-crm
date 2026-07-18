@@ -3032,6 +3032,15 @@
   background: var(--neutral-surface-hover);
 }
 
+.crm-dropdown-item-danger {
+  color: var(--button-danger-text);
+}
+
+.crm-dropdown-item-danger:hover {
+  color: var(--color-primary-text);
+  background: var(--button-danger-bg-hover);
+}
+
 .crm-table {
   overflow: hidden;
   border: 1px solid var(--neutral-border);
@@ -4542,6 +4551,22 @@
   border-color: transparent;
   color: var(--color-text);
   text-align: left;
+}
+
+.client-autocomplete-listbox {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  z-index: 120;
+  width: 100%;
+  max-height: 224px;
+  overflow-y: auto;
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-window) 96%, transparent);
+  box-shadow: var(--shadow-dropdown);
 }
 
 .client-autocomplete-option:hover:not(:disabled),
