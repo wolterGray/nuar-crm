@@ -1066,17 +1066,18 @@ return (
           <aside className="nuar-calendar-reminders border border-zinc-800 rounded-xl bg-linear-to-br from-zinc-900/90 to-zinc-950/95 shadow-inner p-4 min-h-0 overflow-y-auto flex flex-col gap-3">
             <section className="nuar-calendar-picker" aria-label="Календарь месяца">
               <header>
-                <button
+                <IconButton
                   aria-label="Предыдущий месяц"
-                  type="button"
+                  icon="chevronLeft"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => shiftCalendarPanelMonth(-1)}
-                >
-                  <AppIcon name="chevronLeft" size="xs" />
-                </button>
+                />
                 <div className="nuar-calendar-picker-title">
                   <div className="nuar-calendar-picker-menu">
-                    <button
-                      type="button"
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       onClick={() =>
                         setOpenCalendarPickerMenu((current) =>
                           current === "month" ? null : "month",
@@ -1084,25 +1085,27 @@ return (
                       }
                     >
                       {monthNames[calendarPanelMonthIndex]}
-                    </button>
+                    </Button>
                     {openCalendarPickerMenu === "month" ? (
                       <div className="nuar-calendar-picker-popover is-month">
                         {monthNames.map((month, index) => (
-                          <button
+                          <Button
                             className={index === calendarPanelMonthIndex ? "is-selected" : ""}
                             key={month}
-                            type="button"
+                            size="sm"
+                            variant="ghost"
                             onClick={() => setCalendarPanelPart({month: index})}
                           >
                             {month}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     ) : null}
                   </div>
                   <div className="nuar-calendar-picker-menu">
-                    <button
-                      type="button"
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       onClick={() =>
                         setOpenCalendarPickerMenu((current) =>
                           current === "year" ? null : "year",
@@ -1110,30 +1113,31 @@ return (
                       }
                     >
                       {calendarPanelYear}
-                    </button>
+                    </Button>
                     {openCalendarPickerMenu === "year" ? (
                       <div className="nuar-calendar-picker-popover is-year">
                         {calendarPanelYears.map((year) => (
-                          <button
+                          <Button
                             className={year === calendarPanelYear ? "is-selected" : ""}
                             key={year}
-                            type="button"
+                            size="sm"
+                            variant="ghost"
                             onClick={() => setCalendarPanelPart({year})}
                           >
                             {year}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     ) : null}
                   </div>
                 </div>
-                <button
+                <IconButton
                   aria-label="Следующий месяц"
-                  type="button"
+                  icon="chevronRight"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => shiftCalendarPanelMonth(1)}
-                >
-                  <AppIcon name="chevronRight" size="xs" />
-                </button>
+                />
               </header>
               <div className="nuar-calendar-picker-weekdays" aria-hidden="true">
                 {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
@@ -1217,14 +1221,15 @@ return (
                       <span className="nuar-calendar-reminder-time">
                         {entry.time}
                       </span>
-                      <button
+                      <Button
                         className="nuar-calendar-reminder-client"
-                        type="button"
+                        size="sm"
                         title="Открыть карточку клиента"
+                        variant="link"
                         onClick={() => setViewedClientEntry(entry)}
                       >
                         {entry.client}
-                      </button>
+                      </Button>
                       <span className={`nuar-calendar-reminder-money ${getVisitDebt(entry) > 0 ? "is-debt" : ""}`}>
                         {getEntryMoneyLabel(entry)}
                       </span>

@@ -3568,6 +3568,13 @@
   color: #ffffff;
 }
 
+.nuar-calendar-reminder-client > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .nuar-calendar-reminder-money {
   color: #a7afbd;
   font-size: 11px;
