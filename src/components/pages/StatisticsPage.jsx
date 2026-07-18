@@ -32,6 +32,7 @@ import {
 } from "../../utils/payments.js";
 import {exportRowsToExcel} from "../../utils/exportExcel.js";
 import AppIcon from "../ui/AppIcon.jsx";
+import {Button, Input, Select} from "../ui/index.js";
 
 const CURRENCY_CACHE_KEY = "nuar-crm-nbp-rates";
 const defaultRates = {PLN: 1, USD: 3.72, EUR: 4.28, UAH: 0.087};
@@ -151,54 +152,52 @@ function StatisticsFilters({
     return (
       <div className="flex flex-col gap-3 w-full p-3 rounded-xl border border-border/60 bg-card/30">
         <div className="grid grid-cols-2 gap-2">
-          <button
-            className="flex items-center justify-center min-h-[38px] px-3 rounded-lg border border-border bg-card text-foreground hover:bg-accent/5 active:bg-accent/10 active:text-accent font-semibold text-xs transition-colors cursor-pointer"
-            type="button"
+          <Button
+            className="min-h-[38px]"
+            size="sm"
+            variant="secondary"
             onClick={onApplyCurrentMonthRange}>
             Этот месяц
-          </button>
-          <button
-            className="flex items-center justify-center min-h-[38px] px-3 rounded-lg border border-border bg-card text-foreground hover:bg-accent/5 active:bg-accent/10 active:text-accent font-semibold text-xs transition-colors cursor-pointer"
-            type="button"
+          </Button>
+          <Button
+            className="min-h-[38px]"
+            size="sm"
+            variant="secondary"
             onClick={onApplyPreviousMonthRange}>
             Прошлый месяц
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <label className="flex items-center gap-2 h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs focus-within:border-accent">
-            <AppIcon name="calendarRange" size="xs" className="text-muted-foreground flex-shrink-0" />
-            <input
-              className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
-              type="date"
-              value={startDate}
-              onChange={(event) => onStartDateChange(event.target.value)}
-            />
-          </label>
-          <label className="flex items-center gap-2 h-10 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs focus-within:border-accent">
-            <AppIcon name="calendarRange" size="xs" className="text-muted-foreground flex-shrink-0" />
-            <input
-              className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
-              type="date"
-              value={endDate}
-              onChange={(event) => onEndDateChange(event.target.value)}
-            />
-          </label>
+          <Input
+            aria-label="Дата начала"
+            className="h-10 min-h-10 text-xs cursor-pointer"
+            type="date"
+            value={startDate}
+            onChange={(event) => onStartDateChange(event.target.value)}
+          />
+          <Input
+            aria-label="Дата окончания"
+            className="h-10 min-h-10 text-xs cursor-pointer"
+            type="date"
+            value={endDate}
+            onChange={(event) => onEndDateChange(event.target.value)}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <select
-            className="h-10 px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer w-full"
+          <Select
+            className="h-10 min-h-10 text-xs cursor-pointer"
             value={master}
             onChange={(event) => onMasterChange(event.target.value)}>
             <option value="">Все сотрудники</option>
             {employees.map((employee) => (
               <option key={employee.id} value={employee.name}>{employee.name}</option>
             ))}
-          </select>
-          <select
+          </Select>
+          <Select
             aria-label="Валюта отчёта"
-            className="h-10 px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer w-full"
+            className="h-10 min-h-10 text-xs cursor-pointer"
             value={currency}
             onChange={(event) => onCurrencyChange(event.target.value)}>
             {currencies.map((item) => (
@@ -206,7 +205,7 @@ function StatisticsFilters({
                 {item.code} ({item.label})
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
     );
@@ -221,66 +220,58 @@ function StatisticsFilters({
       <div className="flex flex-wrap items-center gap-3">
         {/* Presets */}
         <div className="flex items-center gap-2">
-          <button
-            className="px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
-            style={{ height: '34px', minHeight: '34px' }}
-            type="button"
+          <Button
+            className="h-[34px] min-h-[34px] whitespace-nowrap"
+            size="sm"
+            variant="secondary"
             onClick={onApplyCurrentMonthRange}>
             Этот месяц
-          </button>
-          <button
-            className="px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
-            style={{ height: '34px', minHeight: '34px' }}
-            type="button"
+          </Button>
+          <Button
+            className="h-[34px] min-h-[34px] whitespace-nowrap"
+            size="sm"
+            variant="secondary"
             onClick={onApplyPreviousMonthRange}>
             Прошлый месяц
-          </button>
+          </Button>
         </div>
 
         <div className="h-6 w-px bg-border/40 hidden sm:block" />
 
         {/* Date Inputs */}
         <div className="flex items-center gap-2">
-          <label className="statistics-filter-field flex items-center gap-2 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs cursor-pointer" style={{ width: '178px', minWidth: '178px', height: '38px', minHeight: '38px', display: 'flex', alignItems: 'center' }}>
-            <AppIcon name="calendarRange" size="xs" className="text-muted-foreground flex-shrink-0" style={{ margin: 0 }} />
-            <input
-              className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
-              style={{ border: 0, background: 'transparent', height: '100%', minHeight: '0', padding: 0 }}
-              type="date"
-              value={startDate}
-              onChange={(event) => onStartDateChange(event.target.value)}
-            />
-          </label>
+          <Input
+            aria-label="Дата начала"
+            className="statistics-filter-field h-[38px] min-h-[38px] w-[178px] min-w-[178px] text-xs cursor-pointer"
+            type="date"
+            value={startDate}
+            onChange={(event) => onStartDateChange(event.target.value)}
+          />
           <span className="text-muted-foreground font-semibold text-xs">—</span>
-          <label className="statistics-filter-field flex items-center gap-2 px-3 border border-border rounded-lg bg-card text-muted-foreground text-xs cursor-pointer" style={{ width: '178px', minWidth: '178px', height: '38px', minHeight: '38px', display: 'flex', alignItems: 'center' }}>
-            <AppIcon name="calendarRange" size="xs" className="text-muted-foreground flex-shrink-0" style={{ margin: 0 }} />
-            <input
-              className="bg-transparent border-0 text-foreground w-full focus:outline-none cursor-pointer"
-              style={{ border: 0, background: 'transparent', height: '100%', minHeight: '0', padding: 0 }}
-              type="date"
-              value={endDate}
-              onChange={(event) => onEndDateChange(event.target.value)}
-            />
-          </label>
+          <Input
+            aria-label="Дата окончания"
+            className="statistics-filter-field h-[38px] min-h-[38px] w-[178px] min-w-[178px] text-xs cursor-pointer"
+            type="date"
+            value={endDate}
+            onChange={(event) => onEndDateChange(event.target.value)}
+          />
         </div>
       </div>
 
       {/* Right side: Dropdown Selects */}
       <div className="flex flex-wrap items-center gap-3">
-        <select
-          className="statistics-filter-select px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
-          style={{ width: '190px', minWidth: '190px', height: '38px', minHeight: '38px', marginLeft: 0 }}
+        <Select
+          className="statistics-filter-select h-[38px] min-h-[38px] w-[190px] min-w-[190px] text-xs cursor-pointer"
           value={master}
           onChange={(event) => onMasterChange(event.target.value)}>
           <option value="">Все сотрудники</option>
           {employees.map((employee) => (
             <option key={employee.id} value={employee.name}>{employee.name}</option>
           ))}
-        </select>
-        <select
+        </Select>
+        <Select
           aria-label="Валюта отчёта"
-          className="statistics-filter-select px-3 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:border-accent text-xs cursor-pointer"
-          style={{ width: '150px', minWidth: '150px', height: '38px', minHeight: '38px' }}
+          className="statistics-filter-select h-[38px] min-h-[38px] w-[150px] min-w-[150px] text-xs cursor-pointer"
           value={currency}
           onChange={(event) => onCurrencyChange(event.target.value)}>
           {currencies.map((item) => (
@@ -288,7 +279,7 @@ function StatisticsFilters({
               {item.code} · {item.label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
     </div>
   );
@@ -699,15 +690,15 @@ function StatisticsPage({
   };
 
   const exportButton = (
-    <button
+    <Button
       aria-label="Экспорт Excel"
-      className="inline-flex items-center justify-center gap-1.5 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
-      style={{ height: '34px', minHeight: '34px' }}
-      type="button"
+      className="h-[34px] min-h-[34px] whitespace-nowrap"
+      leftIcon="download"
+      size="sm"
+      variant="secondary"
       onClick={exportStatistics}>
-      <AppIcon name="download" size="xs" className="text-muted-foreground" />
-      <span>{isMobile ? "Экспорт" : "Экспорт Excel"}</span>
-    </button>
+      {isMobile ? "Экспорт" : "Экспорт Excel"}
+    </Button>
   );
 
   const filtersPanel = (
