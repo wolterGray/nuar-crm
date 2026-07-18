@@ -28,6 +28,7 @@ import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import LoyaltyQrCode from "../LoyaltyQrCode.jsx";
 import PageHeader from "../PageHeader.jsx";
 import AppIcon from "../ui/AppIcon.jsx";
+import {Button, IconButton} from "../ui/index.js";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
 
 const getCardProgress = (card) =>
@@ -122,54 +123,100 @@ function ClubCardMenu({
 
   return (
     <div className="club-card-menu" onClick={(event) => event.stopPropagation()}>
-      <button
+      <IconButton
         ref={triggerRef}
         aria-label="Действия карты"
         aria-expanded={isOpen}
         className={isOpen ? "is-active" : ""}
+        icon="more"
+        label="Действия карты"
+        size="sm"
         type="button"
+        variant="ghost"
         onClick={() => setOpenMenuId(isOpen ? null : card.id)}>
-        <AppIcon name="more" size="sm" />
-      </button>
+      </IconButton>
 
       <RowActionMenuPortal isOpen={isOpen} menuRef={menuRef} menuStyle={menuStyle}>
-        <button
+        <Button
+          className="row-action-menu-item"
           disabled={!isRewardActionAvailable}
+          fullWidth
+          leftIcon="gift"
+          size="sm"
           type="button"
+          variant="ghost"
           onClick={() => closeAndRun(onRedeem)}>
-          <AppIcon name="gift" size="sm" />
           Награда
-        </button>
-        <button disabled={!card.isActive} type="button" onClick={() => closeAndRun(onManualAdjust)}>
-          <AppIcon name="edit" size="sm" />
+        </Button>
+        <Button
+          className="row-action-menu-item"
+          disabled={!card.isActive}
+          fullWidth
+          leftIcon="edit"
+          size="sm"
+          type="button"
+          variant="ghost"
+          onClick={() => closeAndRun(onManualAdjust)}>
           Начислить / списать
-        </button>
-        <button type="button" onClick={() => closeAndRun(onReissue)}>
-          <AppIcon name="link" size="sm" />
+        </Button>
+        <Button
+          className="row-action-menu-item"
+          fullWidth
+          leftIcon="link"
+          size="sm"
+          type="button"
+          variant="ghost"
+          onClick={() => closeAndRun(onReissue)}>
           Перевыпустить ссылку
-        </button>
-        <button disabled={!publicUrl || !card.isActive} type="button" onClick={() => closeAndRun(onCopy)}>
-          <AppIcon name="copy" size="sm" />
+        </Button>
+        <Button
+          className="row-action-menu-item"
+          disabled={!publicUrl || !card.isActive}
+          fullWidth
+          leftIcon="copy"
+          size="sm"
+          type="button"
+          variant="ghost"
+          onClick={() => closeAndRun(onCopy)}>
           Скопировать ссылку
-        </button>
-        <button disabled={!publicUrl || !card.isActive} type="button" onClick={() => closeAndRun(onOpenQr)}>
-          <AppIcon name="qr" size="sm" />
+        </Button>
+        <Button
+          className="row-action-menu-item"
+          disabled={!publicUrl || !card.isActive}
+          fullWidth
+          leftIcon="qr"
+          size="sm"
+          type="button"
+          variant="ghost"
+          onClick={() => closeAndRun(onOpenQr)}>
           Показать QR
-        </button>
+        </Button>
         {publicUrl ? (
           <a href={publicUrl} rel="noreferrer" target="_blank">
             <AppIcon name="external" size="sm" />
             Открыть карту
           </a>
         ) : null}
-        <button type="button" onClick={() => closeAndRun(onStatus)}>
-          <AppIcon name="power" size="sm" />
+        <Button
+          className="row-action-menu-item"
+          fullWidth
+          leftIcon="power"
+          size="sm"
+          type="button"
+          variant="ghost"
+          onClick={() => closeAndRun(onStatus)}>
           {card.isActive ? "Отключить карту" : "Включить карту"}
-        </button>
-        <button className="danger" type="button" onClick={() => closeAndRun(onDelete)}>
-          <AppIcon name="trash" size="sm" />
+        </Button>
+        <Button
+          className="danger row-action-menu-item"
+          fullWidth
+          leftIcon="trash"
+          size="sm"
+          type="button"
+          variant="ghost"
+          onClick={() => closeAndRun(onDelete)}>
           Удалить карту
-        </button>
+        </Button>
       </RowActionMenuPortal>
     </div>
   );
