@@ -386,16 +386,17 @@ function PackagesPage({
               {id: "templates", label: "Шаблоны"},
               {id: "certificates", label: "Сертификаты"},
             ].map((tab) => (
-              <button
+              <Button
                 key={tab.id}
                 className={mobileSection === tab.id ? "is-active" : ""}
-                type="button"
+                size="sm"
+                variant="ghost"
                 onClick={() => {
                   setMobileSection(tab.id);
                   setOpenMenuId(null);
                 }}>
                 {tab.label}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -462,20 +463,22 @@ function PackagesPage({
 
               {archivedClientPackages.length > 0 && (
                 <div className="mt-2 border border-border rounded-lg bg-surface overflow-hidden">
-                  <button
+                  <Button
                     className="flex w-full items-center justify-between p-4 text-sm font-semibold text-text-main hover:bg-field transition-colors"
-                    type="button"
+                    rightIcon={(
+                      <AppIcon
+                        className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
+                        name="chevronDown"
+                        size="sm"
+                      />
+                    )}
+                    variant="ghost"
                     onClick={() => setArchiveOpen(!archiveOpen)}>
                     <span className="flex items-center gap-2">
                       <AppIcon className="text-text-muted" name="package" size="sm" />
                       Архив завершённых пакетов ({archivedClientPackages.length})
                     </span>
-                    <AppIcon
-                      className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
-                      name="chevronDown"
-                      size="sm"
-                    />
-                  </button>
+                  </Button>
                   {archiveOpen && (
                     <div className="p-4 border-t border-border-soft flex flex-col gap-3 bg-field/30">
                       {filteredArchivedClientPackages.map((packageItem) => (
@@ -544,20 +547,22 @@ function PackagesPage({
 
               {archivedCertificates.length > 0 && (
                 <div className="mt-2 border border-border rounded-lg bg-surface overflow-hidden">
-                  <button
+                  <Button
                     className="flex w-full items-center justify-between p-4 text-sm font-semibold text-text-main hover:bg-field transition-colors"
-                    type="button"
+                    rightIcon={(
+                      <AppIcon
+                        className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`}
+                        name="chevronDown"
+                        size="sm"
+                      />
+                    )}
+                    variant="ghost"
                     onClick={() => setCertificateArchiveOpen(!certificateArchiveOpen)}>
                     <span className="flex items-center gap-2">
                       <AppIcon className="text-text-muted" name="gift" size="sm" />
                       Архив сертификатов ({archivedCertificates.length})
                     </span>
-                    <AppIcon
-                      className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`}
-                      name="chevronDown"
-                      size="sm"
-                    />
-                  </button>
+                  </Button>
                   {certificateArchiveOpen && (
                     <div className="p-4 border-t border-border-soft flex flex-col gap-3 bg-field/30">
                       {filteredArchivedCertificates.map((certificate) => (
@@ -610,20 +615,22 @@ function PackagesPage({
 
             {archivedClientPackages.length > 0 && (
               <div className="packages-archive">
-                <button
+                <Button
                   className="flex w-full items-center justify-between p-3.5 text-sm font-semibold text-text-main hover:bg-field transition-colors"
-                  type="button"
+                  rightIcon={(
+                    <AppIcon
+                      className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
+                      name="chevronDown"
+                      size="sm"
+                    />
+                  )}
+                  variant="ghost"
                   onClick={() => setArchiveOpen(!archiveOpen)}>
                   <span className="flex items-center gap-2">
                     <AppIcon className="text-text-muted" name="package" size="sm" />
                     Архив завершённых пакетов
                   </span>
-                  <AppIcon
-                    className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
-                    name="chevronDown"
-                    size="sm"
-                  />
-                </button>
+                </Button>
                 {archiveOpen && (
                   <div className="p-3 border-t border-border-soft flex flex-col gap-3 bg-field/30 max-h-[300px] overflow-y-auto">
                     {filteredArchivedClientPackages.map((packageItem) => (
@@ -703,20 +710,22 @@ function PackagesPage({
 
             {archivedCertificates.length > 0 && (
               <div className="packages-archive">
-                <button
+                <Button
                   className="flex w-full items-center justify-between p-3.5 text-sm font-semibold text-text-main hover:bg-field transition-colors"
-                  type="button"
+                  rightIcon={(
+                    <AppIcon
+                      className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`}
+                      name="chevronDown"
+                      size="sm"
+                    />
+                  )}
+                  variant="ghost"
                   onClick={() => setCertificateArchiveOpen(!certificateArchiveOpen)}>
                   <span className="flex items-center gap-2">
                     <AppIcon className="text-text-muted" name="gift" size="sm" />
                     Архив сертификатов
                   </span>
-                  <AppIcon
-                    className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`}
-                    name="chevronDown"
-                    size="sm"
-                  />
-                </button>
+                </Button>
                 {certificateArchiveOpen && (
                   <div className="p-3 border-t border-border-soft flex flex-col gap-3 bg-field/30 max-h-[300px] overflow-y-auto">
                     {filteredArchivedCertificates.map((certificate) => (
