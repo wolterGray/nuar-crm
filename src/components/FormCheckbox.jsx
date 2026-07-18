@@ -1,3 +1,5 @@
+import Checkbox from "./ui/Checkbox.jsx";
+
 function FormCheckbox({
   boxClassName = "",
   checked,
@@ -14,7 +16,7 @@ function FormCheckbox({
   return (
     <label
       className={`form-checkbox ${className}${disabled ? " is-disabled" : ""}`.trim()}>
-      <input
+      <Checkbox
         className="form-checkbox-input"
         defaultChecked={checked === undefined ? defaultChecked : undefined}
         disabled={disabled}
