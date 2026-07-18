@@ -3077,6 +3077,10 @@
   color: #6f7785;
 }
 
+.nuar-sidebar-search > span {
+  display: contents;
+}
+
 .nuar-sidebar-search:hover {
   color: #a7afbd;
   background: transparent;
@@ -3084,6 +3088,11 @@
 
 .nuar-sidebar-nav-item {
   border-right: 0;
+}
+
+.nuar-sidebar-nav-item > span {
+  min-width: 0;
+  justify-self: start;
 }
 
 .nuar-sidebar-nav-item:hover {

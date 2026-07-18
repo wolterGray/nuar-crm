@@ -1,6 +1,6 @@
 import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 import {mobileNavItems, navGroups, navItems} from "../constants/navigation.js";
-import {AppIcon, IconButton} from "./ui/index.js";
+import {AppIcon, Button, IconButton} from "./ui/index.js";
 
 export default function AppNavigation({
   activePage,
@@ -43,18 +43,18 @@ export default function AppNavigation({
           </div>
         </div>
         <nav className="flex flex-col gap-2 mt-1" aria-label="Главное меню">
-          <button
-            aria-label="Поиск клиентов"
+          <Button
             className="nuar-sidebar-search flex items-center justify-start gap-2.5 h-8 px-2 border border-white/[0.07] rounded-lg text-zinc-500 hover:text-zinc-300 bg-transparent cursor-pointer text-xs font-medium normal-case tracking-normal transition-colors"
-            type="button"
+            leftIcon="search"
+            size="sm"
+            variant="ghost"
             onClick={onOpenClientSearch}
           >
-            <AppIcon name="search" size="sm" />
             <span>Поиск</span>
             <kbd className="ml-auto hidden text-[10px] text-zinc-500 bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded font-mono">
               {typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform) ? "⌘K" : "Ctrl+K"}
             </kbd>
-          </button>
+          </Button>
 
           {navGroups.map((group, groupIndex) => (
             <div
@@ -67,7 +67,7 @@ export default function AppNavigation({
                 const isActive = activePage === item.page;
 
                 return (
-                  <button
+                  <Button
                     aria-label={item.label}
                     data-label={item.label}
                     className={`nuar-sidebar-nav-item flex items-center justify-start gap-2.5 h-8 px-2 rounded-none text-[13px] font-medium cursor-pointer transition-colors ${
@@ -76,12 +76,13 @@ export default function AppNavigation({
                         : "text-zinc-500 hover:text-zinc-300"
                     }`}
                     key={item.page}
-                    type="button"
+                    leftIcon={<AppIcon className={isActive ? "text-zinc-100" : "text-zinc-500"} name={item.icon} size="md" />}
+                    size="sm"
+                    variant="ghost"
                     onClick={() => handleDesktopPageChange(item.page)}
                   >
-                    <AppIcon className={isActive ? "text-zinc-100" : "text-zinc-500"} name={item.icon} size="md" />
                     {item.label}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -134,15 +135,16 @@ export default function AppNavigation({
               const isActive = activePage === item.page;
 
               return (
-                <button
+                <Button
                   className={isActive ? "active" : ""}
                   key={item.page}
-                  type="button"
+                  leftIcon={item.icon}
+                  size="sm"
+                  variant="ghost"
                   onClick={() => handleSheetPageChange(item.page)}
                 >
-                  <AppIcon name={item.icon} size="sm" />
                   <span>{item.label}</span>
-                </button>
+                </Button>
               );
             })}
           </nav>
@@ -155,29 +157,31 @@ export default function AppNavigation({
           const isActive = activePage === item.page;
 
           return (
-            <button
+            <Button
               className={`flex-1 flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer ${
               isActive ? "text-zinc-100 font-semibold" : "text-zinc-500"
               }`}
               key={item.page}
-              type="button"
+              leftIcon={item.icon}
+              size="sm"
+              variant="ghost"
               onClick={() => handleSheetPageChange(item.page)}
             >
-              <AppIcon name={item.icon} size="md" />
-              <span className="text-[10px] font-medium leading-none">{item.label}</span>
-            </button>
+              {item.label}
+            </Button>
           );
         })}
-        <button
+        <Button
           className={`flex-1 flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer ${
             sidebarVisible ? "text-zinc-100 font-semibold" : "text-zinc-500"
           }`}
-          type="button"
+          leftIcon="more"
+          size="sm"
+          variant="ghost"
           onClick={() => onSidebarVisibleChange(!sidebarVisible)}
         >
-          <AppIcon name="more" size="md" />
-          <span className="text-[10px] font-medium leading-none">Еще</span>
-        </button>
+          Еще
+        </Button>
       </nav>
     </>
   );
