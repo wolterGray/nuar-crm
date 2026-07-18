@@ -94,7 +94,10 @@ function ClientSearchDialog({
       onClose={onClose}
       footer={
         <div className="client-search-footer">
-          <span>↑↓ выбор</span>
+          <span>
+            <AppIcon name="arrowUpDown" size="xs" />
+            выбор
+          </span>
           <span>Enter открыть</span>
           <span>Esc закрыть</span>
           <span>{shortcutLabel}</span>

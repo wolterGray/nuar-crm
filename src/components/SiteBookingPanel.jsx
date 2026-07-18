@@ -162,7 +162,13 @@ function SiteBookingPanel({
           <AppIcon name="globe" size="md" />
           <div>
             <h2>Заявки с сайта</h2>
-            <p>Форма на nuarr.pl → CRM backend → импорт в календарь CRM</p>
+            <p className="inline-flex flex-wrap items-center gap-1.5">
+              Форма на nuarr.pl
+              <AppIcon name="arrowRight" size="xs" />
+              CRM backend
+              <AppIcon name="arrowRight" size="xs" />
+              импорт в календарь CRM
+            </p>
           </div>
         </div>
       ) : (

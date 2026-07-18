@@ -946,7 +946,7 @@ function App() {
 
   const handleCloudConflictDetected = useCallback(() => {
     pushNotificationRef.current({
-      message: "Откройте Настройки → Облако, чтобы выбрать версию данных.",
+      message: "Откройте Настройки / Облако, чтобы выбрать версию данных.",
       persist: true,
       title: "Конфликт синхронизации",
     });

@@ -302,7 +302,11 @@ function TodayReferenceBoard({
                 </p>
               )}
             </div>
-            {filteredVisits.length > 7 ? <span className="today-scroll-cue" aria-hidden="true">↓</span> : null}
+            {filteredVisits.length > 7 ? (
+              <span className="today-scroll-cue" aria-hidden="true">
+                <AppIcon name="arrowDown" size="xs" />
+              </span>
+            ) : null}
           </section>
 
         </div>

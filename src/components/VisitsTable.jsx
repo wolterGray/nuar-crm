@@ -33,6 +33,7 @@ import {
   TableCell,
   TableHeader,
   TableRow,
+  AppIcon,
 } from "./ui/index.js";
 
 const parseVisitDateValue = (value) => {
@@ -609,10 +610,18 @@ function VisitsTable({
 }
 function SortMark({direction}) {
   if (!direction) {
-    return <span className="table-sort-mark">↕</span>;
+    return (
+      <span className="table-sort-mark">
+        <AppIcon name="arrowUpDown" size="xs" />
+      </span>
+    );
   }
 
-  return <span className="table-sort-mark">{direction === "asc" ? "↑" : "↓"}</span>;
+  return (
+    <span className="table-sort-mark">
+      <AppIcon name={direction === "asc" ? "arrowUp" : "arrowDown"} size="xs" />
+    </span>
+  );
 }
 
 function TooltipCell({value, tooltip = value, className = ""}) {

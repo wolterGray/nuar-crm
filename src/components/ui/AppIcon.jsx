@@ -2,6 +2,10 @@ import clsx from "clsx";
 import {
   Activity,
   AlertTriangle,
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  ArrowUpDown,
   AtSign,
   BadgeCheck,
   Ban,
@@ -100,6 +104,10 @@ import styles from "./AppIcon.module.css";
 const appIcons = {
   activity: Activity,
   alert: AlertTriangle,
+  arrowDown: ArrowDown,
+  arrowRight: ArrowRight,
+  arrowUp: ArrowUp,
+  arrowUpDown: ArrowUpDown,
   at: AtSign,
   badgeCheck: BadgeCheck,
   ban: Ban,

@@ -70,7 +70,13 @@ function BulkSmsPanel({
         <AppIcon name="user" size="md" />
         <div>
           <h2>Bulk SMS по сегментам</h2>
-          <p>Сегмент → шаблон → массовая отправка через SMSAPI.pl</p>
+          <p className="inline-flex flex-wrap items-center gap-1.5">
+            Сегмент
+            <AppIcon name="arrowRight" size="xs" />
+            шаблон
+            <AppIcon name="arrowRight" size="xs" />
+            массовая отправка через SMSAPI.pl
+          </p>
         </div>
       </div>
 

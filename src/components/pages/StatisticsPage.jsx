@@ -830,9 +830,9 @@ function StatisticsPage({
   const chartChangeLabel =
     periodChangePercent === null
       ? null
-      : `${periodChangePercent >= 0 ? "↑" : "↓"} ${Math.abs(
-          Math.round(periodChangePercent),
-        )}% к прошлому периоду`;
+      : `${Math.abs(Math.round(periodChangePercent))}% к прошлому периоду`;
+  const chartChangeIcon =
+    periodChangePercent === null ? null : periodChangePercent >= 0 ? "arrowUp" : "arrowDown";
 
   const incomeCard = (
     <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card shadow-lg">
@@ -885,9 +885,12 @@ function StatisticsPage({
               }`}>
               {periodChangePercent === null
                 ? "Нет прошлого периода"
-                : `${periodChangePercent >= 0 ? "↑" : "↓"} ${Math.abs(
-                    Math.round(periodChangePercent),
-                  )}% к прошлому периоду`}
+                : (
+                  <span className="inline-flex items-center gap-1">
+                    <AppIcon name={chartChangeIcon} size="xs" />
+                    {chartChangeLabel}
+                  </span>
+                )}
             </strong>
           </div>
           <RevenueChart chartData={chartData} formatIncome={formatIncome} />
