@@ -28,7 +28,7 @@ import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import LoyaltyQrCode from "../LoyaltyQrCode.jsx";
 import PageHeader from "../PageHeader.jsx";
 import AppIcon from "../ui/AppIcon.jsx";
-import {Button, IconButton} from "../ui/index.js";
+import {Button, Checkbox, IconButton, Input, Select, TabButton, Tabs, Textarea} from "../ui/index.js";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
 
 const getCardProgress = (card) =>
@@ -611,9 +611,16 @@ export default function ClubPage({clients = [], pushNotification}) {
         description="Центр управления электронными картами лояльности NUAR Club"
         title="Club"
         headerActions={
-          <button className="club-icon-button" disabled={loading} type="button" onClick={loadCards}>
-            <AppIcon name="refresh" size="sm" />
-          </button>
+          <IconButton
+            className="club-icon-button"
+            disabled={loading}
+            icon="refresh"
+            label="Обновить карты"
+            size="sm"
+            type="button"
+            variant="ghost"
+            onClick={loadCards}
+          />
         }
       />
 
@@ -634,23 +641,24 @@ export default function ClubPage({clients = [], pushNotification}) {
         ))}
       </div>
 
-      <div className="club-tabs">
+      <Tabs className="club-tabs">
         {clubTabs.map((tab) => {
           const badge = tab.id === "cards" ? stats.total : null;
           return (
-            <button
+            <TabButton
+              active={activeTab === tab.id}
+              badge={badge}
               className={activeTab === tab.id ? "is-active" : ""}
+              icon={tab.icon}
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
             >
-              <AppIcon name={tab.icon} size="sm" />
-              <span>{tab.label}</span>
-              {badge ? <em>{badge}</em> : null}
-            </button>
+              {tab.label}
+            </TabButton>
           );
         })}
-      </div>
+      </Tabs>
 
       {activeTab === "cards" ? (
         <>
@@ -659,44 +667,43 @@ export default function ClubPage({clients = [], pushNotification}) {
               <strong>Новая карта</strong>
               <span>Выберите клиента без карты и создайте персональную ссылку.</span>
             </div>
-            <select value={newClientId} onChange={(event) => setNewClientId(event.target.value)}>
+            <Select value={newClientId} onChange={(event) => setNewClientId(event.target.value)}>
               <option value="">Клиент</option>
               {clientsWithoutCards.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.name || client.phone || `Клиент ${client.id}`}
                 </option>
               ))}
-            </select>
-            <select value={newCardLanguage} onChange={(event) => setNewCardLanguage(event.target.value)}>
+            </Select>
+            <Select value={newCardLanguage} onChange={(event) => setNewCardLanguage(event.target.value)}>
               {cardLanguageOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
-            </select>
-            <button disabled={!newClientId || loading} type="button" onClick={handleCreate}>
-              <AppIcon name="gift" size="sm" />
+            </Select>
+            <Button disabled={!newClientId || loading} leftIcon="gift" type="button" variant="primary" onClick={handleCreate}>
               Создать карту
-            </button>
+            </Button>
           </div>
 
           <div className="club-toolbar">
             <label className="club-search">
               <AppIcon name="search" size="sm" />
-              <input
+              <Input
                 placeholder="Поиск по клиенту или телефону"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
             </label>
-            <select value={status} onChange={(event) => setStatus(event.target.value)}>
+            <Select value={status} onChange={(event) => setStatus(event.target.value)}>
               <option value="all">Все статусы</option>
               <option value="active">Активные</option>
               <option value="archived">Архив</option>
               <option value="inactive">Отключённые</option>
-            </select>
-            <select value={reward} onChange={(event) => setReward(event.target.value)}>
+            </Select>
+            <Select value={reward} onChange={(event) => setReward(event.target.value)}>
               <option value="all">Все награды</option>
               <option value="available">Награда доступна</option>
-            </select>
+            </Select>
           </div>
         </>
       ) : activeTab === "design" ? (
@@ -762,7 +769,7 @@ export default function ClubPage({clients = [], pushNotification}) {
             <strong>Шаблоны выпадения из сундуков</strong>
           </div>
           <form className="club-reward-template-form" onSubmit={handleRewardTemplateSubmit}>
-            <select
+            <Select
               aria-label="Уровень карты"
               disabled={rewardTemplateSaving}
               value={rewardTemplateForm.tier}
@@ -771,20 +778,20 @@ export default function ClubPage({clients = [], pushNotification}) {
               {physicalCardTiers.map((tier) => (
                 <option key={tier.id} value={tier.id}>{tier.badge}</option>
               ))}
-            </select>
-            <input
+            </Select>
+            <Input
               placeholder="Название подарка"
               disabled={rewardTemplateSaving}
               value={rewardTemplateForm.name}
               onChange={(event) => updateRewardTemplateField("name", event.target.value)}
             />
-            <input
+            <Input
               placeholder="Описание"
               disabled={rewardTemplateSaving}
               value={rewardTemplateForm.description}
               onChange={(event) => updateRewardTemplateField("description", event.target.value)}
             />
-            <input
+            <Input
               aria-label="Вес выпадения"
               min="1"
               placeholder="Вес"
@@ -794,7 +801,7 @@ export default function ClubPage({clients = [], pushNotification}) {
               value={rewardTemplateForm.weight}
               onChange={(event) => updateRewardTemplateField("weight", event.target.value)}
             />
-            <input
+            <Input
               aria-label="Срок действия в днях"
               min="0"
               placeholder="Дней"
@@ -805,30 +812,28 @@ export default function ClubPage({clients = [], pushNotification}) {
               onChange={(event) => updateRewardTemplateField("expiresAfterDays", event.target.value)}
             />
             <label>
-              <input
+              <Checkbox
                 checked={rewardTemplateForm.requiresOwnerApproval}
                 disabled={rewardTemplateSaving}
-                type="checkbox"
                 onChange={(event) => updateRewardTemplateField("requiresOwnerApproval", event.target.checked)}
               />
               Владелец
             </label>
             <label>
-              <input
+              <Checkbox
                 checked={rewardTemplateForm.active}
                 disabled={rewardTemplateSaving}
-                type="checkbox"
                 onChange={(event) => updateRewardTemplateField("active", event.target.checked)}
               />
               Активен
             </label>
-            <button disabled={rewardTemplateSaving} type="submit">
+            <Button disabled={rewardTemplateSaving} type="submit" variant="primary">
               {rewardTemplateSaving ? "Сохраняю..." : editingRewardTemplateId ? "Сохранить" : "Добавить"}
-            </button>
+            </Button>
             {editingRewardTemplateId ? (
-              <button disabled={rewardTemplateSaving} type="button" onClick={resetRewardTemplateForm}>
+              <Button disabled={rewardTemplateSaving} type="button" variant="secondary" onClick={resetRewardTemplateForm}>
                 Отмена
-              </button>
+              </Button>
             ) : null}
           </form>
 
@@ -849,14 +854,12 @@ export default function ClubPage({clients = [], pushNotification}) {
                   <em>Вес {template.weight || 1}</em>
                   <em>{template.expiresAfterDays ? `${template.expiresAfterDays} дн.` : "Без срока"}</em>
                   <em>{template.active ? "Активен" : "Отключён"}</em>
-                  <button type="button" onClick={() => handleRewardTemplateEdit(template)}>
-                    <AppIcon name="edit" size="xs" />
+                  <Button leftIcon="edit" size="sm" type="button" variant="secondary" onClick={() => handleRewardTemplateEdit(template)}>
                     Правка
-                  </button>
-                  <button className="is-danger" type="button" onClick={() => handleRewardTemplateDelete(template)}>
-                    <AppIcon name="trash" size="xs" />
+                  </Button>
+                  <Button className="is-danger" leftIcon="trash" size="sm" type="button" variant="danger" onClick={() => handleRewardTemplateDelete(template)}>
                     Удалить
-                  </button>
+                  </Button>
                 </article>
               );
             })}
@@ -1001,7 +1004,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                   <span>{formatCardDate(card)}</span>
                 </div>
                 <div className="club-card-language" onClick={(event) => event.stopPropagation()}>
-                  <select
+                  <Select
                     aria-label="Язык карты"
                     className="club-card-language-select is-full"
                     value={getCardLanguage(card)}
@@ -1010,8 +1013,8 @@ export default function ClubPage({clients = [], pushNotification}) {
                     {cardLanguageOptions.map((option) => (
                       <option key={option.value} value={option.value}>{option.label}</option>
                     ))}
-                  </select>
-                  <select
+                  </Select>
+                  <Select
                     aria-label="Язык карты"
                     className="club-card-language-select is-short"
                     value={getCardLanguage(card)}
@@ -1020,7 +1023,7 @@ export default function ClubPage({clients = [], pushNotification}) {
                     {cardLanguageOptions.map((option) => (
                       <option key={option.value} value={option.value}>{option.value.toUpperCase()}</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div className="club-card-actions" aria-label="Действия карты">
                   <ClubCardMenu
@@ -1069,9 +1072,9 @@ export default function ClubPage({clients = [], pushNotification}) {
                 <small>Стиль карты</small>
                 <strong>{previewTier.title}</strong>
               </span>
-              <button type="button" onClick={() => setPreviewTierId(null)}>
+              <Button size="sm" type="button" variant="secondary" onClick={() => setPreviewTierId(null)}>
                 Закрыть
-              </button>
+              </Button>
             </div>
             <LoyaltyCard
               card={{
@@ -1100,18 +1103,17 @@ export default function ClubPage({clients = [], pushNotification}) {
                 <small>QR код карты</small>
                 <strong>{qrCard.client?.name || "Клиент"}</strong>
               </span>
-              <button type="button" onClick={() => setVisibleQrCardId(null)}>
+              <Button size="sm" type="button" variant="secondary" onClick={() => setVisibleQrCardId(null)}>
                 Закрыть
-              </button>
+              </Button>
             </div>
             <div className="club-qr-modal-code">
               <LoyaltyQrCode value={qrPublicUrl} />
             </div>
             <div className="club-qr-modal-actions">
-              <button type="button" onClick={() => handleCopy(qrCard)}>
-                <AppIcon name="copy" size="sm" />
+              <Button leftIcon="copy" type="button" variant="primary" onClick={() => handleCopy(qrCard)}>
                 Скопировать ссылку
-              </button>
+              </Button>
               <a href={qrPublicUrl} rel="noreferrer" target="_blank">
                 <AppIcon name="external" size="sm" />
                 Открыть карту
@@ -1138,34 +1140,38 @@ export default function ClubPage({clients = [], pushNotification}) {
                 <small>Ручная операция</small>
                 <strong>{manualAdjustmentCard.client?.name || "Клиент"}</strong>
               </span>
-              <button
-                aria-label="Закрыть"
+              <IconButton
                 className="club-adjust-close"
                 disabled={manualAdjustmentSaving}
+                icon="x"
+                label="Закрыть"
+                size="sm"
                 type="button"
+                variant="ghost"
                 onClick={closeManualAdjustment}>
-                <AppIcon name="x" size="sm" />
-              </button>
+              </IconButton>
             </div>
             <div className="club-adjust-mode" role="group" aria-label="Тип операции">
-              <button
+              <Button
                 className={manualAdjustmentMode === "earn" ? "is-active" : ""}
                 disabled={manualAdjustmentSaving}
                 type="button"
+                variant="secondary"
                 onClick={() => setManualAdjustmentMode("earn")}>
                 Начислить
-              </button>
-              <button
+              </Button>
+              <Button
                 className={manualAdjustmentMode === "writeoff" ? "is-active" : ""}
                 disabled={manualAdjustmentSaving}
                 type="button"
+                variant="secondary"
                 onClick={() => setManualAdjustmentMode("writeoff")}>
                 Списать
-              </button>
+              </Button>
             </div>
             <label className="club-adjust-field">
               <span>Количество отметок</span>
-              <input
+              <Input
                 min="1"
                 step="1"
                 type="number"
@@ -1176,7 +1182,7 @@ export default function ClubPage({clients = [], pushNotification}) {
             </label>
             <label className="club-adjust-field">
               <span>Причина</span>
-              <textarea
+              <Textarea
                 placeholder="Например: компенсация, ручное исправление, возврат отметки"
                 rows={4}
                 value={manualAdjustmentDescription}
@@ -1189,12 +1195,12 @@ export default function ClubPage({clients = [], pushNotification}) {
               <strong>{manualAdjustmentMode === "writeoff" ? "-" : "+"}{Math.abs(Number(manualAdjustmentAmount) || 0)}</strong>
             </div>
             <div className="club-adjust-actions">
-              <button disabled={manualAdjustmentSaving} type="button" onClick={closeManualAdjustment}>
+              <Button disabled={manualAdjustmentSaving} type="button" variant="secondary" onClick={closeManualAdjustment}>
                 Отмена
-              </button>
-              <button disabled={manualAdjustmentSaving} type="submit">
+              </Button>
+              <Button disabled={manualAdjustmentSaving} type="submit" variant="primary">
                 {manualAdjustmentSaving ? "Сохраняю..." : "Сохранить"}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
