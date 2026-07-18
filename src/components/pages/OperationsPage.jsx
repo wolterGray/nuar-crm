@@ -24,7 +24,7 @@ import {
   isSupplyLowStock,
 } from "../../utils/supplyStock.js";
 import {openSupplyOrderUrl} from "../../utils/supplyOrder.js";
-import {AppIcon, Button} from "../ui/index.js";
+import {AppIcon, Button, IconButton, Input} from "../ui/index.js";
 
 const NOTE_CATEGORIES = ["Мысль", "Заказать", "Идея", "Личное"];
 
@@ -303,33 +303,36 @@ function OperationsPage({
         actions={
           <>
             <div className="operations-page-tabs">
-              <button
+              <Button
                 className={mobileSection === "tasks" ? "active" : ""}
-                type="button"
+                size="sm"
+                variant="ghost"
                 onClick={() => {
                   resetTransientOperationState();
                   setMobileSection("tasks");
                 }}>
                 Задачи
-              </button>
-              <button
+              </Button>
+              <Button
                 className={mobileSection === "supplies" ? "active" : ""}
-                type="button"
+                size="sm"
+                variant="ghost"
                 onClick={() => {
                   resetTransientOperationState();
                   setMobileSection("supplies");
                 }}>
                 Склад
-              </button>
-              <button
+              </Button>
+              <Button
                 className={mobileSection === "waitlist" ? "active" : ""}
-                type="button"
+                size="sm"
+                variant="ghost"
                 onClick={() => {
                   resetTransientOperationState();
                   setMobileSection("waitlist");
                 }}>
                 Лист ожидания
-              </button>
+              </Button>
             </div>
             <div className="operations-summary">
               <span>
@@ -371,33 +374,36 @@ function OperationsPage({
             </div>
             <div className="operations-header-actions">
               <div className="operations-tabs">
-                <button
+                <Button
                   className={activeMode === "tasks" ? "active" : ""}
-                  type="button"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => {
                     resetTransientOperationState();
                     setActiveMode("tasks");
                   }}>
                   Задачи
-                </button>
-                <button
+                </Button>
+                <Button
                   className={activeMode === "notes" ? "active" : ""}
-                  type="button"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => {
                     resetTransientOperationState();
                     setActiveMode("notes");
                   }}>
                   Заметки
-                </button>
+                </Button>
               </div>
               {activeMode === "tasks" && (
-                <button
+                <Button
                   className="add-visit-button"
-                  type="button"
+                  leftIcon="plus"
+                  size="sm"
+                  variant="primary"
                   onClick={onAddTask}>
-                  <AppIcon name="plus" size="sm" />
                   Добавить
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -481,7 +487,8 @@ function OperationsPage({
             <div className="operations-notes">
               <form className="quick-note-form" onSubmit={submitQuickNote}>
                 <AppIcon name="stickyNote" size="sm" />
-                <input
+                <Input
+                  className="quick-note-input"
                   value={noteText}
                   placeholder="Мысль, идея или что заказать"
                   onChange={(event) => setNoteText(event.target.value)}
@@ -493,31 +500,33 @@ function OperationsPage({
                       setIsNoteCategoryOpen(false);
                     }
                   }}>
-                  <button
+                  <Button
                     aria-expanded={isNoteCategoryOpen}
                     className="quick-note-category-trigger"
-                    type="button"
+                    rightIcon="chevronDown"
+                    size="sm"
+                    variant="secondary"
                     onClick={() => setIsNoteCategoryOpen((isOpen) => !isOpen)}>
                     {noteCategory}
-                    <AppIcon name="chevronDown" size="xs" />
-                  </button>
+                  </Button>
                   {isNoteCategoryOpen && (
                     <div className="quick-note-category-menu" role="listbox">
                       {NOTE_CATEGORIES.map((category) => (
-                        <button
+                        <Button
                           aria-selected={noteCategory === category}
                           className={
                             noteCategory === category ? "is-selected" : ""
                           }
                           key={category}
                           role="option"
-                          type="button"
+                          size="sm"
+                          variant="ghost"
                           onClick={() => {
                             setNoteCategory(category);
                             setIsNoteCategoryOpen(false);
                           }}>
                           {category}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   )}
@@ -657,31 +666,34 @@ function OperationsPage({
                     </span>
                   </div>
                   <div className="supply-actions">
-                    <button
+                    <Button
                       className="supply-order-button"
                       disabled={!item.orderUrl}
+                      leftIcon="external"
+                      size="sm"
                       title={
                         item.orderUrl
                           ? "Открыть ссылку на заказ"
                           : "Укажите ссылку в редактировании"
                       }
-                      type="button"
+                      variant="secondary"
                       onClick={() => openSupplyOrderUrl(item.orderUrl)}>
-                      <AppIcon name="external" size="xs" />
                       Заказать
-                    </button>
-                    <button
-                      aria-label="Уменьшить остаток"
-                      type="button"
+                    </Button>
+                    <IconButton
+                      icon="minus"
+                      label="Уменьшить остаток"
+                      size="sm"
+                      variant="secondary"
                       onClick={() => onChangeSupplyStock(item, -1)}>
-                      −
-                    </button>
-                    <button
-                      aria-label="Увеличить остаток"
-                      type="button"
+                    </IconButton>
+                    <IconButton
+                      icon="plus"
+                      label="Увеличить остаток"
+                      size="sm"
+                      variant="secondary"
                       onClick={() => onChangeSupplyStock(item, 1)}>
-                      +
-                    </button>
+                    </IconButton>
                   </div>
                 </article>
               );
