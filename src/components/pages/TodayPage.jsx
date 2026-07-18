@@ -4,6 +4,7 @@ import { buildTodayDashboard } from "../../utils/todayDashboard.js";
 import AppIcon from "../ui/AppIcon.jsx";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
+import IconButton from "../ui/IconButton.jsx";
 import { formatCompactMoney, formatMoney } from "../../utils/formatters.jsx";
 
 const visitStatusLabels = {
@@ -188,13 +189,11 @@ function TodayReferenceBoard({
               </h2>
               <div className="today-schedule-controls">
                 <div className="today-segmented-control" aria-label="Период расписания">
-                  <button className="is-active" type="button">День</button>
-                  <button type="button">Неделя</button>
-                  <button type="button">Месяц</button>
+                  <Button className="is-active" size="sm" variant="ghost">День</Button>
+                  <Button size="sm" variant="ghost">Неделя</Button>
+                  <Button size="sm" variant="ghost">Месяц</Button>
                 </div>
-                <button className="today-icon-button" type="button" aria-label="Ещё">
-                  <AppIcon name="more" size="sm" />
-                </button>
+                <IconButton className="today-icon-button" icon="more" label="Ещё" size="sm" variant="ghost" />
               </div>
             </header>
             <div className="today-visit-timeline">
@@ -250,41 +249,46 @@ function TodayReferenceBoard({
                         {entry.amount ? formatMoney(entry.amount) : "—"}
                       </strong>
                       <div className="today-visit-menu" ref={menuOpen ? openVisitMenuRef : null}>
-                        <button
+                        <IconButton
                           aria-label="Действия с визитом"
-                          type="button"
                           className="today-icon-button"
+                          icon="more"
+                          label="Действия с визитом"
+                          size="sm"
+                          variant="ghost"
                           onClick={(event) => {
                             event.stopPropagation();
                             setOpenVisitMenuId(menuOpen ? null : visitMenuId);
                           }}
-                        >
-                          <AppIcon name="more" size="sm" />
-                        </button>
+                        />
                         {menuOpen ? (
                           <div className="today-menu-popover">
-                            <button
-                              type="button"
+                            <Button
                               className="today-menu-item"
+                              leftIcon="message"
+                              size="sm"
+                              variant="ghost"
                               onClick={(event) => {
                                 event.stopPropagation();
                                 setOpenVisitMenuId(null);
                                 onRemindVisit?.(entry);
                               }}
                             >
-                              <AppIcon name="message" size="xs" /> Написать
-                            </button>
-                            <button
-                              type="button"
+                              Написать
+                            </Button>
+                            <Button
                               className="today-menu-item"
+                              leftIcon="edit"
+                              size="sm"
+                              variant="ghost"
                               onClick={(event) => {
                                 event.stopPropagation();
                                 setOpenVisitMenuId(null);
                                 onEditVisit?.(entry);
                               }}
                             >
-                              <AppIcon name="edit" size="xs" /> Редактировать
-                            </button>
+                              Редактировать
+                            </Button>
                           </div>
                         ) : null}
                       </div>
@@ -335,13 +339,14 @@ function TodayReferenceBoard({
             <header className="today-panel-header">
               <h2>Сотрудники</h2>
               {selectedEmployees.length ? (
-                <button
+                <Button
                   className="today-link-button"
-                  type="button"
+                  size="sm"
+                  variant="link"
                   onClick={() => setSelectedEmployees([])}
                 >
                   Все
-                </button>
+                </Button>
               ) : null}
             </header>
             <div className="today-employee-list">
@@ -471,9 +476,12 @@ function TodayReferenceBoard({
                       <strong className="text-foreground text-xs font-semibold truncate">{client.name}</strong>
                       <small className="text-[10px] text-muted-foreground truncate">{client.service} · {client.master}</small>
                     </div>
-                    <button
+                    <Button
                       className="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded bg-accent/10 hover:bg-accent/20 text-accent font-semibold text-[10px] cursor-pointer transition-colors border-0 shrink-0"
+                      leftIcon="message"
+                      size="sm"
                       type="button"
+                      variant="ghost"
                       onClick={() => {
                         const reviewText = `Cześć ${client.name || "kliencie"}! Dziękujemy za wizytę w NUAR. Będziemy wdzięczni za krótką opinię na Google: ${appSettings?.reviewGoogleUrl || "https://g.page/r/YOUR_GOOGLE_LINK/review"}`;
                         navigator.clipboard.writeText(reviewText);
@@ -494,9 +502,8 @@ function TodayReferenceBoard({
                         }
                       }}
                     >
-                      <AppIcon name="message" size="xs" />
                       {copiedReviewClientId === client.id ? "Скопировано!" : "Запросить"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
