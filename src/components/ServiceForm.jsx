@@ -2,7 +2,7 @@ import {useMemo} from "react";
 import {getRandomServiceColor} from "../utils/serviceColors.js";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import HintIcon, {FieldLabel} from "./HintIcon.jsx";
-import {Button, Field, Input} from "./ui/index.js";
+import {Button, Checkbox, Field, Input} from "./ui/index.js";
 
 const serviceDurations = [30, 60, 75, 90, 120];
 
@@ -10,11 +10,10 @@ function ServiceBufferToggle({defaultChecked, hint, label, name}) {
   return (
     <div className="service-buffer-toggle-row">
       <label className="service-buffer-toggle">
-        <input
+        <Checkbox
           className="service-buffer-toggle-input"
           defaultChecked={defaultChecked}
           name={name}
-          type="checkbox"
         />
         <span aria-hidden="true" className="service-buffer-toggle-box" />
         <span className="service-buffer-toggle-label">{label}</span>
