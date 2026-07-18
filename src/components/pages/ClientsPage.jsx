@@ -874,7 +874,7 @@ function ClientsPage({
             </div>
 
             {activeViewedClient.birthday && (
-              <div className="flex items-center gap-2 p-3 rounded-lg text-amber-700 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 text-xs">
+              <div className="crm-alert crm-alert-warning flex items-center gap-2">
                 <AppIcon name="cake" size="sm" />
                 Дата рождения участвует в уведомлениях CRM.
               </div>

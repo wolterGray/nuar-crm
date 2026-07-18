@@ -33,11 +33,11 @@ function BooksyGmailSyncPanel({
 
   if (!isConfigured) {
     return (
-      <section className="crm-card import-sync-panel import-sync-panel-error border border-red-500/20 bg-red-500/5 rounded-card p-4 flex items-center gap-3.5">
-        <AppIcon className="text-red-400 shrink-0" name="mailCheck" size="md" />
+      <section className="crm-card import-sync-panel import-sync-panel-error crm-alert-panel crm-alert-panel-error">
+        <AppIcon className="crm-alert-icon" name="mailCheck" size="md" />
         <div className="grid gap-0.5">
-          <h2 className="m-0 text-red-200 text-sm font-semibold">Booksy Gmail Sync</h2>
-          <p className="m-0 text-red-300 text-xs">
+          <h2 className="crm-alert-title">Booksy Gmail Sync</h2>
+          <p className="crm-alert-text">
             Для серверной синхронизации нужны переменные Hetzner backend и Google OAuth.
           </p>
         </div>
@@ -71,9 +71,9 @@ function BooksyGmailSyncPanel({
               </small>
             )}
             {connection?.last_sync_error && (
-              <b className="text-red-400 text-[11px] font-semibold mt-1 block">{connection.last_sync_error}</b>
+              <b className="crm-inline-error">{connection.last_sync_error}</b>
             )}
-            {loadError && <b className="text-red-400 text-[11px] font-semibold mt-1 block">{loadError}</b>}
+            {loadError && <b className="crm-inline-error">{loadError}</b>}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -195,7 +195,7 @@ function BooksyGmailSyncPanel({
                           </i>
                         )}
                         {missingText && (
-                          <span className="text-red-400 text-[11px] font-semibold mt-1 block leading-normal">
+                          <span className="crm-inline-error leading-normal">
                             Найден визит из Booksy, но не хватает данных ({missingText}). Внести его в график?
                           </span>
                         )}
@@ -308,7 +308,7 @@ function BooksyGmailSyncPanel({
               <article className="import-sync-error-card p-3.5 border border-border rounded-lg bg-field flex flex-col gap-1 min-w-0" key={item.id}>
                 <strong className="text-text-main text-sm font-semibold truncate block">{item.subject || "Без темы"}</strong>
                 <span className="text-text-muted text-xs block">{item.from_address}</span>
-                <span className="text-red-400 text-xs font-medium block mt-1 leading-relaxed">{item.parse_error}</span>
+                <span className="crm-inline-error text-xs leading-relaxed">{item.parse_error}</span>
               </article>
             ))}
             {parseErrors.length === 0 && (

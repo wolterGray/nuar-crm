@@ -210,7 +210,7 @@ function LoginPage({
               Минимум 12 символов: заглавная и строчная буква, цифра и специальный символ.
             </p>
             {recoveryMessage && (
-              <div className="rounded-control border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs leading-normal text-red-200">
+              <div className="crm-alert crm-alert-error">
                 {recoveryMessage}
               </div>
             )}

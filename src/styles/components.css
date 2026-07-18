@@ -3041,6 +3041,69 @@
   background: var(--button-danger-bg-hover);
 }
 
+.crm-alert {
+  padding: var(--space-3);
+  border: 1px solid var(--alert-border, var(--color-border));
+  border-radius: var(--radius-control);
+  color: var(--alert-text, var(--color-text));
+  background: var(--alert-bg, var(--color-field));
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+.crm-alert-error {
+  --alert-border: color-mix(in srgb, var(--color-error) 28%, transparent);
+  --alert-bg: color-mix(in srgb, var(--color-error) 10%, transparent);
+  --alert-text: color-mix(in srgb, var(--color-error) 42%, var(--color-text));
+}
+
+.crm-alert-warning {
+  --alert-border: color-mix(in srgb, var(--color-warning) 30%, transparent);
+  --alert-bg: color-mix(in srgb, var(--color-warning) 11%, transparent);
+  --alert-text: color-mix(in srgb, var(--color-warning) 48%, var(--color-text));
+}
+
+.crm-alert-panel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--alert-border, var(--color-border));
+  border-radius: var(--radius-card);
+  background: var(--alert-bg, var(--color-card));
+}
+
+.crm-alert-panel-error {
+  --alert-border: color-mix(in srgb, var(--color-error) 24%, transparent);
+  --alert-bg: color-mix(in srgb, var(--color-error) 6%, transparent);
+}
+
+.crm-alert-icon {
+  flex-shrink: 0;
+  color: var(--color-error);
+}
+
+.crm-alert-title {
+  margin: 0;
+  color: color-mix(in srgb, var(--color-error) 38%, var(--color-text));
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.crm-alert-text {
+  margin: 0;
+  color: color-mix(in srgb, var(--color-error) 36%, var(--color-text-muted));
+  font-size: var(--text-sm);
+}
+
+.crm-inline-error {
+  display: block;
+  margin-top: var(--space-1);
+  color: color-mix(in srgb, var(--color-error) 62%, var(--color-text));
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
 .crm-table {
   overflow: hidden;
   border: 1px solid var(--neutral-border);
