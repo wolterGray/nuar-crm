@@ -2523,6 +2523,14 @@ button:focus-visible {
   color: var(--clients-text);
 }
 
+.clients-quality-card button > span {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 2px;
+  text-align: left;
+}
+
 .clients-table-shell {
   width: 100%;
   min-width: 0;
@@ -2737,6 +2745,10 @@ button:focus-visible {
   min-width: 18px;
   color: inherit;
   opacity: 0.82;
+}
+
+.client-view-sheet .client-visit-history-tab > span {
+  display: contents;
 }
 
 .client-loyalty-card {

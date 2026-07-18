@@ -22,6 +22,10 @@ import MobileSheet from "../MobileSheet.jsx";
 import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import AppIcon from "../ui/AppIcon.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
+import Button from "../ui/Button.jsx";
+import IconButton from "../ui/IconButton.jsx";
+import Select from "../ui/Select.jsx";
+import Textarea from "../ui/Textarea.jsx";
 import {LoyaltyCard} from "../LoyaltyCardPreview.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
@@ -51,70 +55,76 @@ function ClientRowActions({
     <div
       className="absolute top-4 right-4 md:relative md:top-auto md:right-auto flex justify-end"
       onClick={(event) => event.stopPropagation()}>
-      <button
+      <IconButton
         ref={triggerRef}
         aria-expanded={isOpen}
-        aria-label="Действия"
         className="clients-row-menu-button inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:bg-accent/10 active:scale-95 transition-all"
-        type="button"
+        icon="moreVertical"
+        label="Действия"
+        size="sm"
+        variant="ghost"
         onClick={() =>
           setOpenClientMenuId(openClientMenuId === client.id ? null : client.id)
-        }>
-        <AppIcon name="moreVertical" size="sm" />
-      </button>
+        }
+      />
 
       <RowActionMenuPortal
         isOpen={isOpen}
         menuRef={menuRef}
         menuStyle={menuStyle}>
         <div className="clients-row-menu">
-          <button
-            type="button"
+          <Button
+            leftIcon="eye"
+            size="sm"
+            variant="ghost"
             onClick={() => {
               setViewedClient(client);
               setVisitHistoryTab("future");
               setOpenClientMenuId(null);
             }}>
-            <AppIcon name="eye" size="xs" />
             Посмотреть
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            leftIcon="message"
+            size="sm"
+            variant="ghost"
             onClick={() => {
               setOpenClientMenuId(null);
               handleMessageClient(client);
             }}>
-            <AppIcon name="message" size="xs" />
             Написать
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            leftIcon="clock"
+            size="sm"
+            variant="ghost"
             onClick={() => {
               setOpenClientMenuId(null);
               handleAddToWaitlist(client);
             }}>
-            <AppIcon name="clock" size="xs" />
             Лист ожидания
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            leftIcon="edit"
+            size="sm"
+            variant="ghost"
             onClick={() => {
               setOpenClientMenuId(null);
               onEditClient?.(client);
             }}>
-            <AppIcon name="edit" size="xs" />
             Редактировать
-          </button>
-          <button
+          </Button>
+          <Button
             className="danger"
-            type="button"
+            leftIcon="trash"
+            size="sm"
+            variant="danger"
             onClick={() => {
               setOpenClientMenuId(null);
               onDeleteClient?.(client);
             }}>
-            <AppIcon name="trash" size="xs" />
             Удалить
-          </button>
+          </Button>
         </div>
       </RowActionMenuPortal>
     </div>
@@ -512,22 +522,24 @@ function ClientsPage({
               onClear={() => setSearch("")}
             />
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              <button
+              <Button
                 className="inline-flex items-center justify-center gap-2 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95 w-full sm:w-auto"
+                leftIcon="barChart"
+                size="sm"
                 style={{ height: '34px', minHeight: '34px' }}
-                type="button"
+                variant="secondary"
                 onClick={() => setShowQuality(!showQuality)}>
-                <AppIcon name="barChart" size="xs" className="text-muted-foreground" />
                 <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
-              </button>
-              <button
+              </Button>
+              <Button
                 className="clients-page-add-button inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover active:scale-95 transition-all text-sm cursor-pointer whitespace-nowrap w-full sm:w-auto"
+                leftIcon="plus"
+                size="sm"
                 style={{ height: '34px', minHeight: '34px' }}
-                type="button"
+                variant="primary"
                 onClick={onAddClient}>
-                <AppIcon name="plus" size="sm" />
                 {isMobile ? "Добавить" : "Добавить клиента"}
-              </button>
+              </Button>
             </div>
           </div>
         }
@@ -640,22 +652,26 @@ function ClientsPage({
                 <div
                   className="flex md:hidden items-center gap-2 mt-2 w-full"
                   onClick={(event) => event.stopPropagation()}>
-                  <button
+                  <Button
                     aria-label={`Написать ${client.name}`}
                     className="client-action-write flex-1 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-lg border font-semibold text-xs transition-all"
+                    leftIcon="message"
+                    size="sm"
                     type="button"
+                    variant="secondary"
                     onClick={() => handleMessageClient(client)}>
-                    <AppIcon name="message" size="xs" />
                     <span>Написать</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     aria-label={`Записать ${client.name}`}
                     className="client-action-record flex-1 inline-flex items-center justify-center gap-1.5 min-h-9 px-3 py-1.5 rounded-lg border font-semibold text-xs transition-all"
+                    leftIcon="calendarPlus"
+                    size="sm"
                     type="button"
+                    variant="primary"
                     onClick={() => handleAddVisit(client)}>
-                    <AppIcon name="calendarPlus" size="xs" />
                     <span>Запись</span>
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Row actions */}
@@ -699,20 +715,20 @@ function ClientsPage({
           onClose={() => setViewedClient(null)}
           footer={
             <div className="grid grid-cols-3 gap-2 w-full">
-              <button
+              <Button
                 className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover transition-colors text-xs cursor-pointer whitespace-nowrap"
-                type="button"
+                leftIcon="calendarPlus"
+                variant="primary"
                 onClick={() => handleAddVisit(activeViewedClient)}>
-                <AppIcon name="calendarPlus" size="xs" />
                 Добавить визит
-              </button>
-              <button
+              </Button>
+              <Button
                 className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-colors text-xs font-semibold"
-                type="button"
+                leftIcon="message"
+                variant="secondary"
                 onClick={() => handleMessageClient(activeViewedClient)}>
-                <AppIcon name="message" size="xs" />
                 Написать
-              </button>
+              </Button>
               <a
                 aria-disabled={!activeViewedClient.phone}
                 className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-colors text-xs font-semibold decoration-none whitespace-nowrap aria-[disabled=true]:opacity-50 aria-[disabled=true]:pointer-events-none"
@@ -867,7 +883,7 @@ function ClientsPage({
             {/* Note */}
             <div className="flex flex-col gap-2">
               <span className="text-xs text-muted-foreground font-semibold">Заметка</span>
-              <textarea
+              <Textarea
                 key={`${activeViewedClient.id}-${activeViewedClient.note || ""}`}
                 className="w-full min-h-20 p-3 rounded-lg border border-border bg-muted text-foreground text-sm resize-y focus:outline-none focus:border-accent focus:bg-card transition-all"
                 defaultValue={activeViewedClient.note || ""}
@@ -893,27 +909,29 @@ function ClientsPage({
                 <b className="flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-full bg-muted text-foreground font-bold">{activeViewedClient.appointments.length}</b>
               </div>
               <div className="client-visit-history-tabs flex justify-center gap-1 p-1 rounded-lg bg-muted">
-                <button
+                <Button
                   className={`client-visit-history-tab flex-1 inline-flex items-center justify-center gap-2 min-h-9 px-3 rounded-md text-xs font-semibold transition-all ${
                     visitHistoryTab === "future" ? "is-active bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-transparent"
                   }`}
-                  type="button"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => setVisitHistoryTab("future")}>
                   Будущие
                   <b className="text-[10px]">{activeViewedClient.upcomingVisitsCount}</b>
-                </button>
-                <button
+                </Button>
+                <Button
                   className={`client-visit-history-tab flex-1 inline-flex items-center justify-center gap-2 min-h-9 px-3 rounded-md text-xs font-semibold transition-all ${
                     visitHistoryTab === "past" ? "is-active bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-transparent"
                   }`}
-                  type="button"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => setVisitHistoryTab("past")}>
                   Прошлые
                   <b className="text-[10px]">
                     {activeViewedClient.appointments.length -
                       activeViewedClient.upcomingVisitsCount}
                   </b>
-                </button>
+                </Button>
               </div>
               <div className="max-h-64 overflow-y-auto border border-border rounded-lg scrollbar-thin select-none">
                 {/* History Header */}
@@ -955,15 +973,16 @@ function ClientsPage({
                         <span data-label="Статус">
                           <b className="font-bold text-muted-foreground">{appointment.status}</b>
                         </span>
-                        <button
+                        <Button
                           className="inline-flex items-center justify-center gap-1 min-h-[26px] px-2 rounded-md border border-border text-foreground hover:bg-accent/5 font-semibold text-[10px] transition-all cursor-pointer whitespace-nowrap w-full md:w-auto"
-                          type="button"
+                          leftIcon="rotateCcw"
+                          size="sm"
+                          variant="secondary"
                           onClick={() =>
                             handleRepeatVisit(activeViewedClient, appointment)
                           }>
-                          <AppIcon name="rotateCcw" size="xs" />
                           Повторить
-                        </button>
+                        </Button>
                       </div>
                     ))}
                   {activeViewedClient.appointments.filter((appointment) =>
@@ -1023,9 +1042,10 @@ function ClientsPage({
           onClose={() => setMessageBuilderClient(null)}
           footer={
             <div className="flex gap-2 w-full">
-              <button
+              <Button
                 className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg bg-accent text-white font-semibold hover:bg-accent-hover transition-colors text-sm cursor-pointer border-0"
-                type="button"
+                leftIcon="message"
+                variant="primary"
                 onClick={() => {
                   navigator.clipboard.writeText(messageText);
                   setCopiedState(true);
@@ -1043,25 +1063,24 @@ function ClientsPage({
                     }
                   }
                 }}>
-                <AppIcon name="message" size="sm" />
                 Открыть Telegram
-              </button>
-              <button
+              </Button>
+              <Button
                 className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-all text-sm font-semibold cursor-pointer bg-transparent"
-                type="button"
+                variant="secondary"
                 onClick={() => {
                   navigator.clipboard.writeText(messageText);
                   setCopiedState(true);
                   setTimeout(() => setCopiedState(false), 2000);
                 }}>
                 {copiedState ? "Скопировано!" : "Скопировать для SMS"}
-              </button>
+              </Button>
             </div>
           }>
           <div className="p-5 space-y-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-muted-foreground text-xs font-semibold">Выберите шаблон</label>
-              <select
+              <Select
                 className="w-full min-h-10 px-3 rounded-lg border border-border bg-surface text-foreground text-sm focus:outline-none focus:border-accent"
                 value={selectedTemplate}
                 onChange={(e) => {
@@ -1073,12 +1092,12 @@ function ClientsPage({
                 <option value="remind">Напоминание о записи</option>
                 <option value="reactivate">Давно не виделись</option>
                 <option value="review">Запрос отзыва</option>
-              </select>
+              </Select>
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label className="text-muted-foreground text-xs font-semibold">Текст сообщения</label>
-              <textarea
+              <Textarea
                 className="w-full h-32 p-3 rounded-lg border border-border bg-surface text-foreground text-sm focus:outline-none focus:border-accent resize-none"
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
@@ -1177,14 +1196,15 @@ function ClientQualityPanel({report, onEditClient, onOpenClient}) {
           {topMissing.length > 0 ? (
             <div className="divide-y divide-border/40 overflow-y-auto max-h-36 pr-0.5">
               {topMissing.map((item) => (
-                <button
+                <Button
                   key={`${item.label}-${item.client.id}`}
                   className="flex flex-col text-left py-1.5 w-full bg-transparent border-0 hover:text-accent group transition-colors cursor-pointer"
-                  type="button"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => onEditClient?.(item.client)}>
                   <strong className="text-xs text-foreground group-hover:text-accent font-semibold truncate w-full">{item.client.name}</strong>
                   <small className="text-[10px] text-muted-foreground truncate w-full">{item.label}</small>
-                </button>
+                </Button>
               ))}
             </div>
           ) : (
@@ -1198,14 +1218,15 @@ function ClientQualityPanel({report, onEditClient, onOpenClient}) {
           {duplicateGroups.length > 0 ? (
             <div className="divide-y divide-border/40 overflow-y-auto max-h-36 pr-0.5">
               {duplicateGroups.map((group) => (
-                <button
+                <Button
                   key={group.key}
                   className="flex flex-col text-left py-1.5 w-full bg-transparent border-0 hover:text-accent group transition-colors cursor-pointer"
-                  type="button"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => onOpenClient(group.clients[0])}>
                   <strong className="text-xs text-foreground group-hover:text-accent font-semibold truncate w-full">{group.clients.map((client) => client.name).join(" / ")}</strong>
                   <small className="text-[10px] text-muted-foreground truncate w-full">{group.clients.length} записи · открыть первую</small>
-                </button>
+                </Button>
               ))}
             </div>
           ) : (
