@@ -21,6 +21,7 @@ import PageHeader from "../PageHeader.jsx";
 import MobileSheet from "../MobileSheet.jsx";
 import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import AppIcon from "../ui/AppIcon.jsx";
+import Badge from "../ui/Badge.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import Button from "../ui/Button.jsx";
 import IconButton from "../ui/IconButton.jsx";
@@ -610,10 +611,10 @@ function ClientsPage({
                   <div className="flex items-center gap-1.5 min-w-0">
                     <strong className="clients-table-name text-foreground font-bold text-sm md:text-base truncate">{client.name}</strong>
                     {(client.visitsCount >= 10 || (client.totalIncome || 0) >= 2000) && (
-                      <span className="client-vip-badge inline-flex items-center justify-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                      <Badge className="client-vip-badge gap-1 shrink-0" size="sm" variant="premium">
                         <AppIcon name="crown" size="xs" />
                         VIP
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <small className="clients-table-phone text-muted-foreground text-xs truncate mt-0.5">{client.phone || "Телефон не указан"}</small>

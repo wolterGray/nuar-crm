@@ -3,7 +3,7 @@ import { getVisitDebt, getVisitTransactionTotal } from "../utils/visits.jsx";
 import { useBreakpoint } from "../hooks/useBreakpoint.js";
 import { useSwipeReveal } from "../hooks/useSwipeReveal.js";
 import { RowActionsMenu } from "./RowActionMenuPortal.jsx";
-import {AppIcon, Button, IconButton} from "./ui/index.js";
+import {AppIcon, Badge, Button, IconButton} from "./ui/index.js";
 
 const statusLabels = {
   scheduled: "Запланирован",
@@ -107,10 +107,10 @@ function VisitMobileCard({
           <div className="flex items-center gap-1.5 min-w-0">
             <strong className="text-zinc-200 text-sm font-semibold truncate">{visit.client}</strong>
             {isVip && (
-              <span className="client-vip-badge inline-flex items-center justify-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+              <Badge className="client-vip-badge gap-1 shrink-0" size="sm" variant="premium">
                 <AppIcon name="crown" size="xs" />
                 VIP
-              </span>
+              </Badge>
             )}
           </div>
           <small className="text-zinc-500 text-xs">{[visit.date, visit.time].filter(Boolean).join(" · ")}</small>
@@ -152,10 +152,10 @@ function VisitMobileCard({
           <div className="flex items-center gap-1.5 min-w-0 mt-0.5">
             <span className="text-zinc-200 text-sm font-bold truncate">{visit.client}</span>
             {isVip && (
-              <span className="client-vip-badge inline-flex items-center justify-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+              <Badge className="client-vip-badge gap-1 shrink-0" size="sm" variant="premium">
                 <AppIcon name="crown" size="xs" />
                 VIP
-              </span>
+              </Badge>
             )}
           </div>
         </div>
