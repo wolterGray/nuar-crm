@@ -11,7 +11,7 @@ import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import Button from "../ui/Button.jsx";
-import {AppIcon, Field, IconButton, Input} from "../ui/index.js";
+import {AppIcon, Field, IconButton, Input, Select} from "../ui/index.js";
 
 function MessageTemplateCard({
   isMobile,
@@ -330,14 +330,14 @@ function MessageTemplatesPage({
 
   const filterFields = (
     <>
-      <select
+      <Select
         value={filters.channel}
         onChange={(event) => setFilter("channel", event.target.value)}>
         <option value="">Все каналы</option>
         <option>SMS</option>
         <option>Email</option>
-      </select>
-      <select
+      </Select>
+      <Select
         value={filters.language}
         onChange={(event) => setFilter("language", event.target.value)}>
         <option value="">Все языки</option>
@@ -345,8 +345,8 @@ function MessageTemplatesPage({
         <option>Польский</option>
         <option>Английский</option>
         <option>Украинский</option>
-      </select>
-      <select
+      </Select>
+      <Select
         value={filters.audience}
         onChange={(event) => setFilter("audience", event.target.value)}>
         <option value="">Все аудитории</option>
@@ -356,8 +356,8 @@ function MessageTemplatesPage({
         <option>Поляки</option>
         <option>Англичане</option>
         <option>Украинцы</option>
-      </select>
-      <select
+      </Select>
+      <Select
         value={filters.purpose}
         onChange={(event) => setFilter("purpose", event.target.value)}>
         <option value="">Все назначения</option>
@@ -366,7 +366,7 @@ function MessageTemplatesPage({
             {meta.label}
           </option>
         ))}
-      </select>
+      </Select>
     </>
   );
 
@@ -546,41 +546,51 @@ function MessageTemplatesPage({
               </datalist>
             </Field>
             <div className="send-channel-control" aria-label="Способ отправки">
-              <button
+              <Button
                 className={sendChannel === "Instagram" ? "active" : ""}
+                leftIcon="external"
+                size="sm"
                 type="button"
+                variant="ghost"
                 onClick={() => setSendChannel("Instagram")}>
-                <AppIcon name="external" size="sm" />
                 Instagram
-              </button>
-              <button
+              </Button>
+              <Button
                 className={sendChannel === "Email" ? "active" : ""}
+                leftIcon="mail"
+                size="sm"
                 type="button"
+                variant="ghost"
                 onClick={() => setSendChannel("Email")}>
-                <AppIcon name="mail" size="sm" />
                 Email
-              </button>
-              <button
+              </Button>
+              <Button
                 className={sendChannel === "SMS" ? "active" : ""}
+                leftIcon="message"
+                size="sm"
                 type="button"
+                variant="ghost"
                 onClick={() => setSendChannel("SMS")}>
-                <AppIcon name="message" size="sm" />
                 SMS
-              </button>
-              <button
+              </Button>
+              <Button
                 className={sendChannel === "Telegram" ? "active" : ""}
+                leftIcon="at"
+                size="sm"
                 type="button"
+                variant="ghost"
                 onClick={() => setSendChannel("Telegram")}>
-                <AppIcon name="at" size="sm" />
                 Telegram
-              </button>
-              <button
+              </Button>
+              <Button
                 className={sendChannel === "WhatsApp" ? "active" : ""}
+                leftIcon="message"
+                size="sm"
                 type="button"
+                variant="ghost"
                 onClick={() => setSendChannel("WhatsApp")}>
-                <AppIcon name="message" size="sm" />
                 WhatsApp
-              </button>
+              </Button>
             </div>
             <div className="send-template-preview">
               <span>Предпросмотр</span>
