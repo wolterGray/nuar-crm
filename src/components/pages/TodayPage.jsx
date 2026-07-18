@@ -4,6 +4,7 @@ import { buildTodayDashboard } from "../../utils/todayDashboard.js";
 import AppIcon from "../ui/AppIcon.jsx";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
+import Checkbox from "../ui/Checkbox";
 import IconButton from "../ui/IconButton.jsx";
 import { formatCompactMoney, formatMoney } from "../../utils/formatters.jsx";
 
@@ -360,7 +361,7 @@ function TodayReferenceBoard({
                       className={`today-employee-option ${checked ? "is-checked" : ""}`}
                       key={employee}
                     >
-                      <input
+                      <Checkbox
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleEmployee(employee)}

@@ -156,15 +156,16 @@ function DraggableTaskRow({children, className, id, task}) {
       id={id}
       ref={setNodeRef}>
       <div className="task-row-content">
-        <button
+        <IconButton
           aria-label={`Переместить задачу: ${task.title}`}
           className="task-drag-handle"
+          icon="grip"
+          size="sm"
           title="Переместить"
-          type="button"
+          variant="ghost"
           {...listeners}
-          {...attributes}>
-          <AppIcon name="grip" size="sm" />
-        </button>
+          {...attributes}
+        />
         {children}
       </div>
     </article>
