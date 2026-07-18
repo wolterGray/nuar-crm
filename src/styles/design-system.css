@@ -845,6 +845,10 @@
   cursor: pointer;
 }
 
+.calendar-reserved-mobile-card > span {
+  display: contents;
+}
+
 .calendar-reserved-mobile-card:hover,
 .calendar-reserved-mobile-card:focus-visible {
   border-color: rgba(251, 146, 60, 0.28);

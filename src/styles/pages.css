@@ -8117,6 +8117,10 @@ button:focus-visible {
   color: inherit;
 }
 
+.client-search-row > span {
+  display: contents;
+}
+
 .client-search-row:hover,
 .client-search-item.active .client-search-row {
   background: rgba(63, 42, 99, 0.06);

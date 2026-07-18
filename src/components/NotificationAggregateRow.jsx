@@ -16,16 +16,17 @@ export default function NotificationAggregateRow({
     <div className="client-alert-aggregate">
       <div className={`client-alert-row client-alert-row-unified priority-${alert.priority}`}>
         <div className="client-alert-row-main">
-          <button
+          <Button
             className="client-alert-aggregate-toggle"
             type="button"
+            variant="ghost"
             onClick={() => setExpanded((current) => !current)}>
             <AppIcon className={expanded ? "open" : ""} name="chevronDown" size="xs" />
             <div className="client-alert-row-copy">
               <strong>{alert.title}</strong>
               <span>{alert.message}</span>
             </div>
-          </button>
+          </Button>
           <span className={`client-alert-priority priority-${alert.priority}`}>
             {alert.children.length}
           </span>

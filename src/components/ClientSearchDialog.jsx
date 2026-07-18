@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import {searchClients} from "../utils/clientSearch.js";
 import MobileSheet from "./MobileSheet.jsx";
-import {AppIcon, IconButton, Input} from "./ui/index.js";
+import {AppIcon, Button, IconButton, Input} from "./ui/index.js";
 
 function ClientSearchDialog({
   clients,
@@ -132,9 +132,10 @@ function ClientSearchDialog({
               }`}
               key={client.id}
               onMouseEnter={() => setActiveIndex(index)}>
-              <button
+              <Button
                 className="client-search-row"
                 type="button"
+                variant="ghost"
                 onClick={() => handleSelect(client)}>
                 <span className="client-search-avatar">
                   <AppIcon name="user" size="sm" />
@@ -149,7 +150,7 @@ function ClientSearchDialog({
                   </small>
                 </span>
                 <AppIcon name="chevronRight" size="sm" />
-              </button>
+              </Button>
               <IconButton
                 className="client-search-message"
                 icon="message"

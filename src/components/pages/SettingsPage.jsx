@@ -18,7 +18,7 @@ import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 import SettingsToggle from "../SettingsToggle.jsx";
-import {AppIcon, Button, Card, Input, PageHeader, Select} from "../ui/index.js";
+import {AppIcon, Button, Card, Input, PageHeader, Select, TabButton, Tabs} from "../ui/index.js";
 
 function SettingsMobileSection({children, isMobile, title}) {
   if (!isMobile) {
@@ -645,20 +645,17 @@ function SettingsPage({
   );
 
   const settingsTabsRow = (
-    <div className="settings-tabs-row flex overflow-x-auto gap-1 border-b border-border pb-px mb-6 scrollbar-none">
+    <Tabs className="settings-tabs-row mb-6">
       {settingsTabs.map((tab) => (
-        <button
-          className={clsx(
-            "px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-text-muted hover:text-text-main transition-colors whitespace-nowrap cursor-pointer focus:outline-none",
-            activeTab === tab.id && "border-accent text-accent"
-          )}
+        <TabButton
+          active={activeTab === tab.id}
           key={tab.id}
           type="button"
           onClick={() => setActiveTab(tab.id)}>
           {isMobile ? tab.mobileLabel : tab.label}
-        </button>
+        </TabButton>
       ))}
-    </div>
+    </Tabs>
   );
 
   const settingsMobileSummary = (

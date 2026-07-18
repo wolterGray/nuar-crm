@@ -1174,6 +1174,10 @@ h1 {
   text-align: left;
 }
 
+.client-alert-aggregate-toggle > span {
+  display: contents;
+}
+
 .client-alert-aggregate-toggle svg {
   flex: 0 0 auto;
   margin-top: 2px;

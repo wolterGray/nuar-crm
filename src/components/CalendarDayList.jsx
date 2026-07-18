@@ -65,10 +65,11 @@ function CalendarDayList({
         />
       ))}
       {reservedEntries.map((entry) => (
-        <button
+        <Button
           className="calendar-reserved-mobile-card"
           key={entry.id}
           type="button"
+          variant="ghost"
           onClick={() => onViewReserved?.(entry)}
         >
           <div className="flex justify-between items-start w-full gap-4">
@@ -81,7 +82,7 @@ function CalendarDayList({
           <div className="flex items-center gap-1.5 text-zinc-500 text-xs">
             <span>Зарезервировано</span>
           </div>
-        </button>
+        </Button>
       ))}
     </section>
   );
