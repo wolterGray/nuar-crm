@@ -4638,6 +4638,156 @@
   background: var(--color-primary);
 }
 
+.calendar-entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  color: var(--color-text);
+}
+
+.calendar-kind-switch {
+  display: flex;
+  width: 100%;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-field);
+}
+
+.calendar-kind-option {
+  flex: 1;
+  justify-content: center;
+  min-height: 34px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.calendar-kind-option:not(.is-active) {
+  color: var(--color-text-muted);
+}
+
+.calendar-kind-option:not(.is-active):hover {
+  color: var(--color-text);
+}
+
+.calendar-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--color-field) 70%, transparent);
+}
+
+.calendar-form-legend {
+  padding: 0 var(--space-2);
+  color: var(--color-text-faint);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.calendar-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.calendar-info-card {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  background: var(--color-field);
+  font-size: var(--text-sm);
+}
+
+.calendar-info-card-error {
+  border-color: color-mix(in srgb, var(--color-error) 26%, transparent);
+  background: color-mix(in srgb, var(--color-error) 7%, transparent);
+}
+
+.calendar-info-card-title {
+  color: var(--color-text);
+}
+
+.calendar-info-card-text {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+.font-token-error {
+  color: color-mix(in srgb, var(--color-error) 62%, var(--color-text));
+}
+
+.font-token-warning {
+  color: color-mix(in srgb, var(--color-warning) 62%, var(--color-text));
+}
+
+.calendar-field-error {
+  margin-top: var(--space-1);
+  color: color-mix(in srgb, var(--color-error) 68%, var(--color-text));
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.calendar-pricing-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-field);
+  font-size: var(--text-sm);
+}
+
+.calendar-pricing-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.calendar-pricing-table tr {
+  height: 32px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.calendar-pricing-table tr:last-child {
+  border-bottom: 0;
+}
+
+.calendar-pricing-table th {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.calendar-pricing-table td {
+  color: var(--color-text);
+  text-align: right;
+}
+
+.calendar-pricing-total {
+  height: 36px;
+}
+
+.calendar-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-soft);
+}
+
 .row-action-menu-item {
   justify-content: flex-start;
   border-color: transparent;
