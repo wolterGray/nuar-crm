@@ -3,7 +3,7 @@ import {normalizeCalendarEntryDate} from "../../utils/dateUtils.js";
 import PageHeader from "../PageHeader.jsx";
 import CalendarDayList from "../CalendarDayList.jsx";
 import MobileSheet from "../MobileSheet.jsx";
-import {AppIcon, Button} from "../ui/index.js";
+import {AppIcon, Button, IconButton} from "../ui/index.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {isMobileViewport} from "../../constants/breakpoints.js";
 import {
@@ -554,85 +554,84 @@ return (
         actions={
           <div className="nuar-calendar-actions flex items-center gap-2">
             <div className="nuar-calendar-date-nav flex items-center gap-1.5">
-              <button
-                aria-label="Предыдущий день"
-                className="grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
-                type="button"
+              <IconButton
+                className="nuar-calendar-nav-button"
+                icon="chevronLeft"
+                label="Предыдущий день"
+                size="md"
+                variant="outline"
                 onClick={() => selectCalendarDate(shiftDate(selectedDate, -1))}
-              >
-                <AppIcon name="chevronLeft" size="sm" />
-              </button>
+              />
               <span className="nuar-calendar-date-display">
                 {toDisplayDate(selectedDate)}
               </span>
-              <button
-                aria-label="Следующий день"
-                className="grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
-                type="button"
+              <IconButton
+                className="nuar-calendar-nav-button"
+                icon="chevronRight"
+                label="Следующий день"
+                size="md"
+                variant="outline"
                 onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}
-              >
-                <AppIcon name="chevronRight" size="sm" />
-              </button>
+              />
             </div>
             {!isToday && !isMobile && (
-              <button
-                className="inline-flex items-center min-h-[38px] px-4 py-1.5 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-350 bg-zinc-900/50 hover:bg-zinc-800 cursor-pointer"
-                type="button"
+              <Button
+                className="nuar-calendar-today-button"
+                size="sm"
+                variant="outline"
                 onClick={() => selectCalendarDate(getTodayInput())}
               >
                 Сегодня
-              </button>
+              </Button>
             )}
             {!remindersVisible && !showDayList && (
-              <button
-                aria-label="Открыть ленту дня"
-                className="grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 bg-zinc-900/50 hover:bg-zinc-800 cursor-pointer"
-                title="Открыть ленту дня"
-                type="button"
+              <IconButton
+                className="nuar-calendar-feed-button"
+                icon="chevronLeft"
+                label="Открыть ленту дня"
+                size="md"
+                variant="outline"
                 onClick={() => setRemindersVisible(true)}
-              >
-                <AppIcon name="chevronLeft" size="sm" />
-              </button>
+              />
             )}
             {isMobile && (
-              <button
-                aria-label={showDayList ? "Показать сетку" : "Показать список"}
+              <IconButton
                 className={`grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 bg-zinc-900/50 hover:bg-zinc-800 cursor-pointer ${
                   overlayOpen ? "hidden" : ""
                 }`}
-                title={showDayList ? "Сетка" : "Список"}
-                type="button"
+                icon={showDayList ? "layoutGrid" : "list"}
+                label={showDayList ? "Показать сетку" : "Показать список"}
+                size="md"
+                variant="outline"
                 onClick={() =>
                   setMobileCalendarView((current) => (current === "list" ? "grid" : "list"))
                 }
-              >
-                <AppIcon name={showDayList ? "layoutGrid" : "list"} size="md" />
-              </button>
+              />
             )}
             {!isMobile && (
-              <button
-                aria-label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
+              <IconButton
                 className={`grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 bg-zinc-900/50 hover:bg-zinc-850 cursor-pointer ${
                   overlayOpen ? "hidden" : ""
                 }`}
-                title="Лента дня"
-                type="button"
+                icon={remindersVisible ? "x" : "clipboardCheck"}
+                label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
+                size="md"
+                variant="outline"
                 onClick={() => setRemindersVisible((current) => !current)}
-              >
-                <AppIcon name={remindersVisible ? "x" : "clipboardCheck"} size="md" />
-              </button>
+              />
             )}
             {!isMobile && (
-              <button
+              <Button
                 className={`inline-flex items-center gap-1.5 min-h-[38px] px-4 py-1.5 border border-red-800 rounded-lg text-xs font-semibold text-white bg-red-800 hover:bg-red-900 cursor-pointer transition-colors ${
                   overlayOpen || remindersVisible ? "hidden" : ""
                 }`}
-                type="button"
+                leftIcon="plus"
+                size="sm"
+                variant="primary"
                 onClick={() => onAdd({date: selectedDate})}
               >
-                <AppIcon name="plus" size="sm" />
                 Добавить
-              </button>
+              </Button>
             )}
           </div>
         }
@@ -681,15 +680,16 @@ return (
       </div>
 
       {isMobile && !isToday && (
-        <button
+        <Button
           className={`fixed bottom-16 left-1/2 z-40 -translate-x-1/2 px-4 py-2 border border-zinc-800 rounded-full text-xs font-semibold text-zinc-200 bg-zinc-900 shadow-lg cursor-pointer ${
             overlayOpen ? "hidden" : ""
           }`}
-          type="button"
+          size="sm"
+          variant="subtle"
           onClick={() => selectCalendarDate(getTodayInput())}
         >
           Сегодня
-        </button>
+        </Button>
       )}
 
       <div
@@ -965,78 +965,73 @@ return (
                               )}
                             </div>
                             <div className="nuar-calendar-entry-menu absolute top-1 right-1 opacity-0 hover:opacity-100 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex flex-col gap-1 z-10">
-                              <button
-                                aria-label="Действия записи"
+                              <IconButton
                                 className="grid w-5.5 h-5.5 place-items-center rounded bg-zinc-950/80 hover:bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 cursor-pointer"
-                                title="Действия"
-                                type="button"
+                                icon="moreVertical"
+                                label="Действия записи"
+                                size="sm"
+                                variant="outline"
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   setOpenEntryMenuId((current) =>
                                     current === entry.id ? null : entry.id,
                                   );
                                 }}
-                              >
-                                <AppIcon name="moreVertical" size="xs" />
-                              </button>
+                              />
                               {openEntryMenuId === entry.id && (
                                 <div className="absolute right-0 top-6 z-20 grid min-w-[132px] p-1 border border-zinc-800 rounded-lg bg-zinc-950 shadow-xl">
                                   {entry.kind === "visit" && activeVisit && (
-                                    <button
-                                      aria-label="Напомнить клиенту"
+                                    <Button
                                       className="flex items-center gap-2 h-7 px-2 text-[10px] text-zinc-350 hover:text-white hover:bg-zinc-900 rounded-md cursor-pointer text-left"
-                                      title="Напомнить"
-                                      type="button"
+                                      leftIcon="bellRing"
+                                      size="sm"
+                                      variant="ghost"
                                       onClick={(event) => {
                                         event.stopPropagation();
                                         onRemind(entry);
                                       }}
                                     >
-                                      <AppIcon name="bellRing" size="xs" />
                                       Напомнить
-                                    </button>
+                                    </Button>
                                   )}
                                   {activeVisit && (
-                                    <button
-                                      aria-label="Отменить визит"
+                                    <Button
                                       className="flex items-center gap-2 h-7 px-2 text-[10px] text-rose-400 hover:bg-rose-500/10 rounded-md cursor-pointer text-left"
-                                      title="Отменить"
-                                      type="button"
+                                      leftIcon="ban"
+                                      size="sm"
+                                      variant="ghost"
                                       onClick={(event) => {
                                         event.stopPropagation();
                                         onStatus(entry, "cancelled");
                                       }}
                                     >
-                                      <AppIcon name="ban" size="xs" />
                                       Отменить
-                                    </button>
+                                    </Button>
                                   )}
-                                  <button
-                                    aria-label="Редактировать"
+                                  <Button
                                     className="flex items-center gap-2 h-7 px-2 text-[10px] text-zinc-350 hover:text-white hover:bg-zinc-900 rounded-md cursor-pointer text-left"
-                                    title="Редактировать"
-                                    type="button"
+                                    leftIcon="edit"
+                                    size="sm"
+                                    variant="ghost"
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       onEdit(entry);
                                     }}
                                   >
-                                    <AppIcon name="edit" size="xs" />
                                     Редактировать
-                                  </button>
-                                  <button
-                                    aria-label="Удалить"
+                                  </Button>
+                                  <Button
                                     className="flex items-center gap-2 h-7 px-2 text-[10px] text-red-400 hover:bg-red-500/10 rounded-md cursor-pointer text-left"
-                                    title="Удалить"
-                                    type="button"
+                                    leftIcon="trash"
+                                    size="sm"
+                                    variant="ghost"
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       onDelete(entry);
                                     }}
                                   >
-                                    <AppIcon name="trash" size="xs" />
                                     Удалить
-                                  </button>
+                                  </Button>
                                 </div>
                               )}
                             </div>
@@ -1165,15 +1160,14 @@ return (
                 <h2 className="text-zinc-100 text-sm font-bold tracking-tight">Лента дня</h2>
                 <p className="text-2xs text-zinc-500 mt-0.5">{toDisplayDate(selectedDate)}</p>
               </div>
-              <button
-                aria-label="Скрыть ленту дня"
+              <IconButton
                 className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 cursor-pointer"
-                title="Скрыть ленту дня"
-                type="button"
+                icon="chevronRight"
+                label="Скрыть ленту дня"
+                size="sm"
+                variant="outline"
                 onClick={() => setRemindersVisible(false)}
-              >
-                <AppIcon name="chevronRight" size="sm" />
-              </button>
+              />
             </div>
             <div className="flex flex-wrap gap-1.5">
               <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400 font-semibold">
@@ -1187,24 +1181,26 @@ return (
               </span>
             </div>
             <div className="flex p-0.5 mt-1 rounded-lg bg-zinc-950 border border-zinc-850 w-full">
-              <button
+              <Button
                 className={`flex-1 py-1 text-2xs font-semibold text-center rounded-md cursor-pointer ${
                   reminderFilter === "active" ? "bg-zinc-850 text-white" : "text-zinc-500 hover:text-zinc-300"
                 }`}
-                type="button"
+                size="sm"
+                variant="ghost"
                 onClick={() => setReminderFilter("active")}
               >
                 Активные
-              </button>
-              <button
+              </Button>
+              <Button
                 className={`flex-1 py-1 text-2xs font-semibold text-center rounded-md cursor-pointer ${
                   reminderFilter === "all" ? "bg-zinc-850 text-white" : "text-zinc-500 hover:text-zinc-300"
                 }`}
-                type="button"
+                size="sm"
+                variant="ghost"
                 onClick={() => setReminderFilter("all")}
               >
                 Все
-              </button>
+              </Button>
             </div>
             <div className="flex flex-col gap-2 mt-2">
               {visibleReminderEntries.map((entry) => {
@@ -1240,52 +1236,55 @@ return (
                       <span>{activeVisit ? statusLabels[entry.status] || statusLabels.scheduled : statusLabels[entry.status] || "Окончен"}</span>
                     </div>
                     <div className="nuar-calendar-reminder-menu">
-                      <button
-                        aria-label="Действия визита"
-                        type="button"
+                      <IconButton
+                        icon="moreVertical"
+                        label="Действия визита"
+                        size="sm"
+                        variant="ghost"
                         onClick={() =>
                           setOpenReminderMenuId((current) =>
                             current === entry.id ? null : entry.id,
                           )
                         }
-                      >
-                        <AppIcon name="moreVertical" size="xs" />
-                      </button>
+                      />
                       {openReminderMenuId === entry.id && (
                         <div className="nuar-calendar-reminder-popover">
                           {activeVisit && (
-                            <button
-                              type="button"
+                            <Button
+                              leftIcon="message"
+                              size="sm"
+                              variant="ghost"
                               onClick={() => {
                                 setOpenReminderMenuId(null);
                                 onRemind(entry);
                               }}
                             >
-                              <AppIcon name="message" size="xs" />
                               Напомнить
-                            </button>
+                            </Button>
                           )}
-                          <button
-                            type="button"
+                          <Button
+                            leftIcon="edit"
+                            size="sm"
+                            variant="ghost"
                             onClick={() => {
                               setOpenReminderMenuId(null);
                               onEdit(entry);
                             }}
                           >
-                            <AppIcon name="edit" size="xs" />
                             Редактировать
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             className="is-danger"
-                            type="button"
+                            leftIcon="trash"
+                            size="sm"
+                            variant="ghost"
                             onClick={() => {
                               setOpenReminderMenuId(null);
                               onDelete(entry);
                             }}
                           >
-                            <AppIcon name="trash" size="xs" />
                             Удалить
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -1319,34 +1318,34 @@ return (
             role="dialog"
             onClick={(event) => event.stopPropagation()}
           >
-            <button
-              type="button"
+            <Button
               className="flex items-center gap-3.5 h-[68px] px-5 border-b border-zinc-800/60 bg-transparent text-left cursor-pointer hover:bg-zinc-850/40 text-zinc-200"
+              leftIcon={<AppIcon name="calendarPlus" size="md" className="text-red-400" />}
+              variant="ghost"
               onClick={() => {
                 onAdd({...pendingSlot, kind: "visit"});
                 setPendingSlot(null);
               }}
             >
-              <AppIcon name="calendarPlus" size="md" className="text-red-400" />
               <span className="grid gap-0.5">
                 <strong className="text-sm font-bold text-zinc-100">Новый визит</strong>
                 <small className="text-zinc-500 text-xs font-medium">Записать клиента</small>
               </span>
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               className="flex items-center gap-3.5 h-[68px] px-5 bg-transparent text-left cursor-pointer hover:bg-zinc-850/40 text-zinc-200"
+              leftIcon={<AppIcon name="ban" size="md" className="text-zinc-400" />}
+              variant="ghost"
               onClick={() => {
                 onAdd({...pendingSlot, kind: "reserved"});
                 setPendingSlot(null);
               }}
             >
-              <AppIcon name="ban" size="md" className="text-zinc-400" />
               <span className="grid gap-0.5">
                 <strong className="text-sm font-bold text-zinc-100">Зарезервировать время</strong>
                 <small className="text-zinc-500 text-xs font-medium">Закрыть слот без клиента</small>
               </span>
-            </button>
+            </Button>
           </section>
         </div>
       )}
