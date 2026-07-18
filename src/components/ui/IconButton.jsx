@@ -26,6 +26,8 @@ const iconSizes = {
 
 const IconButton = forwardRef(
   ({
+    badge,
+    badgeClassName,
     className,
     disabled,
     icon = "more",
@@ -52,6 +54,9 @@ const IconButton = forwardRef(
         size={iconSizes[size] ?? "md"}
         spin={loading}
       />
+      {badge ? (
+        <span className={clsx(styles.badge, badgeClassName)}>{badge}</span>
+      ) : null}
     </button>
   ),
 );

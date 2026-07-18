@@ -4,7 +4,7 @@ import {createPortal} from "react-dom";
 import {ALERT_GROUP_LABELS, groupAlerts} from "../utils/alertCenter.js";
 import NotificationAggregateRow from "./NotificationAggregateRow.jsx";
 import NotificationAlertRow from "./NotificationAlertRow.jsx";
-import {AppIcon, Button} from "./ui/index.js";
+import {AppIcon, Button, IconButton} from "./ui/index.js";
 
 const POPOVER_WIDTH = 360;
 const POPOVER_GAP = 8;
@@ -257,26 +257,24 @@ export default function NotificationDrawer({
       className="page-header-actions"
       onClick={(event) => event.stopPropagation()}>
       <div className="client-alert-control">
-        <button
+        <IconButton
           ref={buttonRef}
           aria-expanded={isOpen}
-          aria-label={
+          badge={urgentAlertsCount > 0 ? urgentAlertsCount : totalAlertsCount > 0 ? totalAlertsCount : null}
+          badgeClassName={urgentAlertsCount > 0 ? undefined : "client-alert-button-info"}
+          className="client-alert-button notification-trigger"
+          icon="bell"
+          label={
             urgentAlertsCount > 0
               ? `Уведомления: ${urgentAlertsCount} срочных`
               : totalAlertsCount > 0
                 ? `Уведомления: ${totalAlertsCount}`
                 : "Центр уведомлений"
           }
-          className="client-alert-button notification-trigger"
-          type="button"
-          onClick={onToggleOpen}>
-          <AppIcon name="bell" size="md" />
-          {urgentAlertsCount > 0 ? (
-            <b>{urgentAlertsCount}</b>
-          ) : totalAlertsCount > 0 ? (
-            <b className="client-alert-button-info">{totalAlertsCount}</b>
-          ) : null}
-        </button>
+          size="md"
+          variant="subtle"
+          onClick={onToggleOpen}
+        />
         {typeof document !== "undefined"
           ? createPortal(popover, document.body)
           : null}

@@ -1,4 +1,5 @@
 .button {
+  position: relative;
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
@@ -93,4 +94,22 @@
 .button:disabled {
   cursor: not-allowed;
   opacity: var(--button-disabled-opacity, 0.7);
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  color: var(--color-primary-text);
+  background: var(--color-primary);
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--color-bg);
 }
