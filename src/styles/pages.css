@@ -8169,11 +8169,18 @@ button:focus-visible {
 .client-search-footer {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px 14px;
   padding: 12px 16px 16px;
   border-top: 1px solid rgba(17, 19, 24, 0.08);
   color: #667085;
   font-size: 11px;
+}
+
+.client-search-footer > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .client-search-trigger {

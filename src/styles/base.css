@@ -1519,6 +1519,9 @@ h2 {
 }
 
 .table-sort-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: #a0a4aa;
   font-size: 10px;
   line-height: 1;

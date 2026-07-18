@@ -67,7 +67,7 @@ function SystemScreen({
         </div>
 
         <div className="flex flex-col items-center text-center gap-4 py-4">
-          <span className={`grid w-14 h-14 place-items-center rounded-full bg-border-soft ${mode === "error" ? "text-red-400 bg-red-500/10" : "text-accent bg-accent/10"}`}>
+          <span className={`grid w-14 h-14 place-items-center rounded-full ${mode === "error" ? "text-accentError bg-accentError/10" : "text-accent bg-accent/10"}`}>
             <AppIcon name={iconName} size="lg" spin={mode === "loading"} />
           </span>
           <div>
