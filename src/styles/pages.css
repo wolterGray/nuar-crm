@@ -9663,6 +9663,10 @@ button:focus-visible {
   text-align: left;
 }
 
+.day-close-history-button > span {
+  display: contents;
+}
+
 .day-close-history button small {
   color: #6f737b;
 }

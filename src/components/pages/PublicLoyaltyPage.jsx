@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {fetchPublicLoyaltyCard} from "../../api/loyalty.js";
 import LoyaltyQrCode from "../LoyaltyQrCode.jsx";
-import {AppIcon} from "../ui/index.js";
+import {AppIcon, Button} from "../ui/index.js";
 
 const stringsByLanguage = {
   en: {
@@ -166,10 +166,14 @@ function PublicLoyaltyPage() {
                 {strings.booking}
                 <AppIcon name="external" size="sm" />
               </a>
-              <button type="button" onClick={copyLink}>
-                <AppIcon name="copy" size="sm" />
+              <Button
+                leftIcon="copy"
+                size="lg"
+                type="button"
+                variant="ghost"
+                onClick={copyLink}>
                 Kopiuj link
-              </button>
+              </Button>
             </div>
           </>
         )}

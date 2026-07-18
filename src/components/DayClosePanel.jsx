@@ -286,11 +286,15 @@ function DayClosePanel({
           <ul>
             {recentRecords.map((record) => (
               <li key={record.id}>
-                <button type="button" onClick={() => setSelectedDate(record.date)}>
+                <Button
+                  className="day-close-history-button"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setSelectedDate(record.date)}>
                   <span>{formatDayCloseLabel(record.date)}</span>
                   <b>{formatDayCloseVariance(record.variance)}</b>
                   <small>{formatMoney(record.journal?.receivedRevenue ?? 0)}</small>
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

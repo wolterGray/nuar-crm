@@ -126,22 +126,28 @@ function ImportMobileFilterSelect({label, value, options, onChange}) {
   return (
     <div className="import-mobile-filter-select">
       <span>{label}</span>
-      <button
+      <Button
         aria-expanded={isOpen}
+        className="import-mobile-filter-trigger"
+        size="sm"
         type="button"
+        variant="ghost"
         onClick={() => setIsOpen((current) => !current)}>
         {selectedOption?.label}
-      </button>
+      </Button>
       {isOpen && (
         <div className="import-mobile-filter-options">
           {options.map((option) => (
-            <button
+            <Button
               aria-current={value === option.value ? "true" : undefined}
+              className="import-mobile-filter-option"
               key={option.value}
+              size="sm"
               type="button"
+              variant="ghost"
               onClick={() => handleSelect(option.value)}>
               {option.label}
-            </button>
+            </Button>
           ))}
         </div>
       )}
