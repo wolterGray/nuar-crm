@@ -107,8 +107,9 @@ function VisitMobileCard({
           <div className="flex items-center gap-1.5 min-w-0">
             <strong className="text-zinc-200 text-sm font-semibold truncate">{visit.client}</strong>
             {isVip && (
-              <span className="client-vip-badge inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
-                👑 VIP
+              <span className="client-vip-badge inline-flex items-center justify-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                <AppIcon name="crown" size="xs" />
+                VIP
               </span>
             )}
           </div>
@@ -151,8 +152,9 @@ function VisitMobileCard({
           <div className="flex items-center gap-1.5 min-w-0 mt-0.5">
             <span className="text-zinc-200 text-sm font-bold truncate">{visit.client}</span>
             {isVip && (
-              <span className="client-vip-badge inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
-                👑 VIP
+              <span className="client-vip-badge inline-flex items-center justify-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                <AppIcon name="crown" size="xs" />
+                VIP
               </span>
             )}
           </div>

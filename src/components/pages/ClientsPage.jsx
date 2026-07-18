@@ -610,8 +610,9 @@ function ClientsPage({
                   <div className="flex items-center gap-1.5 min-w-0">
                     <strong className="clients-table-name text-foreground font-bold text-sm md:text-base truncate">{client.name}</strong>
                     {(client.visitsCount >= 10 || (client.totalIncome || 0) >= 2000) && (
-                      <span className="client-vip-badge inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
-                        👑 VIP
+                      <span className="client-vip-badge inline-flex items-center justify-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                        <AppIcon name="crown" size="xs" />
+                        VIP
                       </span>
                     )}
                   </div>
@@ -708,7 +709,7 @@ function ClientsPage({
           title={
             activeViewedClient.name +
             (activeViewedClient.visitsCount >= 10 || (activeViewedClient.totalIncome || 0) >= 2000
-              ? " 👑 VIP"
+              ? " VIP"
               : "")
           }
           description="Карточка клиента"

@@ -311,7 +311,7 @@ function TodayReferenceBoard({
           <section className="today-panel today-side-panel today-next-panel">
             <header className="today-panel-header">
               <h2>{selectedVisit ? "Выбранный визит" : "Следующий визит"}</h2>
-              <span>→</span>
+              <AppIcon name="chevronRight" size="sm" />
             </header>
             {nextVisit ? (
               <div className={`today-next-visit ${nextVisitTone}`}>
