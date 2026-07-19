@@ -7,33 +7,33 @@
 }
 
 .theme-dark .statistics-attention-item.danger {
-  background: rgba(201, 72, 60, 0.18);
+  background: color-mix(in srgb, var(--color-danger, var(--accent-color, #b91c1c)) 18%, transparent);
 }
 
 .theme-dark .statistics-attention-item.warning {
-  background: rgba(208, 122, 18, 0.18);
+  background: color-mix(in srgb, var(--color-warning, #d07a12) 18%, transparent);
 }
 
 .theme-dark .statistics-attention-item.good {
-  background: rgba(36, 138, 79, 0.18);
+  background: color-mix(in srgb, var(--color-success, #248a4f) 18%, transparent);
 }
 
 .theme-dark .statistics-details-panel summary {
-  color: #f8fbff;
+  color: var(--app-text-main, #f8fbff);
 }
 
 .theme-dark .statistics-details-panel summary small {
-  color: #b3bdcb;
+  color: var(--app-text-muted, #b3bdcb);
 }
 
 .theme-dark .statistics-details-panel summary::after {
   border-color: var(--app-window-border);
-  color: #b3bdcb;
+  color: var(--app-text-muted, #b3bdcb);
 }
 
 .theme-dark .percent-ring.dynamic-payment-ring {
   background:
-    radial-gradient(circle, #1d222d 0 47%, transparent 48%),
+    radial-gradient(circle, var(--app-card-bg, #1d222d) 0 47%, transparent 48%),
     var(--payment-ring-gradient);
 }
 
@@ -44,7 +44,7 @@
 }
 
 .message-template-hint {
-  color: #6f737b;
+  color: var(--text-soft, #6f737b);
 }
 
 .message-templates-page {
@@ -188,8 +188,8 @@
 .theme-dark .message-templates-page .message-template-card:hover,
 .theme-light .message-templates-page .message-template-card:hover,
 .message-templates-page .message-template-card:hover {
-  border-color: color-mix(in srgb, var(--templates-border) 72%, #ffffff);
-  background: color-mix(in srgb, var(--templates-panel) 92%, #ffffff);
+  border-color: color-mix(in srgb, var(--templates-border) 72%, var(--templates-text, #ffffff));
+  background: color-mix(in srgb, var(--templates-panel) 92%, var(--templates-text, #ffffff));
 }
 
 .message-templates-page .message-template-card-header {
@@ -265,7 +265,7 @@
 .message-templates-page .template-send-button:hover,
 .message-templates-page .template-delete-button:hover {
   color: var(--templates-text);
-  background: rgba(255, 255, 255, 0.045);
+  background: color-mix(in srgb, var(--templates-text, #ffffff) 4.5%, transparent);
 }
 
 .message-templates-page .template-send-button,
@@ -302,7 +302,7 @@
 
 .message-templates-page .preferred-message-client button:hover {
   color: var(--templates-text);
-  background: rgba(255, 255, 255, 0.045);
+  background: color-mix(in srgb, var(--templates-text, #ffffff) 4.5%, transparent);
 }
 
 .message-templates-empty {
@@ -339,7 +339,7 @@
 
 .send-template-modal .modal-header p {
   margin-top: 4px;
-  color: #6f737b;
+  color: var(--text-soft, #6f737b);
   font-size: 13px;
 }
 
@@ -373,12 +373,12 @@
 
 .send-channel-control button.active {
   color: var(--templates-text, #f2f3f7);
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--templates-text, #ffffff) 6%, transparent);
   box-shadow: none;
 }
 
 .send-template-preview span {
-  color: #6f737b;
+  color: var(--text-soft, #6f737b);
   font-size: 12px;
 }
 
@@ -420,16 +420,16 @@
 }
 
 .theme-dark .send-channel-control button {
-  color: #aab5c4;
+  color: var(--templates-muted, #aab5c4);
 }
 
 .theme-dark .send-channel-control button.active {
   color: var(--templates-text, #f2f3f7);
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--templates-text, #ffffff) 6%, transparent);
 }
 
 .theme-dark .client-alert-actions button {
-  color: #d5dfec;
+  color: var(--app-text-muted, #d5dfec);
   background: var(--app-window-bg);
   border-color: var(--app-window-border);
 }
@@ -493,8 +493,8 @@
 }
 
 .import-sync-panel-error {
-  border-color: rgba(248, 113, 113, 0.24);
-  background: rgba(248, 113, 113, 0.07);
+  border-color: color-mix(in srgb, var(--color-danger, var(--import-accent, #b91c1c)) 24%, transparent);
+  background: color-mix(in srgb, var(--color-danger, var(--import-accent, #b91c1c)) 7%, transparent);
 }
 
 .import-sync-icon,
@@ -648,7 +648,7 @@
 .import-filter-select:hover,
 .import-filter-select:focus {
   color: var(--import-text);
-  border-color: color-mix(in srgb, var(--import-border) 72%, #ffffff);
+  border-color: color-mix(in srgb, var(--import-border) 72%, var(--import-text, #ffffff));
 }
 
 .import-documents-grid {
@@ -671,8 +671,8 @@
 }
 
 .import-document-card:hover {
-  border-color: color-mix(in srgb, var(--import-border) 72%, #ffffff);
-  background: color-mix(in srgb, var(--import-panel) 92%, #ffffff);
+  border-color: color-mix(in srgb, var(--import-border) 72%, var(--import-text, #ffffff));
+  background: color-mix(in srgb, var(--import-panel) 92%, var(--import-text, #ffffff));
 }
 
 .import-document-card strong {
@@ -755,13 +755,13 @@
 
 .import-document-action:hover {
   color: var(--import-text);
-  background: rgba(255, 255, 255, 0.045);
+  background: color-mix(in srgb, var(--import-text, #ffffff) 4.5%, transparent);
 }
 
 .import-document-delete:hover {
-  color: #fca5a5;
-  border-color: rgba(248, 113, 113, 0.24);
-  background: rgba(248, 113, 113, 0.08);
+  color: color-mix(in srgb, var(--color-danger, var(--import-accent, #b91c1c)) 42%, var(--import-text, #ffffff));
+  border-color: color-mix(in srgb, var(--color-danger, var(--import-accent, #b91c1c)) 24%, transparent);
+  background: color-mix(in srgb, var(--color-danger, var(--import-accent, #b91c1c)) 8%, transparent);
 }
 
 .import-page :is(input, select, textarea) {
