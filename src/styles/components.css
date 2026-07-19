@@ -3705,6 +3705,14 @@
 .nuar-calendar {
   --calendar-accent: var(--accent-color, #b91c1c);
   --calendar-accent-hover: var(--accent-hover, #991b1b);
+  --calendar-border: var(--app-window-border, rgba(255, 255, 255, 0.08));
+  --calendar-border-soft: var(--app-card-border, rgba(255, 255, 255, 0.055));
+  --calendar-danger-soft: color-mix(in srgb, var(--calendar-accent) 12%, transparent);
+  --calendar-faint: var(--color-text-faint, #6f7785);
+  --calendar-hover-bg: color-mix(in srgb, var(--app-text-main, #ffffff) 4.5%, transparent);
+  --calendar-muted: var(--color-text-muted, #a7afbd);
+  --calendar-text: var(--color-text, #f4f7fa);
+  --calendar-text-on-accent: var(--button-primary-text, #ffffff);
 
   height: 100%;
   max-height: 100%;
@@ -3718,20 +3726,20 @@
   min-height: 58px;
   margin: 0;
   padding: 0 0 14px;
-  border-color: rgba(255, 255, 255, 0.07);
+  border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
 }
 
 .nuar-calendar .page-header-unified-copy h1,
 .nuar-calendar .page-header-unified-copy h2,
 .nuar-calendar .page-header-unified-copy strong {
-  color: #f4f7fa;
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
   font-size: 22px;
   font-weight: 650;
 }
 
 .nuar-calendar .page-header-unified-copy p,
 .nuar-calendar .page-header-unified-copy span {
-  color: #6f7785;
+  color: var(--calendar-faint, var(--color-text-faint, #6f7785));
   margin-top: 6px;
   line-height: 1.3;
 }
@@ -3746,7 +3754,7 @@
 .nuar-calendar-date-display {
   height: 36px;
   min-height: 36px;
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
   border-radius: 10px;
   background: transparent;
   box-shadow: none;
@@ -3756,14 +3764,14 @@
 .nuar-calendar-actions button:hover,
 .nuar-calendar-date-nav button:hover,
 .nuar-calendar-date-display:hover {
-  color: #f4f7fa;
-  background: rgba(255, 255, 255, 0.045);
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  background: var(--calendar-hover-bg, color-mix(in srgb, var(--app-text-main, #ffffff) 4.5%, transparent));
   transform: none;
 }
 
 .nuar-calendar-actions button[class*="bg-red"] {
   border-color: var(--calendar-accent);
-  color: #ffffff;
+  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
   background: var(--calendar-accent);
   box-shadow: none;
 }
@@ -3790,8 +3798,8 @@
   align-items: center;
   justify-content: center;
   padding-inline: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #f4f7fa;
+  border: 1px solid var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
   background: transparent;
   font-size: 12px;
   font-weight: 650;
@@ -3811,11 +3819,11 @@
 .nuar-calendar-schedule {
   height: 100%;
   max-height: 100%;
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
   border-radius: 16px;
   background: var(--app-window-bg);
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: color-mix(in srgb, var(--calendar-text, var(--color-text, #f4f7fa)) 18%, transparent) transparent;
 }
 
 .nuar-calendar-schedule::-webkit-scrollbar,
@@ -3832,7 +3840,7 @@
 .nuar-calendar-schedule::-webkit-scrollbar-thumb,
 .nuar-calendar-reminders::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
+  background: color-mix(in srgb, var(--calendar-text, var(--color-text, #f4f7fa)) 16%, transparent);
 }
 
 .nuar-calendar-grid {
@@ -3877,7 +3885,7 @@
 }
 
 .nuar-calendar-master {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
 }
 
 .nuar-calendar-master-header {
@@ -3886,7 +3894,7 @@
   align-content: center;
   gap: 2px;
   padding-inline: var(--space-3);
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
   background: var(--app-card-bg);
 }
 
@@ -3948,24 +3956,24 @@
 .nuar-calendar .schedule-entry-dragging {
   z-index: 80;
   opacity: 0.98;
-  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.34));
+  filter: drop-shadow(0 14px 24px var(--shadow-strong, rgba(0, 0, 0, 0.34)));
   pointer-events: none;
 }
 
 .nuar-calendar-reminders {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
   border-radius: 16px;
   background: var(--app-window-bg);
   box-shadow: none;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: color-mix(in srgb, var(--calendar-text, var(--color-text, #f4f7fa)) 18%, transparent) transparent;
 }
 
 .nuar-calendar-picker {
   display: grid;
   gap: 9px;
   padding: 9px;
-  border: 1px solid rgba(255, 255, 255, 0.075);
+  border: 1px solid var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
   border-radius: 14px;
   background: var(--app-window-bg);
 }
@@ -3984,7 +3992,7 @@
   gap: 12px;
   min-width: 0;
   flex: 0 1 auto;
-  color: #f4f7fa;
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
   font-size: 11px;
   font-weight: 650;
 }
@@ -4000,7 +4008,7 @@
   padding: 0 4px;
   border: 0;
   border-radius: 7px;
-  color: #f4f7fa;
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
   background: transparent;
   font-size: 10px;
   font-weight: 650;
@@ -4012,7 +4020,7 @@
 }
 
 .nuar-calendar-picker-menu:nth-child(2) > button {
-  color: #9ca3af;
+  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
 }
 
 .nuar-calendar-picker-popover {
@@ -4025,7 +4033,7 @@
   display: grid;
   gap: 2px;
   padding: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
   border-radius: 10px;
   background: var(--app-window-bg);
   transform: translateX(-50%);
@@ -4042,7 +4050,7 @@
   padding: 0 10px;
   border: 0;
   border-radius: 7px;
-  color: #a7afbd;
+  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
   background: transparent;
   font-size: 11px;
   font-weight: 600;
@@ -4051,13 +4059,13 @@
 }
 
 .nuar-calendar-picker-popover button:hover {
-  color: #f4f7fa;
-  background: rgba(255, 255, 255, 0.045);
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  background: var(--calendar-hover-bg, color-mix(in srgb, var(--app-text-main, #ffffff) 4.5%, transparent));
 }
 
 .nuar-calendar-picker-popover button.is-selected {
-  color: #fca5a5;
-  background: rgba(185, 28, 28, 0.12);
+  color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 36%, var(--calendar-text, var(--color-text, #f4f7fa)));
+  background: var(--calendar-danger-soft, color-mix(in srgb, var(--accent-color, #b91c1c) 12%, transparent));
   line-height: 1;
   box-shadow: inset 2px 0 0 var(--calendar-accent);
 }
@@ -4067,7 +4075,7 @@
   display: grid;
   place-items: center;
   border: 0;
-  color: #9ca3af;
+  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
   background: transparent;
   box-shadow: none;
   transform: none;
@@ -4082,7 +4090,7 @@
 
 .nuar-calendar-picker header button:hover,
 .nuar-calendar-picker-grid button:hover {
-  color: #f4f7fa;
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
   background: var(--app-card-bg);
   transform: none;
 }
@@ -4095,7 +4103,7 @@
 }
 
 .nuar-calendar-picker-weekdays span {
-  color: #6f7785;
+  color: var(--calendar-faint, var(--color-text-faint, #6f7785));
   font-size: 10px;
   font-weight: 650;
   text-align: center;
@@ -4104,7 +4112,7 @@
 .nuar-calendar-picker-grid button {
   aspect-ratio: 1;
   border-radius: 9px;
-  color: #a7afbd;
+  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
   font-size: 12px;
   font-weight: 600;
 }
@@ -4118,7 +4126,7 @@
 }
 
 .nuar-calendar-picker-grid button.is-selected {
-  color: #ffffff;
+  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
   background: var(--calendar-accent);
 }
 
@@ -4131,7 +4139,7 @@
 }
 
 .nuar-calendar-reminders > div:nth-of-type(2) span {
-  border-color: rgba(255, 255, 255, 0.07);
+  border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
   border-radius: 7px;
   background: transparent;
 }
@@ -4148,19 +4156,19 @@
   position: relative;
   min-height: 24px;
   border-radius: 0;
-  color: #9ca3af;
+  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
   background: transparent;
   transform: none;
 }
 
 .nuar-calendar-reminders > div:nth-of-type(3) button:hover {
-  color: #f4f7fa;
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
   background: transparent;
   transform: none;
 }
 
 .nuar-calendar-reminders > div:nth-of-type(3) button.text-white {
-  color: #ffffff;
+  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
   background: transparent;
 }
 
@@ -4176,7 +4184,7 @@
 }
 
 .nuar-calendar-reminders h2 {
-  color: #f4f7fa;
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
   font-size: 14px;
   font-weight: 650;
 }
@@ -4257,7 +4265,7 @@
   grid-template-columns: 1fr;
   gap: 6px;
   padding: 10px 36px 10px 10px;
-  border-color: rgba(255, 255, 255, 0.075);
+  border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.025);
 }
@@ -4281,7 +4289,7 @@
 }
 
 .nuar-calendar-reminder-time {
-  color: #a7afbd;
+  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
   font-size: 11px;
   font-weight: 650;
   line-height: 1;
@@ -4293,7 +4301,7 @@
   display: block;
   padding: 0;
   border: 0;
-  color: #f4f7fa;
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
   background: transparent;
   font-size: 12px;
   font-weight: 700;
@@ -4306,7 +4314,7 @@
 }
 
 .nuar-calendar-reminder-client:hover {
-  color: #ffffff;
+  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
 }
 
 .nuar-calendar-reminder-client > span {
@@ -4317,7 +4325,7 @@
 }
 
 .nuar-calendar-reminder-money {
-  color: #a7afbd;
+  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
@@ -4332,7 +4340,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 8px;
-  color: #6f7785;
+  color: var(--calendar-faint, var(--color-text-faint, #6f7785));
   font-size: 10px;
   font-weight: 560;
   line-height: 1.25;
@@ -4364,14 +4372,14 @@
   place-items: center;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: #6f7785;
+  color: var(--calendar-faint, var(--color-text-faint, #6f7785));
   background: transparent;
   cursor: pointer;
 }
 
 .nuar-calendar-reminder-menu > button:hover {
-  color: #f4f7fa;
-  border-color: rgba(255, 255, 255, 0.075);
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
 }
 
 .nuar-calendar-reminder-popover {
@@ -4383,7 +4391,7 @@
   min-width: 142px;
   gap: 2px;
   padding: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
   border-radius: 10px;
   background: var(--app-window-bg);
 }
@@ -4396,7 +4404,7 @@
   padding: 0 8px;
   border: 0;
   border-radius: 7px;
-  color: #a7afbd;
+  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
   background: transparent;
   font-size: 11px;
   font-weight: 600;
@@ -4404,17 +4412,17 @@
 }
 
 .nuar-calendar-reminder-popover button:hover {
-  color: #f4f7fa;
-  background: rgba(255, 255, 255, 0.045);
+  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  background: var(--calendar-hover-bg, color-mix(in srgb, var(--app-text-main, #ffffff) 4.5%, transparent));
 }
 
 .nuar-calendar-reminder-popover button.is-danger {
-  color: #fca5a5;
+  color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 36%, var(--calendar-text, var(--color-text, #f4f7fa)));
 }
 
 .nuar-calendar-reminder-popover button.is-danger:hover {
-  color: #ffffff;
-  background: rgba(185, 28, 28, 0.14);
+  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
+  background: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 14%, transparent);
 }
 
 .nuar-calendar-reminders :is(button, span) {
@@ -4616,7 +4624,7 @@
   width: 360px;
   max-width: 100%;
   overflow: hidden;
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
   border-radius: 16px;
   background: var(--app-window-bg);
   box-shadow: none;
@@ -4629,7 +4637,7 @@
   justify-content: flex-start;
   gap: var(--space-3);
   padding-inline: var(--space-5);
-  border-color: rgba(255, 255, 255, 0.07);
+  border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
   color: var(--color-text);
   background: transparent;
   text-align: left;
@@ -4641,7 +4649,7 @@
 }
 
 .nuar-calendar-add-option:hover {
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--calendar-hover-bg, color-mix(in srgb, var(--app-text-main, #ffffff) 4.5%, transparent));
   transform: none;
 }
 
@@ -4925,51 +4933,51 @@
 }
 
 .employee-modal.calendar-entry-modal .calendar-kind-switch button.is-active {
-  color: #ffffff;
-  border-color: #b91c1c;
-  background: #b91c1c;
+  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
+  border-color: var(--calendar-accent, var(--accent-color, #b91c1c));
+  background: var(--calendar-accent, var(--accent-color, #b91c1c));
   box-shadow: none;
 }
 
 .employee-modal.calendar-entry-modal .calendar-entry-form .submit-button,
 .employee-modal.calendar-entry-modal .calendar-entry-form button[type="submit"],
 .employee-modal.calendar-entry-modal .calendar-submit-button {
-  color: #ffffff;
-  border-color: #b91c1c;
-  background: #b91c1c;
+  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
+  border-color: var(--calendar-accent, var(--accent-color, #b91c1c));
+  background: var(--calendar-accent, var(--accent-color, #b91c1c));
   box-shadow: none;
 }
 
 .employee-modal.calendar-entry-modal .calendar-submit-button:hover,
 .employee-modal.calendar-entry-modal .calendar-entry-form button[type="submit"]:hover {
-  color: #ffffff;
-  border-color: #991b1b;
-  background: #991b1b;
+  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
+  border-color: var(--calendar-accent-hover, var(--accent-hover, #991b1b));
+  background: var(--calendar-accent-hover, var(--accent-hover, #991b1b));
   box-shadow: none;
 }
 
 .employee-modal.calendar-entry-modal :is(.text-amber-400, .text-yellow-400) {
-  color: #fca5a5;
+  color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 36%, var(--calendar-text, var(--color-text, #f4f7fa)));
 }
 
 .employee-modal.calendar-entry-modal :is(.border-amber-500\/20, .border-yellow-500\/20) {
-  border-color: rgba(185, 28, 28, 0.28);
+  border-color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 28%, transparent);
 }
 
 .employee-modal.calendar-entry-modal :is(.bg-amber-500\/5, .bg-yellow-500\/5) {
-  background: rgba(185, 28, 28, 0.08);
+  background: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 8%, transparent);
 }
 
 .employee-modal.calendar-entry-modal .calendar-entry-form :is(.text-indigo-400, .text-purple-400) {
-  color: #fca5a5;
+  color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 36%, var(--calendar-text, var(--color-text, #f4f7fa)));
 }
 
 .employee-modal.calendar-entry-modal .calendar-entry-form :is(.bg-indigo-500\/10, .bg-purple-500\/10) {
-  background: rgba(185, 28, 28, 0.12);
+  background: var(--calendar-danger-soft, color-mix(in srgb, var(--accent-color, #b91c1c) 12%, transparent));
 }
 
 .employee-modal.calendar-entry-modal .calendar-entry-form :is(.border-indigo-500\/20, .border-purple-500\/20) {
-  border-color: rgba(185, 28, 28, 0.28);
+  border-color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 28%, transparent);
 }
 
 @media (max-width: 640px) {

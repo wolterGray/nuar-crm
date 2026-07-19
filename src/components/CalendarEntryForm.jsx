@@ -15,6 +15,7 @@ import {toVisitNumber} from "../utils/visits.jsx";
 import {formatMoney, getDaysSinceDisplayDate, toDisplayDate} from "../utils/formatters.jsx";
 import {Button, Input, Select, Textarea} from "./ui/index.js";
 
+const DEFAULT_ENTRY_COLOR = "#748091";
 const fallbackColors = ["#4f8edc", "#8b6fd6", "#45a873", "#d78a42", "#c75b78"];
 const toMinutes = (time) => {
   const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
@@ -192,7 +193,7 @@ function CalendarEntryForm({
       debt: initialEntry?.debt ?? "",
       discount: initialEntry?.discount ?? "",
       paidAmount: initialEntry?.paidAmount ?? "",
-      color: initialEntry?.color ?? "#748091",
+      color: initialEntry?.color ?? DEFAULT_ENTRY_COLOR,
       note: initialEntry?.note ?? "",
     },
     mode: "onSubmit",
@@ -793,7 +794,7 @@ function CalendarEntryForm({
             />
             <FieldError message={errors.title?.message} />
           </label>
-          <input {...register("color")} type="hidden" value={initialEntry?.color ?? "#748091"} />
+          <input {...register("color")} type="hidden" value={initialEntry?.color ?? DEFAULT_ENTRY_COLOR} />
         </>
       ) : (
         <>
