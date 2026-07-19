@@ -1173,9 +1173,9 @@
     gap: 5px !important;
     margin: 0 !important;
     padding: 18px 14px !important;
-    border: 1px solid rgba(255, 255, 255, 0.055) !important;
+    border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.055)) !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.46) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 46%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="templates"] .message-templates-empty strong {
@@ -1278,7 +1278,7 @@
   .mobile-page-container[data-mobile-page="import"] .import-sync-panel.crm-card,
   .mobile-page-container[data-mobile-page="import"] .import-documents-panel.crm-card {
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.72) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 72%, transparent) !important;
     box-shadow: none !important;
   }
 
@@ -1337,7 +1337,7 @@
     gap: 5px !important;
     padding: 11px 12px !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.62) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-sync-summary-card strong,
@@ -1452,8 +1452,8 @@
     padding: 5px !important;
     border: 1px solid var(--import-border, rgba(255, 255, 255, 0.08)) !important;
     border-radius: 9px !important;
-    background: rgba(15, 17, 21, 0.96) !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28) !important;
+    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 96%, transparent) !important;
+    box-shadow: var(--shadow-dropdown, 0 10px 24px rgba(0, 0, 0, 0.28)) !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-mobile-filter-options button {
@@ -1479,7 +1479,7 @@
 
   .mobile-page-container[data-mobile-page="import"] .import-mobile-filter-options button[aria-current="true"] {
     color: var(--linear-text, #f2f3f7) !important;
-    background: rgba(185, 28, 28, 0.18) !important;
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 18%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-documents-grid {
@@ -1494,7 +1494,7 @@
     min-width: 0 !important;
     padding: 12px !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.62) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-documents-panel .text-center {
@@ -1507,9 +1507,9 @@
     gap: 5px !important;
     margin: 0 !important;
     padding: 18px 14px !important;
-    border: 1px solid rgba(255, 255, 255, 0.055) !important;
+    border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.055)) !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.46) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 46%, transparent) !important;
     text-align: left !important;
   }
 
@@ -1670,7 +1670,7 @@
     gap: 7px !important;
     padding: 10px 12px !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.62) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="statistics"] .statistics-hero-header .statistics-filter-field svg {
@@ -1713,7 +1713,7 @@
     min-height: 38px !important;
     padding: 0 12px !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.62) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
     text-align: left !important;
   }
 
@@ -1740,7 +1740,7 @@
     width: 100% !important;
     margin-top: 4px !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.96) !important;
+    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 96%, transparent) !important;
     box-shadow: none !important;
   }
 
@@ -1757,7 +1757,7 @@
   .mobile-page-container[data-mobile-page="statistics"] .statistics-details-panel,
   .mobile-page-container[data-mobile-page="statistics"] .statistics-card {
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.72) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 72%, transparent) !important;
     box-shadow: none !important;
   }
 
@@ -1849,7 +1849,7 @@
   .statistics-page-mobile .statistics-mobile-filter-wrap {
     margin: 0 !important;
     padding: 8px 0 0 !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-top: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
   }
 
   .statistics-page-mobile .statistics-hero-header .page-header-unified-top {
@@ -1889,7 +1889,7 @@
     margin: 0 !important;
     border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.62) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
   }
 
   .statistics-page-mobile .statistics-mobile-date-control {
@@ -1960,7 +1960,7 @@
   .statistics-page-mobile .statistics-chart-empty {
     padding: 18px !important;
     text-align: center !important;
-    background: rgba(15, 17, 21, 0.46) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 46%, transparent) !important;
   }
 
   .statistics-page-mobile .statistics-empty-note {
@@ -1968,9 +1968,9 @@
     min-height: 58px !important;
     align-content: center !important;
     padding: 0 12px !important;
-    border: 1px solid rgba(255, 255, 255, 0.055) !important;
+    border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.055)) !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.46) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 46%, transparent) !important;
   }
 
   .statistics-page-mobile .dynamic-payment-ring.percent-ring {
@@ -1978,11 +1978,11 @@
     height: 52px !important;
     min-width: 52px !important;
     flex: 0 0 52px !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
     background:
-      radial-gradient(circle, rgba(15, 17, 21, 0.98) 0 57%, transparent 58%),
+      radial-gradient(circle, color-mix(in srgb, var(--app-card-bg, #141619) 98%, transparent) 0 57%, transparent 58%),
       var(--payment-ring-gradient) !important;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-text-main, #ffffff) 3%, transparent) !important;
   }
 
   .statistics-page-mobile .dynamic-payment-ring.percent-ring strong {
@@ -2143,7 +2143,7 @@
     gap: 5px !important;
     padding: 10px 11px !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.62) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="site"] .site-page-summary-card span {
@@ -2176,7 +2176,7 @@
   .mobile-page-container[data-mobile-page="site"] .site-booking-panel {
     padding: 14px 12px !important;
     border-radius: 8px !important;
-    background: rgba(15, 17, 21, 0.72) !important;
+    background: color-mix(in srgb, var(--app-card-bg, #141619) 72%, transparent) !important;
     box-shadow: none !important;
   }
 
@@ -2254,7 +2254,7 @@
     padding: 0 10px !important;
     border-radius: 8px !important;
     color: var(--site-muted, #a3a6b3) !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
     font-size: 12px !important;
     font-weight: 650 !important;
     line-height: 1.15 !important;
@@ -2326,9 +2326,9 @@
   }
 
   .mobile-page-container[data-mobile-page="site"] .site-booking-card-actions .secondary-button {
-    border-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
     color: var(--site-muted, #a3a6b3) !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="site"] .site-booking-card-actions button svg {
@@ -2427,7 +2427,7 @@
     padding: 0 !important;
     border: 0 !important;
     border-radius: 8px !important;
-    color: #c9ced6 !important;
+    color: var(--app-text-main, #f4f5f7) !important;
     background: transparent !important;
     box-shadow: none !important;
   }
@@ -2446,9 +2446,9 @@
     min-width: 0 !important;
     min-height: 50px !important;
     padding: 8px 6px !important;
-    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
     text-align: center !important;
   }
 
@@ -2489,10 +2489,10 @@
     flex: 0 0 auto !important;
     min-height: 34px !important;
     padding: 0 12px !important;
-    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
     border-radius: 8px !important;
     color: var(--app-text-muted, #a3a6b3) !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
     font-size: 12px !important;
     font-weight: 750 !important;
     line-height: 1 !important;
@@ -2501,7 +2501,7 @@
   .mobile-page-container[data-mobile-page="settings"] .settings-tabs-row button.border-accent,
   .mobile-page-container[data-mobile-page="settings"] .settings-tabs-row button.text-accent {
     border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 58%, transparent) !important;
-    color: #ffffff !important;
+    color: var(--button-primary-text, #ffffff) !important;
     background: color-mix(in srgb, var(--accent-color, #b91c1c) 22%, transparent) !important;
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-color, #b91c1c) 28%, transparent) !important;
   }
@@ -2525,7 +2525,7 @@
     min-width: 0 !important;
     padding: 13px 12px !important;
     border-radius: 8px !important;
-    background: rgba(10, 12, 14, 0.74) !important;
+    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 74%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-scroll > div:not([class*="card"]):not([class*="Card"]) {
@@ -2539,7 +2539,7 @@
     min-width: 0 !important;
     padding: 13px 12px !important;
     border-radius: 8px !important;
-    background: rgba(10, 12, 14, 0.74) !important;
+    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 74%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-scroll h2 {
@@ -2570,7 +2570,7 @@
     gap: 7px !important;
     padding: 10px 12px !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .color-theme-option::after {
@@ -2605,7 +2605,7 @@
     margin: 0 !important;
     padding: 12px !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.02) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-mobile-section h3 {
@@ -2623,9 +2623,9 @@
     min-height: 38px !important;
     margin: 0 !important;
     padding: 9px 10px !important;
-    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .form-checkbox.settings-toggle .form-checkbox-label,
@@ -2663,7 +2663,7 @@
     gap: 12px !important;
     padding: 12px !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .integration-health-overview,
@@ -2773,7 +2773,7 @@
   .mobile-page-container[data-mobile-page="settings"] .booksy-sync-status {
     padding: 10px 12px !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-actions-row {
@@ -2855,8 +2855,12 @@
     max-width: 100% !important;
     margin: 8px 0 0 !important;
     padding: 10px 0 calc(2px + env(safe-area-inset-bottom, 0px)) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-    background: linear-gradient(180deg, rgba(5, 6, 7, 0.72), rgba(5, 6, 7, 0.96)) !important;
+    border-top: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--app-page-bg, #050607) 72%, transparent),
+      color-mix(in srgb, var(--app-page-bg, #050607) 96%, transparent)
+    ) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-save-bar button {
@@ -4267,12 +4271,12 @@
   padding: 10px 36px 10px 10px;
   border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent);
 }
 
 .nuar-calendar-reminder-card.is-next {
   border-color: var(--calendar-accent);
-  background: #1a1418;
+  background: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 9%, var(--app-card-bg, #141619));
 }
 
 .nuar-calendar-reminders article button,
@@ -5167,7 +5171,7 @@
     padding: 0 !important;
     border: 0 !important;
     border-radius: 8px !important;
-    color: #c9ced6 !important;
+    color: var(--app-text-main, #f4f5f7) !important;
     background: transparent !important;
     box-shadow: none !important;
   }
@@ -5185,10 +5189,10 @@
     min-width: 0 !important;
     min-height: 38px !important;
     padding: 0 8px !important;
-    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
     border-radius: 8px !important;
     color: var(--app-text-muted, #a3a6b3) !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
     font-size: 11.5px !important;
     font-weight: 800 !important;
     line-height: 1.05 !important;
@@ -5199,7 +5203,7 @@
   .mobile-page-container[data-mobile-page="operations"] .operations-page-tabs button.active,
   .mobile-page-container[data-mobile-page="operations"] .operations-tabs button.active {
     border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 58%, transparent) !important;
-    color: #ffffff !important;
+    color: var(--button-primary-text, #ffffff) !important;
     background: color-mix(in srgb, var(--accent-color, #b91c1c) 22%, transparent) !important;
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-color, #b91c1c) 22%, transparent) !important;
   }
@@ -5224,7 +5228,7 @@
     line-height: 1 !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-grid {
@@ -5245,9 +5249,9 @@
     min-width: 0 !important;
     max-width: 100% !important;
     padding: 13px 12px !important;
-    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
     border-radius: 8px !important;
-    background: rgba(10, 12, 14, 0.74) !important;
+    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 74%, transparent) !important;
     box-shadow: none !important;
     overflow-x: hidden !important;
   }
@@ -5264,8 +5268,8 @@
 
   .mobile-page-container[data-mobile-page="operations"] .waitlist-panel.operations-panel {
     padding: 13px 12px !important;
-    border: 1px solid rgba(255, 255, 255, 0.075) !important;
-    background: rgba(10, 12, 14, 0.74) !important;
+    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
+    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 74%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .waitlist-panel .page-header-unified {
@@ -5351,7 +5355,7 @@
     min-width: 0 !important;
     padding: 3px !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-page .add-visit-button,
@@ -5389,7 +5393,7 @@
     min-height: 0 !important;
     padding: 11px !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
     overflow: hidden !important;
   }
 
@@ -5467,12 +5471,12 @@
     font-weight: 750 !important;
     line-height: 1.1 !important;
     white-space: normal !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-order-button:not(:disabled) {
-    border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 45%, rgba(255, 255, 255, 0.08)) !important;
-    color: #ffffff !important;
+    border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 45%, var(--app-window-border, rgba(255, 255, 255, 0.08))) !important;
+    color: var(--button-primary-text, #ffffff) !important;
     background: color-mix(in srgb, var(--accent-color, #b91c1c) 20%, transparent) !important;
   }
 
@@ -5484,7 +5488,7 @@
     min-width: 0 !important;
     padding: 10px !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .quick-note-form > svg {
@@ -5518,7 +5522,7 @@
     padding: 12px !important;
     border-radius: 8px !important;
     font-size: 12px !important;
-    background: rgba(255, 255, 255, 0.02) !important;
+    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2%, transparent) !important;
   }
 
   .nuar-calendar {
@@ -5580,7 +5584,7 @@
     gap: 4px;
     margin: 0;
     padding: 0 var(--mobile-page-x, 16px) 3px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
     background: transparent;
   }
 
@@ -5603,7 +5607,7 @@
     padding: 0;
     border: 0;
     border-radius: 8px;
-    color: #c8ccd3;
+    color: var(--app-text-main, #f4f5f7);
     background: transparent;
     outline: 0;
     box-shadow: none;
