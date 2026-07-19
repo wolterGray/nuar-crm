@@ -162,6 +162,7 @@
   --shadow-modal: 0 28px 80px rgba(0, 0, 0, 0.46);
   --shadow-toast: 0 16px 40px rgba(0, 0, 0, 0.36);
   --shadow-focus: 0 0 0 1px var(--color-focus-ring);
+  --overlay-backdrop: rgba(0, 0, 0, 0.58);
   --header-action-surface: linear-gradient(180deg, #17191c, #101215);
   --header-action-text: #f0f1f2;
   --header-title: #f5f5f6;
