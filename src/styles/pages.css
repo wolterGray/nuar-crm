@@ -8612,8 +8612,8 @@ button:focus-visible {
 }
 
 .site-page-summary-card.is-active {
-  border-color: rgba(185, 28, 28, 0.32);
-  background: rgba(185, 28, 28, 0.1);
+  border-color: color-mix(in srgb, var(--site-accent) 32%, transparent);
+  background: color-mix(in srgb, var(--site-accent) 10%, transparent);
 }
 
 .site-page .add-visit-button,
@@ -8636,7 +8636,7 @@ button:focus-visible {
 .site-page .secondary-button:hover,
 .site-page .compact-icon-button:hover {
   color: var(--site-text);
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--button-ghost-hover-bg);
 }
 
 .theme-dark .site-page .settings-options,
@@ -8817,14 +8817,14 @@ button:focus-visible {
   flex: 0 0 auto;
   padding: 5px 9px;
   border-radius: 999px;
-  color: #166534;
-  background: rgba(34, 197, 94, 0.12);
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
   font-size: 12px;
 }
 
 .site-booking-funnel-head b.is-warning {
-  color: #92400e;
-  background: rgba(245, 158, 11, 0.14);
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 14%, transparent);
 }
 
 .site-booking-funnel-stages {
@@ -8854,15 +8854,15 @@ button:focus-visible {
 }
 
 .site-booking-funnel-stage.is-pending {
-  border-left-color: #f59e0b;
+  border-left-color: var(--color-warning);
 }
 
 .site-booking-funnel-stage.is-applied {
-  border-left-color: #22c55e;
+  border-left-color: var(--color-success);
 }
 
 .site-booking-funnel-stage.is-rejected {
-  border-left-color: #94a3b8;
+  border-left-color: var(--color-text-faint);
 }
 
 .site-booking-funnel-warning {
@@ -8870,8 +8870,8 @@ button:focus-visible {
   gap: 2px;
   padding: 9px 10px;
   border-radius: 12px;
-  color: #92400e;
-  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
 }
 
 .site-booking-funnel-warning strong {
@@ -8895,8 +8895,8 @@ button:focus-visible {
 }
 
 .site-booking-card.is-stale {
-  border-color: rgba(245, 158, 11, 0.32);
-  box-shadow: inset 3px 0 0 #f59e0b;
+  border-color: color-mix(in srgb, var(--color-warning) 32%, transparent);
+  box-shadow: inset 3px 0 0 var(--color-warning);
 }
 
 .site-booking-card-main {
@@ -8915,8 +8915,8 @@ button:focus-visible {
   width: fit-content;
   padding: 3px 7px;
   border-radius: 999px;
-  color: #92400e;
-  background: rgba(245, 158, 11, 0.14);
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 14%, transparent);
   font-weight: 700;
 }
 
@@ -8940,18 +8940,18 @@ button:focus-visible {
 
 .theme-dark .site-booking-funnel-head strong,
 .theme-dark .site-booking-funnel-stage strong {
-  color: #f8fbff;
+  color: var(--site-text);
 }
 
 .theme-dark .site-booking-funnel-head span,
 .theme-dark .site-booking-funnel-stage span,
 .theme-dark .site-booking-funnel-warning span {
-  color: #b3bdcb;
+  color: var(--site-muted);
 }
 
 .theme-dark .site-booking-card-main span,
 .theme-dark .site-booking-card-main small {
-  color: #e8eaed;
+  color: var(--site-muted);
 }
 
 .bulk-sms-panel {
@@ -9102,9 +9102,9 @@ button:focus-visible {
 .nuar-payments .panel,
 .nuar-payments .visits-panel,
 .nuar-payments .day-close-panel {
-  border: 1px solid var(--payments-border);
+  border: 1px solid var(--payments-border, var(--color-border));
   border-radius: 16px;
-  background: var(--payments-panel);
+  background: var(--payments-panel, var(--color-card));
   box-shadow: none;
 }
 
@@ -9192,7 +9192,7 @@ button:focus-visible {
 .nuar-payments .day-close-summary-card small,
 .nuar-payments .day-close-empty,
 .nuar-payments .day-close-variance span {
-  color: var(--payments-faint);
+  color: var(--payments-faint, var(--color-text-faint));
 }
 
 .nuar-payments .day-close-inputs {
@@ -9214,18 +9214,18 @@ button:focus-visible {
 }
 
 .nuar-payments .day-close-variance.is-balanced {
-  border-color: rgba(52, 211, 153, 0.2);
-  background: rgba(52, 211, 153, 0.07);
+  border-color: color-mix(in srgb, var(--color-success) 20%, transparent);
+  background: color-mix(in srgb, var(--color-success) 7%, transparent);
 }
 
 .nuar-payments .day-close-variance.is-surplus {
-  border-color: rgba(147, 197, 253, 0.2);
-  background: rgba(147, 197, 253, 0.07);
+  border-color: color-mix(in srgb, var(--color-info) 20%, transparent);
+  background: color-mix(in srgb, var(--color-info) 7%, transparent);
 }
 
 .nuar-payments .day-close-variance.is-shortage {
-  border-color: rgba(248, 113, 113, 0.22);
-  background: rgba(248, 113, 113, 0.08);
+  border-color: color-mix(in srgb, var(--color-danger) 22%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
 }
 
 .nuar-payments .day-close-actions .add-visit-button,
@@ -9272,7 +9272,7 @@ button:focus-visible {
 .nuar-payments .secondary-button:hover,
 .nuar-payments .payments-header-icon:hover {
   color: var(--payments-text);
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--button-ghost-hover-bg);
 }
 
 .payments-page-mobile.nuar-payments {
@@ -9402,7 +9402,7 @@ button:focus-visible {
   min-height: 130px;
   place-items: center;
   padding: 22px 16px;
-  border: 1px solid var(--payments-border-soft);
+  border: 1px solid var(--payments-border-soft, var(--color-border-soft));
   border-radius: 12px;
   color: var(--payments-muted);
   text-align: center;
@@ -9444,7 +9444,7 @@ button:focus-visible {
 
 .nuar-payments .crm-search-input-icon,
 .nuar-payments .crm-search-input-clear {
-  color: var(--payments-faint);
+  color: var(--payments-faint, var(--color-text-faint));
 }
 
 .nuar-payments .crm-search-input-value {
@@ -9472,7 +9472,7 @@ button:focus-visible {
 }
 
 .nuar-payments .visits-table {
-  border: 1px solid var(--payments-border);
+  border: 1px solid var(--payments-border, var(--color-border));
   border-radius: 14px;
   background: var(--payments-panel);
   overflow: auto;
@@ -9486,7 +9486,7 @@ button:focus-visible {
 
 .nuar-payments .table-head {
   min-height: 38px;
-  color: var(--payments-faint);
+  color: var(--payments-faint, var(--color-text-faint));
   background: var(--payments-panel-soft);
   font-size: 10px;
   font-weight: 700;
@@ -9495,11 +9495,11 @@ button:focus-visible {
 }
 
 .nuar-payments .table-row:not(.table-head):hover {
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--color-field-hover);
 }
 
 .nuar-payments .table-row-planned {
-  background: rgba(52, 211, 153, 0.035);
+  background: color-mix(in srgb, var(--color-success) 3.5%, transparent);
 }
 
 .nuar-payments .table-row b,
@@ -9509,8 +9509,8 @@ button:focus-visible {
 }
 
 .nuar-payments .package {
-  color: #c7d2fe;
-  background: rgba(99, 102, 241, 0.12);
+  color: var(--color-info);
+  background: color-mix(in srgb, var(--color-info) 12%, transparent);
 }
 
 .day-close-panel {
@@ -9536,25 +9536,25 @@ button:focus-visible {
 }
 
 .day-close-status.is-closed {
-  color: #245c43;
-  background: rgba(36, 138, 79, 0.12);
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
 }
 
 .nuar-payments .day-close-status.is-closed {
-  color: #6ee7b7;
-  border-color: rgba(52, 211, 153, 0.2);
-  background: rgba(52, 211, 153, 0.08);
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 20%, transparent);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
 }
 
 .day-close-status.is-open {
-  color: #7a5d18;
-  background: rgba(195, 155, 109, 0.16);
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 16%, transparent);
 }
 
 .nuar-payments .day-close-status.is-open {
-  color: #fca5a5;
-  border-color: rgba(185, 28, 28, 0.24);
-  background: rgba(185, 28, 28, 0.1);
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 24%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
 }
 
 .day-close-form {
@@ -9572,14 +9572,14 @@ button:focus-visible {
   display: grid;
   gap: 4px;
   padding: 12px;
-  border: 1px solid #ececea;
+  border: 1px solid var(--payments-border);
   border-radius: 8px;
-  background: #fafaf9;
+  background: var(--payments-panel);
 }
 
 .day-close-summary-card span,
 .day-close-summary-card small {
-  color: #6f737b;
+  color: var(--payments-faint, var(--color-text-faint));
   font-size: 12px;
 }
 
@@ -9597,7 +9597,7 @@ button:focus-visible {
   gap: 10px;
   align-items: center;
   padding: 8px 10px;
-  border: 1px solid #ececea;
+  border: 1px solid var(--payments-border-soft, var(--color-border-soft));
   border-radius: 8px;
 }
 
@@ -9615,7 +9615,7 @@ button:focus-visible {
 }
 
 .day-close-breakdown li small {
-  color: #6f737b;
+  color: var(--payments-faint);
 }
 
 .day-close-inputs {
@@ -9630,28 +9630,28 @@ button:focus-visible {
   align-items: flex-start;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #ececea;
+  border: 1px solid var(--payments-border);
 }
 
 .day-close-variance span {
   display: block;
-  color: #6f737b;
+  color: var(--payments-faint);
   font-size: 12px;
 }
 
 .day-close-variance.is-balanced {
-  background: rgba(36, 138, 79, 0.08);
-  border-color: rgba(36, 138, 79, 0.18);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 18%, transparent);
 }
 
 .day-close-variance.is-surplus {
-  background: rgba(35, 100, 210, 0.08);
-  border-color: rgba(35, 100, 210, 0.18);
+  background: color-mix(in srgb, var(--color-info) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-info) 18%, transparent);
 }
 
 .day-close-variance.is-shortage {
-  background: rgba(196, 74, 74, 0.08);
-  border-color: rgba(196, 74, 74, 0.18);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger) 18%, transparent);
 }
 
 .day-close-actions {
@@ -9662,7 +9662,7 @@ button:focus-visible {
 
 .day-close-empty {
   margin: 0;
-  color: #6f737b;
+  color: var(--payments-faint);
   font-size: 13px;
 }
 
@@ -9680,9 +9680,9 @@ button:focus-visible {
   gap: 10px;
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #ececea;
+  border: 1px solid var(--payments-border-soft);
   border-radius: 8px;
-  background: #fff;
+  background: var(--payments-panel, var(--color-card));
   text-align: left;
 }
 
@@ -9691,7 +9691,7 @@ button:focus-visible {
 }
 
 .day-close-history button small {
-  color: #6f737b;
+  color: var(--payments-faint, var(--color-text-faint));
 }
 
 .theme-dark .day-close-summary-card,
@@ -9935,7 +9935,7 @@ button:focus-visible {
   border: 1px solid var(--employees-border);
   border-radius: 999px;
   color: var(--employees-muted);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--badge-bg);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.035em;
@@ -9943,9 +9943,9 @@ button:focus-visible {
 }
 
 .employee-status-pill.is-active {
-  color: #6ee7b7;
-  border-color: rgba(52, 211, 153, 0.2);
-  background: rgba(52, 211, 153, 0.08);
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 20%, transparent);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
 }
 
 .employee-card .employee-stats {
@@ -10105,11 +10105,11 @@ button:focus-visible {
 }
 
 .daily-payroll-table tr.is-paid td {
-  background: rgba(36, 138, 79, 0.06);
+  background: color-mix(in srgb, var(--color-success) 6%, transparent);
 }
 
 .daily-payroll-table tr.is-unpaid td {
-  background: rgba(195, 155, 109, 0.08);
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
 }
 
 .daily-payroll-table td:last-child button {
@@ -10130,13 +10130,13 @@ button:focus-visible {
 }
 
 .payroll-status.is-paid {
-  color: #245c43;
-  background: rgba(36, 138, 79, 0.12);
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
 }
 
 .payroll-status.is-open {
-  color: #7a5d18;
-  background: rgba(195, 155, 109, 0.16);
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 16%, transparent);
 }
 
 .payroll-quick-ranges {
@@ -10169,30 +10169,30 @@ button:focus-visible {
 .payroll-table th,
 .payroll-table td {
   padding: 10px 8px;
-  border-bottom: 1px solid #ececea;
+  border-bottom: 1px solid var(--payments-border-soft, var(--color-border-soft));
   text-align: left;
   vertical-align: top;
 }
 
 .payroll-table th {
-  color: #6f737b;
+  color: var(--payments-faint, var(--color-text-faint));
   font-size: 12px;
   font-weight: 700;
 }
 
 .payroll-table td small {
   display: block;
-  color: #6f737b;
+  color: var(--payments-faint, var(--color-text-faint));
   font-size: 11px;
 }
 
 .payroll-table tfoot td {
-  border-top: 1px solid #dfdfdd;
+  border-top: 1px solid var(--payments-border, var(--color-border));
 }
 
 .payroll-empty {
   margin: 0;
-  color: #6f737b;
+  color: var(--payments-faint, var(--color-text-faint));
 }
 
 .payroll-actions {
@@ -10215,9 +10215,9 @@ button:focus-visible {
   gap: 10px;
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #ececea;
+  border: 1px solid var(--payments-border-soft, var(--color-border-soft));
   border-radius: 8px;
-  background: #fff;
+  background: var(--payments-panel, var(--color-card));
   text-align: left;
 }
 
@@ -10236,13 +10236,13 @@ button:focus-visible {
 }
 
 .theme-dark .payroll-history button {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--payments-panel-soft, var(--color-field));
 }
 
 .theme-dark .payroll-status.is-paid {
-  background: rgba(36, 138, 79, 0.18);
+  background: color-mix(in srgb, var(--color-success) 18%, transparent);
 }
 
 .theme-dark .payroll-status.is-open {
-  background: rgba(195, 155, 109, 0.14);
+  background: color-mix(in srgb, var(--color-warning) 14%, transparent);
 }
