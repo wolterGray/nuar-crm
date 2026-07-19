@@ -74,12 +74,12 @@ function CalendarDayList({
         >
           <div className="flex justify-between items-start w-full gap-4">
             <div className="flex flex-col min-w-0">
-              <strong className="text-orange-400 text-xs font-semibold">{entry.time}</strong>
-              <span className="text-zinc-200 text-sm font-bold truncate mt-0.5">{entry.title || "Резерв"}</span>
+              <strong className="calendar-reserved-mobile-time">{entry.time}</strong>
+              <span className="calendar-reserved-mobile-title">{entry.title || "Резерв"}</span>
             </div>
-            <b className="text-zinc-400 text-xs font-medium">{entry.master}</b>
+            <b className="calendar-reserved-mobile-master">{entry.master}</b>
           </div>
-          <div className="flex items-center gap-1.5 text-zinc-500 text-xs">
+          <div className="calendar-reserved-mobile-meta">
             <span>Зарезервировано</span>
           </div>
         </Button>
