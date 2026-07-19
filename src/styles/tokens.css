@@ -43,6 +43,11 @@
   --color-error: var(--accent-error);
   --color-info: var(--accent-info);
   --color-premium: var(--brand-accent);
+  --color-loyalty-member: #9ca3af;
+  --color-loyalty-silver: #c7d0dc;
+  --color-loyalty-gold: #d8ad4f;
+  --color-loyalty-diamond: #8fc7e8;
+  --color-loyalty-royalty: #8f4fd6;
 
   --radius-sm: 6px;
   --radius-md: 8px;

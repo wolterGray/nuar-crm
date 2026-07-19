@@ -4148,6 +4148,209 @@
   background: var(--app-window-bg);
 }
 
+.visit-mobile-swipe-shell {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg) 80%, transparent);
+}
+
+.visit-mobile-swipe-actions {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-inline: var(--space-4);
+  background: color-mix(in srgb, var(--color-field) 45%, transparent);
+}
+
+.visit-mobile-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-soft) !important;
+  border-radius: var(--radius-lg);
+  background: var(--app-card-bg) !important;
+  cursor: pointer;
+  transition:
+    transform var(--transition-ui),
+    border-color var(--transition-ui),
+    background var(--transition-ui);
+}
+
+.visit-mobile-card.is-compact {
+  gap: 0;
+}
+
+.visit-mobile-card.is-planned {
+  border-color: color-mix(in srgb, var(--color-primary) 26%, var(--color-border)) !important;
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--app-card-bg)) !important;
+}
+
+.visit-mobile-card.is-next {
+  border-color: color-mix(in srgb, var(--color-primary) 34%, var(--color-border)) !important;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--app-card-bg)) !important;
+}
+
+.visit-mobile-card-head {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.visit-mobile-card-client {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.visit-mobile-card-name-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.visit-mobile-card-name-row strong,
+.visit-mobile-card-name-row span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visit-mobile-card-client small {
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+}
+
+.visit-mobile-card-time {
+  color: color-mix(in srgb, var(--color-primary) 72%, var(--color-text));
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.visit-mobile-card-amount {
+  flex: 0 0 auto;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.visit-mobile-card-service-row {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.visit-mobile-card-service-row span,
+.visit-mobile-card-meta-row > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visit-mobile-card-service-row b {
+  flex: 0 0 auto;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.visit-mobile-card-meta-row,
+.visit-mobile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.visit-mobile-card-meta-row > span:not(:first-child) {
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+}
+
+.visit-mobile-badge {
+  display: inline-flex;
+  min-height: 21px;
+  align-items: center;
+  padding: 2px var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--badge-color, var(--color-text-muted)) 24%, transparent);
+  border-radius: var(--radius-sm);
+  color: color-mix(in srgb, var(--badge-color, var(--color-text-muted)) 74%, var(--color-text));
+  background: color-mix(in srgb, var(--badge-color, var(--color-field)) 10%, transparent);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+}
+
+.visit-mobile-badge.is-master,
+.visit-mobile-badge.is-default {
+  --badge-color: var(--color-text-muted);
+}
+
+.visit-mobile-badge.is-debt,
+.visit-mobile-badge.is-danger {
+  --badge-color: var(--color-error);
+}
+
+.visit-mobile-badge.is-success,
+.visit-mobile-badge.is-cash {
+  --badge-color: var(--color-success);
+}
+
+.visit-mobile-badge.is-info,
+.visit-mobile-badge.is-card {
+  --badge-color: var(--color-info);
+}
+
+.visit-mobile-badge.is-package {
+  --badge-color: var(--color-loyalty-royalty);
+}
+
+.visit-mobile-badge.is-certificate {
+  --badge-color: var(--color-warning);
+}
+
+.visit-mobile-badge.is-crypto {
+  --badge-color: var(--color-loyalty-diamond);
+}
+
+.visit-mobile-badge.is-barter {
+  --badge-color: var(--color-loyalty-gold);
+}
+
+.visit-mobile-inline-actions {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-soft);
+}
+
 .employee-modal.calendar-entry-modal .calendar-kind-switch button.is-active {
   color: #ffffff;
   border-color: #b91c1c;

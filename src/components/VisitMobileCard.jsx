@@ -13,41 +13,40 @@ const statusLabels = {
   cancelled: "Отменён",
 };
 
-// Map payment type to modern Tailwind classes
-const getPaymentBadgeStyles = (payment, debt) => {
+const getPaymentBadgeTone = (payment, debt) => {
   if (debt > 0) {
-    return "text-red-400 bg-red-500/10 border-red-500/20";
+    return "is-debt";
   }
   const norm = String(payment || "").toLowerCase();
   if (norm.includes("пакет")) {
-    return "text-purple-400 bg-purple-500/10 border-purple-500/20";
+    return "is-package";
   }
   if (norm.includes("сертификат")) {
-    return "text-amber-400 bg-amber-500/10 border-amber-500/20";
+    return "is-certificate";
   }
   if (norm.includes("карт") || norm.includes("blik") || norm.includes("mono")) {
-    return "text-blue-400 bg-blue-500/10 border-blue-500/20";
+    return "is-card";
   }
   if (norm.includes("налич")) {
-    return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+    return "is-cash";
   }
   if (norm.includes("крипт")) {
-    return "text-teal-400 bg-teal-500/10 border-teal-500/20";
+    return "is-crypto";
   }
   if (norm.includes("бартер")) {
-    return "text-orange-400 bg-orange-500/10 border-orange-500/20";
+    return "is-barter";
   }
-  return "text-amber-400 bg-amber-500/10 border-amber-500/20";
+  return "is-default";
 };
 
-const getStatusBadgeStyles = (status) => {
+const getStatusBadgeTone = (status) => {
   if (["cancelled", "no_show"].includes(status)) {
-    return "text-red-400 bg-red-500/10 border-red-500/20";
+    return "is-danger";
   }
   if (status === "completed") {
-    return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+    return "is-success";
   }
-  return "text-blue-400 bg-blue-500/10 border-blue-500/20";
+  return "is-info";
 };
 
 function VisitMobileCard({
@@ -75,6 +74,8 @@ function VisitMobileCard({
   const amount = formatMoney(getVisitTransactionTotal(visit));
   const statusKey = visit.status || (isPlanned ? "scheduled" : "");
   const status = statusKey ? (statusLabels[statusKey] || statusLabels.scheduled) : null;
+  const paymentTone = getPaymentBadgeTone(visit.payment, debt);
+  const statusTone = getStatusBadgeTone(statusKey);
   const canConfirm = onConfirm && visit.status !== "confirmed" && visit.status !== "cancelled";
   const canCancel = onCancel && !["cancelled", "no_show", "completed"].includes(visit.status);
 
@@ -102,10 +103,10 @@ function VisitMobileCard({
 
   const cardBody = useCompactMenu ? (
     <>
-      <div className="flex items-start justify-between w-full gap-2">
-        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <strong className="text-zinc-200 text-sm font-semibold truncate">{visit.client}</strong>
+      <div className="visit-mobile-card-head">
+        <div className="visit-mobile-card-client">
+          <div className="visit-mobile-card-name-row">
+            <strong>{visit.client}</strong>
             {isVip && (
               <Badge className="client-vip-badge gap-1 shrink-0" size="sm" variant="premium">
                 <AppIcon name="crown" size="xs" />
@@ -113,7 +114,7 @@ function VisitMobileCard({
               </Badge>
             )}
           </div>
-          <small className="text-zinc-500 text-xs">{[visit.date, visit.time].filter(Boolean).join(" · ")}</small>
+          <small>{[visit.date, visit.time].filter(Boolean).join(" · ")}</small>
         </div>
         <RowActionsMenu
           className="ml-2 flex-none visit-row-actions"
@@ -124,21 +125,21 @@ function VisitMobileCard({
           onEdit={() => onEdit(visit)}
         />
       </div>
-      <div className="flex justify-between items-baseline w-full mt-2.5">
-        <span className="text-zinc-300 text-xs truncate flex-1 pr-3">{visit.service}</span>
-        <b className="text-zinc-200 text-xs font-semibold whitespace-nowrap">{amount}</b>
+      <div className="visit-mobile-card-service-row">
+        <span>{visit.service}</span>
+        <b>{amount}</b>
       </div>
-      <div className="flex flex-wrap gap-1.5 mt-2.5">
+      <div className="visit-mobile-badges">
         {showMaster && visit.master ? (
-          <span className="px-2 py-0.5 rounded-md text-[10px] font-medium text-zinc-400 bg-zinc-800/60 border border-zinc-800">
+          <span className="visit-mobile-badge is-master">
             {visit.master}
           </span>
         ) : null}
-        <span className={`px-2 py-0.5 border rounded-md text-[10px] font-medium ${getPaymentBadgeStyles(visit.payment, debt)}`}>
+        <span className={`visit-mobile-badge ${paymentTone}`}>
           {debt > 0 ? `Долг ${formatMoney(debt)}` : visit.payment || "Не указано"}
         </span>
         {showStatus && status ? (
-          <span className={`px-2 py-0.5 border rounded-md text-[10px] font-medium ${getStatusBadgeStyles(statusKey)}`}>
+          <span className={`visit-mobile-badge ${statusTone}`}>
             {status}
           </span>
         ) : null}
@@ -146,11 +147,11 @@ function VisitMobileCard({
     </>
   ) : (
     <>
-      <div className="flex justify-between items-start w-full gap-4">
-        <div className="flex flex-col min-w-0">
-          <strong className="text-indigo-400 text-xs font-semibold">{visit.time || visit.date}</strong>
-          <div className="flex items-center gap-1.5 min-w-0 mt-0.5">
-            <span className="text-zinc-200 text-sm font-bold truncate">{visit.client}</span>
+      <div className="visit-mobile-card-head">
+        <div className="visit-mobile-card-client">
+          <strong className="visit-mobile-card-time">{visit.time || visit.date}</strong>
+          <div className="visit-mobile-card-name-row">
+            <span>{visit.client}</span>
             {isVip && (
               <Badge className="client-vip-badge gap-1 shrink-0" size="sm" variant="premium">
                 <AppIcon name="crown" size="xs" />
@@ -159,19 +160,19 @@ function VisitMobileCard({
             )}
           </div>
         </div>
-        <b className="text-zinc-200 text-sm font-bold whitespace-nowrap">{amount}</b>
+        <b className="visit-mobile-card-amount">{amount}</b>
       </div>
-      <div className="flex flex-wrap gap-1.5 mt-2 items-center">
-        <span className="text-zinc-400 text-xs truncate max-w-[150px]">{visit.service}</span>
+      <div className="visit-mobile-card-meta-row">
+        <span>{visit.service}</span>
         {showMaster && visit.master ? (
-          <span className="text-zinc-500 text-xs">· {visit.master}</span>
+          <span>{visit.master}</span>
         ) : null}
         {showStatus && status ? (
-          <span className={`px-2 py-0.5 border rounded-md text-3xs font-medium ${getStatusBadgeStyles(statusKey)}`}>
+          <span className={`visit-mobile-badge ${statusTone}`}>
             {status}
           </span>
         ) : null}
-        <span className={`px-2 py-0.5 border rounded-md text-3xs font-medium ${getPaymentBadgeStyles(visit.payment, debt)}`}>
+        <span className={`visit-mobile-badge ${paymentTone}`}>
           {debt > 0 ? `Долг ${formatMoney(debt)}` : visit.payment || "Не указано"}
         </span>
       </div>
@@ -180,8 +181,8 @@ function VisitMobileCard({
 
   if (hasSwipeActions) {
     return (
-      <div className={`relative overflow-hidden w-full rounded-xl bg-zinc-950/30 ${className}`}>
-        <div className="absolute inset-0 flex items-center justify-end px-4 gap-2 bg-zinc-900/40">
+      <div className={`visit-mobile-swipe-shell ${className}`}>
+        <div className="visit-mobile-swipe-actions">
           {clientPhone ? (
             <a
               aria-label="Позвонить"
@@ -244,13 +245,7 @@ function VisitMobileCard({
           ) : null}
         </div>
         <article
-          className={`visit-mobile-card relative p-4 border rounded-xl transition-transform ${
-            isNext
-              ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-surfaceAlt shadow-md"
-              : isPlanned
-              ? "border-border/40 bg-surfaceAlt shadow-sm"
-              : "border-border/20 bg-surfaceAlt/70"
-          }`}
+          className={`visit-mobile-card ${isNext ? "is-next" : ""} ${isPlanned ? "is-planned" : ""}`}
           style={{ transform: `translate3d(${offset}px, 0, 0)` }}
           onClick={handleOpen}
           {...swipeHandlers}
@@ -263,21 +258,15 @@ function VisitMobileCard({
 
   return (
     <article
-      className={`visit-mobile-card p-4 border rounded-xl transition-all cursor-pointer ${
-        useCompactMenu ? "flex flex-col" : "flex flex-col gap-1"
-      } ${
-        isNext
-          ? "border-indigo-500/30 bg-linear-to-br from-indigo-950/20 to-surfaceAlt shadow-md"
-          : isPlanned
-          ? "border-border/40 bg-surfaceAlt shadow-sm"
-          : "border-border/20 bg-surfaceAlt/70"
-      } ${className}`.trim()}
+      className={`visit-mobile-card ${useCompactMenu ? "is-compact" : ""} ${
+        isNext ? "is-next" : ""
+      } ${isPlanned ? "is-planned" : ""} ${className}`.trim()}
       onClick={handleOpen}
     >
       {cardBody}
       {!useCompactMenu && (onMessage || onConfirm || onCancel || onEdit || onDelete || clientPhone) ? (
         <div
-          className="flex items-center gap-2 mt-3 pt-3 border-t border-zinc-800/40 w-full justify-end"
+          className="visit-mobile-inline-actions"
           onClick={(event) => event.stopPropagation()}
         >
           {clientPhone ? (
