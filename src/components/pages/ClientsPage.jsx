@@ -59,7 +59,7 @@ function ClientRowActions({
       <IconButton
         ref={triggerRef}
         aria-expanded={isOpen}
-        className="clients-row-menu-button inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:bg-accent/10 active:scale-95 transition-all"
+        className="clients-row-menu-button"
         icon="moreVertical"
         label="Действия"
         size="sm"
@@ -524,7 +524,7 @@ function ClientsPage({
             />
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <Button
-                className="inline-flex items-center justify-center gap-2 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent/5 font-medium text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95 w-full sm:w-auto"
+                className="clients-page-quality-button"
                 leftIcon="barChart"
                 size="sm"
                 style={{ height: '34px', minHeight: '34px' }}
@@ -533,7 +533,7 @@ function ClientsPage({
                 <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
               </Button>
               <Button
-                className="clients-page-add-button inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover active:scale-95 transition-all text-sm cursor-pointer whitespace-nowrap w-full sm:w-auto"
+                className="clients-page-add-button"
                 leftIcon="plus"
                 size="sm"
                 style={{ height: '34px', minHeight: '34px' }}
@@ -588,8 +588,8 @@ function ClientsPage({
             const needsContact = client.daysAbsent === null || client.daysAbsent >= inactiveClientDays;
             return (
               <div
-                className={`clients-table-item relative grid grid-cols-1 md:grid-cols-[minmax(180px,1.5fr)_110px_70px_90px_100px_130px_90px_minmax(120px,1fr)_50px] items-center gap-3 p-4 md:px-4 md:py-3 rounded-xl md:rounded-none border border-border md:border-0 md:border-b md:border-border bg-card md:bg-transparent hover:bg-accent/5 cursor-pointer transition-colors ${
-                  needsContact ? "border-l-4 border-l-red-500 bg-red-500/5 md:bg-red-500/[0.03]" : ""
+                className={`clients-table-item ${
+                  needsContact ? "is-needs-contact" : ""
                 } ${isFocusedClient(client) ? "animate-pulse ring-2 ring-accent" : ""}`}
                 id={`alert-focus-client-${client.id}`}
                 role="button"
@@ -718,14 +718,14 @@ function ClientsPage({
           footer={
             <div className="grid grid-cols-3 gap-2 w-full">
               <Button
-                className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover transition-colors text-xs cursor-pointer whitespace-nowrap"
+                className="clients-modal-action is-primary"
                 leftIcon="calendarPlus"
                 variant="primary"
                 onClick={() => handleAddVisit(activeViewedClient)}>
                 Добавить визит
               </Button>
               <Button
-                className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-colors text-xs font-semibold"
+                className="clients-modal-action"
                 leftIcon="message"
                 variant="secondary"
                 onClick={() => handleMessageClient(activeViewedClient)}>
@@ -733,7 +733,7 @@ function ClientsPage({
               </Button>
               <a
                 aria-disabled={!activeViewedClient.phone}
-                className="inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-colors text-xs font-semibold decoration-none whitespace-nowrap aria-[disabled=true]:opacity-50 aria-[disabled=true]:pointer-events-none"
+                className="clients-modal-action"
                 href={
                   activeViewedClient.phone ? `tel:${activeViewedClient.phone}` : undefined
                 }>
@@ -976,7 +976,7 @@ function ClientsPage({
                           <b className="font-bold text-muted-foreground">{appointment.status}</b>
                         </span>
                         <Button
-                          className="inline-flex items-center justify-center gap-1 min-h-[26px] px-2 rounded-md border border-border text-foreground hover:bg-accent/5 font-semibold text-[10px] transition-all cursor-pointer whitespace-nowrap w-full md:w-auto"
+                          className="clients-repeat-visit-button"
                           leftIcon="rotateCcw"
                           size="sm"
                           variant="secondary"
@@ -1045,7 +1045,7 @@ function ClientsPage({
           footer={
             <div className="flex gap-2 w-full">
               <Button
-                className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg bg-accent text-white font-semibold hover:bg-accent-hover transition-colors text-sm cursor-pointer border-0"
+                className="clients-message-action is-primary"
                 leftIcon="message"
                 variant="primary"
                 onClick={() => {
@@ -1068,7 +1068,7 @@ function ClientsPage({
                 Открыть Telegram
               </Button>
               <Button
-                className="flex-1 inline-flex items-center justify-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent/5 transition-all text-sm font-semibold cursor-pointer bg-transparent"
+                className="clients-message-action"
                 variant="secondary"
                 onClick={() => {
                   navigator.clipboard.writeText(messageText);
