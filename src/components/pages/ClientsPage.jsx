@@ -527,7 +527,6 @@ function ClientsPage({
                 className="clients-page-quality-button"
                 leftIcon="barChart"
                 size="sm"
-                style={{ height: '34px', minHeight: '34px' }}
                 variant="secondary"
                 onClick={() => setShowQuality(!showQuality)}>
                 <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
@@ -536,7 +535,6 @@ function ClientsPage({
                 className="clients-page-add-button"
                 leftIcon="plus"
                 size="sm"
-                style={{ height: '34px', minHeight: '34px' }}
                 variant="primary"
                 onClick={onAddClient}>
                 {isMobile ? "Добавить" : "Добавить клиента"}
