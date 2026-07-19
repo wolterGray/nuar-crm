@@ -50,7 +50,13 @@ const currencyIcons = {
   USD: "$",
 };
 
-const revenueChartColor = "#8f7cff";
+const statisticsChartTokens = {
+  cursor: "var(--statistics-chart-cursor)",
+  dot: "var(--statistics-chart-dot)",
+  grid: "var(--statistics-chart-grid)",
+  revenue: "var(--statistics-chart-revenue)",
+  tick: "var(--statistics-chart-tick)",
+};
 const paymentDisplay = [
   {color: "#8fc5aa", key: "cash", label: "Наличные"},
   {color: "#8ba7d8", key: "card", label: "Карта"},
@@ -310,12 +316,12 @@ function RevenueChart({chartData, formatIncome}) {
         <AreaChart data={chartData} margin={{top: 10, right: 8, left: -22, bottom: 0}}>
           <defs>
             <linearGradient id="statisticsRevenueGradient" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="5%" stopColor={revenueChartColor} stopOpacity={0.2} />
-              <stop offset="95%" stopColor={revenueChartColor} stopOpacity={0.01} />
+              <stop offset="5%" stopColor={statisticsChartTokens.revenue} stopOpacity={0.2} />
+              <stop offset="95%" stopColor={statisticsChartTokens.revenue} stopOpacity={0.01} />
             </linearGradient>
           </defs>
           <CartesianGrid
-            stroke="rgba(126, 137, 151, 0.12)"
+            stroke={statisticsChartTokens.grid}
             strokeDasharray="4 6"
             vertical={false}
           />
@@ -324,26 +330,26 @@ function RevenueChart({chartData, formatIncome}) {
             dataKey="label"
             interval="preserveStartEnd"
             minTickGap={15}
-            tick={{fill: "#8a8f98", fontSize: 10, fontWeight: 500}}
+            tick={{fill: statisticsChartTokens.tick, fontSize: 10, fontWeight: 500}}
             tickLine={false}
           />
           <YAxis
             axisLine={false}
-            tick={{fill: "#8a8f98", fontSize: 9, fontWeight: 500}}
+            tick={{fill: statisticsChartTokens.tick, fontSize: 9, fontWeight: 500}}
             tickFormatter={(value) => formatCompactMoney(value).replace(" zł", "")}
             tickLine={false}
             width={45}
           />
           <Tooltip
             content={<RevenueTooltip formatIncome={formatIncome} />}
-            cursor={{fill: "rgba(143, 124, 255, 0.05)"}}
+            cursor={{fill: statisticsChartTokens.cursor}}
           />
           <Area
             dataKey="income"
-            dot={{fill: "#fff", r: 3.5, stroke: revenueChartColor, strokeWidth: 2}}
+            dot={{fill: statisticsChartTokens.dot, r: 3.5, stroke: statisticsChartTokens.revenue, strokeWidth: 2}}
             fill="url(#statisticsRevenueGradient)"
             isAnimationActive={false}
-            stroke={revenueChartColor}
+            stroke={statisticsChartTokens.revenue}
             strokeWidth={2.5}
             type="monotone"
           />

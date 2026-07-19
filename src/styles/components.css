@@ -314,6 +314,14 @@
   flex-shrink: 0;
 }
 
+.statistics-page {
+  --statistics-chart-revenue: #8f7cff;
+  --statistics-chart-grid: rgba(126, 137, 151, 0.12);
+  --statistics-chart-tick: #8a8f98;
+  --statistics-chart-cursor: rgba(143, 124, 255, 0.05);
+  --statistics-chart-dot: var(--app-text-main, #fff);
+}
+
 .statistics-attention-icon.is-good,
 .statistics-trend.is-positive {
   color: var(--color-success, #22c55e);
