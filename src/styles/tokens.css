@@ -48,6 +48,21 @@
   --color-loyalty-gold: #d8ad4f;
   --color-loyalty-diamond: #8fc7e8;
   --color-loyalty-royalty: #8f4fd6;
+  --color-chart-cash: #8fc5aa;
+  --color-chart-card: #8ba7d8;
+  --color-chart-ukrainian-card: #74b5c8;
+  --color-chart-mono: #8eb5d9;
+  --color-chart-package: #b7a0d6;
+  --color-chart-certificate: #d6bb7d;
+  --color-chart-blik: #c8a3d8;
+  --color-chart-crypto: #9ea7b8;
+  --color-chart-barter: #a0a0a0;
+  --color-chart-unspecified: #d99a9a;
+  --color-chart-empty: var(--color-field-active);
+  --color-kpi-clients: var(--color-chart-card);
+  --color-kpi-visits: var(--color-chart-cash);
+  --color-kpi-average-check: var(--color-chart-package);
+  --color-kpi-debts: var(--color-chart-unspecified);
 
   --radius-sm: 6px;
   --radius-md: 8px;

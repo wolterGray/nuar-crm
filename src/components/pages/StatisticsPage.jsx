@@ -58,15 +58,15 @@ const statisticsChartTokens = {
   tick: "var(--statistics-chart-tick)",
 };
 const paymentDisplay = [
-  {color: "#8fc5aa", key: "cash", label: "Наличные"},
-  {color: "#8ba7d8", key: "card", label: "Карта"},
-  {color: "#74b5c8", key: "ukrainianCard", label: "Укр. карта"},
-  {color: "#b7a0d6", key: "package", label: "Пакеты"},
-  {color: "#d6bb7d", key: "certificate", label: "Сертификаты"},
-  {color: "#c8a3d8", key: "blik", label: "BLIK"},
-  {color: "#9ea7b8", key: "crypto", label: "Crypto"},
-  {color: "#a0a0a0", key: "barter", label: "Бартер"},
-  {color: "#d99a9a", key: "unspecified", label: "Не указано"},
+  {color: "var(--color-chart-cash)", key: "cash", label: "Наличные"},
+  {color: "var(--color-chart-card)", key: "card", label: "Карта"},
+  {color: "var(--color-chart-ukrainian-card)", key: "ukrainianCard", label: "Укр. карта"},
+  {color: "var(--color-chart-package)", key: "package", label: "Пакеты"},
+  {color: "var(--color-chart-certificate)", key: "certificate", label: "Сертификаты"},
+  {color: "var(--color-chart-blik)", key: "blik", label: "BLIK"},
+  {color: "var(--color-chart-crypto)", key: "crypto", label: "Crypto"},
+  {color: "var(--color-chart-barter)", key: "barter", label: "Бартер"},
+  {color: "var(--color-chart-unspecified)", key: "unspecified", label: "Не указано"},
 ];
 
 const getAttentionIconClass = (tone) =>
@@ -225,9 +225,7 @@ function StatisticsFilters({
 
   return (
     <div
-      className="statistics-filters flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full p-2 bg-transparent"
-      style={{ display: 'flex', flexWrap: 'wrap' }}
-    >
+      className="statistics-filters flex flex-col flex-wrap lg:flex-row lg:items-center justify-between gap-4 w-full p-2 bg-transparent">
       {/* Left side: Range presets and date fields */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Presets */}
@@ -540,20 +538,20 @@ function StatisticsPage({
       value: analytics.clientsCount,
       helper: `${analytics.repeatClients} повторных`,
       icon: "users",
-      color: "#8ba7d8",
+      color: "var(--color-kpi-clients)",
     },
     {
       label: "Визиты",
       value: analytics.filteredAppointments.length,
       helper: "завершено",
       icon: "calendarRange",
-      color: "#8fc5aa",
+      color: "var(--color-kpi-visits)",
     },
     {
       label: "Средний чек",
       value: formatIncome(analytics.averageCheck),
       icon: "banknote",
-      color: "#b7a0d6",
+      color: "var(--color-kpi-average-check)",
     },
     {
       label: "Долги",
@@ -563,7 +561,7 @@ function StatisticsPage({
           ? `${analytics.debtVisits.length} в периоде`
           : `${analytics.allDebtVisits.length} всего`,
       icon: "walletCards",
-      color: "#d99a9a",
+      color: "var(--color-kpi-debts)",
     },
   ];
   const repeatRate =
@@ -1021,7 +1019,7 @@ function StatisticsPage({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatisticsCard
             item={{
-              color: "#8fc5aa",
+              color: "var(--color-kpi-visits)",
               helper: `${todaySnapshot.completedVisits} завершено`,
               icon: "calendarRange",
               label: "Визиты",
@@ -1030,7 +1028,7 @@ function StatisticsPage({
           />
           <StatisticsCard
             item={{
-              color: "#b7a0d6",
+              color: "var(--color-kpi-average-check)",
               icon: "banknote",
               label: "Поступления",
               value: formatIncome(todaySnapshot.received),
@@ -1038,7 +1036,7 @@ function StatisticsPage({
           />
           <StatisticsCard
             item={{
-              color: "#d99a9a",
+              color: "var(--color-kpi-debts)",
               helper:
                 todaySnapshot.debtVisits > 0
                   ? `${todaySnapshot.debtVisits} записей`
@@ -1050,7 +1048,7 @@ function StatisticsPage({
           />
           <StatisticsCard
             item={{
-              color: "#8ba7d8",
+              color: "var(--color-kpi-clients)",
               helper: "следующие 3 часа",
               icon: "clock",
               label: "Ближайшие",
@@ -1131,7 +1129,12 @@ function StatisticsPage({
 function StatisticsCard({item}) {
   return (
     <article className="flex gap-3.5 p-4 rounded-xl border border-border bg-card select-none">
-      <div className="flex items-center justify-center w-9 h-9 rounded-lg" style={{backgroundColor: `${item.color}15`, color: item.color}}>
+      <div
+        className="flex items-center justify-center w-9 h-9 rounded-lg"
+        style={{
+          backgroundColor: `color-mix(in srgb, ${item.color} 15%, transparent)`,
+          color: item.color,
+        }}>
         <AppIcon name={item.icon} size="sm" />
       </div>
       <div className="flex flex-col gap-0.5 min-w-0">

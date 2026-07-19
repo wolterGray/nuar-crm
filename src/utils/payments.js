@@ -1,23 +1,23 @@
 import {normalizePaymentMethod} from "./finance.js";
 
 export const paymentGroups = [
-  {key: "cash", label: "Наличные", color: "#7fbea0"},
-  {key: "card", label: "Карта", color: "#86a9dc"},
-  {key: "ukrainianCard", label: "Укр. карта", color: "#d99cc0"},
-  {key: "mono", label: "Mono", color: "#8eb5d9"},
-  {key: "crypto", label: "Крипта", color: "#a79be2"},
-  {key: "blik", label: "BLIK", color: "#d9b07a"},
-  {key: "package", label: "Пакет", color: "#9f96d8"},
+  {key: "cash", label: "Наличные", color: "var(--color-chart-cash)"},
+  {key: "card", label: "Карта", color: "var(--color-chart-card)"},
+  {key: "ukrainianCard", label: "Укр. карта", color: "var(--color-chart-ukrainian-card)"},
+  {key: "mono", label: "Mono", color: "var(--color-chart-mono)"},
+  {key: "crypto", label: "Крипта", color: "var(--color-chart-crypto)"},
+  {key: "blik", label: "BLIK", color: "var(--color-chart-blik)"},
+  {key: "package", label: "Пакет", color: "var(--color-chart-package)"},
   {
     key: "certificate",
     label: "Сертификат",
-    color: "#cfb489",
+    color: "var(--color-chart-certificate)",
   },
-  {key: "barter", label: "Бартер", color: "#9da6b3"},
+  {key: "barter", label: "Бартер", color: "var(--color-chart-barter)"},
   {
     key: "unspecified",
     label: "Не указано",
-    color: "#b7bcc6",
+    color: "var(--color-chart-unspecified)",
   },
 ];
 
@@ -40,5 +40,5 @@ export const createPaymentRingGradient = (payments) => {
       return `${item.color} ${start}% ${offset}%`;
     });
 
-  return `conic-gradient(${stops.length ? stops.join(", ") : "#ececea 0 100%"})`;
+  return `conic-gradient(${stops.length ? stops.join(", ") : "var(--color-chart-empty) 0 100%"})`;
 };

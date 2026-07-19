@@ -12,22 +12,22 @@
 
 /* shadcn-like minimal UI layer */
 :root {
-  --app-bg: #f7f7f6;
-  --surface: rgba(255, 255, 255, 0.92);
-  --surface-solid: #fff;
-  --surface-muted: #f4f4f3;
-  --line-soft: rgba(24, 24, 27, 0.11);
-  --line-subtle: rgba(24, 24, 27, 0.07);
-  --text-main: #111317;
-  --text-soft: #6b7280;
-  --text-muted: #9ca3af;
-  --muted: #8b929d;
-  --premium-shadow: 0 18px 48px rgba(17, 19, 24, 0.08);
-  --soft-shadow: 0 1px 2px rgba(17, 19, 24, 0.045);
-  --focus-ring: 0 0 0 3px rgba(17, 24, 39, 0.08);
-  --radius-xl: 12px;
-  --radius-lg: 10px;
-  --radius-md: 8px;
+  --app-bg: var(--color-page);
+  --surface: color-mix(in srgb, var(--color-card) 92%, transparent);
+  --surface-solid: var(--color-window);
+  --surface-muted: var(--color-card-muted);
+  --line-soft: var(--color-border);
+  --line-subtle: var(--color-border-soft);
+  --text-main: var(--color-text);
+  --text-soft: var(--color-text-muted);
+  --text-muted: var(--color-text-faint);
+  --muted: var(--color-text-faint);
+  --premium-shadow: var(--shadow-card);
+  --soft-shadow: var(--shadow-focus);
+  --focus-ring: var(--button-focus-shadow);
+  --radius-xl: var(--radius-card);
+  --radius-lg: var(--radius-control);
+  --radius-md: var(--radius-control-sm);
 }
 
 body {
@@ -174,7 +174,7 @@ input,
 select,
 textarea {
   border-color: var(--line-soft);
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--color-field);
   box-shadow: none;
 }
 
@@ -216,7 +216,7 @@ button:focus-visible {
 .statistics-export-button {
   border: 1px solid var(--button-primary-border, transparent);
   border-radius: var(--radius-md);
-  color: var(--button-primary-text, #fff);
+  color: var(--button-primary-text, var(--color-primary-text));
   background: var(--accent-color);
   box-shadow: var(--button-primary-shadow, 0 8px 18px color-mix(in srgb, var(--accent-color) 32%, transparent));
 }
@@ -229,13 +229,13 @@ button:focus-visible {
 .row-action:hover,
 .modal-close:hover,
 .calendar-icon-button:hover {
-  background: #f5f5f4;
-  border-color: rgba(24, 24, 27, 0.14);
+  background: var(--button-secondary-bg-hover);
+  border-color: var(--color-border-strong);
 }
 
 .sidebar {
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-  background: #17191e;
+  border-right: 1px solid var(--sidebar-divider);
+  background: var(--sidebar-bg);
 }
 
 .nav-list button {
@@ -243,14 +243,14 @@ button:focus-visible {
 }
 
 .nav-list button.active {
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: var(--sidebar-nav-active-bg);
+  box-shadow: inset 0 0 0 1px var(--color-border-soft);
 }
 
 .table-head,
 .clients-table-head {
   color: var(--text-muted);
-  background: #fafafa;
+  background: var(--color-field);
   font-size: 11px;
   letter-spacing: 0;
 }
@@ -268,7 +268,7 @@ button:focus-visible {
 .table-row:not(.table-head):hover,
 .clients-table-row:not(.clients-table-head):hover,
 .calendar-reminder-list article:hover {
-  background: #fafafa;
+  background: var(--color-field-hover);
 }
 
 .visits-panel {
@@ -316,7 +316,7 @@ button:focus-visible {
 }
 
 .table-row:not(.table-head) {
-  color: #27272a;
+  color: var(--text-main);
   font-size: 13px;
 }
 
@@ -339,7 +339,7 @@ button:focus-visible {
 .row-action-menu {
   padding: 4px;
   border-radius: var(--radius-md);
-  box-shadow: 0 12px 30px rgba(17, 19, 24, 0.12);
+  box-shadow: var(--shadow-dropdown);
 }
 
 .row-action-menu button {
@@ -401,7 +401,7 @@ button:focus-visible {
 .calendar-toolbar,
 .schedule-master header,
 .mobile-calendar-week {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-solid);
 }
 
 .schedule-entry {
@@ -418,7 +418,7 @@ button:focus-visible {
 
 .calendar-reminder-list article {
   border-color: var(--line-subtle);
-  background: color-mix(in srgb, var(--surface) 92%, #ffffff);
+  background: color-mix(in srgb, var(--surface) 92%, var(--color-window));
 }
 
 .calendar-reminder-actions button {
@@ -444,7 +444,7 @@ button:focus-visible {
 
 .modal-backdrop,
 .calendar-entry-backdrop {
-  background: rgba(17, 19, 24, 0.28);
+  background: color-mix(in srgb, var(--color-overlay) 44%, transparent);
   backdrop-filter: blur(8px);
 }
 
@@ -476,7 +476,7 @@ button:focus-visible {
 
 .statistics-details-panel {
   border-color: transparent;
-  background: rgba(255, 255, 255, 0.66);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
 }
 
 .statistics-details-panel summary {
@@ -488,7 +488,7 @@ button:focus-visible {
 }
 
 .statistics-payment-track {
-  background: rgba(17, 19, 24, 0.065);
+  background: var(--color-field);
 }
 
 .statistics-attention-item {
@@ -496,17 +496,17 @@ button:focus-visible {
 }
 
 .theme-dark {
-  --app-bg: #050607;
-  --surface: rgba(14, 16, 19, 0.92);
-  --surface-solid: #0e1013;
-  --surface-muted: #15171a;
-  --line-soft: rgba(255, 255, 255, 0.085);
-  --line-subtle: rgba(255, 255, 255, 0.055);
-  --text-main: #f5f7fb;
-  --text-soft: #aeb8c7;
-  --text-muted: #7f8b9d;
+  --app-bg: var(--color-page);
+  --surface: color-mix(in srgb, var(--color-card) 92%, transparent);
+  --surface-solid: var(--color-window);
+  --surface-muted: var(--color-card-muted);
+  --line-soft: var(--color-border);
+  --line-subtle: var(--color-border-soft);
+  --text-main: var(--color-text);
+  --text-soft: var(--color-text-muted);
+  --text-muted: var(--color-text-faint);
   color: var(--text-main);
-  background: #0f1217;
+  background: var(--color-page);
 }
 
 .theme-dark .content {
@@ -535,7 +535,7 @@ button:focus-visible {
 .theme-dark .table-row:not(.table-head):hover,
 .theme-dark .clients-table-row:not(.clients-table-head):hover,
 .theme-dark .calendar-reminder-list article:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-field-hover);
 }
 
 .theme-dark .visits-table {
@@ -548,16 +548,16 @@ button:focus-visible {
 }
 
 .theme-dark .table-planned-badge {
-  color: #8ee0ad;
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.24);
+  color: var(--status-success-text);
+  background: var(--status-success-bg);
+  border-color: var(--status-success-border);
 }
 
 .theme-dark .secondary-button:hover,
 .theme-dark .row-action:hover,
 .theme-dark .modal-close:hover,
 .theme-dark .calendar-icon-button:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--button-ghost-hover-bg);
 }
 
 .theme-dark input,
@@ -575,13 +575,13 @@ button:focus-visible {
 .theme-dark .employee-stats span,
 .theme-dark .catalog-prices span,
 .theme-dark .client-details-grid span {
-  background: rgba(17, 23, 34, 0.74);
+  background: var(--color-field);
   border-color: var(--line-soft);
 }
 
 @media (max-width: 768px) {
   body {
-    background: #f7f7f6;
+    background: var(--color-page);
   }
 
   .content:not(.calendar-content):not(.clients-content):not(.club-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content),
@@ -617,7 +617,7 @@ button:focus-visible {
 
   .mobile-bottom-nav {
     border-top: 0;
-    background: var(--mobile-nav-bg, rgba(20, 23, 29, 0.96));
+    background: var(--mobile-nav-bg, var(--color-window));
     backdrop-filter: blur(18px);
   }
 }
@@ -646,7 +646,7 @@ button:focus-visible {
 .statistics-panel,
 .statistics-card {
   border-color: var(--linear-border-soft);
-  background: rgba(255, 255, 255, 0.76);
+  background: color-mix(in srgb, var(--color-card) 92%, transparent);
 }
 
 .statistics-income-icon,
@@ -657,14 +657,14 @@ button:focus-visible {
 }
 
 .statistics-revenue-tooltip span {
-  color: color-mix(in srgb, var(--accent-color) 65%, #30343d);
+  color: color-mix(in srgb, var(--accent-color) 65%, var(--color-text));
 }
 
 .statistics-income-context {
   display: block;
   max-width: 720px;
   margin-top: 10px;
-  color: var(--linear-muted, #747b89);
+  color: var(--color-text-muted);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -675,7 +675,7 @@ button:focus-visible {
 }
 
 .statistics-hero-header h2 {
-  color: var(--linear-text, #191d25);
+  color: var(--color-text);
   font-family:
     "Segoe UI",
     system-ui,
@@ -692,18 +692,18 @@ button:focus-visible {
 
 .statistics-hero-header p {
   margin-top: 3px;
-  color: var(--linear-muted, #747b89);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
 .statistics-card > div {
-  background: color-mix(in srgb, var(--statistics-card-color) 18%, white);
+  background: color-mix(in srgb, var(--statistics-card-color) 18%, var(--color-card));
   border-color: color-mix(
     in srgb,
     var(--statistics-card-color) 26%,
     transparent
   );
-  color: color-mix(in srgb, var(--statistics-card-color) 78%, #30343d);
+  color: color-mix(in srgb, var(--statistics-card-color) 78%, var(--color-text));
 }
 
 @media (max-width: 900px) {
@@ -744,6 +744,6 @@ button:focus-visible {
 
 .statistics-hero-header .client-alert-button:hover,
 .client-alert-button.notification-trigger:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: var(--button-ghost-hover-bg) !important;
   color: var(--accent-color) !important;
 }
