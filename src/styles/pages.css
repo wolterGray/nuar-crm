@@ -2555,13 +2555,13 @@ button:focus-visible {
 
 .clients-table-item {
   min-height: 58px;
-  border-color: rgba(30, 37, 50, 0.82);
+  border-color: color-mix(in srgb, var(--clients-border) 82%, var(--clients-card-soft));
   color: var(--clients-muted);
   background: transparent;
 }
 
 .clients-table-item:hover {
-  background: rgba(255, 255, 255, 0.035);
+  background: color-mix(in srgb, var(--clients-text, #ffffff) 3.5%, transparent);
 }
 
 .clients-table-name {
@@ -2584,7 +2584,7 @@ button:focus-visible {
 .client-status-pill {
   min-height: 22px;
   padding: 0 8px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid color-mix(in srgb, var(--clients-text, #ffffff) 6%, transparent);
   border-radius: 999px;
   font-size: 11px;
   font-weight: 650;
@@ -2594,15 +2594,15 @@ button:focus-visible {
 }
 
 .client-status-pill.status-active {
-  background: rgba(16, 185, 129, 0.12) !important;
-  border-color: rgba(16, 185, 129, 0.25) !important;
-  color: #10b981 !important;
+  background: color-mix(in srgb, var(--color-success, #22c55e) 12%, transparent) !important;
+  border-color: color-mix(in srgb, var(--color-success, #22c55e) 25%, transparent) !important;
+  color: var(--color-success, #22c55e) !important;
 }
 
 .client-status-pill.status-new {
-  background: rgba(59, 130, 246, 0.12) !important;
-  border-color: rgba(59, 130, 246, 0.25) !important;
-  color: #3b82f6 !important;
+  background: color-mix(in srgb, var(--color-info, #3b82f6) 12%, transparent) !important;
+  border-color: color-mix(in srgb, var(--color-info, #3b82f6) 25%, transparent) !important;
+  color: var(--color-info, #3b82f6) !important;
 }
 
 .clients-row-menu-button.clients-row-menu-button {
@@ -2618,7 +2618,7 @@ button:focus-visible {
 .clients-row-menu-button.clients-row-menu-button:hover {
   border-color: var(--clients-border);
   color: var(--clients-text);
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--clients-text, #ffffff) 4%, transparent);
 }
 
 .clients-row-menu {
@@ -2629,7 +2629,7 @@ button:focus-visible {
   border-color: var(--clients-border);
   border-radius: 12px;
   background: var(--app-window-bg);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--shadow-elevated, 0 18px 36px rgba(0, 0, 0, 0.32));
 }
 
 .clients-row-menu button {
@@ -2639,16 +2639,16 @@ button:focus-visible {
 
 .clients-row-menu button:hover {
   color: var(--clients-text);
-  background: rgba(255, 255, 255, 0.045);
+  background: color-mix(in srgb, var(--clients-text, #ffffff) 4.5%, transparent);
 }
 
 .clients-row-menu button.danger {
-  color: #ef4444;
+  color: var(--color-danger, var(--clients-danger, #b91c1c));
 }
 
 .clients-row-menu button.danger:hover {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.1);
+  color: color-mix(in srgb, var(--color-danger, var(--clients-danger, #b91c1c)) 44%, var(--clients-text, #ffffff));
+  background: color-mix(in srgb, var(--color-danger, var(--clients-danger, #b91c1c)) 10%, transparent);
 }
 
 .client-view-sheet.mobile-sheet .mobile-sheet-header {
@@ -2722,7 +2722,7 @@ button:focus-visible {
   width: 100%;
   padding: 4px;
   border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
-  background: rgba(255, 255, 255, 0.025);
+  background: color-mix(in srgb, var(--clients-text, #ffffff) 2.5%, transparent);
 }
 
 .client-view-sheet .client-visit-history-tab {
@@ -2788,10 +2788,10 @@ button:focus-visible {
   height: 30px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(213, 31, 31, 0.26);
+  border: 1px solid color-mix(in srgb, var(--clients-accent, #d51f1f) 26%, transparent);
   border-radius: 10px;
   color: var(--linear-red, #d51f1f);
-  background: rgba(213, 31, 31, 0.1);
+  background: color-mix(in srgb, var(--clients-accent, #d51f1f) 10%, transparent);
 }
 
 .client-loyalty-primary,
@@ -2804,14 +2804,14 @@ button:focus-visible {
   border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
   border-radius: 8px;
   color: var(--clients-text, #f4f5f7);
-  background: rgba(255, 255, 255, 0.035);
+  background: color-mix(in srgb, var(--clients-text, #ffffff) 3.5%, transparent);
   font-size: 11px;
   font-weight: 800;
 }
 
 .client-loyalty-primary {
   width: 100%;
-  border-color: rgba(213, 31, 31, 0.62);
+  border-color: color-mix(in srgb, var(--clients-accent, #d51f1f) 62%, transparent);
   background: var(--linear-red, #d51f1f);
 }
 
@@ -2823,7 +2823,7 @@ button:focus-visible {
 
 .client-loyalty-error {
   margin: 0;
-  color: #f87171;
+  color: color-mix(in srgb, var(--color-danger, var(--clients-danger, #b91c1c)) 44%, var(--clients-text, #ffffff));
   font-size: 11px;
   font-weight: 700;
 }
@@ -2834,7 +2834,7 @@ button:focus-visible {
   border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
   border-radius: 9px;
   color: var(--clients-muted, rgba(255, 255, 255, 0.64));
-  background: rgba(255, 255, 255, 0.025);
+  background: color-mix(in srgb, var(--clients-text, #ffffff) 2.5%, transparent);
   font-size: 12px;
   font-weight: 650;
 }
@@ -2926,7 +2926,7 @@ button:focus-visible {
   padding: 9px;
   border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
   border-radius: 9px;
-  background: rgba(0, 0, 0, 0.14);
+  background: color-mix(in srgb, var(--clients-bg, #000000) 14%, transparent);
 }
 
 .client-loyalty-stats b {
@@ -2942,14 +2942,14 @@ button:focus-visible {
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--clients-text, #ffffff) 6%, transparent);
 }
 
 .client-loyalty-progress span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #d51f1f, #f87171);
+  background: linear-gradient(90deg, var(--clients-accent, #d51f1f), color-mix(in srgb, var(--clients-accent, #d51f1f) 48%, var(--clients-text, #ffffff)));
 }
 
 .client-loyalty-link {
@@ -2979,7 +2979,7 @@ button:focus-visible {
   border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
   border-radius: 8px;
   color: var(--clients-text, #f4f5f7);
-  background: rgba(255, 255, 255, 0.035);
+  background: color-mix(in srgb, var(--clients-text, #ffffff) 3.5%, transparent);
 }
 
 .client-loyalty-actions {
@@ -2994,7 +2994,7 @@ button:focus-visible {
   padding: 12px;
   border: 1px solid var(--clients-border, rgba(255, 255, 255, 0.08));
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.025);
+  background: color-mix(in srgb, var(--clients-text, #ffffff) 2.5%, transparent);
 }
 
 .loyalty-qr,
@@ -3029,7 +3029,7 @@ button:focus-visible {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 2px 8px;
   padding: 8px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.055);
+  border-top: 1px solid color-mix(in srgb, var(--clients-text, #ffffff) 5.5%, transparent);
 }
 
 .client-loyalty-history strong,
