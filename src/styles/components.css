@@ -16,18 +16,18 @@
   min-height: 72px;
   margin: 28px auto;
   padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
   border-radius: 10px;
-  color: var(--app-text-main, #f4f5f7);
-  background: color-mix(in srgb, var(--app-window-bg, #050607) 76%, transparent);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-window) 76%, transparent);
   box-shadow: none;
 }
 
 .section-loading-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid color-mix(in srgb, var(--app-text-muted, #a3a6b3) 22%, transparent);
-  border-top-color: var(--accent-color, #b91c1c);
+  border: 2px solid color-mix(in srgb, var(--color-text-muted) 22%, transparent);
+  border-top-color: var(--color-primary);
   border-radius: 999px;
   animation: section-loading-spin 0.85s linear infinite;
 }
@@ -49,7 +49,7 @@
 
 .section-loading-copy small {
   overflow: hidden;
-  color: var(--app-text-muted, #9ca3af);
+  color: var(--color-text-muted);
   font-size: 10px;
   font-weight: 600;
   line-height: 1.2;
@@ -71,7 +71,7 @@
     justify-content: start;
     padding: 11px 12px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.025);
+    background: color-mix(in srgb, var(--color-card) 52%, transparent);
   }
 
   .section-loading-copy strong {
@@ -84,18 +84,18 @@
 }
 
 .app-shell-content {
-  color: var(--app-text-main, #f4f5f7);
-  background: var(--app-page-bg, #050607);
+  color: var(--color-text);
+  background: var(--color-page);
 }
 
 .app-pull-refresh {
-  border-bottom: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 70%, transparent);
-  color: var(--app-text-muted, #a3a6b3);
-  background: color-mix(in srgb, var(--app-window-bg, #0b0d0f) 82%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-window) 82%, transparent);
 }
 
 .app-pull-refresh-dot {
-  background: var(--accent-color, #b91c1c);
+  background: var(--color-primary);
 }
 
 .today-review-message-button {
@@ -107,15 +107,15 @@
   padding: 4px 10px;
   border: 0;
   border-radius: 6px;
-  color: var(--accent-color, #b91c1c);
-  background: color-mix(in srgb, var(--accent-color, #b91c1c) 10%, transparent);
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
   font-size: 10px;
   font-weight: 700;
   transition: color var(--transition-fast), background var(--transition-fast);
 }
 
 .today-review-message-button:hover {
-  background: color-mix(in srgb, var(--accent-color, #b91c1c) 18%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
 
 .packages-archive-toggle {
@@ -124,7 +124,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  color: var(--app-text-main, #f4f5f7);
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 700;
   transition: background var(--transition-fast), color var(--transition-fast);
@@ -135,7 +135,7 @@
 }
 
 .packages-archive-toggle:hover {
-  background: var(--app-field-bg, #15181c);
+  background: var(--color-field);
 }
 
 .clients-row-menu-button {
@@ -145,13 +145,13 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  color: var(--app-text-muted, #9ca3af);
+  color: var(--color-text-muted);
   transition: color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
 }
 
 .clients-row-menu-button:hover {
-  color: var(--app-text-main, #f4f5f7);
-  background: color-mix(in srgb, var(--accent-color, #b91c1c) 10%, transparent);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .clients-row-menu-button:active,
@@ -178,10 +178,10 @@
   min-height: 34px;
   gap: 8px;
   padding: 0 12px;
-  border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  color: var(--app-text-muted, #9ca3af);
-  background: var(--app-card-bg, #141619);
+  color: var(--color-text-muted);
+  background: var(--color-card);
   font-size: 12px;
   font-weight: 600;
 }
@@ -190,8 +190,8 @@
 .clients-modal-action:hover,
 .clients-message-action:hover,
 .clients-repeat-visit-button:hover {
-  color: var(--app-text-main, #f4f5f7);
-  background: color-mix(in srgb, var(--accent-color, #b91c1c) 5%, transparent);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
 }
 
 .clients-page-add-button {
@@ -200,14 +200,14 @@
   gap: 8px;
   padding: 8px 16px;
   border-radius: 8px;
-  color: var(--button-primary-text, #fff);
-  background: var(--button-primary-bg, var(--accent-color, #b91c1c));
+  color: var(--button-primary-text);
+  background: var(--button-primary-bg);
   font-size: 14px;
   font-weight: 600;
 }
 
 .clients-page-add-button:hover {
-  background: var(--button-primary-hover, #991b1b);
+  background: var(--button-primary-bg-hover);
 }
 
 .clients-table-item {
@@ -217,21 +217,21 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  color: var(--app-text-main, #f4f5f7);
-  background: var(--app-card-bg, #141619);
+  color: var(--color-text);
+  background: var(--color-card);
   cursor: pointer;
   transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .clients-table-item:hover {
-  background: color-mix(in srgb, var(--accent-color, #b91c1c) 5%, var(--app-card-bg, #141619));
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-card));
 }
 
 .clients-table-item.is-needs-contact {
-  border-left: 4px solid var(--accent-color, #b91c1c);
-  background: color-mix(in srgb, var(--accent-color, #b91c1c) 5%, var(--app-card-bg, #141619));
+  border-left: 4px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-card));
 }
 
 .clients-modal-action,
@@ -240,9 +240,9 @@
   min-height: 40px;
   gap: 6px;
   padding: 8px 16px;
-  border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  color: var(--app-text-main, #f4f5f7);
+  color: var(--color-text);
   background: transparent;
   font-size: 12px;
   font-weight: 700;
@@ -261,13 +261,13 @@
 .clients-modal-action.is-primary,
 .clients-message-action.is-primary {
   border-color: transparent;
-  color: var(--button-primary-text, #fff);
-  background: var(--button-primary-bg, var(--accent-color, #b91c1c));
+  color: var(--button-primary-text);
+  background: var(--button-primary-bg);
 }
 
 .clients-modal-action.is-primary:hover,
 .clients-message-action.is-primary:hover {
-  background: var(--button-primary-hover, #991b1b);
+  background: var(--button-primary-bg-hover);
 }
 
 .clients-repeat-visit-button {
@@ -275,9 +275,9 @@
   min-height: 26px;
   gap: 4px;
   padding: 0 8px;
-  border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  color: var(--app-text-main, #f4f5f7);
+  color: var(--color-text);
   background: transparent;
   font-size: 10px;
   font-weight: 700;
@@ -295,14 +295,14 @@
     grid-template-columns: minmax(180px, 1.5fr) 110px 70px 90px 100px 130px 90px minmax(120px, 1fr) 50px;
     padding: 12px 16px;
     border: 0;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
+    border-bottom: 1px solid var(--color-border);
     border-radius: 0;
     background: transparent;
   }
 
   .clients-table-item.is-needs-contact {
-    border-left: 4px solid var(--accent-color, #b91c1c);
-    background: color-mix(in srgb, var(--accent-color, #b91c1c) 3%, transparent);
+    border-left: 4px solid var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 3%, transparent);
   }
 
   .clients-repeat-visit-button {
@@ -315,30 +315,30 @@
 }
 
 .statistics-page {
-  --statistics-chart-revenue: #8f7cff;
-  --statistics-chart-grid: rgba(126, 137, 151, 0.12);
-  --statistics-chart-tick: #8a8f98;
-  --statistics-chart-cursor: rgba(143, 124, 255, 0.05);
-  --statistics-chart-dot: var(--app-text-main, #fff);
+  --statistics-chart-revenue: var(--color-info);
+  --statistics-chart-grid: color-mix(in srgb, var(--color-border) 62%, transparent);
+  --statistics-chart-tick: var(--color-text-faint);
+  --statistics-chart-cursor: color-mix(in srgb, var(--color-info) 8%, transparent);
+  --statistics-chart-dot: var(--color-text);
 }
 
 .statistics-attention-icon.is-good,
 .statistics-trend.is-positive {
-  color: var(--color-success, #22c55e);
+  color: var(--color-success);
 }
 
 .statistics-attention-icon.is-danger,
 .statistics-trend.is-negative,
 .statistics-value.is-negative {
-  color: var(--color-danger, #ef4444);
+  color: var(--color-error);
 }
 
 .statistics-attention-icon.is-warning {
-  color: var(--color-warning, #f59e0b);
+  color: var(--color-warning);
 }
 
 .statistics-trend.is-muted {
-  color: var(--text-muted, #8b95a5);
+  color: var(--color-text-muted);
 }
 
 .statistics-details-summary {
@@ -347,79 +347,79 @@
 
 .statistics-details-summary:hover,
 .statistics-details-summary:focus-visible {
-  background: color-mix(in srgb, var(--accent-color, #b91c1c) 5%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
 }
 
 .integration-health-panel.is-warning,
 .integration-health-item.is-warning {
-  border-color: color-mix(in srgb, var(--color-warning, #f59e0b) 22%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 22%, transparent);
 }
 
 .integration-health-panel.is-ok {
-  border-color: color-mix(in srgb, var(--color-success, #22c55e) 20%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 20%, transparent);
 }
 
 .integration-health-item.is-ok {
-  border-color: color-mix(in srgb, var(--color-success, #22c55e) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 12%, transparent);
 }
 
 .settings-state-count.is-ok {
-  color: var(--color-success, #22c55e);
+  color: var(--color-success);
 }
 
 .settings-state-count.is-warning {
-  color: var(--color-warning, #f59e0b);
+  color: var(--color-warning);
 }
 
 .settings-state-dot.is-warning {
-  background: var(--color-warning, #f59e0b);
+  background: var(--color-warning);
 }
 
 .settings-state-dot.is-ok {
-  background: var(--color-success, #22c55e);
+  background: var(--color-success);
 }
 
 .settings-state-dot.is-off {
-  background: var(--text-muted, #8b95a5);
+  background: var(--color-text-faint);
 }
 
 .settings-success-note {
-  border-color: color-mix(in srgb, var(--color-success, #22c55e) 22%, transparent);
-  color: color-mix(in srgb, var(--color-success, #22c55e) 58%, var(--color-text, #ffffff));
-  background: color-mix(in srgb, var(--color-success, #22c55e) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 22%, transparent);
+  color: color-mix(in srgb, var(--color-success) 58%, var(--color-text));
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
 }
 
 .settings-user-status.is-active {
-  border-color: color-mix(in srgb, var(--color-success, #22c55e) 22%, transparent);
-  color: color-mix(in srgb, var(--color-success, #22c55e) 68%, var(--color-text, #ffffff));
-  background: color-mix(in srgb, var(--color-success, #22c55e) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 22%, transparent);
+  color: color-mix(in srgb, var(--color-success) 68%, var(--color-text));
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
 }
 
 .settings-user-status.is-disabled {
-  border-color: color-mix(in srgb, var(--color-danger, #ef4444) 22%, transparent);
-  color: color-mix(in srgb, var(--color-danger, #ef4444) 70%, var(--color-text, #ffffff));
-  background: color-mix(in srgb, var(--color-danger, #ef4444) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-error) 22%, transparent);
+  color: color-mix(in srgb, var(--color-error) 70%, var(--color-text));
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
 }
 
 .settings-cloud-message.is-error {
-  color: color-mix(in srgb, var(--color-danger, #ef4444) 78%, var(--color-text, #ffffff));
+  color: color-mix(in srgb, var(--color-error) 78%, var(--color-text));
 }
 
 .settings-cloud-conflict {
-  border-color: color-mix(in srgb, var(--color-danger, #ef4444) 20%, transparent);
-  color: color-mix(in srgb, var(--color-danger, #ef4444) 70%, var(--color-text, #ffffff));
-  background: color-mix(in srgb, var(--color-danger, #ef4444) 5%, transparent);
+  border-color: color-mix(in srgb, var(--color-error) 20%, transparent);
+  color: color-mix(in srgb, var(--color-error) 70%, var(--color-text));
+  background: color-mix(in srgb, var(--color-error) 5%, transparent);
 }
 
 .settings-import-button {
-  border-color: var(--border, rgba(255, 255, 255, 0.08));
-  color: var(--color-text, #ffffff);
-  background: var(--field-bg, #16191d);
+  border-color: var(--color-border);
+  color: var(--color-text);
+  background: var(--color-field);
 }
 
 .settings-import-button:hover,
 .settings-import-button:focus-visible {
-  background: var(--surface-soft, #1c1f24);
+  background: var(--color-field-hover);
 }
 
 @media (max-width: 768px) {
@@ -443,7 +443,7 @@
     padding: 16px !important;
     overflow: auto !important;
     border-radius: 10px !important;
-    background: var(--linear-panel, #0e1013) !important;
+    background: var(--color-window) !important;
   }
 
   .dialog-backdrop .confirm-dialog h2 {
@@ -518,7 +518,7 @@
     overflow: hidden !important;
     border: 0 !important;
     border-radius: 0 !important;
-    background: var(--linear-panel, #0e1013) !important;
+    background: var(--color-window) !important;
   }
 
   .mobile-sheet.employee-modal.operations-form-modal .mobile-sheet-header {
@@ -594,7 +594,7 @@
 
   .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) label {
     gap: 6px !important;
-    color: var(--linear-muted, #a3a6b3) !important;
+    color: var(--color-text-muted) !important;
     font-size: 11px !important;
     font-weight: 650 !important;
   }
@@ -667,9 +667,9 @@
   .mobile-bottom-nav {
     height: var(--mobile-nav-total, calc(72px + env(safe-area-inset-bottom, 0px))) !important;
     padding: 4px 8px var(--mobile-safe-bottom, env(safe-area-inset-bottom, 0px)) !important;
-    border-top: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
-    background: color-mix(in srgb, var(--app-page-bg, #050607) 94%, transparent) !important;
-    box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.34) !important;
+    border-top: 1px solid var(--color-border) !important;
+    background: color-mix(in srgb, var(--color-page) 94%, transparent) !important;
+    box-shadow: var(--shadow-dropdown) !important;
   }
 
   .mobile-bottom-nav button {
@@ -685,12 +685,12 @@
     border: 0 !important;
     border-radius: 8px !important;
     background: transparent !important;
-    color: var(--text-muted, #8b95a5) !important;
+    color: var(--color-text-muted) !important;
     font-size: 10px !important;
   }
 
   .mobile-bottom-nav button.active {
-    color: var(--accent-color, #b91c1c) !important;
+    color: var(--color-primary) !important;
     font-weight: var(--font-weight-semibold) !important;
     box-shadow: none;
   }
@@ -718,10 +718,10 @@
     max-height: min(58dvh, 430px) !important;
     padding: 12px !important;
     overflow-y: auto !important;
-    border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 12px !important;
-    background: var(--app-card-bg, #111317) !important;
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42) !important;
+    background: var(--color-card) !important;
+    box-shadow: var(--shadow-dropdown) !important;
   }
 
   .mobile-more-sheet-head {
@@ -731,11 +731,11 @@
     gap: 10px;
     padding: 0 0 10px;
     margin: 0 0 10px;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
+    border-bottom: 1px solid var(--color-border);
   }
 
   .mobile-more-sheet-title {
-    color: var(--text-muted, #8b95a5);
+    color: var(--color-text-muted);
     font-size: 10px;
     font-weight: 750;
     letter-spacing: 0.08em;
@@ -748,10 +748,10 @@
     height: 32px !important;
     min-height: 32px !important;
     padding: 0 !important;
-    border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 8px !important;
-    color: var(--text-muted, #8b95a5) !important;
-    background: var(--app-window-bg, #0b0d10) !important;
+    color: var(--color-text-muted) !important;
+    background: var(--color-window) !important;
   }
 
   .mobile-more-sheet-nav {
@@ -771,19 +771,19 @@
     align-content: center !important;
     gap: 5px !important;
     padding: 8px 4px !important;
-    border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 10px !important;
-    color: var(--text-muted, #8b95a5) !important;
-    background: var(--app-window-bg, #0b0d10) !important;
+    color: var(--color-text-muted) !important;
+    background: var(--color-window) !important;
     font-size: 10px !important;
     font-weight: 700 !important;
     line-height: 1.12 !important;
   }
 
   .mobile-more-sheet-nav button.active {
-    color: var(--linear-text, #f2f3f7) !important;
-    background: rgba(255, 255, 255, 0.06) !important;
-    border-color: rgba(255, 255, 255, 0.14) !important;
+    color: var(--color-text) !important;
+    background: var(--color-field-active) !important;
+    border-color: var(--color-border-strong) !important;
   }
 
   .mobile-more-sheet-nav button svg {
@@ -882,7 +882,7 @@
     width: 100%;
     margin: 0 0 2px;
     padding: 0 0 14px;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
+    border-bottom: 1px solid var(--color-border);
   }
 
   .mobile-page-container[data-mobile-page="employees"] .employees-page-header.ui-page-header > div:first-child {
@@ -961,7 +961,7 @@
     width: 100% !important;
     margin: 0 0 2px !important;
     padding: 0 0 14px !important;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border-bottom: 1px solid var(--color-border) !important;
   }
 
   .mobile-page-container[data-mobile-page="services"] .services-page-header.ui-page-header > div:first-child {
@@ -975,7 +975,7 @@
     min-width: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
-    color: var(--linear-text, #f2f3f7) !important;
+    color: var(--color-text) !important;
     font-size: 22px !important;
     line-height: 1.12 !important;
     text-overflow: ellipsis !important;
@@ -1055,9 +1055,9 @@
     align-content: center !important;
     margin: 0 !important;
     padding: 24px 14px !important;
-    border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 8px !important;
-    background: var(--app-window-bg, #0b0d10) !important;
+    background: var(--color-window) !important;
   }
 
   .mobile-page-container[data-mobile-page="templates"] .message-templates-page {
@@ -1081,7 +1081,7 @@
     width: 100% !important;
     margin: 0 0 2px !important;
     padding: 0 0 14px !important;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border-bottom: 1px solid var(--color-border) !important;
   }
 
   .mobile-page-container[data-mobile-page="templates"] .message-templates-page-header.ui-page-header > div:first-child {
@@ -1095,7 +1095,7 @@
     min-width: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
-    color: var(--linear-text, #f2f3f7) !important;
+    color: var(--color-text) !important;
     font-size: 22px !important;
     line-height: 1.12 !important;
     text-overflow: ellipsis !important;
@@ -1173,9 +1173,9 @@
     gap: 5px !important;
     margin: 0 !important;
     padding: 18px 14px !important;
-    border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.055)) !important;
+    border: 1px solid var(--color-border-soft) !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 46%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 46%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="templates"] .message-templates-empty strong {
@@ -1211,7 +1211,7 @@
     width: 100% !important;
     margin: 0 0 2px !important;
     padding: 0 0 14px !important;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border-bottom: 1px solid var(--color-border) !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-page-header.ui-page-header > div:first-child {
@@ -1225,7 +1225,7 @@
     min-width: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
-    color: var(--linear-text, #f2f3f7) !important;
+    color: var(--color-text) !important;
     font-size: 22px !important;
     line-height: 1.12 !important;
     text-overflow: ellipsis !important;
@@ -1278,7 +1278,7 @@
   .mobile-page-container[data-mobile-page="import"] .import-sync-panel.crm-card,
   .mobile-page-container[data-mobile-page="import"] .import-documents-panel.crm-card {
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 72%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 72%, transparent) !important;
     box-shadow: none !important;
   }
 
@@ -1337,7 +1337,7 @@
     gap: 5px !important;
     padding: 11px 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 62%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-sync-summary-card strong,
@@ -1403,7 +1403,7 @@
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-mobile-filter-select > span {
-    color: var(--import-faint, #70737f) !important;
+    color: var(--color-text-faint) !important;
     font-size: 10px !important;
     font-weight: 700 !important;
     line-height: 1.2 !important;
@@ -1419,10 +1419,10 @@
     min-height: 36px !important;
     padding: 0 12px !important;
     overflow: hidden !important;
-    border: 1px solid var(--import-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 9px !important;
-    color: var(--import-text, #f2f3f7) !important;
-    background: var(--import-panel-soft, #15171a) !important;
+    color: var(--color-text) !important;
+    background: var(--color-field) !important;
     font-size: 13px !important;
     font-weight: 650 !important;
     line-height: 1.15 !important;
@@ -1434,13 +1434,13 @@
   .mobile-page-container[data-mobile-page="import"] .import-mobile-filter-select > button::after {
     flex: 0 0 auto !important;
     margin-left: 8px !important;
-    color: var(--import-faint, #70737f) !important;
+    color: var(--color-text-faint) !important;
     content: "▾" !important;
     font-size: 11px !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-mobile-filter-select > button[aria-expanded="true"] {
-    border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 82%, #ffffff) !important;
+    border-color: color-mix(in srgb, var(--color-primary) 82%, var(--color-text)) !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-mobile-filter-options {
@@ -1450,10 +1450,10 @@
     min-width: 0 !important;
     margin: -2px 0 0 !important;
     padding: 5px !important;
-    border: 1px solid var(--import-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 9px !important;
-    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 96%, transparent) !important;
-    box-shadow: var(--shadow-dropdown, 0 10px 24px rgba(0, 0, 0, 0.28)) !important;
+    background: color-mix(in srgb, var(--color-window) 96%, transparent) !important;
+    box-shadow: var(--shadow-dropdown) !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-mobile-filter-options button {
@@ -1467,7 +1467,7 @@
     overflow: hidden !important;
     border: 0 !important;
     border-radius: 7px !important;
-    color: var(--import-muted, #a3a6b3) !important;
+    color: var(--color-text-muted) !important;
     background: transparent !important;
     font-size: 12px !important;
     font-weight: 650 !important;
@@ -1478,8 +1478,8 @@
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-mobile-filter-options button[aria-current="true"] {
-    color: var(--linear-text, #f2f3f7) !important;
-    background: color-mix(in srgb, var(--accent-color, #b91c1c) 18%, transparent) !important;
+    color: var(--color-text) !important;
+    background: color-mix(in srgb, var(--color-primary) 18%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-documents-grid {
@@ -1494,7 +1494,7 @@
     min-width: 0 !important;
     padding: 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 62%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="import"] .import-documents-panel .text-center {
@@ -1507,9 +1507,9 @@
     gap: 5px !important;
     margin: 0 !important;
     padding: 18px 14px !important;
-    border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.055)) !important;
+    border: 1px solid var(--color-border-soft) !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 46%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 46%, transparent) !important;
     text-align: left !important;
   }
 
@@ -1543,7 +1543,7 @@
     width: 100% !important;
     margin: 0 0 2px !important;
     padding: 0 0 14px !important;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border-bottom: 1px solid var(--color-border) !important;
   }
 
   .mobile-page-container[data-mobile-page="statistics"] .statistics-hero-header .page-header-unified-top {
@@ -1564,7 +1564,7 @@
     min-width: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
-    color: var(--linear-text, #f2f3f7) !important;
+    color: var(--color-text) !important;
     font-size: 22px !important;
     line-height: 1.12 !important;
     text-overflow: ellipsis !important;
@@ -1670,7 +1670,7 @@
     gap: 7px !important;
     padding: 10px 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 62%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="statistics"] .statistics-hero-header .statistics-filter-field svg {
@@ -1713,7 +1713,7 @@
     min-height: 38px !important;
     padding: 0 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 62%, transparent) !important;
     text-align: left !important;
   }
 
@@ -1740,7 +1740,7 @@
     width: 100% !important;
     margin-top: 4px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 96%, transparent) !important;
+    background: color-mix(in srgb, var(--color-window) 96%, transparent) !important;
     box-shadow: none !important;
   }
 
@@ -1757,7 +1757,7 @@
   .mobile-page-container[data-mobile-page="statistics"] .statistics-details-panel,
   .mobile-page-container[data-mobile-page="statistics"] .statistics-card {
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 72%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 72%, transparent) !important;
     box-shadow: none !important;
   }
 
@@ -1849,7 +1849,7 @@
   .statistics-page-mobile .statistics-mobile-filter-wrap {
     margin: 0 !important;
     padding: 8px 0 0 !important;
-    border-top: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border-top: 1px solid var(--color-border) !important;
   }
 
   .statistics-page-mobile .statistics-hero-header .page-header-unified-top {
@@ -1887,9 +1887,9 @@
     min-width: 0 !important;
     max-width: none !important;
     margin: 0 !important;
-    border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 62%, transparent) !important;
   }
 
   .statistics-page-mobile .statistics-mobile-date-control {
@@ -1904,7 +1904,7 @@
     min-height: 0 !important;
     padding: 0 !important;
     border: 0 !important;
-    color: var(--linear-text, #f2f3f7) !important;
+    color: var(--color-text) !important;
     background: transparent !important;
     font-size: 13px !important;
     font-weight: 750 !important;
@@ -1927,7 +1927,7 @@
   .statistics-page-mobile .statistics-mobile-select-control span {
     min-width: 0 !important;
     overflow: hidden !important;
-    color: var(--linear-muted, #a3a6b3) !important;
+    color: var(--color-text-muted) !important;
     font-size: 12px !important;
     line-height: 1.2 !important;
     text-overflow: ellipsis !important;
@@ -1941,7 +1941,7 @@
     min-height: 0 !important;
     padding: 0 !important;
     border: 0 !important;
-    color: var(--linear-text, #f2f3f7) !important;
+    color: var(--color-text) !important;
     background: transparent !important;
     font-size: 13px !important;
     font-weight: 800 !important;
@@ -1960,7 +1960,7 @@
   .statistics-page-mobile .statistics-chart-empty {
     padding: 18px !important;
     text-align: center !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 46%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 46%, transparent) !important;
   }
 
   .statistics-page-mobile .statistics-empty-note {
@@ -1968,9 +1968,9 @@
     min-height: 58px !important;
     align-content: center !important;
     padding: 0 12px !important;
-    border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.055)) !important;
+    border: 1px solid var(--color-border-soft) !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 46%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 46%, transparent) !important;
   }
 
   .statistics-page-mobile .dynamic-payment-ring.percent-ring {
@@ -1978,24 +1978,24 @@
     height: 52px !important;
     min-width: 52px !important;
     flex: 0 0 52px !important;
-    border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     background:
-      radial-gradient(circle, color-mix(in srgb, var(--app-card-bg, #141619) 98%, transparent) 0 57%, transparent 58%),
+      radial-gradient(circle, color-mix(in srgb, var(--color-card) 98%, transparent) 0 57%, transparent 58%),
       var(--payment-ring-gradient) !important;
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-text-main, #ffffff) 3%, transparent) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-text) 3%, transparent) !important;
   }
 
   .statistics-page-mobile .dynamic-payment-ring.percent-ring strong {
     width: 34px !important;
     margin-top: -7px !important;
-    color: var(--linear-text, #f2f3f7) !important;
+    color: var(--color-text) !important;
     font-size: 10px !important;
     line-height: 1 !important;
   }
 
   .statistics-page-mobile .dynamic-payment-ring.percent-ring span {
     margin-top: 16px !important;
-    color: var(--linear-muted, #a3a6b3) !important;
+    color: var(--color-text-muted) !important;
     font-size: 7px !important;
     line-height: 1 !important;
   }
@@ -2034,7 +2034,7 @@
     width: 100% !important;
     margin: 0 0 2px !important;
     padding: 0 0 12px !important;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border-bottom: 1px solid var(--color-border) !important;
   }
 
   .mobile-page-container[data-mobile-page="site"] .site-page-header.ui-page-header > div:first-child {
@@ -2048,7 +2048,7 @@
     min-width: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
-    color: var(--linear-text, #f2f3f7) !important;
+    color: var(--color-text) !important;
     font-size: 22px !important;
     line-height: 1.12 !important;
     text-overflow: ellipsis !important;
@@ -2143,7 +2143,7 @@
     gap: 5px !important;
     padding: 10px 11px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 62%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 62%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="site"] .site-page-summary-card span {
@@ -2176,7 +2176,7 @@
   .mobile-page-container[data-mobile-page="site"] .site-booking-panel {
     padding: 14px 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-card-bg, #141619) 72%, transparent) !important;
+    background: color-mix(in srgb, var(--color-card) 72%, transparent) !important;
     box-shadow: none !important;
   }
 
@@ -2253,8 +2253,8 @@
     gap: 7px !important;
     padding: 0 10px !important;
     border-radius: 8px !important;
-    color: var(--site-muted, #a3a6b3) !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    color: var(--color-text-muted) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
     font-size: 12px !important;
     font-weight: 650 !important;
     line-height: 1.15 !important;
@@ -2322,13 +2322,13 @@
   }
 
   .mobile-page-container[data-mobile-page="site"] .site-booking-card-actions .add-visit-button {
-    background: var(--site-accent, #b91c1c) !important;
+    background: var(--color-primary) !important;
   }
 
   .mobile-page-container[data-mobile-page="site"] .site-booking-card-actions .secondary-button {
-    border-color: var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
-    color: var(--site-muted, #a3a6b3) !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text-muted) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="site"] .site-booking-card-actions button svg {
@@ -2386,7 +2386,7 @@
     width: 100% !important;
     margin: 0 !important;
     padding: 0 0 12px !important;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border-bottom: 1px solid var(--color-border) !important;
     background: transparent !important;
   }
 
@@ -2427,7 +2427,7 @@
     padding: 0 !important;
     border: 0 !important;
     border-radius: 8px !important;
-    color: var(--app-text-main, #f4f5f7) !important;
+    color: var(--color-text) !important;
     background: transparent !important;
     box-shadow: none !important;
   }
@@ -2446,16 +2446,16 @@
     min-width: 0 !important;
     min-height: 50px !important;
     padding: 8px 6px !important;
-    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 94%, transparent) !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
     text-align: center !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-mobile-summary span {
     min-width: 0 !important;
     overflow: hidden !important;
-    color: var(--app-text-muted, #9ca3af) !important;
+    color: var(--color-text-muted) !important;
     font-size: 8.5px !important;
     font-weight: 800 !important;
     line-height: 1.1 !important;
@@ -2467,7 +2467,7 @@
   .mobile-page-container[data-mobile-page="settings"] .settings-mobile-summary strong {
     min-width: 0 !important;
     overflow: hidden !important;
-    color: var(--app-text-main, #f5f5f5) !important;
+    color: var(--color-text) !important;
     font-size: 12px !important;
     font-weight: 800 !important;
     line-height: 1.1 !important;
@@ -2489,10 +2489,10 @@
     flex: 0 0 auto !important;
     min-height: 34px !important;
     padding: 0 12px !important;
-    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 94%, transparent) !important;
     border-radius: 8px !important;
-    color: var(--app-text-muted, #a3a6b3) !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    color: var(--color-text-muted) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
     font-size: 12px !important;
     font-weight: 750 !important;
     line-height: 1 !important;
@@ -2500,10 +2500,10 @@
 
   .mobile-page-container[data-mobile-page="settings"] .settings-tabs-row button.border-accent,
   .mobile-page-container[data-mobile-page="settings"] .settings-tabs-row button.text-accent {
-    border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 58%, transparent) !important;
-    color: var(--button-primary-text, #ffffff) !important;
-    background: color-mix(in srgb, var(--accent-color, #b91c1c) 22%, transparent) !important;
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-color, #b91c1c) 28%, transparent) !important;
+    border-color: color-mix(in srgb, var(--color-primary) 58%, transparent) !important;
+    color: var(--button-primary-text) !important;
+    background: color-mix(in srgb, var(--color-primary) 22%, transparent) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 28%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-form-shell,
@@ -2525,7 +2525,7 @@
     min-width: 0 !important;
     padding: 13px 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 74%, transparent) !important;
+    background: color-mix(in srgb, var(--color-window) 74%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-scroll > div:not([class*="card"]):not([class*="Card"]) {
@@ -2539,7 +2539,7 @@
     min-width: 0 !important;
     padding: 13px 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 74%, transparent) !important;
+    background: color-mix(in srgb, var(--color-window) 74%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-scroll h2 {
@@ -2570,7 +2570,7 @@
     gap: 7px !important;
     padding: 10px 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .color-theme-option::after {
@@ -2605,7 +2605,7 @@
     margin: 0 !important;
     padding: 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-mobile-section h3 {
@@ -2623,9 +2623,9 @@
     min-height: 38px !important;
     margin: 0 !important;
     padding: 9px 10px !important;
-    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 94%, transparent) !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .form-checkbox.settings-toggle .form-checkbox-label,
@@ -2663,7 +2663,7 @@
     gap: 12px !important;
     padding: 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .integration-health-overview,
@@ -2773,7 +2773,7 @@
   .mobile-page-container[data-mobile-page="settings"] .booksy-sync-status {
     padding: 10px 12px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="settings"] .settings-actions-row {
@@ -2855,11 +2855,11 @@
     max-width: 100% !important;
     margin: 8px 0 0 !important;
     padding: 10px 0 calc(2px + env(safe-area-inset-bottom, 0px)) !important;
-    border-top: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border-top: 1px solid var(--color-border) !important;
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--app-page-bg, #050607) 72%, transparent),
-      color-mix(in srgb, var(--app-page-bg, #050607) 96%, transparent)
+      color-mix(in srgb, var(--color-page) 72%, transparent),
+      color-mix(in srgb, var(--color-page) 96%, transparent)
     ) !important;
   }
 
@@ -2943,7 +2943,7 @@
     width: 100% !important;
     margin: 0 0 2px !important;
     padding: 0 0 14px !important;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border-bottom: 1px solid var(--color-border) !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .packages-page-header.ui-page-header > div:first-child {
@@ -2958,7 +2958,7 @@
     min-width: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
-    color: var(--linear-text, #f2f3f7) !important;
+    color: var(--color-text) !important;
     font-size: 22px !important;
     line-height: 1.12 !important;
     text-overflow: ellipsis !important;
@@ -3009,9 +3009,9 @@
     width: 100% !important;
     min-width: 0 !important;
     padding: 4px !important;
-    border: 1px solid var(--packages-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 8px !important;
-    background: var(--packages-panel-soft, #15171a) !important;
+    background: var(--color-field) !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .packages-mobile-tabs button {
@@ -3020,16 +3020,16 @@
     padding: 0 6px !important;
     border: 1px solid transparent !important;
     border-radius: 6px !important;
-    color: var(--packages-muted, #a7afbd) !important;
+    color: var(--color-text-muted) !important;
     background: transparent !important;
     font-size: 12px !important;
     font-weight: 700 !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .packages-mobile-tabs button.is-active {
-    border-color: var(--packages-border, rgba(255, 255, 255, 0.12)) !important;
-    color: var(--packages-text, #f2f3f7) !important;
-    background: var(--packages-panel, #101214) !important;
+    border-color: var(--color-border-strong) !important;
+    color: var(--color-text) !important;
+    background: var(--color-window) !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .packages-mobile-stats {
@@ -3045,20 +3045,20 @@
     min-width: 0 !important;
     gap: 3px !important;
     padding: 8px 6px !important;
-    border: 1px solid var(--packages-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 8px !important;
-    background: var(--packages-panel, #101214) !important;
+    background: var(--color-window) !important;
     text-align: center !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .packages-mobile-stats > div.is-active {
-    border-color: var(--packages-accent, #b91c1c) !important;
+    border-color: var(--color-primary) !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .packages-mobile-stats span {
     min-width: 0 !important;
     overflow: hidden !important;
-    color: var(--packages-faint, #6f7785) !important;
+    color: var(--color-text-faint) !important;
     font-size: 8px !important;
     font-weight: 800 !important;
     letter-spacing: 0.03em !important;
@@ -3068,7 +3068,7 @@
   }
 
   .mobile-page-container[data-mobile-page="packages"] .packages-mobile-stats strong {
-    color: var(--packages-text, #f2f3f7) !important;
+    color: var(--color-text) !important;
     font-size: 14px !important;
     font-weight: 800 !important;
   }
@@ -3107,9 +3107,9 @@
     align-content: center !important;
     margin: 0 !important;
     padding: 24px 14px !important;
-    border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 8px !important;
-    background: var(--app-window-bg, #0b0d10) !important;
+    background: var(--color-window) !important;
   }
 }
 .crm-card-header {
@@ -3118,12 +3118,12 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--color-border-soft);
 }
 
 .crm-card-title {
   margin: 0;
-  color: var(--text);
+  color: var(--color-text);
   font-size: var(--text-lg);
   font-weight: 600;
   line-height: 1.5;
@@ -3181,19 +3181,19 @@
 
 .crm-button-primary {
   border-color: var(--button-primary-border, transparent);
-  color: var(--button-primary-text, var(--crm-button-primary-default-text));
-  background: var(--accent);
+  color: var(--button-primary-text);
+  background: var(--button-primary-bg);
   box-shadow: var(--button-primary-shadow);
 }
 
 .crm-button-primary:hover {
-  background: var(--accent-hover);
+  background: var(--color-primary-hover);
 }
 
 .crm-button-secondary {
-  border-color: var(--border);
-  color: var(--text);
-  background: var(--field);
+  border-color: var(--color-border);
+  color: var(--color-text);
+  background: var(--color-field);
 }
 
 .crm-button-secondary:hover {
@@ -3201,12 +3201,12 @@
 }
 
 .crm-button-ghost {
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   background: transparent;
 }
 
 .crm-button-ghost:hover {
-  color: var(--text);
+  color: var(--color-text);
   background: var(--button-ghost-hover-bg);
 }
 
@@ -3232,15 +3232,15 @@
 }
 
 .crm-shell.notion-linear-redesign .secondary-button:hover {
-  color: var(--things-text, var(--text));
+  color: var(--color-text);
   background: var(--button-secondary-bg-hover);
 }
 
 .crm-shell.notion-linear-redesign .submit-button {
   min-height: var(--button-primary-height);
   border: 0;
-  border-radius: var(--things-radius-md, var(--radius-md));
-  color: var(--crm-button-primary-text);
+  border-radius: var(--radius-control);
+  color: var(--button-primary-text);
   background: var(--button-primary-bg);
   box-shadow: none;
   font-size: var(--button-submit-text-size);
@@ -3248,7 +3248,7 @@
 }
 
 .crm-shell.notion-linear-redesign .submit-button:hover {
-  color: var(--button-primary-hover-text);
+  color: var(--button-primary-text);
   background: var(--button-primary-bg-hover);
 }
 
@@ -3257,9 +3257,9 @@
   height: var(--badge-height);
   align-items: center;
   padding: 0 var(--space-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   background: var(--badge-bg);
   font-size: var(--text-xs);
   font-weight: 500;
@@ -3267,15 +3267,15 @@
 }
 
 .crm-badge-neutral {
-  border-color: var(--border);
-  color: var(--text-muted);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
   background: color-mix(in srgb, var(--color-text) 5%, transparent);
 }
 
 .crm-badge-info {
-  border-color: color-mix(in srgb, var(--color-info, #38bdf8) 25%, transparent);
-  color: var(--color-info, #38bdf8);
-  background: color-mix(in srgb, var(--color-info, #38bdf8) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-info) 25%, transparent);
+  color: var(--color-info);
+  background: color-mix(in srgb, var(--color-info) 10%, transparent);
 }
 
 .crm-badge-success {
@@ -3297,19 +3297,19 @@
 }
 
 .crm-badge-premium {
-  border-color: color-mix(in srgb, var(--premium, #d6bb7d) 30%, transparent);
-  color: var(--premium, #d6bb7d);
-  background: color-mix(in srgb, var(--premium, #d6bb7d) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-premium) 30%, transparent);
+  color: var(--color-premium);
+  background: color-mix(in srgb, var(--color-premium) 10%, transparent);
 }
 
 .crm-badge-disabled {
-  border-color: var(--border-soft, var(--border));
-  color: var(--text-muted);
-  background: var(--field-bg, var(--neutral-surface-soft));
+  border-color: var(--color-border-soft);
+  color: var(--color-text-muted);
+  background: var(--color-field);
 }
 
 .crm-skeleton {
-  background: color-mix(in srgb, var(--color-text, #ffffff) 6%, transparent);
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
 }
 
 .crm-modal-backdrop {
@@ -3327,10 +3327,10 @@
   width: 100%;
   max-width: var(--modal-max-width);
   padding: var(--space-5);
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-modal);
-  color: var(--text);
-  background: var(--surface-glass-strong, var(--surface));
+  color: var(--color-text);
+  background: var(--color-window);
   box-shadow: var(--premium-shadow);
 }
 
@@ -3341,7 +3341,7 @@
 
 .crm-modal-title {
   margin: 0;
-  color: var(--text);
+  color: var(--color-text);
   font-size: var(--text-lg);
   font-weight: 600;
   line-height: 1.5;
@@ -3349,7 +3349,7 @@
 
 .crm-modal-description {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   font-size: var(--text-md);
   line-height: 1.5;
 }
@@ -3374,11 +3374,11 @@
   min-width: var(--dropdown-min-width);
   overflow: hidden;
   padding: var(--space-1);
-  border: 1px solid var(--neutral-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  color: var(--neutral-text);
-  background: var(--neutral-surface);
-  box-shadow: var(--dropdown-shadow);
+  color: var(--color-text);
+  background: var(--color-window);
+  box-shadow: var(--shadow-dropdown);
 }
 
 .crm-dropdown-item {
@@ -3389,7 +3389,7 @@
   padding: 0 var(--dropdown-item-padding);
   border: 0;
   border-radius: var(--radius-sm);
-  color: var(--neutral-text);
+  color: var(--color-text-muted);
   background: transparent;
   font: inherit;
   font-size: var(--text-md);
@@ -3397,8 +3397,8 @@
 }
 
 .crm-dropdown-item:hover {
-  color: var(--neutral-text-strong);
-  background: var(--neutral-surface-hover);
+  color: var(--color-text);
+  background: var(--color-field-hover);
 }
 
 .crm-dropdown-item-danger {
@@ -3475,21 +3475,21 @@
 
 .crm-table {
   overflow: hidden;
-  border: 1px solid var(--neutral-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--neutral-surface);
+  background: var(--color-window);
 }
 
 .crm-table-header {
-  border-bottom: 1px solid var(--neutral-border);
-  color: var(--neutral-text-muted);
-  background: var(--neutral-surface-soft);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  background: var(--color-card);
   font-size: var(--text-xs);
   font-weight: 500;
 }
 
 .crm-table-row {
-  border-bottom: 1px solid var(--neutral-border-soft);
+  border-bottom: 1px solid var(--color-border-soft);
   transition: background-color var(--transition-fast);
 }
 
@@ -3498,7 +3498,7 @@
 }
 
 .crm-table-row:hover {
-  background: var(--neutral-surface-soft);
+  background: var(--color-field-hover);
 }
 
 .crm-table-cell {
@@ -3508,7 +3508,7 @@
 /* App navigation */
 .nuar-sidebar {
   border-right: 1px solid var(--color-border);
-  background: color-mix(in srgb, var(--color-bg) 88%, #000000);
+  background: color-mix(in srgb, var(--color-page) 88%, black);
 }
 
 .nuar-sidebar button,
@@ -3707,16 +3707,16 @@
 
 /* Calendar layout */
 .nuar-calendar {
-  --calendar-accent: var(--accent-color, #b91c1c);
-  --calendar-accent-hover: var(--accent-hover, #991b1b);
-  --calendar-border: var(--app-window-border, rgba(255, 255, 255, 0.08));
-  --calendar-border-soft: var(--app-card-border, rgba(255, 255, 255, 0.055));
+  --calendar-accent: var(--color-primary);
+  --calendar-accent-hover: var(--color-primary-hover);
+  --calendar-border: var(--color-border);
+  --calendar-border-soft: var(--color-border-soft);
   --calendar-danger-soft: color-mix(in srgb, var(--calendar-accent) 12%, transparent);
-  --calendar-faint: var(--color-text-faint, #6f7785);
-  --calendar-hover-bg: color-mix(in srgb, var(--app-text-main, #ffffff) 4.5%, transparent);
-  --calendar-muted: var(--color-text-muted, #a7afbd);
-  --calendar-text: var(--color-text, #f4f7fa);
-  --calendar-text-on-accent: var(--button-primary-text, #ffffff);
+  --calendar-faint: var(--color-text-faint);
+  --calendar-hover-bg: color-mix(in srgb, var(--color-text) 4.5%, transparent);
+  --calendar-muted: var(--color-text-muted);
+  --calendar-text: var(--color-text);
+  --calendar-text-on-accent: var(--button-primary-text);
 
   height: 100%;
   max-height: 100%;
@@ -3730,20 +3730,20 @@
   min-height: 58px;
   margin: 0;
   padding: 0 0 14px;
-  border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
+  border-color: var(--calendar-border-soft, var(--color-border-soft));
 }
 
 .nuar-calendar .page-header-unified-copy h1,
 .nuar-calendar .page-header-unified-copy h2,
 .nuar-calendar .page-header-unified-copy strong {
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  color: var(--calendar-text, var(--color-text));
   font-size: 22px;
   font-weight: 650;
 }
 
 .nuar-calendar .page-header-unified-copy p,
 .nuar-calendar .page-header-unified-copy span {
-  color: var(--calendar-faint, var(--color-text-faint, #6f7785));
+  color: var(--calendar-faint, var(--color-text-faint));
   margin-top: 6px;
   line-height: 1.3;
 }
@@ -3758,7 +3758,7 @@
 .nuar-calendar-date-display {
   height: 36px;
   min-height: 36px;
-  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
+  border-color: var(--calendar-border, var(--color-border));
   border-radius: 10px;
   background: transparent;
   box-shadow: none;
@@ -3768,14 +3768,14 @@
 .nuar-calendar-actions button:hover,
 .nuar-calendar-date-nav button:hover,
 .nuar-calendar-date-display:hover {
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
-  background: var(--calendar-hover-bg, color-mix(in srgb, var(--app-text-main, #ffffff) 4.5%, transparent));
+  color: var(--calendar-text, var(--color-text));
+  background: var(--calendar-hover-bg, color-mix(in srgb, var(--color-text) 4.5%, transparent));
   transform: none;
 }
 
 .nuar-calendar-actions button[class*="bg-red"] {
   border-color: var(--calendar-accent);
-  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
+  color: var(--calendar-text-on-accent, var(--button-primary-text));
   background: var(--calendar-accent);
   box-shadow: none;
 }
@@ -3802,8 +3802,8 @@
   align-items: center;
   justify-content: center;
   padding-inline: 12px;
-  border: 1px solid var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  border: 1px solid var(--calendar-border, var(--color-border));
+  color: var(--calendar-text, var(--color-text));
   background: transparent;
   font-size: 12px;
   font-weight: 650;
@@ -3823,11 +3823,11 @@
 .nuar-calendar-schedule {
   height: 100%;
   max-height: 100%;
-  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
+  border-color: var(--calendar-border, var(--color-border));
   border-radius: 16px;
-  background: var(--app-window-bg);
+  background: var(--color-window);
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--calendar-text, var(--color-text, #f4f7fa)) 18%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--calendar-text, var(--color-text)) 18%, transparent) transparent;
 }
 
 .nuar-calendar-schedule::-webkit-scrollbar,
@@ -3844,7 +3844,7 @@
 .nuar-calendar-schedule::-webkit-scrollbar-thumb,
 .nuar-calendar-reminders::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: color-mix(in srgb, var(--calendar-text, var(--color-text, #f4f7fa)) 16%, transparent);
+  background: color-mix(in srgb, var(--calendar-text, var(--color-text)) 16%, transparent);
 }
 
 .nuar-calendar-grid {
@@ -3867,7 +3867,7 @@
 
 .nuar-calendar-time-axis {
   color: var(--color-text-faint);
-  background: color-mix(in srgb, var(--color-bg) 95%, transparent);
+  background: color-mix(in srgb, var(--color-page) 95%, transparent);
 }
 
 .nuar-calendar-time-axis strong {
@@ -3889,7 +3889,7 @@
 }
 
 .nuar-calendar-master {
-  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
+  border-color: var(--calendar-border, var(--color-border));
 }
 
 .nuar-calendar-master-header {
@@ -3898,8 +3898,8 @@
   align-content: center;
   gap: 2px;
   padding-inline: var(--space-3);
-  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
-  background: var(--app-card-bg);
+  border-color: var(--calendar-border, var(--color-border));
+  background: var(--color-card);
 }
 
 .nuar-calendar .schedule-column {
@@ -3960,26 +3960,26 @@
 .nuar-calendar .schedule-entry-dragging {
   z-index: 80;
   opacity: 0.98;
-  filter: drop-shadow(0 14px 24px var(--shadow-strong, rgba(0, 0, 0, 0.34)));
+  filter: drop-shadow(0 14px 24px color-mix(in srgb, var(--color-page) 72%, transparent));
   pointer-events: none;
 }
 
 .nuar-calendar-reminders {
-  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
+  border-color: var(--calendar-border, var(--color-border));
   border-radius: 16px;
-  background: var(--app-window-bg);
+  background: var(--color-window);
   box-shadow: none;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--calendar-text, var(--color-text, #f4f7fa)) 18%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--calendar-text, var(--color-text)) 18%, transparent) transparent;
 }
 
 .nuar-calendar-picker {
   display: grid;
   gap: 9px;
   padding: 9px;
-  border: 1px solid var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
+  border: 1px solid var(--calendar-border-soft, var(--color-border-soft));
   border-radius: 14px;
-  background: var(--app-window-bg);
+  background: var(--color-window);
 }
 
 .nuar-calendar-picker header {
@@ -3996,7 +3996,7 @@
   gap: 12px;
   min-width: 0;
   flex: 0 1 auto;
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  color: var(--calendar-text, var(--color-text));
   font-size: 11px;
   font-weight: 650;
 }
@@ -4012,7 +4012,7 @@
   padding: 0 4px;
   border: 0;
   border-radius: 7px;
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  color: var(--calendar-text, var(--color-text));
   background: transparent;
   font-size: 10px;
   font-weight: 650;
@@ -4020,11 +4020,11 @@
 }
 
 .nuar-calendar-picker-menu > button:hover {
-  background: var(--app-card-bg);
+  background: var(--color-card);
 }
 
 .nuar-calendar-picker-menu:nth-child(2) > button {
-  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
+  color: var(--calendar-muted, var(--color-text-muted));
 }
 
 .nuar-calendar-picker-popover {
@@ -4037,9 +4037,9 @@
   display: grid;
   gap: 2px;
   padding: 6px;
-  border: 1px solid var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
+  border: 1px solid var(--calendar-border, var(--color-border));
   border-radius: 10px;
-  background: var(--app-window-bg);
+  background: var(--color-window);
   transform: translateX(-50%);
   overflow-y: auto;
 }
@@ -4054,7 +4054,7 @@
   padding: 0 10px;
   border: 0;
   border-radius: 7px;
-  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
+  color: var(--calendar-muted, var(--color-text-muted));
   background: transparent;
   font-size: 11px;
   font-weight: 600;
@@ -4063,13 +4063,13 @@
 }
 
 .nuar-calendar-picker-popover button:hover {
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
-  background: var(--calendar-hover-bg, color-mix(in srgb, var(--app-text-main, #ffffff) 4.5%, transparent));
+  color: var(--calendar-text, var(--color-text));
+  background: var(--calendar-hover-bg, color-mix(in srgb, var(--color-text) 4.5%, transparent));
 }
 
 .nuar-calendar-picker-popover button.is-selected {
-  color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 36%, var(--calendar-text, var(--color-text, #f4f7fa)));
-  background: var(--calendar-danger-soft, color-mix(in srgb, var(--accent-color, #b91c1c) 12%, transparent));
+  color: color-mix(in srgb, var(--calendar-accent, var(--color-primary)) 36%, var(--calendar-text, var(--color-text)));
+  background: var(--calendar-danger-soft, color-mix(in srgb, var(--color-primary) 12%, transparent));
   line-height: 1;
   box-shadow: inset 2px 0 0 var(--calendar-accent);
 }
@@ -4079,7 +4079,7 @@
   display: grid;
   place-items: center;
   border: 0;
-  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
+  color: var(--calendar-muted, var(--color-text-muted));
   background: transparent;
   box-shadow: none;
   transform: none;
@@ -4094,8 +4094,8 @@
 
 .nuar-calendar-picker header button:hover,
 .nuar-calendar-picker-grid button:hover {
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
-  background: var(--app-card-bg);
+  color: var(--calendar-text, var(--color-text));
+  background: var(--color-card);
   transform: none;
 }
 
@@ -4107,7 +4107,7 @@
 }
 
 .nuar-calendar-picker-weekdays span {
-  color: var(--calendar-faint, var(--color-text-faint, #6f7785));
+  color: var(--calendar-faint, var(--color-text-faint));
   font-size: 10px;
   font-weight: 650;
   text-align: center;
@@ -4116,13 +4116,13 @@
 .nuar-calendar-picker-grid button {
   aspect-ratio: 1;
   border-radius: 9px;
-  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
+  color: var(--calendar-muted, var(--color-text-muted));
   font-size: 12px;
   font-weight: 600;
 }
 
 .nuar-calendar-picker-grid button.is-muted {
-  color: #4b5563;
+  color: var(--color-text-faint);
 }
 
 .nuar-calendar-picker-grid button.is-today {
@@ -4130,7 +4130,7 @@
 }
 
 .nuar-calendar-picker-grid button.is-selected {
-  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
+  color: var(--calendar-text-on-accent, var(--button-primary-text));
   background: var(--calendar-accent);
 }
 
@@ -4143,7 +4143,7 @@
 }
 
 .nuar-calendar-reminders > div:nth-of-type(2) span {
-  border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
+  border-color: var(--calendar-border-soft, var(--color-border-soft));
   border-radius: 7px;
   background: transparent;
 }
@@ -4160,19 +4160,19 @@
   position: relative;
   min-height: 24px;
   border-radius: 0;
-  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
+  color: var(--calendar-muted, var(--color-text-muted));
   background: transparent;
   transform: none;
 }
 
 .nuar-calendar-reminders > div:nth-of-type(3) button:hover {
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  color: var(--calendar-text, var(--color-text));
   background: transparent;
   transform: none;
 }
 
 .nuar-calendar-reminders > div:nth-of-type(3) button.text-white {
-  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
+  color: var(--calendar-text-on-accent, var(--button-primary-text));
   background: transparent;
 }
 
@@ -4188,7 +4188,7 @@
 }
 
 .nuar-calendar-reminders h2 {
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  color: var(--calendar-text, var(--color-text));
   font-size: 14px;
   font-weight: 650;
 }
@@ -4269,14 +4269,14 @@
   grid-template-columns: 1fr;
   gap: 6px;
   padding: 10px 36px 10px 10px;
-  border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
+  border-color: var(--calendar-border-soft, var(--color-border-soft));
   border-radius: 12px;
-  background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent);
+  background: color-mix(in srgb, var(--color-text) 2.5%, transparent);
 }
 
 .nuar-calendar-reminder-card.is-next {
   border-color: var(--calendar-accent);
-  background: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 9%, var(--app-card-bg, #141619));
+  background: color-mix(in srgb, var(--calendar-accent, var(--color-primary)) 9%, var(--color-card));
 }
 
 .nuar-calendar-reminders article button,
@@ -4293,7 +4293,7 @@
 }
 
 .nuar-calendar-reminder-time {
-  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
+  color: var(--calendar-muted, var(--color-text-muted));
   font-size: 11px;
   font-weight: 650;
   line-height: 1;
@@ -4305,7 +4305,7 @@
   display: block;
   padding: 0;
   border: 0;
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
+  color: var(--calendar-text, var(--color-text));
   background: transparent;
   font-size: 12px;
   font-weight: 700;
@@ -4318,7 +4318,7 @@
 }
 
 .nuar-calendar-reminder-client:hover {
-  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
+  color: var(--calendar-text-on-accent, var(--button-primary-text));
 }
 
 .nuar-calendar-reminder-client > span {
@@ -4329,7 +4329,7 @@
 }
 
 .nuar-calendar-reminder-money {
-  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
+  color: var(--calendar-muted, var(--color-text-muted));
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
@@ -4344,7 +4344,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 8px;
-  color: var(--calendar-faint, var(--color-text-faint, #6f7785));
+  color: var(--calendar-faint, var(--color-text-faint));
   font-size: 10px;
   font-weight: 560;
   line-height: 1.25;
@@ -4376,14 +4376,14 @@
   place-items: center;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: var(--calendar-faint, var(--color-text-faint, #6f7785));
+  color: var(--calendar-faint, var(--color-text-faint));
   background: transparent;
   cursor: pointer;
 }
 
 .nuar-calendar-reminder-menu > button:hover {
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
-  border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
+  color: var(--calendar-text, var(--color-text));
+  border-color: var(--calendar-border-soft, var(--color-border-soft));
 }
 
 .nuar-calendar-reminder-popover {
@@ -4395,9 +4395,9 @@
   min-width: 142px;
   gap: 2px;
   padding: 6px;
-  border: 1px solid var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
+  border: 1px solid var(--calendar-border, var(--color-border));
   border-radius: 10px;
-  background: var(--app-window-bg);
+  background: var(--color-window);
 }
 
 .nuar-calendar-reminder-popover button {
@@ -4408,7 +4408,7 @@
   padding: 0 8px;
   border: 0;
   border-radius: 7px;
-  color: var(--calendar-muted, var(--color-text-muted, #a7afbd));
+  color: var(--calendar-muted, var(--color-text-muted));
   background: transparent;
   font-size: 11px;
   font-weight: 600;
@@ -4416,17 +4416,17 @@
 }
 
 .nuar-calendar-reminder-popover button:hover {
-  color: var(--calendar-text, var(--color-text, #f4f7fa));
-  background: var(--calendar-hover-bg, color-mix(in srgb, var(--app-text-main, #ffffff) 4.5%, transparent));
+  color: var(--calendar-text, var(--color-text));
+  background: var(--calendar-hover-bg, color-mix(in srgb, var(--color-text) 4.5%, transparent));
 }
 
 .nuar-calendar-reminder-popover button.is-danger {
-  color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 36%, var(--calendar-text, var(--color-text, #f4f7fa)));
+  color: color-mix(in srgb, var(--calendar-accent, var(--color-primary)) 36%, var(--calendar-text, var(--color-text)));
 }
 
 .nuar-calendar-reminder-popover button.is-danger:hover {
-  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
-  background: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 14%, transparent);
+  color: var(--calendar-text-on-accent, var(--button-primary-text));
+  background: color-mix(in srgb, var(--calendar-accent, var(--color-primary)) 14%, transparent);
 }
 
 .nuar-calendar-reminders :is(button, span) {
@@ -4538,7 +4538,7 @@
   height: 22px;
   border-color: var(--color-border);
   color: var(--color-text-faint);
-  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+  background: color-mix(in srgb, var(--color-page) 82%, transparent);
 }
 
 .nuar-calendar-entry-trigger:hover {
@@ -4618,7 +4618,7 @@
 
 .nuar-calendar-reminders-backdrop,
 .nuar-calendar-add-backdrop {
-  background: color-mix(in srgb, var(--color-bg) 60%, transparent);
+  background: color-mix(in srgb, var(--color-page) 60%, transparent);
   backdrop-filter: blur(4px);
   cursor: pointer;
 }
@@ -4628,9 +4628,9 @@
   width: 360px;
   max-width: 100%;
   overflow: hidden;
-  border-color: var(--calendar-border, var(--app-window-border, rgba(255, 255, 255, 0.08)));
+  border-color: var(--calendar-border, var(--color-border));
   border-radius: 16px;
-  background: var(--app-window-bg);
+  background: var(--color-window);
   box-shadow: none;
 }
 
@@ -4641,7 +4641,7 @@
   justify-content: flex-start;
   gap: var(--space-3);
   padding-inline: var(--space-5);
-  border-color: var(--calendar-border-soft, var(--app-card-border, rgba(255, 255, 255, 0.055)));
+  border-color: var(--calendar-border-soft, var(--color-border-soft));
   color: var(--color-text);
   background: transparent;
   text-align: left;
@@ -4653,7 +4653,7 @@
 }
 
 .nuar-calendar-add-option:hover {
-  background: var(--calendar-hover-bg, color-mix(in srgb, var(--app-text-main, #ffffff) 4.5%, transparent));
+  background: var(--calendar-hover-bg, color-mix(in srgb, var(--color-text) 4.5%, transparent));
   transform: none;
 }
 
@@ -4679,7 +4679,7 @@
 }
 
 .employee-modal.calendar-entry-modal {
-  background: var(--app-window-bg);
+  background: var(--color-window);
 }
 
 .calendar-reserved-mobile-card {
@@ -4689,20 +4689,20 @@
   align-items: stretch;
   gap: 8px;
   padding: 12px;
-  border: 1px solid color-mix(in srgb, var(--calendar-reserve-accent, #f59e0b) 24%, var(--app-window-border, rgba(255, 255, 255, 0.08)));
-  color: var(--app-text-main, #f4f5f7);
-  background: color-mix(in srgb, var(--calendar-reserve-accent, #f59e0b) 8%, var(--card-bg, #141619));
+  border: 1px solid color-mix(in srgb, var(--calendar-reserve-accent) 24%, var(--color-border));
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--calendar-reserve-accent) 8%, var(--color-card));
   box-shadow: none;
 }
 
 .calendar-reserved-mobile-card:hover,
 .calendar-reserved-mobile-card:focus-visible {
-  border-color: color-mix(in srgb, var(--calendar-reserve-accent, #f59e0b) 42%, var(--app-window-border, rgba(255, 255, 255, 0.08)));
-  background: color-mix(in srgb, var(--calendar-reserve-accent, #f59e0b) 11%, var(--card-bg, #141619));
+  border-color: color-mix(in srgb, var(--calendar-reserve-accent) 42%, var(--color-border));
+  background: color-mix(in srgb, var(--calendar-reserve-accent) 11%, var(--color-card));
 }
 
 .calendar-reserved-mobile-time {
-  color: color-mix(in srgb, var(--calendar-reserve-accent, #f59e0b) 84%, var(--color-text, #ffffff));
+  color: color-mix(in srgb, var(--calendar-reserve-accent) 84%, var(--color-text));
   font-size: 12px;
   font-weight: 700;
 }
@@ -4710,7 +4710,7 @@
 .calendar-reserved-mobile-title {
   margin-top: 2px;
   overflow: hidden;
-  color: var(--app-text-main, #f4f5f7);
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 760;
   text-overflow: ellipsis;
@@ -4719,7 +4719,7 @@
 
 .calendar-reserved-mobile-master {
   flex: 0 0 auto;
-  color: var(--app-text-muted, #a3a6b3);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 650;
 }
@@ -4728,7 +4728,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--app-text-soft, #747b87);
+  color: var(--color-text-faint);
   font-size: 12px;
   font-weight: 650;
 }
@@ -4738,7 +4738,7 @@
   width: 100%;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--color-bg) 80%, transparent);
+  background: color-mix(in srgb, var(--color-page) 80%, transparent);
 }
 
 .visit-mobile-swipe-actions {
@@ -4760,7 +4760,7 @@
   padding: var(--space-4);
   border: 1px solid var(--color-border-soft) !important;
   border-radius: var(--radius-lg);
-  background: var(--app-card-bg) !important;
+  background: var(--color-card) !important;
   cursor: pointer;
   transition:
     transform var(--transition-ui),
@@ -4774,12 +4774,12 @@
 
 .visit-mobile-card.is-planned {
   border-color: color-mix(in srgb, var(--color-primary) 26%, var(--color-border)) !important;
-  background: color-mix(in srgb, var(--color-primary) 7%, var(--app-card-bg)) !important;
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-card)) !important;
 }
 
 .visit-mobile-card.is-next {
   border-color: color-mix(in srgb, var(--color-primary) 34%, var(--color-border)) !important;
-  background: color-mix(in srgb, var(--color-primary) 10%, var(--app-card-bg)) !important;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-card)) !important;
 }
 
 .visit-mobile-card-head {
@@ -4937,51 +4937,51 @@
 }
 
 .employee-modal.calendar-entry-modal .calendar-kind-switch button.is-active {
-  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
-  border-color: var(--calendar-accent, var(--accent-color, #b91c1c));
-  background: var(--calendar-accent, var(--accent-color, #b91c1c));
+  color: var(--calendar-text-on-accent, var(--button-primary-text));
+  border-color: var(--calendar-accent, var(--color-primary));
+  background: var(--calendar-accent, var(--color-primary));
   box-shadow: none;
 }
 
 .employee-modal.calendar-entry-modal .calendar-entry-form .submit-button,
 .employee-modal.calendar-entry-modal .calendar-entry-form button[type="submit"],
 .employee-modal.calendar-entry-modal .calendar-submit-button {
-  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
-  border-color: var(--calendar-accent, var(--accent-color, #b91c1c));
-  background: var(--calendar-accent, var(--accent-color, #b91c1c));
+  color: var(--calendar-text-on-accent, var(--button-primary-text));
+  border-color: var(--calendar-accent, var(--color-primary));
+  background: var(--calendar-accent, var(--color-primary));
   box-shadow: none;
 }
 
 .employee-modal.calendar-entry-modal .calendar-submit-button:hover,
 .employee-modal.calendar-entry-modal .calendar-entry-form button[type="submit"]:hover {
-  color: var(--calendar-text-on-accent, var(--button-primary-text, #ffffff));
-  border-color: var(--calendar-accent-hover, var(--accent-hover, #991b1b));
-  background: var(--calendar-accent-hover, var(--accent-hover, #991b1b));
+  color: var(--calendar-text-on-accent, var(--button-primary-text));
+  border-color: var(--calendar-accent-hover, var(--color-primary-hover));
+  background: var(--calendar-accent-hover, var(--color-primary-hover));
   box-shadow: none;
 }
 
 .employee-modal.calendar-entry-modal :is(.text-amber-400, .text-yellow-400) {
-  color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 36%, var(--calendar-text, var(--color-text, #f4f7fa)));
+  color: color-mix(in srgb, var(--calendar-accent, var(--color-primary)) 36%, var(--calendar-text, var(--color-text)));
 }
 
 .employee-modal.calendar-entry-modal :is(.border-amber-500\/20, .border-yellow-500\/20) {
-  border-color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 28%, transparent);
+  border-color: color-mix(in srgb, var(--calendar-accent, var(--color-primary)) 28%, transparent);
 }
 
 .employee-modal.calendar-entry-modal :is(.bg-amber-500\/5, .bg-yellow-500\/5) {
-  background: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 8%, transparent);
+  background: color-mix(in srgb, var(--calendar-accent, var(--color-primary)) 8%, transparent);
 }
 
 .employee-modal.calendar-entry-modal .calendar-entry-form :is(.text-indigo-400, .text-purple-400) {
-  color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 36%, var(--calendar-text, var(--color-text, #f4f7fa)));
+  color: color-mix(in srgb, var(--calendar-accent, var(--color-primary)) 36%, var(--calendar-text, var(--color-text)));
 }
 
 .employee-modal.calendar-entry-modal .calendar-entry-form :is(.bg-indigo-500\/10, .bg-purple-500\/10) {
-  background: var(--calendar-danger-soft, color-mix(in srgb, var(--accent-color, #b91c1c) 12%, transparent));
+  background: var(--calendar-danger-soft, color-mix(in srgb, var(--color-primary) 12%, transparent));
 }
 
 .employee-modal.calendar-entry-modal .calendar-entry-form :is(.border-indigo-500\/20, .border-purple-500\/20) {
-  border-color: color-mix(in srgb, var(--calendar-accent, var(--accent-color, #b91c1c)) 28%, transparent);
+  border-color: color-mix(in srgb, var(--calendar-accent, var(--color-primary)) 28%, transparent);
 }
 
 @media (max-width: 640px) {
@@ -5112,7 +5112,7 @@
     width: 100% !important;
     margin: 0 !important;
     padding: 0 0 12px !important;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08)) !important;
+    border-bottom: 1px solid var(--color-border) !important;
     background: transparent !important;
   }
 
@@ -5171,7 +5171,7 @@
     padding: 0 !important;
     border: 0 !important;
     border-radius: 8px !important;
-    color: var(--app-text-main, #f4f5f7) !important;
+    color: var(--color-text) !important;
     background: transparent !important;
     box-shadow: none !important;
   }
@@ -5189,10 +5189,10 @@
     min-width: 0 !important;
     min-height: 38px !important;
     padding: 0 8px !important;
-    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 94%, transparent) !important;
     border-radius: 8px !important;
-    color: var(--app-text-muted, #a3a6b3) !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    color: var(--color-text-muted) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
     font-size: 11.5px !important;
     font-weight: 800 !important;
     line-height: 1.05 !important;
@@ -5202,10 +5202,10 @@
 
   .mobile-page-container[data-mobile-page="operations"] .operations-page-tabs button.active,
   .mobile-page-container[data-mobile-page="operations"] .operations-tabs button.active {
-    border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 58%, transparent) !important;
-    color: var(--button-primary-text, #ffffff) !important;
-    background: color-mix(in srgb, var(--accent-color, #b91c1c) 22%, transparent) !important;
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-color, #b91c1c) 22%, transparent) !important;
+    border-color: color-mix(in srgb, var(--color-primary) 58%, transparent) !important;
+    color: var(--button-primary-text) !important;
+    background: color-mix(in srgb, var(--color-primary) 22%, transparent) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 22%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-summary {
@@ -5228,7 +5228,7 @@
     line-height: 1 !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-grid {
@@ -5249,9 +5249,9 @@
     min-width: 0 !important;
     max-width: 100% !important;
     padding: 13px 12px !important;
-    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 94%, transparent) !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 74%, transparent) !important;
+    background: color-mix(in srgb, var(--color-window) 74%, transparent) !important;
     box-shadow: none !important;
     overflow-x: hidden !important;
   }
@@ -5268,8 +5268,8 @@
 
   .mobile-page-container[data-mobile-page="operations"] .waitlist-panel.operations-panel {
     padding: 13px 12px !important;
-    border: 1px solid color-mix(in srgb, var(--app-window-border, rgba(255, 255, 255, 0.08)) 94%, transparent) !important;
-    background: color-mix(in srgb, var(--app-window-bg, #0e1013) 74%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 94%, transparent) !important;
+    background: color-mix(in srgb, var(--color-window) 74%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .waitlist-panel .page-header-unified {
@@ -5355,7 +5355,7 @@
     min-width: 0 !important;
     padding: 3px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-page .add-visit-button,
@@ -5393,7 +5393,7 @@
     min-height: 0 !important;
     padding: 11px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
     overflow: hidden !important;
   }
 
@@ -5471,13 +5471,13 @@
     font-weight: 750 !important;
     line-height: 1.1 !important;
     white-space: normal !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-order-button:not(:disabled) {
-    border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 45%, var(--app-window-border, rgba(255, 255, 255, 0.08))) !important;
-    color: var(--button-primary-text, #ffffff) !important;
-    background: color-mix(in srgb, var(--accent-color, #b91c1c) 20%, transparent) !important;
+    border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border)) !important;
+    color: var(--button-primary-text) !important;
+    background: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .quick-note-form {
@@ -5488,7 +5488,7 @@
     min-width: 0 !important;
     padding: 10px !important;
     border-radius: 8px !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2.5%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .quick-note-form > svg {
@@ -5522,7 +5522,7 @@
     padding: 12px !important;
     border-radius: 8px !important;
     font-size: 12px !important;
-    background: color-mix(in srgb, var(--app-text-main, #ffffff) 2%, transparent) !important;
+    background: color-mix(in srgb, var(--color-text) 2%, transparent) !important;
   }
 
   .nuar-calendar {
@@ -5584,7 +5584,7 @@
     gap: 4px;
     margin: 0;
     padding: 0 var(--mobile-page-x, 16px) 3px;
-    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
+    border-bottom: 1px solid var(--color-border);
     background: transparent;
   }
 
@@ -5607,7 +5607,7 @@
     padding: 0;
     border: 0;
     border-radius: 8px;
-    color: var(--app-text-main, #f4f5f7);
+    color: var(--color-text);
     background: transparent;
     outline: 0;
     box-shadow: none;
