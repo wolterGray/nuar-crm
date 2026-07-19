@@ -44,9 +44,7 @@ function IntegrationHealthPanel({actions = {}, report}) {
         : "Автоматизации выключены";
 
   return (
-    <div className={`integration-health-panel p-5 border rounded-card bg-surface flex flex-col gap-5 ${
-      overallState === "warning" ? "border-amber-500/20" : overallState === "ok" ? "border-emerald-500/20" : "border-border"
-    }`}>
+    <div className={clsx("integration-health-panel p-5 border rounded-card bg-surface flex flex-col gap-5", `is-${overallState}`)}>
       <div className="integration-health-overview flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <span className="block text-text-faint text-xs">Авто-контроль</span>
@@ -55,10 +53,10 @@ function IntegrationHealthPanel({actions = {}, report}) {
         <div className="integration-health-actions flex items-center flex-wrap gap-4">
           <div className="integration-health-counts flex items-center gap-3 bg-field px-3 py-1.5 rounded-control border border-border">
             <span className="text-text-muted text-xs font-semibold">
-              <b className="text-emerald-400 mr-1">{report.summary.ok}</b> OK
+              <b className="settings-state-count is-ok mr-1">{report.summary.ok}</b> OK
             </span>
             <span className="text-text-muted text-xs font-semibold">
-              <b className="text-amber-400 mr-1">{report.summary.warning}</b> Внимание
+              <b className="settings-state-count is-warning mr-1">{report.summary.warning}</b> Внимание
             </span>
             <span className="text-text-muted text-xs font-semibold">
               <b className="text-text-faint mr-1">{report.summary.off}</b> Выкл
@@ -77,13 +75,9 @@ function IntegrationHealthPanel({actions = {}, report}) {
           const itemActions = actions.itemActions?.[item.id] ?? [];
 
           return (
-            <article key={item.id} className={`integration-health-item p-4 border rounded-control bg-field flex flex-col sm:flex-row sm:items-start justify-between gap-4 ${
-              item.state === "warning" ? "border-amber-500/20" : item.state === "ok" ? "border-emerald-500/10" : "border-border/60"
-            }`}>
+            <article key={item.id} className={clsx("integration-health-item p-4 border rounded-control bg-field flex flex-col sm:flex-row sm:items-start justify-between gap-4", `is-${item.state}`)}>
               <div className="flex gap-3">
-                <span className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${
-                  item.state === "warning" ? "bg-amber-400" : item.state === "ok" ? "bg-emerald-400" : "bg-text-faint"
-                }`} />
+                <span className={clsx("settings-state-dot w-2.5 h-2.5 rounded-full mt-1.5 shrink-0", `is-${item.state}`)} />
                 <div>
                   <strong className="block text-text-main text-sm font-semibold">{item.name}</strong>
                   <small className="block text-text-muted text-xs mt-0.5">{item.message}</small>
@@ -321,7 +315,7 @@ function UserAccessPanel({pushNotification}) {
       </section>
 
       {resetUrl ? (
-        <div className="rounded-control border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200 break-all">
+        <div className="settings-success-note rounded-control border px-3 py-2 text-xs break-all">
           Dev reset URL: {resetUrl}
         </div>
       ) : null}
@@ -359,10 +353,8 @@ function UserAccessPanel({pushNotification}) {
                 ))}
               </Select>
               <span className={clsx(
-                "inline-flex min-h-9 items-center justify-center rounded-control border px-3 text-xs font-bold",
-                user.isActive
-                  ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-                  : "border-red-500/20 bg-red-500/10 text-red-300",
+                "settings-user-status inline-flex min-h-9 items-center justify-center rounded-control border px-3 text-xs font-bold",
+                user.isActive ? "is-active" : "is-disabled",
               )}>
                 {user.isActive ? "Активен" : "Отключен"}
               </span>
@@ -1370,13 +1362,13 @@ function SettingsPage({
                 <div className="flex flex-col gap-1">
                   <span className="text-text-faint text-xs">Последнее сохранение</span>
                   <strong className="text-text-main text-sm font-semibold">{formatCloudSyncTime(lastCloudSyncAt)}</strong>
-                  <small className={clsx("text-xs leading-normal mt-1 block", (cloudLoadError || lastCloudSyncError || cloudConflict) ? "text-red-400 font-medium" : "text-text-muted")}>
+                  <small className={clsx("text-xs leading-normal mt-1 block", (cloudLoadError || lastCloudSyncError || cloudConflict) ? "settings-cloud-message is-error font-medium" : "text-text-muted")}>
                     {cloudStatusMessage}
                   </small>
                 </div>
                 {cloudConflict && (
-                  <div className="mt-2 p-3 border border-red-500/20 bg-red-500/5 rounded-control flex flex-col gap-3">
-                    <p className="m-0 text-red-300 text-xs leading-normal">
+                  <div className="settings-cloud-conflict mt-2 p-3 border rounded-control flex flex-col gap-3">
+                    <p className="m-0 text-xs leading-normal">
                       В облаке более свежая версия ({formatCloudSyncTime(cloudConflict.remoteUpdatedAt)}). Если сохранить локальные данные сейчас, изменения с другого устройства будут потеряны.
                     </p>
                     <div className="flex gap-2">
@@ -1430,7 +1422,7 @@ function SettingsPage({
                     <AppIcon name="download" size="sm" />
                     Скачать копию
                   </Button>
-                  <label className="inline-flex items-center justify-center min-h-[40px] px-3.5 gap-2 border border-border rounded-control text-text-main bg-field text-sm font-medium hover:bg-surface-soft transition-colors cursor-pointer">
+                  <label className="settings-import-button inline-flex items-center justify-center min-h-[40px] px-3.5 gap-2 border rounded-control text-sm font-medium transition-colors cursor-pointer">
                     <AppIcon name="upload" size="sm" />
                     Восстановить
                     <input

@@ -130,6 +130,78 @@
   background: color-mix(in srgb, var(--accent-color, #b91c1c) 5%, transparent);
 }
 
+.integration-health-panel.is-warning,
+.integration-health-item.is-warning {
+  border-color: color-mix(in srgb, var(--color-warning, #f59e0b) 22%, transparent);
+}
+
+.integration-health-panel.is-ok {
+  border-color: color-mix(in srgb, var(--color-success, #22c55e) 20%, transparent);
+}
+
+.integration-health-item.is-ok {
+  border-color: color-mix(in srgb, var(--color-success, #22c55e) 12%, transparent);
+}
+
+.settings-state-count.is-ok {
+  color: var(--color-success, #22c55e);
+}
+
+.settings-state-count.is-warning {
+  color: var(--color-warning, #f59e0b);
+}
+
+.settings-state-dot.is-warning {
+  background: var(--color-warning, #f59e0b);
+}
+
+.settings-state-dot.is-ok {
+  background: var(--color-success, #22c55e);
+}
+
+.settings-state-dot.is-off {
+  background: var(--text-muted, #8b95a5);
+}
+
+.settings-success-note {
+  border-color: color-mix(in srgb, var(--color-success, #22c55e) 22%, transparent);
+  color: color-mix(in srgb, var(--color-success, #22c55e) 58%, var(--color-text, #ffffff));
+  background: color-mix(in srgb, var(--color-success, #22c55e) 10%, transparent);
+}
+
+.settings-user-status.is-active {
+  border-color: color-mix(in srgb, var(--color-success, #22c55e) 22%, transparent);
+  color: color-mix(in srgb, var(--color-success, #22c55e) 68%, var(--color-text, #ffffff));
+  background: color-mix(in srgb, var(--color-success, #22c55e) 10%, transparent);
+}
+
+.settings-user-status.is-disabled {
+  border-color: color-mix(in srgb, var(--color-danger, #ef4444) 22%, transparent);
+  color: color-mix(in srgb, var(--color-danger, #ef4444) 70%, var(--color-text, #ffffff));
+  background: color-mix(in srgb, var(--color-danger, #ef4444) 10%, transparent);
+}
+
+.settings-cloud-message.is-error {
+  color: color-mix(in srgb, var(--color-danger, #ef4444) 78%, var(--color-text, #ffffff));
+}
+
+.settings-cloud-conflict {
+  border-color: color-mix(in srgb, var(--color-danger, #ef4444) 20%, transparent);
+  color: color-mix(in srgb, var(--color-danger, #ef4444) 70%, var(--color-text, #ffffff));
+  background: color-mix(in srgb, var(--color-danger, #ef4444) 5%, transparent);
+}
+
+.settings-import-button {
+  border-color: var(--border, rgba(255, 255, 255, 0.08));
+  color: var(--color-text, #ffffff);
+  background: var(--field-bg, #16191d);
+}
+
+.settings-import-button:hover,
+.settings-import-button:focus-visible {
+  background: var(--surface-soft, #1c1f24);
+}
+
 @media (max-width: 768px) {
   .dialog-backdrop:has(.confirm-dialog) {
     align-items: center !important;
