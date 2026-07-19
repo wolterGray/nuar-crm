@@ -6,21 +6,21 @@
 */
 
 .schedule-column-over {
-  background: color-mix(in srgb, var(--accent-color, #b91c1c) 7%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
 }
 
 .theme-dark .schedule-column-over {
-  background: color-mix(in srgb, var(--accent-color, #b91c1c) 12%, var(--app-card-bg, #141619));
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-card));
 }
 
 .calendar-drag-preview {
-  box-shadow: var(--shadow-md, 0 14px 30px rgba(17, 19, 24, 0.16));
+  box-shadow: var(--shadow-card);
 }
 
 .calendar-client-card {
-  box-shadow: var(--shadow-lg, 0 22px 58px rgba(17, 19, 24, 0.2));
+  box-shadow: var(--shadow-dropdown);
 }
 
 .calendar-slot-menu {
-  box-shadow: var(--shadow-lg, 0 22px 54px rgba(17, 19, 24, 0.2));
+  box-shadow: var(--shadow-dropdown);
 }

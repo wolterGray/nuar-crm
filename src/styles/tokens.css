@@ -41,6 +41,7 @@
   --color-success: var(--accent-success);
   --color-warning: var(--accent-warning);
   --color-error: var(--accent-error);
+  --color-danger: var(--color-error);
   --color-info: var(--accent-info);
   --color-premium: var(--brand-accent);
   --color-loyalty-member: #9ca3af;

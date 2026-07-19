@@ -50,7 +50,7 @@
 }
 
 .booksy-sync-error {
-  color: var(--color-danger, var(--danger, #d64545));
+  color: var(--color-error);
   display: block;
   margin-top: var(--booksy-row-gap);
 }

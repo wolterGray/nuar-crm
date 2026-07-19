@@ -16,18 +16,18 @@
   --ds-control-height-sm: 36px;
   --ds-panel-padding: 18px;
   --ds-page-gap: 14px;
-  --ds-shadow-panel: var(--shadow-card, 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 28px rgba(0, 0, 0, 0.18));
-  --ds-shadow-soft: var(--shadow-layer, 0 10px 30px rgba(17, 19, 24, 0.12));
+  --ds-shadow-panel: var(--shadow-card);
+  --ds-shadow-soft: var(--shadow-layer);
   --ds-transition-fast: 120ms ease;
-  --ds-status-success-bg: var(--status-success-bg, rgba(36, 138, 79, 0.14));
-  --ds-status-success-text: var(--status-success-text, #2f8f57);
-  --ds-status-warning-bg: var(--status-warning-bg, rgba(195, 155, 109, 0.16));
-  --ds-status-warning-text: var(--status-warning-text, #9a7428);
-  --ds-status-muted-bg: var(--badge-bg, rgba(255, 255, 255, 0.06));
-  --ds-warning-tint: color-mix(in srgb, var(--color-warning, #f59e0b) 16%, transparent);
-  --ds-warning-tint-soft: color-mix(in srgb, var(--color-warning, #f59e0b) 8%, transparent);
-  --ds-warning-tint-hover: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent);
-  --ds-warning-border: color-mix(in srgb, var(--color-warning, #f59e0b) 28%, transparent);
+  --ds-status-success-bg: var(--status-success-bg);
+  --ds-status-success-text: var(--status-success-text);
+  --ds-status-warning-bg: var(--status-warning-bg);
+  --ds-status-warning-text: var(--status-warning-text);
+  --ds-status-muted-bg: var(--badge-bg);
+  --ds-warning-tint: color-mix(in srgb, var(--color-warning) 16%, transparent);
+  --ds-warning-tint-soft: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  --ds-warning-tint-hover: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  --ds-warning-border: color-mix(in srgb, var(--color-warning) 28%, transparent);
 }
 
 /* ---- Layout rhythm ---- */
@@ -106,7 +106,7 @@
   min-height: 0;
   padding: 12px;
   overflow: hidden;
-  box-shadow: var(--soft-shadow, var(--ds-shadow-panel));
+  box-shadow: var(--ds-shadow-panel);
 }
 
 .calendar-reminders .calendar-reminders-header,
@@ -148,8 +148,8 @@
   min-width: 28px;
   padding: 4px 8px;
   border-radius: 999px;
-  color: var(--linear-muted, #a3a6b3);
-  background: var(--linear-panel-soft, rgba(21, 23, 26, 0.72));
+  color: var(--color-text-muted);
+  background: var(--color-card);
   font-size: 11px;
   font-weight: 700;
   text-align: center;
@@ -197,7 +197,7 @@
 
 .catalog-section-heading {
   margin: var(--ds-space-2) 0 0;
-  color: var(--linear-text, #f2f3f7);
+  color: var(--color-text);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -223,7 +223,7 @@
 .nav-list button:focus-visible,
 .client-search-trigger:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring, 0 0 0 3px rgba(185, 28, 28, 0.26));
+  box-shadow: var(--focus-ring, var(--button-focus-shadow));
 }
 
 .add-visit-button {
@@ -271,7 +271,7 @@
 .employee-form label,
 .calendar-entry-form label {
   gap: 6px;
-  color: var(--linear-muted, #a3a6b3);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 600;
 }
@@ -282,8 +282,8 @@
 .clients-table-head,
 .payroll-table th {
   padding: 10px 12px;
-  color: var(--linear-dim, #70737f);
-  background: var(--linear-panel-soft, rgba(21, 23, 26, 0.72));
+  color: var(--color-text-faint);
+  background: var(--color-card);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -308,17 +308,17 @@
   display: grid;
   gap: 4px;
   padding: 18px 14px;
-  border: 1px dashed var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  border: 1px dashed var(--color-border-soft);
   border-radius: var(--ds-radius-lg);
-  color: var(--linear-muted, #a3a6b3);
-  background: color-mix(in srgb, var(--linear-panel-soft, rgba(21, 23, 26, 0.72)) 72%, transparent);
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-card) 72%, transparent);
   font-size: 12px;
   text-align: center;
 }
 
 .clients-empty strong,
 .table-empty-state strong {
-  color: var(--linear-text, #f2f3f7);
+  color: var(--color-text);
   font-size: 13px;
   font-weight: 700;
 }
@@ -365,18 +365,18 @@
 .employee-modal.service-form-modal {
   width: min(640px, calc(100vw - 32px));
   max-height: min(88dvh, 760px);
-  background: var(--linear-panel, #0e1013);
+  background: var(--color-window);
 }
 
 .employee-modal.package-form-modal {
-  --package-modal-panel: var(--linear-panel, #0e1013);
-  --package-modal-field: var(--linear-panel-soft, #15171a);
-  --package-modal-border: var(--linear-border, #252a31);
-  --package-modal-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
-  --package-modal-text: var(--linear-text, #f2f3f7);
-  --package-modal-muted: var(--linear-muted, #a3a6b3);
-  --package-modal-faint: var(--linear-dim, #70737f);
-  --package-modal-accent: var(--accent-color, #b91c1c);
+  --package-modal-panel: var(--color-window);
+  --package-modal-field: var(--color-field);
+  --package-modal-border: var(--color-border);
+  --package-modal-border-soft: var(--color-border-soft);
+  --package-modal-text: var(--color-text);
+  --package-modal-muted: var(--color-text-muted);
+  --package-modal-faint: var(--color-text-faint);
+  --package-modal-accent: var(--color-primary);
   width: min(640px, calc(100vw - 32px));
   max-height: min(88dvh, 760px);
   color: var(--package-modal-text);
@@ -384,14 +384,14 @@
 }
 
 .employee-modal.employee-form-modal {
-  --employee-modal-panel: var(--linear-panel, #0e1013);
-  --employee-modal-field: var(--linear-panel-soft, #15171a);
-  --employee-modal-border: var(--linear-border, #252a31);
-  --employee-modal-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
-  --employee-modal-text: var(--linear-text, #f2f3f7);
-  --employee-modal-muted: var(--linear-muted, #a3a6b3);
-  --employee-modal-faint: var(--linear-dim, #70737f);
-  --employee-modal-accent: var(--accent-color, #b91c1c);
+  --employee-modal-panel: var(--color-window);
+  --employee-modal-field: var(--color-field);
+  --employee-modal-border: var(--color-border);
+  --employee-modal-border-soft: var(--color-border-soft);
+  --employee-modal-text: var(--color-text);
+  --employee-modal-muted: var(--color-text-muted);
+  --employee-modal-faint: var(--color-text-faint);
+  --employee-modal-accent: var(--color-primary);
   width: min(680px, calc(100vw - 32px));
   max-height: min(88dvh, 800px);
   color: var(--employee-modal-text);
@@ -400,14 +400,14 @@
 
 .employee-modal.message-template-form-modal,
 .employee-modal.send-template-modal {
-  --template-modal-panel: var(--linear-panel, #0e1013);
-  --template-modal-field: var(--linear-panel-soft, #15171a);
-  --template-modal-border: var(--linear-border, #252a31);
-  --template-modal-border-soft: var(--linear-border-soft, rgba(255, 255, 255, 0.065));
-  --template-modal-text: var(--linear-text, #f2f3f7);
-  --template-modal-muted: var(--linear-muted, #a3a6b3);
-  --template-modal-faint: var(--linear-dim, #70737f);
-  --template-modal-accent: var(--accent-color, #b91c1c);
+  --template-modal-panel: var(--color-window);
+  --template-modal-field: var(--color-field);
+  --template-modal-border: var(--color-border);
+  --template-modal-border-soft: var(--color-border-soft);
+  --template-modal-text: var(--color-text);
+  --template-modal-muted: var(--color-text-muted);
+  --template-modal-faint: var(--color-text-faint);
+  --template-modal-accent: var(--color-primary);
   color: var(--template-modal-text);
   background: var(--template-modal-panel);
 }
@@ -448,7 +448,7 @@
   flex-shrink: 0;
   margin: 0;
   padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  border-bottom: 1px solid var(--color-border-soft);
 }
 
 .client-details-modal.mobile-sheet .mobile-sheet-body {
@@ -462,7 +462,7 @@
 .client-details-modal.mobile-sheet .mobile-sheet-footer {
   flex-shrink: 0;
   padding: 12px 20px 16px;
-  border-top: 1px solid var(--line-soft, #e5e5e3);
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .calendar-client-card.mobile-sheet {
@@ -497,7 +497,7 @@
   align-items: center;
   gap: 10px;
   padding: 14px 18px 12px 20px;
-  border-bottom: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.07));
+  border-bottom: 1px solid var(--color-border-soft);
   background: transparent;
 }
 
@@ -510,7 +510,7 @@
 .calendar-reserved-card.mobile-sheet .mobile-sheet-header h2 {
   margin: 0;
   overflow: hidden;
-  color: var(--text-primary, #f4f4f5);
+  color: var(--color-text);
   font-size: 16px;
   line-height: 1.15;
   text-overflow: ellipsis;
@@ -521,7 +521,7 @@
 .calendar-reserved-card.mobile-sheet .mobile-sheet-header p {
   margin: 3px 0 0;
   overflow: hidden;
-  color: var(--text-soft, #858b96);
+  color: var(--color-text-muted);
   font-size: 11px;
   line-height: 1.25;
   text-overflow: ellipsis;
@@ -541,7 +541,7 @@
   padding: 0;
   border: 0;
   border-radius: 0;
-  color: var(--text-soft, #9ca3af);
+  color: var(--color-text-muted);
   background: transparent;
   box-shadow: none;
 }
@@ -550,7 +550,7 @@
 .calendar-client-card.mobile-sheet .mobile-sheet-close:focus-visible,
 .calendar-reserved-card.mobile-sheet .mobile-sheet-close:hover,
 .calendar-reserved-card.mobile-sheet .mobile-sheet-close:focus-visible {
-  color: var(--text-primary, var(--color-primary-text));
+  color: var(--color-text);
   background: transparent;
   outline: none;
 }
@@ -566,7 +566,7 @@
 .calendar-client-card-status {
   display: inline-block;
   margin-bottom: 4px;
-  color: var(--text-soft, #737780);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -619,31 +619,31 @@
 }
 
 .calendar-visit-summary-top b {
-  color: var(--text-soft, #8b9099);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 700;
 }
 
 .calendar-visit-summary h3 {
   margin: 0;
-  color: var(--text-primary, #f4f4f5);
+  color: var(--color-text);
   font-size: 18px;
   font-weight: 800;
   line-height: 1.18;
 }
 
 .calendar-visit-summary-bottom {
-  color: var(--text-soft, #a1a1aa);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 700;
 }
 
 .calendar-visit-summary-bottom strong {
-  color: var(--text-primary, #f4f4f5);
+  color: var(--color-text);
 }
 
 .calendar-visit-summary-bottom .is-debt {
-  color: var(--destructive, #ef4444);
+  color: var(--color-error);
 }
 
 .calendar-sheet-menu {
@@ -656,10 +656,10 @@
   width: 36px;
   height: 36px;
   place-items: center;
-  border: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--color-border-soft);
   border-radius: 10px;
-  color: var(--text-soft, #858b96);
-  background: var(--surface-muted, rgba(255, 255, 255, 0.035));
+  color: var(--color-text-muted);
+  background: var(--color-field);
   cursor: pointer;
   transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
 }
@@ -667,7 +667,7 @@
 .calendar-sheet-menu-button:hover,
 .calendar-sheet-menu-button:focus-visible {
   border-color: var(--accent-soft, color-mix(in srgb, var(--color-primary) 40%, transparent));
-  color: var(--text-strong, #f4f4f5);
+  color: var(--color-text);
   background: color-mix(in srgb, var(--color-primary) 12%, transparent);
   outline: none;
 }
@@ -681,10 +681,10 @@
   min-width: 168px;
   gap: 2px;
   padding: 6px;
-  border: 1px solid var(--linear-border, rgba(255, 255, 255, 0.1));
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: var(--surface-elevated, #141619);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.42);
+  background: var(--color-card);
+  box-shadow: var(--shadow-dropdown);
 }
 
 .calendar-sheet-popover button {
@@ -695,7 +695,7 @@
   padding: 0 10px;
   border: 0;
   border-radius: 8px;
-  color: var(--text-primary, #e5e7eb);
+  color: var(--color-text);
   background: transparent;
   font-size: 12px;
   font-weight: 700;
@@ -728,10 +728,10 @@
   gap: 5px;
   min-width: 0;
   padding: 12px;
-  border: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.07));
+  border: 1px solid var(--color-border-soft);
   border-radius: 12px;
-  color: var(--text-soft, #8b9099);
-  background: var(--surface-muted, rgba(255, 255, 255, 0.035));
+  color: var(--color-text-muted);
+  background: var(--color-field);
 }
 
 .calendar-visit-detail-grid span {
@@ -742,14 +742,14 @@
 .calendar-visit-detail-grid svg {
   grid-row: span 3;
   margin-top: 2px;
-  color: var(--text-soft, #858b96);
+  color: var(--color-text-muted);
 }
 
 .calendar-visit-detail-grid small,
 .calendar-visit-detail-grid em {
   min-width: 0;
   overflow: hidden;
-  color: var(--text-soft, #858b96);
+  color: var(--color-text-muted);
   font-size: 10px;
   font-style: normal;
   font-weight: 700;
@@ -762,7 +762,7 @@
 .calendar-visit-detail-grid strong {
   min-width: 0;
   overflow: hidden;
-  color: var(--text-primary, #f3f4f6);
+  color: var(--color-text);
   font-size: 13px;
   font-weight: 800;
   text-overflow: ellipsis;
@@ -770,14 +770,14 @@
 }
 
 .calendar-visit-detail-grid em {
-  color: var(--text-muted, #737780);
+  color: var(--color-text-faint);
   font-size: 11px;
   letter-spacing: 0;
   text-transform: none;
 }
 
 .calendar-visit-detail-grid .is-danger strong {
-  color: var(--destructive, #ef4444);
+  color: var(--color-error);
 }
 
 .calendar-client-card-grid span,
@@ -789,7 +789,7 @@
 }
 
 .calendar-reserved-card-panel b {
-  color: var(--text-soft, #8b9099);
+  color: var(--color-text-muted);
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -799,7 +799,7 @@
 .calendar-reserved-card-panel strong {
   min-width: 0;
   overflow: hidden;
-  color: var(--text-primary, #f3f4f6);
+  color: var(--color-text);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -816,21 +816,21 @@
 }
 
 .calendar-client-summary-counts b {
-  color: var(--text-primary, #f4f4f5);
+  color: var(--color-text);
   font-size: 18px;
   line-height: 1;
 }
 
 .calendar-client-card-note strong,
 .calendar-client-card-visits strong {
-  color: var(--text-primary, #f4f4f5);
+  color: var(--color-text);
   font-size: 12px;
 }
 
 .calendar-client-card-note p,
 .calendar-client-card-visits small {
   margin: 0;
-  color: var(--text-soft, #a1a1aa);
+  color: var(--color-text-muted);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -890,7 +890,7 @@
   flex-shrink: 0;
   margin: 0;
   padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  border-bottom: 1px solid var(--color-border-soft);
 }
 
 .client-details-modal.mobile-sheet .mobile-sheet-body {
@@ -904,7 +904,7 @@
 .client-details-modal.mobile-sheet .mobile-sheet-footer {
   flex-shrink: 0;
   padding: 12px 20px 16px;
-  border-top: 1px solid var(--line-soft, #e5e5e3);
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .confirm-dialog {
@@ -918,7 +918,7 @@
   flex-shrink: 0;
   margin: 0;
   padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  border-bottom: 1px solid var(--color-border-soft);
 }
 
 .client-details-modal .modal-header {
@@ -973,7 +973,7 @@
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
-  scrollbar-color: var(--scrollbar-thumb, rgba(255, 255, 255, 0.18)) transparent;
+  scrollbar-color: var(--scrollbar-thumb, var(--color-border-strong)) transparent;
   scrollbar-width: thin;
 }
 
@@ -1032,7 +1032,7 @@
   justify-self: end;
   min-height: 38px;
   margin-top: 2px;
-  border-color: var(--button-primary-border, rgba(185, 28, 28, 0.72));
+  border-color: var(--button-primary-border, color-mix(in srgb, var(--color-primary) 72%, transparent));
   color: var(--button-primary-text, var(--color-primary-text));
   background: var(--package-modal-accent);
   box-shadow: none;
@@ -1091,8 +1091,8 @@
   justify-self: end;
   min-height: 38px;
   margin-top: 2px;
-  border-color: var(--button-primary-border, rgba(185, 28, 28, 0.72));
-  color: var(--button-primary-text, #ffffff);
+  border-color: var(--button-primary-border, color-mix(in srgb, var(--color-primary) 72%, transparent));
+  color: var(--button-primary-text, var(--color-primary-text));
   background: var(--employee-modal-accent);
   box-shadow: none;
 }
@@ -1102,7 +1102,7 @@
 }
 
 .employee-modal.service-form-modal .catalog-form label {
-  color: var(--linear-muted, #a7afbd);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 650;
 }
@@ -1129,9 +1129,9 @@
   height: 32px;
   min-height: 32px;
   padding: 3px;
-  border: 1px solid var(--linear-border, #252a31);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: var(--linear-panel-soft, #15171a);
+  background: var(--color-field);
   cursor: pointer;
 }
 
@@ -1172,7 +1172,7 @@
   margin: 2px 0 0;
   padding: 14px 0 0;
   border: 0;
-  border-top: 1px solid var(--linear-border, #252a31);
+  border-top: 1px solid var(--color-border);
   border-radius: 0;
   background: transparent;
 }
@@ -1185,7 +1185,7 @@
 }
 
 .employee-modal.service-form-modal .service-booking-buffers-heading h3 {
-  color: var(--linear-text, var(--color-text));
+  color: var(--color-text);
   font-size: 13px;
   font-weight: 700;
 }
@@ -1219,12 +1219,12 @@
 }
 
 .employee-modal.service-form-modal .service-buffer-toggle-box {
-  border-color: var(--linear-border, #252a31);
-  background: var(--linear-panel, #0e1013);
+  border-color: var(--color-border);
+  background: var(--color-window);
 }
 
 .employee-modal.service-form-modal .service-buffer-toggle-label {
-  color: var(--linear-text, var(--color-text));
+  color: var(--color-text);
   font-size: 12px;
   font-weight: 650;
 }
@@ -1292,7 +1292,7 @@
 
   .employee-modal.calendar-entry-modal .calendar-kind-switch button.is-active {
     color: var(--crm-button-primary-default-text, var(--color-primary-text));
-    background: var(--accent-color, var(--color-primary));
+    background: var(--color-primary);
     box-shadow: none;
   }
 
@@ -1419,15 +1419,15 @@
     min-height: 38px;
     padding: 0 18px;
     color: var(--crm-button-primary-default-text, var(--color-primary-text));
-    background: var(--accent-color, var(--color-primary));
-    border: 1px solid var(--button-primary-border, rgba(185, 28, 28, 0.72));
+    background: var(--color-primary);
+    border: 1px solid var(--button-primary-border, color-mix(in srgb, var(--color-primary) 72%, transparent));
     border-radius: 12px;
     box-shadow: none;
   }
 
   .employee-modal.calendar-entry-modal .calendar-submit-button:hover {
-    background: var(--accent-hover, var(--color-primary-hover));
-    border-color: var(--button-primary-border, rgba(185, 28, 28, 0.72));
+    background: var(--color-primary-hover);
+    border-color: var(--button-primary-border, color-mix(in srgb, var(--color-primary) 72%, transparent));
   }
 }
 
@@ -1507,7 +1507,7 @@
 
 .modal-header span,
 .modal-header p {
-  color: var(--linear-dim, #70737f);
+  color: var(--color-text-faint);
   font-size: 12px;
 }
 
@@ -2195,7 +2195,7 @@
   padding: var(--ds-space-4);
   border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   border-radius: var(--ds-radius-lg);
-  background: var(--linear-panel-soft, rgba(21, 23, 26, 0.72));
+  background: var(--color-card);
 }
 
 .payroll-hero-main {
@@ -2204,13 +2204,13 @@
 }
 
 .payroll-hero-main span {
-  color: var(--linear-muted, #a3a6b3);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 600;
 }
 
 .payroll-hero-main strong {
-  color: var(--linear-text, #f2f3f7);
+  color: var(--color-text);
   font-size: clamp(28px, 4vw, 34px);
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -2226,16 +2226,16 @@
 .payroll-hero-meta span {
   padding: 6px 10px;
   border-radius: 999px;
-  color: var(--linear-muted, #a3a6b3);
+  color: var(--color-text-muted);
   background: var(--ds-status-muted-bg);
   font-size: 11px;
   font-weight: 600;
 }
 
 .payroll-table-wrap {
-  border: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  border: 1px solid var(--color-border-soft);
   border-radius: var(--ds-radius-lg);
-  background: color-mix(in srgb, var(--linear-panel, rgba(14, 16, 19, 0.86)) 88%, transparent);
+  background: color-mix(in srgb, var(--color-window) 88%, transparent);
 }
 
 .payroll-table th,
@@ -2245,13 +2245,13 @@
 
 .payroll-table th:nth-child(n + 3):not(:last-child),
 .payroll-table td:nth-child(n + 3):not(:last-child) {
-  color: var(--linear-muted, #a3a6b3);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
 .payroll-table td:last-child strong,
 .payroll-table tbody td:first-child strong {
-  color: var(--linear-text, #f2f3f7);
+  color: var(--color-text);
   font-size: 14px;
 }
 
@@ -2277,7 +2277,7 @@
 
 .daily-payroll-summary-grid .day-close-summary-card:nth-child(2) {
   border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
-  background: var(--linear-panel-soft, rgba(21, 23, 26, 0.72));
+  background: var(--color-card);
 }
 
 .daily-payroll-summary-grid .day-close-summary-card:nth-child(2) strong {
@@ -2286,7 +2286,7 @@
 
 .daily-payroll-summary-grid .day-close-summary-card span,
 .daily-payroll-summary-grid .day-close-summary-card small {
-  color: var(--linear-muted, #a3a6b3);
+  color: var(--color-text-muted);
 }
 
 .catalog-page > .panel + .panel,
@@ -2296,20 +2296,20 @@
 
 .catalog-page > h2.catalog-section-heading {
   padding-top: var(--ds-space-2);
-  border-top: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .daily-payroll-table td small {
-  color: var(--linear-dim, #70737f);
+  color: var(--color-text-faint);
 }
 
 .payroll-history {
   padding-top: var(--ds-space-2);
-  border-top: 1px solid var(--linear-border-soft, rgba(255, 255, 255, 0.065));
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .payroll-history > strong {
-  color: var(--linear-muted, #a3a6b3);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -2322,7 +2322,7 @@
 }
 
 .payroll-history button b {
-  color: var(--linear-text, #f2f3f7);
+  color: var(--color-text);
   font-size: 14px;
 }
 
@@ -2341,7 +2341,7 @@
 }
 
 .package-summary-grid .catalog-card span {
-  color: var(--linear-dim, #70737f);
+  color: var(--color-text-faint);
   font-size: 11px;
   font-weight: 600;
 }
@@ -2368,7 +2368,7 @@
 
 .client-package-card:hover {
   border-color: color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-card);
 }
 
 .client-package-main strong {
@@ -2420,7 +2420,7 @@
 .schedule-entry {
   padding: 6px 7px;
   border-radius: var(--ds-radius-md);
-  box-shadow: var(--schedule-entry-highlight, 0 1px 0 rgba(255, 255, 255, 0.04));
+  box-shadow: var(--schedule-entry-highlight, var(--shadow-focus));
 }
 
 .schedule-entry strong {
