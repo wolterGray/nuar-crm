@@ -6272,9 +6272,9 @@ button:focus-visible {
 }
 
 .operations-page .operations-summary-alert {
-  color: #fca5a5;
-  border-color: rgba(185, 28, 28, 0.28);
-  background: rgba(185, 28, 28, 0.1);
+  color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 42%, var(--operations-text));
+  border-color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 28%, transparent);
+  background: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 10%, transparent);
   animation: none;
 }
 
@@ -6397,7 +6397,7 @@ button:focus-visible {
 
 .operations-page .operations-tabs button.active {
   color: var(--operations-text);
-  background: color-mix(in srgb, var(--operations-panel-soft) 86%, white 4%);
+  background: color-mix(in srgb, var(--operations-panel-soft) 86%, var(--operations-text) 4%);
   box-shadow: none;
 }
 
@@ -6437,7 +6437,7 @@ button:focus-visible {
 
 .operations-page :is(.task-row, .note-row, .supply-row):hover {
   border-color: var(--operations-border);
-  background: color-mix(in srgb, var(--operations-panel-soft) 88%, white 3%);
+  background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
 }
 
 .operations-page .operations-card-icon {
@@ -6483,8 +6483,8 @@ button:focus-visible {
 }
 
 .operations-page .task-check:hover {
-  border-color: rgba(52, 211, 153, 0.28);
-  background: rgba(52, 211, 153, 0.08);
+  border-color: color-mix(in srgb, var(--color-success, #22c55e) 28%, transparent);
+  background: color-mix(in srgb, var(--color-success, #22c55e) 8%, transparent);
 }
 
 .operations-page .task-drag-handle {
@@ -6495,19 +6495,19 @@ button:focus-visible {
 .operations-page .task-drag-handle:hover {
   border-color: var(--operations-border-soft);
   color: var(--operations-text);
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--operations-text) 4%, transparent);
 }
 
 .operations-page .task-priority {
   border: 1px solid var(--operations-border-soft);
   color: var(--operations-muted);
-  background: rgba(255, 255, 255, 0.045);
+  background: color-mix(in srgb, var(--operations-text) 4.5%, transparent);
 }
 
 .operations-page .task-overdue,
 .operations-page .task-indicator-urgent.task-overdue {
-  border-color: rgba(185, 28, 28, 0.3);
-  background: rgba(185, 28, 28, 0.1);
+  border-color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 30%, transparent);
+  background: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 10%, transparent);
 }
 
 .operations-page .task-priority-high-blink,
@@ -6518,19 +6518,19 @@ button:focus-visible {
 }
 
 .operations-page .supply-low {
-  border-color: rgba(185, 28, 28, 0.28);
-  background: rgba(185, 28, 28, 0.08);
+  border-color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 28%, transparent);
+  background: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 8%, transparent);
 }
 
 .operations-page .supply-critical {
-  border-color: rgba(248, 113, 113, 0.32);
-  background: rgba(185, 28, 28, 0.14);
+  border-color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 32%, transparent);
+  background: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 14%, transparent);
 }
 
 .operations-page .supply-stock-badge {
-  border: 1px solid rgba(185, 28, 28, 0.24);
-  color: #fca5a5;
-  background: rgba(185, 28, 28, 0.1);
+  border: 1px solid color-mix(in srgb, var(--color-danger, var(--operations-accent)) 24%, transparent);
+  color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 42%, var(--operations-text));
+  background: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 10%, transparent);
 }
 
 .operations-page .supply-actions {
@@ -6552,7 +6552,7 @@ button:focus-visible {
 .operations-page .supply-order-button:hover,
 .operations-page .operations-row-actions button:hover {
   color: var(--operations-text);
-  background: color-mix(in srgb, var(--operations-panel-soft) 88%, white 3%);
+  background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
 }
 
 .operations-page .quick-note-form {
@@ -6586,7 +6586,7 @@ button:focus-visible {
 .operations-page .quick-note-category-menu button:hover,
 .operations-page .quick-note-category-menu button.is-selected {
   color: var(--operations-text);
-  background: color-mix(in srgb, var(--operations-panel-soft) 88%, white 3%);
+  background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
 }
 
 .operations-page .operations-empty {
@@ -6886,11 +6886,11 @@ button:focus-visible {
   --today-muted: var(--linear-muted, #a3a6b3);
   --today-faint: var(--linear-dim, #70737f);
   --today-accent: var(--accent-color, #b91c1c);
-  --today-green: #88e071;
-  --today-warning: #f59e0b;
-  --today-blue: #7aa2ff;
-  --today-red: #ff5f5f;
-  --today-violet: #a78bfa;
+  --today-green: var(--color-success, #88e071);
+  --today-warning: var(--color-warning, #f59e0b);
+  --today-blue: var(--color-info, #7aa2ff);
+  --today-red: var(--color-danger, #ff5f5f);
+  --today-violet: var(--color-loyalty-royalty, #a78bfa);
 
   width: 100%;
   max-width: none;
@@ -6992,15 +6992,15 @@ button:focus-visible {
 }
 
 .today-control-button.is-primary {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.14));
   color: var(--today-text);
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--color-field-hover, rgba(255, 255, 255, 0.045));
 }
 
 .today-control-button.is-primary:hover {
-  border-color: rgba(255, 255, 255, 0.24);
+  border-color: color-mix(in srgb, var(--today-text) 24%, transparent);
   color: var(--today-text);
-  background: rgba(255, 255, 255, 0.085);
+  background: color-mix(in srgb, var(--today-text) 8.5%, transparent);
 }
 
 .today-control-button.is-secondary,
@@ -7012,9 +7012,9 @@ button:focus-visible {
 
 .today-control-button.is-secondary:hover,
 .today-button:hover {
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: color-mix(in srgb, var(--today-text) 18%, transparent);
   color: var(--today-text);
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--button-ghost-hover-bg, rgba(255, 255, 255, 0.07));
 }
 
 .today-control-button.is-compact {
@@ -7189,7 +7189,7 @@ button:focus-visible {
   padding: 3px;
   border: 1px solid var(--today-border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--color-field, rgba(255, 255, 255, 0.025));
 }
 
 .today-segmented-control button {
@@ -7207,7 +7207,7 @@ button:focus-visible {
 .today-segmented-control button:hover,
 .today-segmented-control button.is-active {
   color: var(--today-text);
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--color-field-active, rgba(255, 255, 255, 0.09));
 }
 
 .today-count-pill {
@@ -7218,7 +7218,7 @@ button:focus-visible {
   padding: 0 8px;
   border-radius: 999px;
   color: var(--today-muted);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--badge-bg, rgba(255, 255, 255, 0.08));
   font-size: 11px;
   font-weight: 650;
 }
@@ -7232,7 +7232,7 @@ button:focus-visible {
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: color-mix(in srgb, var(--today-text) 18%, transparent) transparent;
 }
 
 .today-visit-line {
@@ -7259,7 +7259,7 @@ button:focus-visible {
   left: var(--today-dot-center-x);
   width: 1px;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--today-text) 18%, transparent);
   opacity: 0.52;
 }
 
@@ -7268,11 +7268,11 @@ button:focus-visible {
 }
 
 .today-visit-line.is-current {
-  background: rgba(185, 28, 28, 0.075);
+  background: color-mix(in srgb, var(--today-accent) 7.5%, transparent);
 }
 
 .today-visit-line.is-selected {
-  background: rgba(255, 255, 255, 0.055);
+  background: var(--color-field-active, rgba(255, 255, 255, 0.055));
 }
 
 .today-visit-line.is-current::after {
@@ -7287,7 +7287,7 @@ button:focus-visible {
 }
 
 .today-visit-line:hover {
-  background: rgba(255, 255, 255, 0.032);
+  background: color-mix(in srgb, var(--today-text) 3.2%, transparent);
   cursor: pointer;
 }
 
@@ -7332,16 +7332,16 @@ button:focus-visible {
   border-radius: 999px;
   background: var(--today-blue);
   box-shadow:
-    0 0 0 5px #0e1013,
-    0 0 0 6px rgba(255, 255, 255, 0.06);
+    0 0 0 5px var(--today-panel),
+    0 0 0 6px color-mix(in srgb, var(--today-text) 6%, transparent);
 }
 
 .today-visit-line.is-selected .today-visit-dot {
   width: 14px;
   height: 14px;
   box-shadow:
-    0 0 0 5px #0e1013,
-    0 0 0 7px rgba(255, 255, 255, 0.08);
+    0 0 0 5px var(--today-panel),
+    0 0 0 7px color-mix(in srgb, var(--today-text) 8%, transparent);
 }
 
 .today-visit-dot.is-rose {
@@ -7391,12 +7391,12 @@ button:focus-visible {
 
 .today-status-pill.is-confirmed {
   color: var(--today-green);
-  background: rgba(80, 200, 120, 0.12);
+  background: color-mix(in srgb, var(--today-green) 12%, transparent);
 }
 
 .today-status-pill.is-scheduled {
   color: var(--today-warning);
-  background: rgba(245, 158, 11, 0.13);
+  background: color-mix(in srgb, var(--today-warning) 13%, transparent);
 }
 
 .today-status-pill.is-completed {
@@ -7431,7 +7431,7 @@ button:focus-visible {
 
 .today-icon-button:hover {
   color: var(--today-text);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--button-ghost-hover-bg, rgba(255, 255, 255, 0.08));
 }
 
 .today-menu-popover {
@@ -7446,7 +7446,7 @@ button:focus-visible {
   border: 1px solid var(--today-border);
   border-radius: 12px;
   background: var(--app-card-bg);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--shadow-dropdown, 0 18px 40px rgba(0, 0, 0, 0.32));
   animation: today-menu-in 170ms ease both;
 }
 
@@ -7480,7 +7480,7 @@ button:focus-visible {
 
 .today-menu-item:hover {
   color: var(--today-text);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--button-ghost-hover-bg, rgba(255, 255, 255, 0.08));
 }
 
 .today-scroll-cue {
@@ -7580,9 +7580,9 @@ button:focus-visible {
   height: 20px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid color-mix(in srgb, var(--today-text) 12%, transparent);
   border-radius: 7px;
-  background: rgba(0, 0, 0, 0.28);
+  background: color-mix(in srgb, var(--today-bg) 28%, transparent);
   box-shadow: none;
   transition:
     border-color 150ms ease,
@@ -7591,8 +7591,8 @@ button:focus-visible {
 
 .today-employee-option:hover .today-employee-check,
 .today-employee-option.is-checked .today-employee-check {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: color-mix(in srgb, var(--today-text) 22%, transparent);
+  background: color-mix(in srgb, var(--today-text) 6%, transparent);
 }
 
 .today-employee-option.is-checked {
@@ -7654,22 +7654,22 @@ button:focus-visible {
   flex: none;
   border-radius: 999px;
   background: var(--today-accent);
-  box-shadow: 0 0 0 5px rgba(185, 28, 28, 0.14);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--today-accent) 14%, transparent);
 }
 
 .today-next-visit.is-rose .today-next-marker {
   background: var(--today-red);
-  box-shadow: 0 0 0 5px rgba(255, 95, 95, 0.12);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--today-red) 12%, transparent);
 }
 
 .today-next-visit.is-violet .today-next-marker {
   background: var(--today-violet);
-  box-shadow: 0 0 0 5px rgba(167, 139, 250, 0.12);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--today-violet) 12%, transparent);
 }
 
 .today-next-visit.is-green .today-next-marker {
   background: var(--today-green);
-  box-shadow: 0 0 0 5px rgba(80, 200, 120, 0.12);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--today-green) 12%, transparent);
 }
 
 .today-next-meta {
@@ -7792,7 +7792,7 @@ button:focus-visible {
 
 .today-check-button:hover {
   border-color: var(--today-green);
-  background: rgba(80, 200, 120, 0.12);
+  background: color-mix(in srgb, var(--today-green) 12%, transparent);
 }
 
 .today-alert-line {
