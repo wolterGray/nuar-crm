@@ -63,6 +63,12 @@ const paymentDisplay = [
   {color: "#d99a9a", key: "unspecified", label: "Не указано"},
 ];
 
+const getAttentionIconClass = (tone) =>
+  `statistics-attention-icon is-${tone === "good" ? "good" : tone === "danger" ? "danger" : "warning"}`;
+
+const getTrendClass = (value) =>
+  value === null ? "statistics-trend is-muted" : value >= 0 ? "statistics-trend is-positive" : "statistics-trend is-negative";
+
 const getMonthStart = () => {
   return formatAppDate(getStartOfMonth(new Date()), "yyyy-MM-dd");
 };
@@ -724,11 +730,11 @@ function StatisticsPage({
         {attentionItems.map((item) => (
           <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card" key={item.title}>
             {item.tone === "good" ? (
-              <AppIcon name="checkCircle" size="sm" className="text-green-500 flex-shrink-0" />
+              <AppIcon name="checkCircle" size="sm" className={getAttentionIconClass(item.tone)} />
             ) : item.tone === "danger" ? (
-              <AppIcon name="alert" size="sm" className="text-red-500 flex-shrink-0" />
+              <AppIcon name="alert" size="sm" className={getAttentionIconClass(item.tone)} />
             ) : (
-              <AppIcon name="alert" size="sm" className="text-amber-500 flex-shrink-0" />
+              <AppIcon name="alert" size="sm" className={getAttentionIconClass(item.tone)} />
             )}
             <span className="flex flex-col gap-0.5">
               <strong className="text-foreground text-xs font-bold">{item.title}</strong>
@@ -784,7 +790,7 @@ function StatisticsPage({
           {earnings.map(([label, value]) => (
             <span key={label} className="flex justify-between items-center text-xs text-foreground">
               {label}
-              <strong className={`font-bold ${value < 0 ? "text-red-500" : "text-foreground"}`}>
+              <strong className={`font-bold ${value < 0 ? "statistics-value is-negative" : "text-foreground"}`}>
                 {formatIncome(value)}
               </strong>
             </span>
@@ -811,7 +817,7 @@ function StatisticsPage({
 
   const detailsPanel = (
     <details className="w-full border border-border rounded-xl bg-card overflow-hidden group select-none transition-all">
-      <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-accent/5 font-semibold text-xs text-foreground focus:outline-none">
+      <summary className="statistics-details-summary flex items-center justify-between p-4 cursor-pointer font-semibold text-xs text-foreground focus:outline-none">
         <span>
           <strong className="inline-flex items-center gap-1.5 font-bold text-xs">
             Подробная финансовая аналитика
@@ -875,14 +881,7 @@ function StatisticsPage({
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center text-xs">
             <span className="font-semibold text-muted-foreground">Динамика дохода</span>
-            <strong
-              className={`font-bold ${
-                periodChangePercent === null
-                  ? "text-muted-foreground"
-                  : periodChangePercent >= 0
-                    ? "text-green-500"
-                    : "text-red-500"
-              }`}>
+            <strong className={`font-bold ${getTrendClass(periodChangePercent)}`}>
               {periodChangePercent === null
                 ? "Нет прошлого периода"
                 : (
@@ -955,10 +954,7 @@ function StatisticsPage({
             <div className="flex justify-between items-center text-xs">
               <h3 className="font-semibold text-muted-foreground">График дохода</h3>
               {chartChangeLabel ? (
-                <span
-                  className={`font-semibold ${
-                    periodChangePercent >= 0 ? "text-green-500" : "text-red-500"
-                  }`}>
+                <span className={`font-semibold ${getTrendClass(periodChangePercent)}`}>
                   {chartChangeLabel}
                 </span>
               ) : null}
@@ -1080,11 +1076,11 @@ function StatisticsPage({
           {attentionItems.map((item) => (
             <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card" key={item.title}>
               {item.tone === "good" ? (
-                <AppIcon name="checkCircle" size="sm" className="text-green-500 flex-shrink-0" />
+                <AppIcon name="checkCircle" size="sm" className={getAttentionIconClass(item.tone)} />
               ) : item.tone === "danger" ? (
-                <AppIcon name="alert" size="sm" className="text-red-500 flex-shrink-0" />
+                <AppIcon name="alert" size="sm" className={getAttentionIconClass(item.tone)} />
               ) : (
-                <AppIcon name="alert" size="sm" className="text-amber-500 flex-shrink-0" />
+                <AppIcon name="alert" size="sm" className={getAttentionIconClass(item.tone)} />
               )}
               <span className="flex flex-col gap-0.5">
                 <strong className="text-foreground text-xs font-bold">{item.title}</strong>

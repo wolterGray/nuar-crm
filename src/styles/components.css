@@ -98,6 +98,38 @@
   background: var(--accent-color, #b91c1c);
 }
 
+.statistics-attention-icon {
+  flex-shrink: 0;
+}
+
+.statistics-attention-icon.is-good,
+.statistics-trend.is-positive {
+  color: var(--color-success, #22c55e);
+}
+
+.statistics-attention-icon.is-danger,
+.statistics-trend.is-negative,
+.statistics-value.is-negative {
+  color: var(--color-danger, #ef4444);
+}
+
+.statistics-attention-icon.is-warning {
+  color: var(--color-warning, #f59e0b);
+}
+
+.statistics-trend.is-muted {
+  color: var(--text-muted, #8b95a5);
+}
+
+.statistics-details-summary {
+  transition: background-color var(--duration-fast, 150ms) ease;
+}
+
+.statistics-details-summary:hover,
+.statistics-details-summary:focus-visible {
+  background: color-mix(in srgb, var(--accent-color, #b91c1c) 5%, transparent);
+}
+
 @media (max-width: 768px) {
   .dialog-backdrop:has(.confirm-dialog) {
     align-items: center !important;
