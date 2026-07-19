@@ -98,6 +98,46 @@
   background: var(--accent-color, #b91c1c);
 }
 
+.today-review-message-button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--accent-color, #b91c1c);
+  background: color-mix(in srgb, var(--accent-color, #b91c1c) 10%, transparent);
+  font-size: 10px;
+  font-weight: 700;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.today-review-message-button:hover {
+  background: color-mix(in srgb, var(--accent-color, #b91c1c) 18%, transparent);
+}
+
+.packages-archive-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  color: var(--app-text-main, #f4f5f7);
+  font-size: 14px;
+  font-weight: 700;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.packages-archive-toggle.is-compact {
+  padding: 14px;
+}
+
+.packages-archive-toggle:hover {
+  background: var(--app-field-bg, #15181c);
+}
+
 .statistics-attention-icon {
   flex-shrink: 0;
 }

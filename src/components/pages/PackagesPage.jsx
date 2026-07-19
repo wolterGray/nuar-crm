@@ -464,7 +464,7 @@ function PackagesPage({
               {archivedClientPackages.length > 0 && (
                 <div className="mt-2 border border-border rounded-lg bg-surface overflow-hidden">
                   <Button
-                    className="flex w-full items-center justify-between p-4 text-sm font-semibold text-text-main hover:bg-field transition-colors"
+                    className="packages-archive-toggle"
                     rightIcon={(
                       <AppIcon
                         className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
@@ -548,7 +548,7 @@ function PackagesPage({
               {archivedCertificates.length > 0 && (
                 <div className="mt-2 border border-border rounded-lg bg-surface overflow-hidden">
                   <Button
-                    className="flex w-full items-center justify-between p-4 text-sm font-semibold text-text-main hover:bg-field transition-colors"
+                    className="packages-archive-toggle"
                     rightIcon={(
                       <AppIcon
                         className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`}
@@ -616,7 +616,7 @@ function PackagesPage({
             {archivedClientPackages.length > 0 && (
               <div className="packages-archive">
                 <Button
-                  className="flex w-full items-center justify-between p-3.5 text-sm font-semibold text-text-main hover:bg-field transition-colors"
+                  className="packages-archive-toggle is-compact"
                   rightIcon={(
                     <AppIcon
                       className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
@@ -711,7 +711,7 @@ function PackagesPage({
             {archivedCertificates.length > 0 && (
               <div className="packages-archive">
                 <Button
-                  className="flex w-full items-center justify-between p-3.5 text-sm font-semibold text-text-main hover:bg-field transition-colors"
+                  className="packages-archive-toggle is-compact"
                   rightIcon={(
                     <AppIcon
                       className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`}

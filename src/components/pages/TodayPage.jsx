@@ -482,7 +482,7 @@ function TodayReferenceBoard({
                       <small className="text-[10px] text-muted-foreground truncate">{client.service} · {client.master}</small>
                     </div>
                     <Button
-                      className="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded bg-accent/10 hover:bg-accent/20 text-accent font-semibold text-[10px] cursor-pointer transition-colors border-0 shrink-0"
+                      className="today-review-message-button"
                       leftIcon="message"
                       size="sm"
                       type="button"
