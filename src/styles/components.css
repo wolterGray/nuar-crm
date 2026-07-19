@@ -3251,6 +3251,17 @@
   background: var(--calendar-accent-hover);
 }
 
+.nuar-calendar-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: 38px;
+  padding: 6px var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
 .nuar-calendar-date-display {
   min-width: 96px;
   display: inline-flex;
@@ -3306,8 +3317,41 @@
   min-height: 100%;
 }
 
+.nuar-calendar-grid i {
+  border-top-width: 1px;
+}
+
+.nuar-calendar-grid i.is-hour {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--color-border) 80%, transparent);
+}
+
+.nuar-calendar-grid i.is-quarter {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--color-border-soft) 58%, transparent);
+}
+
 .nuar-calendar-time-axis {
-  background: #050607;
+  color: var(--color-text-faint);
+  background: color-mix(in srgb, var(--color-bg) 95%, transparent);
+}
+
+.nuar-calendar-time-axis strong {
+  display: block;
+  padding-inline: 6px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+  transform: translateY(-7px);
+}
+
+.nuar-calendar-minute-label {
+  position: absolute;
+  right: var(--space-2);
+  color: var(--color-text-faint);
+  font-size: 9px;
+  font-weight: var(--font-weight-medium);
 }
 
 .nuar-calendar-master {
@@ -3315,8 +3359,11 @@
 }
 
 .nuar-calendar-master-header {
+  display: grid;
   height: 48px;
   align-content: center;
+  gap: 2px;
+  padding-inline: var(--space-3);
   border-color: rgba(255, 255, 255, 0.08);
   background: var(--app-card-bg);
 }
@@ -3333,6 +3380,17 @@
   align-items: center;
   gap: 7px;
   min-width: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nuar-calendar-master-header span {
+  color: var(--color-text-faint);
+  font-size: 10px;
 }
 
 .nuar-calendar-master-dot {
@@ -3340,6 +3398,29 @@
   height: 7px;
   flex: 0 0 auto;
   border-radius: 999px;
+}
+
+.schedule-off-hours-before {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border-soft) 60%, transparent);
+}
+
+.schedule-off-hours-after {
+  border-top: 1px solid color-mix(in srgb, var(--color-border-soft) 60%, transparent);
+}
+
+.nuar-calendar-now-line {
+  height: 1px;
+  background: var(--calendar-accent);
+}
+
+.nuar-calendar-now-dot {
+  background: var(--calendar-accent);
+}
+
+.nuar-calendar-now-label {
+  color: color-mix(in srgb, var(--calendar-accent) 72%, var(--color-text));
+  font-size: 9px;
+  font-weight: var(--font-weight-bold);
 }
 
 .nuar-calendar .schedule-entry-dragging {
@@ -3582,6 +3663,72 @@
   margin-top: 2px;
 }
 
+.nuar-calendar-reminders-header {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.nuar-calendar-reminder-stats {
+  gap: var(--space-1);
+}
+
+.nuar-calendar-reminder-stats span {
+  padding: 2px var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.nuar-calendar-reminder-stats b {
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.nuar-calendar-reminder-filter {
+  width: 100%;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.nuar-calendar-reminder-filter button {
+  flex: 1;
+  position: relative;
+  min-height: 24px;
+  border-radius: 0;
+  color: var(--color-text-faint);
+  background: transparent;
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+}
+
+.nuar-calendar-reminder-filter button:hover,
+.nuar-calendar-reminder-filter button.is-active {
+  color: var(--color-text);
+  background: transparent;
+}
+
+.nuar-calendar-reminder-filter button.is-active::after {
+  content: "";
+  position: absolute;
+  right: 18%;
+  bottom: 0;
+  left: 18%;
+  height: 1px;
+  border-radius: var(--radius-pill);
+  background: var(--calendar-accent);
+}
+
+.nuar-calendar-reminders-empty {
+  padding-block: var(--space-6);
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
 .nuar-calendar-reminder-card {
   position: relative;
   display: grid;
@@ -3755,28 +3902,246 @@
 .nuar-calendar-booksy-badge {
   top: 5px;
   right: 10px;
+  color: color-mix(in srgb, var(--calendar-accent) 70%, var(--color-text));
+  border: 1px solid color-mix(in srgb, var(--calendar-accent) 34%, transparent);
+  background: color-mix(in srgb, var(--calendar-accent) 12%, transparent);
+}
+
+.nuar-calendar-entry-block {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  width: calc(100% / var(--overlap-count, 1) - 8px);
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  overflow: hidden;
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  cursor: grab;
+  user-select: none;
+}
+
+.nuar-calendar-entry-content {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex: 1;
+  flex-direction: column;
+}
+
+.nuar-calendar-entry-title,
+.nuar-calendar-entry-time,
+.nuar-calendar-entry-service,
+.nuar-calendar-entry-money {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nuar-calendar-entry-title {
+  color: var(--color-text);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+}
+
+.nuar-calendar-entry-time,
+.nuar-calendar-entry-service,
+.nuar-calendar-entry-money {
+  margin-top: 2px;
+  font-size: 9px;
+}
+
+.nuar-calendar-entry-time {
+  color: var(--color-text-muted);
+}
+
+.nuar-calendar-entry-service {
+  color: var(--color-text-faint);
+}
+
+.nuar-calendar-entry-money {
+  font-weight: var(--font-weight-bold);
+}
+
+.nuar-calendar-entry-money.is-debt {
+  color: color-mix(in srgb, var(--color-error) 65%, var(--color-text));
+}
+
+.nuar-calendar-entry-money.is-paid {
+  color: color-mix(in srgb, var(--color-success) 68%, var(--color-text));
+}
+
+.nuar-calendar-package-label {
+  display: block;
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--calendar-accent) 62%, var(--color-text));
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nuar-calendar-status-pill {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-faint);
+  background: color-mix(in srgb, var(--color-field) 55%, transparent);
+  font-size: 8px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nuar-calendar-entry-trigger {
+  width: 22px;
+  height: 22px;
+  border-color: var(--color-border);
+  color: var(--color-text-faint);
+  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+}
+
+.nuar-calendar-entry-trigger:hover {
+  color: var(--color-text);
+  background: var(--color-field);
+}
+
+.nuar-calendar-entry-popover {
+  position: absolute;
+  top: 24px;
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 132px;
+  gap: 2px;
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-window);
+  box-shadow: var(--shadow-dropdown);
+}
+
+.nuar-calendar-entry-action {
+  justify-content: flex-start;
+  min-height: 28px;
+  padding-inline: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 10px;
+  text-align: left;
+}
+
+.nuar-calendar-entry-action:hover {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-field) 72%, transparent);
+}
+
+.nuar-calendar-entry-action.is-danger {
+  color: color-mix(in srgb, var(--color-error) 62%, var(--color-text));
+}
+
+.nuar-calendar-entry-action.is-danger:hover {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+}
+
+.nuar-calendar-drag-preview {
+  display: grid;
+  min-width: 112px;
+  gap: 2px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  background: var(--color-window);
+  box-shadow: var(--shadow-dropdown);
+}
+
+.nuar-calendar-drag-preview strong {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.nuar-calendar-drag-preview span {
+  color: var(--color-text-faint);
+  font-size: 10px;
+}
+
+.nuar-calendar-floating-today {
+  position: fixed;
+  right: var(--mobile-page-x, 16px);
+  bottom: calc(var(--mobile-nav-total, 72px) + 10px);
+  left: auto;
+  z-index: 40;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-dropdown);
+}
+
+.nuar-calendar-reminders-backdrop,
+.nuar-calendar-add-backdrop {
+  background: color-mix(in srgb, var(--color-bg) 60%, transparent);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
 }
 
 .nuar-calendar-add-popover {
+  display: grid;
+  width: 360px;
+  max-width: 100%;
+  overflow: hidden;
   border-color: rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   background: var(--app-window-bg);
   box-shadow: none;
 }
 
-.nuar-calendar-add-popover button {
+.nuar-calendar-add-option {
+  display: flex;
+  min-height: 68px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  padding-inline: var(--space-5);
   border-color: rgba(255, 255, 255, 0.07);
+  color: var(--color-text);
   background: transparent;
+  text-align: left;
   transform: none;
 }
 
-.nuar-calendar-add-popover button:hover {
+.nuar-calendar-add-option + .nuar-calendar-add-option {
+  border-top: 1px solid var(--color-border);
+}
+
+.nuar-calendar-add-option:hover {
   background: rgba(255, 255, 255, 0.045);
   transform: none;
 }
 
-.nuar-calendar-add-popover svg {
-  color: #ef4444;
+.nuar-calendar-add-option svg {
+  color: var(--color-primary);
+}
+
+.nuar-calendar-add-option span {
+  display: grid;
+  gap: 2px;
+}
+
+.nuar-calendar-add-option strong {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.nuar-calendar-add-option small {
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 .employee-modal.calendar-entry-modal {

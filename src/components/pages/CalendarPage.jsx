@@ -549,7 +549,7 @@ function CalendarPage({
   };
 
 return (
-    <section className="nuar-calendar flex flex-col flex-1 gap-3 min-h-0 text-zinc-200">
+    <section className="nuar-calendar flex flex-col flex-1 gap-3 min-h-0">
       <PageHeader
         actions={
           <div className="nuar-calendar-actions flex items-center gap-2">
@@ -596,9 +596,7 @@ return (
             )}
             {isMobile && (
               <IconButton
-                className={`grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 bg-zinc-900/50 hover:bg-zinc-800 cursor-pointer ${
-                  overlayOpen ? "hidden" : ""
-                }`}
+                className={overlayOpen ? "hidden" : ""}
                 icon={showDayList ? "layoutGrid" : "list"}
                 label={showDayList ? "Показать сетку" : "Показать список"}
                 size="md"
@@ -610,9 +608,7 @@ return (
             )}
             {!isMobile && (
               <IconButton
-                className={`grid w-9 h-9 place-items-center border border-zinc-800 rounded-lg text-zinc-400 bg-zinc-900/50 hover:bg-zinc-850 cursor-pointer ${
-                  overlayOpen ? "hidden" : ""
-                }`}
+                className={overlayOpen ? "hidden" : ""}
                 icon={remindersVisible ? "x" : "clipboardCheck"}
                 label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
                 size="md"
@@ -622,7 +618,7 @@ return (
             )}
             {!isMobile && (
               <Button
-                className={`inline-flex items-center gap-1.5 min-h-[38px] px-4 py-1.5 border border-red-800 rounded-lg text-xs font-semibold text-white bg-red-800 hover:bg-red-900 cursor-pointer transition-colors ${
+                className={`nuar-calendar-add-button ${
                   overlayOpen || remindersVisible ? "hidden" : ""
                 }`}
                 leftIcon="plus"
@@ -635,14 +631,14 @@ return (
             )}
           </div>
         }
-        className="nuar-calendar-header border-b border-zinc-800/60 pb-2"
+        className="nuar-calendar-header"
         description={`${visitEntries.length} визитов запланировано`}
         headerActions={null}
         title="Календарь"
       />
 
       <div
-        className="mobile-calendar-week hidden max-md:grid grid-flow-col overflow-x-auto bg-zinc-950/20 scroll-snap-x scrollbar-none touch-pan-x"
+        className="mobile-calendar-week hidden max-md:grid"
         aria-label="Дни недели"
         ref={weekCarouselRef}
       >
@@ -652,26 +648,16 @@ return (
           const isSelected = date === selectedDate;
           return (
             <button
-              className={`grid grid-rows-[13px_28px] min-h-[44px] place-items-center align-content-center gap-0.5 border-0 rounded-lg text-zinc-400 bg-transparent scroll-snap-start cursor-pointer transition-colors ${
-                isSelected ? "text-red-300 font-bold" : ""
-              }`}
+              className={`${isSelected ? "selected" : ""} ${today ? "today" : ""}`}
               data-date={date}
               key={date}
               type="button"
               onClick={() => selectCalendarDate(date)}
             >
-              <span className="block text-[9px] text-zinc-500 uppercase font-semibold leading-tight">
+              <span>
                 {["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"][dayIndex]}
               </span>
-              <b
-                className={`grid w-7 h-7 place-items-center rounded-full text-sm transition-all ${
-                  isSelected
-                    ? "bg-red-800 text-white font-bold"
-                    : today
-                    ? "border border-zinc-800 text-red-300 font-bold"
-                    : "text-zinc-300"
-                }`}
-              >
+              <b>
                 {Number(date.slice(-2))}
               </b>
             </button>
@@ -681,7 +667,7 @@ return (
 
       {isMobile && !isToday && (
         <Button
-          className={`fixed bottom-16 left-1/2 z-40 -translate-x-1/2 px-4 py-2 border border-zinc-800 rounded-full text-xs font-semibold text-zinc-200 bg-zinc-900 shadow-lg cursor-pointer ${
+          className={`nuar-calendar-floating-today ${
             overlayOpen ? "hidden" : ""
           }`}
           size="sm"
@@ -727,7 +713,7 @@ return (
             }}
           >
             <section
-              className={`nuar-calendar-schedule min-w-0 min-h-0 max-h-full p-0 overscroll-contain scrollbar-thin rounded-xl border border-zinc-800/80 bg-zinc-950/20 ${
+              className={`nuar-calendar-schedule min-w-0 min-h-0 max-h-full p-0 overscroll-contain scrollbar-thin ${
                 isMobile ? "overflow-y-auto overflow-x-hidden" : "overflow-auto"
               }`}
               ref={schedulePanelRef}
@@ -749,18 +735,18 @@ return (
                 }}
               >
                 <div
-                  className="nuar-calendar-time-axis sticky left-0 z-10 pt-12 text-zinc-500 bg-zinc-950/95"
+                  className="nuar-calendar-time-axis sticky left-0 z-10 pt-12"
                   style={{ height: `${gridHeight + 48}px` }}
                 >
                   {Array.from({length: endHour - startHour}, (_, index) => (
                     <div className="relative" style={{ height: `${(60 / slotMinutes) * slotHeight}px` }} key={index}>
-                      <strong className="block px-1.5 text-[10px] font-bold text-zinc-400 tracking-tight transform translateY-[-7px]">
+                      <strong>
                         {String(startHour + index).padStart(2, "0")}:00
                       </strong>
                       {Array.from({length: 60 / slotMinutes - 1}, (_, slotIndex) => (
                         <span
                           key={slotIndex}
-                          className="absolute right-2 text-[9px] text-zinc-600 font-medium"
+                          className="nuar-calendar-minute-label"
                           style={{ top: `${(slotIndex + 1) * slotHeight}px` }}
                         >
                           {(slotIndex + 1) * slotMinutes}
@@ -768,14 +754,14 @@ return (
                       ))}
                     </div>
                   ))}
-                  <strong className="block px-1.5 text-[10px] font-bold text-zinc-400 transform translateY-[-7px]">
+                  <strong>
                     {String(endHour).padStart(2, "0")}:00
                   </strong>
                 </div>
                 {calendarMasters.map((employee, empIndex) => (
-                  <div className="nuar-calendar-master min-w-0 border-l border-zinc-800/80" key={employee.id}>
-                    <header className="nuar-calendar-master-header sticky top-0 z-12 grid h-12 align-content-center gap-0.5 px-3 bg-zinc-900 border-b border-zinc-850">
-                      <strong className="text-zinc-200 text-xs font-semibold truncate">
+                  <div className="nuar-calendar-master min-w-0" key={employee.id}>
+                    <header className="nuar-calendar-master-header sticky top-0 z-12">
+                      <strong>
                         <span
                           className="nuar-calendar-master-dot"
                           style={{backgroundColor: employeeAccentByName.get(employee.name)}}
@@ -783,7 +769,7 @@ return (
                         />
                         {employee.name}
                       </strong>
-                      <span className="text-zinc-500 text-[10px]">
+                      <span>
                         {employee.shiftStart || settings.workdayStart || "08:00"}–
                         {employee.shiftEnd || settings.workdayEnd || "22:00"}
                       </span>
@@ -813,13 +799,13 @@ return (
                           <>
                             {topHeight > 0 && (
                               <div
-                                className="schedule-off-hours absolute right-0 left-0 z-1 pointer-events-none border-b border-zinc-900/60"
+                                className="schedule-off-hours schedule-off-hours-before absolute right-0 left-0 z-1 pointer-events-none"
                                 style={{height: topHeight, top: 0}}
                               />
                             )}
                             {bottomTop < gridHeight && (
                               <div
-                                className="schedule-off-hours absolute right-0 left-0 z-1 pointer-events-none border-t border-zinc-900/60"
+                                className="schedule-off-hours schedule-off-hours-after absolute right-0 left-0 z-1 pointer-events-none"
                                 style={{height: gridHeight - bottomTop, top: bottomTop}}
                               />
                             )}
@@ -827,11 +813,11 @@ return (
                         );
                       })()}
                       {settings.calendarNowLineVisible && isToday && currentTop >= 0 && currentTop <= gridHeight && (
-                        <div className="absolute right-0 left-0 z-5 h-[1px] bg-red-500 pointer-events-none" style={{top: currentTop}}>
+                        <div className="nuar-calendar-now-line absolute right-0 left-0 z-5 pointer-events-none" style={{top: currentTop}}>
                           {empIndex === 0 && (
                             <>
                               <i
-                                className="absolute rounded-full bg-red-500"
+                                className="nuar-calendar-now-dot absolute rounded-full"
                                 style={{
                                   width: "6px",
                                   height: "6px",
@@ -839,7 +825,7 @@ return (
                                   top: "-2.5px"
                                 }}
                               />
-                              <span className="absolute top-[-18px] left-1.5 text-red-400 text-[9px] font-bold">
+                              <span className="nuar-calendar-now-label absolute top-[-18px] left-1.5">
                                 {toTime(currentMinutes, startMinutes, endMinutes, slotMinutes)}
                               </span>
                             </>
@@ -852,7 +838,7 @@ return (
                           (_, index) => (
                             <i
                               className={`absolute right-0 left-0 border-t ${
-                                index % (60 / slotMinutes) === 0 ? "border-solid border-zinc-800/80" : "border-dashed border-zinc-900"
+                                index % (60 / slotMinutes) === 0 ? "is-hour" : "is-quarter"
                               }`}
                               key={index}
                               style={{top: index * slotHeight}}
@@ -879,7 +865,7 @@ return (
 
                         return (
                           <DraggableScheduleEntry
-                            className={`absolute z-3 flex flex-col items-stretch justify-start gap-1 p-2 overflow-hidden border-l-4 rounded-lg cursor-grab select-none w-[calc(100%/var(--overlap-count,1)-8px)] ${
+                            className={`nuar-calendar-entry-block ${
                               entry.kind === "task" ? "border-dashed" : "border-solid"
                             } ${ended ? "opacity-80" : ""} ${
                               isFocusedEntry(entry.id) ? "animate-pulse" : ""
@@ -906,26 +892,26 @@ return (
                           >
                             {entry.kind === "visit" &&
                               entry.commissionType === "Booksy 45%" && (
-                                <span className="nuar-calendar-booksy-badge absolute top-1.5 right-6 inline-flex w-4 h-4 items-center justify-center rounded-full text-red-300 bg-red-900/20 border border-red-800/40 pointer-events-none z-10">
+                                <span className="nuar-calendar-booksy-badge absolute top-1.5 right-6 inline-flex w-4 h-4 items-center justify-center rounded-full pointer-events-none z-10">
                                   <AppIcon name="rocket" size="xs" strokeWidth={2.4} />
                                 </span>
                               )}
-                            <div className="flex flex-col min-w-0 h-full flex-1">
-                              <strong className="text-[10px] font-bold text-zinc-100 truncate">
+                            <div className="nuar-calendar-entry-content">
+                              <strong className="nuar-calendar-entry-title">
                                 {entry.kind === "visit" ? entry.client : entry.title}
                               </strong>
-                              <span className="text-[9px] text-zinc-400 mt-0.5 truncate">
+                              <span className="nuar-calendar-entry-time">
                                 {displayedEntry.time}–{getEntryEndTime(displayedEntry)}
                               </span>
                               {entry.kind === "visit" && (
-                                <small className="text-[9px] text-zinc-500 truncate mt-0.5">
+                                <small className="nuar-calendar-entry-service">
                                   {entry.service}
                                 </small>
                               )}
                               {entry.kind === "visit" && (
                                 <small
-                                  className={`text-[9px] font-bold mt-0.5 truncate ${
-                                    getVisitDebt(entry) > 0 ? "text-rose-400" : "text-emerald-400"
+                                  className={`nuar-calendar-entry-money ${
+                                    getVisitDebt(entry) > 0 ? "is-debt" : "is-paid"
                                   }`}
                                 >
                                   {getEntryMoneyLabel(entry)}
@@ -949,13 +935,13 @@ return (
                                   )
                                   .findIndex((item) => item.id === entry.id) + 1;
                                 return packageItem ? (
-                                  <small className="text-[9px] text-red-300 mt-0.5 truncate">
+                                  <small className="nuar-calendar-package-label">
                                     Пакет {getPackageProgressLabel(packageItem, plannedPosition)}
                                   </small>
                                 ) : null;
                               })()}
                               {entry.kind === "visit" && (
-                                <b className="mt-auto text-[8px] font-bold text-zinc-500 uppercase tracking-wide bg-zinc-800/40 px-1 py-0.5 rounded-sm self-start">
+                                <b className="nuar-calendar-status-pill">
                                   {["no_show", "cancelled"].includes(entry.status)
                                     ? statusLabels[entry.status]
                                     : ended
@@ -966,7 +952,7 @@ return (
                             </div>
                             <div className="nuar-calendar-entry-menu absolute top-1 right-1 opacity-0 hover:opacity-100 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex flex-col gap-1 z-10">
                               <IconButton
-                                className="grid w-5.5 h-5.5 place-items-center rounded bg-zinc-950/80 hover:bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                                className="nuar-calendar-entry-trigger"
                                 icon="moreVertical"
                                 label="Действия записи"
                                 size="sm"
@@ -979,10 +965,10 @@ return (
                                 }}
                               />
                               {openEntryMenuId === entry.id && (
-                                <div className="absolute right-0 top-6 z-20 grid min-w-[132px] p-1 border border-zinc-800 rounded-lg bg-zinc-950 shadow-xl">
+                                <div className="nuar-calendar-entry-popover">
                                   {entry.kind === "visit" && activeVisit && (
                                     <Button
-                                      className="flex items-center gap-2 h-7 px-2 text-[10px] text-zinc-350 hover:text-white hover:bg-zinc-900 rounded-md cursor-pointer text-left"
+                                      className="nuar-calendar-entry-action"
                                       leftIcon="bellRing"
                                       size="sm"
                                       variant="ghost"
@@ -996,7 +982,7 @@ return (
                                   )}
                                   {activeVisit && (
                                     <Button
-                                      className="flex items-center gap-2 h-7 px-2 text-[10px] text-rose-400 hover:bg-rose-500/10 rounded-md cursor-pointer text-left"
+                                      className="nuar-calendar-entry-action is-danger"
                                       leftIcon="ban"
                                       size="sm"
                                       variant="ghost"
@@ -1009,7 +995,7 @@ return (
                                     </Button>
                                   )}
                                   <Button
-                                    className="flex items-center gap-2 h-7 px-2 text-[10px] text-zinc-350 hover:text-white hover:bg-zinc-900 rounded-md cursor-pointer text-left"
+                                    className="nuar-calendar-entry-action"
                                     leftIcon="edit"
                                     size="sm"
                                     variant="ghost"
@@ -1021,7 +1007,7 @@ return (
                                     Редактировать
                                   </Button>
                                   <Button
-                                    className="flex items-center gap-2 h-7 px-2 text-[10px] text-red-400 hover:bg-red-500/10 rounded-md cursor-pointer text-left"
+                                    className="nuar-calendar-entry-action is-danger"
                                     leftIcon="trash"
                                     size="sm"
                                     variant="ghost"
@@ -1044,11 +1030,11 @@ return (
               </div>
             </section>
             {dragPreview && (
-              <div className="fixed right-6 bottom-6 z-50 grid gap-0.5 min-w-[112px] p-3 border border-zinc-800 rounded-lg bg-zinc-900 text-zinc-250 shadow-2xl pointer-events-none">
-                <strong className="text-sm font-bold text-zinc-100">
+              <div className="nuar-calendar-drag-preview fixed right-6 bottom-6 z-50 pointer-events-none">
+                <strong>
                   {dragPreview.time}–{dragPreview.endTime}
                 </strong>
-                <span className="text-[10px] text-zinc-500">{dragPreview.master}</span>
+                <span>{dragPreview.master}</span>
               </div>
             )}
           </DndContext>
@@ -1057,13 +1043,13 @@ return (
         {showRemindersPanel && (
           <button
             aria-label="Закрыть ленту дня"
-            className="fixed inset-0 z-30 bg-zinc-950/40 backdrop-blur-xs cursor-pointer block md:hidden"
+            className="nuar-calendar-reminders-backdrop fixed inset-0 z-30 block md:hidden"
             type="button"
             onClick={() => setRemindersVisible(false)}
           />
         )}
         {showRemindersPanel && (
-          <aside className="nuar-calendar-reminders border border-zinc-800 rounded-xl bg-linear-to-br from-zinc-900/90 to-zinc-950/95 shadow-inner p-4 min-h-0 overflow-y-auto flex flex-col gap-3">
+          <aside className="nuar-calendar-reminders min-h-0 overflow-y-auto flex flex-col gap-3">
             <section className="nuar-calendar-picker" aria-label="Календарь месяца">
               <header>
                 <IconButton
@@ -1159,13 +1145,12 @@ return (
                 ))}
               </div>
             </section>
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <div className="nuar-calendar-reminders-header flex items-center justify-between">
               <div>
-                <h2 className="text-zinc-100 text-sm font-bold tracking-tight">Лента дня</h2>
-                <p className="text-2xs text-zinc-500 mt-0.5">{toDisplayDate(selectedDate)}</p>
+                <h2>Лента дня</h2>
+                <p>{toDisplayDate(selectedDate)}</p>
               </div>
               <IconButton
-                className="grid w-8 h-8 place-items-center border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 cursor-pointer"
                 icon="chevronRight"
                 label="Скрыть ленту дня"
                 size="sm"
@@ -1173,22 +1158,20 @@ return (
                 onClick={() => setRemindersVisible(false)}
               />
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400 font-semibold">
-                <b className="text-zinc-200 font-bold">{visitEntries.length}</b> всего
+            <div className="nuar-calendar-reminder-stats flex flex-wrap">
+              <span>
+                <b>{visitEntries.length}</b> всего
               </span>
-              <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400 font-semibold">
-                <b className="text-zinc-200 font-bold">{activeVisitEntries.length}</b> активных
+              <span>
+                <b>{activeVisitEntries.length}</b> активных
               </span>
-              <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400 font-semibold">
-                <b className="text-zinc-200 font-bold">{completedVisitEntries.length}</b> окончено
+              <span>
+                <b>{completedVisitEntries.length}</b> окончено
               </span>
             </div>
-            <div className="flex p-0.5 mt-1 rounded-lg bg-zinc-950 border border-zinc-850 w-full">
+            <div className="nuar-calendar-reminder-filter flex">
               <Button
-                className={`flex-1 py-1 text-2xs font-semibold text-center rounded-md cursor-pointer ${
-                  reminderFilter === "active" ? "bg-zinc-850 text-white" : "text-zinc-500 hover:text-zinc-300"
-                }`}
+                className={reminderFilter === "active" ? "is-active" : ""}
                 size="sm"
                 variant="ghost"
                 onClick={() => setReminderFilter("active")}
@@ -1196,9 +1179,7 @@ return (
                 Активные
               </Button>
               <Button
-                className={`flex-1 py-1 text-2xs font-semibold text-center rounded-md cursor-pointer ${
-                  reminderFilter === "all" ? "bg-zinc-850 text-white" : "text-zinc-500 hover:text-zinc-300"
-                }`}
+                className={reminderFilter === "all" ? "is-active" : ""}
                 size="sm"
                 variant="ghost"
                 onClick={() => setReminderFilter("all")}
@@ -1212,8 +1193,8 @@ return (
 
                 return (
                   <article
-                    className={`nuar-calendar-reminder-card grid grid-cols-[44px_1fr_auto] gap-x-2 gap-y-1 w-full p-3 border rounded-xl bg-zinc-900/30 ${
-                      entry.id === nextVisitId ? "is-next border-red-800/50 bg-zinc-900/40" : "border-zinc-850"
+                    className={`nuar-calendar-reminder-card ${
+                      entry.id === nextVisitId ? "is-next" : ""
                     }`}
                     key={entry.id}
                   >
@@ -1297,7 +1278,7 @@ return (
                 );
               })}
               {visibleReminderEntries.length === 0 && (
-                <p className="text-zinc-500 text-xs text-center py-6">
+                <p className="nuar-calendar-reminders-empty">
                   {visitEntries.length === 0 ? "На этот день визитов пока нет." : "Активных визитов больше нет."}
                 </p>
               )}
@@ -1308,7 +1289,7 @@ return (
 
       {pendingSlot && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center p-4 bg-zinc-950/60 backdrop-blur-xs select-none"
+          className="nuar-calendar-add-backdrop fixed inset-0 z-50 grid place-items-center p-4 select-none"
           role="presentation"
           onClick={() => {
             if (Date.now() - pendingSlotOpenedAtRef.current < 450) {
@@ -1319,36 +1300,36 @@ return (
         >
           <section
             aria-label="Добавить запись"
-            className="nuar-calendar-add-popover grid w-[360px] max-w-full overflow-hidden border border-zinc-800 rounded-xl bg-zinc-900 shadow-2xl"
+            className="nuar-calendar-add-popover"
             role="dialog"
             onClick={(event) => event.stopPropagation()}
           >
             <Button
-              className="flex items-center gap-3.5 h-[68px] px-5 border-b border-zinc-800/60 bg-transparent text-left cursor-pointer hover:bg-zinc-850/40 text-zinc-200"
-              leftIcon={<AppIcon name="calendarPlus" size="md" className="text-red-400" />}
+              className="nuar-calendar-add-option"
+              leftIcon={<AppIcon name="calendarPlus" size="md" />}
               variant="ghost"
               onClick={() => {
                 onAdd({...pendingSlot, kind: "visit"});
                 setPendingSlot(null);
               }}
             >
-              <span className="grid gap-0.5">
-                <strong className="text-sm font-bold text-zinc-100">Новый визит</strong>
-                <small className="text-zinc-500 text-xs font-medium">Записать клиента</small>
+              <span>
+                <strong>Новый визит</strong>
+                <small>Записать клиента</small>
               </span>
             </Button>
             <Button
-              className="flex items-center gap-3.5 h-[68px] px-5 bg-transparent text-left cursor-pointer hover:bg-zinc-850/40 text-zinc-200"
-              leftIcon={<AppIcon name="ban" size="md" className="text-zinc-400" />}
+              className="nuar-calendar-add-option"
+              leftIcon={<AppIcon name="ban" size="md" />}
               variant="ghost"
               onClick={() => {
                 onAdd({...pendingSlot, kind: "reserved"});
                 setPendingSlot(null);
               }}
             >
-              <span className="grid gap-0.5">
-                <strong className="text-sm font-bold text-zinc-100">Зарезервировать время</strong>
-                <small className="text-zinc-500 text-xs font-medium">Закрыть слот без клиента</small>
+              <span>
+                <strong>Зарезервировать время</strong>
+                <small>Закрыть слот без клиента</small>
               </span>
             </Button>
           </section>
