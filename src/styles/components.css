@@ -3042,6 +3042,18 @@
   line-height: 1;
 }
 
+.crm-badge-neutral {
+  border-color: var(--border);
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+}
+
+.crm-badge-info {
+  border-color: color-mix(in srgb, var(--color-info, #38bdf8) 25%, transparent);
+  color: var(--color-info, #38bdf8);
+  background: color-mix(in srgb, var(--color-info, #38bdf8) 10%, transparent);
+}
+
 .crm-badge-success {
   border-color: var(--status-success-border);
   color: var(--status-success-text);
@@ -3058,6 +3070,22 @@
   border-color: var(--status-danger-border);
   color: var(--status-danger-text);
   background: var(--status-danger-bg);
+}
+
+.crm-badge-premium {
+  border-color: color-mix(in srgb, var(--premium, #d6bb7d) 30%, transparent);
+  color: var(--premium, #d6bb7d);
+  background: color-mix(in srgb, var(--premium, #d6bb7d) 10%, transparent);
+}
+
+.crm-badge-disabled {
+  border-color: var(--border-soft, var(--border));
+  color: var(--text-muted);
+  background: var(--field-bg, var(--neutral-surface-soft));
+}
+
+.crm-skeleton {
+  background: color-mix(in srgb, var(--color-text, #ffffff) 6%, transparent);
 }
 
 .crm-modal-backdrop {

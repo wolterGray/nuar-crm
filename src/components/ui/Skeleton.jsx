@@ -5,7 +5,7 @@ export default function Skeleton({className}) {
     <span
       aria-hidden="true"
       className={clsx(
-        "block animate-pulse rounded-md bg-white/[0.06]",
+        "crm-skeleton block animate-pulse rounded-md",
         className,
       )}
     />
