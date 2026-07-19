@@ -16,6 +16,17 @@
   :root {
     --mobile-bottom-nav-height: calc(68px + env(safe-area-inset-bottom));
     --mobile-page-padding: 12px;
+    --mobile-overlay-bg: rgba(17, 19, 24, 0.38);
+    --mobile-sheet-bg: var(--surface, #fff);
+    --mobile-sheet-button-bg: var(--surface-muted, #f7f7f6);
+    --mobile-sheet-button-hover-bg: var(--surface-hover, #efefed);
+    --mobile-header-bg: color-mix(in srgb, var(--surface, #f7f7f6) 94%, transparent);
+    --mobile-nav-bg: var(--app-card-bg, #141619);
+    --mobile-control-text: var(--text-soft, #59616d);
+    --mobile-control-text-strong: var(--text-main, #15171c);
+    --mobile-on-accent: var(--button-primary-text, #ffffff);
+    --mobile-calendar-text: var(--text-main, #353941);
+    --mobile-calendar-muted: var(--text-muted, #848990);
   }
 
   html,
@@ -61,7 +72,7 @@
   }
 
   .theme-dark .content {
-    background: #050607;
+    background: var(--app-page-bg, #050607);
   }
 
   .page-header,
@@ -79,8 +90,8 @@
     z-index: 35;
     margin: calc(var(--mobile-page-padding) * -1) calc(var(--mobile-page-padding) * -1) 12px;
     padding: 10px var(--mobile-page-padding);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    background: rgba(11, 15, 20, 0.94);
+    border-bottom: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.07));
+    background: color-mix(in srgb, var(--app-window-bg, #0b0d10) 94%, transparent);
     backdrop-filter: blur(16px);
   }
 
@@ -265,9 +276,9 @@
     min-width: 0;
     margin-bottom: 10px;
     padding: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.035);
+    background: var(--app-card-bg, rgba(255, 255, 255, 0.035));
   }
 
   .table-row > *,
@@ -451,8 +462,8 @@
     right: -14px;
     width: 26px;
     height: 26px;
-    border-color: #343a44;
-    background: #1f242d;
+    border-color: var(--app-window-border, #343a44);
+    background: var(--app-card-bg, #1f242d);
   }
 
   .logo-wordmark,
@@ -579,7 +590,7 @@
     z-index: 55;
     display: block;
     border: 0;
-    background: rgba(17, 19, 24, 0.38);
+    background: var(--mobile-overlay-bg, rgba(17, 19, 24, 0.38));
   }
 
   .mobile-more-sheet {
@@ -591,10 +602,10 @@
     display: block;
     padding: 44px 10px 10px;
     overflow: visible;
-    border: 1px solid #e5e5e3;
+    border: 1px solid var(--line-soft, #e5e5e3);
     border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 20px 52px rgba(17, 19, 24, 0.22);
+    background: var(--mobile-sheet-bg, #fff);
+    box-shadow: var(--shadow-lg, 0 20px 52px rgba(17, 19, 24, 0.22));
   }
 
   .mobile-more-sheet-close {
@@ -608,7 +619,7 @@
     place-items: center;
     border: 0;
     border-radius: 6px;
-    color: #59616d;
+    color: var(--mobile-control-text, #59616d);
     background: transparent;
   }
 
@@ -631,8 +642,8 @@
     padding: 6px 4px;
     border: 0;
     border-radius: 8px;
-    color: #59616d;
-    background: #f7f7f6;
+    color: var(--mobile-control-text, #59616d);
+    background: var(--mobile-sheet-button-bg, #f7f7f6);
     font-size: 10px;
     font-weight: 650;
     line-height: 1.15;
@@ -647,23 +658,23 @@
   }
 
   .mobile-more-sheet-nav button.active {
-    color: #8d5b18;
-    background: #fff5df;
+    color: var(--accent-color, #b91c1c);
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 12%, var(--mobile-sheet-bg, #fff));
   }
 
   .mobile-more-sheet-nav button:hover {
-    color: #15171c;
-    background: #efefed;
+    color: var(--mobile-control-text-strong, #15171c);
+    background: var(--mobile-sheet-button-hover-bg, #efefed);
   }
 
   .mobile-more-sheet-nav button.active:hover {
-    color: #7a4f14;
-    background: #ffefd0;
+    color: var(--accent-color, #b91c1c);
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 18%, var(--mobile-sheet-bg, #fff));
   }
 
   .mobile-more-sheet-close:hover {
-    color: #15171c;
-    background: rgba(17, 19, 24, 0.06);
+    color: var(--mobile-control-text-strong, #15171c);
+    background: color-mix(in srgb, var(--mobile-control-text-strong, #15171c) 6%, transparent);
   }
 
   .theme-dark .mobile-more-sheet {
@@ -673,28 +684,28 @@
 
   .theme-dark .mobile-more-sheet-close,
   .theme-dark .mobile-more-sheet-nav button {
-    color: #d5dfec;
+    color: var(--app-text-muted, #d5dfec);
     background: var(--app-window-bg);
   }
 
   .theme-dark .mobile-more-sheet-nav button.active {
-    color: #f2f3f7;
-    background: rgba(255, 255, 255, 0.075);
+    color: var(--app-text-main, #f2f3f7);
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 16%, transparent);
   }
 
   .theme-dark .mobile-more-sheet-nav button:hover {
-    color: #ece8ff;
-    background: rgba(255, 255, 255, 0.07);
+    color: var(--app-text-main, #ece8ff);
+    background: var(--app-hover-bg, rgba(255, 255, 255, 0.07));
   }
 
   .theme-dark .mobile-more-sheet-nav button.active:hover {
-    color: #ece8ff;
-    background: rgba(124, 92, 255, 0.2);
+    color: var(--app-text-main, #ece8ff);
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 22%, transparent);
   }
 
   .theme-dark .mobile-more-sheet-close:hover {
-    color: #ece8ff;
-    background: rgba(255, 255, 255, 0.08);
+    color: var(--app-text-main, #ece8ff);
+    background: var(--app-hover-bg, rgba(255, 255, 255, 0.08));
   }
 
   .content:not(.calendar-content):not(.clients-content):not(.operations-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content) {
@@ -716,11 +727,11 @@
     gap: 8px;
     min-height: 34px;
     padding: 7px 12px;
-    border: 1px solid #e5e5e3;
+    border: 1px solid var(--line-soft, #e5e5e3);
     border-radius: 999px;
-    color: #15171c;
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: 0 12px 30px rgba(17, 19, 24, 0.14);
+    color: var(--mobile-control-text-strong, #15171c);
+    background: color-mix(in srgb, var(--mobile-sheet-bg, #fff) 94%, transparent);
+    box-shadow: var(--shadow-md, 0 12px 30px rgba(17, 19, 24, 0.14));
     opacity: 0;
     pointer-events: none;
     transform: translate(-50%, calc(-100% + var(--pull-distance, 0px)));
@@ -736,8 +747,8 @@
   .pull-refresh-indicator span {
     width: 16px;
     height: 16px;
-    border: 2px solid #dededb;
-    border-top-color: #15171c;
+    border: 2px solid var(--line-soft, #dededb);
+    border-top-color: var(--mobile-control-text-strong, #15171c);
     border-radius: 50%;
     transform: rotate(calc(var(--pull-distance, 0px) * 3deg));
   }
@@ -754,13 +765,13 @@
 
   .theme-dark .pull-refresh-indicator {
     border-color: var(--app-window-border);
-    color: #f8fbff;
-    background: rgba(22, 27, 36, 0.94);
+    color: var(--app-text-main, #f8fbff);
+    background: color-mix(in srgb, var(--app-card-bg, #161b24) 94%, transparent);
   }
 
   .theme-dark .pull-refresh-indicator span {
     border-color: var(--app-window-border);
-    border-top-color: #f8fbff;
+    border-top-color: var(--app-text-main, #f8fbff);
   }
 
   .home-content:not(.clients-content):not(.operations-content):not(.calendar-content):not(.payments-content):not(.services-content):not(.packages-content):not(.employees-content):not(.templates-content):not(.import-content):not(.statistics-content):not(.site-content):not(.settings-content),
@@ -812,13 +823,13 @@
     margin: 0 0 8px;
     padding: 6px 0;
     overflow: visible;
-    background: color-mix(in srgb, #f7f7f6 94%, transparent);
+    background: var(--mobile-header-bg, color-mix(in srgb, #f7f7f6 94%, transparent));
     backdrop-filter: blur(14px);
   }
 
   .theme-dark .page-header,
   .theme-dark .page-header-unified {
-    background: color-mix(in srgb, #050607 94%, transparent);
+    background: color-mix(in srgb, var(--app-page-bg, #050607) 94%, transparent);
   }
 
   .calendar-content .calendar-page-header {
@@ -833,16 +844,16 @@
   }
 
   .theme-dark .mobile-calendar-week {
-    border-bottom-color: #252a31;
+    border-bottom-color: var(--app-window-border, #252a31);
     background: var(--app-window-bg);
   }
 
   .theme-dark .mobile-calendar-week button {
-    color: #eef4fb;
+    color: var(--app-text-main, #eef4fb);
   }
 
   .theme-dark .mobile-calendar-week span {
-    color: #9aa3b4;
+    color: var(--app-text-muted, #9aa3b4);
   }
 
   .client-alert-popover {
@@ -874,7 +885,7 @@
     gap: 8px;
     padding: 10px 11px;
     border-radius: 10px;
-    box-shadow: 0 14px 34px rgba(17, 19, 24, 0.16);
+    box-shadow: var(--shadow-md, 0 14px 34px rgba(17, 19, 24, 0.16));
   }
 
   .toast strong {
@@ -904,9 +915,9 @@
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     padding: 7px 6px calc(7px + env(safe-area-inset-bottom));
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background: #14171d;
-    box-shadow: 0 -12px 32px rgba(17, 19, 24, 0.16);
+    border-top: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
+    background: var(--mobile-nav-bg, #14171d);
+    box-shadow: var(--shadow-md, 0 -12px 32px rgba(17, 19, 24, 0.16));
   }
 
   .mobile-bottom-nav button {
@@ -918,14 +929,14 @@
     gap: 4px;
     border: 0;
     border-radius: 7px;
-    color: #aeb6c4;
+    color: var(--app-text-muted, #aeb6c4);
     background: transparent;
     font-size: 11px;
   }
 
   .mobile-bottom-nav button.active {
-    color: #f2f3f7;
-    background: rgba(255, 255, 255, 0.075);
+    color: var(--app-text-main, #f2f3f7);
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 14%, transparent);
   }
 
   .mobile-bottom-nav span {
@@ -946,30 +957,30 @@
     flex: 1;
     min-height: var(--mobile-touch-target, 44px);
     padding: 0 10px;
-    border: 1px solid #e4e5e4;
+    border: 1px solid var(--line-soft, #e4e5e4);
     border-radius: 999px;
-    color: #5d6168;
-    background: #fff;
+    color: var(--mobile-control-text, #5d6168);
+    background: var(--mobile-sheet-bg, #fff);
     font-size: 12px;
     font-weight: 700;
   }
 
   .operations-page-tabs button.active {
-    color: #15171c;
-    border-color: color-mix(in srgb, var(--accent-color) 40%, #e4e5e4);
-    background: color-mix(in srgb, var(--accent-color) 14%, #fff);
+    color: var(--mobile-control-text-strong, #15171c);
+    border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 40%, var(--line-soft, #e4e5e4));
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 14%, var(--mobile-sheet-bg, #fff));
   }
 
   .theme-dark .operations-page-tabs button {
-    color: #b3bdcb;
+    color: var(--app-text-muted, #b3bdcb);
     border-color: var(--app-window-border);
     background: var(--app-card-bg);
   }
 
   .theme-dark .operations-page-tabs button.active {
-    color: #f8fbff;
-    border-color: color-mix(in srgb, var(--accent-color) 34%, #252a31);
-    background: color-mix(in srgb, var(--accent-color) 16%, #15171a);
+    color: var(--app-text-main, #f8fbff);
+    border-color: color-mix(in srgb, var(--accent-color, #b91c1c) 34%, var(--app-window-border, #252a31));
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 16%, var(--app-card-bg, #15171a));
   }
 
   .operations-panel-hidden-mobile,
@@ -1091,7 +1102,7 @@
     min-height: 48px;
     margin-top: 0;
     padding: 6px 5px 2px;
-    background: #fff;
+    background: var(--mobile-sheet-bg, #fff);
   }
 
   .theme-dark .calendar-content .calendar-toolbar,
@@ -1174,7 +1185,7 @@
     border: 0;
     border-radius: 50%;
     font-size: 0;
-    box-shadow: 0 12px 28px rgba(17, 19, 24, 0.2);
+    box-shadow: var(--shadow-md, 0 12px 28px rgba(17, 19, 24, 0.2));
   }
 
   .calendar-toolbar-actions > .add-visit-button.calendar-mobile-add-button {
@@ -1191,7 +1202,7 @@
     gap: 0;
     appearance: none;
     line-height: 0;
-    color: #15171c;
+    color: var(--mobile-on-accent, #ffffff);
     background: var(--accent-color, #b91c1c);
     box-shadow: none;
   }
@@ -1210,8 +1221,8 @@
   .mobile-calendar-feed-button {
     left: 16px;
     z-index: 51;
-    color: #15171c;
-    background: #fff;
+    color: var(--mobile-control-text-strong, #15171c);
+    background: var(--mobile-sheet-bg, #fff);
   }
 
   .calendar-feed-toggle {
@@ -1265,7 +1276,7 @@
     gap: 4px;
     padding: 5px 16px 4px;
     border-bottom: 0;
-    background: #fff;
+    background: var(--mobile-sheet-bg, #fff);
     scroll-snap-type: x proximity;
     scrollbar-width: none;
     touch-action: pan-x;
@@ -1282,13 +1293,13 @@
     gap: 1px;
     border: 0;
     border-radius: 10px;
-    color: #353941;
+    color: var(--mobile-calendar-text, #353941);
     background: transparent;
     line-height: 1;
   }
 
   .mobile-calendar-week span {
-    color: #848990;
+    color: var(--mobile-calendar-muted, #848990);
     font-size: 9px;
     font-weight: 700;
   }
@@ -1299,17 +1310,17 @@
     height: 28px;
     place-items: center;
     border-radius: 50%;
-    color: #353941;
+    color: var(--mobile-calendar-text, #353941);
     font-size: 14px;
   }
 
   .mobile-calendar-week button.selected b {
-    color: #c9483c;
-    background: #fbe9e7;
+    color: var(--accent-color, #b91c1c);
+    background: color-mix(in srgb, var(--accent-color, #b91c1c) 14%, var(--mobile-sheet-bg, #fff));
   }
 
   .mobile-calendar-week button.today:not(.selected) b {
-    color: #c9483c;
+    color: var(--accent-color, #b91c1c);
     background: transparent;
   }
 
@@ -1349,7 +1360,7 @@
   .schedule-times {
     height: calc(var(--schedule-height) + 40px);
     padding-top: 40px;
-    background: #fff;
+    background: var(--mobile-sheet-bg, #fff);
   }
 
   .schedule-hour-label strong,
@@ -1369,7 +1380,7 @@
     gap: 1px;
     padding: 0 5px;
     overflow: hidden;
-    background: #fff;
+    background: var(--mobile-sheet-bg, #fff);
   }
 
   .schedule-master header strong,
@@ -1396,7 +1407,7 @@
     max-height: min(62dvh, 520px);
     overflow: auto;
     border-radius: 12px;
-    box-shadow: 0 18px 42px rgba(17, 19, 24, 0.2);
+    box-shadow: var(--shadow-lg, 0 18px 42px rgba(17, 19, 24, 0.2));
   }
 
   .mobile-calendar-reminders-backdrop {
@@ -1405,7 +1416,7 @@
     z-index: 47;
     display: block;
     border: 0;
-    background: rgba(17, 19, 24, 0.24);
+    background: color-mix(in srgb, var(--app-page-bg, #111318) 24%, transparent);
   }
 
   .calendar-entry-grid {
@@ -1719,9 +1730,9 @@
     gap: 6px 8px;
     min-height: 92px;
     padding: 12px;
-    border: 1px solid #ececea;
+    border: 1px solid var(--line-soft, #ececea);
     border-radius: 12px;
-    background: #fff;
+    background: var(--mobile-sheet-bg, #fff);
   }
 
   .theme-dark .clients-table-row:not(.clients-table-head) {
@@ -1766,14 +1777,14 @@
     width: fit-content;
     padding: 4px 7px;
     border-radius: 999px;
-    color: #737780;
-    background: #f6f6f4;
+    color: var(--text-muted, #737780);
+    background: var(--surface-muted, #f6f6f4);
     font-size: 11px;
   }
 
   .theme-dark .clients-table-row span[data-label="Визитов"],
   .theme-dark .clients-table-row span[data-label="Не был"] {
-    color: #b3bdcb;
+    color: var(--app-text-muted, #b3bdcb);
     background: var(--app-window-bg);
   }
 
@@ -1924,7 +1935,7 @@
     min-height: 50px;
     margin-top: 8px;
     border-radius: 8px;
-    box-shadow: 0 10px 24px rgba(17, 19, 24, 0.18);
+    box-shadow: var(--shadow-md, 0 10px 24px rgba(17, 19, 24, 0.18));
   }
 
   .client-details-modal:not(.mobile-sheet) {
@@ -1969,7 +1980,7 @@
   }
 
   .client-visit-history-row span::before {
-    color: #8a8f98;
+    color: var(--text-muted, #8a8f98);
     content: attr(data-label);
     font-size: 9px;
     text-transform: uppercase;
@@ -2048,7 +2059,7 @@
     width: 100%;
     min-height: 48px;
     margin-top: 8px;
-    box-shadow: 0 10px 24px rgba(17, 19, 24, 0.18);
+    box-shadow: var(--shadow-md, 0 10px 24px rgba(17, 19, 24, 0.18));
   }
 
   input,
@@ -2121,7 +2132,7 @@
     z-index: 42;
     margin: -12px -12px 12px;
     padding: 12px;
-    background: rgba(11, 15, 20, 0.94);
+    background: color-mix(in srgb, var(--app-window-bg, #0b0d10) 94%, transparent);
     backdrop-filter: blur(16px);
   }
 
