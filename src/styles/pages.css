@@ -1812,7 +1812,7 @@ button:focus-visible {
 
 .services-page-search .crm-search-input-clear:hover {
   color: var(--services-text);
-  background: rgba(255, 255, 255, 0.045);
+  background: color-mix(in srgb, var(--services-text, #ffffff) 4.5%, transparent);
 }
 
 .services-page-add-button {
@@ -1854,8 +1854,8 @@ button:focus-visible {
 .theme-dark .service-card.catalog-card:hover,
 .theme-light .service-card.catalog-card:hover,
 .service-card.catalog-card:hover {
-  border-color: color-mix(in srgb, var(--services-border) 74%, #ffffff);
-  background: color-mix(in srgb, var(--services-panel) 92%, #ffffff);
+  border-color: color-mix(in srgb, var(--services-border) 74%, var(--services-text, #ffffff));
+  background: color-mix(in srgb, var(--services-panel) 92%, var(--services-text, #ffffff));
 }
 
 .service-card-header {
@@ -2237,7 +2237,7 @@ button:focus-visible {
 
 .package-card:hover {
   border-color: var(--packages-border);
-  background: color-mix(in srgb, var(--packages-panel) 91%, #ffffff);
+  background: color-mix(in srgb, var(--packages-panel) 91%, var(--packages-text, #ffffff));
 }
 
 .package-card.is-archived {
@@ -2304,7 +2304,7 @@ button:focus-visible {
   border: 1px solid var(--packages-border);
   border-radius: 999px;
   color: var(--packages-muted);
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--packages-text, #ffffff) 4%, transparent);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.035em;
@@ -2312,9 +2312,9 @@ button:focus-visible {
 }
 
 .package-status-pill.is-active {
-  color: #6ee7b7;
-  border-color: rgba(52, 211, 153, 0.2);
-  background: rgba(52, 211, 153, 0.08);
+  color: color-mix(in srgb, var(--color-success, #22c55e) 56%, var(--packages-text, #ffffff));
+  border-color: color-mix(in srgb, var(--color-success, #22c55e) 20%, transparent);
+  background: color-mix(in srgb, var(--color-success, #22c55e) 8%, transparent);
 }
 
 .packages-archive {
@@ -2332,7 +2332,7 @@ button:focus-visible {
 }
 
 .packages-archive > button:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--packages-text, #ffffff) 4%, transparent);
 }
 
 @media (max-width: 1180px) {
