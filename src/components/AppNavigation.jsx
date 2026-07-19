@@ -34,24 +34,24 @@ export default function AppNavigation({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="nuar-sidebar hidden md:flex flex-col w-[240px] min-h-screen px-2.5 py-4 bg-[#07090b] border-r border-white/[0.07] select-none">
-        <div className="flex items-center gap-2.5 min-h-[34px] px-1 pb-4" aria-label={`${studioName} CRM`}>
-          <span className="grid w-7 h-7 place-items-center border border-white/[0.09] rounded-lg text-zinc-100 bg-white/[0.045] text-[13px] font-semibold">N</span>
-          <div className="flex flex-col leading-tight">
-            <strong className="text-zinc-100 text-sm font-semibold tracking-tight">{studioName}</strong>
-            <small className="text-zinc-500 text-[10px] uppercase font-semibold tracking-wider">CRM</small>
+      <aside className="nuar-sidebar hidden md:flex flex-col w-[240px] min-h-screen px-2.5 py-4 select-none">
+        <div className="nuar-sidebar-brand" aria-label={`${studioName} CRM`}>
+          <span>N</span>
+          <div>
+            <strong>{studioName}</strong>
+            <small>CRM</small>
           </div>
         </div>
         <nav className="flex flex-col gap-2 mt-1" aria-label="Главное меню">
           <Button
-            className="nuar-sidebar-search flex items-center justify-start gap-2.5 h-8 px-2 border border-white/[0.07] rounded-lg text-zinc-500 hover:text-zinc-300 bg-transparent cursor-pointer text-xs font-medium normal-case tracking-normal transition-colors"
+            className="nuar-sidebar-search"
             leftIcon="search"
             size="sm"
             variant="ghost"
             onClick={onOpenClientSearch}
           >
             <span>Поиск</span>
-            <kbd className="ml-auto hidden text-[10px] text-zinc-500 bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded font-mono">
+            <kbd>
               {typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform) ? "⌘K" : "Ctrl+K"}
             </kbd>
           </Button>
@@ -62,7 +62,7 @@ export default function AppNavigation({
               className="flex flex-col gap-0"
               key={group.id}
             >
-              {groupIndex > 0 ? <span aria-hidden="true" className="block my-1.5 border-t border-white/[0.045]" /> : null}
+              {groupIndex > 0 ? <span aria-hidden="true" className="nuar-sidebar-separator" /> : null}
               {group.items.map((item) => {
                 const isActive = activePage === item.page;
 
@@ -70,13 +70,9 @@ export default function AppNavigation({
                   <Button
                     aria-label={item.label}
                     data-label={item.label}
-                    className={`nuar-sidebar-nav-item flex items-center justify-start gap-2.5 h-8 px-2 rounded-none text-[13px] font-medium cursor-pointer transition-colors ${
-                      isActive
-                        ? "is-active text-zinc-100 bg-white/[0.045] border-l border-white/[0.16] shadow-none"
-                        : "text-zinc-500 hover:text-zinc-300"
-                    }`}
+                    className={`nuar-sidebar-nav-item ${isActive ? "is-active" : ""}`}
                     key={item.page}
-                    leftIcon={<AppIcon className={isActive ? "text-zinc-100" : "text-zinc-500"} name={item.icon} size="md" />}
+                    leftIcon={<AppIcon name={item.icon} size="md" />}
                     size="sm"
                     variant="ghost"
                     onClick={() => handleDesktopPageChange(item.page)}
@@ -89,14 +85,14 @@ export default function AppNavigation({
           ))}
         </nav>
 
-        <div className="flex items-center gap-3 mt-auto p-2 rounded-2xl bg-white/[0.035] border border-white/[0.07] min-h-[60px]">
-          <div className="grid w-8 h-8 place-items-center rounded-full text-zinc-100 font-semibold bg-white/[0.08] text-xs">В</div>
-          <div className="flex flex-col leading-tight min-w-0 flex-1">
-            <strong className="text-zinc-200 text-xs font-bold truncate">{ownerName}</strong>
-            <span className="text-zinc-500 text-[10px] font-semibold">Владелец</span>
+        <div className="nuar-sidebar-user">
+          <div>В</div>
+          <div>
+            <strong>{ownerName}</strong>
+            <span>Владелец</span>
           </div>
           <IconButton
-            className="grid w-8 h-8 place-items-center rounded bg-transparent text-zinc-500 hover:text-zinc-300 cursor-pointer"
+            className="nuar-sidebar-logout"
             icon="logout"
             label="Выйти"
             size="sm"
@@ -110,7 +106,7 @@ export default function AppNavigation({
       {sidebarVisible && (
         <button
           aria-label="Закрыть меню"
-          className="fixed inset-0 z-40 bg-zinc-950/60 backdrop-blur-xs cursor-pointer block md:hidden"
+          className="mobile-sidebar-backdrop fixed inset-0 z-40 block md:hidden"
           type="button"
           onClick={closeSidebar}
         />
@@ -118,11 +114,11 @@ export default function AppNavigation({
 
       {/* Mobile More Sheet */}
       {sidebarVisible && (
-        <section className="mobile-more-sheet fixed right-0 bottom-16 left-0 z-40 max-h-[70vh] overflow-y-auto border-t border-zinc-800 rounded-t-2xl bg-zinc-950 p-5 shadow-2xl block md:hidden" aria-label="Все разделы">
+        <section className="mobile-more-sheet fixed right-0 bottom-16 left-0 z-40 block md:hidden" aria-label="Все разделы">
           <div className="mobile-more-sheet-head">
             <span className="mobile-more-sheet-title">Все разделы</span>
             <IconButton
-              className="mobile-more-sheet-close grid w-8 h-8 place-items-center border border-zinc-900 rounded-lg text-zinc-400 hover:text-zinc-300 bg-transparent cursor-pointer"
+              className="mobile-more-sheet-close"
               icon="x"
               label="Закрыть разделы"
               size="sm"
@@ -152,15 +148,13 @@ export default function AppNavigation({
       )}
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-45 flex h-16 border-t border-zinc-900 bg-zinc-950/95 backdrop-blur-xs select-none md:hidden" aria-label="Мобильная навигация">
+      <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-45 flex select-none md:hidden" aria-label="Мобильная навигация">
         {mobileNavItems.map((item) => {
           const isActive = activePage === item.page;
 
           return (
             <Button
-              className={`flex-1 flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer ${
-              isActive ? "text-zinc-100 font-semibold" : "text-zinc-500"
-              }`}
+              className={isActive ? "active" : ""}
               key={item.page}
               leftIcon={item.icon}
               size="sm"
@@ -172,9 +166,7 @@ export default function AppNavigation({
           );
         })}
         <Button
-          className={`flex-1 flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer ${
-            sidebarVisible ? "text-zinc-100 font-semibold" : "text-zinc-500"
-          }`}
+          className={sidebarVisible ? "active" : ""}
           leftIcon="more"
           size="sm"
           variant="ghost"
