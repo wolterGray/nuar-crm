@@ -3175,8 +3175,13 @@ button:focus-visible {
 .settings-page .card,
 .settings-page .settings-panel,
 .settings-page .settings-integration-card,
-.settings-page [class*="card"] {
-  border-color: var(--color-border-soft, rgba(255, 255, 255, 0.04));
+.settings-page .integration-health-panel,
+.settings-page .integration-health-item,
+.settings-page .integration-health-counts,
+.settings-page [class*="card"],
+.settings-page [class*="Panel"],
+.settings-page [class*="panel"] {
+  border-color: var(--color-border-soft, rgba(255, 255, 255, 0.04)) !important;
 }
 
 .settings-tabs-row.club-tabs {

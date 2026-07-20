@@ -44,14 +44,14 @@ function IntegrationHealthPanel({actions = {}, report}) {
         : "Автоматизации выключены";
 
   return (
-    <div className={clsx("integration-health-panel p-5 border rounded-card bg-surface flex flex-col gap-5", `is-${overallState}`)}>
+    <div className={clsx("integration-health-panel p-5 border border-border-soft rounded-card bg-surface flex flex-col gap-5", `is-${overallState}`)}>
       <div className="integration-health-overview flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <span className="block text-text-faint text-xs">Авто-контроль</span>
           <strong className="block text-text-main text-base font-bold mt-0.5">{overallLabel}</strong>
         </div>
         <div className="integration-health-actions flex items-center flex-wrap gap-4">
-          <div className="integration-health-counts flex items-center gap-3 bg-field px-3 py-1.5 rounded-control border border-border">
+          <div className="integration-health-counts flex items-center gap-3 bg-field px-3 py-1.5 rounded-control border border-border-soft">
             <span className="text-text-muted text-xs font-semibold">
               <b className="settings-state-count is-ok mr-1">{report.summary.ok}</b> OK
             </span>
@@ -75,7 +75,7 @@ function IntegrationHealthPanel({actions = {}, report}) {
           const itemActions = actions.itemActions?.[item.id] ?? [];
 
           return (
-            <article key={item.id} className={clsx("integration-health-item p-4 border rounded-control bg-field flex flex-col sm:flex-row sm:items-start justify-between gap-4", `is-${item.state}`)}>
+            <article key={item.id} className={clsx("integration-health-item p-4 border border-border-soft rounded-control bg-field flex flex-col sm:flex-row sm:items-start justify-between gap-4", `is-${item.state}`)}>
               <div className="flex gap-3">
                 <span className={clsx("settings-state-dot w-2.5 h-2.5 rounded-full mt-1.5 shrink-0", `is-${item.state}`)} />
                 <div>
