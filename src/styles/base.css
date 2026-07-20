@@ -3156,7 +3156,11 @@ h2 {
 }
 
 .settings-page:not(.settings-page-mobile) .settings-scroll {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 @media (min-width: 769px) {
