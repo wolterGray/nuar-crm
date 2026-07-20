@@ -3219,16 +3219,18 @@ button:focus-visible {
   font-weight: 900;
 }
 
-.club-tabs button.is-active {
-  color: var(--club-text);
-  border-bottom-color: var(--club-accent);
+.club-tabs button.is-active,
+.club-tabs button[aria-selected="true"] {
+  color: var(--color-primary, var(--club-accent));
+  border-bottom-color: var(--color-primary, var(--club-accent));
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--club-accent) 10%, transparent), transparent);
+    linear-gradient(180deg, color-mix(in srgb, var(--color-primary, var(--club-accent)) 10%, transparent), transparent);
   box-shadow: none;
 }
 
-.club-tabs button.is-active svg {
-  color: var(--club-accent);
+.club-tabs button.is-active svg,
+.club-tabs button[aria-selected="true"] svg {
+  color: var(--color-primary, var(--club-accent));
   opacity: 1;
 }
 

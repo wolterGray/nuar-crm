@@ -432,12 +432,12 @@ function SettingsPage({
   const [activeTab, setActiveTab] = useState(initialTab);
   const [integrationDiagnosticsRunning, setIntegrationDiagnosticsRunning] = useState(false);
   const settingsTabs = [
-    {id: "interface", label: "Интерфейс", mobileLabel: "UI"},
-    {id: "access", label: "Доступы", mobileLabel: "Доступ"},
-    {id: "notifications", label: "Уведомления", mobileLabel: "Уведом."},
-    {id: "calendar", label: "Календарь", mobileLabel: "Календ."},
-    {id: "integrations", label: "Интеграции", mobileLabel: "Интегр."},
-    {id: "data", label: "Данные", mobileLabel: "Данные"},
+    {id: "interface", label: "Интерфейс", mobileLabel: "UI", icon: "sliders"},
+    {id: "access", label: "Доступы", mobileLabel: "Доступ", icon: "shield"},
+    {id: "notifications", label: "Уведомления", mobileLabel: "Уведом.", icon: "bell"},
+    {id: "calendar", label: "Календарь", mobileLabel: "Календ.", icon: "calendar"},
+    {id: "integrations", label: "Интеграции", mobileLabel: "Интегр.", icon: "link"},
+    {id: "data", label: "Данные", mobileLabel: "Данные", icon: "database"},
   ];
   const resetSettings = () => {
     formRef.current?.reset();
