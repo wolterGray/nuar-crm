@@ -3167,6 +3167,14 @@ button:focus-visible {
   background: transparent;
 }
 
+.settings-tabs-row.club-tabs {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.settings-tabs-row.club-tabs button {
+  min-height: 42px;
+}
+
 .club-tabs button {
   position: relative;
   display: inline-flex;

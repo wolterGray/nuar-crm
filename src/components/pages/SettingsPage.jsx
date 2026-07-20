@@ -637,7 +637,7 @@ function SettingsPage({
   );
 
   const settingsTabsRow = (
-    <Tabs className="settings-tabs-row mb-6">
+    <Tabs className="club-tabs settings-tabs-row mb-4">
       {settingsTabs.map((tab) => (
         <TabButton
           active={activeTab === tab.id}
