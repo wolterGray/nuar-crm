@@ -3054,7 +3054,7 @@ button:focus-visible {
   --club-field: var(--color-field);
   --button-secondary-bg: var(--club-card);
   --button-secondary-bg-hover: color-mix(in srgb, var(--club-card) 86%, white 7%);
-  --club-border: var(--color-border);
+  --club-border: var(--color-border-soft);
   --club-muted: var(--color-text-muted);
   --club-faint: var(--color-text-faint);
   --club-text: var(--color-text);
@@ -3161,7 +3161,7 @@ button:focus-visible {
   width: 100%;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
-  border-bottom: 1px solid var(--club-border);
+  border-bottom: 0;
   background: transparent;
 }
 

@@ -5,7 +5,7 @@ export function Tabs({className, ...props}) {
   return (
     <div
       className={clsx(
-        "grid w-full grid-flow-col auto-cols-fr overflow-hidden border-b border-borderSoft",
+        "grid w-full grid-flow-col auto-cols-fr overflow-hidden",
         className,
       )}
       role="tablist"
