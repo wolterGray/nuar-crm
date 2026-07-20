@@ -3171,7 +3171,8 @@ h2 {
   .settings-page:not(.settings-page-mobile) {
     flex: 1;
     min-height: 0;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }
 
