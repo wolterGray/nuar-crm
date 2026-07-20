@@ -3168,6 +3168,8 @@ button:focus-visible {
 }
 
 .settings-page {
+  width: 100%;
+  max-width: 100%;
   overflow: visible;
   overflow-x: hidden;
 }
@@ -3185,12 +3187,24 @@ button:focus-visible {
 }
 
 .settings-tabs-row.club-tabs {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  overflow-x: hidden;
+  display: flex !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
 }
 
 .settings-tabs-row.club-tabs button {
-  min-height: 42px;
+  flex: 1 1 0px !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+}
+
+.settings-save-bar {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
 }
 
 .club-tabs button {
