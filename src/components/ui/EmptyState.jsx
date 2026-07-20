@@ -12,7 +12,7 @@ export default function EmptyState({
   title = "Ничего нет",
 }) {
   return (
-    <div className={clsx("grid place-items-center gap-3 rounded-card border border-borderSoft bg-field p-6 text-center", className)}>
+    <div className={clsx("grid place-items-center gap-3 rounded-card border border-border-soft bg-field p-6 text-center", className)}>
       <span className="grid h-10 w-10 place-items-center rounded-full bg-field text-textMuted">
         <AppIcon name={icon} size="lg" />
       </span>

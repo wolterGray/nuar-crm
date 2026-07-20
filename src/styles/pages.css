@@ -2009,8 +2009,8 @@ button:focus-visible {
   --packages-bg: var(--color-page);
   --packages-panel: var(--color-window);
   --packages-panel-soft: var(--color-card);
-  --packages-border: var(--color-border-soft);
-  --packages-border-soft: rgba(255, 255, 255, 0.04);
+  --packages-border: rgba(255, 255, 255, 0.04);
+  --packages-border-soft: rgba(255, 255, 255, 0.03);
   --packages-text: var(--color-text);
   --packages-muted: var(--color-text-muted);
   --packages-faint: var(--color-text-faint);
@@ -2215,6 +2215,8 @@ button:focus-visible {
 
 .packages-empty-state {
   min-height: 160px;
+  border-color: var(--color-border-soft);
+  background: var(--color-card);
 }
 
 .packages-panel-templates .packages-empty-state {
