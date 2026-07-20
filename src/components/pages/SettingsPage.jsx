@@ -685,7 +685,7 @@ function SettingsPage({
   );
 
   return (
-    <section className={clsx("settings-page flex flex-col h-full min-h-0 overflow-hidden", isMobile && "settings-page-mobile")}>
+    <section className={clsx("settings-page flex flex-col flex-1 h-full min-h-0 overflow-visible", isMobile && "settings-page-mobile")}>
       <PageHeader
         className="settings-page-header"
         collapsedMeta={

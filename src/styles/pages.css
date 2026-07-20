@@ -3167,8 +3167,21 @@ button:focus-visible {
   background: transparent;
 }
 
+.settings-page {
+  overflow: visible;
+  overflow-x: hidden;
+}
+
+.settings-page .card,
+.settings-page .settings-panel,
+.settings-page .settings-integration-card,
+.settings-page [class*="card"] {
+  border-color: var(--color-border-soft, rgba(255, 255, 255, 0.04));
+}
+
 .settings-tabs-row.club-tabs {
   grid-template-columns: repeat(6, minmax(0, 1fr));
+  overflow-x: hidden;
 }
 
 .settings-tabs-row.club-tabs button {
