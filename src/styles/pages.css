@@ -2536,7 +2536,9 @@ button:focus-visible {
 .clients-table-shell {
   width: 100%;
   min-width: 0;
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   border: 1px solid var(--clients-border);
   border-radius: 18px;
   background: var(--clients-card-soft);
