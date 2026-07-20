@@ -1342,14 +1342,17 @@ button:focus-visible {
   display: grid;
   gap: 12px;
   margin-bottom: 4px;
+  overflow: visible;
 }
 
 .page-header-unified-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  min-height: 42px;
+  gap: 12px;
+  width: 100%;
+  min-height: 40px;
+  overflow: visible;
 }
 
 .page-header-unified-copy {
@@ -1358,13 +1361,12 @@ button:focus-visible {
 }
 
 .page-header-unified-trailing {
-  display: inline-flex;
-  flex-shrink: 0;
+  display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
-  padding-top: 0;
+  flex-shrink: 0;
   overflow: visible;
+  margin-left: auto;
 }
 
 .page-header-unified-side {
@@ -2007,8 +2009,8 @@ button:focus-visible {
   --packages-bg: var(--color-page);
   --packages-panel: var(--color-window);
   --packages-panel-soft: var(--color-card);
-  --packages-border: var(--color-border);
-  --packages-border-soft: var(--color-border-soft);
+  --packages-border: var(--color-border-soft);
+  --packages-border-soft: rgba(255, 255, 255, 0.04);
   --packages-text: var(--color-text);
   --packages-muted: var(--color-text-muted);
   --packages-faint: var(--color-text-faint);
@@ -8975,54 +8977,65 @@ button:focus-visible {
   box-shadow: none;
 }
 
+.message-templates-page .bulk-sms-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-card);
+  background: var(--color-window);
+}
+
 .message-templates-page .bulk-sms-panel .settings-panel-heading {
-  gap: 10px;
+  gap: 12px;
   margin: 0;
 }
 
 .message-templates-page .bulk-sms-panel .settings-panel-heading svg {
-  color: var(--templates-muted);
+  color: var(--color-text-muted);
   background: transparent;
 }
 
 .message-templates-page .bulk-sms-panel .settings-panel-heading h2 {
-  color: var(--templates-text);
-  font-size: 14px;
+  color: var(--color-text);
+  font-size: 15px;
   font-weight: 700;
 }
 
 .message-templates-page .bulk-sms-panel .settings-panel-heading p {
+  color: var(--color-text-muted);
   font-size: 12px;
-}
-
-.message-templates-page .bulk-sms-panel .settings-panel-heading p,
-.message-templates-page .bulk-sms-panel label,
-.message-templates-page .bulk-sms-panel small,
-.message-templates-page .bulk-sms-panel span {
-  color: var(--templates-muted);
+  margin-top: 2px;
 }
 
 .message-templates-page .bulk-sms-panel .booksy-sync-status {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  min-height: 0;
-  padding: 9px 11px;
-  border: 1px solid var(--templates-border-soft);
-  border-radius: 12px;
-  background: var(--templates-panel-soft);
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+  background: var(--color-card);
 }
 
 .message-templates-page .bulk-sms-panel .booksy-sync-status strong {
-  color: var(--templates-text);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.message-templates-page .bulk-sms-panel .booksy-sync-status span,
+.message-templates-page .bulk-sms-panel .booksy-sync-status small {
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
 .message-templates-page .bulk-sms-panel .settings-options-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 12px;
+  gap: 14px 16px;
 }
 
 .theme-dark .message-templates-page .bulk-sms-panel .settings-options,

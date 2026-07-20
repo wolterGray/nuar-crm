@@ -11,18 +11,20 @@ export default function PageHeader({
   className,
 }) {
   return (
-    <header className={clsx("ui-page-header flex flex-col gap-4 pb-5 border-b border-border-soft mb-6 md:flex-row md:items-center md:justify-between md:min-h-[48px]", className)}>
-      <div className="flex-1 min-w-0">
-        <h1 className="m-0 text-text-main text-2xl font-bold tracking-tight flex items-center gap-2">
-          {title}
-          {description && <HintIcon>{description}</HintIcon>}
-        </h1>
+    <header className={clsx("ui-page-header flex flex-col gap-3 pb-4 border-b border-border-soft mb-6 w-full", className)}>
+      <div className="flex items-center justify-between gap-4 w-full min-h-[40px]">
+        <div className="flex-1 min-w-0">
+          <h1 className="m-0 text-text-main text-2xl font-bold tracking-tight flex items-center gap-2">
+            {title}
+            {description && <HintIcon>{description}</HintIcon>}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {headerActions}
+          {showNotifications && <PageNotificationsSlot />}
+        </div>
       </div>
-      <div className="flex items-center gap-3 shrink-0">
-        {headerActions}
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
-        {showNotifications && <PageNotificationsSlot />}
-      </div>
+      {actions && <div className="flex items-center justify-end gap-2 flex-wrap w-full mt-0.5">{actions}</div>}
     </header>
   );
 }

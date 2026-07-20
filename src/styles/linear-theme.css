@@ -85,8 +85,23 @@
 .theme-light .visits-table {
   color: var(--linear-text);
   background: var(--linear-panel);
-  border-color: var(--linear-border);
+  border-color: var(--linear-border-soft);
   box-shadow: var(--soft-shadow);
+}
+
+.theme-dark .panel,
+.theme-dark .catalog-card,
+.theme-dark .employee-card,
+.theme-dark .settings-panel,
+.theme-dark .package-card,
+.theme-dark .certificate-card,
+.theme-dark .packages-summary-card,
+.theme-dark .statistics-filters-card,
+.theme-dark .statistics-income-card,
+.theme-dark .statistics-panel,
+.theme-dark .statistics-card,
+.theme-dark .statistics-details-panel {
+  border-color: var(--linear-border-soft);
 }
 
 .theme-dark .settings-options,

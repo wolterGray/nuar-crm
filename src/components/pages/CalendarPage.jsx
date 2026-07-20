@@ -1049,8 +1049,8 @@ return (
           />
         )}
         {showRemindersPanel && (
-          <aside className="nuar-calendar-reminders min-h-0 overflow-y-auto flex flex-col gap-3">
-            <section className="nuar-calendar-picker" aria-label="Календарь месяца">
+          <aside className="nuar-calendar-reminders p-4 min-h-0 overflow-y-auto flex flex-col gap-3.5 border border-border-soft rounded-2xl bg-window">
+            <section className="nuar-calendar-picker p-3 border border-border-soft rounded-xl bg-card" aria-label="Календарь месяца">
               <header>
                 <IconButton
                   aria-label="Предыдущий месяц"
@@ -1145,20 +1145,20 @@ return (
                 ))}
               </div>
             </section>
-            <div className="nuar-calendar-reminders-header flex items-center justify-between">
-              <div>
-                <h2>Лента дня</h2>
-                <p>{toDisplayDate(selectedDate)}</p>
+            <div className="nuar-calendar-reminders-header flex items-center justify-between pt-3 border-t border-border-soft">
+              <div className="flex flex-col gap-0.5">
+                <h2 className="text-text-main text-base font-bold tracking-tight m-0">Лента дня</h2>
+                <p className="text-text-muted text-xs font-medium m-0">{toDisplayDate(selectedDate)}</p>
               </div>
               <IconButton
                 icon="chevronRight"
                 label="Скрыть ленту дня"
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={() => setRemindersVisible(false)}
               />
             </div>
-            <div className="nuar-calendar-reminder-stats flex flex-wrap">
+            <div className="nuar-calendar-reminder-stats flex flex-wrap gap-1.5 mt-2.5">
               <span>
                 <b>{visitEntries.length}</b> всего
               </span>
@@ -1169,7 +1169,7 @@ return (
                 <b>{completedVisitEntries.length}</b> окончено
               </span>
             </div>
-            <div className="nuar-calendar-reminder-filter flex">
+            <div className="nuar-calendar-reminder-filter flex gap-2 mt-2 pb-2 border-b border-border-soft">
               <Button
                 className={reminderFilter === "active" ? "is-active" : ""}
                 size="sm"

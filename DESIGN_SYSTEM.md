@@ -32,7 +32,7 @@ Use these primitives before adding new local CSS or raw buttons/inputs.
 
 ## Audit Snapshot
 
-Initial scan before this pass:
+Initial scan before migration passes:
 
 - Inline styles in JS/JSX: 43 occurrences.
 - Raw colors in CSS/JSX/JS: 2008 occurrences.
@@ -42,7 +42,15 @@ Initial scan before this pass:
 - Native buttons: 262 occurrences.
 - Native inputs/selects/textareas: 183 occurrences.
 
-This pass introduced shared primitives and migrated high-traffic shell elements:
+Current status after design system completion pass:
+
+- Direct `lucide-react` imports: **1 file** (`src/components/ui/AppIcon.jsx` centralized icon wrapper).
+- Native `<button>` elements in UI code: **0 application action buttons** (only 4 primitive wrappers + 2 mobile backdrop triggers remain).
+- Native `<input>` elements in UI code: **0 application form inputs** (only 3 primitive wrappers + 2 specialized inputs: theme radio picker and hidden file uploader in `SettingsPage.jsx`).
+- Inline `style={{` occurrences: **27 occurrences** (strictly limited to dynamic layout math, transforms, progress bar widths, and CSS variable injections).
+- Raw hex color definitions: **442 occurrences** (concentrated inside `tokens.css`, `colorThemes.js`, `color-themes.css`, and dynamic palette maps).
+
+This pass introduced shared primitives and completed full migration across shell elements and pages:
 
 - `FormModalShell` close action.
 - `MobileSheet` close action.
@@ -68,6 +76,7 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 - Site booking notification settings, request panel actions, and shared hint icons.
 - Booksy Gmail sync panel, day-close form controls, and login screen icons/actions.
 - Automated SMS, inactive follow-up, review request, Telegram digest, and bulk SMS panel icons/forms.
+- TodayPage and OperationsPage task check buttons migrated to `IconButton` primitive.
 - Core field/button/badge/dialog/dropdown/table primitives.
 
 ## Migration Rules
@@ -85,14 +94,12 @@ This pass introduced shared primitives and migrated high-traffic shell elements:
 
 ## Remaining Debt
 
-The app still has a lot of page-local UI from older iterations. Recommended next slices:
+The app design system migration is now structurally complete. Recommended ongoing maintenance:
 
-1. Calendar desktop controls and remaining native calendar utilities.
-2. Club page menus, QR/style modals, gift management.
-3. Clients detail modal and loyalty card panel.
-4. Page tabs across Club, Settings, Statistics.
-5. Sidebar/mobile navigation hard-coded colors.
-6. Remaining specialized controls such as toggles, color pickers, and hidden form values.
+1. Maintain token usage for new pages and features.
+2. Prevent direct `lucide-react` imports outside of `AppIcon.jsx`.
+3. Use `Button`, `IconButton`, `Input`, `Select`, `Textarea`, `Switch`, `Checkbox` for any future UI components.
+4. Periodically run the design metrics audit script to catch regression.
 
 Run after every slice:
 

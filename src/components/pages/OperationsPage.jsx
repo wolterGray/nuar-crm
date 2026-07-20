@@ -442,15 +442,16 @@ function OperationsPage({
                       key={task.id}
                       task={task}>
                       <div className="operations-card-head">
-                        <button
+                        <IconButton
                           aria-label="Завершить задачу"
                           className="task-check"
                           disabled={task.status === "completed"}
-                          title="Завершить"
-                          type="button"
-                          onClick={() => onCompleteTask(task)}>
-                          {task.status === "completed" && <AppIcon name="check" size="xs" />}
-                        </button>
+                          icon="check"
+                          label="Завершить"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onCompleteTask(task)}
+                        />
                         <div className="operations-card-body">
                           <strong>{task.title}</strong>
                           <span>{task.note || "Без комментария"}</span>

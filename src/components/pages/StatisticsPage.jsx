@@ -51,11 +51,11 @@ const currencyIcons = {
 };
 
 const statisticsChartTokens = {
-  cursor: "var(--statistics-chart-cursor)",
-  dot: "var(--statistics-chart-dot)",
-  grid: "var(--statistics-chart-grid)",
-  revenue: "var(--statistics-chart-revenue)",
-  tick: "var(--statistics-chart-tick)",
+  cursor: "rgba(56, 189, 248, 0.08)",
+  dot: "#ffffff",
+  grid: "rgba(255, 255, 255, 0.08)",
+  revenue: "#38bdf8",
+  tick: "#a3a6b3",
 };
 const paymentDisplay = [
   {color: "var(--color-chart-cash)", key: "cash", label: "Наличные"},

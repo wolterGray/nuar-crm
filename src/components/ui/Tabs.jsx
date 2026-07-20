@@ -26,8 +26,10 @@ export function TabButton({
     <button
       aria-selected={active}
       className={clsx(
-        "relative flex min-h-12 items-center justify-center gap-2 border-0 bg-transparent px-3 text-sm font-semibold text-textMuted transition-colors hover:text-textPrimary",
-        active && "text-textPrimary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary",
+        "relative flex min-h-11 items-center justify-center gap-2 border-0 bg-transparent px-3 text-sm font-semibold transition-all duration-150",
+        active
+          ? "text-text-main font-bold opacity-100 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-text-main"
+          : "text-text-muted opacity-60 hover:opacity-100",
         className,
       )}
       role="tab"

@@ -490,19 +490,12 @@ button {
     .settings-content,
     .today-content
   ),
-.content.clients-content,
-.content.payments-content,
-.content.services-content,
-.content.packages-content,
-.content.employees-content,
-.content.templates-content,
-.content.import-content,
-.content.statistics-content,
-.content.site-content,
-.content.settings-content,
-.content.today-content {
-  padding: 0 15px;
-  overflow: auto;
+.content.clients-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .content.operations-content,
@@ -634,7 +627,7 @@ h1 {
   flex-shrink: 0;
   align-self: center;
   margin-left: auto;
-  padding: 2px 6px 2px 2px;
+  overflow: visible;
 }
 
 .client-alert-control {

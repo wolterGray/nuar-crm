@@ -421,10 +421,13 @@ function TodayReferenceBoard({
                   key={task.id}
                   className="today-task-line"
                 >
-                  <button
+                  <IconButton
                     aria-label={`Завершить ${task.title}`}
-                    type="button"
                     className="today-check-button"
+                    icon="check"
+                    label={`Завершить ${task.title}`}
+                    size="sm"
+                    variant="ghost"
                     onClick={() => onCompleteTask?.(task)}
                   />
                   <strong>{task.title}</strong>
