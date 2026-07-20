@@ -672,7 +672,7 @@ function SettingsPage({
   );
 
   const saveBar = (
-    <div className="settings-save-bar sticky bottom-0 z-40 flex justify-end gap-3 p-4 border-t border-border bg-surface/90 backdrop-blur-md -mx-6 -mb-6 mt-6">
+    <div className="settings-save-bar flex-shrink-0 flex items-center justify-end gap-3 pt-4 pb-2 border-t border-border-soft bg-background mt-auto">
       <Button variant="secondary" onClick={resetSettings} className="flex items-center gap-2 cursor-pointer">
         <AppIcon name="rotateCcw" size="sm" />
         Сбросить
