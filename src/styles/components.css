@@ -3867,17 +3867,17 @@
 .nuar-calendar-grid i.is-hour,
 .schedule-quarter-lines i.is-hour,
 .schedule-quarter-lines i.hour {
-  border-top-width: 1px !important;
+  border-top-width: 2px !important;
   border-style: solid !important;
-  border-color: rgba(255, 255, 255, 0.28) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
   opacity: 1 !important;
 }
 
 .nuar-calendar-grid i.is-quarter,
 .schedule-quarter-lines i.is-quarter {
   border-top-width: 1px !important;
-  border-style: dotted !important;
-  border-color: rgba(255, 255, 255, 0.14) !important;
+  border-style: dashed !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
   opacity: 1 !important;
 }
 
