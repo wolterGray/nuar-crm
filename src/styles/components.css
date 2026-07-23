@@ -4617,9 +4617,10 @@
 
 .nuar-calendar-floating-today {
   position: fixed;
-  right: var(--mobile-page-x, 16px);
-  bottom: calc(var(--mobile-nav-total, 72px) + 10px);
-  left: auto;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  bottom: calc(var(--mobile-nav-total, 72px) + 12px) !important;
   z-index: 40;
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-dropdown);
