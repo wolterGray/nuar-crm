@@ -737,11 +737,11 @@ return (
                 }`}
                 style={{
                   gridTemplateColumns: isMobile
-                    ? `var(--calendar-time-axis-width, 32px) repeat(${calendarMasters.length}, minmax(0, 1fr))`
-                    : `46px repeat(${calendarMasters.length}, minmax(190px, 1fr))`,
+                    ? `var(--calendar-time-axis-width, 26px) repeat(${calendarMasters.length}, minmax(0, 1fr))`
+                    : `34px repeat(${calendarMasters.length}, minmax(190px, 1fr))`,
                   width: "100%",
                   "--master-count": calendarMasters.length,
-                  "--calendar-time-axis-width": isMobile ? "32px" : "46px",
+                  "--calendar-time-axis-width": isMobile ? "26px" : "34px",
                   "--mobile-master-width": "minmax(0, 1fr)",
                   "--schedule-height": `${gridHeight}px`,
                   "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,
