@@ -34,6 +34,7 @@ import PageHeader from "../PageHeader.jsx";
 import AppIcon from "../ui/AppIcon.jsx";
 import {Button, Checkbox, IconButton, Input, Select, TabButton, Tabs, Textarea} from "../ui/index.js";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 
 const getCardProgress = (card) =>
   Math.min(100, Math.round(((card?.stamps ?? 0) / Math.max(1, card?.targetStamps ?? 6)) * 100));
@@ -258,6 +259,11 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [rewardTemplateSaving, setRewardTemplateSaving] = useState(false);
   const [editingRewardTemplateId, setEditingRewardTemplateId] = useState(null);
   const [rewardTemplateForm, setRewardTemplateForm] = useState(emptyRewardTemplateForm);
+  const {isMobile} = useBreakpoint();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [expandedTierId, setExpandedTierId] = useState(null);
+  const [isTemplateFormOpen, setIsTemplateFormOpen] = useState(false);
+
   const selectedCard = useMemo(
     () => cards.find((card) => card.id === selectedCardId) ?? cards[0] ?? null,
     [cards, selectedCardId],
@@ -754,28 +760,59 @@ export default function ClubPage({clients = [], pushNotification}) {
 
       {activeTab === "cards" ? (
         <>
-          <div className="club-create-panel">
-            <div>
-              <strong>Новая карта</strong>
-              <span>Выберите клиента без карты и создайте персональную ссылку.</span>
-            </div>
-            <Select value={newClientId} onChange={(event) => setNewClientId(event.target.value)}>
-              <option value="">Клиент</option>
-              {clientsWithoutCards.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.name || client.phone || `Клиент ${client.id}`}
-                </option>
-              ))}
-            </Select>
-            <Select value={newCardLanguage} onChange={(event) => setNewCardLanguage(event.target.value)}>
-              {cardLanguageOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </Select>
-            <Button disabled={!newClientId || loading} leftIcon="gift" type="button" variant="primary" onClick={handleCreate}>
-              Создать карту
+          {isMobile ? (
+            <Button
+              className="club-mobile-create-toggle"
+              type="button"
+              variant="secondary"
+              onClick={() => setIsCreateOpen(!isCreateOpen)}
+              style={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                border: "1px dashed var(--club-border)",
+                background: "color-mix(in srgb, var(--club-accent) 6%, transparent)",
+                color: "var(--club-accent)",
+                fontWeight: "600",
+                fontSize: "14px",
+                marginBottom: "10px"
+              }}
+            >
+              <span className="flex items-center gap-2">
+                <AppIcon name="plus" size="sm" />
+                Новая карта лояльности
+              </span>
+              <AppIcon name={isCreateOpen ? "chevronUp" : "chevronDown"} size="sm" />
             </Button>
-          </div>
+          ) : null}
+
+          {(!isMobile || isCreateOpen) ? (
+            <div className={`club-create-panel ${isMobile ? "is-mobile-collapsed" : ""}`}>
+              <div>
+                <strong>Новая карта</strong>
+                <span>Выберите клиента без карты и создайте персональную ссылку.</span>
+              </div>
+              <Select value={newClientId} onChange={(event) => setNewClientId(event.target.value)}>
+                <option value="">Клиент</option>
+                {clientsWithoutCards.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.name || client.phone || `Клиент ${client.id}`}
+                  </option>
+                ))}
+              </Select>
+              <Select value={newCardLanguage} onChange={(event) => setNewCardLanguage(event.target.value)}>
+                {cardLanguageOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </Select>
+              <Button disabled={!newClientId || loading} leftIcon="gift" type="button" variant="primary" onClick={handleCreate}>
+                Создать карту
+              </Button>
+            </div>
+          ) : null}
 
           <div className="club-toolbar">
             <label className="club-search">
@@ -810,6 +847,75 @@ export default function ClubPage({clients = [], pushNotification}) {
               const [nextCaption, nextValue] = tierInfo.next.includes(" осталось ")
                 ? tierInfo.next.split(" осталось ")
                 : [tierInfo.next, ""];
+              const isExpanded = expandedTierId === tier.id;
+
+              if (isMobile) {
+                return (
+                  <article
+                    className={`club-physical-tier-accordion ${isExpanded ? "is-expanded" : ""}`}
+                    key={tier.id}
+                  >
+                    <button
+                      className="club-physical-tier-accordion-header"
+                      type="button"
+                      style={{
+                        display: "flex",
+                        width: "100%",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 14px",
+                        background: "var(--club-panel)",
+                        border: "1px solid var(--club-border)",
+                        borderRadius: "10px",
+                        cursor: "pointer",
+                        gap: "10px",
+                        textAlign: "left"
+                      }}
+                      onClick={() => setExpandedTierId(isExpanded ? null : tier.id)}
+                    >
+                      <span className={`club-tier-badge is-${tier.id}`}>{tier.badge}</span>
+                      <span className="club-physical-tier-threshold-summary" style={{ flex: 1, fontSize: "13px", color: "var(--club-text)", fontWeight: "500" }}>{tier.threshold}</span>
+                      <AppIcon name={isExpanded ? "chevronUp" : "chevronDown"} size="sm" />
+                    </button>
+
+                    {isExpanded && (
+                      <div className="club-physical-tier-accordion-body" style={{
+                        padding: "12px",
+                        background: "color-mix(in srgb, var(--club-panel) 35%, transparent)",
+                        border: "1px solid var(--club-border)",
+                        borderTop: 0,
+                        borderBottomLeftRadius: "10px",
+                        borderBottomRightRadius: "10px",
+                        marginTop: "-4px",
+                        display: "grid",
+                        gap: "12px"
+                      }}>
+                        <div className="club-physical-card-preview-wrapper" style={{ cursor: "pointer" }} onClick={() => setPreviewTierId(tier.id)}>
+                          <LoyaltyCard
+                            card={{
+                              ...designPreviewCard,
+                              lifetimeVisits: tier.minVisits,
+                            }}
+                            tier={tier}
+                          />
+                        </div>
+                        <ul className="club-physical-benefits">
+                          {tier.benefits?.map((benefit) => (
+                            <li key={benefit}>
+                              <AppIcon name="gift" size="sm" />
+                              <span>{benefit}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="club-physical-next">
+                          {tier.description ? <em>{tier.description}</em> : <small>{nextCaption}</small>}
+                          <strong>{nextValue || tierInfo.next}</strong>
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                );
+              }
 
               return (
                 <article
@@ -860,74 +966,106 @@ export default function ClubPage({clients = [], pushNotification}) {
             <span>Подарки NUAR Club</span>
             <strong>Шаблоны выпадения из сундуков</strong>
           </div>
-          <form className="club-reward-template-form" onSubmit={handleRewardTemplateSubmit}>
-            <Select
-              aria-label="Уровень карты"
-              disabled={rewardTemplateSaving}
-              value={rewardTemplateForm.tier}
-              onChange={(event) => updateRewardTemplateField("tier", event.target.value)}
+
+          {isMobile ? (
+            <Button
+              className="club-mobile-template-toggle"
+              type="button"
+              variant="secondary"
+              onClick={() => setIsTemplateFormOpen(!isTemplateFormOpen)}
+              style={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                border: "1px dashed var(--club-border)",
+                background: "color-mix(in srgb, var(--club-accent) 6%, transparent)",
+                color: "var(--club-accent)",
+                fontWeight: "600",
+                fontSize: "14px",
+                marginBottom: "14px"
+              }}
             >
-              {physicalCardTiers.map((tier) => (
-                <option key={tier.id} value={tier.id}>{tier.badge}</option>
-              ))}
-            </Select>
-            <Input
-              placeholder="Название подарка"
-              disabled={rewardTemplateSaving}
-              value={rewardTemplateForm.name}
-              onChange={(event) => updateRewardTemplateField("name", event.target.value)}
-            />
-            <Input
-              placeholder="Описание"
-              disabled={rewardTemplateSaving}
-              value={rewardTemplateForm.description}
-              onChange={(event) => updateRewardTemplateField("description", event.target.value)}
-            />
-            <Input
-              aria-label="Вес выпадения"
-              min="1"
-              placeholder="Вес"
-              step="1"
-              type="number"
-              disabled={rewardTemplateSaving}
-              value={rewardTemplateForm.weight}
-              onChange={(event) => updateRewardTemplateField("weight", event.target.value)}
-            />
-            <Input
-              aria-label="Срок действия в днях"
-              min="0"
-              placeholder="Дней"
-              step="1"
-              type="number"
-              disabled={rewardTemplateSaving}
-              value={rewardTemplateForm.expiresAfterDays}
-              onChange={(event) => updateRewardTemplateField("expiresAfterDays", event.target.value)}
-            />
-            <label>
-              <Checkbox
-                checked={rewardTemplateForm.requiresOwnerApproval}
-                disabled={rewardTemplateSaving}
-                onChange={(event) => updateRewardTemplateField("requiresOwnerApproval", event.target.checked)}
-              />
-              Владелец
-            </label>
-            <label>
-              <Checkbox
-                checked={rewardTemplateForm.active}
-                disabled={rewardTemplateSaving}
-                onChange={(event) => updateRewardTemplateField("active", event.target.checked)}
-              />
-              Активен
-            </label>
-            <Button disabled={rewardTemplateSaving} type="submit" variant="primary">
-              {rewardTemplateSaving ? "Сохраняю..." : editingRewardTemplateId ? "Сохранить" : "Добавить"}
+              <span className="flex items-center gap-2">
+                <AppIcon name="plus" size="sm" />
+                {editingRewardTemplateId ? "Редактировать шаблон" : "Создать шаблон подарка"}
+              </span>
+              <AppIcon name={isTemplateFormOpen ? "chevronUp" : "chevronDown"} size="sm" />
             </Button>
-            {editingRewardTemplateId ? (
-              <Button disabled={rewardTemplateSaving} type="button" variant="secondary" onClick={resetRewardTemplateForm}>
-                Отмена
+          ) : null}
+
+          {(!isMobile || isTemplateFormOpen || editingRewardTemplateId) ? (
+            <form className={`club-reward-template-form ${isMobile ? "is-mobile-collapsed" : ""}`} onSubmit={handleRewardTemplateSubmit}>
+              <Select
+                aria-label="Уровень карты"
+                disabled={rewardTemplateSaving}
+                value={rewardTemplateForm.tier}
+                onChange={(event) => updateRewardTemplateField("tier", event.target.value)}
+              >
+                {physicalCardTiers.map((tier) => (
+                  <option key={tier.id} value={tier.id}>{tier.badge}</option>
+                ))}
+              </Select>
+              <Input
+                placeholder="Название подарка"
+                disabled={rewardTemplateSaving}
+                value={rewardTemplateForm.name}
+                onChange={(event) => updateRewardTemplateField("name", event.target.value)}
+              />
+              <Input
+                placeholder="Описание"
+                disabled={rewardTemplateSaving}
+                value={rewardTemplateForm.description}
+                onChange={(event) => updateRewardTemplateField("description", event.target.value)}
+              />
+              <Input
+                aria-label="Вес выпадения"
+                min="1"
+                placeholder="Вес"
+                step="1"
+                type="number"
+                disabled={rewardTemplateSaving}
+                value={rewardTemplateForm.weight}
+                onChange={(event) => updateRewardTemplateField("weight", event.target.value)}
+              />
+              <Input
+                aria-label="Срок действия в днях"
+                min="0"
+                placeholder="Дней"
+                step="1"
+                type="number"
+                disabled={rewardTemplateSaving}
+                value={rewardTemplateForm.expiresAfterDays}
+                onChange={(event) => updateRewardTemplateField("expiresAfterDays", event.target.value)}
+              />
+              <label>
+                <Checkbox
+                  checked={rewardTemplateForm.requiresOwnerApproval}
+                  disabled={rewardTemplateSaving}
+                  onChange={(event) => updateRewardTemplateField("requiresOwnerApproval", event.target.checked)}
+                />
+                Владелец
+              </label>
+              <label>
+                <Checkbox
+                  checked={rewardTemplateForm.active}
+                  disabled={rewardTemplateSaving}
+                  onChange={(event) => updateRewardTemplateField("active", event.target.checked)}
+                />
+                Активен
+              </label>
+              <Button disabled={rewardTemplateSaving} type="submit" variant="primary">
+                {rewardTemplateSaving ? "Сохраняю..." : editingRewardTemplateId ? "Сохранить" : "Добавить"}
               </Button>
-            ) : null}
-          </form>
+              {editingRewardTemplateId ? (
+                <Button disabled={rewardTemplateSaving} type="button" variant="secondary" onClick={resetRewardTemplateForm}>
+                  Отмена
+                </Button>
+              ) : null}
+            </form>
+          ) : null}
 
           <div className="club-reward-template-list">
             {rewardTemplates.map((template) => {
@@ -1032,9 +1170,9 @@ export default function ClubPage({clients = [], pushNotification}) {
 
       {error ? <p className="club-error">{error}</p> : null}
 
-      {activeTab === "cards" ? <div className={`club-layout ${selectedCard ? "has-selected-card" : ""}`}>
+      {activeTab === "cards" ? <div className={`club-layout ${selectedCard ? "has-selected-card" : ""} ${isMobile ? "is-mobile" : ""}`}>
         <div className="club-list">
-          {cards.length ? (
+          {!isMobile && cards.length ? (
             <div className="club-card-table-head">
               <span>Клиент</span>
               <span>Статус</span>
@@ -1054,6 +1192,121 @@ export default function ClubPage({clients = [], pushNotification}) {
             const openedGifts =
               (Number(card.rewardCounts?.available) || 0) +
               (Number(card.rewardCounts?.redeemed) || Number(card.rewardCounts?.used) || 0);
+
+            if (isMobile) {
+              return (
+                <article
+                  className={`club-mobile-card ${selectedCard?.id === card.id ? "is-selected" : ""}`}
+                  key={card.id}
+                  onClick={() => setSelectedCardId(card.id)}
+                >
+                  <div className="club-mobile-card-header">
+                    <span className="club-mobile-card-avatar">{getClientInitials(card.client)}</span>
+                    <div className="club-mobile-card-info">
+                      <strong>{card.client?.name || "Клиент"}</strong>
+                      <small>{card.client?.phone || card.client?.smsName || "Без телефона"}</small>
+                    </div>
+                    <div className="club-mobile-card-actions-wrapper">
+                      <ClubCardMenu
+                        card={card}
+                        isOpen={openCardMenuId === card.id}
+                        onCopy={() => handleCopy(card)}
+                        onDelete={() => handleDeleteCard(card)}
+                        onManualAdjust={() => openManualAdjustment(card)}
+                        onOpenQr={() => {
+                          setVisibleQrCardId((current) => (current === card.id ? null : card.id));
+                          setSelectedCardId(card.id);
+                        }}
+                        onRedeem={() => handleRedeem(card)}
+                        onReissue={() => handleReissue(card)}
+                        onStatus={() => handleStatus(card)}
+                        publicUrl={publicUrl}
+                        setOpenMenuId={setOpenCardMenuId}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Stamp progress dots */}
+                  <div className="club-mobile-card-stamps">
+                    <div className="club-mobile-card-stamps-dots">
+                      {Array.from({ length: card.targetStamps || 6 }).map((_, i) => (
+                        <span
+                          key={i}
+                          className={`club-mobile-card-stamp-dot ${i < card.stamps ? `is-filled is-${tier.id}` : ""}`}
+                        />
+                      ))}
+                    </div>
+                    <strong className="club-mobile-card-stamps-text">
+                      {card.stamps}/{card.targetStamps}
+                    </strong>
+                  </div>
+
+                  {/* Meta badges & details */}
+                  <div className="club-mobile-card-meta">
+                    <span className={`club-tier-badge is-${tier.id}`}>{tier.badge}</span>
+                    <span className={card.isActive ? "status-active" : "status-archived"}>
+                      {card.isActive ? "Активна" : "Архив"}
+                    </span>
+                    
+                    <div className="club-mobile-card-meta-right">
+                      {unopenedGifts > 0 && (
+                        <span className="club-mobile-gift-badge is-unopened">
+                          <AppIcon name="gift" size="xs" /> {unopenedGifts}
+                        </span>
+                      )}
+                      {openedGifts > 0 && (
+                        <span className="club-mobile-gift-badge is-opened">
+                          <AppIcon name="gift" size="xs" /> {openedGifts}
+                        </span>
+                      )}
+                      <div className="club-mobile-card-lang" onClick={(e) => e.stopPropagation()}>
+                        <select
+                          aria-label="Язык карты"
+                          value={getCardLanguage(card)}
+                          onChange={(event) => handleLanguageChange(card, event.target.value)}
+                        >
+                          {cardLanguageOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.value.toUpperCase()}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Direct action buttons for fast mobile workflows */}
+                  <div className="club-mobile-card-buttons">
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      type="button"
+                      leftIcon="edit"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openManualAdjustment(card);
+                      }}
+                    >
+                      Операция
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      type="button"
+                      leftIcon="qr"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setVisibleQrCardId(visibleQrCardId === card.id ? null : card.id);
+                        setSelectedCardId(card.id);
+                      }}
+                    >
+                      QR-код
+                    </Button>
+                  </div>
+                </article>
+              );
+            }
+
             return (
               <article
                 className={`club-card ${selectedCard?.id === card.id ? "is-selected" : ""}`}
