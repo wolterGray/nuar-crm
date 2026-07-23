@@ -360,6 +360,11 @@
     max-height: calc(100dvh - 20px) !important;
   }
 
+  /* Prevent notification bell badge clipping at right screen edge */
+  :is(.page-header-unified-trailing, .client-alert-control) {
+    margin-right: 8px !important;
+    overflow: visible !important;
+  }
 }
 
 @media (min-width: 769px) {
