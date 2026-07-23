@@ -365,6 +365,16 @@
     margin-right: 8px !important;
     overflow: visible !important;
   }
+
+  /* Prevent search inputs and action buttons from sticking together on mobile */
+  :is(.services-page-toolbar, .payments-mobile-scroll-panel, .employees-page-toolbar-mobile, .packages-page-toolbar-mobile, .clients-page-toolbar) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 12px 0 !important;
+  }
 }
 
 @media (min-width: 769px) {
