@@ -3861,55 +3861,55 @@
 }
 
 .nuar-calendar-grid i {
-  border-top-width: 1px;
+  border-top-width: 1px !important;
 }
 
 .nuar-calendar-grid i.is-hour,
 .schedule-quarter-lines i.is-hour,
 .schedule-quarter-lines i.hour {
-  border-top-width: 1.5px !important;
+  border-top-width: 1px !important;
   border-style: solid !important;
-  border-color: color-mix(in srgb, var(--color-border) 85%, #ffffff) !important;
-  opacity: 0.9 !important;
+  border-color: var(--calendar-border, var(--color-border)) !important;
+  opacity: 0.75 !important;
 }
 
 .nuar-calendar-grid i.is-quarter,
 .schedule-quarter-lines i.is-quarter {
   border-top-width: 1px !important;
-  border-style: dashed !important;
-  border-color: color-mix(in srgb, var(--color-border-soft) 30%, transparent) !important;
-  opacity: 0.4 !important;
+  border-style: dotted !important;
+  border-color: color-mix(in srgb, var(--color-border-soft) 40%, transparent) !important;
+  opacity: 0.35 !important;
 }
 
 .nuar-calendar-time-axis {
   color: var(--color-text-faint);
-  background: color-mix(in srgb, var(--color-page) 95%, transparent);
+  background: transparent;
 }
 
 .nuar-calendar-time-axis strong {
   position: absolute;
   top: 0;
-  right: 4px;
+  right: 5px;
   display: block;
   color: var(--color-text-muted);
-  font-size: 9.5px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 500;
   line-height: 1;
-  letter-spacing: -0.02em;
-  transform: translateY(-50%);
+  letter-spacing: -0.01em;
+  transform: translateY(-90%);
   white-space: nowrap;
 }
 
 .nuar-calendar-minute-label {
   position: absolute;
-  right: 4px;
+  right: 5px;
   display: block;
   color: var(--color-text-faint);
-  font-size: 8px;
-  font-weight: 500;
+  font-size: 8.5px;
+  font-weight: 400;
   line-height: 1;
-  opacity: 0.7;
-  transform: translateY(-50%);
+  opacity: 0.6;
+  transform: translateY(-90%);
   white-space: nowrap;
 }
 
@@ -5762,9 +5762,9 @@
     padding: 0 !important;
     text-align: right !important;
     font-size: 8px !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     color: var(--color-text-muted) !important;
-    transform: translateY(-50%) !important;
+    transform: translateY(-90%) !important;
     letter-spacing: -0.01em !important;
   }
 
@@ -5774,9 +5774,9 @@
     right: 2px !important;
     font-size: 7px !important;
     color: var(--color-text-faint) !important;
-    opacity: 0.65 !important;
-    transform: translateY(-50%) !important;
-    font-weight: 500 !important;
+    opacity: 0.6 !important;
+    transform: translateY(-90%) !important;
+    font-weight: 400 !important;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-master-header {
