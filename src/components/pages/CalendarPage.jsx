@@ -755,18 +755,15 @@ return (
                   <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
                     {Array.from(
                       {length: (endHour - startHour) * 4},
-                      (_, index) => {
-                        const isHourLine = (visualStartMinutes + index * gridSlotMinutes) % 60 === 0;
-                        return (
-                          <i
-                            className={`absolute right-0 left-0 border-t ${
-                              isHourLine ? "is-hour hour" : "is-quarter"
-                            }`}
-                            key={index}
-                            style={{top: index * slotHeight + 48}}
-                          />
-                        );
-                      },
+                      (_, index) => (
+                        <i
+                          className={`absolute right-0 left-0 border-t ${
+                            index % 4 === 0 ? "is-hour hour" : "is-quarter"
+                          }`}
+                          key={index}
+                          style={{top: index * slotHeight + 48}}
+                        />
+                      ),
                     )}
                   </div>
                   {Array.from({length: endHour - startHour}, (_, index) => (
@@ -862,18 +859,15 @@ return (
                       <div className="schedule-quarter-lines absolute inset-0 z-3 pointer-events-none" aria-hidden="true">
                         {Array.from(
                           {length: (minutesInDay / gridSlotMinutes)},
-                          (_, index) => {
-                            const isHourLine = (visualStartMinutes + index * gridSlotMinutes) % 60 === 0;
-                            return (
-                              <i
-                                className={`absolute right-0 left-0 border-t ${
-                                  isHourLine ? "is-hour hour" : "is-quarter"
-                                }`}
-                                key={index}
-                                style={{top: index * slotHeight}}
-                              />
-                            );
-                          },
+                          (_, index) => (
+                            <i
+                              className={`absolute right-0 left-0 border-t ${
+                                index % 4 === 0 ? "is-hour hour" : "is-quarter"
+                              }`}
+                              key={index}
+                              style={{top: index * slotHeight}}
+                            />
+                          ),
                         )}
                       </div>
                       {layoutOverlappingEntries(
