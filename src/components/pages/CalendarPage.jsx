@@ -751,6 +751,20 @@ return (
                   className="nuar-calendar-time-axis sticky left-0 z-10 pt-12"
                   style={{ height: `${gridHeight + 48}px` }}
                 >
+                  <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+                    {Array.from(
+                      {length: (endHour - startHour) * (60 / slotMinutes)},
+                      (_, index) => (
+                        <i
+                          className={`absolute right-0 left-0 border-t ${
+                            index % (60 / slotMinutes) === 0 ? "is-hour" : "is-quarter"
+                          }`}
+                          key={index}
+                          style={{top: index * slotHeight + 48}}
+                        />
+                      ),
+                    )}
+                  </div>
                   {Array.from({length: endHour - startHour}, (_, index) => (
                     <div className="relative" style={{ height: `${(60 / slotMinutes) * slotHeight}px` }} key={index}>
                       <strong>
