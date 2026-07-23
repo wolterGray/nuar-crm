@@ -562,9 +562,23 @@ return (
                 variant="outline"
                 onClick={() => selectCalendarDate(shiftDate(selectedDate, -1))}
               />
-              <span className="nuar-calendar-date-display">
-                {toDisplayDate(selectedDate)}
-              </span>
+              <div className="relative nuar-calendar-date-picker-wrapper">
+                <span className="nuar-calendar-date-display cursor-pointer hover:opacity-85 transition-opacity">
+                  {toDisplayDate(selectedDate)}
+                </span>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      selectCalendarDate(e.target.value);
+                    }
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  style={{ colorScheme: "dark" }}
+                  aria-label="Выбрать дату в календаре"
+                />
+              </div>
               <IconButton
                 className="nuar-calendar-nav-button"
                 icon="chevronRight"
