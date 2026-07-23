@@ -5064,7 +5064,6 @@ button:focus-visible {
   font-size: 17px;
 }
 
-.club-adjust-modal button,
 .club-adjust-field input,
 .club-adjust-field textarea,
 .club-adjust-field select {
@@ -5101,12 +5100,16 @@ button:focus-visible {
 
 .club-adjust-close {
   display: inline-grid;
-  width: 34px;
-  min-width: 34px;
-  padding: 0;
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
   place-items: center;
   color: var(--club-muted);
-  background: transparent;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 .club-adjust-close:hover,
