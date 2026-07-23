@@ -1110,11 +1110,14 @@
 }
 
 .theme-dark .schedule-quarter-lines i {
-  border-top-color: rgba(255, 255, 255, 0.055);
+  border-top-color: rgba(255, 255, 255, 0.14);
+  border-style: dotted;
 }
 
-.theme-dark .schedule-quarter-lines i.hour {
-  border-top-color: rgba(255, 255, 255, 0.13);
+.theme-dark .schedule-quarter-lines i.hour,
+.theme-dark .schedule-quarter-lines i.is-hour {
+  border-top-color: rgba(255, 255, 255, 0.28);
+  border-style: solid;
 }
 
 .theme-dark .schedule-off-hours {
@@ -1352,11 +1355,14 @@
 }
 
 .theme-dark .schedule-quarter-lines i {
-  border-top-color: rgba(255, 255, 255, 0.055);
+  border-top-color: rgba(255, 255, 255, 0.14);
+  border-style: dotted;
 }
 
-.theme-dark .schedule-quarter-lines i.hour {
-  border-top-color: rgba(255, 255, 255, 0.13);
+.theme-dark .schedule-quarter-lines i.hour,
+.theme-dark .schedule-quarter-lines i.is-hour {
+  border-top-color: rgba(255, 255, 255, 0.28);
+  border-style: solid;
 }
 
 .theme-dark .schedule-off-hours {

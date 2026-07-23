@@ -3869,16 +3869,16 @@
 .schedule-quarter-lines i.hour {
   border-top-width: 1px !important;
   border-style: solid !important;
-  border-color: var(--calendar-border, var(--color-border)) !important;
-  opacity: 0.75 !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  opacity: 1 !important;
 }
 
 .nuar-calendar-grid i.is-quarter,
 .schedule-quarter-lines i.is-quarter {
   border-top-width: 1px !important;
   border-style: dotted !important;
-  border-color: color-mix(in srgb, var(--color-border-soft) 40%, transparent) !important;
-  opacity: 0.35 !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  opacity: 1 !important;
 }
 
 .nuar-calendar-time-axis {
