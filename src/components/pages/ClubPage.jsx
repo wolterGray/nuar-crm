@@ -1501,10 +1501,10 @@ export default function ClubPage({clients = [], pushNotification}) {
             <div className="club-adjust-tabs" style={{
               display: "flex",
               gap: "4px",
-              background: "rgba(255, 255, 255, 0.05)",
+              background: "var(--color-bg, #050607)",
               padding: "4px",
               borderRadius: "10px",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
+              border: "1px solid var(--color-border, #22262D)",
               marginBottom: "16px"
             }}>
               <button
@@ -1516,9 +1516,9 @@ export default function ClubPage({clients = [], pushNotification}) {
                   borderRadius: "8px",
                   fontSize: "13px",
                   fontWeight: "600",
-                  background: adjustTab === "stamps" ? "var(--club-accent)" : "transparent",
-                  color: adjustTab === "stamps" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
-                  border: 0,
+                  background: adjustTab === "stamps" ? "var(--color-secondary-bg, #15171A)" : "transparent",
+                  color: adjustTab === "stamps" ? "var(--color-primary, #fff)" : "var(--color-secondary-text, #A7AFBD)",
+                  border: adjustTab === "stamps" ? "1px solid var(--color-secondary-border, #272B31)" : "1px solid transparent",
                   cursor: "pointer",
                   textAlign: "center",
                   transition: "all 0.2s ease"
@@ -1536,9 +1536,9 @@ export default function ClubPage({clients = [], pushNotification}) {
                   borderRadius: "8px",
                   fontSize: "13px",
                   fontWeight: "600",
-                  background: adjustTab === "gifts" ? "var(--club-accent)" : "transparent",
-                  color: adjustTab === "gifts" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
-                  border: 0,
+                  background: adjustTab === "gifts" ? "var(--color-secondary-bg, #15171A)" : "transparent",
+                  color: adjustTab === "gifts" ? "var(--color-primary, #fff)" : "var(--color-secondary-text, #A7AFBD)",
+                  border: adjustTab === "gifts" ? "1px solid var(--color-secondary-border, #272B31)" : "1px solid transparent",
                   cursor: "pointer",
                   textAlign: "center",
                   transition: "all 0.2s ease"
@@ -1554,10 +1554,10 @@ export default function ClubPage({clients = [], pushNotification}) {
                 <div className="club-adjust-tabs" style={{
                   display: "flex",
                   gap: "4px",
-                  background: "rgba(255, 255, 255, 0.05)",
+                  background: "var(--color-bg, #050607)",
                   padding: "4px",
                   borderRadius: "10px",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  border: "1px solid var(--color-border, #22262D)",
                   marginBottom: "16px"
                 }}>
                   <button
@@ -1569,9 +1569,9 @@ export default function ClubPage({clients = [], pushNotification}) {
                       borderRadius: "8px",
                       fontSize: "13px",
                       fontWeight: "600",
-                      background: manualAdjustmentMode === "earn" ? "var(--club-accent)" : "transparent",
-                      color: manualAdjustmentMode === "earn" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
-                      border: 0,
+                      background: manualAdjustmentMode === "earn" ? "var(--color-secondary-bg, #15171A)" : "transparent",
+                      color: manualAdjustmentMode === "earn" ? "var(--color-primary, #fff)" : "var(--color-secondary-text, #A7AFBD)",
+                      border: manualAdjustmentMode === "earn" ? "1px solid var(--color-secondary-border, #272B31)" : "1px solid transparent",
                       cursor: "pointer",
                       textAlign: "center",
                       transition: "all 0.2s ease"
@@ -1590,9 +1590,9 @@ export default function ClubPage({clients = [], pushNotification}) {
                       borderRadius: "8px",
                       fontSize: "13px",
                       fontWeight: "600",
-                      background: manualAdjustmentMode === "writeoff" ? "var(--club-accent)" : "transparent",
-                      color: manualAdjustmentMode === "writeoff" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
-                      border: 0,
+                      background: manualAdjustmentMode === "writeoff" ? "var(--color-secondary-bg, #15171A)" : "transparent",
+                      color: manualAdjustmentMode === "writeoff" ? "var(--color-primary, #fff)" : "var(--color-secondary-text, #A7AFBD)",
+                      border: manualAdjustmentMode === "writeoff" ? "1px solid var(--color-secondary-border, #272B31)" : "1px solid transparent",
                       cursor: "pointer",
                       textAlign: "center",
                       transition: "all 0.2s ease"
@@ -1630,10 +1630,10 @@ export default function ClubPage({clients = [], pushNotification}) {
                 <div className="club-adjust-tabs" style={{
                   display: "flex",
                   gap: "4px",
-                  background: "rgba(255, 255, 255, 0.05)",
+                  background: "var(--color-bg, #050607)",
                   padding: "4px",
                   borderRadius: "10px",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  border: "1px solid var(--color-border, #22262D)",
                   marginBottom: "16px"
                 }}>
                   <button
@@ -1645,9 +1645,9 @@ export default function ClubPage({clients = [], pushNotification}) {
                       borderRadius: "8px",
                       fontSize: "13px",
                       fontWeight: "600",
-                      background: giftMode === "earn" ? "var(--club-accent)" : "transparent",
-                      color: giftMode === "earn" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
-                      border: 0,
+                      background: giftMode === "earn" ? "var(--color-secondary-bg, #15171A)" : "transparent",
+                      color: giftMode === "earn" ? "var(--color-primary, #fff)" : "var(--color-secondary-text, #A7AFBD)",
+                      border: giftMode === "earn" ? "1px solid var(--color-secondary-border, #272B31)" : "1px solid transparent",
                       cursor: "pointer",
                       textAlign: "center",
                       transition: "all 0.2s ease"
@@ -1666,9 +1666,9 @@ export default function ClubPage({clients = [], pushNotification}) {
                       borderRadius: "8px",
                       fontSize: "13px",
                       fontWeight: "600",
-                      background: giftMode === "writeoff" ? "var(--club-accent)" : "transparent",
-                      color: giftMode === "writeoff" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
-                      border: 0,
+                      background: giftMode === "writeoff" ? "var(--color-secondary-bg, #15171A)" : "transparent",
+                      color: giftMode === "writeoff" ? "var(--color-primary, #fff)" : "var(--color-secondary-text, #A7AFBD)",
+                      border: giftMode === "writeoff" ? "1px solid var(--color-secondary-border, #272B31)" : "1px solid transparent",
                       cursor: "pointer",
                       textAlign: "center",
                       transition: "all 0.2s ease"
