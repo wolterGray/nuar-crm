@@ -5772,7 +5772,11 @@ button:focus-visible {
     width: fit-content;
   }
 
-  .club-stats-overview,
+  .club-stats-overview {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
   .club-stats-grid {
     grid-template-columns: 1fr;
   }
@@ -5784,13 +5788,12 @@ button:focus-visible {
   }
 
   .club-stats-list-row.is-client {
-    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-columns: 32px minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: center;
   }
 
-  .club-stats-list-row.is-client .club-tier-badge,
-  .club-stats-list-row.is-client b {
-    justify-self: start;
-  }
+
 
   .club-list {
     max-height: none;

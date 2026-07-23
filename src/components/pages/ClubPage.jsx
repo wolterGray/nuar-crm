@@ -782,8 +782,8 @@ export default function ClubPage({clients = [], pushNotification}) {
               }}
             >
               <span className="flex items-center gap-2">
-                <AppIcon name="plus" size="sm" />
-                Новая карта лояльности
+                <AppIcon name={isCreateOpen ? "minus" : "plus"} size="sm" />
+                {isCreateOpen ? "Свернуть форму" : "Новая карта лояльности"}
               </span>
               <AppIcon name={isCreateOpen ? "chevronUp" : "chevronDown"} size="sm" />
             </Button>
@@ -808,7 +808,21 @@ export default function ClubPage({clients = [], pushNotification}) {
                   <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </Select>
-              <Button disabled={!newClientId || loading} leftIcon="gift" type="button" variant="primary" onClick={handleCreate}>
+              <Button
+                disabled={!newClientId || loading}
+                leftIcon="gift"
+                type="button"
+                variant={newClientId ? "primary" : "secondary"}
+                onClick={handleCreate}
+                style={{
+                  width: "100%",
+                  background: newClientId ? "var(--color-accent, #B91C1C)" : "transparent",
+                  color: newClientId ? "#FFFFFF" : "var(--color-secondary-text, #A7AFBD)",
+                  borderColor: newClientId ? "var(--color-accent, #B91C1C)" : "var(--color-border, #22262D)",
+                  opacity: newClientId ? 1 : 0.45,
+                  transition: "all 0.2s ease"
+                }}
+              >
                 Создать карту
               </Button>
             </div>
@@ -989,8 +1003,8 @@ export default function ClubPage({clients = [], pushNotification}) {
               }}
             >
               <span className="flex items-center gap-2">
-                <AppIcon name="plus" size="sm" />
-                {editingRewardTemplateId ? "Редактировать шаблон" : "Создать шаблон подарка"}
+                <AppIcon name={isTemplateFormOpen ? "minus" : "plus"} size="sm" />
+                {isTemplateFormOpen ? (editingRewardTemplateId ? "Свернуть форму" : "Свернуть форму") : (editingRewardTemplateId ? "Редактировать шаблон" : "Создать шаблон подарка")}
               </span>
               <AppIcon name={isTemplateFormOpen ? "chevronUp" : "chevronDown"} size="sm" />
             </Button>
