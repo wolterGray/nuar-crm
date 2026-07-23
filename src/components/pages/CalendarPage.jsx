@@ -291,9 +291,10 @@ function CalendarPage({
   const visualStartMinutes = startMinutes - 120;
   const visualEndMinutes = endMinutes + 120;
   const slotMinutes = Number(settings.calendarSlotMinutes) || 15;
+  const gridSlotMinutes = 15;
   const minutesInDay = visualEndMinutes - visualStartMinutes;
   const slotHeight = QUARTER_HEIGHT;
-  const gridHeight = (minutesInDay / slotMinutes) * slotHeight;
+  const gridHeight = (minutesInDay / gridSlotMinutes) * slotHeight;
   const startHour = Math.floor(visualStartMinutes / 60);
   const endHour = Math.ceil(visualEndMinutes / 60);
   const dayEntries = useMemo(
@@ -744,7 +745,7 @@ return (
                   "--calendar-time-axis-width": isMobile ? "26px" : "34px",
                   "--mobile-master-width": "minmax(0, 1fr)",
                   "--schedule-height": `${gridHeight}px`,
-                  "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,
+                  "--schedule-hour-height": `${4 * slotHeight}px`,
                 }}
               >
                 <div
@@ -753,11 +754,11 @@ return (
                 >
                   <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
                     {Array.from(
-                      {length: (endHour - startHour) * (60 / slotMinutes)},
+                      {length: (endHour - startHour) * 4},
                       (_, index) => (
                         <i
                           className={`absolute right-0 left-0 border-t ${
-                            index % (60 / slotMinutes) === 0 ? "is-hour" : "is-quarter"
+                            index % 4 === 0 ? "is-hour" : "is-quarter"
                           }`}
                           key={index}
                           style={{top: index * slotHeight + 48}}
@@ -766,19 +767,13 @@ return (
                     )}
                   </div>
                   {Array.from({length: endHour - startHour}, (_, index) => (
-                    <div className="relative" style={{ height: `${(60 / slotMinutes) * slotHeight}px` }} key={index}>
+                    <div className="relative" style={{ height: `${4 * slotHeight}px` }} key={index}>
                       <strong>
                         {String(startHour + index).padStart(2, "0")}:00
                       </strong>
-                      {Array.from({length: 60 / slotMinutes - 1}, (_, slotIndex) => (
-                        <span
-                          key={slotIndex}
-                          className="nuar-calendar-minute-label"
-                          style={{ top: `${(slotIndex + 1) * slotHeight}px` }}
-                        >
-                          {(slotIndex + 1) * slotMinutes}
-                        </span>
-                      ))}
+                      <span className="nuar-calendar-minute-label" style={{ top: `${1 * slotHeight}px` }}>15</span>
+                      <span className="nuar-calendar-minute-label" style={{ top: `${2 * slotHeight}px` }}>30</span>
+                      <span className="nuar-calendar-minute-label" style={{ top: `${3 * slotHeight}px` }}>45</span>
                     </div>
                   ))}
                   <div className="relative">
@@ -863,11 +858,11 @@ return (
                       )}
                       <div className="absolute inset-0 z-2 pointer-events-none" aria-hidden="true">
                         {Array.from(
-                          {length: minutesInDay / slotMinutes},
+                          {length: (minutesInDay / gridSlotMinutes)},
                           (_, index) => (
                             <i
                               className={`absolute right-0 left-0 border-t ${
-                                index % (60 / slotMinutes) === 0 ? "is-hour" : "is-quarter"
+                                index % 4 === 0 ? "is-hour" : "is-quarter"
                               }`}
                               key={index}
                               style={{top: index * slotHeight}}

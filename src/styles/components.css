@@ -3865,17 +3865,17 @@
 }
 
 .nuar-calendar-grid i.is-hour {
-  border-top-width: 1px;
+  border-top-width: 1.5px;
   border-style: solid;
   border-color: var(--calendar-border, var(--color-border));
-  opacity: 0.85;
+  opacity: 0.95;
 }
 
 .nuar-calendar-grid i.is-quarter {
   border-top-width: 1px;
   border-style: dashed;
   border-color: color-mix(in srgb, var(--color-border-soft) 35%, transparent);
-  opacity: 0.4;
+  opacity: 0.45;
 }
 
 .nuar-calendar-time-axis {
