@@ -133,12 +133,12 @@
   --button-submit-weight: 650;
   --button-primary-hover-text: #101010;
 
-  --control-height-sm: 34px;
-  --control-height-md: 40px;
-  --control-height-lg: 46px;
-  --control-padding-x-sm: 10px;
-  --control-padding-x-md: 14px;
-  --control-padding-x-lg: 18px;
+  --control-height-sm: 38px;
+  --control-height-md: 46px;
+  --control-height-lg: 52px;
+  --control-padding-x-sm: 12px;
+  --control-padding-x-md: 16px;
+  --control-padding-x-lg: 20px;
   --icon-size-xs: 14px;
   --icon-size-sm: 16px;
   --icon-size-md: 18px;
@@ -230,4 +230,15 @@
   --modal-backdrop: rgba(0, 0, 0, 0.7);
   --modal-backdrop-blur: 16px;
   --modal-max-width: 448px;
+}
+
+@media (min-width: 769px) {
+  :root {
+    --control-height-sm: 34px;
+    --control-height-md: 40px;
+    --control-height-lg: 46px;
+    --control-padding-x-sm: 10px;
+    --control-padding-x-md: 14px;
+    --control-padding-x-lg: 18px;
+  }
 }

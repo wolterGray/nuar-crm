@@ -600,9 +600,9 @@
   }
 
   .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) :is(input, select, textarea) {
-    min-height: 38px !important;
+    min-height: 48px !important;
     border-radius: 8px !important;
-    font-size: 13px !important;
+    font-size: 16px !important;
   }
 
   .mobile-sheet.employee-modal.operations-form-modal :is(.catalog-form, .modal-form) textarea {
@@ -628,13 +628,13 @@
     align-items: center !important;
     width: 100% !important;
     min-width: 0 !important;
-    min-height: 40px !important;
+    min-height: 48px !important;
     justify-content: center !important;
     gap: 7px !important;
     padding: 0 12px !important;
     border-radius: 8px !important;
-    font-size: 13px !important;
-    font-weight: 800 !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
     line-height: 1.1 !important;
     white-space: normal !important;
   }
@@ -1710,7 +1710,7 @@
     grid-template-columns: minmax(0, 1fr) auto !important;
     gap: 8px !important;
     width: 100% !important;
-    min-height: 38px !important;
+    min-height: 48px !important;
     padding: 0 12px !important;
     border-radius: 8px !important;
     background: color-mix(in srgb, var(--color-card) 62%, transparent) !important;
@@ -1917,7 +1917,7 @@
   }
 
   .statistics-page-mobile .statistics-mobile-select-control {
-    min-height: 38px !important;
+    min-height: 48px !important;
     grid-template-columns: minmax(0, 1fr) auto !important;
     align-items: center !important;
     gap: 8px !important;
@@ -2115,13 +2115,13 @@
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
-    min-height: 38px !important;
+    min-height: 48px !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 10px !important;
     overflow: hidden !important;
     border-radius: 8px !important;
-    font-size: 12px !important;
+    font-size: 14px !important;
     line-height: 1.15 !important;
     text-align: center !important;
   }
@@ -2310,12 +2310,12 @@
   .mobile-page-container[data-mobile-page="site"] .site-booking-card-actions button {
     width: 100% !important;
     min-width: 0 !important;
-    min-height: 38px !important;
+    min-height: 48px !important;
     justify-content: center !important;
     gap: 6px !important;
     padding: 0 10px !important;
     border-radius: 8px !important;
-    font-size: 12px !important;
+    font-size: 14px !important;
     font-weight: 750 !important;
     line-height: 1.12 !important;
     white-space: nowrap !important;
@@ -2621,9 +2621,9 @@
     align-items: center !important;
     gap: 9px !important;
     width: 100% !important;
-    min-height: 38px !important;
+    min-height: 48px !important;
     margin: 0 !important;
-    padding: 9px 10px !important;
+    padding: 12px 14px !important;
     border: 1px solid color-mix(in srgb, var(--color-border) 94%, transparent) !important;
     border-radius: 8px !important;
     background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
@@ -2791,12 +2791,12 @@
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    min-height: 38px !important;
+    min-height: 48px !important;
     justify-content: center !important;
     gap: 7px !important;
     padding: 0 10px !important;
     border-radius: 8px !important;
-    font-size: 12px !important;
+    font-size: 14px !important;
     font-weight: 750 !important;
     line-height: 1.1 !important;
     white-space: normal !important;
@@ -5196,13 +5196,13 @@
   .mobile-page-container[data-mobile-page="operations"] .operations-page-tabs button,
   .mobile-page-container[data-mobile-page="operations"] .operations-tabs button {
     min-width: 0 !important;
-    min-height: 38px !important;
+    min-height: 48px !important;
     padding: 0 8px !important;
     border: 1px solid color-mix(in srgb, var(--color-border) 94%, transparent) !important;
     border-radius: 8px !important;
     color: var(--color-text-muted) !important;
     background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
-    font-size: 11.5px !important;
+    font-size: 13px !important;
     font-weight: 800 !important;
     line-height: 1.05 !important;
     white-space: normal !important;
@@ -5470,13 +5470,13 @@
     display: inline-flex !important;
     width: 100% !important;
     min-width: 0 !important;
-    min-height: 38px !important;
+    min-height: 48px !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 6px !important;
     padding: 0 10px !important;
     border-radius: 8px !important;
-    font-size: 12px !important;
+    font-size: 14px !important;
     font-weight: 750 !important;
     line-height: 1.1 !important;
     white-space: normal !important;
@@ -5513,9 +5513,9 @@
 
   .mobile-page-container[data-mobile-page="operations"] .quick-note-form input,
   .mobile-page-container[data-mobile-page="operations"] .quick-note-category-trigger {
-    min-height: 38px !important;
+    min-height: 48px !important;
     border-radius: 8px !important;
-    font-size: 12px !important;
+    font-size: 16px !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .quick-note-category-menu {
