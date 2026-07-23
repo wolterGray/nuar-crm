@@ -724,11 +724,11 @@ return (
                 }`}
                 style={{
                   gridTemplateColumns: isMobile
-                    ? `var(--calendar-time-axis-width, 44px) repeat(${calendarMasters.length}, minmax(0, 1fr))`
+                    ? `var(--calendar-time-axis-width, 36px) repeat(${calendarMasters.length}, minmax(0, 1fr))`
                     : `58px repeat(${calendarMasters.length}, minmax(190px, 1fr))`,
                   width: "100%",
                   "--master-count": calendarMasters.length,
-                  "--calendar-time-axis-width": isMobile ? "44px" : "58px",
+                  "--calendar-time-axis-width": isMobile ? "36px" : "58px",
                   "--mobile-master-width": "minmax(0, 1fr)",
                   "--schedule-height": `${gridHeight}px`,
                   "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,

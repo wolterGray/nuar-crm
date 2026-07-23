@@ -5732,19 +5732,25 @@
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-time-axis {
-    width: var(--calendar-time-axis-width, 44px);
-    min-width: var(--calendar-time-axis-width, 44px);
+    width: var(--calendar-time-axis-width, 36px) !important;
+    min-width: var(--calendar-time-axis-width, 36px) !important;
     padding-top: 54px;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-time-axis strong {
-    padding-inline: 3px;
-    font-size: 9px;
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    text-align: center !important;
+    font-size: 8.5px !important;
+    font-weight: 700 !important;
+    color: var(--color-text-muted) !important;
+    transform: translateY(-5px) !important;
+    letter-spacing: -0.01em !important;
   }
 
-  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-time-axis span {
-    right: 5px;
-    font-size: 8px;
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-minute-label {
+    display: none !important;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-master-header {
