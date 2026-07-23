@@ -772,25 +772,39 @@ export default function ClubPage({clients = [], pushNotification}) {
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "12px 16px",
-                borderRadius: "12px",
-                border: "1px dashed var(--club-border)",
-                background: "color-mix(in srgb, var(--club-accent) 6%, transparent)",
-                color: "var(--club-accent)",
+                borderRadius: isCreateOpen ? "12px 12px 0 0" : "12px",
+                border: "1px solid var(--color-border, #22262D)",
+                borderBottom: isCreateOpen ? "0" : "1px solid var(--color-border, #22262D)",
+                background: "var(--color-surface, #0E1013)",
+                color: "#FFFFFF",
                 fontWeight: "600",
                 fontSize: "14px",
-                marginBottom: "10px"
+                marginBottom: isCreateOpen ? "0" : "12px",
+                minHeight: "48px"
               }}
             >
               <span className="flex items-center gap-2">
-                <AppIcon name={isCreateOpen ? "minus" : "plus"} size="sm" />
+                <AppIcon name={isCreateOpen ? "minus" : "plus"} size="sm" style={{ color: "var(--color-accent, #B91C1C)" }} />
                 {isCreateOpen ? "Свернуть форму" : "Новая карта лояльности"}
               </span>
-              <AppIcon name={isCreateOpen ? "chevronUp" : "chevronDown"} size="sm" />
+              <AppIcon name={isCreateOpen ? "chevronUp" : "chevronDown"} size="sm" style={{ color: "var(--color-secondary-text, #A7AFBD)" }} />
             </Button>
           ) : null}
 
           {(!isMobile || isCreateOpen) ? (
-            <div className={`club-create-panel ${isMobile ? "is-mobile-collapsed" : ""}`}>
+            <div
+              className={`club-create-panel ${isMobile ? "is-mobile-collapsed" : ""}`}
+              style={isMobile ? {
+                padding: "16px",
+                borderRadius: "0 0 12px 12px",
+                border: "1px solid var(--color-border, #22262D)",
+                borderTop: "0",
+                background: "var(--color-surface, #0E1013)",
+                marginBottom: "14px",
+                display: "grid",
+                gap: "12px"
+              } : undefined}
+            >
               <div>
                 <strong>Новая карта</strong>
                 <span>Выберите клиента без карты и создайте персональную ссылку.</span>

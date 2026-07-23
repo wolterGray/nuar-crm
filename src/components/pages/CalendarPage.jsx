@@ -551,7 +551,9 @@ function CalendarPage({
 return (
     <section className="nuar-calendar flex flex-col flex-1 gap-3 min-h-0">
       <PageHeader
-        actions={
+        className="nuar-calendar-header"
+        description={`${visitEntries.length} визитов запланировано`}
+        headerActions={
           <div className="nuar-calendar-actions flex items-center gap-2">
             <div className="nuar-calendar-date-nav flex items-center gap-1.5">
               <IconButton
@@ -645,9 +647,6 @@ return (
             )}
           </div>
         }
-        className="nuar-calendar-header"
-        description={`${visitEntries.length} визитов запланировано`}
-        headerActions={null}
         title="Календарь"
       />
 
