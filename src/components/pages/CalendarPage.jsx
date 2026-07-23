@@ -752,7 +752,7 @@ return (
                   className="nuar-calendar-time-axis sticky left-0 z-10 pt-12"
                   style={{ height: `${gridHeight + 48}px` }}
                 >
-                  <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+                  <div className="schedule-quarter-lines absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
                     {Array.from(
                       {length: (endHour - startHour) * 4},
                       (_, index) => (
