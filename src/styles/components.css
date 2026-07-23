@@ -3805,6 +3805,22 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.nuar-calendar-add-button.nuar-calendar-add-button {
+  border-color: var(--calendar-accent, #b91c1c);
+  color: var(--calendar-text-on-accent, #ffffff);
+  background: var(--calendar-accent, #b91c1c);
+  box-shadow: none;
+}
+
+.nuar-calendar-add-button.nuar-calendar-add-button:hover:not(:disabled) {
+  border-color: var(--calendar-accent-hover, #991b1b);
+  background: var(--calendar-accent-hover, #991b1b);
+}
+
+.nuar-calendar-add-button.nuar-calendar-add-button:active:not(:disabled) {
+  background: color-mix(in srgb, var(--calendar-accent-hover, #991b1b) 86%, black);
+}
+
 .nuar-calendar-date-display {
   min-width: 96px;
   display: inline-flex;
@@ -3870,19 +3886,29 @@
 .nuar-calendar-grid i.is-hour,
 .schedule-quarter-lines i.is-hour,
 .schedule-quarter-lines i.hour {
-  border-top: 2px solid rgba(255, 255, 255, 0.4) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.09) !important;
   opacity: 1 !important;
 }
 
 .nuar-calendar-grid i.is-quarter,
 .schedule-quarter-lines i.is-quarter {
-  border-top: 1px dashed rgba(255, 255, 255, 0.18) !important;
+  border-top: 1px dashed rgba(255, 255, 255, 0.035) !important;
   opacity: 1 !important;
 }
 
 .nuar-calendar-time-axis {
   color: var(--color-text-faint);
   background: transparent;
+}
+
+.nuar-calendar-time-axis .schedule-quarter-lines {
+  left: auto;
+  width: 8px;
+}
+
+.nuar-calendar-time-axis strong,
+.nuar-calendar-minute-label {
+  z-index: 1;
 }
 
 .nuar-calendar-time-axis strong {
@@ -3972,13 +3998,30 @@
 }
 
 .nuar-calendar-now-dot {
+  width: 7px;
+  height: 7px;
+  top: 50%;
+  left: -4px;
+  transform: translateY(-50%);
   background: var(--calendar-accent);
 }
 
 .nuar-calendar-now-label {
-  color: color-mix(in srgb, var(--calendar-accent) 72%, var(--color-text));
-  font-size: 9px;
+  top: 50%;
+  right: calc(100% + 6px);
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--color-window);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.18);
+  color: var(--calendar-accent);
+  font-size: 10px;
   font-weight: var(--font-weight-bold);
+  line-height: 1;
+  transform: translateY(-50%);
+  white-space: nowrap;
 }
 
 .nuar-calendar .schedule-entry-dragging {
@@ -4639,6 +4682,29 @@
   z-index: 40;
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-dropdown);
+}
+
+.nuar-calendar-mobile-add-fab.nuar-calendar-mobile-add-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(var(--mobile-nav-total, 72px) + 18px);
+  z-index: 45;
+  display: grid;
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  min-height: 56px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: var(--calendar-text-on-accent, #ffffff);
+  background: var(--calendar-accent, #b91c1c);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
+}
+
+.nuar-calendar-mobile-add-fab.nuar-calendar-mobile-add-fab:hover:not(:disabled) {
+  background: var(--calendar-accent-hover, #991b1b);
 }
 
 .nuar-calendar-reminders-backdrop,
@@ -5606,11 +5672,12 @@
     display: grid;
     grid-template-rows: auto auto;
     min-height: 0;
-    gap: 4px;
+    gap: 8px;
     margin: 0;
-    padding: 0 var(--mobile-page-x, 16px) 3px;
+    padding: 10px var(--mobile-page-x, 16px) 8px;
     border-bottom: 1px solid var(--color-border);
     background: transparent;
+    overflow: visible;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .page-notifications-slot {
@@ -5646,23 +5713,46 @@
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-header .page-header-unified-top {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
+    grid-template-rows: auto auto;
+    align-items: start;
     gap: 8px;
     width: 100%;
+    overflow: visible;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-header .page-header-unified-copy {
     display: block;
+    grid-column: 1;
+    grid-row: 1;
     min-width: 0;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-header .page-title {
     font-size: 20px;
-    line-height: 1.15;
+    line-height: 1.2;
+    overflow: visible;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-header .page-title .hint-icon {
+    display: none;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-header .page-header-unified-trailing {
+    display: contents !important;
     margin-left: 0;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-header .page-header-unified-side {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-header .page-notifications-slot {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-header .page-header-unified-actions {
@@ -5748,9 +5838,9 @@
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-time-axis {
-    width: var(--calendar-time-axis-width, 26px) !important;
-    min-width: var(--calendar-time-axis-width, 26px) !important;
-    padding-top: 54px;
+    width: var(--calendar-time-axis-width, 44px) !important;
+    min-width: var(--calendar-time-axis-width, 44px) !important;
+    padding-top: 0 !important;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-time-axis strong {
@@ -5776,6 +5866,18 @@
     opacity: 0.65 !important;
     transform: translateY(-50%) !important;
     font-weight: 400 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-now-dot {
+    left: -4px;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-now-label {
+    right: calc(100% + 7px);
+    height: 18px;
+    padding: 0 6px;
+    font-size: 9px;
+    box-shadow: none;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-master-header {

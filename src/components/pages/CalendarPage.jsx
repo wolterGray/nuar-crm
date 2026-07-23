@@ -21,6 +21,8 @@ import {getPackageProgressLabel, isUpcomingPackageVisit} from "../../utils/packa
 import {getVisitDebt, getVisitTransactionTotal} from "../../utils/visits.jsx";
 
 const QUARTER_HEIGHT = 22;
+const DESKTOP_SCHEDULE_HEADER_HEIGHT = 48;
+const MOBILE_SCHEDULE_HEADER_HEIGHT = 54;
 const isValidInputDate = (date) =>
   /^\d{4}-\d{2}-\d{2}$/.test(String(date)) &&
   !Number.isNaN(new Date(`${date}T12:00:00`).getTime());
@@ -236,11 +238,14 @@ function CalendarPage({
   const [viewedReservedEntry, setViewedReservedEntry] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
   const [pendingSlot, setPendingSlot] = useState(null);
+  const [mobileWeekAnimation, setMobileWeekAnimation] = useState(null);
   const schedulePanelRef = useRef(null);
   const weekCarouselRef = useRef(null);
   const longPressRef = useRef(null);
+  const mobileWeekSwipeRef = useRef(null);
+  const suppressMobileWeekClickRef = useRef(false);
   const pendingSlotOpenedAtRef = useRef(0);
-  const previousSelectedDateRef = useRef(null);
+  const autoScrolledNowLineRef = useRef(null);
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {distance: 5},
@@ -294,6 +299,9 @@ function CalendarPage({
   const gridSlotMinutes = 15;
   const minutesInDay = visualEndMinutes - visualStartMinutes;
   const slotHeight = QUARTER_HEIGHT;
+  const scheduleHeaderHeight = isMobile
+    ? MOBILE_SCHEDULE_HEADER_HEIGHT
+    : DESKTOP_SCHEDULE_HEADER_HEIGHT;
   const gridHeight = (minutesInDay / gridSlotMinutes) * slotHeight;
   const startHour = Math.floor(visualStartMinutes / 60);
   const endHour = Math.ceil(visualEndMinutes / 60);
@@ -383,13 +391,18 @@ function CalendarPage({
     });
   }, [calendarPanelDate]);
   const isToday = selectedDate === getTodayInput();
-  const carouselDates = useMemo(
-    () =>
-      Array.from({length: 1461}, (_, index) =>
-        shiftDate(getTodayInput(), index - 730),
-      ),
-    [],
-  );
+  const weekDates = useMemo(() => {
+    const selected = new Date(`${selectedDate}T12:00:00`);
+    const selectedDayIndex = (selected.getDay() + 6) % 7;
+    const weekStart = new Date(selected);
+    weekStart.setDate(selected.getDate() - selectedDayIndex);
+
+    return Array.from({length: 7}, (_, index) => {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + index);
+      return date.toISOString().slice(0, 10);
+    });
+  }, [selectedDate]);
   const selectCalendarDate = (nextDate) => {
     setSelectedDate(nextDate);
     setCalendarPanelMonth(nextDate.slice(0, 7));
@@ -460,20 +473,30 @@ function CalendarPage({
   }, [employees.length, selectedDate]);
 
   useLayoutEffect(() => {
-    if (!weekCarouselRef.current) return;
+    if (!isToday || !showScheduleGrid || alertFocus?.entityId) return;
 
-    if (previousSelectedDateRef.current === selectedDate) return;
+    const container = schedulePanelRef.current;
+    const scrollKey = `${selectedDate}-${isMobile ? "mobile" : "desktop"}`;
 
-    previousSelectedDateRef.current = selectedDate;
+    if (!container || autoScrolledNowLineRef.current === scrollKey) return;
 
-    const container = weekCarouselRef.current;
-    const selectedButton = container.querySelector(
-      `[data-date="${selectedDate}"]`,
-    );
-    if (!selectedButton) return;
+    autoScrolledNowLineRef.current = scrollKey;
 
-    container.scrollLeft = Math.max(0, selectedButton.offsetLeft - 10);
-  }, [carouselDates, selectedDate]);
+    window.requestAnimationFrame(() => {
+      const targetTop = scheduleHeaderHeight + currentTop - container.clientHeight * 0.42;
+      const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+
+      container.scrollTop = Math.max(0, Math.min(targetTop, maxScrollTop));
+    });
+  }, [
+    alertFocus?.entityId,
+    currentTop,
+    isMobile,
+    isToday,
+    scheduleHeaderHeight,
+    selectedDate,
+    showScheduleGrid,
+  ]);
 
   const getDragPosition = ({active, delta, over}) => {
     const entry = active.data.current?.entry;
@@ -547,6 +570,35 @@ function CalendarPage({
     if (distance > 10) {
       clearSlotLongPress();
     }
+  };
+
+  const startMobileWeekSwipe = ({clientX, clientY}) => {
+    mobileWeekSwipeRef.current = {
+      startX: clientX,
+      startY: clientY,
+    };
+  };
+
+  const endMobileWeekSwipe = ({clientX, clientY}) => {
+    const swipe = mobileWeekSwipeRef.current;
+    mobileWeekSwipeRef.current = null;
+
+    if (!swipe) return;
+
+    const deltaX = clientX - swipe.startX;
+    const deltaY = clientY - swipe.startY;
+
+    if (Math.abs(deltaX) < 38 || Math.abs(deltaX) < Math.abs(deltaY) * 1.4) return;
+
+    const direction = deltaX < 0 ? "next" : "previous";
+
+    suppressMobileWeekClickRef.current = true;
+    setMobileWeekAnimation(direction);
+    selectCalendarDate(shiftDate(selectedDate, direction === "next" ? 7 : -7));
+    window.setTimeout(() => {
+      suppressMobileWeekClickRef.current = false;
+      setMobileWeekAnimation(null);
+    }, 240);
   };
 
 return (
@@ -652,11 +704,26 @@ return (
       />
 
       <div
-        className="mobile-calendar-week hidden max-md:grid"
+        className={`mobile-calendar-week hidden max-md:grid ${
+          mobileWeekAnimation ? `is-shifting-${mobileWeekAnimation}` : ""
+        }`}
         aria-label="Дни недели"
         ref={weekCarouselRef}
+        onPointerCancel={() => {
+          mobileWeekSwipeRef.current = null;
+        }}
+        onPointerDown={(event) => startMobileWeekSwipe(event)}
+        onPointerUp={(event) => endMobileWeekSwipe(event)}
+        onTouchStart={(event) => {
+          const touch = event.changedTouches[0];
+          if (touch) startMobileWeekSwipe(touch);
+        }}
+        onTouchEnd={(event) => {
+          const touch = event.changedTouches[0];
+          if (touch) endMobileWeekSwipe(touch);
+        }}
       >
-        {carouselDates.map((date) => {
+        {weekDates.map((date) => {
           const today = date === getTodayInput();
           const dayIndex = (new Date(`${date}T12:00:00`).getDay() + 6) % 7;
           const isSelected = date === selectedDate;
@@ -666,7 +733,10 @@ return (
               data-date={date}
               key={date}
               type="button"
-              onClick={() => selectCalendarDate(date)}
+              onClick={() => {
+                if (suppressMobileWeekClickRef.current) return;
+                selectCalendarDate(date);
+              }}
             >
               <span>
                 {["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"][dayIndex]}
@@ -738,19 +808,19 @@ return (
                 }`}
                 style={{
                   gridTemplateColumns: isMobile
-                    ? `var(--calendar-time-axis-width, 26px) repeat(${calendarMasters.length}, minmax(0, 1fr))`
-                    : `34px repeat(${calendarMasters.length}, minmax(190px, 1fr))`,
+                    ? `var(--calendar-time-axis-width, 44px) repeat(${calendarMasters.length}, minmax(0, 1fr))`
+                    : `var(--calendar-time-axis-width, 58px) repeat(${calendarMasters.length}, minmax(190px, 1fr))`,
                   width: "100%",
                   "--master-count": calendarMasters.length,
-                  "--calendar-time-axis-width": isMobile ? "26px" : "34px",
+                  "--calendar-time-axis-width": isMobile ? "44px" : "58px",
                   "--mobile-master-width": "minmax(0, 1fr)",
                   "--schedule-height": `${gridHeight}px`,
                   "--schedule-hour-height": `${4 * slotHeight}px`,
                 }}
               >
                 <div
-                  className="nuar-calendar-time-axis sticky left-0 z-10 pt-12"
-                  style={{ height: `${gridHeight + 48}px` }}
+                  className="nuar-calendar-time-axis sticky left-0 z-10"
+                  style={{height: `${gridHeight + scheduleHeaderHeight}px`, paddingTop: 0}}
                 >
                   <div className="schedule-quarter-lines absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
                     {Array.from(
@@ -761,22 +831,48 @@ return (
                             index % 4 === 0 ? "is-hour hour" : "is-quarter"
                           }`}
                           key={index}
-                          style={{top: index * slotHeight + 48}}
+                          style={{top: index * slotHeight + scheduleHeaderHeight}}
                         />
                       ),
                     )}
                   </div>
-                  {Array.from({length: endHour - startHour}, (_, index) => (
-                    <div className="relative" style={{ height: `${4 * slotHeight}px` }} key={index}>
-                      <strong>
-                        {String(startHour + index).padStart(2, "0")}:00
-                      </strong>
-                      <span className="nuar-calendar-minute-label" style={{ top: `${1 * slotHeight}px` }}>15</span>
-                      <span className="nuar-calendar-minute-label" style={{ top: `${2 * slotHeight}px` }}>30</span>
-                      <span className="nuar-calendar-minute-label" style={{ top: `${3 * slotHeight}px` }}>45</span>
-                    </div>
-                  ))}
-                  <div className="relative">
+                  {Array.from({length: endHour - startHour}, (_, index) => {
+                    const hourTop = scheduleHeaderHeight + index * 4 * slotHeight;
+
+                    return (
+                      <div
+                        className="absolute right-0 left-0"
+                        style={{top: hourTop}}
+                        key={index}
+                      >
+                        <strong>
+                          {String(startHour + index).padStart(2, "0")}:00
+                        </strong>
+                        <span
+                          className="nuar-calendar-minute-label"
+                          style={{top: `${1 * slotHeight}px`}}
+                        >
+                          15
+                        </span>
+                        <span
+                          className="nuar-calendar-minute-label"
+                          style={{top: `${2 * slotHeight}px`}}
+                        >
+                          30
+                        </span>
+                        <span
+                          className="nuar-calendar-minute-label"
+                          style={{top: `${3 * slotHeight}px`}}
+                        >
+                          45
+                        </span>
+                      </div>
+                    );
+                  })}
+                  <div
+                    className="absolute right-0 left-0"
+                    style={{top: scheduleHeaderHeight + (endHour - startHour) * 4 * slotHeight}}
+                  >
                     <strong>
                       {String(endHour).padStart(2, "0")}:00
                     </strong>
@@ -840,16 +936,8 @@ return (
                         <div className="nuar-calendar-now-line absolute right-0 left-0 z-5 pointer-events-none" style={{top: currentTop}}>
                           {empIndex === 0 && (
                             <>
-                              <i
-                                className="nuar-calendar-now-dot absolute rounded-full"
-                                style={{
-                                  width: "6px",
-                                  height: "6px",
-                                  left: "-3px",
-                                  top: "-2.5px"
-                                }}
-                              />
-                              <span className="nuar-calendar-now-label absolute top-[-18px] left-1.5">
+                              <i className="nuar-calendar-now-dot absolute rounded-full" />
+                              <span className="nuar-calendar-now-label absolute">
                                 {toTime(currentMinutes, startMinutes, endMinutes, slotMinutes)}
                               </span>
                             </>
@@ -1310,6 +1398,17 @@ return (
           </aside>
         )}
       </div>
+
+      {isMobile && showScheduleGrid && (
+        <IconButton
+          className={`nuar-calendar-mobile-add-fab ${overlayOpen ? "hidden" : ""}`}
+          icon="plus"
+          label="Добавить"
+          size="lg"
+          variant="primary"
+          onClick={() => onAdd({date: selectedDate})}
+        />
+      )}
 
       {pendingSlot && (
         <div

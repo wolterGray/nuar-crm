@@ -1265,21 +1265,51 @@
 
   .mobile-calendar-week {
     display: grid;
-    grid-auto-columns: calc((100% - 24px) / 7);
-    grid-auto-flow: column;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     flex: 0 0 52px;
     min-height: 52px;
     height: 52px;
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: hidden;
     align-items: center;
     gap: 4px;
     padding: 5px 16px 4px;
     border-bottom: 0;
     background: var(--mobile-sheet-bg, #fff);
-    scroll-snap-type: x proximity;
     scrollbar-width: none;
-    touch-action: pan-x;
+    touch-action: pan-y;
+  }
+
+  .mobile-calendar-week.is-shifting-next {
+    animation: mobile-week-slide-next 220ms ease-out both;
+  }
+
+  .mobile-calendar-week.is-shifting-previous {
+    animation: mobile-week-slide-previous 220ms ease-out both;
+  }
+
+  @keyframes mobile-week-slide-next {
+    from {
+      opacity: 0.2;
+      transform: translateX(18px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes mobile-week-slide-previous {
+    from {
+      opacity: 0.2;
+      transform: translateX(-18px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   .mobile-calendar-week button {
