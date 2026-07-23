@@ -3864,18 +3864,21 @@
   border-top-width: 1px;
 }
 
-.nuar-calendar-grid i.is-hour {
-  border-top-width: 1.5px;
-  border-style: solid;
-  border-color: var(--calendar-border, var(--color-border));
-  opacity: 0.95;
+.nuar-calendar-grid i.is-hour,
+.schedule-quarter-lines i.is-hour,
+.schedule-quarter-lines i.hour {
+  border-top-width: 1.5px !important;
+  border-style: solid !important;
+  border-color: color-mix(in srgb, var(--color-border) 85%, #ffffff) !important;
+  opacity: 0.9 !important;
 }
 
-.nuar-calendar-grid i.is-quarter {
-  border-top-width: 1px;
-  border-style: dashed;
-  border-color: color-mix(in srgb, var(--color-border-soft) 35%, transparent);
-  opacity: 0.45;
+.nuar-calendar-grid i.is-quarter,
+.schedule-quarter-lines i.is-quarter {
+  border-top-width: 1px !important;
+  border-style: dashed !important;
+  border-color: color-mix(in srgb, var(--color-border-soft) 30%, transparent) !important;
+  opacity: 0.4 !important;
 }
 
 .nuar-calendar-time-axis {
@@ -3957,11 +3960,11 @@
 }
 
 .schedule-off-hours-before {
-  border-bottom: 1px solid color-mix(in srgb, var(--color-border-soft) 60%, transparent);
+  border-bottom: 0 !important;
 }
 
 .schedule-off-hours-after {
-  border-top: 1px solid color-mix(in srgb, var(--color-border-soft) 60%, transparent);
+  border-top: 0 !important;
 }
 
 .nuar-calendar-now-line {

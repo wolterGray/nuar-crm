@@ -856,13 +856,13 @@ return (
                           )}
                         </div>
                       )}
-                      <div className="absolute inset-0 z-2 pointer-events-none" aria-hidden="true">
+                      <div className="schedule-quarter-lines absolute inset-0 z-3 pointer-events-none" aria-hidden="true">
                         {Array.from(
                           {length: (minutesInDay / gridSlotMinutes)},
                           (_, index) => (
                             <i
                               className={`absolute right-0 left-0 border-t ${
-                                index % 4 === 0 ? "is-hour" : "is-quarter"
+                                index % 4 === 0 ? "is-hour hour" : "is-quarter"
                               }`}
                               key={index}
                               style={{top: index * slotHeight}}
