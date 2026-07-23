@@ -1498,19 +1498,30 @@ export default function ClubPage({clients = [], pushNotification}) {
             </div>
 
             {/* Tabs for Stamps vs Gifts */}
-            <div className="club-adjust-tabs flex gap-2 border-b border-border-soft pb-2 mb-1" style={{ borderBottom: "1px solid var(--color-border-soft)", paddingBottom: "8px", marginBottom: "4px" }}>
+            <div className="club-adjust-tabs" style={{
+              display: "flex",
+              gap: "4px",
+              background: "rgba(255, 255, 255, 0.05)",
+              padding: "4px",
+              borderRadius: "10px",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              marginBottom: "16px"
+            }}>
               <button
                 className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${adjustTab === "stamps" ? "is-active" : ""}`}
                 type="button"
                 style={{
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  fontSize: "12px",
+                  flex: 1,
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  fontSize: "13px",
                   fontWeight: "600",
-                  background: adjustTab === "stamps" ? "var(--color-primary)" : "transparent",
-                  color: adjustTab === "stamps" ? "var(--color-primary-text)" : "var(--color-text-muted)",
+                  background: adjustTab === "stamps" ? "var(--club-accent)" : "transparent",
+                  color: adjustTab === "stamps" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
                   border: 0,
-                  cursor: "pointer"
+                  cursor: "pointer",
+                  textAlign: "center",
+                  transition: "all 0.2s ease"
                 }}
                 onClick={() => setAdjustTab("stamps")}
               >
@@ -1520,14 +1531,17 @@ export default function ClubPage({clients = [], pushNotification}) {
                 className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${adjustTab === "gifts" ? "is-active" : ""}`}
                 type="button"
                 style={{
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  fontSize: "12px",
+                  flex: 1,
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  fontSize: "13px",
                   fontWeight: "600",
-                  background: adjustTab === "gifts" ? "var(--color-primary)" : "transparent",
-                  color: adjustTab === "gifts" ? "var(--color-primary-text)" : "var(--color-text-muted)",
+                  background: adjustTab === "gifts" ? "var(--club-accent)" : "transparent",
+                  color: adjustTab === "gifts" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
                   border: 0,
-                  cursor: "pointer"
+                  cursor: "pointer",
+                  textAlign: "center",
+                  transition: "all 0.2s ease"
                 }}
                 onClick={() => setAdjustTab("gifts")}
               >
@@ -1537,23 +1551,57 @@ export default function ClubPage({clients = [], pushNotification}) {
 
             {adjustTab === "stamps" ? (
               <>
-                <div className="club-adjust-mode" role="group" aria-label="Тип операции">
-                  <Button
-                    className={manualAdjustmentMode === "earn" ? "is-active" : ""}
-                    disabled={manualAdjustmentSaving}
+                <div className="club-adjust-tabs" style={{
+                  display: "flex",
+                  gap: "4px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  padding: "4px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  marginBottom: "16px"
+                }}>
+                  <button
+                    className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${manualAdjustmentMode === "earn" ? "is-active" : ""}`}
                     type="button"
-                    variant="secondary"
-                    onClick={() => setManualAdjustmentMode("earn")}>
+                    style={{
+                      flex: 1,
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      background: manualAdjustmentMode === "earn" ? "var(--club-accent)" : "transparent",
+                      color: manualAdjustmentMode === "earn" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
+                      border: 0,
+                      cursor: "pointer",
+                      textAlign: "center",
+                      transition: "all 0.2s ease"
+                    }}
+                    disabled={manualAdjustmentSaving}
+                    onClick={() => setManualAdjustmentMode("earn")}
+                  >
                     Начислить
-                  </Button>
-                  <Button
-                    className={manualAdjustmentMode === "writeoff" ? "is-active" : ""}
-                    disabled={manualAdjustmentSaving}
+                  </button>
+                  <button
+                    className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${manualAdjustmentMode === "writeoff" ? "is-active" : ""}`}
                     type="button"
-                    variant="secondary"
-                    onClick={() => setManualAdjustmentMode("writeoff")}>
+                    style={{
+                      flex: 1,
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      background: manualAdjustmentMode === "writeoff" ? "var(--club-accent)" : "transparent",
+                      color: manualAdjustmentMode === "writeoff" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
+                      border: 0,
+                      cursor: "pointer",
+                      textAlign: "center",
+                      transition: "all 0.2s ease"
+                    }}
+                    disabled={manualAdjustmentSaving}
+                    onClick={() => setManualAdjustmentMode("writeoff")}
+                  >
                     Списать
-                  </Button>
+                  </button>
                 </div>
                 <label className="club-adjust-field">
                   <span>Количество отметок</span>
@@ -1579,23 +1627,57 @@ export default function ClubPage({clients = [], pushNotification}) {
               </>
             ) : (
               <>
-                <div className="club-adjust-mode" role="group" aria-label="Тип операции с подарком">
-                  <Button
-                    className={giftMode === "earn" ? "is-active" : ""}
-                    disabled={manualAdjustmentSaving}
+                <div className="club-adjust-tabs" style={{
+                  display: "flex",
+                  gap: "4px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  padding: "4px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  marginBottom: "16px"
+                }}>
+                  <button
+                    className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${giftMode === "earn" ? "is-active" : ""}`}
                     type="button"
-                    variant="secondary"
-                    onClick={() => setGiftMode("earn")}>
+                    style={{
+                      flex: 1,
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      background: giftMode === "earn" ? "var(--club-accent)" : "transparent",
+                      color: giftMode === "earn" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
+                      border: 0,
+                      cursor: "pointer",
+                      textAlign: "center",
+                      transition: "all 0.2s ease"
+                    }}
+                    disabled={manualAdjustmentSaving}
+                    onClick={() => setGiftMode("earn")}
+                  >
                     Выдать подарок
-                  </Button>
-                  <Button
-                    className={giftMode === "writeoff" ? "is-active" : ""}
-                    disabled={manualAdjustmentSaving}
+                  </button>
+                  <button
+                    className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${giftMode === "writeoff" ? "is-active" : ""}`}
                     type="button"
-                    variant="secondary"
-                    onClick={() => setGiftMode("writeoff")}>
+                    style={{
+                      flex: 1,
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      background: giftMode === "writeoff" ? "var(--club-accent)" : "transparent",
+                      color: giftMode === "writeoff" ? "var(--color-primary-text, #fff)" : "var(--club-muted)",
+                      border: 0,
+                      cursor: "pointer",
+                      textAlign: "center",
+                      transition: "all 0.2s ease"
+                    }}
+                    disabled={manualAdjustmentSaving}
+                    onClick={() => setGiftMode("writeoff")}
+                  >
                     Подарки клиента
-                  </Button>
+                  </button>
                 </div>
 
                 {giftMode === "earn" ? (

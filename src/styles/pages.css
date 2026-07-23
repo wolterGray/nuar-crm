@@ -5028,10 +5028,10 @@ button:focus-visible {
 .club-adjust-modal {
   display: grid;
   width: min(100%, 440px);
-  gap: 14px;
-  border: 0;
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-control, 12px);
-  padding: 16px;
+  padding: 20px;
   color: var(--club-text);
   background: var(--club-panel);
   box-shadow: var(--shadow-layer, 0 28px 90px rgba(0, 0, 0, 0.55));
@@ -5066,13 +5066,23 @@ button:focus-visible {
 
 .club-adjust-modal button,
 .club-adjust-field input,
-.club-adjust-field textarea {
-  border: 0;
+.club-adjust-field textarea,
+.club-adjust-field select {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   border-radius: var(--radius-md, 8px);
-  color: var(--club-text);
-  background: var(--club-field);
+  color: var(--club-text) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
   font: inherit;
   outline: none;
+  transition: all 0.2s ease;
+}
+
+.club-adjust-field input:focus,
+.club-adjust-field textarea:focus,
+.club-adjust-field select:focus {
+  border-color: var(--club-accent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--club-accent) 25%, transparent) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 .club-adjust-modal button {
