@@ -1110,16 +1110,16 @@
 }
 
 .theme-dark .schedule-quarter-lines i {
-  border-top-width: 1px;
-  border-top-color: rgba(255, 255, 255, 0.12);
-  border-style: dashed;
+  border-top-width: 1px !important;
+  border-top-style: dashed !important;
+  border-top-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .theme-dark .schedule-quarter-lines i.hour,
 .theme-dark .schedule-quarter-lines i.is-hour {
-  border-top-width: 2px;
-  border-top-color: rgba(255, 255, 255, 0.35);
-  border-style: solid;
+  border-top-width: 1.5px !important;
+  border-top-style: solid !important;
+  border-top-color: rgba(255, 255, 255, 0.35) !important;
 }
 
 .theme-dark .schedule-off-hours {
@@ -1357,16 +1357,16 @@
 }
 
 .theme-dark .schedule-quarter-lines i {
-  border-top-width: 1px;
-  border-top-color: rgba(255, 255, 255, 0.12);
-  border-style: dashed;
+  border-top-width: 1px !important;
+  border-top-style: dashed !important;
+  border-top-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .theme-dark .schedule-quarter-lines i.hour,
 .theme-dark .schedule-quarter-lines i.is-hour {
-  border-top-width: 2px;
-  border-top-color: rgba(255, 255, 255, 0.35);
-  border-style: solid;
+  border-top-width: 1.5px !important;
+  border-top-style: solid !important;
+  border-top-color: rgba(255, 255, 255, 0.35) !important;
 }
 
 .theme-dark .schedule-off-hours {

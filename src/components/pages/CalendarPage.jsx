@@ -757,7 +757,7 @@ return (
                       {length: (endHour - startHour) * 4},
                       (_, index) => (
                         <i
-                          className={`absolute right-0 left-0 border-t ${
+                          className={`absolute right-0 left-0 ${
                             index % 4 === 0 ? "is-hour hour" : "is-quarter"
                           }`}
                           key={index}
@@ -861,7 +861,7 @@ return (
                           {length: (minutesInDay / gridSlotMinutes)},
                           (_, index) => (
                             <i
-                              className={`absolute right-0 left-0 border-t ${
+                              className={`absolute right-0 left-0 ${
                                 index % 4 === 0 ? "is-hour hour" : "is-quarter"
                               }`}
                               key={index}

@@ -3861,24 +3861,24 @@
 }
 
 .nuar-calendar-grid i {
-  border-top-width: 1px !important;
+  border-top-width: 1px;
 }
 
 .nuar-calendar-grid i.is-hour,
 .schedule-quarter-lines i.is-hour,
 .schedule-quarter-lines i.hour {
-  border-top-width: 2px !important;
-  border-style: solid !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
+  border-top-width: 1.5px !important;
+  border-top-style: solid !important;
+  border-top-color: rgba(255, 255, 255, 0.35) !important;
   opacity: 1 !important;
 }
 
 .nuar-calendar-grid i.is-quarter,
 .schedule-quarter-lines i.is-quarter {
   border-top-width: 1px !important;
-  border-style: dashed !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  opacity: 1 !important;
+  border-top-style: dashed !important;
+  border-top-color: rgba(255, 255, 255, 0.12) !important;
+  opacity: 0.8 !important;
 }
 
 .nuar-calendar-time-axis {
