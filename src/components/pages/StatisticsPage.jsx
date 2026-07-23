@@ -27,6 +27,7 @@ import {
 } from "../../utils/finance.js";
 import {getTodayInput} from "../../utils/dateHelpers.js";
 import PageHeader from "../PageHeader.jsx";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import {
   createPaymentRingGradient,
 } from "../../utils/payments.js";
@@ -296,6 +297,7 @@ function StatisticsFilters({
 }
 
 function RevenueChart({chartData, formatIncome}) {
+  const {isMobile} = useBreakpoint();
   const hasVisibleData = chartData.some(
     (item) => toSafeFinanceNumber(item.income) > 0 || toSafeFinanceNumber(item.visitsCount) > 0,
   );
@@ -308,9 +310,85 @@ function RevenueChart({chartData, formatIncome}) {
     );
   }
 
+  if (isMobile) {
+    const width = 320;
+    const height = 190;
+    const padding = {top: 14, right: 10, bottom: 28, left: 44};
+    const plotWidth = width - padding.left - padding.right;
+    const plotHeight = height - padding.top - padding.bottom;
+    const values = chartData.map((item) => toSafeFinanceNumber(item.income));
+    const maxValue = Math.max(...values, 1);
+    const yMax = maxValue * 1.12;
+    const getX = (index) =>
+      padding.left + (chartData.length === 1 ? plotWidth / 2 : (index / (chartData.length - 1)) * plotWidth);
+    const getY = (value) => padding.top + plotHeight - (value / yMax) * plotHeight;
+    const points = chartData.map((item, index) => `${getX(index)},${getY(toSafeFinanceNumber(item.income))}`);
+    const linePath = `M ${points.join(" L ")}`;
+    const areaPath = `${linePath} L ${padding.left + plotWidth},${padding.top + plotHeight} L ${padding.left},${padding.top + plotHeight} Z`;
+    const ticks = [0, yMax / 2, yMax];
+    const firstLabel = chartData[0]?.label ?? "";
+    const lastLabel = chartData[chartData.length - 1]?.label ?? "";
+
+    return (
+      <div className="statistics-revenue-chart statistics-revenue-chart-mobile w-full select-none mt-2">
+        <svg aria-label="График дохода" role="img" viewBox={`0 0 ${width} ${height}`}>
+          <defs>
+            <linearGradient id="statisticsRevenueMobileGradient" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="5%" stopColor={statisticsChartTokens.revenue} stopOpacity="0.24" />
+              <stop offset="100%" stopColor={statisticsChartTokens.revenue} stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          {ticks.map((tick) => {
+            const y = getY(tick);
+            return (
+              <g key={tick}>
+                <line
+                  stroke={statisticsChartTokens.grid}
+                  strokeDasharray="4 6"
+                  x1={padding.left}
+                  x2={padding.left + plotWidth}
+                  y1={y}
+                  y2={y}
+                />
+                <text
+                  fill={statisticsChartTokens.tick}
+                  fontSize="9"
+                  fontWeight="600"
+                  textAnchor="end"
+                  x={padding.left - 8}
+                  y={y + 3}>
+                  {formatCompactMoney(tick).replace(" zł", "")}
+                </text>
+              </g>
+            );
+          })}
+          <path d={areaPath} fill="url(#statisticsRevenueMobileGradient)" />
+          <path d={linePath} fill="none" stroke={statisticsChartTokens.revenue} strokeLinecap="round" strokeWidth="2.5" />
+          {chartData.map((item, index) => (
+            <circle
+              cx={getX(index)}
+              cy={getY(toSafeFinanceNumber(item.income))}
+              fill={statisticsChartTokens.dot}
+              key={`${item.label}-${index}`}
+              r="3"
+              stroke={statisticsChartTokens.revenue}
+              strokeWidth="2"
+            />
+          ))}
+          <text fill={statisticsChartTokens.tick} fontSize="9" fontWeight="600" textAnchor="start" x={padding.left} y={height - 7}>
+            {firstLabel}
+          </text>
+          <text fill={statisticsChartTokens.tick} fontSize="9" fontWeight="600" textAnchor="end" x={width - padding.right} y={height - 7}>
+            {lastLabel}
+          </text>
+        </svg>
+      </div>
+    );
+  }
+
   return (
     <div className="statistics-revenue-chart w-full h-[190px] select-none mt-2">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={190}>
         <AreaChart data={chartData} margin={{top: 10, right: 8, left: -22, bottom: 0}}>
           <defs>
             <linearGradient id="statisticsRevenueGradient" x1="0" x2="0" y1="0" y2="1">
@@ -905,14 +983,13 @@ function StatisticsPage({
   if (isMobile) {
     return (
       <section className="statistics-page statistics-page-mobile flex flex-col h-full w-full min-h-0 overflow-hidden bg-background text-foreground">
-        <PageHeader
-          collapsedMeta={`${toDisplayDate(startDate)} — ${toDisplayDate(endDate)}`}
-          collapsible={false}
-          className="statistics-hero-header"
-          description={null}
-          headerActions={exportButton}
-          title="Статистика"
-        />
+        <header className="statistics-mobile-header">
+          <h1>Статистика</h1>
+          <div className="statistics-mobile-header-actions">
+            {exportButton}
+            <PageNotificationsSlot />
+          </div>
+        </header>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 space-y-4 select-none pr-1 scrollbar-thin">
           <div className="flex flex-col gap-1 pb-3 border-b border-border/40 mt-1">
