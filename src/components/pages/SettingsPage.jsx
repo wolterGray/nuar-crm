@@ -551,18 +551,23 @@ function SettingsPage({
       itemActions: {
         "inactive-follow-up": [
           {
-            disabled: inactiveFollowUp?.status?.loading,
+            disabled:
+              !settings.inactiveFollowUpEnabled ||
+              inactiveFollowUp?.status?.loading,
             label: "Обновить",
             onClick: () => inactiveFollowUp?.refreshStatus?.(),
           },
           {
+            disabled: !settings.inactiveFollowUpEnabled,
             label: "Предпросмотр",
             onClick: () =>
               runIntegrationPreview("Follow-up", inactiveFollowUp?.runPreview),
           },
           {
             disabled:
-              inactiveFollowUp?.status?.loading || !inactiveFollowUp?.status?.configured,
+              !settings.inactiveFollowUpEnabled ||
+              inactiveFollowUp?.status?.loading ||
+              !inactiveFollowUp?.status?.configured,
             label: "Отправить",
             onClick: () => inactiveFollowUp?.runProcess?.(),
             primary: true,
@@ -570,17 +575,23 @@ function SettingsPage({
         ],
         "review-requests": [
           {
-            disabled: reviewRequests?.status?.loading,
+            disabled:
+              !settings.reviewRequestsEnabled ||
+              reviewRequests?.status?.loading,
             label: "Обновить",
             onClick: () => reviewRequests?.refreshStatus?.(),
           },
           {
+            disabled: !settings.reviewRequestsEnabled,
             label: "Предпросмотр",
             onClick: () =>
               runIntegrationPreview("Запросы отзывов", reviewRequests?.runPreview),
           },
           {
-            disabled: reviewRequests?.status?.loading || !reviewRequests?.status?.configured,
+            disabled:
+              !settings.reviewRequestsEnabled ||
+              reviewRequests?.status?.loading ||
+              !reviewRequests?.status?.configured,
             label: "Отправить",
             onClick: () => reviewRequests?.runProcess?.(),
             primary: true,
@@ -588,16 +599,22 @@ function SettingsPage({
         ],
         "sms-reminders": [
           {
-            disabled: smsReminders?.status?.loading,
+            disabled:
+              !settings.smsRemindersEnabled ||
+              smsReminders?.status?.loading,
             label: "Обновить",
             onClick: () => smsReminders?.refreshStatus?.(),
           },
           {
+            disabled: !settings.smsRemindersEnabled,
             label: "Предпросмотр",
             onClick: () => runIntegrationPreview("SMS reminders", smsReminders?.runPreview),
           },
           {
-            disabled: smsReminders?.status?.loading || !smsReminders?.status?.configured,
+            disabled:
+              !settings.smsRemindersEnabled ||
+              smsReminders?.status?.loading ||
+              !smsReminders?.status?.configured,
             label: "Отправить",
             onClick: () => smsReminders?.runProcess?.(),
             primary: true,
@@ -605,17 +622,23 @@ function SettingsPage({
         ],
         "telegram-digest": [
           {
-            disabled: telegramDigest?.status?.loading,
+            disabled:
+              !settings.telegramDigestEnabled ||
+              telegramDigest?.status?.loading,
             label: "Обновить",
             onClick: () => telegramDigest?.refreshStatus?.(),
           },
           {
+            disabled: !settings.telegramDigestEnabled,
             label: "Предпросмотр",
             onClick: () =>
               runIntegrationPreview("Telegram digest", telegramDigest?.runPreview),
           },
           {
-            disabled: telegramDigest?.status?.loading || !telegramDigest?.status?.configured,
+            disabled:
+              !settings.telegramDigestEnabled ||
+              telegramDigest?.status?.loading ||
+              !telegramDigest?.status?.configured,
             label: "Отправить",
             onClick: () => telegramDigest?.runSend?.(),
             primary: true,
@@ -631,6 +654,10 @@ function SettingsPage({
       reviewRequests,
       runIntegrationDiagnostics,
       runIntegrationPreview,
+      settings.inactiveFollowUpEnabled,
+      settings.reviewRequestsEnabled,
+      settings.smsRemindersEnabled,
+      settings.telegramDigestEnabled,
       smsReminders,
       telegramDigest,
     ],

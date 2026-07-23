@@ -88,6 +88,14 @@ export function useInactiveFollowUp({
       return null;
     }
 
+    if (!appSettings.inactiveFollowUpEnabled) {
+      pushNotification?.({
+        title: "Follow-up выключен",
+        message: "Включите follow-up в настройках, чтобы отправлять SMS.",
+      });
+      return {failed: [], scheduled: [], sent: [], skipped: true};
+    }
+
     processingRef.current = true;
     setStatus((current) => ({...current, loading: true}));
 
@@ -133,7 +141,14 @@ export function useInactiveFollowUp({
       processingRef.current = false;
       setStatus((current) => ({...current, loading: false}));
     }
-  }, [authSession, buildLocalDue, onRemoteSnapshotRefresh, pushNotification, refreshStatus]);
+  }, [
+    appSettings.inactiveFollowUpEnabled,
+    authSession,
+    buildLocalDue,
+    onRemoteSnapshotRefresh,
+    pushNotification,
+    refreshStatus,
+  ]);
 
   const runPreview = useCallback(async () => {
     if (!authSession) {

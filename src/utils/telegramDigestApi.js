@@ -17,7 +17,7 @@ export const previewTelegramDigest = () => Promise.resolve({message: null});
 
 export const sendTelegramDigest = async ({chatId, text} = {}) => {
   clearFunctionStatusCache(TELEGRAM_DIGEST_STATUS_CACHE_KEY);
-  return invokeTelegramDigest({chatId, text});
+  return invokeTelegramDigest({action: "process", chatId, text});
 };
 
 export const sendTelegramDigestTest = ({message}) =>

@@ -112,15 +112,20 @@ function SiteBookingPanel({
       const result = await testOwnerNotify();
       const telegramOk = result?.results?.telegram?.ok;
       const whatsappOk = result?.results?.whatsapp?.ok;
+      const telegramSkipped = result?.results?.telegram?.skipped;
+      const whatsappSkipped = result?.results?.whatsapp?.skipped;
       const telegramError = result?.results?.telegram?.error;
       const whatsappError = result?.results?.whatsapp?.error;
 
       if (telegramOk || whatsappOk) {
         pushNotification?.({
-          title: "Тест уведомления отправлен",
+          title:
+            telegramSkipped && whatsappSkipped
+              ? "Уведомления выключены"
+              : "Тест уведомления обработан",
           message: [
-            telegramOk ? "Telegram: ok" : null,
-            whatsappOk ? "WhatsApp/SMS: ok" : null,
+            telegramSkipped ? "Telegram: выкл" : telegramOk ? "Telegram: ok" : null,
+            whatsappSkipped ? "WhatsApp/SMS: выкл" : whatsappOk ? "WhatsApp/SMS: ok" : null,
           ]
             .filter(Boolean)
             .join(" · "),

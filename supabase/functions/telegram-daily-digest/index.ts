@@ -127,6 +127,7 @@ serve(async (request) => {
     const telegramTokenConfigured = isTelegramConfigured();
     const telegramChatIdConfigured = Boolean(chatId);
     const configured = isTelegramReady(appSettings);
+    const digestEnabled = appSettings.telegramDigestEnabled === true;
 
     if (action === "owner-notify-status") {
       return jsonResponse({
@@ -172,6 +173,7 @@ serve(async (request) => {
 
       return jsonResponse({
         configured,
+        enabled: digestEnabled,
         telegramChatIdConfigured,
         telegramTokenConfigured,
         lastRunAt: appSettings.telegramDigestLastRunAt ?? "",
@@ -190,6 +192,7 @@ serve(async (request) => {
 
       return jsonResponse({
         configured,
+        enabled: digestEnabled,
         result,
       });
     }
@@ -216,6 +219,7 @@ serve(async (request) => {
       return jsonResponse({
         action,
         configured,
+        enabled: digestEnabled,
         message,
         reason: decision.reason,
         sent: false,
@@ -227,6 +231,7 @@ serve(async (request) => {
       return jsonResponse({
         action,
         configured: false,
+        enabled: digestEnabled,
         error: "Telegram is not configured",
         sent: false,
         skipped: true,
@@ -239,6 +244,7 @@ serve(async (request) => {
       return jsonResponse({
         action,
         configured: true,
+        enabled: digestEnabled,
         error: result.error,
         sent: false,
         skipped: false,
@@ -269,6 +275,7 @@ serve(async (request) => {
     return jsonResponse({
       action,
       configured: true,
+      enabled: digestEnabled,
       message,
       messageId: result.messageId ?? "",
       reason: decision.reason,

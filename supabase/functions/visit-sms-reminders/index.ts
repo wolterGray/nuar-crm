@@ -16,6 +16,9 @@ type SnapshotPayload = {
 
 const createLogId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+const areSmsRemindersEnabled = (appSettings: Record<string, unknown>) =>
+  appSettings.smsRemindersEnabled === true;
+
 const authorizeCron = (request: Request, body: Record<string, unknown>) => {
   if (body.action !== "cron") {
     return false;
@@ -77,6 +80,7 @@ const processReminders = async ({
   payload: SnapshotPayload;
 }) => {
   const appSettings = payload.settings ?? {};
+  const enabled = areSmsRemindersEnabled(appSettings);
   const due = buildDueSmsReminders({
     appSettings,
     calendarEntries: payload.calendarEntries ?? [],
@@ -85,17 +89,33 @@ const processReminders = async ({
     smsReminderLog: payload.smsReminderLog ?? [],
   });
 
+  if (!enabled) {
+    return {
+      communicationLog: payload.communicationLog ?? [],
+      configured: isSmsConfigured(),
+      enabled: false,
+      failed: [],
+      processed: [],
+      sent: [],
+      skipped: [],
+      skippedReason: "sms_disabled",
+      smsReminderLog: payload.smsReminderLog ?? [],
+    };
+  }
+
   if (dryRun || !isSmsConfigured()) {
     return {
       communicationLog: payload.communicationLog ?? [],
+      configured: isSmsConfigured(),
+      enabled,
       processed: due.map((item) => ({
         ...item,
         status: item.status === "pending" ? "preview" : item.status,
       })),
       sent: [],
       skipped: due.filter((item) => item.status === "skipped"),
+      skippedReason: dryRun ? "" : "sms_not_configured",
       smsReminderLog: payload.smsReminderLog ?? [],
-      configured: isSmsConfigured(),
     };
   }
 
@@ -158,6 +178,8 @@ const processReminders = async ({
     skipped,
     smsReminderLog,
     configured: true,
+    enabled,
+    skippedReason: "",
   };
 };
 
@@ -199,6 +221,7 @@ serve(async (request) => {
 
       return jsonResponse({
         configured: isSmsConfigured(),
+        enabled: true,
         result,
       });
     }
@@ -207,6 +230,7 @@ serve(async (request) => {
     const {payload} = await loadSnapshotForUser(admin, userId);
 
     if (action === "status") {
+      const enabled = areSmsRemindersEnabled(payload.settings ?? {});
       const due = buildDueSmsReminders({
         appSettings: payload.settings ?? {},
         calendarEntries: payload.calendarEntries ?? [],
@@ -217,10 +241,12 @@ serve(async (request) => {
 
       return jsonResponse({
         configured: isSmsConfigured(),
-        dueCount: due.filter((item) => item.status === "pending").length,
+        dueCount: enabled ? due.filter((item) => item.status === "pending").length : 0,
+        enabled,
         lastRunAt: payload.settings?.smsRemindersLastRunAt ?? "",
         recentLog: (payload.smsReminderLog ?? []).slice(0, 10),
-        skippedCount: due.filter((item) => item.status === "skipped").length,
+        skippedCount: enabled ? due.filter((item) => item.status === "skipped").length : 0,
+        skippedReason: enabled ? "" : "sms_disabled",
       });
     }
 
@@ -244,9 +270,11 @@ serve(async (request) => {
     return jsonResponse({
       action,
       configured: result.configured,
+      enabled: result.enabled,
       sent: result.sent,
       failed: result.failed ?? [],
       skipped: result.skipped,
+      skippedReason: result.skippedReason,
       due: result.processed,
     });
   } catch (error) {

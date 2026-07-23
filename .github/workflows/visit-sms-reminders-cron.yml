@@ -50,14 +50,21 @@ jobs:
           fi
 
           if command -v jq >/dev/null 2>&1; then
+            enabled="$(echo "${body}" | jq -r '.enabled // true')"
             configured="$(echo "${body}" | jq -r '.configured // false')"
             sent_count="$(echo "${body}" | jq -r '(.sent // []) | length')"
             failed_count="$(echo "${body}" | jq -r '(.failed // []) | length')"
             due_count="$(echo "${body}" | jq -r '(.due // []) | length')"
+            skipped_reason="$(echo "${body}" | jq -r '.skippedReason // empty')"
+
+            if [ "${enabled}" != "true" ]; then
+              echo "SMS reminders skipped (${skipped_reason:-disabled}) - cron OK."
+              exit 0
+            fi
 
             if [ "${configured}" != "true" ]; then
-              echo "::error::SMSAPI_TOKEN is not configured in Supabase Edge Functions secrets."
-              exit 1
+              echo "SMS reminders skipped (${skipped_reason:-SMSAPI_TOKEN is not configured}) - cron OK."
+              exit 0
             fi
 
             if [ "${failed_count}" -gt 0 ]; then

@@ -23,6 +23,7 @@ export function useSmsReminders({
   const [status, setStatus] = useState({
     configured: false,
     dueCount: 0,
+    enabled: false,
     lastRunAt: "",
     loading: false,
     recentLog: [],
@@ -33,6 +34,13 @@ export function useSmsReminders({
 
   const refreshStatus = useCallback(async () => {
     if (!authSession || !appSettings.smsRemindersEnabled) {
+      setStatus((current) => ({
+        ...current,
+        dueCount: 0,
+        enabled: false,
+        loading: false,
+        skippedCount: 0,
+      }));
       return;
     }
 
@@ -43,6 +51,7 @@ export function useSmsReminders({
       setStatus({
         configured: Boolean(remote.configured),
         dueCount: Number(remote.dueCount) || 0,
+        enabled: remote.enabled !== false,
         lastRunAt: remote.lastRunAt || appSettings.smsRemindersLastRunAt || "",
         loading: false,
         recentLog: Array.isArray(remote.recentLog) ? remote.recentLog : [],
@@ -77,6 +86,14 @@ export function useSmsReminders({
   const runProcess = useCallback(async () => {
     if (processingRef.current || !authSession) {
       return null;
+    }
+
+    if (!appSettings.smsRemindersEnabled) {
+      pushNotification?.({
+        title: "SMS-напоминания выключены",
+        message: "Включите SMS-напоминания в настройках, чтобы отправлять их.",
+      });
+      return {failed: [], scheduled: [], sent: [], skipped: true};
     }
 
     processingRef.current = true;
@@ -149,6 +166,11 @@ export function useSmsReminders({
   ]);
 
   const runPreview = useCallback(async () => {
+    if (!appSettings.smsRemindersEnabled) {
+      setLocalDue([]);
+      return [];
+    }
+
     if (!authSession) {
       const due = buildDueSmsReminders({
         appSettings,

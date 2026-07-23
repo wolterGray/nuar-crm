@@ -80,6 +80,14 @@ export function useReviewRequests({
       return null;
     }
 
+    if (!appSettings.reviewRequestsEnabled) {
+      pushNotification?.({
+        title: "Запросы отзывов выключены",
+        message: "Включите запросы отзывов в настройках, чтобы отправлять SMS.",
+      });
+      return {failed: [], scheduled: [], sent: [], skipped: true};
+    }
+
     processingRef.current = true;
     setStatus((current) => ({...current, loading: true}));
 

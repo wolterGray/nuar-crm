@@ -55,6 +55,12 @@ const auditFunctionCall = (req, action, metadata) =>
 const firstNonEmpty = (...values) =>
   values.map((value) => String(value ?? '').trim()).find(Boolean) || '';
 
+const loadAppSettings = () =>
+  prisma.systemState
+    .findUnique({where: {key: 'appSettings'}})
+    .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
+    .catch(() => ({}));
+
 // Bulk SMS
 router.post('/bulk-sms', requireOwner, async (req, res) => {
   const { action, recipients, message, testNumber } = req.body;
@@ -129,10 +135,7 @@ router.post('/bulk-sms', requireOwner, async (req, res) => {
 router.post('/telegram-digest', requireOwner, async (req, res) => {
   const payload = req.body;
   if (payload?.action === 'status') {
-    const settings = await prisma.systemState
-      .findUnique({where: {key: 'appSettings'}})
-      .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
-      .catch(() => ({}));
+    const settings = await loadAppSettings();
     const telegramChatId = firstNonEmpty(
       settings.telegramChatId,
       process.env.TELEGRAM_CHAT_ID,
@@ -142,6 +145,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
     return res.json({
       success: true,
       configured: Boolean(process.env.TELEGRAM_BOT_TOKEN && telegramChatId),
+      enabled: settings.telegramDigestEnabled === true,
       lastRunAt: settings.telegramDigestLastRunAt || null,
       previewMessage: '',
       telegramChatIdConfigured: Boolean(telegramChatId),
@@ -150,10 +154,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
   }
 
   if (payload?.action === 'owner-notify-status') {
-    const settings = await prisma.systemState
-      .findUnique({where: {key: 'appSettings'}})
-      .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
-      .catch(() => ({}));
+    const settings = await loadAppSettings();
     const telegramChatId = firstNonEmpty(
       settings.telegramChatId,
       process.env.TELEGRAM_CHAT_ID,
@@ -176,18 +177,21 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
   }
 
   if (payload?.action === 'owner-notify-test') {
-    const settings = await prisma.systemState
-      .findUnique({where: {key: 'appSettings'}})
-      .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
-      .catch(() => ({}));
+    const settings = await loadAppSettings();
+    const telegramEnabled = settings.siteBookingNotifyTelegramEnabled !== false;
+    const whatsappEnabled = settings.siteBookingNotifyWhatsappEnabled !== false;
     const chatId = firstNonEmpty(
       settings.telegramChatId,
       process.env.TELEGRAM_CHAT_ID,
       process.env.TELEGRAM_OWNER_CHAT_ID,
     );
-    const telegram = chatId
+    const telegram = telegramEnabled && chatId
       ? await telegramDigest({chatId, text: 'NUAR CRM test'})
-      : {success: false, error: 'telegramChatId is required'};
+      : {
+          success: false,
+          error: telegramEnabled ? 'telegramChatId is required' : 'telegram disabled in settings',
+          skipped: !telegramEnabled,
+        };
 
     await auditFunctionCall(req, 'test owner notification', {
       result: summarizeResult(telegram),
@@ -195,25 +199,24 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
     });
 
     return res.json({
-      success: telegram.success,
+      success: telegram.success || telegram.skipped === true,
       results: {
         telegram: {
-          ok: telegram.success === true,
+          ok: telegram.success === true || telegram.skipped === true,
           error: telegram.error ?? '',
+          skipped: telegram.skipped === true,
         },
         whatsapp: {
-          ok: false,
+          ok: !whatsappEnabled,
           error: '',
+          skipped: !whatsappEnabled,
         },
       },
     });
   }
 
   if (payload?.action === 'test') {
-    const settings = await prisma.systemState
-      .findUnique({where: {key: 'appSettings'}})
-      .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
-      .catch(() => ({}));
+    const settings = await loadAppSettings();
     const chatId = firstNonEmpty(
       payload.chatId,
       settings.telegramChatId,
@@ -233,10 +236,18 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
     return res.json(result);
   }
 
-  const settings = await prisma.systemState
-    .findUnique({where: {key: 'appSettings'}})
-    .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
-    .catch(() => ({}));
+  const settings = await loadAppSettings();
+  if (payload?.action === 'process' && settings.telegramDigestEnabled !== true) {
+    return res.json({
+      success: true,
+      configured: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+      enabled: false,
+      reason: 'telegram_disabled',
+      sent: false,
+      skipped: true,
+    });
+  }
+
   const result = await telegramDigest({
     ...payload,
     chatId: firstNonEmpty(
@@ -257,6 +268,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
 // SMS Reminders (stub)
 router.post('/sms-reminders', requireOwner, async (req, res) => {
   const payload = req.body;
+  const settings = await loadAppSettings();
   if (payload?.action === 'status') {
     const dueCount = await prisma.notificationDelivery.count({
       where: {
@@ -270,7 +282,8 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
     return res.json({
       success: true,
       configured: Boolean(process.env.SMSAPI_TOKEN),
-      dueCount,
+      dueCount: settings.smsRemindersEnabled === true ? dueCount : 0,
+      enabled: settings.smsRemindersEnabled === true,
       lastRunAt: null,
       recentLog: [],
       skippedCount: 0,
@@ -291,6 +304,19 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
       testPhonePresent: Boolean(payload.phone),
     });
     return res.json(result);
+  }
+
+  if (payload?.action === 'process' && settings.smsRemindersEnabled !== true) {
+    return res.json({
+      success: true,
+      configured: Boolean(process.env.SMSAPI_TOKEN),
+      enabled: false,
+      failed: [],
+      reason: 'sms_disabled',
+      scheduled: [],
+      sent: [],
+      skipped: true,
+    });
   }
 
   const result = await smsReminders(payload);

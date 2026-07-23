@@ -25,6 +25,7 @@ export function useTelegramDigest({
 }) {
   const [status, setStatus] = useState({
     configured: false,
+    enabled: false,
     lastRunAt: "",
     loading: false,
     previewMessage: "",
@@ -57,7 +58,13 @@ export function useTelegramDigest({
   ]);
 
   const refreshStatus = useCallback(async () => {
-    if (!authSession) {
+    if (!authSession || !appSettings.telegramDigestEnabled) {
+      setStatus((current) => ({
+        ...current,
+        configured: false,
+        enabled: false,
+        loading: false,
+      }));
       return;
     }
 
@@ -67,6 +74,7 @@ export function useTelegramDigest({
       const remote = await fetchTelegramDigestStatus();
       setStatus({
         configured: Boolean(remote.configured),
+        enabled: remote.enabled !== false,
         lastRunAt:
           remote.lastRunAt || appSettings.telegramDigestLastRunAt || "",
         loading: false,
@@ -115,6 +123,14 @@ export function useTelegramDigest({
       return null;
     }
 
+    if (!appSettings.telegramDigestEnabled) {
+      pushNotification?.({
+        title: "Telegram-дайджест выключен",
+        message: "Включите Telegram-дайджест в настройках, чтобы отправлять сводку.",
+      });
+      return {sent: false, skipped: true, reason: "telegram_disabled"};
+    }
+
     processingRef.current = true;
     setStatus((current) => ({...current, loading: true}));
 
@@ -151,6 +167,7 @@ export function useTelegramDigest({
     }
   }, [
     appSettings.telegramChatId,
+    appSettings.telegramDigestEnabled,
     authSession,
     buildLocalPreview,
     onRemoteSnapshotRefresh,
@@ -159,7 +176,12 @@ export function useTelegramDigest({
   ]);
 
   useEffect(() => {
-    if (!ENABLE_AUTOMATION_STATUS || !authSession || !cloudHydrated) {
+    if (
+      !ENABLE_AUTOMATION_STATUS ||
+      !authSession ||
+      !cloudHydrated ||
+      !appSettings.telegramDigestEnabled
+    ) {
       return undefined;
     }
 
@@ -168,7 +190,7 @@ export function useTelegramDigest({
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [authSession, cloudHydrated, refreshStatus]);
+  }, [appSettings.telegramDigestEnabled, authSession, cloudHydrated, refreshStatus]);
 
   return {
     refreshStatus,

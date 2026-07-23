@@ -17,7 +17,7 @@ export const previewSmsReminders = () => Promise.resolve({due: []});
 
 export const processSmsReminders = async ({reminders = []} = {}) => {
   clearFunctionStatusCache(SMS_REMINDERS_STATUS_CACHE_KEY);
-  return invokeVisitSmsReminders({reminders});
+  return invokeVisitSmsReminders({action: "process", reminders});
 };
 
 export const sendSmsReminderTest = ({message, phone}) =>
