@@ -10,14 +10,18 @@ import {
   pluralizeVisits,
 } from "../../utils/loyaltyCardDesign.jsx";
 import {
+  awardLoyaltyGift,
   correctLoyaltyBalance,
   createClientLoyaltyCard,
   createLoyaltyRewardTemplate,
   deleteLoyaltyCard,
+  deleteLoyaltyGift,
   deleteLoyaltyRewardTemplate,
   earnLoyaltyStamp,
   fetchLoyaltyCards,
+  fetchLoyaltyClubDetails,
   fetchLoyaltyRewardTemplates,
+  redeemIssuedLoyaltyReward,
   redeemLoyaltyReward,
   reissueLoyaltyLink,
   updateLoyaltyRewardTemplate,
@@ -242,6 +246,13 @@ export default function ClubPage({clients = [], pushNotification}) {
   const [manualAdjustmentAmount, setManualAdjustmentAmount] = useState("1");
   const [manualAdjustmentDescription, setManualAdjustmentDescription] = useState("");
   const [manualAdjustmentSaving, setManualAdjustmentSaving] = useState(false);
+  const [adjustTab, setAdjustTab] = useState("stamps");
+  const [clientRewards, setClientRewards] = useState([]);
+  const [clientRewardsLoading, setClientRewardsLoading] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [customGiftName, setCustomGiftName] = useState("");
+  const [customGiftDescription, setCustomGiftDescription] = useState("");
+  const [giftMode, setGiftMode] = useState("earn");
   const [rewardTemplates, setRewardTemplates] = useState([]);
   const [rewardTemplatesLoading, setRewardTemplatesLoading] = useState(false);
   const [rewardTemplateSaving, setRewardTemplateSaving] = useState(false);
@@ -416,11 +427,41 @@ export default function ClubPage({clients = [], pushNotification}) {
     }));
   };
 
-  const openManualAdjustment = (card) => {
+  const refreshClientRewards = async (cardId) => {
+    setClientRewardsLoading(true);
+    try {
+      const response = await fetchLoyaltyClubDetails(cardId);
+      setClientRewards(response?.data?.rewards ?? []);
+    } catch (err) {
+      notify("Не удалось обновить список подарков", err.message || "");
+    } finally {
+      setClientRewardsLoading(false);
+    }
+  };
+
+  const openManualAdjustment = async (card) => {
     setManualAdjustmentCardId(card.id);
     setManualAdjustmentMode("earn");
     setManualAdjustmentAmount("1");
     setManualAdjustmentDescription("");
+    setAdjustTab("stamps");
+    setClientRewards([]);
+    setSelectedTemplateId("");
+    setCustomGiftName("");
+    setCustomGiftDescription("");
+    setGiftMode("earn");
+
+    loadRewardTemplates();
+
+    setClientRewardsLoading(true);
+    try {
+      const response = await fetchLoyaltyClubDetails(card.id);
+      setClientRewards(response?.data?.rewards ?? []);
+    } catch (err) {
+      notify("Не удалось получить подарки клиента", err.message || "");
+    } finally {
+      setClientRewardsLoading(false);
+    }
   };
 
   const closeManualAdjustment = () => {
@@ -429,18 +470,63 @@ export default function ClubPage({clients = [], pushNotification}) {
     setManualAdjustmentMode("earn");
     setManualAdjustmentAmount("1");
     setManualAdjustmentDescription("");
+    setAdjustTab("stamps");
+    setClientRewards([]);
+    setSelectedTemplateId("");
+    setCustomGiftName("");
+    setCustomGiftDescription("");
+    setGiftMode("earn");
+  };
+
+  const handleAwardGift = async () => {
+    if (!manualAdjustmentCard) return;
+    if (!customGiftName.trim()) {
+      notify("Укажите название подарка");
+      return;
+    }
+
+    setManualAdjustmentSaving(true);
+    try {
+      const payload = {
+        name: customGiftName.trim(),
+        description: customGiftDescription.trim(),
+        templateId: selectedTemplateId && selectedTemplateId !== "custom" ? Number(selectedTemplateId) : null,
+      };
+      await awardLoyaltyGift(manualAdjustmentCard.id, payload);
+      const savedClientName = manualAdjustmentCard.client?.name || "";
+      setManualAdjustmentCardId(null);
+      setAdjustTab("stamps");
+      setClientRewards([]);
+      setSelectedTemplateId("");
+      setCustomGiftName("");
+      setCustomGiftDescription("");
+      setGiftMode("earn");
+      notify("Подарок начислен", savedClientName);
+      await loadCards();
+    } catch (err) {
+      notify("Не удалось начислить подарок", err.message || "");
+    } finally {
+      setManualAdjustmentSaving(false);
+    }
   };
 
   const handleManualAdjustmentSubmit = async (event) => {
     event.preventDefault();
     if (!manualAdjustmentCard) return;
 
+    if (adjustTab === "gifts") {
+      if (giftMode === "earn") {
+        await handleAwardGift();
+      }
+      return;
+    }
+
     const rawAmount = Number(manualAdjustmentAmount);
     const units = Math.abs(Math.trunc(rawAmount));
     const description = manualAdjustmentDescription.trim();
 
     if (!Number.isInteger(rawAmount) || rawAmount < 1 || units < 1) {
-      notify("Укажите количество отметок", "Например 1 или 2");
+      notify("Укажите количество отметок", "Например 1 or 2");
       return;
     }
 
@@ -474,6 +560,12 @@ export default function ClubPage({clients = [], pushNotification}) {
       setManualAdjustmentMode("earn");
       setManualAdjustmentAmount("1");
       setManualAdjustmentDescription("");
+      setAdjustTab("stamps");
+      setClientRewards([]);
+      setSelectedTemplateId("");
+      setCustomGiftName("");
+      setCustomGiftDescription("");
+      setGiftMode("earn");
       notify(
         savedMode === "writeoff" ? "Отметки списаны" : "Отметки начислены",
         savedClientName,
@@ -1151,56 +1243,242 @@ export default function ClubPage({clients = [], pushNotification}) {
                 onClick={closeManualAdjustment}>
               </IconButton>
             </div>
-            <div className="club-adjust-mode" role="group" aria-label="Тип операции">
-              <Button
-                className={manualAdjustmentMode === "earn" ? "is-active" : ""}
-                disabled={manualAdjustmentSaving}
+
+            {/* Tabs for Stamps vs Gifts */}
+            <div className="club-adjust-tabs flex gap-2 border-b border-border-soft pb-2 mb-1" style={{ borderBottom: "1px solid var(--color-border-soft)", paddingBottom: "8px", marginBottom: "4px" }}>
+              <button
+                className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${adjustTab === "stamps" ? "is-active" : ""}`}
                 type="button"
-                variant="secondary"
-                onClick={() => setManualAdjustmentMode("earn")}>
-                Начислить
-              </Button>
-              <Button
-                className={manualAdjustmentMode === "writeoff" ? "is-active" : ""}
-                disabled={manualAdjustmentSaving}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  background: adjustTab === "stamps" ? "var(--color-primary)" : "transparent",
+                  color: adjustTab === "stamps" ? "var(--color-primary-text)" : "var(--color-text-muted)",
+                  border: 0,
+                  cursor: "pointer"
+                }}
+                onClick={() => setAdjustTab("stamps")}
+              >
+                Отметки
+              </button>
+              <button
+                className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${adjustTab === "gifts" ? "is-active" : ""}`}
                 type="button"
-                variant="secondary"
-                onClick={() => setManualAdjustmentMode("writeoff")}>
-                Списать
-              </Button>
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  background: adjustTab === "gifts" ? "var(--color-primary)" : "transparent",
+                  color: adjustTab === "gifts" ? "var(--color-primary-text)" : "var(--color-text-muted)",
+                  border: 0,
+                  cursor: "pointer"
+                }}
+                onClick={() => setAdjustTab("gifts")}
+              >
+                Подарки
+              </button>
             </div>
-            <label className="club-adjust-field">
-              <span>Количество отметок</span>
-              <Input
-                min="1"
-                step="1"
-                type="number"
-                value={manualAdjustmentAmount}
-                disabled={manualAdjustmentSaving}
-                onChange={(event) => setManualAdjustmentAmount(event.target.value)}
-              />
-            </label>
-            <label className="club-adjust-field">
-              <span>Причина</span>
-              <Textarea
-                placeholder="Например: компенсация, ручное исправление, возврат отметки"
-                rows={4}
-                value={manualAdjustmentDescription}
-                disabled={manualAdjustmentSaving}
-                onChange={(event) => setManualAdjustmentDescription(event.target.value)}
-              />
-            </label>
-            <div className="club-adjust-summary">
-              <span>Будет сохранено в истории операций</span>
-              <strong>{manualAdjustmentMode === "writeoff" ? "-" : "+"}{Math.abs(Number(manualAdjustmentAmount) || 0)}</strong>
-            </div>
+
+            {adjustTab === "stamps" ? (
+              <>
+                <div className="club-adjust-mode" role="group" aria-label="Тип операции">
+                  <Button
+                    className={manualAdjustmentMode === "earn" ? "is-active" : ""}
+                    disabled={manualAdjustmentSaving}
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setManualAdjustmentMode("earn")}>
+                    Начислить
+                  </Button>
+                  <Button
+                    className={manualAdjustmentMode === "writeoff" ? "is-active" : ""}
+                    disabled={manualAdjustmentSaving}
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setManualAdjustmentMode("writeoff")}>
+                    Списать
+                  </Button>
+                </div>
+                <label className="club-adjust-field">
+                  <span>Количество отметок</span>
+                  <Input
+                    min="1"
+                    step="1"
+                    type="number"
+                    value={manualAdjustmentAmount}
+                    disabled={manualAdjustmentSaving}
+                    onChange={(event) => setManualAdjustmentAmount(event.target.value)}
+                  />
+                </label>
+                <label className="club-adjust-field">
+                  <span>Причина</span>
+                  <Textarea
+                    placeholder="Например: компенсация, ручное исправление, возврат отметки"
+                    rows={4}
+                    value={manualAdjustmentDescription}
+                    disabled={manualAdjustmentSaving}
+                    onChange={(event) => setManualAdjustmentDescription(event.target.value)}
+                  />
+                </label>
+              </>
+            ) : (
+              <>
+                <div className="club-adjust-mode" role="group" aria-label="Тип операции с подарком">
+                  <Button
+                    className={giftMode === "earn" ? "is-active" : ""}
+                    disabled={manualAdjustmentSaving}
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setGiftMode("earn")}>
+                    Выдать подарок
+                  </Button>
+                  <Button
+                    className={giftMode === "writeoff" ? "is-active" : ""}
+                    disabled={manualAdjustmentSaving}
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setGiftMode("writeoff")}>
+                    Подарки клиента
+                  </Button>
+                </div>
+
+                {giftMode === "earn" ? (
+                  <>
+                    <label className="club-adjust-field">
+                      <span>Шаблон подарка</span>
+                      <Select
+                        value={selectedTemplateId}
+                        disabled={manualAdjustmentSaving}
+                        onChange={(event) => {
+                          const val = event.target.value;
+                          setSelectedTemplateId(val);
+                          if (val && val !== "custom") {
+                            const tpl = rewardTemplates.find(t => String(t.id) === String(val));
+                            setCustomGiftName(tpl?.name || "");
+                            setCustomGiftDescription(tpl?.description || "");
+                          } else {
+                            setCustomGiftName("");
+                            setCustomGiftDescription("");
+                          }
+                        }}
+                      >
+                        <option value="">Выберите шаблон...</option>
+                        {rewardTemplates.map((template) => (
+                          <option key={template.id} value={template.id}>
+                            {template.name} ({template.tier})
+                          </option>
+                        ))}
+                        <option value="custom">Свой подарок...</option>
+                      </Select>
+                    </label>
+                    <label className="club-adjust-field">
+                      <span>Название подарка</span>
+                      <Input
+                        type="text"
+                        value={customGiftName}
+                        disabled={manualAdjustmentSaving || (selectedTemplateId && selectedTemplateId !== "custom")}
+                        onChange={(event) => setCustomGiftName(event.target.value)}
+                        placeholder="Например: Массаж лица 30 мин"
+                      />
+                    </label>
+                    <label className="club-adjust-field">
+                      <span>Описание</span>
+                      <Textarea
+                        value={customGiftDescription}
+                        disabled={manualAdjustmentSaving || (selectedTemplateId && selectedTemplateId !== "custom")}
+                        onChange={(event) => setCustomGiftDescription(event.target.value)}
+                        placeholder="Дополнительные условия или детали подарка"
+                        rows={3}
+                      />
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    {clientRewardsLoading ? (
+                      <p className="text-center text-xs text-muted-foreground py-4" style={{ fontSize: "12px", color: "var(--color-text-muted)", textAlign: "center", padding: "16px 0" }}>Загрузка подарков...</p>
+                    ) : !clientRewards.filter(r => r.status === "available").length ? (
+                      <p className="text-center text-xs text-muted-foreground py-6" style={{ fontSize: "12px", color: "var(--color-text-muted)", textAlign: "center", padding: "24px 0" }}>У клиента нет доступных подарков</p>
+                    ) : (
+                      <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1" style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "220px", overflowY: "auto" }}>
+                        {clientRewards.filter(r => r.status === "available").map((reward) => (
+                          <div key={reward.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border-soft bg-card/40" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px", borderRadius: "8px", border: "1px solid var(--color-border-soft)", background: "rgba(255, 255, 255, 0.02)" }}>
+                            <div className="flex flex-col min-w-0 pr-2" style={{ display: "flex", flexDirection: "column", minWidth: 0, paddingRight: "8px" }}>
+                              <strong className="text-xs font-semibold text-foreground truncate" style={{ fontSize: "12px", fontWeight: "600", color: "var(--color-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{reward.name}</strong>
+                              {reward.description && <span className="text-[10px] text-muted-foreground truncate" style={{ fontSize: "10px", color: "var(--color-text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{reward.description}</span>}
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-shrink-0" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <Button
+                                size="xs"
+                                variant="subtle"
+                                type="button"
+                                style={{ padding: "4px 8px", fontSize: "11px" }}
+                                onClick={async () => {
+                                  if (!window.confirm(`Использовать подарок "${reward.name}"?`)) return;
+                                  setManualAdjustmentSaving(true);
+                                  try {
+                                    await redeemIssuedLoyaltyReward(reward.id);
+                                    notify("Подарок использован");
+                                    await refreshClientRewards(manualAdjustmentCard.id);
+                                    await loadCards();
+                                  } catch (err) {
+                                    notify("Не удалось использовать подарок", err.message || "");
+                                  } finally {
+                                    setManualAdjustmentSaving(false);
+                                  }
+                                }}
+                              >
+                                Списать
+                              </Button>
+                              <IconButton
+                                size="xs"
+                                variant="ghost"
+                                icon="trash"
+                                label="Удалить подарок"
+                                type="button"
+                                onClick={async () => {
+                                  if (!window.confirm(`Аннулировать/удалить подарок "${reward.name}"?`)) return;
+                                  setManualAdjustmentSaving(true);
+                                  try {
+                                    await deleteLoyaltyGift(reward.id);
+                                    notify("Подарок аннулирован");
+                                    await refreshClientRewards(manualAdjustmentCard.id);
+                                    await loadCards();
+                                  } catch (err) {
+                                    notify("Не удалось аннулировать подарок", err.message || "");
+                                  } finally {
+                                    setManualAdjustmentSaving(false);
+                                  }
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+
+            {adjustTab === "stamps" && (
+              <div className="club-adjust-summary">
+                <span>Будет сохранено в истории операций</span>
+                <strong>{manualAdjustmentMode === "writeoff" ? "-" : "+"}{Math.abs(Number(manualAdjustmentAmount) || 0)}</strong>
+              </div>
+            )}
+
             <div className="club-adjust-actions">
               <Button disabled={manualAdjustmentSaving} type="button" variant="secondary" onClick={closeManualAdjustment}>
-                Отмена
+                {adjustTab === "gifts" && giftMode === "writeoff" ? "Закрыть" : "Отмена"}
               </Button>
-              <Button disabled={manualAdjustmentSaving} type="submit" variant="primary">
-                {manualAdjustmentSaving ? "Сохраняю..." : "Сохранить"}
-              </Button>
+              {!(adjustTab === "gifts" && giftMode === "writeoff") && (
+                <Button disabled={manualAdjustmentSaving} type="submit" variant="primary">
+                  {manualAdjustmentSaving ? "Сохраняю..." : "Сохранить"}
+                </Button>
+              )}
             </div>
           </form>
         </div>

@@ -163,3 +163,16 @@ export const deleteLoyaltyCard = (cardId) =>
     label: "Delete loyalty card",
     method: "DELETE",
   });
+
+export const awardLoyaltyGift = (cardId, body) =>
+  jsonRequest(`/api/loyalty/cards/${cardId}/rewards`, {
+    body,
+    label: "Award loyalty gift",
+    method: "POST",
+  });
+
+export const deleteLoyaltyGift = (rewardId) =>
+  jsonRequest(`/api/loyalty/rewards/${rewardId}`, {
+    label: "Delete loyalty gift",
+    method: "DELETE",
+  });

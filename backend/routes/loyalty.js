@@ -533,6 +533,83 @@ router.post('/loyalty/cards/:cardId/correct', async (req, res) => {
   }
 });
 
+router.post('/loyalty/cards/:cardId/rewards', requireOwner, async (req, res) => {
+  try {
+    const cardId = parseId(req.params.cardId, 'cardId');
+    const templateId = req.body?.templateId ? parseId(req.body.templateId, 'templateId') : null;
+    const customName = req.body?.name ? String(req.body.name).trim() : null;
+    const customDescription = req.body?.description ? String(req.body.description).trim() : null;
+
+    const card = await prisma.loyaltyCard.findUnique({ where: { id: cardId } });
+    if (!card) throw validationError('Loyalty card not found', 404);
+
+    let name = customName;
+    let description = customDescription;
+    let tier = 'DEFAULT';
+    let rewardType = 'gift';
+    let durationMin = null;
+    let value = null;
+
+    if (templateId) {
+      const template = await prisma.loyaltyRewardTemplate.findUnique({ where: { id: templateId } });
+      if (!template) throw validationError('Reward template not found', 404);
+      name = template.name;
+      description = template.description;
+      tier = template.tier;
+      rewardType = template.rewardType || 'gift';
+      durationMin = template.durationMin;
+      value = template.value;
+    }
+
+    if (!name) {
+      throw validationError('Gift name is required');
+    }
+
+    const reward = await prisma.loyaltyReward.create({
+      data: {
+        clientId: card.clientId,
+        templateId,
+        snapshotTier: tier,
+        snapshotName: name,
+        snapshotDescription: description,
+        snapshotType: rewardType,
+        snapshotDurationMin: durationMin,
+        snapshotValue: value,
+        status: 'available',
+      }
+    });
+
+    await recordLoyaltyAudit(prisma, req, {
+      action: 'award loyalty gift',
+      after: serializeReward(reward),
+      entityId: cardId,
+    });
+
+    res.json({ success: true, data: serializeReward(reward) });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
+router.delete('/loyalty/rewards/:rewardId', requireOwner, async (req, res) => {
+  try {
+    const rewardId = parseId(req.params.rewardId, 'rewardId');
+    const reward = await prisma.loyaltyReward.delete({
+      where: { id: rewardId },
+    });
+
+    await recordLoyaltyAudit(prisma, req, {
+      action: 'delete loyalty gift',
+      before: serializeReward(reward),
+      entityId: rewardId,
+    });
+
+    res.json({ success: true, data: { reward: serializeReward(reward) } });
+  } catch (error) {
+    await sendRouteError(req, res, error);
+  }
+});
+
 router.post('/loyalty/cards/:cardId/reissue-link', async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
