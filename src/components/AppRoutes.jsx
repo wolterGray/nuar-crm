@@ -19,10 +19,7 @@ function SectionLoadingFallback() {
   return (
     <div className="section-loading-fallback" aria-live="polite" aria-busy="true">
       <span className="section-loading-spinner" aria-hidden="true" />
-      <div className="section-loading-copy">
-        <strong>Загружаем раздел</strong>
-        <small>Подготавливаем данные и интерфейс</small>
-      </div>
+      <span className="section-loading-label">Загружаем раздел</span>
     </div>
   );
 }
