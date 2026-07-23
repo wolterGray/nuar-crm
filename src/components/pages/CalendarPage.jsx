@@ -737,11 +737,11 @@ return (
                 }`}
                 style={{
                   gridTemplateColumns: isMobile
-                    ? `var(--calendar-time-axis-width, 36px) repeat(${calendarMasters.length}, minmax(0, 1fr))`
-                    : `58px repeat(${calendarMasters.length}, minmax(190px, 1fr))`,
+                    ? `var(--calendar-time-axis-width, 42px) repeat(${calendarMasters.length}, minmax(0, 1fr))`
+                    : `68px repeat(${calendarMasters.length}, minmax(190px, 1fr))`,
                   width: "100%",
                   "--master-count": calendarMasters.length,
-                  "--calendar-time-axis-width": isMobile ? "36px" : "58px",
+                  "--calendar-time-axis-width": isMobile ? "42px" : "68px",
                   "--mobile-master-width": "minmax(0, 1fr)",
                   "--schedule-height": `${gridHeight}px`,
                   "--schedule-hour-height": `${(60 / slotMinutes) * slotHeight}px`,
@@ -767,9 +767,11 @@ return (
                       ))}
                     </div>
                   ))}
-                  <strong>
-                    {String(endHour).padStart(2, "0")}:00
-                  </strong>
+                  <div className="relative">
+                    <strong>
+                      {String(endHour).padStart(2, "0")}:00
+                    </strong>
+                  </div>
                 </div>
                 {calendarMasters.map((employee, empIndex) => (
                   <div className="nuar-calendar-master min-w-0" key={employee.id}>
