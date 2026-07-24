@@ -6780,6 +6780,25 @@ button:focus-visible {
   background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
 }
 
+.operations-page .note-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px 10px;
+}
+
+.operations-page .note-row .operations-card-head {
+  display: contents;
+}
+
+.operations-page .note-row .operations-row-actions {
+  align-self: start;
+}
+
+.operations-page .note-row .note-meta {
+  grid-column: 2 / -1;
+}
+
 .operations-page .operations-card-icon {
   width: 30px;
   height: 30px;

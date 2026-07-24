@@ -58,7 +58,7 @@ function WaitlistPanel({
                 </div>
                 <RowActionsMenu
                   className="operations-row-actions"
-                  itemId={entry.id}
+                  itemId={`waitlist-${entry.id}`}
                   openMenuId={openMenuId}
                   setOpenMenuId={setOpenMenuId}
                   onDelete={() => onRemove?.(entry)}

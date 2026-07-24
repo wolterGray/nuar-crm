@@ -640,7 +640,7 @@ function OperationsPage({
                         </button>
                         <RowActionsMenu
                           className="operations-row-actions"
-                          itemId={task.id}
+                          itemId={`task-${task.id}`}
                           openMenuId={openItemMenuId}
                           setOpenMenuId={setOpenItemMenuId}
                           onDelete={() => requestOperationDelete(task)}
@@ -744,11 +744,11 @@ function OperationsPage({
                         type="button"
                         onClick={() => setViewingOperationItem(note)}>
                         <strong>{note.title}</strong>
-                        <span>{note.note || note.priority || "Мысль"}</span>
+                        <span>{note.priority || "Мысль"}</span>
                       </button>
                       <RowActionsMenu
                         className="operations-row-actions"
-                        itemId={note.id}
+                        itemId={`note-${note.id}`}
                         openMenuId={openItemMenuId}
                         setOpenMenuId={setOpenItemMenuId}
                         onDelete={() => requestOperationDelete(note)}
@@ -756,16 +756,15 @@ function OperationsPage({
                         onView={() => setViewingOperationItem(note)}
                       />
                     </div>
-                    <div className="note-meta">
-                      <span className="note-meta-item note-category-pill">
-                        {note.priority || "Мысль"}
-                      </span>
-                      {note.note && note.note !== note.title ? (
+                    {note.note &&
+                    note.note !== note.title &&
+                    note.note !== note.priority ? (
+                      <div className="note-meta">
                         <span className="note-meta-item note-meta-detail">
                           {note.note}
                         </span>
-                      ) : null}
-                    </div>
+                      </div>
+                    ) : null}
                   </article>
                 ))}
                 {notes.length === 0 && (
@@ -850,7 +849,7 @@ function OperationsPage({
                           onClick: () => openSupplyOrderUrl(item.orderUrl),
                         },
                       ]}
-                      itemId={item.id}
+                      itemId={`supply-${item.id}`}
                       openMenuId={openItemMenuId}
                       setOpenMenuId={setOpenItemMenuId}
                       onDelete={() => onDeleteSupply(item)}
