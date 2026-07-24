@@ -256,7 +256,7 @@ function OperationItemDetails({item, onClose, onComplete, onDelete, onEdit}) {
             <Button
               leftIcon="trash"
               size="sm"
-              variant="secondary"
+              variant="danger"
               onClick={() => {
                 onDelete?.(item);
                 onClose();

@@ -10,13 +10,13 @@
   --ds-space-6: 24px;
   --ds-radius-sm: 6px;
   --ds-radius-md: 8px;
-  --ds-radius-lg: 12px;
-  --ds-radius-xl: 16px;
+  --ds-radius-lg: var(--radius-card);
+  --ds-radius-xl: var(--radius-modal);
   --ds-control-height: 40px;
   --ds-control-height-sm: 36px;
   --ds-panel-padding: 18px;
   --ds-page-gap: 14px;
-  --ds-shadow-panel: var(--shadow-card);
+  --ds-shadow-panel: none;
   --ds-shadow-soft: var(--shadow-layer);
   --ds-transition-fast: 120ms ease;
   --ds-status-success-bg: var(--status-success-bg);
@@ -252,11 +252,23 @@
 .calendar-entry-form :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
 .new-client-panel :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
   min-height: var(--ds-control-height-sm);
+  border-color: var(--color-border-soft);
   border-radius: var(--ds-radius-md);
+  color: var(--color-text);
+  background: var(--color-field);
+  box-shadow: none;
   transition:
     border-color var(--ds-transition-fast),
     box-shadow var(--ds-transition-fast),
     background var(--ds-transition-fast);
+}
+
+.crm-shell :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):hover:not(:disabled),
+.employee-form :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):hover:not(:disabled),
+.calendar-entry-form :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):hover:not(:disabled),
+.new-client-panel :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):hover:not(:disabled) {
+  border-color: var(--color-border);
+  background: var(--color-field-hover);
 }
 
 .crm-shell :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus-visible,
@@ -274,6 +286,28 @@
   color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 600;
+}
+
+.crm-shell :is(
+  .panel:not(.schedule-panel),
+  .catalog-card,
+  .employee-card,
+  .client-card,
+  .clients-table-item,
+  .visit-mobile-card,
+  .payment-mobile-card,
+  .operations-panel,
+  .task-row,
+  .note-row,
+  .supply-row,
+  .package-card,
+  .settings-card,
+  .stat-card,
+  .metric-card
+) {
+  border-color: var(--color-border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: none;
 }
 
 /* ---- Tables ---- */

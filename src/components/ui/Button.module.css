@@ -12,13 +12,13 @@
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
+  box-shadow: none;
   transition:
     background var(--transition-ui),
     border-color var(--transition-ui),
     color var(--transition-ui),
     box-shadow var(--transition-ui),
-    opacity var(--transition-ui),
-    transform var(--transition-ui);
+    opacity var(--transition-ui);
 }
 
 .button:focus-visible {
@@ -27,7 +27,7 @@
 }
 
 .button:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: none;
 }
 
 .sm {
@@ -68,12 +68,13 @@
 }
 
 .secondary {
-  border-color: var(--button-secondary-bg-hover);
+  border-color: var(--color-border-soft);
   color: var(--button-secondary-text);
   background: var(--button-secondary-bg);
 }
 
 .secondary:hover:not(:disabled) {
+  border-color: var(--color-border);
   color: var(--color-text);
   background: var(--button-secondary-bg-hover);
 }

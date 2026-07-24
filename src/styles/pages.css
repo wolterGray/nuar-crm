@@ -6726,9 +6726,9 @@ button:focus-visible {
 
 .operations-page :is(.task-row, .note-row, .supply-row) {
   min-height: 58px;
-  padding: 10px 12px;
+  padding: 12px;
   border: 1px solid var(--operations-border-soft);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   background: var(--operations-panel-soft);
   box-shadow: none;
 }
@@ -6757,9 +6757,14 @@ button:focus-visible {
 .operations-page .task-row strong,
 .operations-page .supply-row strong,
 .operations-page .note-row strong {
+  display: -webkit-box;
+  overflow: hidden;
   color: var(--operations-text);
   font-size: 13px;
   font-weight: 650;
+  line-height: 1.28;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .operations-page .operations-card-body span,
@@ -6770,6 +6775,15 @@ button:focus-visible {
 .operations-page .supply-row-note {
   color: var(--operations-faint);
   font-size: 11px;
+}
+
+.operations-page .operations-card-body span {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 3px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .operations-page .operations-card-view {
@@ -6789,6 +6803,19 @@ button:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--operations-accent) 64%, transparent);
   outline-offset: 3px;
   border-radius: 6px;
+}
+
+.operations-page .operations-card-head {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.operations-page .operations-row-actions {
+  width: 34px;
+  height: 34px;
+  justify-self: end;
 }
 
 .operations-detail-backdrop {
@@ -6919,8 +6946,35 @@ button:focus-visible {
 
 .operations-page .task-priority {
   border: 1px solid var(--operations-border-soft);
+  border-radius: var(--radius-pill);
   color: var(--operations-muted);
   background: color-mix(in srgb, var(--operations-text) 4.5%, transparent);
+  font-style: normal;
+}
+
+.operations-page .task-meta,
+.operations-page .note-meta,
+.operations-page .supply-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.operations-page .task-meta :is(small, em),
+.operations-page .note-meta-item,
+.operations-page .supply-meta span {
+  display: inline-flex;
+  min-height: 22px;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--radius-pill);
+  color: var(--operations-muted);
+  background: color-mix(in srgb, var(--operations-text) 4%, transparent);
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1;
 }
 
 .operations-page .task-overdue,
@@ -6965,6 +7019,10 @@ button:focus-visible {
   color: var(--operations-muted);
   background: transparent;
   box-shadow: none;
+}
+
+.operations-page .operations-row-actions button {
+  border-color: transparent;
 }
 
 .operations-page .supply-actions button:hover,
@@ -7084,12 +7142,24 @@ button:focus-visible {
 @media (max-width: 768px) {
   .operations-detail-backdrop {
     align-items: end;
-    padding: 14px 10px calc(14px + env(safe-area-inset-bottom));
+    padding:
+      14px
+      10px
+      calc(
+        var(--mobile-page-content-bottom, 90px) +
+        env(safe-area-inset-bottom, 0px) +
+        12px
+      );
   }
 
   .operations-detail-dialog {
     width: 100%;
-    max-height: min(82dvh, 680px);
+    max-height: calc(
+      100dvh -
+      var(--mobile-page-content-bottom, 90px) -
+      env(safe-area-inset-bottom, 0px) -
+      32px
+    );
     border-radius: 18px 18px 12px 12px;
   }
 
