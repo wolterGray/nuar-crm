@@ -46,8 +46,8 @@ function SmsRemindersPanel({
       <div className="booksy-sync-status">
         <strong>
           {status.configured
-            ? "SMSAPI подключён на сервере"
-            : "Нужен SMSAPI_TOKEN на backend"}
+            ? "SMSAPI подключён на Hetzner"
+            : "Нужен SMSAPI_TOKEN в backend/.env"}
         </strong>
         <span>
           К отправке сейчас: {status.dueCount}
@@ -152,9 +152,10 @@ function SmsRemindersPanel({
       </Button>
 
       <p className="field-hint">
-        На Hetzner в `backend/.env` добавьте `SMSAPI_TOKEN` и опционально
-        `SMSAPI_SENDER`. Для отложенных SMS запустите cron/PM2 worker:
-        `npm run notifications:process-due` каждые 1-5 минут.
+        Для автоматических SMS нужен `SMSAPI_TOKEN` в `backend/.env` на Hetzner
+        и PM2/cron worker `npm run notifications:process-due`. Если главный
+        переключатель SMS выключен, worker пропустит очередь без отправки и без
+        failed-уведомлений.
       </p>
     </section>
   );

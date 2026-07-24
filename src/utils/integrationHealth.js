@@ -102,7 +102,7 @@ export const buildIntegrationHealth = ({
       status: telegramDigest?.status,
       statusChecks: [
         {
-          diagnostic: "Добавьте TELEGRAM_BOT_TOKEN в backend/.env на Hetzner и перезапустите PM2.",
+          diagnostic: "Добавьте TELEGRAM_BOT_TOKEN в backend/.env на Hetzner и перезапустите PM2. Если дайджест выключен, это не ошибка.",
           ok: telegramDigest?.status?.telegramTokenConfigured,
           message: "Нет TELEGRAM_BOT_TOKEN",
         },
@@ -121,11 +121,11 @@ export const buildIntegrationHealth = ({
       lastRunWarningHours: 2,
       name: "SMS reminders",
       okMessage: `${Number(smsReminders?.status?.dueCount) || 0} ожидают`,
-      okDiagnostic: "SMSAPI_TOKEN найден, можно обновить очередь или отправить due SMS.",
+      okDiagnostic: "SMSAPI_TOKEN найден, Hetzner worker может отправлять due SMS.",
       status: smsReminders?.status,
       statusChecks: [
         {
-          diagnostic: "Добавьте SMSAPI_TOKEN в backend/.env на Hetzner и перезапустите PM2.",
+          diagnostic: "Добавьте SMSAPI_TOKEN в backend/.env на Hetzner и перезапустите PM2. Если SMS выключены, worker пропустит очередь без ошибки.",
           ok: smsReminders?.status?.configured,
           message: "Нет SMSAPI_TOKEN",
         },
@@ -143,7 +143,7 @@ export const buildIntegrationHealth = ({
       status: reviewRequests?.status,
       statusChecks: [
         {
-          diagnostic: "Добавьте SMSAPI_TOKEN в backend/.env на Hetzner и перезапустите PM2.",
+          diagnostic: "Добавьте SMSAPI_TOKEN в backend/.env на Hetzner или выключите авто-SMS отзывов.",
           ok: reviewRequests?.status?.configured,
           message: "Нет SMSAPI_TOKEN",
         },
@@ -161,7 +161,7 @@ export const buildIntegrationHealth = ({
       status: inactiveFollowUp?.status,
       statusChecks: [
         {
-          diagnostic: "Добавьте SMSAPI_TOKEN в backend/.env на Hetzner и перезапустите PM2.",
+          diagnostic: "Добавьте SMSAPI_TOKEN в backend/.env на Hetzner или выключите inactive follow-up.",
           ok: inactiveFollowUp?.status?.configured,
           message: "Нет SMSAPI_TOKEN",
         },

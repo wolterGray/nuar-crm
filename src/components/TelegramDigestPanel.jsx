@@ -58,9 +58,9 @@ function TelegramDigestPanel({
       <div className="booksy-sync-status">
         <strong>
           {status.configured
-            ? "Telegram Bot подключён на сервере"
+            ? "Telegram Bot подключён на Hetzner"
             : !status.telegramTokenConfigured
-              ? "Нет TELEGRAM_BOT_TOKEN на backend"
+              ? "Нет TELEGRAM_BOT_TOKEN в backend/.env"
               : !status.telegramChatIdConfigured
                 ? "Укажите Chat ID в блоке «Уведомления о заявках с сайта»"
                 : "Telegram не настроен полностью"}
@@ -120,14 +120,13 @@ function TelegramDigestPanel({
       </Button>
 
       <p className="field-hint">
-        На Hetzner в `backend/.env` добавьте `TELEGRAM_BOT_TOKEN` и
-        `TELEGRAM_CHAT_ID`. Chat ID можно указать и в CRM в блоке
-        «Уведомления о заявках с сайта».
+        Добавьте `TELEGRAM_BOT_TOKEN` в `backend/.env` на Hetzner. Chat ID можно
+        указать в CRM в блоке «Уведомления о заявках с сайта».
       </p>
       <p className="field-hint">
-        Для автоотправки в 08:00 (Warsaw) нужен серверный cron/PM2 job,
-        который вызывает backend-эндпоинт дайджеста или отдельный worker.
-        В CRM включите «Telegram-дайджест» и сохраните настройки.
+        Для автоотправки в 08:00 (Warsaw) используйте PM2/cron на Hetzner,
+        который вызывает backend-эндпоинт дайджеста. Если дайджест выключен,
+        backend вернёт skipped без отправки.
       </p>
     </section>
   );

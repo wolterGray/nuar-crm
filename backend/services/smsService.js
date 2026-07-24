@@ -8,6 +8,18 @@ const prisma = new PrismaClient();
 const MAX_RECIPIENTS = 100;
 const MAX_DELIVERY_ATTEMPTS = 3;
 
+const loadAppSettings = async () =>
+  prisma.systemState
+    .findUnique({where: {key: 'appSettings'}})
+    .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
+    .catch(() => ({}));
+
+const isSmsAutomationEnabled = (settings = {}) =>
+  settings.smsRemindersEnabled === true ||
+  settings.reviewRequestsEnabled === true ||
+  settings.inactiveFollowUpEnabled === true ||
+  settings.smartNotificationAutoSmsEnabled === true;
+
 // Normalizes Polish phone numbers to E.164 format without '+' (e.g., 48xxxxxxxxx)
 const normalizePhone = (value) => {
   const digits = String(value ?? '').replace(/\D/g, '');
@@ -269,6 +281,26 @@ const sendBulkSms = async ({ recipients = [], message = '' }) => {
 };
 
 const processDueSmsDeliveries = async ({limit = 50} = {}) => {
+  const settings = await loadAppSettings();
+
+  if (!isSmsAutomationEnabled(settings)) {
+    return {
+      processed: 0,
+      results: [],
+      skipped: true,
+      skippedReason: 'sms_disabled',
+    };
+  }
+
+  if (!String(process.env.SMSAPI_TOKEN ?? '').trim()) {
+    return {
+      processed: 0,
+      results: [],
+      skipped: true,
+      skippedReason: 'sms_not_configured',
+    };
+  }
+
   const dueDeliveries = await prisma.notificationDelivery.findMany({
     where: {
       attempts: {lt: MAX_DELIVERY_ATTEMPTS},
@@ -294,6 +326,7 @@ const processDueSmsDeliveries = async ({limit = 50} = {}) => {
 
 module.exports = {
   MAX_RECIPIENTS,
+  isSmsAutomationEnabled,
   normalizePhone,
   processDueSmsDeliveries,
   queueSmsDelivery,

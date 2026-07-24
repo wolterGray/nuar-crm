@@ -1,4 +1,4 @@
-const {normalizePhone, queueSmsDelivery} = require('./smsService');
+const {isSmsAutomationEnabled, normalizePhone, queueSmsDelivery} = require('./smsService');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_SMS_COOLDOWN_DAYS = 7;
@@ -108,7 +108,9 @@ const planNotificationDeliveries = async (prisma, {commit = false, limit = 50, n
   const scheduledAt = quiet ? nextQuietHoursEnd(now, settings) : now;
   const cooldownDays = Math.max(1, Number(settings.notificationSmsCooldownDays) || DEFAULT_SMS_COOLDOWN_DAYS);
   const cooldownSince = new Date(now.getTime() - cooldownDays * DAY_MS);
-  const autoSmsEnabled = settings.smartNotificationAutoSmsEnabled === true;
+  const autoSmsEnabled =
+    settings.smartNotificationAutoSmsEnabled === true &&
+    isSmsAutomationEnabled(settings);
   const plans = [];
   const queued = [];
 

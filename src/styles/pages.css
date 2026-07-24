@@ -6433,7 +6433,7 @@ button:focus-visible {
     max-width: 100%;
     margin-inline: 0;
     padding: 0;
-    gap: 8px;
+    gap: 10px;
     overflow-x: hidden;
     overflow-y: auto;
   }
@@ -6442,7 +6442,7 @@ button:focus-visible {
     grid-template-columns: 1fr;
     min-width: 0;
     max-width: 100%;
-    gap: 10px;
+    gap: 8px;
   }
 
   .clients-page-header.clients-page-header {
@@ -6460,11 +6460,16 @@ button:focus-visible {
   .clients-page-search.crm-search-input-control {
     width: 100%;
     max-width: 100%;
+    min-height: 38px;
+    border-radius: 9px;
   }
 
-  .clients-page-add-button.clients-page-add-button {
+  .clients-page-add-button.clients-page-add-button,
+  .clients-page-quality-button {
     width: 100%;
     max-width: 100%;
+    min-height: 38px;
+    border-radius: 9px;
   }
 
   .clients-table-shell {
@@ -6473,14 +6478,51 @@ button:focus-visible {
   }
 
   .clients-table-list {
-    gap: 8px;
+    gap: 7px;
     padding: 0;
   }
 
   .clients-table-item {
+    min-height: 0;
+    padding: 12px;
     border: 1px solid var(--clients-border);
-    border-radius: 12px;
-    background: var(--clients-card);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--clients-card) 88%, transparent);
+  }
+
+  .clients-table-item .inline-flex.md\:hidden {
+    min-height: 20px;
+    padding: 0 7px;
+    border: 1px solid var(--clients-border);
+    border-radius: 7px;
+    color: var(--clients-muted);
+    background: color-mix(in srgb, var(--clients-text) 3%, transparent);
+    font-size: 10px;
+    font-weight: 650;
+  }
+
+  .clients-table-name {
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  .clients-table-phone {
+    font-size: 11px;
+  }
+
+  .client-status-pill {
+    min-height: 20px;
+    padding: 0 7px;
+    border-radius: 7px;
+    font-size: 10px;
+  }
+
+  .clients-table-item .client-action-write,
+  .clients-table-item .client-action-record {
+    min-height: 34px;
+    border-radius: 8px;
+    font-size: 11px;
+    box-shadow: none;
   }
 
   .settings-integration-switchboard {
@@ -9859,7 +9901,7 @@ button:focus-visible {
 .payments-page-mobile.nuar-payments .visits-panel-mobile {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-height: 0;
   padding: 0;
   border: 0 !important;
@@ -9908,7 +9950,7 @@ button:focus-visible {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   width: 100%;
   min-width: 0;
 }
@@ -9927,13 +9969,14 @@ button:focus-visible {
   min-height: 38px;
   padding-inline: 14px;
   font-size: 13px;
+  border-radius: 9px;
 }
 
 .payments-page-mobile.nuar-payments .payments-mobile-filters {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 7px;
+  gap: 6px;
   width: 100%;
   min-width: 0;
   margin: 0;
@@ -9941,10 +9984,10 @@ button:focus-visible {
 
 .payments-page-mobile.nuar-payments .payments-mobile-filters label {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
   color: var(--payments-muted);
-  font-size: 10px;
+  font-size: 9.5px;
   line-height: 1.2;
 }
 
@@ -9954,16 +9997,17 @@ button:focus-visible {
   display: block;
   width: 100%;
   min-width: 0;
-  height: 34px;
-  min-height: 34px;
+  height: 32px;
+  min-height: 32px;
   padding-inline: 9px;
-  font-size: 12px;
+  border-radius: 8px;
+  font-size: 11px;
   box-sizing: border-box;
 }
 
 .payments-page-mobile.nuar-payments .visits-mobile-list {
   display: grid;
-  gap: 8px;
+  gap: 7px;
   width: 100%;
   min-width: 0;
   margin-top: -2px;
@@ -9973,11 +10017,11 @@ button:focus-visible {
 .payments-page-mobile.nuar-payments .visits-mobile-empty {
   display: grid;
   gap: 5px;
-  min-height: 130px;
+  min-height: 104px;
   place-items: center;
   padding: 22px 16px;
   border: 1px solid var(--payments-border-soft, var(--color-border-soft));
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--payments-muted);
   text-align: center;
   background: var(--payments-panel);
@@ -9998,7 +10042,7 @@ button:focus-visible {
 .payments-page-mobile.nuar-payments .visits-mobile-list article {
   width: 100%;
   min-width: 0;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .nuar-payments .table-search-control.crm-search-input-control,
@@ -10819,4 +10863,235 @@ button:focus-visible {
 
 .theme-dark .payroll-status.is-open {
   background: color-mix(in srgb, var(--color-warning) 14%, transparent);
+}
+
+/* Mobile CRM visual alignment: Today and Club */
+@media (max-width: 768px) {
+  .today-board {
+    gap: 10px;
+    padding: 0;
+  }
+
+  .today-board-header {
+    min-height: 0;
+    padding-bottom: 12px;
+  }
+
+  .today-board-title {
+    gap: 3px;
+  }
+
+  .today-board-title h1 {
+    font-size: 21px;
+    line-height: 1.12;
+  }
+
+  .today-board-actions {
+    gap: 6px;
+  }
+
+  .today-control-button,
+  .today-button {
+    min-height: 36px;
+    border-radius: 8px;
+    font-size: 12px;
+    box-shadow: none;
+  }
+
+  .today-kpi-grid {
+    gap: 6px;
+  }
+
+  .today-kpi-card {
+    min-height: 58px;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--today-panel) 88%, var(--today-bg) 12%);
+  }
+
+  .today-kpi-card::after {
+    display: none;
+  }
+
+  .today-kpi-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+
+  .today-kpi-copy span {
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+
+  .today-kpi-copy strong {
+    font-size: 15px;
+  }
+
+  .today-kpi-copy small {
+    font-size: 10px;
+  }
+
+  .today-panel {
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--today-panel) 88%, var(--today-bg) 12%);
+  }
+
+  .today-panel-header {
+    min-height: 44px;
+    padding: 0 12px;
+  }
+
+  .today-panel-header h2 {
+    font-size: 14px;
+  }
+
+  .today-visit-line {
+    min-height: 58px;
+    padding: 9px 10px;
+  }
+
+  .today-side-row,
+  .today-task-line,
+  .today-alert-line,
+  .today-next-visit,
+  .today-review-row {
+    border-radius: 8px;
+  }
+
+  .today-side-list {
+    gap: 4px;
+  }
+
+  .today-empty-state {
+    min-height: 74px;
+    padding: 14px 12px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--today-panel-soft) 72%, transparent);
+  }
+
+  .club-page {
+    gap: 10px;
+  }
+
+  .club-page-header {
+    padding-bottom: 12px;
+  }
+
+  .club-summary {
+    gap: 6px;
+  }
+
+  .club-summary article {
+    grid-template-columns: 28px minmax(0, 1fr);
+    min-height: 50px;
+    gap: 8px;
+    padding: 8px 9px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--club-panel) 88%, var(--club-bg) 12%);
+  }
+
+  .club-summary-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--club-accent) 10%, transparent);
+  }
+
+  .club-summary span {
+    font-size: 9px;
+    line-height: 1.15;
+  }
+
+  .club-summary strong {
+    font-size: 15px;
+  }
+
+  .club-tabs {
+    gap: 5px;
+    padding: 3px;
+    border: 1px solid var(--club-border);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--club-card) 72%, transparent);
+  }
+
+  .club-tabs button {
+    min-height: 34px;
+    gap: 3px;
+    padding: 0 4px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 10px;
+  }
+
+  .club-tabs button.is-active,
+  .club-tabs button[aria-selected="true"] {
+    border-color: color-mix(in srgb, var(--club-accent) 42%, transparent);
+    background: color-mix(in srgb, var(--club-accent) 14%, transparent);
+  }
+
+  .club-tabs button em {
+    position: static;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 5px;
+    font-size: 9px;
+    transform: none;
+  }
+
+  .club-tabs button svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .club-create-panel,
+  .club-toolbar,
+  .club-physical-designs,
+  .club-card,
+  .club-details,
+  .club-empty,
+  .club-error,
+  .club-mobile-card {
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--club-panel) 88%, var(--club-bg) 12%);
+    box-shadow: none;
+  }
+
+  .club-mobile-card {
+    gap: 8px;
+    padding: 11px 12px;
+    margin-bottom: 7px;
+  }
+
+  .club-mobile-card-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .club-create-panel,
+  .club-toolbar {
+    gap: 8px;
+    padding: 11px 12px;
+  }
+
+  .club-create-panel select,
+  .club-toolbar select,
+  .club-card-settings select,
+  .club-search input {
+    height: 36px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .club-create-panel button,
+  .club-card-actions button,
+  .club-details-actions button,
+  .club-card-settings button,
+  .club-public-link :is(button, a) {
+    min-height: 36px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
 }

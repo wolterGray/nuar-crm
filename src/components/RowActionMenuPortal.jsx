@@ -95,7 +95,7 @@ export function RowActionsMenu({
           Редактировать
         </Button>
         <Button
-          className="row-action-menu-item"
+          className="danger row-action-menu-item"
           fullWidth
           leftIcon="trash"
           size="sm"

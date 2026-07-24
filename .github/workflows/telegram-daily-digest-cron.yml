@@ -1,9 +1,6 @@
 name: Telegram daily digest cron
 
 on:
-  schedule:
-    # Every hour UTC; edge function sends only in the 08:00 ±15 min Warsaw window.
-    - cron: "0 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -19,8 +16,8 @@ jobs:
           set -euo pipefail
 
           if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
-            echo "::error::Add GitHub repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (Settings → Secrets and variables → Actions)."
-            exit 1
+            echo "::warning::Telegram digest skipped: add GitHub repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
+            exit 0
           fi
 
           curl_args=(
@@ -37,7 +34,10 @@ jobs:
             curl_args+=(-H "x-cron-secret: ${TELEGRAM_DIGEST_CRON_SECRET}")
           fi
 
-          response="$(curl "${curl_args[@]}")"
+          if ! response="$(curl "${curl_args[@]}")"; then
+            echo "::warning::Telegram digest skipped: request failed."
+            exit 0
+          fi
           body="${response%$'\n'*}"
           status="${response##*$'\n'}"
 
@@ -45,15 +45,32 @@ jobs:
           echo "${body}"
 
           if [ "${status}" -lt 200 ] || [ "${status}" -ge 300 ]; then
-            echo "::error::telegram-daily-digest returned HTTP ${status}. Check Supabase secrets: CRM_OWNER_USER_ID, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID."
-            exit 1
+            echo "::warning::Telegram digest skipped: telegram-daily-digest returned HTTP ${status}."
+            exit 0
           fi
 
           if command -v jq >/dev/null 2>&1; then
+            if ! echo "${body}" | jq -e . >/dev/null 2>&1; then
+              echo "::warning::Telegram digest skipped: response is not valid JSON."
+              exit 0
+            fi
+
+            enabled="$(echo "${body}" | jq -r '.enabled // true')"
             skipped="$(echo "${body}" | jq -r '.skipped // false')"
+            configured="$(echo "${body}" | jq -r '.configured // false')"
             sent="$(echo "${body}" | jq -r '.sent // false')"
             reason="$(echo "${body}" | jq -r '.reason // empty')"
             error_msg="$(echo "${body}" | jq -r '.error // empty')"
+
+            if [ "${enabled}" != "true" ]; then
+              echo "Digest skipped (${reason:-disabled}) — cron OK."
+              exit 0
+            fi
+
+            if [ "${configured}" != "true" ]; then
+              echo "Digest skipped (${reason:-Telegram is not configured}) — cron OK."
+              exit 0
+            fi
 
             if [ "${skipped}" = "true" ]; then
               echo "Digest skipped (${reason:-no reason}) — cron OK."
@@ -66,8 +83,8 @@ jobs:
             fi
 
             if [ -n "${error_msg}" ]; then
-              echo "::error::Digest not sent: ${error_msg}"
-              exit 1
+              echo "::warning::Digest not sent: ${error_msg}"
+              exit 0
             fi
           fi
 

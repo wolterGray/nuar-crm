@@ -10,6 +10,8 @@ import {
 } from "./ui/index.js";
 
 function ConfirmDialog({ open, title, message, confirmLabel, onCancel, onConfirm }) {
+  const isDangerAction = /удал|отключ|сброс|очист/i.test(confirmLabel || title || "");
+
   return (
     <Dialog open={open}>
       <DialogBackdrop className="dialog-backdrop">
@@ -22,7 +24,10 @@ function ConfirmDialog({ open, title, message, confirmLabel, onCancel, onConfirm
           <Button className="secondary-button" variant="secondary" onClick={onCancel}>
             Отмена
           </Button>
-          <Button className="submit-button" variant="primary" onClick={onConfirm}>
+          <Button
+            className={`submit-button${isDangerAction ? " is-danger" : ""}`}
+            variant={isDangerAction ? "danger" : "primary"}
+            onClick={onConfirm}>
             {confirmLabel}
           </Button>
           </DialogFooter>

@@ -1,9 +1,6 @@
 name: Visit SMS reminders cron
 
 on:
-  schedule:
-    # Every 15 minutes; edge function sends only reminders inside 24h/2h windows.
-    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -53,6 +50,11 @@ jobs:
           fi
 
           if command -v jq >/dev/null 2>&1; then
+            if ! echo "${body}" | jq -e . >/dev/null 2>&1; then
+              echo "::warning::SMS reminders skipped: response is not valid JSON."
+              exit 0
+            fi
+
             enabled="$(echo "${body}" | jq -r '.enabled // true')"
             configured="$(echo "${body}" | jq -r '.configured // false')"
             sent_count="$(echo "${body}" | jq -r '(.sent // []) | length')"
