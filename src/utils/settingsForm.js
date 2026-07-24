@@ -22,6 +22,7 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
   certificateLowBalancePercent:
     Math.max(1, Number(form.get("certificateLowBalancePercent"))) ||
     defaultAppSettings.certificateLowBalancePercent,
+  smsEnabled: form.get("smsEnabled") === "on",
   smsRemindersEnabled: form.get("smsRemindersEnabled") === "on",
   smsReminder24hEnabled: form.get("smsReminder24hEnabled") === "on",
   smsReminder2hEnabled: form.get("smsReminder2hEnabled") === "on",
@@ -33,6 +34,7 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
     String(form.get("smsSenderName") ?? "").trim() ||
     defaultAppSettings.smsSenderName,
   smsRemindersLastRunAt: appSettings.smsRemindersLastRunAt ?? "",
+  telegramEnabled: form.get("telegramEnabled") === "on",
   telegramDigestEnabled: form.get("telegramDigestEnabled") === "on",
   telegramDigestTime:
     String(form.get("telegramDigestTime") ?? "").trim() ||

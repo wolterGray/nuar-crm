@@ -552,19 +552,23 @@ function SettingsPage({
         "inactive-follow-up": [
           {
             disabled:
+              settings.smsEnabled === false ||
               !settings.inactiveFollowUpEnabled ||
               inactiveFollowUp?.status?.loading,
             label: "Обновить",
             onClick: () => inactiveFollowUp?.refreshStatus?.(),
           },
           {
-            disabled: !settings.inactiveFollowUpEnabled,
+            disabled:
+              settings.smsEnabled === false ||
+              !settings.inactiveFollowUpEnabled,
             label: "Предпросмотр",
             onClick: () =>
               runIntegrationPreview("Follow-up", inactiveFollowUp?.runPreview),
           },
           {
             disabled:
+              settings.smsEnabled === false ||
               !settings.inactiveFollowUpEnabled ||
               inactiveFollowUp?.status?.loading ||
               !inactiveFollowUp?.status?.configured,
@@ -576,19 +580,23 @@ function SettingsPage({
         "review-requests": [
           {
             disabled:
+              settings.smsEnabled === false ||
               !settings.reviewRequestsEnabled ||
               reviewRequests?.status?.loading,
             label: "Обновить",
             onClick: () => reviewRequests?.refreshStatus?.(),
           },
           {
-            disabled: !settings.reviewRequestsEnabled,
+            disabled:
+              settings.smsEnabled === false ||
+              !settings.reviewRequestsEnabled,
             label: "Предпросмотр",
             onClick: () =>
               runIntegrationPreview("Запросы отзывов", reviewRequests?.runPreview),
           },
           {
             disabled:
+              settings.smsEnabled === false ||
               !settings.reviewRequestsEnabled ||
               reviewRequests?.status?.loading ||
               !reviewRequests?.status?.configured,
@@ -600,18 +608,22 @@ function SettingsPage({
         "sms-reminders": [
           {
             disabled:
+              settings.smsEnabled === false ||
               !settings.smsRemindersEnabled ||
               smsReminders?.status?.loading,
             label: "Обновить",
             onClick: () => smsReminders?.refreshStatus?.(),
           },
           {
-            disabled: !settings.smsRemindersEnabled,
+            disabled:
+              settings.smsEnabled === false ||
+              !settings.smsRemindersEnabled,
             label: "Предпросмотр",
             onClick: () => runIntegrationPreview("SMS reminders", smsReminders?.runPreview),
           },
           {
             disabled:
+              settings.smsEnabled === false ||
               !settings.smsRemindersEnabled ||
               smsReminders?.status?.loading ||
               !smsReminders?.status?.configured,
@@ -623,19 +635,23 @@ function SettingsPage({
         "telegram-digest": [
           {
             disabled:
+              settings.telegramEnabled === false ||
               !settings.telegramDigestEnabled ||
               telegramDigest?.status?.loading,
             label: "Обновить",
             onClick: () => telegramDigest?.refreshStatus?.(),
           },
           {
-            disabled: !settings.telegramDigestEnabled,
+            disabled:
+              settings.telegramEnabled === false ||
+              !settings.telegramDigestEnabled,
             label: "Предпросмотр",
             onClick: () =>
               runIntegrationPreview("Telegram digest", telegramDigest?.runPreview),
           },
           {
             disabled:
+              settings.telegramEnabled === false ||
               !settings.telegramDigestEnabled ||
               telegramDigest?.status?.loading ||
               !telegramDigest?.status?.configured,
@@ -656,7 +672,9 @@ function SettingsPage({
       runIntegrationPreview,
       settings.inactiveFollowUpEnabled,
       settings.reviewRequestsEnabled,
+      settings.smsEnabled,
       settings.smsRemindersEnabled,
+      settings.telegramEnabled,
       settings.telegramDigestEnabled,
       smsReminders,
       telegramDigest,
@@ -685,7 +703,7 @@ function SettingsPage({
       </article>
       <article>
         <span>SMS</span>
-        <strong>{settings.smsRemindersEnabled ? "Вкл" : "Выкл"}</strong>
+        <strong>{settings.smsEnabled ? "Вкл" : "Выкл"}</strong>
       </article>
       <article>
         <span>Gmail</span>
@@ -880,6 +898,12 @@ function SettingsPage({
                   Главный включатель SMS находится во вкладке «Интеграции».
                   Здесь настраиваются окна отправки и тексты.
                 </p>
+                <SettingsToggle defaultChecked={settings.smsRemindersEnabled ?? false} name="smsRemindersEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    SMS-напоминания о визитах
+                    <HintIcon>Включает автоматические SMS за 24 часа и за 2 часа до визита.</HintIcon>
+                  </span>
+                </SettingsToggle>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 pl-4 border-l border-border/40">
                   <SettingsToggle defaultChecked={settings.smsReminder24hEnabled ?? true} name="smsReminder24hEnabled">
                     <span className="labeled-hint-row labeled-hint-row-nowrap">Напоминание за 24 часа</span>
@@ -918,6 +942,12 @@ function SettingsPage({
                 <p className="field-hint m-0">
                   Главный включатель Telegram находится во вкладке «Интеграции».
                 </p>
+                <SettingsToggle defaultChecked={settings.telegramDigestEnabled ?? false} name="telegramDigestEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Telegram-дайджест
+                    <HintIcon>Ежедневная сводка владельцу в Telegram.</HintIcon>
+                  </span>
+                </SettingsToggle>
                 <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
                   <FieldLabel hint="Часовой пояс: Europe/Warsaw">
                     Время отправки дайджеста
@@ -1293,16 +1323,16 @@ function SettingsPage({
                 </div>
               </div>
               <div className="settings-integration-switchboard">
-                <SettingsToggle defaultChecked={settings.smsRemindersEnabled ?? false} name="smsRemindersEnabled">
+                <SettingsToggle defaultChecked={settings.smsEnabled ?? false} name="smsEnabled">
                   <span className="labeled-hint-row labeled-hint-row-nowrap">
-                    SMS-напоминания
-                    <HintIcon>Включает обработку SMS-напоминаний визитов и статус cron.</HintIcon>
+                    SMS
+                    <HintIcon>Главный выключатель SMS: напоминания, отзывы, follow-up и ручные отправки.</HintIcon>
                   </span>
                 </SettingsToggle>
-                <SettingsToggle defaultChecked={settings.telegramDigestEnabled ?? false} name="telegramDigestEnabled">
+                <SettingsToggle defaultChecked={settings.telegramEnabled ?? false} name="telegramEnabled">
                   <span className="labeled-hint-row labeled-hint-row-nowrap">
-                    Telegram-дайджест
-                    <HintIcon>Ежедневная сводка владельцу в Telegram.</HintIcon>
+                    Telegram
+                    <HintIcon>Главный выключатель Telegram: дайджест и уведомления владельцу.</HintIcon>
                   </span>
                 </SettingsToggle>
                 <SettingsToggle defaultChecked={settings.gmailBooksySyncEnabled ?? false} name="gmailBooksySyncEnabled">

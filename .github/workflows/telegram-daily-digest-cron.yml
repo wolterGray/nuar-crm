@@ -1,91 +1,13 @@
-name: Telegram daily digest cron
+name: Telegram daily digest cron (retired)
 
 on:
   workflow_dispatch:
 
 jobs:
-  trigger:
+  retired:
     runs-on: ubuntu-latest
     steps:
-      - name: Invoke telegram-daily-digest
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          TELEGRAM_DIGEST_CRON_SECRET: ${{ secrets.TELEGRAM_DIGEST_CRON_SECRET }}
+      - name: Supabase cron retired
         run: |
-          set -euo pipefail
-
-          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
-            echo "::warning::Telegram digest skipped: add GitHub repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
-            exit 0
-          fi
-
-          curl_args=(
-            -sS
-            -w "\n%{http_code}"
-            -X POST
-            "${SUPABASE_URL%/}/functions/v1/telegram-daily-digest"
-            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}"
-            -H "Content-Type: application/json"
-            -d '{"action":"cron"}'
-          )
-
-          if [ -n "${TELEGRAM_DIGEST_CRON_SECRET:-}" ]; then
-            curl_args+=(-H "x-cron-secret: ${TELEGRAM_DIGEST_CRON_SECRET}")
-          fi
-
-          if ! response="$(curl "${curl_args[@]}")"; then
-            echo "::warning::Telegram digest skipped: request failed."
-            exit 0
-          fi
-          body="${response%$'\n'*}"
-          status="${response##*$'\n'}"
-
-          echo "HTTP ${status}"
-          echo "${body}"
-
-          if [ "${status}" -lt 200 ] || [ "${status}" -ge 300 ]; then
-            echo "::warning::Telegram digest skipped: telegram-daily-digest returned HTTP ${status}."
-            exit 0
-          fi
-
-          if command -v jq >/dev/null 2>&1; then
-            if ! echo "${body}" | jq -e . >/dev/null 2>&1; then
-              echo "::warning::Telegram digest skipped: response is not valid JSON."
-              exit 0
-            fi
-
-            enabled="$(echo "${body}" | jq -r '.enabled // true')"
-            skipped="$(echo "${body}" | jq -r '.skipped // false')"
-            configured="$(echo "${body}" | jq -r '.configured // false')"
-            sent="$(echo "${body}" | jq -r '.sent // false')"
-            reason="$(echo "${body}" | jq -r '.reason // empty')"
-            error_msg="$(echo "${body}" | jq -r '.error // empty')"
-
-            if [ "${enabled}" != "true" ]; then
-              echo "Digest skipped (${reason:-disabled}) — cron OK."
-              exit 0
-            fi
-
-            if [ "${configured}" != "true" ]; then
-              echo "Digest skipped (${reason:-Telegram is not configured}) — cron OK."
-              exit 0
-            fi
-
-            if [ "${skipped}" = "true" ]; then
-              echo "Digest skipped (${reason:-no reason}) — cron OK."
-              exit 0
-            fi
-
-            if [ "${sent}" = "true" ]; then
-              echo "Digest sent (${reason:-scheduled})."
-              exit 0
-            fi
-
-            if [ -n "${error_msg}" ]; then
-              echo "::warning::Digest not sent: ${error_msg}"
-              exit 0
-            fi
-          fi
-
-          echo "Cron invocation completed."
+          echo "Retired: Supabase Edge Function cron is disabled."
+          echo "Telegram automation is controlled by the Hetzner backend and CRM settings."

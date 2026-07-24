@@ -10,6 +10,8 @@ import {
 const ENABLE_AUTOMATION_STATUS =
   import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
 
+const isTelegramChannelEnabled = (appSettings) => appSettings.telegramEnabled !== false;
+
 export function useTelegramDigest({
   appSettings,
   authSession,
@@ -58,7 +60,11 @@ export function useTelegramDigest({
   ]);
 
   const refreshStatus = useCallback(async () => {
-    if (!authSession || !appSettings.telegramDigestEnabled) {
+    if (
+      !authSession ||
+      !isTelegramChannelEnabled(appSettings) ||
+      !appSettings.telegramDigestEnabled
+    ) {
       setStatus((current) => ({
         ...current,
         configured: false,
@@ -123,7 +129,10 @@ export function useTelegramDigest({
       return null;
     }
 
-    if (!appSettings.telegramDigestEnabled) {
+    if (
+      !isTelegramChannelEnabled(appSettings) ||
+      !appSettings.telegramDigestEnabled
+    ) {
       pushNotification?.({
         title: "Telegram-дайджест выключен",
         message: "Включите Telegram-дайджест в настройках, чтобы отправлять сводку.",
@@ -166,8 +175,7 @@ export function useTelegramDigest({
       setStatus((current) => ({...current, loading: false}));
     }
   }, [
-    appSettings.telegramChatId,
-    appSettings.telegramDigestEnabled,
+    appSettings,
     authSession,
     buildLocalPreview,
     onRemoteSnapshotRefresh,
@@ -180,6 +188,7 @@ export function useTelegramDigest({
       !ENABLE_AUTOMATION_STATUS ||
       !authSession ||
       !cloudHydrated ||
+      !isTelegramChannelEnabled(appSettings) ||
       !appSettings.telegramDigestEnabled
     ) {
       return undefined;
@@ -190,7 +199,7 @@ export function useTelegramDigest({
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [appSettings.telegramDigestEnabled, authSession, cloudHydrated, refreshStatus]);
+  }, [appSettings, appSettings.telegramDigestEnabled, authSession, cloudHydrated, refreshStatus]);
 
   return {
     refreshStatus,

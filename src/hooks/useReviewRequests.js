@@ -9,6 +9,8 @@ import {buildDueReviewRequests} from "../utils/reviewRequests.js";
 const ENABLE_AUTOMATION_STATUS =
   import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
 
+const isSmsChannelEnabled = (appSettings) => appSettings.smsEnabled !== false;
+
 export function useReviewRequests({
   appSettings,
   authSession,
@@ -32,7 +34,11 @@ export function useReviewRequests({
   const processingRef = useRef(false);
 
   const refreshStatus = useCallback(async () => {
-    if (!authSession || !appSettings.reviewRequestsEnabled) {
+    if (
+      !authSession ||
+      !isSmsChannelEnabled(appSettings) ||
+      !appSettings.reviewRequestsEnabled
+    ) {
       return;
     }
 
@@ -80,7 +86,7 @@ export function useReviewRequests({
       return null;
     }
 
-    if (!appSettings.reviewRequestsEnabled) {
+    if (!isSmsChannelEnabled(appSettings) || !appSettings.reviewRequestsEnabled) {
       pushNotification?.({
         title: "Запросы отзывов выключены",
         message: "Включите запросы отзывов в настройках, чтобы отправлять SMS.",
@@ -194,6 +200,7 @@ export function useReviewRequests({
       !ENABLE_AUTOMATION_STATUS ||
       !authSession ||
       !cloudHydrated ||
+      !isSmsChannelEnabled(appSettings) ||
       !appSettings.reviewRequestsEnabled
     ) {
       return undefined;
@@ -205,6 +212,7 @@ export function useReviewRequests({
 
     return () => window.clearTimeout(timer);
   }, [
+    appSettings,
     appSettings.reviewRequestsEnabled,
     authSession,
     cloudHydrated,
@@ -215,6 +223,7 @@ export function useReviewRequests({
     if (
       !authSession ||
       !cloudHydrated ||
+      !isSmsChannelEnabled(appSettings) ||
       !appSettings.reviewRequestsEnabled ||
       appSettings.reviewRequestAutoProcessEnabled === false
     ) {
@@ -233,6 +242,7 @@ export function useReviewRequests({
   }, [
     appSettings.reviewRequestAutoProcessEnabled,
     appSettings.reviewRequestAutoProcessMinutes,
+    appSettings,
     appSettings.reviewRequestsEnabled,
     authSession,
     cloudHydrated,

@@ -1,83 +1,13 @@
-name: Visit SMS reminders cron
+name: Visit SMS reminders cron (retired)
 
 on:
   workflow_dispatch:
 
 jobs:
-  trigger:
+  retired:
     runs-on: ubuntu-latest
     steps:
-      - name: Invoke visit-sms-reminders
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          VISIT_SMS_CRON_SECRET: ${{ secrets.VISIT_SMS_CRON_SECRET }}
+      - name: Supabase cron retired
         run: |
-          set -euo pipefail
-
-          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
-            echo "::warning::SMS reminders skipped: add GitHub repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
-            exit 0
-          fi
-
-          curl_args=(
-            -sS
-            -w "\n%{http_code}"
-            -X POST
-            "${SUPABASE_URL%/}/functions/v1/visit-sms-reminders"
-            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}"
-            -H "Content-Type: application/json"
-            -d '{"action":"cron"}'
-          )
-
-          if [ -n "${VISIT_SMS_CRON_SECRET:-}" ]; then
-            curl_args+=(-H "x-cron-secret: ${VISIT_SMS_CRON_SECRET}")
-          fi
-
-          if ! response="$(curl "${curl_args[@]}")"; then
-            echo "::warning::SMS reminders skipped: visit-sms-reminders request failed."
-            exit 0
-          fi
-          body="${response%$'\n'*}"
-          status="${response##*$'\n'}"
-
-          echo "HTTP ${status}"
-          echo "${body}"
-
-          if [ "${status}" -lt 200 ] || [ "${status}" -ge 300 ]; then
-            echo "::warning::SMS reminders skipped: visit-sms-reminders returned HTTP ${status}."
-            exit 0
-          fi
-
-          if command -v jq >/dev/null 2>&1; then
-            if ! echo "${body}" | jq -e . >/dev/null 2>&1; then
-              echo "::warning::SMS reminders skipped: response is not valid JSON."
-              exit 0
-            fi
-
-            enabled="$(echo "${body}" | jq -r '.enabled // true')"
-            configured="$(echo "${body}" | jq -r '.configured // false')"
-            sent_count="$(echo "${body}" | jq -r '(.sent // []) | length')"
-            failed_count="$(echo "${body}" | jq -r '(.failed // []) | length')"
-            due_count="$(echo "${body}" | jq -r '(.due // []) | length')"
-            skipped_reason="$(echo "${body}" | jq -r '.skippedReason // empty')"
-
-            if [ "${enabled}" != "true" ]; then
-              echo "SMS reminders skipped (${skipped_reason:-disabled}) - cron OK."
-              exit 0
-            fi
-
-            if [ "${configured}" != "true" ]; then
-              echo "SMS reminders skipped (${skipped_reason:-SMSAPI_TOKEN is not configured}) - cron OK."
-              exit 0
-            fi
-
-            if [ "${failed_count}" -gt 0 ]; then
-              echo "::warning::SMS reminders had provider failures: ${failed_count} failed, ${sent_count} sent."
-              exit 0
-            fi
-
-            echo "SMS reminders processed: ${sent_count} sent, ${due_count} due."
-          fi
-
-          echo "Cron invocation completed."
+          echo "Retired: Supabase Edge Function cron is disabled."
+          echo "SMS automation is controlled by the Hetzner backend and CRM settings."

@@ -15,10 +15,11 @@ const loadAppSettings = async () =>
     .catch(() => ({}));
 
 const isSmsAutomationEnabled = (settings = {}) =>
-  settings.smsRemindersEnabled === true ||
-  settings.reviewRequestsEnabled === true ||
-  settings.inactiveFollowUpEnabled === true ||
-  settings.smartNotificationAutoSmsEnabled === true;
+  settings.smsEnabled !== false &&
+  (settings.smsRemindersEnabled === true ||
+    settings.reviewRequestsEnabled === true ||
+    settings.inactiveFollowUpEnabled === true ||
+    settings.smartNotificationAutoSmsEnabled === true);
 
 // Normalizes Polish phone numbers to E.164 format without '+' (e.g., 48xxxxxxxxx)
 const normalizePhone = (value) => {

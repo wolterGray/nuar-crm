@@ -91,9 +91,11 @@ export const buildIntegrationHealth = ({
   smsReminders,
   telegramDigest,
 }) => {
+  const smsEnabled = settings.smsEnabled !== false;
+  const telegramEnabled = settings.telegramEnabled !== false;
   const items = [
     buildAutomationHealth({
-      enabled: settings.telegramDigestEnabled,
+      enabled: telegramEnabled && settings.telegramDigestEnabled,
       id: "telegram-digest",
       lastRunWarningHours: 30,
       name: "Telegram digest",
@@ -116,7 +118,7 @@ export const buildIntegrationHealth = ({
       now,
     }),
     buildAutomationHealth({
-      enabled: settings.smsRemindersEnabled,
+      enabled: smsEnabled && settings.smsRemindersEnabled,
       id: "sms-reminders",
       lastRunWarningHours: 2,
       name: "SMS reminders",
@@ -134,7 +136,7 @@ export const buildIntegrationHealth = ({
       now,
     }),
     buildAutomationHealth({
-      enabled: settings.reviewRequestsEnabled,
+      enabled: smsEnabled && settings.reviewRequestsEnabled,
       id: "review-requests",
       lastRunWarningHours: 6,
       name: "Review requests",
@@ -152,7 +154,7 @@ export const buildIntegrationHealth = ({
       now,
     }),
     buildAutomationHealth({
-      enabled: settings.inactiveFollowUpEnabled,
+      enabled: smsEnabled && settings.inactiveFollowUpEnabled,
       id: "inactive-follow-up",
       lastRunWarningHours: 8,
       name: "Inactive follow-up",

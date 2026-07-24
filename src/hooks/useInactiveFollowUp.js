@@ -9,6 +9,8 @@ import {buildDueInactiveFollowUps} from "../utils/inactiveFollowUp.js";
 const ENABLE_AUTOMATION_STATUS =
   import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
 
+const isSmsChannelEnabled = (appSettings) => appSettings.smsEnabled !== false;
+
 export function useInactiveFollowUp({
   appSettings,
   authSession,
@@ -53,7 +55,11 @@ export function useInactiveFollowUp({
   );
 
   const refreshStatus = useCallback(async () => {
-    if (!authSession || !appSettings.inactiveFollowUpEnabled) {
+    if (
+      !authSession ||
+      !isSmsChannelEnabled(appSettings) ||
+      !appSettings.inactiveFollowUpEnabled
+    ) {
       return;
     }
 
@@ -88,7 +94,7 @@ export function useInactiveFollowUp({
       return null;
     }
 
-    if (!appSettings.inactiveFollowUpEnabled) {
+    if (!isSmsChannelEnabled(appSettings) || !appSettings.inactiveFollowUpEnabled) {
       pushNotification?.({
         title: "Follow-up выключен",
         message: "Включите follow-up в настройках, чтобы отправлять SMS.",
@@ -142,7 +148,7 @@ export function useInactiveFollowUp({
       setStatus((current) => ({...current, loading: false}));
     }
   }, [
-    appSettings.inactiveFollowUpEnabled,
+    appSettings,
     authSession,
     buildLocalDue,
     onRemoteSnapshotRefresh,
@@ -174,6 +180,7 @@ export function useInactiveFollowUp({
       !ENABLE_AUTOMATION_STATUS ||
       !authSession ||
       !cloudHydrated ||
+      !isSmsChannelEnabled(appSettings) ||
       !appSettings.inactiveFollowUpEnabled
     ) {
       return undefined;
@@ -185,6 +192,7 @@ export function useInactiveFollowUp({
 
     return () => window.clearTimeout(timer);
   }, [
+    appSettings,
     appSettings.inactiveFollowUpEnabled,
     authSession,
     cloudHydrated,
@@ -195,6 +203,7 @@ export function useInactiveFollowUp({
     if (
       !authSession ||
       !cloudHydrated ||
+      !isSmsChannelEnabled(appSettings) ||
       !appSettings.inactiveFollowUpEnabled ||
       appSettings.inactiveFollowUpAutoProcessEnabled === false
     ) {
@@ -213,6 +222,7 @@ export function useInactiveFollowUp({
   }, [
     appSettings.inactiveFollowUpAutoProcessEnabled,
     appSettings.inactiveFollowUpAutoProcessMinutes,
+    appSettings,
     appSettings.inactiveFollowUpEnabled,
     authSession,
     cloudHydrated,

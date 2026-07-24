@@ -9,6 +9,8 @@ import {buildDueSmsReminders} from "../utils/smsReminders.js";
 const ENABLE_AUTOMATION_STATUS =
   import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
 
+const isSmsChannelEnabled = (appSettings) => appSettings.smsEnabled !== false;
+
 export function useSmsReminders({
   appSettings,
   authSession,
@@ -33,7 +35,11 @@ export function useSmsReminders({
   const processingRef = useRef(false);
 
   const refreshStatus = useCallback(async () => {
-    if (!authSession || !appSettings.smsRemindersEnabled) {
+    if (
+      !authSession ||
+      !isSmsChannelEnabled(appSettings) ||
+      !appSettings.smsRemindersEnabled
+    ) {
       setStatus((current) => ({
         ...current,
         dueCount: 0,
@@ -88,7 +94,7 @@ export function useSmsReminders({
       return null;
     }
 
-    if (!appSettings.smsRemindersEnabled) {
+    if (!isSmsChannelEnabled(appSettings) || !appSettings.smsRemindersEnabled) {
       pushNotification?.({
         title: "SMS-напоминания выключены",
         message: "Включите SMS-напоминания в настройках, чтобы отправлять их.",
@@ -166,7 +172,7 @@ export function useSmsReminders({
   ]);
 
   const runPreview = useCallback(async () => {
-    if (!appSettings.smsRemindersEnabled) {
+    if (!isSmsChannelEnabled(appSettings) || !appSettings.smsRemindersEnabled) {
       setLocalDue([]);
       return [];
     }
@@ -213,6 +219,7 @@ export function useSmsReminders({
       !ENABLE_AUTOMATION_STATUS ||
       !authSession ||
       !cloudHydrated ||
+      !isSmsChannelEnabled(appSettings) ||
       !appSettings.smsRemindersEnabled
     ) {
       return undefined;
@@ -224,6 +231,7 @@ export function useSmsReminders({
 
     return () => window.clearTimeout(timer);
   }, [
+    appSettings,
     appSettings.smsRemindersEnabled,
     authSession,
     cloudHydrated,
@@ -234,6 +242,7 @@ export function useSmsReminders({
     if (
       !authSession ||
       !cloudHydrated ||
+      !isSmsChannelEnabled(appSettings) ||
       !appSettings.smsRemindersEnabled ||
       appSettings.smsAutoProcessEnabled === false
     ) {
@@ -252,6 +261,7 @@ export function useSmsReminders({
   }, [
     appSettings.smsAutoProcessEnabled,
     appSettings.smsAutoProcessMinutes,
+    appSettings,
     appSettings.smsRemindersEnabled,
     authSession,
     cloudHydrated,

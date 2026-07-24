@@ -61,11 +61,33 @@ const loadAppSettings = () =>
     .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
     .catch(() => ({}));
 
+const isSmsEnabled = (settings = {}) => settings.smsEnabled !== false;
+const isTelegramEnabled = (settings = {}) => settings.telegramEnabled !== false;
+
+const skippedIntegrationResponse = ({configured = false, enabled = false, reason}) => ({
+  success: true,
+  configured,
+  enabled,
+  failed: [],
+  reason,
+  scheduled: [],
+  sent: [],
+  skipped: true,
+});
+
 // Bulk SMS
 router.post('/bulk-sms', requireOwner, async (req, res) => {
   const { action, recipients, message, testNumber } = req.body;
 
   try {
+    const settings = await loadAppSettings();
+    if ((action === 'test' || action === 'send') && !isSmsEnabled(settings)) {
+      return res.json(skippedIntegrationResponse({
+        configured: Boolean(process.env.SMSAPI_TOKEN),
+        reason: 'sms_disabled',
+      }));
+    }
+
     if (action === 'test') {
       if (!testNumber) {
         throw functionValidationError('testNumber is required');
@@ -107,7 +129,8 @@ router.post('/bulk-sms', requireOwner, async (req, res) => {
       return res.json({
         success: true,
         configured: Boolean(process.env.SMSAPI_TOKEN),
-        dueCount,
+        dueCount: isSmsEnabled(settings) ? dueCount : 0,
+        enabled: isSmsEnabled(settings),
         maxRecipients: 100,
         status: 'idle',
       });
@@ -136,6 +159,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
   const payload = req.body;
   if (payload?.action === 'status') {
     const settings = await loadAppSettings();
+    const telegramEnabled = isTelegramEnabled(settings);
     const telegramChatId = firstNonEmpty(
       settings.telegramChatId,
       process.env.TELEGRAM_CHAT_ID,
@@ -145,7 +169,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
     return res.json({
       success: true,
       configured: Boolean(process.env.TELEGRAM_BOT_TOKEN && telegramChatId),
-      enabled: settings.telegramDigestEnabled === true,
+      enabled: telegramEnabled && settings.telegramDigestEnabled === true,
       lastRunAt: settings.telegramDigestLastRunAt || null,
       previewMessage: '',
       telegramChatIdConfigured: Boolean(telegramChatId),
@@ -155,6 +179,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
 
   if (payload?.action === 'owner-notify-status') {
     const settings = await loadAppSettings();
+    const telegramEnabled = isTelegramEnabled(settings);
     const telegramChatId = firstNonEmpty(
       settings.telegramChatId,
       process.env.TELEGRAM_CHAT_ID,
@@ -165,7 +190,8 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
     return res.json({
       success: true,
       ownerPhone,
-      siteBookingNotifyTelegramEnabled: settings.siteBookingNotifyTelegramEnabled !== false,
+      siteBookingNotifyTelegramEnabled:
+        telegramEnabled && settings.siteBookingNotifyTelegramEnabled !== false,
       siteBookingNotifyWhatsappEnabled: settings.siteBookingNotifyWhatsappEnabled !== false,
       smsConfigured: Boolean(process.env.SMSAPI_TOKEN),
       telegramChatId,
@@ -178,7 +204,8 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
 
   if (payload?.action === 'owner-notify-test') {
     const settings = await loadAppSettings();
-    const telegramEnabled = settings.siteBookingNotifyTelegramEnabled !== false;
+    const telegramEnabled =
+      isTelegramEnabled(settings) && settings.siteBookingNotifyTelegramEnabled !== false;
     const whatsappEnabled = settings.siteBookingNotifyWhatsappEnabled !== false;
     const chatId = firstNonEmpty(
       settings.telegramChatId,
@@ -215,11 +242,25 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
     });
   }
 
+  const digestSettings = await loadAppSettings();
+  const digestDisabled =
+    !isTelegramEnabled(digestSettings) || digestSettings.telegramDigestEnabled !== true;
+
   if (payload?.action === 'test') {
-    const settings = await loadAppSettings();
+    if (digestDisabled) {
+      return res.json({
+        success: true,
+        configured: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+        enabled: false,
+        reason: 'telegram_disabled',
+        sent: false,
+        skipped: true,
+      });
+    }
+
     const chatId = firstNonEmpty(
       payload.chatId,
-      settings.telegramChatId,
+      digestSettings.telegramChatId,
       process.env.TELEGRAM_CHAT_ID,
       process.env.TELEGRAM_OWNER_CHAT_ID,
     );
@@ -236,8 +277,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
     return res.json(result);
   }
 
-  const settings = await loadAppSettings();
-  if (payload?.action === 'process' && settings.telegramDigestEnabled !== true) {
+  if (digestDisabled) {
     return res.json({
       success: true,
       configured: Boolean(process.env.TELEGRAM_BOT_TOKEN),
@@ -252,7 +292,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
     ...payload,
     chatId: firstNonEmpty(
       payload?.chatId,
-      settings.telegramChatId,
+      digestSettings.telegramChatId,
       process.env.TELEGRAM_CHAT_ID,
       process.env.TELEGRAM_OWNER_CHAT_ID,
     ),
@@ -269,6 +309,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
 router.post('/sms-reminders', requireOwner, async (req, res) => {
   const payload = req.body;
   const settings = await loadAppSettings();
+  const smsEnabled = isSmsEnabled(settings);
   if (payload?.action === 'status') {
     const dueCount = await prisma.notificationDelivery.count({
       where: {
@@ -282,12 +323,19 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
     return res.json({
       success: true,
       configured: Boolean(process.env.SMSAPI_TOKEN),
-      dueCount: settings.smsRemindersEnabled === true ? dueCount : 0,
-      enabled: settings.smsRemindersEnabled === true,
+      dueCount: smsEnabled && settings.smsRemindersEnabled === true ? dueCount : 0,
+      enabled: smsEnabled && settings.smsRemindersEnabled === true,
       lastRunAt: null,
       recentLog: [],
       skippedCount: 0,
     });
+  }
+
+  if (!smsEnabled) {
+    return res.json(skippedIntegrationResponse({
+      configured: Boolean(process.env.SMSAPI_TOKEN),
+      reason: 'sms_disabled',
+    }));
   }
 
   if (payload?.action === 'test') {
@@ -306,7 +354,10 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
     return res.json(result);
   }
 
-  if (payload?.action === 'process' && settings.smsRemindersEnabled !== true) {
+  if (
+    payload?.action === 'process' &&
+    settings.smsRemindersEnabled !== true
+  ) {
     return res.json({
       success: true,
       configured: Boolean(process.env.SMSAPI_TOKEN),
@@ -357,6 +408,16 @@ router.post('/review-requests', requireOwner, async (req, res) => {
 // Booksy Sync (stub)
 router.post('/booksy-sync', requireOwner, async (req, res) => {
   const payload = req.body;
+  const settings = await loadAppSettings();
+  if (settings.gmailBooksySyncEnabled !== true) {
+    return res.json({
+      success: true,
+      enabled: false,
+      reason: 'gmail_booksy_sync_disabled',
+      skipped: true,
+    });
+  }
+
   const result = await booksySync(payload);
   await auditFunctionCall(req, 'run booksy sync', {
     payloadKeys: payload && typeof payload === 'object' ? Object.keys(payload) : [],
