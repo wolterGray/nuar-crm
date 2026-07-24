@@ -25,11 +25,13 @@ describe("settingsForm", () => {
       ["studioName", "NUAR"],
       ["ownerName", "Owner"],
       ["colorTheme", "slate"],
+      ["gmailBooksySyncEnabled", "on"],
       ["telegramDigestEnabled", "on"],
       ["telegramDigestTime", "08:00"],
     ]);
 
     expect(parseSettingsForm(form, appSettings, defaultAppSettings)).toMatchObject({
+      gmailBooksySyncEnabled: true,
       siteBookingNotifyTelegramEnabled: true,
       siteBookingNotifyWhatsappEnabled: true,
       telegramChatId: "123456789",

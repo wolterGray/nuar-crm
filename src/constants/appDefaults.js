@@ -130,6 +130,7 @@ export const defaultAppSettings = {
   workdayStart: "08:00",
   workdayEnd: "22:00",
   calendarSlotMinutes: 15,
+  gmailBooksySyncEnabled: false,
   gmailClientId: "",
 };
 

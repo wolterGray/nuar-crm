@@ -111,6 +111,7 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
   calendarSlotMinutes:
     Number(form.get("calendarSlotMinutes")) ||
     defaultAppSettings.calendarSlotMinutes,
+  gmailBooksySyncEnabled: form.get("gmailBooksySyncEnabled") === "on",
   gmailClientId: String(form.get("gmailClientId") ?? "").trim(),
 });
 

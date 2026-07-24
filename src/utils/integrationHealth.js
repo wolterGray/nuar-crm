@@ -169,16 +169,27 @@ export const buildIntegrationHealth = ({
       warningMessage: "Follow-up давно не запускался",
       now,
     }),
-    {
-      diagnostic: settings.gmailClientId
-        ? "Client ID задан. Подключение Gmail выполняется в Gmail OAuth блоке ниже."
-        : "Добавьте Google OAuth Client ID, чтобы CRM могла читать письма Booksy.",
-      id: "gmail-oauth",
-      lastRunLabel: settings.gmailClientId ? "Client ID задан" : "не настроено",
-      message: settings.gmailClientId ? "Gmail OAuth готов к настройке" : "Добавьте Google OAuth Client ID",
-      name: "Gmail / Booksy",
-      state: settings.gmailClientId ? "ok" : "warning",
-    },
+    settings.gmailBooksySyncEnabled
+      ? {
+          diagnostic: settings.gmailClientId
+            ? "Client ID задан. Подключение Gmail выполняется в Gmail OAuth блоке ниже."
+            : "Добавьте Google OAuth Client ID, чтобы CRM могла читать письма Booksy.",
+          id: "gmail-oauth",
+          lastRunLabel: settings.gmailClientId ? "Client ID задан" : "не настроено",
+          message: settings.gmailClientId
+            ? "Gmail OAuth готов к настройке"
+            : "Добавьте Google OAuth Client ID",
+          name: "Gmail / Booksy",
+          state: settings.gmailClientId ? "ok" : "warning",
+        }
+      : {
+          diagnostic: "Включите импорт Booksy/Gmail, когда захотите синхронизировать письма.",
+          id: "gmail-oauth",
+          lastRunLabel: "выключено",
+          message: "Импорт Booksy/Gmail выключен",
+          name: "Gmail / Booksy",
+          state: "off",
+        },
   ];
   const summary = items.reduce(
     (result, item) => ({

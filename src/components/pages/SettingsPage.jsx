@@ -688,6 +688,10 @@ function SettingsPage({
         <strong>{settings.smsRemindersEnabled ? "Вкл" : "Выкл"}</strong>
       </article>
       <article>
+        <span>Gmail</span>
+        <strong>{settings.gmailBooksySyncEnabled ? "Вкл" : "Выкл"}</strong>
+      </article>
+      <article>
         <span>Облако</span>
         <strong>{cloudKpiLabel}</strong>
       </article>
@@ -872,15 +876,10 @@ function SettingsPage({
               </SettingsMobileSection>
 
               <SettingsMobileSection isMobile={isMobile} title="SMS, отзывы и follow-up">
-                <SettingsToggle defaultChecked={settings.smsRemindersEnabled ?? false} name="smsRemindersEnabled">
-                  <span className="labeled-hint-row labeled-hint-row-nowrap">
-                    SMS-напоминания о визитах
-                    <HintIcon>
-                      Автоматически отправлять SMS за 24 часа и за 2 часа. Тексты — во
-                      вкладке «Шаблоны» (PL / RU / EN). Язык клиента — в карточке клиента.
-                    </HintIcon>
-                  </span>
-                </SettingsToggle>
+                <p className="field-hint m-0">
+                  Главный включатель SMS находится во вкладке «Интеграции».
+                  Здесь настраиваются окна отправки и тексты.
+                </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 pl-4 border-l border-border/40">
                   <SettingsToggle defaultChecked={settings.smsReminder24hEnabled ?? true} name="smsReminder24hEnabled">
                     <span className="labeled-hint-row labeled-hint-row-nowrap">Напоминание за 24 часа</span>
@@ -916,14 +915,9 @@ function SettingsPage({
                   </label>
                 </div>
                 <div className="border-t border-border-soft/60 my-2" />
-                <SettingsToggle defaultChecked={settings.telegramDigestEnabled ?? false} name="telegramDigestEnabled">
-                  <span className="labeled-hint-row labeled-hint-row-nowrap">
-                    Telegram-дайджест
-                    <HintIcon>
-                      Ежедневная сводка в Telegram владельцу салона.
-                    </HintIcon>
-                  </span>
-                </SettingsToggle>
+                <p className="field-hint m-0">
+                  Главный включатель Telegram находится во вкладке «Интеграции».
+                </p>
                 <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
                   <FieldLabel hint="Часовой пояс: Europe/Warsaw">
                     Время отправки дайджеста
@@ -1285,6 +1279,41 @@ function SettingsPage({
               "settings-integrations-tab flex flex-col gap-6",
               activeTab === "integrations" ? "flex" : "hidden"
             )}>
+            <Card className="settings-integration-card p-6 flex flex-col gap-4">
+              <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
+                <AppIcon name="power" size="md" className="text-accent" />
+                <div>
+                  <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
+                    Управление интеграциями
+                    <HintIcon>Единые включатели автоматизаций. Выключенная интеграция не считается ошибкой.</HintIcon>
+                  </h2>
+                  <p className="m-0 mt-1 text-text-muted text-xs">
+                    Включайте только те каналы, которые сейчас реально используются.
+                  </p>
+                </div>
+              </div>
+              <div className="settings-integration-switchboard">
+                <SettingsToggle defaultChecked={settings.smsRemindersEnabled ?? false} name="smsRemindersEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    SMS-напоминания
+                    <HintIcon>Включает обработку SMS-напоминаний визитов и статус cron.</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <SettingsToggle defaultChecked={settings.telegramDigestEnabled ?? false} name="telegramDigestEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Telegram-дайджест
+                    <HintIcon>Ежедневная сводка владельцу в Telegram.</HintIcon>
+                  </span>
+                </SettingsToggle>
+                <SettingsToggle defaultChecked={settings.gmailBooksySyncEnabled ?? false} name="gmailBooksySyncEnabled">
+                  <span className="labeled-hint-row labeled-hint-row-nowrap">
+                    Gmail / Booksy импорт
+                    <HintIcon>Разрешает CRM подключаться к Gmail и читать письма Booksy/фактуры.</HintIcon>
+                  </span>
+                </SettingsToggle>
+              </div>
+            </Card>
+
             <Card className="settings-integration-card p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3 border-b border-border-soft pb-4 mb-2">
                 <AppIcon name="activity" size="md" className="text-accent" />

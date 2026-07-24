@@ -6,6 +6,7 @@ describe("integrationHealth", () => {
     const report = buildIntegrationHealth({
       now: new Date("2026-06-23T10:00:00Z"),
       settings: {
+        gmailBooksySyncEnabled: true,
         gmailClientId: "client-id",
         smsRemindersEnabled: true,
         telegramDigestEnabled: true,
@@ -32,12 +33,16 @@ describe("integrationHealth", () => {
     expect(report.items.find((item) => item.id === "telegram-digest")?.state).toBe(
       "ok",
     );
+    expect(report.items.find((item) => item.id === "gmail-oauth")?.state).toBe(
+      "ok",
+    );
   });
 
   it("detects disabled and stale integrations", () => {
     const report = buildIntegrationHealth({
       now: new Date("2026-06-23T10:00:00Z"),
       settings: {
+        gmailBooksySyncEnabled: false,
         smsRemindersEnabled: true,
         telegramDigestEnabled: false,
       },
@@ -59,5 +64,21 @@ describe("integrationHealth", () => {
 
     expect(smsHealth?.state).toBe("warning");
     expect(smsHealth?.diagnostic).toContain("cron/PM2 worker");
+    expect(report.items.find((item) => item.id === "gmail-oauth")?.state).toBe(
+      "off",
+    );
+  });
+
+  it("warns when Gmail Booksy sync is enabled without Client ID", () => {
+    const report = buildIntegrationHealth({
+      settings: {
+        gmailBooksySyncEnabled: true,
+        gmailClientId: "",
+      },
+    });
+
+    expect(report.items.find((item) => item.id === "gmail-oauth")?.state).toBe(
+      "warning",
+    );
   });
 });

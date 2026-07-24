@@ -3207,6 +3207,27 @@ button:focus-visible {
   overflow-x: hidden !important;
 }
 
+.settings-integration-switchboard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-integration-switchboard .form-checkbox {
+  min-width: 0;
+  min-height: 62px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.06));
+  border-radius: 12px;
+  background: var(--color-field, rgba(255, 255, 255, 0.03));
+}
+
+.settings-integration-switchboard .form-checkbox-label {
+  min-width: 0;
+  line-height: 1.2;
+}
+
 .club-tabs button {
   position: relative;
   display: inline-flex;
@@ -6461,6 +6482,10 @@ button:focus-visible {
     border-radius: 12px;
     background: var(--clients-card);
   }
+
+  .settings-integration-switchboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 
@@ -6981,6 +7006,53 @@ button:focus-visible {
 .operations-page .quick-note-category-menu button.is-selected {
   color: var(--operations-text);
   background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
+}
+
+.operations-page .operations-task-center {
+  display: grid;
+  gap: 8px;
+}
+
+.operations-page .operations-task-filters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  padding: 3px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
+}
+
+.operations-page .operations-task-filters button {
+  min-width: 0;
+  min-height: 34px;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--operations-muted);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.1;
+  background: transparent;
+}
+
+.operations-page .operations-task-filters button.active {
+  border-color: color-mix(in srgb, var(--operations-accent) 42%, transparent);
+  color: var(--operations-text);
+  background: color-mix(in srgb, var(--operations-accent) 18%, transparent);
+}
+
+.operations-page .operations-task-filters button span {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  padding-inline: 5px;
+  border-radius: 999px;
+  color: var(--operations-text);
+  background: color-mix(in srgb, var(--operations-text) 7%, transparent);
+  font-size: 11px;
 }
 
 .operations-page .operations-empty {

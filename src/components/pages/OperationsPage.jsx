@@ -35,6 +35,13 @@ import {
 } from "../ui/index.js";
 
 const NOTE_CATEGORIES = ["Мысль", "Заказать", "Идея", "Личное"];
+const TASK_FILTERS = [
+  {id: "active", label: "Активные"},
+  {id: "overdue", label: "Просрочено"},
+  {id: "high", label: "Высокий"},
+  {id: "completed", label: "Готово"},
+  {id: "all", label: "Все"},
+];
 
 const getTaskStatusLabel = (task) => {
   if (task.status === "completed") return "Готово";
@@ -290,6 +297,7 @@ function OperationsPage({
   const [openItemMenuId, setOpenItemMenuId] = useState(null);
   const [activeMode, setActiveMode] = useState("tasks");
   const [mobileSection, setMobileSection] = useState("tasks");
+  const [taskFilter, setTaskFilter] = useState("active");
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
   const [isNoteCategoryOpen, setIsNoteCategoryOpen] = useState(false);
@@ -308,6 +316,34 @@ function OperationsPage({
   );
   const activeTasks = workTasks.filter((task) => task.status !== "completed");
   const completedTasks = workTasks.filter((task) => task.status === "completed");
+  const overdueTasks = workTasks.filter(
+    (task) => task.status !== "completed" && getTaskStatusLabel(task) === "Просрочено",
+  );
+  const highPriorityTasks = workTasks.filter(
+    (task) => task.status !== "completed" && task.priority === "Высокий",
+  );
+  const taskFilterCounts = {
+    active: activeTasks.length,
+    all: workTasks.length,
+    completed: completedTasks.length,
+    high: highPriorityTasks.length,
+    overdue: overdueTasks.length,
+  };
+  const visibleWorkTasks = useMemo(
+    () =>
+      sortedWorkTasks.filter((task) => {
+        if (taskFilter === "all") return true;
+        if (taskFilter === "completed") return task.status === "completed";
+        if (taskFilter === "high") {
+          return task.status !== "completed" && task.priority === "Высокий";
+        }
+        if (taskFilter === "overdue") {
+          return task.status !== "completed" && getTaskStatusLabel(task) === "Просрочено";
+        }
+        return task.status !== "completed";
+      }),
+    [sortedWorkTasks, taskFilter],
+  );
   const lowStockCount = supplies.filter(isSupplyLowStock).length;
   const activeWaitlistCount = waitlistEntries.filter(
     (entry) => entry.status === "active",
@@ -535,8 +571,27 @@ function OperationsPage({
 
                 setDraggedTask(null);
               }}>
+              <div className="operations-task-center">
+                <div className="operations-task-filters" aria-label="Фильтры задач">
+                  {TASK_FILTERS.map((filter) => (
+                    <Button
+                      className={taskFilter === filter.id ? "active" : ""}
+                      key={filter.id}
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        resetTransientOperationState();
+                        setTaskFilter(filter.id);
+                      }}>
+                      {filter.label}
+                      <span>{taskFilterCounts[filter.id] ?? 0}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
               <div className="operations-list">
-                {sortedWorkTasks.map((task) => {
+                {visibleWorkTasks.map((task) => {
                   const status = getTaskStatusLabel(task);
                   const isHighPriorityActive =
                     task.priority === "Высокий" && task.status !== "completed";
@@ -584,9 +639,11 @@ function OperationsPage({
                     </DraggableTaskRow>
                   );
                 })}
-                {workTasks.length === 0 && (
+                {workTasks.length === 0 ? (
                   <p className="operations-empty">Задач пока нет.</p>
-                )}
+                ) : visibleWorkTasks.length === 0 ? (
+                  <p className="operations-empty">В этом фильтре задач нет.</p>
+                ) : null}
               </div>
               <DragOverlay
                 dropAnimation={{duration: 180, easing: "ease"}}
@@ -681,9 +738,6 @@ function OperationsPage({
                       />
                     </div>
                     <div className="note-meta">
-                      <span className="note-meta-item">
-                        {note.priority || "Мысль"}
-                      </span>
                       <span className="note-meta-item note-category-pill">
                         {note.priority || "Мысль"}
                       </span>

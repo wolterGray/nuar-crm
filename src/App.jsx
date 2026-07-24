@@ -1813,6 +1813,7 @@ function App() {
     clientProfiles,
     createLocalId,
     employees,
+    enabled: appSettings.gmailBooksySyncEnabled === true,
     getCalendarServiceColor,
     gmailAccessToken: authSession?.provider_token ?? "",
     gmailClientId: appSettings.gmailClientId,

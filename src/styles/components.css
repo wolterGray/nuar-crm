@@ -829,6 +829,32 @@
     align-items: center !important;
     justify-self: end !important;
     margin-left: 0 !important;
+    overflow: visible !important;
+    padding-inline: 0 !important;
+  }
+
+  .mobile-page-container:not([data-mobile-page="calendar"]) :is(
+    .page-notifications-slot,
+    .client-alert-control,
+    .notification-trigger.client-alert-button
+  ) {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    overflow: visible !important;
+  }
+
+  .mobile-page-container:not([data-mobile-page="calendar"]) .notification-trigger.client-alert-button {
+    top: auto !important;
+    right: auto !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+
+  .mobile-page-container:not([data-mobile-page="calendar"]) .notification-trigger.client-alert-button b {
+    top: -3px !important;
+    right: -3px !important;
   }
 
   .mobile-page-container:not([data-mobile-page="calendar"]) .page-header-unified-actions,
@@ -5496,6 +5522,26 @@
     padding: 3px !important;
     border-radius: 8px !important;
     background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters {
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    overscroll-behavior-inline: contain !important;
+    scrollbar-width: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters button {
+    flex: 0 0 auto !important;
+    min-width: 104px !important;
+    min-height: 38px !important;
+    white-space: nowrap !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-page .add-visit-button,

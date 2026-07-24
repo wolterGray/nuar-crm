@@ -57,6 +57,7 @@ export function useBooksyGmailSync({
   clientProfiles,
   createLocalId,
   employees,
+  enabled = true,
   getCalendarServiceColor,
   gmailAccessToken = "",
   gmailClientId = "",
@@ -138,6 +139,17 @@ export function useBooksyGmailSync({
     let active = true;
 
     const init = async () => {
+      if (!enabled) {
+        setConnection(null);
+        setPendingEvents([]);
+        setParseErrors([]);
+        setIsLoading(false);
+        setLoadError("");
+        setUseServerSync(false);
+        refreshClientDashboard();
+        return;
+      }
+
       const serverReady = await areBooksyGmailFunctionsAvailable();
       if (!active) {
         return;
@@ -170,9 +182,18 @@ export function useBooksyGmailSync({
     return () => {
       active = false;
     };
-  }, [refreshClientDashboard]);
+  }, [enabled, refreshClientDashboard]);
 
   const connectGmail = useCallback(async () => {
+    if (!enabled) {
+      pushNotification({
+        title: "Booksy Gmail",
+        message: "Импорт Booksy/Gmail выключен в настройках интеграций.",
+        persist: false,
+      });
+      return;
+    }
+
     if (useServerSync) {
       try {
         const authUrl = await startBooksyGmailOAuth(window.location.href);
@@ -216,7 +237,7 @@ export function useBooksyGmailSync({
         "Укажите Google OAuth Client ID в настройках CRM или включите вход через Google.",
       persist: false,
     });
-  }, [gmailClientId, onGoogleLogin, pushNotification, useServerSync]);
+  }, [enabled, gmailClientId, onGoogleLogin, pushNotification, useServerSync]);
 
   const disconnectGmail = useCallback(async () => {
     if (useServerSync) {
@@ -243,6 +264,15 @@ export function useBooksyGmailSync({
   }, [pushNotification, refreshDashboard, useServerSync]);
 
   const syncNow = useCallback(async () => {
+    if (!enabled) {
+      pushNotification({
+        title: "Booksy Gmail Sync",
+        message: "Импорт Booksy/Gmail выключен в настройках интеграций.",
+        persist: false,
+      });
+      return;
+    }
+
     if (!isGmailConnected) {
       pushNotification({
         title: "Booksy Gmail",
@@ -342,6 +372,7 @@ export function useBooksyGmailSync({
     calendarEntries,
     clientProfiles,
     employees,
+    enabled,
     effectiveGmailToken,
     gmailClientId,
     isGmailConnected,
@@ -457,8 +488,9 @@ export function useBooksyGmailSync({
     syncNow,
     refreshDashboard,
     applyDecision,
-    isConfigured: Boolean(gmailClientId?.trim() || useServerSync),
+    isConfigured: enabled && Boolean(gmailClientId?.trim() || useServerSync),
     isGmailConnected,
+    isEnabled: enabled,
     useServerSync,
   };
 }
