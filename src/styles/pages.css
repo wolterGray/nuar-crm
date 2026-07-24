@@ -6412,7 +6412,7 @@ button:focus-visible {
     max-width: 100%;
     margin-inline: 0;
     padding: 0;
-    gap: var(--mobile-page-gap, 16px);
+    gap: 8px;
     overflow-x: hidden;
     overflow-y: auto;
   }
@@ -6422,6 +6422,11 @@ button:focus-visible {
     min-width: 0;
     max-width: 100%;
     gap: 10px;
+  }
+
+  .clients-page-header.clients-page-header {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   .clients-page-header,
@@ -6742,6 +6747,127 @@ button:focus-visible {
   font-size: 11px;
 }
 
+.operations-page .operations-card-view {
+  display: grid;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
+}
+
+.operations-page .operations-card-view:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--operations-accent) 64%, transparent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.operations-detail-backdrop {
+  z-index: 90;
+}
+
+.operations-detail-dialog {
+  display: flex;
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(78dvh, 620px);
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border-color: var(--operations-border);
+  border-radius: 14px;
+  color: var(--operations-text);
+  background: var(--operations-panel);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+.operations-detail-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--operations-border-soft);
+}
+
+.operations-detail-header span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--operations-faint);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.operations-detail-header h2 {
+  margin: 0;
+  color: var(--operations-text);
+  font-size: 20px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.operations-detail-body {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.operations-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.operations-detail-meta span {
+  padding: 5px 8px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 8px;
+  color: var(--operations-muted);
+  font-size: 11px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--operations-text) 4%, transparent);
+}
+
+.operations-detail-text {
+  padding: 12px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 10px;
+  background: var(--operations-panel-soft);
+}
+
+.operations-detail-text p {
+  margin: 0;
+  color: var(--operations-text);
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.operations-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--operations-border-soft);
+}
+
+.operations-detail-actions button {
+  min-height: 36px;
+}
+
+.operations-page .note-category-pill {
+  border-color: color-mix(in srgb, var(--operations-accent) 26%, transparent);
+  color: color-mix(in srgb, var(--operations-accent) 58%, var(--operations-text));
+  background: color-mix(in srgb, var(--operations-accent) 10%, transparent);
+}
+
 .operations-page .task-check {
   width: 18px;
   height: 18px;
@@ -6880,6 +7006,32 @@ button:focus-visible {
 
   .operations-page .operations-panel-waitlist {
     grid-area: waitlist;
+  }
+}
+
+@media (max-width: 768px) {
+  .operations-detail-backdrop {
+    align-items: end;
+    padding: 14px 10px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .operations-detail-dialog {
+    width: 100%;
+    max-height: min(82dvh, 680px);
+    border-radius: 18px 18px 12px 12px;
+  }
+
+  .operations-detail-header h2 {
+    font-size: 18px;
+  }
+
+  .operations-detail-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .operations-detail-actions button {
+    width: 100%;
   }
 }
 
@@ -9565,7 +9717,7 @@ button:focus-visible {
 .payments-page-mobile.nuar-payments .visits-panel-mobile {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-height: 0;
   padding: 0;
   border: 0 !important;
@@ -9669,9 +9821,10 @@ button:focus-visible {
 
 .payments-page-mobile.nuar-payments .visits-mobile-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   min-width: 0;
+  margin-top: -2px;
   padding-bottom: 8px;
 }
 

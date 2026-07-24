@@ -24,7 +24,15 @@ import {
   isSupplyLowStock,
 } from "../../utils/supplyStock.js";
 import {openSupplyOrderUrl} from "../../utils/supplyOrder.js";
-import {AppIcon, Button, IconButton, Input} from "../ui/index.js";
+import {
+  AppIcon,
+  Button,
+  Dialog,
+  DialogBackdrop,
+  DialogContent,
+  IconButton,
+  Input,
+} from "../ui/index.js";
 
 const NOTE_CATEGORIES = ["Мысль", "Заказать", "Идея", "Личное"];
 
@@ -172,6 +180,89 @@ function DraggableTaskRow({children, className, id, task}) {
   );
 }
 
+function OperationItemDetails({item, onClose, onComplete, onDelete, onEdit}) {
+  if (!item) {
+    return null;
+  }
+
+  const isNote = item.type === "note";
+  const status = isNote ? "" : getTaskStatusLabel(item);
+  const description = String(item.note ?? "").trim();
+
+  return (
+    <Dialog open={Boolean(item)}>
+      <DialogBackdrop
+        className="operations-detail-backdrop"
+        onClick={onClose}>
+        <DialogContent
+          aria-labelledby="operation-detail-title"
+          className="operations-detail-dialog"
+          role="dialog"
+          onClick={(event) => event.stopPropagation()}>
+          <header className="operations-detail-header">
+            <div>
+              <span>{isNote ? "Заметка" : "Задача"}</span>
+              <h2 id="operation-detail-title">{item.title}</h2>
+            </div>
+            <IconButton
+              aria-label="Закрыть"
+              icon="x"
+              size="sm"
+              title="Закрыть"
+              variant="ghost"
+              onClick={onClose}
+            />
+          </header>
+          <div className="operations-detail-body">
+            <div className="operations-detail-meta">
+              <span>{isNote ? item.priority || "Мысль" : item.priority}</span>
+              {!isNote ? <span>{item.dueDate || "Без срока"}</span> : null}
+              {!isNote ? <span>{status}</span> : null}
+            </div>
+            <section className="operations-detail-text">
+              <p>{description || "Без комментария"}</p>
+            </section>
+          </div>
+          <footer className="operations-detail-actions">
+            {!isNote && item.status !== "completed" ? (
+              <Button
+                leftIcon="check"
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  onComplete?.(item);
+                  onClose();
+                }}>
+                Выполнить
+              </Button>
+            ) : null}
+            <Button
+              leftIcon="edit"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                onEdit?.(item);
+                onClose();
+              }}>
+              Изменить
+            </Button>
+            <Button
+              leftIcon="trash"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                onDelete?.(item);
+                onClose();
+              }}>
+              Удалить
+            </Button>
+          </footer>
+        </DialogContent>
+      </DialogBackdrop>
+    </Dialog>
+  );
+}
+
 function OperationsPage({
   alertFocus,
   tasks,
@@ -202,6 +293,7 @@ function OperationsPage({
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
   const [isNoteCategoryOpen, setIsNoteCategoryOpen] = useState(false);
+  const [viewingOperationItem, setViewingOperationItem] = useState(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {activationConstraint: {distance: 6}}),
     useSensor(TouchSensor, {
@@ -237,6 +329,19 @@ function OperationsPage({
   const resetTransientOperationState = () => {
     setOpenItemMenuId(null);
     setIsNoteCategoryOpen(false);
+    setViewingOperationItem(null);
+  };
+
+  const openOperationEditor = (item) => {
+    setOpenItemMenuId(null);
+    setViewingOperationItem(null);
+    window.setTimeout(() => onEditTask(item), 0);
+  };
+
+  const requestOperationDelete = (item) => {
+    setOpenItemMenuId(null);
+    setViewingOperationItem(null);
+    window.setTimeout(() => onDeleteTask(item), 0);
   };
 
   const submitQuickNote = (event) => {
@@ -452,17 +557,21 @@ function OperationsPage({
                           variant="ghost"
                           onClick={() => onCompleteTask(task)}
                         />
-                        <div className="operations-card-body">
+                        <button
+                          className="operations-card-body operations-card-view"
+                          type="button"
+                          onClick={() => setViewingOperationItem(task)}>
                           <strong>{task.title}</strong>
                           <span>{task.note || "Без комментария"}</span>
-                        </div>
+                        </button>
                         <RowActionsMenu
                           className="operations-row-actions"
                           itemId={task.id}
                           openMenuId={openItemMenuId}
                           setOpenMenuId={setOpenItemMenuId}
-                          onDelete={() => onDeleteTask(task)}
-                          onEdit={() => onEditTask(task)}
+                          onDelete={() => requestOperationDelete(task)}
+                          onEdit={() => openOperationEditor(task)}
+                          onView={() => setViewingOperationItem(task)}
                         />
                       </div>
                       <div className="task-meta">
@@ -554,20 +663,28 @@ function OperationsPage({
                           <AppIcon name="stickyNote" size="sm" />
                         )}
                       </span>
-                      <div className="operations-card-body">
+                      <button
+                        className="operations-card-body operations-card-view"
+                        type="button"
+                        onClick={() => setViewingOperationItem(note)}>
                         <strong>{note.title}</strong>
-                      </div>
+                        <span>{note.note || note.priority || "Мысль"}</span>
+                      </button>
                       <RowActionsMenu
                         className="operations-row-actions"
                         itemId={note.id}
                         openMenuId={openItemMenuId}
                         setOpenMenuId={setOpenItemMenuId}
-                        onDelete={() => onDeleteTask(note)}
-                        onEdit={() => onEditTask(note)}
+                        onDelete={() => requestOperationDelete(note)}
+                        onEdit={() => openOperationEditor(note)}
+                        onView={() => setViewingOperationItem(note)}
                       />
                     </div>
                     <div className="note-meta">
                       <span className="note-meta-item">
+                        {note.priority || "Мысль"}
+                      </span>
+                      <span className="note-meta-item note-category-pill">
                         {note.priority || "Мысль"}
                       </span>
                       {note.note && note.note !== note.title ? (
@@ -722,6 +839,13 @@ function OperationsPage({
           />
         </section>
       </div>
+      <OperationItemDetails
+        item={viewingOperationItem}
+        onClose={() => setViewingOperationItem(null)}
+        onComplete={onCompleteTask}
+        onDelete={requestOperationDelete}
+        onEdit={openOperationEditor}
+      />
     </section>
   );
 }

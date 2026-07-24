@@ -36,6 +36,7 @@ export function RowActionsMenu({
   itemId,
   onDelete,
   onEdit,
+  onView,
   openMenuId,
   setOpenMenuId,
 }) {
@@ -44,6 +45,12 @@ export function RowActionsMenu({
     isOpen,
     setOpenMenuId,
   });
+  const runMenuAction = (event, action) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setOpenMenuId(null);
+    window.setTimeout(() => action?.(), 0);
+  };
 
   return (
     <div
@@ -65,6 +72,18 @@ export function RowActionsMenu({
         isOpen={isOpen}
         menuRef={menuRef}
         menuStyle={menuStyle}>
+        {onView ? (
+          <Button
+            className="row-action-menu-item"
+            fullWidth
+            leftIcon="eye"
+            size="sm"
+            type="button"
+            variant="ghost"
+            onPointerDown={(event) => runMenuAction(event, onView)}>
+            Посмотреть
+          </Button>
+        ) : null}
         <Button
           className="row-action-menu-item"
           fullWidth
@@ -72,10 +91,7 @@ export function RowActionsMenu({
           size="sm"
           type="button"
           variant="ghost"
-          onClick={() => {
-            setOpenMenuId(null);
-            onEdit();
-          }}>
+          onPointerDown={(event) => runMenuAction(event, onEdit)}>
           Редактировать
         </Button>
         <Button
@@ -85,10 +101,7 @@ export function RowActionsMenu({
           size="sm"
           type="button"
           variant="ghost"
-          onClick={() => {
-            setOpenMenuId(null);
-            onDelete();
-          }}>
+          onPointerDown={(event) => runMenuAction(event, onDelete)}>
           Удалить
         </Button>
       </RowActionMenuPortal>

@@ -5629,6 +5629,9 @@
     padding: 10px !important;
     border-radius: 8px !important;
     background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
+    position: relative !important;
+    z-index: 20 !important;
+    overflow: visible !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .quick-note-form > svg {
@@ -5642,6 +5645,18 @@
     min-width: 0 !important;
   }
 
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-mode-notes,
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-mode-notes .operations-list,
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-mode-notes .operations-notes,
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-category {
+    overflow: visible !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .quick-note-category {
+    position: relative !important;
+    z-index: 30 !important;
+  }
+
   .mobile-page-container[data-mobile-page="operations"] .quick-note-form input,
   .mobile-page-container[data-mobile-page="operations"] .quick-note-category-trigger {
     min-height: 48px !important;
@@ -5652,9 +5667,14 @@
   .mobile-page-container[data-mobile-page="operations"] .quick-note-category-menu {
     left: 0 !important;
     right: 0 !important;
+    top: calc(100% + 6px) !important;
+    bottom: auto !important;
     width: 100% !important;
     min-width: 0 !important;
+    max-height: min(260px, calc(100dvh - 220px)) !important;
+    overflow-y: auto !important;
     border-radius: 8px !important;
+    z-index: 90 !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-empty {
