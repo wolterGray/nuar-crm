@@ -7933,10 +7933,10 @@
   .mobile-page-container[data-mobile-page="operations"] .supply-row {
     display: grid !important;
     position: relative !important;
-    grid-template-columns: 22px minmax(0, 1fr) 46px 28px !important;
+    grid-template-columns: 22px minmax(0, 1fr) 88px !important;
     grid-template-areas:
-      "icon body badge menu"
-      "meta meta actions actions" !important;
+      "icon body menu"
+      "meta meta actions" !important;
     align-items: start !important;
     gap: 7px 5px !important;
   }
@@ -7979,6 +7979,7 @@
 
   .mobile-page-container[data-mobile-page="operations"] .operations-row-actions {
     grid-area: menu !important;
+    justify-self: end !important;
     width: 28px !important;
     height: 28px !important;
     min-width: 28px !important;
@@ -8012,13 +8013,11 @@
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-stock-badge {
-    grid-area: badge !important;
-    position: static !important;
-    inset: auto !important;
-    max-width: 46px !important;
+    position: absolute !important;
+    top: 16px !important;
+    right: 38px !important;
+    max-width: 58px !important;
     min-height: 15px !important;
-    align-self: center !important;
-    justify-self: end !important;
     padding: 0 4px !important;
     border-radius: 6px !important;
     font-size: 7.5px !important;
@@ -8034,6 +8033,7 @@
     grid-template-columns: minmax(0, 1fr) minmax(62px, auto) !important;
     gap: 5px !important;
     width: 100% !important;
+    min-width: 0 !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-meta-item {
@@ -8057,29 +8057,18 @@
 
   .mobile-page-container[data-mobile-page="operations"] .supply-actions {
     grid-area: actions !important;
-    grid-template-columns: 28px 28px 28px !important;
+    grid-template-columns: 28px 28px !important;
     gap: 4px !important;
     justify-content: end !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .supply-actions button,
-  .mobile-page-container[data-mobile-page="operations"] .supply-order-button {
+  .mobile-page-container[data-mobile-page="operations"] .supply-actions button {
     min-height: 28px !important;
     border-radius: 7px !important;
     font-size: 11px !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .supply-order-button {
-    width: 28px !important;
-    min-width: 28px !important;
-    padding: 0 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-order-button > span {
-    display: none !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-actions > button:not(.supply-order-button) {
+  .mobile-page-container[data-mobile-page="operations"] .supply-actions > button {
     width: 28px !important;
     min-width: 28px !important;
     padding: 0 !important;

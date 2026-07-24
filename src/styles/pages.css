@@ -7065,7 +7065,6 @@ button:focus-visible {
 }
 
 .operations-page .supply-actions button,
-.operations-page .supply-order-button,
 .operations-page .operations-row-actions button {
   min-height: 30px;
   border: 1px solid var(--operations-border);
@@ -7080,7 +7079,6 @@ button:focus-visible {
 }
 
 .operations-page .supply-actions button:hover,
-.operations-page .supply-order-button:hover,
 .operations-page .operations-row-actions button:hover {
   color: var(--operations-text);
   background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
@@ -7276,14 +7274,13 @@ button:focus-visible {
 .operations-page .operations-panel-supplies .supply-actions {
   display: grid;
   grid-area: actions;
-  grid-template-columns: minmax(96px, auto) 30px 30px;
+  grid-template-columns: 30px 30px;
   gap: 6px;
   align-items: center;
   justify-content: end;
 }
 
-.operations-page .operations-panel-supplies .supply-actions button,
-.operations-page .operations-panel-supplies .supply-order-button {
+.operations-page .operations-panel-supplies .supply-actions button {
   min-height: 30px;
   border-radius: 8px;
   font-size: 11px;

@@ -33,6 +33,7 @@ export default function RowActionMenuPortal({children, isOpen, menuRef, menuStyl
 
 export function RowActionsMenu({
   className = "",
+  extraActions = [],
   itemId,
   onDelete,
   onEdit,
@@ -84,6 +85,21 @@ export function RowActionsMenu({
             Посмотреть
           </Button>
         ) : null}
+        {extraActions.map((action) => (
+          <Button
+            className="row-action-menu-item"
+            disabled={action.disabled}
+            fullWidth
+            key={action.label}
+            leftIcon={action.icon}
+            size="sm"
+            title={action.title}
+            type="button"
+            variant="ghost"
+            onPointerDown={(event) => runMenuAction(event, action.onClick)}>
+            {action.label}
+          </Button>
+        ))}
         <Button
           className="row-action-menu-item"
           fullWidth

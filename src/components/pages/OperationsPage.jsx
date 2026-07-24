@@ -839,6 +839,17 @@ function OperationsPage({
                     ) : null}
                     <RowActionsMenu
                       className="operations-row-actions"
+                      extraActions={[
+                        {
+                          disabled: !item.orderUrl,
+                          icon: "external",
+                          label: "Заказать",
+                          title: item.orderUrl
+                            ? "Открыть ссылку на заказ"
+                            : "Укажите ссылку в редактировании",
+                          onClick: () => openSupplyOrderUrl(item.orderUrl),
+                        },
+                      ]}
                       itemId={item.id}
                       openMenuId={openItemMenuId}
                       setOpenMenuId={setOpenItemMenuId}
@@ -858,20 +869,6 @@ function OperationsPage({
                     </span>
                   </div>
                   <div className="supply-actions">
-                    <Button
-                      className="supply-order-button"
-                      disabled={!item.orderUrl}
-                      leftIcon="external"
-                      size="sm"
-                      title={
-                        item.orderUrl
-                          ? "Открыть ссылку на заказ"
-                          : "Укажите ссылку в редактировании"
-                      }
-                      variant="secondary"
-                      onClick={() => openSupplyOrderUrl(item.orderUrl)}>
-                      Заказать
-                    </Button>
                     <IconButton
                       icon="minus"
                       label="Уменьшить остаток"
