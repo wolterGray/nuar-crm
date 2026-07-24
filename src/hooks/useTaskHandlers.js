@@ -14,8 +14,10 @@ export function useTaskHandlers({
   setTaskModalOpen,
   setTasks,
 }) {
-  const openCreateTask = useCallback(() => {
-    setEditingTask(null);
+  const openCreateTask = useCallback((type = "task") => {
+    const nextType = type === "note" ? "note" : "task";
+
+    setEditingTask(nextType === "note" ? {type: "note"} : null);
     setTaskModalOpen(true);
   }, [setEditingTask, setTaskModalOpen]);
 
@@ -32,7 +34,11 @@ export function useTaskHandlers({
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const title = String(form.get("title") ?? "").trim();
-      const type = editingTask?.type === "note" ? "note" : "task";
+      const type =
+        form.get("type") === "note" || editingTask?.type === "note"
+          ? "note"
+          : "task";
+      const isEditingExisting = Boolean(editingTask?.id);
 
       if (!title) {
         return;
@@ -51,7 +57,7 @@ export function useTaskHandlers({
       let savedTask;
 
       try {
-        const response = editingTask
+        const response = isEditingExisting
           ? await updateTask(editingTask.id, task)
           : await createTask(task);
         savedTask = response?.data ?? task;
@@ -65,7 +71,7 @@ export function useTaskHandlers({
       }
 
       setTasks((current) =>
-        editingTask
+        isEditingExisting
           ? current.map((item) => (item.id === savedTask.id ? savedTask : item))
           : [savedTask, ...current],
       );

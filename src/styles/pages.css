@@ -6956,6 +6956,17 @@ button:focus-visible {
   min-height: 36px;
 }
 
+.operations-detail-actions .operations-detail-delete {
+  border-color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 64%, transparent);
+  color: var(--button-primary-text);
+  background: var(--color-danger, var(--operations-accent));
+}
+
+.operations-detail-actions .operations-detail-delete:hover {
+  border-color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 78%, transparent);
+  background: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 88%, #000 12%);
+}
+
 .operations-page .note-category-pill {
   border-color: color-mix(in srgb, var(--operations-accent) 26%, transparent);
   color: color-mix(in srgb, var(--operations-accent) 58%, var(--operations-text));
@@ -7007,13 +7018,14 @@ button:focus-visible {
 .operations-page .note-meta-item,
 .operations-page .supply-meta span {
   display: inline-flex;
-  min-height: 22px;
+  min-height: 20px;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 7px;
   border: 1px solid var(--operations-border-soft);
   border-radius: var(--radius-pill);
   color: var(--operations-muted);
   background: color-mix(in srgb, var(--operations-text) 4%, transparent);
+  font-size: 10.5px;
   font-style: normal;
   font-weight: 650;
   line-height: 1;
@@ -7117,24 +7129,28 @@ button:focus-visible {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
-  padding: 3px;
+  padding: 6px;
   border: 1px solid var(--operations-border-soft);
   border-radius: 10px;
   background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
 }
 
 .operations-page .operations-task-filters button {
+  display: inline-flex;
   min-width: 0;
-  min-height: 34px;
+  min-height: 38px;
+  align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 7px;
+  padding: 0 9px;
   border: 1px solid transparent;
   border-radius: 8px;
   color: var(--operations-muted);
   font-size: 12px;
   font-weight: 750;
-  line-height: 1.1;
+  line-height: 1;
   background: transparent;
+  white-space: nowrap;
 }
 
 .operations-page .operations-task-filters button.active {
@@ -7143,28 +7159,174 @@ button:focus-visible {
   background: color-mix(in srgb, var(--operations-accent) 18%, transparent);
 }
 
-.operations-page .operations-task-filters button span {
-  display: inline-grid;
-  min-width: 20px;
-  height: 20px;
-  place-items: center;
-  padding-inline: 5px;
-  border-radius: 999px;
-  color: var(--operations-text);
-  background: color-mix(in srgb, var(--operations-text) 7%, transparent);
+.operations-page .operations-task-filters .task-filter-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.operations-page .operations-task-filters .task-filter-count {
+  display: inline-flex;
+  min-width: 0;
+  height: auto;
+  margin-left: 4px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: currentColor;
+  background: transparent;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.operations-page .operations-panel-supplies .operations-list {
+  gap: 10px;
+}
+
+.operations-page .operations-panel-supplies .supply-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "icon body menu"
+    "icon meta actions";
+  align-items: center;
+  gap: 8px 10px;
+  min-height: 0;
+  padding: 12px;
+}
+
+.operations-page .operations-panel-supplies .supply-row .operations-card-head {
+  display: contents;
+}
+
+.operations-page .operations-panel-supplies .supply-card-icon {
+  grid-area: icon;
+  align-self: start;
+  margin-top: 1px;
+}
+
+.operations-page .operations-panel-supplies .operations-card-body {
+  grid-area: body;
+  gap: 6px;
+  padding-right: 140px;
+}
+
+.operations-page .operations-panel-supplies .operations-row-actions {
+  grid-area: menu;
+  align-self: start;
+  width: 30px;
+  height: 30px;
+}
+
+.operations-page .operations-panel-supplies .supply-row-title {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.operations-page .operations-panel-supplies .operations-card-body strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 13.5px;
+  line-height: 1.22;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.operations-page .operations-panel-supplies .supply-stock-badge {
+  position: absolute;
+  top: 12px;
+  right: 48px;
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 20px;
+  align-items: center;
+  padding: 0 7px;
+  border-radius: 7px;
+  font-size: 9.5px;
+  font-weight: 750;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.operations-page .operations-panel-supplies .supply-meta {
+  display: flex;
+  grid-area: meta;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: start;
+}
+
+.operations-page .operations-panel-supplies .supply-meta-item,
+.operations-page .operations-panel-supplies .supply-meta span {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+  padding: 0 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.operations-page .operations-panel-supplies .supply-actions {
+  display: grid;
+  grid-area: actions;
+  grid-template-columns: minmax(96px, auto) 30px 30px;
+  gap: 6px;
+  align-items: center;
+  justify-content: end;
+}
+
+.operations-page .operations-panel-supplies .supply-actions button,
+.operations-page .operations-panel-supplies .supply-order-button {
+  min-height: 30px;
+  border-radius: 8px;
   font-size: 11px;
 }
 
+.operations-page .operations-panel-supplies .supply-actions .icon-button {
+  width: 30px;
+  min-width: 30px;
+  padding: 0;
+}
+
 .operations-page .operations-empty {
-  min-height: 78px;
+  min-height: 68px;
   display: grid;
   place-items: center;
-  padding: 16px;
+  padding: 14px;
   border: 1px dashed var(--operations-border);
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--operations-faint);
   background: var(--operations-panel-soft);
-  font-size: 13px;
+  font-size: 12px;
+}
+
+.operations-page .waitlist-panel > .operations-empty {
+  display: flex;
+  min-height: 74px;
+  gap: 10px;
+  padding: 14px;
+  align-items: center;
+  justify-content: center;
+}
+
+.operations-page .waitlist-panel > .operations-empty svg {
+  width: 22px;
+  height: 22px;
+}
+
+.operations-page .waitlist-panel > .operations-empty > span:first-child {
+  width: 24px;
+  height: 24px;
+  border-radius: 0;
+  color: var(--operations-muted);
+  background: transparent;
 }
 
 @media (max-width: 1180px) {
@@ -7212,6 +7374,10 @@ button:focus-visible {
   .operations-detail-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .operations-detail-actions .operations-detail-delete {
+    grid-column: 1 / -1;
   }
 
   .operations-detail-actions button {

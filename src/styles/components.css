@@ -5679,10 +5679,12 @@
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-task-filters {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 5px !important;
     width: 100% !important;
     min-width: 0 !important;
-    overflow-x: auto !important;
+    overflow: visible !important;
     overscroll-behavior-inline: contain !important;
     scrollbar-width: none !important;
   }
@@ -5692,9 +5694,9 @@
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-task-filters button {
-    flex: 0 0 auto !important;
-    min-width: 104px !important;
-    min-height: 38px !important;
+    flex: initial !important;
+    min-width: 0 !important;
+    min-height: 30px !important;
     white-space: nowrap !important;
   }
 
@@ -5784,21 +5786,14 @@
     width: 100% !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .supply-actions,
   .mobile-page-container[data-mobile-page="operations"] .waitlist-card-actions {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 40px 40px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 7px !important;
     width: 100% !important;
     min-width: 0 !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .waitlist-card-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-actions button,
-  .mobile-page-container[data-mobile-page="operations"] .supply-order-button,
   .mobile-page-container[data-mobile-page="operations"] .waitlist-action-button {
     display: inline-flex !important;
     width: 100% !important;
@@ -5814,12 +5809,6 @@
     line-height: 1.1 !important;
     white-space: normal !important;
     background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-order-button:not(:disabled) {
-    border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border)) !important;
-    color: var(--button-primary-text) !important;
-    background: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .quick-note-form {
@@ -6951,7 +6940,13 @@
     line-height: 1 !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters button span {
+  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters .task-filter-label {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters .task-filter-count {
     display: inline-flex !important;
     min-width: 0 !important;
     width: auto !important;
@@ -7070,14 +7065,11 @@
     justify-content: center !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .supply-actions,
   .mobile-page-container[data-mobile-page="operations"] .waitlist-card-actions {
     grid-template-columns: minmax(0, 1fr) 32px 32px !important;
     gap: 6px !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .supply-actions button,
-  .mobile-page-container[data-mobile-page="operations"] .supply-order-button,
   .mobile-page-container[data-mobile-page="operations"] .waitlist-action-button {
     min-height: 34px !important;
     padding: 0 8px !important;
@@ -7911,9 +7903,15 @@
     white-space: nowrap !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters button span {
+  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters .task-filter-label {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters .task-filter-count {
     display: inline-flex !important;
-    min-width: 10px !important;
+    min-width: 8px !important;
     justify-content: center !important;
     color: var(--color-text-muted) !important;
     font-size: 9px !important;
@@ -7934,45 +7932,69 @@
 
   .mobile-page-container[data-mobile-page="operations"] .supply-row {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 8px !important;
+    position: relative !important;
+    grid-template-columns: 22px minmax(0, 1fr) 46px 28px !important;
+    grid-template-areas:
+      "icon body badge menu"
+      "meta meta actions actions" !important;
+    align-items: start !important;
+    gap: 7px 5px !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-head {
-    display: grid !important;
-    grid-template-columns: 24px minmax(0, 1fr) 30px !important;
-    gap: 8px !important;
-    align-items: start !important;
+    display: contents !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-icon {
-    width: 24px !important;
-    height: 24px !important;
-    border-radius: 7px !important;
+  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-icon {
+    grid-area: icon !important;
+    width: 22px !important;
+    height: 22px !important;
+    border-radius: 6px !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-body {
+  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-body {
+    grid-area: body !important;
     gap: 3px !important;
+    min-width: 0 !important;
+    padding-right: 0 !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-body strong {
+  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-body strong {
+    display: -webkit-box !important;
+    overflow: hidden !important;
     font-size: 12px !important;
-    line-height: 1.22 !important;
+    line-height: 1.18 !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    white-space: normal !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-body span,
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-body small {
+  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-body span,
+  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-body small {
     font-size: 10px !important;
     line-height: 1.25 !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .operations-row-actions,
-  .mobile-page-container[data-mobile-page="operations"] .row-action,
-  .mobile-page-container[data-mobile-page="operations"] .row-action-trigger {
-    width: 30px !important;
-    height: 30px !important;
-    min-width: 30px !important;
-    min-height: 30px !important;
+  .mobile-page-container[data-mobile-page="operations"] .operations-row-actions {
+    grid-area: menu !important;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 0 !important;
+    border-color: transparent !important;
+    border-radius: 7px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-row-actions .row-action-trigger {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
     padding: 0 !important;
     border-color: transparent !important;
     border-radius: 7px !important;
@@ -7981,57 +8003,85 @@
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-row-title {
-    gap: 5px !important;
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .supply-row-title strong {
+    min-width: 0 !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-stock-badge {
-    min-height: 18px !important;
-    padding: 0 6px !important;
+    grid-area: badge !important;
+    position: static !important;
+    inset: auto !important;
+    max-width: 46px !important;
+    min-height: 15px !important;
+    align-self: center !important;
+    justify-self: end !important;
+    padding: 0 4px !important;
     border-radius: 6px !important;
-    font-size: 9px !important;
+    font-size: 7.5px !important;
+    line-height: 1 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-meta {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(82px, auto) !important;
+    grid-area: meta !important;
+    grid-template-columns: minmax(0, 1fr) minmax(62px, auto) !important;
     gap: 5px !important;
     width: 100% !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-meta-item {
-    min-height: 24px !important;
+    min-height: 21px !important;
     align-content: center !important;
-    padding: 3px 7px !important;
+    padding: 0 7px !important;
     border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent) !important;
     border-radius: 7px !important;
     background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-meta-item strong {
-    font-size: 10.5px !important;
+    font-size: 10px !important;
     line-height: 1.05 !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-meta-item small {
-    font-size: 8.5px !important;
+    font-size: 8px !important;
     line-height: 1 !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-actions {
-    grid-template-columns: minmax(0, 1fr) 34px 34px !important;
-    gap: 6px !important;
+    grid-area: actions !important;
+    grid-template-columns: 28px 28px 28px !important;
+    gap: 4px !important;
+    justify-content: end !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-actions button,
   .mobile-page-container[data-mobile-page="operations"] .supply-order-button {
-    min-height: 34px !important;
+    min-height: 28px !important;
     border-radius: 7px !important;
     font-size: 11px !important;
   }
 
+  .mobile-page-container[data-mobile-page="operations"] .supply-order-button {
+    width: 28px !important;
+    min-width: 28px !important;
+    padding: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .supply-order-button > span {
+    display: none !important;
+  }
+
   .mobile-page-container[data-mobile-page="operations"] .supply-actions > button:not(.supply-order-button) {
-    width: 34px !important;
-    min-width: 34px !important;
+    width: 28px !important;
+    min-width: 28px !important;
     padding: 0 !important;
     font-size: 15px !important;
   }

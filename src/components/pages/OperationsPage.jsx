@@ -78,6 +78,12 @@ const getSupplyIconClass = (stockStatus) => {
   return "supply-icon-ok";
 };
 
+const formatSupplyName = (name = "") =>
+  String(name)
+    .replace(/(\d+)\s*(шт\.?|szt\.?)/giu, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+
 const taskCollisionDetection = (args) => {
   const pointerCollisions = pointerWithin(args);
   if (pointerCollisions.length > 0) {
@@ -254,6 +260,7 @@ function OperationItemDetails({item, onClose, onComplete, onDelete, onEdit}) {
               Изменить
             </Button>
             <Button
+              className="operations-detail-delete"
               leftIcon="trash"
               size="sm"
               variant="danger"
@@ -473,7 +480,7 @@ function OperationsPage({
                   resetTransientOperationState();
                   setMobileSection("waitlist");
                 }}>
-                Лист ожидания
+                {isMobile ? "Ожидание" : "Лист ожидания"}
               </Button>
             </div>
             <div className="operations-summary">
@@ -490,7 +497,7 @@ function OperationsPage({
                 className={
                   lowStockCount > 0 ? "operations-summary-alert" : ""
                 }>
-                <b>{lowStockCount}</b> нужно пополнить
+                <b>{lowStockCount}</b> {isMobile ? "пополнить" : "нужно пополнить"}
               </span>
             </div>
           </>
@@ -547,6 +554,16 @@ function OperationsPage({
                   Добавить
                 </Button>
               )}
+              {activeMode === "notes" && (
+                <Button
+                  className="add-visit-button operations-add-note-button"
+                  leftIcon="plus"
+                  size="sm"
+                  variant="primary"
+                  onClick={() => onAddTask?.("note")}>
+                  Заметка
+                </Button>
+              )}
             </div>
           </div>
           {activeMode === "tasks" ? (
@@ -584,8 +601,10 @@ function OperationsPage({
                         resetTransientOperationState();
                         setTaskFilter(filter.id);
                       }}>
-                      {filter.label}
-                      <span>{taskFilterCounts[filter.id] ?? 0}</span>
+                      <span className="task-filter-label">{filter.label}</span>
+                      <span className="task-filter-count">
+                        {taskFilterCounts[filter.id] ?? 0}
+                      </span>
                     </Button>
                   ))}
                 </div>
@@ -809,15 +828,15 @@ function OperationsPage({
                     </span>
                     <div className="operations-card-body">
                       <div className="supply-row-title">
-                        <strong>{item.name}</strong>
-                        {stockBadge ? (
-                          <span className="supply-stock-badge">{stockBadge}</span>
-                        ) : null}
+                        <strong>{formatSupplyName(item.name)}</strong>
                       </div>
                       {item.note && item.note !== "Расходный материал" ? (
                         <span className="supply-row-note">{item.note}</span>
                       ) : null}
                     </div>
+                    {stockBadge ? (
+                      <span className="supply-stock-badge">{stockBadge}</span>
+                    ) : null}
                     <RowActionsMenu
                       className="operations-row-actions"
                       itemId={item.id}

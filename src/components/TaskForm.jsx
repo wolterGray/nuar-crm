@@ -2,9 +2,11 @@ import {Button, Field, Input, Select, Textarea} from "./ui/index.js";
 
 function TaskForm({task, onSubmit}) {
   const isNote = task?.type === "note";
+  const isEditing = Boolean(task?.id);
 
   return (
     <form className="catalog-form" onSubmit={onSubmit}>
+      <input name="type" type="hidden" value={isNote ? "note" : "task"} />
       <Field label={isNote ? "Заметка" : "Задача"}>
         <Input
           name="title"
@@ -48,7 +50,11 @@ function TaskForm({task, onSubmit}) {
         size="lg"
         type="submit"
         variant="primary">
-        {task ? "Сохранить" : "Добавить задачу"}
+        {isEditing
+          ? "Сохранить"
+          : isNote
+            ? "Добавить заметку"
+            : "Добавить задачу"}
       </Button>
     </form>
   );

@@ -292,7 +292,9 @@ export default function AppModals({
         labelledBy="task-modal-title"
         title={
           editingTask?.type === "note"
-            ? "Редактировать заметку"
+            ? editingTask?.id
+              ? "Редактировать заметку"
+              : "Новая заметка"
             : editingTask
               ? "Редактировать задачу"
               : "Новая задача"
