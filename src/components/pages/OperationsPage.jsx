@@ -12,7 +12,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {useEffect, useMemo, useState} from "react";
+import {memo, useCallback, useEffect, useMemo, useState} from "react";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {getTodayInput} from "../../utils/dateHelpers.js";
@@ -92,6 +92,26 @@ const taskCollisionDetection = (args) => {
 
   return closestCenter(args);
 };
+
+const TaskFilterButton = memo(function TaskFilterButton({
+  filter,
+  isActive,
+  count,
+  onClick,
+}) {
+  return (
+    <Button
+      className={isActive ? "active" : ""}
+      key={filter.id}
+      size="sm"
+      type="button"
+      variant="ghost"
+      onClick={onClick}>
+      <span className="task-filter-label">{filter.label}</span>
+      <span className="task-filter-count">{count ?? 0}</span>
+    </Button>
+  );
+});
 
 const snapTaskOverlayToCursor = ({activatorEvent, draggingNodeRect, transform}) => {
   if (!activatorEvent || !draggingNodeRect) {
@@ -315,6 +335,47 @@ function OperationsPage({
       activationConstraint: {delay: 120, tolerance: 8},
     }),
   );
+
+  // Memoized event handlers
+  const handleResetTransientState = useCallback(() => {
+    setOpenItemMenuId(null);
+    setIsNoteCategoryOpen(false);
+    setViewingOperationItem(null);
+  }, []);
+
+  const handleSwitchActiveMode = useCallback((mode) => {
+    handleResetTransientState();
+    setActiveMode(mode);
+  }, [handleResetTransientState]);
+
+  const handleSwitchMobileSection = useCallback((section) => {
+    handleResetTransientState();
+    setMobileSection(section);
+  }, [handleResetTransientState]);
+
+  const handleSetTaskFilter = useCallback((filter) => {
+    handleResetTransientState();
+    setTaskFilter(filter);
+  }, [handleResetTransientState]);
+
+  const handleToggleNoteCategoryMenu = useCallback(() => {
+    setIsNoteCategoryOpen((isOpen) => !isOpen);
+  }, []);
+
+  const handleSelectNoteCategory = useCallback((category) => {
+    setNoteCategory(category);
+    setIsNoteCategoryOpen(false);
+  }, []);
+
+  const handleNoteTextChange = useCallback((event) => {
+    setNoteText(event.target.value);
+  }, []);
+
+  const handleNoteBlur = useCallback((event) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setIsNoteCategoryOpen(false);
+    }
+  }, []);
   const notes = tasks.filter((task) => task.type === "note");
   const workTasks = tasks.filter((task) => task.type !== "note");
   const sortedWorkTasks = useMemo(
@@ -369,25 +430,19 @@ function OperationsPage({
       }),
     [supplies],
   );
-  const resetTransientOperationState = () => {
-    setOpenItemMenuId(null);
-    setIsNoteCategoryOpen(false);
-    setViewingOperationItem(null);
-  };
-
-  const openOperationEditor = (item) => {
+  const openOperationEditor = useCallback((item) => {
     setOpenItemMenuId(null);
     setViewingOperationItem(null);
     window.setTimeout(() => onEditTask(item), 0);
-  };
+  }, [onEditTask]);
 
-  const requestOperationDelete = (item) => {
+  const requestOperationDelete = useCallback((item) => {
     setOpenItemMenuId(null);
     setViewingOperationItem(null);
     window.setTimeout(() => onDeleteTask(item), 0);
-  };
+  }, [onDeleteTask]);
 
-  const submitQuickNote = (event) => {
+  const submitQuickNote = useCallback((event) => {
     event.preventDefault();
     const title = noteText.trim();
 
@@ -396,7 +451,7 @@ function OperationsPage({
     onAddNote({title, category: noteCategory});
     setNoteText("");
     setIsNoteCategoryOpen(false);
-  };
+  }, [noteText, noteCategory, onAddNote]);
 
   useEffect(() => {
     if (!alertFocus?.entityId) {
@@ -456,30 +511,21 @@ function OperationsPage({
                 className={mobileSection === "tasks" ? "active" : ""}
                 size="sm"
                 variant="ghost"
-                onClick={() => {
-                  resetTransientOperationState();
-                  setMobileSection("tasks");
-                }}>
+                onClick={() => handleSwitchMobileSection("tasks")}>
                 Задачи
               </Button>
               <Button
                 className={mobileSection === "supplies" ? "active" : ""}
                 size="sm"
                 variant="ghost"
-                onClick={() => {
-                  resetTransientOperationState();
-                  setMobileSection("supplies");
-                }}>
+                onClick={() => handleSwitchMobileSection("supplies")}>
                 Склад
               </Button>
               <Button
                 className={mobileSection === "waitlist" ? "active" : ""}
                 size="sm"
                 variant="ghost"
-                onClick={() => {
-                  resetTransientOperationState();
-                  setMobileSection("waitlist");
-                }}>
+                onClick={() => handleSwitchMobileSection("waitlist")}>
                 {isMobile ? "Ожидание" : "Лист ожидания"}
               </Button>
             </div>
@@ -527,20 +573,14 @@ function OperationsPage({
                   className={activeMode === "tasks" ? "active" : ""}
                   size="sm"
                   variant="ghost"
-                  onClick={() => {
-                    resetTransientOperationState();
-                    setActiveMode("tasks");
-                  }}>
+                  onClick={() => handleSwitchActiveMode("tasks")}>
                   Задачи
                 </Button>
                 <Button
                   className={activeMode === "notes" ? "active" : ""}
                   size="sm"
                   variant="ghost"
-                  onClick={() => {
-                    resetTransientOperationState();
-                    setActiveMode("notes");
-                  }}>
+                  onClick={() => handleSwitchActiveMode("notes")}>
                   Заметки
                 </Button>
               </div>
@@ -591,21 +631,13 @@ function OperationsPage({
               <div className="operations-task-center">
                 <div className="operations-task-filters" aria-label="Фильтры задач">
                   {TASK_FILTERS.map((filter) => (
-                    <Button
-                      className={taskFilter === filter.id ? "active" : ""}
+                    <TaskFilterButton
+                      filter={filter}
                       key={filter.id}
-                      size="sm"
-                      type="button"
-                      variant="ghost"
-                      onClick={() => {
-                        resetTransientOperationState();
-                        setTaskFilter(filter.id);
-                      }}>
-                      <span className="task-filter-label">{filter.label}</span>
-                      <span className="task-filter-count">
-                        {taskFilterCounts[filter.id] ?? 0}
-                      </span>
-                    </Button>
+                      isActive={taskFilter === filter.id}
+                      count={taskFilterCounts[filter.id]}
+                      onClick={() => handleSetTaskFilter(filter.id)}
+                    />
                   ))}
                 </div>
               </div>
@@ -678,22 +710,18 @@ function OperationsPage({
                   className="quick-note-input"
                   value={noteText}
                   placeholder="Мысль, идея или что заказать"
-                  onChange={(event) => setNoteText(event.target.value)}
+                  onChange={handleNoteTextChange}
                 />
                 <div
                   className="quick-note-category"
-                  onBlur={(event) => {
-                    if (!event.currentTarget.contains(event.relatedTarget)) {
-                      setIsNoteCategoryOpen(false);
-                    }
-                  }}>
+                  onBlur={handleNoteBlur}>
                   <Button
                     aria-expanded={isNoteCategoryOpen}
                     className="quick-note-category-trigger"
                     rightIcon="chevronDown"
                     size="sm"
                     variant="secondary"
-                    onClick={() => setIsNoteCategoryOpen((isOpen) => !isOpen)}>
+                    onClick={handleToggleNoteCategoryMenu}>
                     {noteCategory}
                   </Button>
                   {isNoteCategoryOpen && (
@@ -708,10 +736,7 @@ function OperationsPage({
                           role="option"
                           size="sm"
                           variant="ghost"
-                          onClick={() => {
-                            setNoteCategory(category);
-                            setIsNoteCategoryOpen(false);
-                          }}>
+                          onClick={() => handleSelectNoteCategory(category)}>
                           {category}
                         </Button>
                       ))}
