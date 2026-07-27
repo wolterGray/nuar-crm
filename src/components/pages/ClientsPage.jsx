@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from "react";
+import {memo, useCallback, useEffect, useMemo, useState} from "react";
 import {
   formatMoney,
   getDaysSinceDisplayDate,
@@ -52,6 +52,36 @@ function ClientRowActions({
     setOpenMenuId: setOpenClientMenuId,
   });
 
+  const handleToggleMenu = useCallback(() => {
+    setOpenClientMenuId(openClientMenuId === client.id ? null : client.id);
+  }, [openClientMenuId, client.id, setOpenClientMenuId]);
+
+  const handleViewClient = useCallback(() => {
+    setViewedClient(client);
+    setVisitHistoryTab("future");
+    setOpenClientMenuId(null);
+  }, [client, setViewedClient, setVisitHistoryTab, setOpenClientMenuId]);
+
+  const handleMessage = useCallback(() => {
+    setOpenClientMenuId(null);
+    handleMessageClient(client);
+  }, [client, handleMessageClient, setOpenClientMenuId]);
+
+  const handleAddWaitlist = useCallback(() => {
+    setOpenClientMenuId(null);
+    handleAddToWaitlist(client);
+  }, [client, handleAddToWaitlist, setOpenClientMenuId]);
+
+  const handleEdit = useCallback(() => {
+    setOpenClientMenuId(null);
+    onEditClient?.(client);
+  }, [client, onEditClient, setOpenClientMenuId]);
+
+  const handleDelete = useCallback(() => {
+    setOpenClientMenuId(null);
+    onDeleteClient?.(client);
+  }, [client, onDeleteClient, setOpenClientMenuId]);
+
   return (
     <div
       className="absolute top-4 right-4 md:relative md:top-auto md:right-auto flex justify-end"
@@ -64,9 +94,7 @@ function ClientRowActions({
         label="Действия"
         size="sm"
         variant="ghost"
-        onClick={() =>
-          setOpenClientMenuId(openClientMenuId === client.id ? null : client.id)
-        }
+        onClick={handleToggleMenu}
       />
 
       <RowActionMenuPortal
@@ -78,41 +106,28 @@ function ClientRowActions({
             leftIcon="eye"
             size="sm"
             variant="ghost"
-            onClick={() => {
-              setViewedClient(client);
-              setVisitHistoryTab("future");
-              setOpenClientMenuId(null);
-            }}>
+            onClick={handleViewClient}>
             Посмотреть
           </Button>
           <Button
             leftIcon="message"
             size="sm"
             variant="ghost"
-            onClick={() => {
-              setOpenClientMenuId(null);
-              handleMessageClient(client);
-            }}>
+            onClick={handleMessage}>
             Написать
           </Button>
           <Button
             leftIcon="clock"
             size="sm"
             variant="ghost"
-            onClick={() => {
-              setOpenClientMenuId(null);
-              handleAddToWaitlist(client);
-            }}>
+            onClick={handleAddWaitlist}>
             Лист ожидания
           </Button>
           <Button
             leftIcon="edit"
             size="sm"
             variant="ghost"
-            onClick={() => {
-              setOpenClientMenuId(null);
-              onEditClient?.(client);
-            }}>
+            onClick={handleEdit}>
             Редактировать
           </Button>
           <Button
@@ -120,10 +135,7 @@ function ClientRowActions({
             leftIcon="trash"
             size="sm"
             variant="danger"
-            onClick={() => {
-              setOpenClientMenuId(null);
-              onDeleteClient?.(client);
-            }}>
+            onClick={handleDelete}>
             Удалить
           </Button>
         </div>
@@ -131,6 +143,20 @@ function ClientRowActions({
     </div>
   );
 }
+
+const MemoizedClientRowActions = memo(ClientRowActions, (prev, next) => {
+  return (
+    prev.client.id === next.client.id &&
+    prev.openClientMenuId === next.openClientMenuId &&
+    prev.handleAddToWaitlist === next.handleAddToWaitlist &&
+    prev.handleMessageClient === next.handleMessageClient &&
+    prev.onDeleteClient === next.onDeleteClient &&
+    prev.onEditClient === next.onEditClient &&
+    prev.setOpenClientMenuId === next.setOpenClientMenuId &&
+    prev.setViewedClient === next.setViewedClient &&
+    prev.setVisitHistoryTab === next.setVisitHistoryTab
+  );
+});
 
 function ClientLoyaltyCard({client}) {
   const [card, setCard] = useState(null);
@@ -223,7 +249,7 @@ function ClientsPage({
   const [selectedTemplate, setSelectedTemplate] = useState("remind");
   const [copiedState, setCopiedState] = useState(false);
 
-  const getTemplates = (clientName) => ({
+  const getTemplates = useCallback((clientName) => ({
     remind: {
       name: "Напоминание о записи",
       text: `Cześć ${clientName || "kliencie"}! Przypominamy o Twojej wizycie w salonie NUAR. Czekamy na Ciebie!`,
@@ -236,42 +262,69 @@ function ClientsPage({
       name: "Запрос отзыва",
       text: `Cześć ${clientName || "kliencie"}! Dziękujemy za wizytę w NUAR. Będziemy wdzięczni za krótką opinię na Google: ${appSettings?.reviewGoogleUrl || "https://g.page/r/YOUR_GOOGLE_LINK/review"}`,
     }
-  });
+  }), [appSettings]);
 
-  const handleMessageClient = (client) => {
+  const handleMessageClient = useCallback((client) => {
     const templates = getTemplates(client.name);
     setSelectedTemplate("remind");
     setMessageText(templates.remind.text);
     setCopiedState(false);
     setMessageBuilderClient(client);
-  };
+  }, [getTemplates]);
 
-  const handleAddVisit = (client) => {
+  const handleAddVisit = useCallback((client) => {
     onAddVisit?.({
       client: client.name,
       clientId: client.id,
       date: new Date().toISOString().slice(0, 10),
       kind: "visit",
     });
-  };
+  }, [onAddVisit]);
 
-  const handleAddToWaitlist = (client) => {
+  const handleAddToWaitlist = useCallback((client) => {
     handleAddVisit(client);
-  };
+  }, [handleAddVisit]);
 
-  const handleRepeatVisit = async (client, appointment) => {
+  const handleRepeatVisit = useCallback(async (client, appointment) => {
     onAddVisit?.({
       client: client.name,
       clientId: client.id,
       ...appointment.repeatDefaults,
     });
-  };
+  }, [onAddVisit]);
 
   const [viewedClient, setViewedClient] = useState(null);
   const [visitHistoryTab, setVisitHistoryTab] = useState("future");
   const [search, setSearch] = useState("");
   const [showQuality, setShowQuality] = useState(false);
   const {isMobile} = useBreakpoint();
+
+  // Memoized event handlers for client rows
+  const handleViewClient = useCallback((client) => {
+    setViewedClient(client);
+    setVisitHistoryTab("future");
+  }, []);
+
+  const handleMessageRow = useCallback((client) => {
+    handleMessageClient(client);
+  }, [handleMessageClient]);
+
+  const handleAddVisitRow = useCallback((client) => {
+    handleAddVisit(client);
+  }, [handleAddVisit]);
+
+  const handleCloseModal = useCallback(() => {
+    setViewedClient(null);
+  }, []);
+
+  const handleSearchChange = useCallback((event) => {
+    setSearch(event.target.value);
+    setOpenClientMenuId(null);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearch("");
+  }, []);
 
 
 
@@ -516,11 +569,8 @@ function ClientsPage({
               style={{ width: isMobile ? '100%' : undefined, maxWidth: isMobile ? '100%' : undefined }}
               placeholder="Поиск клиента..."
               value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setOpenClientMenuId(null);
-              }}
-              onClear={() => setSearch("")}
+              onChange={handleSearchChange}
+              onClear={handleClearSearch}
             />
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <Button
@@ -593,15 +643,11 @@ function ClientsPage({
                 role="button"
                 tabIndex="0"
                 key={client.id}
-                onClick={() => {
-                  setViewedClient(client);
-                  setVisitHistoryTab("future");
-                }}
+                onClick={() => handleViewClient(client)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    setViewedClient(client);
-                    setVisitHistoryTab("future");
+                    handleViewClient(client);
                   }
                 }}>
                 {/* Client info */}
@@ -659,7 +705,7 @@ function ClientsPage({
                     size="sm"
                     type="button"
                     variant="secondary"
-                    onClick={() => handleMessageClient(client)}>
+                    onClick={() => handleMessageRow(client)}>
                     <span>Написать</span>
                   </Button>
                   <Button
@@ -669,13 +715,13 @@ function ClientsPage({
                     size="sm"
                     type="button"
                     variant="primary"
-                    onClick={() => handleAddVisit(client)}>
+                    onClick={() => handleAddVisitRow(client)}>
                     <span>Запись</span>
                   </Button>
                 </div>
 
                 {/* Row actions */}
-                <ClientRowActions
+                <MemoizedClientRowActions
                   client={client}
                   handleAddToWaitlist={handleAddToWaitlist}
                   handleMessageClient={handleMessageClient}
@@ -712,7 +758,7 @@ function ClientsPage({
               : "")
           }
           description="Карточка клиента"
-          onClose={() => setViewedClient(null)}
+          onClose={handleCloseModal}
           footer={
             <div className="grid grid-cols-3 gap-2 w-full">
               <Button
