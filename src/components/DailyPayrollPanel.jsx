@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import {useMemo, useState, useCallback, memo} from "react";
 import PageHeader from "./PageHeader.jsx";
 import {AppIcon, Button, EmptyState, Field, Input, Select} from "./ui/index.js";
 import {getDailyPayrollEmployees} from "../utils/dailyPayroll.js";
@@ -37,6 +37,74 @@ function DailyPayrollPanel({
           })
         : null,
     [activeEmployeeId, getDailyPayrollReport, selectedDate],
+  );
+
+  const handleEmployeeChange = useCallback(
+    (event) => {
+      setSelectedEmployeeId(event.target.value);
+    },
+    [setSelectedEmployeeId],
+  );
+
+  const handleDateChange = useCallback(
+    (event) => {
+      setSelectedDate(event.target.value);
+    },
+    [setSelectedDate],
+  );
+
+  const handleMarkAll = useCallback(() => {
+    markAllDailyPayoutsPaid?.({
+      date: selectedDate,
+      employeeId: activeEmployeeId,
+    });
+  }, [markAllDailyPayoutsPaid, selectedDate, activeEmployeeId]);
+
+  const PayrollRow = memo(
+    function PayrollRow({row, setVisitMasterPayoutPaid}) {
+      const handleToggle = useCallback(() => {
+        setVisitMasterPayoutPaid(row.visitId, !row.isPaid);
+      }, [setVisitMasterPayoutPaid, row.visitId, row.isPaid]);
+
+      return (
+        <tr className={row.isPaid ? "is-paid" : "is-unpaid"} key={row.visitId}>
+          <td>{row.time || "—"}</td>
+          <td>
+            <strong>{row.client || "Без имени"}</strong>
+            <small>{row.service || row.payment}</small>
+          </td>
+          <td>{formatMoney(row.receivedAmount)}</td>
+          <td>
+            <strong>{formatMoney(row.payout)}</strong>
+            <small>{row.commissionRate}%</small>
+          </td>
+          <td>
+            <Button
+              className={row.isPaid ? "secondary-button" : "add-visit-button"}
+              leftIcon={row.isPaid ? "check" : "clock"}
+              size="sm"
+              variant={row.isPaid ? "secondary" : "primary"}
+              onClick={handleToggle}>
+              {row.isPaid ? "Оплачено" : "Не оплачено"}
+            </Button>
+          </td>
+        </tr>
+      );
+    },
+    (prev, next) => {
+      const a = prev.row;
+      const b = next.row;
+      return (
+        a.visitId === b.visitId &&
+        a.isPaid === b.isPaid &&
+        a.time === b.time &&
+        a.client === b.client &&
+        a.service === b.service &&
+        a.receivedAmount === b.receivedAmount &&
+        a.payout === b.payout &&
+        a.commissionRate === b.commissionRate
+      );
+    },
   );
 
   if (!getDailyPayrollReport || !setVisitMasterPayoutPaid) {
@@ -82,7 +150,7 @@ function DailyPayrollPanel({
         <Field label="Мастер">
           <Select
             value={String(activeEmployeeId)}
-            onChange={(event) => setSelectedEmployeeId(event.target.value)}>
+            onChange={handleEmployeeChange}>
             {dailyEmployees.map((employee) => (
               <option key={employee.id} value={employee.id}>
                 {employee.name} · {employee.commissionRate}%
@@ -91,11 +159,7 @@ function DailyPayrollPanel({
           </Select>
         </Field>
         <Field label="Дата">
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={(event) => setSelectedDate(event.target.value)}
-          />
+          <Input type="date" value={selectedDate} onChange={handleDateChange} />
         </Field>
       </div>
 
@@ -145,34 +209,11 @@ function DailyPayrollPanel({
                 </thead>
                 <tbody>
                   {report.rows.map((row) => (
-                    <tr
-                      className={row.isPaid ? "is-paid" : "is-unpaid"}
-                      key={row.visitId}>
-                      <td>{row.time || "—"}</td>
-                      <td>
-                        <strong>{row.client || "Без имени"}</strong>
-                        <small>{row.service || row.payment}</small>
-                      </td>
-                      <td>{formatMoney(row.receivedAmount)}</td>
-                      <td>
-                        <strong>{formatMoney(row.payout)}</strong>
-                        <small>{row.commissionRate}%</small>
-                      </td>
-                      <td>
-                        <Button
-                          className={
-                            row.isPaid ? "secondary-button" : "add-visit-button"
-                          }
-                          leftIcon={row.isPaid ? "check" : "clock"}
-                          size="sm"
-                          variant={row.isPaid ? "secondary" : "primary"}
-                          onClick={() =>
-                            setVisitMasterPayoutPaid(row.visitId, !row.isPaid)
-                          }>
-                          {row.isPaid ? "Оплачено" : "Не оплачено"}
-                        </Button>
-                      </td>
-                    </tr>
+                    <PayrollRow
+                      key={row.visitId}
+                      row={row}
+                      setVisitMasterPayoutPaid={setVisitMasterPayoutPaid}
+                    />
                   ))}
                 </tbody>
               </table>
@@ -185,12 +226,7 @@ function DailyPayrollPanel({
                 className="add-visit-button"
                 leftIcon="check"
                 variant="primary"
-                onClick={() =>
-                  markAllDailyPayoutsPaid?.({
-                    date: selectedDate,
-                    employeeId: activeEmployeeId,
-                  })
-                }>
+                onClick={handleMarkAll}>
                 Отметить всё оплаченным
               </Button>
             </div>
