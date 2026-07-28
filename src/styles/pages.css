@@ -2227,10 +2227,10 @@ button:focus-visible {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px;
+  gap: 10px;
+  padding: 12px 13px;
   border: 1px solid var(--packages-border-soft);
-  border-radius: 16px;
+  border-radius: 14px;
   color: var(--packages-text);
   background: var(--packages-panel);
   box-shadow: none;
@@ -2257,24 +2257,60 @@ button:focus-visible {
 
 .package-card h3 {
   max-width: 100%;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  line-height: 1.18;
+  line-height: 1.12;
 }
 
 .package-card strong {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .package-template-card {
-  gap: 10px;
-  min-height: 138px;
+  gap: 8px;
+  min-height: 120px;
 }
 
-.package-template-card > div:last-child {
-  gap: 8px 12px;
+.package-card-progress {
+  display: grid;
+  gap: 6px;
+}
+
+.package-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 2px;
   color: var(--packages-muted);
   font-size: 12px;
+}
+
+.package-template-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+  padding-top: 2px;
+  color: var(--packages-muted);
+  font-size: 11px;
+}
+
+.package-template-meta > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.package-template-meta span {
+  min-width: 0;
+  color: var(--packages-muted);
+}
+
+.package-template-meta strong {
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .package-card span,
