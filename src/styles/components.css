@@ -6980,6 +6980,14 @@
     align-items: start !important;
   }
 
+  .mobile-page-container[data-mobile-page="operations"] .supply-row-aside {
+    display: inline-flex !important;
+    align-items: flex-start !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+
   .mobile-page-container[data-mobile-page="operations"] .operations-card-icon {
     width: 26px !important;
     height: 26px !important;
@@ -6998,6 +7006,11 @@
     border: 0 !important;
     border-radius: 8px !important;
     background: transparent !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-row-actions {
+    width: 28px !important;
+    height: 28px !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-card-body strong {

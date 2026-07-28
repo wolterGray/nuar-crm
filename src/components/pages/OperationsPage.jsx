@@ -858,28 +858,30 @@ function OperationsPage({
                         <span className="supply-row-note">{item.note}</span>
                       ) : null}
                     </div>
-                    {stockBadge ? (
-                      <span className="supply-stock-badge">{stockBadge}</span>
-                    ) : null}
-                    <RowActionsMenu
-                      className="operations-row-actions"
-                      extraActions={[
-                        {
-                          disabled: !item.orderUrl,
-                          icon: "external",
-                          label: "Заказать",
-                          title: item.orderUrl
-                            ? "Открыть ссылку на заказ"
-                            : "Укажите ссылку в редактировании",
-                          onClick: () => openSupplyOrderUrl(item.orderUrl),
-                        },
-                      ]}
-                      itemId={`supply-${item.id}`}
-                      openMenuId={openItemMenuId}
-                      setOpenMenuId={setOpenItemMenuId}
-                      onDelete={() => onDeleteSupply(item)}
-                      onEdit={() => onEditSupply(item)}
-                    />
+                    <div className="supply-row-aside">
+                      {stockBadge ? (
+                        <span className="supply-stock-badge">{stockBadge}</span>
+                      ) : null}
+                      <RowActionsMenu
+                        className="operations-row-actions"
+                        extraActions={[
+                          {
+                            disabled: !item.orderUrl,
+                            icon: "external",
+                            label: "Заказать",
+                            title: item.orderUrl
+                              ? "Открыть ссылку на заказ"
+                              : "Укажите ссылку в редактировании",
+                            onClick: () => openSupplyOrderUrl(item.orderUrl),
+                          },
+                        ]}
+                        itemId={`supply-${item.id}`}
+                        openMenuId={openItemMenuId}
+                        setOpenMenuId={setOpenItemMenuId}
+                        onDelete={() => onDeleteSupply(item)}
+                        onEdit={() => onEditSupply(item)}
+                      />
+                    </div>
                   </div>
                   <div className="supply-meta">
                     <span className="supply-meta-item">

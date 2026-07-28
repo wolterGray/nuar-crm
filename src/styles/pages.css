@@ -6879,6 +6879,14 @@ button:focus-visible {
   justify-self: end;
 }
 
+.operations-page .supply-row-aside {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
 .operations-detail-backdrop {
   z-index: 90;
 }
@@ -7074,9 +7082,16 @@ button:focus-visible {
 }
 
 .operations-page .supply-stock-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  max-width: 100%;
+  padding: 0 8px;
   border: 1px solid color-mix(in srgb, var(--color-danger, var(--operations-accent)) 24%, transparent);
   color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 42%, var(--operations-text));
   background: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 10%, transparent);
+  white-space: nowrap;
 }
 
 .operations-page .supply-actions {
@@ -7095,6 +7110,12 @@ button:focus-visible {
 
 .operations-page .operations-row-actions button {
   border-color: transparent;
+}
+
+.operations-page .supply-row .operations-row-actions {
+  width: 30px;
+  height: 30px;
+  justify-self: end;
 }
 
 .operations-page .supply-actions button:hover,
