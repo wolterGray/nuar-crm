@@ -62,6 +62,36 @@ export function useCalendarActions({
   const [pendingCalendarAction, setPendingCalendarAction] = useState(null);
   const [pendingCalendarConflict, setPendingCalendarConflict] = useState(null);
 
+  const notifyCalendarConflict = useCallback(
+    (conflicts, shiftWarning, title) => {
+      const warningParts = [];
+      const conflictCount = Array.isArray(conflicts) ? conflicts.length : 0;
+
+      if (shiftWarning) {
+        warningParts.push(shiftWarning);
+      }
+
+      if (conflictCount > 0) {
+        warningParts.push(
+          conflictCount === 1
+            ? "Есть пересечение с другой записью"
+            : `Есть пересечения с ${conflictCount} записями`,
+        );
+      }
+
+      pushNotification({
+        title,
+        message:
+          warningParts.length > 0
+            ? warningParts.join(" · ")
+            : "Есть конфликт расписания, проверьте запись перед сохранением",
+        persist: false,
+        tone: "urgent",
+      });
+    },
+    [pushNotification],
+  );
+
   const openEditCalendarEntry = useCallback((entry) => {
     setEditingJournalVisit(null);
     setEditingCalendarEntry(entry);
@@ -775,6 +805,11 @@ export function useCalendarActions({
         appSettings.calendarConflictWarnings &&
         (conflicts.length > 0 || shiftWarning)
       ) {
+        notifyCalendarConflict(
+          conflicts,
+          shiftWarning,
+          isEditing ? "Запись требует подтверждения" : "Запись требует подтверждения",
+        );
         setPendingCalendarConflict({
           entry,
           isEditing,
@@ -809,6 +844,7 @@ export function useCalendarActions({
       setEditingCalendarEntry,
       setEditingJournalVisit,
       setVisits,
+      notifyCalendarConflict,
     ],
   );
 
@@ -988,6 +1024,11 @@ export function useCalendarActions({
         appSettings.calendarConflictWarnings &&
         (conflicts.length > 0 || shiftWarning)
       ) {
+        notifyCalendarConflict(
+          conflicts,
+          shiftWarning,
+          "Перенос требует подтверждения",
+        );
         setPendingCalendarConflict({
           entry: movedEntry,
           isEditing: true,
@@ -1012,6 +1053,8 @@ export function useCalendarActions({
       appSettings,
       calendarEntries,
       employees,
+      notifyCalendarConflict,
+      setPendingCalendarAction,
     ],
   );
 

@@ -7842,6 +7842,15 @@
     max-height: 100dvh !important;
   }
 
+  .dialog-backdrop {
+    z-index: 120 !important;
+  }
+
+  .dialog-backdrop .confirm-dialog {
+    width: min(100%, 360px) !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
   .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .operations-page-tabs button {
     min-height: 38px !important;
     padding: 0 8px !important;
