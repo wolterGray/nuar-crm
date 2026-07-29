@@ -648,9 +648,9 @@ function StatisticsPage({
       color: "var(--color-kpi-average-check)",
     },
     {
-      label: "Средний платёж",
+      label: "Средний чек по поступлениям",
       value: formatIncome(analytics.averageCheck),
-      helper: "все поступления",
+      helper: "все поступления за период",
       icon: "banknote",
       color: "var(--color-kpi-average-check)",
     },
@@ -962,8 +962,8 @@ function StatisticsPage({
                 : businessExtraIncome > 0
                   ? `Включает доп. доход бизнеса: ${formatIncome(
                       businessExtraIncome,
-                    )} · пакеты, сертификаты и операции. Платежи визитов и продаж пакетов считаются отдельно.`
-                  : "Считаются завершённые визиты и финансовые операции за период. Платежи визитов и продаж пакетов считаются отдельно."}
+                    )} · пакеты, сертификаты и операции. Платежи визитов и продаж пакетов считаются отдельно, а смешанные оплаты внутри визитов делятся между наличными и картой.`
+                  : "Считаются завершённые визиты и финансовые операции за период. Платежи визитов и продаж пакетов считаются отдельно, а смешанные оплаты внутри визитов делятся между наличными и картой."}
             </small>
           ) : null}
         </div>
@@ -1082,7 +1082,7 @@ function StatisticsPage({
               </span>
             </div>
             <p className="text-[10px] text-muted-foreground -mt-1">
-              Только оплаты за визиты. Продажи пакетов считаются отдельно.
+              Только оплаты за визиты. Продажи пакетов считаются отдельно. Смешанные оплаты делятся на наличные и карту.
             </p>
             {paymentsPanel}
           </section>
@@ -1095,7 +1095,7 @@ function StatisticsPage({
               </span>
             </div>
             <p className="text-[10px] text-muted-foreground -mt-1">
-              Способы оплаты новых пакетов
+              Способы оплаты новых пакетов. Эти суммы не входят в оплату визитов.
             </p>
             <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
               <div className="flex flex-col gap-3.5">
@@ -1241,7 +1241,7 @@ function StatisticsPage({
           <div className="flex flex-col">
             <h3 className="text-foreground text-sm font-bold">Оплаты</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Только оплаты за визиты. Продажи пакетов считаются отдельно.
+              Только оплаты за визиты. Продажи пакетов считаются отдельно. Смешанные оплаты делятся на наличные и карту.
             </p>
           </div>
           <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.paymentTotal)}</strong>
@@ -1263,7 +1263,7 @@ function StatisticsPage({
           <div className="flex flex-col">
             <h3 className="text-foreground text-sm font-bold">Продажи пакетов</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Оплата новых пакетов по способам оплаты
+              Оплата новых пакетов по способам оплаты. В общий чек визитов не входит.
             </p>
           </div>
           <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.packageSalesTotal)}</strong>
