@@ -6692,9 +6692,9 @@ button:focus-visible {
 }
 
 .operations-page .operations-panel {
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
-  padding: 18px;
+  padding: 16px;
   border: 1px solid var(--operations-border);
   border-radius: 16px;
   background: var(--operations-panel);
@@ -6743,7 +6743,7 @@ button:focus-visible {
 
 .operations-page .operations-panel-header {
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .operations-page .operations-panel-header > div {
@@ -6822,8 +6822,8 @@ button:focus-visible {
 }
 
 .operations-page :is(.task-row, .note-row, .supply-row) {
-  min-height: 58px;
-  padding: 12px;
+  min-height: 0;
+  padding: 10px 12px;
   border: 1px solid var(--operations-border-soft);
   border-radius: var(--radius-card);
   background: var(--operations-panel-soft);
@@ -6839,7 +6839,7 @@ button:focus-visible {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
-  gap: 8px 10px;
+  gap: 6px 10px;
 }
 
 .operations-page .note-row .operations-card-head {
@@ -6855,10 +6855,10 @@ button:focus-visible {
 }
 
 .operations-page .operations-card-icon {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border: 1px solid var(--operations-border-soft);
-  border-radius: 10px;
+  border-radius: 9px;
   color: var(--operations-muted);
   background: transparent;
 }
@@ -6876,9 +6876,9 @@ button:focus-visible {
   display: -webkit-box;
   overflow: hidden;
   color: var(--operations-text);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 650;
-  line-height: 1.28;
+  line-height: 1.22;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -6896,8 +6896,8 @@ button:focus-visible {
 .operations-page .operations-card-body span {
   display: -webkit-box;
   overflow: hidden;
-  margin-top: 3px;
-  line-height: 1.35;
+  margin-top: 2px;
+  line-height: 1.25;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -6924,7 +6924,7 @@ button:focus-visible {
 .operations-page .operations-card-head {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -7092,7 +7092,7 @@ button:focus-visible {
 .operations-page .supply-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
   align-items: center;
 }
 
@@ -7100,14 +7100,14 @@ button:focus-visible {
 .operations-page .note-meta-item,
 .operations-page .supply-meta span {
   display: inline-flex;
-  min-height: 20px;
+  min-height: 18px;
   align-items: center;
-  padding: 0 7px;
+  padding: 0 6px;
   border: 1px solid var(--operations-border-soft);
   border-radius: var(--radius-pill);
   color: var(--operations-muted);
   background: color-mix(in srgb, var(--operations-text) 4%, transparent);
-  font-size: 10.5px;
+  font-size: 10px;
   font-style: normal;
   font-weight: 650;
   line-height: 1;
@@ -7140,9 +7140,9 @@ button:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 22px;
+  min-height: 18px;
   max-width: 100%;
-  padding: 0 8px;
+  padding: 0 6px;
   border: 1px solid color-mix(in srgb, var(--color-danger, var(--operations-accent)) 24%, transparent);
   color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 42%, var(--operations-text));
   background: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 10%, transparent);
@@ -7215,14 +7215,14 @@ button:focus-visible {
 
 .operations-page .operations-task-center {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .operations-page .operations-task-filters {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
-  padding: 6px;
+  gap: 5px;
+  padding: 5px;
   border: 1px solid var(--operations-border-soft);
   border-radius: 10px;
   background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
@@ -7231,15 +7231,15 @@ button:focus-visible {
 .operations-page .operations-task-filters button {
   display: inline-flex;
   min-width: 0;
-  min-height: 38px;
+  min-height: 34px;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 0 9px;
+  gap: 5px;
+  padding: 0 8px;
   border: 1px solid transparent;
   border-radius: 8px;
   color: var(--operations-muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 750;
   line-height: 1;
   background: transparent;
@@ -7262,31 +7262,31 @@ button:focus-visible {
   display: inline-flex;
   min-width: 0;
   height: auto;
-  margin-left: 4px;
+  margin-left: 2px;
   align-items: center;
   justify-content: center;
   padding: 0;
   color: currentColor;
   background: transparent;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
 }
 
 .operations-page .operations-panel-supplies .operations-list {
-  gap: 10px;
+  gap: 8px;
 }
 
 .operations-page .operations-panel-supplies .supply-row {
   position: relative;
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
   grid-template-areas:
     "icon body menu"
     "icon meta actions";
   align-items: center;
-  gap: 8px 10px;
+  gap: 6px 8px;
   min-height: 0;
-  padding: 12px;
+  padding: 10px 12px;
 }
 
 .operations-page .operations-panel-supplies .supply-row .operations-card-head {
@@ -7296,13 +7296,13 @@ button:focus-visible {
 .operations-page .operations-panel-supplies .supply-card-icon {
   grid-area: icon;
   align-self: start;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .operations-page .operations-panel-supplies .operations-card-body {
   grid-area: body;
-  gap: 6px;
-  padding-right: 140px;
+  gap: 4px;
+  padding-right: 0;
 }
 
 .operations-page .operations-panel-supplies .operations-row-actions {
@@ -7316,30 +7316,30 @@ button:focus-visible {
   display: flex;
   min-width: 0;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
   align-items: center;
 }
 
 .operations-page .operations-panel-supplies .operations-card-body strong {
   display: -webkit-box;
   overflow: hidden;
-  font-size: 13.5px;
-  line-height: 1.22;
+  font-size: 13px;
+  line-height: 1.18;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .operations-page .operations-panel-supplies .supply-stock-badge {
-  position: absolute;
-  top: 12px;
-  right: 48px;
+  position: static;
+  grid-area: menu;
+  margin-right: 2px;
   display: inline-flex;
   max-width: 100%;
-  min-height: 20px;
+  min-height: 18px;
   align-items: center;
-  padding: 0 7px;
+  padding: 0 6px;
   border-radius: 7px;
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 750;
   line-height: 1.05;
   white-space: nowrap;
@@ -7349,7 +7349,7 @@ button:focus-visible {
   display: flex;
   grid-area: meta;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
   align-items: center;
   justify-content: start;
 }
@@ -7357,11 +7357,11 @@ button:focus-visible {
 .operations-page .operations-panel-supplies .supply-meta-item,
 .operations-page .operations-panel-supplies .supply-meta span {
   display: inline-flex;
-  min-height: 24px;
+  min-height: 20px;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   justify-content: center;
-  padding: 0 8px;
+  padding: 0 7px;
   border-radius: 8px;
   white-space: nowrap;
 }
