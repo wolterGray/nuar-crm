@@ -7481,6 +7481,10 @@
     z-index: 120 !important;
   }
 
+  .dialog-backdrop:has(.confirm-dialog.calendar-conflict-dialog) {
+    z-index: 2147482100 !important;
+  }
+
   .dialog-backdrop .confirm-dialog {
     width: min(100%, 360px) !important;
     max-width: calc(100vw - 24px) !important;
