@@ -45,6 +45,10 @@ describe("normalizePaymentMethod", () => {
     expect(normalizePaymentMethod("monobank")).toBe("mono");
     expect(normalizePaymentMethod("Укр. карта")).toBe("ukrainianCard");
   });
+
+  it("detects mixed cash and card payments", () => {
+    expect(normalizePaymentMethod("Наличные + карта")).toBe("mixed");
+  });
 });
 
 describe("buildFinanceStats", () => {
@@ -113,6 +117,24 @@ describe("buildFinanceStats", () => {
     expect(stats.discountedRevenue).toBe(370);
     expect(stats.discounts).toBe(30);
     expect(stats.serviceReceived).toBe(370);
+  });
+
+  it("counts mixed payment amounts in finance stats", () => {
+    const stats = buildStats({
+      visits: [
+        completedVisit({
+          cashAmount: 200,
+          cardAmount: 170,
+          payment: "Наличные + карта",
+        }),
+      ],
+    });
+
+    expect(stats.discountedRevenue).toBe(370);
+    expect(stats.serviceReceived).toBe(370);
+    expect(stats.cashReceived).toBe(200);
+    expect(stats.cardReceived).toBe(170);
+    expect(stats.receivedRevenue).toBe(370);
   });
 
   it("filters by master", () => {

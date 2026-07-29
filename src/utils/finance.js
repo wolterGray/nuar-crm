@@ -51,6 +51,21 @@ export const normalizePaymentMethod = (method) => {
   }
 
   if (
+    (value.includes("cash") ||
+      value.includes("нал") ||
+      value.includes("gotowka") ||
+      value.includes("готів")) &&
+    (value.includes("terminal") ||
+      value.includes("терминал") ||
+      value.includes("термінал") ||
+      value.includes("karta") ||
+      value.includes("card") ||
+      value.includes("карта"))
+  ) {
+    return "mixed";
+  }
+
+  if (
     value.includes("gotowka") ||
     value.includes("cash") ||
     value.includes("нал") ||
@@ -116,6 +131,25 @@ export const isCancelledVisit = (visit) =>
     normalizeText(visit?.status).replace("-", "_"),
   );
 
+const hasExplicitPaidAmount = (visit) =>
+  visit?.paidAmount !== undefined &&
+  visit?.paidAmount !== null &&
+  String(visit.paidAmount).trim() !== "";
+
+const hasSplitPaymentAmount = (visit, key) =>
+  visit?.[key] !== undefined &&
+  visit?.[key] !== null &&
+  String(visit[key]).trim() !== "";
+
+const hasMixedPayment = (visit) =>
+  normalizePaymentMethod(visit?.payment) === "mixed" ||
+  hasSplitPaymentAmount(visit, "cashAmount") ||
+  hasSplitPaymentAmount(visit, "cardAmount");
+
+const getSplitPaymentReceivedAmount = (visit) =>
+  Math.max(0, toFinanceNumber(visit?.cashAmount)) +
+  Math.max(0, toFinanceNumber(visit?.cardAmount));
+
 export const getVisitGrossAmount = (visit) => toFinanceNumber(visit?.amount);
 
 export const getVisitStandardDiscountedAmount = (visit) =>
@@ -126,6 +160,10 @@ export const getVisitStandardDiscountedAmount = (visit) =>
   );
 
 export const getVisitDiscountedAmount = (visit) => {
+  if (hasMixedPayment(visit)) {
+    return Math.max(0, getSplitPaymentReceivedAmount(visit));
+  }
+
   if (hasExplicitPaidAmount(visit)) {
     return Math.max(0, toFinanceNumber(visit.paidAmount));
   }
@@ -145,14 +183,18 @@ export const getVisitTipAmount = (visit) =>
 export const getVisitExtraAmount = (visit) =>
   Math.max(0, toFinanceNumber(visit?.extra));
 
-const hasExplicitPaidAmount = (visit) =>
-  visit?.paidAmount !== undefined &&
-  visit?.paidAmount !== null &&
-  String(visit.paidAmount).trim() !== "";
-
 export const getVisitServiceReceivedAmount = (visit) => {
-  if (isCancelledVisit(visit) || isPackageVisit(visit) || isCertificateVisit(visit) || isBarterVisit(visit)) {
+  if (
+    isCancelledVisit(visit) ||
+    isPackageVisit(visit) ||
+    isCertificateVisit(visit) ||
+    isBarterVisit(visit)
+  ) {
     return 0;
+  }
+
+  if (hasMixedPayment(visit)) {
+    return Math.max(0, getSplitPaymentReceivedAmount(visit));
   }
 
   if (hasExplicitPaidAmount(visit)) {
@@ -489,6 +531,26 @@ export const buildFinanceStats = ({
   for (const visit of [...completedAppointments, ...incomeOperations]) {
     const method = normalizePaymentMethod(visit.payment);
     const received = getVisitReceivedAmount(visit);
+
+    if (hasMixedPayment(visit)) {
+      const cashAmount = Math.max(0, toFinanceNumber(visit.cashAmount));
+      const cardAmount = Math.max(0, toFinanceNumber(visit.cardAmount));
+
+      if (cashAmount > 0) {
+        paymentsByMethod.cash += cashAmount;
+        paymentRecordsByMethod.cash += 1;
+      }
+      if (cardAmount > 0) {
+        paymentsByMethod.card += cardAmount;
+        paymentRecordsByMethod.card += 1;
+      }
+      if (cashAmount === 0 && cardAmount === 0) {
+        paymentsByMethod[method] = (paymentsByMethod[method] ?? 0) + received;
+        paymentRecordsByMethod[method] = (paymentRecordsByMethod[method] ?? 0) + 1;
+      }
+      continue;
+    }
+
     paymentsByMethod[method] = (paymentsByMethod[method] ?? 0) + received;
     paymentRecordsByMethod[method] = (paymentRecordsByMethod[method] ?? 0) + 1;
   }
