@@ -7947,15 +7947,57 @@
   }
 
   .mobile-page-container[data-mobile-page="operations"] :is(.task-row, .note-row, .supply-row, .waitlist-card) {
-    padding: 10px !important;
+    padding: 9px 10px !important;
     border-radius: 9px !important;
     background: color-mix(in srgb, var(--color-card) 86%, var(--color-page) 14%) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] :is(.task-row, .note-row, .supply-row) {
+    min-height: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-row .operations-card-head,
+  .mobile-page-container[data-mobile-page="operations"] .note-row .operations-card-head {
+    gap: 7px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-row .operations-card-body,
+  .mobile-page-container[data-mobile-page="operations"] .note-row .operations-card-body {
+    gap: 2px !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-row .operations-card-body strong,
+  .mobile-page-container[data-mobile-page="operations"] .note-row .operations-card-body strong {
+    font-size: 12px !important;
+    line-height: 1.18 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-row .operations-card-body span,
+  .mobile-page-container[data-mobile-page="operations"] .note-row .operations-card-body span {
+    margin-top: 1px !important;
+    font-size: 10px !important;
+    line-height: 1.18 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-row .task-meta,
+  .mobile-page-container[data-mobile-page="operations"] .note-row .note-meta,
+  .mobile-page-container[data-mobile-page="operations"] .supply-row .supply-meta {
+    gap: 4px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-row .task-meta :is(small, em),
+  .mobile-page-container[data-mobile-page="operations"] .note-row .note-meta-item,
+  .mobile-page-container[data-mobile-page="operations"] .supply-row .supply-meta-item {
+    min-height: 18px !important;
+    padding: 0 6px !important;
+    font-size: 9.5px !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-row {
     display: grid !important;
     position: relative !important;
-    grid-template-columns: 22px minmax(0, 1fr) 88px !important;
+    grid-template-columns: 22px minmax(0, 1fr) auto !important;
     grid-template-areas:
       "icon body menu"
       "meta meta actions" !important;
@@ -8013,6 +8055,16 @@
     box-shadow: none !important;
   }
 
+  .mobile-page-container[data-mobile-page="operations"] .supply-row .supply-row-aside {
+    display: grid !important;
+    grid-area: menu !important;
+    grid-template-columns: auto auto !important;
+    gap: 4px !important;
+    align-items: center !important;
+    justify-content: end !important;
+    min-width: 0 !important;
+  }
+
   .mobile-page-container[data-mobile-page="operations"] .operations-row-actions .row-action-trigger {
     width: 28px !important;
     height: 28px !important;
@@ -8035,12 +8087,11 @@
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-stock-badge {
-    position: absolute !important;
-    top: 16px !important;
-    right: 38px !important;
-    max-width: 58px !important;
-    min-height: 15px !important;
-    padding: 0 4px !important;
+    position: static !important;
+    grid-area: auto !important;
+    max-width: 72px !important;
+    min-height: 16px !important;
+    padding: 0 5px !important;
     border-radius: 6px !important;
     font-size: 7.5px !important;
     line-height: 1 !important;
