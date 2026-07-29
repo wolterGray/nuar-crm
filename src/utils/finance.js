@@ -471,6 +471,20 @@ export const buildFinanceStats = ({
   const paymentRecordsByMethod = Object.fromEntries(
     Object.keys(paymentsByMethod).map((key) => [key, 0]),
   );
+  const packagePaymentsByMethod = {
+    cash: 0,
+    card: 0,
+    ukrainianCard: 0,
+    package: 0,
+    certificate: 0,
+    crypto: 0,
+    blik: 0,
+    barter: 0,
+    unspecified: 0,
+  };
+  const packagePaymentRecordsByMethod = Object.fromEntries(
+    Object.keys(packagePaymentsByMethod).map((key) => [key, 0]),
+  );
 
   for (const visit of [...completedAppointments, ...incomeOperations]) {
     const method = normalizePaymentMethod(visit.payment);
@@ -481,9 +495,13 @@ export const buildFinanceStats = ({
 
   for (const item of filteredPackages) {
     const method = normalizePaymentMethod(item.payment);
-    paymentsByMethod[method] =
-      (paymentsByMethod[method] ?? 0) + Math.max(0, toFinanceNumber(item.price));
+    const price = Math.max(0, toFinanceNumber(item.price));
+    paymentsByMethod[method] = (paymentsByMethod[method] ?? 0) + price;
     paymentRecordsByMethod[method] = (paymentRecordsByMethod[method] ?? 0) + 1;
+    packagePaymentsByMethod[method] =
+      (packagePaymentsByMethod[method] ?? 0) + price;
+    packagePaymentRecordsByMethod[method] =
+      (packagePaymentRecordsByMethod[method] ?? 0) + 1;
   }
 
   const paidVisitAmounts = completedAppointments
@@ -535,6 +553,8 @@ export const buildFinanceStats = ({
     outstandingDebts,
     packageIncome,
     packageSalePayouts,
+    packagePaymentRecordsByMethod,
+    packagePaymentsByMethod,
     paymentRecordsByMethod,
     paymentsByMethod,
     platformCommission,

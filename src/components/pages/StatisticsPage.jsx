@@ -119,11 +119,25 @@ const buildPaymentsView = (stats) =>
     value: toSafeFinanceNumber(stats.paymentsByMethod?.[item.key]),
   }));
 
+const buildPackageSalesView = (stats) =>
+  paymentDisplay.map((item) => ({
+    ...item,
+    recordsCount: toSafeFinanceNumber(
+      stats.packagePaymentRecordsByMethod?.[item.key],
+    ),
+    value: toSafeFinanceNumber(stats.packagePaymentsByMethod?.[item.key]),
+  }));
+
 const buildStatisticsAnalytics = (stats, clients = []) => {
   const filteredAppointments = stats.completedAppointments ?? [];
   const clientActivity = getClientActivity(filteredAppointments);
   const payments = buildPaymentsView(stats);
+  const packageSalesPayments = buildPackageSalesView(stats);
   const paymentTotal = payments.reduce((sum, item) => sum + item.value, 0);
+  const packageSalesTotal = packageSalesPayments.reduce(
+    (sum, item) => sum + item.value,
+    0,
+  );
   const serviceRevenue = toSafeFinanceNumber(stats.serviceReceived);
   const totalReceived = toSafeFinanceNumber(stats.receivedRevenue);
   const totalIncome = toSafeFinanceNumber(stats.netProfit);
@@ -139,6 +153,8 @@ const buildStatisticsAnalytics = (stats, clients = []) => {
     forecastIncome: toSafeFinanceNumber(stats.forecastRevenue),
     paymentTotal,
     payments,
+    packageSalesPayments,
+    packageSalesTotal,
     platformCommissions: toSafeFinanceNumber(stats.platformCommission),
     repeatClients: clientActivity.repeatClients,
     serviceRevenue,
@@ -626,8 +642,15 @@ function StatisticsPage({
       color: "var(--color-kpi-visits)",
     },
     {
-      label: "Средний чек",
+      label: "Средний чек визита",
+      value: formatIncome(analytics.averageVisitCheck),
+      icon: "banknote",
+      color: "var(--color-kpi-average-check)",
+    },
+    {
+      label: "Средний платёж",
       value: formatIncome(analytics.averageCheck),
+      helper: "все поступления",
       icon: "banknote",
       color: "var(--color-kpi-average-check)",
     },
@@ -935,12 +958,12 @@ function StatisticsPage({
           {!isMobile ? (
             <small className="text-[10px] text-muted-foreground mt-2 max-w-lg">
               {master
-                ? "Показаны визиты выбранного мастера и проданные им пакеты. Операции без мастера остаются только в общем доходе бизнеса."
+                ? "Показаны визиты выбранного мастера и проданные им пакеты. Визиты и продажи пакетов считаются отдельно, а вместе дают общий доход."
                 : businessExtraIncome > 0
                   ? `Включает доп. доход бизнеса: ${formatIncome(
                       businessExtraIncome,
-                    )} · пакеты, сертификаты и операции.`
-                  : "Считаются завершённые визиты и финансовые операции за период."}
+                    )} · пакеты, сертификаты и операции. Платежи визитов и продаж пакетов считаются отдельно.`
+                  : "Считаются завершённые визиты и финансовые операции за период. Платежи визитов и продаж пакетов считаются отдельно."}
             </small>
           ) : null}
         </div>
@@ -1058,7 +1081,42 @@ function StatisticsPage({
                 {formatIncome(analytics.paymentTotal)}
               </span>
             </div>
+            <p className="text-[10px] text-muted-foreground -mt-1">
+              Только оплаты за визиты. Продажи пакетов считаются отдельно.
+            </p>
             {paymentsPanel}
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <div className="flex justify-between items-center text-xs">
+              <h3 className="font-semibold text-muted-foreground">Продажи пакетов</h3>
+              <span className="font-semibold text-foreground">
+                {formatIncome(analytics.packageSalesTotal)}
+              </span>
+            </div>
+            <p className="text-[10px] text-muted-foreground -mt-1">
+              Способы оплаты новых пакетов
+            </p>
+            <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
+              <div className="flex flex-col gap-3.5">
+                {analytics.packageSalesPayments.filter((item) => item.recordsCount > 0 || item.value > 0).length > 0 ? (
+                  analytics.packageSalesPayments
+                    .filter((item) => item.recordsCount > 0 || item.value > 0)
+                    .map((item) => (
+                      <PaymentRow
+                        item={item}
+                        key={`package-${item.label}`}
+                        total={analytics.packageSalesTotal}
+                        value={formatIncome(item.value)}
+                      />
+                    ))
+                ) : (
+                  <p className="statistics-empty-note m-0 text-xs text-muted-foreground">
+                    Продаж пакетов за выбранный период нет.
+                  </p>
+                )}
+              </div>
+            </article>
           </section>
 
           <section className="flex flex-col gap-2 pb-6">
@@ -1182,7 +1240,9 @@ function StatisticsPage({
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
             <h3 className="text-foreground text-sm font-bold">Оплаты</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Наличные, карта, укр. карта, пакеты и неразобранные оплаты</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Только оплаты за визиты. Продажи пакетов считаются отдельно.
+            </p>
           </div>
           <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.paymentTotal)}</strong>
         </div>
@@ -1195,6 +1255,36 @@ function StatisticsPage({
               value={formatIncome(item.value)}
             />
           ))}
+        </div>
+      </article>
+
+      <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
+        <div className="flex justify-between items-center">
+          <div className="flex flex-col">
+            <h3 className="text-foreground text-sm font-bold">Продажи пакетов</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Оплата новых пакетов по способам оплаты
+            </p>
+          </div>
+          <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.packageSalesTotal)}</strong>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          {analytics.packageSalesPayments.filter((item) => item.recordsCount > 0 || item.value > 0).length > 0 ? (
+            analytics.packageSalesPayments
+              .filter((item) => item.recordsCount > 0 || item.value > 0)
+              .map((item) => (
+                <PaymentRow
+                  item={item}
+                  key={`package-${item.label}`}
+                  total={analytics.packageSalesTotal}
+                  value={formatIncome(item.value)}
+                />
+              ))
+          ) : (
+            <p className="statistics-empty-note m-0 text-xs text-muted-foreground">
+              Продаж пакетов за выбранный период нет.
+            </p>
+          )}
         </div>
       </article>
 
