@@ -18,6 +18,9 @@ const getPaymentBadgeTone = (payment, debt) => {
     return "is-debt";
   }
   const norm = String(payment || "").toLowerCase();
+  if (norm.includes("наличные") && norm.includes("карт")) {
+    return "is-card";
+  }
   if (norm.includes("пакет")) {
     return "is-package";
   }
@@ -78,6 +81,15 @@ function VisitMobileCard({
   const statusTone = getStatusBadgeTone(statusKey);
   const canConfirm = onConfirm && visit.status !== "confirmed" && visit.status !== "cancelled";
   const canCancel = onCancel && !["cancelled", "no_show", "completed"].includes(visit.status);
+  const isMixedPayment = visit.payment === "Наличные + карта";
+  const paymentLabel = isMixedPayment
+    ? "Наличные + карта"
+    : debt > 0
+      ? `Долг ${formatMoney(debt)}`
+      : visit.payment || "Не указано";
+  const paymentDetail = isMixedPayment
+    ? `Наличные ${formatMoney(visit.cashAmount ?? 0)} · Карта ${formatMoney(visit.cardAmount ?? 0)}`
+    : "";
 
   const clientProfile = clientProfiles.find(
     (c) =>
@@ -136,8 +148,13 @@ function VisitMobileCard({
           </span>
         ) : null}
         <span className={`visit-mobile-badge ${paymentTone}`}>
-          {debt > 0 ? `Долг ${formatMoney(debt)}` : visit.payment || "Не указано"}
+          {paymentLabel}
         </span>
+        {paymentDetail ? (
+          <span className="visit-mobile-badge is-default">
+            {paymentDetail}
+          </span>
+        ) : null}
         {showStatus && status ? (
           <span className={`visit-mobile-badge ${statusTone}`}>
             {status}
@@ -173,8 +190,13 @@ function VisitMobileCard({
           </span>
         ) : null}
         <span className={`visit-mobile-badge ${paymentTone}`}>
-          {debt > 0 ? `Долг ${formatMoney(debt)}` : visit.payment || "Не указано"}
+          {paymentLabel}
         </span>
+        {paymentDetail ? (
+          <span className="visit-mobile-badge is-default">
+            {paymentDetail}
+          </span>
+        ) : null}
       </div>
     </>
   );
