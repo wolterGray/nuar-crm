@@ -2227,10 +2227,10 @@ button:focus-visible {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 13px;
+  gap: 9px;
+  padding: 11px 12px;
   border: 1px solid var(--packages-border-soft);
-  border-radius: 14px;
+  border-radius: 12px;
   color: var(--packages-text);
   background: var(--packages-panel);
   box-shadow: none;
@@ -2257,59 +2257,72 @@ button:focus-visible {
 
 .package-card h3 {
   max-width: 100%;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  line-height: 1.12;
+  line-height: 1.1;
 }
 
 .package-card strong {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .package-template-card {
   gap: 8px;
-  min-height: 120px;
+  min-height: 0;
+}
+
+.package-card-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.package-card-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
 .package-card-progress {
   display: grid;
-  gap: 6px;
+  gap: 5px;
 }
 
 .package-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding-top: 2px;
-  color: var(--packages-muted);
-  font-size: 12px;
-}
-
-.package-template-meta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 12px;
-  padding-top: 2px;
+  gap: 10px;
+  padding-top: 1px;
   color: var(--packages-muted);
   font-size: 11px;
 }
 
+.package-template-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px 8px;
+  padding-top: 0;
+  color: var(--packages-muted);
+  font-size: 10px;
+}
+
 .package-template-meta > div {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
+  display: grid;
+  gap: 2px;
   min-width: 0;
 }
 
 .package-template-meta span {
   min-width: 0;
   color: var(--packages-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .package-template-meta strong {
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -2349,6 +2362,12 @@ button:focus-visible {
   font-weight: 700;
   letter-spacing: 0.035em;
   text-transform: uppercase;
+}
+
+@media (min-width: 761px) {
+  .packages-panel-templates .package-template-card {
+    min-height: 0;
+  }
 }
 
 .package-status-pill.is-active {

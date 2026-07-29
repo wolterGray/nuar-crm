@@ -32,8 +32,8 @@ function ClientPackageCard({
   return (
     <article
       className={`package-card client-package-card ${archived ? "is-archived" : ""}`}>
-      <div className="flex items-start justify-between gap-3 min-w-0">
-        <div className="grid gap-0.5 min-w-0">
+      <div className="package-card-top">
+        <div className="package-card-copy min-w-0">
           <strong className="text-text-main text-sm font-semibold truncate block">{packageItem.client}</strong>
           <span className="text-text-muted text-xs truncate block">{packageItem.packageName}</span>
           <span className="text-text-faint text-[10px] truncate block font-medium uppercase tracking-wider">{packageItem.service}</span>
@@ -81,8 +81,8 @@ function CertificateCard({
   return (
     <article
       className={`package-card certificate-card ${archived ? "is-archived" : ""}`}>
-      <div className="flex items-start justify-between gap-3 min-w-0">
-        <div className="grid gap-0.5 min-w-0">
+      <div className="package-card-top">
+        <div className="package-card-copy min-w-0">
           <strong className="text-text-main text-sm font-semibold truncate block">{certificate.code}</strong>
           <span className="text-text-muted text-xs truncate block">{certificate.client || "Без покупателя"}</span>
           <span className="text-text-faint text-[10px] truncate block font-medium mt-0.5">
@@ -138,8 +138,8 @@ function PackageTemplateCard({
       className="package-card package-template-card"
       initial={{opacity: 0, y: 6}}
       key={packageItem.id}>
-      <div className="flex items-start justify-between gap-3 min-w-0">
-        <div className="grid gap-0.5 min-w-0">
+      <div className="package-card-top">
+        <div className="package-card-copy min-w-0">
           <h3 className="m-0 text-text-main text-sm font-semibold truncate leading-snug">{packageItem.name}</h3>
           <span className="text-text-muted text-xs truncate block">{packageItem.service}</span>
         </div>
