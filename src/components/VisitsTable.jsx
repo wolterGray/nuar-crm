@@ -135,16 +135,23 @@ function VisitsTable({
         header: "Оплата",
         cell: ({row}) => {
           const visit = row.original;
+          const isMixedPayment = visit.payment === "Наличные + карта";
+          const paymentLabel = isMixedPayment
+            ? "Наличные + карта"
+            : visit.payment || "Не указано";
+          const paymentTooltip = isMixedPayment
+            ? `Наличные: ${formatMoney(visit.cashAmount ?? 0)} · Карта: ${formatMoney(visit.cardAmount ?? 0)}`
+            : visit.packageName
+              ? `${visit.packageName}: списано ${visit.packageSessionsUsed || 1}`
+              : paymentLabel;
 
           return (
             <TooltipCell
-              className={String(visit.payment ?? "").includes("Пакет") ? "package" : ""}
-              value={visit.payment || "Не указано"}
-              tooltip={
-                visit.packageName
-                  ? `${visit.packageName}: списано ${visit.packageSessionsUsed || 1}`
-                  : visit.payment || "Не указано"
+              className={
+                String(visit.payment ?? "").includes("Пакет") ? "package" : isMixedPayment ? "mixed" : ""
               }
+              value={paymentLabel}
+              tooltip={paymentTooltip}
             />
           );
         },

@@ -5,7 +5,7 @@ import {toInputDate} from "../utils/formatters.jsx";
 import {Button, Field, Input, Select} from "./ui/index.js";
 
 const packagePaymentMethods = paymentMethods.filter(
-  (method) => method !== "Пакет" && method !== "Сертификат",
+  (method) => method !== "Пакет" && method !== "Сертификат" && method !== "Наличные + карта",
 );
 
 function ClientPackageForm({

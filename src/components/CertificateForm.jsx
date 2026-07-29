@@ -7,7 +7,7 @@ import {getTodayInput} from "../utils/dateHelpers.js";
 import {Button, Field, Input, Select, Textarea} from "./ui/index.js";
 
 const certificatePaymentMethods = paymentMethods.filter(
-  (method) => method !== "Пакет" && method !== "Сертификат",
+  (method) => method !== "Пакет" && method !== "Сертификат" && method !== "Наличные + карта",
 );
 
 function CertificateForm({
