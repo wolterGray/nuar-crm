@@ -632,7 +632,9 @@ function StatisticsPage({
     ["Сертификаты", analytics.certificateIncome],
     ["Операции", analytics.financialOperationsIncome],
   ];
-  const incomeScopeLabel = master ? `Доход мастера ${master}` : "Доход бизнеса";
+  const incomeScopeLabel = master
+    ? `Чистая прибыль мастера ${master}`
+    : "Чистая прибыль бизнеса";
   const kpiStats = [
     {
       label: "Клиенты",
@@ -959,18 +961,16 @@ function StatisticsPage({
           <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{incomeScopeLabel}</span>
           <strong className="text-foreground text-3xl md:text-5xl font-extrabold leading-none mt-1">{formatIncome(analytics.totalIncome)}</strong>
           <p className="text-xs text-muted-foreground mt-1.5">
-            Поступления {formatIncome(analytics.totalReceived)} ·{" "}
+            Поступления {formatIncome(analytics.totalReceived)} · расходы {formatIncome(analytics.expenses)} ·{" "}
             {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
           </p>
           {!isMobile ? (
             <small className="text-[10px] text-muted-foreground mt-2 max-w-lg">
               {master
-                ? "Показаны визиты выбранного мастера и проданные им пакеты. Визиты и продажи пакетов считаются отдельно, а вместе дают общий доход."
+                ? "Вверху показана чистая прибыль выбранного мастера. Ниже видно, сколько пришло, сколько ушло и как это разложено по визитам, пакетам, сертификатам и операциям."
                 : businessExtraIncome > 0
-                  ? `Включает доп. доход бизнеса: ${formatIncome(
-                      businessExtraIncome,
-                    )} · пакеты, сертификаты и операции. Платежи визитов и продаж пакетов считаются отдельно, а смешанные оплаты внутри визитов делятся между наличными и картой.`
-                  : "Считаются завершённые визиты и финансовые операции за период. Платежи визитов и продаж пакетов считаются отдельно, а смешанные оплаты внутри визитов делятся между наличными и картой."}
+                  ? `Вверху показана чистая прибыль бизнеса. Внутри отдельно считаются визиты, продажи пакетов, сертификаты и операции. Платежи визитов и пакетов разнесены отдельно, а смешанные оплаты делятся между наличными и картой.`
+                  : "Вверху показана чистая прибыль бизнеса. Внутри отдельно считаются визиты и финансовые операции за период. Платежи визитов и пакетов разнесены отдельно, а смешанные оплаты делятся между наличными и картой."}
             </small>
           ) : null}
         </div>
@@ -980,13 +980,13 @@ function StatisticsPage({
       </div>
       <div className="grid grid-cols-3 gap-2 py-2.5 border-y border-border/40 text-xs">
         <span className="flex flex-col gap-0.5 text-muted-foreground">
-          Прогноз <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.forecastIncome)}</b>
+          Поступления <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.totalReceived)}</b>
         </span>
         <span className="flex flex-col gap-0.5 text-muted-foreground">
-          Завершено <b className="text-foreground font-bold text-sm mt-0.5">{analytics.filteredAppointments.length}</b>
+          Расходы <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.expenses)}</b>
         </span>
         <span className="flex flex-col gap-0.5 text-muted-foreground">
-          Средний чек <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.averageCheck)}</b>
+          Средний чек поступлений <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.averageCheck)}</b>
         </span>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
@@ -1032,7 +1032,7 @@ function StatisticsPage({
         <div className="flex-1 min-h-0 overflow-y-auto px-4 space-y-4 select-none pr-1 scrollbar-thin">
           <div className="flex flex-col gap-1 pb-3 border-b border-border/40 mt-1">
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-              {master ? `Доход мастера ${master}` : "Общий доход бизнеса"}
+              {master ? `Чистая прибыль мастера ${master}` : "Чистая прибыль бизнеса"}
             </span>
             <strong className="text-foreground text-3xl font-extrabold leading-none mt-1">
               {formatIncome(analytics.totalIncome)}
