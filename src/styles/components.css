@@ -484,6 +484,62 @@
   --statistics-chart-dot: var(--color-text);
 }
 
+@media (min-width: 769px) {
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters-card {
+    display: block !important;
+    width: 100% !important;
+    min-height: 72px !important;
+    padding: 14px 16px !important;
+    overflow: visible !important;
+  }
+
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters {
+    display: grid !important;
+    grid-template-columns: max-content minmax(360px, 1fr) max-content !important;
+    align-items: center !important;
+    gap: 12px 14px !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters > * {
+    min-width: 0 !important;
+  }
+
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters > :nth-child(3) {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filter-field,
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filter-select {
+    min-height: 38px !important;
+    height: 38px !important;
+  }
+
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filter-select {
+    flex: 0 1 180px !important;
+    width: 180px !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1180px) {
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters > :nth-child(3) {
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+  }
+}
+
 .statistics-attention-icon.is-good,
 .statistics-trend.is-positive {
   color: var(--color-success);

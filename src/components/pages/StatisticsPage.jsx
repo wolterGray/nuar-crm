@@ -243,8 +243,7 @@ function StatisticsFilters({
   }
 
   return (
-    <div
-      className="statistics-filters grid grid-cols-1 xl:grid-cols-[auto_minmax(0,1fr)_auto] gap-3 w-full p-3 rounded-xl border border-border/60 bg-card/30">
+    <div className="statistics-filters">
       <div className="flex flex-wrap items-center gap-2">
         <Button
           className="h-[34px] min-h-[34px] whitespace-nowrap"
@@ -1169,7 +1168,7 @@ function StatisticsPage({
         title="Статистика"
       />
 
-      <div className="statistics-filters-card p-2 border border-border rounded-xl bg-card">{filtersPanel}</div>
+      <div className="statistics-filters-card">{filtersPanel}</div>
 
       <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
         <div className="flex flex-col">
