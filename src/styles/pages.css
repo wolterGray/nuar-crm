@@ -2256,7 +2256,7 @@ button:focus-visible {
 
 .client-package-card,
 .certificate-card {
-  min-height: 112px;
+  min-height: 76px;
 }
 
 .package-card:hover {
@@ -2300,28 +2300,28 @@ button:focus-visible {
 
 .package-card-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 22px;
-  gap: 5px;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  gap: 4px;
   align-items: start;
   min-width: 0;
 }
 
 .package-card-copy {
   display: grid;
-  gap: 1px;
+  gap: 0;
   min-width: 0;
 }
 
 .package-card-progress {
   display: grid;
-  gap: 1px;
+  gap: 0;
 }
 
 .package-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 8px;
   padding-top: 0;
   color: var(--packages-muted);
   font-size: 9px;
@@ -2343,22 +2343,29 @@ button:focus-visible {
 
 .client-package-card .package-card-copy strong,
 .certificate-card .package-card-copy strong {
+  font-size: 12px;
+  line-height: 1.1;
   -webkit-line-clamp: 1;
 }
 
 .client-package-card .package-card-copy span:nth-of-type(1),
 .certificate-card .package-card-copy span:nth-of-type(1) {
+  font-size: 10px;
+  line-height: 1.1;
   -webkit-line-clamp: 1;
 }
 
 .client-package-card .package-card-copy span:nth-of-type(2),
 .certificate-card .package-card-copy span:nth-of-type(2) {
+  font-size: 9px;
+  line-height: 1.05;
   -webkit-line-clamp: 1;
 }
 
 .client-package-card .package-card-progress,
 .certificate-card .package-card-progress {
-  margin-top: 1px;
+  margin-top: 0;
+  gap: 2px;
 }
 
 .client-package-card .package-card-footer,
@@ -2369,7 +2376,8 @@ button:focus-visible {
 
 .client-package-card .package-card-footer > span:first-child,
 .certificate-card .package-card-footer > span:first-child {
-  max-width: 60%;
+  max-width: 48%;
+  font-size: 10px;
 }
 
 .client-package-card .package-status-pill,
@@ -2412,7 +2420,7 @@ button:focus-visible {
 
 .package-card progress {
   overflow: hidden;
-  height: 4px;
+  height: 3px;
   border-radius: 999px;
 }
 
@@ -2431,13 +2439,13 @@ button:focus-visible {
 .package-status-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 18px;
-  padding: 0 5px;
+  min-height: 16px;
+  padding: 0 4px;
   border: 1px solid var(--packages-border);
   border-radius: 999px;
   color: var(--packages-muted);
   background: color-mix(in srgb, var(--packages-text) 4%, transparent);
-  font-size: 7px;
+  font-size: 6px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -2464,8 +2472,8 @@ button:focus-visible {
 .package-card .row-action-trigger {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   padding: 0;
   border-color: transparent;
   background: transparent;
@@ -2478,8 +2486,8 @@ button:focus-visible {
 }
 
 .package-card .row-action-trigger svg {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
 
 .package-card .package-card-copy :is(span, strong, h3),
