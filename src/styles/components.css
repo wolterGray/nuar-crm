@@ -6896,7 +6896,7 @@
 
   .mobile-page-container[data-mobile-page="packages"] .packages-mobile-stats > div {
     gap: 2px !important;
-    min-height: 48px !important;
+    min-height: 46px !important;
     padding: 7px 5px !important;
     border-radius: 8px !important;
   }
@@ -6916,8 +6916,8 @@
   }
 
   .mobile-page-container[data-mobile-page="packages"] .package-card {
-    gap: 6px !important;
-    padding: 10px 11px !important;
+    gap: 5px !important;
+    padding: 9px 10px !important;
     background: color-mix(in srgb, var(--color-card) 88%, var(--color-page) 12%) !important;
   }
 
@@ -6945,6 +6945,12 @@
     border-radius: 7px !important;
     font-size: 8px !important;
     letter-spacing: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="packages"] .package-card .row-action-trigger {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 7px !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .packages-page :is(.text-center.py-8) {

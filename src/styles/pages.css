@@ -2193,7 +2193,7 @@ button:focus-visible {
   display: flex;
   max-height: 520px;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   overflow-x: hidden;
   overflow-y: auto;
   padding-right: 2px;
@@ -2209,7 +2209,7 @@ button:focus-visible {
   display: grid;
   grid-template-columns: repeat(3, minmax(260px, 1fr));
   max-height: none;
-  gap: 10px;
+  gap: 8px;
   padding-right: 0;
 }
 
@@ -2228,10 +2228,10 @@ button:focus-visible {
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  gap: 7px;
-  padding: 10px 11px;
+  gap: 6px;
+  padding: 9px 10px;
   border: 1px solid var(--packages-border-soft);
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--packages-text);
   background: var(--packages-panel);
   box-shadow: none;
@@ -2243,7 +2243,7 @@ button:focus-visible {
 
 .package-card:hover {
   border-color: var(--packages-border);
-  background: color-mix(in srgb, var(--packages-panel) 91%, var(--packages-text));
+  background: color-mix(in srgb, var(--packages-panel) 94%, var(--packages-text));
 }
 
 .package-card.is-archived {
@@ -2263,8 +2263,8 @@ button:focus-visible {
   font-size: 14px;
   font-weight: 700;
   line-height: 1.18;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .package-card strong {
@@ -2276,7 +2276,7 @@ button:focus-visible {
 }
 
 .package-template-card {
-  gap: 6px;
+  gap: 5px;
   min-height: 0;
 }
 
@@ -2296,7 +2296,7 @@ button:focus-visible {
 
 .package-card-progress {
   display: grid;
-  gap: 4px;
+  gap: 3px;
 }
 
 .package-card-footer {
@@ -2312,8 +2312,8 @@ button:focus-visible {
 .package-template-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px 8px;
-  padding-top: 1px;
+  gap: 4px 6px;
+  padding-top: 0;
   color: var(--packages-muted);
   font-size: 9px;
 }
@@ -2392,6 +2392,17 @@ button:focus-visible {
   text-overflow: ellipsis;
 }
 
+.package-card .row-action-trigger {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.package-card .row-action-trigger:hover {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--packages-text) 4%, transparent);
+}
+
 .package-card .package-card-copy :is(span, strong, h3),
 .package-card .package-card-footer :is(span, strong),
 .package-card .package-template-meta :is(span, strong) {
@@ -2402,12 +2413,12 @@ button:focus-visible {
   overflow: hidden;
   margin-top: 2px;
   border: 1px solid var(--packages-border);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--packages-panel);
 }
 
 .packages-archive > button {
-  min-height: 42px;
+  min-height: 38px;
   color: var(--packages-text);
   background: transparent;
 }

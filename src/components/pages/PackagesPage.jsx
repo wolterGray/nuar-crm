@@ -34,9 +34,9 @@ function ClientPackageCard({
       className={`package-card client-package-card ${archived ? "is-archived" : ""}`}>
       <div className="package-card-top">
         <div className="package-card-copy min-w-0">
-          <strong className="text-text-main text-sm font-semibold truncate block">{packageItem.client}</strong>
-          <span className="text-text-muted text-xs truncate block">{packageItem.packageName}</span>
-          <span className="text-text-faint text-[10px] truncate block font-medium uppercase tracking-wider">{packageItem.service}</span>
+          <strong className="text-text-main text-sm font-semibold block leading-tight break-words">{packageItem.client}</strong>
+          <span className="text-text-muted text-xs block leading-tight break-words">{packageItem.packageName}</span>
+          <span className="text-text-faint text-[10px] block font-medium uppercase tracking-wider leading-tight break-words">{packageItem.service}</span>
         </div>
         <RowActionsMenu
           itemId={packageItem.id}
@@ -83,9 +83,9 @@ function CertificateCard({
       className={`package-card certificate-card ${archived ? "is-archived" : ""}`}>
       <div className="package-card-top">
         <div className="package-card-copy min-w-0">
-          <strong className="text-text-main text-sm font-semibold truncate block">{certificate.code}</strong>
-          <span className="text-text-muted text-xs truncate block">{certificate.client || "Без покупателя"}</span>
-          <span className="text-text-faint text-[10px] truncate block font-medium mt-0.5">
+          <strong className="text-text-main text-sm font-semibold block leading-tight break-words">{certificate.code}</strong>
+          <span className="text-text-muted text-xs block leading-tight break-words">{certificate.client || "Без покупателя"}</span>
+          <span className="text-text-faint text-[10px] block font-medium mt-0.5 leading-tight break-words">
             {certificate.recipient && certificate.recipient !== certificate.client
               ? `Получатель: ${certificate.recipient}`
               : `До ${certificate.expiryDate || "—"}`}
@@ -140,8 +140,8 @@ function PackageTemplateCard({
       key={packageItem.id}>
       <div className="package-card-top">
         <div className="package-card-copy min-w-0">
-          <h3 className="m-0 text-text-main text-sm font-semibold truncate leading-snug">{packageItem.name}</h3>
-          <span className="text-text-muted text-xs truncate block">{packageItem.service}</span>
+          <h3 className="m-0 text-text-main text-sm font-semibold leading-snug break-words">{packageItem.name}</h3>
+          <span className="text-text-muted text-xs block leading-tight break-words">{packageItem.service}</span>
         </div>
         <RowActionsMenu
           itemId={packageItem.id}
@@ -627,10 +627,10 @@ function PackagesPage({
 
             {archivedClientPackages.length > 0 && (
               <div className="packages-archive">
-                <Button
-                  className="packages-archive-toggle is-compact"
-                  rightIcon={(
-                    <AppIcon
+                  <Button
+                    className="packages-archive-toggle is-compact"
+                    rightIcon={(
+                      <AppIcon
                       className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
                       name="chevronDown"
                       size="sm"
