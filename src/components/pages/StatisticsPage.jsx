@@ -628,10 +628,10 @@ function StatisticsPage({
     analytics.certificateIncome +
     analytics.financialOperationsIncome;
   const incomeBreakdownItems = [
-    ["Визиты", analytics.visitPaymentTotal],
-    ["Пакеты", analytics.packageIncome],
+    ["Оплаты визитов", analytics.visitPaymentTotal],
+    ["Продажи пакетов", analytics.packageIncome],
     ["Сертификаты", analytics.certificateIncome],
-    ["Операции", analytics.financialOperationsIncome],
+    ["Прочие операции", analytics.financialOperationsIncome],
   ];
   const incomeScopeLabel = master
     ? `Чистая прибыль мастера ${master}`
@@ -968,10 +968,10 @@ function StatisticsPage({
           {!isMobile ? (
             <small className="text-[10px] text-muted-foreground mt-2 max-w-lg">
               {master
-                ? "Вверху показана чистая прибыль выбранного мастера. Ниже видно, сколько пришло, сколько ушло и как это разложено по визитам, пакетам, сертификатам и операциям."
+                ? "Вверху показана чистая прибыль выбранного мастера. Ниже видно, сколько пришло, сколько ушло и как это разложено по оплатам визитов, пакетам, сертификатам и операциям."
                 : businessExtraIncome > 0
-                  ? `Вверху показана чистая прибыль бизнеса. Внутри отдельно считаются визиты, продажи пакетов, сертификаты и операции. Платежи визитов и пакетов разнесены отдельно, а смешанные оплаты делятся между наличными и картой.`
-                  : "Вверху показана чистая прибыль бизнеса. Внутри отдельно считаются визиты и финансовые операции за период. Платежи визитов и пакетов разнесены отдельно, а смешанные оплаты делятся между наличными и картой."}
+                  ? `Вверху показана чистая прибыль бизнеса. Внутри отдельно считаются оплаты визитов, продажи пакетов, сертификаты и операции. Платежи визитов и пакетов разнесены отдельно, а смешанные оплаты делятся между наличными и картой.`
+                  : "Вверху показана чистая прибыль бизнеса. Внутри отдельно считаются оплаты визитов и финансовые операции за период. Платежи визитов и пакетов разнесены отдельно, а смешанные оплаты делятся между наличными и картой."}
             </small>
           ) : null}
         </div>
@@ -997,6 +997,17 @@ function StatisticsPage({
             <strong className="text-foreground font-bold">{formatIncome(value)}</strong>
           </span>
         ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px] text-muted-foreground">
+        <span className="rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5">
+          Визиты считаются по факту оплаты: наличные, карта и смешанная оплата идут отдельно.
+        </span>
+        <span className="rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5">
+          Продажи пакетов и сертификатов не дублируют визиты и показываются отдельными блоками.
+        </span>
+        <span className="rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5">
+          Средний чек поступлений включает визиты, пакеты и прочие операции, а не только услуги.
+        </span>
       </div>
       {!isMobile ? (
         <div className="flex flex-col gap-2">
