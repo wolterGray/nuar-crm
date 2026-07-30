@@ -1161,7 +1161,7 @@ function StatisticsPage({
   }
 
   return (
-    <section className="flex flex-col h-full w-full min-h-0 overflow-y-auto p-4 md:p-6 space-y-6 select-none scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent">
+    <section className="statistics-page flex flex-col h-full w-full min-h-0 overflow-y-auto p-4 md:p-6 space-y-6 select-none scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent">
       <PageHeader
         className="statistics-hero-header w-full"
         description="Финансы, визиты и сигналы по клиентам"
