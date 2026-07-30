@@ -181,7 +181,7 @@ function StatisticsFilters({
 }) {
   if (mobile) {
     return (
-      <div className="flex flex-col gap-3 w-full p-3 rounded-xl border border-border/60 bg-card/30">
+      <div className="flex flex-col gap-2.5 w-full p-3 rounded-xl border border-border/60 bg-card/30">
         <div className="grid grid-cols-2 gap-2">
           <Button
             className="min-h-[38px]"
@@ -199,7 +199,7 @@ function StatisticsFilters({
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <Input
             aria-label="Дата начала"
             className="h-10 min-h-10 text-xs cursor-pointer"
@@ -216,7 +216,7 @@ function StatisticsFilters({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <Select
             className="h-10 min-h-10 text-xs cursor-pointer"
             value={master}
