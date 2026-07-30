@@ -2148,7 +2148,7 @@ button:focus-visible {
     "active certificates"
     "templates templates";
   align-items: start;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
   min-height: 0;
 }
@@ -2178,8 +2178,8 @@ button:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 38px;
-  padding-bottom: 10px;
+  min-height: 34px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--packages-border);
 }
 
@@ -2206,7 +2206,7 @@ button:focus-visible {
   display: flex;
   max-height: 520px;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   overflow-x: hidden;
   overflow-y: auto;
   padding-right: 2px;
@@ -2222,7 +2222,7 @@ button:focus-visible {
   display: grid;
   grid-template-columns: repeat(3, minmax(220px, 1fr));
   max-height: none;
-  gap: 10px;
+  gap: 8px;
   padding-right: 0;
 }
 
@@ -2241,8 +2241,8 @@ button:focus-visible {
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  gap: 5px;
-  padding: 8px 9px;
+  gap: 4px;
+  padding: 7px 8px;
   border: 1px solid var(--packages-border-soft);
   border-radius: 10px;
   color: var(--packages-text);
@@ -2273,59 +2273,59 @@ button:focus-visible {
 .package-card h3 {
   max-width: 100%;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  line-height: 1.22;
+  line-height: 1.2;
   text-overflow: clip;
   white-space: normal;
 }
 
 .package-card strong {
   overflow: hidden;
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1.15;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .package-template-card {
-  gap: 4px;
+  gap: 3px;
   min-height: 0;
 }
 
 .package-card-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 28px;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 24px;
+  gap: 6px;
   align-items: start;
   min-width: 0;
 }
 
 .package-card-copy {
   display: grid;
-  gap: 1px;
+  gap: 0;
   min-width: 0;
 }
 
 .package-card-progress {
   display: grid;
-  gap: 2px;
+  gap: 1px;
 }
 
 .package-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   padding-top: 0;
   color: var(--packages-muted);
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .package-template-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 3px 6px;
+  gap: 2px 6px;
   padding-top: 0;
   color: var(--packages-muted);
   font-size: 8px;
@@ -2345,7 +2345,7 @@ button:focus-visible {
 }
 
 .package-template-meta strong {
-  font-size: 9px;
+  font-size: 8px;
   white-space: nowrap;
 }
 
@@ -2356,7 +2356,7 @@ button:focus-visible {
 
 .package-card progress {
   overflow: hidden;
-  height: 5px;
+  height: 4px;
   border-radius: 999px;
 }
 
@@ -2375,13 +2375,13 @@ button:focus-visible {
 .package-status-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 20px;
-  padding: 0 6px;
+  min-height: 18px;
+  padding: 0 5px;
   border: 1px solid var(--packages-border);
   border-radius: 999px;
   color: var(--packages-muted);
   background: color-mix(in srgb, var(--packages-text) 4%, transparent);
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -2408,8 +2408,8 @@ button:focus-visible {
 .package-card .row-action-trigger {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border-color: transparent;
   background: transparent;
@@ -2422,8 +2422,8 @@ button:focus-visible {
 }
 
 .package-card .row-action-trigger svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 
 .package-card .package-card-copy :is(span, strong, h3),
