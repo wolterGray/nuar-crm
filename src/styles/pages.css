@@ -1553,7 +1553,7 @@ button:focus-visible {
 }
 
 .statistics-hero-header.page-header-unified {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .statistics-hero-header .page-header-unified-trailing,
@@ -1564,13 +1564,14 @@ button:focus-visible {
 .statistics-filters-card {
   background: var(--color-window);
   border-color: var(--color-border);
+  overflow: hidden;
 }
 
 .statistics-filters {
   display: grid;
-  grid-template-columns: minmax(150px, 180px) auto minmax(150px, 180px) minmax(260px, 1fr) minmax(150px, 0.62fr);
+  grid-template-columns: minmax(132px, 160px) auto minmax(132px, 160px) minmax(220px, 1fr) minmax(140px, 180px);
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -2207,9 +2208,9 @@ button:focus-visible {
 
 .packages-panel-templates .packages-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
   max-height: none;
-  gap: 8px;
+  gap: 10px;
   padding-right: 0;
 }
 
@@ -2228,8 +2229,8 @@ button:focus-visible {
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  gap: 6px;
-  padding: 9px 10px;
+  gap: 5px;
+  padding: 8px 9px;
   border: 1px solid var(--packages-border-soft);
   border-radius: 10px;
   color: var(--packages-text);
@@ -2260,30 +2261,30 @@ button:focus-visible {
 .package-card h3 {
   max-width: 100%;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  line-height: 1.18;
+  line-height: 1.22;
   text-overflow: clip;
   white-space: normal;
 }
 
 .package-card strong {
   overflow: hidden;
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.15;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .package-template-card {
-  gap: 5px;
+  gap: 4px;
   min-height: 0;
 }
 
 .package-card-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  gap: 8px;
   align-items: start;
   min-width: 0;
 }
@@ -2296,7 +2297,7 @@ button:focus-visible {
 
 .package-card-progress {
   display: grid;
-  gap: 3px;
+  gap: 2px;
 }
 
 .package-card-footer {
@@ -2312,10 +2313,10 @@ button:focus-visible {
 .package-template-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px 6px;
+  gap: 3px 6px;
   padding-top: 0;
   color: var(--packages-muted);
-  font-size: 9px;
+  font-size: 8px;
 }
 
 .package-template-meta > div {
@@ -2332,7 +2333,7 @@ button:focus-visible {
 }
 
 .package-template-meta strong {
-  font-size: 10px;
+  font-size: 9px;
   white-space: nowrap;
 }
 
@@ -2363,12 +2364,12 @@ button:focus-visible {
   display: inline-flex;
   align-items: center;
   min-height: 20px;
-  padding: 0 7px;
+  padding: 0 6px;
   border: 1px solid var(--packages-border);
   border-radius: 999px;
   color: var(--packages-muted);
   background: color-mix(in srgb, var(--packages-text) 4%, transparent);
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -2393,6 +2394,11 @@ button:focus-visible {
 }
 
 .package-card .row-action-trigger {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border-color: transparent;
   background: transparent;
   box-shadow: none;
@@ -2403,10 +2409,25 @@ button:focus-visible {
   background: color-mix(in srgb, var(--packages-text) 4%, transparent);
 }
 
+.package-card .row-action-trigger svg {
+  width: 14px;
+  height: 14px;
+}
+
 .package-card .package-card-copy :is(span, strong, h3),
 .package-card .package-card-footer :is(span, strong),
 .package-card .package-template-meta :is(span, strong) {
   min-width: 0;
+}
+
+.package-card .package-card-footer {
+  gap: 6px;
+}
+
+.package-card .package-card-footer > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .packages-archive {
