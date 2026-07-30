@@ -244,53 +244,47 @@ function StatisticsFilters({
 
   return (
     <div
-      className="statistics-filters flex flex-col flex-wrap lg:flex-row lg:items-center justify-between gap-4 w-full p-2 bg-transparent">
-      {/* Left side: Range presets and date fields */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Presets */}
-        <div className="flex items-center gap-2">
-          <Button
-            className="h-[34px] min-h-[34px] whitespace-nowrap"
-            size="sm"
-            variant="secondary"
-            onClick={onApplyCurrentMonthRange}>
-            Этот месяц
-          </Button>
-          <Button
-            className="h-[34px] min-h-[34px] whitespace-nowrap"
-            size="sm"
-            variant="secondary"
-            onClick={onApplyPreviousMonthRange}>
-            Прошлый месяц
-          </Button>
-        </div>
-
-        <div className="h-6 w-px bg-border/40 hidden sm:block" />
-
-        {/* Date Inputs */}
-        <div className="flex items-center gap-2">
-          <Input
-            aria-label="Дата начала"
-            className="statistics-filter-field h-[38px] min-h-[38px] w-[178px] min-w-[178px] text-xs cursor-pointer"
-            type="date"
-            value={startDate}
-            onChange={(event) => onStartDateChange(event.target.value)}
-          />
-          <span className="text-muted-foreground font-semibold text-xs">—</span>
-          <Input
-            aria-label="Дата окончания"
-            className="statistics-filter-field h-[38px] min-h-[38px] w-[178px] min-w-[178px] text-xs cursor-pointer"
-            type="date"
-            value={endDate}
-            onChange={(event) => onEndDateChange(event.target.value)}
-          />
-        </div>
+      className="statistics-filters grid grid-cols-1 xl:grid-cols-[auto_minmax(0,1fr)_auto] gap-3 w-full p-3 rounded-xl border border-border/60 bg-card/30">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          className="h-[34px] min-h-[34px] whitespace-nowrap"
+          size="sm"
+          variant="secondary"
+          onClick={onApplyCurrentMonthRange}>
+          Этот месяц
+        </Button>
+        <Button
+          className="h-[34px] min-h-[34px] whitespace-nowrap"
+          size="sm"
+          variant="secondary"
+          onClick={onApplyPreviousMonthRange}>
+          Прошлый месяц
+        </Button>
       </div>
 
-      {/* Right side: Dropdown Selects */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-2 items-center">
+        <Input
+          aria-label="Дата начала"
+          className="statistics-filter-field h-[38px] min-h-[38px] text-xs cursor-pointer"
+          type="date"
+          value={startDate}
+          onChange={(event) => onStartDateChange(event.target.value)}
+        />
+        <span className="hidden sm:flex items-center justify-center text-muted-foreground font-semibold text-xs px-1">
+          —
+        </span>
+        <Input
+          aria-label="Дата окончания"
+          className="statistics-filter-field h-[38px] min-h-[38px] text-xs cursor-pointer"
+          type="date"
+          value={endDate}
+          onChange={(event) => onEndDateChange(event.target.value)}
+        />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 xl:justify-end">
         <Select
-          className="statistics-filter-select h-[38px] min-h-[38px] w-[190px] min-w-[190px] text-xs cursor-pointer"
+          className="statistics-filter-select h-[38px] min-h-[38px] w-full sm:w-[190px] min-w-0 text-xs cursor-pointer"
           value={master}
           onChange={(event) => onMasterChange(event.target.value)}>
           <option value="">Все сотрудники</option>
@@ -300,7 +294,7 @@ function StatisticsFilters({
         </Select>
         <Select
           aria-label="Валюта отчёта"
-          className="statistics-filter-select h-[38px] min-h-[38px] w-[150px] min-w-[150px] text-xs cursor-pointer"
+          className="statistics-filter-select h-[38px] min-h-[38px] w-full sm:w-[150px] min-w-0 text-xs cursor-pointer"
           value={currency}
           onChange={(event) => onCurrencyChange(event.target.value)}>
           {currencies.map((item) => (
@@ -954,6 +948,7 @@ function StatisticsPage({
       : `${Math.abs(Math.round(periodChangePercent))}% к прошлому периоду`;
   const chartChangeIcon =
     periodChangePercent === null ? null : periodChangePercent >= 0 ? "arrowUp" : "arrowDown";
+  const scopeLabel = master ? `Сотрудник: ${master}` : "Сотрудники: все";
 
   const incomeCard = (
     <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card shadow-lg">
@@ -965,6 +960,7 @@ function StatisticsPage({
             Поступления {formatIncome(analytics.totalReceived)} · расходы {formatIncome(analytics.expenses)} ·{" "}
             {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
           </p>
+          <p className="text-[10px] text-muted-foreground mt-1">{scopeLabel}</p>
           {!isMobile ? (
             <small className="text-[10px] text-muted-foreground mt-2 max-w-lg">
               {master
@@ -1052,6 +1048,7 @@ function StatisticsPage({
             <p className="text-xs text-muted-foreground mt-1.5">
               Период: {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
             </p>
+            <p className="text-[10px] text-muted-foreground mt-1">{scopeLabel}</p>
           </div>
 
           <StatisticsFilters
