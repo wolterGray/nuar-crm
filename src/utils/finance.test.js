@@ -182,6 +182,26 @@ describe("buildFinanceStats", () => {
     expect(stats.netProfit).toBe(720);
   });
 
+  it("keeps visit payments separate from package sales in payment breakdown", () => {
+    const stats = buildStats({
+      visits: [completedVisit({payment: "Карта", amount: 500})],
+      clientPackages: [
+        {
+          id: "pkg-1",
+          master: "Max",
+          payment: "Карта",
+          price: 1200,
+          purchaseDate: "10.06.2026",
+          totalVisits: 6,
+        },
+      ],
+    });
+
+    expect(stats.visitPaymentsByMethod.card).toBe(500);
+    expect(stats.packagePaymentsByMethod.card).toBe(1200);
+    expect(stats.paymentsByMethod.card).toBe(1700);
+  });
+
   it("subtracts expense operations from net profit", () => {
     const stats = buildStats({
       visits: [

@@ -513,6 +513,20 @@ export const buildFinanceStats = ({
   const paymentRecordsByMethod = Object.fromEntries(
     Object.keys(paymentsByMethod).map((key) => [key, 0]),
   );
+  const visitPaymentsByMethod = {
+    cash: 0,
+    card: 0,
+    ukrainianCard: 0,
+    package: 0,
+    certificate: 0,
+    crypto: 0,
+    blik: 0,
+    barter: 0,
+    unspecified: 0,
+  };
+  const visitPaymentRecordsByMethod = Object.fromEntries(
+    Object.keys(visitPaymentsByMethod).map((key) => [key, 0]),
+  );
   const packagePaymentsByMethod = {
     cash: 0,
     card: 0,
@@ -539,20 +553,31 @@ export const buildFinanceStats = ({
       if (cashAmount > 0) {
         paymentsByMethod.cash += cashAmount;
         paymentRecordsByMethod.cash += 1;
+        visitPaymentsByMethod.cash += cashAmount;
+        visitPaymentRecordsByMethod.cash += 1;
       }
       if (cardAmount > 0) {
         paymentsByMethod.card += cardAmount;
         paymentRecordsByMethod.card += 1;
+        visitPaymentsByMethod.card += cardAmount;
+        visitPaymentRecordsByMethod.card += 1;
       }
       if (cashAmount === 0 && cardAmount === 0) {
         paymentsByMethod[method] = (paymentsByMethod[method] ?? 0) + received;
         paymentRecordsByMethod[method] = (paymentRecordsByMethod[method] ?? 0) + 1;
+        visitPaymentsByMethod[method] =
+          (visitPaymentsByMethod[method] ?? 0) + received;
+        visitPaymentRecordsByMethod[method] =
+          (visitPaymentRecordsByMethod[method] ?? 0) + 1;
       }
       continue;
     }
 
     paymentsByMethod[method] = (paymentsByMethod[method] ?? 0) + received;
     paymentRecordsByMethod[method] = (paymentRecordsByMethod[method] ?? 0) + 1;
+    visitPaymentsByMethod[method] = (visitPaymentsByMethod[method] ?? 0) + received;
+    visitPaymentRecordsByMethod[method] =
+      (visitPaymentRecordsByMethod[method] ?? 0) + 1;
   }
 
   for (const item of filteredPackages) {
@@ -619,6 +644,8 @@ export const buildFinanceStats = ({
     packagePaymentsByMethod,
     paymentRecordsByMethod,
     paymentsByMethod,
+    visitPaymentRecordsByMethod,
+    visitPaymentsByMethod,
     platformCommission,
     receivedRevenue,
     serviceReceived,

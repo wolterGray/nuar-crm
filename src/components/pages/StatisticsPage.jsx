@@ -115,8 +115,8 @@ const getClientActivity = (appointments = []) => {
 const buildPaymentsView = (stats) =>
   paymentDisplay.map((item) => ({
     ...item,
-    recordsCount: toSafeFinanceNumber(stats.paymentRecordsByMethod?.[item.key]),
-    value: toSafeFinanceNumber(stats.paymentsByMethod?.[item.key]),
+    recordsCount: toSafeFinanceNumber(stats.visitPaymentRecordsByMethod?.[item.key]),
+    value: toSafeFinanceNumber(stats.visitPaymentsByMethod?.[item.key]),
   }));
 
 const buildPackageSalesView = (stats) =>
@@ -155,6 +155,7 @@ const buildStatisticsAnalytics = (stats, clients = []) => {
     payments,
     packageSalesPayments,
     packageSalesTotal,
+    visitPaymentTotal: paymentTotal,
     platformCommissions: toSafeFinanceNumber(stats.platformCommission),
     repeatClients: clientActivity.repeatClients,
     serviceRevenue,
@@ -859,7 +860,7 @@ function StatisticsPage({
             <PaymentRow
               item={item}
               key={item.label}
-              total={analytics.paymentTotal}
+              total={analytics.visitPaymentTotal}
               value={formatIncome(item.value)}
             />
           ))
@@ -1078,7 +1079,7 @@ function StatisticsPage({
             <div className="flex justify-between items-center text-xs">
               <h3 className="font-semibold text-muted-foreground">Оплаты</h3>
               <span className="font-semibold text-foreground">
-                {formatIncome(analytics.paymentTotal)}
+                {formatIncome(analytics.visitPaymentTotal)}
               </span>
             </div>
             <p className="text-[10px] text-muted-foreground -mt-1">
@@ -1244,14 +1245,14 @@ function StatisticsPage({
               Только оплаты за визиты. Продажи пакетов считаются отдельно. Смешанные оплаты делятся на наличные и карту.
             </p>
           </div>
-          <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.paymentTotal)}</strong>
+          <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.visitPaymentTotal)}</strong>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
           {paymentRows.map((item) => (
             <PaymentRow
               item={item}
               key={item.label}
-              total={analytics.paymentTotal}
+              total={analytics.visitPaymentTotal}
               value={formatIncome(item.value)}
             />
           ))}
