@@ -1552,12 +1552,14 @@ button:focus-visible {
   color: #b3bdcb;
 }
 
-.statistics-hero-header.page-header-unified {
-  margin-bottom: 16px;
+.ui-page-header.statistics-hero-header {
+  margin-bottom: 20px;
+  padding-bottom: 18px;
 }
 
 .statistics-hero-header .page-header-unified-trailing,
-.statistics-hero-header .page-header-unified-side {
+.statistics-hero-header .page-header-unified-side,
+.statistics-hero-header .ui-page-header-trailing {
   align-items: center;
 }
 
@@ -1565,14 +1567,14 @@ button:focus-visible {
   background: var(--color-window);
   border-color: var(--color-border);
   overflow: hidden;
-  margin-top: 2px;
+  margin-top: 10px;
 }
 
 .statistics-filters {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr) max-content;
   align-items: center;
-  gap: 8px 12px;
+  gap: 12px 14px;
   width: 100%;
 }
 
