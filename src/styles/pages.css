@@ -2254,6 +2254,11 @@ button:focus-visible {
     border-color 150ms ease;
 }
 
+.client-package-card,
+.certificate-card {
+  min-height: 112px;
+}
+
 .package-card:hover {
   border-color: var(--packages-border);
   background: color-mix(in srgb, var(--packages-panel) 94%, var(--packages-text));
@@ -2295,15 +2300,15 @@ button:focus-visible {
 
 .package-card-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 24px;
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) 22px;
+  gap: 5px;
   align-items: start;
   min-width: 0;
 }
 
 .package-card-copy {
   display: grid;
-  gap: 0;
+  gap: 1px;
   min-width: 0;
 }
 
@@ -2320,6 +2325,57 @@ button:focus-visible {
   padding-top: 0;
   color: var(--packages-muted);
   font-size: 9px;
+}
+
+.client-package-card .package-card-copy,
+.certificate-card .package-card-copy {
+  gap: 0;
+}
+
+.client-package-card .package-card-copy strong,
+.certificate-card .package-card-copy strong,
+.client-package-card .package-card-copy span,
+.certificate-card .package-card-copy span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+}
+
+.client-package-card .package-card-copy strong,
+.certificate-card .package-card-copy strong {
+  -webkit-line-clamp: 1;
+}
+
+.client-package-card .package-card-copy span:nth-of-type(1),
+.certificate-card .package-card-copy span:nth-of-type(1) {
+  -webkit-line-clamp: 1;
+}
+
+.client-package-card .package-card-copy span:nth-of-type(2),
+.certificate-card .package-card-copy span:nth-of-type(2) {
+  -webkit-line-clamp: 1;
+}
+
+.client-package-card .package-card-progress,
+.certificate-card .package-card-progress {
+  margin-top: 1px;
+}
+
+.client-package-card .package-card-footer,
+.certificate-card .package-card-footer {
+  align-items: center;
+  margin-top: 0;
+}
+
+.client-package-card .package-card-footer > span:first-child,
+.certificate-card .package-card-footer > span:first-child {
+  max-width: 60%;
+}
+
+.client-package-card .package-status-pill,
+.certificate-card .package-status-pill {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .package-template-meta {
