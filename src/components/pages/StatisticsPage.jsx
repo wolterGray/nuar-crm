@@ -689,7 +689,10 @@ function StatisticsPage({
     ["Выплаты мастерам", -analytics.employeePayouts],
     ["Комиссии платформ", -analytics.platformCommissions],
   ];
-  const paymentRows = analytics.payments.filter(
+  const visitPaymentRows = analytics.payments.filter(
+    (item) => item.recordsCount > 0 || item.value > 0,
+  );
+  const packagePaymentRows = analytics.packageSalesPayments.filter(
     (item) => item.recordsCount > 0 || item.value > 0,
   );
   const attentionItems = [];
@@ -777,7 +780,7 @@ function StatisticsPage({
         value: formatIncome(analytics.averageVisitCheck),
         valuePln: analytics.averageVisitCheck,
       },
-      ...paymentRows.map((item) => ({
+      ...visitPaymentRows.map((item) => ({
         metric: item.label,
         section: "Оплаты",
         value: formatIncome(item.value),
@@ -858,8 +861,8 @@ function StatisticsPage({
   const paymentsPanel = (
     <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
       <div className="flex flex-col gap-3.5">
-        {paymentRows.length > 0 ? (
-          paymentRows.map((item) => (
+        {visitPaymentRows.length > 0 ? (
+          visitPaymentRows.map((item) => (
             <PaymentRow
               item={item}
               key={item.label}
@@ -964,10 +967,10 @@ function StatisticsPage({
           {!isMobile ? (
             <small className="text-[10px] text-muted-foreground mt-2 max-w-lg">
               {master
-                ? "Вверху показана чистая прибыль выбранного мастера. Ниже видно, сколько пришло, сколько ушло и как это разложено по оплатам визитов, пакетам, сертификатам и операциям."
+                ? "Вверху показана чистая прибыль выбранного мастера. Ниже видно, сколько пришло, сколько ушло и как это разложено по визитам, пакетам, сертификатам и операциям."
                 : businessExtraIncome > 0
-                  ? `Вверху показана чистая прибыль бизнеса. Внутри отдельно считаются оплаты визитов, продажи пакетов, сертификаты и операции. Платежи визитов и пакетов разнесены отдельно, а смешанные оплаты делятся между наличными и картой.`
-                  : "Вверху показана чистая прибыль бизнеса. Внутри отдельно считаются оплаты визитов и финансовые операции за период. Платежи визитов и пакетов разнесены отдельно, а смешанные оплаты делятся между наличными и картой."}
+                  ? `Вверху показана чистая прибыль бизнеса. Отдельно считаются оплаты визитов, продажи пакетов, сертификаты и операции. Смешанные оплаты делятся между наличными и картой.`
+                  : "Вверху показана чистая прибыль бизнеса. Отдельно считаются оплаты визитов и финансовые операции за период. Смешанные оплаты делятся между наличными и картой."}
             </small>
           ) : null}
         </div>
@@ -1123,10 +1126,8 @@ function StatisticsPage({
             </p>
             <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
               <div className="flex flex-col gap-3.5">
-                {analytics.packageSalesPayments.filter((item) => item.recordsCount > 0 || item.value > 0).length > 0 ? (
-                  analytics.packageSalesPayments
-                    .filter((item) => item.recordsCount > 0 || item.value > 0)
-                    .map((item) => (
+                {packagePaymentRows.length > 0 ? (
+                  packagePaymentRows.map((item) => (
                       <PaymentRow
                         item={item}
                         key={`package-${item.label}`}
@@ -1197,8 +1198,8 @@ function StatisticsPage({
             item={{
               color: "var(--color-kpi-debts)",
               helper:
-                todaySnapshot.debtVisits > 0
-                  ? `${todaySnapshot.debtVisits} записей`
+                todaySnapshot.debtVisits.length > 0
+                  ? `${todaySnapshot.debtVisits.length} записей`
                   : "нет долгов",
               icon: "walletCards",
               label: "Долги",
@@ -1271,7 +1272,7 @@ function StatisticsPage({
           <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.visitPaymentTotal)}</strong>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-          {paymentRows.map((item) => (
+          {visitPaymentRows.map((item) => (
             <PaymentRow
               item={item}
               key={item.label}
@@ -1293,10 +1294,8 @@ function StatisticsPage({
           <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.packageSalesTotal)}</strong>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-          {analytics.packageSalesPayments.filter((item) => item.recordsCount > 0 || item.value > 0).length > 0 ? (
-            analytics.packageSalesPayments
-              .filter((item) => item.recordsCount > 0 || item.value > 0)
-              .map((item) => (
+          {packagePaymentRows.length > 0 ? (
+            packagePaymentRows.map((item) => (
                 <PaymentRow
                   item={item}
                   key={`package-${item.label}`}
