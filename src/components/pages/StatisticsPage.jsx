@@ -626,6 +626,12 @@ function StatisticsPage({
     analytics.packageIncome +
     analytics.certificateIncome +
     analytics.financialOperationsIncome;
+  const incomeBreakdownItems = [
+    ["Визиты", analytics.visitPaymentTotal],
+    ["Пакеты", analytics.packageIncome],
+    ["Сертификаты", analytics.certificateIncome],
+    ["Операции", analytics.financialOperationsIncome],
+  ];
   const incomeScopeLabel = master ? `Доход мастера ${master}` : "Доход бизнеса";
   const kpiStats = [
     {
@@ -982,6 +988,14 @@ function StatisticsPage({
         <span className="flex flex-col gap-0.5 text-muted-foreground">
           Средний чек <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.averageCheck)}</b>
         </span>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+        {incomeBreakdownItems.map(([label, value]) => (
+          <span key={label} className="flex flex-col gap-0.5 rounded-lg border border-border/60 bg-muted/20 p-2">
+            <span className="text-[10px] uppercase font-semibold tracking-wider text-muted-foreground">{label}</span>
+            <strong className="text-foreground font-bold">{formatIncome(value)}</strong>
+          </span>
+        ))}
       </div>
       {!isMobile ? (
         <div className="flex flex-col gap-2">
