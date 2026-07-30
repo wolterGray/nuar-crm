@@ -61,6 +61,7 @@ const statisticsChartTokens = {
 const paymentDisplay = [
   {color: "var(--color-chart-cash)", key: "cash", label: "Наличные"},
   {color: "var(--color-chart-card)", key: "card", label: "Карта"},
+  {color: "var(--color-chart-card)", key: "mixed", label: "Наличные + карта"},
   {color: "var(--color-chart-ukrainian-card)", key: "ukrainianCard", label: "Укр. карта"},
   {color: "var(--color-chart-package)", key: "package", label: "Пакеты"},
   {color: "var(--color-chart-certificate)", key: "certificate", label: "Сертификаты"},

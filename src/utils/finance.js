@@ -46,10 +46,6 @@ export const normalizePaymentMethod = (method) => {
     return "mono";
   }
 
-  if (value.includes("ukr") || value.includes("укр")) {
-    return "ukrainianCard";
-  }
-
   if (
     (value.includes("cash") ||
       value.includes("нал") ||
@@ -63,6 +59,10 @@ export const normalizePaymentMethod = (method) => {
       value.includes("карта"))
   ) {
     return "mixed";
+  }
+
+  if (value.includes("ukr") || value.includes("укр")) {
+    return "ukrainianCard";
   }
 
   if (
@@ -503,6 +503,7 @@ export const buildFinanceStats = ({
     cash: 0,
     card: 0,
     ukrainianCard: 0,
+    mixed: 0,
     package: 0,
     certificate: 0,
     crypto: 0,
@@ -517,6 +518,7 @@ export const buildFinanceStats = ({
     cash: 0,
     card: 0,
     ukrainianCard: 0,
+    mixed: 0,
     package: 0,
     certificate: 0,
     crypto: 0,
@@ -531,6 +533,7 @@ export const buildFinanceStats = ({
     cash: 0,
     card: 0,
     ukrainianCard: 0,
+    mixed: 0,
     package: 0,
     certificate: 0,
     crypto: 0,

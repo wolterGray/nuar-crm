@@ -202,6 +202,26 @@ describe("buildFinanceStats", () => {
     expect(stats.paymentsByMethod.card).toBe(1700);
   });
 
+  it("tracks mixed package sales separately", () => {
+    const stats = buildStats({
+      clientPackages: [
+        {
+          id: "pkg-1",
+          master: "Max",
+          payment: "Наличные + карта",
+          price: 900,
+          purchaseDate: "10.06.2026",
+          totalVisits: 6,
+        },
+      ],
+    });
+
+    expect(stats.packageIncome).toBe(900);
+    expect(stats.packagePaymentsByMethod.mixed).toBe(900);
+    expect(stats.paymentsByMethod.mixed).toBe(900);
+    expect(stats.receivedRevenue).toBe(900);
+  });
+
   it("subtracts expense operations from net profit", () => {
     const stats = buildStats({
       visits: [
