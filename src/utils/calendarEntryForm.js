@@ -42,6 +42,10 @@ export const buildCalendarEntryFromForm = (
   );
   const rawAmount = String(form.get("amount") ?? "").trim();
   const rawPaidAmount = String(form.get("paidAmount") ?? "").trim();
+  const rawCashAmount = String(form.get("cashAmount") ?? "").trim();
+  const rawCardAmount = String(form.get("cardAmount") ?? "").trim();
+  const payment = kind === "visit" ? form.get("payment") : "";
+  const isMixedPayment = payment === "Наличные + карта";
   const entryDraft = {
     id: editingCalendarEntry?.id ?? createLocalId(),
     status: editingCalendarEntry?.status ?? "scheduled",
@@ -62,7 +66,7 @@ export const buildCalendarEntryFromForm = (
           ? toVisitNumber(serviceVariant?.price)
           : toVisitNumber(rawAmount)
         : 0,
-    payment: kind === "visit" ? form.get("payment") : "",
+    payment,
     packageUsageId,
     packageName:
       clientPackages.find((item) => item.id === packageUsageId)?.packageName ?? "",
@@ -82,8 +86,22 @@ export const buildCalendarEntryFromForm = (
     extra: kind === "visit" ? toVisitNumber(form.get("extra")) : 0,
     debt: kind === "visit" ? toVisitNumber(form.get("debt")) : 0,
     discount: kind === "visit" ? toVisitNumber(form.get("discount")) : 0,
+    cashAmount:
+      kind === "visit" && isMixedPayment && rawCashAmount !== ""
+        ? toVisitNumber(rawCashAmount)
+        : "",
+    cardAmount:
+      kind === "visit" && isMixedPayment && rawCardAmount !== ""
+        ? toVisitNumber(rawCardAmount)
+        : "",
     paidAmount:
-      kind === "visit" && rawPaidAmount !== "" ? toVisitNumber(rawPaidAmount) : "",
+      kind === "visit"
+        ? isMixedPayment
+          ? toVisitNumber(rawCashAmount) + toVisitNumber(rawCardAmount)
+          : rawPaidAmount !== ""
+            ? toVisitNumber(rawPaidAmount)
+            : ""
+        : "",
     commissionType:
       kind === "visit"
         ? String(form.get("commissionType") ?? "Без комиссии")

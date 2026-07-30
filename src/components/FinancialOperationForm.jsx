@@ -38,7 +38,7 @@ function FinancialOperationForm({clients, operation, onSubmit}) {
       </Field>
       <Field label="Способ оплаты">
         <Select name="payment" defaultValue={operation?.payment ?? "Наличные"}>
-          {paymentMethods.map((payment) => (
+          {paymentMethods.filter((payment) => payment !== "Наличные + карта").map((payment) => (
             <option key={payment}>{payment}</option>
           ))}
         </Select>

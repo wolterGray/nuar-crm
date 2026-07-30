@@ -45,6 +45,10 @@ describe("normalizePaymentMethod", () => {
     expect(normalizePaymentMethod("monobank")).toBe("mono");
     expect(normalizePaymentMethod("Укр. карта")).toBe("ukrainianCard");
   });
+
+  it("detects mixed cash and card payments", () => {
+    expect(normalizePaymentMethod("Наличные + карта")).toBe("mixed");
+  });
 });
 
 describe("buildFinanceStats", () => {
@@ -115,6 +119,24 @@ describe("buildFinanceStats", () => {
     expect(stats.serviceReceived).toBe(370);
   });
 
+  it("counts mixed payment amounts in finance stats", () => {
+    const stats = buildStats({
+      visits: [
+        completedVisit({
+          cashAmount: 200,
+          cardAmount: 170,
+          payment: "Наличные + карта",
+        }),
+      ],
+    });
+
+    expect(stats.discountedRevenue).toBe(370);
+    expect(stats.serviceReceived).toBe(370);
+    expect(stats.cashReceived).toBe(200);
+    expect(stats.cardReceived).toBe(170);
+    expect(stats.receivedRevenue).toBe(370);
+  });
+
   it("filters by master", () => {
     const stats = buildStats({
       master: "Anna",
@@ -158,6 +180,46 @@ describe("buildFinanceStats", () => {
     expect(stats.cardReceived).toBe(1200);
     expect(stats.packageSalePayouts).toBe(480);
     expect(stats.netProfit).toBe(720);
+  });
+
+  it("keeps visit payments separate from package sales in payment breakdown", () => {
+    const stats = buildStats({
+      visits: [completedVisit({payment: "Карта", amount: 500})],
+      clientPackages: [
+        {
+          id: "pkg-1",
+          master: "Max",
+          payment: "Карта",
+          price: 1200,
+          purchaseDate: "10.06.2026",
+          totalVisits: 6,
+        },
+      ],
+    });
+
+    expect(stats.visitPaymentsByMethod.card).toBe(500);
+    expect(stats.packagePaymentsByMethod.card).toBe(1200);
+    expect(stats.paymentsByMethod.card).toBe(1700);
+  });
+
+  it("tracks mixed package sales separately", () => {
+    const stats = buildStats({
+      clientPackages: [
+        {
+          id: "pkg-1",
+          master: "Max",
+          payment: "Наличные + карта",
+          price: 900,
+          purchaseDate: "10.06.2026",
+          totalVisits: 6,
+        },
+      ],
+    });
+
+    expect(stats.packageIncome).toBe(900);
+    expect(stats.packagePaymentsByMethod.mixed).toBe(900);
+    expect(stats.paymentsByMethod.mixed).toBe(900);
+    expect(stats.receivedRevenue).toBe(900);
   });
 
   it("subtracts expense operations from net profit", () => {

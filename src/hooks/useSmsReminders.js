@@ -133,8 +133,14 @@ export function useSmsReminders({
       const result = await processSmsReminders({reminders});
       const sentCount = Array.isArray(result.sent) ? result.sent.length : 0;
       const failedCount = Array.isArray(result.failed) ? result.failed.length : 0;
+      const resultError = String(result?.error ?? "").trim();
 
-      if (sentCount > 0) {
+      if (resultError) {
+        pushNotification({
+          title: "SMS-напоминания не выполнены",
+          message: resultError,
+        });
+      } else if (sentCount > 0) {
         pushNotification({
           title: "SMS-напоминания отправлены",
           message: `Успешно: ${sentCount}${failedCount ? ` · ошибок: ${failedCount}` : ""}`,
@@ -143,6 +149,11 @@ export function useSmsReminders({
         pushNotification({
           title: "SMS не отправились",
           message: `Ошибок: ${failedCount}. Проверьте SMSAPI_TOKEN на backend.`,
+        });
+      } else if (result?.success === false) {
+        pushNotification({
+          title: "SMS-напоминания не выполнены",
+          message: "Проверьте SMSAPI_TOKEN и настройки SMS на Hetzner.",
         });
       }
 

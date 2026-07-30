@@ -41,6 +41,8 @@ const calendarEntrySchema = z
     payment: z.string().optional(),
     packageUsageId: z.union([z.string(), z.number()]).optional(),
     certificateUsageId: z.union([z.string(), z.number()]).optional(),
+    cashAmount: optionalMoneyField,
+    cardAmount: optionalMoneyField,
     commissionType: z.string().optional(),
     tip: optionalMoneyField,
     extra: optionalMoneyField,
@@ -93,6 +95,19 @@ const calendarEntrySchema = z
           message: "Выберите сертификат",
           path: ["certificateUsageId"],
         });
+      }
+
+      if (data.payment === "Наличные + карта") {
+        const cashValue = toVisitNumber(data.cashAmount);
+        const cardValue = toVisitNumber(data.cardAmount);
+
+        if (cashValue + cardValue <= 0) {
+          context.addIssue({
+            code: "custom",
+            message: "Введите суммы наличных и карты",
+            path: ["cashAmount"],
+          });
+        }
       }
     }
 
@@ -187,6 +202,8 @@ function CalendarEntryForm({
       payment: initialEntry?.payment ?? selectedPayment ?? "Наличные",
       packageUsageId: initialEntry?.packageUsageId ?? "",
       certificateUsageId: initialEntry?.certificateUsageId ?? "",
+      cashAmount: initialEntry?.cashAmount ?? "",
+      cardAmount: initialEntry?.cardAmount ?? "",
       commissionType: initialEntry?.commissionType ?? "Без комиссии",
       tip: initialEntry?.tip ?? "",
       extra: initialEntry?.extra ?? "",
@@ -227,6 +244,8 @@ function CalendarEntryForm({
     debt,
     discount,
     paidAmount,
+    cashAmount,
+    cardAmount,
     note,
   ] = useWatch({
     control,
@@ -247,6 +266,8 @@ function CalendarEntryForm({
       "debt",
       "discount",
       "paidAmount",
+      "cashAmount",
+      "cardAmount",
       "note",
     ],
   });
@@ -421,6 +442,8 @@ function CalendarEntryForm({
     setFormValue("debt", "");
     setFormValue("discount", previousVisit.discount ?? "");
     setFormValue("note", previousVisit.note ?? "");
+    setFormValue("cashAmount", previousVisit.cashAmount ?? "");
+    setFormValue("cardAmount", previousVisit.cardAmount ?? "");
     if (previousVisit.master) {
       setFormValue("master", previousVisit.master);
     }
@@ -433,6 +456,20 @@ function CalendarEntryForm({
     clients,
     client,
   );
+  const isSplitPayment = payment === "Наличные + карта";
+  const splitCashAmount = useMemo(() => toVisitNumber(cashAmount), [cashAmount]);
+  const splitCardAmount = useMemo(() => toVisitNumber(cardAmount), [cardAmount]);
+  const splitPaymentTotal = useMemo(
+    () => Math.max(0, splitCashAmount + splitCardAmount),
+    [splitCardAmount, splitCashAmount],
+  );
+  useEffect(() => {
+    if (kind !== "visit" || !isSplitPayment) {
+      return;
+    }
+
+    setFormValue("paidAmount", splitPaymentTotal || "");
+  }, [isSplitPayment, kind, setFormValue, splitPaymentTotal]);
   const clientInsights = useMemo(() => {
     if (kind !== "visit" || !clientExists) {
       return null;
@@ -735,6 +772,8 @@ function CalendarEntryForm({
                   allowAutoPricing();
                   setFormValue("duration", String(nextDuration));
                   setFormValue("paidAmount", "");
+                  setFormValue("cashAmount", "");
+                  setFormValue("cardAmount", "");
                   if (nextVariant) {
                     setFormValue("amount", nextVariant.price);
                   }
@@ -818,6 +857,8 @@ function CalendarEntryForm({
                     allowAutoPricing();
                     setFormValue("serviceId", event.target.value);
                     setFormValue("paidAmount", "");
+                    setFormValue("cashAmount", "");
+                    setFormValue("cardAmount", "");
                     setFormValue("amount", nextVariant?.price ?? "");
                   }}
                 >
@@ -849,7 +890,8 @@ function CalendarEntryForm({
                 </FieldLabel>
                 <Input
                   {...register("paidAmount")}
-                  value={paidAmount}
+                  readOnly={isSplitPayment}
+                  value={isSplitPayment ? splitPaymentTotal : paidAmount}
                   className="w-full"
                   onChange={(event) => {
                     markPricingTouched();
@@ -878,14 +920,55 @@ function CalendarEntryForm({
                     } else if (certificateOptions.length === 1) {
                       setFormValue("certificateUsageId", certificateOptions[0].id);
                     }
+                    if (nextPayment === "Наличные + карта") {
+                      setFormValue("cashAmount", paidAmount || amount || "");
+                      setFormValue("cardAmount", "");
+                      setFormValue("paidAmount", paidAmount || amount || "");
+                    } else {
+                      setFormValue("cashAmount", "");
+                      setFormValue("cardAmount", "");
+                    }
                   }}
                 >
-                  {paymentMethods.map((method) => (
+                  {[
+                    "Наличные",
+                    "Карта",
+                    "Наличные + карта",
+                    ...paymentMethods.filter(
+                      (method) => !["Наличные", "Карта"].includes(method),
+                    ),
+                  ].map((method) => (
                     <option key={method}>{method}</option>
                   ))}
                 </Select>
                 <FieldError message={errors.payment?.message} />
               </label>
+              {isSplitPayment && (
+                <>
+                  <label className="calendar-form-field">
+                    Наличные
+                    <Input
+                      {...register("cashAmount")}
+                      value={cashAmount}
+                      className="w-full"
+                      onChange={(event) => setFormValue("cashAmount", event.target.value)}
+                      placeholder="0"
+                    />
+                    <FieldError message={errors.cashAmount?.message} />
+                  </label>
+                  <label className="calendar-form-field">
+                    Карта
+                    <Input
+                      {...register("cardAmount")}
+                      value={cardAmount}
+                      className="w-full"
+                      onChange={(event) => setFormValue("cardAmount", event.target.value)}
+                      placeholder="0"
+                    />
+                    <FieldError message={errors.cardAmount?.message} />
+                  </label>
+                </>
+              )}
               <label className="calendar-commission-field calendar-form-field">
                 Комиссия
                 <Select

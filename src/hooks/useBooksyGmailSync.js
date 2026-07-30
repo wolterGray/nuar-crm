@@ -165,9 +165,17 @@ export function useBooksyGmailSync({
           setConnection(data.connection);
           setPendingEvents(data.pendingEvents ?? []);
           setParseErrors(data.parseErrors ?? []);
-        } catch {
+        } catch (error) {
           if (!active) return;
           refreshClientDashboard();
+          pushNotification({
+            title: "Booksy Gmail",
+            message:
+              error instanceof Error
+                ? error.message
+                : "Не удалось загрузить серверную панель Gmail",
+            persist: false,
+          });
         } finally {
           if (active) setIsLoading(false);
         }
@@ -286,8 +294,18 @@ export function useBooksyGmailSync({
 
     try {
       if (useServerSync) {
-        const {data} = await runBooksyGmailSync({employees, services});
+        const result = await runBooksyGmailSync({employees, services});
+        const {data} = result || {};
+        const syncError = String(result?.error ?? "").trim();
         await refreshDashboard();
+        if (syncError) {
+          pushNotification({
+            title: "Booksy Gmail Sync",
+            message: syncError,
+            persist: false,
+          });
+          return;
+        }
         pushNotification({
           title: "Booksy Gmail Sync",
           message: data?.parsed
@@ -343,6 +361,9 @@ export function useBooksyGmailSync({
       if (result.pendingDocuments.length) {
         parts.push(`фактур: ${result.pendingDocuments.length}`);
       }
+      if (result.parseErrors.length) {
+        parts.push(`ошибок парсинга: ${result.parseErrors.length}`);
+      }
 
       const scannedHint = result.scanned
         ? `Просмотрено писем: ${result.scanned}.`
@@ -362,7 +383,7 @@ export function useBooksyGmailSync({
     } catch (error) {
       pushNotification({
         title: "Booksy Gmail Sync",
-        message: error instanceof Error ? error.message : "Ошибка синхронизации",
+        message: error instanceof Error ? error.message : "Ошибка синхронизации Gmail",
         persist: false,
       });
     } finally {

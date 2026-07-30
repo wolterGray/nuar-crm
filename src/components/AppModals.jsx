@@ -378,6 +378,7 @@ export default function AppModals({
             ? "Проверьте время записи"
             : "Конфликт в календаре"
         }
+        dialogClassName="calendar-conflict-dialog"
         onCancel={onCancelCalendarConflict}
         onConfirm={onConfirmCalendarConflict}
       />

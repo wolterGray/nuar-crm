@@ -148,8 +148,14 @@ export function useTelegramDigest({
         chatId: appSettings.telegramChatId,
         text: buildLocalPreview(),
       });
+      const resultError = String(result?.error ?? "").trim();
 
-      if (result?.success || result?.sent) {
+      if (resultError) {
+        pushNotification({
+          title: "Telegram-дайджест не выполнен",
+          message: resultError,
+        });
+      } else if (result?.success || result?.sent) {
         pushNotification({
           title: "Telegram-дайджест отправлен",
           message: "Сводка дня отправлена в Telegram",
@@ -158,6 +164,11 @@ export function useTelegramDigest({
         pushNotification({
           title: "Telegram-дайджест не отправлен",
           message: String(result.reason || "Отправка пропущена"),
+        });
+      } else if (result?.success === false) {
+        pushNotification({
+          title: "Telegram-дайджест не выполнен",
+          message: "Проверьте TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID.",
         });
       }
 

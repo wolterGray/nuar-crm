@@ -5316,89 +5316,6 @@
     gap: 10px;
   }
 
-  .operations-page.operations-page-mobile {
-    width: 100%;
-    max-width: 100%;
-    padding: 0;
-    gap: var(--mobile-page-gap, 16px);
-    overflow: visible;
-    background: transparent;
-  }
-
-  .operations-page-mobile .page-header-unified {
-    margin: 0 0 var(--mobile-page-gap, 16px) !important;
-    padding: 0 !important;
-  }
-
-  .operations-page-mobile .page-header-unified-top {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .operations-page-mobile .page-header-unified-trailing {
-    width: auto;
-    max-width: max-content;
-    justify-self: end;
-    margin-left: 0;
-  }
-
-  .operations-page-mobile .page-header-unified-actions {
-    display: grid;
-    gap: 10px;
-    width: 100%;
-  }
-
-  .operations-page-mobile .operations-page-tabs {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    width: 100%;
-  }
-
-  .operations-page-mobile .operations-page-tabs button {
-    min-width: 0;
-    min-height: 42px;
-    padding: 0 8px;
-    border-radius: 999px;
-    font-size: 12px;
-    line-height: 1.05;
-  }
-
-  .operations-page-mobile .operations-summary {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-    width: 100%;
-    margin: 0;
-  }
-
-  .operations-page-mobile .operations-summary span {
-    justify-content: center;
-    min-width: 0;
-    min-height: 28px;
-    padding: 0 8px;
-  }
-
-  .operations-page-mobile .operations-grid {
-    gap: var(--mobile-page-gap, 16px);
-  }
-
-  .operations-page-mobile .operations-panel {
-    gap: 12px;
-    padding: 14px;
-    border: 1px solid var(--operations-border);
-    border-radius: 14px;
-    background: var(--operations-panel);
-  }
-
-  .operations-page-mobile .operations-panel-waitlist {
-    padding: 0;
-    border: 0;
-    background: transparent;
-  }
-
   .mobile-page-container[data-mobile-page="operations"] .operations-page.operations-page-mobile {
     display: flex !important;
     flex-direction: column !important;
@@ -5733,8 +5650,8 @@
     min-width: 0 !important;
     max-width: 100% !important;
     min-height: 0 !important;
-    padding: 12px !important;
-    border-radius: var(--radius-card) !important;
+    padding: 10px 10px 10px 12px !important;
+    border-radius: 10px !important;
     background: var(--color-card) !important;
     overflow: hidden !important;
   }
@@ -5742,16 +5659,16 @@
   .mobile-page-container[data-mobile-page="operations"] .task-row-content,
   .mobile-page-container[data-mobile-page="operations"] .operations-card-head {
     display: grid !important;
-    grid-template-columns: auto minmax(0, 1fr) auto !important;
-    gap: 8px !important;
-    align-items: center !important;
+    grid-template-columns: 24px minmax(0, 1fr) auto !important;
+    gap: 6px !important;
+    align-items: start !important;
     width: 100% !important;
     min-width: 0 !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .task-row-content > .operations-card-head {
     grid-column: 2 / 4 !important;
-    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    grid-template-columns: 24px minmax(0, 1fr) auto !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-card-body,
@@ -5781,34 +5698,29 @@
   .mobile-page-container[data-mobile-page="operations"] .supply-meta,
   .mobile-page-container[data-mobile-page="operations"] .waitlist-meta {
     display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 6px !important;
+    flex-wrap: nowrap !important;
+    gap: 5px !important;
     width: 100% !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .waitlist-card-actions {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 7px !important;
-    width: 100% !important;
-    min-width: 0 !important;
+  .mobile-page-container[data-mobile-page="operations"] .task-meta::-webkit-scrollbar,
+  .mobile-page-container[data-mobile-page="operations"] .note-meta::-webkit-scrollbar,
+  .mobile-page-container[data-mobile-page="operations"] .supply-meta::-webkit-scrollbar,
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-meta::-webkit-scrollbar {
+    display: none !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .waitlist-action-button {
-    display: inline-flex !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    min-height: 48px !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 0 10px !important;
-    border-radius: 8px !important;
-    font-size: 14px !important;
-    font-weight: 750 !important;
-    line-height: 1.1 !important;
-    white-space: normal !important;
-    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
+  .mobile-page-container[data-mobile-page="operations"] .operations-card-icon {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 7px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .waitlist-card-icon {
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .quick-note-form {
@@ -6836,250 +6748,6 @@
   }
 }
 
-/* ---- Mobile operations final override: compact and stable ---- */
-
-@media (max-width: 640px) {
-  .mobile-page-container[data-mobile-page="operations"] .operations-page.operations-page-mobile {
-    gap: 10px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-page-tabs {
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 6px !important;
-    padding: 0 !important;
-    background: transparent !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-page-tabs button,
-  .mobile-page-container[data-mobile-page="operations"] .operations-tabs button {
-    min-height: 38px !important;
-    padding: 0 6px !important;
-    border-radius: 8px !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    line-height: 1.12 !important;
-    overflow: visible !important;
-    text-align: center !important;
-    white-space: normal !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-summary {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 6px !important;
-    padding-bottom: 2px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-summary span {
-    display: grid !important;
-    grid-template-rows: auto auto !important;
-    align-content: center !important;
-    justify-items: center !important;
-    flex: 1 1 calc(50% - 3px) !important;
-    min-height: 30px !important;
-    justify-content: center !important;
-    gap: 2px !important;
-    padding: 0 !important;
-    border-color: transparent !important;
-    border-radius: 0 !important;
-    color: var(--color-text-faint) !important;
-    background: transparent !important;
-    font-size: 9.5px !important;
-    font-weight: 650 !important;
-    box-shadow: none !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-summary b {
-    display: block !important;
-    color: var(--color-text-muted) !important;
-    font-variant-numeric: tabular-nums !important;
-    font-size: 11px !important;
-    line-height: 1 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-panel {
-    gap: 10px !important;
-    padding: 10px !important;
-    border-radius: 10px !important;
-    background: color-mix(in srgb, var(--color-window) 76%, transparent) !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-panel-header {
-    gap: 8px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-panel-header h2 {
-    font-size: 15px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-panel-header p {
-    font-size: 10px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters {
-    gap: 5px !important;
-    padding: 2px !important;
-    border: 1px solid var(--color-border-soft) !important;
-    border-radius: 9px !important;
-    background: var(--color-field) !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters button {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex: 0 0 auto !important;
-    min-width: 84px !important;
-    min-height: 30px !important;
-    padding: 0 8px !important;
-    border-radius: 7px !important;
-    font-size: 10px !important;
-    font-weight: 700 !important;
-    gap: 6px !important;
-    line-height: 1 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters .task-filter-label {
-    min-width: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters .task-filter-count {
-    display: inline-flex !important;
-    min-width: 0 !important;
-    width: auto !important;
-    height: auto !important;
-    margin-left: 2px !important;
-    padding: 0 !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    color: var(--color-text-faint) !important;
-    background: transparent !important;
-    font-variant-numeric: tabular-nums !important;
-    font-size: 10px !important;
-    font-weight: 750 !important;
-    line-height: 1 !important;
-    box-shadow: none !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] :is(.task-row, .note-row, .supply-row, .waitlist-card) {
-    padding: 9px !important;
-    border-radius: 9px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-row {
-    gap: 8px !important;
-    border-color: color-mix(in srgb, var(--color-border-soft) 82%, transparent) !important;
-    background: color-mix(in srgb, var(--color-card) 82%, transparent) !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-head {
-    gap: 8px !important;
-    align-items: start !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-icon {
-    width: 26px !important;
-    height: 26px !important;
-    border-radius: 8px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-row-actions {
-    width: 32px !important;
-    height: 32px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-row-actions button {
-    width: 32px !important;
-    height: 32px !important;
-    min-height: 32px !important;
-    border: 0 !important;
-    border-radius: 8px !important;
-    background: transparent !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-body strong {
-    font-size: 12px !important;
-    line-height: 1.25 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-body span,
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-body small,
-  .mobile-page-container[data-mobile-page="operations"] .supply-row-note,
-  .mobile-page-container[data-mobile-page="operations"] .waitlist-row-note {
-    font-size: 10px !important;
-    line-height: 1.25 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .task-meta,
-  .mobile-page-container[data-mobile-page="operations"] .note-meta,
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta,
-  .mobile-page-container[data-mobile-page="operations"] .waitlist-meta {
-    gap: 4px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto !important;
-    gap: 6px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .task-meta :is(small, em),
-  .mobile-page-container[data-mobile-page="operations"] .note-meta-item,
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta span {
-    min-height: 22px !important;
-    padding: 0 7px !important;
-    border-radius: 7px !important;
-    font-size: 9.5px !important;
-    font-weight: 650 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta-item {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 8px !important;
-    min-width: 0 !important;
-    border-color: color-mix(in srgb, var(--color-border-soft) 60%, transparent) !important;
-    background: color-mix(in srgb, var(--color-text) 3%, transparent) !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta-item strong {
-    font-size: 10.5px !important;
-    font-weight: 750 !important;
-    line-height: 1 !important;
-    white-space: nowrap !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta-item small {
-    color: var(--color-text-faint) !important;
-    font-size: 9px !important;
-    line-height: 1 !important;
-    white-space: nowrap !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta-cost {
-    min-width: 76px !important;
-    justify-content: center !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .waitlist-card-actions {
-    grid-template-columns: minmax(0, 1fr) 32px 32px !important;
-    gap: 6px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .waitlist-action-button {
-    min-height: 34px !important;
-    padding: 0 8px !important;
-    border-radius: 8px !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    white-space: nowrap !important;
-  }
-}
-
 /* Mobile catalog polish: services, packages, employees */
 @media (max-width: 768px) {
   .mobile-page-container:is(
@@ -7248,7 +6916,7 @@
 
   .mobile-page-container[data-mobile-page="packages"] .packages-mobile-stats > div {
     gap: 2px !important;
-    min-height: 48px !important;
+    min-height: 46px !important;
     padding: 7px 5px !important;
     border-radius: 8px !important;
   }
@@ -7268,26 +6936,41 @@
   }
 
   .mobile-page-container[data-mobile-page="packages"] .package-card {
-    gap: 8px !important;
-    padding: 11px 12px !important;
+    gap: 5px !important;
+    padding: 9px 10px !important;
     background: color-mix(in srgb, var(--color-card) 88%, var(--color-page) 12%) !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .package-card h3 {
-    font-size: 15px !important;
-    line-height: 1.18 !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .package-card strong {
-    font-size: 12px !important;
+    font-size: 11px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="packages"] .package-template-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 4px 6px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="packages"] .package-template-meta strong {
+    font-size: 10px !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .package-status-pill {
-    min-height: 19px !important;
-    padding: 0 7px !important;
+    min-height: 18px !important;
+    padding: 0 6px !important;
     border-radius: 7px !important;
-    font-size: 8.5px !important;
+    font-size: 8px !important;
     letter-spacing: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="packages"] .package-card .row-action-trigger {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 7px !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .packages-page :is(.text-center.py-8) {
@@ -7396,7 +7079,15 @@
   }
 
   .mobile-page-container[data-mobile-page="statistics"] .statistics-mobile-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 2px !important;
     padding-bottom: 12px !important;
+    overflow: visible !important;
   }
 
   .mobile-page-container[data-mobile-page="statistics"] .statistics-mobile-header h1,
@@ -7406,7 +7097,12 @@
   }
 
   .mobile-page-container[data-mobile-page="statistics"] .statistics-mobile-header-actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
     gap: 6px !important;
+    min-width: 0 !important;
+    overflow: visible !important;
   }
 
   .mobile-page-container[data-mobile-page="statistics"] .statistics-export-button,
@@ -7829,250 +7525,17 @@
     max-height: 100dvh !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .operations-page-tabs button {
-    min-height: 38px !important;
-    padding: 0 8px !important;
-    border-radius: 8px !important;
-    font-size: 11.5px !important;
-    line-height: 1.12 !important;
+  .dialog-backdrop {
+    z-index: 120 !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .operations-summary {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 6px !important;
+  .dialog-backdrop:has(.confirm-dialog.calendar-conflict-dialog) {
+    z-index: 2147482100 !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .operations-summary span {
-    display: grid !important;
-    min-height: 34px !important;
-    place-items: center !important;
-    padding: 4px 3px !important;
-    border-radius: 7px !important;
-    font-size: 9px !important;
-    line-height: 1.05 !important;
-    white-space: normal !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-summary b {
-    display: block !important;
-    margin-bottom: 2px !important;
-    font-size: 12px !important;
-    line-height: 1 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-panel {
-    gap: 10px !important;
-    padding: 11px !important;
-    border-radius: 9px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-tabs {
-    gap: 4px !important;
-    padding: 3px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-tabs button {
-    min-height: 36px !important;
-    border-radius: 7px !important;
-    font-size: 12px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-center {
-    min-width: 0 !important;
-    overflow: visible !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters {
-    display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    gap: 5px !important;
-    overflow: visible !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters button {
-    display: inline-flex !important;
-    min-width: 0 !important;
-    min-height: 30px !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 3px !important;
-    padding: 0 4px !important;
-    border-radius: 7px !important;
-    font-size: 9px !important;
-    line-height: 1 !important;
-    white-space: nowrap !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters .task-filter-label {
-    min-width: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-task-filters .task-filter-count {
-    display: inline-flex !important;
-    min-width: 8px !important;
-    justify-content: center !important;
-    color: var(--color-text-muted) !important;
-    font-size: 9px !important;
-    font-weight: 750 !important;
-    line-height: 1 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-list,
-  .mobile-page-container[data-mobile-page="operations"] .client-packages-list {
-    gap: 7px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] :is(.task-row, .note-row, .supply-row, .waitlist-card) {
-    padding: 10px !important;
-    border-radius: 9px !important;
-    background: color-mix(in srgb, var(--color-card) 86%, var(--color-page) 14%) !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-row {
-    display: grid !important;
-    position: relative !important;
-    grid-template-columns: 22px minmax(0, 1fr) 88px !important;
-    grid-template-areas:
-      "icon body menu"
-      "meta meta actions" !important;
-    align-items: start !important;
-    gap: 7px 5px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-head {
-    display: contents !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-icon {
-    grid-area: icon !important;
-    width: 22px !important;
-    height: 22px !important;
-    border-radius: 6px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-body {
-    grid-area: body !important;
-    gap: 3px !important;
-    min-width: 0 !important;
-    padding-right: 0 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-body strong {
-    display: -webkit-box !important;
-    overflow: hidden !important;
-    font-size: 12px !important;
-    line-height: 1.18 !important;
-    overflow-wrap: normal !important;
-    word-break: normal !important;
-    white-space: normal !important;
-    -webkit-box-orient: vertical !important;
-    -webkit-line-clamp: 2 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-body span,
-  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-body small {
-    font-size: 10px !important;
-    line-height: 1.25 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-row-actions {
-    grid-area: menu !important;
-    justify-self: end !important;
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
-    min-height: 28px !important;
-    padding: 0 !important;
-    border-color: transparent !important;
-    border-radius: 7px !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .operations-row-actions .row-action-trigger {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
-    min-height: 28px !important;
-    padding: 0 !important;
-    border-color: transparent !important;
-    border-radius: 7px !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-row-title {
-    display: block !important;
-    min-width: 0 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-row-title strong {
-    min-width: 0 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-stock-badge {
-    position: absolute !important;
-    top: 16px !important;
-    right: 38px !important;
-    max-width: 58px !important;
-    min-height: 15px !important;
-    padding: 0 4px !important;
-    border-radius: 6px !important;
-    font-size: 7.5px !important;
-    line-height: 1 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta {
-    display: grid !important;
-    grid-area: meta !important;
-    grid-template-columns: minmax(0, 1fr) minmax(62px, auto) !important;
-    gap: 5px !important;
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta-item {
-    min-height: 21px !important;
-    align-content: center !important;
-    padding: 0 7px !important;
-    border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent) !important;
-    border-radius: 7px !important;
-    background: color-mix(in srgb, var(--color-text) 2.5%, transparent) !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta-item strong {
-    font-size: 10px !important;
-    line-height: 1.05 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-meta-item small {
-    font-size: 8px !important;
-    line-height: 1 !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-actions {
-    grid-area: actions !important;
-    grid-template-columns: 28px 28px !important;
-    gap: 4px !important;
-    justify-content: end !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-actions button {
-    min-height: 28px !important;
-    border-radius: 7px !important;
-    font-size: 11px !important;
-  }
-
-  .mobile-page-container[data-mobile-page="operations"] .supply-actions > button {
-    width: 28px !important;
-    min-width: 28px !important;
-    padding: 0 !important;
-    font-size: 15px !important;
+  .dialog-backdrop .confirm-dialog {
+    width: min(100%, 360px) !important;
+    max-width: calc(100vw - 24px) !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .quick-note-form input,

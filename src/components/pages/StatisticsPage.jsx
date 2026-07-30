@@ -61,6 +61,7 @@ const statisticsChartTokens = {
 const paymentDisplay = [
   {color: "var(--color-chart-cash)", key: "cash", label: "Наличные"},
   {color: "var(--color-chart-card)", key: "card", label: "Карта"},
+  {color: "var(--color-chart-card)", key: "mixed", label: "Наличные + карта"},
   {color: "var(--color-chart-ukrainian-card)", key: "ukrainianCard", label: "Укр. карта"},
   {color: "var(--color-chart-package)", key: "package", label: "Пакеты"},
   {color: "var(--color-chart-certificate)", key: "certificate", label: "Сертификаты"},
@@ -115,15 +116,29 @@ const getClientActivity = (appointments = []) => {
 const buildPaymentsView = (stats) =>
   paymentDisplay.map((item) => ({
     ...item,
-    recordsCount: toSafeFinanceNumber(stats.paymentRecordsByMethod?.[item.key]),
-    value: toSafeFinanceNumber(stats.paymentsByMethod?.[item.key]),
+    recordsCount: toSafeFinanceNumber(stats.visitPaymentRecordsByMethod?.[item.key]),
+    value: toSafeFinanceNumber(stats.visitPaymentsByMethod?.[item.key]),
+  }));
+
+const buildPackageSalesView = (stats) =>
+  paymentDisplay.map((item) => ({
+    ...item,
+    recordsCount: toSafeFinanceNumber(
+      stats.packagePaymentRecordsByMethod?.[item.key],
+    ),
+    value: toSafeFinanceNumber(stats.packagePaymentsByMethod?.[item.key]),
   }));
 
 const buildStatisticsAnalytics = (stats, clients = []) => {
   const filteredAppointments = stats.completedAppointments ?? [];
   const clientActivity = getClientActivity(filteredAppointments);
   const payments = buildPaymentsView(stats);
+  const packageSalesPayments = buildPackageSalesView(stats);
   const paymentTotal = payments.reduce((sum, item) => sum + item.value, 0);
+  const packageSalesTotal = packageSalesPayments.reduce(
+    (sum, item) => sum + item.value,
+    0,
+  );
   const serviceRevenue = toSafeFinanceNumber(stats.serviceReceived);
   const totalReceived = toSafeFinanceNumber(stats.receivedRevenue);
   const totalIncome = toSafeFinanceNumber(stats.netProfit);
@@ -139,6 +154,9 @@ const buildStatisticsAnalytics = (stats, clients = []) => {
     forecastIncome: toSafeFinanceNumber(stats.forecastRevenue),
     paymentTotal,
     payments,
+    packageSalesPayments,
+    packageSalesTotal,
+    visitPaymentTotal: paymentTotal,
     platformCommissions: toSafeFinanceNumber(stats.platformCommission),
     repeatClients: clientActivity.repeatClients,
     serviceRevenue,
@@ -163,7 +181,7 @@ function StatisticsFilters({
 }) {
   if (mobile) {
     return (
-      <div className="flex flex-col gap-3 w-full p-3 rounded-xl border border-border/60 bg-card/30">
+      <div className="flex flex-col gap-2.5 w-full p-3 rounded-xl border border-border/60 bg-card/30">
         <div className="grid grid-cols-2 gap-2">
           <Button
             className="min-h-[38px]"
@@ -181,7 +199,7 @@ function StatisticsFilters({
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <Input
             aria-label="Дата начала"
             className="h-10 min-h-10 text-xs cursor-pointer"
@@ -198,7 +216,7 @@ function StatisticsFilters({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <Select
             className="h-10 min-h-10 text-xs cursor-pointer"
             value={master}
@@ -226,53 +244,47 @@ function StatisticsFilters({
 
   return (
     <div
-      className="statistics-filters flex flex-col flex-wrap lg:flex-row lg:items-center justify-between gap-4 w-full p-2 bg-transparent">
-      {/* Left side: Range presets and date fields */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Presets */}
-        <div className="flex items-center gap-2">
-          <Button
-            className="h-[34px] min-h-[34px] whitespace-nowrap"
-            size="sm"
-            variant="secondary"
-            onClick={onApplyCurrentMonthRange}>
-            Этот месяц
-          </Button>
-          <Button
-            className="h-[34px] min-h-[34px] whitespace-nowrap"
-            size="sm"
-            variant="secondary"
-            onClick={onApplyPreviousMonthRange}>
-            Прошлый месяц
-          </Button>
-        </div>
-
-        <div className="h-6 w-px bg-border/40 hidden sm:block" />
-
-        {/* Date Inputs */}
-        <div className="flex items-center gap-2">
-          <Input
-            aria-label="Дата начала"
-            className="statistics-filter-field h-[38px] min-h-[38px] w-[178px] min-w-[178px] text-xs cursor-pointer"
-            type="date"
-            value={startDate}
-            onChange={(event) => onStartDateChange(event.target.value)}
-          />
-          <span className="text-muted-foreground font-semibold text-xs">—</span>
-          <Input
-            aria-label="Дата окончания"
-            className="statistics-filter-field h-[38px] min-h-[38px] w-[178px] min-w-[178px] text-xs cursor-pointer"
-            type="date"
-            value={endDate}
-            onChange={(event) => onEndDateChange(event.target.value)}
-          />
-        </div>
+      className="statistics-filters grid grid-cols-1 xl:grid-cols-[auto_minmax(0,1fr)_auto] gap-3 w-full p-3 rounded-xl border border-border/60 bg-card/30">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          className="h-[34px] min-h-[34px] whitespace-nowrap"
+          size="sm"
+          variant="secondary"
+          onClick={onApplyCurrentMonthRange}>
+          Этот месяц
+        </Button>
+        <Button
+          className="h-[34px] min-h-[34px] whitespace-nowrap"
+          size="sm"
+          variant="secondary"
+          onClick={onApplyPreviousMonthRange}>
+          Прошлый месяц
+        </Button>
       </div>
 
-      {/* Right side: Dropdown Selects */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-2 items-center">
+        <Input
+          aria-label="Дата начала"
+          className="statistics-filter-field h-[38px] min-h-[38px] text-xs cursor-pointer"
+          type="date"
+          value={startDate}
+          onChange={(event) => onStartDateChange(event.target.value)}
+        />
+        <span className="hidden sm:flex items-center justify-center text-muted-foreground font-semibold text-xs px-1">
+          —
+        </span>
+        <Input
+          aria-label="Дата окончания"
+          className="statistics-filter-field h-[38px] min-h-[38px] text-xs cursor-pointer"
+          type="date"
+          value={endDate}
+          onChange={(event) => onEndDateChange(event.target.value)}
+        />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 xl:justify-end">
         <Select
-          className="statistics-filter-select h-[38px] min-h-[38px] w-[190px] min-w-[190px] text-xs cursor-pointer"
+          className="statistics-filter-select h-[38px] min-h-[38px] w-full sm:w-[190px] min-w-0 text-xs cursor-pointer"
           value={master}
           onChange={(event) => onMasterChange(event.target.value)}>
           <option value="">Все сотрудники</option>
@@ -282,7 +294,7 @@ function StatisticsFilters({
         </Select>
         <Select
           aria-label="Валюта отчёта"
-          className="statistics-filter-select h-[38px] min-h-[38px] w-[150px] min-w-[150px] text-xs cursor-pointer"
+          className="statistics-filter-select h-[38px] min-h-[38px] w-full sm:w-[150px] min-w-0 text-xs cursor-pointer"
           value={currency}
           onChange={(event) => onCurrencyChange(event.target.value)}>
           {currencies.map((item) => (
@@ -609,7 +621,15 @@ function StatisticsPage({
     analytics.packageIncome +
     analytics.certificateIncome +
     analytics.financialOperationsIncome;
-  const incomeScopeLabel = master ? `Доход мастера ${master}` : "Доход бизнеса";
+  const incomeBreakdownItems = [
+    ["Оплаты визитов", analytics.visitPaymentTotal],
+    ["Продажи пакетов", analytics.packageIncome],
+    ["Сертификаты", analytics.certificateIncome],
+    ["Прочие операции", analytics.financialOperationsIncome],
+  ];
+  const incomeScopeLabel = master
+    ? `Чистая прибыль мастера ${master}`
+    : "Чистая прибыль бизнеса";
   const kpiStats = [
     {
       label: "Клиенты",
@@ -626,8 +646,15 @@ function StatisticsPage({
       color: "var(--color-kpi-visits)",
     },
     {
-      label: "Средний чек",
+      label: "Средний чек визита",
+      value: formatIncome(analytics.averageVisitCheck),
+      icon: "banknote",
+      color: "var(--color-kpi-average-check)",
+    },
+    {
+      label: "Средний чек по поступлениям",
       value: formatIncome(analytics.averageCheck),
+      helper: "все поступления за период",
       icon: "banknote",
       color: "var(--color-kpi-average-check)",
     },
@@ -662,7 +689,10 @@ function StatisticsPage({
     ["Выплаты мастерам", -analytics.employeePayouts],
     ["Комиссии платформ", -analytics.platformCommissions],
   ];
-  const paymentRows = analytics.payments.filter(
+  const visitPaymentRows = analytics.payments.filter(
+    (item) => item.recordsCount > 0 || item.value > 0,
+  );
+  const packagePaymentRows = analytics.packageSalesPayments.filter(
     (item) => item.recordsCount > 0 || item.value > 0,
   );
   const attentionItems = [];
@@ -750,7 +780,7 @@ function StatisticsPage({
         value: formatIncome(analytics.averageVisitCheck),
         valuePln: analytics.averageVisitCheck,
       },
-      ...paymentRows.map((item) => ({
+      ...visitPaymentRows.map((item) => ({
         metric: item.label,
         section: "Оплаты",
         value: formatIncome(item.value),
@@ -831,12 +861,12 @@ function StatisticsPage({
   const paymentsPanel = (
     <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
       <div className="flex flex-col gap-3.5">
-        {paymentRows.length > 0 ? (
-          paymentRows.map((item) => (
+        {visitPaymentRows.length > 0 ? (
+          visitPaymentRows.map((item) => (
             <PaymentRow
               item={item}
               key={item.label}
-              total={analytics.paymentTotal}
+              total={analytics.visitPaymentTotal}
               value={formatIncome(item.value)}
             />
           ))
@@ -921,6 +951,7 @@ function StatisticsPage({
       : `${Math.abs(Math.round(periodChangePercent))}% к прошлому периоду`;
   const chartChangeIcon =
     periodChangePercent === null ? null : periodChangePercent >= 0 ? "arrowUp" : "arrowDown";
+  const scopeLabel = master ? `Сотрудник: ${master}` : "Сотрудники: все";
 
   const incomeCard = (
     <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card shadow-lg">
@@ -929,18 +960,17 @@ function StatisticsPage({
           <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{incomeScopeLabel}</span>
           <strong className="text-foreground text-3xl md:text-5xl font-extrabold leading-none mt-1">{formatIncome(analytics.totalIncome)}</strong>
           <p className="text-xs text-muted-foreground mt-1.5">
-            Поступления {formatIncome(analytics.totalReceived)} ·{" "}
+            Поступления {formatIncome(analytics.totalReceived)} · расходы {formatIncome(analytics.expenses)} ·{" "}
             {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
           </p>
+          <p className="text-[10px] text-muted-foreground mt-1">{scopeLabel}</p>
           {!isMobile ? (
             <small className="text-[10px] text-muted-foreground mt-2 max-w-lg">
               {master
-                ? "Показаны визиты выбранного мастера и проданные им пакеты. Операции без мастера остаются только в общем доходе бизнеса."
+                ? "Вверху показана чистая прибыль выбранного мастера. Ниже видно, сколько пришло, сколько ушло и как это разложено по визитам, пакетам, сертификатам и операциям."
                 : businessExtraIncome > 0
-                  ? `Включает доп. доход бизнеса: ${formatIncome(
-                      businessExtraIncome,
-                    )} · пакеты, сертификаты и операции.`
-                  : "Считаются завершённые визиты и финансовые операции за период."}
+                  ? `Вверху показана чистая прибыль бизнеса. Отдельно считаются оплаты визитов, продажи пакетов, сертификаты и операции. Смешанные оплаты делятся между наличными и картой.`
+                  : "Вверху показана чистая прибыль бизнеса. Отдельно считаются оплаты визитов и финансовые операции за период. Смешанные оплаты делятся между наличными и картой."}
             </small>
           ) : null}
         </div>
@@ -950,13 +980,32 @@ function StatisticsPage({
       </div>
       <div className="grid grid-cols-3 gap-2 py-2.5 border-y border-border/40 text-xs">
         <span className="flex flex-col gap-0.5 text-muted-foreground">
-          Прогноз <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.forecastIncome)}</b>
+          Поступления <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.totalReceived)}</b>
         </span>
         <span className="flex flex-col gap-0.5 text-muted-foreground">
-          Завершено <b className="text-foreground font-bold text-sm mt-0.5">{analytics.filteredAppointments.length}</b>
+          Расходы <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.expenses)}</b>
         </span>
         <span className="flex flex-col gap-0.5 text-muted-foreground">
-          Средний чек <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.averageCheck)}</b>
+          Средний чек поступлений <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.averageCheck)}</b>
+        </span>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+        {incomeBreakdownItems.map(([label, value]) => (
+          <span key={label} className="flex flex-col gap-0.5 rounded-lg border border-border/60 bg-muted/20 p-2">
+            <span className="text-[10px] uppercase font-semibold tracking-wider text-muted-foreground">{label}</span>
+            <strong className="text-foreground font-bold">{formatIncome(value)}</strong>
+          </span>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px] text-muted-foreground">
+        <span className="rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5">
+          Визиты считаются по факту оплаты: наличные, карта и смешанная оплата идут отдельно.
+        </span>
+        <span className="rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5">
+          Продажи пакетов и сертификатов не дублируют визиты и показываются отдельными блоками.
+        </span>
+        <span className="rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5">
+          Средний чек поступлений включает визиты, пакеты и прочие операции, а не только услуги.
         </span>
       </div>
       {!isMobile ? (
@@ -994,7 +1043,7 @@ function StatisticsPage({
         <div className="flex-1 min-h-0 overflow-y-auto px-4 space-y-4 select-none pr-1 scrollbar-thin">
           <div className="flex flex-col gap-1 pb-3 border-b border-border/40 mt-1">
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-              {master ? `Доход мастера ${master}` : "Общий доход бизнеса"}
+              {master ? `Чистая прибыль мастера ${master}` : "Чистая прибыль бизнеса"}
             </span>
             <strong className="text-foreground text-3xl font-extrabold leading-none mt-1">
               {formatIncome(analytics.totalIncome)}
@@ -1002,6 +1051,7 @@ function StatisticsPage({
             <p className="text-xs text-muted-foreground mt-1.5">
               Период: {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
             </p>
+            <p className="text-[10px] text-muted-foreground mt-1">{scopeLabel}</p>
           </div>
 
           <StatisticsFilters
@@ -1055,10 +1105,43 @@ function StatisticsPage({
             <div className="flex justify-between items-center text-xs">
               <h3 className="font-semibold text-muted-foreground">Оплаты</h3>
               <span className="font-semibold text-foreground">
-                {formatIncome(analytics.paymentTotal)}
+                {formatIncome(analytics.visitPaymentTotal)}
               </span>
             </div>
+            <p className="text-[10px] text-muted-foreground -mt-1">
+              Только оплаты за визиты. Продажи пакетов считаются отдельно. Смешанные оплаты делятся на наличные и карту.
+            </p>
             {paymentsPanel}
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <div className="flex justify-between items-center text-xs">
+              <h3 className="font-semibold text-muted-foreground">Продажи пакетов</h3>
+              <span className="font-semibold text-foreground">
+                {formatIncome(analytics.packageSalesTotal)}
+              </span>
+            </div>
+            <p className="text-[10px] text-muted-foreground -mt-1">
+              Способы оплаты новых пакетов. Эти суммы не входят в оплату визитов.
+            </p>
+            <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
+              <div className="flex flex-col gap-3.5">
+                {packagePaymentRows.length > 0 ? (
+                  packagePaymentRows.map((item) => (
+                      <PaymentRow
+                        item={item}
+                        key={`package-${item.label}`}
+                        total={analytics.packageSalesTotal}
+                        value={formatIncome(item.value)}
+                      />
+                    ))
+                ) : (
+                  <p className="statistics-empty-note m-0 text-xs text-muted-foreground">
+                    Продаж пакетов за выбранный период нет.
+                  </p>
+                )}
+              </div>
+            </article>
           </section>
 
           <section className="flex flex-col gap-2 pb-6">
@@ -1115,8 +1198,8 @@ function StatisticsPage({
             item={{
               color: "var(--color-kpi-debts)",
               helper:
-                todaySnapshot.debtVisits > 0
-                  ? `${todaySnapshot.debtVisits} записей`
+                todaySnapshot.debtVisits.length > 0
+                  ? `${todaySnapshot.debtVisits.length} записей`
                   : "нет долгов",
               icon: "walletCards",
               label: "Долги",
@@ -1182,19 +1265,49 @@ function StatisticsPage({
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
             <h3 className="text-foreground text-sm font-bold">Оплаты</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Наличные, карта, укр. карта, пакеты и неразобранные оплаты</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Только оплаты за визиты. Продажи пакетов считаются отдельно. Смешанные оплаты делятся на наличные и карту.
+            </p>
           </div>
-          <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.paymentTotal)}</strong>
+          <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.visitPaymentTotal)}</strong>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-          {paymentRows.map((item) => (
+          {visitPaymentRows.map((item) => (
             <PaymentRow
               item={item}
               key={item.label}
-              total={analytics.paymentTotal}
+              total={analytics.visitPaymentTotal}
               value={formatIncome(item.value)}
             />
           ))}
+        </div>
+      </article>
+
+      <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
+        <div className="flex justify-between items-center">
+          <div className="flex flex-col">
+            <h3 className="text-foreground text-sm font-bold">Продажи пакетов</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Оплата новых пакетов по способам оплаты. В общий чек визитов не входит.
+            </p>
+          </div>
+          <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.packageSalesTotal)}</strong>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          {packagePaymentRows.length > 0 ? (
+            packagePaymentRows.map((item) => (
+                <PaymentRow
+                  item={item}
+                  key={`package-${item.label}`}
+                  total={analytics.packageSalesTotal}
+                  value={formatIncome(item.value)}
+                />
+              ))
+          ) : (
+            <p className="statistics-empty-note m-0 text-xs text-muted-foreground">
+              Продаж пакетов за выбранный период нет.
+            </p>
+          )}
         </div>
       </article>
 

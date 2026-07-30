@@ -32,11 +32,11 @@ function ClientPackageCard({
   return (
     <article
       className={`package-card client-package-card ${archived ? "is-archived" : ""}`}>
-      <div className="flex items-start justify-between gap-3 min-w-0">
-        <div className="grid gap-0.5 min-w-0">
-          <strong className="text-text-main text-sm font-semibold truncate block">{packageItem.client}</strong>
-          <span className="text-text-muted text-xs truncate block">{packageItem.packageName}</span>
-          <span className="text-text-faint text-[10px] truncate block font-medium mt-0.5 uppercase tracking-wider">{packageItem.service}</span>
+      <div className="package-card-top">
+        <div className="package-card-copy min-w-0">
+          <strong className="text-text-main text-sm font-semibold block leading-tight break-words">{packageItem.client}</strong>
+          <span className="text-text-muted text-xs block leading-tight break-words">{packageItem.packageName}</span>
+          <span className="text-text-faint text-[10px] block font-medium uppercase tracking-wider leading-tight break-words">{packageItem.service}</span>
         </div>
         <RowActionsMenu
           itemId={packageItem.id}
@@ -47,10 +47,10 @@ function ClientPackageCard({
         />
       </div>
 
-      <div className="flex flex-col gap-1.5 mt-1.5">
-        <div className="flex items-center justify-between text-xs">
+      <div className="package-card-progress">
+        <div className="flex items-center justify-between gap-2 text-[11px]">
           <span className="text-text-muted">{archived ? "Использовано" : "Осталось"}</span>
-          <strong className="text-text-main font-semibold">{getPackageRemainingLabel(packageItem)}</strong>
+          <strong className="text-text-main font-semibold tabular-nums">{getPackageRemainingLabel(packageItem)}</strong>
         </div>
         <progress
           className="w-full h-1.5 rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-field [&::-webkit-progress-value]:bg-accent [&::-moz-progress-bar]:bg-accent"
@@ -59,7 +59,7 @@ function ClientPackageCard({
         />
       </div>
 
-      <div className="flex items-center justify-between mt-1 pt-2 border-t border-border-soft text-xs">
+      <div className="package-card-footer">
         <span className="text-text-muted font-medium">{formatMoney(packageItem.price)}</span>
         <span className={`package-status-pill ${packageItem.status === "Активен" ? "is-active" : ""}`}>
           {packageItem.status}
@@ -81,11 +81,11 @@ function CertificateCard({
   return (
     <article
       className={`package-card certificate-card ${archived ? "is-archived" : ""}`}>
-      <div className="flex items-start justify-between gap-3 min-w-0">
-        <div className="grid gap-0.5 min-w-0">
-          <strong className="text-text-main text-sm font-semibold truncate block">{certificate.code}</strong>
-          <span className="text-text-muted text-xs truncate block">{certificate.client || "Без покупателя"}</span>
-          <span className="text-text-faint text-[10px] truncate block font-medium mt-0.5">
+      <div className="package-card-top">
+        <div className="package-card-copy min-w-0">
+          <strong className="text-text-main text-sm font-semibold block leading-tight break-words">{certificate.code}</strong>
+          <span className="text-text-muted text-xs block leading-tight break-words">{certificate.client || "Без покупателя"}</span>
+          <span className="text-text-faint text-[10px] block font-medium mt-0.5 leading-tight break-words">
             {certificate.recipient && certificate.recipient !== certificate.client
               ? `Получатель: ${certificate.recipient}`
               : `До ${certificate.expiryDate || "—"}`}
@@ -100,10 +100,10 @@ function CertificateCard({
         />
       </div>
 
-      <div className="flex flex-col gap-1.5 mt-1.5">
-        <div className="flex items-center justify-between text-xs">
+      <div className="package-card-progress">
+        <div className="flex items-center justify-between gap-2 text-[11px]">
           <span className="text-text-muted">{archived ? "Использовано" : "Остаток"}</span>
-          <strong className="text-text-main font-semibold">{getCertificateBalanceLabel(certificate)}</strong>
+          <strong className="text-text-main font-semibold tabular-nums">{getCertificateBalanceLabel(certificate)}</strong>
         </div>
         <progress
           className="w-full h-1.5 rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-field [&::-webkit-progress-value]:bg-accent [&::-moz-progress-bar]:bg-accent"
@@ -115,7 +115,7 @@ function CertificateCard({
         />
       </div>
 
-      <div className="flex items-center justify-between mt-1 pt-2 border-t border-border-soft text-xs">
+      <div className="package-card-footer">
         <span className="text-text-muted font-medium">{certificate.purchaseDate}</span>
         <span className={`package-status-pill ${certificate.status === "Активен" ? "is-active" : ""}`}>
           {certificate.status}
@@ -138,10 +138,10 @@ function PackageTemplateCard({
       className="package-card package-template-card"
       initial={{opacity: 0, y: 6}}
       key={packageItem.id}>
-      <div className="flex items-start justify-between gap-3 min-w-0">
-        <div className="grid gap-0.5 min-w-0">
-          <h3 className="m-0 text-text-main text-sm font-semibold truncate leading-snug">{packageItem.name}</h3>
-          <span className="text-text-muted text-xs truncate block">{packageItem.service}</span>
+      <div className="package-card-top">
+        <div className="package-card-copy min-w-0">
+          <h3 className="m-0 text-text-main text-sm font-semibold leading-snug break-words">{packageItem.name}</h3>
+          <span className="text-text-muted text-xs block leading-tight break-words">{packageItem.service}</span>
         </div>
         <RowActionsMenu
           itemId={packageItem.id}
@@ -152,11 +152,23 @@ function PackageTemplateCard({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-border-soft text-xs text-text-muted">
-        <div>Визитов: <strong className="text-text-main font-semibold">{packageItem.visitsCount}</strong></div>
-        <div>Стоимость: <strong className="text-text-main font-semibold">{formatMoney(packageItem.price)}</strong></div>
-        <div>Срок: <strong className="text-text-main font-semibold">{packageItem.validityDays} дн.</strong></div>
-        <div>Статус: <strong className="text-text-main font-semibold">{packageItem.status}</strong></div>
+      <div className="package-template-meta">
+        <div>
+          <span>Визитов</span>
+          <strong>{packageItem.visitsCount}</strong>
+        </div>
+        <div>
+          <span>Стоимость</span>
+          <strong>{formatMoney(packageItem.price)}</strong>
+        </div>
+        <div>
+          <span>Срок</span>
+          <strong>{packageItem.validityDays} дн.</strong>
+        </div>
+        <div>
+          <span>Статус</span>
+          <strong>{packageItem.status}</strong>
+        </div>
       </div>
     </motion.article>
   );
@@ -615,10 +627,10 @@ function PackagesPage({
 
             {archivedClientPackages.length > 0 && (
               <div className="packages-archive">
-                <Button
-                  className="packages-archive-toggle is-compact"
-                  rightIcon={(
-                    <AppIcon
+                  <Button
+                    className="packages-archive-toggle is-compact"
+                    rightIcon={(
+                      <AppIcon
                       className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
                       name="chevronDown"
                       size="sm"

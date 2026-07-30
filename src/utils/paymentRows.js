@@ -28,6 +28,8 @@ export const buildPaymentRows = (calendarEntries, visits, now = new Date()) => {
       commissionType: entry.commissionType || "Без комиссии",
       discount: toVisitNumber(entry.discount),
       isPlanned,
+      cashAmount: entry.cashAmount ?? "",
+      cardAmount: entry.cardAmount ?? "",
       paidAmount: entry.paidAmount ?? "",
     };
   };
@@ -65,6 +67,12 @@ export const buildPaymentRows = (calendarEntries, visits, now = new Date()) => {
       discount: hasValue(entry.discount)
         ? toVisitNumber(entry.discount)
         : toVisitNumber(visit.discount),
+      cashAmount: hasValue(entry.cashAmount)
+        ? toVisitNumber(entry.cashAmount)
+        : visit.cashAmount ?? "",
+      cardAmount: hasValue(entry.cardAmount)
+        ? toVisitNumber(entry.cardAmount)
+        : visit.cardAmount ?? "",
       paidAmount: hasValue(entry.paidAmount)
         ? entry.paidAmount
         : visit.paidAmount ?? "",
