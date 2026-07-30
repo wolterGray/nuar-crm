@@ -6916,25 +6916,34 @@
   }
 
   .mobile-page-container[data-mobile-page="packages"] .package-card {
-    gap: 8px !important;
-    padding: 11px 12px !important;
+    gap: 6px !important;
+    padding: 10px 11px !important;
     background: color-mix(in srgb, var(--color-card) 88%, var(--color-page) 12%) !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .package-card h3 {
-    font-size: 15px !important;
-    line-height: 1.18 !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .package-card strong {
-    font-size: 12px !important;
+    font-size: 11px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="packages"] .package-template-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 4px 6px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="packages"] .package-template-meta strong {
+    font-size: 10px !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .package-status-pill {
-    min-height: 19px !important;
-    padding: 0 7px !important;
+    min-height: 18px !important;
+    padding: 0 6px !important;
     border-radius: 7px !important;
-    font-size: 8.5px !important;
+    font-size: 8px !important;
     letter-spacing: 0 !important;
   }
 

@@ -2226,14 +2226,16 @@ button:focus-visible {
 .package-card {
   display: flex;
   min-width: 0;
+  min-height: 0;
   flex-direction: column;
-  gap: 9px;
-  padding: 11px 12px;
+  gap: 7px;
+  padding: 10px 11px;
   border: 1px solid var(--packages-border-soft);
   border-radius: 12px;
   color: var(--packages-text);
   background: var(--packages-panel);
   box-shadow: none;
+  overflow: hidden;
   transition:
     background 150ms ease,
     border-color 150ms ease;
@@ -2257,60 +2259,68 @@ button:focus-visible {
 
 .package-card h3 {
   max-width: 100%;
-  font-size: 15px;
+  overflow: hidden;
+  font-size: 14px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.18;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .package-card strong {
-  font-size: 12px;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .package-template-card {
-  gap: 8px;
+  gap: 6px;
   min-height: 0;
 }
 
 .package-card-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 10px;
   align-items: start;
+  min-width: 0;
 }
 
 .package-card-copy {
   display: grid;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
 
 .package-card-progress {
   display: grid;
-  gap: 5px;
+  gap: 4px;
 }
 
 .package-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding-top: 1px;
-  color: var(--packages-muted);
-  font-size: 11px;
-}
-
-.package-template-meta {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px 8px;
+  gap: 8px;
   padding-top: 0;
   color: var(--packages-muted);
   font-size: 10px;
 }
 
+.package-template-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 8px;
+  padding-top: 1px;
+  color: var(--packages-muted);
+  font-size: 9px;
+}
+
 .package-template-meta > div {
   display: grid;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
 
@@ -2322,7 +2332,7 @@ button:focus-visible {
 }
 
 .package-template-meta strong {
-  font-size: 11px;
+  font-size: 10px;
   white-space: nowrap;
 }
 
@@ -2333,7 +2343,7 @@ button:focus-visible {
 
 .package-card progress {
   overflow: hidden;
-  height: 6px;
+  height: 5px;
   border-radius: 999px;
 }
 
@@ -2352,15 +2362,15 @@ button:focus-visible {
 .package-status-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 22px;
-  padding: 0 8px;
+  min-height: 20px;
+  padding: 0 7px;
   border: 1px solid var(--packages-border);
   border-radius: 999px;
   color: var(--packages-muted);
   background: color-mix(in srgb, var(--packages-text) 4%, transparent);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.035em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
@@ -2374,6 +2384,18 @@ button:focus-visible {
   color: color-mix(in srgb, var(--color-success) 56%, var(--packages-text));
   border-color: color-mix(in srgb, var(--color-success) 20%, transparent);
   background: color-mix(in srgb, var(--color-success) 8%, transparent);
+}
+
+.package-card :is(.text-[10px], .text-xs, .text-sm) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.package-card .package-card-copy :is(span, strong, h3),
+.package-card .package-card-footer :is(span, strong),
+.package-card .package-template-meta :is(span, strong) {
+  min-width: 0;
 }
 
 .packages-archive {
