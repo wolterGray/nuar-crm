@@ -88,7 +88,6 @@
 
 .crm-shell :is(
   .service-card.catalog-card,
-  .package-card,
   .employee-card,
   .client-card,
   .clients-table-item,
@@ -112,7 +111,6 @@
 
 .crm-shell :is(
   .service-card.catalog-card,
-  .package-card,
   .employee-card,
   .client-card,
   .clients-table-item,
@@ -145,7 +143,6 @@
 
   .crm-shell :is(
     .service-card.catalog-card,
-    .package-card,
     .employee-card,
     .client-card,
     .clients-table-item,
