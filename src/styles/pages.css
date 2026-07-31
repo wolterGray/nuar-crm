@@ -2146,7 +2146,7 @@ button:focus-visible {
 
 .packages-board {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+  grid-template-columns: minmax(520px, 0.95fr) minmax(360px, 0.75fr);
   grid-template-areas:
     "active certificates"
     "templates templates";
@@ -2455,6 +2455,12 @@ button:focus-visible {
 }
 
 @media (min-width: 761px) {
+  .packages-page:not(.packages-page-mobile) .packages-panel-active .packages-panel-header,
+  .packages-page:not(.packages-page-mobile) .packages-panel-active .packages-list,
+  .packages-page:not(.packages-page-mobile) .packages-panel-active .packages-archive {
+    width: min(100%, 860px);
+  }
+
   .packages-page:not(.packages-page-mobile) .packages-list:not(.packages-list-tall) {
     max-height: 420px;
   }
@@ -2462,7 +2468,7 @@ button:focus-visible {
   .packages-page:not(.packages-page-mobile) .client-package-card,
   .packages-page:not(.packages-page-mobile) .certificate-card {
     display: grid;
-    grid-template-columns: minmax(260px, 0.9fr) minmax(220px, 1fr) minmax(120px, auto);
+    grid-template-columns: minmax(210px, 300px) minmax(180px, 1fr) minmax(104px, auto);
     align-items: center;
     gap: 12px;
     min-height: 58px;
@@ -2479,13 +2485,19 @@ button:focus-visible {
   .packages-page:not(.packages-page-mobile) .client-package-card .package-card-progress,
   .packages-page:not(.packages-page-mobile) .certificate-card .package-card-progress {
     min-width: 0;
+    max-width: 420px;
   }
 
   .packages-page:not(.packages-page-mobile) .client-package-card .package-card-footer,
   .packages-page:not(.packages-page-mobile) .certificate-card .package-card-footer {
     justify-content: flex-end;
-    gap: 10px;
-    min-width: 120px;
+    gap: 8px;
+    min-width: 104px;
+  }
+
+  .packages-page:not(.packages-page-mobile) .client-package-card .package-status-pill,
+  .packages-page:not(.packages-page-mobile) .certificate-card .package-status-pill {
+    margin-left: 0;
   }
 
   .packages-page:not(.packages-page-mobile) .client-package-card .package-card-footer > span:first-child,
