@@ -485,15 +485,20 @@
 }
 
 @media (min-width: 769px) {
-  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters-card {
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-desktop-filters {
     display: block !important;
     width: 100% !important;
+    box-sizing: border-box !important;
     min-height: 72px !important;
     padding: 14px 16px !important;
+    border: 1px solid var(--color-border-soft) !important;
+    border-radius: var(--radius-card) !important;
+    background: var(--color-card) !important;
+    box-shadow: none !important;
     overflow: visible !important;
   }
 
-  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters {
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-desktop-filters .statistics-filters {
     display: grid !important;
     grid-template-columns: max-content minmax(360px, 1fr) max-content !important;
     align-items: center !important;
@@ -505,11 +510,24 @@
     background: transparent !important;
   }
 
-  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters > * {
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-desktop-filters .statistics-filters > * {
     min-width: 0 !important;
   }
 
-  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters > :nth-child(3) {
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-desktop-filters .statistics-filters > :first-child {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-desktop-filters .statistics-filters > :nth-child(2) {
+    display: grid !important;
+    grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr) !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-desktop-filters .statistics-filters > :nth-child(3) {
     display: flex !important;
     flex-wrap: nowrap !important;
     justify-content: flex-end !important;
@@ -530,11 +548,15 @@
 }
 
 @media (min-width: 769px) and (max-width: 1180px) {
-  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters {
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-desktop-filters .statistics-filters {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-filters > :nth-child(3) {
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-desktop-filters .statistics-filters > :nth-child(2) {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+  }
+
+  .crm-shell .statistics-page:not(.statistics-page-mobile) .statistics-desktop-filters .statistics-filters > :nth-child(3) {
     flex-wrap: wrap !important;
     justify-content: flex-start !important;
   }

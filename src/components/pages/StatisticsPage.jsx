@@ -1168,7 +1168,7 @@ function StatisticsPage({
         title="Статистика"
       />
 
-      <div className="statistics-filters-card">{filtersPanel}</div>
+      <div className="statistics-desktop-filters">{filtersPanel}</div>
 
       <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
         <div className="flex flex-col">

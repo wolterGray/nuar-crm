@@ -2244,8 +2244,8 @@ button:focus-visible {
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  gap: 4px;
-  padding: 7px 8px;
+  gap: 8px;
+  padding: 10px 12px;
   border: 1px solid var(--packages-border-soft);
   border-radius: 10px;
   color: var(--packages-text);
@@ -2259,7 +2259,7 @@ button:focus-visible {
 
 .client-package-card,
 .certificate-card {
-  min-height: 76px;
+  min-height: 64px;
 }
 
 .package-card:hover {
@@ -2290,34 +2290,34 @@ button:focus-visible {
 
 .package-card strong {
   overflow: hidden;
-  font-size: 9px;
-  line-height: 1.15;
+  font-size: 12px;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .package-template-card {
-  gap: 3px;
+  gap: 8px;
   min-height: 0;
 }
 
 .package-card-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 18px;
-  gap: 4px;
+  grid-template-columns: minmax(0, 1fr) 24px;
+  gap: 10px;
   align-items: start;
   min-width: 0;
 }
 
 .package-card-copy {
   display: grid;
-  gap: 0;
+  gap: 2px;
   min-width: 0;
 }
 
 .package-card-progress {
   display: grid;
-  gap: 0;
+  gap: 4px;
 }
 
 .package-card-footer {
@@ -2347,25 +2347,22 @@ button:focus-visible {
 .client-package-card .package-card-copy strong,
 .certificate-card .package-card-copy strong {
   font-size: 12px;
-  line-height: 1.1;
+  line-height: 1.2;
   -webkit-line-clamp: 1;
-  padding-top: 1px;
 }
 
 .client-package-card .package-card-copy span:nth-of-type(1),
 .certificate-card .package-card-copy span:nth-of-type(1) {
-  font-size: 10px;
-  line-height: 1.1;
+  font-size: 11px;
+  line-height: 1.2;
   -webkit-line-clamp: 1;
-  padding-top: 1px;
 }
 
 .client-package-card .package-card-copy span:nth-of-type(2),
 .certificate-card .package-card-copy span:nth-of-type(2) {
-  font-size: 9px;
-  line-height: 1.05;
+  font-size: 10px;
+  line-height: 1.15;
   -webkit-line-clamp: 1;
-  padding-top: 1px;
 }
 
 .client-package-card .package-card-progress,
@@ -2383,8 +2380,7 @@ button:focus-visible {
 .client-package-card .package-card-footer > span:first-child,
 .certificate-card .package-card-footer > span:first-child {
   max-width: 48%;
-  font-size: 10px;
-  padding-top: 1px;
+  font-size: 11px;
 }
 
 .client-package-card .package-status-pill,
@@ -2396,10 +2392,10 @@ button:focus-visible {
 .package-template-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2px 6px;
-  padding-top: 0;
+  gap: 6px 10px;
+  padding-top: 4px;
   color: var(--packages-muted);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .package-template-meta > div {
@@ -2416,7 +2412,7 @@ button:focus-visible {
 }
 
 .package-template-meta strong {
-  font-size: 8px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -2446,21 +2442,61 @@ button:focus-visible {
 .package-status-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 16px;
-  padding: 0 4px;
+  min-height: 18px;
+  padding: 0 7px;
   border: 1px solid var(--packages-border);
   border-radius: 999px;
   color: var(--packages-muted);
   background: color-mix(in srgb, var(--packages-text) 4%, transparent);
-  font-size: 6px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
 @media (min-width: 761px) {
+  .packages-page:not(.packages-page-mobile) .packages-list:not(.packages-list-tall) {
+    max-height: 420px;
+  }
+
+  .packages-page:not(.packages-page-mobile) .client-package-card,
+  .packages-page:not(.packages-page-mobile) .certificate-card {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.9fr) minmax(220px, 1fr) minmax(120px, auto);
+    align-items: center;
+    gap: 12px;
+    min-height: 58px;
+    padding: 9px 12px;
+    overflow: visible;
+  }
+
+  .packages-page:not(.packages-page-mobile) .client-package-card .package-card-top,
+  .packages-page:not(.packages-page-mobile) .certificate-card .package-card-top {
+    grid-template-columns: minmax(0, 1fr) 24px;
+    align-items: start;
+  }
+
+  .packages-page:not(.packages-page-mobile) .client-package-card .package-card-progress,
+  .packages-page:not(.packages-page-mobile) .certificate-card .package-card-progress {
+    min-width: 0;
+  }
+
+  .packages-page:not(.packages-page-mobile) .client-package-card .package-card-footer,
+  .packages-page:not(.packages-page-mobile) .certificate-card .package-card-footer {
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 120px;
+  }
+
+  .packages-page:not(.packages-page-mobile) .client-package-card .package-card-footer > span:first-child,
+  .packages-page:not(.packages-page-mobile) .certificate-card .package-card-footer > span:first-child {
+    max-width: none;
+    white-space: nowrap;
+  }
+
   .packages-panel-templates .package-template-card {
-    min-height: 0;
+    min-height: 78px;
+    padding: 10px 12px;
   }
 }
 
