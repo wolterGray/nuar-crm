@@ -310,6 +310,7 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
   const payload = req.body;
   const settings = await loadAppSettings();
   const smsEnabled = isSmsEnabled(settings);
+  const action = payload?.action;
   if (payload?.action === 'status') {
     const dueCount = await prisma.notificationDelivery.count({
       where: {
@@ -338,7 +339,11 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
     }));
   }
 
-  if (payload?.action === 'test') {
+  if (
+    action === 'test' ||
+    action === 'review-requests-test' ||
+    action === 'inactive-follow-up-test'
+  ) {
     const result = await smsReminders({
       reminders: [
         {
@@ -354,20 +359,20 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
     return res.json(result);
   }
 
-  if (
-    payload?.action === 'process' &&
-    settings.smsRemindersEnabled !== true
-  ) {
-    return res.json({
-      success: true,
+  const disabledReason =
+    action === 'review-requests' && settings.reviewRequestsEnabled !== true
+      ? 'review_requests_disabled'
+      : action === 'inactive-follow-up' && settings.inactiveFollowUpEnabled !== true
+        ? 'inactive_follow_up_disabled'
+        : (!action || action === 'process') && settings.smsRemindersEnabled !== true
+          ? 'sms_reminders_disabled'
+          : '';
+
+  if (disabledReason) {
+    return res.json(skippedIntegrationResponse({
       configured: Boolean(process.env.SMSAPI_TOKEN),
-      enabled: false,
-      failed: [],
-      reason: 'sms_disabled',
-      scheduled: [],
-      sent: [],
-      skipped: true,
-    });
+      reason: disabledReason,
+    }));
   }
 
   const result = await smsReminders(payload);

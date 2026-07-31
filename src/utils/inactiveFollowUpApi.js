@@ -23,6 +23,7 @@ export const previewInactiveFollowUp = () => Promise.resolve({due: []});
 export const processInactiveFollowUp = async ({followUps = []} = {}) => {
   clearFunctionStatusCache(INACTIVE_FOLLOW_UP_STATUS_CACHE_KEY);
   return invokeInactiveFollowUp({
+    action: "inactive-follow-up",
     reminders: followUps.map((item) => ({
       message: item.message,
       phone: item.phone,
@@ -32,7 +33,7 @@ export const processInactiveFollowUp = async ({followUps = []} = {}) => {
 
 export const sendInactiveFollowUpTest = ({message, phone}) =>
   invokeInactiveFollowUp({
-    action: "test",
+    action: "inactive-follow-up-test",
     message,
     phone,
   });

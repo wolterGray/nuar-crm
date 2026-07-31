@@ -24,6 +24,7 @@ export const previewReviewRequests = () => Promise.resolve({due: []});
 export const processReviewRequests = async ({requests = []} = {}) => {
   clearFunctionStatusCache(REVIEW_REQUESTS_STATUS_CACHE_KEY);
   return invokeVisitReviewRequests({
+    action: "review-requests",
     reminders: requests.map((item) => ({
       message: item.message,
       phone: item.phone,
@@ -33,7 +34,7 @@ export const processReviewRequests = async ({requests = []} = {}) => {
 
 export const sendReviewRequestTest = ({message, phone}) =>
   invokeVisitReviewRequests({
-    action: "test",
+    action: "review-requests-test",
     message,
     phone,
   });
