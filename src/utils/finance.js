@@ -586,6 +586,28 @@ export const buildFinanceStats = ({
   for (const item of filteredPackages) {
     const method = normalizePaymentMethod(item.payment);
     const price = Math.max(0, toFinanceNumber(item.price));
+
+    if (method === "mixed") {
+      const cashAmount = Math.max(0, toFinanceNumber(item.cashAmount));
+      const cardAmount = Math.max(0, toFinanceNumber(item.cardAmount));
+
+      if (cashAmount > 0) {
+        paymentsByMethod.cash += cashAmount;
+        paymentRecordsByMethod.cash += 1;
+        packagePaymentsByMethod.cash += cashAmount;
+        packagePaymentRecordsByMethod.cash += 1;
+      }
+      if (cardAmount > 0) {
+        paymentsByMethod.card += cardAmount;
+        paymentRecordsByMethod.card += 1;
+        packagePaymentsByMethod.card += cardAmount;
+        packagePaymentRecordsByMethod.card += 1;
+      }
+      if (cashAmount > 0 || cardAmount > 0) {
+        continue;
+      }
+    }
+
     paymentsByMethod[method] = (paymentsByMethod[method] ?? 0) + price;
     paymentRecordsByMethod[method] = (paymentRecordsByMethod[method] ?? 0) + 1;
     packagePaymentsByMethod[method] =

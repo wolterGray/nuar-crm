@@ -5,7 +5,7 @@ import {toInputDate} from "../utils/formatters.jsx";
 import {Button, Field, Input, Select} from "./ui/index.js";
 
 const packagePaymentMethods = paymentMethods.filter(
-  (method) => method !== "Пакет" && method !== "Сертификат" && method !== "Наличные + карта",
+  (method) => method !== "Пакет" && method !== "Сертификат",
 );
 
 function ClientPackageForm({
@@ -17,6 +17,9 @@ function ClientPackageForm({
 }) {
   const [selectedPackageId, setSelectedPackageId] = useState(
     clientPackage?.packageId ?? packages[0]?.id ?? "",
+  );
+  const [selectedPayment, setSelectedPayment] = useState(
+    clientPackage?.payment ?? "Наличные",
   );
   const selectedPackage = useMemo(
     () =>
@@ -82,7 +85,10 @@ function ClientPackageForm({
         </div>
         <div className="form-split">
           <Field label="Оплата">
-            <Select name="payment" defaultValue={clientPackage?.payment ?? "Наличные"}>
+            <Select
+              name="payment"
+              value={selectedPayment}
+              onChange={(event) => setSelectedPayment(event.target.value)}>
               {packagePaymentMethods.map((method) => (
                 <option key={method}>{method}</option>
               ))}
@@ -92,6 +98,24 @@ function ClientPackageForm({
             <Input name="price" defaultValue={price} placeholder="0" />
           </Field>
         </div>
+        {selectedPayment === "Наличные + карта" && (
+          <div className="form-split">
+            <Field label="Наличными">
+              <Input
+                name="cashAmount"
+                defaultValue={clientPackage?.cashAmount ?? ""}
+                placeholder="0"
+              />
+            </Field>
+            <Field label="Картой">
+              <Input
+                name="cardAmount"
+                defaultValue={clientPackage?.cardAmount ?? ""}
+                placeholder="0"
+              />
+            </Field>
+          </div>
+        )}
         <div className="form-split" key={selectedPackageId}>
           <Field label="Всего визитов">
             <Input

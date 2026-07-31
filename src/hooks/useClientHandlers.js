@@ -7,6 +7,7 @@ import {
 import {matchesCertificateClient} from "../utils/certificates.js";
 import {resolveClientPackageStatus} from "../utils/clientPackages.js";
 import {toDisplayDate} from "../utils/formatters.jsx";
+import {toFinanceNumber} from "../utils/finance.js";
 import {getPackageProgressLabel} from "../utils/packages.jsx";
 import {getTodayInput} from "../utils/dateHelpers.js";
 import {
@@ -354,6 +355,8 @@ export function useClientHandlers({
         editingClientPackage?.totalVisits ||
         0;
       const remainingVisits = Number(form.get("remainingVisits")) || 0;
+      const payment = String(form.get("payment") ?? "Не указано");
+      const isMixedPayment = payment === "Наличные + карта";
       const clientPackage = attachClientLink(clientProfiles, {
         ...(editingClientPackage?.id ? {id: editingClientPackage.id} : {}),
         client: form.get("client"),
@@ -366,7 +369,13 @@ export function useClientHandlers({
         remainingVisits: Math.min(remainingVisits, totalVisits),
         price: Number(form.get("price")) || packageTemplate?.price || 0,
         purchaseDate: toDisplayDate(form.get("purchaseDate")),
-        payment: form.get("payment"),
+        payment,
+        cashAmount: isMixedPayment
+          ? Math.max(0, toFinanceNumber(form.get("cashAmount")))
+          : 0,
+        cardAmount: isMixedPayment
+          ? Math.max(0, toFinanceNumber(form.get("cardAmount")))
+          : 0,
         status: resolveClientPackageStatus(
           Math.min(remainingVisits, totalVisits),
           form.get("status"),

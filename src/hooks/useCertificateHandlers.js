@@ -45,6 +45,14 @@ export function useCertificateHandlers({
       const remainingBalance = editingCertificate
         ? toVisitNumber(form.get("remainingBalance"))
         : nominal;
+      const payment = String(form.get("payment") ?? "Не указано");
+      const isMixedPayment = payment === "Наличные + карта";
+      const cashAmount = isMixedPayment
+        ? Math.max(0, toVisitNumber(form.get("cashAmount")))
+        : 0;
+      const cardAmount = isMixedPayment
+        ? Math.max(0, toVisitNumber(form.get("cardAmount")))
+        : 0;
       const validityDays = Number(form.get("validityDays")) || 365;
       const purchaseDate = toDisplayDate(form.get("purchaseDate"));
       const buyer = attachClientLink(clientProfiles, {
@@ -76,7 +84,9 @@ export function useCertificateHandlers({
         expiryDate:
           toDisplayDate(form.get("expiryDate")) ||
           computeCertificateExpiryDate(purchaseDate, validityDays),
-        payment: String(form.get("payment") ?? "Не указано"),
+        payment,
+        cashAmount,
+        cardAmount,
         master: String(form.get("master") ?? "").trim(),
         status: String(form.get("status") ?? "Активен"),
         note: String(form.get("note") ?? "").trim(),
@@ -124,6 +134,8 @@ export function useCertificateHandlers({
           packageSessionsUsed: 0,
           packageUsageId: "",
           payment: certificate.payment,
+          cashAmount,
+          cardAmount,
           recordType: "operation",
           service: "Продажа сертификата",
           tip: 0,

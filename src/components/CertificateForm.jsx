@@ -7,7 +7,7 @@ import {getTodayInput} from "../utils/dateHelpers.js";
 import {Button, Field, Input, Select, Textarea} from "./ui/index.js";
 
 const certificatePaymentMethods = paymentMethods.filter(
-  (method) => method !== "Пакет" && method !== "Сертификат" && method !== "Наличные + карта",
+  (method) => method !== "Пакет" && method !== "Сертификат",
 );
 
 function CertificateForm({
@@ -19,6 +19,9 @@ function CertificateForm({
 }) {
   const [validityDays, setValidityDays] = useState(
     certificate?.validityDays ?? 365,
+  );
+  const [selectedPayment, setSelectedPayment] = useState(
+    certificate?.payment ?? "Наличные",
   );
   const generatedCode = useMemo(
     () =>
@@ -109,7 +112,8 @@ function CertificateForm({
           <Field label="Оплата">
             <Select
               name="payment"
-              defaultValue={certificate?.payment ?? "Наличные"}>
+              value={selectedPayment}
+              onChange={(event) => setSelectedPayment(event.target.value)}>
               {certificatePaymentMethods.map((method) => (
                 <option key={method}>{method}</option>
               ))}
@@ -126,6 +130,24 @@ function CertificateForm({
             </Select>
           </Field>
         </div>
+        {selectedPayment === "Наличные + карта" && (
+          <div className="form-split">
+            <Field label="Наличными">
+              <Input
+                name="cashAmount"
+                defaultValue={certificate?.cashAmount ?? ""}
+                placeholder="0"
+              />
+            </Field>
+            <Field label="Картой">
+              <Input
+                name="cardAmount"
+                defaultValue={certificate?.cardAmount ?? ""}
+                placeholder="0"
+              />
+            </Field>
+          </div>
+        )}
         {certificate ? (
           <Field label="Статус">
             <Select name="status" defaultValue={certificate?.status ?? "Активен"}>

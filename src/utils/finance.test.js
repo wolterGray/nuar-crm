@@ -222,6 +222,31 @@ describe("buildFinanceStats", () => {
     expect(stats.receivedRevenue).toBe(900);
   });
 
+  it("splits mixed package sales into cash and card when amounts are set", () => {
+    const stats = buildStats({
+      clientPackages: [
+        {
+          id: "pkg-1",
+          cardAmount: 500,
+          cashAmount: 400,
+          master: "Max",
+          payment: "Наличные + карта",
+          price: 900,
+          purchaseDate: "10.06.2026",
+          totalVisits: 6,
+        },
+      ],
+    });
+
+    expect(stats.packageIncome).toBe(900);
+    expect(stats.packagePaymentsByMethod.cash).toBe(400);
+    expect(stats.packagePaymentsByMethod.card).toBe(500);
+    expect(stats.packagePaymentsByMethod.mixed).toBe(0);
+    expect(stats.cashReceived).toBe(400);
+    expect(stats.cardReceived).toBe(500);
+    expect(stats.receivedRevenue).toBe(900);
+  });
+
   it("subtracts expense operations from net profit", () => {
     const stats = buildStats({
       visits: [
@@ -264,6 +289,31 @@ describe("buildFinanceStats", () => {
 
     expect(stats.certificateIncome).toBe(400);
     expect(stats.operationsIncome).toBe(400);
+    expect(stats.receivedRevenue).toBe(400);
+  });
+
+  it("splits mixed certificate sale operations into cash and card", () => {
+    const stats = buildStats({
+      visits: [
+        {
+          amount: 400,
+          cardAmount: 250,
+          cashAmount: 150,
+          date: "06.06.2026",
+          master: "Max",
+          payment: "Наличные + карта",
+          recordType: "operation",
+          service: "Продажа сертификата",
+          status: "completed",
+          time: "11:00",
+        },
+      ],
+    });
+
+    expect(stats.certificateIncome).toBe(400);
+    expect(stats.cashReceived).toBe(150);
+    expect(stats.cardReceived).toBe(250);
+    expect(stats.paymentsByMethod.mixed).toBe(0);
     expect(stats.receivedRevenue).toBe(400);
   });
 
