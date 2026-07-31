@@ -2309,6 +2309,11 @@ button:focus-visible {
   min-width: 0;
 }
 
+.client-package-card .package-card-top,
+.certificate-card .package-card-top {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .package-card-copy {
   display: grid;
   gap: 2px;
@@ -2328,6 +2333,13 @@ button:focus-visible {
   padding-top: 0;
   color: var(--packages-muted);
   font-size: 9px;
+}
+
+.package-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 .client-package-card .package-card-copy,
@@ -2468,7 +2480,7 @@ button:focus-visible {
   .packages-page:not(.packages-page-mobile) .client-package-card,
   .packages-page:not(.packages-page-mobile) .certificate-card {
     display: grid;
-    grid-template-columns: minmax(210px, 300px) minmax(180px, 1fr) minmax(104px, auto);
+    grid-template-columns: minmax(210px, 300px) minmax(180px, 1fr) minmax(104px, auto) 24px;
     align-items: center;
     gap: 12px;
     min-height: 58px;
@@ -2478,7 +2490,7 @@ button:focus-visible {
 
   .packages-page:not(.packages-page-mobile) .client-package-card .package-card-top,
   .packages-page:not(.packages-page-mobile) .certificate-card .package-card-top {
-    grid-template-columns: minmax(0, 1fr) 24px;
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
   }
 
@@ -2504,6 +2516,11 @@ button:focus-visible {
   .packages-page:not(.packages-page-mobile) .certificate-card .package-card-footer > span:first-child {
     max-width: none;
     white-space: nowrap;
+  }
+
+  .packages-page:not(.packages-page-mobile) .client-package-card .package-card-actions,
+  .packages-page:not(.packages-page-mobile) .certificate-card .package-card-actions {
+    justify-self: end;
   }
 
   .packages-panel-templates .package-template-card {

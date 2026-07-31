@@ -38,13 +38,6 @@ function ClientPackageCard({
           <span className="text-text-muted text-xs block leading-tight break-words">{packageItem.packageName}</span>
           <span className="text-text-faint text-[10px] block font-medium uppercase tracking-wider leading-tight break-words">{packageItem.service}</span>
         </div>
-        <RowActionsMenu
-          itemId={packageItem.id}
-          openMenuId={openMenuId}
-          setOpenMenuId={setOpenMenuId}
-          onDelete={() => onDelete(packageItem)}
-          onEdit={() => onEdit(packageItem)}
-        />
       </div>
 
       <div className="package-card-progress">
@@ -64,6 +57,16 @@ function ClientPackageCard({
         <span className={`package-status-pill ${packageItem.status === "Активен" ? "is-active" : ""}`}>
           {packageItem.status}
         </span>
+      </div>
+
+      <div className="package-card-actions">
+        <RowActionsMenu
+          itemId={packageItem.id}
+          openMenuId={openMenuId}
+          setOpenMenuId={setOpenMenuId}
+          onDelete={() => onDelete(packageItem)}
+          onEdit={() => onEdit(packageItem)}
+        />
       </div>
     </article>
   );
@@ -91,13 +94,6 @@ function CertificateCard({
               : `До ${certificate.expiryDate || "—"}`}
           </span>
         </div>
-        <RowActionsMenu
-          itemId={certificate.id}
-          openMenuId={openMenuId}
-          setOpenMenuId={setOpenMenuId}
-          onDelete={() => onDelete(certificate)}
-          onEdit={() => onEdit(certificate)}
-        />
       </div>
 
       <div className="package-card-progress">
@@ -120,6 +116,16 @@ function CertificateCard({
         <span className={`package-status-pill ${certificate.status === "Активен" ? "is-active" : ""}`}>
           {certificate.status}
         </span>
+      </div>
+
+      <div className="package-card-actions">
+        <RowActionsMenu
+          itemId={certificate.id}
+          openMenuId={openMenuId}
+          setOpenMenuId={setOpenMenuId}
+          onDelete={() => onDelete(certificate)}
+          onEdit={() => onEdit(certificate)}
+        />
       </div>
     </article>
   );
