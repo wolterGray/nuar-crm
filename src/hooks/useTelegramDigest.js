@@ -10,7 +10,7 @@ import {
 const ENABLE_AUTOMATION_STATUS =
   import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
 
-const isTelegramChannelEnabled = (appSettings) => appSettings.telegramEnabled !== false;
+const isTelegramChannelEnabled = (appSettings) => appSettings.telegramEnabled === true;
 
 export function useTelegramDigest({
   appSettings,
@@ -135,7 +135,7 @@ export function useTelegramDigest({
     ) {
       pushNotification?.({
         title: "Telegram-дайджест выключен",
-        message: "Включите Telegram-дайджест в настройках, чтобы отправлять сводку.",
+        message: "Включите общий Telegram-канал и Telegram-дайджест в настройках.",
       });
       return {sent: false, skipped: true, reason: "telegram_disabled"};
     }

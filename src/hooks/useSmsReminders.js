@@ -9,7 +9,7 @@ import {buildDueSmsReminders} from "../utils/smsReminders.js";
 const ENABLE_AUTOMATION_STATUS =
   import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
 
-const isSmsChannelEnabled = (appSettings) => appSettings.smsEnabled !== false;
+const isSmsChannelEnabled = (appSettings) => appSettings.smsEnabled === true;
 
 export function useSmsReminders({
   appSettings,
@@ -97,7 +97,7 @@ export function useSmsReminders({
     if (!isSmsChannelEnabled(appSettings) || !appSettings.smsRemindersEnabled) {
       pushNotification?.({
         title: "SMS-напоминания выключены",
-        message: "Включите SMS-напоминания в настройках, чтобы отправлять их.",
+        message: "Включите общий SMS-канал и SMS-напоминания в настройках.",
       });
       return {failed: [], scheduled: [], sent: [], skipped: true};
     }

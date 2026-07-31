@@ -76,7 +76,7 @@ function SiteBookingPanel({
         loading: false,
         ownerPhone: String(remote.ownerPhone ?? ""),
         siteBookingNotifyTelegramEnabled:
-          remote.siteBookingNotifyTelegramEnabled !== false,
+          remote.siteBookingNotifyTelegramEnabled === true,
         siteBookingNotifyWhatsappEnabled:
           remote.siteBookingNotifyWhatsappEnabled !== false,
         smsConfigured: Boolean(remote.smsConfigured),

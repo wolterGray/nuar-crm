@@ -10,6 +10,8 @@ async function main() {
 
   console.log(JSON.stringify({
     processed: result.processed,
+    skipped: result.skipped === true,
+    skippedReason: result.skippedReason || null,
     timestamp: new Date().toISOString(),
   }));
 }

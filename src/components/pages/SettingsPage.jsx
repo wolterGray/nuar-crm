@@ -552,7 +552,7 @@ function SettingsPage({
         "inactive-follow-up": [
           {
             disabled:
-              settings.smsEnabled === false ||
+              settings.smsEnabled !== true ||
               !settings.inactiveFollowUpEnabled ||
               inactiveFollowUp?.status?.loading,
             label: "Обновить",
@@ -560,7 +560,7 @@ function SettingsPage({
           },
           {
             disabled:
-              settings.smsEnabled === false ||
+              settings.smsEnabled !== true ||
               !settings.inactiveFollowUpEnabled,
             label: "Предпросмотр",
             onClick: () =>
@@ -568,7 +568,7 @@ function SettingsPage({
           },
           {
             disabled:
-              settings.smsEnabled === false ||
+              settings.smsEnabled !== true ||
               !settings.inactiveFollowUpEnabled ||
               inactiveFollowUp?.status?.loading ||
               !inactiveFollowUp?.status?.configured,
@@ -580,7 +580,7 @@ function SettingsPage({
         "review-requests": [
           {
             disabled:
-              settings.smsEnabled === false ||
+              settings.smsEnabled !== true ||
               !settings.reviewRequestsEnabled ||
               reviewRequests?.status?.loading,
             label: "Обновить",
@@ -588,7 +588,7 @@ function SettingsPage({
           },
           {
             disabled:
-              settings.smsEnabled === false ||
+              settings.smsEnabled !== true ||
               !settings.reviewRequestsEnabled,
             label: "Предпросмотр",
             onClick: () =>
@@ -596,7 +596,7 @@ function SettingsPage({
           },
           {
             disabled:
-              settings.smsEnabled === false ||
+              settings.smsEnabled !== true ||
               !settings.reviewRequestsEnabled ||
               reviewRequests?.status?.loading ||
               !reviewRequests?.status?.configured,
@@ -608,7 +608,7 @@ function SettingsPage({
         "sms-reminders": [
           {
             disabled:
-              settings.smsEnabled === false ||
+              settings.smsEnabled !== true ||
               !settings.smsRemindersEnabled ||
               smsReminders?.status?.loading,
             label: "Обновить",
@@ -616,14 +616,14 @@ function SettingsPage({
           },
           {
             disabled:
-              settings.smsEnabled === false ||
+              settings.smsEnabled !== true ||
               !settings.smsRemindersEnabled,
             label: "Предпросмотр",
             onClick: () => runIntegrationPreview("SMS reminders", smsReminders?.runPreview),
           },
           {
             disabled:
-              settings.smsEnabled === false ||
+              settings.smsEnabled !== true ||
               !settings.smsRemindersEnabled ||
               smsReminders?.status?.loading ||
               !smsReminders?.status?.configured,
@@ -635,7 +635,7 @@ function SettingsPage({
         "telegram-digest": [
           {
             disabled:
-              settings.telegramEnabled === false ||
+              settings.telegramEnabled !== true ||
               !settings.telegramDigestEnabled ||
               telegramDigest?.status?.loading,
             label: "Обновить",
@@ -643,7 +643,7 @@ function SettingsPage({
           },
           {
             disabled:
-              settings.telegramEnabled === false ||
+              settings.telegramEnabled !== true ||
               !settings.telegramDigestEnabled,
             label: "Предпросмотр",
             onClick: () =>
@@ -651,7 +651,7 @@ function SettingsPage({
           },
           {
             disabled:
-              settings.telegramEnabled === false ||
+              settings.telegramEnabled !== true ||
               !settings.telegramDigestEnabled ||
               telegramDigest?.status?.loading ||
               !telegramDigest?.status?.configured,

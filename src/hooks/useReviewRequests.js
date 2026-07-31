@@ -9,7 +9,7 @@ import {buildDueReviewRequests} from "../utils/reviewRequests.js";
 const ENABLE_AUTOMATION_STATUS =
   import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
 
-const isSmsChannelEnabled = (appSettings) => appSettings.smsEnabled !== false;
+const isSmsChannelEnabled = (appSettings) => appSettings.smsEnabled === true;
 
 export function useReviewRequests({
   appSettings,
@@ -89,7 +89,7 @@ export function useReviewRequests({
     if (!isSmsChannelEnabled(appSettings) || !appSettings.reviewRequestsEnabled) {
       pushNotification?.({
         title: "Запросы отзывов выключены",
-        message: "Включите запросы отзывов в настройках, чтобы отправлять SMS.",
+        message: "Включите общий SMS-канал и запросы отзывов в настройках.",
       });
       return {failed: [], scheduled: [], sent: [], skipped: true};
     }

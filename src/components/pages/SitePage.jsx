@@ -13,7 +13,9 @@ function SitePage({
 }) {
   const {isMobile} = useBreakpoint();
   const pendingCount = siteBooking?.pendingRequests?.length ?? 0;
-  const telegramEnabled = settings.siteBookingNotifyTelegramEnabled !== false;
+  const telegramEnabled =
+    settings.telegramEnabled === true &&
+    settings.siteBookingNotifyTelegramEnabled === true;
   const whatsappEnabled = settings.siteBookingNotifyWhatsappEnabled !== false;
   const hasChatId = Boolean(String(settings.telegramChatId ?? "").trim());
 

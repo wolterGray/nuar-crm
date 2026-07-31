@@ -9,7 +9,7 @@ import {buildDueInactiveFollowUps} from "../utils/inactiveFollowUp.js";
 const ENABLE_AUTOMATION_STATUS =
   import.meta.env.VITE_ENABLE_AUTOMATION_STATUS === "true";
 
-const isSmsChannelEnabled = (appSettings) => appSettings.smsEnabled !== false;
+const isSmsChannelEnabled = (appSettings) => appSettings.smsEnabled === true;
 
 export function useInactiveFollowUp({
   appSettings,
@@ -97,7 +97,7 @@ export function useInactiveFollowUp({
     if (!isSmsChannelEnabled(appSettings) || !appSettings.inactiveFollowUpEnabled) {
       pushNotification?.({
         title: "Follow-up выключен",
-        message: "Включите follow-up в настройках, чтобы отправлять SMS.",
+        message: "Включите общий SMS-канал и follow-up в настройках.",
       });
       return {failed: [], scheduled: [], sent: [], skipped: true};
     }
