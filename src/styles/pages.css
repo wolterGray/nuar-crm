@@ -2318,7 +2318,7 @@ button:focus-visible {
   display: grid;
   gap: 2px;
   min-width: 0;
-  padding-left: 2px;
+  padding-left: 6px;
 }
 
 .package-card-progress {
@@ -2496,7 +2496,7 @@ button:focus-visible {
     align-items: center;
     gap: 12px;
     min-height: 56px;
-    padding: 9px 10px;
+    padding: 9px 12px 9px 14px;
     overflow: visible;
   }
 
