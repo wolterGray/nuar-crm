@@ -276,15 +276,20 @@ export function useClientHandlers({
       const trimmedName = String(name ?? "").trim();
 
       if (!trimmedName) {
-        return;
+        return null;
       }
 
-      const exists = clientProfiles.some(
+      const existingClient = clientProfiles.find(
         (client) => client.name.toLowerCase() === trimmedName.toLowerCase(),
       );
 
-      if (exists) {
-        return;
+      if (existingClient) {
+        pushNotification({
+          title: "Клиент уже есть",
+          message: `${existingClient.name} уже в базе клиентов`,
+          persist: false,
+        });
+        return existingClient;
       }
 
       try {
@@ -303,22 +308,29 @@ export function useClientHandlers({
           note: "",
         });
         const savedClient = response?.data;
-        if (savedClient) {
-          setClientProfiles((current) => [savedClient, ...current]);
+        if (!savedClient) {
+          pushNotification({
+            title: "Клиент не добавлен",
+            message: "Backend не вернул данные клиента",
+            persist: false,
+          });
+          return null;
         }
+
+        setClientProfiles((current) => [savedClient, ...current]);
+        pushNotification({
+          title: "Клиент добавлен",
+          message: `${savedClient.name} теперь в базе клиентов`,
+        });
+        return savedClient;
       } catch (error) {
         pushNotification({
           title: "Клиент не добавлен",
           message: error?.message || "Не удалось сохранить клиента в backend",
           persist: false,
         });
-        return;
+        return null;
       }
-
-      pushNotification({
-        title: "Клиент добавлен",
-        message: `${trimmedName} теперь в базе клиентов`,
-      });
     },
     [clientProfiles, pushNotification, setClientProfiles],
   );

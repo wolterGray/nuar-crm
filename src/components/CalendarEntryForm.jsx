@@ -160,6 +160,7 @@ function CalendarEntryForm({
   const [clientTemplateApplied, setClientTemplateApplied] = useState(
     Boolean(initialEntry),
   );
+  const [creatingClient, setCreatingClient] = useState(false);
   const [insightsNow] = useState(() => new Date());
   const skipInitialPricingRef = useRef(Boolean(initialEntry));
   const pricingTouchedRef = useRef(
@@ -450,6 +451,27 @@ function CalendarEntryForm({
     skipInitialPricingRef.current = true;
     setClientTemplateApplied(true);
   };
+  const handleCreateClientClick = async () => {
+    if (!onCreateClient || creatingClient) {
+      return;
+    }
+
+    const nextClientName = String(client ?? "").trim();
+    if (!nextClientName) {
+      return;
+    }
+
+    setCreatingClient(true);
+    try {
+      const savedClient = await onCreateClient(nextClientName);
+      if (savedClient?.name) {
+        setFormValue("client", savedClient.name, { shouldValidate: false });
+        applyClientTemplate(savedClient.name);
+      }
+    } finally {
+      setCreatingClient(false);
+    }
+  };
   const packageOptions = getAvailablePackagesForClient(client);
   const certificateOptions = getActiveCertificatesForClient(
     certificates,
@@ -628,9 +650,10 @@ function CalendarEntryForm({
                 type="button"
                 size="sm"
                 variant="secondary"
-                onClick={() => onCreateClient?.(client)}
+                disabled={creatingClient}
+                onClick={handleCreateClientClick}
               >
-                Добавить клиента
+                {creatingClient ? "Добавляем..." : "Добавить клиента"}
               </Button>
             </div>
           )}
