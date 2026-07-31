@@ -16,7 +16,6 @@ export default defineConfig({
           if (normalizedId.includes("node_modules/xlsx")) return "vendor-xlsx";
           if (normalizedId.includes("node_modules/@dnd-kit")) return "vendor-dnd-kit";
           if (normalizedId.includes("node_modules/lucide-react")) return "vendor-lucide";
-          if (normalizedId.includes("node_modules/@supabase")) return "vendor-supabase";
           if (normalizedId.includes("node_modules/date-fns")) return "vendor-date-fns";
           if (normalizedId.includes("node_modules/framer-motion")) return "vendor-framer";
 

@@ -30,14 +30,14 @@ CRM работает через собственный backend на Hetzner. С�
 ### CRM → сайт (автоматически)
 
 - При изменении **цен и длительностей** услуг в CRM данные пишутся backend-роутами сайта в `site_content` (`id = 'main'`, поле `data.services`)
-- Legacy frontend sync `src/utils/siteSync.js` оставлен только для старого Supabase-flow и не должен быть основным путём на Hetzner.
+- Frontend не ходит напрямую в CMS-базу: синхронизация идёт через backend на Hetzner.
 - Задержка ~1.2 с, **без кнопок** «опубликовать»
 - Админка сайта **не** редактирует цены — только фото и тексты услуг
 
 ### CRM → админка (SSO)
 
 - Страница **«Сайт»** (`src/components/pages/SitePage.jsx`)
-- Кнопка «Открыть админку» открывает админку сайта. Если включён legacy Supabase-flow, `src/utils/openSiteAdmin.js` может передавать Supabase-сессию.
+- Кнопка «Открыть админку» открывает админку сайта через текущий CRM auth-flow. Старый frontend SSO не возвращать без явной задачи.
 
 ---
 
@@ -55,7 +55,7 @@ CRM работает через собственный backend на Hetzner. С�
 - `site_content` — JSON CMS сайта (CRM пишет только `services.price/time`)
 - `site_images` — бинарные картинки CMS (`dbimg:<id>`)
 
-Supabase-упоминания в frontend (`src/lib/supabase.js`, `siteSync.js`, `openSiteAdmin.js`) считаются legacy. Не развивай их для новых задач, если пользователь явно не просит старый flow.
+Frontend не использует старый прямой SDK базы и не должен получать legacy `VITE_*` ключи. Новые интеграции и синхронизации веди через backend.
 
 ---
 
@@ -65,8 +65,7 @@ Supabase-упоминания в frontend (`src/lib/supabase.js`, `siteSync.js`,
 src/
   App.jsx                         # Главное приложение, роутинг через activePage
   components/pages/SitePage.jsx   # Раздел «Сайт»
-  utils/siteSync.js               # Legacy синхронизация услуг → site_content
-  utils/openSiteAdmin.js          # Legacy SSO/open admin helper
+  utils/openSiteAdmin.js          # Открытие админки сайта
   data/siteServicesCatalog.js     # Каталог услуг сайта для маппинга имён CRM ↔ сайт
 backend/
   server.js                       # Express API
@@ -74,7 +73,7 @@ backend/
   routes/                         # CRM/site/automation endpoints
 ```
 
-Имена услуг CRM маппятся на slug сайта через нормализацию и алиасы (`CRM_NAME_ALIASES` в `siteSync.js`).
+Имена услуг CRM маппятся на slug сайта через backend site/CMS routes.
 
 ---
 
@@ -112,7 +111,7 @@ npm run prisma:generate
 
 - **Цены на сайте не совпадают** → проверь backend site/CMS routes, маппинг имён услуг и `site_content.data.services`
 - **Автоматизация шлёт ошибки** → проверь настройки включения SMS/Telegram/Gmail и backend cron/PM2 на Hetzner
-- **Админка просит пароль** → проверь текущий auth-flow сайта в `lavandi`; legacy Supabase SSO не считать основным
+- **Админка просит пароль** → проверь текущий auth-flow сайта в `lavandi`
 - **Фича на сайте/в CMS** → работай в репозитории **`lavandi`**, не здесь
 - **Commit + push** — пользователь обычно ожидает после изменений кода
 

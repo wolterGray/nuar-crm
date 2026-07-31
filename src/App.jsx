@@ -17,8 +17,6 @@ import {
   serviceColorPalette,
 } from "./utils/serviceColors.js";
 import AppRoutes from "./components/AppRoutes.jsx";
-import {supabase} from "./lib/supabase.js";
-import {publishServicesToSite} from "./utils/siteSync.js";
 import {navItems} from "./constants/navigation.js";
 import {isMobileViewport} from "./constants/breakpoints.js";
 import {
@@ -63,7 +61,6 @@ import {applyBooksySources} from "./utils/booksySources.js";
 import {openSupplyOrderUrl} from "./utils/supplyOrder.js";
 import {resolveColorTheme} from "./utils/colorTheme.js";
 import {buildClientSearchIndex} from "./utils/clientSearch.js";
-import {applyCrmSnapshot, buildCloudSnapshot} from "./utils/cloudSnapshot.js";
 import {useCloudSync} from "./hooks/useCloudSync.js";
 import {useCloudSaveActions} from "./hooks/useCloudSaveActions.js";
 import {useDataBackup} from "./hooks/useDataBackup.js";
@@ -244,8 +241,6 @@ function App() {
   const autoCompletedCalendarEntryIdsRef = useRef(
     new Set(autoCompletedCalendarEntryIds),
   );
-  const cloudSnapshotRef = useRef(null);
-  const lastPublishedServicesRef = useRef("");
   const onSessionLostRef = useRef(() => {});
   const systemStateLoadedRef = useRef(false);
 
@@ -846,112 +841,6 @@ function App() {
       financialOperationModalOpen,
   );
 
-  const cloudSnapshot = useMemo(
-    () =>
-      buildCloudSnapshot({
-        alertSnoozes,
-        appSettings,
-        autoCompletedCalendarEntryIds,
-        calendarEntries,
-        certificates,
-        clientPackages,
-        clientProfiles,
-        communicationLog,
-        dismissedClientAlertIds,
-        employees,
-        importDocuments,
-        importedMailIds,
-        messageTemplates,
-        notificationInbox,
-        packagesCatalog,
-        serviceCatalog,
-        supplies,
-        smsReminderLog,
-        reviewRequestLog,
-        inactiveFollowUpLog,
-        waitlistEntries,
-        dayCloseRecords,
-        payrollRecords,
-        tasks,
-        visits,
-      }),
-    [
-      alertSnoozes,
-      appSettings,
-      autoCompletedCalendarEntryIds,
-      calendarEntries,
-      certificates,
-      clientPackages,
-      clientProfiles,
-      communicationLog,
-      dismissedClientAlertIds,
-      employees,
-      importDocuments,
-      importedMailIds,
-      messageTemplates,
-      notificationInbox,
-      packagesCatalog,
-      serviceCatalog,
-      supplies,
-      smsReminderLog,
-      reviewRequestLog,
-      inactiveFollowUpLog,
-      waitlistEntries,
-      dayCloseRecords,
-      payrollRecords,
-      tasks,
-      visits,
-    ],
-  );
-
-  useEffect(() => {
-    cloudSnapshotRef.current = cloudSnapshot;
-  }, [cloudSnapshot]);
-
-  const applyCloudSnapshot = useCallback(
-    (snapshot) => {
-      applyCrmSnapshot(snapshot, {
-        applyBooksySources,
-        defaultAppSettings,
-        normalizeServiceColors,
-        setAppSettings,
-        setAutoCompletedCalendarEntryIds,
-        setCalendarEntries,
-        setClientPackages,
-        setClientProfiles,
-        setCertificates,
-        setCommunicationLog,
-        setDismissedClientAlertIds,
-        setAlertSnoozes,
-        setEmployees,
-        setImportDocuments,
-        setImportedMailIds,
-        setMessageTemplates,
-        setNotificationInbox,
-        setPackagesCatalog,
-        setServiceCatalog,
-        setSmsReminderLog,
-        setReviewRequestLog,
-        setInactiveFollowUpLog,
-        setWaitlistEntries,
-        setDayCloseRecords,
-        setPayrollRecords,
-        setSupplies,
-        setTasks,
-        setVisits,
-      });
-    },
-    [setAppSettings],
-  );
-
-  const handleCloudConflictDetected = useCallback(() => {
-    pushNotificationRef.current({
-      message: "Откройте Настройки / Облако, чтобы выбрать версию данных.",
-      persist: true,
-      title: "Конфликт синхронизации",
-    });
-  }, [pushNotificationRef]);
-
   const {
     cloudConflict,
     cloudHydrated,
@@ -963,64 +852,11 @@ function App() {
     manualCloudRestore,
     overwriteRemoteSnapshot,
     resetCloudSyncState,
-  } = useCloudSync({
-    supabase: authSession?.provider === "local" ? null : supabase,
-    userId: authSession?.provider === "local" ? null : authSession?.user?.id,
-    cloudSnapshot,
-    cloudSnapshotRef,
-    onApplySnapshot: applyCloudSnapshot,
-    onConflictDetected: handleCloudConflictDetected,
-  });
-
-
+  } = useCloudSync();
 
   useEffect(() => {
     onSessionLostRef.current = resetCloudSyncState;
   }, [resetCloudSyncState]);
-
-  useEffect(() => {
-    if (authSession?.provider === "local") return undefined;
-
-    const userId = authSession?.user?.id;
-    if (!supabase || !userId || !cloudHydrated) return undefined;
-
-    const servicesKey = JSON.stringify(
-      serviceCatalog.map((service) => ({
-        name: service.name,
-        variants: (service.variants ?? []).map((variant) => ({
-          duration: variant.duration,
-          price: variant.price,
-        })),
-      })),
-    );
-    if (lastPublishedServicesRef.current === servicesKey) return undefined;
-    if (!lastPublishedServicesRef.current) {
-      lastPublishedServicesRef.current = servicesKey;
-      return undefined;
-    }
-
-    const timer = window.setTimeout(async () => {
-      try {
-        await publishServicesToSite(serviceCatalog);
-        lastPublishedServicesRef.current = servicesKey;
-      } catch (error) {
-        pushNotificationRef.current({
-          title: "Цены на сайт не обновились",
-          message:
-            error?.message ||
-            "Не удалось синхронизировать каталог услуг с nuarr.pl",
-        });
-      }
-    }, 1200);
-
-    return () => window.clearTimeout(timer);
-  }, [
-    authSession?.provider,
-    authSession?.user?.id,
-    cloudHydrated,
-    pushNotificationRef,
-    serviceCatalog,
-  ]);
 
   const employeeStats = useMemo(
     () => buildEmployeeStats(employees, visits),
@@ -2138,9 +1974,7 @@ function App() {
             clientPackages={clientPackages}
             clientProfiles={clientProfiles}
             cloudConflict={cloudConflict}
-            cloudEnabled={Boolean(
-              supabase && authSession?.provider !== "local" && authSession?.user?.id,
-            )}
+            cloudEnabled={false}
             cloudHydrated={cloudHydrated}
             cloudLoadError={cloudLoadError}
             cloudSyncing={cloudSyncing}

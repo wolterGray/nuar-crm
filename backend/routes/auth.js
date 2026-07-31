@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
-const { verifySupabaseJwt } = require('../middleware/auth');
+const { verifyJwt } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
   isPasswordResetSmtpConfigured,
@@ -476,7 +476,7 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-router.get('/session', verifySupabaseJwt, (req, res) => {
+router.get('/session', verifyJwt, (req, res) => {
   res.json({
     success: true,
     user: {

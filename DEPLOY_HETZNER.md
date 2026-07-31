@@ -132,11 +132,9 @@ VITE_BACKEND_URL=https://crm.example.com
 VITE_ENABLE_AUTOMATION_STATUS=false
 ```
 
-Optional frontend variables, only if legacy Supabase/site flows are still used:
+Optional frontend variables:
 
 ```bash
-VITE_SUPABASE_URL=
-VITE_SUPABASE_PUBLISHABLE_KEY=
 VITE_SITE_URL=https://nuarr.pl
 ```
 
@@ -474,7 +472,6 @@ No VPS persistent upload volume is required right now. If future uploads are add
 - Backup restore must be tested before relying on backups.
 - If frontend is served from Vercel, backend must be public HTTPS and CORS must include the Vercel domain.
 - If frontend is served from HTTPS but backend remains HTTP, browser requests will be blocked as mixed content.
-- Some optional automation/site integrations still reference Supabase env variables. They should remain disabled unless configured intentionally.
 - PM2 logs need retention/rotation (`pm2 install pm2-logrotate`) before long-running production use.
 - PostgreSQL runs on the same VPS; server disk failure means backups are critical and should eventually be copied off-server.
 - Secrets are file-based in `backend/.env`; restrict SSH access and file permissions.

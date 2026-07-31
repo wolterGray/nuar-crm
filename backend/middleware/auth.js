@@ -44,5 +44,4 @@ function requireOwner(req, res, next) {
 module.exports = {
   requireOwner,
   verifyJwt,
-  verifySupabaseJwt: verifyJwt,
 };

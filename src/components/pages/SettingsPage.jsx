@@ -461,7 +461,7 @@ function SettingsPage({
         });
   };
   const cloudStatusMessage = !cloudEnabled
-    ? "Войдите в CRM, чтобы синхронизировать данные с сервером."
+    ? "Данные сохраняются через сервер Hetzner. Ручная legacy-синхронизация отключена."
     : cloudLoadError
       ? cloudLoadError
       : cloudConflict
@@ -710,8 +710,8 @@ function SettingsPage({
         <strong>{settings.gmailBooksySyncEnabled ? "Вкл" : "Выкл"}</strong>
       </article>
       <article>
-        <span>Облако</span>
-        <strong>{cloudKpiLabel}</strong>
+        <span>Сервер</span>
+        <strong>{cloudEnabled ? cloudKpiLabel : "Hetzner"}</strong>
       </article>
       <article>
         <span>Компакт</span>
@@ -1439,8 +1439,8 @@ function SettingsPage({
                 <AppIcon name="cloudUpload" size="md" className="text-accent" />
                 <div>
                   <h2 className="m-0 text-text-main text-base font-bold flex items-center gap-2">
-                    Облако
-                    <HintIcon>Синхронизация CRM через backend на Hetzner</HintIcon>
+                    Хранение данных
+                    <HintIcon>CRM сохраняет данные через backend на Hetzner; старый ручной cloud-sync отключён.</HintIcon>
                   </h2>
                 </div>
               </div>
@@ -1483,7 +1483,7 @@ function SettingsPage({
                     className="flex items-center gap-2"
                   >
                     <AppIcon name="cloudUpload" size="sm" />
-                    {cloudSyncing ? "Сохранение..." : "Принудительно сохранить сейчас"}
+                    {cloudSyncing ? "Сохранение..." : "Сохранение идёт через сервер"}
                   </Button>
                 </div>
               </div>
