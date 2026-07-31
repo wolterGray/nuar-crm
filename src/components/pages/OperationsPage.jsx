@@ -664,6 +664,7 @@ function OperationsPage({
                           onClick={() => onCompleteTask(task)}
                         />
                         <button
+                          aria-label={`Открыть задачу: ${task.title}`}
                           className="operations-card-body operations-card-view"
                           type="button"
                           onClick={() => setViewingOperationItem(task)}>
@@ -765,6 +766,7 @@ function OperationsPage({
                         )}
                       </span>
                       <button
+                        aria-label={`Открыть заметку: ${note.title}`}
                         className="operations-card-body operations-card-view"
                         type="button"
                         onClick={() => setViewingOperationItem(note)}>
