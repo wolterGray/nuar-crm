@@ -5,7 +5,7 @@ import {
   generateCertificateCode,
   syncCertificateStatus,
 } from "../utils/certificates.js";
-import {toDisplayDate} from "../utils/formatters.jsx";
+import {formatMoney, toDisplayDate} from "../utils/formatters.jsx";
 import {toVisitNumber} from "../utils/visits.jsx";
 import {
   deleteCertificate,
@@ -68,6 +68,15 @@ export function useCertificateHandlers({
         generateCertificateCode(certificates.map((item) => item.code));
 
       if (!nominal || !buyer.client) {
+        return;
+      }
+
+      if (isMixedPayment && Math.abs(cashAmount + cardAmount - nominal) > 0.01) {
+        pushNotification({
+          title: "Оплата не сходится",
+          message: `Наличные + карта должны дать ${formatMoney(nominal)}. Сейчас ${formatMoney(cashAmount + cardAmount)}.`,
+          persist: false,
+        });
         return;
       }
 

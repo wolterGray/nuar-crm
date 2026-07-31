@@ -6,7 +6,7 @@ import {
 } from "../utils/clientLinks.js";
 import {matchesCertificateClient} from "../utils/certificates.js";
 import {resolveClientPackageStatus} from "../utils/clientPackages.js";
-import {toDisplayDate} from "../utils/formatters.jsx";
+import {formatMoney, toDisplayDate} from "../utils/formatters.jsx";
 import {toFinanceNumber} from "../utils/finance.js";
 import {getPackageProgressLabel} from "../utils/packages.jsx";
 import {getTodayInput} from "../utils/dateHelpers.js";
@@ -357,6 +357,23 @@ export function useClientHandlers({
       const remainingVisits = Number(form.get("remainingVisits")) || 0;
       const payment = String(form.get("payment") ?? "Не указано");
       const isMixedPayment = payment === "Наличные + карта";
+      const price = Number(form.get("price")) || packageTemplate?.price || 0;
+      const cashAmount = isMixedPayment
+        ? Math.max(0, toFinanceNumber(form.get("cashAmount")))
+        : 0;
+      const cardAmount = isMixedPayment
+        ? Math.max(0, toFinanceNumber(form.get("cardAmount")))
+        : 0;
+
+      if (isMixedPayment && Math.abs(cashAmount + cardAmount - price) > 0.01) {
+        pushNotification({
+          title: "Оплата не сходится",
+          message: `Наличные + карта должны дать ${formatMoney(price)}. Сейчас ${formatMoney(cashAmount + cardAmount)}.`,
+          persist: false,
+        });
+        return;
+      }
+
       const clientPackage = attachClientLink(clientProfiles, {
         ...(editingClientPackage?.id ? {id: editingClientPackage.id} : {}),
         client: form.get("client"),
@@ -367,15 +384,11 @@ export function useClientHandlers({
         master: form.get("master") || editingClientPackage?.master || "",
         totalVisits,
         remainingVisits: Math.min(remainingVisits, totalVisits),
-        price: Number(form.get("price")) || packageTemplate?.price || 0,
+        price,
         purchaseDate: toDisplayDate(form.get("purchaseDate")),
         payment,
-        cashAmount: isMixedPayment
-          ? Math.max(0, toFinanceNumber(form.get("cashAmount")))
-          : 0,
-        cardAmount: isMixedPayment
-          ? Math.max(0, toFinanceNumber(form.get("cardAmount")))
-          : 0,
+        cashAmount,
+        cardAmount,
         status: resolveClientPackageStatus(
           Math.min(remainingVisits, totalVisits),
           form.get("status"),
