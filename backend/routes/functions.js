@@ -154,7 +154,7 @@ router.post('/bulk-sms', requireOwner, async (req, res) => {
   }
 });
 
-// Telegram Digest (stub)
+// Telegram Digest
 router.post('/telegram-digest', requireOwner, async (req, res) => {
   const payload = req.body;
   if (payload?.action === 'status') {
@@ -305,7 +305,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
   res.json(result);
 });
 
-// SMS Reminders (stub)
+// SMS Reminders
 router.post('/sms-reminders', requireOwner, async (req, res) => {
   const payload = req.body;
   const settings = await loadAppSettings();
@@ -378,7 +378,7 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
   res.json(result);
 });
 
-// Owner Notify (stub)
+// Owner email notification
 router.post('/owner-notify', requireOwner, async (req, res) => {
   const payload = req.body;
   const result = await ownerNotify(payload);
@@ -391,17 +391,16 @@ router.post('/owner-notify', requireOwner, async (req, res) => {
   res.json(result);
 });
 
-// Review Requests (stub)
+// Review Requests
 router.post('/review-requests', requireOwner, async (req, res) => {
   const payload = req.body;
   const settings = await loadAppSettings();
-  if (settings.reviewRequestsEnabled !== true) {
-    return res.json({
-      success: true,
-      enabled: false,
-      reason: 'review_requests_disabled',
-      skipped: true,
-    });
+  const smsEnabled = isSmsEnabled(settings);
+  if (!smsEnabled || settings.reviewRequestsEnabled !== true) {
+    return res.json(skippedIntegrationResponse({
+      configured: Boolean(process.env.SMSAPI_TOKEN),
+      reason: smsEnabled ? 'review_requests_disabled' : 'sms_disabled',
+    }));
   }
 
   const result = await reviewRequests(payload);
