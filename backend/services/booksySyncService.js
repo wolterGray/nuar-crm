@@ -1,15 +1,17 @@
-// backend/services/booksySyncService.js
-// Placeholder service for Booksy synchronization.
-
 /**
- * Handles Booksy sync payload.
- * @param {Object} payload
- * @returns {Promise<Object>} Result indicating success.
+ * Booksy Gmail sync is currently handled only by the client-side parser.
+ * The former server route is kept for compatibility, but it must not report
+ * a successful sync until the Hetzner backend has a real Gmail connector.
  */
-const booksySync = async (payload) => {
-  console.log('Booksy sync received:', payload);
-  // TODO: integrate with actual Booksy API.
-  return { success: true, message: 'Booksy sync processed (stub)' };
-};
+const booksySync = async () => ({
+  success: true,
+  configured: false,
+  enabled: false,
+  failed: [],
+  reason: 'booksy_gmail_server_sync_not_connected',
+  scheduled: [],
+  sent: [],
+  skipped: true,
+});
 
 module.exports = { booksySync };

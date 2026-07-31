@@ -415,7 +415,7 @@ router.post('/review-requests', requireOwner, async (req, res) => {
   res.json(result);
 });
 
-// Booksy Sync (stub)
+// Booksy Gmail Sync compatibility endpoint
 router.post('/booksy-sync', requireOwner, async (req, res) => {
   const payload = req.body;
   const settings = await loadAppSettings();
