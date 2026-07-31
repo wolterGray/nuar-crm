@@ -6,6 +6,20 @@ const {PrismaClient} = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+const loadAppSettings = async () =>
+  prisma.systemState
+    .findUnique({where: {key: 'appSettings'}})
+    .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
+    .catch(() => ({}));
+
+const isTelegramEnabled = (settings = {}) => settings.telegramEnabled === true;
+
+const isTelegramDigestEnabled = (settings = {}) =>
+  isTelegramEnabled(settings) && settings.telegramDigestEnabled === true;
+
+const isSiteBookingTelegramEnabled = (settings = {}) =>
+  isTelegramEnabled(settings) && settings.siteBookingNotifyTelegramEnabled === true;
+
 const createDeliveryFailureNotification = async (prisma, deliveryId, recipient, channel, errorMessage, notificationEventId) => {
   try {
     let clientName = null;
@@ -57,6 +71,24 @@ const createDeliveryFailureNotification = async (prisma, deliveryId, recipient, 
  * @returns {Promise<Object>} Result object indicating success or error.
  */
 const telegramDigest = async (payload) => {
+  const settings = await loadAppSettings();
+  const purpose = String(payload?.purpose ?? 'digest');
+  const enabled =
+    purpose === 'site-booking'
+      ? isSiteBookingTelegramEnabled(settings)
+      : isTelegramDigestEnabled(settings);
+
+  if (!enabled) {
+    return {
+      success: false,
+      error: purpose === 'site-booking'
+        ? 'site booking telegram notifications are disabled'
+        : 'telegram digest is disabled',
+      reason: 'telegram_disabled',
+      skipped: true,
+    };
+  }
+
   const token = String(process.env.TELEGRAM_BOT_TOKEN ?? '').trim();
   if (!token) {
     return { success: false, error: 'TELEGRAM_BOT_TOKEN is not configured' };
@@ -161,4 +193,9 @@ const telegramDigest = async (payload) => {
   }
 };
 
-module.exports = { telegramDigest };
+module.exports = {
+  isSiteBookingTelegramEnabled,
+  isTelegramDigestEnabled,
+  isTelegramEnabled,
+  telegramDigest,
+};

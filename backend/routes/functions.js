@@ -61,8 +61,8 @@ const loadAppSettings = () =>
     .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
     .catch(() => ({}));
 
-const isSmsEnabled = (settings = {}) => settings.smsEnabled !== false;
-const isTelegramEnabled = (settings = {}) => settings.telegramEnabled !== false;
+const isSmsEnabled = (settings = {}) => settings.smsEnabled === true;
+const isTelegramEnabled = (settings = {}) => settings.telegramEnabled === true;
 
 const skippedIntegrationResponse = ({configured = false, enabled = false, reason}) => ({
   success: true,
@@ -191,7 +191,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
       success: true,
       ownerPhone,
       siteBookingNotifyTelegramEnabled:
-        telegramEnabled && settings.siteBookingNotifyTelegramEnabled !== false,
+        telegramEnabled && settings.siteBookingNotifyTelegramEnabled === true,
       siteBookingNotifyWhatsappEnabled: settings.siteBookingNotifyWhatsappEnabled !== false,
       smsConfigured: Boolean(process.env.SMSAPI_TOKEN),
       telegramChatId,
@@ -205,7 +205,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
   if (payload?.action === 'owner-notify-test') {
     const settings = await loadAppSettings();
     const telegramEnabled =
-      isTelegramEnabled(settings) && settings.siteBookingNotifyTelegramEnabled !== false;
+      isTelegramEnabled(settings) && settings.siteBookingNotifyTelegramEnabled === true;
     const whatsappEnabled = settings.siteBookingNotifyWhatsappEnabled !== false;
     const chatId = firstNonEmpty(
       settings.telegramChatId,
@@ -213,7 +213,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
       process.env.TELEGRAM_OWNER_CHAT_ID,
     );
     const telegram = telegramEnabled && chatId
-      ? await telegramDigest({chatId, text: 'NUAR CRM test'})
+      ? await telegramDigest({chatId, purpose: 'site-booking', text: 'NUAR CRM test'})
       : {
           success: false,
           error: telegramEnabled ? 'telegramChatId is required' : 'telegram disabled in settings',
@@ -394,6 +394,16 @@ router.post('/owner-notify', requireOwner, async (req, res) => {
 // Review Requests (stub)
 router.post('/review-requests', requireOwner, async (req, res) => {
   const payload = req.body;
+  const settings = await loadAppSettings();
+  if (settings.reviewRequestsEnabled !== true) {
+    return res.json({
+      success: true,
+      enabled: false,
+      reason: 'review_requests_disabled',
+      skipped: true,
+    });
+  }
+
   const result = await reviewRequests(payload);
   await auditFunctionCall(req, 'send review request', {
     hasHtml: Boolean(String(payload?.html ?? '').trim()),

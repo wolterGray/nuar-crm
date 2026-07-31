@@ -15,7 +15,7 @@ const loadAppSettings = async () =>
     .catch(() => ({}));
 
 const isSmsAutomationEnabled = (settings = {}) =>
-  settings.smsEnabled !== false &&
+  settings.smsEnabled === true &&
   (settings.smsRemindersEnabled === true ||
     settings.reviewRequestsEnabled === true ||
     settings.inactiveFollowUpEnabled === true ||

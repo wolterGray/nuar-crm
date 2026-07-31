@@ -259,7 +259,7 @@ const notifyOwnerAboutBooking = async (booking) => {
     .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
     .catch(() => ({}));
 
-  if (settings.siteBookingNotifyTelegramEnabled === false) return;
+  if (settings.telegramEnabled !== true || settings.siteBookingNotifyTelegramEnabled !== true) return;
 
   const chatId = firstNonEmpty(
     settings.telegramChatId,
@@ -280,6 +280,7 @@ const notifyOwnerAboutBooking = async (booking) => {
 
   await telegramDigest({
     chatId,
+    purpose: 'site-booking',
     text: lines.join('\n'),
   }).catch((error) => {
     console.error('Site booking owner notification failed:', error);
