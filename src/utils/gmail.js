@@ -152,7 +152,7 @@ const buildGmailApiError = async (response) => {
         "1) В Google Cloud включите Gmail API.",
         "2) В OAuth добавьте scope gmail.readonly.",
         "3) В CRM → Настройки укажите OAuth Client ID (Web).",
-        "4) В Client ID добавьте origin https://nuar-crm.vercel.app",
+        "4) В Client ID добавьте origin https://crm.nuarr.pl",
         detail ? `Google: ${detail}` : "",
       ]
         .filter(Boolean)

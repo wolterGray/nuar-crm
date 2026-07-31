@@ -37,23 +37,14 @@ VITE_BACKEND_URL=https://api.nuarr.pl
 Цены услуг из каталога CRM автоматически синхронизируются на сайт nuarr.pl.
 Контент сайта редактируется в админке lavandi, не в CRM.
 
-## Vercel
+## Продакшен
 
-1. Импортируйте приватный GitHub-репозиторий в Vercel.
-2. Framework Preset: `Vite`.
-3. Добавьте environment variables:
+Frontend собирается командой `npm run build` и отдаётся Nginx на Hetzner.
+Backend, база и авторизация тоже работают на Hetzner. Пароль владельца не
+хранится в сборке CRM.
 
-```text
-VITE_BACKEND_URL=https://api.nuarr.pl
-```
-
-Вход владельца работает через Hetzner backend. Пароль не хранится в сборке CRM.
-
-## Маршруты
-
-`vercel.json` отправляет неизвестные серверу URL в Vite-приложение. Поэтому
-ссылка сброса пароля `/reset-password` открывается корректно после публикации,
-а неизвестные пути отображают экран `404` внутри CRM.
+SPA fallback для `/reset-password` и внутренних маршрутов настраивается в
+Nginx, см. `DEPLOY_HETZNER.md`.
 
 ## Проверка
 

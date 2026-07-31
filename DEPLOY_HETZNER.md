@@ -5,7 +5,7 @@ This is a preparation guide only. Do not run these commands until the target VPS
 ## Target Architecture
 
 - VPS: Hetzner, Ubuntu 24.04.
-- Frontend: static Vite build served by Nginx, or Vercel frontend pointing to the same backend URL.
+- Frontend: static Vite build served by Nginx.
 - Backend: Node LTS + Express on `127.0.0.1:3001`, managed by PM2.
 - Database: PostgreSQL on the VPS.
 - ORM: Prisma with `prisma migrate deploy`.
@@ -16,8 +16,6 @@ The production frontend must use an HTTPS backend URL:
 ```bash
 VITE_BACKEND_URL=https://crm.example.com
 ```
-
-If the frontend remains on Vercel, the same value must be configured in Vercel environment variables and the backend `CORS_ORIGIN` must include the Vercel domain.
 
 ## 1. Create Server
 
@@ -155,7 +153,7 @@ DATABASE_URL=postgresql://nuar_crm:CHANGE_ME_STRONG_DB_PASSWORD@127.0.0.1:5432/n
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=CHANGE_ME_LONG_PASSWORD
 JWT_SECRET=CHANGE_ME_AT_LEAST_32_RANDOM_CHARACTERS
-CORS_ORIGIN=https://crm.example.com,https://your-vercel-app.vercel.app
+CORS_ORIGIN=https://crm.example.com
 ```
 
 Important:
@@ -163,7 +161,7 @@ Important:
 - `JWT_SECRET` must be long, random, and stable. Changing it invalidates all current sessions.
 - `ADMIN_PASSWORD` is the CRM admin password. Store it outside git.
 - `CORS_ORIGIN` must list exact frontend origins. In production, LAN wildcard behavior is disabled by `NODE_ENV=production`.
-- For Vercel frontend, `VITE_BACKEND_URL` must be an HTTPS URL, otherwise browsers will block mixed content.
+- `VITE_BACKEND_URL` must be an HTTPS URL, otherwise browsers will block mixed content.
 
 ## 6. Prisma
 
@@ -275,8 +273,6 @@ The example serves:
 - `/functions/*` through backend `127.0.0.1:3001`;
 - `/health` through backend `127.0.0.1:3001`;
 - SPA fallback to `/index.html`.
-
-If the frontend remains on Vercel, Nginx can still expose only backend routes. Keep `/api`, `/functions`, and `/health`; remove the static frontend root only if you do not serve CRM from the VPS.
 
 ## 10. SSL With Let's Encrypt
 
@@ -394,9 +390,7 @@ Before production, test restoring into a separate database.
 
 - Backend reads `CORS_ORIGIN` as a comma-separated allowlist.
 - In production, only exact origins are allowed.
-- Include all real frontend origins:
-  - `https://crm.example.com` if serving frontend from VPS;
-  - Vercel frontend domain if frontend stays on Vercel.
+- Include the real production frontend origin, for example `https://crm.example.com`.
 
 ### JWT
 
@@ -470,7 +464,6 @@ No VPS persistent upload volume is required right now. If future uploads are add
 - JWT is stored in `localStorage`; HTTPS and XSS hygiene are mandatory.
 - There is no explicit login rate limiting yet. Add Nginx or Express rate limiting before public exposure.
 - Backup restore must be tested before relying on backups.
-- If frontend is served from Vercel, backend must be public HTTPS and CORS must include the Vercel domain.
 - If frontend is served from HTTPS but backend remains HTTP, browser requests will be blocked as mixed content.
 - PM2 logs need retention/rotation (`pm2 install pm2-logrotate`) before long-running production use.
 - PostgreSQL runs on the same VPS; server disk failure means backups are critical and should eventually be copied off-server.
