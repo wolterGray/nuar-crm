@@ -11,7 +11,7 @@ export function useCloudSaveActions({
       await forceCloudSave();
       pushNotification({
         title: "Облако обновлено",
-        message: "Данные CRM сохранены в Supabase",
+        message: "Данные CRM сохранены в облако",
       });
     } catch (error) {
       if (error?.message === "Облако обновилось на другом устройстве") {
@@ -45,7 +45,7 @@ export function useCloudSaveActions({
       await overwriteRemoteSnapshot();
       pushNotification({
         title: "Облако перезаписано",
-        message: "Локальная версия сохранена в Supabase",
+        message: "Локальная версия сохранена в облако CRM",
       });
     } catch (error) {
       pushNotification({
