@@ -2146,7 +2146,7 @@ button:focus-visible {
 
 .packages-board {
   display: grid;
-  grid-template-columns: minmax(520px, 0.95fr) minmax(360px, 0.75fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-areas:
     "active certificates"
     "templates templates";
@@ -2458,7 +2458,7 @@ button:focus-visible {
   .packages-page:not(.packages-page-mobile) .packages-panel-active .packages-panel-header,
   .packages-page:not(.packages-page-mobile) .packages-panel-active .packages-list,
   .packages-page:not(.packages-page-mobile) .packages-panel-active .packages-archive {
-    width: min(100%, 860px);
+    width: 100%;
   }
 
   .packages-page:not(.packages-page-mobile) .packages-list:not(.packages-list-tall) {
