@@ -63,6 +63,8 @@ const loadAppSettings = () =>
 
 const isSmsEnabled = (settings = {}) => settings.smsEnabled === true;
 const isTelegramEnabled = (settings = {}) => settings.telegramEnabled === true;
+const isWhatsappConfigured = () =>
+  Boolean(process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID);
 
 const skippedIntegrationResponse = ({configured = false, enabled = false, reason}) => ({
   success: true,
@@ -186,19 +188,27 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
       process.env.TELEGRAM_OWNER_CHAT_ID,
     );
     const ownerPhone = firstNonEmpty(settings.ownerNotifyPhone, process.env.OWNER_NOTIFY_PHONE);
+    const whatsappEnabled = settings.siteBookingNotifyWhatsappEnabled !== false;
+    const whatsappConfigured = isWhatsappConfigured();
 
     return res.json({
       success: true,
       ownerPhone,
       siteBookingNotifyTelegramEnabled:
         telegramEnabled && settings.siteBookingNotifyTelegramEnabled === true,
-      siteBookingNotifyWhatsappEnabled: settings.siteBookingNotifyWhatsappEnabled !== false,
+      siteBookingNotifyWhatsappEnabled: whatsappEnabled,
+      siteBookingNotifyWhatsappReady: false,
+      siteBookingNotifyWhatsappReason: whatsappEnabled
+        ? whatsappConfigured
+          ? 'site_booking_whatsapp_sender_not_connected'
+          : 'site_booking_whatsapp_not_configured'
+        : 'site_booking_whatsapp_disabled',
       smsConfigured: Boolean(process.env.SMSAPI_TOKEN),
       telegramChatId,
       telegramChatIdConfigured: Boolean(telegramChatId),
       telegramConfigured: Boolean(process.env.TELEGRAM_BOT_TOKEN && telegramChatId),
       telegramTokenConfigured: Boolean(process.env.TELEGRAM_BOT_TOKEN),
-      whatsappConfigured: Boolean(process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID),
+      whatsappConfigured,
     });
   }
 
@@ -207,6 +217,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
     const telegramEnabled =
       isTelegramEnabled(settings) && settings.siteBookingNotifyTelegramEnabled === true;
     const whatsappEnabled = settings.siteBookingNotifyWhatsappEnabled !== false;
+    const whatsappConfigured = isWhatsappConfigured();
     const chatId = firstNonEmpty(
       settings.telegramChatId,
       process.env.TELEGRAM_CHAT_ID,
@@ -235,7 +246,11 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
         },
         whatsapp: {
           ok: !whatsappEnabled,
-          error: '',
+          error: whatsappEnabled
+            ? whatsappConfigured
+              ? 'WhatsApp/SMS для заявок включён, но отправитель на backend ещё не подключён'
+              : 'WhatsApp/SMS для заявок включён, но WHATSAPP_ACCESS_TOKEN и WHATSAPP_PHONE_NUMBER_ID не настроены'
+            : '',
           skipped: !whatsappEnabled,
         },
       },

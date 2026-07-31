@@ -48,6 +48,8 @@ function SiteBookingPanel({
     ownerPhone: "",
     siteBookingNotifyTelegramEnabled: true,
     siteBookingNotifyWhatsappEnabled: true,
+    siteBookingNotifyWhatsappReady: false,
+    siteBookingNotifyWhatsappReason: "",
     smsConfigured: false,
     telegramChatId: "",
     telegramChatIdConfigured: false,
@@ -79,6 +81,10 @@ function SiteBookingPanel({
           remote.siteBookingNotifyTelegramEnabled === true,
         siteBookingNotifyWhatsappEnabled:
           remote.siteBookingNotifyWhatsappEnabled !== false,
+        siteBookingNotifyWhatsappReady:
+          remote.siteBookingNotifyWhatsappReady === true,
+        siteBookingNotifyWhatsappReason:
+          String(remote.siteBookingNotifyWhatsappReason ?? ""),
         smsConfigured: Boolean(remote.smsConfigured),
         telegramChatId: String(remote.telegramChatId ?? ""),
         telegramChatIdConfigured: Boolean(remote.telegramChatIdConfigured),
@@ -116,8 +122,19 @@ function SiteBookingPanel({
       const whatsappSkipped = result?.results?.whatsapp?.skipped;
       const telegramError = result?.results?.telegram?.error;
       const whatsappError = result?.results?.whatsapp?.error;
+      const channelErrors = [
+        !telegramOk && !telegramSkipped ? telegramError : null,
+        !whatsappOk && !whatsappSkipped ? whatsappError : null,
+      ].filter(Boolean);
+      const anySent =
+        (telegramOk && !telegramSkipped) || (whatsappOk && !whatsappSkipped);
 
-      if (telegramOk || whatsappOk) {
+      if (channelErrors.length) {
+        pushNotification?.({
+          title: anySent ? "Тест частично выполнен" : "Уведомление не отправилось",
+          message: channelErrors.join(" · "),
+        });
+      } else {
         pushNotification?.({
           title:
             telegramSkipped && whatsappSkipped
@@ -129,12 +146,6 @@ function SiteBookingPanel({
           ]
             .filter(Boolean)
             .join(" · "),
-        });
-      } else {
-        pushNotification?.({
-          title: "Уведомление не отправилось",
-          message: [telegramError, whatsappError].filter(Boolean).join(" · ") ||
-            "Проверьте переменные backend и Chat ID в настройках CRM",
         });
       }
 
@@ -156,6 +167,14 @@ function SiteBookingPanel({
       : !notifyStatus.telegramChatIdConfigured
         ? "Укажите Chat ID в блоке выше и сохраните настройки в облако"
         : "Telegram не готов — проверьте secrets и Chat ID";
+  const whatsappStatusMessage = !notifyStatus.siteBookingNotifyWhatsappEnabled
+    ? "WhatsApp/SMS: выкл"
+    : notifyStatus.siteBookingNotifyWhatsappReady
+      ? "WhatsApp/SMS: готово"
+      : notifyStatus.siteBookingNotifyWhatsappReason ===
+          "site_booking_whatsapp_not_configured"
+        ? "WhatsApp/SMS: не настроены secrets WhatsApp"
+        : "WhatsApp/SMS: отправитель заявок не подключён";
 
   return (
     <section
@@ -186,10 +205,7 @@ function SiteBookingPanel({
       <div className="booksy-sync-status">
         <strong>{telegramStatusMessage}</strong>
         <span>
-          WhatsApp/SMS:{" "}
-          {notifyStatus.whatsappConfigured || notifyStatus.smsConfigured
-            ? "настроено"
-            : "нужен WhatsApp API или SMSAPI + телефон владельца"}
+          {whatsappStatusMessage}
         </span>
         {notifyStatus.telegramChatId ? (
           <small>Chat ID: {notifyStatus.telegramChatId}</small>
