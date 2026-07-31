@@ -5746,6 +5746,69 @@
     grid-template-columns: 24px minmax(0, 1fr) auto !important;
   }
 
+  .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-head {
+    display: contents !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-supplies .supply-row {
+    display: grid !important;
+    grid-template-columns: 24px minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "icon body aside"
+      "meta meta actions" !important;
+    align-items: center !important;
+    gap: 7px 8px !important;
+    padding: 9px 10px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-supplies .supply-card-icon {
+    grid-area: icon !important;
+    align-self: start !important;
+    margin-top: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-supplies .operations-card-body {
+    grid-area: body !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-supplies .supply-row-aside {
+    grid-area: aside !important;
+    justify-self: end !important;
+    align-self: start !important;
+    gap: 5px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-supplies .supply-row .operations-row-actions {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-supplies .supply-stock-badge {
+    max-width: 72px !important;
+    min-height: 16px !important;
+    padding: 0 5px !important;
+    overflow: hidden !important;
+    font-size: 8.5px !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-supplies .supply-meta {
+    grid-area: meta !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-supplies .supply-actions {
+    grid-area: actions !important;
+    grid-template-columns: 28px 28px !important;
+    justify-content: end !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-panel-supplies .supply-actions .icon-button {
+    width: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+  }
+
   .mobile-page-container[data-mobile-page="operations"] .operations-card-body,
   .mobile-page-container[data-mobile-page="operations"] .supply-row-title,
   .mobile-page-container[data-mobile-page="operations"] .waitlist-meta,

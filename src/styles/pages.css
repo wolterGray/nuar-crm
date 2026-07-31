@@ -7530,7 +7530,6 @@ button:focus-visible {
 }
 
 .operations-page .operations-panel-supplies .operations-row-actions {
-  grid-area: menu;
   align-self: start;
   width: 30px;
   height: 30px;
@@ -7555,7 +7554,6 @@ button:focus-visible {
 
 .operations-page .operations-panel-supplies .supply-stock-badge {
   position: static;
-  grid-area: menu;
   margin-right: 2px;
   display: inline-flex;
   max-width: 100%;
@@ -7597,6 +7595,11 @@ button:focus-visible {
   gap: 6px;
   align-items: center;
   justify-content: end;
+}
+
+.operations-page .operations-panel-supplies .supply-row-aside {
+  grid-area: menu;
+  align-self: start;
 }
 
 .operations-page .operations-panel-supplies .supply-actions button {
