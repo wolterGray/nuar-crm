@@ -339,32 +339,15 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
     }));
   }
 
-  if (
-    action === 'test' ||
-    action === 'review-requests-test' ||
-    action === 'inactive-follow-up-test'
-  ) {
-    const result = await smsReminders({
-      reminders: [
-        {
-          message: payload.message,
-          phone: payload.phone,
-        },
-      ],
-    });
-    await auditFunctionCall(req, 'send sms reminder test', {
-      result: summarizeResult(result),
-      testPhonePresent: Boolean(payload.phone),
-    });
-    return res.json(result);
-  }
-
   const disabledReason =
-    action === 'review-requests' && settings.reviewRequestsEnabled !== true
+    (action === 'review-requests' || action === 'review-requests-test') &&
+    settings.reviewRequestsEnabled !== true
       ? 'review_requests_disabled'
-      : action === 'inactive-follow-up' && settings.inactiveFollowUpEnabled !== true
+      : (action === 'inactive-follow-up' || action === 'inactive-follow-up-test') &&
+          settings.inactiveFollowUpEnabled !== true
         ? 'inactive_follow_up_disabled'
-        : (!action || action === 'process') && settings.smsRemindersEnabled !== true
+        : (!action || action === 'process' || action === 'test') &&
+            settings.smsRemindersEnabled !== true
           ? 'sms_reminders_disabled'
           : '';
 
@@ -373,6 +356,28 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
       configured: Boolean(process.env.SMSAPI_TOKEN),
       reason: disabledReason,
     }));
+  }
+
+  if (
+    action === 'test' ||
+    action === 'review-requests-test' ||
+    action === 'inactive-follow-up-test'
+  ) {
+    const result = await smsReminders({
+      action,
+      reminders: [
+        {
+          message: payload.message,
+          phone: payload.phone,
+        },
+      ],
+    });
+    await auditFunctionCall(req, 'send sms reminder test', {
+      action,
+      result: summarizeResult(result),
+      testPhonePresent: Boolean(payload.phone),
+    });
+    return res.json(result);
   }
 
   const result = await smsReminders(payload);
