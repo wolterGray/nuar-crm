@@ -21,6 +21,19 @@ const isSmsAutomationEnabled = (settings = {}) =>
     settings.inactiveFollowUpEnabled === true ||
     settings.smartNotificationAutoSmsEnabled === true);
 
+const isSmsDeliveryFeatureEnabled = (settings = {}, templateKey = '') => {
+  if (settings.smsEnabled !== true) return false;
+
+  const key = String(templateKey ?? '').trim();
+  if (key === 'review-request') return settings.reviewRequestsEnabled === true;
+  if (key === 'inactive-follow-up') return settings.inactiveFollowUpEnabled === true;
+  if (key === 'package_ending' || key.startsWith('certificate_')) {
+    return settings.smartNotificationAutoSmsEnabled === true;
+  }
+
+  return settings.smsRemindersEnabled === true;
+};
+
 // Normalizes Polish phone numbers to E.164 format without '+' (e.g., 48xxxxxxxxx)
 const normalizePhone = (value) => {
   const digits = String(value ?? '').replace(/\D/g, '');
@@ -220,7 +233,7 @@ const sendQueuedSmsDelivery = async (delivery) => {
  * @param {string} params.message - default message to use when recipient.item.message is omitted.
  * @returns {Promise<Object>} Result containing sent and failed arrays.
  */
-const sendBulkSms = async ({ recipients = [], message = '' }) => {
+const sendBulkSms = async ({ recipients = [], message = '', templateKey = null }) => {
   if (!process.env.SMSAPI_TOKEN) {
     throw new Error('SMSAPI_TOKEN is not configured');
   }
@@ -250,6 +263,7 @@ const sendBulkSms = async ({ recipients = [], message = '' }) => {
         message: txt,
         phone,
         scheduledAt: new Date(),
+        templateKey,
       });
     } catch (error) {
       failed.push({
@@ -314,7 +328,12 @@ const processDueSmsDeliveries = async ({limit = 50} = {}) => {
   });
 
   const results = [];
+  let skippedDisabled = 0;
   for (const delivery of dueDeliveries) {
+    if (!isSmsDeliveryFeatureEnabled(settings, delivery.templateKey)) {
+      skippedDisabled += 1;
+      continue;
+    }
     results.push(await sendQueuedSmsDelivery(delivery));
     await new Promise((resolve) => setTimeout(resolve, 150));
   }
@@ -322,11 +341,13 @@ const processDueSmsDeliveries = async ({limit = 50} = {}) => {
   return {
     processed: results.length,
     results,
+    skippedDisabled,
   };
 };
 
 module.exports = {
   MAX_RECIPIENTS,
+  isSmsDeliveryFeatureEnabled,
   isSmsAutomationEnabled,
   normalizePhone,
   processDueSmsDeliveries,

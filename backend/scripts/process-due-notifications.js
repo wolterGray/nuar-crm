@@ -11,6 +11,7 @@ async function main() {
   console.log(JSON.stringify({
     processed: result.processed,
     skipped: result.skipped === true,
+    skippedDisabled: result.skippedDisabled || 0,
     skippedReason: result.skippedReason || null,
     timestamp: new Date().toISOString(),
   }));

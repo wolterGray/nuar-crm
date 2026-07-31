@@ -5,6 +5,16 @@
 
 const { queueSmsDelivery, sendBulkSms } = require('./smsService');
 
+const getReminderTemplateKey = (action) => {
+  if (action === 'review-requests' || action === 'review-requests-test') {
+    return 'review-request';
+  }
+  if (action === 'inactive-follow-up' || action === 'inactive-follow-up-test') {
+    return 'inactive-follow-up';
+  }
+  return 'sms-reminder';
+};
+
 /**
  * Sends or schedules SMS reminders.
  * @param {Object} payload
@@ -13,6 +23,7 @@ const { queueSmsDelivery, sendBulkSms } = require('./smsService');
  */
 const smsReminders = async (payload) => {
   const { reminders = [] } = payload || {};
+  const templateKey = getReminderTemplateKey(payload?.action);
   if (!Array.isArray(reminders) || reminders.length === 0) {
     return { success: false, error: 'reminders array is required' };
   }
@@ -27,7 +38,11 @@ const smsReminders = async (payload) => {
     const sendTime = sendAt ? new Date(sendAt).getTime() : now;
     if (sendTime <= now) {
       try {
-        const result = await sendBulkSms({ recipients: [{ phone, message }], message: '' });
+        const result = await sendBulkSms({
+          recipients: [{ phone, message }],
+          message: '',
+          templateKey,
+        });
         if (result.sent && result.sent.length) {
           sent.push({
             deliveryId: result.sent[0].deliveryId,
@@ -47,6 +62,7 @@ const smsReminders = async (payload) => {
           message,
           phone,
           scheduledAt: new Date(sendTime),
+          templateKey,
         });
         scheduled.push({
           deliveryId: delivery.id,
