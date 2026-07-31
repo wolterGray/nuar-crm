@@ -195,6 +195,15 @@ const markDeliveryFailed = async (delivery, errorMessage, retrying = false) => {
   return updated;
 };
 
+const markDeliverySkipped = (delivery, reason) =>
+  prisma.notificationDelivery.update({
+    where: {id: delivery.id},
+    data: {
+      errorMessage: reason,
+      status: 'skipped',
+    },
+  });
+
 const sendQueuedSmsDelivery = async (delivery) => {
   const result = await sendSms({
     message: delivery.messageText,
@@ -332,6 +341,7 @@ const processDueSmsDeliveries = async ({limit = 50} = {}) => {
   for (const delivery of dueDeliveries) {
     if (!isSmsDeliveryFeatureEnabled(settings, delivery.templateKey)) {
       skippedDisabled += 1;
+      await markDeliverySkipped(delivery, 'SMS delivery feature is disabled');
       continue;
     }
     results.push(await sendQueuedSmsDelivery(delivery));
