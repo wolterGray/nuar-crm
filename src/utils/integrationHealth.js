@@ -91,8 +91,8 @@ export const buildIntegrationHealth = ({
   smsReminders,
   telegramDigest,
 }) => {
-  const smsEnabled = settings.smsEnabled !== false;
-  const telegramEnabled = settings.telegramEnabled !== false;
+  const smsEnabled = settings.smsEnabled === true;
+  const telegramEnabled = settings.telegramEnabled === true;
   const items = [
     buildAutomationHealth({
       enabled: telegramEnabled && settings.telegramDigestEnabled,

@@ -8,7 +8,9 @@ describe("integrationHealth", () => {
       settings: {
         gmailBooksySyncEnabled: true,
         gmailClientId: "client-id",
+        smsEnabled: true,
         smsRemindersEnabled: true,
+        telegramEnabled: true,
         telegramDigestEnabled: true,
       },
       smsReminders: {
@@ -43,6 +45,7 @@ describe("integrationHealth", () => {
       now: new Date("2026-06-23T10:00:00Z"),
       settings: {
         gmailBooksySyncEnabled: false,
+        smsEnabled: true,
         smsRemindersEnabled: true,
         telegramDigestEnabled: false,
       },
