@@ -154,40 +154,38 @@ function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
   const paid = Boolean(earning.payoutId);
 
   return (
-    <article className="rounded-lg border border-border-subtle bg-surface p-3">
-      <div className="flex items-start gap-3">
-        {!paid ? (
-          <input
-            className="mt-1 size-5"
-            type="checkbox"
-            disabled={disabled}
-            checked={checked}
-            onChange={(event) => onToggle(earning.id, event.target.checked)}
-          />
-        ) : null}
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <strong>{formatDateTime(earning)}</strong>
-            <span className={`payroll-status ${paid ? "is-paid" : "is-open"}`}>
-              {paid ? "Выплачено" : "Не выплачено"}
-            </span>
-          </div>
-          <p className="m-0 text-sm text-text-muted">{service} · {client}</p>
-          <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
-            <span>Клиент: <b>{formatMoney(earning.actualPrice)}</b></span>
-            <span>Комиссия: <b>{toMoneyNumber(earning.commissionPercent)}%</b></span>
-            <span>Сотруднику: <b>{formatMoney(earning.amount)}</b></span>
-          </div>
-          {paid ? (
-            <small>
-              Выплата {earning.payout?.paidAt ? new Date(earning.payout.paidAt).toLocaleDateString("ru-RU") : ""}
-            </small>
-          ) : (
-            <Button className="mt-3" disabled={disabled} size="sm" type="button" variant="secondary" onClick={() => onPayOne(earning.id)}>
-              Отметить как выплачено
-            </Button>
-          )}
+    <article className="employee-earning-row">
+      {!paid ? (
+        <input
+          className="employee-earning-checkbox"
+          type="checkbox"
+          disabled={disabled}
+          checked={checked}
+          onChange={(event) => onToggle(earning.id, event.target.checked)}
+        />
+      ) : null}
+      <div className="employee-earning-content">
+        <div className="employee-earning-header">
+          <strong>{formatDateTime(earning)}</strong>
+          <span className={`payroll-status ${paid ? "is-paid" : "is-open"}`}>
+            {paid ? "Выплачено" : "Не выплачено"}
+          </span>
         </div>
+        <p>{service} · {client}</p>
+        <div className="employee-earning-stats">
+          <span>Клиент: <b>{formatMoney(earning.actualPrice)}</b></span>
+          <span>Комиссия: <b>{toMoneyNumber(earning.commissionPercent)}%</b></span>
+          <span>Сотруднику: <b>{formatMoney(earning.amount)}</b></span>
+        </div>
+        {paid ? (
+          <small>
+            Выплата {earning.payout?.paidAt ? new Date(earning.payout.paidAt).toLocaleDateString("ru-RU") : ""}
+          </small>
+        ) : (
+          <Button className="employee-earning-pay-button" disabled={disabled} size="sm" type="button" variant="secondary" onClick={() => onPayOne(earning.id)}>
+            Отметить как выплачено
+          </Button>
+        )}
       </div>
     </article>
   );
@@ -195,15 +193,15 @@ function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
 
 function PayoutHistory({disabled = false, onCancel, onOpen, payouts}) {
   return (
-    <section className="space-y-2">
-      <h3 className="text-lg font-bold">История выплат</h3>
+    <section className="employee-payout-history">
+      <h3>История выплат</h3>
       {payouts.length === 0 ? (
         <EmptyState description="История появится после первой выплаты." icon="wallet" title="Выплат пока нет" />
       ) : (
         payouts.slice(0, 12).map((payout) => (
-          <article className="rounded-lg border border-border-subtle bg-surface p-3" key={payout.id}>
-            <button className="w-full text-left" type="button" onClick={() => onOpen(payout.id)}>
-              <div className="flex items-center justify-between gap-3">
+          <article className="employee-payout-history-card" key={payout.id}>
+            <button type="button" onClick={() => onOpen(payout.id)}>
+              <div>
                 <strong>{payout.paidAt ? new Date(payout.paidAt).toLocaleDateString("ru-RU") : "Дата не указана"}</strong>
                 <b>{formatMoney(payout.amount)}</b>
               </div>
@@ -212,7 +210,7 @@ function PayoutHistory({disabled = false, onCancel, onOpen, payouts}) {
               </small>
             </button>
             {payout.status !== "CANCELLED" ? (
-              <Button className="mt-2" disabled={disabled} size="sm" type="button" variant="secondary" onClick={() => onCancel(payout.id)}>
+              <Button disabled={disabled} size="sm" type="button" variant="secondary" onClick={() => onCancel(payout.id)}>
                 Отменить выплату
               </Button>
             ) : null}
@@ -367,11 +365,11 @@ function EmployeePayoutsPanel({pushNotification}) {
   };
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-col gap-3">
+    <section className="employee-payouts-panel">
+      <div className="employee-payouts-header">
         <div>
-          <h2 className="m-0 text-2xl font-bold">Расчёты</h2>
-          <p className="m-0 text-sm text-text-muted">К выплате не обнуляется фильтрами: старые неоплаченные массажи остаются долгом.</p>
+          <h2>Расчёты</h2>
+          <p>К выплате не обнуляется фильтрами: старые неоплаченные массажи остаются долгом.</p>
         </div>
         <PeriodFilters
           customRange={customRange}
@@ -381,7 +379,7 @@ function EmployeePayoutsPanel({pushNotification}) {
         />
       </div>
 
-      {loading ? <p>Загружаем расчёты…</p> : null}
+      {loading ? <p className="employee-payouts-loading">Загружаем расчёты…</p> : null}
 
       <section className="employees-grid">
         {summary.map((row) => (
@@ -395,17 +393,17 @@ function EmployeePayoutsPanel({pushNotification}) {
       </section>
 
       {detail ? (
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-3">
-            <div className="rounded-lg border border-border-subtle bg-surface p-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+        <section className="employee-payout-detail-layout">
+          <div className="employee-payout-detail-main">
+            <div className="employee-payout-detail-card">
+              <div className="employee-payout-detail-head">
                 <div>
-                  <h3 className="m-0 text-xl font-bold">{detail.employee?.name}</h3>
+                  <h3>{detail.employee?.name}</h3>
                   <small>
                     К выплате {formatMoney(detail.totals?.unpaid)} · {detail.totals?.unpaidCount ?? 0} неоплаченных
                   </small>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="employee-payout-detail-actions">
                   <Button
                     size="sm"
                     type="button"
@@ -425,7 +423,7 @@ function EmployeePayoutsPanel({pushNotification}) {
                 </div>
               </div>
               {selectedIds.size > 0 ? (
-                <p className="m-0 mt-2 text-sm">
+                <p className="employee-payout-selected-note">
                   Выбрано: {selectedIds.size} массажей · сумма выплаты: <b>{formatMoney(selectedTotal)}</b>
                 </p>
               ) : null}
@@ -434,23 +432,25 @@ function EmployeePayoutsPanel({pushNotification}) {
             {(detail.earnings ?? []).length === 0 ? (
               <EmptyState description="Начисления появятся после завершённых визитов." icon="wallet" title="Начислений нет" />
             ) : (
-              detail.earnings.map((earning) => (
-                <EarningRow
-                  checked={selectedIds.has(earning.id)}
-                  disabled={saving}
-                  earning={earning}
-                  key={earning.id}
-                  onPayOne={(id) => paySelected([id])}
-                  onToggle={(id, checked) => {
-                    setSelectedIds((current) => {
-                      const next = new Set(current);
-                      if (checked) next.add(id);
-                      else next.delete(id);
-                      return next;
-                    });
-                  }}
-                />
-              ))
+              <div className="employee-earning-list">
+                {detail.earnings.map((earning) => (
+                  <EarningRow
+                    checked={selectedIds.has(earning.id)}
+                    disabled={saving}
+                    earning={earning}
+                    key={earning.id}
+                    onPayOne={(id) => paySelected([id])}
+                    onToggle={(id, checked) => {
+                      setSelectedIds((current) => {
+                        const next = new Set(current);
+                        if (checked) next.add(id);
+                        else next.delete(id);
+                        return next;
+                      });
+                    }}
+                  />
+                ))}
+              </div>
             )}
           </div>
 

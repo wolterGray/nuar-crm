@@ -2439,6 +2439,211 @@
   box-shadow: var(--focus-ring, var(--button-focus-shadow));
 }
 
+.employee-payouts-panel {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.employee-payouts-header {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.employee-payouts-header h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.employee-payouts-header p,
+.employee-payouts-loading {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.employee-payout-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 16px;
+  align-items: start;
+  min-width: 0;
+}
+
+.employee-payout-detail-main {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.employee-payout-detail-card,
+.employee-earning-row,
+.employee-payout-history-card {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--ds-radius-lg);
+  background: var(--color-card);
+}
+
+.employee-payout-detail-card {
+  padding: 14px;
+}
+
+.employee-payout-detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.employee-payout-detail-head h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.employee-payout-detail-head small,
+.employee-payout-selected-note {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.employee-payout-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.employee-payout-selected-note {
+  margin: 10px 0 0;
+}
+
+.employee-earning-list {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.employee-earning-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+  padding: 14px;
+}
+
+.employee-earning-checkbox {
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+  accent-color: var(--color-primary);
+}
+
+.employee-earning-content {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.employee-earning-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.employee-earning-header strong,
+.employee-payout-history-card strong,
+.employee-payout-history-card b {
+  color: var(--color-text);
+}
+
+.employee-earning-content p,
+.employee-earning-content small,
+.employee-payout-history-card small {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.employee-earning-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.employee-earning-stats span {
+  min-width: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.employee-earning-stats b {
+  color: var(--color-text);
+}
+
+.employee-earning-pay-button {
+  justify-self: start;
+  margin-top: 2px;
+}
+
+.employee-payout-history {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.employee-payout-history h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.employee-payout-history-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.employee-payout-history-card > button {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.employee-payout-history-card > button > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.employee-payout-history-card > button:hover strong {
+  color: var(--color-primary);
+}
+
 @media (max-width: 640px) {
   .employee-payout-period-dates {
     flex: 1 1 100%;
@@ -2448,6 +2653,29 @@
     flex: 1 1 136px;
     width: auto;
     min-width: 0;
+  }
+}
+
+@media (max-width: 1180px) {
+  .employee-payout-detail-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .employee-payout-detail-head,
+  .employee-payout-detail-actions {
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .employee-payout-detail-actions,
+  .employee-payout-detail-actions button {
+    width: 100%;
+  }
+
+  .employee-earning-stats {
+    grid-template-columns: 1fr;
   }
 }
 
