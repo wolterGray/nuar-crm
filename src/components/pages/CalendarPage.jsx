@@ -208,6 +208,7 @@ function CalendarPage({
   clients,
   clientPackages,
   employees,
+  visits = [],
   settings,
   onAdd,
   onAlertFocusHandled,
@@ -1463,6 +1464,11 @@ return (
           client={clients.find((client) => client.name === viewedClientEntry.client)}
           clientName={viewedClientEntry.client}
           currentEntry={viewedClientEntry}
+          earningVisit={visits.find(
+            (visit) =>
+              String(visit.id) === String(viewedClientEntry.visitId) ||
+              String(visit.calendarEntryId) === String(viewedClientEntry.id),
+          )}
           isMobile={isMobile}
           onAdd={() => {
             onAdd({date: selectedDate, client: viewedClientEntry.client});
@@ -1499,6 +1505,7 @@ function ClientCalendarCard({
   client,
   clientName,
   currentEntry,
+  earningVisit,
   isMobile,
   onAdd,
   onClose,
@@ -1518,6 +1525,7 @@ function ClientCalendarCard({
   const paymentTotal = getEntryMoneyLabel(currentEntry);
   const hasDebt = getVisitDebt(currentEntry) > 0;
   const note = String(currentEntry.note || "").trim();
+  const employeeEarning = earningVisit?.employeeEarning;
   const clientContact = client?.phone || currentEntry.phone || "Телефон не указан";
   const visitMeta = [
     {
@@ -1591,6 +1599,23 @@ function ClientCalendarCard({
           </span>
         ))}
       </div>
+      {employeeEarning ? (
+        <div className="calendar-client-card-note">
+          <strong>Расчёт сотрудника</strong>
+          <p>
+            {employeeEarning.employee?.name || currentEntry.master || "Мастер"} ·{" "}
+            {Number(employeeEarning.commissionPercent)}% ·{" "}
+            {formatMoney(employeeEarning.amount)} ·{" "}
+            {employeeEarning.payoutId
+              ? `Выплачено ${
+                  employeeEarning.payout?.paidAt
+                    ? new Date(employeeEarning.payout.paidAt).toLocaleDateString("ru-RU")
+                    : ""
+                }`
+              : "Не выплачено"}
+          </p>
+        </div>
+      ) : null}
       <div className="calendar-client-card-note">
         <strong>Комментарий к визиту</strong>
         <p>{note || "Комментария к этой записи нет."}</p>

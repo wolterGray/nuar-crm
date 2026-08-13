@@ -13,7 +13,6 @@ import {PageNotificationsProvider} from "./components/PageNotifications.jsx";
 import "./styles/index.css";
 import {
   getServiceColor,
-  normalizeServiceColors,
   serviceColorPalette,
 } from "./utils/serviceColors.js";
 import AppRoutes from "./components/AppRoutes.jsx";
@@ -57,7 +56,6 @@ import {
 } from "./utils/crmStorage.js";
 import {buildPaymentRows, filterPaymentRows} from "./utils/paymentRows.js";
 import {buildEmployeeStats} from "./utils/employeeStats.js";
-import {applyBooksySources} from "./utils/booksySources.js";
 import {openSupplyOrderUrl} from "./utils/supplyOrder.js";
 import {resolveColorTheme} from "./utils/colorTheme.js";
 import {buildClientSearchIndex} from "./utils/clientSearch.js";

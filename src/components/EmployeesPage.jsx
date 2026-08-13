@@ -11,6 +11,7 @@ import {RowActionsMenu} from "./RowActionMenuPortal.jsx";
 import SearchControl from "./ui/SearchControl.jsx";
 
 import {Button, EmptyState} from "./ui/index.js";
+import EmployeePayoutsPanel from "./EmployeePayoutsPanel.jsx";
 
 function EmployeeCard({employee, onDelete, onEdit, openMenuId, setOpenMenuId}) {
   const isActive = employee.status === "Активен";
@@ -85,6 +86,7 @@ function EmployeeCard({employee, onDelete, onEdit, openMenuId, setOpenMenuId}) {
 
 function EmployeesPage({
   employees,
+  pushNotification,
   onAdd,
   onEdit,
   onDelete,
@@ -131,6 +133,8 @@ function EmployeesPage({
     <div
       className="employees-page"
       onClick={() => setOpenMenuId(null)}>
+
+      <EmployeePayoutsPanel pushNotification={pushNotification} />
 
       {/* Page Header */}
       <PageHeader

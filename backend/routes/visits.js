@@ -11,6 +11,13 @@ const {
   reverseEarnForVisit,
 } = require('../services/loyaltyService');
 const {
+  VISIT_WITH_EARNING_INCLUDE,
+  assertVisitCanBeRemoved,
+  removeUnpaidEmployeeEarningForVisit,
+  serializeVisitWithEarning,
+  syncEmployeeEarningForCompletedVisit,
+} = require('../services/employeeEarningsService');
+const {
   respond,
   respondWithAudit,
   auditCreate,
@@ -206,14 +213,17 @@ router.get('/visit-state', async (req, res) => {
   try {
     const [calendarEntries, visits] = await Promise.all([
       prisma.calendarEntry.findMany({ orderBy: [{ date: 'asc' }, { time: 'asc' }, { id: 'asc' }] }),
-      prisma.visit.findMany({ orderBy: { createdAt: 'desc' } }),
+      prisma.visit.findMany({
+        include: VISIT_WITH_EARNING_INCLUDE,
+        orderBy: { createdAt: 'desc' },
+      }),
     ]);
 
     res.json({
       success: true,
       data: {
         calendarEntries: calendarEntries.map(withStoredId),
-        visits: visits.map(withStoredId),
+        visits: visits.map(serializeVisitWithEarning),
       },
     });
   } catch (err) {
@@ -325,6 +335,8 @@ router.post('/calendar-entries/delete-completed', requireOwner, async (req, res)
       let restoredCertificateUsages = [];
 
       if (visit) {
+        await assertVisitCanBeRemoved(tx, visit.id);
+
         const packageUsages = await tx.clientPackageUsage.findMany({
           where: { visitId: visit.id },
         });
@@ -485,6 +497,7 @@ router.post('/calendar-entries/delete-completed', requireOwner, async (req, res)
           description: 'Откат начисления после удаления завершённого визита',
         });
 
+        await removeUnpaidEmployeeEarningForVisit(tx, req, visit.id);
         await tx.visit.delete({ where: { id: visit.id } });
       }
 
@@ -540,6 +553,7 @@ router.post('/visits/complete', async (req, res) => {
   const visitPayload = {
     ...(body.visit ?? body),
     calendarEntryId,
+    status: 'completed',
   };
   const usesPackage = isPackageCompletePayment(visitPayload);
   const usesCertificate = isCertificateCompletePayment(visitPayload);
@@ -615,6 +629,11 @@ router.post('/visits/complete', async (req, res) => {
         });
 
         if (existingCompletedVisit) {
+          await syncEmployeeEarningForCompletedVisit(tx, req, existingCompletedVisit);
+          const visitWithEarning = await tx.visit.findUnique({
+            where: { id: existingCompletedVisit.id },
+            include: VISIT_WITH_EARNING_INCLUDE,
+          });
           let clientPackage = null;
           let clientPackageUsage = null;
           let certificate = null;
@@ -668,7 +687,7 @@ router.post('/visits/complete', async (req, res) => {
             clientPackage: clientPackage ? withStoredId(clientPackage) : null,
             clientPackageUsage: clientPackageUsage ? withStoredId(clientPackageUsage) : null,
             idempotent: true,
-            visit: withStoredId(existingCompletedVisit),
+            visit: serializeVisitWithEarning(visitWithEarning),
           };
         }
       }
@@ -923,16 +942,27 @@ router.post('/visits/complete', async (req, res) => {
         calendarEntry.payload && typeof calendarEntry.payload === 'object'
           ? calendarEntry.payload
           : {};
+      const persistedVisit = existingVisit
+        ? await tx.visit.update({
+            where: { id: visit.id },
+            data: buildVisitData({ ...visitPayload, id: visit.id }),
+          })
+        : visit;
+      await syncEmployeeEarningForCompletedVisit(tx, req, persistedVisit);
+      const visitWithEarning = await tx.visit.findUnique({
+        where: { id: persistedVisit.id },
+        include: VISIT_WITH_EARNING_INCLUDE,
+      });
       const updatedCalendarEntry = await tx.calendarEntry.update({
         where: { id: calendarEntryId },
         data: buildCalendarEntryData({
           ...calendarPayload,
           completedAt,
           status: 'completed',
-          visitId: visit.id,
+          visitId: persistedVisit.id,
         }),
       });
-      const loyalty = await earnForCompletedVisit(tx, visit, {
+      const loyalty = await earnForCompletedVisit(tx, persistedVisit, {
         createdById: getActorUserId(req),
       });
       const data = {
@@ -947,7 +977,7 @@ router.post('/visits/complete', async (req, res) => {
           reason: loyalty?.reason ?? null,
           transactionId: loyalty?.transaction?.id ?? null,
         },
-        visit: withStoredId(visit),
+        visit: serializeVisitWithEarning(visitWithEarning),
       };
 
       await recordAuditLog(tx, req, {
@@ -955,8 +985,8 @@ router.post('/visits/complete', async (req, res) => {
         after: data,
         before: {
           calendarEntry: withStoredId(calendarEntry),
-          visit: existingVisit ? withStoredId(existingVisit) : null,
-        },
+        visit: existingVisit ? withStoredId(existingVisit) : null,
+      },
         entity: 'CalendarEntry',
         entityId: updatedCalendarEntry.id,
       });
@@ -990,6 +1020,7 @@ router.post('/visits/update-completed', async (req, res) => {
     ...(body.visit ?? body),
     calendarEntryId,
     id: visitId,
+    status: 'completed',
   };
   const newUsesPackage =
     isPackageCompletePayment(visitPayload) || isPackageCompletePayment(calendarEntryPatch);
@@ -1462,6 +1493,11 @@ router.post('/visits/update-completed', async (req, res) => {
         where: { id: visitId },
         data: buildVisitData(visitPayload),
       });
+      await syncEmployeeEarningForCompletedVisit(tx, req, updatedVisit);
+      const visitWithEarning = await tx.visit.findUnique({
+        where: { id: visitId },
+        include: VISIT_WITH_EARNING_INCLUDE,
+      });
       const updatedCalendarEntry = await tx.calendarEntry.update({
         where: { id: calendarEntryId },
         data: buildCalendarEntryData({
@@ -1481,7 +1517,7 @@ router.post('/visits/update-completed', async (req, res) => {
         restoredCertificateUsages: restoredCertificateUsages.map(withStoredId),
         restoredClientPackages: restoredClientPackages.map(withStoredId),
         restoredPackageUsages: restoredPackageUsages.map(withStoredId),
-        visit: withStoredId(updatedVisit),
+        visit: serializeVisitWithEarning(visitWithEarning),
       };
 
       await recordAuditLog(tx, req, {
@@ -1732,6 +1768,7 @@ router.post('/visits/revert-completed', requireOwner, async (req, res) => {
           description: 'Откат начисления после возврата завершённого визита',
         });
 
+        await removeUnpaidEmployeeEarningForVisit(tx, req, visit.id);
         await tx.visit.delete({ where: { id: visit.id } });
       }
 
@@ -1840,16 +1877,27 @@ router.put('/visits/:id', async (req, res) => {
 router.delete('/visits/:id', requireOwner, async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
-  await auditDelete(
-    prisma,
-    req,
-    res,
-    'visit',
-    id,
-    prisma.visit.delete({ where: { id } }),
-    'Visit',
-    'delete/cancel visit',
-  );
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const before = await tx.visit.findUnique({ where: { id } });
+      await assertVisitCanBeRemoved(tx, id);
+      await removeUnpaidEmployeeEarningForVisit(tx, req, id);
+      const deleted = await tx.visit.delete({ where: { id } });
+      await recordAuditLog(tx, req, {
+        action: 'delete/cancel visit',
+        after: null,
+        before: before ? withStoredId(before) : null,
+        entity: 'Visit',
+        entityId: id,
+      });
+      return deleted;
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    console.error('Delete visit error:', err);
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
 router.get('/visits', (req, res) => {

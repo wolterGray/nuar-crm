@@ -33,8 +33,10 @@ const buildEmployeeData = (payload) => ({
   status: cleanOptionalString(payload?.status),
   color: cleanOptionalString(payload?.color),
   commissionRate:
-    payload?.commissionRate !== undefined && payload?.commissionRate !== null
-      ? Number(payload.commissionRate) || 0
+    payload?.commissionRate !== undefined &&
+    payload?.commissionRate !== null &&
+    String(payload.commissionRate).trim() !== ''
+      ? Number(payload.commissionRate)
       : null,
   shiftStart: cleanOptionalString(payload?.shiftStart),
   shiftEnd: cleanOptionalString(payload?.shiftEnd),
@@ -80,11 +82,27 @@ const validatePayrollRecordData = (data) => {
   assertNonNegative(data.payload?.report?.totals?.totalPayout, 'report.totals.totalPayout');
 };
 
+const validateEmployeeData = (data) => {
+  if (data.commissionRate !== null) {
+    if (!Number.isFinite(Number(data.commissionRate))) {
+      throw validationError('commissionRate must be a number');
+    }
+    if (Number(data.commissionRate) < 0 || Number(data.commissionRate) > 100) {
+      throw validationError('commissionRate must be between 0 and 100');
+    }
+  }
+};
+
 // ==================== Employee ====================
 router.post('/employees', requireOwner, (req, res) => {
   const data = buildEmployeeData(req.body ?? {});
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Employee name is required' });
+  }
+  try {
+    validateEmployeeData(data);
+  } catch (err) {
+    return sendValidationError(res, err);
   }
 
   auditCreate(prisma, req, res, prisma.employee.create({ data }).then(withStoredId), 'Employee', 'create employee');
@@ -100,6 +118,11 @@ router.put('/employees/:id', requireOwner, async (req, res) => {
   const data = buildEmployeeData({ ...(req.body ?? {}), id });
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Employee name is required' });
+  }
+  try {
+    validateEmployeeData(data);
+  } catch (err) {
+    return sendValidationError(res, err);
   }
 
   await auditUpdate(

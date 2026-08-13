@@ -137,6 +137,8 @@ model Employee {
   soldClientPackages     ClientPackage[]
   soldCertificates       Certificate[]
   payrollRecords         PayrollRecord[]
+  employeeEarnings       EmployeeEarning[]
+  employeePayouts        EmployeePayout[]
 }
 
 model Visit {
@@ -159,6 +161,7 @@ model Visit {
   certificateUsages CertificateUsage[]
   loyaltyTransactions LoyaltyTransaction[]
   loyaltyRewards LoyaltyReward[]
+  employeeEarning EmployeeEarning?
 }
 
 model LoyaltyCard {
@@ -514,6 +517,46 @@ model PayrollRecord {
   updatedAt   DateTime @updatedAt
 
   employee    Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+}
+
+model EmployeeEarning {
+  id                Int      @id @default(autoincrement())
+  employeeId        Int
+  visitId           Int      @unique
+  actualPrice       Decimal
+  commissionPercent Decimal
+  amount            Decimal
+  payoutId          Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  visit             Visit    @relation(fields: [visitId], references: [id], onDelete: Restrict)
+  payout            EmployeePayout? @relation(fields: [payoutId], references: [id], onDelete: Restrict)
+
+  @@index([employeeId, createdAt])
+  @@index([payoutId])
+}
+
+model EmployeePayout {
+  id               Int      @id @default(autoincrement())
+  employeeId       Int
+  amount           Decimal
+  status           String   @default("PAID")
+  paidAt           DateTime @default(now())
+  cancelledAt      DateTime?
+  cancelledById    Int?
+  note             String?
+  cancellationNote String?
+  payload          Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  employee         Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  earnings         EmployeeEarning[]
+
+  @@index([employeeId, paidAt])
+  @@index([status])
 }
 
 model AuditLog {

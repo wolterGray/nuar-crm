@@ -3,6 +3,13 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const { requireOwner } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
+const {
+  VISIT_WITH_EARNING_INCLUDE,
+  assertVisitCanBeRemoved,
+  removeUnpaidEmployeeEarningForVisit,
+  serializeVisitWithEarning,
+  syncEmployeeEarningForCompletedVisit,
+} = require('../services/employeeEarningsService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const {
   respond,
@@ -488,7 +495,7 @@ const buildJournalFinancialResponse = ({
   restoredCertificateUsages: restoredCertificateUsages.filter(Boolean).map(withStoredId),
   restoredClientPackages: restoredClientPackages.map(withStoredId),
   restoredPackageUsages: restoredPackageUsages.filter(Boolean).map(withStoredId),
-  visit: withStoredId(visit),
+  visit: serializeVisitWithEarning(visit),
 });
 
 // ----- Data builder and validator functions -----
@@ -1038,12 +1045,19 @@ router.post('/visits/journal/financial', async (req, res) => {
         ));
       }
 
+      if (visitPayload.status === 'completed') {
+        await syncEmployeeEarningForCompletedVisit(tx, req, visit);
+      }
+      const visitWithEarning = await tx.visit.findUnique({
+        where: { id: visit.id },
+        include: VISIT_WITH_EARNING_INCLUDE,
+      });
       const data = buildJournalFinancialResponse({
         certificate,
         certificateUsage,
         clientPackage,
         clientPackageUsage,
-        visit,
+        visit: visitWithEarning,
       });
 
       await recordAuditLog(tx, req, {
@@ -1163,6 +1177,13 @@ router.put('/visits/journal/:id/financial', async (req, res) => {
         where: { id: visitId },
         data: buildVisitData(visitPayload),
       });
+      if (visitPayload.status === 'completed' || visit?.payload?.status === 'completed') {
+        await syncEmployeeEarningForCompletedVisit(tx, req, updatedVisit);
+      }
+      const visitWithEarning = await tx.visit.findUnique({
+        where: { id: visitId },
+        include: VISIT_WITH_EARNING_INCLUDE,
+      });
       const data = buildJournalFinancialResponse({
         certificate,
         certificateUsage,
@@ -1172,7 +1193,7 @@ router.put('/visits/journal/:id/financial', async (req, res) => {
         restoredCertificateUsages,
         restoredClientPackages,
         restoredPackageUsages,
-        visit: updatedVisit,
+        visit: visitWithEarning,
       });
 
       await recordAuditLog(tx, req, {
@@ -1226,6 +1247,8 @@ router.post('/visits/journal/:id/delete-financial', requireOwner, async (req, re
         throw validationError('Calendar visits must be deleted by completed visit endpoints');
       }
 
+      await assertVisitCanBeRemoved(tx, visitId);
+
       const [packageUsages, certificateUsages] = await Promise.all([
         tx.clientPackageUsage.findMany({ where: { visitId } }),
         tx.certificateUsage.findMany({ where: { visitId } }),
@@ -1261,6 +1284,7 @@ router.post('/visits/journal/:id/delete-financial', requireOwner, async (req, re
         restoredCertificates = [...restoredCertificates, restored.certificate];
       }
 
+      await removeUnpaidEmployeeEarningForVisit(tx, req, visitId);
       await tx.visit.delete({ where: { id: visitId } });
       const data = {
         deletedVisitId: visitId,
@@ -1296,21 +1320,39 @@ router.post('/visits/journal/:id/delete-financial', requireOwner, async (req, re
   }
 });
 
-router.post('/visits/journal', (req, res) => {
+router.post('/visits/journal', async (req, res) => {
   const payload = req.body ?? {};
   try {
     validateVisitPayload(payload);
   } catch (err) {
     return sendValidationError(res, err);
   }
-  auditCreate(
-    prisma,
-    req,
-    res,
-    prisma.visit.create({ data: buildVisitData(payload) }).then(withStoredId),
-    'Visit',
-    payload.recordType === 'operation' ? 'create payment' : 'create visit',
-  );
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const visit = await tx.visit.create({ data: buildVisitData(payload) });
+      if (payload.status === 'completed') {
+        await syncEmployeeEarningForCompletedVisit(tx, req, visit);
+      }
+      const visitWithEarning = await tx.visit.findUnique({
+        where: { id: visit.id },
+        include: VISIT_WITH_EARNING_INCLUDE,
+      });
+      const data = serializeVisitWithEarning(visitWithEarning);
+      await recordAuditLog(tx, req, {
+        action: payload.recordType === 'operation' ? 'create payment' : 'create visit',
+        after: data,
+        before: null,
+        entity: 'Visit',
+        entityId: visit.id,
+      });
+      return data;
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    console.error('Create journal visit error:', err);
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
 router.put('/visits/journal/:id', async (req, res) => {
@@ -1321,31 +1363,59 @@ router.put('/visits/journal/:id', async (req, res) => {
   } catch (err) {
     return sendValidationError(res, err);
   }
-  await auditUpdate(
-    prisma,
-    req,
-    res,
-    'visit',
-    id,
-    prisma.visit.update({ where: { id }, data: buildVisitData(payload) }).then(withStoredId),
-    'Visit',
-    payload.recordType === 'operation' ? 'update payment' : 'update visit',
-  );
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const before = await tx.visit.findUnique({ where: { id } });
+      const updated = await tx.visit.update({ where: { id }, data: buildVisitData(payload) });
+      if (payload.status === 'completed' || before?.payload?.status === 'completed') {
+        await syncEmployeeEarningForCompletedVisit(tx, req, updated);
+      }
+      const visitWithEarning = await tx.visit.findUnique({
+        where: { id },
+        include: VISIT_WITH_EARNING_INCLUDE,
+      });
+      const data = serializeVisitWithEarning(visitWithEarning);
+      await recordAuditLog(tx, req, {
+        action: payload.recordType === 'operation' ? 'update payment' : 'update visit',
+        after: data,
+        before: before ? withStoredId(before) : null,
+        entity: 'Visit',
+        entityId: id,
+      });
+      return data;
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    console.error('Update journal visit error:', err);
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
 router.delete('/visits/journal/:id', requireOwner, async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
-  await auditDelete(
-    prisma,
-    req,
-    res,
-    'visit',
-    id,
-    prisma.visit.delete({ where: { id } }).then(withStoredId),
-    'Visit',
-    'delete/cancel visit',
-  );
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const before = await tx.visit.findUnique({ where: { id } });
+      await assertVisitCanBeRemoved(tx, id);
+      await removeUnpaidEmployeeEarningForVisit(tx, req, id);
+      const deleted = await tx.visit.delete({ where: { id } });
+      await recordAuditLog(tx, req, {
+        action: 'delete/cancel visit',
+        after: null,
+        before: before ? withStoredId(before) : null,
+        entity: 'Visit',
+        entityId: id,
+      });
+      return withStoredId(deleted);
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    console.error('Delete journal visit error:', err);
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
 module.exports = router;

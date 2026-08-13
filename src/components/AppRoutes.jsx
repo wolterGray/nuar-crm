@@ -193,6 +193,7 @@ export default function AppRoutes({activePage, ...props}) {
             removePayrollRecord={props.removePayrollRecord}
             reopenPayrollRecord={props.reopenPayrollRecord}
             setVisitMasterPayoutPaid={props.setVisitMasterPayoutPaid}
+            pushNotification={props.pushNotification}
             onAdd={props.openCreateEmployee}
             onEdit={props.openEditEmployee}
             onDelete={props.requestDeleteEmployee}

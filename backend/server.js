@@ -92,6 +92,7 @@ const employeesRouter = require('./routes/employees');
 const servicesRouter = require('./routes/services');
 const visitsRouter = require('./routes/visits');
 const financeRouter = require('./routes/finance');
+const employeePayoutsRouter = require('./routes/employeePayouts');
 const operationsRouter = require('./routes/operations');
 const systemStateRouter = require('./routes/systemState');
 
@@ -100,6 +101,7 @@ app.use('/api', verifyJwt, employeesRouter);
 app.use('/api', verifyJwt, servicesRouter);
 app.use('/api', verifyJwt, visitsRouter);
 app.use('/api', verifyJwt, financeRouter);
+app.use('/api', verifyJwt, employeePayoutsRouter);
 app.use('/api', verifyJwt, operationsRouter);
 app.use('/api', verifyJwt, systemStateRouter);
 
