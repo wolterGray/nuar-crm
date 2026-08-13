@@ -2574,33 +2574,53 @@
 
 .employee-earning-list {
   display: grid;
-  gap: 6px;
+  gap: 0;
   min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-card) 72%, transparent);
 }
 
 .employee-earning-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   min-width: 0;
-  padding: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  border-radius: 0;
+  background: transparent;
 }
 
-.employee-earning-row.is-paid {
-  grid-template-columns: minmax(0, 1fr);
+.employee-earning-row:last-child {
+  border-bottom: 0;
 }
 
-.employee-earning-checkbox {
-  width: 14px;
-  height: 14px;
-  margin: 4px 0 0;
-  accent-color: var(--color-primary);
+.employee-earning-row.is-selectable {
+  cursor: pointer;
+}
+
+.employee-earning-row.is-selectable:hover {
+  background: color-mix(in srgb, var(--color-text) 3.5%, transparent);
+}
+
+.employee-earning-row.is-selected {
+  box-shadow: inset 2px 0 0 var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
+}
+
+.employee-earning-row:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 2px 0 0 var(--color-primary),
+    var(--focus-ring, var(--button-focus-shadow));
 }
 
 .employee-earning-content {
   display: grid;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -2648,7 +2668,11 @@
 
 .employee-earning-pay-button {
   justify-self: start;
-  margin-top: 2px;
+  min-height: 26px;
+  margin-top: 1px;
+  padding-inline: 9px;
+  border-radius: 7px;
+  font-size: 11px;
 }
 
 .employee-payout-history {

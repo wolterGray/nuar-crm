@@ -152,18 +152,24 @@ function EmployeeSummaryCard({row, selected, onOpen}) {
 function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
   const {client, service} = getVisitLabel(earning);
   const paid = Boolean(earning.payoutId);
+  const selectable = !paid && !disabled;
+  const toggle = () => {
+    if (selectable) onToggle(earning.id, !checked);
+  };
+  const handleKeyDown = (event) => {
+    if (!selectable || (event.key !== "Enter" && event.key !== " ")) return;
+    event.preventDefault();
+    toggle();
+  };
 
   return (
-    <article className={`employee-earning-row ${paid ? "is-paid" : ""}`}>
-      {!paid ? (
-        <input
-          className="employee-earning-checkbox"
-          type="checkbox"
-          disabled={disabled}
-          checked={checked}
-          onChange={(event) => onToggle(earning.id, event.target.checked)}
-        />
-      ) : null}
+    <article
+      aria-checked={!paid ? checked : undefined}
+      className={`employee-earning-row ${paid ? "is-paid" : ""} ${selectable ? "is-selectable" : ""} ${checked ? "is-selected" : ""}`}
+      role={!paid ? "checkbox" : undefined}
+      tabIndex={selectable ? 0 : undefined}
+      onClick={toggle}
+      onKeyDown={handleKeyDown}>
       <div className="employee-earning-content">
         <div className="employee-earning-header">
           <strong>{formatDateTime(earning)}</strong>
@@ -182,7 +188,16 @@ function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
             Выплата {earning.payout?.paidAt ? new Date(earning.payout.paidAt).toLocaleDateString("ru-RU") : ""}
           </small>
         ) : (
-          <Button className="employee-earning-pay-button" disabled={disabled} size="sm" type="button" variant="secondary" onClick={() => onPayOne(earning.id)}>
+          <Button
+            className="employee-earning-pay-button"
+            disabled={disabled}
+            size="sm"
+            type="button"
+            variant="secondary"
+            onClick={(event) => {
+              event.stopPropagation();
+              onPayOne(earning.id);
+            }}>
             Отметить как выплачено
           </Button>
         )}
