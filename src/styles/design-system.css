@@ -3404,13 +3404,13 @@
 .employee-card {
   padding: 12px 14px;
   border-radius: var(--ds-radius-lg);
-  transition:
-    border-color var(--ds-transition-fast),
-    box-shadow var(--ds-transition-fast);
+  transition: none;
 }
 
 .employee-card:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  border-color: var(--employees-border, var(--color-border));
+  background: var(--employees-panel, var(--color-window));
+  box-shadow: none;
 }
 
 /* ---- Settings tabs ---- */
