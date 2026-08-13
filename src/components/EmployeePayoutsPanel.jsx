@@ -398,7 +398,9 @@ function EmployeePayoutsPanel({pushNotification}) {
           onCustomRange={setCustomRange}
           onMode={setMode}
         />
-        {loading ? <span className="employee-payouts-loading" aria-live="polite">Обновляем…</span> : null}
+        <span className={`employee-payouts-loading ${loading ? "is-visible" : ""}`} aria-live="polite">
+          Обновляем…
+        </span>
       </div>
 
       <section className="employee-payout-summary-list">
