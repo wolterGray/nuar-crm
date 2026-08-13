@@ -2714,28 +2714,39 @@
 
 .employee-payout-history {
   display: grid;
-  gap: 8px;
+  gap: 0;
   min-width: 0;
-  margin-top: 4px;
+  margin-top: 10px;
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .employee-payout-history h3 {
   margin: 0;
+  padding: 10px 0 6px;
   color: var(--color-text);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   line-height: 1.15;
 }
 
 .employee-payout-history-card {
   display: grid;
-  gap: 6px;
-  padding: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 7px 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-border-soft) 76%, transparent);
+  border-radius: 0;
+  background: transparent;
 }
 
 .employee-payout-history-card > button {
   display: grid;
-  gap: 4px;
+  grid-template-columns: 92px minmax(0, 1fr) 92px 90px;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   padding: 0;
   border: 0;
@@ -2745,15 +2756,55 @@
   cursor: pointer;
 }
 
-.employee-payout-history-card > button > div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
 .employee-payout-history-card > button:hover strong {
   color: var(--color-primary);
+}
+
+.employee-payout-history-card > button > strong,
+.employee-payout-history-card > button > b {
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.employee-payout-history-card > button > b {
+  justify-self: end;
+}
+
+.employee-payout-history-card > button > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.employee-payout-history-card > button + button {
+  min-height: 24px;
+  padding-inline: 8px;
+  border-radius: 7px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.employee-payout-history-status {
+  justify-self: start;
+  min-height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+  background: var(--button-ghost-hover-bg);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 20px;
+}
+
+.employee-payout-history-status.is-paid {
+  color: color-mix(in srgb, var(--color-success, #22c55e) 76%, var(--color-text));
+  background: color-mix(in srgb, var(--color-success, #22c55e) 12%, transparent);
+}
+
+.employee-payout-history-status.is-cancelled {
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
 }
 
 .employee-payout-summary-list {
@@ -3116,6 +3167,16 @@
 
   .employee-payout-action-bar button {
     margin-left: auto;
+  }
+
+  .employee-payout-history-card,
+  .employee-payout-history-card > button {
+    grid-template-columns: 1fr auto;
+  }
+
+  .employee-payout-history-card > button > small,
+  .employee-payout-history-status {
+    grid-column: 1 / -1;
   }
 }
 

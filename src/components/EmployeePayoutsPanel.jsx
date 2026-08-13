@@ -214,13 +214,14 @@ function PayoutHistory({disabled = false, onCancel, onOpen, payouts}) {
         payouts.slice(0, 12).map((payout) => (
           <article className="employee-payout-history-card" key={payout.id}>
             <button type="button" onClick={() => onOpen(payout.id)}>
-              <div>
-                <strong>{payout.paidAt ? new Date(payout.paidAt).toLocaleDateString("ru-RU") : "Дата не указана"}</strong>
-                <b>{formatMoney(payout.amount)}</b>
-              </div>
+              <strong>{payout.paidAt ? new Date(payout.paidAt).toLocaleDateString("ru-RU") : "Дата не указана"}</strong>
               <small>
-                {payout.employee?.name || payout.employeeName || "Сотрудник"} · {payout.earnings?.length ?? 0} массажей · {payout.status}
+                {payout.employee?.name || payout.employeeName || "Сотрудник"} · {payout.earnings?.length ?? 0} массажей
               </small>
+              <span className={`employee-payout-history-status is-${String(payout.status || "").toLowerCase()}`}>
+                {payout.status}
+              </span>
+              <b>{formatMoney(payout.amount)}</b>
             </button>
             {payout.status !== "CANCELLED" ? (
               <Button disabled={disabled} size="sm" type="button" variant="ghost" onClick={() => onCancel(payout.id)}>
