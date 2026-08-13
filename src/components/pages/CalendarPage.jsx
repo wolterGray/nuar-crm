@@ -982,7 +982,7 @@ return (
                               entry.kind === "task" ? "border-dashed" : "border-solid"
                             } ${ended ? "opacity-80" : ""} ${
                               isFocusedEntry(entry.id) ? "animate-pulse" : ""
-                            }`}
+                            } ${height <= 44 ? "is-compact" : ""}`}
                             domId={`alert-focus-calendar-${entry.id}`}
                             entry={entry}
                             key={entry.id}

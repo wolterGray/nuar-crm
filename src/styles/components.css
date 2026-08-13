@@ -4836,6 +4836,43 @@
   flex-direction: column;
 }
 
+.nuar-calendar-entry-block.is-compact {
+  padding: 4px 7px;
+}
+
+.nuar-calendar-entry-block.is-compact .nuar-calendar-entry-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 1fr 1fr;
+  gap: 0 8px;
+  align-items: center;
+}
+
+.nuar-calendar-entry-block.is-compact .nuar-calendar-entry-title,
+.nuar-calendar-entry-block.is-compact .nuar-calendar-entry-service {
+  font-size: 10px;
+  line-height: 1.05;
+}
+
+.nuar-calendar-entry-block.is-compact .nuar-calendar-entry-time {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  justify-self: end;
+  margin-top: 0;
+  font-size: 9px;
+  line-height: 1;
+}
+
+.nuar-calendar-entry-block.is-compact .nuar-calendar-entry-service {
+  margin-top: 0;
+}
+
+.nuar-calendar-entry-block.is-compact .nuar-calendar-entry-money,
+.nuar-calendar-entry-block.is-compact .nuar-calendar-package-label,
+.nuar-calendar-entry-block.is-compact .nuar-calendar-status-pill {
+  display: none;
+}
+
 .nuar-calendar-entry-title,
 .nuar-calendar-entry-time,
 .nuar-calendar-entry-service,
