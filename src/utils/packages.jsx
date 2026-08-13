@@ -58,6 +58,41 @@ export const getPackageVisitProgressLabel = (packageItem, currentEntry, entries 
   );
 };
 
+export const getPackagePlannedProgressLabel = (
+  packageItem,
+  currentEntry,
+  entries = [],
+) => {
+  const total = Number(packageItem?.totalVisits) || 0;
+  const packageId = String(currentEntry?.packageUsageId ?? packageItem?.id ?? "");
+
+  if (!total || !packageId) {
+    return getPackageProgressLabel(packageItem, getPackageSessionCount(currentEntry));
+  }
+
+  const currentSortValue = getPackageEntrySortValue(currentEntry);
+  const previousEntries = entries.filter(
+    (entry) =>
+      entry?.kind === "visit" &&
+      String(entry.packageUsageId ?? "") === packageId &&
+      String(entry.id ?? "") !== String(currentEntry?.id ?? "") &&
+      !["cancelled", "no_show"].includes(entry.status) &&
+      getPackageEntrySortValue(entry) < currentSortValue,
+  );
+  const usedBefore = previousEntries.reduce(
+    (sum, entry) => sum + getPackageSessionCount(entry),
+    0,
+  );
+
+  if (previousEntries.length > 0) {
+    const used = usedBefore + getPackageSessionCount(currentEntry);
+
+    return `${Math.max(0, Math.min(total, used))}/${total}`;
+  }
+
+  return getPackageProgressLabel(packageItem, getPackageSessionCount(currentEntry));
+};
+
 export const getPackageRemainingLabel = (packageItem) => {
   const total = Number(packageItem?.totalVisits) || 0;
   const remaining = Number(packageItem?.remainingVisits) || 0;

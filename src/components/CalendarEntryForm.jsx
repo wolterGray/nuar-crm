@@ -8,7 +8,7 @@ import {getActiveCertificatesForClient} from "../utils/certificates.js";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import {matchesClientRecord} from "../utils/clientLinks.js";
-import {getPackageProgressLabel, isUpcomingPackageVisit} from "../utils/packages.jsx";
+import {getPackagePlannedProgressLabel} from "../utils/packages.jsx";
 import {calculateSiteBookingPrice} from "../utils/siteBookingPricing.js";
 import {FieldLabel} from "./HintIcon.jsx";
 import {toVisitNumber} from "../utils/visits.jsx";
@@ -578,13 +578,20 @@ function CalendarEntryForm({
         .sort((first, second) => first - second),
     [service],
   );
-  const getPlannedPackageVisits = (packageItem) =>
-    calendarEntries.filter(
-      (entry) =>
-        entry.id !== initialEntry?.id &&
-        String(entry.packageUsageId) === String(packageItem.id) &&
-        isUpcomingPackageVisit(entry),
-    ).length + 1;
+  const getPlannedPackageLabel = (packageItem) =>
+    getPackagePlannedProgressLabel(
+      packageItem,
+      {
+        date,
+        id: initialEntry?.id ?? "new-calendar-entry",
+        kind: "visit",
+        packageSessionsUsed: initialEntry?.packageSessionsUsed ?? 1,
+        packageUsageId: packageItem.id,
+        status: initialEntry?.status ?? "scheduled",
+        time,
+      },
+      calendarEntries,
+    );
   const submitForm = (event) => {
     const form = event.currentTarget;
     handleSubmit(() => onSubmit(form))(event);
@@ -1011,7 +1018,7 @@ function CalendarEntryForm({
                     <option value="">Выберите пакет</option>
                     {packageOptions.map((item) => (
                       <option key={item.id} value={item.id}>
-                        {item.packageName} · будет {getPackageProgressLabel(item, getPlannedPackageVisits(item))}
+                        {item.packageName} · будет {getPlannedPackageLabel(item)}
                       </option>
                     ))}
                   </Select>
