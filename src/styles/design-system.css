@@ -2720,13 +2720,34 @@
   border-top: 1px solid var(--color-border-soft);
 }
 
-.employee-payout-history h3 {
-  margin: 0;
+.employee-payout-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 10px 0 6px;
+}
+
+.employee-payout-history-head h3 {
+  margin: 0;
   color: var(--color-text);
   font-size: 15px;
   font-weight: 800;
   line-height: 1.15;
+}
+
+.employee-payout-history-head button {
+  border: 0;
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.employee-payout-history-head button:hover {
+  color: var(--color-primary);
+  transform: none;
 }
 
 .employee-payout-history-card {
@@ -2778,11 +2799,22 @@
 }
 
 .employee-payout-history-card > button + button {
-  min-height: 24px;
-  padding-inline: 8px;
+  justify-self: end;
+  width: auto;
+  min-width: 0;
+  min-height: 22px;
+  height: 22px;
+  padding: 0 7px;
   border-radius: 7px;
   color: var(--color-text-muted);
   font-size: 11px;
+  line-height: 1;
+  transform: none;
+}
+
+.employee-payout-history-card > button + button:hover {
+  color: var(--color-danger);
+  transform: none;
 }
 
 .employee-payout-history-status {

@@ -1248,30 +1248,27 @@ select {
 
 .toast {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) 28px;
-  align-items: center;
+  grid-template-columns: 18px minmax(0, 1fr) 24px;
+  align-items: start;
   gap: 10px;
-  padding: 14px;
-  border: 1px solid rgba(124, 58, 237, 0.24);
+  padding: 12px;
+  border: 1px solid var(--color-border-soft);
   border-radius: 8px;
-  color: #f5f3ff;
-  background:
-    linear-gradient(145deg, rgba(32, 24, 44, 0.98), rgba(16, 14, 22, 0.98)),
-    var(--color-window);
+  color: var(--color-text);
+  background: var(--color-window);
   box-shadow: 0 18px 54px rgba(0, 0, 0, 0.42);
   pointer-events: auto;
   backdrop-filter: blur(16px);
 }
 
 .toast > svg {
-  color: #a78bfa;
+  margin-top: 2px;
+  color: var(--color-text-muted);
 }
 
 .toast-urgent {
   border-color: rgba(185, 28, 28, 0.34);
-  background:
-    linear-gradient(145deg, rgba(44, 18, 28, 0.98), rgba(18, 12, 18, 0.98)),
-    var(--color-window);
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-window));
 }
 
 .toast-urgent > svg {
@@ -1285,24 +1282,24 @@ select {
 
 .toast span {
   margin-top: 2px;
-  color: #c4b5fd;
+  color: var(--color-text-muted);
   font-size: 13px;
 }
 
 .toast > button {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   place-items: center;
   border: 0;
-  border-radius: 8px;
-  color: #ddd6fe;
+  border-radius: 6px;
+  color: var(--color-text-muted);
   background: transparent;
 }
 
 .toast > button:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.065);
+  color: var(--color-text);
+  background: var(--button-ghost-hover-bg);
   transform: none;
 }
 

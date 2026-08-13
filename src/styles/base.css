@@ -176,7 +176,6 @@ button {
 .theme-dark .modal-close,
 .theme-dark .row-action,
 .theme-dark .client-alert-button,
-.theme-dark .toast button,
 .theme-dark .sidebar-restore-button {
   color: var(--color-text);
   background: var(--app-card-bg);
@@ -200,13 +199,13 @@ button {
 }
 
 .theme-dark .toast {
-  color: var(--status-success-text);
-  background: var(--status-success-bg);
-  border-color: var(--status-success-border);
+  color: var(--color-text);
+  background: var(--color-window);
+  border-color: var(--color-border-soft);
 }
 
 .theme-dark .toast span {
-  color: var(--status-success-text);
+  color: var(--color-text-muted);
 }
 
 .theme-dark .percent-ring {

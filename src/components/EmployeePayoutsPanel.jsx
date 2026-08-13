@@ -191,10 +191,17 @@ function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
   );
 }
 
-function PayoutHistory({disabled = false, onCancel, onOpen, payouts}) {
+function PayoutHistory({disabled = false, onCancel, onClear, onOpen, payouts}) {
   return (
     <section className="employee-payout-history">
-      <h3>История выплат</h3>
+      <div className="employee-payout-history-head">
+        <h3>История выплат</h3>
+        {payouts.length > 0 ? (
+          <button disabled={disabled} type="button" onClick={onClear}>
+            Очистить
+          </button>
+        ) : null}
+      </div>
       {payouts.length === 0 ? (
         <EmptyState description="История появится после первой выплаты." icon="wallet" title="Выплат пока нет" />
       ) : (
@@ -265,6 +272,7 @@ function EmployeePayoutsPanel({pushNotification}) {
   const [payouts, setPayouts] = useState([]);
   const [payoutDetail, setPayoutDetail] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [hiddenPayoutIds, setHiddenPayoutIds] = useState(new Set());
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -281,6 +289,7 @@ function EmployeePayoutsPanel({pushNotification}) {
     const payoutEmployeeId = payout.employeeId ?? payout.employee?.id;
     return !selectedEmployeeId || !payoutEmployeeId || String(payoutEmployeeId) === String(selectedEmployeeId);
   });
+  const visibleEmployeePayouts = selectedEmployeePayouts.filter((payout) => !hiddenPayoutIds.has(String(payout.id)));
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -371,6 +380,16 @@ function EmployeePayoutsPanel({pushNotification}) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const clearPayoutHistory = () => {
+    if (visibleEmployeePayouts.length === 0) return;
+    setHiddenPayoutIds((current) => {
+      const next = new Set(current);
+      visibleEmployeePayouts.forEach((payout) => next.add(String(payout.id)));
+      return next;
+    });
+    setPayoutDetail(null);
   };
 
   return (
@@ -509,7 +528,7 @@ function EmployeePayoutsPanel({pushNotification}) {
               </div>
             ) : null}
             {earningStatus === "paid" ? (
-              <PayoutHistory disabled={saving} payouts={selectedEmployeePayouts} onCancel={cancelPayout} onOpen={openPayout} />
+              <PayoutHistory disabled={saving} payouts={visibleEmployeePayouts} onCancel={cancelPayout} onClear={clearPayoutHistory} onOpen={openPayout} />
             ) : null}
           </div>
         </section>
