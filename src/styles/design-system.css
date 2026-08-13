@@ -2818,9 +2818,9 @@
 .employee-earning-table-head,
 .employee-earning-row {
   display: grid;
-  grid-template-columns: 28px minmax(86px, 0.65fr) minmax(170px, 1.35fr) minmax(140px, 1fr) minmax(86px, 0.65fr) minmax(74px, 0.5fr) minmax(94px, 0.65fr) minmax(92px, 0.65fr) minmax(122px, 0.8fr);
+  grid-template-columns: 24px minmax(86px, 0.65fr) minmax(170px, 1.35fr) minmax(140px, 1fr) minmax(86px, 0.65fr) minmax(74px, 0.5fr) minmax(94px, 0.65fr) minmax(92px, 0.65fr) minmax(112px, 0.8fr);
   align-items: center;
-  column-gap: 12px;
+  column-gap: 10px;
   min-width: 0;
 }
 
@@ -2835,7 +2835,8 @@
 }
 
 .employee-earning-row {
-  padding: 9px 10px;
+  min-height: 44px;
+  padding: 8px 10px;
   border-bottom-color: color-mix(in srgb, var(--color-border-soft) 76%, transparent);
 }
 
@@ -2850,18 +2851,21 @@
 
 .employee-earning-checkbox,
 .employee-earning-checkbox-spacer {
+  align-self: center;
   justify-self: center;
 }
 
 .employee-earning-checkbox {
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
   margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
 }
 
 .employee-earning-checkbox-spacer {
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
 }
 
 .employee-earning-date,
@@ -2943,26 +2947,31 @@
 }
 
 .employee-payout-action-bar {
-  position: sticky;
-  bottom: 12px;
-  z-index: 5;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 14px;
-  width: min(620px, 100%);
-  margin: 8px 0 0 auto;
-  padding: 8px 10px;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 9px;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 36px;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border-soft));
+  border-radius: 8px;
   color: var(--color-text-muted);
-  background: color-mix(in srgb, var(--color-window) 94%, transparent);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  box-shadow: none;
   font-size: 12px;
 }
 
 .employee-payout-action-bar b {
   color: var(--color-text);
+}
+
+.employee-payout-action-bar button {
+  min-height: 26px;
+  padding-inline: 10px;
+  border-radius: 7px;
+  font-size: 11px;
 }
 
 @media (max-width: 640px) {
@@ -2998,7 +3007,7 @@
   }
 
   .employee-earning-row {
-    grid-template-columns: 22px minmax(0, 1fr) auto;
+    grid-template-columns: 20px minmax(0, 1fr) auto;
     gap: 8px;
     align-items: start;
     padding: 10px;
@@ -3063,10 +3072,15 @@
   }
 
   .employee-payout-action-bar {
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: flex-start;
     gap: 8px;
     width: 100%;
     font-size: 11px;
+  }
+
+  .employee-payout-action-bar button {
+    margin-left: auto;
   }
 }
 
