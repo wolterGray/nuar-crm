@@ -458,6 +458,7 @@ function EmployeePayoutsPanel({pushNotification}) {
 
             {visibleEarnings.length === 0 ? (
               <EmptyState
+                className="employee-payout-empty"
                 description={earningStatus === "paid" ? "Здесь появятся уже выплаченные начисления." : "Начисления появятся после завершённых визитов."}
                 icon="wallet"
                 title={earningStatus === "paid" ? "Выплаченных пока нет" : "Начислений нет"}

@@ -2886,6 +2886,39 @@
   font-size: 12px;
 }
 
+.employee-payout-empty {
+  min-height: 128px;
+  padding: 18px 0;
+  border: 0 !important;
+  border-top: 1px solid var(--color-border-soft) !important;
+  border-bottom: 1px solid var(--color-border-soft) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  gap: 8px;
+}
+
+.employee-payout-empty > span:first-child {
+  width: 24px;
+  height: 24px;
+  color: var(--color-text-faint);
+  background: transparent;
+}
+
+.employee-payout-empty > span:first-child svg {
+  width: 16px;
+  height: 16px;
+}
+
+.employee-payout-empty strong {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.employee-payout-empty span {
+  color: var(--color-text-faint);
+  font-size: 12px;
+}
+
 .employee-payout-summary-list {
   display: grid;
   gap: 0;
