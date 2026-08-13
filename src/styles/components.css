@@ -88,7 +88,6 @@
 
 .crm-shell :is(
   .service-card.catalog-card,
-  .employee-card,
   .client-card,
   .clients-table-item,
   .visit-mobile-card,
