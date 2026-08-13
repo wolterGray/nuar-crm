@@ -65,6 +65,9 @@ const getEntryMoneyLabel = (entry) => {
   return formatMoney(getVisitTransactionTotal(entry));
 };
 
+const isEntryPointerTarget = (target) =>
+  Boolean(target?.closest?.(".schedule-entry, .nuar-calendar-entry-block"));
+
 const isEntryEnded = (entry, selectedDate, now) => {
   if (entry.kind !== "visit") {
     return false;
@@ -545,7 +548,7 @@ function CalendarPage({
 
   const startSlotLongPress = (event, employeeName) => {
     if (event.button !== undefined && event.button !== 0) return;
-    if (event.target.closest(".schedule-entry")) return;
+    if (isEntryPointerTarget(event.target)) return;
 
     const slot = getSlotFromPointer(event, employeeName);
     clearSlotLongPress();
@@ -789,11 +792,21 @@ return (
         {showScheduleGrid && (
           <DndContext
             sensors={sensors}
-            onDragCancel={() => setDragPreview(null)}
+            onDragStart={() => {
+              clearSlotLongPress();
+              setPendingSlot(null);
+            }}
+            onDragCancel={() => {
+              clearSlotLongPress();
+              setDragPreview(null);
+              setPendingSlot(null);
+            }}
             onDragMove={(event) => setDragPreview(getDragPosition(event))}
             onDragEnd={(event) => {
               const position = getDragPosition(event);
+              clearSlotLongPress();
               setDragPreview(null);
+              setPendingSlot(null);
               if (position) onMove(position.entry.id, {master: position.master, time: position.time});
             }}
           >
