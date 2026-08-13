@@ -81,27 +81,26 @@ function PeriodFilters({customRange, mode, onCustomRange, onMode}) {
   ];
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="employee-payout-period-controls">
       {filters.map(([key, label]) => (
-        <Button
+        <button
+          className={`employee-payout-period-tab ${mode === key ? "is-active" : ""}`}
           key={key}
-          size="sm"
           type="button"
-          variant={mode === key ? "primary" : "secondary"}
           onClick={() => onMode(key)}>
           {label}
-        </Button>
+        </button>
       ))}
       {mode === "custom" ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="employee-payout-period-dates">
           <input
-            className="form-input min-w-36"
+            className="employee-payout-date-input"
             type="date"
             value={customRange.startDate}
             onChange={(event) => onCustomRange({...customRange, startDate: event.target.value})}
           />
           <input
-            className="form-input min-w-36"
+            className="employee-payout-date-input"
             type="date"
             value={customRange.endDate}
             onChange={(event) => onCustomRange({...customRange, endDate: event.target.value})}

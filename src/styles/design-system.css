@@ -2360,6 +2360,97 @@
   font-size: 14px;
 }
 
+.employee-payout-period-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.employee-payout-period-tab {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-height: 32px;
+  max-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--ds-radius-md);
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-window) 88%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--ds-transition-fast),
+    border-color var(--ds-transition-fast),
+    color var(--ds-transition-fast);
+}
+
+.employee-payout-period-tab:hover,
+.employee-payout-period-tab:focus-visible {
+  border-color: var(--color-border);
+  color: var(--color-text);
+  background: var(--color-card);
+}
+
+.employee-payout-period-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring, var(--button-focus-shadow));
+}
+
+.employee-payout-period-tab.is-active {
+  border-color: var(--button-primary-border);
+  color: var(--button-primary-text);
+  background: var(--button-primary-bg);
+}
+
+.employee-payout-period-dates {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.employee-payout-date-input {
+  width: 142px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--ds-radius-md);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-window) 92%, transparent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 32px;
+  color-scheme: dark;
+}
+
+.employee-payout-date-input:focus {
+  outline: none;
+  border-color: var(--color-border);
+  box-shadow: var(--focus-ring, var(--button-focus-shadow));
+}
+
+@media (max-width: 640px) {
+  .employee-payout-period-dates {
+    flex: 1 1 100%;
+  }
+
+  .employee-payout-date-input {
+    flex: 1 1 136px;
+    width: auto;
+    min-width: 0;
+  }
+}
+
 /* ---- Packages & certificates ---- */
 
 .package-summary-grid {
