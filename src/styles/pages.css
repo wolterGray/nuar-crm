@@ -2918,8 +2918,29 @@ button:focus-visible {
 }
 
 .clients-row-menu button {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  justify-items: start;
+  justify-content: stretch;
+  min-height: 32px;
+  gap: 9px;
+  padding: 0 10px;
   border-radius: 9px;
   color: var(--clients-muted);
+  line-height: 1;
+  text-align: left;
+}
+
+.clients-row-menu .clients-row-menu-item > svg {
+  width: 15px;
+  height: 15px;
+  justify-self: center;
+}
+
+.clients-row-menu .clients-row-menu-item > span {
+  min-width: 0;
+  text-align: left;
 }
 
 .clients-row-menu button:hover {

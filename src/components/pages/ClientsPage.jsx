@@ -103,6 +103,7 @@ function ClientRowActions({
         menuStyle={menuStyle}>
         <div className="clients-row-menu">
           <Button
+            className="clients-row-menu-item"
             leftIcon="eye"
             size="sm"
             variant="ghost"
@@ -110,6 +111,7 @@ function ClientRowActions({
             Посмотреть
           </Button>
           <Button
+            className="clients-row-menu-item"
             leftIcon="message"
             size="sm"
             variant="ghost"
@@ -117,6 +119,7 @@ function ClientRowActions({
             Написать
           </Button>
           <Button
+            className="clients-row-menu-item"
             leftIcon="clock"
             size="sm"
             variant="ghost"
@@ -124,6 +127,7 @@ function ClientRowActions({
             Лист ожидания
           </Button>
           <Button
+            className="clients-row-menu-item"
             leftIcon="edit"
             size="sm"
             variant="ghost"
@@ -131,7 +135,7 @@ function ClientRowActions({
             Редактировать
           </Button>
           <Button
-            className="danger"
+            className="clients-row-menu-item danger"
             leftIcon="trash"
             size="sm"
             variant="danger"
