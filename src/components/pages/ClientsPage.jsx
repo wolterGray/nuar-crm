@@ -468,6 +468,7 @@ function ClientsPage({
           ...client,
           visitsCount: appointments.length,
           autoStatus: getClientAutoStatus(appointments.length),
+          isVip: getClientAutoVip(appointments.length, totalIncome),
           completedVisitsCount: clientVisits.length,
           upcomingVisitsCount: appointments.filter(
             (appointment) => appointment.status === "Запланирован",
@@ -659,7 +660,7 @@ function ClientsPage({
                 <div className="flex flex-col min-w-0 md:col-span-1">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <strong className="clients-table-name text-foreground font-bold text-sm md:text-base truncate">{client.name}</strong>
-                    {(client.visitsCount >= 10 || (client.totalIncome || 0) >= 2000) && (
+                    {client.isVip && (
                       <Badge className="client-vip-badge gap-1 shrink-0" size="sm" variant="premium">
                         <AppIcon name="crown" size="xs" />
                         VIP
@@ -758,9 +759,7 @@ function ClientsPage({
           labelledBy="client-card-title"
           title={
             activeViewedClient.name +
-            (activeViewedClient.visitsCount >= 10 || (activeViewedClient.totalIncome || 0) >= 2000
-              ? " VIP"
-              : "")
+            (activeViewedClient.isVip ? " VIP" : "")
           }
           description="Карточка клиента"
           onClose={handleCloseModal}
@@ -1304,6 +1303,10 @@ function getAppointmentStatus(entry) {
 
 function getClientAutoStatus(visitsCount) {
   return (Number(visitsCount) || 0) > 0 ? "Активный" : "Новый";
+}
+
+function getClientAutoVip(visitsCount, totalIncome) {
+  return (Number(visitsCount) || 0) >= 10 || (Number(totalIncome) || 0) >= 2000;
 }
 
 export default ClientsPage;
