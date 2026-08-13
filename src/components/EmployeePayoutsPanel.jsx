@@ -154,7 +154,7 @@ function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
   const paid = Boolean(earning.payoutId);
 
   return (
-    <article className="employee-earning-row">
+    <article className={`employee-earning-row ${paid ? "is-paid" : ""}`}>
       {!paid ? (
         <input
           className="employee-earning-checkbox"
@@ -257,6 +257,7 @@ function PayoutDetail({payout, onClose}) {
 function EmployeePayoutsPanel({pushNotification}) {
   const [mode, setMode] = useState("thisWeek");
   const [customRange, setCustomRange] = useState({endDate: "", startDate: ""});
+  const [earningStatus, setEarningStatus] = useState("unpaid");
   const [summary, setSummary] = useState([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [detail, setDetail] = useState(null);
@@ -268,11 +269,17 @@ function EmployeePayoutsPanel({pushNotification}) {
 
   const period = useMemo(() => getPeriodRange(mode, customRange), [customRange, mode]);
   const selectedEarnings = useMemo(
-    () => (detail?.earnings ?? []).filter((earning) => selectedIds.has(earning.id)),
+    () => (detail?.earnings ?? []).filter((earning) => selectedIds.has(earning.id) && !earning.payoutId),
     [detail, selectedIds],
   );
   const selectedTotal = selectedEarnings.reduce((sum, earning) => sum + toMoneyNumber(earning.amount), 0);
   const unpaidEarnings = (detail?.earnings ?? []).filter((earning) => !earning.payoutId);
+  const paidEarnings = (detail?.earnings ?? []).filter((earning) => earning.payoutId);
+  const visibleEarnings = earningStatus === "paid" ? paidEarnings : unpaidEarnings;
+  const selectedEmployeePayouts = payouts.filter((payout) => {
+    const payoutEmployeeId = payout.employeeId ?? payout.employee?.id;
+    return !selectedEmployeeId || !payoutEmployeeId || String(payoutEmployeeId) === String(selectedEmployeeId);
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -313,6 +320,7 @@ function EmployeePayoutsPanel({pushNotification}) {
   const openEmployee = async (employeeId) => {
     setSelectedEmployeeId(employeeId);
     setSelectedIds(new Set());
+    setEarningStatus("unpaid");
     try {
       const response = await fetchEmployeeEarningsDetail(employeeId, period);
       setDetail(response?.data ?? null);
@@ -403,14 +411,40 @@ function EmployeePayoutsPanel({pushNotification}) {
                     К выплате {formatMoney(detail.totals?.unpaid)} · {detail.totals?.unpaidCount ?? 0} неоплаченных
                   </small>
                 </div>
+                <div className="employee-payout-status-tabs" role="tablist" aria-label="Статус начислений">
+                  <button
+                    className={earningStatus === "unpaid" ? "is-active" : ""}
+                    type="button"
+                    role="tab"
+                    aria-selected={earningStatus === "unpaid"}
+                    onClick={() => {
+                      setEarningStatus("unpaid");
+                      setSelectedIds(new Set());
+                    }}>
+                    Не выплачено <b>{unpaidEarnings.length}</b>
+                  </button>
+                  <button
+                    className={earningStatus === "paid" ? "is-active" : ""}
+                    type="button"
+                    role="tab"
+                    aria-selected={earningStatus === "paid"}
+                    onClick={() => {
+                      setEarningStatus("paid");
+                      setSelectedIds(new Set());
+                    }}>
+                    Выплачено <b>{paidEarnings.length}</b>
+                  </button>
+                </div>
+              </div>
+              {earningStatus === "unpaid" ? (
                 <div className="employee-payout-detail-actions">
                   <Button
                     size="sm"
                     type="button"
                     variant="secondary"
-                    disabled={saving}
+                    disabled={saving || unpaidEarnings.length === 0}
                     onClick={() => setSelectedIds(new Set(unpaidEarnings.map((earning) => earning.id)))}>
-                    Выбрать все неоплаченные
+                    Выбрать все
                   </Button>
                   <Button
                     disabled={selectedIds.size === 0 || saving}
@@ -420,20 +454,24 @@ function EmployeePayoutsPanel({pushNotification}) {
                     onClick={() => paySelected([...selectedIds])}>
                     Выплатить {formatMoney(selectedTotal)}
                   </Button>
+                  {selectedIds.size > 0 ? (
+                    <span className="employee-payout-selected-note">
+                      {selectedIds.size} · {formatMoney(selectedTotal)}
+                    </span>
+                  ) : null}
                 </div>
-              </div>
-              {selectedIds.size > 0 ? (
-                <p className="employee-payout-selected-note">
-                  Выбрано: {selectedIds.size} массажей · сумма выплаты: <b>{formatMoney(selectedTotal)}</b>
-                </p>
               ) : null}
             </div>
 
-            {(detail.earnings ?? []).length === 0 ? (
-              <EmptyState description="Начисления появятся после завершённых визитов." icon="wallet" title="Начислений нет" />
+            {visibleEarnings.length === 0 ? (
+              <EmptyState
+                description={earningStatus === "paid" ? "Здесь появятся уже выплаченные начисления." : "Начисления появятся после завершённых визитов."}
+                icon="wallet"
+                title={earningStatus === "paid" ? "Выплаченных пока нет" : "Начислений нет"}
+              />
             ) : (
               <div className="employee-earning-list">
-                {detail.earnings.map((earning) => (
+                {visibleEarnings.map((earning) => (
                   <EarningRow
                     checked={selectedIds.has(earning.id)}
                     disabled={saving}
@@ -452,9 +490,10 @@ function EmployeePayoutsPanel({pushNotification}) {
                 ))}
               </div>
             )}
+            {earningStatus === "paid" ? (
+              <PayoutHistory disabled={saving} payouts={selectedEmployeePayouts} onCancel={cancelPayout} onOpen={openPayout} />
+            ) : null}
           </div>
-
-          <PayoutHistory disabled={saving} payouts={payouts} onCancel={cancelPayout} onOpen={openPayout} />
         </section>
       ) : (
         <EmptyState description="Завершите первый визит, чтобы увидеть задолженность по сотрудникам." icon="wallet" title="Расчётов пока нет" />

@@ -2364,7 +2364,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .employee-payout-period-tab {
@@ -2372,16 +2372,16 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  height: 32px;
-  min-height: 32px;
-  max-height: 32px;
-  padding: 0 12px;
+  height: 26px;
+  min-height: 26px;
+  max-height: 26px;
+  padding: 0 9px;
   border: 1px solid var(--color-border-soft);
-  border-radius: var(--ds-radius-md);
-  color: var(--color-text-muted);
+  border-radius: 7px;
+  color: var(--color-text);
   background: color-mix(in srgb, var(--color-window) 88%, transparent);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -2404,9 +2404,9 @@
 }
 
 .employee-payout-period-tab.is-active {
-  border-color: var(--button-primary-border);
-  color: var(--button-primary-text);
-  background: var(--button-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary-text);
+  background: var(--color-primary);
 }
 
 .employee-payout-period-dates {
@@ -2414,22 +2414,22 @@
   flex: 0 1 auto;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .employee-payout-date-input {
-  width: 142px;
-  height: 32px;
-  min-height: 32px;
-  padding: 0 10px;
+  width: 118px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 8px;
   border: 1px solid var(--color-border-soft);
-  border-radius: var(--ds-radius-md);
+  border-radius: 7px;
   color: var(--color-text);
   background: color-mix(in srgb, var(--color-window) 92%, transparent);
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 32px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 26px;
   color-scheme: dark;
 }
 
@@ -2441,20 +2441,20 @@
 
 .employee-payouts-panel {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
 }
 
 .employee-payouts-header {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
 }
 
 .employee-payouts-header h2 {
   margin: 0;
   color: var(--color-text);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
   line-height: 1.1;
 }
@@ -2468,15 +2468,15 @@
 
 .employee-payout-detail-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
   align-items: start;
   min-width: 0;
 }
 
 .employee-payout-detail-main {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -2489,7 +2489,7 @@
 }
 
 .employee-payout-detail-card {
-  padding: 14px;
+  padding: 12px;
 }
 
 .employee-payout-detail-head {
@@ -2497,14 +2497,14 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 }
 
 .employee-payout-detail-head h3 {
   margin: 0;
   color: var(--color-text);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1.15;
 }
@@ -2512,45 +2512,95 @@
 .employee-payout-detail-head small,
 .employee-payout-selected-note {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .employee-payout-detail-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
 }
 
 .employee-payout-selected-note {
-  margin: 10px 0 0;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.employee-payout-status-tabs {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--color-window) 88%, transparent);
+}
+
+.employee-payout-status-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.employee-payout-status-tabs button b {
+  color: inherit;
+  font-size: 10px;
+}
+
+.employee-payout-status-tabs button:hover {
+  color: var(--color-text);
+  background: var(--button-ghost-hover-bg);
+}
+
+.employee-payout-status-tabs button.is-active {
+  color: var(--color-primary-text);
+  background: var(--color-primary);
 }
 
 .employee-earning-list {
   display: grid;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
 }
 
 .employee-earning-row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 12px;
+  gap: 10px;
   align-items: start;
   min-width: 0;
-  padding: 14px;
+  padding: 10px;
+}
+
+.employee-earning-row.is-paid {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .employee-earning-checkbox {
-  width: 18px;
-  height: 18px;
-  margin: 3px 0 0;
+  width: 14px;
+  height: 14px;
+  margin: 4px 0 0;
   accent-color: var(--color-primary);
 }
 
 .employee-earning-content {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -2574,7 +2624,7 @@
 .employee-payout-history-card small {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.35;
 }
 
@@ -2588,7 +2638,7 @@
 .employee-earning-stats span {
   min-width: 0;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 12px;
   overflow-wrap: anywhere;
 }
 
@@ -2603,22 +2653,23 @@
 
 .employee-payout-history {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
+  margin-top: 4px;
 }
 
 .employee-payout-history h3 {
   margin: 0;
   color: var(--color-text);
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 800;
   line-height: 1.15;
 }
 
 .employee-payout-history-card {
   display: grid;
-  gap: 8px;
-  padding: 12px;
+  gap: 6px;
+  padding: 10px;
 }
 
 .employee-payout-history-card > button {
