@@ -2890,8 +2890,6 @@
   min-height: 128px;
   padding: 18px 0;
   border: 0 !important;
-  border-top: 1px solid var(--color-border-soft) !important;
-  border-bottom: 1px solid var(--color-border-soft) !important;
   border-radius: 0 !important;
   background: transparent !important;
   gap: 8px;
