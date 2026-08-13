@@ -280,6 +280,7 @@ function EmployeePayoutsPanel({pushNotification}) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [hiddenPayoutIds, setHiddenPayoutIds] = useState(new Set());
   const [historyConfirm, setHistoryConfirm] = useState(null);
+  const [payoutConfirm, setPayoutConfirm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -292,6 +293,10 @@ function EmployeePayoutsPanel({pushNotification}) {
   const unpaidEarnings = (detail?.earnings ?? []).filter((earning) => !earning.payoutId);
   const paidEarnings = (detail?.earnings ?? []).filter((earning) => earning.payoutId);
   const visibleEarnings = earningStatus === "paid" ? paidEarnings : unpaidEarnings;
+  const payoutConfirmEarnings = payoutConfirm?.earningIds
+    ? (detail?.earnings ?? []).filter((earning) => payoutConfirm.earningIds.includes(earning.id) && !earning.payoutId)
+    : [];
+  const payoutConfirmTotal = payoutConfirmEarnings.reduce((sum, earning) => sum + toMoneyNumber(earning.amount), 0);
   const selectedEmployeePayouts = payouts.filter((payout) => {
     const payoutEmployeeId = payout.employeeId ?? payout.employee?.id;
     return !selectedEmployeeId || !payoutEmployeeId || String(payoutEmployeeId) === String(selectedEmployeeId);
@@ -337,6 +342,7 @@ function EmployeePayoutsPanel({pushNotification}) {
   const openEmployee = async (employeeId) => {
     setSelectedEmployeeId(employeeId);
     setSelectedIds(new Set());
+    setPayoutConfirm(null);
     setEarningStatus("unpaid");
     try {
       const response = await fetchEmployeeEarningsDetail(employeeId, period);
@@ -359,12 +365,19 @@ function EmployeePayoutsPanel({pushNotification}) {
         message: formatMoney(response?.data?.amount ?? 0),
       });
       setSelectedIds(new Set());
+      setPayoutConfirm(null);
       await load();
     } catch (error) {
       pushNotification?.({title: "Выплата не сохранена", message: error?.message, persist: false});
     } finally {
       setSaving(false);
     }
+  };
+
+  const requestPayout = (earningIds) => {
+    const ids = earningIds.filter(Boolean);
+    if (ids.length === 0 || saving) return;
+    setPayoutConfirm({earningIds: ids});
   };
 
   const openPayout = async (id) => {
@@ -519,7 +532,7 @@ function EmployeePayoutsPanel({pushNotification}) {
                     disabled={saving}
                     earning={earning}
                     key={earning.id}
-                    onPayOne={(id) => paySelected([id])}
+                    onPayOne={(id) => requestPayout([id])}
                     onToggle={(id, checked) => {
                       setSelectedIds((current) => {
                         const next = new Set(current);
@@ -541,7 +554,7 @@ function EmployeePayoutsPanel({pushNotification}) {
                   size="sm"
                   type="button"
                   variant="primary"
-                  onClick={() => paySelected([...selectedIds])}>
+                  onClick={() => requestPayout([...selectedIds])}>
                   Выплатить {formatMoney(selectedTotal)}
                 </Button>
               </div>
@@ -580,6 +593,25 @@ function EmployeePayoutsPanel({pushNotification}) {
           }
           hidePayoutFromHistory(historyConfirm?.payout);
         }}
+      />
+      <ConfirmDialog
+        open={Boolean(payoutConfirm)}
+        title={`Выплатить ${detail?.employee?.name || "сотруднику"} ${formatMoney(payoutConfirmTotal)}?`}
+        message={
+          payoutConfirmEarnings.length > 0
+            ? [
+                `${payoutConfirmEarnings.length} массажей к выплате.`,
+                ...payoutConfirmEarnings.slice(0, 3).map((earning) => {
+                  const {client, service} = getVisitLabel(earning);
+                  return `${service} · ${client} · ${formatMoney(earning.amount)}`;
+                }),
+                payoutConfirmEarnings.length > 3 ? `Ещё ${payoutConfirmEarnings.length - 3}` : "",
+              ].filter(Boolean).join(" ")
+            : "Начисления уже недоступны к выплате."
+        }
+        confirmLabel="Выплатить"
+        onCancel={() => setPayoutConfirm(null)}
+        onConfirm={() => paySelected(payoutConfirm?.earningIds ?? [])}
       />
     </section>
   );
