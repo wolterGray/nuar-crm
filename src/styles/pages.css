@@ -6850,8 +6850,7 @@ button:focus-visible {
 }
 
 .operations-page-tabs,
-.packages-page-tabs,
-.employees-page-tabs {
+.packages-page-tabs {
   display: none;
 }
 
@@ -10920,6 +10919,56 @@ button:focus-visible {
   border-radius: 12px;
   white-space: nowrap;
   box-shadow: none;
+}
+
+.employees-page-tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--employees-border-soft);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--employees-panel) 88%, transparent);
+}
+
+.employees-page-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--employees-muted);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.employees-page-tabs button:hover {
+  color: var(--employees-text);
+  background: var(--button-ghost-hover-bg);
+}
+
+.employees-page-tabs button.is-active {
+  color: var(--color-primary-text);
+  background: var(--employees-accent);
+}
+
+.employees-payroll-tab {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.employees-payroll-tab .employee-payouts-panel {
+  max-width: 1180px;
 }
 
 .employees-page .client-alert-button,

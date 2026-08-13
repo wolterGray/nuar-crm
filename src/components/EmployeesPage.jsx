@@ -94,6 +94,7 @@ function EmployeesPage({
   const {isMobile} = useBreakpoint();
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [activeTab, setActiveTab] = useState("team");
 
   const filteredEmployees = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -134,13 +135,11 @@ function EmployeesPage({
       className="employees-page"
       onClick={() => setOpenMenuId(null)}>
 
-      <EmployeePayoutsPanel pushNotification={pushNotification} />
-
       {/* Page Header */}
       <PageHeader
         className="employees-page-header"
         actions={
-          isMobile ? undefined : (
+          isMobile || activeTab !== "team" ? undefined : (
             <div className="employees-page-toolbar">
               <SearchControl
                 className="employees-page-search"
@@ -162,11 +161,29 @@ function EmployeesPage({
             </div>
           )
         }
-        description={isMobile ? undefined : `${employees.length} сотрудников в базе`}
+        description={isMobile ? undefined : activeTab === "team" ? `${employees.length} сотрудников в базе` : "Начисления и выплаты сотрудникам"}
         title="Сотрудники"
       />
 
-      {isMobile && (
+      <nav className="employees-page-tabs" aria-label="Разделы сотрудников">
+        <button
+          className={activeTab === "team" ? "is-active" : ""}
+          type="button"
+          onClick={() => setActiveTab("team")}>
+          Команда
+        </button>
+        <button
+          className={activeTab === "payroll" ? "is-active" : ""}
+          type="button"
+          onClick={() => {
+            setActiveTab("payroll");
+            setOpenMenuId(null);
+          }}>
+          Расчёты
+        </button>
+      </nav>
+
+      {isMobile && activeTab === "team" && (
         <div className="employees-page-toolbar employees-page-toolbar-mobile">
           <SearchControl
             className="employees-page-search"
@@ -188,22 +205,28 @@ function EmployeesPage({
         </div>
       )}
 
-      <section className="employees-grid">
-        {employeeCards.length > 0 ? (
-          employeeCards
-        ) : (
-          <EmptyState
-            className="employees-empty-state"
-            description={
-              search.trim()
-                ? "Попробуйте изменить запрос."
-                : "Добавьте первого сотрудника в расписание."
-            }
-            icon={search.trim() ? "search" : "user"}
-            title={search.trim() ? "Сотрудники не найдены" : "Сотрудников пока нет"}
-          />
-        )}
-      </section>
+      {activeTab === "team" ? (
+        <section className="employees-grid">
+          {employeeCards.length > 0 ? (
+            employeeCards
+          ) : (
+            <EmptyState
+              className="employees-empty-state"
+              description={
+                search.trim()
+                  ? "Попробуйте изменить запрос."
+                  : "Добавьте первого сотрудника в расписание."
+              }
+              icon={search.trim() ? "search" : "user"}
+              title={search.trim() ? "Сотрудники не найдены" : "Сотрудников пока нет"}
+            />
+          )}
+        </section>
+      ) : (
+        <div className="employees-payroll-tab">
+          <EmployeePayoutsPanel pushNotification={pushNotification} />
+        </div>
+      )}
     </div>
   );
 }
