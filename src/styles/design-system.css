@@ -2763,7 +2763,7 @@
   background: transparent;
 }
 
-.employee-payout-history-card > button {
+.employee-payout-history-open {
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr) 92px 90px;
   align-items: center;
@@ -2777,42 +2777,47 @@
   cursor: pointer;
 }
 
-.employee-payout-history-card > button:hover strong {
+.employee-payout-history-open:hover strong {
   color: var(--color-primary);
 }
 
-.employee-payout-history-card > button > strong,
-.employee-payout-history-card > button > b {
+.employee-payout-history-open > strong,
+.employee-payout-history-open > b {
   color: var(--color-text);
   font-size: 13px;
   line-height: 1.2;
 }
 
-.employee-payout-history-card > button > b {
+.employee-payout-history-open > b {
   justify-self: end;
 }
 
-.employee-payout-history-card > button > small {
+.employee-payout-history-open > small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.employee-payout-history-card > button + button {
-  justify-self: end;
-  width: auto;
-  min-width: 0;
-  min-height: 22px;
+.employee-payout-history-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.employee-payout-history-actions button {
   height: 22px;
-  padding: 0 7px;
-  border-radius: 7px;
+  padding: 0;
+  border: 0;
   color: var(--color-text-muted);
+  background: transparent;
   font-size: 11px;
+  font-weight: 800;
   line-height: 1;
+  cursor: pointer;
   transform: none;
 }
 
-.employee-payout-history-card > button + button:hover {
+.employee-payout-history-actions button:hover {
   color: var(--color-danger);
   transform: none;
 }
@@ -3293,11 +3298,11 @@
   }
 
   .employee-payout-history-card,
-  .employee-payout-history-card > button {
+  .employee-payout-history-open {
     grid-template-columns: 1fr auto;
   }
 
-  .employee-payout-history-card > button > small,
+  .employee-payout-history-open > small,
   .employee-payout-history-status {
     grid-column: 1 / -1;
   }

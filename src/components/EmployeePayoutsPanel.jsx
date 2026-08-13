@@ -8,6 +8,7 @@ import {
   fetchEmployeePayouts,
 } from "../api/employeePayouts.js";
 import {formatMoney} from "../utils/formatters.jsx";
+import ConfirmDialog from "./ConfirmDialog.jsx";
 import {Button, EmptyState} from "./ui/index.js";
 
 const toMoneyNumber = (value) => {
@@ -191,7 +192,7 @@ function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
   );
 }
 
-function PayoutHistory({disabled = false, onCancel, onClear, onOpen, payouts}) {
+function PayoutHistory({disabled = false, onCancel, onClear, onOpen, onRemove, payouts}) {
   return (
     <section className="employee-payout-history">
       <div className="employee-payout-history-head">
@@ -203,11 +204,11 @@ function PayoutHistory({disabled = false, onCancel, onClear, onOpen, payouts}) {
         ) : null}
       </div>
       {payouts.length === 0 ? (
-        <EmptyState description="История появится после первой выплаты." icon="wallet" title="Выплат пока нет" />
+        <EmptyState className="employee-payout-empty" description="История появится после первой выплаты." icon="wallet" title="Выплат пока нет" />
       ) : (
         payouts.slice(0, 12).map((payout) => (
           <article className="employee-payout-history-card" key={payout.id}>
-            <button type="button" onClick={() => onOpen(payout.id)}>
+            <button className="employee-payout-history-open" type="button" onClick={() => onOpen(payout.id)}>
               <strong>{payout.paidAt ? new Date(payout.paidAt).toLocaleDateString("ru-RU") : "Дата не указана"}</strong>
               <small>
                 {payout.employee?.name || payout.employeeName || "Сотрудник"} · {payout.earnings?.length ?? 0} массажей
@@ -217,11 +218,16 @@ function PayoutHistory({disabled = false, onCancel, onClear, onOpen, payouts}) {
               </span>
               <b>{formatMoney(payout.amount)}</b>
             </button>
-            {payout.status !== "CANCELLED" ? (
-              <Button disabled={disabled} size="sm" type="button" variant="ghost" onClick={() => onCancel(payout.id)}>
-                Отменить
-              </Button>
-            ) : null}
+            <div className="employee-payout-history-actions">
+              {payout.status !== "CANCELLED" ? (
+                <button disabled={disabled} type="button" onClick={() => onCancel(payout.id)}>
+                  Отменить
+                </button>
+              ) : null}
+              <button disabled={disabled} type="button" onClick={() => onRemove(payout)}>
+                Удалить
+              </button>
+            </div>
           </article>
         ))
       )}
@@ -273,6 +279,7 @@ function EmployeePayoutsPanel({pushNotification}) {
   const [payoutDetail, setPayoutDetail] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [hiddenPayoutIds, setHiddenPayoutIds] = useState(new Set());
+  const [historyConfirm, setHistoryConfirm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -390,6 +397,18 @@ function EmployeePayoutsPanel({pushNotification}) {
       return next;
     });
     setPayoutDetail(null);
+    setHistoryConfirm(null);
+  };
+
+  const hidePayoutFromHistory = (payout) => {
+    if (!payout?.id) return;
+    setHiddenPayoutIds((current) => {
+      const next = new Set(current);
+      next.add(String(payout.id));
+      return next;
+    });
+    setPayoutDetail((current) => (String(current?.id) === String(payout.id) ? null : current));
+    setHistoryConfirm(null);
   };
 
   return (
@@ -528,7 +547,14 @@ function EmployeePayoutsPanel({pushNotification}) {
               </div>
             ) : null}
             {earningStatus === "paid" ? (
-              <PayoutHistory disabled={saving} payouts={visibleEmployeePayouts} onCancel={cancelPayout} onClear={clearPayoutHistory} onOpen={openPayout} />
+              <PayoutHistory
+                disabled={saving}
+                payouts={visibleEmployeePayouts}
+                onCancel={cancelPayout}
+                onClear={() => setHistoryConfirm({type: "clear"})}
+                onOpen={openPayout}
+                onRemove={(payout) => setHistoryConfirm({payout, type: "remove"})}
+              />
             ) : null}
           </div>
         </section>
@@ -537,6 +563,24 @@ function EmployeePayoutsPanel({pushNotification}) {
       )}
 
       <PayoutDetail payout={payoutDetail} onClose={() => setPayoutDetail(null)} />
+      <ConfirmDialog
+        open={Boolean(historyConfirm)}
+        title={historyConfirm?.type === "clear" ? "Очистить историю выплат?" : "Удалить выплату из истории?"}
+        message={
+          historyConfirm?.type === "clear"
+            ? "Записи исчезнут из текущего списка истории. Сами выплаты и начисления в базе не удаляются."
+            : "Эта запись исчезнет из текущего списка истории. Сами выплаты и начисления в базе не удаляются."
+        }
+        confirmLabel={historyConfirm?.type === "clear" ? "Очистить" : "Удалить"}
+        onCancel={() => setHistoryConfirm(null)}
+        onConfirm={() => {
+          if (historyConfirm?.type === "clear") {
+            clearPayoutHistory();
+            return;
+          }
+          hidePayoutFromHistory(historyConfirm?.payout);
+        }}
+      />
     </section>
   );
 }
