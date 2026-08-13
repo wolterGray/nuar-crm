@@ -200,12 +200,12 @@ button {
 
 .theme-dark .toast {
   color: var(--color-text);
-  background: var(--color-window);
-  border-color: var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-success, #22c55e) 12%, var(--color-window));
+  border-color: color-mix(in srgb, var(--color-success, #22c55e) 34%, transparent);
 }
 
 .theme-dark .toast span {
-  color: var(--color-text-muted);
+  color: color-mix(in srgb, var(--color-success, #22c55e) 58%, var(--color-text-muted));
 }
 
 .theme-dark .percent-ring {
