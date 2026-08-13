@@ -2,6 +2,7 @@ import {useCallback, useEffect, useMemo, useState} from "react";
 import {
   cancelEmployeePayout,
   createEmployeePayout,
+  deleteEmployeePayout,
   fetchEmployeeEarningsDetail,
   fetchEmployeeEarningsSummary,
   fetchEmployeePayout,
@@ -278,7 +279,6 @@ function EmployeePayoutsPanel({pushNotification}) {
   const [payouts, setPayouts] = useState([]);
   const [payoutDetail, setPayoutDetail] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [hiddenPayoutIds, setHiddenPayoutIds] = useState(new Set());
   const [historyConfirm, setHistoryConfirm] = useState(null);
   const [payoutConfirm, setPayoutConfirm] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -301,7 +301,7 @@ function EmployeePayoutsPanel({pushNotification}) {
     const payoutEmployeeId = payout.employeeId ?? payout.employee?.id;
     return !selectedEmployeeId || !payoutEmployeeId || String(payoutEmployeeId) === String(selectedEmployeeId);
   });
-  const visibleEmployeePayouts = selectedEmployeePayouts.filter((payout) => !hiddenPayoutIds.has(String(payout.id)));
+  const visibleEmployeePayouts = selectedEmployeePayouts;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -402,26 +402,36 @@ function EmployeePayoutsPanel({pushNotification}) {
     }
   };
 
-  const clearPayoutHistory = () => {
+  const clearPayoutHistory = async () => {
     if (visibleEmployeePayouts.length === 0) return;
-    setHiddenPayoutIds((current) => {
-      const next = new Set(current);
-      visibleEmployeePayouts.forEach((payout) => next.add(String(payout.id)));
-      return next;
-    });
-    setPayoutDetail(null);
-    setHistoryConfirm(null);
+    setSaving(true);
+    try {
+      await Promise.all(visibleEmployeePayouts.map((payout) => deleteEmployeePayout(payout.id)));
+      setPayoutDetail(null);
+      setHistoryConfirm(null);
+      pushNotification?.({title: "История очищена", message: "Записи выплат удалены из базы"});
+      await load();
+    } catch (error) {
+      pushNotification?.({title: "История не очищена", message: error?.message, persist: false});
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const hidePayoutFromHistory = (payout) => {
+  const deletePayoutFromHistory = async (payout) => {
     if (!payout?.id) return;
-    setHiddenPayoutIds((current) => {
-      const next = new Set(current);
-      next.add(String(payout.id));
-      return next;
-    });
-    setPayoutDetail((current) => (String(current?.id) === String(payout.id) ? null : current));
-    setHistoryConfirm(null);
+    setSaving(true);
+    try {
+      await deleteEmployeePayout(payout.id);
+      setPayoutDetail((current) => (String(current?.id) === String(payout.id) ? null : current));
+      setHistoryConfirm(null);
+      pushNotification?.({title: "Выплата удалена", message: "Запись удалена из базы"});
+      await load();
+    } catch (error) {
+      pushNotification?.({title: "Выплата не удалена", message: error?.message, persist: false});
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -581,8 +591,8 @@ function EmployeePayoutsPanel({pushNotification}) {
         title={historyConfirm?.type === "clear" ? "Очистить историю выплат?" : "Удалить выплату из истории?"}
         message={
           historyConfirm?.type === "clear"
-            ? "Записи исчезнут из текущего списка истории. Сами выплаты и начисления в базе не удаляются."
-            : "Эта запись исчезнет из текущего списка истории. Сами выплаты и начисления в базе не удаляются."
+            ? "Все записи видимой истории будут удалены из базы. Если среди них есть активные выплаты, начисления вернутся в невыплаченные."
+            : "Запись выплаты будет удалена из базы. Если выплата активная, начисления вернутся в невыплаченные."
         }
         confirmLabel={historyConfirm?.type === "clear" ? "Очистить" : "Удалить"}
         onCancel={() => setHistoryConfirm(null)}
@@ -591,7 +601,7 @@ function EmployeePayoutsPanel({pushNotification}) {
             clearPayoutHistory();
             return;
           }
-          hidePayoutFromHistory(historyConfirm?.payout);
+          deletePayoutFromHistory(historyConfirm?.payout);
         }}
       />
       <ConfirmDialog

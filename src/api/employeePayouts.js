@@ -74,3 +74,9 @@ export const cancelEmployeePayout = (id, payload = {}) =>
     label: "Cancel employee payout",
     method: "POST",
   });
+
+export const deleteEmployeePayout = (id) =>
+  request(`/api/employee-payouts/${id}`, {
+    label: "Delete employee payout",
+    method: "DELETE",
+  });

@@ -414,6 +414,59 @@ router.post('/employee-payouts/:id/cancel', async (req, res) => {
   }
 });
 
+router.delete('/employee-payouts/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(422).json({ success: false, error: 'id is invalid' });
+  }
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const payout = await tx.employeePayout.findUnique({
+        where: { id },
+        include: {
+          employee: true,
+          earnings: { include: EMPLOYEE_EARNING_INCLUDE },
+        },
+      });
+
+      if (!payout) {
+        const error = new Error('Payout not found');
+        error.status = 404;
+        throw error;
+      }
+
+      await tx.employeeEarning.updateMany({
+        where: { payoutId: id },
+        data: { payoutId: null },
+      });
+      await tx.employeePayout.delete({ where: { id } });
+
+      await recordAuditLog(tx, req, {
+        action: 'delete employee payout',
+        after: null,
+        before: serializePayout(payout),
+        entity: 'EmployeePayout',
+        entityId: id,
+      });
+
+      return serializePayout(payout);
+    });
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    console.error('Delete employee payout error:', err);
+    await recordErrorEvent(prisma, {
+      context: { path: req.originalUrl, payoutId: id },
+      error: err,
+      message: err.message,
+      source: 'crud',
+    });
+    res.status(response.status).json({ success: false, error: response.message });
+  }
+});
+
 module.exports = router;
 module.exports._private = {
   buildEmployeeEarningsSummaryRows,
