@@ -392,15 +392,19 @@ function EmployeePayoutsPanel({pushNotification}) {
           <h2>Расчёты</h2>
           <p>К выплате не обнуляется фильтрами: старые неоплаченные массажи остаются долгом.</p>
         </div>
-        <PeriodFilters
-          customRange={customRange}
-          mode={mode}
-          onCustomRange={setCustomRange}
-          onMode={setMode}
-        />
-        <span className={`employee-payouts-loading ${loading ? "is-visible" : ""}`} aria-live="polite">
-          Обновляем…
-        </span>
+        <div className="employee-payout-period-row">
+          <PeriodFilters
+            customRange={customRange}
+            mode={mode}
+            onCustomRange={setCustomRange}
+            onMode={setMode}
+          />
+          <span
+            className={`employee-payouts-loading ${loading ? "is-visible" : ""}`}
+            aria-label={loading ? "Обновляем расчёты" : undefined}
+            aria-live="polite"
+          />
+        </div>
       </div>
 
       <section className="employee-payout-summary-list">

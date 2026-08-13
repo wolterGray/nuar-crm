@@ -2367,6 +2367,16 @@
   gap: 4px;
 }
 
+.employee-payout-period-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  max-width: 1250px;
+  min-height: 26px;
+}
+
 .employee-payout-period-tab {
   display: inline-flex;
   flex: 0 0 auto;
@@ -2467,17 +2477,26 @@
 }
 
 .employee-payouts-loading {
-  display: block;
-  min-height: 11px;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, var(--color-text-muted) 22%, transparent);
+  border-top-color: var(--color-primary);
+  border-radius: 999px;
   opacity: 0;
   transition: opacity var(--ds-transition-fast);
 }
 
 .employee-payouts-loading.is-visible {
+  animation: employee-payout-spin 760ms linear infinite;
   opacity: 1;
+}
+
+@keyframes employee-payout-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .employee-payout-detail-layout {
