@@ -1,6 +1,12 @@
 import {useMemo, useState} from "react";
 import {Button, Input} from "./ui/index.js";
 
+const getClientDisplayName = (client) => {
+  if (typeof client === "string") return client;
+  if (!client || typeof client !== "object") return "";
+  return client.name || client.client || client.displayName || "";
+};
+
 function ClientAutocomplete({
   clients,
   disabled = false,
@@ -12,17 +18,17 @@ function ClientAutocomplete({
   defaultValue,
   onChange,
 }) {
-  const [inputValue, setInputValue] = useState(value ?? defaultValue ?? "");
+  const [inputValue, setInputValue] = useState(getClientDisplayName(value ?? defaultValue));
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const isControlled = value !== undefined;
-  const displayValue = isControlled ? (value ?? "") : inputValue;
+  const displayValue = isControlled ? getClientDisplayName(value) : inputValue;
 
   const clientNames = useMemo(
     () =>
       [...new Set(
         clients
-          .map((client) => (typeof client === "string" ? client : client.name))
+          .map(getClientDisplayName)
           .filter(Boolean),
       )],
     [clients],
