@@ -2107,6 +2107,34 @@ button:focus-visible {
   content: attr(data-placeholder);
 }
 
+.packages-page-tabs {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--packages-border);
+  border-radius: 12px;
+  background: var(--packages-panel-soft);
+}
+
+.packages-page-tabs button {
+  min-height: 34px;
+  border-radius: 8px;
+  color: var(--packages-muted);
+  background: transparent;
+}
+
+.packages-page-tabs button.is-active {
+  color: var(--packages-text);
+  background: var(--packages-accent);
+}
+
+.packages-page-tabs button span {
+  color: inherit;
+  opacity: 0.7;
+}
+
 .packages-summary-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -2640,10 +2668,30 @@ button:focus-visible {
     padding: 16px 12px 24px;
   }
 
-  .packages-page-toolbar,
+  .packages-page-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .packages-page-toolbar button,
   .packages-page-search.crm-search-input-control {
     width: 100%;
     min-width: 0;
+    max-width: none;
+    justify-content: center;
+  }
+
+  .packages-page-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .packages-page-tabs button {
+    min-width: 0;
+    padding-inline: 6px;
   }
 
   .packages-summary-grid {
@@ -6843,8 +6891,7 @@ button:focus-visible {
   gap: 8px;
 }
 
-.operations-page-tabs,
-.packages-page-tabs {
+.operations-page-tabs {
   display: none;
 }
 
