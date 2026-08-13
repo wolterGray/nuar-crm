@@ -17,7 +17,7 @@ import {
 } from "@dnd-kit/core";
 import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
-import {getPackageProgressLabel, isUpcomingPackageVisit} from "../../utils/packages.jsx";
+import {getPackageVisitProgressLabel} from "../../utils/packages.jsx";
 import {getVisitDebt, getVisitTransactionTotal} from "../../utils/visits.jsx";
 
 const QUARTER_HEIGHT = 22;
@@ -1047,22 +1047,9 @@ return (
                                 const packageItem = clientPackages.find(
                                   (item) => item.id === entry.packageUsageId,
                                 );
-                                const plannedPosition = entries
-                                  .filter(
-                                    (item) =>
-                                      String(item.packageUsageId) ===
-                                        String(entry.packageUsageId) &&
-                                      isUpcomingPackageVisit(item),
-                                  )
-                                  .sort((first, second) =>
-                                    `${first.date}T${first.time}`.localeCompare(
-                                      `${second.date}T${second.time}`,
-                                    ),
-                                  )
-                                  .findIndex((item) => item.id === entry.id) + 1;
                                 return packageItem ? (
                                   <small className="nuar-calendar-package-label">
-                                    Пакет {getPackageProgressLabel(packageItem, plannedPosition)}
+                                    Пакет {getPackageVisitProgressLabel(packageItem, entry, entries)}
                                   </small>
                                 ) : null;
                               })()}
