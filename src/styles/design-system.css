@@ -2851,7 +2851,7 @@
 .employee-earning-table-head,
 .employee-earning-row {
   display: grid;
-  grid-template-columns: 24px minmax(86px, 0.65fr) minmax(170px, 1.35fr) minmax(140px, 1fr) minmax(86px, 0.65fr) minmax(74px, 0.5fr) minmax(94px, 0.65fr) minmax(92px, 0.65fr) minmax(112px, 0.8fr);
+  grid-template-columns: 24px minmax(86px, 0.65fr) minmax(170px, 1.35fr) minmax(140px, 1fr) minmax(86px, 0.65fr) minmax(74px, 0.5fr) minmax(94px, 0.65fr) minmax(96px, 0.65fr) minmax(76px, 0.45fr);
   align-items: center;
   column-gap: 10px;
   min-width: 0;
@@ -2952,7 +2952,9 @@
 .employee-earning-pay-button {
   justify-self: end;
   min-height: 24px;
-  padding-inline: 8px;
+  padding-inline: 10px;
+  border-radius: 7px;
+  font-size: 11px;
 }
 
 .payroll-status {

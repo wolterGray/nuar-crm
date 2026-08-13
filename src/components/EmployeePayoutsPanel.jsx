@@ -191,12 +191,12 @@ function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
             disabled={disabled}
             size="sm"
             type="button"
-            variant="secondary"
+            variant="primary"
             onClick={(event) => {
               event.stopPropagation();
               onPayOne(earning.id);
             }}>
-            Отметить как выплачено
+            Выплатить
           </Button>
         )}
       </div>
