@@ -2807,6 +2807,85 @@
   background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
 }
 
+.employee-payout-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: start center;
+  padding: 72px 18px 18px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.employee-payout-modal {
+  display: grid;
+  gap: 14px;
+  width: min(680px, 100%);
+  max-height: min(720px, calc(100vh - 110px));
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  color: var(--color-text);
+  background: var(--color-window);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
+}
+
+.employee-payout-modal-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.employee-payout-modal-head h3,
+.employee-payout-modal-head p {
+  margin: 0;
+}
+
+.employee-payout-modal-head h3 {
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.employee-payout-modal-head p {
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.employee-payout-modal-list {
+  display: grid;
+  gap: 0;
+}
+
+.employee-payout-modal-row {
+  display: grid;
+  gap: 3px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.employee-payout-modal-row:last-child {
+  border-bottom: 0;
+}
+
+.employee-payout-modal-row strong {
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.employee-payout-modal-row p,
+.employee-payout-modal-row small {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
 .employee-payout-summary-list {
   display: grid;
   gap: 0;
@@ -2902,9 +2981,9 @@
 .employee-earning-table-head,
 .employee-earning-row {
   display: grid;
-  grid-template-columns: 24px minmax(86px, 0.65fr) minmax(170px, 1.35fr) minmax(140px, 1fr) minmax(86px, 0.65fr) minmax(74px, 0.5fr) minmax(94px, 0.65fr) minmax(96px, 0.65fr) minmax(76px, 0.45fr);
+  grid-template-columns: minmax(86px, 0.65fr) minmax(180px, 1.35fr) minmax(140px, 1fr) minmax(86px, 0.65fr) minmax(74px, 0.5fr) minmax(94px, 0.65fr) minmax(96px, 0.65fr) minmax(76px, 0.45fr);
   align-items: center;
-  column-gap: 10px;
+  column-gap: 12px;
   min-width: 0;
 }
 
@@ -2931,25 +3010,6 @@
 
 .employee-earning-content {
   display: contents;
-}
-
-.employee-earning-checkbox,
-.employee-earning-checkbox-spacer {
-  align-self: center;
-  justify-self: center;
-}
-
-.employee-earning-checkbox {
-  width: 12px;
-  height: 12px;
-  margin: 0;
-  accent-color: var(--color-primary);
-  cursor: pointer;
-}
-
-.employee-earning-checkbox-spacer {
-  width: 12px;
-  height: 12px;
 }
 
 .employee-earning-date,
@@ -3093,7 +3153,7 @@
   }
 
   .employee-earning-row {
-    grid-template-columns: 20px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
     align-items: start;
     padding: 10px;

@@ -158,19 +158,6 @@ function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
       tabIndex={selectable ? 0 : undefined}
       onClick={toggle}
       onKeyDown={handleKeyDown}>
-      {!paid ? (
-        <input
-          className="employee-earning-checkbox"
-          type="checkbox"
-          disabled={disabled}
-          checked={checked}
-          tabIndex={-1}
-          onChange={(event) => onToggle(earning.id, event.target.checked)}
-          onClick={(event) => event.stopPropagation()}
-        />
-      ) : (
-        <span className="employee-earning-checkbox-spacer" aria-hidden="true" />
-      )}
       <div className="employee-earning-content">
         <strong className="employee-earning-date">{formatDateTime(earning)}</strong>
         <span className="employee-earning-service">{service}</span>
@@ -238,24 +225,24 @@ function PayoutHistory({disabled = false, onCancel, onOpen, payouts}) {
 function PayoutDetail({payout, onClose}) {
   if (!payout) return null;
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 p-4">
-      <section className="mx-auto max-h-[90vh] max-w-2xl overflow-auto rounded-lg bg-background p-4 shadow-xl">
-        <div className="flex items-start justify-between gap-3">
+    <div className="employee-payout-modal-backdrop" onClick={onClose}>
+      <section className="employee-payout-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="employee-payout-modal-head">
           <div>
-            <h3 className="m-0 text-xl font-bold">{payout.employee?.name || "Выплата"}</h3>
-            <p className="m-0 text-sm text-text-muted">
+            <h3>{payout.employee?.name || "Выплата"}</h3>
+            <p>
               {payout.paidAt ? new Date(payout.paidAt).toLocaleString("ru-RU") : ""} · {formatMoney(payout.amount)}
             </p>
           </div>
           <Button size="sm" type="button" variant="secondary" onClick={onClose}>Закрыть</Button>
         </div>
-        <div className="mt-4 space-y-2">
+        <div className="employee-payout-modal-list">
           {(payout.earnings ?? []).map((earning) => {
             const {client, service} = getVisitLabel(earning);
             return (
-              <article className="rounded-lg border border-border-subtle p-3" key={earning.id}>
+              <article className="employee-payout-modal-row" key={earning.id}>
                 <strong>{formatDateTime(earning)} · {service}</strong>
-                <p className="m-0 text-sm">{client}</p>
+                <p>{client}</p>
                 <small>
                   Клиент {formatMoney(earning.actualPrice)} · {toMoneyNumber(earning.commissionPercent)}% · сотруднику {formatMoney(earning.amount)}
                 </small>
@@ -478,7 +465,6 @@ function EmployeePayoutsPanel({pushNotification}) {
             ) : (
               <div className="employee-earning-list">
                 <div className="employee-earning-table-head" aria-hidden="true">
-                  <span />
                   <span>Дата</span>
                   <span>Услуга</span>
                   <span>Клиент</span>
