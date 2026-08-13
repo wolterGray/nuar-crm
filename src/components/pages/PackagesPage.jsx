@@ -602,69 +602,136 @@ function PackagesPage({
         </div>
       ) : (
         <div className="packages-board">
-          {/* Active Client Packages */}
-          <div className="packages-panel packages-panel-active">
-            <div className="packages-panel-header">
-              <h2 className="m-0 text-text-main text-base font-semibold">Активные пакеты</h2>
-              <span className="px-2 py-0.5 text-xs font-bold bg-field border border-border rounded-full text-text-muted">
-                {activeClientPackages.length}
-              </span>
-            </div>
+          <div className="packages-live-row">
+            {/* Active Client Packages */}
+            <div className="packages-panel packages-panel-active">
+              <div className="packages-panel-header">
+                <h2 className="m-0 text-text-main text-base font-semibold">Активные пакеты</h2>
+                <span className="px-2 py-0.5 text-xs font-bold bg-field border border-border rounded-full text-text-muted">
+                  {activeClientPackages.length}
+                </span>
+              </div>
 
-            <div className="packages-list">
-              {filteredActiveClientPackages.map((packageItem) => (
-                <ClientPackageCard
-                  key={packageItem.id}
-                  onDelete={onDeleteClientPackage}
-                  onEdit={onEditClientPackage}
-                  openMenuId={openMenuId}
-                  packageItem={packageItem}
-                  setOpenMenuId={setOpenMenuId}
-                />
-              ))}
-              {filteredActiveClientPackages.length === 0 && (
-                <EmptyState
-                  className="packages-empty-state"
-                  icon="package"
-                  title="Активных пакетов нет"
-                />
+              <div className="packages-list">
+                {filteredActiveClientPackages.map((packageItem) => (
+                  <ClientPackageCard
+                    key={packageItem.id}
+                    onDelete={onDeleteClientPackage}
+                    onEdit={onEditClientPackage}
+                    openMenuId={openMenuId}
+                    packageItem={packageItem}
+                    setOpenMenuId={setOpenMenuId}
+                  />
+                ))}
+                {filteredActiveClientPackages.length === 0 && (
+                  <EmptyState
+                    className="packages-empty-state"
+                    icon="package"
+                    title="Активных пакетов нет"
+                  />
+                )}
+              </div>
+
+              {archivedClientPackages.length > 0 && (
+                <div className="packages-archive">
+                    <Button
+                      className="packages-archive-toggle is-compact"
+                      rightIcon={(
+                        <AppIcon
+                        className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
+                        name="chevronDown"
+                        size="sm"
+                      />
+                    )}
+                    variant="ghost"
+                    onClick={() => setArchiveOpen(!archiveOpen)}>
+                    <span className="flex items-center gap-2">
+                      <AppIcon className="text-text-muted" name="package" size="sm" />
+                      Архив завершённых пакетов
+                    </span>
+                  </Button>
+                  {archiveOpen && (
+                    <div className="p-3 border-t border-border-soft flex flex-col gap-3 bg-field/30 max-h-[300px] overflow-y-auto">
+                      {filteredArchivedClientPackages.map((packageItem) => (
+                        <ClientPackageCard
+                          key={packageItem.id}
+                          onDelete={onDeleteClientPackage}
+                          onEdit={onEditClientPackage}
+                          openMenuId={openMenuId}
+                          packageItem={packageItem}
+                          setOpenMenuId={setOpenMenuId}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
-            {archivedClientPackages.length > 0 && (
-              <div className="packages-archive">
+            {/* Active Certificates */}
+            <div className="packages-panel packages-panel-certificates">
+              <div className="packages-panel-header">
+                <h2 className="m-0 text-text-main text-base font-semibold">Активные сертификаты</h2>
+                <span className="px-2 py-0.5 text-xs font-bold bg-field border border-border rounded-full text-text-muted">
+                  {activeCertificates.length}
+                </span>
+              </div>
+
+              <div className="packages-list">
+                {filteredActiveCertificates.map((certificate) => (
+                  <CertificateCard
+                    key={certificate.id}
+                    certificate={certificate}
+                    onDelete={onDeleteCertificate}
+                    onEdit={onEditCertificate}
+                    openMenuId={openMenuId}
+                    setOpenMenuId={setOpenMenuId}
+                  />
+                ))}
+                {filteredActiveCertificates.length === 0 && (
+                  <EmptyState
+                    className="packages-empty-state"
+                    icon="gift"
+                    title="Активных сертификатов нет"
+                  />
+                )}
+              </div>
+
+              {archivedCertificates.length > 0 && (
+                <div className="packages-archive">
                   <Button
                     className="packages-archive-toggle is-compact"
                     rightIcon={(
                       <AppIcon
-                      className={`transition-transform ${archiveOpen ? "rotate-180" : ""}`}
-                      name="chevronDown"
-                      size="sm"
-                    />
-                  )}
-                  variant="ghost"
-                  onClick={() => setArchiveOpen(!archiveOpen)}>
-                  <span className="flex items-center gap-2">
-                    <AppIcon className="text-text-muted" name="package" size="sm" />
-                    Архив завершённых пакетов
-                  </span>
-                </Button>
-                {archiveOpen && (
-                  <div className="p-3 border-t border-border-soft flex flex-col gap-3 bg-field/30 max-h-[300px] overflow-y-auto">
-                    {filteredArchivedClientPackages.map((packageItem) => (
-                      <ClientPackageCard
-                        key={packageItem.id}
-                        onDelete={onDeleteClientPackage}
-                        onEdit={onEditClientPackage}
-                        openMenuId={openMenuId}
-                        packageItem={packageItem}
-                        setOpenMenuId={setOpenMenuId}
+                        className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`}
+                        name="chevronDown"
+                        size="sm"
                       />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                    )}
+                    variant="ghost"
+                    onClick={() => setCertificateArchiveOpen(!certificateArchiveOpen)}>
+                    <span className="flex items-center gap-2">
+                      <AppIcon className="text-text-muted" name="gift" size="sm" />
+                      Архив сертификатов
+                    </span>
+                  </Button>
+                  {certificateArchiveOpen && (
+                    <div className="p-3 border-t border-border-soft flex flex-col gap-3 bg-field/30 max-h-[300px] overflow-y-auto">
+                      {filteredArchivedCertificates.map((certificate) => (
+                        <CertificateCard
+                          key={certificate.id}
+                          certificate={certificate}
+                          onDelete={onDeleteCertificate}
+                          onEdit={onEditCertificate}
+                          openMenuId={openMenuId}
+                          setOpenMenuId={setOpenMenuId}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Templates Catalog */}
@@ -695,71 +762,6 @@ function PackagesPage({
                 />
               )}
             </div>
-          </div>
-
-          {/* Active Certificates */}
-          <div className="packages-panel packages-panel-certificates">
-            <div className="packages-panel-header">
-              <h2 className="m-0 text-text-main text-base font-semibold">Активные сертификаты</h2>
-              <span className="px-2 py-0.5 text-xs font-bold bg-field border border-border rounded-full text-text-muted">
-                {activeCertificates.length}
-              </span>
-            </div>
-
-            <div className="packages-list">
-              {filteredActiveCertificates.map((certificate) => (
-                <CertificateCard
-                  key={certificate.id}
-                  certificate={certificate}
-                  onDelete={onDeleteCertificate}
-                  onEdit={onEditCertificate}
-                  openMenuId={openMenuId}
-                  setOpenMenuId={setOpenMenuId}
-                />
-              ))}
-              {filteredActiveCertificates.length === 0 && (
-                <EmptyState
-                  className="packages-empty-state"
-                  icon="gift"
-                  title="Активных сертификатов нет"
-                />
-              )}
-            </div>
-
-            {archivedCertificates.length > 0 && (
-              <div className="packages-archive">
-                <Button
-                  className="packages-archive-toggle is-compact"
-                  rightIcon={(
-                    <AppIcon
-                      className={`transition-transform ${certificateArchiveOpen ? "rotate-180" : ""}`}
-                      name="chevronDown"
-                      size="sm"
-                    />
-                  )}
-                  variant="ghost"
-                  onClick={() => setCertificateArchiveOpen(!certificateArchiveOpen)}>
-                  <span className="flex items-center gap-2">
-                    <AppIcon className="text-text-muted" name="gift" size="sm" />
-                    Архив сертификатов
-                  </span>
-                </Button>
-                {certificateArchiveOpen && (
-                  <div className="p-3 border-t border-border-soft flex flex-col gap-3 bg-field/30 max-h-[300px] overflow-y-auto">
-                    {filteredArchivedCertificates.map((certificate) => (
-                      <CertificateCard
-                        key={certificate.id}
-                        certificate={certificate}
-                        onDelete={onDeleteCertificate}
-                        onEdit={onEditCertificate}
-                        openMenuId={openMenuId}
-                        setOpenMenuId={setOpenMenuId}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       )}

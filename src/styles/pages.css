@@ -2142,27 +2142,20 @@ button:focus-visible {
 }
 
 .packages-board {
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.95fr);
-  grid-template-areas:
-    "active certificates"
-    "templates templates";
-  align-items: start;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   width: 100%;
   min-height: 0;
 }
 
-.packages-panel-active {
-  grid-area: active;
-}
-
-.packages-panel-certificates {
-  grid-area: certificates;
-}
-
-.packages-panel-templates {
-  grid-area: templates;
+.packages-live-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.95fr);
+  align-items: start;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
 }
 
 .packages-panel {
@@ -2625,11 +2618,11 @@ button:focus-visible {
   }
 
   .packages-board {
+    gap: 14px;
+  }
+
+  .packages-live-row {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "active"
-      "certificates"
-      "templates";
   }
 
   .packages-list,
