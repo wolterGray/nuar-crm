@@ -1,6 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { requireAdminOrOwner } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
   EMPLOYEE_EARNING_INCLUDE,
@@ -15,7 +15,7 @@ const { getHttpErrorResponse } = require('../utils/httpErrors');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-router.use(requireOwner);
+router.use(requireAdminOrOwner);
 
 const normalizeDate = (value) => {
   const normalized = normalizeDayCloseDate(value);

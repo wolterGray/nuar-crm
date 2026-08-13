@@ -41,7 +41,19 @@ function requireOwner(req, res, next) {
   });
 }
 
+function requireAdminOrOwner(req, res, next) {
+  if (isOwnerAuth(req.auth) || req.auth?.role === 'admin') {
+    return next();
+  }
+
+  return res.status(403).json({
+    success: false,
+    error: 'Admin or owner role required',
+  });
+}
+
 module.exports = {
+  requireAdminOrOwner,
   requireOwner,
   verifyJwt,
 };
