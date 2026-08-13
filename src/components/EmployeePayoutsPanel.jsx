@@ -398,9 +398,8 @@ function EmployeePayoutsPanel({pushNotification}) {
           onCustomRange={setCustomRange}
           onMode={setMode}
         />
+        {loading ? <span className="employee-payouts-loading" aria-live="polite">Обновляем…</span> : null}
       </div>
-
-      {loading ? <p className="employee-payouts-loading">Загружаем расчёты…</p> : null}
 
       <section className="employee-payout-summary-list">
         {summary.map((row) => (
