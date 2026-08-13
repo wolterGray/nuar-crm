@@ -958,7 +958,7 @@ function CalendarEntryForm({
                     "Карта",
                     "Наличные + карта",
                     ...paymentMethods.filter(
-                      (method) => !["Наличные", "Карта"].includes(method),
+                      (method) => !["Наличные", "Карта", "Наличные + карта"].includes(method),
                     ),
                   ].map((method) => (
                     <option key={method}>{method}</option>
