@@ -2489,12 +2489,12 @@ button:focus-visible {
   .packages-page:not(.packages-page-mobile) .client-package-card,
   .packages-page:not(.packages-page-mobile) .certificate-card {
     display: grid;
-    grid-template-columns: minmax(220px, 1.05fr) minmax(180px, 1fr) minmax(124px, auto) 28px;
+    grid-template-columns: minmax(220px, 1.05fr) minmax(180px, 1fr) minmax(112px, 124px) 28px;
     align-items: center;
     gap: 12px;
     min-height: 56px;
     padding: 9px 12px 9px 14px;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .packages-page:not(.packages-page-mobile) .client-package-card .package-card-top,
@@ -2513,12 +2513,16 @@ button:focus-visible {
   .packages-page:not(.packages-page-mobile) .certificate-card .package-card-footer {
     justify-content: flex-end;
     gap: 10px;
-    min-width: 124px;
+    min-width: 0;
   }
 
   .packages-page:not(.packages-page-mobile) .client-package-card .package-status-pill,
   .packages-page:not(.packages-page-mobile) .certificate-card .package-status-pill {
     margin-left: 0;
+    max-width: 74px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .packages-page:not(.packages-page-mobile) .client-package-card .package-card-footer > span:first-child,
