@@ -467,6 +467,7 @@ function ClientsPage({
         return {
           ...client,
           visitsCount: appointments.length,
+          autoStatus: getClientAutoStatus(appointments.length),
           completedVisitsCount: clientVisits.length,
           upcomingVisitsCount: appointments.filter(
             (appointment) => appointment.status === "Запланирован",
@@ -551,7 +552,7 @@ function ClientsPage({
       client.note,
       client.source,
       client.preference,
-      client.status,
+      client.autoStatus,
       client.tags,
       client.lastVisit,
     ]
@@ -673,9 +674,9 @@ function ClientsPage({
                   <span data-label="Статус">
                     <b
                       className={`client-status-pill ${
-                        (client.status || "Активный") === "Новый" ? "status-new" : "status-active"
+                        client.autoStatus === "Новый" ? "status-new" : "status-active"
                       }`}>
-                      {client.status || "Активный"}
+                      {client.autoStatus}
                     </b>
                   </span>
                   <span className="inline-flex md:hidden items-center px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">
@@ -914,7 +915,9 @@ function ClientsPage({
                 </strong>
               </span>
               <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
-                Статус <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.status || "Активный"}</strong>
+                Статус <strong className="text-foreground text-sm font-semibold truncate mt-1">
+                  {activeViewedClient.autoStatus || getClientAutoStatus(activeViewedClient.visitsCount)}
+                </strong>
               </span>
               <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground col-span-2">
                 Теги <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.tags || "—"}</strong>
@@ -1297,6 +1300,10 @@ function getAppointmentStatus(entry) {
   end.setMinutes(end.getMinutes() + Number(entry.duration || 0));
 
   return end < new Date() ? "Окончен" : "Запланирован";
+}
+
+function getClientAutoStatus(visitsCount) {
+  return (Number(visitsCount) || 0) > 0 ? "Активный" : "Новый";
 }
 
 export default ClientsPage;
