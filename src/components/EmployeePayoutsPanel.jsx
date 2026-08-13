@@ -114,36 +114,24 @@ function PeriodFilters({customRange, mode, onCustomRange, onMode}) {
 function EmployeeSummaryCard({row, selected, onOpen}) {
   return (
     <button
-      className={`employee-card text-left transition ${selected ? "ring-2 ring-red-500" : ""}`}
+      className={`employee-payout-summary-row ${selected ? "is-selected" : ""}`}
       type="button"
       onClick={onOpen}>
-      <div className="employee-card-top">
-        <div className="employee-card-person">
-          <div className="employee-avatar-tile">{row.employeeName.slice(0, 1)}</div>
-          <div className="employee-card-title">
-            <h3>{row.employeeName}</h3>
-            <span>{row.visitsCount} массажей</span>
-          </div>
+      <div className="employee-payout-summary-person">
+        <div className="employee-avatar-tile">{row.employeeName.slice(0, 1)}</div>
+        <div>
+          <h3>{row.employeeName}</h3>
+          <span>{row.visitsCount} массажей</span>
         </div>
-        <strong className="text-lg">{formatMoney(row.unpaid)}</strong>
       </div>
-      <div className="employee-stats">
-        <div>
-          <span>Заработано</span>
-          <strong>{formatMoney(row.earned)}</strong>
-        </div>
-        <div>
-          <span>Выплачено</span>
-          <strong>{formatMoney(row.paid)}</strong>
-        </div>
-        <div>
-          <span>К выплате</span>
-          <strong>{formatMoney(row.unpaid)}</strong>
-        </div>
-        <div>
-          <span>Неоплачено</span>
-          <strong>{row.unpaidCount}</strong>
-        </div>
+      <div className="employee-payout-summary-meta">
+        <span>Заработано <b>{formatMoney(row.earned)}</b></span>
+        <span>Выплачено <b>{formatMoney(row.paid)}</b></span>
+        <span>Не выплачено <b>{formatMoney(row.unpaid)} · {row.unpaidCount}</b></span>
+      </div>
+      <div className="employee-payout-summary-due">
+        <span>К выплате</span>
+        <strong>{formatMoney(row.unpaid)}</strong>
       </div>
     </button>
   );
@@ -170,21 +158,31 @@ function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
       tabIndex={selectable ? 0 : undefined}
       onClick={toggle}
       onKeyDown={handleKeyDown}>
+      {!paid ? (
+        <input
+          className="employee-earning-checkbox"
+          type="checkbox"
+          disabled={disabled}
+          checked={checked}
+          tabIndex={-1}
+          onChange={(event) => onToggle(earning.id, event.target.checked)}
+          onClick={(event) => event.stopPropagation()}
+        />
+      ) : (
+        <span className="employee-earning-checkbox-spacer" aria-hidden="true" />
+      )}
       <div className="employee-earning-content">
-        <div className="employee-earning-header">
-          <strong>{formatDateTime(earning)}</strong>
-          <span className={`payroll-status ${paid ? "is-paid" : "is-open"}`}>
-            {paid ? "Выплачено" : "Не выплачено"}
-          </span>
-        </div>
-        <p>{service} · {client}</p>
-        <div className="employee-earning-stats">
-          <span>Клиент: <b>{formatMoney(earning.actualPrice)}</b></span>
-          <span>Комиссия: <b>{toMoneyNumber(earning.commissionPercent)}%</b></span>
-          <span>Сотруднику: <b>{formatMoney(earning.amount)}</b></span>
-        </div>
+        <strong className="employee-earning-date">{formatDateTime(earning)}</strong>
+        <span className="employee-earning-service">{service}</span>
+        <span className="employee-earning-client">{client}</span>
+        <span className="employee-earning-paid"><small>Клиент</small><b>{formatMoney(earning.actualPrice)}</b></span>
+        <span className="employee-earning-commission"><small>Комиссия</small><b>{toMoneyNumber(earning.commissionPercent)}%</b></span>
+        <strong className="employee-earning-amount">{formatMoney(earning.amount)}</strong>
+        <span className={`payroll-status ${paid ? "is-paid" : "is-open"}`}>
+          {paid ? "Выплачено" : "Не выплачено"}
+        </span>
         {paid ? (
-          <small>
+          <small className="employee-earning-action">
             Выплата {earning.payout?.paidAt ? new Date(earning.payout.paidAt).toLocaleDateString("ru-RU") : ""}
           </small>
         ) : (
@@ -225,8 +223,8 @@ function PayoutHistory({disabled = false, onCancel, onOpen, payouts}) {
               </small>
             </button>
             {payout.status !== "CANCELLED" ? (
-              <Button disabled={disabled} size="sm" type="button" variant="secondary" onClick={() => onCancel(payout.id)}>
-                Отменить выплату
+              <Button disabled={disabled} size="sm" type="button" variant="ghost" onClick={() => onCancel(payout.id)}>
+                Отменить
               </Button>
             ) : null}
           </article>
@@ -404,7 +402,7 @@ function EmployeePayoutsPanel({pushNotification}) {
 
       {loading ? <p className="employee-payouts-loading">Загружаем расчёты…</p> : null}
 
-      <section className="employees-grid">
+      <section className="employee-payout-summary-list">
         {summary.map((row) => (
           <EmployeeSummaryCard
             key={row.employeeId}
@@ -461,19 +459,6 @@ function EmployeePayoutsPanel({pushNotification}) {
                     onClick={() => setSelectedIds(new Set(unpaidEarnings.map((earning) => earning.id)))}>
                     Выбрать все
                   </Button>
-                  <Button
-                    disabled={selectedIds.size === 0 || saving}
-                    size="sm"
-                    type="button"
-                    variant="primary"
-                    onClick={() => paySelected([...selectedIds])}>
-                    Выплатить {formatMoney(selectedTotal)}
-                  </Button>
-                  {selectedIds.size > 0 ? (
-                    <span className="employee-payout-selected-note">
-                      {selectedIds.size} · {formatMoney(selectedTotal)}
-                    </span>
-                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -486,6 +471,17 @@ function EmployeePayoutsPanel({pushNotification}) {
               />
             ) : (
               <div className="employee-earning-list">
+                <div className="employee-earning-table-head" aria-hidden="true">
+                  <span />
+                  <span>Дата</span>
+                  <span>Услуга</span>
+                  <span>Клиент</span>
+                  <span>Оплачено</span>
+                  <span>Комиссия</span>
+                  <span>Сотруднику</span>
+                  <span>Статус</span>
+                  <span />
+                </div>
                 {visibleEarnings.map((earning) => (
                   <EarningRow
                     checked={selectedIds.has(earning.id)}
@@ -505,6 +501,20 @@ function EmployeePayoutsPanel({pushNotification}) {
                 ))}
               </div>
             )}
+            {earningStatus === "unpaid" && selectedIds.size > 0 ? (
+              <div className="employee-payout-action-bar">
+                <span>Выбрано: <b>{selectedIds.size}</b></span>
+                <span>К выплате: <b>{formatMoney(selectedTotal)}</b></span>
+                <Button
+                  disabled={saving}
+                  size="sm"
+                  type="button"
+                  variant="primary"
+                  onClick={() => paySelected([...selectedIds])}>
+                  Выплатить {formatMoney(selectedTotal)}
+                </Button>
+              </div>
+            ) : null}
             {earningStatus === "paid" ? (
               <PayoutHistory disabled={saving} payouts={selectedEmployeePayouts} onCancel={cancelPayout} onOpen={openPayout} />
             ) : null}
