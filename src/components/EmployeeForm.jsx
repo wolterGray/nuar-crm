@@ -53,13 +53,14 @@ function EmployeeForm({ employee, onSubmit }) {
           </Select>
         </Field>
         <label>
-          <FieldLabel hint="Ежедневный режим: комиссия с каждого массажа и отметка «оплачено» по визитам.">
+          <FieldLabel hint="Как часто обычно закрываем выплаты сотруднику. Еженедельные выплаты можно собирать фильтром «эта неделя».">
             Расчёт выплат
           </FieldLabel>
           <Select
             name="payrollSchedule"
             defaultValue={employee?.payrollSchedule ?? "monthly"}>
             <option value="monthly">Ежемесячно</option>
+            <option value="weekly">Еженедельно</option>
             <option value="daily">Ежедневно по визитам</option>
           </Select>
         </label>

@@ -14,14 +14,33 @@ import {normalizePayrollDate} from "./payroll.js";
 
 export const PAYROLL_SCHEDULE_DAILY = "daily";
 export const PAYROLL_SCHEDULE_MONTHLY = "monthly";
+export const PAYROLL_SCHEDULE_WEEKLY = "weekly";
 
-export const normalizePayrollSchedule = (value) =>
-  value === PAYROLL_SCHEDULE_DAILY
-    ? PAYROLL_SCHEDULE_DAILY
+const PAYROLL_SCHEDULE_LABELS = {
+  [PAYROLL_SCHEDULE_DAILY]: "Ежедневно",
+  [PAYROLL_SCHEDULE_MONTHLY]: "Ежемесячно",
+  [PAYROLL_SCHEDULE_WEEKLY]: "Еженедельно",
+};
+
+export const normalizePayrollSchedule = (value) => {
+  const normalized = String(value ?? "").trim().toLowerCase();
+
+  return Object.hasOwn(PAYROLL_SCHEDULE_LABELS, normalized)
+    ? normalized
     : PAYROLL_SCHEDULE_MONTHLY;
+};
 
 export const isDailyPayrollEmployee = (employee) =>
   normalizePayrollSchedule(employee?.payrollSchedule) === PAYROLL_SCHEDULE_DAILY;
+
+export const getPayrollScheduleLabel = (employeeOrSchedule) => {
+  const schedule =
+    typeof employeeOrSchedule === "string"
+      ? normalizePayrollSchedule(employeeOrSchedule)
+      : normalizePayrollSchedule(employeeOrSchedule?.payrollSchedule);
+
+  return PAYROLL_SCHEDULE_LABELS[schedule];
+};
 
 export const isVisitMasterPayoutPaid = (visit) =>
   Boolean(String(visit?.masterPayoutPaidAt ?? "").trim());

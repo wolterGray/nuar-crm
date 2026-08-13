@@ -1,6 +1,7 @@
 import {describe, expect, it} from "vitest";
 import {
   buildDailyPayrollDayReport,
+  getPayrollScheduleLabel,
   isDailyPayrollEmployee,
   isVisitMasterPayoutPaid,
   normalizePayrollSchedule,
@@ -26,9 +27,11 @@ describe("dailyPayroll", () => {
 
   it("detects daily payroll schedule", () => {
     expect(normalizePayrollSchedule("daily")).toBe("daily");
+    expect(normalizePayrollSchedule("weekly")).toBe("weekly");
     expect(normalizePayrollSchedule(undefined)).toBe("monthly");
     expect(isDailyPayrollEmployee(employees[0])).toBe(true);
     expect(isDailyPayrollEmployee(employees[1])).toBe(false);
+    expect(getPayrollScheduleLabel("weekly")).toBe("Еженедельно");
   });
 
   it("builds per-visit payout rows for a day", () => {

@@ -2,7 +2,7 @@ import {motion} from "framer-motion";
 import {useMemo, useState} from "react";
 
 import {formatMoney} from "../utils/formatters.jsx";
-import {isDailyPayrollEmployee} from "../utils/dailyPayroll.js";
+import {getPayrollScheduleLabel} from "../utils/dailyPayroll.js";
 import {resolveEmployeeSiteBookingSlotMinutes} from "../utils/calendarBookableSlots.js";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 
@@ -74,7 +74,7 @@ function EmployeeCard({employee, onDelete, onEdit, openMenuId, setOpenMenuId}) {
           Смена {employee.shiftStart || "08:00"}–{employee.shiftEnd || "22:00"}
         </span>
         <span>
-          {isDailyPayrollEmployee(employee) ? "Ежедневно" : "По периоду"}
+          {getPayrollScheduleLabel(employee)}
         </span>
         <span>
           Сайт: {resolveEmployeeSiteBookingSlotMinutes(employee)} мин

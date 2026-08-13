@@ -4,6 +4,7 @@ import {
   deleteEmployee,
   updateEmployee,
 } from "../api/employees.js";
+import {normalizePayrollSchedule} from "../utils/dailyPayroll.js";
 import {parseEmployeePricingFromForm} from "../utils/siteBookingPricing.js";
 
 export function useEmployeeHandlers({
@@ -53,8 +54,7 @@ export function useEmployeeHandlers({
           Number(form.get("siteBookingSlotMinutes")) || 15,
         ),
         status: form.get("status"),
-        payrollSchedule:
-          form.get("payrollSchedule") === "daily" ? "daily" : "monthly",
+        payrollSchedule: normalizePayrollSchedule(form.get("payrollSchedule")),
         ...parseEmployeePricingFromForm(form, editingEmployee),
       };
       let savedEmployee;
