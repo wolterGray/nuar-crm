@@ -1493,6 +1493,14 @@ return (
             onEdit(viewedClientEntry);
             setViewedClientEntry(null);
           }}
+          onCancel={() => {
+            onStatus(viewedClientEntry, "cancelled");
+            setViewedClientEntry(null);
+          }}
+          onDelete={() => {
+            onDelete(viewedClientEntry);
+            setViewedClientEntry(null);
+          }}
           onRemind={() => onRemind(viewedClientEntry)}
         />
       )}
@@ -1524,11 +1532,14 @@ function ClientCalendarCard({
   onAdd,
   onClose,
   onEdit,
+  onCancel,
+  onDelete,
   onRemind,
 }) {
   const entryStatus =
     statusLabels[currentEntry.status] ||
     (currentEntry.status === "completed" ? "Окончен" : statusLabels.scheduled);
+  const canCancel = !["cancelled", "no_show"].includes(currentEntry.status);
   const duration = Number(currentEntry.duration || 0);
   const serviceAmount =
     currentEntry.amount !== undefined &&
@@ -1598,6 +1609,14 @@ function ClientCalendarCard({
         </Button>
         <Button leftIcon="message" size="sm" type="button" variant="secondary" onClick={onRemind}>
           Написать
+        </Button>
+        {canCancel ? (
+          <Button leftIcon="ban" size="sm" type="button" variant="secondary" onClick={onCancel}>
+            Отменить
+          </Button>
+        ) : null}
+        <Button leftIcon="trash" size="sm" type="button" variant="danger" onClick={onDelete}>
+          Удалить
         </Button>
         <Button leftIcon="calendarPlus" size="sm" type="button" variant="secondary" onClick={onAdd}>
           Новая запись
