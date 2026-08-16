@@ -76,6 +76,34 @@ describe("employee earning calculations", () => {
     expect(String(snapshot.amount)).toBe("144");
   });
 
+  it("pays package visit executor from package unit price even when visit paidAmount is 0", async () => {
+    const tx = {
+      clientPackage: {
+        findUnique: async () => ({id: 12, price: 1200, totalVisits: 6, payload: {master: "Оля"}}),
+      },
+      employee: {
+        findUnique: async () => ({id: 7, commissionRate: 40, name: "Макс"}),
+      },
+    };
+
+    const snapshot = await buildEmployeeEarningSnapshot(tx, {
+      employeeId: 7,
+      payload: {
+        amount: 300,
+        packageSessionsUsed: 1,
+        packageUsageId: 12,
+        paidAmount: 0,
+        payment: "Пакет",
+        status: "completed",
+      },
+    });
+
+    expect(snapshot.employeeId).toBe(7);
+    expect(String(snapshot.actualPrice)).toBe("200");
+    expect(String(snapshot.commissionPercent)).toBe("40");
+    expect(String(snapshot.amount)).toBe("80");
+  });
+
   it("keeps old snapshot at 40% while new completed visits use changed 45% commission", async () => {
     let commissionRate = 40;
     const tx = {

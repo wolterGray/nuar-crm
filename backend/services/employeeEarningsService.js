@@ -101,6 +101,35 @@ const getActualPriceForEarning = (visitPayload) => {
   return normalizeDecimal(Math.max(0, getDayCloseServiceReceivedAmount(visitPayload)));
 };
 
+const getPackageVisitActualPrice = (visitPayload, clientPackage) => {
+  const packagePayload = getClientPackagePayload(clientPackage);
+  const price = Number(clientPackage?.price ?? packagePayload?.price) || 0;
+  const totalVisits = Math.max(1, Number(clientPackage?.totalVisits ?? packagePayload?.totalVisits) || 1);
+  const sessionsUsed = Math.max(1, Number(visitPayload?.packageSessionsUsed) || 1);
+
+  return normalizeDecimal(Math.max(0, price / totalVisits) * sessionsUsed);
+};
+
+const resolveActualPriceForEarning = async (tx, visitPayload) => {
+  if (!isDayClosePackageVisit(visitPayload)) {
+    return getActualPriceForEarning(visitPayload);
+  }
+
+  const clientPackageId = Number(visitPayload?.packageUsageId);
+  if (!Number.isInteger(clientPackageId) || clientPackageId <= 0) {
+    return getActualPriceForEarning(visitPayload);
+  }
+
+  const clientPackage = await tx.clientPackage.findUnique({
+    where: { id: clientPackageId },
+  });
+  if (!clientPackage) {
+    return getActualPriceForEarning(visitPayload);
+  }
+
+  return getPackageVisitActualPrice(visitPayload, clientPackage);
+};
+
 const calculateEmployeeAmount = (actualPrice, commissionPercent) =>
   normalizeDecimal(decimal(actualPrice).mul(decimal(commissionPercent)).div(100));
 
@@ -144,7 +173,7 @@ const buildEmployeeEarningSnapshot = async (tx, visit) => {
   const employee = await resolveEmployeeForVisit(tx, visit, visitPayload);
   const commissionPercent = validateCommissionPercent(employee, visitPayload);
 
-  const actualPrice = getActualPriceForEarning(visitPayload);
+  const actualPrice = await resolveActualPriceForEarning(tx, visitPayload);
   const amount = calculateEmployeeAmount(actualPrice, commissionPercent);
 
   return {
