@@ -350,7 +350,12 @@ function CalendarEntryForm({
     () => Math.round(subtotalAmount * (discountPercent / 100)),
     [discountPercent, subtotalAmount],
   );
+  const isPackagePayment = payment === "Пакет";
   const chargedAmount = useMemo(() => {
+    if (isPackagePayment) {
+      return 0;
+    }
+
     const paidValue = String(paidAmount ?? "").trim();
 
     if (paidValue !== "") {
@@ -358,7 +363,7 @@ function CalendarEntryForm({
     }
 
     return Math.max(0, subtotalAmount - discountAmount);
-  }, [discountAmount, paidAmount, subtotalAmount]);
+  }, [discountAmount, isPackagePayment, paidAmount, subtotalAmount]);
   const autoFinalPrice = useMemo(() => {
     return Math.max(0, subtotalAmount - discountAmount);
   }, [discountAmount, subtotalAmount]);
@@ -952,8 +957,8 @@ function CalendarEntryForm({
                 </FieldLabel>
                 <Input
                   {...register("paidAmount")}
-                  readOnly={isSplitPayment}
-                  value={isSplitPayment ? splitPaymentTotal : paidAmount}
+                  readOnly={isSplitPayment || isPackagePayment}
+                  value={isSplitPayment ? splitPaymentTotal : isPackagePayment ? "0" : paidAmount}
                   className="w-full"
                   onChange={(event) => {
                     markPricingTouched();
@@ -974,8 +979,14 @@ function CalendarEntryForm({
                     setFormValue("payment", nextPayment);
                     if (nextPayment !== "Пакет") {
                       setFormValue("packageUsageId", "");
+                      if (payment === "Пакет") {
+                        setFormValue("paidAmount", "");
+                      }
                     } else if (packageOptions.length === 1) {
                       setFormValue("packageUsageId", packageOptions[0].id);
+                      setFormValue("paidAmount", "0");
+                    } else if (nextPayment === "Пакет") {
+                      setFormValue("paidAmount", "0");
                     }
                     if (nextPayment !== "Сертификат") {
                       setFormValue("certificateUsageId", "");
@@ -1121,7 +1132,7 @@ function CalendarEntryForm({
                 />
               </label>
             </div>
-            {visitPricing ? (
+            {visitPricing && !isPackagePayment ? (
               <div className="calendar-pricing-card">
                 <h4 className="font-bold calendar-info-card-title">Расчёт стоимости</h4>
                 <table className="calendar-pricing-table">
