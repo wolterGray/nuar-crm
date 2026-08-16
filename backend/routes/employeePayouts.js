@@ -33,6 +33,13 @@ const validateDateRange = (startDate, endDate) => {
 };
 
 const visitDate = (earning) => {
+  if (earning?.clientPackage) {
+    const payload = earning.clientPackage.payload && typeof earning.clientPackage.payload === 'object'
+      ? earning.clientPackage.payload
+      : {};
+    return normalizeDate(earning.clientPackage.purchaseDate ?? payload.purchaseDate);
+  }
+
   const payload = earning?.visit?.payload && typeof earning.visit.payload === 'object'
     ? earning.visit.payload
     : {};
@@ -115,6 +122,13 @@ const serializePayout = (payout) => ({
 
 const earningInclude = {
   ...EMPLOYEE_EARNING_INCLUDE,
+  clientPackage: {
+    include: {
+      client: true,
+      employee: true,
+      package: true,
+    },
+  },
   visit: {
     include: {
       client: true,

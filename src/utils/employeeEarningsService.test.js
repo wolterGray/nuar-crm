@@ -3,6 +3,7 @@ import {describe, expect, it} from "vitest";
 
 const require = createRequire(import.meta.url);
 const {
+  buildPackageSaleEarningSnapshot,
   buildEmployeeEarningSnapshot,
   calculateEmployeeAmount,
   getActualPriceForEarning,
@@ -121,6 +122,39 @@ describe("employee earning calculations", () => {
     await expect(buildEmployeeEarningSnapshot(txWithCommission(101), visit))
       .rejects.toThrow("must be between 0 and 100");
   });
+
+  it("creates package sale snapshot from employee commissionRate", async () => {
+    const tx = {
+      employee: {
+        findFirst: async () => ({id: 9, commissionRate: 20, name: "Алена"}),
+      },
+    };
+
+    const snapshot = await buildPackageSaleEarningSnapshot(tx, {
+      id: 5,
+      price: 300,
+      payload: {master: "Алена"},
+    });
+
+    expect(snapshot.employeeId).toBe(9);
+    expect(String(snapshot.actualPrice)).toBe("300");
+    expect(String(snapshot.commissionPercent)).toBe("20");
+    expect(String(snapshot.amount)).toBe("60");
+  });
+
+  it("skips package sale snapshot when seller is not selected", async () => {
+    const tx = {
+      employee: {
+        findFirst: async () => null,
+      },
+    };
+
+    await expect(buildPackageSaleEarningSnapshot(tx, {
+      id: 5,
+      price: 300,
+      payload: {},
+    })).resolves.toBeNull();
+  });
 });
 
 describe("employee payout validation and summaries", () => {
@@ -158,6 +192,27 @@ describe("employee payout validation and summaries", () => {
     expect(rows[0].earned).toBe("800");
     expect(rows[0].unpaid).toBe("1100");
     expect(rows[0].unpaidCount).toBe(2);
+  });
+
+  it("counts package sale earnings by purchase date", () => {
+    const rows = buildEmployeeEarningsSummaryRows({
+      employees: [{id: 1, name: "Алена"}],
+      startDate: "2026-08-10",
+      endDate: "2026-08-16",
+      earnings: [
+        {
+          amount: 60,
+          clientPackage: {purchaseDate: "13.08.2026", payload: {master: "Алена"}},
+          employeeId: 1,
+          payoutId: null,
+          sourceType: "PACKAGE_SALE",
+        },
+      ],
+    });
+
+    expect(rows[0].earned).toBe("60");
+    expect(rows[0].unpaid).toBe("60");
+    expect(rows[0].visitsCount).toBe(1);
   });
 
   it("does not count cancelled payouts as paid", () => {

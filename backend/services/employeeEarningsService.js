@@ -24,6 +24,9 @@ const VISIT_WITH_EARNING_INCLUDE = {
   },
 };
 
+const EARNING_SOURCE_VISIT = 'VISIT';
+const EARNING_SOURCE_PACKAGE_SALE = 'PACKAGE_SALE';
+
 const decimal = (value) => new Decimal(value ?? 0);
 
 const normalizeDecimal = (value) => decimal(value).toDecimalPlaces(2);
@@ -64,6 +67,7 @@ const serializeEmployeeEarning = (earning) => {
     actualPrice: String(earning.actualPrice),
     amount: String(earning.amount),
     commissionPercent: String(earning.commissionPercent),
+    clientPackage: earning.clientPackage ? withStoredId(earning.clientPackage) : undefined,
     employee: earning.employee ? withStoredId(earning.employee) : undefined,
     payout: earning.payout
       ? {
@@ -113,6 +117,24 @@ const resolveEmployeeForVisit = async (tx, visit, visitPayload) => {
   return tx.employee.findFirst({ where: { name: master } });
 };
 
+const getClientPackagePayload = (clientPackage) =>
+  clientPackage?.payload && typeof clientPackage.payload === 'object'
+    ? clientPackage.payload
+    : {};
+
+const resolveEmployeeForClientPackage = async (tx, clientPackage, payload = {}) => {
+  const employeeId = Number(clientPackage?.employeeId ?? payload?.employeeId);
+  if (Number.isInteger(employeeId) && employeeId > 0) {
+    const employee = await tx.employee.findUnique({ where: { id: employeeId } });
+    if (employee) return employee;
+  }
+
+  const master = String(payload?.master ?? payload?.employeeName ?? '').trim();
+  if (!master) return null;
+
+  return tx.employee.findFirst({ where: { name: master } });
+};
+
 const buildEmployeeEarningSnapshot = async (tx, visit) => {
   const visitPayload = getVisitPayloadForDayClose(visit);
   if (!isCompletedEarningEligibleVisit(visitPayload)) {
@@ -131,6 +153,31 @@ const buildEmployeeEarningSnapshot = async (tx, visit) => {
     commissionPercent,
     employee,
     employeeId: employee.id,
+    sourceType: EARNING_SOURCE_VISIT,
+  };
+};
+
+const buildPackageSaleEarningSnapshot = async (tx, clientPackage) => {
+  const payload = getClientPackagePayload(clientPackage);
+  const hasSeller =
+    Number(clientPackage?.employeeId ?? payload?.employeeId) > 0 ||
+    String(payload?.master ?? payload?.employeeName ?? '').trim();
+  if (!hasSeller) {
+    return null;
+  }
+
+  const employee = await resolveEmployeeForClientPackage(tx, clientPackage, payload);
+  const commissionPercent = validateCommissionPercent(employee, payload);
+  const actualPrice = normalizeDecimal(Math.max(0, Number(clientPackage?.price ?? payload?.price) || 0));
+  const amount = calculateEmployeeAmount(actualPrice, commissionPercent);
+
+  return {
+    actualPrice,
+    amount,
+    commissionPercent,
+    employee,
+    employeeId: employee.id,
+    sourceType: EARNING_SOURCE_PACKAGE_SALE,
   };
 };
 
@@ -184,6 +231,7 @@ const syncEmployeeEarningForCompletedVisit = async (tx, req, visit) => {
     amount: snapshot.amount,
     commissionPercent: snapshot.commissionPercent,
     employeeId: snapshot.employeeId,
+    sourceType: snapshot.sourceType,
   };
 
   const earning = existing
@@ -209,6 +257,93 @@ const syncEmployeeEarningForCompletedVisit = async (tx, req, visit) => {
   });
 
   return earning;
+};
+
+const syncEmployeeEarningForClientPackageSale = async (tx, req, clientPackage) => {
+  const existing = await tx.employeeEarning.findUnique({
+    where: { clientPackageId: clientPackage.id },
+    include: EMPLOYEE_EARNING_INCLUDE,
+  });
+  const snapshot = await buildPackageSaleEarningSnapshot(tx, clientPackage);
+
+  if (!snapshot) {
+    if (existing?.payoutId) {
+      throw stateConflictError(
+        'This package sale is already included in a payout. Cancel the payout before removing the earning.',
+      );
+    }
+    if (existing) {
+      const deleted = await tx.employeeEarning.delete({ where: { id: existing.id } });
+      await recordAuditLog(tx, req, {
+        action: 'delete package sale employee earning',
+        after: null,
+        before: serializeEmployeeEarning(existing),
+        entity: 'EmployeeEarning',
+        entityId: deleted.id,
+      });
+    }
+    return null;
+  }
+
+  if (existing?.payoutId) {
+    assertPaidEarningUnchanged(existing, snapshot);
+    return existing;
+  }
+
+  const data = {
+    actualPrice: snapshot.actualPrice,
+    amount: snapshot.amount,
+    commissionPercent: snapshot.commissionPercent,
+    employeeId: snapshot.employeeId,
+    sourceType: snapshot.sourceType,
+  };
+
+  const earning = existing
+    ? await tx.employeeEarning.update({
+        where: { id: existing.id },
+        data,
+        include: EMPLOYEE_EARNING_INCLUDE,
+      })
+    : await tx.employeeEarning.create({
+        data: {
+          ...data,
+          clientPackageId: clientPackage.id,
+        },
+        include: EMPLOYEE_EARNING_INCLUDE,
+      });
+
+  await recordAuditLog(tx, req, {
+    action: existing ? 'update package sale employee earning' : 'create package sale employee earning',
+    after: serializeEmployeeEarning(earning),
+    before: existing ? serializeEmployeeEarning(existing) : null,
+    entity: 'EmployeeEarning',
+    entityId: earning.id,
+  });
+
+  return earning;
+};
+
+const removeUnpaidEmployeeEarningForClientPackage = async (tx, req, clientPackageId) => {
+  const earning = await tx.employeeEarning.findUnique({
+    where: { clientPackageId },
+    include: EMPLOYEE_EARNING_INCLUDE,
+  });
+  if (!earning) return null;
+  if (earning.payoutId) {
+    throw stateConflictError(
+      'This package sale is already included in a payout. Cancel the payout before changing or deleting it.',
+    );
+  }
+
+  const deleted = await tx.employeeEarning.delete({ where: { id: earning.id } });
+  await recordAuditLog(tx, req, {
+    action: 'delete package sale employee earning',
+    after: null,
+    before: serializeEmployeeEarning(earning),
+    entity: 'EmployeeEarning',
+    entityId: deleted.id,
+  });
+  return deleted;
 };
 
 const assertVisitCanBeRemoved = async (tx, visitId) => {
@@ -254,13 +389,18 @@ module.exports = {
   VISIT_WITH_EARNING_INCLUDE,
   assertVisitCanBeRemoved,
   buildEmployeeEarningSnapshot,
+  buildPackageSaleEarningSnapshot,
   calculateEmployeeAmount,
+  EARNING_SOURCE_PACKAGE_SALE,
+  EARNING_SOURCE_VISIT,
   earningAmountSum,
   getActualPriceForEarning,
   serializeEmployeeEarning,
   serializeVisitWithEarning,
+  removeUnpaidEmployeeEarningForClientPackage,
   removeUnpaidEmployeeEarningForVisit,
   stateConflictError,
+  syncEmployeeEarningForClientPackageSale,
   syncEmployeeEarningForCompletedVisit,
   validateCommissionPercent,
 };

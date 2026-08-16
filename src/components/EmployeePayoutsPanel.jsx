@@ -57,6 +57,14 @@ const getPeriodRange = (mode, customRange) => {
 };
 
 const formatDateTime = (earning) => {
+  if (earning?.clientPackage) {
+    const payload =
+      earning.clientPackage.payload && typeof earning.clientPackage.payload === "object"
+        ? earning.clientPackage.payload
+        : {};
+    return earning.clientPackage.purchaseDate || payload.purchaseDate || "";
+  }
+
   const visit = earning?.visit ?? {};
   const payload = visit.payload && typeof visit.payload === "object" ? visit.payload : visit;
   const date = payload.date || (visit.scheduledAt ? toInputDate(new Date(visit.scheduledAt)) : "");
@@ -65,6 +73,15 @@ const formatDateTime = (earning) => {
 };
 
 const getVisitLabel = (earning) => {
+  if (earning?.clientPackage) {
+    const packageItem = earning.clientPackage;
+    const payload = packageItem.payload && typeof packageItem.payload === "object" ? packageItem.payload : {};
+    return {
+      client: packageItem.clientName || payload.client || packageItem.client?.name || "Клиент",
+      service: `Продажа пакета: ${packageItem.packageName || payload.packageName || packageItem.package?.name || "Пакет"}`,
+    };
+  }
+
   const visit = earning?.visit ?? {};
   const payload = visit.payload && typeof visit.payload === "object" ? visit.payload : visit;
   return {
@@ -123,7 +140,7 @@ function EmployeeSummaryCard({row, selected, onOpen}) {
         <div className="employee-avatar-tile">{row.employeeName.slice(0, 1)}</div>
         <div>
           <h3>{row.employeeName}</h3>
-          <span>{row.visitsCount} массажей</span>
+          <span>{row.visitsCount} начислений</span>
         </div>
       </div>
       <div className="employee-payout-summary-meta">

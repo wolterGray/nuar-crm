@@ -6,8 +6,10 @@ const { recordAuditLog, recordErrorEvent } = require('../services/loggingService
 const {
   VISIT_WITH_EARNING_INCLUDE,
   assertVisitCanBeRemoved,
+  removeUnpaidEmployeeEarningForClientPackage,
   removeUnpaidEmployeeEarningForVisit,
   serializeVisitWithEarning,
+  syncEmployeeEarningForClientPackageSale,
   syncEmployeeEarningForCompletedVisit,
 } = require('../services/employeeEarningsService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
@@ -622,7 +624,7 @@ router.get('/financial-state', async (req, res) => {
 });
 
 // ==================== Client Packages CRUD ====================
-router.post('/client-packages', (req, res) => {
+router.post('/client-packages', async (req, res) => {
   const data = buildClientPackageData(req.body ?? {});
   try {
     validateClientPackageData(data);
@@ -633,14 +635,25 @@ router.post('/client-packages', (req, res) => {
     return res.status(400).json({ success: false, error: 'Client package requires client and package' });
   }
 
-  auditCreate(
-    prisma,
-    req,
-    res,
-    prisma.clientPackage.create({ data }).then(withStoredId),
-    'ClientPackage',
-    'create package sale',
-  );
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const saved = await tx.clientPackage.create({ data });
+      await syncEmployeeEarningForClientPackageSale(tx, req, saved);
+      await recordAuditLog(tx, req, {
+        action: 'create package sale',
+        after: withStoredId(saved),
+        before: null,
+        entity: 'ClientPackage',
+        entityId: saved.id,
+      });
+      return withStoredId(saved);
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    console.error('Create client package error:', err);
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
 router.get('/client-packages/:id', (req, res) => {
@@ -660,31 +673,51 @@ router.put('/client-packages/:id', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Client package requires client and package' });
   }
 
-  await auditUpdate(
-    prisma,
-    req,
-    res,
-    'clientPackage',
-    id,
-    prisma.clientPackage.update({ where: { id }, data }).then(withStoredId),
-    'ClientPackage',
-    'use package',
-  );
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const previous = await tx.clientPackage.findUnique({ where: { id } });
+      const saved = await tx.clientPackage.update({ where: { id }, data });
+      await syncEmployeeEarningForClientPackageSale(tx, req, saved);
+      await recordAuditLog(tx, req, {
+        action: 'update package sale',
+        after: withStoredId(saved),
+        before: withStoredId(previous),
+        entity: 'ClientPackage',
+        entityId: saved.id,
+      });
+      return withStoredId(saved);
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    console.error('Update client package error:', err);
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
 router.delete('/client-packages/:id', requireOwner, async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
-  await auditDelete(
-    prisma,
-    req,
-    res,
-    'clientPackage',
-    id,
-    prisma.clientPackage.delete({ where: { id } }).then(withStoredId),
-    'ClientPackage',
-    'delete package sale',
-  );
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const previous = await tx.clientPackage.findUnique({ where: { id } });
+      await removeUnpaidEmployeeEarningForClientPackage(tx, req, id);
+      const deleted = await tx.clientPackage.delete({ where: { id } });
+      await recordAuditLog(tx, req, {
+        action: 'delete package sale',
+        after: null,
+        before: withStoredId(previous),
+        entity: 'ClientPackage',
+        entityId: deleted.id,
+      });
+      return withStoredId(deleted);
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    console.error('Delete client package error:', err);
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
 router.get('/client-packages', (req, res) => {

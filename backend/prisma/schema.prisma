@@ -422,6 +422,7 @@ model ClientPackage {
   package         Package? @relation(fields: [packageId], references: [id], onDelete: SetNull)
   employee        Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   usages          ClientPackageUsage[]
+  employeeEarning EmployeeEarning?
 }
 
 model ClientPackageUsage {
@@ -522,7 +523,9 @@ model PayrollRecord {
 model EmployeeEarning {
   id                Int      @id @default(autoincrement())
   employeeId        Int
-  visitId           Int      @unique
+  visitId           Int?     @unique
+  clientPackageId   Int?     @unique
+  sourceType        String   @default("VISIT")
   actualPrice       Decimal
   commissionPercent Decimal
   amount            Decimal
@@ -531,7 +534,8 @@ model EmployeeEarning {
   updatedAt         DateTime @updatedAt
 
   employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
-  visit             Visit    @relation(fields: [visitId], references: [id], onDelete: Restrict)
+  visit             Visit?   @relation(fields: [visitId], references: [id], onDelete: Restrict)
+  clientPackage     ClientPackage? @relation(fields: [clientPackageId], references: [id], onDelete: Restrict)
   payout            EmployeePayout? @relation(fields: [payoutId], references: [id], onDelete: Restrict)
 
   @@index([employeeId, createdAt])
