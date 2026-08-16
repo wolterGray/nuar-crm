@@ -30,6 +30,13 @@ describe("bulkSms", () => {
       status: "Новый",
       birthday: "",
     },
+    {
+      id: "4",
+      name: "Auto New",
+      phone: "501222333",
+      status: "Активный",
+      birthday: "",
+    },
   ];
   const visits = [{client: "Anna Kowalska", date: "01.01.2026", recordType: "visit"}];
   const calendarEntries = [
@@ -62,19 +69,22 @@ describe("bulkSms", () => {
   it("builds new clients segment and skips clients without phone", () => {
     const recipients = buildBulkSmsRecipients({
       appSettings,
+      calendarEntries,
       clientProfiles,
       segmentId: "new_clients",
       template: defaultBulkSmsTemplate,
+      visits,
     });
 
-    expect(recipients).toHaveLength(2);
+    expect(recipients).toHaveLength(3);
+    expect(recipients.map((item) => item.clientName)).toContain("Auto New");
     expect(
       recipients.find((item) => item.clientName === "Bez Telefonu")?.status,
     ).toBe("no_phone");
     expect(summarizeBulkSmsRecipients(recipients)).toEqual({
-      readyCount: 1,
+      readyCount: 2,
       skippedCount: 1,
-      totalCount: 2,
+      totalCount: 3,
     });
   });
 

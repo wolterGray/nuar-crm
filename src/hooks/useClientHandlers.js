@@ -111,7 +111,7 @@ export function useClientHandlers({
         source: form.get("source"),
         messageLanguage: form.get("messageLanguage") || "Польский",
         preference: form.get("preference"),
-        status: form.get("status") || "Активный",
+        status: editingClient?.status || "Новый",
         tags: String(form.get("tags") ?? "").trim(),
         note: String(form.get("note") ?? "").trim(),
       };

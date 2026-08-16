@@ -25,7 +25,6 @@ const clientFormSchema = z.object({
   source: z.string().min(1, "Укажите источник"),
   messageLanguage: z.string().min(1, "Укажите язык SMS"),
   preference: z.string().min(1, "Укажите предпочтение"),
-  status: z.string().min(1, "Укажите статус"),
   tags: z.string().optional(),
   note: z.string().optional(),
 });
@@ -76,7 +75,6 @@ function NewClientForm({client, employees = [], onSubmit}) {
       source: client?.source ?? "Instagram",
       messageLanguage: client?.messageLanguage ?? "Польский",
       preference: currentPreference,
-      status: client?.status ?? "Активный",
       tags: client?.tags ?? "",
       note: client?.note ?? "",
     },
@@ -185,15 +183,6 @@ function NewClientForm({client, employees = [], onSubmit}) {
             </Select>
             <FieldError message={errors.messageLanguage?.message} />
           </label>
-          <Field error={errors.status?.message} label="Статус клиента">
-            <Select {...register("status")} aria-invalid={Boolean(errors.status)}>
-              <option>Активный</option>
-              <option>VIP</option>
-              <option>Новый</option>
-              <option>Пауза</option>
-              <option>Не беспокоить</option>
-            </Select>
-          </Field>
           <Field label="Теги">
             <Input
               {...register("tags")}

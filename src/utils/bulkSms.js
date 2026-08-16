@@ -28,6 +28,14 @@ const clientHasActivePackage = (client, clientPackages = [], clientProfiles = []
       matchesClientRecord(packageItem, clientProfiles, client),
   );
 
+const clientHasVisits = (client, visits = [], calendarEntries = [], clientProfiles = []) =>
+  [...visits, ...calendarEntries].some(
+    (entry) =>
+      entry?.kind !== "reserved" &&
+      entry?.recordType !== "operation" &&
+      matchesClientRecord(entry, clientProfiles, client),
+  );
+
 export const buildBulkSmsRecipients = ({
   appSettings = {},
   calendarEntries = [],
@@ -56,7 +64,7 @@ export const buildBulkSmsRecipients = ({
     });
   } else if (segmentId === "new_clients") {
     clients = clientProfiles.filter(
-      (client) => String(client.status ?? "").trim() === "Новый",
+      (client) => !clientHasVisits(client, visits, calendarEntries, clientProfiles),
     );
   } else if (segmentId === "active_packages") {
     clients = clientProfiles.filter((client) =>
