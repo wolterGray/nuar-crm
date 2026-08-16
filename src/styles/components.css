@@ -4244,6 +4244,10 @@
   border-color: var(--calendar-border, var(--color-border));
 }
 
+.nuar-calendar-master + .nuar-calendar-master {
+  border-left: 1px solid color-mix(in srgb, var(--calendar-border, var(--color-border)) 64%, transparent);
+}
+
 .nuar-calendar-master-header {
   display: grid;
   height: 48px;
@@ -4252,6 +4256,10 @@
   padding-inline: var(--space-3);
   border-color: var(--calendar-border, var(--color-border));
   background: var(--color-card);
+}
+
+.nuar-calendar-master + .nuar-calendar-master .nuar-calendar-master-header {
+  box-shadow: -1px 0 0 color-mix(in srgb, var(--calendar-border, var(--color-border)) 64%, transparent);
 }
 
 .nuar-calendar .schedule-column {
