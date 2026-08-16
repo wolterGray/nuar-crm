@@ -3,6 +3,7 @@ import {getRandomServiceColor} from "../utils/serviceColors.js";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import HintIcon, {FieldLabel} from "./HintIcon.jsx";
 import {Button, Checkbox, Field, Input} from "./ui/index.js";
+import {getServiceAssignedEmployeeIds} from "../utils/serviceAssignments.js";
 
 const serviceDurations = [30, 60, 75, 90, 120];
 
@@ -77,7 +78,7 @@ function ServiceBookingBuffers({service}) {
   );
 }
 
-function ServiceForm({service, onSubmit}) {
+function ServiceForm({employees = [], service, onSubmit}) {
   const {isMobile} = useBreakpoint();
   const defaultColor = useMemo(
     () => service?.color ?? getRandomServiceColor(),
@@ -88,6 +89,8 @@ function ServiceForm({service, onSubmit}) {
   const isParallel = service?.isParallel ?? service?.payload?.isParallel ?? false;
   const parallelParticipants =
     service?.parallelParticipants ?? service?.payload?.parallelParticipants ?? 2;
+  const assignedEmployeeIds = getServiceAssignedEmployeeIds(service);
+  const assignedToEveryone = !service || assignedEmployeeIds.length === 0;
 
   return (
     <section className="panel service-form-panel service-form-sheet-root">
@@ -118,6 +121,36 @@ function ServiceForm({service, onSubmit}) {
             </Field>
           ))}
         </div>
+        {employees.length > 0 ? (
+          <div className="employee-pricing-panel service-booking-buffers">
+            <div className="service-booking-buffers-heading">
+              <h3>
+                Мастера
+                <HintIcon>
+                  Услуга будет видна в календаре только у выбранных мастеров.
+                  Если выбрать всех, услуга останется общей.
+                </HintIcon>
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {employees.map((employee) => (
+                <label className="form-checkbox" key={employee.id}>
+                  <Checkbox
+                    className="form-checkbox-input"
+                    defaultChecked={
+                      assignedToEveryone ||
+                      assignedEmployeeIds.includes(String(employee.id))
+                    }
+                    name="assignedEmployeeIds"
+                    value={employee.id}
+                  />
+                  <span aria-hidden="true" className="form-checkbox-box" />
+                  <span className="form-checkbox-label">{employee.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : null}
         <div className="employee-pricing-panel service-booking-buffers">
           <ServiceBufferToggle
             defaultChecked={isParallel}

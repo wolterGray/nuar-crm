@@ -187,7 +187,11 @@ export default function AppModals({
         labelledBy="service-modal-title"
         title={editingService ? "Редактировать услугу" : "Добавить услугу"}
         onClose={onCloseServiceModal}>
-        <ServiceForm service={editingService} onSubmit={onServiceSubmit} />
+        <ServiceForm
+          employees={activeEmployees}
+          service={editingService}
+          onSubmit={onServiceSubmit}
+        />
       </FormModalShell>
 
       <FormModalShell

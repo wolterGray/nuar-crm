@@ -10,6 +10,7 @@ import {paymentMethods} from "../constants/paymentMethods.js";
 import {matchesClientRecord} from "../utils/clientLinks.js";
 import {getPackagePlannedProgressLabel} from "../utils/packages.jsx";
 import {isParallelService} from "../utils/parallelVisits.js";
+import {isServiceAssignedToEmployee} from "../utils/serviceAssignments.js";
 import {calculateSiteBookingPrice} from "../utils/siteBookingPricing.js";
 import {FieldLabel} from "./HintIcon.jsx";
 import {toVisitNumber} from "../utils/visits.jsx";
@@ -297,6 +298,34 @@ function CalendarEntryForm({
     ],
   });
   const service = services.find((item) => String(item.id) === String(serviceId));
+  const selectedEmployee = useMemo(
+    () => employees.find((employee) => employee.name === master) ?? null,
+    [employees, master],
+  );
+  const availableServices = useMemo(() => {
+    if (kind !== "visit" || !selectedEmployee) {
+      return services;
+    }
+
+    const filtered = services.filter((item) =>
+      isServiceAssignedToEmployee(item, selectedEmployee),
+    );
+
+    const shouldKeepExistingEntryService =
+      initialEntry &&
+      String(service?.id) === String(initialEntry.serviceId) &&
+      master === initialEntry.master;
+
+    if (
+      shouldKeepExistingEntryService &&
+      service &&
+      !filtered.some((item) => String(item.id) === String(service.id))
+    ) {
+      return [...filtered, service];
+    }
+
+    return filtered;
+  }, [initialEntry, kind, master, selectedEmployee, service, services]);
   const isParallelVisit = kind === "visit" && isParallelService(service);
   const serviceVariant = useMemo(
     () =>
@@ -310,16 +339,30 @@ function CalendarEntryForm({
       return null;
     }
 
-    const employee = employees.find((item) => item.name === master) ?? null;
-
     return calculateSiteBookingPrice({
       basePrice: serviceVariant.price,
       date,
       durationMinutes: duration,
-      employee,
+      employee: selectedEmployee,
       time,
     });
-  }, [date, duration, employees, kind, master, serviceVariant, time]);
+  }, [date, duration, kind, selectedEmployee, serviceVariant, time]);
+  useEffect(() => {
+    if (kind !== "visit" || !serviceId) {
+      return;
+    }
+
+    const isStillAvailable = availableServices.some(
+      (item) => String(item.id) === String(serviceId),
+    );
+
+    if (!isStillAvailable) {
+      allowAutoPricing();
+      setFormValue("serviceId", "", {shouldValidate: false});
+      setFormValue("amount", "", {shouldValidate: false});
+      setFormValue("paidAmount", "", {shouldValidate: false});
+    }
+  }, [allowAutoPricing, availableServices, kind, serviceId, setFormValue]);
   useEffect(() => {
     if (!isParallelVisit) {
       if (secondaryMaster) {
@@ -971,7 +1014,7 @@ function CalendarEntryForm({
                   }}
                 >
                   <option value="">Выберите услугу</option>
-                  {services.map((item) => (
+                  {availableServices.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}
                     </option>

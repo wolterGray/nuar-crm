@@ -1332,6 +1332,7 @@ function App() {
     requestDeleteService,
   } = useServiceHandlers({
     createLocalId,
+    employees,
     editingPackage,
     editingService,
     pushNotification,

@@ -13,6 +13,7 @@ import {getRandomServiceColor} from "../utils/serviceColors.js";
 import {parseServiceBookingBuffersFromForm} from "../utils/siteBookingBuffers.js";
 
 export function useServiceHandlers({
+  employees = [],
   editingPackage,
   editingService,
   pushNotification,
@@ -46,6 +47,14 @@ export function useServiceHandlers({
       const form = new FormData(event.currentTarget);
       const name = String(form.get("name") ?? "").trim();
       const previousName = editingService?.name;
+      const assignedEmployeeIds = form
+        .getAll("assignedEmployeeIds")
+        .map((value) => String(value).trim())
+        .filter(Boolean);
+      const assignedEmployeeNames = employees
+        .filter((employee) => assignedEmployeeIds.includes(String(employee.id)))
+        .map((employee) => employee.name)
+        .filter(Boolean);
 
       if (!name) {
         return;
@@ -60,6 +69,8 @@ export function useServiceHandlers({
         parallelParticipants: form.get("isParallel") === "on"
           ? Math.max(2, Number(form.get("parallelParticipants")) || 2)
           : 1,
+        assignedEmployeeIds,
+        assignedEmployeeNames,
         variants: [30, 60, 75, 90, 120]
           .map((duration) => ({
             duration,
@@ -130,6 +141,7 @@ export function useServiceHandlers({
     },
     [
       editingService,
+      employees,
       pushNotification,
       setCalendarEntries,
       setClientPackages,
