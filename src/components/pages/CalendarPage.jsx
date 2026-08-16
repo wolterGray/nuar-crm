@@ -322,7 +322,11 @@ function CalendarPage({
     [entries, selectedDate, settings.calendarShowTasks],
   );
   const calendarMasters = useMemo(() => {
-    if (employees.length > 0) return employees;
+    if (employees.length > 0) {
+      return employees.filter((employee) =>
+        isEmployeeAvailableOnDate(employee, selectedDate),
+      );
+    }
 
     const entryMasters = Array.from(
       new Set(dayEntries.map((entry) => entry.master).filter(Boolean)),
@@ -347,7 +351,7 @@ function CalendarPage({
         shiftEnd: settings.workdayEnd,
       },
     ];
-  }, [dayEntries, employees, settings.workdayEnd, settings.workdayStart]);
+  }, [dayEntries, employees, selectedDate, settings.workdayEnd, settings.workdayStart]);
   const visitEntries = dayEntries.filter((entry) => entry.kind === "visit");
   const activeVisitEntries = visitEntries.filter(
     (entry) => isEntryActive(entry, selectedDate, now),
@@ -895,10 +899,7 @@ return (
                     </strong>
                   </div>
                 </div>
-                {calendarMasters.map((employee, empIndex) => {
-                  const employeeAvailable = isEmployeeAvailableOnDate(employee, selectedDate);
-
-                  return (
+                {calendarMasters.map((employee, empIndex) => (
                   <div className="nuar-calendar-master min-w-0" key={employee.id}>
                     <header className="nuar-calendar-master-header sticky top-0 z-12">
                       <strong>
@@ -910,9 +911,7 @@ return (
                         {employee.name}
                       </strong>
                       <span>
-                        {employeeAvailable
-                          ? `${employee.shiftStart || settings.workdayStart || "08:00"}–${employee.shiftEnd || settings.workdayEnd || "22:00"}`
-                          : "не работает"}
+                        {employee.shiftStart || settings.workdayStart || "08:00"}–{employee.shiftEnd || settings.workdayEnd || "22:00"}
                       </span>
                     </header>
                     <DroppableScheduleColumn
@@ -923,14 +922,6 @@ return (
                       onPointerUp={clearSlotLongPress}
                     >
                       {(() => {
-                        if (!employeeAvailable) {
-                          return (
-                            <div
-                              className="schedule-off-hours schedule-off-hours-full absolute inset-0 z-1 pointer-events-none"
-                            />
-                          );
-                        }
-
                         const shiftStart = Math.max(
                           visualStartMinutes,
                           toMinutes(employee.shiftStart || settings.workdayStart),
@@ -1157,8 +1148,7 @@ return (
                       })}
                     </DroppableScheduleColumn>
                   </div>
-                  );
-                })}
+                ))}
               </div>
             </section>
             {dragPreview && (
