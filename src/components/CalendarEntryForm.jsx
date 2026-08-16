@@ -318,6 +318,19 @@ function CalendarEntryForm({
     setFormValue("amount", nextAmount, {shouldValidate: false});
     setFormValue("discount", nextDiscount, {shouldValidate: false});
   }, [amount, discount, kind, setFormValue, visitPricing]);
+  const subtotalAmount = useMemo(() => {
+    const manualAmount = toVisitNumber(amount);
+
+    return manualAmount || visitPricing?.subtotal || 0;
+  }, [amount, visitPricing]);
+  const discountPercent = useMemo(
+    () => Math.max(0, Math.min(100, toVisitNumber(discount))),
+    [discount],
+  );
+  const discountAmount = useMemo(
+    () => Math.round(subtotalAmount * (discountPercent / 100)),
+    [discountPercent, subtotalAmount],
+  );
   const chargedAmount = useMemo(() => {
     const paidValue = String(paidAmount ?? "").trim();
 
@@ -325,25 +338,11 @@ function CalendarEntryForm({
       return Math.max(0, toVisitNumber(paidValue));
     }
 
-    if (visitPricing) {
-      return visitPricing.finalPrice;
-    }
-
-    const base = toVisitNumber(amount);
-    const discountPercent = toVisitNumber(discount);
-
-    return Math.max(0, Math.round(base * (1 - discountPercent / 100)));
-  }, [amount, discount, paidAmount, visitPricing]);
+    return Math.max(0, subtotalAmount - discountAmount);
+  }, [discountAmount, paidAmount, subtotalAmount]);
   const autoFinalPrice = useMemo(() => {
-    if (visitPricing) {
-      return visitPricing.finalPrice;
-    }
-
-    const base = toVisitNumber(amount);
-    const discountPercent = toVisitNumber(discount);
-
-    return Math.max(0, Math.round(base * (1 - discountPercent / 100)));
-  }, [amount, discount, visitPricing]);
+    return Math.max(0, subtotalAmount - discountAmount);
+  }, [discountAmount, subtotalAmount]);
   const manualDiscountAmount = useMemo(() => {
     if (String(paidAmount ?? "").trim() === "") {
       return 0;
@@ -1106,12 +1105,12 @@ function CalendarEntryForm({
                     ) : null}
                     <tr>
                       <th>Сумма до скидки</th>
-                      <td>{visitPricing.subtotal} zł</td>
+                      <td>{subtotalAmount} zł</td>
                     </tr>
-                    {visitPricing.discountPercent > 0 ? (
+                    {discountPercent > 0 ? (
                       <tr>
-                        <th>Скидка −{visitPricing.discountPercent}%</th>
-                        <td>−{visitPricing.discountAmount} zł</td>
+                        <th>Скидка −{discountPercent}%</th>
+                        <td>−{discountAmount} zł</td>
                       </tr>
                     ) : null}
                     {manualDiscountAmount > 0 ? (
