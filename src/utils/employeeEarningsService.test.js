@@ -4,6 +4,7 @@ import {describe, expect, it} from "vitest";
 const require = createRequire(import.meta.url);
 const {
   buildPackageSaleEarningSnapshot,
+  buildEmployeeEarningSnapshots,
   buildEmployeeEarningSnapshot,
   calculateEmployeeAmount,
   getActualPriceForEarning,
@@ -102,6 +103,39 @@ describe("employee earning calculations", () => {
     expect(String(snapshot.actualPrice)).toBe("200");
     expect(String(snapshot.commissionPercent)).toBe("40");
     expect(String(snapshot.amount)).toBe("80");
+  });
+
+  it("splits a parallel visit actual price and pays every assigned employee by own rate", async () => {
+    const employees = new Map([
+      [1, {id: 1, commissionRate: 40, name: "Макс"}],
+      [2, {id: 2, commissionRate: 20, name: "Алена"}],
+    ]);
+    const tx = {
+      employee: {
+        findUnique: async ({where}) => employees.get(where.id) ?? null,
+        findFirst: async ({where}) =>
+          [...employees.values()].find((employee) => employee.name === where.name) ?? null,
+      },
+    };
+
+    const snapshots = await buildEmployeeEarningSnapshots(tx, {
+      payload: {
+        amount: 600,
+        paidAmount: 480,
+        parallelEmployees: [
+          {employeeId: 1, name: "Макс"},
+          {employeeId: 2, name: "Алена"},
+        ],
+        payment: "Карта",
+        status: "completed",
+      },
+    });
+
+    expect(snapshots).toHaveLength(2);
+    expect(String(snapshots[0].actualPrice)).toBe("240");
+    expect(String(snapshots[0].amount)).toBe("96");
+    expect(String(snapshots[1].actualPrice)).toBe("240");
+    expect(String(snapshots[1].amount)).toBe("48");
   });
 
   it("keeps old snapshot at 40% while new completed visits use changed 45% commission", async () => {

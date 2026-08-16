@@ -19,8 +19,9 @@ const EMPLOYEE_EARNING_INCLUDE = {
 };
 
 const VISIT_WITH_EARNING_INCLUDE = {
-  employeeEarning: {
+  employeeEarnings: {
     include: EMPLOYEE_EARNING_INCLUDE,
+    orderBy: { id: 'asc' },
   },
 };
 
@@ -81,9 +82,13 @@ const serializeEmployeeEarning = (earning) => {
 const serializeVisitWithEarning = (visit) => {
   const stored = withStoredId(visit);
   if (!stored) return stored;
+  const employeeEarnings = Array.isArray(visit.employeeEarnings)
+    ? visit.employeeEarnings.map(serializeEmployeeEarning)
+    : [];
   return {
     ...stored,
-    employeeEarning: serializeEmployeeEarning(visit.employeeEarning),
+    employeeEarning: employeeEarnings[0] ?? serializeEmployeeEarning(visit.employeeEarning),
+    employeeEarnings,
   };
 };
 
@@ -133,6 +138,40 @@ const resolveActualPriceForEarning = async (tx, visitPayload) => {
 const calculateEmployeeAmount = (actualPrice, commissionPercent) =>
   normalizeDecimal(decimal(actualPrice).mul(decimal(commissionPercent)).div(100));
 
+const normalizeVisitParticipants = (visitPayload = {}) => {
+  const rawParticipants = Array.isArray(visitPayload.parallelEmployees)
+    ? visitPayload.parallelEmployees
+    : Array.isArray(visitPayload.employees)
+      ? visitPayload.employees
+      : [];
+  const participants = rawParticipants
+    .map((participant) => ({
+      employeeId: Number(participant?.employeeId) || null,
+      name: String(participant?.name ?? participant?.master ?? '').trim(),
+      shareAmount:
+        participant?.shareAmount !== undefined && participant?.shareAmount !== null
+          ? normalizeDecimal(Math.max(0, Number(participant.shareAmount) || 0))
+          : null,
+    }))
+    .filter((participant) => participant.employeeId || participant.name);
+
+  if (participants.length === 0) {
+    participants.push({
+      employeeId: Number(visitPayload?.employeeId) || null,
+      name: String(visitPayload?.master ?? visitPayload?.employeeName ?? '').trim(),
+      shareAmount: null,
+    });
+  }
+
+  const seen = new Set();
+  return participants.filter((participant) => {
+    const key = participant.employeeId ? `id:${participant.employeeId}` : `name:${participant.name.toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 const resolveEmployeeForVisit = async (tx, visit, visitPayload) => {
   const employeeId = Number(visit?.employeeId ?? visitPayload?.employeeId);
   if (Number.isInteger(employeeId) && employeeId > 0) {
@@ -144,6 +183,22 @@ const resolveEmployeeForVisit = async (tx, visit, visitPayload) => {
   if (!master) return null;
 
   return tx.employee.findFirst({ where: { name: master } });
+};
+
+const resolveEmployeeForVisitParticipant = async (tx, participant, visit, visitPayload) => {
+  const employeeId = Number(participant?.employeeId);
+  if (Number.isInteger(employeeId) && employeeId > 0) {
+    const employee = await tx.employee.findUnique({ where: { id: employeeId } });
+    if (employee) return employee;
+  }
+
+  const master = String(participant?.name ?? '').trim();
+  if (master) {
+    const employee = await tx.employee.findFirst({ where: { name: master } });
+    if (employee) return employee;
+  }
+
+  return resolveEmployeeForVisit(tx, visit, visitPayload);
 };
 
 const getClientPackagePayload = (clientPackage) =>
@@ -165,25 +220,43 @@ const resolveEmployeeForClientPackage = async (tx, clientPackage, payload = {}) 
 };
 
 const buildEmployeeEarningSnapshot = async (tx, visit) => {
+  const snapshots = await buildEmployeeEarningSnapshots(tx, visit);
+  return snapshots[0] ?? null;
+};
+
+const buildEmployeeEarningSnapshots = async (tx, visit) => {
   const visitPayload = getVisitPayloadForDayClose(visit);
   if (!isCompletedEarningEligibleVisit(visitPayload)) {
-    return null;
+    return [];
   }
 
-  const employee = await resolveEmployeeForVisit(tx, visit, visitPayload);
-  const commissionPercent = validateCommissionPercent(employee, visitPayload);
+  const participants = normalizeVisitParticipants(visitPayload);
+  const totalActualPrice = await resolveActualPriceForEarning(tx, visitPayload);
+  const defaultParticipantPrice =
+    participants.length > 1
+      ? normalizeDecimal(decimal(totalActualPrice).div(participants.length))
+      : totalActualPrice;
 
-  const actualPrice = await resolveActualPriceForEarning(tx, visitPayload);
-  const amount = calculateEmployeeAmount(actualPrice, commissionPercent);
+  return Promise.all(
+    participants.map(async (participant) => {
+      const employee = await resolveEmployeeForVisitParticipant(tx, participant, visit, visitPayload);
+      const commissionPercent = validateCommissionPercent(employee, {
+        ...visitPayload,
+        master: participant.name || visitPayload.master,
+      });
+      const actualPrice = participant.shareAmount ?? defaultParticipantPrice;
+      const amount = calculateEmployeeAmount(actualPrice, commissionPercent);
 
-  return {
-    actualPrice,
-    amount,
-    commissionPercent,
-    employee,
-    employeeId: employee.id,
-    sourceType: EARNING_SOURCE_VISIT,
-  };
+      return {
+        actualPrice,
+        amount,
+        commissionPercent,
+        employee,
+        employeeId: employee.id,
+        sourceType: EARNING_SOURCE_VISIT,
+      };
+    }),
+  );
 };
 
 const buildPackageSaleEarningSnapshot = async (tx, clientPackage) => {
@@ -225,24 +298,25 @@ const assertPaidEarningUnchanged = (existing, snapshot) => {
 };
 
 const syncEmployeeEarningForCompletedVisit = async (tx, req, visit) => {
-  const existing = await tx.employeeEarning.findUnique({
+  const existing = await tx.employeeEarning.findMany({
     where: { visitId: visit.id },
     include: EMPLOYEE_EARNING_INCLUDE,
+    orderBy: { id: 'asc' },
   });
-  const snapshot = await buildEmployeeEarningSnapshot(tx, visit);
+  const snapshots = await buildEmployeeEarningSnapshots(tx, visit);
 
-  if (!snapshot) {
-    if (existing?.payoutId) {
+  if (snapshots.length === 0) {
+    if (existing.some((earning) => earning.payoutId)) {
       throw stateConflictError(
         'This visit is already included in a payout. Cancel the payout before removing the earning.',
       );
     }
-    if (existing) {
-      const deleted = await tx.employeeEarning.delete({ where: { id: existing.id } });
+    for (const earning of existing) {
+      const deleted = await tx.employeeEarning.delete({ where: { id: earning.id } });
       await recordAuditLog(tx, req, {
         action: 'delete employee earning',
         after: null,
-        before: serializeEmployeeEarning(existing),
+        before: serializeEmployeeEarning(earning),
         entity: 'EmployeeEarning',
         entityId: deleted.id,
       });
@@ -250,42 +324,67 @@ const syncEmployeeEarningForCompletedVisit = async (tx, req, visit) => {
     return null;
   }
 
-  if (existing?.payoutId) {
-    assertPaidEarningUnchanged(existing, snapshot);
-    return existing;
+  for (const earning of existing.filter((item) => item.payoutId)) {
+    const snapshot = snapshots.find((item) => Number(item.employeeId) === Number(earning.employeeId));
+    if (!snapshot) {
+      throw stateConflictError(
+        'This visit is already included in a payout. Cancel the payout before changing financial details.',
+      );
+    }
+    assertPaidEarningUnchanged(earning, snapshot);
   }
 
-  const data = {
-    actualPrice: snapshot.actualPrice,
-    amount: snapshot.amount,
-    commissionPercent: snapshot.commissionPercent,
-    employeeId: snapshot.employeeId,
-    sourceType: snapshot.sourceType,
-  };
+  const synced = [];
+  const snapshotEmployeeIds = new Set(snapshots.map((snapshot) => Number(snapshot.employeeId)));
 
-  const earning = existing
-    ? await tx.employeeEarning.update({
-        where: { id: existing.id },
-        data,
-        include: EMPLOYEE_EARNING_INCLUDE,
-      })
-    : await tx.employeeEarning.create({
-        data: {
-          ...data,
-          visitId: visit.id,
-        },
-        include: EMPLOYEE_EARNING_INCLUDE,
+  for (const earning of existing) {
+    if (!earning.payoutId && !snapshotEmployeeIds.has(Number(earning.employeeId))) {
+      const deleted = await tx.employeeEarning.delete({ where: { id: earning.id } });
+      await recordAuditLog(tx, req, {
+        action: 'delete employee earning',
+        after: null,
+        before: serializeEmployeeEarning(earning),
+        entity: 'EmployeeEarning',
+        entityId: deleted.id,
       });
+    }
+  }
 
-  await recordAuditLog(tx, req, {
-    action: existing ? 'update employee earning' : 'create employee earning',
-    after: serializeEmployeeEarning(earning),
-    before: existing ? serializeEmployeeEarning(existing) : null,
-    entity: 'EmployeeEarning',
-    entityId: earning.id,
-  });
+  for (const snapshot of snapshots) {
+    const matching = existing.find((earning) => Number(earning.employeeId) === Number(snapshot.employeeId));
+    const data = {
+      actualPrice: snapshot.actualPrice,
+      amount: snapshot.amount,
+      commissionPercent: snapshot.commissionPercent,
+      employeeId: snapshot.employeeId,
+      sourceType: snapshot.sourceType,
+    };
 
-  return earning;
+    const earning = matching
+      ? await tx.employeeEarning.update({
+          where: { id: matching.id },
+          data,
+          include: EMPLOYEE_EARNING_INCLUDE,
+        })
+      : await tx.employeeEarning.create({
+          data: {
+            ...data,
+            visitId: visit.id,
+          },
+          include: EMPLOYEE_EARNING_INCLUDE,
+        });
+
+    await recordAuditLog(tx, req, {
+      action: matching ? 'update employee earning' : 'create employee earning',
+      after: serializeEmployeeEarning(earning),
+      before: matching ? serializeEmployeeEarning(matching) : null,
+      entity: 'EmployeeEarning',
+      entityId: earning.id,
+    });
+    synced.push(earning);
+  }
+
+  return synced[0] ?? null;
 };
 
 const syncEmployeeEarningForClientPackageSale = async (tx, req, clientPackage) => {
@@ -376,11 +475,11 @@ const removeUnpaidEmployeeEarningForClientPackage = async (tx, req, clientPackag
 };
 
 const assertVisitCanBeRemoved = async (tx, visitId) => {
-  const earning = await tx.employeeEarning.findUnique({
+  const earnings = await tx.employeeEarning.findMany({
     where: { visitId },
     include: EMPLOYEE_EARNING_INCLUDE,
   });
-  if (earning?.payoutId) {
+  if (earnings.some((earning) => earning.payoutId)) {
     throw stateConflictError(
       'This visit is already included in a payout. Cancel the payout before reverting or deleting it.',
     );
@@ -388,26 +487,30 @@ const assertVisitCanBeRemoved = async (tx, visitId) => {
 };
 
 const removeUnpaidEmployeeEarningForVisit = async (tx, req, visitId) => {
-  const earning = await tx.employeeEarning.findUnique({
+  const earnings = await tx.employeeEarning.findMany({
     where: { visitId },
     include: EMPLOYEE_EARNING_INCLUDE,
   });
-  if (!earning) return null;
-  if (earning.payoutId) {
+  if (!earnings.length) return null;
+  if (earnings.some((earning) => earning.payoutId)) {
     throw stateConflictError(
       'This visit is already included in a payout. Cancel the payout before reverting or deleting it.',
     );
   }
 
-  const deleted = await tx.employeeEarning.delete({ where: { id: earning.id } });
-  await recordAuditLog(tx, req, {
-    action: 'delete employee earning',
-    after: null,
-    before: serializeEmployeeEarning(earning),
-    entity: 'EmployeeEarning',
-    entityId: deleted.id,
-  });
-  return deleted;
+  const deleted = [];
+  for (const earning of earnings) {
+    const item = await tx.employeeEarning.delete({ where: { id: earning.id } });
+    await recordAuditLog(tx, req, {
+      action: 'delete employee earning',
+      after: null,
+      before: serializeEmployeeEarning(earning),
+      entity: 'EmployeeEarning',
+      entityId: item.id,
+    });
+    deleted.push(item);
+  }
+  return deleted[0] ?? null;
 };
 
 const earningAmountSum = (earnings = []) =>
@@ -418,6 +521,7 @@ module.exports = {
   VISIT_WITH_EARNING_INCLUDE,
   assertVisitCanBeRemoved,
   buildEmployeeEarningSnapshot,
+  buildEmployeeEarningSnapshots,
   buildPackageSaleEarningSnapshot,
   calculateEmployeeAmount,
   EARNING_SOURCE_PACKAGE_SALE,

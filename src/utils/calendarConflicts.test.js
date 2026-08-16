@@ -36,6 +36,34 @@ describe("getCalendarConflicts", () => {
       ),
     ).toHaveLength(1);
   });
+
+  it("finds conflicts for every master in a parallel visit", () => {
+    const calendarEntries = [
+      {
+        date: "2026-06-11",
+        duration: 60,
+        id: "a",
+        master: "Алена",
+        status: "scheduled",
+        time: "10:30",
+      },
+    ];
+
+    expect(
+      getCalendarConflicts(
+        {
+          date: "2026-06-11",
+          duration: 60,
+          id: "b",
+          master: "Max",
+          parallelEmployees: [{name: "Max"}, {name: "Алена"}],
+          status: "scheduled",
+          time: "10:00",
+        },
+        calendarEntries,
+      ),
+    ).toHaveLength(1);
+  });
 });
 
 describe("getCalendarShiftWarning", () => {

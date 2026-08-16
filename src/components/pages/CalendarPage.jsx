@@ -18,6 +18,7 @@ import {
 import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
 import {getPackageVisitProgressLabel} from "../../utils/packages.jsx";
+import {getEntryMasters, isEntryForMaster} from "../../utils/parallelVisits.js";
 import {getVisitDebt, getVisitTransactionTotal} from "../../utils/visits.jsx";
 import {isEmployeeAvailableOnDate} from "../../utils/employeeAvailability.js";
 
@@ -178,10 +179,11 @@ function DroppableScheduleColumn({
   );
 }
 
-function DraggableScheduleEntry({children, className, domId, entry, onOpen, style}) {
+function DraggableScheduleEntry({children, className, disabled = false, domId, entry, onOpen, style}) {
   const {attributes, listeners, setNodeRef, transform, isDragging} = useDraggable({
-    id: `schedule-entry-${entry.id}`,
+    id: `schedule-entry-${entry.id}-${entry.__displayMaster || entry.master || "entry"}`,
     data: {entry},
+    disabled,
   });
 
   return (
@@ -199,8 +201,8 @@ function DraggableScheduleEntry({children, className, domId, entry, onOpen, styl
         event.stopPropagation();
         onOpen?.(entry);
       }}
-      {...listeners}
-      {...attributes}>
+      {...(disabled ? {} : listeners)}
+      {...(disabled ? {} : attributes)}>
       {children}
     </article>
   );
@@ -986,7 +988,9 @@ return (
                         )}
                       </div>
                       {layoutOverlappingEntries(
-                        dayEntries.filter((entry) => entry.master === employee.name),
+                        dayEntries
+                          .filter((entry) => isEntryForMaster(entry, employee.name))
+                          .map((entry) => ({...entry, __displayMaster: employee.name})),
                       ).map((entry) => {
                         const displayedEntry =
                           dragPreview?.entry.id === entry.id
@@ -1009,9 +1013,10 @@ return (
                             } ${ended ? "opacity-80" : ""} ${
                               isFocusedEntry(entry.id) ? "animate-pulse" : ""
                             } ${height <= 44 ? "is-compact" : ""}`}
-                            domId={`alert-focus-calendar-${entry.id}`}
+                            disabled={entry.__displayMaster !== entry.master}
+                            domId={`alert-focus-calendar-${entry.id}-${entry.__displayMaster}`}
                             entry={entry}
-                            key={entry.id}
+                            key={`${entry.id}-${entry.__displayMaster}`}
                             onOpen={(item) => {
                               if (item.kind === "visit") {
                                 setViewedClientEntry(item);
@@ -1550,7 +1555,11 @@ function ClientCalendarCard({
   const paymentTotal = getEntryMoneyLabel(currentEntry);
   const hasDebt = getVisitDebt(currentEntry) > 0;
   const note = String(currentEntry.note || "").trim();
-  const employeeEarning = earningVisit?.employeeEarning;
+  const employeeEarnings = Array.isArray(earningVisit?.employeeEarnings) && earningVisit.employeeEarnings.length > 0
+    ? earningVisit.employeeEarnings
+    : earningVisit?.employeeEarning
+      ? [earningVisit.employeeEarning]
+      : [];
   const clientContact = client?.phone || currentEntry.phone || "Телефон не указан";
   const visitMeta = [
     {
@@ -1632,21 +1641,29 @@ function ClientCalendarCard({
           </span>
         ))}
       </div>
-      {employeeEarning ? (
+      {getEntryMasters(currentEntry).length > 1 ? (
+        <div className="calendar-client-card-note">
+          <strong>Парная услуга</strong>
+          <p>{getEntryMasters(currentEntry).join(" · ")}</p>
+        </div>
+      ) : null}
+      {employeeEarnings.length > 0 ? (
         <div className="calendar-client-card-note">
           <strong>Расчёт сотрудника</strong>
-          <p>
-            {employeeEarning.employee?.name || currentEntry.master || "Мастер"} ·{" "}
-            {Number(employeeEarning.commissionPercent)}% ·{" "}
-            {formatMoney(employeeEarning.amount)} ·{" "}
-            {employeeEarning.payoutId
-              ? `Выплачено ${
-                  employeeEarning.payout?.paidAt
-                    ? new Date(employeeEarning.payout.paidAt).toLocaleDateString("ru-RU")
-                    : ""
-                }`
-              : "Не выплачено"}
-          </p>
+          {employeeEarnings.map((employeeEarning) => (
+            <p key={employeeEarning.id}>
+              {employeeEarning.employee?.name || currentEntry.master || "Мастер"} ·{" "}
+              {Number(employeeEarning.commissionPercent)}% ·{" "}
+              {formatMoney(employeeEarning.amount)} ·{" "}
+              {employeeEarning.payoutId
+                ? `Выплачено ${
+                    employeeEarning.payout?.paidAt
+                      ? new Date(employeeEarning.payout.paidAt).toLocaleDateString("ru-RU")
+                      : ""
+                  }`
+                : "Не выплачено"}
+            </p>
+          ))}
         </div>
       ) : null}
       <div className="calendar-client-card-note">

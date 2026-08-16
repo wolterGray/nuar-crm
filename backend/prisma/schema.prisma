@@ -161,7 +161,7 @@ model Visit {
   certificateUsages CertificateUsage[]
   loyaltyTransactions LoyaltyTransaction[]
   loyaltyRewards LoyaltyReward[]
-  employeeEarning EmployeeEarning?
+  employeeEarnings EmployeeEarning[]
 }
 
 model LoyaltyCard {
@@ -523,7 +523,7 @@ model PayrollRecord {
 model EmployeeEarning {
   id                Int      @id @default(autoincrement())
   employeeId        Int
-  visitId           Int?     @unique
+  visitId           Int?
   clientPackageId   Int?     @unique
   sourceType        String   @default("VISIT")
   actualPrice       Decimal
@@ -539,6 +539,7 @@ model EmployeeEarning {
   payout            EmployeePayout? @relation(fields: [payoutId], references: [id], onDelete: Restrict)
 
   @@index([employeeId, createdAt])
+  @@index([visitId])
   @@index([payoutId])
 }
 

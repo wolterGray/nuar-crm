@@ -9,6 +9,7 @@ import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import {matchesClientRecord} from "../utils/clientLinks.js";
 import {getPackagePlannedProgressLabel} from "../utils/packages.jsx";
+import {isParallelService} from "../utils/parallelVisits.js";
 import {calculateSiteBookingPrice} from "../utils/siteBookingPricing.js";
 import {FieldLabel} from "./HintIcon.jsx";
 import {toVisitNumber} from "../utils/visits.jsx";
@@ -54,6 +55,7 @@ const calendarEntrySchema = z
     endTime: z.string().optional(),
     duration: z.coerce.number().min(15, "Минимум 15 минут"),
     master: z.string().min(1, "Выберите мастера"),
+    secondaryMaster: z.string().optional(),
     title: z.string().optional(),
     serviceId: z.union([z.string(), z.number()]).optional(),
     amount: optionalMoneyField,
@@ -216,6 +218,7 @@ function CalendarEntryForm({
       endTime: toTime(toMinutes(defaultTime) + Number(defaultDuration)),
       duration: String(defaultDuration),
       master: initialEntry?.master ?? selectedMaster ?? employees[0]?.name ?? "",
+      secondaryMaster: initialEntry?.secondaryMaster ?? initialEntry?.parallelEmployees?.[1]?.name ?? "",
       title: initialEntry?.title ?? "",
       serviceId: initialEntry?.serviceId ?? selectedServiceId ?? "",
       amount: initialEntry?.amount ?? selectedAmount ?? "",
@@ -251,6 +254,7 @@ function CalendarEntryForm({
     kind,
     client,
     master,
+    secondaryMaster,
     serviceId,
     duration,
     time,
@@ -273,6 +277,7 @@ function CalendarEntryForm({
       "kind",
       "client",
       "master",
+      "secondaryMaster",
       "serviceId",
       "duration",
       "time",
@@ -292,6 +297,7 @@ function CalendarEntryForm({
     ],
   });
   const service = services.find((item) => String(item.id) === String(serviceId));
+  const isParallelVisit = kind === "visit" && isParallelService(service);
   const serviceVariant = useMemo(
     () =>
       service?.variants?.find(
@@ -314,6 +320,23 @@ function CalendarEntryForm({
       time,
     });
   }, [date, duration, employees, kind, master, serviceVariant, time]);
+  useEffect(() => {
+    if (!isParallelVisit) {
+      if (secondaryMaster) {
+        setFormValue("secondaryMaster", "", {shouldValidate: false});
+      }
+      return;
+    }
+
+    if (!secondaryMaster || secondaryMaster === master) {
+      const fallbackMaster =
+        employees.find((employee) => employee.name !== master)?.name ?? "";
+      if (fallbackMaster && fallbackMaster !== secondaryMaster) {
+        setFormValue("secondaryMaster", fallbackMaster, {shouldValidate: false});
+      }
+    }
+  }, [employees, isParallelVisit, master, secondaryMaster, setFormValue]);
+
   useEffect(() => {
     if (kind !== "visit" || !visitPricing || pricingTouchedRef.current) {
       return;
@@ -884,6 +907,24 @@ function CalendarEntryForm({
             </Select>
             <FieldError message={errors.master?.message} />
           </label>
+          {isParallelVisit ? (
+            <label className="calendar-master-field calendar-form-field">
+              Второй мастер
+              <Select
+                {...register("secondaryMaster")}
+                value={secondaryMaster}
+                className="w-full"
+                onChange={(event) => setFormValue("secondaryMaster", event.target.value)}
+              >
+                <option value="">Выберите мастера</option>
+                {employees
+                  .filter((employee) => employee.name !== master)
+                  .map((employee) => (
+                    <option key={employee.id}>{employee.name}</option>
+                  ))}
+              </Select>
+            </label>
+          ) : null}
         </div>
       </fieldset>
 

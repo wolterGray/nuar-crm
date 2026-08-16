@@ -85,6 +85,9 @@ function ServiceForm({service, onSubmit}) {
   );
   const getPrice = (duration) =>
     service?.variants?.find((variant) => variant.duration === duration)?.price ?? "";
+  const isParallel = service?.isParallel ?? service?.payload?.isParallel ?? false;
+  const parallelParticipants =
+    service?.parallelParticipants ?? service?.payload?.parallelParticipants ?? 2;
 
   return (
     <section className="panel service-form-panel service-form-sheet-root">
@@ -114,6 +117,25 @@ function ServiceForm({service, onSubmit}) {
               />
             </Field>
           ))}
+        </div>
+        <div className="employee-pricing-panel service-booking-buffers">
+          <ServiceBufferToggle
+            defaultChecked={isParallel}
+            hint="Для парного массажа запись занимает календарь у выбранного мастера и второго мастера. Комиссия считается каждому от своей доли цены."
+            label="Парная услуга"
+            name="isParallel"
+          />
+          <label className="service-buffer-field">
+            <FieldLabel hint="Сейчас используется 2 мастера: например классический + классический в одно время.">
+              Мастеров
+            </FieldLabel>
+            <Input
+              min="2"
+              name="parallelParticipants"
+              type="number"
+              defaultValue={parallelParticipants}
+            />
+          </label>
         </div>
         <ServiceBookingBuffers service={service} />
         <Button

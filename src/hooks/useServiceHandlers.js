@@ -56,7 +56,11 @@ export function useServiceHandlers({
         name,
         category: String(form.get("category") ?? "").trim() || "Массаж",
         color: form.get("color") || editingService?.color || getRandomServiceColor(),
-        variants: [60, 75, 90, 120]
+        isParallel: form.get("isParallel") === "on",
+        parallelParticipants: form.get("isParallel") === "on"
+          ? Math.max(2, Number(form.get("parallelParticipants")) || 2)
+          : 1,
+        variants: [30, 60, 75, 90, 120]
           .map((duration) => ({
             duration,
             price: Number(form.get(`price_${duration}`)) || 0,

@@ -2,6 +2,7 @@ import {attachClientLink} from "./clientLinks.js";
 import {computeCertificateRedemptionAmount} from "./certificates.js";
 import {toDisplayDate} from "./formatters.jsx";
 import {normalizeCalendarEntryTiming} from "./calendarEntryTiming.js";
+import {getParallelParticipantCount, isParallelService} from "./parallelVisits.js";
 import {toVisitNumber} from "./visits.jsx";
 
 const toCalendarMinutes = (time) => {
@@ -46,6 +47,17 @@ export const buildCalendarEntryFromForm = (
   const rawCardAmount = String(form.get("cardAmount") ?? "").trim();
   const payment = kind === "visit" ? form.get("payment") : "";
   const isMixedPayment = payment === "Наличные + карта";
+  const master = String(form.get("master") ?? "").trim();
+  const secondaryMaster = String(form.get("secondaryMaster") ?? "").trim();
+  const isParallel = kind === "visit" && isParallelService(service);
+  const parallelParticipants = isParallel ? getParallelParticipantCount(service) : 1;
+  const parallelEmployees =
+    isParallel
+      ? [master, secondaryMaster]
+          .filter(Boolean)
+          .slice(0, parallelParticipants)
+          .map((name, index) => ({name, role: index === 0 ? "primary" : "parallel"}))
+      : [];
   const entryDraft = {
     id: editingCalendarEntry?.id ?? createLocalId(),
     status: editingCalendarEntry?.status ?? "scheduled",
@@ -55,7 +67,10 @@ export const buildCalendarEntryFromForm = (
     date: form.get("date"),
     time: startTime,
     duration,
-    master: form.get("master"),
+    master,
+    secondaryMaster: isParallel ? secondaryMaster : "",
+    parallelEmployees,
+    parallelParticipants,
     title: kind === "visit" ? "" : String(form.get("title") ?? "").trim(),
     client: kind === "visit" ? form.get("client") : "",
     serviceId: kind === "visit" ? Number(form.get("serviceId")) : "",
@@ -134,6 +149,9 @@ export const buildJournalVisitUpdateFromEntry = (
     client: entry.client,
     clientId: entry.clientId,
     master: entry.master,
+    secondaryMaster: entry.secondaryMaster || "",
+    parallelEmployees: Array.isArray(entry.parallelEmployees) ? entry.parallelEmployees : [],
+    parallelParticipants: entry.parallelParticipants || 1,
     service: entry.service,
     duration: entry.duration,
     amount: entry.amount,
