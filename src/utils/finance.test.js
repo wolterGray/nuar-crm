@@ -119,6 +119,16 @@ describe("buildFinanceStats", () => {
     expect(stats.serviceReceived).toBe(370);
   });
 
+  it("counts manual percent discount as the displayed received amount", () => {
+    const visit = completedVisit({amount: 370, discount: 40, paidAmount: ""});
+    const stats = buildStats({visits: [visit]});
+
+    expect(getVisitReceivedAmount(visit)).toBe(222);
+    expect(stats.discountedRevenue).toBe(222);
+    expect(stats.discounts).toBe(148);
+    expect(stats.serviceReceived).toBe(222);
+  });
+
   it("counts mixed payment amounts in finance stats", () => {
     const stats = buildStats({
       visits: [
