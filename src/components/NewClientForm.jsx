@@ -222,13 +222,11 @@ function NewClientForm({client, employees = [], onSubmit}) {
 }
 
 function FieldError({message}) {
-  if (!message) {
-    return null;
-  }
-
   return (
-    <small className="field-error">
-      {message}
+    <small
+      aria-hidden={message ? undefined : true}
+      className={`field-error ${message ? "" : "is-empty"}`.trim()}>
+      {message || "\u00A0"}
     </small>
   );
 }

@@ -703,10 +703,15 @@
 .theme-dark .field-error,
 .theme-light .field-error {
   display: block;
+  min-height: 16px;
   margin-top: 4px;
   color: #ff8a7a;
   font-size: 12px;
   font-weight: 650;
+}
+
+.field-error.is-empty {
+  visibility: hidden;
 }
 
 .calendar-entry-money-grid {

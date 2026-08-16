@@ -6384,10 +6384,16 @@
 }
 
 .calendar-field-error {
+  display: block;
+  min-height: 12px;
   margin-top: var(--space-1);
   color: color-mix(in srgb, var(--color-error) 68%, var(--color-text));
   font-size: 10px;
   font-weight: var(--font-weight-semibold);
+}
+
+.calendar-field-error.is-empty {
+  visibility: hidden;
 }
 
 .calendar-pricing-card {

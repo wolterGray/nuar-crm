@@ -9,6 +9,9 @@ export default function Field({
   label,
   required = false,
 }) {
+  const helperText = error || description || "";
+  const shouldRenderHelper = error !== undefined || Boolean(description);
+
   return (
     <label className={clsx("grid gap-1.5 text-sm text-textSecondary", className)} htmlFor={htmlFor}>
       {label ? (
@@ -18,10 +21,15 @@ export default function Field({
         </span>
       ) : null}
       {children}
-      {error ? (
-        <span className="text-xs font-medium text-accentError">{error}</span>
-      ) : description ? (
-        <span className="text-xs text-textMuted">{description}</span>
+      {shouldRenderHelper ? (
+        <span
+          aria-hidden={helperText ? undefined : true}
+          className={clsx(
+            "min-h-4 text-xs",
+            error ? "font-medium text-accentError" : "text-textMuted",
+          )}>
+          {helperText || "\u00A0"}
+        </span>
       ) : null}
     </label>
   );

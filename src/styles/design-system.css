@@ -370,6 +370,11 @@
   padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
 }
 
+.modal-backdrop:has(.employee-modal:not(.mobile-sheet)) {
+  align-items: start;
+  padding-top: max(28px, env(safe-area-inset-top));
+}
+
 .employee-modal,
 .client-details-modal,
 .confirm-dialog {
