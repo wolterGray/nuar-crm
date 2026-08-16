@@ -5,6 +5,10 @@ import {
   updateEmployee,
 } from "../api/employees.js";
 import {normalizePayrollSchedule} from "../utils/dailyPayroll.js";
+import {
+  normalizeWorkingDays,
+  parseBlockedDatesText,
+} from "../utils/employeeAvailability.js";
 import {parseEmployeePricingFromForm} from "../utils/siteBookingPricing.js";
 
 export function useEmployeeHandlers({
@@ -55,6 +59,8 @@ export function useEmployeeHandlers({
         ),
         status: form.get("status"),
         payrollSchedule: normalizePayrollSchedule(form.get("payrollSchedule")),
+        workingDaysOfWeek: normalizeWorkingDays(form.getAll("workingDaysOfWeek")),
+        bookingBlockedDates: parseBlockedDatesText(form.get("bookingBlockedDates")),
         ...parseEmployeePricingFromForm(form, editingEmployee),
       };
       let savedEmployee;

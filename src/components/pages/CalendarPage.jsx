@@ -19,6 +19,7 @@ import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
 import {getPackageVisitProgressLabel} from "../../utils/packages.jsx";
 import {getVisitDebt, getVisitTransactionTotal} from "../../utils/visits.jsx";
+import {isEmployeeAvailableOnDate} from "../../utils/employeeAvailability.js";
 
 const QUARTER_HEIGHT = 22;
 const DESKTOP_SCHEDULE_HEADER_HEIGHT = 48;
@@ -892,7 +893,10 @@ return (
                     </strong>
                   </div>
                 </div>
-                {calendarMasters.map((employee, empIndex) => (
+                {calendarMasters.map((employee, empIndex) => {
+                  const employeeAvailable = isEmployeeAvailableOnDate(employee, selectedDate);
+
+                  return (
                   <div className="nuar-calendar-master min-w-0" key={employee.id}>
                     <header className="nuar-calendar-master-header sticky top-0 z-12">
                       <strong>
@@ -904,8 +908,9 @@ return (
                         {employee.name}
                       </strong>
                       <span>
-                        {employee.shiftStart || settings.workdayStart || "08:00"}–
-                        {employee.shiftEnd || settings.workdayEnd || "22:00"}
+                        {employeeAvailable
+                          ? `${employee.shiftStart || settings.workdayStart || "08:00"}–${employee.shiftEnd || settings.workdayEnd || "22:00"}`
+                          : "не работает"}
                       </span>
                     </header>
                     <DroppableScheduleColumn
@@ -916,6 +921,14 @@ return (
                       onPointerUp={clearSlotLongPress}
                     >
                       {(() => {
+                        if (!employeeAvailable) {
+                          return (
+                            <div
+                              className="schedule-off-hours schedule-off-hours-full absolute inset-0 z-1 pointer-events-none"
+                            />
+                          );
+                        }
+
                         const shiftStart = Math.max(
                           visualStartMinutes,
                           toMinutes(employee.shiftStart || settings.workdayStart),
@@ -1139,7 +1152,8 @@ return (
                       })}
                     </DroppableScheduleColumn>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
             {dragPreview && (

@@ -1,3 +1,5 @@
+import {getEmployeeUnavailableReason} from "./employeeAvailability.js";
+
 const toCalendarMinutes = (time) => {
   const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
 
@@ -36,6 +38,11 @@ export const getCalendarShiftWarning = (
 
   if (!employee) {
     return "";
+  }
+
+  const unavailableReason = getEmployeeUnavailableReason(employee, entry.date);
+  if (unavailableReason) {
+    return unavailableReason;
   }
 
   const entryStart = toCalendarMinutes(entry.time);

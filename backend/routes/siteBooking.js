@@ -53,6 +53,26 @@ const isInputDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value ?? ''));
 
 const normalizePhone = (value) => String(value ?? '').replace(/[^\d+]/g, '');
 
+const normalizeWorkingDays = (value) => {
+  if (!Array.isArray(value)) return [1, 2, 3, 4, 5, 6, 0];
+  const days = [...new Set(value.map(Number).filter((day) => day >= 0 && day <= 6))];
+  return days.length ? days : [1, 2, 3, 4, 5, 6, 0];
+};
+
+const normalizeBlockedDates = (value) => {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map(cleanString).filter(isInputDate))].sort();
+};
+
+const isEmployeeAvailableOnDate = (employee, date) => {
+  if (!isInputDate(date)) return true;
+  const weekday = new Date(`${date}T12:00:00`).getDay();
+  return (
+    normalizeWorkingDays(employee?.workingDaysOfWeek).includes(weekday) &&
+    !normalizeBlockedDates(employee?.bookingBlockedDates).includes(date)
+  );
+};
+
 const validationError = (message) => {
   const error = new Error(message);
   error.status = 422;
@@ -92,6 +112,7 @@ const toPublicEmployee = (row) => {
   const name = cleanString(row?.name ?? payload.name);
   return {
     name,
+    bookingBlockedDates: normalizeBlockedDates(payload.bookingBlockedDates),
     premiumHoursEnabled: payload.premiumHoursEnabled === true,
     premiumHoursRules: Array.isArray(payload.premiumHoursRules) ? payload.premiumHoursRules : [],
     shiftEnd: cleanString(row?.shiftEnd ?? payload.shiftEnd) || DEFAULT_WORKDAY_END,
@@ -99,6 +120,7 @@ const toPublicEmployee = (row) => {
     siteDiscountPercent: Number(payload.siteDiscountPercent) || 0,
     siteVisible: row?.siteVisible !== false && payload.siteBookingEnabled !== false,
     status: cleanString(row?.status ?? payload.status),
+    workingDaysOfWeek: normalizeWorkingDays(payload.workingDaysOfWeek),
   };
 };
 
@@ -213,9 +235,19 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
     `,
   ]);
 
-  let employees = employeeRows.map(toPublicEmployee).filter((employee) => employee.siteVisible && employee.status !== 'Архив');
+  let employees = employeeRows
+    .map(toPublicEmployee)
+    .filter((employee) => employee.siteVisible && employee.status !== 'Архив')
+    .filter((employee) => isEmployeeAvailableOnDate(employee, preferredDate));
   if (!employees.length) {
-    employees = DEFAULT_MASTERS.map((name) => ({ name, shiftStart: DEFAULT_WORKDAY_START, shiftEnd: DEFAULT_WORKDAY_END }));
+    employees = employeeRows.length
+      ? []
+      : DEFAULT_MASTERS.map((name) => ({
+          name,
+          shiftStart: DEFAULT_WORKDAY_START,
+          shiftEnd: DEFAULT_WORKDAY_END,
+          workingDaysOfWeek: [1, 2, 3, 4, 5, 6, 0],
+        }));
   }
 
   if (preferredMaster) {

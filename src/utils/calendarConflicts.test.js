@@ -56,4 +56,23 @@ describe("getCalendarShiftWarning", () => {
 
     expect(warning).toContain("Max");
   });
+
+  it("warns when employee is unavailable on the selected date", () => {
+    const warning = getCalendarShiftWarning(
+      {date: "2026-08-16", duration: 60, master: "Алена", time: "10:00"},
+      {
+        appSettings: {workdayEnd: "22:00", workdayStart: "08:00"},
+        employees: [
+          {
+            name: "Алена",
+            shiftEnd: "22:00",
+            shiftStart: "08:00",
+            workingDaysOfWeek: [1, 2, 3, 4, 5, 6],
+          },
+        ],
+      },
+    );
+
+    expect(warning).toContain("не работает");
+  });
 });

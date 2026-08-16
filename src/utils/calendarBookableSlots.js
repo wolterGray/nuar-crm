@@ -5,6 +5,7 @@ import {
   getServiceBookingBuffers,
   findCatalogService,
 } from "./siteBookingBuffers.js";
+import {isEmployeeAvailableOnDate} from "./employeeAvailability.js";
 
 const DEFAULT_SITE_MASTERS = ["Ольга", "Максим"];
 
@@ -106,6 +107,7 @@ const overlapsInterval = (start, end, interval) =>
 const buildDefaultEmployees = (appSettings) =>
   DEFAULT_SITE_MASTERS.map((name) => ({
     name,
+    workingDaysOfWeek: [1, 2, 3, 4, 5, 6, 0],
     shiftEnd: appSettings.workdayEnd || "22:00",
     shiftStart: appSettings.workdayStart || "08:00",
     siteBookingSlotMinutes: resolveEmployeeSiteBookingSlotMinutes({name}, appSettings),
@@ -213,7 +215,8 @@ export const buildBookableSlots = ({
   const isToday = inputDate === todayInput;
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   let activeEmployees = employees.filter(
-    (employee) => employee.status !== "Архив",
+    (employee) =>
+      employee.status !== "Архив" && isEmployeeAvailableOnDate(employee, inputDate),
   );
 
   if (preferredMaster) {
@@ -221,26 +224,30 @@ export const buildBookableSlots = ({
     activeEmployees = employees.filter(
       (employee) =>
         employee.status !== "Архив" &&
+        isEmployeeAvailableOnDate(employee, inputDate) &&
         resolveSiteBookingMaster(employee.name, employees) === resolvedMaster,
     );
 
     if (activeEmployees.length === 0 && resolvedMaster) {
       const matched = findSiteBookingEmployee(resolvedMaster, employees);
-      activeEmployees = [
-        matched ?? {
-          name: resolvedMaster,
-          shiftEnd: appSettings.workdayEnd || "22:00",
-          shiftStart: appSettings.workdayStart || "08:00",
-          siteBookingSlotMinutes: resolveEmployeeSiteBookingSlotMinutes(
-            {name: resolvedMaster},
-            appSettings,
-          ),
-        },
-      ];
+      activeEmployees =
+        matched && !isEmployeeAvailableOnDate(matched, inputDate)
+          ? []
+          : [
+              matched ?? {
+                name: resolvedMaster,
+                shiftEnd: appSettings.workdayEnd || "22:00",
+                shiftStart: appSettings.workdayStart || "08:00",
+                siteBookingSlotMinutes: resolveEmployeeSiteBookingSlotMinutes(
+                  {name: resolvedMaster},
+                  appSettings,
+                ),
+              },
+            ];
     }
   }
 
-  if (activeEmployees.length === 0) {
+  if (activeEmployees.length === 0 && employees.length === 0) {
     activeEmployees = buildDefaultEmployees(appSettings);
   }
 
@@ -253,6 +260,10 @@ export const buildBookableSlots = ({
     const employeeRecord =
       findSiteBookingEmployee(employee.name, employees, {includeArchived: true}) ??
       employee;
+    if (!isEmployeeAvailableOnDate(employeeRecord, inputDate)) {
+      return;
+    }
+
     const master = resolveSiteBookingMaster(employeeRecord.name, employees);
     const step = Math.max(
       15,

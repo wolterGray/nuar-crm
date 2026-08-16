@@ -237,4 +237,46 @@ describe("calendarBookableSlots", () => {
     expect(slots.some((slot) => slot.startTime === "11:00")).toBe(false);
     expect(slots.some((slot) => slot.startTime === "11:30")).toBe(true);
   });
+
+  it("does not offer slots for employees on non-working days", () => {
+    const slots = buildBookableSlots({
+      appSettings,
+      calendarEntries: [],
+      date: "2026-08-16",
+      durationMinutes: 60,
+      employees: [
+        {
+          name: "Алена",
+          shiftStart: "08:00",
+          shiftEnd: "18:00",
+          workingDaysOfWeek: [1, 2, 3, 4, 5, 6],
+        },
+      ],
+      now: new Date("2026-08-16T08:00:00"),
+      preferredMaster: "Алена",
+    });
+
+    expect(slots).toEqual([]);
+  });
+
+  it("does not offer slots for employees on blocked vacation dates", () => {
+    const slots = buildBookableSlots({
+      appSettings,
+      calendarEntries: [],
+      date: "2026-08-20",
+      durationMinutes: 60,
+      employees: [
+        {
+          name: "Алена",
+          bookingBlockedDates: ["2026-08-20"],
+          shiftStart: "08:00",
+          shiftEnd: "18:00",
+        },
+      ],
+      now: new Date("2026-08-20T08:00:00"),
+      preferredMaster: "Алена",
+    });
+
+    expect(slots).toEqual([]);
+  });
 });

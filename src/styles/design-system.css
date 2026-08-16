@@ -1126,6 +1126,23 @@
   background: transparent;
 }
 
+.employee-weekdays-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.employee-weekday-toggle {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--employee-modal-border);
+  border-radius: var(--ds-radius-md, 8px);
+  background: var(--employee-modal-field);
+}
+
 .employee-modal.employee-form-modal .employee-form-submit {
   justify-self: end;
   min-height: 38px;
