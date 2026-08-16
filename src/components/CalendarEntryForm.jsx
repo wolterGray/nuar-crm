@@ -26,6 +26,25 @@ const toTime = (minutes) =>
     minutes % 60,
   ).padStart(2, "0")}`;
 const optionalMoneyField = z.union([z.string(), z.number(), z.literal("")]).optional();
+const normalizeClientLookup = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+const getClientLookupText = (client) => {
+  if (typeof client === "string") return normalizeClientLookup(client);
+  if (!client || typeof client !== "object") return "";
+
+  return normalizeClientLookup([
+    client.name,
+    client.client,
+    client.displayName,
+    client.phone,
+    client.smsName,
+  ].filter(Boolean).join(" "));
+};
+
 const calendarEntrySchema = z
   .object({
     kind: z.enum(["visit", "reserved"]),
@@ -350,7 +369,21 @@ function CalendarEntryForm({
 
     return Math.max(0, autoFinalPrice - chargedAmount);
   }, [autoFinalPrice, chargedAmount, paidAmount]);
-  const clientExists = clients.some((item) => item.name === client);
+  const clientQuery = normalizeClientLookup(client);
+  const clientMatches = useMemo(() => {
+    if (!clientQuery) return [];
+    return clients.filter((item) => getClientLookupText(item).includes(clientQuery));
+  }, [clientQuery, clients]);
+  const clientExists = useMemo(
+    () =>
+      clients.some(
+        (item) =>
+          normalizeClientLookup(item.name) === clientQuery ||
+          normalizeClientLookup(item.phone) === clientQuery ||
+          normalizeClientLookup(item.smsName) === clientQuery,
+      ),
+    [clientQuery, clients],
+  );
   const findServiceByVisit = (visit) =>
     services.find(
       (item) =>
@@ -649,7 +682,7 @@ function CalendarEntryForm({
             />
             <FieldError message={errors.client?.message} />
           </label>
-          {client && !clientExists && (
+          {client && !clientExists && clientMatches.length === 0 && (
             <div className="flex items-center justify-between calendar-info-card calendar-info-card-error">
               <span className="calendar-info-card-title">Такого клиента нет в базе.</span>
               <Button

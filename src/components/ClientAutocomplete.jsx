@@ -7,6 +7,25 @@ const getClientDisplayName = (client) => {
   return client.name || client.client || client.displayName || "";
 };
 
+const normalizeClientSearch = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+const getClientSearchText = (client) => {
+  if (typeof client === "string") return normalizeClientSearch(client);
+  if (!client || typeof client !== "object") return "";
+
+  return normalizeClientSearch([
+    client.name,
+    client.client,
+    client.displayName,
+    client.phone,
+    client.smsName,
+  ].filter(Boolean).join(" "));
+};
+
 function ClientAutocomplete({
   clients,
   disabled = false,
@@ -24,27 +43,31 @@ function ClientAutocomplete({
   const isControlled = value !== undefined;
   const displayValue = isControlled ? getClientDisplayName(value) : inputValue;
 
-  const clientNames = useMemo(
-    () =>
-      [...new Set(
-        clients
-          .map(getClientDisplayName)
-          .filter(Boolean),
-      )],
-    [clients],
-  );
+  const clientOptions = useMemo(() => {
+    const optionsByName = new Map();
+    clients.forEach((client) => {
+      const name = getClientDisplayName(client);
+      if (!name || optionsByName.has(name)) return;
+      optionsByName.set(name, {
+        name,
+        searchText: getClientSearchText(client),
+      });
+    });
+    return [...optionsByName.values()];
+  }, [clients]);
 
   const visibleClients = useMemo(() => {
-    const query = String(displayValue ?? "").trim().toLowerCase();
+    const query = normalizeClientSearch(displayValue);
 
     if (!query) {
-      return clientNames.slice(0, 8);
+      return clientOptions.slice(0, 8).map((client) => client.name);
     }
 
-    return clientNames
-      .filter((client) => client.toLowerCase().includes(query))
+    return clientOptions
+      .filter((client) => client.searchText.includes(query))
+      .map((client) => client.name)
       .slice(0, 8);
-  }, [clientNames, displayValue]);
+  }, [clientOptions, displayValue]);
 
   const emitChange = (nextValue) => {
     onChange?.({

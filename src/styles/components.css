@@ -6261,6 +6261,11 @@
   }
 }
 
+.client-autocomplete {
+  position: relative;
+  width: 100%;
+}
+
 .client-autocomplete-option {
   justify-content: flex-start;
   border-color: transparent;
