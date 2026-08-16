@@ -2,7 +2,11 @@ import {attachClientLink} from "./clientLinks.js";
 import {computeCertificateRedemptionAmount} from "./certificates.js";
 import {toDisplayDate} from "./formatters.jsx";
 import {normalizeCalendarEntryTiming} from "./calendarEntryTiming.js";
-import {getParallelParticipantCount, isParallelService} from "./parallelVisits.js";
+import {
+  getParallelParticipantCount,
+  getParallelParticipantPrices,
+  isParallelService,
+} from "./parallelVisits.js";
 import {toVisitNumber} from "./visits.jsx";
 
 const toCalendarMinutes = (time) => {
@@ -51,12 +55,19 @@ export const buildCalendarEntryFromForm = (
   const secondaryMaster = String(form.get("secondaryMaster") ?? "").trim();
   const isParallel = kind === "visit" && isParallelService(service);
   const parallelParticipants = isParallel ? getParallelParticipantCount(service) : 1;
+  const parallelParticipantPrices = isParallel
+    ? getParallelParticipantPrices(service, duration)
+    : [];
   const parallelEmployees =
     isParallel
       ? [master, secondaryMaster]
           .filter(Boolean)
           .slice(0, parallelParticipants)
-          .map((name, index) => ({name, role: index === 0 ? "primary" : "parallel"}))
+          .map((name, index) => ({
+            name,
+            role: index === 0 ? "primary" : "parallel",
+            shareAmount: parallelParticipantPrices[index] ?? null,
+          }))
       : [];
   const entryDraft = {
     id: editingCalendarEntry?.id ?? createLocalId(),

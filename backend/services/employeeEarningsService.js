@@ -232,6 +232,13 @@ const buildEmployeeEarningSnapshots = async (tx, visit) => {
 
   const participants = normalizeVisitParticipants(visitPayload);
   const totalActualPrice = await resolveActualPriceForEarning(tx, visitPayload);
+  const totalParticipantShares = participants.reduce(
+    (total, participant) =>
+      participant.shareAmount
+        ? total.plus(decimal(participant.shareAmount))
+        : total,
+    decimal(0),
+  );
   const defaultParticipantPrice =
     participants.length > 1
       ? normalizeDecimal(decimal(totalActualPrice).div(participants.length))
@@ -244,7 +251,14 @@ const buildEmployeeEarningSnapshots = async (tx, visit) => {
         ...visitPayload,
         master: participant.name || visitPayload.master,
       });
-      const actualPrice = participant.shareAmount ?? defaultParticipantPrice;
+      const actualPrice =
+        participant.shareAmount && totalParticipantShares.gt(0)
+          ? normalizeDecimal(
+              decimal(totalActualPrice)
+                .mul(decimal(participant.shareAmount))
+                .div(totalParticipantShares),
+            )
+          : defaultParticipantPrice;
       const amount = calculateEmployeeAmount(actualPrice, commissionPercent);
 
       return {

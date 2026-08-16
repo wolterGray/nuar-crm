@@ -72,10 +72,25 @@ export function useServiceHandlers({
         assignedEmployeeIds,
         assignedEmployeeNames,
         variants: [30, 60, 75, 90, 120]
-          .map((duration) => ({
-            duration,
-            price: Number(form.get(`price_${duration}`)) || 0,
-          }))
+          .map((duration) => {
+            const participantPrices = form.get("isParallel") === "on"
+              ? Array.from(
+                  {length: Math.max(2, Number(form.get("parallelParticipants")) || 2)},
+                  (_, index) =>
+                    Math.max(0, Number(form.get(`parallel_${duration}_${index}`)) || 0),
+                )
+              : [];
+            const participantTotal = participantPrices.reduce(
+              (total, price) => total + price,
+              0,
+            );
+
+            return {
+              duration,
+              price: participantTotal || Number(form.get(`price_${duration}`)) || 0,
+              ...(participantTotal ? {participantPrices} : {}),
+            };
+          })
           .filter((variant) => variant.price > 0),
         ...parseServiceBookingBuffersFromForm(form, editingService),
       };

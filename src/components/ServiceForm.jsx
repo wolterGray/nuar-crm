@@ -4,6 +4,7 @@ import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import HintIcon, {FieldLabel} from "./HintIcon.jsx";
 import {Button, Checkbox, Field, Input} from "./ui/index.js";
 import {getServiceAssignedEmployeeIds} from "../utils/serviceAssignments.js";
+import {getParallelParticipantPrices} from "../utils/parallelVisits.js";
 
 const serviceDurations = [30, 60, 75, 90, 120];
 
@@ -86,6 +87,8 @@ function ServiceForm({employees = [], service, onSubmit}) {
   );
   const getPrice = (duration) =>
     service?.variants?.find((variant) => variant.duration === duration)?.price ?? "";
+  const getParticipantPrice = (duration, index) =>
+    getParallelParticipantPrices(service, duration)[index] ?? "";
   const isParallel = service?.isParallel ?? service?.payload?.isParallel ?? false;
   const parallelParticipants =
     service?.parallelParticipants ?? service?.payload?.parallelParticipants ?? 2;
@@ -169,6 +172,23 @@ function ServiceForm({employees = [], service, onSubmit}) {
               defaultValue={parallelParticipants}
             />
           </label>
+          <div className="service-parallel-price-grid">
+            {serviceDurations.map((duration) => (
+              <div className="service-parallel-price-row" key={duration}>
+                <span>{duration} мин</span>
+                <Input
+                  name={`parallel_${duration}_0`}
+                  defaultValue={getParticipantPrice(duration, 0)}
+                  placeholder="1 мастер"
+                />
+                <Input
+                  name={`parallel_${duration}_1`}
+                  defaultValue={getParticipantPrice(duration, 1)}
+                  placeholder="2 мастер"
+                />
+              </div>
+            ))}
+          </div>
         </div>
         <ServiceBookingBuffers service={service} />
         <Button

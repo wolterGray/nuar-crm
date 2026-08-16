@@ -1255,6 +1255,30 @@
   border-top: 0;
 }
 
+.employee-modal.service-form-modal .service-parallel-price-grid {
+  display: grid;
+  gap: 7px;
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+
+.employee-modal.service-form-modal .service-form-panel:has(input[name="isParallel"]:not(:checked)) .service-parallel-price-grid {
+  display: none;
+}
+
+.employee-modal.service-form-modal .service-parallel-price-row {
+  display: grid;
+  grid-template-columns: 58px repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: 8px;
+}
+
+.employee-modal.service-form-modal .service-parallel-price-row > span {
+  color: var(--color-text-faint);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .employee-modal.service-form-modal .service-buffer-group:first-of-type {
   padding-top: 0;
   border-top: 0;

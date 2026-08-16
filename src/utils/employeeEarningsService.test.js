@@ -138,6 +138,39 @@ describe("employee earning calculations", () => {
     expect(String(snapshots[1].amount)).toBe("48");
   });
 
+  it("uses parallel service line prices as proportional earning shares", async () => {
+    const employees = new Map([
+      [1, {id: 1, commissionRate: 40, name: "Макс"}],
+      [2, {id: 2, commissionRate: 20, name: "Алена"}],
+    ]);
+    const tx = {
+      employee: {
+        findUnique: async ({where}) => employees.get(where.id) ?? null,
+        findFirst: async ({where}) =>
+          [...employees.values()].find((employee) => employee.name === where.name) ?? null,
+      },
+    };
+
+    const snapshots = await buildEmployeeEarningSnapshots(tx, {
+      payload: {
+        amount: 600,
+        paidAmount: 480,
+        parallelEmployees: [
+          {employeeId: 1, name: "Макс", shareAmount: 250},
+          {employeeId: 2, name: "Алена", shareAmount: 350},
+        ],
+        payment: "Карта",
+        status: "completed",
+      },
+    });
+
+    expect(snapshots).toHaveLength(2);
+    expect(String(snapshots[0].actualPrice)).toBe("200");
+    expect(String(snapshots[0].amount)).toBe("80");
+    expect(String(snapshots[1].actualPrice)).toBe("280");
+    expect(String(snapshots[1].amount)).toBe("56");
+  });
+
   it("keeps old snapshot at 40% while new completed visits use changed 45% commission", async () => {
     let commissionRate = 40;
     const tx = {
