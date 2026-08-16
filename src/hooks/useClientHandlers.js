@@ -112,7 +112,7 @@ export function useClientHandlers({
         messageLanguage: form.get("messageLanguage") || "Польский",
         preference: form.get("preference"),
         status: editingClient?.status || "Новый",
-        tags: String(form.get("tags") ?? "").trim(),
+        tags: editingClient?.tags || "",
         note: String(form.get("note") ?? "").trim(),
       };
 
