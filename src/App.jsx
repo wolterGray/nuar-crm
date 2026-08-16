@@ -612,7 +612,7 @@ function App() {
   const masters = useMemo(
     () =>
       employees
-        .filter((employee) => employee.status !== "Архив")
+        .filter((employee) => String(employee.status ?? "").trim() !== "Архив")
         .map((employee) => employee.name),
     [employees],
   );
@@ -1711,7 +1711,10 @@ function App() {
   const isTodayPage = activePage === "today";
   const colorTheme = resolveColorTheme(appSettings);
   const activeEmployees = useMemo(
-    () => employees.filter((employee) => employee.status !== "Архив"),
+    () =>
+      employees.filter(
+        (employee) => String(employee.status ?? "").trim() !== "Архив",
+      ),
     [employees],
   );
 

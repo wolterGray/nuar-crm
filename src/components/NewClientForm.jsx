@@ -30,8 +30,35 @@ const clientFormSchema = z.object({
   note: z.string().optional(),
 });
 
-function NewClientForm({client, onSubmit}) {
+export const DEFAULT_CLIENT_PREFERENCE = "Любой мастер";
+
+export function getClientPreferenceOptions(employees = [], currentPreference = "") {
+  const options = [DEFAULT_CLIENT_PREFERENCE];
+  const seen = new Set(options);
+
+  employees.forEach((employee) => {
+    const name = String(employee?.name ?? "").trim();
+
+    if (!name || seen.has(name)) {
+      return;
+    }
+
+    seen.add(name);
+    options.push(name);
+  });
+
+  const preference = String(currentPreference ?? "").trim();
+  if (preference && !seen.has(preference)) {
+    options.push(preference);
+  }
+
+  return options;
+}
+
+function NewClientForm({client, employees = [], onSubmit}) {
   const formRef = useRef(null);
+  const currentPreference = client?.preference ?? DEFAULT_CLIENT_PREFERENCE;
+  const preferenceOptions = getClientPreferenceOptions(employees, currentPreference);
   const {
     formState: {errors, isValid},
     handleSubmit,
@@ -48,7 +75,7 @@ function NewClientForm({client, onSubmit}) {
       telegram: client?.telegram ?? "",
       source: client?.source ?? "Instagram",
       messageLanguage: client?.messageLanguage ?? "Польский",
-      preference: client?.preference ?? "Любой мастер",
+      preference: currentPreference,
       status: client?.status ?? "Активный",
       tags: client?.tags ?? "",
       note: client?.note ?? "",
@@ -134,10 +161,11 @@ function NewClientForm({client, onSubmit}) {
           </Field>
           <Field error={errors.preference?.message} label="Предпочтение">
             <Select {...register("preference")} aria-invalid={Boolean(errors.preference)}>
-              <option>Любой мастер</option>
-              <option>Ольга</option>
-              <option>Максим</option>
-              <option>Новая мастер</option>
+              {preferenceOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
             </Select>
           </Field>
         </div>

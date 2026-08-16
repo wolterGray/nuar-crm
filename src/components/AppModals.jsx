@@ -151,7 +151,7 @@ export default function AppModals({
   onConfirmDataBackup,
 }) {
   const activeEmployees = employees.filter(
-    (employee) => employee.status !== "Архив",
+    (employee) => String(employee.status ?? "").trim() !== "Архив",
   );
   const entityDeleteDialog = getEntityDeleteDialogContent(pendingEntityDelete);
 
@@ -174,7 +174,11 @@ export default function AppModals({
         labelledBy="client-modal-title"
         title={editingClient ? "Редактировать клиента" : "Добавить клиента"}
         onClose={onCloseClientModal}>
-        <NewClientForm client={editingClient} onSubmit={onClientSubmit} />
+        <NewClientForm
+          client={editingClient}
+          employees={activeEmployees}
+          onSubmit={onClientSubmit}
+        />
       </FormModalShell>
 
       <FormModalShell
