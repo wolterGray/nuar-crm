@@ -3,18 +3,92 @@ import {AppIcon, Button, IconButton} from "./ui/index.js";
 
 const SWIPE_DISMISS_OFFSET = 86;
 const SWIPE_DISMISS_VELOCITY = 620;
+const ERROR_MARKERS = [
+  "ошибка",
+  "не удалось",
+  "не сохран",
+  "не загруж",
+  "не открыт",
+  "не открыта",
+  "не удал",
+  "не обнов",
+  "не принят",
+  "не отмен",
+  "не очищ",
+  "не отправ",
+  "failed",
+  "error",
+];
+const WARNING_MARKERS = [
+  "внимание",
+  "предупреж",
+  "проверьте",
+  "выберите",
+  "укажите",
+  "нужно",
+  "нельзя",
+  "недостаточно",
+  "warning",
+];
+const SUCCESS_MARKERS = [
+  "успеш",
+  "сохран",
+  "создан",
+  "добавлен",
+  "обнов",
+  "удален",
+  "удалён",
+  "очищена",
+  "готово",
+  "success",
+];
+
+function getToastTone(notification) {
+  const explicitTone = String(
+    notification.tone ||
+      notification.type ||
+      notification.variant ||
+      notification.status ||
+      "",
+  ).toLowerCase();
+
+  if (["error", "danger", "urgent"].includes(explicitTone)) {
+    return "error";
+  }
+  if (["warning", "warn"].includes(explicitTone)) {
+    return "warning";
+  }
+  if (["success", "ok"].includes(explicitTone)) {
+    return "success";
+  }
+
+  const text = `${notification.title || ""} ${notification.message || ""}`.toLowerCase();
+
+  if (ERROR_MARKERS.some((marker) => text.includes(marker))) {
+    return "error";
+  }
+  if (WARNING_MARKERS.some((marker) => text.includes(marker))) {
+    return "warning";
+  }
+  if (SUCCESS_MARKERS.some((marker) => text.includes(marker))) {
+    return "success";
+  }
+
+  return "success";
+}
 
 function ToastStack({notifications, onAction, onClose}) {
   return (
     <div className="toast-stack" aria-live="polite" aria-relevant="additions">
       <AnimatePresence initial={false}>
         {notifications.map((notification) => {
-          const iconName = notification.tone === "urgent" ? "alert" : "check";
+          const toastTone = getToastTone(notification);
+          const iconName = toastTone === "success" ? "check" : "alert";
 
           return (
             <motion.article
               animate={{opacity: 1, x: 0, scale: 1}}
-              className={`toast ${notification.tone === "urgent" ? "toast-urgent" : ""}`}
+              className={`toast toast-${toastTone}`}
               drag="x"
               dragConstraints={{left: 0, right: 0}}
               dragElastic={0.24}
