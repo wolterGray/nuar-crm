@@ -1751,8 +1751,7 @@ button:focus-visible {
   flex: 1 1 auto;
   gap: 18px;
   padding: 22px 16px 28px;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: visible;
   color: var(--services-text);
   background: var(--services-bg);
 }

@@ -196,6 +196,16 @@
   background: var(--color-page);
 }
 
+.content.services-content,
+.content.services-content.home-content {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+.content.services-content .services-page {
+  overflow: visible;
+}
+
 @media (max-width: 768px) {
   .payments-page-mobile.nuar-payments .visits-panel-mobile .page-header-unified-trailing {
     align-items: center !important;
