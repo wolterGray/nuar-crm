@@ -19,6 +19,9 @@ const EMPLOYEE_EARNING_INCLUDE = {
 };
 
 const VISIT_WITH_EARNING_INCLUDE = {
+  client: true,
+  employee: true,
+  service: true,
   employeeEarnings: {
     include: EMPLOYEE_EARNING_INCLUDE,
     orderBy: { id: 'asc' },

@@ -142,11 +142,23 @@ const formatDateForDayClose = (value) => {
   ].join('-');
 };
 
-const getVisitPayloadForDayClose = (visit) => ({
-  ...getRecordPayload(visit),
-  id: visit?.id,
-  date: getRecordPayload(visit).date ?? formatDateForDayClose(visit?.scheduledAt),
-});
+const getVisitPayloadForDayClose = (visit) => {
+  const payload = getRecordPayload(visit);
+  return {
+    ...payload,
+    id: visit?.id,
+    date: payload.date ?? formatDateForDayClose(visit?.scheduledAt),
+    master: payload.master ?? payload.masterName ?? payload.employeeName ?? visit?.employee?.name ?? '',
+    secondaryMaster: payload.secondaryMaster ?? payload.secondMaster ?? payload.parallelMaster ?? '',
+    employeeId: payload.employeeId ?? visit?.employeeId ?? visit?.employee?.id ?? null,
+    service: payload.service ?? payload.serviceName ?? visit?.service?.name ?? '',
+    serviceId: payload.serviceId ?? visit?.serviceId ?? visit?.service?.id ?? null,
+    amount: payload.amount ?? visit?.amount ?? 0,
+    paidAmount: payload.paidAmount ?? visit?.paidAmount ?? payload.amount ?? visit?.amount ?? 0,
+    client: payload.client ?? payload.clientName ?? visit?.client?.name ?? '',
+    clientId: payload.clientId ?? visit?.clientId ?? visit?.client?.id ?? null,
+  };
+};
 
 const getPackagePayloadForDayClose = (clientPackage) => ({
   ...getRecordPayload(clientPackage),
