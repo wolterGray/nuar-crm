@@ -1307,9 +1307,9 @@
 
 .employee-modal.service-form-modal .service-combo-row {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) minmax(92px, 120px) 30px;
+  grid-template-columns: 16px minmax(0, 1fr) 104px 30px;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .employee-modal.service-form-modal .service-combo-row > span,
@@ -1354,9 +1354,9 @@
 
 .employee-modal.service-form-modal .service-combo-price-row {
   display: grid;
-  grid-template-columns: minmax(92px, 140px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 172px;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .employee-modal.service-form-modal .service-combo-price-row input[readonly] {
