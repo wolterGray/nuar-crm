@@ -119,6 +119,18 @@ const resolveActualPriceForEarning = async (tx, visitPayload) => {
 const calculateEmployeeAmount = (actualPrice, commissionPercent) =>
   normalizeDecimal(decimal(actualPrice).mul(decimal(commissionPercent)).div(100));
 
+const isPairService = (serviceName = '') => {
+  const normalized = String(serviceName).toLowerCase();
+  return (
+    normalized.includes('dwojga') ||
+    normalized.includes('двоих') ||
+    normalized.includes('парн') ||
+    normalized.includes('pair') ||
+    normalized.includes('dla 2') ||
+    normalized.includes('для 2')
+  );
+};
+
 const normalizeVisitParticipants = (visitPayload = {}) => {
   const rawParticipants = Array.isArray(visitPayload.parallelEmployees)
     ? visitPayload.parallelEmployees
@@ -136,21 +148,55 @@ const normalizeVisitParticipants = (visitPayload = {}) => {
     }))
     .filter((participant) => participant.employeeId || participant.name);
 
+  const primaryMaster = String(visitPayload?.master ?? visitPayload?.employeeName ?? '').trim();
+  const secondaryMaster = String(
+    visitPayload?.secondaryMaster ?? visitPayload?.secondMaster ?? visitPayload?.parallelMaster ?? '',
+  ).trim();
+
   if (participants.length === 0) {
+    if (primaryMaster) {
+      participants.push({
+        employeeId: Number(visitPayload?.employeeId) || null,
+        name: primaryMaster,
+        shareAmount: null,
+      });
+    }
+    if (secondaryMaster && secondaryMaster.toLowerCase() !== primaryMaster.toLowerCase()) {
+      participants.push({
+        employeeId: Number(visitPayload?.secondaryEmployeeId) || null,
+        name: secondaryMaster,
+        shareAmount: null,
+      });
+    }
+  } else if (secondaryMaster && !participants.some((p) => p.name.toLowerCase() === secondaryMaster.toLowerCase())) {
     participants.push({
-      employeeId: Number(visitPayload?.employeeId) || null,
-      name: String(visitPayload?.master ?? visitPayload?.employeeName ?? '').trim(),
+      employeeId: Number(visitPayload?.secondaryEmployeeId) || null,
+      name: secondaryMaster,
       shareAmount: null,
     });
   }
 
+  const serviceName = String(visitPayload?.service ?? visitPayload?.serviceName ?? '');
+  const isPair =
+    Boolean(visitPayload?.isParallel) ||
+    Number(visitPayload?.parallelParticipants) > 1 ||
+    Boolean(secondaryMaster) ||
+    isPairService(serviceName);
+
+  const participantCount = isPair ? Math.max(2, participants.length) : Math.max(1, participants.length);
+
   const seen = new Set();
-  return participants.filter((participant) => {
+  const uniqueParticipants = participants.filter((participant) => {
     const key = participant.employeeId ? `id:${participant.employeeId}` : `name:${participant.name.toLowerCase()}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
+
+  return {
+    participantCount,
+    participants: uniqueParticipants,
+  };
 };
 
 const resolveEmployeeForVisit = async (tx, visit, visitPayload) => {
@@ -211,7 +257,7 @@ const buildEmployeeEarningSnapshots = async (tx, visit) => {
     return [];
   }
 
-  const participants = normalizeVisitParticipants(visitPayload);
+  const { participantCount, participants } = normalizeVisitParticipants(visitPayload);
   const totalActualPrice = await resolveActualPriceForEarning(tx, visitPayload);
   const totalParticipantShares = participants.reduce(
     (total, participant) =>
@@ -221,8 +267,8 @@ const buildEmployeeEarningSnapshots = async (tx, visit) => {
     decimal(0),
   );
   const defaultParticipantPrice =
-    participants.length > 1
-      ? normalizeDecimal(decimal(totalActualPrice).div(participants.length))
+    participantCount > 1
+      ? normalizeDecimal(decimal(totalActualPrice).div(participantCount))
       : totalActualPrice;
 
   return Promise.all(
@@ -544,6 +590,20 @@ const cleanupPackageVisitEarningsAndEnsureSales = async (tx) => {
   for (const clientPackage of clientPackages) {
     if (!clientPackage.employeeEarning) {
       await syncEmployeeEarningForClientPackageSale(tx, null, clientPackage);
+    }
+  }
+
+  const nonPackageVisits = await tx.visit.findMany({
+    include: VISIT_WITH_EARNING_INCLUDE,
+  });
+
+  for (const visit of nonPackageVisits) {
+    const visitPayload = getVisitPayloadForDayClose(visit);
+    if (isCompletedEarningEligibleVisit(visitPayload)) {
+      const hasPaidPayout = Array.isArray(visit.employeeEarnings) && visit.employeeEarnings.some((e) => e.payoutId);
+      if (!hasPaidPayout) {
+        await syncEmployeeEarningForCompletedVisit(tx, null, visit);
+      }
     }
   }
 };

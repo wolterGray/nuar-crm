@@ -242,17 +242,41 @@ export const getVisitPlatformCommission = (visit) => {
   return Math.max(0, toFinanceNumber(visit?.commission));
 };
 
+const isPairService = (serviceName = "") => {
+  const normalized = String(serviceName).toLowerCase();
+
+  return (
+    normalized.includes("dwojga") ||
+    normalized.includes("двоих") ||
+    normalized.includes("парн") ||
+    normalized.includes("pair") ||
+    normalized.includes("dla 2") ||
+    normalized.includes("для 2")
+  );
+};
+
 export const getVisitEmployeePayout = (visit, employees = []) => {
   if (isCancelledVisit(visit) || isBarterVisit(visit)) {
     return 0;
   }
 
+  const serviceName = String(visit?.service ?? visit?.serviceName ?? "");
+  const isPair =
+    Boolean(visit?.isParallel) ||
+    Boolean(visit?.secondaryMaster) ||
+    Number(visit?.parallelParticipants) > 1 ||
+    isPairService(serviceName);
+
+  const participantCount = isPair ? Math.max(2, Number(visit?.parallelParticipants) || 2) : 1;
+
   const employee = employees.find((item) => item.name === visit?.master);
   const rate = toFinanceNumber(employee?.commissionRate);
-  const base =
+  const fullBase =
     isPackageVisit(visit) || isCertificateVisit(visit)
       ? getVisitDiscountedAmount(visit)
       : getVisitServiceReceivedAmount(visit);
+
+  const base = fullBase / participantCount;
 
   return Math.round(Math.max(0, base) * (rate / 100));
 };

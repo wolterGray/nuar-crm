@@ -251,16 +251,39 @@ const getDayCloseEmployeeRate = (employees = [], employeeName = '') => {
   return dayCloseToFinanceNumber(employee?.commissionRate);
 };
 
+const isPairDayCloseService = (serviceName = '') => {
+  const normalized = String(serviceName).toLowerCase();
+  return (
+    normalized.includes('dwojga') ||
+    normalized.includes('двоих') ||
+    normalized.includes('парн') ||
+    normalized.includes('pair') ||
+    normalized.includes('dla 2') ||
+    normalized.includes('для 2')
+  );
+};
+
 const getDayCloseEmployeePayout = (visit, employees = []) => {
   if (isDayCloseCancelledVisit(visit) || isDayCloseBarterVisit(visit)) {
     return 0;
   }
 
+  const serviceName = String(visit?.service ?? visit?.serviceName ?? '').toLowerCase();
+  const isPair =
+    Boolean(visit?.isParallel) ||
+    Boolean(visit?.secondaryMaster) ||
+    Number(visit?.parallelParticipants) > 1 ||
+    isPairDayCloseService(serviceName);
+
+  const participantCount = isPair ? Math.max(2, Number(visit?.parallelParticipants) || 2) : 1;
+
   const rate = getDayCloseEmployeeRate(employees, visit?.master);
-  const base =
+  const fullBase =
     isDayClosePackageVisit(visit) || isDayCloseCertificateVisit(visit)
       ? getDayCloseDiscountedAmount(visit)
       : getDayCloseServiceReceivedAmount(visit);
+
+  const base = fullBase / participantCount;
 
   return Math.round(Math.max(0, base) * (rate / 100));
 };
