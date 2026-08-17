@@ -1344,6 +1344,7 @@ function App() {
     performDeletePackage,
     performDeleteService,
     renameServiceCategory,
+    reorderServiceCatalog,
     requestDeletePackage,
     requestDeleteService,
   } = useServiceHandlers({
@@ -2086,6 +2087,7 @@ function App() {
             pushNotification={pushNotification}
             remindCalendarClient={remindCalendarClient}
             reorderTasks={reorderTasks}
+            reorderServices={reorderServiceCatalog}
             repeatClientVisit={repeatClientVisit}
             onClientDetailsOpenChange={setClientDetailsOpen}
             requestCalendarAction={requestCalendarAction}

@@ -1947,9 +1947,11 @@ button:focus-visible {
   background: var(--services-panel);
   box-shadow: none;
   backdrop-filter: none;
+  cursor: grab;
   transition:
     border-color 160ms ease,
-    background 160ms ease;
+    background 160ms ease,
+    opacity 160ms ease;
 }
 
 .theme-dark .service-card.catalog-card:hover,
@@ -1957,6 +1959,16 @@ button:focus-visible {
 .service-card.catalog-card:hover {
   border-color: color-mix(in srgb, var(--services-border) 74%, var(--services-text, #ffffff));
   background: color-mix(in srgb, var(--services-panel) 92%, var(--services-text, #ffffff));
+}
+
+.service-card.catalog-card.is-dragging {
+  cursor: grabbing;
+  opacity: 0.74;
+  z-index: 2;
+}
+
+.service-card.catalog-card.is-drop-target {
+  border-color: color-mix(in srgb, var(--color-primary) 58%, var(--services-border));
 }
 
 .service-card-header {

@@ -2,6 +2,7 @@ import {useCallback} from "react";
 import {
   createService,
   deleteService,
+  reorderServices,
   updateService,
 } from "../api/services.js";
 import {
@@ -24,6 +25,41 @@ const getVariantPrice = (service, duration) =>
   );
 
 const normalizeCategoryName = (value) => String(value ?? "").trim();
+
+const moveItem = (items, activeId, overId) => {
+  const fromIndex = items.findIndex((item) => String(item.id) === String(activeId));
+  const toIndex = items.findIndex((item) => String(item.id) === String(overId));
+
+  if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) {
+    return items;
+  }
+
+  const next = [...items];
+  const [item] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, item);
+  return next;
+};
+
+const mergeVisibleServiceOrder = (services, reorderedVisibleServices) => {
+  const visibleIds = new Set(reorderedVisibleServices.map((service) => String(service.id)));
+  let visibleIndex = 0;
+
+  return services.map((service) => {
+    if (!visibleIds.has(String(service.id))) {
+      return service;
+    }
+
+    const nextService = reorderedVisibleServices[visibleIndex] ?? service;
+    visibleIndex += 1;
+    return nextService;
+  });
+};
+
+const withServiceSortOrder = (services) =>
+  services.map((service, index) => ({
+    ...service,
+    sortOrder: index,
+  }));
 
 const withServiceCategory = (service, category) => {
   const payload = service?.payload && typeof service.payload === "object" ? service.payload : {};
@@ -235,6 +271,44 @@ export function useServiceHandlers({
     [pushNotification, serviceCatalog, setServiceCatalog, setServiceCategories],
   );
 
+  const reorderServiceCatalog = useCallback(
+    async (activeServiceId, overServiceId, visibleServiceIds = []) => {
+      if (!activeServiceId || !overServiceId || String(activeServiceId) === String(overServiceId)) {
+        return;
+      }
+
+      const previousCatalog = serviceCatalog;
+      const visibleIdSet = new Set(visibleServiceIds.map((id) => String(id)));
+      const visibleServices = serviceCatalog.filter((service) =>
+        visibleIdSet.size > 0 ? visibleIdSet.has(String(service.id)) : true,
+      );
+      const reorderedVisibleServices = moveItem(visibleServices, activeServiceId, overServiceId);
+      const nextCatalog = withServiceSortOrder(
+        mergeVisibleServiceOrder(serviceCatalog, reorderedVisibleServices),
+      );
+
+      setServiceCatalog(nextCatalog);
+
+      try {
+        const response = await reorderServices(nextCatalog.map((service) => service.id));
+        setServiceCatalog(response?.data ?? nextCatalog);
+        pushNotification({
+          title: "Порядок услуг сохранен",
+          message: "Каталог обновлен",
+          persist: false,
+        });
+      } catch (error) {
+        setServiceCatalog(previousCatalog);
+        pushNotification({
+          title: "Порядок не сохранен",
+          message: error?.message || "Backend не обновил порядок услуг",
+          persist: false,
+        });
+      }
+    },
+    [pushNotification, serviceCatalog, setServiceCatalog],
+  );
+
   const handleServiceSubmit = useCallback(
     async (event) => {
       event.preventDefault();
@@ -302,6 +376,10 @@ export function useServiceHandlers({
         category: String(form.get("category") ?? "").trim() || "Комплексы",
         description: String(form.get("description") ?? "").trim(),
         color: form.get("color") || editingService?.color || getRandomServiceColor(),
+        sortOrder:
+          editingService?.sortOrder !== undefined && editingService?.sortOrder !== null
+            ? editingService.sortOrder
+            : serviceCatalog.length,
         serviceType: "combo",
         isParallel: true,
         parallelParticipants: Math.max(2, comboItems.length || 2),
@@ -320,6 +398,10 @@ export function useServiceHandlers({
         name,
         category: String(form.get("category") ?? "").trim() || "Массаж",
         color: form.get("color") || editingService?.color || getRandomServiceColor(),
+        sortOrder:
+          editingService?.sortOrder !== undefined && editingService?.sortOrder !== null
+            ? editingService.sortOrder
+            : serviceCatalog.length,
         serviceType: "service",
         isParallel: false,
         parallelParticipants: 1,
@@ -376,7 +458,7 @@ export function useServiceHandlers({
       setServiceCatalog((current) =>
         editingService
           ? current.map((item) => (item.id === savedService.id ? savedService : item))
-          : [savedService, ...current],
+          : withServiceSortOrder([...current, savedService]),
       );
       setServiceCategories((current) => {
         const category = normalizeCategoryName(savedService.category);
@@ -589,6 +671,7 @@ export function useServiceHandlers({
     performDeletePackage,
     performDeleteService,
     renameServiceCategory,
+    reorderServiceCatalog,
     requestDeletePackage,
     requestDeleteService,
   };

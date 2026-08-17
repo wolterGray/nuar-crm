@@ -58,6 +58,17 @@ export const updateService = async (id, service) => {
   return handleResponse(response, "Update service");
 };
 
+export const reorderServices = async (ids) => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/services/reorder`, {
+    method: "PATCH",
+    headers: {"Content-Type": "application/json", ...headers},
+    body: JSON.stringify({ids}),
+  });
+
+  return handleResponse(response, "Reorder services");
+};
+
 export const deleteService = async (id) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/services/${id}`, {

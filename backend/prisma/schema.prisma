@@ -106,6 +106,7 @@ model Service {
   siteVisible     Boolean?
   price           Decimal?
   durationMin     Int?
+  sortOrder       Int?
   payload         Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

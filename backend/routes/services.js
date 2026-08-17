@@ -53,6 +53,10 @@ const buildServiceData = (payload) => {
           : null,
     price: firstVariant ? Number(firstVariant.price) || null : null,
     durationMin: firstVariant ? Number(firstVariant.duration) || null : null,
+    sortOrder:
+      payload?.sortOrder !== undefined && payload?.sortOrder !== null
+        ? Number(payload.sortOrder) || 0
+        : null,
     payload,
   };
 };
@@ -85,6 +89,36 @@ router.post('/services', (req, res) => {
   }
 
   auditCreate(prisma, req, res, prisma.service.create({ data }).then(withStoredId), 'Service', 'create service');
+});
+
+router.patch('/services/reorder', requireOwner, async (req, res) => {
+  const ids = Array.isArray(req.body?.ids)
+    ? req.body.ids.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)
+    : [];
+
+  if (ids.length === 0) {
+    return res.status(400).json({ success: false, error: 'Service ids are required' });
+  }
+
+  try {
+    await prisma.$transaction(
+      ids.map((id, index) =>
+        prisma.service.update({
+          where: { id },
+          data: { sortOrder: index },
+        }),
+      ),
+    );
+
+    const records = await prisma.service.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }],
+    });
+
+    res.json({ success: true, data: records.map(withStoredId) });
+  } catch (err) {
+    console.error('Service reorder error:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to reorder services' });
+  }
 });
 
 router.get('/services/:id', (req, res) => {
@@ -127,7 +161,12 @@ router.delete('/services/:id', requireOwner, async (req, res) => {
 });
 
 router.get('/services', (req, res) => {
-  respond(res, prisma.service.findMany({ orderBy: { name: 'asc' } }).then((records) => records.map(withStoredId)));
+  respond(
+    res,
+    prisma.service
+      .findMany({ orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }] })
+      .then((records) => records.map(withStoredId)),
+  );
 });
 
 // ==================== Package ====================

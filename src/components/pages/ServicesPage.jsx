@@ -1,5 +1,15 @@
 import {useMemo, useState} from "react";
-import {motion} from "framer-motion";
+import {
+  closestCenter,
+  DndContext,
+  PointerSensor,
+  TouchSensor,
+  pointerWithin,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import {formatMoney} from "../../utils/formatters.jsx";
 import {serviceColorPalette} from "../../utils/serviceColors.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
@@ -12,6 +22,47 @@ const DEFAULT_CATEGORIES = ["Массаж", "Комплексы"];
 const ALL_CATEGORIES = "__all__";
 const normalizeCategory = (value) => String(value ?? "").trim();
 
+const serviceCollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  if (pointerCollisions.length > 0) {
+    return pointerCollisions;
+  }
+
+  return closestCenter(args);
+};
+
+function DraggableServiceCard({children, service}) {
+  const {attributes, listeners, setNodeRef: setDraggableRef, transform, isDragging} =
+    useDraggable({
+      id: `service-${service.id}`,
+      data: {service},
+    });
+  const {isOver, setNodeRef: setDroppableRef} = useDroppable({
+    id: `service-drop-${service.id}`,
+    data: {service},
+  });
+
+  const setNodeRef = (node) => {
+    setDraggableRef(node);
+    setDroppableRef(node);
+  };
+  const style = transform
+    ? {transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`}
+    : undefined;
+
+  return (
+    <article
+      className={`catalog-card service-card ${isDragging ? "is-dragging" : ""} ${isOver ? "is-drop-target" : ""}`}
+      key={service.id}
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}>
+      {children}
+    </article>
+  );
+}
+
 function ServicesPage({
   services,
   serviceCategories = [],
@@ -22,6 +73,7 @@ function ServicesPage({
   onEdit,
   onMoveServiceToCategory,
   onRenameCategory,
+  onReorder,
 }) {
   const {isMobile} = useBreakpoint();
   const [search, setSearch] = useState("");
@@ -29,6 +81,10 @@ function ServicesPage({
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES);
   const [newCategory, setNewCategory] = useState("");
   const [editingCategoryName, setEditingCategoryName] = useState("");
+  const sensors = useSensors(
+    useSensor(PointerSensor, {activationConstraint: {distance: 8}}),
+    useSensor(TouchSensor, {activationConstraint: {delay: 180, tolerance: 8}}),
+  );
 
   const categories = useMemo(() => {
     const names = [
@@ -215,105 +271,116 @@ function ServicesPage({
         </section>
       ) : null}
 
-      <div className="services-grid">
-        {filteredServices.length === 0 ? (
-          <EmptyState
-            className="services-empty-state"
-            description={
-              search.trim()
-                ? "Попробуйте изменить запрос."
-                : "Добавьте первую услугу в каталог."
-            }
-            icon={search.trim() ? "search" : "plus"}
-            title={search.trim() ? "Ничего не найдено" : "Услуг пока нет"}
-          />
-        ) : (
-          filteredServices.map((service) => {
-            const variants = service.variants ?? [];
-            const isCombo = (service.serviceType ?? service.payload?.serviceType) === "combo";
+      <DndContext
+        collisionDetection={serviceCollisionDetection}
+        sensors={sensors}
+        onDragEnd={({active, over}) => {
+          const activeServiceId = active.data.current?.service?.id;
+          const overServiceId = over?.data.current?.service?.id;
 
-            return (
-              <motion.article
-                className="catalog-card service-card"
-                initial={{opacity: 0, y: 6}}
-                animate={{opacity: 1, y: 0}}
-                key={service.id}>
+          if (activeServiceId && overServiceId && activeServiceId !== overServiceId) {
+            onReorder?.(
+              activeServiceId,
+              overServiceId,
+              filteredServices.map((service) => service.id),
+            );
+          }
+        }}>
+        <div className="services-grid">
+          {filteredServices.length === 0 ? (
+            <EmptyState
+              className="services-empty-state"
+              description={
+                search.trim()
+                  ? "Попробуйте изменить запрос."
+                  : "Добавьте первую услугу в каталог."
+              }
+              icon={search.trim() ? "search" : "plus"}
+              title={search.trim() ? "Ничего не найдено" : "Услуг пока нет"}
+            />
+          ) : (
+            filteredServices.map((service) => {
+              const variants = service.variants ?? [];
+              const isCombo = (service.serviceType ?? service.payload?.serviceType) === "combo";
 
-                {/* Main Head */}
-                <div className="service-card-header">
-                  <div className="service-card-title">
-                    <h3>{service.name}</h3>
-                    <span>
-                      <span
-                        className="service-card-dot"
-                        style={{backgroundColor: service.color ?? serviceColorPalette[0]}}
-                      />
-                      {service.category || "Без категории"}
-                    </span>
+              return (
+                <DraggableServiceCard key={service.id} service={service}>
+                  {/* Main Head */}
+                  <div className="service-card-header">
+                    <div className="service-card-title">
+                      <h3>{service.name}</h3>
+                      <span>
+                        <span
+                          className="service-card-dot"
+                          style={{backgroundColor: service.color ?? serviceColorPalette[0]}}
+                        />
+                        {service.category || "Без категории"}
+                      </span>
+                    </div>
+
+                    <RowActionsMenu
+                      itemId={service.id}
+                      openMenuId={openMenuId}
+                      setOpenMenuId={setOpenMenuId}
+                      onDelete={() => onDelete(service)}
+                      onEdit={() => onEdit(service)}
+                    />
                   </div>
 
-                  <RowActionsMenu
-                    itemId={service.id}
-                    openMenuId={openMenuId}
-                    setOpenMenuId={setOpenMenuId}
-                    onDelete={() => onDelete(service)}
-                    onEdit={() => onEdit(service)}
-                  />
-                </div>
-
-                <div className="service-card-meta">
-                  <span>{variants.length} вариантов</span>
-                  <span>•</span>
-                  <span>
-                    {variants.length > 0
-                      ? `${Math.min(...variants.map((v) => Number(v.duration) || 0))}-${Math.max(...variants.map((v) => Number(v.duration) || 0))} мин`
-                      : "Без длительности"}
-                  </span>
-                  {isCombo ? (
-                    <>
-                      <span>•</span>
-                      <span>{service.payload?.comboItems?.length ?? service.comboItems?.length ?? 0} услуг</span>
-                    </>
-                  ) : null}
-                  <Select
-                    className="service-card-category-select"
-                    aria-label="Перенести в категорию"
-                    value={service.category || "Без категории"}
-                    onClick={(event) => event.stopPropagation()}
-                    onChange={(event) => onMoveServiceToCategory?.(service, event.target.value)}>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                    {!categories.includes("Без категории") ? (
-                      <option value="Без категории">Без категории</option>
-                    ) : null}
-                  </Select>
-                </div>
-
-                {/* Variants Price Box */}
-                <div className="service-variants">
-                  {variants.length > 0 ? (
-                    <>
-                      {variants.map((variant, index) => (
-                        <span key={`${variant.duration}-${variant.price}-${index}`} className="service-variant-pill">
-                          {isCombo ? "комплекс" : `${variant.duration} мин`}
-                          <strong className="text-text-main font-semibold">{formatMoney(variant.price)}</strong>
-                        </span>
-                      ))}
-                    </>
-                  ) : (
-                    <span className="service-variant-pill is-empty">
-                      Настроить цену
+                  <div className="service-card-meta">
+                    <span>{variants.length} вариантов</span>
+                    <span>•</span>
+                    <span>
+                      {variants.length > 0
+                        ? `${Math.min(...variants.map((v) => Number(v.duration) || 0))}-${Math.max(...variants.map((v) => Number(v.duration) || 0))} мин`
+                        : "Без длительности"}
                     </span>
-                  )}
-                </div>
-              </motion.article>
-            );
-          })
-        )}
-      </div>
+                    {isCombo ? (
+                      <>
+                        <span>•</span>
+                        <span>{service.payload?.comboItems?.length ?? service.comboItems?.length ?? 0} услуг</span>
+                      </>
+                    ) : null}
+                    <Select
+                      className="service-card-category-select"
+                      aria-label="Перенести в категорию"
+                      value={service.category || "Без категории"}
+                      onClick={(event) => event.stopPropagation()}
+                      onChange={(event) => onMoveServiceToCategory?.(service, event.target.value)}>
+                      {categories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                      {!categories.includes("Без категории") ? (
+                        <option value="Без категории">Без категории</option>
+                      ) : null}
+                    </Select>
+                  </div>
+
+                  {/* Variants Price Box */}
+                  <div className="service-variants">
+                    {variants.length > 0 ? (
+                      <>
+                        {variants.map((variant, index) => (
+                          <span key={`${variant.duration}-${variant.price}-${index}`} className="service-variant-pill">
+                            {isCombo ? "комплекс" : `${variant.duration} мин`}
+                            <strong className="text-text-main font-semibold">{formatMoney(variant.price)}</strong>
+                          </span>
+                        ))}
+                      </>
+                    ) : (
+                      <span className="service-variant-pill is-empty">
+                        Настроить цену
+                      </span>
+                    )}
+                  </div>
+                </DraggableServiceCard>
+              );
+            })
+          )}
+        </div>
+      </DndContext>
     </div>
   );
 }
