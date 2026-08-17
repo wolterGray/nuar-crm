@@ -522,6 +522,7 @@ export function useCalendarActions({
         clientId: entry.clientId,
         master: entry.master,
         service: entry.service,
+        comboItems: Array.isArray(entry.comboItems) ? entry.comboItems : [],
         duration: "",
         amount,
         payment: entry.payment || "Не указано",

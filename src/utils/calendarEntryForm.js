@@ -15,6 +15,11 @@ const toCalendarMinutes = (time) => {
   return hours * 60 + minutes;
 };
 
+const getServiceComboItems = (service) => {
+  const items = service?.comboItems ?? service?.payload?.comboItems ?? [];
+  return Array.isArray(items) ? items : [];
+};
+
 export const buildCalendarEntryFromForm = (
   form,
   {
@@ -54,6 +59,7 @@ export const buildCalendarEntryFromForm = (
   const master = String(form.get("master") ?? "").trim();
   const secondaryMaster = String(form.get("secondaryMaster") ?? "").trim();
   const isParallel = kind === "visit" && isParallelService(service);
+  const comboItems = kind === "visit" ? getServiceComboItems(service) : [];
   const parallelParticipants = isParallel ? getParallelParticipantCount(service) : 1;
   const parallelParticipantPrices = isParallel
     ? getParallelParticipantPrices(service, duration)
@@ -86,6 +92,7 @@ export const buildCalendarEntryFromForm = (
     client: kind === "visit" ? form.get("client") : "",
     serviceId: kind === "visit" ? Number(form.get("serviceId")) : "",
     service: kind === "visit" ? service?.name ?? "" : "",
+    comboItems,
     amount:
       kind === "visit"
         ? rawAmount === ""
@@ -164,6 +171,7 @@ export const buildJournalVisitUpdateFromEntry = (
     parallelEmployees: Array.isArray(entry.parallelEmployees) ? entry.parallelEmployees : [],
     parallelParticipants: entry.parallelParticipants || 1,
     service: entry.service,
+    comboItems: Array.isArray(entry.comboItems) ? entry.comboItems : [],
     duration: entry.duration,
     amount: entry.amount,
     payment: entry.payment || "Не указано",

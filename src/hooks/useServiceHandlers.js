@@ -79,8 +79,15 @@ export function useServiceHandlers({
         form.get("serviceType") ?? editingService?.payload?.serviceType ?? serviceCreateType,
       );
       const isCombo = submittedServiceType === "combo";
+      const comboIndexes = isCombo
+        ? [...new Set(
+            Array.from(form.keys())
+              .map((key) => /^combo_service_(\d+)$/.exec(key)?.[1])
+              .filter(Boolean),
+          )].map(Number).sort((left, right) => left - right)
+        : [];
       const comboItems = isCombo
-        ? Array.from({length: 6}, (_, index) => {
+        ? comboIndexes.map((index) => {
             const serviceId = String(form.get(`combo_service_${index}`) ?? "").trim();
             if (!serviceId) return null;
 

@@ -143,6 +143,8 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
       };
     }),
   );
+  const selectedComboRows = comboRows.filter((row) => row.serviceId);
+  const comboServicesComplete = selectedComboRows.length >= 2;
   const updateComboRow = (index, patch) => {
     setComboRows((current) =>
       current.map((row, rowIndex) => {
@@ -160,10 +162,27 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
       }),
     );
   };
+  const addComboRow = () => {
+    setComboRows((current) => [
+      ...current,
+      {
+        serviceId: "",
+        duration: 60,
+        price: "",
+      },
+    ]);
+  };
+  const removeComboRow = (index) => {
+    setComboRows((current) => {
+      if (current.length <= 2) return current;
+      return current.filter((_, rowIndex) => rowIndex !== index);
+    });
+  };
   const comboTotalPrice = comboRows.reduce(
     (total, row) => total + (Number(row.price) || 0),
     0,
   );
+  const comboPriceComplete = comboTotalPrice > 0;
 
   if (isCombo) {
     return (
@@ -173,16 +192,19 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
           <input name="serviceType" type="hidden" value="combo" />
           <div className="service-combo-tabs" role="tablist" aria-label="Настройки комплекса">
             {[
-              ["general", "Общие"],
-              ["services", "Услуги"],
-              ["price", "Цена"],
-            ].map(([tab, label]) => (
+              ["general", "Общие", false],
+              ["services", "Услуги", !comboServicesComplete],
+              ["price", "Цена", !comboPriceComplete],
+            ].map(([tab, label, hasIssue]) => (
               <button
                 className={activeComboTab === tab ? "is-active" : ""}
                 key={tab}
                 type="button"
                 onClick={() => setActiveComboTab(tab)}>
-                {label}
+                <span className="service-combo-tab-label">
+                  {label}
+                  {hasIssue ? <span className="service-combo-tab-alert" aria-hidden="true" /> : null}
+                </span>
               </button>
             ))}
           </div>
@@ -241,9 +263,20 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
                         </option>
                       ))}
                     </Select>
+                    <button
+                      aria-label={`Убрать услугу ${index + 1}`}
+                      className="service-combo-remove-row"
+                      disabled={comboRows.length <= 2}
+                      type="button"
+                      onClick={() => removeComboRow(index)}>
+                      ×
+                    </button>
                   </div>
                 ))}
               </div>
+              <button className="service-combo-add-row" type="button" onClick={addComboRow}>
+                + Добавить услугу
+              </button>
               <p className="service-combo-note">
                 Параллельный комплекс занимает одно и то же время у разных мастеров.
               </p>

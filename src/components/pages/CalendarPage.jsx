@@ -67,6 +67,16 @@ const getEntryMoneyLabel = (entry) => {
   return formatMoney(getVisitTransactionTotal(entry));
 };
 
+const getEntryServiceLabel = (entry) => {
+  const comboItems = Array.isArray(entry?.comboItems) ? entry.comboItems : [];
+  const comboLabel = comboItems
+    .map((item) => item?.serviceName)
+    .filter(Boolean)
+    .join(" + ");
+
+  return comboLabel || entry?.service || "Услуга не указана";
+};
+
 const isEntryPointerTarget = (target) =>
   Boolean(target?.closest?.(".schedule-entry, .nuar-calendar-entry-block"));
 
@@ -1040,7 +1050,7 @@ return (
                               </span>
                               {entry.kind === "visit" && (
                                 <small className="nuar-calendar-entry-service">
-                                  {entry.service}
+                                  {getEntryServiceLabel(entry)}
                                 </small>
                               )}
                               {entry.kind === "visit" && (
@@ -1338,7 +1348,7 @@ return (
                       </span>
                     </div>
                     <div className="nuar-calendar-reminder-meta">
-                      <span>{entry.service}</span>
+                      <span>{getEntryServiceLabel(entry)}</span>
                       <span>{entry.time}–{getEntryEndTime(entry)}</span>
                       <span>{entry.master}</span>
                       <span>{activeVisit ? statusLabels[entry.status] || statusLabels.scheduled : statusLabels[entry.status] || "Окончен"}</span>
@@ -1586,7 +1596,7 @@ function ClientCalendarCard({
       isOpen
       labelledBy="calendar-client-card-title"
       title={clientName}
-      description={`${currentEntry.time}–${getEntryEndTime(currentEntry)} · ${currentEntry.service}`}
+      description={`${currentEntry.time}–${getEntryEndTime(currentEntry)} · ${getEntryServiceLabel(currentEntry)}`}
       onClose={onClose}>
       <section
         className="calendar-visit-summary"
@@ -1595,7 +1605,7 @@ function ClientCalendarCard({
           <span className="calendar-client-card-status">{entryStatus}</span>
           <b>{toDisplayDate(currentEntry.date)}</b>
         </div>
-        <h3>{currentEntry.service || "Услуга не указана"}</h3>
+        <h3>{getEntryServiceLabel(currentEntry)}</h3>
         <div className="calendar-visit-summary-bottom">
           <span>{currentEntry.time}–{getEntryEndTime(currentEntry)}</span>
           <strong>{duration ? `${duration} мин` : "—"}</strong>

@@ -1252,6 +1252,9 @@
 }
 
 .employee-modal.service-form-modal .service-combo-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 34px;
   border: 0;
   border-radius: 9px;
@@ -1260,6 +1263,26 @@
   font-size: 12px;
   font-weight: 750;
   cursor: pointer;
+}
+
+.employee-modal.service-form-modal .service-combo-tab-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.employee-modal.service-form-modal .service-combo-tab-alert {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.employee-modal.service-form-modal .service-combo-tabs button.is-active .service-combo-tab-alert {
+  background: var(--button-primary-text);
 }
 
 .employee-modal.service-form-modal .service-combo-tabs button.is-active {
@@ -1284,7 +1307,7 @@
 
 .employee-modal.service-form-modal .service-combo-row {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) minmax(92px, 120px);
+  grid-template-columns: 24px minmax(0, 1fr) minmax(92px, 120px) 30px;
   align-items: center;
   gap: 8px;
 }
@@ -1295,6 +1318,38 @@
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.employee-modal.service-form-modal .service-combo-remove-row {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  color: var(--color-text-muted);
+  background: var(--color-field);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.employee-modal.service-form-modal .service-combo-remove-row:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.employee-modal.service-form-modal .service-combo-add-row {
+  justify-self: start;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  color: var(--color-text);
+  background: var(--color-field);
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
 }
 
 .employee-modal.service-form-modal .service-combo-price-row {
