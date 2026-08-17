@@ -1769,21 +1769,21 @@ button:focus-visible {
 }
 
 .services-page-toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto auto;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-  width: min(640px, 100%);
-  min-width: min(640px, 100%);
+  width: min(780px, 100%);
+  min-width: min(780px, 100%);
 }
 
 .services-page-search.crm-search-input-control {
   display: flex;
   align-items: center;
-  flex: 1 1 460px;
   gap: 9px;
-  width: min(460px, 100%);
-  min-width: 360px;
+  width: 100%;
+  min-width: 0;
   min-height: 42px;
   padding: 0 14px;
   border: 1px solid var(--services-border);
@@ -1832,6 +1832,7 @@ button:focus-visible {
 
 .services-page-add-button {
   min-height: 40px;
+  min-width: 150px;
   white-space: nowrap;
 }
 
@@ -1849,14 +1850,14 @@ button:focus-visible {
 .theme-light .service-card.catalog-card,
 .service-card.catalog-card {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
   min-width: 0;
-  min-height: 154px;
-  gap: 10px;
-  padding: 16px;
+  min-height: 146px;
+  gap: 9px;
+  padding: 14px;
   border: 1px solid var(--services-border);
-  border-radius: 18px;
+  border-radius: 14px;
   color: var(--services-text);
   background: var(--services-panel);
   box-shadow: none;
@@ -1891,7 +1892,7 @@ button:focus-visible {
   margin: 0;
   overflow: hidden;
   color: var(--services-text);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
   line-height: 1.14;
   letter-spacing: 0;
@@ -1918,6 +1919,7 @@ button:focus-visible {
 
 .service-card-meta {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 7px;
   color: var(--services-faint);
@@ -1926,18 +1928,22 @@ button:focus-visible {
 }
 
 .service-variants {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 13px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  align-content: end;
+  align-items: end;
+  gap: 7px;
+  min-height: 59px;
+  padding-top: 11px;
   border-top: 1px solid var(--services-border-soft);
+  overflow: hidden;
 }
 
 .service-variant-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  max-width: 100%;
   min-height: 28px;
   padding: 0 10px;
   border: 1px solid var(--services-border);
@@ -1946,6 +1952,13 @@ button:focus-visible {
   background: var(--services-panel-soft);
   font-size: 12px;
   line-height: 1;
+  white-space: nowrap;
+}
+
+.service-variant-pill.is-more {
+  justify-content: center;
+  min-width: 42px;
+  color: var(--services-faint);
 }
 
 .service-variant-pill strong {

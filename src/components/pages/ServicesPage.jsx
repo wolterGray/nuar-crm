@@ -97,6 +97,8 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
           filteredServices.map((service) => {
             const variants = service.variants ?? [];
             const isCombo = (service.serviceType ?? service.payload?.serviceType) === "combo";
+            const visibleVariants = variants.slice(0, 3);
+            const hiddenVariantsCount = Math.max(0, variants.length - visibleVariants.length);
 
             return (
               <motion.article
@@ -146,11 +148,16 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
                 {/* Variants Price Box */}
                 {variants.length > 0 && (
                   <div className="service-variants">
-                    {variants.map((variant) => (
+                    {visibleVariants.map((variant) => (
                       <span key={variant.duration} className="service-variant-pill">
                         {variant.duration} мин <strong className="text-text-main font-semibold">{formatMoney(variant.price)}</strong>
                       </span>
                     ))}
+                    {hiddenVariantsCount > 0 ? (
+                      <span className="service-variant-pill is-more">
+                        +{hiddenVariantsCount}
+                      </span>
+                    ) : null}
                   </div>
                 )}
               </motion.article>
