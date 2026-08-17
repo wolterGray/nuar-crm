@@ -76,9 +76,11 @@ const getVisitLabel = (earning) => {
   if (earning?.clientPackage) {
     const packageItem = earning.clientPackage;
     const payload = packageItem.payload && typeof packageItem.payload === "object" ? packageItem.payload : {};
+    const packagePrice = packageItem.price ?? payload.price ?? earning.actualPrice;
+    const packageName = packageItem.packageName || payload.packageName || packageItem.package?.name || "Пакет";
     return {
       client: packageItem.clientName || payload.client || packageItem.client?.name || "Клиент",
-      service: `Продажа пакета: ${packageItem.packageName || payload.packageName || packageItem.package?.name || "Пакет"}`,
+      service: `Продажа пакета: ${packageName} · ${formatMoney(packagePrice)}`,
     };
   }
 
@@ -140,7 +142,7 @@ function EmployeeSummaryCard({row, selected, onOpen}) {
         <div className="employee-avatar-tile">{row.employeeName.slice(0, 1)}</div>
         <div>
           <h3>{row.employeeName}</h3>
-          <span>{row.visitsCount} начислений</span>
+          <span>{row.unpaidCount} к выплате</span>
         </div>
       </div>
       <div className="employee-payout-summary-meta">

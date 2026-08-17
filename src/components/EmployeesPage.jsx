@@ -1,7 +1,6 @@
 import {motion} from "framer-motion";
 import {useMemo, useState} from "react";
 
-import {formatMoney} from "../utils/formatters.jsx";
 import {getPayrollScheduleLabel} from "../utils/dailyPayroll.js";
 import {resolveEmployeeSiteBookingSlotMinutes} from "../utils/calendarBookableSlots.js";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
@@ -54,16 +53,16 @@ function EmployeeCard({employee, onDelete, onEdit, openMenuId, setOpenMenuId}) {
           <strong>{employee.visitsCount}</strong>
         </div>
         <div>
-          <span>Выплата</span>
-          <strong>{formatMoney(employee.income)}</strong>
+          <span>Ставка</span>
+          <strong>{employee.commissionRate}%</strong>
         </div>
         <div>
           <span>Чай</span>
-          <strong>{formatMoney(employee.tips || 0)}</strong>
+          <strong>{employee.tips || 0} zł</strong>
         </div>
         <div>
-          <span>Ставка</span>
-          <strong>{employee.commissionRate}%</strong>
+          <span>Расчёт</span>
+          <strong>{getPayrollScheduleLabel(employee)}</strong>
         </div>
       </div>
 

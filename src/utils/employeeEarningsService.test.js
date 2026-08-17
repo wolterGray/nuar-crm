@@ -237,6 +237,80 @@ describe("employee earning calculations", () => {
     expect(String(snapshot.amount)).toBe("60");
   });
 
+  it("keeps package sale commission separate from package visit executor commission", async () => {
+    const employees = new Map([
+      [7, {id: 7, commissionRate: 40, name: "Макс"}],
+      [9, {id: 9, commissionRate: 20, name: "Оля"}],
+    ]);
+    const clientPackage = {
+      id: 5,
+      price: 1200,
+      totalVisits: 6,
+      payload: {employeeId: 9, master: "Оля", packageName: "Пакет 6"},
+    };
+    const tx = {
+      clientPackage: {
+        findUnique: async () => clientPackage,
+      },
+      employee: {
+        findUnique: async ({where}) => employees.get(where.id) ?? null,
+        findFirst: async ({where}) =>
+          [...employees.values()].find((employee) => employee.name === where.name) ?? null,
+      },
+    };
+
+    const saleSnapshot = await buildPackageSaleEarningSnapshot(tx, clientPackage);
+    const visitSnapshot = await buildEmployeeEarningSnapshot(tx, {
+      employeeId: 7,
+      payload: {
+        amount: 0,
+        packageSessionsUsed: 1,
+        packageUsageId: 5,
+        paidAmount: 0,
+        payment: "Пакет",
+        status: "completed",
+      },
+    });
+
+    expect(saleSnapshot.employeeId).toBe(9);
+    expect(String(saleSnapshot.actualPrice)).toBe("1200");
+    expect(String(saleSnapshot.amount)).toBe("240");
+    expect(visitSnapshot.employeeId).toBe(7);
+    expect(String(visitSnapshot.actualPrice)).toBe("200");
+    expect(String(visitSnapshot.amount)).toBe("80");
+  });
+
+  it("pays every master in a paired massage from their own service share", async () => {
+    const employees = new Map([
+      [1, {id: 1, commissionRate: 40, name: "Макс"}],
+      [2, {id: 2, commissionRate: 40, name: "Алена"}],
+    ]);
+    const tx = {
+      employee: {
+        findUnique: async ({where}) => employees.get(where.id) ?? null,
+        findFirst: async ({where}) =>
+          [...employees.values()].find((employee) => employee.name === where.name) ?? null,
+      },
+    };
+
+    const snapshots = await buildEmployeeEarningSnapshots(tx, {
+      payload: {
+        amount: 500,
+        paidAmount: 500,
+        parallelEmployees: [
+          {employeeId: 1, name: "Макс", shareAmount: 250},
+          {employeeId: 2, name: "Алена", shareAmount: 250},
+        ],
+        payment: "Карта",
+        status: "completed",
+      },
+    });
+
+    expect(snapshots).toHaveLength(2);
+    expect(snapshots.map((snapshot) => String(snapshot.actualPrice))).toEqual(["250", "250"]);
+    expect(snapshots.map((snapshot) => String(snapshot.amount))).toEqual(["100", "100"]);
+  });
+
   it("skips package sale snapshot when seller is not selected", async () => {
     const tx = {
       employee: {
