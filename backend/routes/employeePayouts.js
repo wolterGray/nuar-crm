@@ -55,11 +55,27 @@ const visitDate = (earning) => {
   ].join('-');
 };
 
+const earningPayoutDate = (earning) => {
+  const rawDate = earning?.payout?.createdAt || earning?.payout?.paidAt;
+  if (!rawDate) return '';
+  const date = new Date(rawDate);
+  if (Number.isNaN(date.getTime())) return '';
+  return [
+    String(date.getFullYear()).padStart(4, '0'),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
+};
+
 const isInPeriod = (earning, startDate, endDate) => {
   if (!startDate && !endDate) return true;
-  const date = visitDate(earning);
-  if (!date) return false;
-  return (!startDate || date >= startDate) && (!endDate || date <= endDate);
+  const vDate = visitDate(earning);
+  const pDate = earningPayoutDate(earning);
+
+  const visitInPeriod = vDate ? (!startDate || vDate >= startDate) && (!endDate || vDate <= endDate) : false;
+  const payoutInPeriod = pDate ? (!startDate || pDate >= startDate) && (!endDate || pDate <= endDate) : false;
+
+  return visitInPeriod || payoutInPeriod;
 };
 
 const isActivePaidEarning = (earning) =>
