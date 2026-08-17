@@ -1304,6 +1304,32 @@
   gap: 8px;
 }
 
+.employee-modal.service-form-modal .service-combo-price-row input[readonly] {
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-field) 82%, var(--color-text) 3%);
+}
+
+.employee-modal.service-form-modal .service-combo-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+.employee-modal.service-form-modal .service-combo-total span {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.employee-modal.service-form-modal .service-combo-total strong {
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 800;
+}
+
 .employee-modal.service-form-modal .service-combo-note {
   margin: 0;
   color: var(--color-text-faint);

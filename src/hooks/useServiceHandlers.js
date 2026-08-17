@@ -14,6 +14,14 @@ import {parseServiceBookingBuffersFromForm} from "../utils/siteBookingBuffers.js
 
 const serviceDurations = [30, 60, 75, 90, 120];
 
+const getVariantPrice = (service, duration) =>
+  Math.max(
+    0,
+    Number(
+      service?.variants?.find((variant) => Number(variant.duration) === Number(duration))?.price,
+    ) || 0,
+  );
+
 export function useServiceHandlers({
   employees = [],
   editingPackage,
@@ -83,7 +91,10 @@ export function useServiceHandlers({
               ) ??
               null;
             const duration = Number(form.get(`combo_duration_${index}`)) || 60;
-            const price = Math.max(0, Number(form.get(`combo_price_${index}`)) || 0);
+            const usesCustomPrice = form.get("comboCustomPrice") === "on";
+            const price = usesCustomPrice
+              ? Math.max(0, Number(form.get(`combo_price_${index}`)) || 0)
+              : getVariantPrice(catalogService, duration);
 
             return {
               serviceId: Number(serviceId) || serviceId,
@@ -136,6 +147,30 @@ export function useServiceHandlers({
           .filter((variant) => variant.price > 0),
         ...parseServiceBookingBuffersFromForm(form, editingService),
       };
+      if (isCombo && comboItems.length < 2) {
+        pushNotification({
+          title: "Комплекс не сохранен",
+          message: "Выберите минимум две услуги для комплекса.",
+          persist: false,
+        });
+        return;
+      }
+      if (isCombo && comboTotalPrice <= 0) {
+        pushNotification({
+          title: "Комплекс не сохранен",
+          message: "У комплекса должна быть цена: выберите услуги с ценой или включите свою цену.",
+          persist: false,
+        });
+        return;
+      }
+      if (!isCombo && service.variants.length === 0) {
+        pushNotification({
+          title: "Услуга не сохранена",
+          message: "Добавьте хотя бы одну цену и длительность услуги.",
+          persist: false,
+        });
+        return;
+      }
       let savedService;
 
       try {

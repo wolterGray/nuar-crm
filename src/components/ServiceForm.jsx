@@ -7,6 +7,9 @@ import {getServiceAssignedEmployeeIds} from "../utils/serviceAssignments.js";
 
 const serviceDurations = [30, 60, 75, 90, 120];
 
+const getVariantPrice = (service, duration) =>
+  service?.variants?.find((variant) => Number(variant.duration) === Number(duration))?.price ?? "";
+
 function ServiceBufferToggle({defaultChecked, hint, label, name}) {
   return (
     <div className="service-buffer-toggle-row">
@@ -91,6 +94,22 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
   const [activeComboTab, setActiveComboTab] = useState("general");
   const currentServiceType = getServiceType(service, serviceType);
   const isCombo = currentServiceType === "combo";
+  const categoryOptions = useMemo(
+    () => [
+      ...new Set(
+        serviceCatalog
+          .map((item) => String(item.category ?? "").trim())
+          .filter(Boolean),
+      ),
+    ],
+    [serviceCatalog],
+  );
+  const serviceCategoryOptions = categoryOptions.includes("Массаж")
+    ? categoryOptions
+    : ["Массаж", ...categoryOptions];
+  const comboCategoryOptions = categoryOptions.includes("Комплексы")
+    ? categoryOptions
+    : ["Комплексы", ...categoryOptions];
   const defaultColor = useMemo(
     () => service?.color ?? getRandomServiceColor(),
     [service?.color],
@@ -98,6 +117,9 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
   const getPrice = (duration) =>
     service?.variants?.find((variant) => variant.duration === duration)?.price ?? "";
   const comboItems = getComboItems(service);
+  const [comboCustomPrice, setComboCustomPrice] = useState(
+    Boolean(service?.comboCustomPrice ?? service?.payload?.comboCustomPrice),
+  );
   const regularServices = serviceCatalog.filter(
     (item) =>
       String(item.id) !== String(service?.id) &&
@@ -105,7 +127,43 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
   );
   const assignedEmployeeIds = getServiceAssignedEmployeeIds(service);
   const assignedToEveryone = !service || assignedEmployeeIds.length === 0;
-  const comboRows = Array.from({length: Math.max(2, comboItems.length || 2)}, (_, index) => comboItems[index] ?? {});
+  const [comboRows, setComboRows] = useState(() =>
+    Array.from({length: Math.max(2, comboItems.length || 2)}, (_, index) => {
+      const item = comboItems[index] ?? {};
+      const catalogService = regularServices.find(
+        (catalogItem) => String(catalogItem.id) === String(item.serviceId),
+      );
+      const duration = Number(item.duration) || 60;
+      const price = item.price ?? getVariantPrice(catalogService, duration) ?? "";
+
+      return {
+        serviceId: item.serviceId ? String(item.serviceId) : "",
+        duration,
+        price,
+      };
+    }),
+  );
+  const updateComboRow = (index, patch) => {
+    setComboRows((current) =>
+      current.map((row, rowIndex) => {
+        if (rowIndex !== index) return row;
+
+        const nextRow = {...row, ...patch};
+        if (!comboCustomPrice && (patch.serviceId !== undefined || patch.duration !== undefined)) {
+          const catalogService = regularServices.find(
+            (catalogItem) => String(catalogItem.id) === String(nextRow.serviceId),
+          );
+          nextRow.price = getVariantPrice(catalogService, nextRow.duration);
+        }
+
+        return nextRow;
+      }),
+    );
+  };
+  const comboTotalPrice = comboRows.reduce(
+    (total, row) => total + (Number(row.price) || 0),
+    0,
+  );
 
   if (isCombo) {
     return (
@@ -134,7 +192,11 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
                 <Input name="name" defaultValue={service?.name ?? ""} required />
               </Field>
               <Field label="Категория">
-                <Input name="category" defaultValue={service?.category ?? "Комплексы"} />
+                <Select name="category" defaultValue={service?.category ?? "Комплексы"}>
+                  {comboCategoryOptions.map((category) => (
+                    <option key={category}>{category}</option>
+                  ))}
+                </Select>
               </Field>
               <Field className="service-color-field" label="Цвет в календаре">
                 <Input className="color-input" name="color" type="color" defaultValue={defaultColor} />
@@ -154,7 +216,12 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
                 {comboRows.map((item, index) => (
                   <div className="service-combo-row" key={index}>
                     <span>{index + 1}</span>
-                    <Select name={`combo_service_${index}`} defaultValue={item.serviceId ?? ""}>
+                    <Select
+                      name={`combo_service_${index}`}
+                      value={item.serviceId ?? ""}
+                      onChange={(event) =>
+                        updateComboRow(index, {serviceId: event.target.value})
+                      }>
                       <option value="">Выберите услугу</option>
                       {regularServices.map((catalogService) => (
                         <option key={catalogService.id} value={catalogService.id}>
@@ -162,7 +229,12 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
                         </option>
                       ))}
                     </Select>
-                    <Select name={`combo_duration_${index}`} defaultValue={item.duration ?? 60}>
+                    <Select
+                      name={`combo_duration_${index}`}
+                      value={item.duration ?? 60}
+                      onChange={(event) =>
+                        updateComboRow(index, {duration: Number(event.target.value) || 60})
+                      }>
                       {serviceDurations.map((duration) => (
                         <option key={duration} value={duration}>
                           {duration} мин
@@ -184,17 +256,43 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
                     <span>Услуга {index + 1}</span>
                     <Input
                       name={`combo_price_${index}`}
-                      defaultValue={item.price ?? ""}
+                      readOnly={!comboCustomPrice}
+                      value={item.price ?? ""}
+                      onChange={(event) =>
+                        updateComboRow(index, {price: event.target.value})
+                      }
                       placeholder="0"
                     />
                   </label>
                 ))}
               </div>
+              <div className="service-combo-total">
+                <span>Цена комплекса</span>
+                <strong>{comboTotalPrice} zł</strong>
+              </div>
               <label className="form-checkbox service-combo-price-mode">
                 <Checkbox
                   className="form-checkbox-input"
-                  defaultChecked={service?.payload?.comboCustomPrice !== false}
+                  checked={comboCustomPrice}
                   name="comboCustomPrice"
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setComboCustomPrice(checked);
+                    if (!checked) {
+                      setComboRows((current) =>
+                        current.map((row) => {
+                          const catalogService = regularServices.find(
+                            (catalogItem) => String(catalogItem.id) === String(row.serviceId),
+                          );
+
+                          return {
+                            ...row,
+                            price: getVariantPrice(catalogService, row.duration),
+                          };
+                        }),
+                      );
+                    }
+                  }}
                 />
                 <span aria-hidden="true" className="form-checkbox-box" />
                 <span className="form-checkbox-label">Своя цена комплекса</span>
@@ -222,7 +320,11 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
           <Input name="name" defaultValue={service?.name ?? ""} required />
         </Field>
         <Field label="Категория">
-          <Input name="category" defaultValue={service?.category ?? "Массаж"} />
+          <Select name="category" defaultValue={service?.category ?? "Массаж"}>
+            {serviceCategoryOptions.map((category) => (
+              <option key={category}>{category}</option>
+            ))}
+          </Select>
         </Field>
         <Field className="service-color-field" label="Цвет в календаре">
           <Input
