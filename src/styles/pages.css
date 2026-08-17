@@ -1909,12 +1909,12 @@ button:focus-visible {
 
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   align-items: stretch;
   gap: 14px;
   width: 100%;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .theme-dark .service-card.catalog-card,
@@ -1922,9 +1922,10 @@ button:focus-visible {
 .service-card.catalog-card {
   position: relative;
   display: grid;
-  grid-template-rows: auto auto 38px;
+  grid-template-rows: auto auto minmax(56px, auto);
   min-width: 0;
-  height: 154px;
+  min-height: 164px;
+  height: auto;
   gap: 9px;
   padding: 14px;
   overflow: hidden;
@@ -2009,7 +2010,7 @@ button:focus-visible {
 }
 
 .service-card-category-select {
-  width: 118px;
+  width: 108px;
   height: 28px;
   min-height: 28px;
   margin-left: auto;
@@ -2019,35 +2020,33 @@ button:focus-visible {
 }
 
 .service-variants {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-content: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
   align-items: center;
-  gap: 7px;
-  min-height: 38px;
-  max-height: 38px;
+  gap: 6px;
+  min-height: 56px;
   padding-top: 11px;
   border-top: 1px solid var(--services-border-soft);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .service-variant-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
   max-width: 100%;
   min-width: 0;
-  min-height: 28px;
-  padding: 0 8px;
+  min-height: 24px;
+  padding: 0 7px;
   border: 1px solid var(--services-border);
   border-radius: 999px;
   color: var(--services-muted);
   background: var(--services-panel-soft);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
   white-space: nowrap;
 }
 
@@ -2058,17 +2057,13 @@ button:focus-visible {
 }
 
 .service-variant-pill.is-empty {
-  grid-column: 1 / -1;
   justify-content: flex-start;
   color: var(--services-faint);
 }
 
 .service-variant-pill strong {
-  min-width: 0;
   color: var(--services-text);
   font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .services-empty-state {
@@ -2095,7 +2090,7 @@ button:focus-visible {
 
 @media (max-width: 1180px) {
   .services-grid {
-    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    grid-template-columns: repeat(2, minmax(300px, 1fr));
   }
 }
 
@@ -2135,7 +2130,8 @@ button:focus-visible {
   }
 
   .service-card.catalog-card {
-    height: 132px;
+    min-height: 140px;
+    height: auto;
     gap: 9px;
     padding: 12px 14px;
   }

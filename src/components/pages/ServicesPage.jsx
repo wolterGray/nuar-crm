@@ -231,8 +231,6 @@ function ServicesPage({
           filteredServices.map((service) => {
             const variants = service.variants ?? [];
             const isCombo = (service.serviceType ?? service.payload?.serviceType) === "combo";
-            const visibleVariants = variants.slice(0, 2);
-            const hiddenVariantsCount = Math.max(0, variants.length - visibleVariants.length);
 
             return (
               <motion.article
@@ -298,17 +296,12 @@ function ServicesPage({
                 <div className="service-variants">
                   {variants.length > 0 ? (
                     <>
-                      {visibleVariants.map((variant) => (
-                        <span key={variant.duration} className="service-variant-pill">
+                      {variants.map((variant, index) => (
+                        <span key={`${variant.duration}-${variant.price}-${index}`} className="service-variant-pill">
                           {isCombo ? "комплекс" : `${variant.duration} мин`}
                           <strong className="text-text-main font-semibold">{formatMoney(variant.price)}</strong>
                         </span>
                       ))}
-                      {hiddenVariantsCount > 0 ? (
-                        <span className="service-variant-pill is-more">
-                          +{hiddenVariantsCount}
-                        </span>
-                      ) : null}
                     </>
                   ) : (
                     <span className="service-variant-pill is-empty">
