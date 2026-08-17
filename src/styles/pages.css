@@ -1948,6 +1948,8 @@ button:focus-visible {
   box-shadow: none;
   backdrop-filter: none;
   cursor: grab;
+  touch-action: pan-y;
+  will-change: transform;
   transition:
     border-color 160ms ease,
     background 160ms ease,
@@ -1965,10 +1967,6 @@ button:focus-visible {
   cursor: grabbing;
   opacity: 0.74;
   z-index: 2;
-}
-
-.service-card.catalog-card.is-drop-target {
-  border-color: color-mix(in srgb, var(--color-primary) 58%, var(--services-border));
 }
 
 .service-card-header {

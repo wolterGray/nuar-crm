@@ -4,12 +4,11 @@ import {
   DndContext,
   PointerSensor,
   TouchSensor,
-  pointerWithin,
-  useDraggable,
-  useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import {rectSortingStrategy, SortableContext, useSortable} from "@dnd-kit/sortable";
+import {CSS} from "@dnd-kit/utilities";
 import {formatMoney} from "../../utils/formatters.jsx";
 import {serviceColorPalette} from "../../utils/serviceColors.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
@@ -22,37 +21,19 @@ const DEFAULT_CATEGORIES = ["Массаж", "Комплексы"];
 const ALL_CATEGORIES = "__all__";
 const normalizeCategory = (value) => String(value ?? "").trim();
 
-const serviceCollisionDetection = (args) => {
-  const pointerCollisions = pointerWithin(args);
-  if (pointerCollisions.length > 0) {
-    return pointerCollisions;
-  }
-
-  return closestCenter(args);
-};
-
-function DraggableServiceCard({children, service}) {
-  const {attributes, listeners, setNodeRef: setDraggableRef, transform, isDragging} =
-    useDraggable({
-      id: `service-${service.id}`,
-      data: {service},
-    });
-  const {isOver, setNodeRef: setDroppableRef} = useDroppable({
-    id: `service-drop-${service.id}`,
+function SortableServiceCard({children, service}) {
+  const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({
+    id: String(service.id),
     data: {service},
   });
-
-  const setNodeRef = (node) => {
-    setDraggableRef(node);
-    setDroppableRef(node);
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
   };
-  const style = transform
-    ? {transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`}
-    : undefined;
 
   return (
     <article
-      className={`catalog-card service-card ${isDragging ? "is-dragging" : ""} ${isOver ? "is-drop-target" : ""}`}
+      className={`catalog-card service-card ${isDragging ? "is-dragging" : ""}`}
       key={service.id}
       ref={setNodeRef}
       style={style}
@@ -272,11 +253,11 @@ function ServicesPage({
       ) : null}
 
       <DndContext
-        collisionDetection={serviceCollisionDetection}
+        collisionDetection={closestCenter}
         sensors={sensors}
         onDragEnd={({active, over}) => {
-          const activeServiceId = active.data.current?.service?.id;
-          const overServiceId = over?.data.current?.service?.id;
+          const activeServiceId = String(active.id);
+          const overServiceId = over?.id ? String(over.id) : null;
 
           if (activeServiceId && overServiceId && activeServiceId !== overServiceId) {
             onReorder?.(
@@ -286,100 +267,105 @@ function ServicesPage({
             );
           }
         }}>
-        <div className="services-grid">
-          {filteredServices.length === 0 ? (
-            <EmptyState
-              className="services-empty-state"
-              description={
-                search.trim()
-                  ? "Попробуйте изменить запрос."
-                  : "Добавьте первую услугу в каталог."
-              }
-              icon={search.trim() ? "search" : "plus"}
-              title={search.trim() ? "Ничего не найдено" : "Услуг пока нет"}
-            />
-          ) : (
-            filteredServices.map((service) => {
-              const variants = service.variants ?? [];
-              const isCombo = (service.serviceType ?? service.payload?.serviceType) === "combo";
+        <SortableContext
+          items={filteredServices.map((service) => String(service.id))}
+          strategy={rectSortingStrategy}>
+          <div className="services-grid">
+            {filteredServices.length === 0 ? (
+              <EmptyState
+                className="services-empty-state"
+                description={
+                  search.trim()
+                    ? "Попробуйте изменить запрос."
+                    : "Добавьте первую услугу в каталог."
+                }
+                icon={search.trim() ? "search" : "plus"}
+                title={search.trim() ? "Ничего не найдено" : "Услуг пока нет"}
+              />
+            ) : (
+              filteredServices.map((service) => {
+                const variants = service.variants ?? [];
+                const isCombo = (service.serviceType ?? service.payload?.serviceType) === "combo";
 
-              return (
-                <DraggableServiceCard key={service.id} service={service}>
-                  {/* Main Head */}
-                  <div className="service-card-header">
-                    <div className="service-card-title">
-                      <h3>{service.name}</h3>
-                      <span>
-                        <span
-                          className="service-card-dot"
-                          style={{backgroundColor: service.color ?? serviceColorPalette[0]}}
-                        />
-                        {service.category || "Без категории"}
-                      </span>
+                return (
+                  <SortableServiceCard key={service.id} service={service}>
+                    {/* Main Head */}
+                    <div className="service-card-header">
+                      <div className="service-card-title">
+                        <h3>{service.name}</h3>
+                        <span>
+                          <span
+                            className="service-card-dot"
+                            style={{backgroundColor: service.color ?? serviceColorPalette[0]}}
+                          />
+                          {service.category || "Без категории"}
+                        </span>
+                      </div>
+
+                      <RowActionsMenu
+                        itemId={service.id}
+                        openMenuId={openMenuId}
+                        setOpenMenuId={setOpenMenuId}
+                        onDelete={() => onDelete(service)}
+                        onEdit={() => onEdit(service)}
+                      />
                     </div>
 
-                    <RowActionsMenu
-                      itemId={service.id}
-                      openMenuId={openMenuId}
-                      setOpenMenuId={setOpenMenuId}
-                      onDelete={() => onDelete(service)}
-                      onEdit={() => onEdit(service)}
-                    />
-                  </div>
-
-                  <div className="service-card-meta">
-                    <span>{variants.length} вариантов</span>
-                    <span>•</span>
-                    <span>
-                      {variants.length > 0
-                        ? `${Math.min(...variants.map((v) => Number(v.duration) || 0))}-${Math.max(...variants.map((v) => Number(v.duration) || 0))} мин`
-                        : "Без длительности"}
-                    </span>
-                    {isCombo ? (
-                      <>
-                        <span>•</span>
-                        <span>{service.payload?.comboItems?.length ?? service.comboItems?.length ?? 0} услуг</span>
-                      </>
-                    ) : null}
-                    <Select
-                      className="service-card-category-select"
-                      aria-label="Перенести в категорию"
-                      value={service.category || "Без категории"}
-                      onClick={(event) => event.stopPropagation()}
-                      onChange={(event) => onMoveServiceToCategory?.(service, event.target.value)}>
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                      {!categories.includes("Без категории") ? (
-                        <option value="Без категории">Без категории</option>
-                      ) : null}
-                    </Select>
-                  </div>
-
-                  {/* Variants Price Box */}
-                  <div className="service-variants">
-                    {variants.length > 0 ? (
-                      <>
-                        {variants.map((variant, index) => (
-                          <span key={`${variant.duration}-${variant.price}-${index}`} className="service-variant-pill">
-                            {isCombo ? "комплекс" : `${variant.duration} мин`}
-                            <strong className="text-text-main font-semibold">{formatMoney(variant.price)}</strong>
-                          </span>
-                        ))}
-                      </>
-                    ) : (
-                      <span className="service-variant-pill is-empty">
-                        Настроить цену
+                    <div className="service-card-meta">
+                      <span>{variants.length} вариантов</span>
+                      <span>•</span>
+                      <span>
+                        {variants.length > 0
+                          ? `${Math.min(...variants.map((v) => Number(v.duration) || 0))}-${Math.max(...variants.map((v) => Number(v.duration) || 0))} мин`
+                          : "Без длительности"}
                       </span>
-                    )}
-                  </div>
-                </DraggableServiceCard>
-              );
-            })
-          )}
-        </div>
+                      {isCombo ? (
+                        <>
+                          <span>•</span>
+                          <span>{service.payload?.comboItems?.length ?? service.comboItems?.length ?? 0} услуг</span>
+                        </>
+                      ) : null}
+                      <Select
+                        className="service-card-category-select"
+                        aria-label="Перенести в категорию"
+                        value={service.category || "Без категории"}
+                        onPointerDown={(event) => event.stopPropagation()}
+                        onClick={(event) => event.stopPropagation()}
+                        onChange={(event) => onMoveServiceToCategory?.(service, event.target.value)}>
+                        {categories.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                        {!categories.includes("Без категории") ? (
+                          <option value="Без категории">Без категории</option>
+                        ) : null}
+                      </Select>
+                    </div>
+
+                    {/* Variants Price Box */}
+                    <div className="service-variants">
+                      {variants.length > 0 ? (
+                        <>
+                          {variants.map((variant, index) => (
+                            <span key={`${variant.duration}-${variant.price}-${index}`} className="service-variant-pill">
+                              {isCombo ? "комплекс" : `${variant.duration} мин`}
+                              <strong className="text-text-main font-semibold">{formatMoney(variant.price)}</strong>
+                            </span>
+                          ))}
+                        </>
+                      ) : (
+                        <span className="service-variant-pill is-empty">
+                          Настроить цену
+                        </span>
+                      )}
+                    </div>
+                  </SortableServiceCard>
+                );
+              })
+            )}
+          </div>
+        </SortableContext>
       </DndContext>
     </div>
   );
