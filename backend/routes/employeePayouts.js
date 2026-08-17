@@ -4,6 +4,7 @@ const { requireAdminOrOwner } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
   EMPLOYEE_EARNING_INCLUDE,
+  cleanupPackageVisitEarningsAndEnsureSales,
   earningAmountSum,
   serializeEmployeeEarning,
   stateConflictError,
@@ -144,6 +145,7 @@ router.get('/employee-earnings/summary', async (req, res) => {
 
   try {
     validateDateRange(startDate, endDate);
+    await cleanupPackageVisitEarningsAndEnsureSales(prisma);
     const [employees, earnings] = await Promise.all([
       prisma.employee.findMany({ orderBy: { name: 'asc' } }),
       prisma.employeeEarning.findMany({
@@ -180,6 +182,7 @@ router.get('/employee-earnings/employees/:employeeId', async (req, res) => {
 
   try {
     validateDateRange(startDate, endDate);
+    await cleanupPackageVisitEarningsAndEnsureSales(prisma);
     const [employee, earnings] = await Promise.all([
       prisma.employee.findUnique({ where: { id: employeeId } }),
       prisma.employeeEarning.findMany({

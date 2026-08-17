@@ -270,21 +270,8 @@ const getDayClosePackageSaleEmployeePayout = (clientPackage, employees = []) => 
   return Math.round(Math.max(0, dayCloseToFinanceNumber(clientPackage?.price)) * (rate / 100));
 };
 
-const getDayClosePackageVisitEmployeePayout = (visit, employees = [], clientPackages = []) => {
-  if (!isDayClosePackageVisit(visit)) {
-    return 0;
-  }
-
-  const clientPackage = clientPackages.find(
-    (item) => String(item.id) === String(visit?.packageUsageId),
-  );
-  const totalVisits = Math.max(1, dayCloseToFinanceNumber(clientPackage?.totalVisits));
-  const sessionsUsed = Math.max(1, dayCloseToFinanceNumber(visit?.packageSessionsUsed) || 1);
-  const unitAmount =
-    (Math.max(0, dayCloseToFinanceNumber(clientPackage?.price)) / totalVisits) * sessionsUsed;
-  const rate = getDayCloseEmployeeRate(employees, visit?.master);
-
-  return Math.round(unitAmount * (rate / 100));
+const getDayClosePackageVisitEmployeePayout = (_visit = null, _employees = [], _clientPackages = []) => {
+  return 0;
 };
 
 const isDayCloseCompletedVisit = (visit) => {

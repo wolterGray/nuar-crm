@@ -1,6 +1,5 @@
 import {isVisitInPeriod} from "./dateUtils.js";
 import {
-  getPackageVisitEmployeePayout,
   getVisitDiscountedAmount,
   getVisitEmployeePayout,
   getVisitServiceReceivedAmount,
@@ -48,10 +47,10 @@ export const isVisitMasterPayoutPaid = (visit) =>
 export const getVisitMasterPayoutAmount = (
   visit,
   employees = [],
-  clientPackages = [],
+  _clientPackages = [],
 ) => {
   if (isPackageVisit(visit)) {
-    return getPackageVisitEmployeePayout(visit, employees, clientPackages);
+    return 0;
   }
 
   return getVisitEmployeePayout(visit, employees);

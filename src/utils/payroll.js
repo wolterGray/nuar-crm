@@ -1,7 +1,6 @@
 import {formatAppDate, INPUT_DATE_FORMAT, isVisitInPeriod, parseAppDate} from "./dateUtils.js";
 import {
   getPackageSaleEmployeePayout,
-  getPackageVisitEmployeePayout,
   getVisitEmployeePayout,
   getVisitTipAmount,
   isCancelledVisit,
@@ -55,13 +54,7 @@ export const buildPayrollReport = ({
       for (const visit of employeeVisits) {
         tips += getVisitTipAmount(visit);
 
-        if (isPackageVisit(visit)) {
-          packageVisitPayout += getPackageVisitEmployeePayout(
-            visit,
-            employees,
-            clientPackages,
-          );
-        } else {
+        if (!isPackageVisit(visit)) {
           servicePayout += getVisitEmployeePayout(visit, employees);
         }
       }

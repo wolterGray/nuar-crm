@@ -96,43 +96,24 @@ const isCompletedEarningEligibleVisit = (visitPayload) => {
   if (!visitPayload || visitPayload.recordType === 'operation') {
     return false;
   }
+  if (isDayClosePackageVisit(visitPayload)) {
+    return false;
+  }
   return !isDayCloseCancelledVisit(visitPayload) && !isDayCloseBarterVisit(visitPayload);
 };
 
 const getActualPriceForEarning = (visitPayload) => {
-  if (isDayClosePackageVisit(visitPayload) || isDayCloseCertificateVisit(visitPayload)) {
+  if (isDayCloseCertificateVisit(visitPayload)) {
     return normalizeDecimal(Math.max(0, getDayCloseDiscountedAmount(visitPayload)));
   }
   return normalizeDecimal(Math.max(0, getDayCloseServiceReceivedAmount(visitPayload)));
 };
 
-const getPackageVisitActualPrice = (visitPayload, clientPackage) => {
-  const packagePayload = getClientPackagePayload(clientPackage);
-  const price = Number(clientPackage?.price ?? packagePayload?.price) || 0;
-  const totalVisits = Math.max(1, Number(clientPackage?.totalVisits ?? packagePayload?.totalVisits) || 1);
-  const sessionsUsed = Math.max(1, Number(visitPayload?.packageSessionsUsed) || 1);
-
-  return normalizeDecimal(Math.max(0, price / totalVisits) * sessionsUsed);
-};
-
 const resolveActualPriceForEarning = async (tx, visitPayload) => {
-  if (!isDayClosePackageVisit(visitPayload)) {
-    return getActualPriceForEarning(visitPayload);
+  if (isDayClosePackageVisit(visitPayload)) {
+    return normalizeDecimal(0);
   }
-
-  const clientPackageId = Number(visitPayload?.packageUsageId);
-  if (!Number.isInteger(clientPackageId) || clientPackageId <= 0) {
-    return getActualPriceForEarning(visitPayload);
-  }
-
-  const clientPackage = await tx.clientPackage.findUnique({
-    where: { id: clientPackageId },
-  });
-  if (!clientPackage) {
-    return getActualPriceForEarning(visitPayload);
-  }
-
-  return getPackageVisitActualPrice(visitPayload, clientPackage);
+  return getActualPriceForEarning(visitPayload);
 };
 
 const calculateEmployeeAmount = (actualPrice, commissionPercent) =>
@@ -213,7 +194,7 @@ const resolveEmployeeForClientPackage = async (tx, clientPackage, payload = {}) 
     if (employee) return employee;
   }
 
-  const master = String(payload?.master ?? payload?.employeeName ?? '').trim();
+  const master = String(clientPackage?.master ?? payload?.master ?? payload?.employeeName ?? payload?.seller ?? '').trim();
   if (!master) return null;
 
   return tx.employee.findFirst({ where: { name: master } });
@@ -277,7 +258,7 @@ const buildPackageSaleEarningSnapshot = async (tx, clientPackage) => {
   const payload = getClientPackagePayload(clientPackage);
   const hasSeller =
     Number(clientPackage?.employeeId ?? payload?.employeeId) > 0 ||
-    String(payload?.master ?? payload?.employeeName ?? '').trim();
+    String(clientPackage?.master ?? payload?.master ?? payload?.employeeName ?? payload?.seller ?? '').trim();
   if (!hasSeller) {
     return null;
   }
@@ -530,6 +511,43 @@ const removeUnpaidEmployeeEarningForVisit = async (tx, req, visitId) => {
 const earningAmountSum = (earnings = []) =>
   earnings.reduce((sum, earning) => sum.plus(decimal(earning.amount)), decimal(0)).toDecimalPlaces(2);
 
+const cleanupPackageVisitEarningsAndEnsureSales = async (tx) => {
+  const unpaidVisitEarnings = await tx.employeeEarning.findMany({
+    where: {
+      payoutId: null,
+      visitId: { not: null },
+    },
+    include: {
+      visit: true,
+    },
+  });
+
+  const toDeleteIds = unpaidVisitEarnings
+    .filter((earning) => {
+      const visitPayload = getVisitPayloadForDayClose(earning.visit);
+      return isDayClosePackageVisit(visitPayload);
+    })
+    .map((earning) => earning.id);
+
+  if (toDeleteIds.length > 0) {
+    await tx.employeeEarning.deleteMany({
+      where: { id: { in: toDeleteIds } },
+    });
+  }
+
+  const clientPackages = await tx.clientPackage.findMany({
+    include: {
+      employeeEarning: true,
+    },
+  });
+
+  for (const clientPackage of clientPackages) {
+    if (!clientPackage.employeeEarning) {
+      await syncEmployeeEarningForClientPackageSale(tx, null, clientPackage);
+    }
+  }
+};
+
 module.exports = {
   EMPLOYEE_EARNING_INCLUDE,
   VISIT_WITH_EARNING_INCLUDE,
@@ -538,6 +556,7 @@ module.exports = {
   buildEmployeeEarningSnapshots,
   buildPackageSaleEarningSnapshot,
   calculateEmployeeAmount,
+  cleanupPackageVisitEarningsAndEnsureSales,
   EARNING_SOURCE_PACKAGE_SALE,
   EARNING_SOURCE_VISIT,
   earningAmountSum,
@@ -551,3 +570,4 @@ module.exports = {
   syncEmployeeEarningForCompletedVisit,
   validateCommissionPercent,
 };
+
