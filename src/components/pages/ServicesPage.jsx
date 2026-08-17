@@ -6,20 +6,63 @@ import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import PageHeader from "../ui/PageHeader.jsx";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
-import {Button, EmptyState} from "../ui/index.js";
+import {Button, EmptyState, Input, Select} from "../ui/index.js";
 
-function ServicesPage({services, onAdd, onEdit, onDelete}) {
+const DEFAULT_CATEGORIES = ["Массаж", "Комплексы"];
+const ALL_CATEGORIES = "__all__";
+const normalizeCategory = (value) => String(value ?? "").trim();
+
+function ServicesPage({
+  services,
+  serviceCategories = [],
+  onAdd,
+  onCreateCategory,
+  onDelete,
+  onDeleteCategory,
+  onEdit,
+  onMoveServiceToCategory,
+  onRenameCategory,
+}) {
   const {isMobile} = useBreakpoint();
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES);
+  const [newCategory, setNewCategory] = useState("");
+  const [editingCategoryName, setEditingCategoryName] = useState("");
+
+  const categories = useMemo(() => {
+    const names = [
+      ...DEFAULT_CATEGORIES,
+      ...serviceCategories,
+      ...services.map((service) => normalizeCategory(service.category)),
+    ].filter(Boolean);
+
+    return [...new Set(names)].sort((left, right) => left.localeCompare(right, "ru"));
+  }, [serviceCategories, services]);
+
+  const serviceCountsByCategory = useMemo(
+    () =>
+      services.reduce((counts, service) => {
+        const category = normalizeCategory(service.category) || "Без категории";
+        counts.set(category, (counts.get(category) ?? 0) + 1);
+        return counts;
+      }, new Map()),
+    [services],
+  );
 
   const filteredServices = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) {
-      return services;
-    }
+    const categoryFilteredServices =
+      selectedCategory === ALL_CATEGORIES
+        ? services
+        : services.filter(
+            (service) =>
+              (normalizeCategory(service.category) || "Без категории") === selectedCategory,
+          );
 
-    return services.filter((service) =>
+    if (!query) return categoryFilteredServices;
+
+    return categoryFilteredServices.filter((service) =>
       [
         service.name,
         service.category,
@@ -32,7 +75,13 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
         .toLowerCase()
         .includes(query),
     );
-  }, [search, services]);
+  }, [search, selectedCategory, services]);
+
+  const selectedCategoryCount =
+    selectedCategory === ALL_CATEGORIES
+      ? services.length
+      : serviceCountsByCategory.get(selectedCategory) ?? 0;
+  const canManageSelectedCategory = selectedCategory !== ALL_CATEGORIES;
 
   return (
     <div
@@ -81,6 +130,91 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
         }
       />
 
+      <section className="service-categories-panel" aria-label="Категории услуг">
+        <div className="service-category-tabs">
+          <button
+            className={selectedCategory === ALL_CATEGORIES ? "is-active" : ""}
+            type="button"
+            onClick={() => setSelectedCategory(ALL_CATEGORIES)}>
+            Все <span>{services.length}</span>
+          </button>
+          {categories.map((category) => (
+            <button
+              className={selectedCategory === category ? "is-active" : ""}
+              key={category}
+              type="button"
+              onClick={() => {
+                setSelectedCategory(category);
+                setEditingCategoryName(category);
+              }}>
+              {category} <span>{serviceCountsByCategory.get(category) ?? 0}</span>
+            </button>
+          ))}
+        </div>
+        <form
+          className="service-category-create"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const name = normalizeCategory(newCategory);
+            if (!name) return;
+            onCreateCategory?.(name);
+            setSelectedCategory(name);
+            setEditingCategoryName(name);
+            setNewCategory("");
+          }}>
+          <Input
+            aria-label="Новая категория"
+            placeholder="Новая категория"
+            value={newCategory}
+            onChange={(event) => setNewCategory(event.target.value)}
+          />
+          <Button size="sm" type="submit" variant="secondary">
+            Создать
+          </Button>
+        </form>
+      </section>
+
+      {canManageSelectedCategory ? (
+        <section className="service-category-manage">
+          <span>{selectedCategoryCount} услуг</span>
+          <Input
+            aria-label="Название категории"
+            value={editingCategoryName || selectedCategory}
+            onChange={(event) => setEditingCategoryName(event.target.value)}
+          />
+          <Button
+            size="sm"
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              const nextName = normalizeCategory(editingCategoryName);
+              if (!nextName) return;
+              onRenameCategory?.(selectedCategory, nextName);
+              setSelectedCategory(nextName);
+              setEditingCategoryName(nextName);
+            }}>
+            Переименовать
+          </Button>
+          <Button
+            size="sm"
+            type="button"
+            variant="danger"
+            onClick={() => {
+              const confirmed =
+                selectedCategoryCount === 0 ||
+                window.confirm(
+                  `Удалить категорию "${selectedCategory}"? Услуги будут перенесены в "Без категории".`,
+                );
+              if (!confirmed) return;
+              onDeleteCategory?.(selectedCategory);
+              setSelectedCategory(ALL_CATEGORIES);
+              setEditingCategoryName("");
+            }}>
+            Удалить
+          </Button>
+        </section>
+      ) : null}
+
       <div className="services-grid">
         {filteredServices.length === 0 ? (
           <EmptyState
@@ -116,7 +250,7 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
                         className="service-card-dot"
                         style={{backgroundColor: service.color ?? serviceColorPalette[0]}}
                       />
-                      {isCombo ? "Комплекс" : service.category || "Без категории"}
+                      {service.category || "Без категории"}
                     </span>
                   </div>
 
@@ -143,6 +277,21 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
                       <span>{service.payload?.comboItems?.length ?? service.comboItems?.length ?? 0} услуг</span>
                     </>
                   ) : null}
+                  <Select
+                    className="service-card-category-select"
+                    aria-label="Перенести в категорию"
+                    value={service.category || "Без категории"}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={(event) => onMoveServiceToCategory?.(service, event.target.value)}>
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                    {!categories.includes("Без категории") ? (
+                      <option value="Без категории">Без категории</option>
+                    ) : null}
+                  </Select>
                 </div>
 
                 {/* Variants Price Box */}

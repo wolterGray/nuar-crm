@@ -89,7 +89,14 @@ const getComboItems = (service) => {
   return Array.isArray(items) ? items : [];
 };
 
-function ServiceForm({employees = [], service, serviceCatalog = [], serviceType = "service", onSubmit}) {
+function ServiceForm({
+  employees = [],
+  service,
+  serviceCatalog = [],
+  serviceCategories = [],
+  serviceType = "service",
+  onSubmit,
+}) {
   const {isMobile} = useBreakpoint();
   const [activeComboTab, setActiveComboTab] = useState("general");
   const currentServiceType = getServiceType(service, serviceType);
@@ -100,9 +107,12 @@ function ServiceForm({employees = [], service, serviceCatalog = [], serviceType 
         serviceCatalog
           .map((item) => String(item.category ?? "").trim())
           .filter(Boolean),
+        ...serviceCategories
+          .map((item) => String(item ?? "").trim())
+          .filter(Boolean),
       ),
     ],
-    [serviceCatalog],
+    [serviceCatalog, serviceCategories],
   );
   const serviceCategoryOptions = categoryOptions.includes("Массаж")
     ? categoryOptions

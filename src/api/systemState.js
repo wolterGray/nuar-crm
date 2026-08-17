@@ -12,6 +12,7 @@ export const SYSTEM_STATE_KEYS = {
   inactiveFollowUpLog: "inactiveFollowUpLog",
   notificationInbox: "notificationInbox",
   reviewRequestLog: "reviewRequestLog",
+  serviceCategories: "serviceCategories",
   smsReminderLog: "smsReminderLog",
 };
 

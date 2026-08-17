@@ -1836,6 +1836,77 @@ button:focus-visible {
   white-space: nowrap;
 }
 
+.service-categories-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 340px);
+  align-items: start;
+  gap: 12px;
+  width: 100%;
+}
+
+.service-category-tabs {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.service-category-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  max-width: 190px;
+  padding: 0 11px;
+  border: 1px solid var(--services-border);
+  border-radius: 9px;
+  color: var(--services-muted);
+  background: var(--services-panel);
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.service-category-tabs button.is-active {
+  color: var(--button-primary-text);
+  border-color: var(--services-accent);
+  background: var(--services-accent);
+}
+
+.service-category-tabs button span {
+  color: inherit;
+  opacity: 0.65;
+}
+
+.service-category-create,
+.service-category-manage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.service-category-create input,
+.service-category-manage input,
+.service-card-category-select {
+  min-height: 32px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+
+.service-category-manage {
+  grid-template-columns: auto minmax(160px, 260px) auto auto;
+  align-items: center;
+  justify-content: end;
+  padding-top: 2px;
+}
+
+.service-category-manage > span {
+  color: var(--services-faint);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .services-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(260px, 1fr));
@@ -1937,6 +2008,16 @@ button:focus-visible {
   text-overflow: ellipsis;
 }
 
+.service-card-category-select {
+  width: 118px;
+  height: 28px;
+  min-height: 28px;
+  margin-left: auto;
+  padding-right: 24px;
+  color: var(--services-muted);
+  background-color: var(--services-panel-soft);
+}
+
 .service-variants {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2036,6 +2117,16 @@ button:focus-visible {
   .services-page-search.crm-search-input-control,
   .services-page-add-button {
     width: 100%;
+  }
+
+  .service-categories-panel,
+  .service-category-manage {
+    grid-template-columns: 1fr;
+  }
+
+  .service-category-create,
+  .service-category-manage {
+    justify-content: stretch;
   }
 
   .services-grid {

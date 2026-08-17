@@ -104,6 +104,7 @@ export default function AppModals({
   defaultStatsDate,
   masters,
   serviceCatalog,
+  serviceCategories,
   pendingCalendarAction,
   pendingCalendarConflict,
   pendingPaymentDelete,
@@ -191,6 +192,7 @@ export default function AppModals({
         <ServiceForm
           employees={activeEmployees}
           service={editingService}
+          serviceCategories={serviceCategories}
           serviceCatalog={serviceCatalog}
           serviceType={editingService?.payload?.serviceType ?? editingService?.serviceType ?? serviceCreateType}
           onSubmit={onServiceSubmit}

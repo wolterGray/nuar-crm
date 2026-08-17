@@ -150,9 +150,14 @@ export default function AppRoutes({activePage, ...props}) {
         <PageSuspense>
           <ServicesPage
             services={props.serviceCatalog}
+            serviceCategories={props.serviceCategories}
             onAdd={props.openCreateService}
+            onCreateCategory={props.createServiceCategory}
+            onDeleteCategory={props.deleteServiceCategory}
             onEdit={props.openEditService}
             onDelete={props.requestDeleteService}
+            onMoveServiceToCategory={props.moveServiceToCategory}
+            onRenameCategory={props.renameServiceCategory}
           />
         </PageSuspense>
       );

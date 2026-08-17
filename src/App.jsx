@@ -114,6 +114,7 @@ import {
 let localIdSequence = 0;
 const createLocalId = () => Date.now() * 1000 + ++localIdSequence;
 const BOOKSY_GMAIL_LAST_SYNC_STORAGE_KEY = "nuar-crm-booksy-gmail-last-sync";
+const DEFAULT_SERVICE_CATEGORIES = ["Массаж", "Комплексы"];
 
 const loadStoredBooksyGmailLastSyncAt = () => {
   try {
@@ -130,6 +131,7 @@ function App() {
     () => getInitialCrmCollections().clients,
   );
   const [serviceCatalog, setServiceCatalog] = useState(loadStoredServices);
+  const [serviceCategories, setServiceCategories] = useState(DEFAULT_SERVICE_CATEGORIES);
   const [packagesCatalog, setPackagesCatalog] = useState(loadStoredPackages);
   const [clientPackages, setClientPackages] = useState(
     () => getInitialCrmCollections().clientPackages,
@@ -515,6 +517,13 @@ function App() {
         if (Array.isArray(state[SYSTEM_STATE_KEYS.reviewRequestLog])) {
           setReviewRequestLog(state[SYSTEM_STATE_KEYS.reviewRequestLog]);
         }
+        if (Array.isArray(state[SYSTEM_STATE_KEYS.serviceCategories])) {
+          setServiceCategories(
+            state[SYSTEM_STATE_KEYS.serviceCategories]
+              .map((category) => String(category ?? "").trim())
+              .filter(Boolean),
+          );
+        }
         if (Array.isArray(state[SYSTEM_STATE_KEYS.smsReminderLog])) {
           setSmsReminderLog(state[SYSTEM_STATE_KEYS.smsReminderLog]);
         }
@@ -570,6 +579,7 @@ function App() {
         [SYSTEM_STATE_KEYS.inactiveFollowUpLog]: inactiveFollowUpLog,
         [SYSTEM_STATE_KEYS.notificationInbox]: notificationInbox,
         [SYSTEM_STATE_KEYS.reviewRequestLog]: reviewRequestLog,
+        [SYSTEM_STATE_KEYS.serviceCategories]: serviceCategories,
         [SYSTEM_STATE_KEYS.smsReminderLog]: smsReminderLog,
       }).catch((error) => {
         pushNotificationRef.current({
@@ -593,6 +603,7 @@ function App() {
     inactiveFollowUpLog,
     notificationInbox,
     reviewRequestLog,
+    serviceCategories,
     smsReminderLog,
     pushNotificationRef,
   ]);
@@ -1321,14 +1332,18 @@ function App() {
   });
 
   const {
+    createServiceCategory,
+    deleteServiceCategory,
     handlePackageSubmit,
     handleServiceSubmit,
+    moveServiceToCategory,
     openCreatePackage,
     openCreateService,
     openEditPackage,
     openEditService,
     performDeletePackage,
     performDeleteService,
+    renameServiceCategory,
     requestDeletePackage,
     requestDeleteService,
   } = useServiceHandlers({
@@ -1348,6 +1363,7 @@ function App() {
     setPackagesCatalog,
     setServiceCreateType,
     setServiceCatalog,
+    setServiceCategories,
     setServiceModalOpen,
     setVisits,
   });
@@ -1832,6 +1848,7 @@ function App() {
             onConfirmPayrollPaid={handleConfirmPayrollPaid}
             onCancelPayrollPaid={handleCancelPayrollPaid}
             serviceCatalog={serviceCatalog}
+            serviceCategories={serviceCategories}
             serviceModalOpen={serviceModalOpen}
             serviceNames={serviceNames}
             supplyModalOpen={supplyModalOpen}
@@ -2083,6 +2100,11 @@ function App() {
             requestDeleteTask={requestDeleteTask}
             resetSettings={resetSettings}
             serviceCatalog={serviceCatalog}
+            serviceCategories={serviceCategories}
+            createServiceCategory={createServiceCategory}
+            deleteServiceCategory={deleteServiceCategory}
+            moveServiceToCategory={moveServiceToCategory}
+            renameServiceCategory={renameServiceCategory}
             siteBooking={siteBooking}
             setActivePage={setActivePage}
             setOpenPaymentActionMenuId={setOpenPaymentActionMenuId}

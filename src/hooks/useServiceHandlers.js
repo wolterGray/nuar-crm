@@ -13,6 +13,7 @@ import {getRandomServiceColor} from "../utils/serviceColors.js";
 import {parseServiceBookingBuffersFromForm} from "../utils/siteBookingBuffers.js";
 
 const serviceDurations = [30, 60, 75, 90, 120];
+const UNCATEGORIZED_SERVICE_CATEGORY = "Без категории";
 
 const getVariantPrice = (service, duration) =>
   Math.max(
@@ -21,6 +22,23 @@ const getVariantPrice = (service, duration) =>
       service?.variants?.find((variant) => Number(variant.duration) === Number(duration))?.price,
     ) || 0,
   );
+
+const normalizeCategoryName = (value) => String(value ?? "").trim();
+
+const withServiceCategory = (service, category) => {
+  const payload = service?.payload && typeof service.payload === "object" ? service.payload : {};
+  const storedFields = Object.fromEntries(
+    Object.entries(service ?? {}).filter(
+      ([key]) => !["payload", "createdAt", "updatedAt"].includes(key),
+    ),
+  );
+
+  return {
+    ...payload,
+    ...storedFields,
+    category,
+  };
+};
 
 export function useServiceHandlers({
   employees = [],
@@ -38,6 +56,7 @@ export function useServiceHandlers({
   setPackagesCatalog,
   setServiceCreateType,
   setServiceCatalog,
+  setServiceCategories,
   setServiceModalOpen,
   setVisits,
 }) {
@@ -54,6 +73,166 @@ export function useServiceHandlers({
       setServiceModalOpen(true);
     },
     [setEditingService, setServiceCreateType, setServiceModalOpen],
+  );
+
+  const createServiceCategory = useCallback(
+    (name) => {
+      const category = normalizeCategoryName(name);
+      if (!category) return false;
+
+      let created = false;
+      setServiceCategories((current) => {
+        if (current.some((item) => item.toLowerCase() === category.toLowerCase())) {
+          return current;
+        }
+        created = true;
+        return [...current, category].sort((left, right) => left.localeCompare(right, "ru"));
+      });
+
+      if (created) {
+        pushNotification({
+          title: "Категория создана",
+          message: category,
+          persist: false,
+        });
+      }
+
+      return created;
+    },
+    [pushNotification, setServiceCategories],
+  );
+
+  const moveServiceToCategory = useCallback(
+    async (service, nextCategoryValue) => {
+      const nextCategory = normalizeCategoryName(nextCategoryValue) || UNCATEGORIZED_SERVICE_CATEGORY;
+      const nextService = withServiceCategory(service, nextCategory);
+
+      try {
+        const response = await updateService(service.id, nextService);
+        const savedService = response?.data ?? nextService;
+        setServiceCatalog((current) =>
+          current.map((item) => (item.id === service.id ? savedService : item)),
+        );
+        setServiceCategories((current) =>
+          current.some((item) => item.toLowerCase() === nextCategory.toLowerCase())
+            ? current
+            : [...current, nextCategory].sort((left, right) => left.localeCompare(right, "ru")),
+        );
+      } catch (error) {
+        pushNotification({
+          title: "Категория не изменена",
+          message: error?.message || "Backend не перенёс услугу",
+          persist: false,
+        });
+      }
+    },
+    [pushNotification, setServiceCatalog, setServiceCategories],
+  );
+
+  const renameServiceCategory = useCallback(
+    async (categoryValue, nextCategoryValue) => {
+      const category = normalizeCategoryName(categoryValue);
+      const nextCategory = normalizeCategoryName(nextCategoryValue);
+      if (!category || !nextCategory || category === nextCategory) return;
+
+      const affectedServices = serviceCatalog.filter(
+        (service) => normalizeCategoryName(service.category) === category,
+      );
+
+      try {
+        const savedServices = await Promise.all(
+          affectedServices.map((service) =>
+            updateService(service.id, withServiceCategory(service, nextCategory)).then(
+              (response) => response?.data ?? withServiceCategory(service, nextCategory),
+            ),
+          ),
+        );
+        const savedById = new Map(savedServices.map((service) => [service.id, service]));
+
+        setServiceCatalog((current) =>
+          current.map((service) =>
+            savedById.get(service.id) ??
+            (normalizeCategoryName(service.category) === category
+              ? withServiceCategory(service, nextCategory)
+              : service),
+          ),
+        );
+        setServiceCategories((current) => {
+          const next = current
+            .filter((item) => item.toLowerCase() !== category.toLowerCase())
+            .concat(nextCategory);
+          return [...new Set(next)].sort((left, right) => left.localeCompare(right, "ru"));
+        });
+        pushNotification({
+          title: "Категория переименована",
+          message: affectedServices.length
+            ? `Перенесено услуг: ${affectedServices.length}`
+            : nextCategory,
+          persist: false,
+        });
+      } catch (error) {
+        pushNotification({
+          title: "Категория не переименована",
+          message: error?.message || "Backend не обновил услуги категории",
+          persist: false,
+        });
+      }
+    },
+    [pushNotification, serviceCatalog, setServiceCatalog, setServiceCategories],
+  );
+
+  const deleteServiceCategory = useCallback(
+    async (categoryValue) => {
+      const category = normalizeCategoryName(categoryValue);
+      if (!category) return;
+
+      const affectedServices = serviceCatalog.filter(
+        (service) => normalizeCategoryName(service.category) === category,
+      );
+      const targetCategory = UNCATEGORIZED_SERVICE_CATEGORY;
+
+      try {
+        const savedServices = await Promise.all(
+          affectedServices.map((service) =>
+            updateService(service.id, withServiceCategory(service, targetCategory)).then(
+              (response) => response?.data ?? withServiceCategory(service, targetCategory),
+            ),
+          ),
+        );
+        const savedById = new Map(savedServices.map((service) => [service.id, service]));
+
+        setServiceCatalog((current) =>
+          current.map((service) =>
+            savedById.get(service.id) ??
+            (normalizeCategoryName(service.category) === category
+              ? withServiceCategory(service, targetCategory)
+              : service),
+          ),
+        );
+        setServiceCategories((current) => {
+          const next = current.filter(
+            (item) => item.toLowerCase() !== category.toLowerCase(),
+          );
+          return affectedServices.length > 0 && !next.includes(targetCategory)
+            ? [...next, targetCategory]
+            : next;
+        });
+        pushNotification({
+          title: "Категория удалена",
+          message: affectedServices.length
+            ? `Услуги перенесены в "${targetCategory}": ${affectedServices.length}`
+            : category,
+          persist: false,
+        });
+      } catch (error) {
+        pushNotification({
+          title: "Категория не удалена",
+          message: error?.message || "Backend не перенёс услуги категории",
+          persist: false,
+        });
+      }
+    },
+    [pushNotification, serviceCatalog, setServiceCatalog, setServiceCategories],
   );
 
   const handleServiceSubmit = useCallback(
@@ -199,6 +378,13 @@ export function useServiceHandlers({
           ? current.map((item) => (item.id === savedService.id ? savedService : item))
           : [savedService, ...current],
       );
+      setServiceCategories((current) => {
+        const category = normalizeCategoryName(savedService.category);
+        if (!category || current.some((item) => item.toLowerCase() === category.toLowerCase())) {
+          return current;
+        }
+        return [...current, category].sort((left, right) => left.localeCompare(right, "ru"));
+      });
       setCalendarEntries((current) =>
         current.map((entry) =>
           entry.serviceId === savedService.id
@@ -251,6 +437,7 @@ export function useServiceHandlers({
       setPackagesCatalog,
       setServiceCreateType,
       setServiceCatalog,
+      setServiceCategories,
       setServiceModalOpen,
       setVisits,
     ],
@@ -390,14 +577,18 @@ export function useServiceHandlers({
   );
 
   return {
+    createServiceCategory,
+    deleteServiceCategory,
     handlePackageSubmit,
     handleServiceSubmit,
+    moveServiceToCategory,
     openCreatePackage,
     openCreateService,
     openEditPackage,
     openEditService,
     performDeletePackage,
     performDeleteService,
+    renameServiceCategory,
     requestDeletePackage,
     requestDeleteService,
   };
