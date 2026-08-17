@@ -1,10 +1,9 @@
-import {useMemo} from "react";
+import {useMemo, useState} from "react";
 import {getRandomServiceColor} from "../utils/serviceColors.js";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import HintIcon, {FieldLabel} from "./HintIcon.jsx";
-import {Button, Checkbox, Field, Input} from "./ui/index.js";
+import {Button, Checkbox, Field, Input, Select, Textarea} from "./ui/index.js";
 import {getServiceAssignedEmployeeIds} from "../utils/serviceAssignments.js";
-import {getParallelParticipantPrices} from "../utils/parallelVisits.js";
 
 const serviceDurations = [30, 60, 75, 90, 120];
 
@@ -79,26 +78,146 @@ function ServiceBookingBuffers({service}) {
   );
 }
 
-function ServiceForm({employees = [], service, onSubmit}) {
+const getServiceType = (service, fallback = "service") =>
+  service?.serviceType ?? service?.payload?.serviceType ?? fallback;
+
+const getComboItems = (service) => {
+  const items = service?.comboItems ?? service?.payload?.comboItems ?? [];
+  return Array.isArray(items) ? items : [];
+};
+
+function ServiceForm({employees = [], service, serviceCatalog = [], serviceType = "service", onSubmit}) {
   const {isMobile} = useBreakpoint();
+  const [activeComboTab, setActiveComboTab] = useState("general");
+  const currentServiceType = getServiceType(service, serviceType);
+  const isCombo = currentServiceType === "combo";
   const defaultColor = useMemo(
     () => service?.color ?? getRandomServiceColor(),
     [service?.color],
   );
   const getPrice = (duration) =>
     service?.variants?.find((variant) => variant.duration === duration)?.price ?? "";
-  const getParticipantPrice = (duration, index) =>
-    getParallelParticipantPrices(service, duration)[index] ?? "";
-  const isParallel = service?.isParallel ?? service?.payload?.isParallel ?? false;
-  const parallelParticipants =
-    service?.parallelParticipants ?? service?.payload?.parallelParticipants ?? 2;
+  const comboItems = getComboItems(service);
+  const regularServices = serviceCatalog.filter(
+    (item) =>
+      String(item.id) !== String(service?.id) &&
+      getServiceType(item) !== "combo",
+  );
   const assignedEmployeeIds = getServiceAssignedEmployeeIds(service);
   const assignedToEveryone = !service || assignedEmployeeIds.length === 0;
+  const comboRows = Array.from({length: Math.max(2, comboItems.length || 2)}, (_, index) => comboItems[index] ?? {});
+
+  if (isCombo) {
+    return (
+      <section className="panel service-form-panel service-form-sheet-root service-combo-form">
+        <h2>{service ? "Редактировать комплекс" : "Новый комплекс услуг"}</h2>
+        <form className="catalog-form" onSubmit={onSubmit}>
+          <input name="serviceType" type="hidden" value="combo" />
+          <div className="service-combo-tabs" role="tablist" aria-label="Настройки комплекса">
+            {[
+              ["general", "Общие"],
+              ["services", "Услуги"],
+              ["price", "Цена"],
+            ].map(([tab, label]) => (
+              <button
+                className={activeComboTab === tab ? "is-active" : ""}
+                key={tab}
+                type="button"
+                onClick={() => setActiveComboTab(tab)}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="service-combo-panel" hidden={activeComboTab !== "general"}>
+              <Field label="Название комплекса">
+                <Input name="name" defaultValue={service?.name ?? ""} required />
+              </Field>
+              <Field label="Категория">
+                <Input name="category" defaultValue={service?.category ?? "Комплексы"} />
+              </Field>
+              <Field className="service-color-field" label="Цвет в календаре">
+                <Input className="color-input" name="color" type="color" defaultValue={defaultColor} />
+              </Field>
+              <Field label="Описание">
+                <Textarea
+                  name="description"
+                  defaultValue={service?.description ?? service?.payload?.description ?? ""}
+                  placeholder="Описание комплекса для себя или сайта"
+                  rows={5}
+                />
+              </Field>
+          </div>
+
+          <div className="service-combo-panel" hidden={activeComboTab !== "services"}>
+              <div className="service-combo-list">
+                {comboRows.map((item, index) => (
+                  <div className="service-combo-row" key={index}>
+                    <span>{index + 1}</span>
+                    <Select name={`combo_service_${index}`} defaultValue={item.serviceId ?? ""}>
+                      <option value="">Выберите услугу</option>
+                      {regularServices.map((catalogService) => (
+                        <option key={catalogService.id} value={catalogService.id}>
+                          {catalogService.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <Select name={`combo_duration_${index}`} defaultValue={item.duration ?? 60}>
+                      {serviceDurations.map((duration) => (
+                        <option key={duration} value={duration}>
+                          {duration} мин
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                ))}
+              </div>
+              <p className="service-combo-note">
+                Параллельный комплекс занимает одно и то же время у разных мастеров.
+              </p>
+          </div>
+
+          <div className="service-combo-panel" hidden={activeComboTab !== "price"}>
+              <div className="service-combo-price-list">
+                {comboRows.map((item, index) => (
+                  <label className="service-combo-price-row" key={index}>
+                    <span>Услуга {index + 1}</span>
+                    <Input
+                      name={`combo_price_${index}`}
+                      defaultValue={item.price ?? ""}
+                      placeholder="0"
+                    />
+                  </label>
+                ))}
+              </div>
+              <label className="form-checkbox service-combo-price-mode">
+                <Checkbox
+                  className="form-checkbox-input"
+                  defaultChecked={service?.payload?.comboCustomPrice !== false}
+                  name="comboCustomPrice"
+                />
+                <span aria-hidden="true" className="form-checkbox-box" />
+                <span className="form-checkbox-label">Своя цена комплекса</span>
+              </label>
+          </div>
+
+          <Button
+            className="crm-primary-action service-form-submit"
+            size="lg"
+            type="submit"
+            variant="primary">
+            {service ? "Сохранить комплекс" : "Добавить комплекс"}
+          </Button>
+        </form>
+      </section>
+    );
+  }
 
   return (
     <section className="panel service-form-panel service-form-sheet-root">
       <h2>{service ? "Редактировать услугу" : "Новая услуга"}</h2>
       <form className="catalog-form" onSubmit={onSubmit}>
+        <input name="serviceType" type="hidden" value="service" />
         <Field label="Название">
           <Input name="name" defaultValue={service?.name ?? ""} required />
         </Field>
@@ -154,42 +273,6 @@ function ServiceForm({employees = [], service, onSubmit}) {
             </div>
           </div>
         ) : null}
-        <div className="employee-pricing-panel service-booking-buffers">
-          <ServiceBufferToggle
-            defaultChecked={isParallel}
-            hint="Для парного массажа запись занимает календарь у выбранного мастера и второго мастера. Комиссия считается каждому от своей доли цены."
-            label="Парная услуга"
-            name="isParallel"
-          />
-          <label className="service-buffer-field">
-            <FieldLabel hint="Сейчас используется 2 мастера: например классический + классический в одно время.">
-              Мастеров
-            </FieldLabel>
-            <Input
-              min="2"
-              name="parallelParticipants"
-              type="number"
-              defaultValue={parallelParticipants}
-            />
-          </label>
-          <div className="service-parallel-price-grid">
-            {serviceDurations.map((duration) => (
-              <div className="service-parallel-price-row" key={duration}>
-                <span>{duration} мин</span>
-                <Input
-                  name={`parallel_${duration}_0`}
-                  defaultValue={getParticipantPrice(duration, 0)}
-                  placeholder="1 мастер"
-                />
-                <Input
-                  name={`parallel_${duration}_1`}
-                  defaultValue={getParticipantPrice(duration, 1)}
-                  placeholder="2 мастер"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
         <ServiceBookingBuffers service={service} />
         <Button
           className="crm-primary-action service-form-submit"

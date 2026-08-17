@@ -1002,11 +1002,16 @@ function CalendarEntryForm({
                     const nextService = services.find(
                       (item) => String(item.id) === String(event.target.value),
                     );
-                    const nextVariant = nextService?.variants?.find(
-                      (variant) => Number(variant.duration) === Number(duration),
-                    );
+                    const nextVariant =
+                      nextService?.variants?.find(
+                        (variant) => Number(variant.duration) === Number(duration),
+                      ) ?? nextService?.variants?.[0];
                     allowAutoPricing();
                     setFormValue("serviceId", event.target.value);
+                    if (nextVariant?.duration && Number(nextVariant.duration) !== Number(duration)) {
+                      setFormValue("duration", String(nextVariant.duration));
+                      setFormValue("endTime", toTime(toMinutes(time) + Number(nextVariant.duration)));
+                    }
                     setFormValue("paidAmount", "");
                     setFormValue("cashAmount", "");
                     setFormValue("cardAmount", "");

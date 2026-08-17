@@ -55,9 +55,16 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
             <Button
               className="services-page-add-button"
               leftIcon="plus"
-              variant="primary"
-              onClick={onAdd}>
+              variant="secondary"
+              onClick={() => onAdd("service")}>
               {isMobile ? "Добавить" : "Добавить услугу"}
+            </Button>
+            <Button
+              className="services-page-add-button"
+              leftIcon="plus"
+              variant="primary"
+              onClick={() => onAdd("combo")}>
+              {isMobile ? "Комплекс" : "Комплекс услуг"}
             </Button>
           </div>
         }
@@ -89,6 +96,7 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
         ) : (
           filteredServices.map((service) => {
             const variants = service.variants ?? [];
+            const isCombo = (service.serviceType ?? service.payload?.serviceType) === "combo";
 
             return (
               <motion.article
@@ -106,7 +114,7 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
                         className="service-card-dot"
                         style={{backgroundColor: service.color ?? serviceColorPalette[0]}}
                       />
-                      {service.category || "Без категории"}
+                      {isCombo ? "Комплекс" : service.category || "Без категории"}
                     </span>
                   </div>
 
@@ -127,6 +135,12 @@ function ServicesPage({services, onAdd, onEdit, onDelete}) {
                       ? `${Math.min(...variants.map((v) => Number(v.duration) || 0))}-${Math.max(...variants.map((v) => Number(v.duration) || 0))} мин`
                       : "Без длительности"}
                   </span>
+                  {isCombo ? (
+                    <>
+                      <span>•</span>
+                      <span>{service.payload?.comboItems?.length ?? service.comboItems?.length ?? 0} услуг</span>
+                    </>
+                  ) : null}
                 </div>
 
                 {/* Variants Price Box */}

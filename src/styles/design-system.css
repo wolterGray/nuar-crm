@@ -1240,6 +1240,76 @@
   margin-top: 2px;
 }
 
+.employee-modal.service-form-modal .service-combo-tabs {
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  width: min(100%, 420px);
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-field);
+}
+
+.employee-modal.service-form-modal .service-combo-tabs button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.employee-modal.service-form-modal .service-combo-tabs button.is-active {
+  color: var(--button-primary-text);
+  background: var(--color-primary);
+}
+
+.employee-modal.service-form-modal .service-combo-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.employee-modal.service-form-modal .service-combo-panel[hidden] {
+  display: none;
+}
+
+.employee-modal.service-form-modal .service-combo-list,
+.employee-modal.service-form-modal .service-combo-price-list {
+  display: grid;
+  gap: 8px;
+}
+
+.employee-modal.service-form-modal .service-combo-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) minmax(92px, 120px);
+  align-items: center;
+  gap: 8px;
+}
+
+.employee-modal.service-form-modal .service-combo-row > span,
+.employee-modal.service-form-modal .service-combo-price-row > span {
+  color: var(--color-text-faint);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.employee-modal.service-form-modal .service-combo-price-row {
+  display: grid;
+  grid-template-columns: minmax(92px, 140px) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.employee-modal.service-form-modal .service-combo-note {
+  margin: 0;
+  color: var(--color-text-faint);
+  font-size: 12px;
+}
+
 .employee-modal.service-form-modal .service-booking-buffers-heading h3 {
   color: var(--color-text);
   font-size: 13px;

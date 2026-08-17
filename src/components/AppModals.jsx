@@ -79,6 +79,7 @@ export default function AppModals({
   editingEmployee,
   editingClient,
   editingService,
+  serviceCreateType = "service",
   editingPackage,
   editingClientPackage,
   editingCertificate,
@@ -190,6 +191,8 @@ export default function AppModals({
         <ServiceForm
           employees={activeEmployees}
           service={editingService}
+          serviceCatalog={serviceCatalog}
+          serviceType={editingService?.payload?.serviceType ?? editingService?.serviceType ?? serviceCreateType}
           onSubmit={onServiceSubmit}
         />
       </FormModalShell>

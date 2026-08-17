@@ -215,6 +215,7 @@ function App() {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
   const [editingService, setEditingService] = useState(null);
+  const [serviceCreateType, setServiceCreateType] = useState("service");
   const [editingPackage, setEditingPackage] = useState(null);
   const [editingClientPackage, setEditingClientPackage] = useState(null);
   const [editingMessageTemplate, setEditingMessageTemplate] = useState(null);
@@ -1337,12 +1338,15 @@ function App() {
     editingService,
     pushNotification,
     requestEntityDelete,
+    serviceCatalog,
+    serviceCreateType,
     setCalendarEntries,
     setClientPackages,
     setEditingPackage,
     setEditingService,
     setPackageModalOpen,
     setPackagesCatalog,
+    setServiceCreateType,
     setServiceCatalog,
     setServiceModalOpen,
     setVisits,
@@ -1803,6 +1807,7 @@ function App() {
             editingMessageTemplate={editingMessageTemplate}
             editingPackage={editingPackage}
             editingService={editingService}
+            serviceCreateType={serviceCreateType}
             editingSupply={editingSupply}
             editingTask={editingTask}
             employeeModalOpen={employeeModalOpen}
@@ -1877,6 +1882,7 @@ function App() {
             onCloseServiceModal={() => {
               setServiceModalOpen(false);
               setEditingService(null);
+              setServiceCreateType("service");
             }}
             onCloseSupplyModal={() => {
               setSupplyModalOpen(false);

@@ -12,33 +12,40 @@ import {
 import {getRandomServiceColor} from "../utils/serviceColors.js";
 import {parseServiceBookingBuffersFromForm} from "../utils/siteBookingBuffers.js";
 
+const serviceDurations = [30, 60, 75, 90, 120];
+
 export function useServiceHandlers({
   employees = [],
   editingPackage,
   editingService,
   pushNotification,
   requestEntityDelete,
+  serviceCatalog = [],
+  serviceCreateType = "service",
   setCalendarEntries,
   setClientPackages,
   setEditingPackage,
   setEditingService,
   setPackageModalOpen,
   setPackagesCatalog,
+  setServiceCreateType,
   setServiceCatalog,
   setServiceModalOpen,
   setVisits,
 }) {
-  const openCreateService = useCallback(() => {
+  const openCreateService = useCallback((type = "service") => {
     setEditingService(null);
+    setServiceCreateType(type === "combo" ? "combo" : "service");
     setServiceModalOpen(true);
-  }, [setEditingService, setServiceModalOpen]);
+  }, [setEditingService, setServiceCreateType, setServiceModalOpen]);
 
   const openEditService = useCallback(
     (service) => {
       setEditingService(service);
+      setServiceCreateType(service?.payload?.serviceType ?? service?.serviceType ?? "service");
       setServiceModalOpen(true);
     },
-    [setEditingService, setServiceModalOpen],
+    [setEditingService, setServiceCreateType, setServiceModalOpen],
   );
 
   const handleServiceSubmit = useCallback(
@@ -60,37 +67,72 @@ export function useServiceHandlers({
         return;
       }
 
-      const service = {
+      const submittedServiceType = String(
+        form.get("serviceType") ?? editingService?.payload?.serviceType ?? serviceCreateType,
+      );
+      const isCombo = submittedServiceType === "combo";
+      const comboItems = isCombo
+        ? Array.from({length: 6}, (_, index) => {
+            const serviceId = String(form.get(`combo_service_${index}`) ?? "").trim();
+            if (!serviceId) return null;
+
+            const catalogService =
+              serviceCatalog.find((item) => String(item.id) === serviceId) ??
+              editingService?.payload?.comboItems?.find(
+                (item) => String(item.serviceId) === serviceId,
+              ) ??
+              null;
+            const duration = Number(form.get(`combo_duration_${index}`)) || 60;
+            const price = Math.max(0, Number(form.get(`combo_price_${index}`)) || 0);
+
+            return {
+              serviceId: Number(serviceId) || serviceId,
+              serviceName: catalogService?.name ?? catalogService?.serviceName ?? "",
+              duration,
+              price,
+            };
+          }).filter(Boolean)
+        : [];
+      const comboTotalPrice = comboItems.reduce((total, item) => total + item.price, 0);
+      const comboDuration = comboItems.reduce(
+        (maxDuration, item) => Math.max(maxDuration, Number(item.duration) || 0),
+        0,
+      );
+
+      const service = isCombo ? {
+        ...(editingService?.id ? {id: editingService.id} : {}),
+        name,
+        category: String(form.get("category") ?? "").trim() || "Комплексы",
+        description: String(form.get("description") ?? "").trim(),
+        color: form.get("color") || editingService?.color || getRandomServiceColor(),
+        serviceType: "combo",
+        isParallel: true,
+        parallelParticipants: Math.max(2, comboItems.length || 2),
+        comboItems,
+        comboCustomPrice: form.get("comboCustomPrice") === "on",
+        variants: comboItems.length > 0
+          ? [{
+              duration: comboDuration || 60,
+              price: comboTotalPrice,
+              participantPrices: comboItems.map((item) => item.price),
+              comboItems,
+            }]
+          : [],
+      } : {
         ...(editingService?.id ? {id: editingService.id} : {}),
         name,
         category: String(form.get("category") ?? "").trim() || "Массаж",
         color: form.get("color") || editingService?.color || getRandomServiceColor(),
-        isParallel: form.get("isParallel") === "on",
-        parallelParticipants: form.get("isParallel") === "on"
-          ? Math.max(2, Number(form.get("parallelParticipants")) || 2)
-          : 1,
+        serviceType: "service",
+        isParallel: false,
+        parallelParticipants: 1,
         assignedEmployeeIds,
         assignedEmployeeNames,
-        variants: [30, 60, 75, 90, 120]
-          .map((duration) => {
-            const participantPrices = form.get("isParallel") === "on"
-              ? Array.from(
-                  {length: Math.max(2, Number(form.get("parallelParticipants")) || 2)},
-                  (_, index) =>
-                    Math.max(0, Number(form.get(`parallel_${duration}_${index}`)) || 0),
-                )
-              : [];
-            const participantTotal = participantPrices.reduce(
-              (total, price) => total + price,
-              0,
-            );
-
-            return {
-              duration,
-              price: participantTotal || Number(form.get(`price_${duration}`)) || 0,
-              ...(participantTotal ? {participantPrices} : {}),
-            };
-          })
+        variants: serviceDurations
+          .map((duration) => ({
+            duration,
+            price: Number(form.get(`price_${duration}`)) || 0,
+          }))
           .filter((variant) => variant.price > 0),
         ...parseServiceBookingBuffersFromForm(form, editingService),
       };
@@ -149,6 +191,7 @@ export function useServiceHandlers({
 
       setServiceModalOpen(false);
       setEditingService(null);
+      setServiceCreateType("service");
       pushNotification({
         title: editingService ? "Услуга обновлена" : "Услуга добавлена",
         message: `${savedService.name} сохранена в базе услуг`,
@@ -158,10 +201,13 @@ export function useServiceHandlers({
       editingService,
       employees,
       pushNotification,
+      serviceCreateType,
+      serviceCatalog,
       setCalendarEntries,
       setClientPackages,
       setEditingService,
       setPackagesCatalog,
+      setServiceCreateType,
       setServiceCatalog,
       setServiceModalOpen,
       setVisits,
