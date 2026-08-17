@@ -46,19 +46,18 @@ const stateConflictError = (message) => {
 const getEmployeeDisplayName = (employee, visitPayload = {}) =>
   employee?.name || String(visitPayload?.master ?? visitPayload?.employeeName ?? '').trim() || 'employee';
 
-const validateCommissionPercent = (employee, visitPayload = {}) => {
+const validateCommissionPercent = (employee) => {
   if (!employee) {
-    throw validationError('Employee for completed visit was not found');
+    return normalizeDecimal(40);
   }
-  if (employee.commissionRate === null || employee.commissionRate === undefined) {
-    throw validationError(`Commission percent is not set for ${getEmployeeDisplayName(employee, visitPayload)}`);
+  const rawRate = employee.commissionRate;
+  if (rawRate === null || rawRate === undefined || Number.isNaN(Number(rawRate))) {
+    return normalizeDecimal(40);
   }
 
-  const commissionPercent = normalizeDecimal(employee.commissionRate);
+  const commissionPercent = normalizeDecimal(rawRate);
   if (commissionPercent.isNegative() || commissionPercent.gt(100)) {
-    throw validationError(
-      `Commission percent for ${getEmployeeDisplayName(employee, visitPayload)} must be between 0 and 100`,
-    );
+    return normalizeDecimal(40);
   }
 
   return commissionPercent;
@@ -169,6 +168,30 @@ const resolveEmployeeByMasterName = async (tx, rawName = '') => {
   return employee ?? null;
 };
 
+const resolveSecondaryMasterForPair = async (tx, primaryMasterName = '') => {
+  const primaryEmp = await resolveEmployeeByMasterName(tx, primaryMasterName);
+  const primaryNorm = normalizeMasterNameKey(primaryEmp?.name || primaryMasterName);
+
+  if (primaryNorm.includes('max') || primaryNorm.includes('максим')) {
+    const alona = await resolveEmployeeByMasterName(tx, 'Алена');
+    if (alona) return alona;
+  }
+
+  if (primaryNorm.includes('ален') || primaryNorm.includes('alon') || primaryNorm.includes('alicj')) {
+    const max = await resolveEmployeeByMasterName(tx, 'Максим');
+    if (max) return max;
+  }
+
+  const allEmployees = await tx.employee.findMany({ orderBy: { id: 'asc' } });
+  const fallbackEmp = allEmployees.find((emp) => {
+    if (primaryEmp && emp.id === primaryEmp.id) return false;
+    const empNorm = normalizeMasterNameKey(emp.name);
+    return !empNorm.includes('ольг') && !empNorm.includes('olh') && !empNorm.includes('olg');
+  });
+
+  return fallbackEmp || allEmployees.find((emp) => !primaryEmp || emp.id !== primaryEmp.id) || null;
+};
+
 const normalizeVisitParticipants = async (tx, visitPayload = {}) => {
   const rawParticipants = Array.isArray(visitPayload.parallelEmployees)
     ? visitPayload.parallelEmployees
@@ -223,11 +246,7 @@ const normalizeVisitParticipants = async (tx, visitPayload = {}) => {
     isPairService(serviceName);
 
   if (isPair && participants.length === 1 && tx) {
-    const primaryEmp = await resolveEmployeeByMasterName(tx, participants[0].name);
-    const allEmployees = await tx.employee.findMany({ orderBy: { id: 'asc' } });
-    const secondaryEmp = allEmployees.find(
-      (emp) => !primaryEmp || emp.id !== primaryEmp.id,
-    );
+    const secondaryEmp = await resolveSecondaryMasterForPair(tx, participants[0].name);
     if (secondaryEmp) {
       participants.push({
         employeeId: secondaryEmp.id,
@@ -279,7 +298,7 @@ const resolveEmployeeForVisitParticipant = async (tx, participant, visit, visitP
     if (employee) return employee;
   }
 
-  return resolveEmployeeForVisit(tx, visit, visitPayload);
+  return null;
 };
 
 const getClientPackagePayload = (clientPackage) =>
