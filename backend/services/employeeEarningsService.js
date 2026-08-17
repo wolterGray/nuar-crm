@@ -131,12 +131,48 @@ const isPairService = (serviceName = '') => {
   );
 };
 
-const normalizeVisitParticipants = (visitPayload = {}) => {
+const normalizeMasterNameKey = (value = '') =>
+  String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/ł/g, 'l')
+    .replace(/[^a-zа-я0-9]/g, '');
+
+const resolveEmployeeByMasterName = async (tx, rawName = '') => {
+  const name = String(rawName ?? '').trim();
+  if (!name) return null;
+
+  let employee = await tx.employee.findFirst({ where: { name } });
+  if (employee) return employee;
+
+  employee = await tx.employee.findFirst({
+    where: { name: { equals: name, mode: 'insensitive' } },
+  });
+  if (employee) return employee;
+
+  const employees = await tx.employee.findMany();
+  const targetKey = normalizeMasterNameKey(name);
+
+  employee = employees.find((emp) => {
+    const empKey = normalizeMasterNameKey(emp.name);
+    return (
+      empKey === targetKey ||
+      empKey.startsWith(targetKey) ||
+      targetKey.startsWith(empKey)
+    );
+  });
+
+  return employee ?? null;
+};
+
+const normalizeVisitParticipants = async (tx, visitPayload = {}) => {
   const rawParticipants = Array.isArray(visitPayload.parallelEmployees)
     ? visitPayload.parallelEmployees
     : Array.isArray(visitPayload.employees)
       ? visitPayload.employees
       : [];
+
   const participants = rawParticipants
     .map((participant) => ({
       employeeId: Number(participant?.employeeId) || null,
@@ -183,6 +219,21 @@ const normalizeVisitParticipants = (visitPayload = {}) => {
     Boolean(secondaryMaster) ||
     isPairService(serviceName);
 
+  if (isPair && participants.length === 1 && tx) {
+    const primaryEmp = await resolveEmployeeByMasterName(tx, participants[0].name);
+    const allEmployees = await tx.employee.findMany({ orderBy: { id: 'asc' } });
+    const secondaryEmp = allEmployees.find(
+      (emp) => !primaryEmp || emp.id !== primaryEmp.id,
+    );
+    if (secondaryEmp) {
+      participants.push({
+        employeeId: secondaryEmp.id,
+        name: secondaryEmp.name,
+        shareAmount: null,
+      });
+    }
+  }
+
   const participantCount = isPair ? Math.max(2, participants.length) : Math.max(1, participants.length);
 
   const seen = new Set();
@@ -209,7 +260,7 @@ const resolveEmployeeForVisit = async (tx, visit, visitPayload) => {
   const master = String(visitPayload?.master ?? visitPayload?.employeeName ?? '').trim();
   if (!master) return null;
 
-  return tx.employee.findFirst({ where: { name: master } });
+  return resolveEmployeeByMasterName(tx, master);
 };
 
 const resolveEmployeeForVisitParticipant = async (tx, participant, visit, visitPayload) => {
@@ -221,7 +272,7 @@ const resolveEmployeeForVisitParticipant = async (tx, participant, visit, visitP
 
   const master = String(participant?.name ?? '').trim();
   if (master) {
-    const employee = await tx.employee.findFirst({ where: { name: master } });
+    const employee = await resolveEmployeeByMasterName(tx, master);
     if (employee) return employee;
   }
 
@@ -243,7 +294,7 @@ const resolveEmployeeForClientPackage = async (tx, clientPackage, payload = {}) 
   const master = String(clientPackage?.master ?? payload?.master ?? payload?.employeeName ?? payload?.seller ?? '').trim();
   if (!master) return null;
 
-  return tx.employee.findFirst({ where: { name: master } });
+  return resolveEmployeeByMasterName(tx, master);
 };
 
 const buildEmployeeEarningSnapshot = async (tx, visit) => {
@@ -257,7 +308,7 @@ const buildEmployeeEarningSnapshots = async (tx, visit) => {
     return [];
   }
 
-  const { participantCount, participants } = normalizeVisitParticipants(visitPayload);
+  const { participantCount, participants } = await normalizeVisitParticipants(tx, visitPayload);
   const totalActualPrice = await resolveActualPriceForEarning(tx, visitPayload);
   const totalParticipantShares = participants.reduce(
     (total, participant) =>
