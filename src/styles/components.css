@@ -196,40 +196,6 @@
   background: var(--color-page);
 }
 
-@keyframes modalBackdropFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes modalMacScaleIn {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-:is(
-  .club-card-style-modal-backdrop,
-  .club-qr-modal-backdrop,
-  .club-adjust-modal-backdrop
-) {
-  animation: modalBackdropFadeIn 0.16s ease-out both;
-}
-
-:is(
-  .send-template-modal,
-  .club-card-style-modal,
-  .club-qr-modal,
-  .club-adjust-modal
-) {
-  transform-origin: 50% 42%;
-  animation: modalMacScaleIn 0.22s cubic-bezier(0.2, 0.88, 0.2, 1) both;
-}
-
 .content.services-content,
 .content.services-content.home-content {
   display: block !important;

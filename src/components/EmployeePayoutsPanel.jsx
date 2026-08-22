@@ -1,5 +1,4 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
-import {AnimatePresence, motion, useReducedMotion} from "framer-motion";
 import {
   cancelEmployeePayout,
   createEmployeePayout,
@@ -257,60 +256,38 @@ function PayoutHistory({disabled = false, onCancel, onClear, onOpen, onRemove, p
 }
 
 function PayoutDetail({payout, onClose}) {
-  const shouldReduceMotion = useReducedMotion();
+  if (!payout) {
+    return null;
+  }
 
   return (
-    <AnimatePresence>
-      {payout ? (
-        <motion.div
-          animate={{opacity: 1}}
-          className="employee-payout-modal-backdrop"
-          exit={{opacity: 0}}
-          initial={{opacity: 0}}
-          transition={{duration: shouldReduceMotion ? 0.08 : 0.16, ease: "easeOut"}}
-          onClick={onClose}
-        >
-          <motion.section
-            animate={shouldReduceMotion ? {opacity: 1} : {opacity: 1, scale: 1, y: 0}}
-            className="employee-payout-modal"
-            exit={shouldReduceMotion ? {opacity: 0} : {opacity: 0, scale: 0.96, y: 8}}
-            initial={shouldReduceMotion ? {opacity: 0} : {opacity: 0, scale: 0.94, y: 14}}
-            transition={{
-              damping: 30,
-              duration: shouldReduceMotion ? 0.08 : undefined,
-              mass: 0.85,
-              stiffness: 420,
-              type: "spring",
-            }}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="employee-payout-modal-head">
-              <div>
-                <h3>{payout.employee?.name || "Выплата"}</h3>
-                <p>
-                  {payout.paidAt ? new Date(payout.paidAt).toLocaleString("ru-RU") : ""} · {formatMoney(payout.amount)}
-                </p>
-              </div>
-              <Button size="sm" type="button" variant="secondary" onClick={onClose}>Закрыть</Button>
-            </div>
-            <div className="employee-payout-modal-list">
-              {(payout.earnings ?? []).map((earning) => {
-                const {client, service} = getVisitLabel(earning);
-                return (
-                  <article className="employee-payout-modal-row" key={earning.id}>
-                    <strong>{formatDateTime(earning)} · {service}</strong>
-                    <p>{client}</p>
-                    <small>
-                      Клиент {formatMoney(earning.actualPrice)} · {toMoneyNumber(earning.commissionPercent)}% · сотруднику {formatMoney(earning.amount)}
-                    </small>
-                  </article>
-                );
-              })}
-            </div>
-          </motion.section>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    <div className="employee-payout-modal-backdrop" onClick={onClose}>
+      <section className="employee-payout-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="employee-payout-modal-head">
+          <div>
+            <h3>{payout.employee?.name || "Выплата"}</h3>
+            <p>
+              {payout.paidAt ? new Date(payout.paidAt).toLocaleString("ru-RU") : ""} · {formatMoney(payout.amount)}
+            </p>
+          </div>
+          <Button size="sm" type="button" variant="secondary" onClick={onClose}>Закрыть</Button>
+        </div>
+        <div className="employee-payout-modal-list">
+          {(payout.earnings ?? []).map((earning) => {
+            const {client, service} = getVisitLabel(earning);
+            return (
+              <article className="employee-payout-modal-row" key={earning.id}>
+                <strong>{formatDateTime(earning)} · {service}</strong>
+                <p>{client}</p>
+                <small>
+                  Клиент {formatMoney(earning.actualPrice)} · {toMoneyNumber(earning.commissionPercent)}% · сотруднику {formatMoney(earning.amount)}
+                </small>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 }
 
