@@ -1,3 +1,4 @@
+import {AnimatePresence, motion, useReducedMotion} from "framer-motion";
 import {MobileLayout, MobilePageContainer} from "./MobileLayout.jsx";
 
 export default function AppShell({
@@ -28,6 +29,7 @@ export default function AppShell({
   onTouchMove,
   onTouchStart,
 }) {
+  const shouldReduceMotion = useReducedMotion();
   const pageName =
     (isTodayPage && "today") ||
     (isCalendarPage && "calendar") ||
@@ -99,7 +101,24 @@ export default function AppShell({
       >
         <MobileLayout page={pageName}>
           <MobilePageContainer page={pageName}>
-            {children}
+            <AnimatePresence initial={false} mode="wait">
+              <motion.div
+                animate={shouldReduceMotion ? {opacity: 1} : {opacity: 1, scale: 1, y: 0}}
+                className="app-page-motion"
+                exit={shouldReduceMotion ? {opacity: 0} : {opacity: 0, scale: 0.985, y: -4}}
+                initial={shouldReduceMotion ? {opacity: 0} : {opacity: 0, scale: 0.992, y: 8}}
+                key={pageName}
+                transition={{
+                  damping: 28,
+                  duration: shouldReduceMotion ? 0.08 : undefined,
+                  mass: 0.8,
+                  stiffness: 360,
+                  type: "spring",
+                }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </MobilePageContainer>
         </MobileLayout>
       </main>

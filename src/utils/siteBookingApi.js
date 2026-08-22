@@ -1,7 +1,7 @@
 import {API_URL} from "../api/config.js";
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 
-const PENDING_SITE_BOOKINGS_LIMIT = 25;
+const PENDING_SITE_BOOKINGS_LIMIT = 100;
 const RECENT_SITE_BOOKINGS_LIMIT = 25;
 const SITE_BOOKING_CACHE_TTL_MS = 60_000;
 

@@ -58,6 +58,7 @@ export function useEmployeeHandlers({
           Number(form.get("siteBookingSlotMinutes")) || 15,
         ),
         status: form.get("status"),
+        siteVisible: form.get("siteBookingEnabled") === "on",
         payrollSchedule: normalizePayrollSchedule(form.get("payrollSchedule")),
         workingDaysOfWeek: normalizeWorkingDays(form.getAll("workingDaysOfWeek")),
         bookingBlockedDates: parseBlockedDatesText(form.get("bookingBlockedDates")),

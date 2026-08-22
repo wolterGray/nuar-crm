@@ -196,6 +196,55 @@
   background: var(--color-page);
 }
 
+.app-page-motion {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  transform-origin: 50% 42%;
+  will-change: opacity, transform;
+}
+
+.content.calendar-content .app-page-motion,
+.content.payments-content .app-page-motion,
+.content.today-content .app-page-motion {
+  height: 100%;
+  min-height: 0;
+}
+
+@keyframes modalBackdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalMacScaleIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+:is(
+  .club-card-style-modal-backdrop,
+  .club-qr-modal-backdrop,
+  .club-adjust-modal-backdrop
+) {
+  animation: modalBackdropFadeIn 0.16s ease-out both;
+}
+
+:is(
+  .send-template-modal,
+  .club-card-style-modal,
+  .club-qr-modal,
+  .club-adjust-modal
+) {
+  transform-origin: 50% 42%;
+  animation: modalMacScaleIn 0.22s cubic-bezier(0.2, 0.88, 0.2, 1) both;
+}
+
 .content.services-content,
 .content.services-content.home-content {
   display: block !important;
@@ -7047,12 +7096,224 @@
     margin-top: -4px;
   }
 
+  .employee-modal.employee-form-modal .employee-pricing-panel {
+    gap: 12px;
+  }
+
+  .employee-booking-toggle {
+    display: grid !important;
+    grid-template-columns: 46px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px !important;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--employee-modal-border, var(--color-border));
+    border-radius: 12px;
+    color: var(--employee-modal-text, var(--color-text)) !important;
+    background: var(--employee-modal-field, var(--color-field));
+  }
+
+  .employee-booking-toggle input[type="checkbox"] {
+    position: relative;
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    margin: 0;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 999px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: color-mix(in srgb, var(--color-text-muted) 18%, transparent);
+    cursor: pointer;
+    transition: background 0.16s ease, border-color 0.16s ease;
+  }
+
+  .employee-booking-toggle input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--color-text-muted);
+    transition: transform 0.16s ease, background 0.16s ease;
+  }
+
+  .employee-booking-toggle input[type="checkbox"]:checked {
+    border-color: color-mix(in srgb, var(--color-primary) 58%, var(--color-border));
+    background: color-mix(in srgb, var(--color-primary) 72%, transparent);
+  }
+
+  .employee-booking-toggle input[type="checkbox"]:checked::after {
+    transform: translateX(20px);
+    background: #fff;
+  }
+
+  .employee-booking-toggle span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .employee-booking-toggle strong {
+    color: var(--employee-modal-text, var(--color-text));
+    font-size: 13px;
+    line-height: 1.15;
+  }
+
+  .employee-booking-toggle small {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  .employee-booking-warning {
+    display: grid;
+    gap: 3px;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--color-warning) 32%, var(--color-border));
+    border-radius: 12px;
+    color: var(--color-text);
+    background: color-mix(in srgb, var(--color-warning) 10%, var(--color-card));
+  }
+
+  .employee-booking-warning.is-disabled-booking {
+    border-color: color-mix(in srgb, var(--color-danger) 34%, var(--color-border));
+    background: color-mix(in srgb, var(--color-danger) 9%, var(--color-card));
+  }
+
+  .employee-booking-warning strong {
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .employee-booking-warning span,
+  .employee-booking-load-error {
+    color: var(--color-text-muted);
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .employee-modal.employee-form-modal .employee-weekdays-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .employee-modal.employee-form-modal .employee-weekday-toggle {
+    justify-content: start;
+    min-height: 34px;
+    padding: 0 9px;
+    gap: 7px;
+  }
+
+  .employee-modal.employee-form-modal .employee-weekday-toggle input[type="checkbox"] {
+    width: 18px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    margin: 0;
+  }
+
+  .employee-modal.employee-form-modal .employee-weekday-toggle span {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .employee-vacation-range {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    gap: 8px;
+    align-items: end;
+    min-width: 0;
+  }
+
+  .employee-vacation-range label {
+    display: grid;
+    gap: 4px !important;
+    min-width: 0;
+    color: var(--employee-modal-muted, var(--color-text-muted)) !important;
+    font-size: 11px !important;
+  }
+
+  .employee-vacation-date-control {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+    overflow: hidden;
+    border: 1px solid var(--employee-modal-border, var(--color-border));
+    border-radius: 9px;
+    color: var(--employee-modal-text, var(--color-text));
+    background: var(--employee-modal-field, var(--color-field));
+  }
+
+  .employee-vacation-date-value {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 28px 0 9px;
+    overflow: hidden;
+    color: var(--employee-modal-text, var(--color-text));
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .employee-vacation-date-control::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 14px;
+    height: 14px;
+    transform: translateY(-50%);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23f4f4f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M3 10h18'/%3E%3C/svg%3E");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.82;
+    pointer-events: none;
+  }
+
+  .employee-modal.employee-form-modal .employee-vacation-date-native {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    cursor: pointer;
+  }
+
+  .employee-vacation-clear {
+    height: 38px;
+    min-height: 38px;
+    padding-inline: 10px;
+    border-radius: 9px;
+    font-size: 12px;
+  }
+
+  .employee-vacation-hidden-dates {
+    display: none !important;
+  }
+
   .calendar-entry-modal .calendar-time-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
   }
 
-  .calendar-entry-modal .calendar-date-control {
+  .calendar-entry-modal :is(.calendar-date-control, .calendar-time-control) {
     position: relative;
     display: block;
     width: 100%;
@@ -7065,7 +7326,7 @@
     background: var(--color-field);
   }
 
-  .calendar-entry-modal .calendar-date-display-value {
+  .calendar-entry-modal :is(.calendar-date-display-value, .calendar-time-display-value) {
     position: absolute;
     inset: 0;
     display: flex;
@@ -7080,6 +7341,10 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     pointer-events: none;
+  }
+
+  .calendar-entry-modal .calendar-time-display-value {
+    padding-right: 12px;
   }
 
   .calendar-entry-modal .calendar-date-control::after {
@@ -7098,7 +7363,7 @@
     pointer-events: none;
   }
 
-  .calendar-entry-modal .calendar-entry-form .calendar-native-date-input {
+  .calendar-entry-modal .calendar-entry-form :is(.calendar-native-date-input, .calendar-native-time-input) {
     position: absolute !important;
     inset: 0 !important;
     width: 100% !important;
@@ -7108,22 +7373,6 @@
     border: 0 !important;
     opacity: 0 !important;
     cursor: pointer;
-  }
-
-  .calendar-entry-modal .calendar-entry-form .calendar-compact-time-input {
-    height: 44px !important;
-    min-height: 44px !important;
-    padding: 0 12px !important;
-    overflow: hidden;
-    font-size: 15px !important;
-    font-weight: 650;
-    line-height: 1 !important;
-    white-space: nowrap;
-  }
-
-  .calendar-entry-modal .calendar-entry-form .calendar-compact-time-input::-webkit-date-and-time-value {
-    min-height: 0;
-    text-align: left;
   }
 }
 

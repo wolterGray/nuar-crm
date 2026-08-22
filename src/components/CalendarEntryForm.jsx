@@ -32,6 +32,7 @@ const toCompactDate = (value) => {
 
   return year && month && day ? `${day}.${month}.${year}` : "Выберите дату";
 };
+const toCompactTime = (value) => String(value ?? "").slice(0, 5) || "--:--";
 const optionalMoneyField = z.union([z.string(), z.number(), z.literal("")]).optional();
 const normalizeClientLookup = (value) =>
   String(value ?? "")
@@ -889,20 +890,26 @@ function CalendarEntryForm({
           </label>
           <label className="calendar-start-field calendar-form-field">
             Время
-            <Input
-              {...register("time")}
-              aria-invalid={Boolean(errors.time)}
-              type="time"
-              step="900"
-              value={time}
-              className="calendar-compact-time-input w-full"
-              onChange={(event) => {
-                const nextTime = event.target.value;
-                const currentDuration = Math.max(15, toMinutes(endTime) - toMinutes(time));
-                setFormValue("time", nextTime);
-                setFormValue("endTime", toTime(toMinutes(nextTime) + currentDuration));
-              }}
-            />
+            <span className="calendar-time-control">
+              <span className="calendar-time-display-value" aria-hidden="true">
+                {toCompactTime(time)}
+              </span>
+              <Input
+                {...register("time")}
+                aria-invalid={Boolean(errors.time)}
+                aria-label="Время"
+                type="time"
+                step="900"
+                value={time}
+                className="calendar-native-time-input w-full"
+                onChange={(event) => {
+                  const nextTime = event.target.value;
+                  const currentDuration = Math.max(15, toMinutes(endTime) - toMinutes(time));
+                  setFormValue("time", nextTime);
+                  setFormValue("endTime", toTime(toMinutes(nextTime) + currentDuration));
+                }}
+              />
+            </span>
             <FieldError message={errors.time?.message} />
           </label>
           {kind === "visit" ? (
@@ -939,15 +946,21 @@ function CalendarEntryForm({
           ) : (
             <label className="calendar-end-field calendar-form-field">
               Конец
-              <Input
-                {...register("endTime")}
-                aria-invalid={Boolean(errors.endTime)}
-                type="time"
-                step="900"
-                value={endTime}
-                className="calendar-compact-time-input w-full"
-                onChange={(event) => setFormValue("endTime", event.target.value)}
-              />
+              <span className="calendar-time-control">
+                <span className="calendar-time-display-value" aria-hidden="true">
+                  {toCompactTime(endTime)}
+                </span>
+                <Input
+                  {...register("endTime")}
+                  aria-invalid={Boolean(errors.endTime)}
+                  aria-label="Конец"
+                  type="time"
+                  step="900"
+                  value={endTime}
+                  className="calendar-native-time-input w-full"
+                  onChange={(event) => setFormValue("endTime", event.target.value)}
+                />
+              </span>
               <FieldError message={errors.endTime?.message} />
             </label>
           )}
