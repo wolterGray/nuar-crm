@@ -196,21 +196,6 @@
   background: var(--color-page);
 }
 
-.app-page-motion {
-  width: 100%;
-  min-width: 0;
-  min-height: 100%;
-  transform-origin: 50% 42%;
-  will-change: opacity, transform;
-}
-
-.content.calendar-content .app-page-motion,
-.content.payments-content .app-page-motion,
-.content.today-content .app-page-motion {
-  height: 100%;
-  min-height: 0;
-}
-
 @keyframes modalBackdropFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
