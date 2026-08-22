@@ -20,7 +20,7 @@ import {formatMoney, toDisplayDate} from "../../utils/formatters.jsx";
 import {getPackageVisitProgressLabel} from "../../utils/packages.jsx";
 import {getEntryMasters, isEntryForMaster} from "../../utils/parallelVisits.js";
 import {getVisitDebt, getVisitTransactionTotal} from "../../utils/visits.jsx";
-import {isEmployeeAvailableOnDate} from "../../utils/employeeAvailability.js";
+import {getEmployeeShiftForDate, isEmployeeAvailableOnDate} from "../../utils/employeeAvailability.js";
 
 const QUARTER_HEIGHT = 22;
 const DESKTOP_SCHEDULE_HEADER_HEIGHT = 48;
@@ -952,9 +952,13 @@ return (
                         />
                         {employee.name}
                       </strong>
-                      <span>
-                        {employee.shiftStart || settings.workdayStart || "08:00"}–{employee.shiftEnd || settings.workdayEnd || "22:00"}
-                      </span>
+                      {(() => {
+                        const shift = getEmployeeShiftForDate(employee, selectedDate, {
+                          end: settings.workdayEnd || "22:00",
+                          start: settings.workdayStart || "08:00",
+                        });
+                        return <span>{shift.start}–{shift.end}</span>;
+                      })()}
                     </header>
                     <DroppableScheduleColumn
                       master={employee.name}
@@ -964,14 +968,12 @@ return (
                       onPointerUp={clearSlotLongPress}
                     >
                       {(() => {
-                        const shiftStart = Math.max(
-                          visualStartMinutes,
-                          toMinutes(employee.shiftStart || settings.workdayStart),
-                        );
-                        const shiftEnd = Math.min(
-                          visualEndMinutes,
-                          toMinutes(employee.shiftEnd || settings.workdayEnd),
-                        );
+                        const shift = getEmployeeShiftForDate(employee, selectedDate, {
+                          end: settings.workdayEnd,
+                          start: settings.workdayStart,
+                        });
+                        const shiftStart = Math.max(visualStartMinutes, toMinutes(shift.start));
+                        const shiftEnd = Math.min(visualEndMinutes, toMinutes(shift.end));
                         const topHeight =
                           (Math.max(0, shiftStart - visualStartMinutes) / minutesInDay) * gridHeight;
                         const bottomTop =

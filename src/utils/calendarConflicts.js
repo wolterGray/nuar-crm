@@ -1,4 +1,4 @@
-import {getEmployeeUnavailableReason} from "./employeeAvailability.js";
+import {getEmployeeShiftForDate, getEmployeeUnavailableReason} from "./employeeAvailability.js";
 import {getEntryMasters} from "./parallelVisits.js";
 
 const toCalendarMinutes = (time) => {
@@ -53,13 +53,15 @@ export const getCalendarShiftWarning = (
 
       const entryStart = toCalendarMinutes(entry.time);
       const entryEnd = entryStart + Number(entry.duration);
-      const shiftStart = toCalendarMinutes(
-        employee.shiftStart || appSettings.workdayStart,
-      );
-      const shiftEnd = toCalendarMinutes(employee.shiftEnd || appSettings.workdayEnd);
+      const shift = getEmployeeShiftForDate(employee, entry.date, {
+        end: appSettings.workdayEnd,
+        start: appSettings.workdayStart,
+      });
+      const shiftStart = toCalendarMinutes(shift.start);
+      const shiftEnd = toCalendarMinutes(shift.end);
 
       return entryStart < shiftStart || entryEnd > shiftEnd
-        ? `Запись выходит за смену ${employee.name}: ${employee.shiftStart || appSettings.workdayStart}–${employee.shiftEnd || appSettings.workdayEnd}.`
+        ? `Запись выходит за смену ${employee.name}: ${shift.start}–${shift.end}.`
         : "";
     })
     .filter(Boolean);

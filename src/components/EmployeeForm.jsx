@@ -5,6 +5,7 @@ import {resolveEmployeeSiteBookingSlotMinutes} from '../utils/calendarBookableSl
 import {getTodayInput} from '../utils/dateHelpers.js'
 import {
   getEmployeeBlockedDates,
+  getEmployeeDailyShifts,
   getEmployeeWorkingDays,
   WEEKDAY_OPTIONS,
 } from '../utils/employeeAvailability.js'
@@ -50,9 +51,11 @@ function EmployeeForm({ employee, onSubmit }) {
   const siteBookingSlotMinutes = resolveEmployeeSiteBookingSlotMinutes(employee ?? {});
   const workingDays = getEmployeeWorkingDays(employee ?? {});
   const blockedDates = getEmployeeBlockedDates(employee ?? {});
+  const dailyShifts = getEmployeeDailyShifts(employee ?? {});
   const initialVacation = toDateRange(blockedDates);
   const [employeeName, setEmployeeName] = useState(employee?.name ?? '');
   const [bookingEnabled, setBookingEnabled] = useState(employee?.siteVisible !== false);
+  const [selectedWorkingDays, setSelectedWorkingDays] = useState(workingDays);
   const [vacationStart, setVacationStart] = useState(initialVacation.start);
   const [vacationEnd, setVacationEnd] = useState(initialVacation.end);
   const [pendingBookings, setPendingBookings] = useState([]);
@@ -91,6 +94,16 @@ function EmployeeForm({ employee, onSubmit }) {
       cancelled = true;
     };
   }, []);
+
+  const toggleWorkingDay = (day, checked) => {
+    setSelectedWorkingDays((current) => {
+      if (checked) {
+        return [...new Set([...current, day])].sort((first, second) => first - second);
+      }
+
+      return current.filter((item) => item !== day);
+    });
+  };
 
   return (
     <section className="panel employee-form-panel employee-form-sheet-root">
@@ -159,12 +172,14 @@ function EmployeeForm({ employee, onSubmit }) {
           <h3>Доступность для записи</h3>
           <label className="employee-booking-toggle">
             <input
+              className="employee-booking-toggle-input"
               checked={bookingEnabled}
               name="siteBookingEnabled"
               type="checkbox"
               onChange={(event) => setBookingEnabled(event.target.checked)}
             />
-            <span>
+            <span className="employee-booking-switch" aria-hidden="true" />
+            <span className="employee-booking-copy">
               <strong>Бронирование с сайта</strong>
               <small>
                 {bookingEnabled
@@ -187,16 +202,43 @@ function EmployeeForm({ employee, onSubmit }) {
           ) : bookingLoadError ? (
             <small className="employee-booking-load-error">{bookingLoadError}</small>
           ) : null}
-          <Field label="Рабочие дни">
-            <div className="employee-weekdays-row">
+          <Field label="График по дням">
+            <div className="employee-day-schedule">
               {WEEKDAY_OPTIONS.map((day) => (
-                <label className="employee-weekday-toggle" key={day.value}>
-                  <Checkbox
-                    defaultChecked={workingDays.includes(day.value)}
-                    name="workingDaysOfWeek"
-                    value={day.value}
-                  />
-                  <span>{day.label}</span>
+                <label
+                  className={`employee-day-schedule-row${selectedWorkingDays.includes(day.value) ? ' is-enabled' : ''}`}
+                  key={day.value}>
+                  <span className="employee-day-toggle">
+                    <Checkbox
+                      className="employee-day-toggle-input"
+                      checked={selectedWorkingDays.includes(day.value)}
+                      name="workingDaysOfWeek"
+                      value={day.value}
+                      onChange={(event) => toggleWorkingDay(day.value, event.target.checked)}
+                    />
+                    <span className="employee-day-switch" aria-hidden="true" />
+                    <span className="employee-day-label">{day.label}</span>
+                  </span>
+                  <span className="employee-day-time-field">
+                    <small>С</small>
+                    <Input
+                      aria-label={`${day.label} начало`}
+                      defaultValue={dailyShifts[String(day.value)]?.start ?? employee?.shiftStart ?? '08:00'}
+                      disabled={!selectedWorkingDays.includes(day.value)}
+                      name={`dailyShiftStart_${day.value}`}
+                      type="time"
+                    />
+                  </span>
+                  <span className="employee-day-time-field">
+                    <small>До</small>
+                    <Input
+                      aria-label={`${day.label} конец`}
+                      defaultValue={dailyShifts[String(day.value)]?.end ?? employee?.shiftEnd ?? '22:00'}
+                      disabled={!selectedWorkingDays.includes(day.value)}
+                      name={`dailyShiftEnd_${day.value}`}
+                      type="time"
+                    />
+                  </span>
                 </label>
               ))}
             </div>

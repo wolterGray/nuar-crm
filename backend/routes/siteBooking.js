@@ -64,6 +64,41 @@ const normalizeBlockedDates = (value) => {
   return [...new Set(value.map(cleanString).filter(isInputDate))].sort();
 };
 
+const isTimeValue = (value) => /^\d{2}:\d{2}$/.test(String(value ?? ''));
+
+const normalizeDailyShifts = (value) => {
+  if (!value || typeof value !== 'object') return {};
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .map(([day, shift]) => {
+        const dayNumber = Number(day);
+        const start = cleanString(shift?.start);
+        const end = cleanString(shift?.end);
+
+        if (dayNumber < 0 || dayNumber > 6 || !isTimeValue(start) || !isTimeValue(end)) {
+          return null;
+        }
+
+        return [String(dayNumber), { end, start }];
+      })
+      .filter(Boolean),
+  );
+};
+
+const getEmployeeShiftForDate = (employee, date) => {
+  const defaultStart = cleanString(employee?.shiftStart) || DEFAULT_WORKDAY_START;
+  const defaultEnd = cleanString(employee?.shiftEnd) || DEFAULT_WORKDAY_END;
+
+  if (!isInputDate(date)) return { end: defaultEnd, start: defaultStart };
+
+  const dailyShift = normalizeDailyShifts(employee?.dailyShifts)[String(new Date(`${date}T12:00:00`).getDay())];
+  return {
+    end: dailyShift?.end || defaultEnd,
+    start: dailyShift?.start || defaultStart,
+  };
+};
+
 const isEmployeeAvailableOnDate = (employee, date) => {
   if (!isInputDate(date)) return true;
   const weekday = new Date(`${date}T12:00:00`).getDay();
@@ -115,6 +150,7 @@ const toPublicEmployee = (row) => {
     bookingBlockedDates: normalizeBlockedDates(payload.bookingBlockedDates),
     premiumHoursEnabled: payload.premiumHoursEnabled === true,
     premiumHoursRules: Array.isArray(payload.premiumHoursRules) ? payload.premiumHoursRules : [],
+    dailyShifts: normalizeDailyShifts(payload.dailyShifts ?? row?.shifts),
     shiftEnd: cleanString(row?.shiftEnd ?? payload.shiftEnd) || DEFAULT_WORKDAY_END,
     shiftStart: cleanString(row?.shiftStart ?? payload.shiftStart) || DEFAULT_WORKDAY_START,
     siteDiscountPercent: Number(payload.siteDiscountPercent) || 0,
@@ -262,8 +298,9 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
 
   return employees.flatMap((employee) => {
     const master = resolveMaster(employee.name, employees);
-    const start = toMinutes(employee.shiftStart || DEFAULT_WORKDAY_START);
-    const end = toMinutes(employee.shiftEnd || DEFAULT_WORKDAY_END);
+    const shift = getEmployeeShiftForDate(employee, preferredDate);
+    const start = toMinutes(shift.start);
+    const end = toMinutes(shift.end);
     const busy = [
       ...getCalendarIntervals(calendarRows, preferredDate, master),
       ...getPendingIntervals(bookingRows, preferredDate, master),

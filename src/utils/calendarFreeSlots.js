@@ -1,3 +1,5 @@
+import {getEmployeeShiftForDate} from "./employeeAvailability.js";
+
 const toMinutes = (time) => {
   const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
 
@@ -48,12 +50,12 @@ export const buildTodayFreeSlots = ({
 
   employees.forEach((employee) => {
     const master = employee.name;
-    const shiftStart = toMinutes(
-      employee.shiftStart || appSettings.workdayStart || "08:00",
-    );
-    const shiftEnd = toMinutes(
-      employee.shiftEnd || appSettings.workdayEnd || "22:00",
-    );
+    const shift = getEmployeeShiftForDate(employee, today, {
+      end: appSettings.workdayEnd || "22:00",
+      start: appSettings.workdayStart || "08:00",
+    });
+    const shiftStart = toMinutes(shift.start);
+    const shiftEnd = toMinutes(shift.end);
     const windowStart = Math.max(shiftStart, currentMinutes);
     const windowEnd = shiftEnd;
 

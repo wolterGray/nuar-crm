@@ -11,6 +11,15 @@ import {
 } from "../utils/employeeAvailability.js";
 import {parseEmployeePricingFromForm} from "../utils/siteBookingPricing.js";
 
+const parseEmployeeDailyShiftsFromForm = (form, workingDays) =>
+  Object.fromEntries(
+    workingDays.map((day) => {
+      const start = String(form.get(`dailyShiftStart_${day}`) || "08:00").trim();
+      const end = String(form.get(`dailyShiftEnd_${day}`) || "22:00").trim();
+      return [String(day), {end, start}];
+    }),
+  );
+
 export function useEmployeeHandlers({
   editingEmployee,
   pushNotification,
@@ -45,6 +54,8 @@ export function useEmployeeHandlers({
         return;
       }
 
+      const workingDaysOfWeek = normalizeWorkingDays(form.getAll("workingDaysOfWeek"));
+
       const employee = {
         ...(editingEmployee?.id ? {id: editingEmployee.id} : {}),
         name,
@@ -60,7 +71,8 @@ export function useEmployeeHandlers({
         status: form.get("status"),
         siteVisible: form.get("siteBookingEnabled") === "on",
         payrollSchedule: normalizePayrollSchedule(form.get("payrollSchedule")),
-        workingDaysOfWeek: normalizeWorkingDays(form.getAll("workingDaysOfWeek")),
+        workingDaysOfWeek,
+        dailyShifts: parseEmployeeDailyShiftsFromForm(form, workingDaysOfWeek),
         bookingBlockedDates: parseBlockedDatesText(form.get("bookingBlockedDates")),
         ...parseEmployeePricingFromForm(form, editingEmployee),
       };

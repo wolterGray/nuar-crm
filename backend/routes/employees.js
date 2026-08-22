@@ -60,7 +60,7 @@ const buildEmployeeData = (payload) => ({
     siteDiscountPercent: Math.max(0, Number(payload?.siteDiscountPercent) || 0),
   },
   payrollSettings: payload?.payrollSettings ?? null,
-  shifts: payload?.shifts ?? null,
+  shifts: payload?.dailyShifts ?? payload?.shifts ?? null,
   payload,
 });
 

@@ -5,7 +5,7 @@ import {
   getServiceBookingBuffers,
   findCatalogService,
 } from "./siteBookingBuffers.js";
-import {isEmployeeAvailableOnDate} from "./employeeAvailability.js";
+import {getEmployeeShiftForDate, isEmployeeAvailableOnDate} from "./employeeAvailability.js";
 
 const DEFAULT_SITE_MASTERS = ["Ольга", "Максим"];
 
@@ -272,12 +272,12 @@ export const buildBookableSlots = ({
           resolveEmployeeSiteBookingSlotMinutes(employeeRecord, appSettings),
       ) || fallbackStep,
     );
-    const shiftStart = toMinutes(
-      employeeRecord.shiftStart || appSettings.workdayStart || "08:00",
-    );
-    const shiftEnd = toMinutes(
-      employeeRecord.shiftEnd || appSettings.workdayEnd || "22:00",
-    );
+    const shift = getEmployeeShiftForDate(employeeRecord, inputDate, {
+      end: appSettings.workdayEnd || "22:00",
+      start: appSettings.workdayStart || "08:00",
+    });
+    const shiftStart = toMinutes(shift.start);
+    const shiftEnd = toMinutes(shift.end);
     const windowStart = isToday
       ? Math.max(shiftStart, roundUpToStep(currentMinutes, step))
       : shiftStart;
