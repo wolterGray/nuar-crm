@@ -27,6 +27,11 @@ const toTime = (minutes) =>
   `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(
     minutes % 60,
   ).padStart(2, "0")}`;
+const toCompactDate = (value) => {
+  const [year, month, day] = String(value ?? "").split("-");
+
+  return year && month && day ? `${day}.${month}.${year}` : "Выберите дату";
+};
 const optionalMoneyField = z.union([z.string(), z.number(), z.literal("")]).optional();
 const normalizeClientLookup = (value) =>
   String(value ?? "")
@@ -868,7 +873,18 @@ function CalendarEntryForm({
         <div className="calendar-time-grid grid grid-cols-2 md:grid-cols-4 gap-3">
           <label className="calendar-date-field calendar-form-field">
             Дата
-            <Input {...register("date")} aria-invalid={Boolean(errors.date)} type="date" className="w-full" />
+            <span className="calendar-date-control">
+              <span className="calendar-date-display-value" aria-hidden="true">
+                {toCompactDate(date)}
+              </span>
+              <Input
+                {...register("date")}
+                aria-invalid={Boolean(errors.date)}
+                aria-label="Дата"
+                type="date"
+                className="calendar-native-date-input w-full"
+              />
+            </span>
             <FieldError message={errors.date?.message} />
           </label>
           <label className="calendar-start-field calendar-form-field">
@@ -879,7 +895,7 @@ function CalendarEntryForm({
               type="time"
               step="900"
               value={time}
-              className="w-full"
+              className="calendar-compact-time-input w-full"
               onChange={(event) => {
                 const nextTime = event.target.value;
                 const currentDuration = Math.max(15, toMinutes(endTime) - toMinutes(time));
@@ -929,7 +945,7 @@ function CalendarEntryForm({
                 type="time"
                 step="900"
                 value={endTime}
-                className="w-full"
+                className="calendar-compact-time-input w-full"
                 onChange={(event) => setFormValue("endTime", event.target.value)}
               />
               <FieldError message={errors.endTime?.message} />

@@ -25,6 +25,8 @@ import {isEmployeeAvailableOnDate} from "../../utils/employeeAvailability.js";
 const QUARTER_HEIGHT = 22;
 const DESKTOP_SCHEDULE_HEADER_HEIGHT = 48;
 const MOBILE_SCHEDULE_HEADER_HEIGHT = 54;
+const MOBILE_TIME_AXIS_WIDTH = 30;
+const MOBILE_MIN_MASTER_WIDTH = 140;
 const isValidInputDate = (date) =>
   /^\d{4}-\d{2}-\d{2}$/.test(String(date)) &&
   !Number.isNaN(new Date(`${date}T12:00:00`).getTime());
@@ -256,6 +258,7 @@ function CalendarPage({
   const [dragPreview, setDragPreview] = useState(null);
   const [pendingSlot, setPendingSlot] = useState(null);
   const [mobileWeekAnimation, setMobileWeekAnimation] = useState(null);
+  const [scheduleViewportWidth, setScheduleViewportWidth] = useState(0);
   const schedulePanelRef = useRef(null);
   const weekCarouselRef = useRef(null);
   const longPressRef = useRef(null);
@@ -494,6 +497,26 @@ function CalendarPage({
   }, [employees.length, selectedDate]);
 
   useLayoutEffect(() => {
+    const container = schedulePanelRef.current;
+
+    if (!container || !isMobile) {
+      setScheduleViewportWidth(0);
+      return undefined;
+    }
+
+    const updateScheduleWidth = () => {
+      setScheduleViewportWidth(container.clientWidth);
+    };
+
+    updateScheduleWidth();
+
+    const resizeObserver = new ResizeObserver(updateScheduleWidth);
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, [isMobile, showScheduleGrid]);
+
+  useLayoutEffect(() => {
     if (!isToday || !showScheduleGrid || alertFocus?.entityId) return;
 
     const container = schedulePanelRef.current;
@@ -562,6 +585,14 @@ function CalendarPage({
       ),
     };
   };
+
+  const mobileVisibleMasterCount = Math.max(1, Math.min(calendarMasters.length, 2));
+  const mobileMasterWidth = scheduleViewportWidth
+    ? Math.max(
+      MOBILE_MIN_MASTER_WIDTH,
+      (scheduleViewportWidth - MOBILE_TIME_AXIS_WIDTH) / mobileVisibleMasterCount,
+    )
+    : null;
 
   const startSlotLongPress = (event, employeeName) => {
     if (event.button !== undefined && event.button !== 0) return;
@@ -828,9 +859,7 @@ return (
             }}
           >
             <section
-              className={`nuar-calendar-schedule min-w-0 min-h-0 max-h-full p-0 overscroll-contain scrollbar-thin ${
-                isMobile ? "overflow-y-auto overflow-x-hidden" : "overflow-auto"
-              }`}
+              className="nuar-calendar-schedule min-w-0 min-h-0 max-h-full overflow-auto p-0 overscroll-contain scrollbar-thin"
               ref={schedulePanelRef}
             >
               <div
@@ -839,12 +868,15 @@ return (
                 }`}
                 style={{
                   gridTemplateColumns: isMobile
-                    ? `var(--calendar-time-axis-width, 44px) repeat(${calendarMasters.length}, minmax(0, 1fr))`
+                    ? `var(--calendar-time-axis-width, ${MOBILE_TIME_AXIS_WIDTH}px) repeat(${calendarMasters.length}, minmax(var(--mobile-master-width), var(--mobile-master-width)))`
                     : `var(--calendar-time-axis-width, 58px) repeat(${calendarMasters.length}, minmax(190px, 1fr))`,
-                  width: "100%",
+                  width: isMobile ? "max-content" : "100%",
+                  minWidth: "100%",
                   "--master-count": calendarMasters.length,
-                  "--calendar-time-axis-width": isMobile ? "44px" : "58px",
-                  "--mobile-master-width": "minmax(0, 1fr)",
+                  "--calendar-time-axis-width": isMobile ? `${MOBILE_TIME_AXIS_WIDTH}px` : "58px",
+                  "--mobile-master-width": mobileMasterWidth
+                    ? `${mobileMasterWidth}px`
+                    : `max(${MOBILE_MIN_MASTER_WIDTH}px, calc((100vw - var(--calendar-time-axis-width, ${MOBILE_TIME_AXIS_WIDTH}px)) / 2))`,
                   "--schedule-height": `${gridHeight}px`,
                   "--schedule-hour-height": `${4 * slotHeight}px`,
                 }}

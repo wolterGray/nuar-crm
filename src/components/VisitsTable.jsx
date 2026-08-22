@@ -36,6 +36,12 @@ import {
   AppIcon,
 } from "./ui/index.js";
 
+const toCompactDate = (value) => {
+  const [year, month, day] = String(value ?? "").split("-");
+
+  return year && month && day ? `${day}.${month}.${year}` : "дд.мм.гггг";
+};
+
 const parseVisitDateValue = (value) => {
   const date = String(value ?? "").trim();
 
@@ -355,11 +361,18 @@ function VisitsTable({
       </label>
       <label>
         Дата
-        <Input
-          type="date"
-          value={filters.date}
-          onChange={(event) => onFilterChange("date", event.target.value)}
-        />
+        <span className="payments-mobile-date-control">
+          <span className="payments-mobile-date-value" aria-hidden="true">
+            {toCompactDate(filters.date)}
+          </span>
+          <Input
+            aria-label="Дата"
+            className="payments-mobile-date-native"
+            type="date"
+            value={filters.date}
+            onChange={(event) => onFilterChange("date", event.target.value)}
+          />
+        </span>
       </label>
     </div>
   );
