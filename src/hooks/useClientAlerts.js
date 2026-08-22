@@ -40,6 +40,9 @@ const isServerAlertId = (id) => String(id ?? "").startsWith(SERVER_ALERT_PREFIX)
 
 const getServerEventId = (id) => Number(String(id).replace(SERVER_ALERT_PREFIX, ""));
 
+const getSnoozeUntilMinutes = (minutes, now = new Date()) =>
+  new Date(now.getTime() + minutes * 60 * 1000);
+
 const getServerAlertPage = (event) => {
   if (event.entityType === "calendar_entry" || event.type === "visit_upcoming") return "calendar";
   if (event.entityType === "task" || event.type === "task_due") return "operations";
@@ -333,6 +336,13 @@ export function useClientAlerts({
     [snoozeAlertIdsUntil],
   );
 
+  const snoozeAlertReview = useCallback(
+    (alertOrId) => {
+      snoozeAlertIdsUntil(alertOrId, getSnoozeUntilMinutes(30));
+    },
+    [snoozeAlertIdsUntil],
+  );
+
   const snoozeAlertWeek = useCallback(
     (alertOrId) => {
       snoozeAlertIdsUntil(alertOrId, getSnoozeUntilDays(7));
@@ -520,6 +530,7 @@ export function useClientAlerts({
     openClientMessageTemplates,
     quietHoursActive,
     snoozeAlertDays,
+    snoozeAlertReview,
     snoozeAlertToday,
     snoozeAlertWeek,
     totalAlertsCount: drawerCounts.totalAlertsCount,

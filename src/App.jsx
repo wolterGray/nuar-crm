@@ -711,6 +711,7 @@ function App() {
     openClientMessageTemplates,
     quietHoursActive,
     snoozeAlertDays,
+    snoozeAlertReview,
     snoozeAlertToday,
     snoozeAlertWeek,
     totalAlertsCount,
@@ -1466,16 +1467,24 @@ function App() {
         return;
       }
 
+      const alertClient =
+        alert.page === "clients" ||
+        alert.type === "inactive" ||
+        alert.type === "birthday" ||
+        alert.type === "package"
+          ? resolveAlertClient(alert)
+          : null;
+
       setActivePage(alert.page);
       setAlertFocus({
-        entityId: alert.entityId,
+        entityId: alertClient?.id ?? alert.entityId,
         section: alert.section,
-        type: alert.type,
+        type: alertClient ? "client" : alert.type,
       });
       setClientAlertsOpen(false);
       setActiveClientAlertId(null);
     },
-    [setActivePage],
+    [resolveAlertClient, setActivePage],
   );
 
   const openClientFromSearch = useCallback(
@@ -1571,6 +1580,8 @@ function App() {
           } else {
             openCreateClientPackage();
           }
+          setClientAlertsOpen(false);
+          setActiveClientAlertId(null);
           break;
         }
         default:
@@ -1969,6 +1980,7 @@ function App() {
               onAction={handleAlertAction}
               onDismissPermanent={dismissAlertPermanent}
               onFilterChange={setAlertFilter}
+              onSnoozeReview={snoozeAlertReview}
               onSnoozeToday={snoozeAlertToday}
               onSnoozeWeek={snoozeAlertWeek}
               onToggleOpen={() => setClientAlertsOpen((current) => !current)}

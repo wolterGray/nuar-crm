@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {
   cancelEmployeePayout,
   createEmployeePayout,
@@ -132,27 +132,58 @@ function PeriodFilters({customRange, mode, onCustomRange, onMode}) {
   );
 }
 
-function EmployeeSummaryCard({row, selected, onOpen}) {
+function PayoutValueSkeleton({className = ""}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`employee-payout-value-skeleton ${className}`.trim()}
+    />
+  );
+}
+
+function EmployeeSummaryCard({loading = false, row, selected, onOpen}) {
   return (
     <button
-      className={`employee-payout-summary-row ${selected ? "is-selected" : ""}`}
+      className={`employee-payout-summary-row ${selected ? "is-selected" : ""} ${
+        loading ? "is-loading" : ""
+      }`}
+      aria-busy={loading}
       type="button"
       onClick={onOpen}>
       <div className="employee-payout-summary-person">
         <div className="employee-avatar-tile">{row.employeeName.slice(0, 1)}</div>
         <div>
           <h3>{row.employeeName}</h3>
-          <span>{row.unpaidCount} к выплате</span>
+          <span>
+            {loading ? <PayoutValueSkeleton className="is-count" /> : `${row.unpaidCount} к выплате`}
+          </span>
         </div>
       </div>
       <div className="employee-payout-summary-meta">
-        <span>Заработано <b>{formatMoney(row.earned)}</b></span>
-        <span>Выплачено <b>{formatMoney(row.paid)}</b></span>
-        <span>Не выплачено <b>{formatMoney(row.unpaid)} · {row.unpaidCount}</b></span>
+        <span>
+          Заработано{" "}
+          <b>{loading ? <PayoutValueSkeleton /> : formatMoney(row.earned)}</b>
+        </span>
+        <span>
+          Выплачено{" "}
+          <b>{loading ? <PayoutValueSkeleton /> : formatMoney(row.paid)}</b>
+        </span>
+        <span>
+          Не выплачено{" "}
+          <b>
+            {loading ? (
+              <PayoutValueSkeleton />
+            ) : (
+              `${formatMoney(row.unpaid)} · ${row.unpaidCount}`
+            )}
+          </b>
+        </span>
       </div>
       <div className="employee-payout-summary-due">
         <span>К выплате</span>
-        <strong>{formatMoney(row.unpaid)}</strong>
+        <strong>
+          {loading ? <PayoutValueSkeleton className="is-total" /> : formatMoney(row.unpaid)}
+        </strong>
       </div>
     </button>
   );
@@ -207,6 +238,23 @@ function EarningRow({earning, checked, disabled = false, onPayOne, onToggle}) {
             Выплатить
           </Button>
         )}
+      </div>
+    </article>
+  );
+}
+
+function EarningRowSkeleton() {
+  return (
+    <article className="employee-earning-row employee-earning-row-skeleton" aria-hidden="true">
+      <div className="employee-earning-content">
+        <PayoutValueSkeleton className="is-earning-date" />
+        <PayoutValueSkeleton className="is-earning-service" />
+        <PayoutValueSkeleton className="is-earning-client" />
+        <PayoutValueSkeleton className="is-earning-small" />
+        <PayoutValueSkeleton className="is-earning-small" />
+        <PayoutValueSkeleton className="is-earning-amount" />
+        <PayoutValueSkeleton className="is-earning-status" />
+        <PayoutValueSkeleton className="is-earning-action" />
       </div>
     </article>
   );
@@ -303,8 +351,10 @@ function EmployeePayoutsPanel({pushNotification}) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [historyConfirm, setHistoryConfirm] = useState(null);
   const [payoutConfirm, setPayoutConfirm] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const detailRequestId = useRef(0);
 
   const period = useMemo(() => getPeriodRange(mode, customRange), [customRange, mode]);
   const selectedEarnings = useMemo(
@@ -325,7 +375,7 @@ function EmployeePayoutsPanel({pushNotification}) {
   });
   const visibleEmployeePayouts = selectedEmployeePayouts;
 
-  const load = useCallback(async () => {
+  const loadSummary = useCallback(async () => {
     setLoading(true);
     try {
       const [summaryResponse, payoutsResponse] = await Promise.all([
@@ -335,14 +385,13 @@ function EmployeePayoutsPanel({pushNotification}) {
       const rows = Array.isArray(summaryResponse?.data?.rows) ? summaryResponse.data.rows : [];
       setSummary(rows);
       setPayouts(Array.isArray(payoutsResponse?.data) ? payoutsResponse.data : []);
-      const nextEmployeeId = selectedEmployeeId || rows[0]?.employeeId || "";
-      setSelectedEmployeeId(nextEmployeeId);
-      if (nextEmployeeId) {
-        const detailResponse = await fetchEmployeeEarningsDetail(nextEmployeeId, period);
-        setDetail(detailResponse?.data ?? null);
-      } else {
-        setDetail(null);
-      }
+      setSelectedEmployeeId((current) => {
+        if (rows.some((row) => String(row.employeeId) === String(current))) {
+          return current;
+        }
+
+        return rows[0]?.employeeId || "";
+      });
     } catch (error) {
       pushNotification?.({
         title: "Расчёты не загружены",
@@ -352,26 +401,69 @@ function EmployeePayoutsPanel({pushNotification}) {
     } finally {
       setLoading(false);
     }
-  }, [period, pushNotification, selectedEmployeeId]);
+  }, [period, pushNotification]);
+
+  const loadEmployeeDetail = useCallback(
+    async (employeeId) => {
+      if (!employeeId) {
+        setDetail(null);
+        setDetailLoading(false);
+        return;
+      }
+
+      const requestId = detailRequestId.current + 1;
+      detailRequestId.current = requestId;
+      setDetailLoading(true);
+
+      try {
+        const response = await fetchEmployeeEarningsDetail(employeeId, period);
+
+        if (detailRequestId.current === requestId) {
+          setDetail(response?.data ?? null);
+          setDetailLoading(false);
+        }
+      } catch (error) {
+        if (detailRequestId.current === requestId) {
+          setDetail(null);
+          setDetailLoading(false);
+          pushNotification?.({
+            title: "Начисления не загружены",
+            message: error?.message,
+            persist: false,
+          });
+        }
+      }
+    },
+    [period, pushNotification],
+  );
+
+  const reloadSelectedEmployee = useCallback(async () => {
+    await loadSummary();
+
+    if (selectedEmployeeId) {
+      await loadEmployeeDetail(selectedEmployeeId);
+    }
+  }, [loadEmployeeDetail, loadSummary, selectedEmployeeId]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      load();
+      loadSummary();
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [load]);
+  }, [loadSummary]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      loadEmployeeDetail(selectedEmployeeId);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadEmployeeDetail, selectedEmployeeId]);
 
   const openEmployee = async (employeeId) => {
     setSelectedEmployeeId(employeeId);
     setSelectedIds(new Set());
     setPayoutConfirm(null);
     setEarningStatus("unpaid");
-    try {
-      const response = await fetchEmployeeEarningsDetail(employeeId, period);
-      setDetail(response?.data ?? null);
-    } catch (error) {
-      pushNotification?.({title: "Начисления не загружены", message: error?.message, persist: false});
-    }
   };
 
   const paySelected = async (earningIds) => {
@@ -388,7 +480,7 @@ function EmployeePayoutsPanel({pushNotification}) {
       });
       setSelectedIds(new Set());
       setPayoutConfirm(null);
-      await load();
+      await reloadSelectedEmployee();
     } catch (error) {
       pushNotification?.({title: "Выплата не сохранена", message: error?.message, persist: false});
     } finally {
@@ -416,7 +508,7 @@ function EmployeePayoutsPanel({pushNotification}) {
     try {
       await cancelEmployeePayout(id);
       pushNotification?.({title: "Выплата отменена", message: "Начисления снова доступны к выплате"});
-      await load();
+      await reloadSelectedEmployee();
     } catch (error) {
       pushNotification?.({title: "Выплата не отменена", message: error?.message, persist: false});
     } finally {
@@ -432,7 +524,7 @@ function EmployeePayoutsPanel({pushNotification}) {
       setPayoutDetail(null);
       setHistoryConfirm(null);
       pushNotification?.({title: "История очищена", message: "Записи выплат удалены из базы"});
-      await load();
+      await reloadSelectedEmployee();
     } catch (error) {
       pushNotification?.({title: "История не очищена", message: error?.message, persist: false});
     } finally {
@@ -448,7 +540,7 @@ function EmployeePayoutsPanel({pushNotification}) {
       setPayoutDetail((current) => (String(current?.id) === String(payout.id) ? null : current));
       setHistoryConfirm(null);
       pushNotification?.({title: "Выплата удалена", message: "Запись удалена из базы"});
-      await load();
+      await reloadSelectedEmployee();
     } catch (error) {
       pushNotification?.({title: "Выплата не удалена", message: error?.message, persist: false});
     } finally {
@@ -471,17 +563,24 @@ function EmployeePayoutsPanel({pushNotification}) {
             onMode={setMode}
           />
           <span
-            className={`employee-payouts-loading ${loading ? "is-visible" : ""}`}
-            aria-label={loading ? "Обновляем расчёты" : undefined}
+            className={`employee-payouts-loading ${
+              loading || detailLoading ? "is-visible" : ""
+            }`}
+            aria-label={
+              loading || detailLoading ? "Обновляем расчёты" : undefined
+            }
             aria-live="polite"
           />
         </div>
       </div>
 
-      <section className="employee-payout-summary-list">
+      <section
+        className={`employee-payout-summary-list ${loading ? "is-loading" : ""}`}
+        aria-busy={loading}>
         {summary.map((row) => (
           <EmployeeSummaryCard
             key={row.employeeId}
+            loading={loading}
             row={row}
             selected={String(row.employeeId) === String(selectedEmployeeId)}
             onOpen={() => openEmployee(row.employeeId)}
@@ -490,14 +589,30 @@ function EmployeePayoutsPanel({pushNotification}) {
       </section>
 
       {detail ? (
-        <section className="employee-payout-detail-layout">
+        <section
+          className={`employee-payout-detail-layout ${
+            detailLoading ? "is-loading" : ""
+          }`}
+          aria-busy={detailLoading}>
           <div className="employee-payout-detail-main">
             <div className="employee-payout-detail-card">
               <div className="employee-payout-detail-head">
                 <div>
-                  <h3>{detail.employee?.name}</h3>
+                  <h3>
+                    {detailLoading ? (
+                      <PayoutValueSkeleton className="is-title" />
+                    ) : (
+                      detail.employee?.name
+                    )}
+                  </h3>
                   <small>
-                    К выплате {formatMoney(detail.totals?.unpaid)} · {detail.totals?.unpaidCount ?? 0} неоплаченных
+                    {detailLoading ? (
+                      <PayoutValueSkeleton className="is-detail" />
+                    ) : (
+                      `К выплате ${formatMoney(detail.totals?.unpaid)} · ${
+                        detail.totals?.unpaidCount ?? 0
+                      } неоплаченных`
+                    )}
                   </small>
                 </div>
                 <div className="employee-payout-status-tabs" role="tablist" aria-label="Статус начислений">
@@ -510,7 +625,14 @@ function EmployeePayoutsPanel({pushNotification}) {
                       setEarningStatus("unpaid");
                       setSelectedIds(new Set());
                     }}>
-                    Не выплачено <b>{unpaidEarnings.length}</b>
+                    Не выплачено{" "}
+                    <b>
+                      {detailLoading ? (
+                        <PayoutValueSkeleton className="is-tab-count" />
+                      ) : (
+                        unpaidEarnings.length
+                      )}
+                    </b>
                   </button>
                   <button
                     className={earningStatus === "paid" ? "is-active" : ""}
@@ -521,7 +643,14 @@ function EmployeePayoutsPanel({pushNotification}) {
                       setEarningStatus("paid");
                       setSelectedIds(new Set());
                     }}>
-                    Выплачено <b>{paidEarnings.length}</b>
+                    Выплачено{" "}
+                    <b>
+                      {detailLoading ? (
+                        <PayoutValueSkeleton className="is-tab-count" />
+                      ) : (
+                        paidEarnings.length
+                      )}
+                    </b>
                   </button>
                 </div>
               </div>
@@ -539,7 +668,23 @@ function EmployeePayoutsPanel({pushNotification}) {
               ) : null}
             </div>
 
-            {visibleEarnings.length === 0 ? (
+            {detailLoading ? (
+              <div className="employee-earning-list is-loading" aria-busy="true">
+                <div className="employee-earning-table-head" aria-hidden="true">
+                  <span>Дата</span>
+                  <span>Услуга</span>
+                  <span>Клиент</span>
+                  <span>Оплачено</span>
+                  <span>Комиссия</span>
+                  <span>Сотруднику</span>
+                  <span>Статус</span>
+                  <span />
+                </div>
+                {Array.from({length: 3}, (_, index) => (
+                  <EarningRowSkeleton key={index} />
+                ))}
+              </div>
+            ) : visibleEarnings.length === 0 ? (
               <EmptyState
                 className="employee-payout-empty"
                 description={earningStatus === "paid" ? "Здесь появятся уже выплаченные начисления." : "Начисления появятся после завершённых визитов."}

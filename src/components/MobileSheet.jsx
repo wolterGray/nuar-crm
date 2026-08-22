@@ -1,6 +1,8 @@
-import {useEffect} from "react";
+import {useCallback, useEffect, useRef} from "react";
 import {useModalScrollLock} from "../hooks/useModalScrollLock.js";
 import IconButton from "./ui/IconButton.jsx";
+
+const CLOSE_ANIMATION_MS = 220;
 
 function MobileSheet({
   children,
@@ -13,20 +15,40 @@ function MobileSheet({
   title,
   description,
 }) {
+  const backdropRef = useRef(null);
+  const closeTimerRef = useRef(null);
+  const closingRef = useRef(false);
   useModalScrollLock(isOpen);
+
+  const requestClose = useCallback(() => {
+    if (!onClose || closingRef.current) return;
+
+    closingRef.current = true;
+    backdropRef.current?.classList.add("is-closing");
+    closeTimerRef.current = window.setTimeout(() => {
+      closingRef.current = false;
+      onClose();
+    }, CLOSE_ANIMATION_MS);
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
 
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        onClose?.();
+        requestClose();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, requestClose]);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+    }
+  }, []);
 
   if (!isOpen) {
     return null;
@@ -34,13 +56,14 @@ function MobileSheet({
 
   return (
     <div
-      className="modal-backdrop mobile-sheet-backdrop"
+      ref={backdropRef}
+      className="modal-backdrop mobile-sheet-backdrop mac-window-backdrop"
       role="presentation"
-      onClick={onClose}>
+      onClick={requestClose}>
       <section
         aria-labelledby={labelledBy}
         aria-modal="true"
-        className={`mobile-sheet ${fullscreen ? "mobile-sheet-fullscreen" : ""} ${className}`.trim()}
+        className={`mobile-sheet mac-window-surface ${fullscreen ? "mobile-sheet-fullscreen" : ""} ${className}`.trim()}
         role="dialog"
         onClick={(event) => event.stopPropagation()}>
         {(title || onClose) && (
@@ -57,10 +80,10 @@ function MobileSheet({
                 icon="x"
                 label="Закрыть"
                 size="sm"
-                type="button"
-                variant="ghost"
-                onClick={onClose}
-              />
+                    type="button"
+                    variant="ghost"
+                    onClick={requestClose}
+                  />
             ) : null}
           </header>
         )}

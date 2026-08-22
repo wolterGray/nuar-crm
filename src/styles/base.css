@@ -763,6 +763,7 @@ h1 {
   display: grid;
   min-width: 0;
   max-height: 290px;
+  gap: 8px;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-color: var(--accent-color) transparent;
@@ -770,7 +771,9 @@ h1 {
 }
 
 .client-alert-group {
+  display: grid;
   min-width: 0;
+  gap: 8px;
 }
 
 .client-alert-group + .client-alert-group {
@@ -784,8 +787,18 @@ h1 {
 .client-alert-row {
   display: grid;
   min-width: 0;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--color-border-soft);
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-border-soft) 78%, transparent);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-card) 96%, rgba(255, 255, 255, 0.07)),
+      color-mix(in srgb, var(--color-card) 96%, rgba(0, 0, 0, 0.08))
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 7px 18px rgba(0, 0, 0, 0.12);
 }
 
 .client-alert-summary {
@@ -821,27 +834,71 @@ h1 {
 }
 
 .client-alert-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 9px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 11px;
 }
 
 .client-alert-actions button {
-  display: inline-flex;
+  display: grid !important;
   align-items: center;
-  gap: 5px;
-  min-height: 30px;
-  padding: 0 8px;
+  justify-content: center;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  place-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
   border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-control-sm);
-  color: var(--color-text-muted);
-  background: var(--color-field);
-  font-size: 11px;
+  border-radius: 10px;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-field) 94%, var(--color-text) 6%);
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+  opacity: 1;
 }
 
-.client-alert-actions button:last-child {
-  color: var(--color-primary);
+.client-alert-actions .client-alert-action-button,
+.client-alert-actions .client-alert-action-button span,
+.client-alert-actions .client-alert-action-button svg {
+  opacity: 1 !important;
+}
+
+.client-alert-actions .client-alert-action-button span {
+  display: flex !important;
+  min-width: 0;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: inherit !important;
+  line-height: 1 !important;
+  text-overflow: ellipsis;
+  transform: translateY(-1px);
+  white-space: nowrap;
+}
+
+.client-alert-actions .client-alert-action-button svg {
+  display: block;
+  color: currentColor !important;
+  transform: translateY(-1px);
+}
+
+.client-alert-actions .client-alert-action-button.is-write {
+  border-color: color-mix(in srgb, var(--color-primary) 76%, #ffffff 10%);
+  color: #ffffff !important;
+  background: color-mix(in srgb, var(--color-primary) 92%, #000000 8%);
+  box-shadow: 0 7px 16px color-mix(in srgb, var(--color-primary) 24%, transparent);
+}
+
+.client-alert-actions .client-alert-action-button.is-open,
+.client-alert-actions .client-alert-action-button.is-client {
+  border-color: color-mix(in srgb, var(--color-text) 18%, var(--color-border));
+  color: color-mix(in srgb, var(--color-text) 96%, #ffffff) !important;
+  background: color-mix(in srgb, var(--color-field) 76%, #ffffff 8%);
 }
 
 .client-alert-event {
@@ -965,7 +1022,13 @@ h1 {
 }
 
 .client-alert-row-unified {
-  padding: 8px 0;
+  position: relative;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.client-alert-row-unified.has-corner-badge {
+  padding-top: 16px;
 }
 
 .client-alert-row-main {
@@ -979,9 +1042,185 @@ h1 {
   min-width: 0;
 }
 
+.client-alert-meta-badges {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.client-alert-meta-badge {
+  --alert-badge-accent: var(--color-text-muted);
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 18px;
+  align-items: center;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--alert-badge-accent) 28%, transparent);
+  border-radius: var(--radius-pill);
+  color: color-mix(in srgb, var(--alert-badge-accent) 82%, var(--color-text));
+  background: color-mix(in srgb, var(--alert-badge-accent) 12%, var(--color-card));
+  font-size: 10px;
+  font-weight: 760;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-alert-meta-badge.is-calendar,
+.client-alert-meta-badge.is-visit,
+.client-alert-meta-badge.is-time {
+  --alert-badge-accent: var(--color-info);
+}
+
+.client-alert-meta-badge.is-task,
+.client-alert-meta-badge.is-tasks {
+  --alert-badge-accent: var(--color-warning);
+}
+
+.client-alert-meta-badge.is-supply,
+.client-alert-meta-badge.is-supplies {
+  --alert-badge-accent: var(--color-success);
+}
+
+.client-alert-meta-badge.is-package,
+.client-alert-meta-badge.is-packages {
+  --alert-badge-accent: var(--color-loyalty-royalty);
+}
+
+.client-alert-meta-badge.is-certificate {
+  --alert-badge-accent: var(--color-loyalty-gold);
+}
+
+.client-alert-meta-badge.is-birthday {
+  --alert-badge-accent: var(--color-primary);
+}
+
+.client-alert-meta-badge.is-inactive {
+  --alert-badge-accent: var(--color-text-muted);
+}
+
+.client-alert-meta-badge.is-inactive-stale,
+.client-alert-meta-badge.is-inactive-status {
+  --alert-badge-accent: var(--color-info);
+}
+
+.client-alert-meta-badge.is-forecast {
+  --alert-badge-accent: var(--color-loyalty-diamond);
+}
+
+.client-alert-meta-badge.is-undo {
+  --alert-badge-accent: var(--color-success);
+}
+
+.client-alert-meta-badge.is-count,
+.client-alert-meta-badge.is-priority-info {
+  --alert-badge-accent: var(--color-text-muted);
+}
+
+.client-alert-meta-badge.is-priority-critical {
+  --alert-badge-accent: var(--color-error);
+}
+
+.client-alert-meta-badge.is-packages-status,
+.client-alert-meta-badge.is-supplies-status,
+.client-alert-meta-badge.is-tasks-status {
+  --alert-badge-accent: var(--color-warning);
+}
+
 .client-alert-row-copy strong,
 .client-alert-row-copy span {
   display: block;
+}
+
+.client-alert-row-copy .client-alert-meta-badge {
+  display: inline-flex;
+}
+
+.client-alert-row-copy strong {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 780;
+  line-height: 1.25;
+}
+
+.client-alert-row-copy > span:not(.client-alert-meta-badge) {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.client-alert-corner-badge {
+  --alert-corner-accent: var(--color-info);
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  display: inline-flex;
+  max-width: min(54%, 190px);
+  min-height: 18px;
+  align-items: center;
+  padding: 2px 7px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--alert-corner-accent) 34%, var(--color-border));
+  border-radius: var(--radius-pill);
+  color: color-mix(in srgb, var(--alert-corner-accent) 82%, #ffffff);
+  background: color-mix(in srgb, var(--alert-corner-accent) 13%, var(--color-card));
+  font-size: 10px;
+  font-weight: 780;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-alert-corner-badge.is-calendar,
+.client-alert-corner-badge.is-visit,
+.client-alert-corner-badge.is-time {
+  --alert-corner-accent: var(--color-info);
+}
+
+.client-alert-corner-badge.is-task,
+.client-alert-corner-badge.is-tasks {
+  --alert-corner-accent: var(--color-warning);
+}
+
+.client-alert-corner-badge.is-supply,
+.client-alert-corner-badge.is-supplies {
+  --alert-corner-accent: var(--color-success);
+}
+
+.client-alert-corner-badge.is-package,
+.client-alert-corner-badge.is-packages {
+  --alert-corner-accent: var(--color-loyalty-royalty);
+}
+
+.client-alert-corner-badge.is-certificate {
+  --alert-corner-accent: var(--color-loyalty-gold);
+}
+
+.client-alert-corner-badge.is-birthday {
+  --alert-corner-accent: var(--color-primary);
+}
+
+.client-alert-corner-badge.is-inactive,
+.client-alert-corner-badge.is-inactive-stale,
+.client-alert-corner-badge.is-inactive-status {
+  --alert-corner-accent: var(--color-info);
+}
+
+.client-alert-corner-badge.is-forecast {
+  --alert-corner-accent: var(--color-loyalty-diamond);
+}
+
+.client-alert-corner-badge.is-undo {
+  --alert-corner-accent: var(--color-success);
+}
+
+.client-alert-row-unified.has-corner-badge .client-alert-row-copy {
+  padding-right: min(56%, 196px);
 }
 
 .client-alert-priority {

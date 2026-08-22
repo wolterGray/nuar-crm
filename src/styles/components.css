@@ -196,6 +196,78 @@
   background: var(--color-page);
 }
 
+@keyframes mac-window-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mac-window-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes mac-window-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.94);
+  }
+  72% {
+    opacity: 1;
+    transform: translate3d(0, -1px, 0) scale(1.01);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes mac-window-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.94);
+  }
+}
+
+.mac-window-backdrop {
+  animation: mac-window-backdrop-in 0.18s ease-out both;
+}
+
+.mac-window-backdrop.is-closing {
+  pointer-events: none;
+  animation: mac-window-backdrop-out 0.22s ease-in both;
+}
+
+.mac-window-surface {
+  transform-origin: 86% 8%;
+  will-change: transform, opacity;
+  animation: mac-window-in 0.26s cubic-bezier(0.16, 1, 0.24, 1) both;
+}
+
+.mac-window-backdrop.is-closing .mac-window-surface {
+  animation: mac-window-out 0.2s ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mac-window-backdrop,
+  .mac-window-backdrop.is-closing,
+  .mac-window-surface,
+  .mac-window-backdrop.is-closing .mac-window-surface {
+    animation-duration: 0.01ms !important;
+  }
+}
+
 .content.services-content,
 .content.services-content.home-content {
   display: block !important;
@@ -771,6 +843,56 @@
     flex: 1 1 auto !important;
     min-height: 0 !important;
     margin-top: 0 !important;
+  }
+
+  .modal-backdrop .employee-modal.client-form-modal,
+  .modal-backdrop .mobile-sheet.employee-modal.client-form-modal {
+    background: var(--color-window) !important;
+  }
+
+  .modal-backdrop .mobile-sheet.employee-modal.client-form-modal .mobile-sheet-body,
+  .modal-backdrop .employee-modal.client-form-modal .new-client-panel,
+  .modal-backdrop .employee-modal.client-form-modal .new-client-panel form {
+    background: transparent !important;
+  }
+
+  .modal-backdrop .employee-modal.client-form-modal .new-client-panel {
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .modal-backdrop .employee-modal.client-form-modal .new-client-panel form {
+    gap: 12px !important;
+    margin-top: 0 !important;
+  }
+
+  .modal-backdrop .employee-modal.client-form-modal .new-client-panel :is(label, .grid) {
+    gap: 7px !important;
+  }
+
+  .modal-backdrop .employee-modal.client-form-modal .new-client-panel :is(
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea
+  ) {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
+    padding-inline: 14px !important;
+    border-radius: 10px !important;
+    font-size: 16px !important;
+    font-weight: 650 !important;
+    line-height: 1.2 !important;
+  }
+
+  .modal-backdrop .employee-modal.client-form-modal .new-client-panel textarea {
+    min-height: 96px !important;
+    padding-block: 12px !important;
+    line-height: 1.35 !important;
+  }
+
+  .modal-backdrop .employee-modal.client-form-modal .new-client-panel .form-split {
+    gap: 10px !important;
   }
 
   .mobile-sheet.employee-modal.operations-form-modal {
@@ -7659,6 +7781,25 @@
     letter-spacing: 0 !important;
   }
 
+  .mobile-page-container[data-mobile-page="employees"] .employees-page-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 3px !important;
+    border: 1px solid var(--color-border-soft) !important;
+    border-radius: 10px !important;
+    background: color-mix(in srgb, var(--color-field) 78%, transparent) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employees-page-tabs button {
+    min-width: 0 !important;
+    min-height: 34px !important;
+    padding: 0 10px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+  }
+
   .mobile-page-container[data-mobile-page="employees"] .employee-card .employee-stats {
     padding: 0 !important;
     border-radius: 8px !important;
@@ -7677,6 +7818,348 @@
 
   .mobile-page-container[data-mobile-page="employees"] .employee-card .employee-stats strong {
     font-size: 11px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employees-payroll-tab {
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payouts-panel {
+    gap: 10px !important;
+    max-width: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payouts-header {
+    gap: 7px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payouts-header h2 {
+    margin: 0 !important;
+    font-size: 18px !important;
+    line-height: 1.15 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payouts-header p {
+    display: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-period-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-period-controls {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    max-width: 100% !important;
+    padding: 3px !important;
+    overflow-x: auto !important;
+    border: 1px solid var(--color-border-soft) !important;
+    border-radius: 10px !important;
+    background: color-mix(in srgb, var(--color-field) 76%, transparent) !important;
+    scrollbar-width: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-period-controls::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-period-tab {
+    height: 31px !important;
+    min-height: 31px !important;
+    max-height: 31px !important;
+    padding: 0 11px !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    color: var(--color-text-muted) !important;
+    background: transparent !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-period-tab.is-active {
+    color: var(--color-primary-text) !important;
+    background: var(--color-primary) !important;
+    box-shadow: 0 6px 14px color-mix(in srgb, var(--color-primary) 18%, transparent) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-period-dates {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    flex: 0 0 260px !important;
+    min-width: 260px !important;
+    gap: 4px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-date-input {
+    width: 100% !important;
+    height: 31px !important;
+    min-height: 31px !important;
+    padding: 0 9px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    line-height: 31px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-list {
+    gap: 8px !important;
+    overflow: visible !important;
+    border-block: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 9px 12px !important;
+    padding: 11px 12px !important;
+    overflow: hidden !important;
+    border: 1px solid var(--color-border-soft) !important;
+    border-radius: 12px !important;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-card) 92%, rgba(255, 255, 255, 0.05)),
+        color-mix(in srgb, var(--color-card) 92%, rgba(0, 0, 0, 0.08))
+      ) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-row.is-selected {
+    border-color: color-mix(in srgb, var(--color-primary) 42%, var(--color-border-soft)) !important;
+    box-shadow: inset 3px 0 0 var(--color-primary) !important;
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color-primary) 10%, transparent),
+        color-mix(in srgb, var(--color-card) 92%, transparent)
+      ) !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-person {
+    min-width: 0 !important;
+    gap: 9px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-person h3 {
+    overflow: hidden !important;
+    font-size: 15px !important;
+    line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-person span {
+    font-size: 11px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-due {
+    align-self: start !important;
+    justify-items: end !important;
+    gap: 2px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-due span {
+    font-size: 10px !important;
+    text-transform: uppercase !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-due strong {
+    font-size: 18px !important;
+    line-height: 1.05 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-meta {
+    grid-column: 1 / -1 !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-meta span {
+    display: grid !important;
+    min-width: 0 !important;
+    min-height: 36px !important;
+    align-content: center !important;
+    gap: 2px !important;
+    padding: 6px 7px !important;
+    overflow: hidden !important;
+    border: 1px solid color-mix(in srgb, var(--color-border-soft) 74%, transparent) !important;
+    border-radius: 8px !important;
+    background: color-mix(in srgb, var(--color-text) 3%, transparent) !important;
+    color: var(--color-text-faint) !important;
+    font-size: 9.5px !important;
+    line-height: 1.1 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-meta b {
+    display: block !important;
+    overflow: hidden !important;
+    color: var(--color-text) !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-summary-row.is-loading {
+    pointer-events: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton {
+    display: inline-block !important;
+    width: 68px !important;
+    max-width: 100% !important;
+    height: 10px !important;
+    border-radius: 999px !important;
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color-text) 6%, transparent),
+        color-mix(in srgb, var(--color-text) 15%, transparent),
+        color-mix(in srgb, var(--color-text) 6%, transparent)
+      ) !important;
+    background-size: 180% 100% !important;
+    animation: employee-payout-skeleton 1.05s ease-in-out infinite !important;
+    vertical-align: middle !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-count {
+    width: 54px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-total {
+    width: 82px !important;
+    height: 15px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-title {
+    width: 118px !important;
+    height: 18px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-detail {
+    width: min(210px, 72vw) !important;
+    height: 12px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-tab-count {
+    width: 16px !important;
+    height: 9px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-earning-list.is-loading {
+    pointer-events: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-earning-row-skeleton {
+    cursor: default !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-earning-row-skeleton .employee-earning-content {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 6px 10px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-date,
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-service,
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-client {
+    grid-column: 1 !important;
+    justify-self: start !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-date {
+    width: 82px !important;
+    height: 13px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-service {
+    width: min(190px, 58vw) !important;
+    height: 12px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-client {
+    width: 120px !important;
+    height: 11px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-amount,
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-status {
+    grid-column: 2 !important;
+    justify-self: end !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-amount {
+    width: 58px !important;
+    height: 13px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-status {
+    width: 74px !important;
+    height: 18px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-small,
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-action {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-small {
+    width: 96px !important;
+    height: 11px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-value-skeleton.is-earning-action {
+    width: 72px !important;
+    height: 24px !important;
+    border-radius: 7px !important;
+  }
+
+  @keyframes employee-payout-skeleton {
+    0% {
+      background-position: 120% 0;
+    }
+
+    100% {
+      background-position: -80% 0;
+    }
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-detail-card {
+    padding: 10px 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-detail-head {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-detail-head h3 {
+    font-size: 17px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-status-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    padding: 3px !important;
+    border-radius: 10px !important;
+  }
+
+  .mobile-page-container[data-mobile-page="employees"] .employee-payout-status-tabs button {
+    min-width: 0 !important;
+    height: 31px !important;
+    min-height: 31px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
   }
 
   .mobile-page-container[data-mobile-page="packages"] .packages-mobile-tabs {

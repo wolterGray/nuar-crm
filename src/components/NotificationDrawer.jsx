@@ -1,7 +1,11 @@
 import {AnimatePresence, motion} from "framer-motion";
-import {useLayoutEffect, useRef, useState} from "react";
+import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 import {ALERT_GROUP_LABELS, groupAlerts} from "../utils/alertCenter.js";
+import {
+  getNotificationAlertIds,
+  getNotificationDrawerCounts,
+} from "../utils/notificationDrawerCounts.js";
 import NotificationAggregateRow from "./NotificationAggregateRow.jsx";
 import NotificationAlertRow from "./NotificationAlertRow.jsx";
 import {AppIcon, Button, IconButton} from "./ui/index.js";
@@ -9,6 +13,7 @@ import {AppIcon, Button, IconButton} from "./ui/index.js";
 const POPOVER_WIDTH = 360;
 const POPOVER_GAP = 8;
 const VIEWPORT_PADDING = 16;
+const LOCAL_HIDE_MS = 30 * 60 * 1000;
 import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 
 const getPopoverStyle = (buttonRect) => {
@@ -71,25 +76,39 @@ export default function NotificationDrawer({
   alertFilter,
   alertSummary,
   alerts,
-  alertsCount,
   animationsEnabled,
   isOpen,
   onAction,
-  onDismissPermanent,
   onFilterChange,
+  onSnoozeReview,
   onSnoozeToday,
   onSnoozeWeek,
   onToggleOpen,
   quietHoursActive,
   theme = "dark",
-  totalAlertsCount,
-  urgentAlertsCount,
 }) {
   const buttonRef = useRef(null);
+  const [locallyHiddenAlerts, setLocallyHiddenAlerts] = useState({});
+  const [localNow, setLocalNow] = useState(() => Date.now());
   const [popoverStyle, setPopoverStyle] = useState({});
   const transition = {duration: animationsEnabled ? 0.18 : 0};
-  const groupedAlerts = groupAlerts(alerts);
-  const urgentAlerts = alerts.filter(
+  const {
+    badgeCount,
+    alertsCount: localAlertsCount,
+    totalAlertsCount: localTotalAlertsCount,
+    urgentAlertsCount: localUrgentAlertsCount,
+    visibleAlerts: localVisibleAlerts,
+  } = useMemo(
+    () =>
+      getNotificationDrawerCounts({
+        alerts,
+        locallyHiddenAlerts,
+        now: localNow,
+      }),
+    [alerts, localNow, locallyHiddenAlerts],
+  );
+  const groupedAlerts = groupAlerts(localVisibleAlerts);
+  const urgentAlerts = localVisibleAlerts.filter(
     (alert) => alert.priority === "critical" || alert.priority === "action",
   );
   const onlyCalendarUrgentAlerts =
@@ -114,7 +133,44 @@ export default function NotificationDrawer({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [isOpen, alertsCount, alertFilter, quietHoursActive, totalAlertsCount]);
+  }, [isOpen, localAlertsCount, alertFilter, quietHoursActive, localTotalAlertsCount]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      setLocalNow(Date.now());
+    }, 60_000);
+
+    return () => window.clearInterval(timer);
+  }, [isOpen]);
+
+  const hideLocally = (alert) => {
+    const alertIds = getNotificationAlertIds(alert);
+
+    if (alertIds.length === 0) {
+      return;
+    }
+
+    const now = Date.now();
+    const hiddenUntil = now + LOCAL_HIDE_MS;
+    setLocalNow(now);
+    setLocallyHiddenAlerts((current) => {
+      const next = {...current};
+      alertIds.forEach((alertId) => {
+        next[alertId] = hiddenUntil;
+      });
+      return next;
+    });
+  };
+
+  const handleSnoozeReview = (alert) => {
+    hideLocally(alert);
+    onSnoozeReview?.(alert);
+  };
+
   const groupOrder = [
     "calendar",
     "operations",
@@ -132,7 +188,7 @@ export default function NotificationDrawer({
           alert={alert}
           key={alert.id}
           onAction={onAction}
-          onDismissPermanent={onDismissPermanent}
+          onSnoozeReview={handleSnoozeReview}
           onSnoozeToday={onSnoozeToday}
           onSnoozeWeek={onSnoozeWeek}
         />
@@ -144,7 +200,7 @@ export default function NotificationDrawer({
         alert={alert}
         key={alert.id}
         onAction={onAction}
-        onDismissPermanent={onDismissPermanent}
+        onSnoozeReview={handleSnoozeReview}
         onSnoozeToday={onSnoozeToday}
         onSnoozeWeek={onSnoozeWeek}
       />
@@ -184,15 +240,15 @@ export default function NotificationDrawer({
             <div>
               <h2>Уведомления</h2>
               <p>
-                {urgentAlertsCount > 0
-                  ? `${urgentAlertsCount} срочных · ${totalAlertsCount} всего`
+                {localUrgentAlertsCount > 0
+                  ? `${localUrgentAlertsCount} срочных · ${localTotalAlertsCount} всего`
                   : "Только события, требующие внимания"}
               </p>
             </div>
-            <strong>{alertsCount}</strong>
+            <strong>{localAlertsCount}</strong>
           </div>
 
-          {totalAlertsCount > 0 || quietHoursActive ? (
+          {localTotalAlertsCount > 0 || quietHoursActive ? (
             <div
               className={`client-alert-summary-bar${quietHoursActive ? " quiet-hours" : ""}`}>
               <div>
@@ -228,18 +284,20 @@ export default function NotificationDrawer({
               }
 
               return (
-                <div className="client-alert-group" key={groupKey}>
+                <motion.div className="client-alert-group" key={groupKey} layout>
                   <div className="client-alert-group-heading">
                     {ALERT_GROUP_LABELS[groupKey] ?? groupKey}
                     <b>{groupAlertsList.length}</b>
                     <AppIcon className="open" name="chevronDown" size="xs" />
                   </div>
-                  {groupAlertsList.map((alert) => renderAlert(alert))}
-                </div>
+                  <AnimatePresence initial={false}>
+                    {groupAlertsList.map((alert) => renderAlert(alert))}
+                  </AnimatePresence>
+                </motion.div>
               );
             })}
 
-            {alertsCount === 0 && (
+            {localAlertsCount === 0 && (
               <p className="client-alert-empty">
                 {alertFilter === "urgent"
                   ? "Срочных уведомлений нет."
@@ -265,15 +323,15 @@ export default function NotificationDrawer({
         <IconButton
           ref={buttonRef}
           aria-expanded={isOpen}
-          badge={urgentAlertsCount > 0 ? urgentAlertsCount : totalAlertsCount > 0 ? totalAlertsCount : null}
-          badgeClassName={urgentAlertsCount > 0 && !onlyCalendarUrgentAlerts ? undefined : "client-alert-button-info"}
+          badge={badgeCount > 0 ? badgeCount : null}
+          badgeClassName={localUrgentAlertsCount > 0 && !onlyCalendarUrgentAlerts ? undefined : "client-alert-button-info"}
           className="client-alert-button notification-trigger"
           icon="bell"
           label={
-            urgentAlertsCount > 0
-              ? `Уведомления: ${urgentAlertsCount} срочных`
-              : totalAlertsCount > 0
-                ? `Уведомления: ${totalAlertsCount}`
+            localUrgentAlertsCount > 0
+              ? `Уведомления: ${localUrgentAlertsCount} срочных`
+              : localTotalAlertsCount > 0
+                ? `Уведомления: ${localTotalAlertsCount}`
                 : "Центр уведомлений"
           }
           size="md"

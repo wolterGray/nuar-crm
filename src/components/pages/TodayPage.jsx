@@ -111,9 +111,11 @@ function TodayReferenceBoard({
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
     return (
-      filteredVisits.find(
-        (entry) => getTimeMinutes(entry.time ?? entry.startTime) >= currentMinutes,
-      ) ?? filteredVisits[0]
+      filteredVisits
+        .filter((entry) => !["completed", "cancelled", "no_show"].includes(String(entry.status ?? "")))
+        .filter((entry) => getVisitEndMinutes(entry) > currentMinutes)
+        .sort((first, second) => getTimeMinutes(first.time ?? first.startTime) - getTimeMinutes(second.time ?? second.startTime))[0] ??
+      null
     );
   }, [filteredVisits]);
   const nextVisit = selectedVisit ?? nearestScheduleVisit;
@@ -542,6 +544,9 @@ const getTimeMinutes = (value) => {
 
   return (Number.isFinite(hours) ? hours : 0) * 60 + (Number.isFinite(minutes) ? minutes : 0);
 };
+
+const getVisitEndMinutes = (entry) =>
+  getTimeMinutes(entry?.time ?? entry?.startTime) + Math.max(1, Number(entry?.duration) || 60);
 
 const formatTodayHeading = (value) => {
   const date = new Date(`${value}T12:00:00`);

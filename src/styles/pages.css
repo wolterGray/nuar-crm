@@ -429,9 +429,28 @@
 }
 
 .theme-dark .client-alert-actions button {
-  color: var(--color-text-muted);
-  background: var(--color-window);
-  border-color: var(--color-border);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-field) 86%, #ffffff 8%);
+  border-color: color-mix(in srgb, var(--color-border) 76%, #ffffff 10%);
+}
+
+.theme-dark .client-alert-actions .client-alert-action-button.is-write {
+  color: #ffffff !important;
+  background: color-mix(in srgb, var(--color-primary) 94%, #000000 6%);
+  border-color: color-mix(in srgb, var(--color-primary) 78%, #ffffff 12%);
+}
+
+.theme-dark .client-alert-actions .client-alert-action-button.is-open,
+.theme-dark .client-alert-actions .client-alert-action-button.is-client {
+  color: #ffffff !important;
+  background: color-mix(in srgb, var(--color-field) 66%, #ffffff 16%);
+  border-color: color-mix(in srgb, var(--color-border) 52%, #ffffff 24%);
+}
+
+.theme-dark .client-alert-actions .client-alert-action-button span,
+.theme-dark .client-alert-actions .client-alert-action-button svg {
+  color: inherit !important;
+  opacity: 1 !important;
 }
 
 /* Import page */

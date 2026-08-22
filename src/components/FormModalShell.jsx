@@ -1,7 +1,9 @@
-import {useLayoutEffect, useRef} from "react";
+import {useCallback, useEffect, useLayoutEffect, useRef} from "react";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import MobileSheet from "./MobileSheet.jsx";
 import IconButton from "./ui/IconButton.jsx";
+
+const CLOSE_ANIMATION_MS = 220;
 
 function FormModalShell({
   backdropClassName = "",
@@ -14,7 +16,21 @@ function FormModalShell({
   title,
 }) {
   const {isMobile} = useBreakpoint();
+  const backdropRef = useRef(null);
+  const closeTimerRef = useRef(null);
+  const closingRef = useRef(false);
   const dialogRef = useRef(null);
+
+  const requestClose = useCallback(() => {
+    if (!onClose || closingRef.current) return;
+
+    closingRef.current = true;
+    backdropRef.current?.classList.add("is-closing");
+    closeTimerRef.current = window.setTimeout(() => {
+      closingRef.current = false;
+      onClose();
+    }, CLOSE_ANIMATION_MS);
+  }, [onClose]);
 
   useLayoutEffect(() => {
     if (!isOpen || !dialogRef.current) {
@@ -39,6 +55,12 @@ function FormModalShell({
     return () => window.cancelAnimationFrame(frameId);
   }, [isOpen, title]);
 
+  useEffect(() => () => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+    }
+  }, []);
+
   if (!isOpen) {
     return null;
   }
@@ -59,13 +81,14 @@ function FormModalShell({
 
   return (
     <div
-      className={`modal-backdrop ${backdropClassName}`.trim()}
+      ref={backdropRef}
+      className={`modal-backdrop mac-window-backdrop ${backdropClassName}`.trim()}
       role="presentation">
       <section
         ref={dialogRef}
         aria-labelledby={labelledBy}
         aria-modal="true"
-        className={className}
+        className={`${className} mac-window-surface`.trim()}
         role="dialog">
         <div className="modal-header">
           <h2 className="crm-title" id={labelledBy}>{title}</h2>
@@ -76,7 +99,7 @@ function FormModalShell({
             size="sm"
             type="button"
             variant="ghost"
-            onClick={onClose}
+            onClick={requestClose}
           />
         </div>
         {children}
