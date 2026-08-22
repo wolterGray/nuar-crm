@@ -39,7 +39,7 @@ export default function NotificationAlertRow({
 
   return (
     <div
-      className={`client-alert-row client-alert-row-unified priority-${alert.priority}`}>
+      className={`client-alert-row client-alert-row-unified priority-${alert.priority} type-${alert.type}`}>
       <div className="client-alert-row-main">
         <div className="client-alert-row-copy">
           <strong>{alert.title}</strong>

@@ -1008,6 +1008,11 @@ h1 {
   background: var(--color-border-soft);
 }
 
+.client-alert-row.type-calendar .client-alert-priority:is(.priority-critical, .priority-action) {
+  color: var(--color-info);
+  background: color-mix(in srgb, var(--color-info) 14%, var(--color-card));
+}
+
 .client-alert-snooze {
   position: relative;
 }

@@ -89,6 +89,11 @@ export default function NotificationDrawer({
   const [popoverStyle, setPopoverStyle] = useState({});
   const transition = {duration: animationsEnabled ? 0.18 : 0};
   const groupedAlerts = groupAlerts(alerts);
+  const urgentAlerts = alerts.filter(
+    (alert) => alert.priority === "critical" || alert.priority === "action",
+  );
+  const onlyCalendarUrgentAlerts =
+    urgentAlerts.length > 0 && urgentAlerts.every((alert) => alert.type === "calendar");
   const isMobilePopover =
     typeof window !== "undefined" && window.innerWidth <= MOBILE_MAX_WIDTH;
 
@@ -261,7 +266,7 @@ export default function NotificationDrawer({
           ref={buttonRef}
           aria-expanded={isOpen}
           badge={urgentAlertsCount > 0 ? urgentAlertsCount : totalAlertsCount > 0 ? totalAlertsCount : null}
-          badgeClassName={urgentAlertsCount > 0 ? undefined : "client-alert-button-info"}
+          badgeClassName={urgentAlertsCount > 0 && !onlyCalendarUrgentAlerts ? undefined : "client-alert-button-info"}
           className="client-alert-button notification-trigger"
           icon="bell"
           label={
