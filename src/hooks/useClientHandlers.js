@@ -20,12 +20,7 @@ import {
   deleteClientPackage,
   updateClientPackage,
 } from "../api/financial.js";
-
-const normalizeClientName = (value) =>
-  String(value ?? "")
-    .trim()
-    .replace(/\s+/g, " ")
-    .toLowerCase();
+import {findClientDuplicateCandidates} from "../utils/clientDuplicates.js";
 
 export function useClientHandlers({
   clientProfiles,
@@ -133,14 +128,15 @@ export function useClientHandlers({
       }
 
       if (!editingClient?.id) {
-        const duplicateClient = clientProfiles.find(
-          (item) => normalizeClientName(item.name) === normalizeClientName(name),
-        );
+        const duplicateCandidate = findClientDuplicateCandidates(clientProfiles, client, {
+          excludeClientId: editingClient?.id,
+        }).find((candidate) => candidate.isBlocking);
+        const duplicateClient = duplicateCandidate?.client;
 
         if (duplicateClient) {
           pushNotification({
             title: "Клиент уже есть",
-            message: `${duplicateClient.name} уже в базе клиентов`,
+            message: `${duplicateClient.name} уже в базе: ${duplicateCandidate.reasons.join(", ")}`,
             persist: false,
           });
           return;

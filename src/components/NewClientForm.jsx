@@ -1,9 +1,10 @@
 import {zodResolver} from "@hookform/resolvers/zod";
-import {useEffect, useRef} from "react";
+import {useEffect, useMemo, useRef} from "react";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 import {FieldLabel} from "./HintIcon.jsx";
 import {AppIcon, Button, Field, Input, Select, Textarea} from "./ui/index.js";
+import {findClientDuplicateCandidates} from "../utils/clientDuplicates.js";
 
 const optionalEmail = z
   .string()
@@ -53,7 +54,7 @@ export function getClientPreferenceOptions(employees = [], currentPreference = "
   return options;
 }
 
-function NewClientForm({client, employees = [], onSubmit}) {
+function NewClientForm({client, clients = [], employees = [], onSubmit}) {
   const formRef = useRef(null);
   const currentPreference = client?.preference ?? DEFAULT_CLIENT_PREFERENCE;
   const preferenceOptions = getClientPreferenceOptions(employees, currentPreference);
@@ -62,6 +63,7 @@ function NewClientForm({client, employees = [], onSubmit}) {
     handleSubmit,
     register,
     trigger,
+    watch,
   } = useForm({
     defaultValues: {
       name: client?.name ?? "",
@@ -85,6 +87,22 @@ function NewClientForm({client, employees = [], onSubmit}) {
   useEffect(() => {
     formRef.current?.scrollTo({top: 0});
   }, [client?.id]);
+  const duplicateDraft = watch(["name", "phone", "instagram", "telegram"]);
+  const duplicateCandidates = useMemo(
+    () =>
+      findClientDuplicateCandidates(
+        clients,
+        {
+          instagram: duplicateDraft[2],
+          name: duplicateDraft[0],
+          phone: duplicateDraft[1],
+          telegram: duplicateDraft[3],
+        },
+        {excludeClientId: client?.id},
+      ),
+    [client?.id, clients, duplicateDraft],
+  );
+  const blockingDuplicate = duplicateCandidates.find((candidate) => candidate.isBlocking);
   const submitForm = (event) => {
     const form = event.currentTarget;
     handleSubmit(() => onSubmit(form))(event);
@@ -104,6 +122,22 @@ function NewClientForm({client, employees = [], onSubmit}) {
             placeholder="Например: Наталья К."
           />
         </Field>
+        {duplicateCandidates.length > 0 ? (
+          <div
+            className={`client-duplicate-hint ${blockingDuplicate ? "is-blocking" : ""}`}>
+            <strong>
+              {blockingDuplicate
+                ? "Похоже, клиент уже есть"
+                : "Возможные совпадения"}
+            </strong>
+            {duplicateCandidates.map((candidate) => (
+              <span key={candidate.client.id}>
+                {candidate.client.name}
+                <small>{candidate.reasons.join(", ")}</small>
+              </span>
+            ))}
+          </div>
+        ) : null}
         <label>
           <FieldLabel hint="Как обращаться в сообщениях. Пусто — возьмём первое слово или часть до «от …».">
             Имя для SMS
@@ -191,7 +225,7 @@ function NewClientForm({client, employees = [], onSubmit}) {
         </Field>
         <Button
           className="crm-primary-action"
-          disabled={!isValid || isSubmitting}
+          disabled={!isValid || isSubmitting || Boolean(blockingDuplicate)}
           size="lg"
           type="submit"
           variant="primary">

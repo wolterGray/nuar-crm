@@ -178,6 +178,7 @@ export default function AppModals({
         onClose={onCloseClientModal}>
         <NewClientForm
           client={editingClient}
+          clients={clientProfiles}
           employees={activeEmployees}
           onSubmit={onClientSubmit}
         />

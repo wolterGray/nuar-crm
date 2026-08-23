@@ -891,6 +891,46 @@
     line-height: 1.35 !important;
   }
 
+  .client-duplicate-hint {
+    display: grid;
+    gap: 6px;
+    padding: 10px 11px;
+    border: 1px solid color-mix(in srgb, var(--color-info) 34%, var(--color-border));
+    border-radius: 10px;
+    color: var(--color-text-muted);
+    background: color-mix(in srgb, var(--color-info) 9%, var(--color-card));
+  }
+
+  .client-duplicate-hint.is-blocking {
+    border-color: color-mix(in srgb, var(--color-error) 42%, var(--color-border));
+    background: color-mix(in srgb, var(--color-error) 10%, var(--color-card));
+  }
+
+  .client-duplicate-hint strong {
+    color: var(--color-text);
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .client-duplicate-hint span {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--color-text);
+    font-size: 12px;
+    font-weight: 760;
+    line-height: 1.2;
+  }
+
+  .client-duplicate-hint small {
+    flex: 0 0 auto;
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
   .modal-backdrop .employee-modal.client-form-modal .new-client-panel .form-split {
     gap: 10px !important;
   }
@@ -5561,29 +5601,6 @@
 }
 
 @media (max-width: 640px) {
-  .clients-page-shell {
-    width: 100%;
-    max-width: 100%;
-    padding: 0;
-    gap: var(--mobile-page-gap, 16px);
-  }
-
-  .clients-page-shell .page-header-unified,
-  .clients-page-shell .page-header-unified-actions,
-  .clients-page-toolbar,
-  .clients-page-search.crm-search-input-control,
-  .clients-page-add-button.clients-page-add-button,
-  .clients-quality-panel,
-  .clients-table-shell {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .clients-page-toolbar {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-  }
-
   .mobile-page-container[data-mobile-page="operations"] .operations-page.operations-page-mobile {
     display: flex !important;
     flex-direction: column !important;
@@ -5946,19 +5963,59 @@
     overflow: hidden !important;
   }
 
-  .mobile-page-container[data-mobile-page="operations"] .task-row-content,
-  .mobile-page-container[data-mobile-page="operations"] .operations-card-head {
+  .mobile-page-container[data-mobile-page="operations"] .task-row-content {
     display: grid !important;
-    grid-template-columns: 24px minmax(0, 1fr) auto !important;
-    gap: 6px !important;
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    grid-template-areas:
+      "drag head"
+      "drag meta" !important;
+    gap: 7px 9px !important;
     align-items: start !important;
     width: 100% !important;
     min-width: 0 !important;
   }
 
+  .mobile-page-container[data-mobile-page="operations"] .task-row .task-drag-handle {
+    grid-area: drag !important;
+    align-self: stretch !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    min-height: 74px !important;
+    height: 100% !important;
+    margin: 0 !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 76%, transparent) !important;
+    border-radius: 9px !important;
+    color: var(--color-text-muted) !important;
+    background: color-mix(in srgb, var(--color-card) 82%, var(--color-page) 18%) !important;
+  }
+
   .mobile-page-container[data-mobile-page="operations"] .task-row-content > .operations-card-head {
-    grid-column: 2 / 4 !important;
-    grid-template-columns: 24px minmax(0, 1fr) auto !important;
+    grid-area: head !important;
+    display: grid !important;
+    grid-template-columns: 24px minmax(0, 1fr) 28px !important;
+    gap: 7px !important;
+    align-items: start !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-check {
+    width: 22px !important;
+    min-width: 22px !important;
+    height: 22px !important;
+    min-height: 22px !important;
+    align-self: start !important;
+    padding: 0 !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-row .operations-row-actions {
+    justify-self: end !important;
+    align-self: start !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .task-row-content > .task-meta {
+    grid-area: meta !important;
+    padding-left: 31px !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .supply-row .operations-card-head {
@@ -7122,6 +7179,7 @@
 
   .payments-page-mobile.nuar-payments .payments-mobile-scroll-panel {
     gap: 5px;
+    margin-bottom: 0 !important;
   }
 
   .payments-page-mobile.nuar-payments .payments-mobile-filters {

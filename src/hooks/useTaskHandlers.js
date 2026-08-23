@@ -124,7 +124,8 @@ export function useTaskHandlers({
 
   const completeTask = useCallback(
     async (task) => {
-      const nextTask = {...task, status: "completed"};
+      const isCompleted = task.status === "completed";
+      const nextTask = {...task, status: isCompleted ? "active" : "completed"};
       try {
         await updateTask(task.id, nextTask);
       } catch (error) {
@@ -141,7 +142,10 @@ export function useTaskHandlers({
           item.id === task.id ? nextTask : item,
         ),
       );
-      pushNotification({title: "Задача выполнена", message: task.title});
+      pushNotification({
+        title: isCompleted ? "Задача возвращена" : "Задача выполнена",
+        message: task.title,
+      });
     },
     [pushNotification, setTasks],
   );

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PageNotificationsSlot } from "../PageNotifications.jsx";
 import { buildTodayDashboard } from "../../utils/todayDashboard.js";
+import { useBreakpoint } from "../../hooks/useBreakpoint.js";
 import AppIcon from "../ui/AppIcon.jsx";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
@@ -63,6 +64,7 @@ function TodayReferenceBoard({
   onRemindVisit,
   openVisitMenuId,
   openVisitMenuRef,
+  showSecondaryPanels = true,
   selectedEmployees,
   selectedVisitId,
   setCopiedReviewClientId,
@@ -444,6 +446,8 @@ function TodayReferenceBoard({
             </div>
           </section>
 
+          {showSecondaryPanels ? (
+            <>
           <section className="today-panel today-side-panel today-alerts-panel">
             <header className="today-panel-header">
               <h2>
@@ -522,6 +526,8 @@ function TodayReferenceBoard({
               ) : null}
             </div>
           </section>
+            </>
+          ) : null}
 
         </aside>
       </div>
@@ -579,6 +585,7 @@ function TodayPage({
   tasks,
   visits,
 }) {
+  const { isMobile } = useBreakpoint();
   const [openVisitMenuId, setOpenVisitMenuId] = useState(null);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [selectedVisitId, setSelectedVisitId] = useState(null);
@@ -688,6 +695,7 @@ function TodayPage({
       onRemindVisit={onRemindVisit}
       openVisitMenuId={openVisitMenuId}
       openVisitMenuRef={openVisitMenuRef}
+      showSecondaryPanels={!isMobile}
       selectedEmployees={selectedEmployees}
       selectedVisitId={selectedVisitId}
       setCopiedReviewClientId={setCopiedReviewClientId}

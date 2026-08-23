@@ -1082,8 +1082,10 @@ h1 {
   transition: opacity 0.14s ease;
 }
 
-.client-alert-swipe-shell.is-snooze .client-alert-swipe-underlay,
-.client-alert-swipe-shell.is-close .client-alert-swipe-underlay {
+.client-alert-swipe-shell.is-snooze > .client-alert-swipe-underlay,
+.client-alert-swipe-shell.is-close > .client-alert-swipe-underlay,
+.client-alert-swipe-shell.is-snooze > .client-alert-aggregate-head > .client-alert-swipe-underlay,
+.client-alert-swipe-shell.is-close > .client-alert-aggregate-head > .client-alert-swipe-underlay {
   opacity: 1;
 }
 
@@ -1304,6 +1306,94 @@ h1 {
   padding-right: min(56%, 196px);
 }
 
+.client-alert-row-unified.type-package,
+.client-alert-row-unified.aggregate-packages {
+  padding: 12px;
+  border-color: color-mix(in srgb, var(--color-loyalty-royalty) 20%, var(--color-border-soft));
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-card) 98%, var(--color-loyalty-royalty) 4%),
+      color-mix(in srgb, var(--color-card) 96%, #000000 8%)
+    );
+}
+
+.client-alert-row-unified.type-package.has-corner-badge {
+  padding-top: 12px;
+}
+
+.client-alert-row-unified.type-package .client-alert-row-copy {
+  padding-right: 86px;
+}
+
+.client-alert-row-unified.type-package .client-alert-row-copy strong,
+.client-alert-row-unified.aggregate-packages .client-alert-row-copy strong {
+  max-width: 100%;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.client-alert-row-unified.type-package .client-alert-row-copy > span:not(.client-alert-meta-badge),
+.client-alert-row-unified.aggregate-packages .client-alert-row-copy > span:not(.client-alert-meta-badge) {
+  margin-top: 3px;
+  display: -webkit-box;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--color-text-muted) 86%, var(--color-text));
+  font-size: 12px;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.client-alert-row-unified.type-package .client-alert-corner-badge {
+  top: 12px;
+  right: 12px;
+  max-width: 74px;
+  min-height: 20px;
+  padding: 2px 8px;
+  border-color: color-mix(in srgb, var(--color-loyalty-royalty) 40%, var(--color-border));
+  color: color-mix(in srgb, var(--color-loyalty-royalty) 88%, #ffffff);
+  background: color-mix(in srgb, var(--color-loyalty-royalty) 12%, var(--color-window));
+}
+
+.client-alert-row-unified.aggregate-packages .client-alert-meta-badges {
+  display: grid;
+  grid-template-columns: max-content minmax(0, max-content) max-content;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 7px;
+}
+
+.client-alert-row-unified.aggregate-packages .client-alert-meta-badge.is-packages-status {
+  max-width: 132px;
+}
+
+.client-alert-row-unified.type-package .client-alert-actions,
+.client-alert-row-unified.aggregate-packages .client-alert-actions {
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.client-alert-row-unified.type-package .client-alert-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.client-alert-row-unified.type-package .client-alert-actions .client-alert-action-button:nth-child(3):last-child {
+  grid-column: 1 / -1;
+}
+
+.client-alert-row-unified.aggregate-packages .client-alert-actions {
+  grid-template-columns: 1fr;
+  margin-top: 10px;
+}
+
+.client-alert-row-unified.type-package .client-alert-actions button,
+.client-alert-row-unified.aggregate-packages .client-alert-actions button {
+  min-height: 36px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+
 .client-alert-priority {
   flex: 0 0 auto;
   padding: 2px 6px;
@@ -1477,6 +1567,12 @@ h1 {
   border-bottom: 1px solid var(--color-border-soft);
 }
 
+.client-alert-aggregate-head {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
 .client-alert-aggregate:last-child {
   border-bottom: 0;
 }
@@ -1510,18 +1606,14 @@ h1 {
 
 .client-alert-aggregate-children {
   display: grid;
-  gap: 2px;
-  margin: 0 0 8px 22px;
-  padding-left: 10px;
-  border-left: 2px solid var(--color-border-soft);
+  gap: 7px;
+  margin: 8px 0 8px;
+  padding: 0;
+  overflow: hidden;
 }
 
 .theme-dark .client-alert-aggregate {
   border-bottom-color: var(--color-border);
-}
-
-.theme-dark .client-alert-aggregate-children {
-  border-left-color: var(--color-border);
 }
 
 .period-tabs {
@@ -2669,11 +2761,14 @@ h2 {
 .task-check {
   display: grid;
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
   place-items: center;
   border: 1px solid var(--color-border);
-  border-radius: 5px;
+  border-radius: 7px;
   color: var(--color-card);
   background: var(--color-card);
 }

@@ -129,7 +129,6 @@ export default function NotificationAggregateRow({
 
   return (
     <motion.div
-      {...swipeHandlers}
       animate={
         dismissDirection
           ? {
@@ -153,15 +152,15 @@ export default function NotificationAggregateRow({
       }}
       layout
       style={{overflow: "hidden"}}
-      transition={{duration: dismissDirection ? 0.2 : 0.18, ease: "easeOut"}}
-      whileTap={{scale: 0.995}}>
-      <div className="client-alert-swipe-underlay">
-        <span className="client-alert-swipe-cue is-snooze">Отложить</span>
-        <span className="client-alert-swipe-cue is-close">Скрыть</span>
-      </div>
-      <motion.div style={{x: swipeX}}>
+      transition={{duration: dismissDirection ? 0.2 : 0.18, ease: "easeOut"}}>
+      <div className="client-alert-aggregate-head" {...swipeHandlers}>
+        <div className="client-alert-swipe-underlay">
+          <span className="client-alert-swipe-cue is-snooze">Отложить</span>
+          <span className="client-alert-swipe-cue is-close">Скрыть</span>
+        </div>
+        <motion.div style={{x: swipeX}}>
         <div
-          className={`client-alert-row client-alert-row-unified priority-${alert.priority}`}
+          className={`client-alert-row client-alert-row-unified priority-${alert.priority} aggregate-${alert.aggregateKind ?? alert.group}`}
         >
           <div className="client-alert-row-main">
             <Button
@@ -206,8 +205,17 @@ export default function NotificationAggregateRow({
             </Button>
           </div>
         </div>
-        {expanded ? (
-          <div className="client-alert-aggregate-children">
+        </motion.div>
+      </div>
+      {expanded ? (
+          <motion.div
+            animate={{height: "auto", opacity: 1}}
+            className="client-alert-aggregate-children"
+            initial={{height: 0, opacity: 0}}
+            transition={{duration: 0.18, ease: "easeOut"}}
+            onPointerDown={(event) => event.stopPropagation()}
+            onTouchMove={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}>
             {alert.children.map((childAlert) => (
               <NotificationAlertRow
                 alert={childAlert}
@@ -218,9 +226,8 @@ export default function NotificationAggregateRow({
                 onSnoozeToday={onSnoozeToday}
               />
             ))}
-          </div>
+          </motion.div>
         ) : null}
-      </motion.div>
     </motion.div>
   );
 }

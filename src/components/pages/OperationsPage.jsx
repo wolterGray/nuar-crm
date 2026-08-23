@@ -268,6 +268,17 @@ function OperationItemDetails({item, onClose, onComplete, onDelete, onEdit}) {
                 }}>
                 Выполнить
               </Button>
+            ) : !isNote ? (
+              <Button
+                leftIcon="undo"
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  onComplete?.(item);
+                  onClose();
+                }}>
+                Вернуть
+              </Button>
             ) : null}
             <Button
               leftIcon="edit"
@@ -654,11 +665,16 @@ function OperationsPage({
                       task={task}>
                       <div className="operations-card-head">
                         <IconButton
-                          aria-label="Завершить задачу"
+                          aria-label={
+                            task.status === "completed"
+                              ? "Вернуть задачу в работу"
+                              : "Завершить задачу"
+                          }
                           className="task-check"
-                          disabled={task.status === "completed"}
-                          icon="check"
-                          label="Завершить"
+                          icon={task.status === "completed" ? "undo" : "check"}
+                          label={
+                            task.status === "completed" ? "Вернуть" : "Завершить"
+                          }
                           size="sm"
                           variant="ghost"
                           onClick={() => onCompleteTask(task)}
