@@ -1,4 +1,4 @@
-import {useCallback} from "react";
+import {useCallback, useRef} from "react";
 import {
   attachClientLink,
   matchesClientRecord,
@@ -21,6 +21,12 @@ import {
   updateClientPackage,
 } from "../api/financial.js";
 
+const normalizeClientName = (value) =>
+  String(value ?? "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
 export function useClientHandlers({
   clientProfiles,
   editingClient,
@@ -40,6 +46,7 @@ export function useClientHandlers({
   setEditingClientPackage,
   setVisits,
 }) {
+  const clientSubmitInFlightRef = useRef(false);
   const openCreateClient = useCallback(
     (prefill = {}) => {
       setEditingClient(
@@ -91,6 +98,11 @@ export function useClientHandlers({
   const handleClientSubmit = useCallback(
     async (eventOrForm) => {
       eventOrForm.preventDefault?.();
+
+      if (clientSubmitInFlightRef.current) {
+        return;
+      }
+
       const formElement = eventOrForm.currentTarget ?? eventOrForm;
       const form = new FormData(formElement);
       const name = String(form.get("name") ?? "").trim();
@@ -120,7 +132,23 @@ export function useClientHandlers({
         client.id = editingClient.id;
       }
 
+      if (!editingClient?.id) {
+        const duplicateClient = clientProfiles.find(
+          (item) => normalizeClientName(item.name) === normalizeClientName(name),
+        );
+
+        if (duplicateClient) {
+          pushNotification({
+            title: "Клиент уже есть",
+            message: `${duplicateClient.name} уже в базе клиентов`,
+            persist: false,
+          });
+          return;
+        }
+      }
+
       let savedClient = client;
+      clientSubmitInFlightRef.current = true;
       try {
         const response = editingClient?.id
           ? await updateClient(editingClient.id, client)
@@ -133,12 +161,16 @@ export function useClientHandlers({
           persist: false,
         });
         return;
+      } finally {
+        clientSubmitInFlightRef.current = false;
       }
 
       setClientProfiles((current) =>
         editingClient
           ? current.map((item) => (item.id === savedClient.id ? savedClient : item))
-          : [savedClient, ...current],
+          : current.some((item) => String(item.id) === String(savedClient.id))
+            ? current
+            : [savedClient, ...current],
       );
 
       if (previousName && previousName !== savedClient.name) {

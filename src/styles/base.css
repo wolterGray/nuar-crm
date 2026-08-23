@@ -1005,6 +1005,37 @@ h1 {
   background: color-mix(in srgb, var(--accent-color) 12%, var(--color-card));
 }
 
+.client-alert-swipe-undo {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--color-info) 28%, var(--color-border));
+  border-radius: 12px;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-info) 10%, var(--color-card));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.client-alert-swipe-undo span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-alert-swipe-undo button {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0 10px;
+}
+
 .client-alert-group-heading {
   display: flex;
   align-items: center;
@@ -1025,6 +1056,56 @@ h1 {
   position: relative;
   touch-action: pan-y;
   user-select: none;
+}
+
+.client-alert-swipe-shell {
+  position: relative;
+  border-radius: 14px;
+  touch-action: pan-y;
+}
+
+.client-alert-swipe-shell .client-alert-row {
+  position: relative;
+  z-index: 1;
+}
+
+.client-alert-swipe-underlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  overflow: hidden;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease;
+}
+
+.client-alert-swipe-shell.is-snooze .client-alert-swipe-underlay,
+.client-alert-swipe-shell.is-close .client-alert-swipe-underlay {
+  opacity: 1;
+}
+
+.client-alert-swipe-cue {
+  display: flex;
+  width: 46%;
+  align-items: center;
+  padding: 0 14px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.client-alert-swipe-cue.is-snooze {
+  justify-content: flex-start;
+  background: linear-gradient(90deg, rgba(30, 132, 255, 0.44), transparent);
+}
+
+.client-alert-swipe-cue.is-close {
+  justify-content: flex-end;
+  background: linear-gradient(270deg, rgba(110, 116, 128, 0.48), transparent);
 }
 
 .client-alert-row-unified.has-corner-badge {

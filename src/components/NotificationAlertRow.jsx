@@ -1,9 +1,11 @@
-import {motion} from "framer-motion";
+import {animate, motion, useMotionValue} from "framer-motion";
 import {useState} from "react";
+import {useSwipeable} from "react-swipeable";
 import {Button} from "./ui/index.js";
 
-const SWIPE_DISMISS_OFFSET = 82;
-const SWIPE_DISMISS_VELOCITY = 520;
+const SWIPE_CONFIRM_DELTA = 76;
+const SWIPE_HINT_LIMIT = 92;
+const SWIPE_REVEAL_OFFSET = 86;
 
 const ACTION_LABELS = {
   calendar: "Календарь",
@@ -127,10 +129,14 @@ const getActionIcon = (action) => {
 export default function NotificationAlertRow({
   alert,
   onAction,
+  onSwipeAction,
   onSnoozeReview,
   onSnoozeToday,
 }) {
+  const [armedDirection, setArmedDirection] = useState(0);
   const [dismissDirection, setDismissDirection] = useState(0);
+  const [swipeHint, setSwipeHint] = useState(null);
+  const swipeX = useMotionValue(0);
   const primaryActions = alert.actions.filter(
     (action) => action !== "snooze" && action !== "dismiss",
   );
@@ -148,9 +154,94 @@ export default function NotificationAlertRow({
       onAction(alert, "dismiss");
     }
   };
+  const dismissFromSwipe = (direction) => {
+    setDismissDirection(direction);
+    setArmedDirection(0);
+    setSwipeHint(direction < 0 ? "close" : "snooze");
+
+    if (onSwipeAction) {
+      onSwipeAction(alert, direction < 0 ? "close" : "snooze");
+      return;
+    }
+
+    snoozeBySwipe();
+  };
+  const resetSwipeReveal = () => {
+    setArmedDirection(0);
+    setSwipeHint(null);
+    animate(swipeX, 0, {duration: 0.18, ease: "easeOut"});
+  };
+  const revealSwipeAction = (direction) => {
+    setArmedDirection(direction);
+    setSwipeHint(direction < 0 ? "close" : "snooze");
+    animate(swipeX, direction * SWIPE_REVEAL_OFFSET, {
+      duration: 0.18,
+      ease: "easeOut",
+    });
+  };
+  const swipeHandlers = useSwipeable({
+    delta: SWIPE_CONFIRM_DELTA,
+    preventScrollOnSwipe: false,
+    swipeDuration: 760,
+    trackMouse: false,
+    trackTouch: true,
+    onSwipeStart: () => {
+      if (!armedDirection) {
+        setSwipeHint(null);
+      }
+    },
+    onSwiping: ({deltaX}) => {
+      const nextHint = deltaX < -18 ? "close" : deltaX > 18 ? "snooze" : null;
+      const fallbackHint =
+        armedDirection < 0 ? "close" : armedDirection > 0 ? "snooze" : null;
+      const activeHint = nextHint ?? fallbackHint;
+      const baseX = armedDirection * SWIPE_REVEAL_OFFSET;
+      const clampedX = Math.max(
+        -SWIPE_HINT_LIMIT,
+        Math.min(SWIPE_HINT_LIMIT, baseX + deltaX),
+      );
+
+      swipeX.set(clampedX);
+      setSwipeHint((current) => (current === activeHint ? current : activeHint));
+    },
+    onSwiped: ({dir}) => {
+      const direction = dir === "Left" ? -1 : dir === "Right" ? 1 : 0;
+
+      if (!direction) {
+        if (armedDirection) {
+          revealSwipeAction(armedDirection);
+          return;
+        }
+
+        resetSwipeReveal();
+        return;
+      }
+
+      if (!armedDirection) {
+        revealSwipeAction(direction);
+        return;
+      }
+
+      if (armedDirection === direction) {
+        dismissFromSwipe(direction);
+        return;
+      }
+
+      resetSwipeReveal();
+    },
+    onTap: () => {
+      if (armedDirection) {
+        resetSwipeReveal();
+      }
+    },
+  });
+
+  const shellActionClass =
+    swipeHint ?? (armedDirection < 0 ? "close" : armedDirection > 0 ? "snooze" : null);
 
   return (
     <motion.div
+      {...swipeHandlers}
       animate={
         dismissDirection
           ? {
@@ -163,10 +254,7 @@ export default function NotificationAlertRow({
             }
           : {opacity: 1, x: 0}
       }
-      className={`client-alert-row client-alert-row-unified has-corner-badge priority-${alert.priority} type-${alert.type}`}
-      drag="x"
-      dragConstraints={{left: 0, right: 0}}
-      dragElastic={0.26}
+      className={`client-alert-swipe-shell ${shellActionClass ? `is-${shellActionClass}` : ""}`}
       exit={{
         height: 0,
         marginTop: 0,
@@ -178,65 +266,57 @@ export default function NotificationAlertRow({
       layout
       style={{overflow: "hidden"}}
       transition={{duration: dismissDirection ? 0.2 : 0.18, ease: "easeOut"}}
-      whileTap={{scale: 0.995}}
-      onDragEnd={(_, info) => {
-        const offset = info.offset.x;
-        const velocity = info.velocity.x;
-        const direction = offset < 0 || velocity < 0 ? -1 : 1;
-
-        if (
-          Math.abs(offset) > SWIPE_DISMISS_OFFSET ||
-          Math.abs(velocity) > SWIPE_DISMISS_VELOCITY
-        ) {
-          setDismissDirection(direction);
-          snoozeBySwipe();
-          return;
-        }
-
-        setDismissDirection(0);
-      }}>
-      {cornerBadge ? (
-        <span className={`client-alert-corner-badge ${cornerBadge.className}`}>
-          {cornerBadge.label}
-        </span>
-      ) : null}
-      <div className="client-alert-row-main">
-        <div className="client-alert-row-copy">
-          {metaBadges.length ? (
-            <div className="client-alert-meta-badges">
-              {metaBadges.map((badge) => (
-                <span
-                  className={`client-alert-meta-badge ${badge.className}`}
-                  key={badge.id}>
-                  {badge.label}
-                </span>
-              ))}
-            </div>
-          ) : null}
-          <strong>{displayTitle}</strong>
-          <span>{displayMessage}</span>
+      whileTap={{scale: 0.995}}>
+      <div className="client-alert-swipe-underlay">
+        <span className="client-alert-swipe-cue is-snooze">Отложить</span>
+        <span className="client-alert-swipe-cue is-close">Скрыть</span>
+      </div>
+      <motion.div
+        className={`client-alert-row client-alert-row-unified has-corner-badge priority-${alert.priority} type-${alert.type}`}
+        style={{x: swipeX}}>
+        {cornerBadge ? (
+          <span className={`client-alert-corner-badge ${cornerBadge.className}`}>
+            {cornerBadge.label}
+          </span>
+        ) : null}
+        <div className="client-alert-row-main">
+          <div className="client-alert-row-copy">
+            {metaBadges.length ? (
+              <div className="client-alert-meta-badges">
+                {metaBadges.map((badge) => (
+                  <span
+                    className={`client-alert-meta-badge ${badge.className}`}
+                    key={badge.id}>
+                    {badge.label}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            <strong>{displayTitle}</strong>
+            <span>{displayMessage}</span>
+          </div>
         </div>
-      </div>
-      <div className="client-alert-actions">
-        {primaryActions.map((action) => {
-          return (
-            <Button
-              className={`client-alert-action-button is-${action}`}
-              key={action}
-              leftIcon={getActionIcon(action)}
-              size="sm"
-              type="button"
-              variant="subtle"
-              onClick={(event) => {
-                event.stopPropagation();
-                onAction(alert, action);
-              }}
-              onPointerDown={(event) => event.stopPropagation()}>
-              {getActionLabel(alert, action)}
-            </Button>
-          );
-        })}
-      </div>
+        <div className="client-alert-actions">
+          {primaryActions.map((action) => {
+            return (
+              <Button
+                className={`client-alert-action-button is-${action}`}
+                key={action}
+                leftIcon={getActionIcon(action)}
+                size="sm"
+                type="button"
+                variant="subtle"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onAction(alert, action);
+                }}
+                onPointerDown={(event) => event.stopPropagation()}>
+                {getActionLabel(alert, action)}
+              </Button>
+            );
+          })}
+        </div>
+      </motion.div>
     </motion.div>
   );
 }

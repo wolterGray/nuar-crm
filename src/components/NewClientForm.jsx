@@ -58,7 +58,7 @@ function NewClientForm({client, employees = [], onSubmit}) {
   const currentPreference = client?.preference ?? DEFAULT_CLIENT_PREFERENCE;
   const preferenceOptions = getClientPreferenceOptions(employees, currentPreference);
   const {
-    formState: {errors, isValid},
+    formState: {errors, isSubmitting, isValid},
     handleSubmit,
     register,
     trigger,
@@ -191,11 +191,15 @@ function NewClientForm({client, employees = [], onSubmit}) {
         </Field>
         <Button
           className="crm-primary-action"
-          disabled={!isValid}
+          disabled={!isValid || isSubmitting}
           size="lg"
           type="submit"
           variant="primary">
-          {client ? "Сохранить клиента" : "Добавить клиента"}
+          {isSubmitting
+            ? "Сохраняем..."
+            : client
+              ? "Сохранить клиента"
+              : "Добавить клиента"}
         </Button>
       </form>
     </section>

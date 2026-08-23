@@ -526,7 +526,7 @@ function OperationsPage({
                 size="sm"
                 variant="ghost"
                 onClick={() => handleSwitchMobileSection("waitlist")}>
-                {isMobile ? "Ожидание" : "Лист ожидания"}
+                Лист ожидания
               </Button>
             </div>
             <div className="operations-summary">

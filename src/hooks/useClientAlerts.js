@@ -357,6 +357,44 @@ export function useClientAlerts({
     [snoozeAlertIdsUntil],
   );
 
+  const restoreAlertSnooze = useCallback(
+    (alertOrId) => {
+      const alertIds = resolveAlertIds(alertOrId);
+
+      if (alertIds.length === 0) {
+        return;
+      }
+
+      setAlertSnoozes((current) => {
+        const next = {...current};
+        alertIds.forEach((alertId) => {
+          delete next[alertId];
+        });
+        return next;
+      });
+      alertIds
+        .filter(isServerAlertId)
+        .forEach((alertId) => {
+          const eventId = getServerEventId(alertId);
+          if (!Number.isFinite(eventId)) return;
+          void updateNotificationEvent(eventId, {
+            action: "seen",
+            snoozedUntil: null,
+            status: "seen",
+          });
+        });
+      setServerEvents((current) =>
+        current.map((event) =>
+          alertIds.includes(`${SERVER_ALERT_PREFIX}${event.id}`)
+            ? {...event, snoozedUntil: null, status: "seen"}
+            : event,
+        ),
+      );
+      setActiveClientAlertId(null);
+    },
+    [setActiveClientAlertId, setAlertSnoozes],
+  );
+
   const dismissAlertPermanent = useCallback(
     (alertOrId) => {
       const alertIds = resolveAlertIds(alertOrId);
@@ -529,6 +567,7 @@ export function useClientAlerts({
     dismissAlertPermanent,
     openClientMessageTemplates,
     quietHoursActive,
+    restoreAlertSnooze,
     snoozeAlertDays,
     snoozeAlertReview,
     snoozeAlertToday,

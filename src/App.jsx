@@ -710,6 +710,7 @@ function App() {
     dismissAlertPermanent,
     openClientMessageTemplates,
     quietHoursActive,
+    restoreAlertSnooze,
     snoozeAlertDays,
     snoozeAlertReview,
     snoozeAlertToday,
@@ -1980,6 +1981,7 @@ function App() {
               onAction={handleAlertAction}
               onDismissPermanent={dismissAlertPermanent}
               onFilterChange={setAlertFilter}
+              onRestoreSnooze={restoreAlertSnooze}
               onSnoozeReview={snoozeAlertReview}
               onSnoozeToday={snoozeAlertToday}
               onSnoozeWeek={snoozeAlertWeek}
