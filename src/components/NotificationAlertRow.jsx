@@ -137,8 +137,13 @@ export default function NotificationAlertRow({
   const [dismissDirection, setDismissDirection] = useState(0);
   const [swipeHint, setSwipeHint] = useState(null);
   const swipeX = useMotionValue(0);
+  const cardAction =
+    alert.type === "calendar" && alert.actions.includes("calendar")
+      ? "calendar"
+      : null;
   const primaryActions = alert.actions.filter(
-    (action) => action !== "snooze" && action !== "dismiss",
+    (action) =>
+      action !== "snooze" && action !== "dismiss" && action !== cardAction,
   );
   const metaBadges = getAlertMetaBadges(alert);
   const cornerBadge = getCornerBadge(alert);
@@ -178,6 +183,22 @@ export default function NotificationAlertRow({
       duration: 0.18,
       ease: "easeOut",
     });
+  };
+  const handleCardAction = () => {
+    if (!cardAction || dismissDirection) return;
+
+    if (armedDirection) {
+      resetSwipeReveal();
+      return;
+    }
+
+    onAction(alert, cardAction);
+  };
+  const handleCardKeyDown = (event) => {
+    if (!cardAction || !["Enter", " "].includes(event.key)) return;
+
+    event.preventDefault();
+    handleCardAction();
   };
   const swipeHandlers = useSwipeable({
     delta: SWIPE_CONFIRM_DELTA,
@@ -273,7 +294,11 @@ export default function NotificationAlertRow({
       </div>
       <motion.div
         className={`client-alert-row client-alert-row-unified has-corner-badge priority-${alert.priority} type-${alert.type}`}
-        style={{x: swipeX}}>
+        role={cardAction ? "button" : undefined}
+        style={{x: swipeX}}
+        tabIndex={cardAction ? 0 : undefined}
+        onClick={cardAction ? handleCardAction : undefined}
+        onKeyDown={cardAction ? handleCardKeyDown : undefined}>
         {cornerBadge ? (
           <span className={`client-alert-corner-badge ${cornerBadge.className}`}>
             {cornerBadge.label}
@@ -296,26 +321,28 @@ export default function NotificationAlertRow({
             <span>{displayMessage}</span>
           </div>
         </div>
-        <div className="client-alert-actions">
-          {primaryActions.map((action) => {
-            return (
-              <Button
-                className={`client-alert-action-button is-${action}`}
-                key={action}
-                leftIcon={getActionIcon(action)}
-                size="sm"
-                type="button"
-                variant="subtle"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onAction(alert, action);
-                }}
-                onPointerDown={(event) => event.stopPropagation()}>
-                {getActionLabel(alert, action)}
-              </Button>
-            );
-          })}
-        </div>
+        {primaryActions.length ? (
+          <div className="client-alert-actions">
+            {primaryActions.map((action) => {
+              return (
+                <Button
+                  className={`client-alert-action-button is-${action}`}
+                  key={action}
+                  leftIcon={getActionIcon(action)}
+                  size="sm"
+                  type="button"
+                  variant="subtle"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onAction(alert, action);
+                  }}
+                  onPointerDown={(event) => event.stopPropagation()}>
+                  {getActionLabel(alert, action)}
+                </Button>
+              );
+            })}
+          </div>
+        ) : null}
       </motion.div>
     </motion.div>
   );

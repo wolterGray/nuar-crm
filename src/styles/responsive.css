@@ -265,7 +265,6 @@
   .visits-table-row,
   .payments-table-row,
   .supply-row,
-  .task-row,
   .note-row,
   .waitlist-row {
     display: flex !important;
@@ -286,7 +285,6 @@
   .visits-table-row > *,
   .payments-table-row > *,
   .supply-row > *,
-  .task-row > *,
   .note-row > *,
   .waitlist-row > * {
     width: 100%;

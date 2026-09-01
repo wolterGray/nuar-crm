@@ -670,7 +670,7 @@ function OperationsPage({
                               ? "Вернуть задачу в работу"
                               : "Завершить задачу"
                           }
-                          className="task-check"
+                          className={`task-check ${task.status === "completed" ? "is-on" : ""}`}
                           icon={task.status === "completed" ? "undo" : "check"}
                           label={
                             task.status === "completed" ? "Вернуть" : "Завершить"

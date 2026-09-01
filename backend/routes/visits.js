@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const { Prisma, PrismaClient } = require('@prisma/client');
 const { requireOwner } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
@@ -32,6 +32,25 @@ const {
 } = require('../utils/crudHelpers');
 
 const prisma = new PrismaClient();
+
+const runSerializableTransaction = async (callback, attempts = 3) => {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await prisma.$transaction(callback, {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      });
+    } catch (error) {
+      lastError = error;
+      if (error?.code !== 'P2034' || attempt === attempts) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
+};
 
 // ----- Calendar event handler for notification generation -----
 const handleCalendarEntryChange = async (before, after, _action, _req) => {
@@ -207,6 +226,176 @@ const resolveCertificateStatus = (remainingBalance, nominal, currentStatus) => {
     : currentStatus;
 };
 
+const restorePackageUsageForVisit = async (tx, req, visit, usage) => {
+  if (!usage || usage.revertedAt) return null;
+
+  const packageBefore = await tx.clientPackage.findUnique({
+    where: { id: usage.clientPackageId },
+  });
+
+  if (!packageBefore) {
+    throw validationError('Client package not found');
+  }
+
+  const packagePayload =
+    packageBefore.payload && typeof packageBefore.payload === 'object'
+      ? packageBefore.payload
+      : {};
+  const sessionsUsed = Math.max(1, Number(usage.sessionsUsed) || 1);
+  const currentRemaining = Number(packageBefore.remainingVisits) || 0;
+  const totalVisits = Number(packageBefore.totalVisits) || Number(packagePayload.totalVisits) || 0;
+  const nextRemaining =
+    totalVisits > 0
+      ? Math.min(totalVisits, currentRemaining + sessionsUsed)
+      : currentRemaining + sessionsUsed;
+  const nextStatus = resolveClientPackageStatus(
+    nextRemaining,
+    packagePayload.status ?? packageBefore.status,
+  );
+  const writeOffHistory = Array.isArray(packageBefore.writeOffHistory)
+    ? packageBefore.writeOffHistory
+    : Array.isArray(packagePayload.writeOffHistory)
+      ? packagePayload.writeOffHistory
+      : [];
+  const nextWriteOffHistory = writeOffHistory.filter(
+    (item) => String(item?.visitId ?? '') !== String(visit.id),
+  );
+
+  const restoredPackage = await tx.clientPackage.update({
+    where: { id: usage.clientPackageId },
+    data: {
+      remainingVisits: nextRemaining,
+      status: nextStatus,
+      writeOffHistory: nextWriteOffHistory,
+      payload: {
+        ...packagePayload,
+        remainingVisits: nextRemaining,
+        status: nextStatus,
+        writeOffHistory: nextWriteOffHistory,
+      },
+    },
+  });
+  const restoredUsage = await tx.clientPackageUsage.update({
+    where: { id: usage.id },
+    data: { revertedAt: new Date() },
+  });
+
+  await recordAuditLog(tx, req, {
+    action: 'restore duplicate package usage',
+    after: {
+      clientPackage: withStoredId(restoredPackage),
+      clientPackageUsage: withStoredId(restoredUsage),
+    },
+    before: withStoredId(packageBefore),
+    entity: 'ClientPackage',
+    entityId: restoredPackage.id,
+  });
+
+  return { restoredPackage, restoredUsage };
+};
+
+const restoreCertificateUsageForVisit = async (tx, req, visit, usage) => {
+  if (!usage || usage.revertedAt) return null;
+
+  const certificateBefore = await tx.certificate.findUnique({
+    where: { id: usage.certificateId },
+  });
+
+  if (!certificateBefore) {
+    throw validationError('Certificate not found');
+  }
+
+  const certificatePayload =
+    certificateBefore.payload && typeof certificateBefore.payload === 'object'
+      ? certificateBefore.payload
+      : {};
+  const amount = Number(usage.amount) || 0;
+  const currentBalance = Number(certificateBefore.remainingBalance) || 0;
+  const nominal = Number(certificateBefore.nominal) || Number(certificatePayload.nominal) || 0;
+  const nextBalance =
+    nominal > 0 ? Math.min(nominal, currentBalance + amount) : currentBalance + amount;
+  const nextStatus = resolveCertificateStatus(
+    nextBalance,
+    nominal,
+    certificatePayload.status ?? certificateBefore.status,
+  );
+  const nextUsedDate = nextBalance <= 0 ? certificateBefore.usedDate : '';
+
+  const restoredCertificate = await tx.certificate.update({
+    where: { id: usage.certificateId },
+    data: {
+      remainingBalance: nextBalance,
+      status: nextStatus,
+      usedDate: nextUsedDate,
+      payload: {
+        ...certificatePayload,
+        remainingBalance: nextBalance,
+        status: nextStatus,
+        usedDate: nextUsedDate,
+      },
+    },
+  });
+  const restoredUsage = await tx.certificateUsage.update({
+    where: { id: usage.id },
+    data: { revertedAt: new Date() },
+  });
+
+  await recordAuditLog(tx, req, {
+    action: 'restore duplicate certificate usage',
+    after: {
+      certificate: withStoredId(restoredCertificate),
+      certificateUsage: withStoredId(restoredUsage),
+    },
+    before: withStoredId(certificateBefore),
+    entity: 'Certificate',
+    entityId: restoredCertificate.id,
+  });
+
+  return { restoredCertificate, restoredUsage };
+};
+
+const removeDuplicateCalendarVisit = async (tx, req, visit) => {
+  await assertVisitCanBeRemoved(tx, visit.id);
+
+  const [packageUsages, certificateUsages] = await Promise.all([
+    tx.clientPackageUsage.findMany({ where: { visitId: visit.id } }),
+    tx.certificateUsage.findMany({ where: { visitId: visit.id } }),
+  ]);
+  const restoredPackages = [];
+  const restoredCertificates = [];
+
+  for (const usage of packageUsages) {
+    const restored = await restorePackageUsageForVisit(tx, req, visit, usage);
+    if (restored) restoredPackages.push(restored);
+  }
+
+  for (const usage of certificateUsages) {
+    const restored = await restoreCertificateUsageForVisit(tx, req, visit, usage);
+    if (restored) restoredCertificates.push(restored);
+  }
+
+  await reverseEarnForVisit(tx, visit, {
+    createdById: getActorUserId(req),
+    description: 'Откат начисления дубля завершённого визита',
+  });
+  await removeUnpaidEmployeeEarningForVisit(tx, req, visit.id);
+  const deleted = await tx.visit.delete({ where: { id: visit.id } });
+
+  await recordAuditLog(tx, req, {
+    action: 'delete duplicate completed visit',
+    after: null,
+    before: withStoredId(visit),
+    entity: 'Visit',
+    entityId: deleted.id,
+  });
+
+  return {
+    deletedVisitId: deleted.id,
+    restoredCertificateUsageIds: restoredCertificates.map((item) => item.restoredUsage.id),
+    restoredPackageUsageIds: restoredPackages.map((item) => item.restoredUsage.id),
+  };
+};
+
 
 // ==================== Visit state used by the CRM UI ====================
 router.get('/visit-state', async (req, res) => {
@@ -275,6 +464,113 @@ router.delete('/calendar-entries/:id', requireOwner, async (req, res) => {
     'CalendarEntry',
     'delete/cancel visit',
   );
+});
+
+router.post('/visits/dedupe-calendar', requireOwner, async (req, res) => {
+  const rawCalendarEntryId = req.body?.calendarEntryId;
+  const calendarEntryId = rawCalendarEntryId ? Number(rawCalendarEntryId) : null;
+
+  if (rawCalendarEntryId && (!Number.isFinite(calendarEntryId) || calendarEntryId <= 0)) {
+    return sendValidationError(res, validationError('calendarEntryId must be a positive number'));
+  }
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const duplicateKeys = calendarEntryId
+        ? [{ calendarEntryId }]
+        : await tx.$queryRaw`
+            SELECT "calendarEntryId"
+            FROM "Visit"
+            WHERE "calendarEntryId" IS NOT NULL
+            GROUP BY "calendarEntryId"
+            HAVING COUNT(*) > 1
+            ORDER BY "calendarEntryId" ASC
+          `;
+      const cleaned = [];
+      const skipped = [];
+
+      for (const key of duplicateKeys) {
+        const entryId = Number(key.calendarEntryId);
+        if (!Number.isFinite(entryId) || entryId <= 0) continue;
+
+        const [calendarEntry, visits] = await Promise.all([
+          tx.calendarEntry.findUnique({ where: { id: entryId } }),
+          tx.visit.findMany({
+            where: { calendarEntryId: entryId },
+            include: {
+              employeeEarnings: true,
+            },
+            orderBy: { id: 'asc' },
+          }),
+        ]);
+
+        if (visits.length <= 1) continue;
+
+        const visitIdFromEntry = Number(calendarEntry?.visitId);
+        const keepByCalendar = visits.find((visit) => visit.id === visitIdFromEntry);
+        const paidVisits = visits.filter((visit) =>
+          visit.employeeEarnings.some((earning) => earning.payoutId),
+        );
+        const keepVisit = keepByCalendar || paidVisits[0] || visits[0];
+        const duplicates = visits.filter((visit) => visit.id !== keepVisit.id);
+
+        if (duplicates.some((visit) => visit.employeeEarnings.some((earning) => earning.payoutId))) {
+          skipped.push({
+            calendarEntryId: entryId,
+            reason: 'duplicate_visit_already_in_payout',
+            visitIds: duplicates.map((visit) => visit.id),
+          });
+          continue;
+        }
+
+        const deleted = [];
+        for (const visit of duplicates) {
+          deleted.push(await removeDuplicateCalendarVisit(tx, req, visit));
+        }
+
+        if (calendarEntry && Number(calendarEntry.visitId) !== keepVisit.id) {
+          const calendarPayload =
+            calendarEntry.payload && typeof calendarEntry.payload === 'object'
+              ? calendarEntry.payload
+              : {};
+          await tx.calendarEntry.update({
+            where: { id: entryId },
+            data: buildCalendarEntryData({
+              ...calendarPayload,
+              status: calendarEntry.status || calendarPayload.status || 'completed',
+              visitId: keepVisit.id,
+            }),
+          });
+        }
+
+        cleaned.push({
+          calendarEntryId: entryId,
+          deleted,
+          keepVisitId: keepVisit.id,
+        });
+      }
+
+      return {
+        cleaned,
+        skipped,
+      };
+    });
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    console.error('Dedupe calendar visits error:', err);
+    await recordErrorEvent(prisma, {
+      context: {
+        calendarEntryId,
+        path: req.originalUrl,
+      },
+      error: err,
+      message: err.message,
+      source: 'crud',
+    });
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
 router.post('/calendar-entries/delete-completed', requireOwner, async (req, res) => {
@@ -612,7 +908,7 @@ router.post('/visits/complete', async (req, res) => {
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await runSerializableTransaction(async (tx) => {
       const calendarEntry = await tx.calendarEntry.findUnique({
         where: { id: calendarEntryId },
       });
@@ -696,9 +992,28 @@ router.post('/visits/complete', async (req, res) => {
         where: { calendarEntryId },
         orderBy: { id: 'asc' },
       });
-      const visit = existingVisit ?? await tx.visit.create({
-        data: buildVisitData(visitPayload),
-      });
+      let visit = existingVisit;
+      let createdFreshVisit = false;
+
+      if (!visit) {
+        try {
+          visit = await tx.visit.create({
+            data: buildVisitData(visitPayload),
+          });
+          createdFreshVisit = true;
+        } catch (error) {
+          if (error?.code !== 'P2002') {
+            throw error;
+          }
+          visit = await tx.visit.findFirst({
+            where: { calendarEntryId },
+            orderBy: { id: 'asc' },
+          });
+          if (!visit) {
+            throw error;
+          }
+        }
+      }
       let clientPackage = null;
       let clientPackageUsage = null;
       let clientPackageBefore;
@@ -942,7 +1257,7 @@ router.post('/visits/complete', async (req, res) => {
         calendarEntry.payload && typeof calendarEntry.payload === 'object'
           ? calendarEntry.payload
           : {};
-      const persistedVisit = existingVisit
+      const persistedVisit = !createdFreshVisit
         ? await tx.visit.update({
             where: { id: visit.id },
             data: buildVisitData({ ...visitPayload, id: visit.id }),

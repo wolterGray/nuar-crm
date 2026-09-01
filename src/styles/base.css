@@ -793,8 +793,8 @@ h1 {
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--color-card) 96%, rgba(255, 255, 255, 0.07)),
-      color-mix(in srgb, var(--color-card) 96%, rgba(0, 0, 0, 0.08))
+      color-mix(in srgb, var(--color-card) 90%, var(--color-text) 4%),
+      color-mix(in srgb, var(--color-card) 93%, #000000 10%)
     );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.045),
@@ -1058,6 +1058,19 @@ h1 {
   user-select: none;
 }
 
+.client-alert-row-unified[role="button"] {
+  cursor: pointer;
+}
+
+.client-alert-row-unified[role="button"]:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-info) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.client-alert-row-unified[role="button"]:active {
+  border-color: color-mix(in srgb, var(--color-info) 30%, var(--color-border));
+}
+
 .client-alert-swipe-shell {
   position: relative;
   border-radius: 14px;
@@ -1304,6 +1317,25 @@ h1 {
 
 .client-alert-row-unified.has-corner-badge .client-alert-row-copy {
   padding-right: min(56%, 196px);
+}
+
+.client-alert-row-unified.type-calendar {
+  border-color: color-mix(in srgb, var(--color-info) 22%, var(--color-border-soft));
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-card) 88%, var(--color-info) 7%),
+      color-mix(in srgb, var(--color-card) 92%, #000000 12%)
+    );
+}
+
+.client-alert-row-unified.type-calendar[role="button"]:active {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-card) 84%, var(--color-info) 10%),
+      color-mix(in srgb, var(--color-card) 89%, #000000 14%)
+    );
 }
 
 .client-alert-row-unified.type-package,
@@ -2556,6 +2588,7 @@ h2 {
 
 .task-row,
 .supply-row {
+  position: relative;
   gap: 8px;
   min-width: 0;
   padding: 8px 8px 8px 12px;
@@ -2569,7 +2602,14 @@ h2 {
 }
 
 .task-row-content {
-  display: contents;
+  display: grid;
+  grid-template-columns: 28px 42px minmax(0, 1fr) 28px;
+  grid-template-areas:
+    "handle toggle body actions"
+    "handle meta meta meta";
+  align-items: center;
+  gap: 8px 10px;
+  min-width: 0;
 }
 
 .operations-card-body {
@@ -2733,15 +2773,15 @@ h2 {
 }
 
 .task-row .task-drag-handle {
-  order: 1;
+  grid-area: handle;
 }
 
 .task-row .task-check {
-  order: 2;
+  grid-area: toggle;
 }
 
 .task-row .operations-card-body {
-  order: 3;
+  grid-area: body;
 }
 
 .task-row .task-meta {
@@ -2750,27 +2790,47 @@ h2 {
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  order: 4;
+  grid-area: meta;
   min-width: 0;
 }
 
 .task-row .operations-row-actions {
-  order: 5;
+  grid-area: actions;
 }
 
 .task-check {
-  display: grid;
+  position: relative;
+  display: block;
   flex: 0 0 auto;
-  width: 22px;
-  min-width: 22px;
-  height: 22px;
-  min-height: 22px;
+  width: 38px;
+  min-width: 38px;
+  height: 24px;
+  min-height: 24px;
   padding: 0;
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 7px;
-  color: var(--color-card);
-  background: var(--color-card);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-pill);
+  color: transparent;
+  background: color-mix(in srgb, var(--color-field) 92%, var(--color-text) 4%);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.task-check::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-text) 92%, #ffffff 8%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.24);
+  transition: transform 180ms ease;
+}
+
+.task-check svg {
+  display: none;
 }
 
 .task-drag-handle {
@@ -2778,8 +2838,9 @@ h2 {
   flex: 0 0 auto;
   align-self: stretch;
   width: 28px;
-  min-height: 36px;
+  min-width: 28px;
   height: auto;
+  min-height: 38px;
   padding: 0;
   place-items: center;
   border: 1px solid transparent;
@@ -2795,9 +2856,9 @@ h2 {
 }
 
 .task-drag-handle:hover {
-  border-color: var(--color-border);
+  border-color: var(--color-border-soft);
   color: var(--color-text);
-  background: var(--color-field-hover);
+  background: color-mix(in srgb, var(--color-field) 82%, var(--color-text) 4%);
 }
 
 .task-drag-handle:active {
@@ -2940,6 +3001,11 @@ h2 {
 .task-completed .task-check {
   border-color: var(--color-success);
   background: var(--color-success);
+}
+
+.task-completed .task-check::after,
+.task-check.is-on::after {
+  transform: translateX(14px);
 }
 
 .task-overdue {
@@ -3334,6 +3400,64 @@ h2 {
   border-color: color-mix(in srgb, var(--accent-color) 58%, var(--color-border));
   color: var(--color-text);
   background: var(--app-window-bg);
+}
+
+@media (max-width: 768px) {
+  .task-row {
+    display: block !important;
+    padding: 12px !important;
+  }
+
+  .task-row-content {
+    grid-template-columns: 28px 40px minmax(0, 1fr) 28px;
+    gap: 8px 9px;
+  }
+
+  .task-row .operations-card-body {
+    gap: 3px;
+    padding-top: 1px;
+  }
+
+  .task-row .operations-card-body strong {
+    font-size: 15px;
+    line-height: 1.2;
+  }
+
+  .task-row .operations-card-body span {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    line-height: 1.25;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .task-row .task-meta {
+    gap: 5px;
+    padding-top: 0;
+  }
+
+  .task-drag-handle {
+    width: 28px;
+    min-width: 28px;
+    height: auto;
+    min-height: 38px;
+    border-radius: 8px;
+    color: color-mix(in srgb, var(--color-text-muted) 54%, transparent);
+  }
+
+  .task-check {
+    width: 38px;
+    min-width: 38px;
+    height: 24px;
+    min-height: 24px;
+  }
+
+  .task-row .operations-row-actions {
+    align-self: start;
+    justify-self: end;
+  }
 }
 
 
