@@ -296,6 +296,16 @@ const applyClientPackageUsage = async (tx, req, visitId, visitPayload, reason) =
     throw validationError('Client package not found');
   }
 
+  if (existingUsage && !existingUsage.revertedAt) {
+    const activeSessionsUsed = Number(existingUsage.sessionsUsed) || 1;
+
+    if (activeSessionsUsed !== sessionsUsed) {
+      throw validationError('Active package usage already exists with different sessions count');
+    }
+
+    return { clientPackage: clientPackageBefore, clientPackageUsage: existingUsage };
+  }
+
   const packagePayload = objectPayload(clientPackageBefore.payload);
   const currentRemaining = Number(clientPackageBefore.remainingVisits) || 0;
 

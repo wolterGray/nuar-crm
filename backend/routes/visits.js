@@ -18,6 +18,10 @@ const {
   syncEmployeeEarningForCompletedVisit,
 } = require('../services/employeeEarningsService');
 const {
+  applyClientPackageUsage: applyPackageLedgerUsage,
+  restoreClientPackageUsage: restorePackageLedgerUsage,
+} = require('../services/packageLedgerService');
+const {
   respond,
   respondWithAudit,
   auditCreate,
@@ -936,17 +940,13 @@ router.post('/visits/complete', async (req, res) => {
           let certificateUsage = null;
 
           if (usesPackage) {
-            clientPackageUsage = await tx.clientPackageUsage.findUnique({
-              where: {
-                clientPackageId_visitId: {
-                  clientPackageId,
-                  visitId: existingCompletedVisit.id,
-                },
-              },
-            });
-            clientPackage = await tx.clientPackage.findUnique({
-              where: { id: clientPackageId },
-            });
+            ({ clientPackage, clientPackageUsage } = await applyPackageLedgerUsage(
+              tx,
+              req,
+              existingCompletedVisit.id,
+              visitPayload,
+              { action: 'use package', calendarEntryId, reason: 'calendar-complete-idempotent' },
+            ));
           }
 
           if (usesCertificate) {
@@ -1016,7 +1016,6 @@ router.post('/visits/complete', async (req, res) => {
       }
       let clientPackage = null;
       let clientPackageUsage = null;
-      let clientPackageBefore;
       let certificate = null;
       let certificateUsage = null;
       let certificateBefore;
@@ -1049,109 +1048,13 @@ router.post('/visits/complete', async (req, res) => {
       }
 
       if (usesPackage) {
-        const existingUsage = await tx.clientPackageUsage.findUnique({
-          where: {
-            clientPackageId_visitId: {
-              clientPackageId,
-              visitId: visit.id,
-            },
-          },
-        });
-
-        if (existingUsage) {
-          clientPackageUsage = existingUsage;
-          clientPackage = await tx.clientPackage.findUnique({
-            where: { id: clientPackageId },
-          });
-        }
-
-        const shouldApplyPackageUsage =
-          !clientPackageUsage || Boolean(clientPackageUsage.revertedAt);
-
-        if (shouldApplyPackageUsage) {
-          clientPackageBefore = await tx.clientPackage.findUnique({
-            where: { id: clientPackageId },
-          });
-
-          if (!clientPackageBefore) {
-            throw validationError('Client package not found');
-          }
-
-          const packagePayload =
-            clientPackageBefore.payload && typeof clientPackageBefore.payload === 'object'
-              ? clientPackageBefore.payload
-              : {};
-          const currentRemaining = Number(clientPackageBefore.remainingVisits) || 0;
-
-          if (currentRemaining < packageSessionsUsed) {
-            throw validationError('Client package does not have enough remaining visits');
-          }
-
-          const nextRemaining = currentRemaining - packageSessionsUsed;
-          const nextStatus = resolveClientPackageStatus(
-            nextRemaining,
-            packagePayload.status ?? clientPackageBefore.status,
-          );
-          const writeOffHistory = Array.isArray(clientPackageBefore.writeOffHistory)
-            ? clientPackageBefore.writeOffHistory
-            : Array.isArray(packagePayload.writeOffHistory)
-              ? packagePayload.writeOffHistory
-              : [];
-          const nextWriteOffHistory = [
-            ...writeOffHistory,
-            {
-              sessionsUsed: packageSessionsUsed,
-              usedAt: new Date().toISOString(),
-              visitId: visit.id,
-            },
-          ];
-          const updated = await tx.clientPackage.updateMany({
-            where: {
-              id: clientPackageId,
-              remainingVisits: { gte: packageSessionsUsed },
-            },
-            data: {
-              remainingVisits: { decrement: packageSessionsUsed },
-              status: nextStatus,
-              writeOffHistory: nextWriteOffHistory,
-              payload: {
-                ...packagePayload,
-                remainingVisits: nextRemaining,
-                status: nextStatus,
-                writeOffHistory: nextWriteOffHistory,
-              },
-            },
-          });
-
-          if (updated.count !== 1) {
-            throw validationError('Client package does not have enough remaining visits');
-          }
-
-          clientPackageUsage = clientPackageUsage
-            ? await tx.clientPackageUsage.update({
-                where: { id: clientPackageUsage.id },
-                data: {
-                  sessionsUsed: packageSessionsUsed,
-                  payload: {
-                    calendarEntryId,
-                  },
-                  revertedAt: null,
-                },
-              })
-            : await tx.clientPackageUsage.create({
-                data: {
-                  clientPackageId,
-                  visitId: visit.id,
-                  sessionsUsed: packageSessionsUsed,
-                  payload: {
-                    calendarEntryId,
-                  },
-                },
-              });
-          clientPackage = await tx.clientPackage.findUnique({
-            where: { id: clientPackageId },
-          });
-        }
+        ({ clientPackage, clientPackageUsage } = await applyPackageLedgerUsage(
+          tx,
+          req,
+          visit.id,
+          visitPayload,
+          { action: 'use package', calendarEntryId, reason: 'calendar-complete' },
+        ));
       }
 
       if (usesCertificate) {
@@ -1471,175 +1374,19 @@ router.post('/visits/update-completed', async (req, res) => {
       let restoredCertificateUsages = [];
 
       for (const usage of activePackageUsages) {
-        const packageBefore = await tx.clientPackage.findUnique({
-          where: { id: usage.clientPackageId },
-        });
-
-        if (!packageBefore) {
-          throw validationError('Client package not found');
-        }
-
-        const packagePayload =
-          packageBefore.payload && typeof packageBefore.payload === 'object'
-            ? packageBefore.payload
-            : {};
-        const sessionsUsed = Math.max(1, Number(usage.sessionsUsed) || 1);
-        const currentRemaining = Number(packageBefore.remainingVisits) || 0;
-        const totalVisits =
-          Number(packageBefore.totalVisits) || Number(packagePayload.totalVisits) || 0;
-        const nextRemaining = totalVisits > 0
-          ? Math.min(totalVisits, currentRemaining + sessionsUsed)
-          : currentRemaining + sessionsUsed;
-        const nextStatus = resolveClientPackageStatus(
-          nextRemaining,
-          packagePayload.status ?? packageBefore.status,
-        );
-        const writeOffHistory = Array.isArray(packageBefore.writeOffHistory)
-          ? packageBefore.writeOffHistory
-          : Array.isArray(packagePayload.writeOffHistory)
-            ? packagePayload.writeOffHistory
-            : [];
-        const nextWriteOffHistory = writeOffHistory.filter(
-          (item) => String(item?.visitId ?? '') !== String(visit.id),
-        );
-        const restoredPackage = await tx.clientPackage.update({
-          where: { id: usage.clientPackageId },
-          data: {
-            remainingVisits: nextRemaining,
-            status: nextStatus,
-            writeOffHistory: nextWriteOffHistory,
-            payload: {
-              ...packagePayload,
-              remainingVisits: nextRemaining,
-              status: nextStatus,
-              writeOffHistory: nextWriteOffHistory,
-            },
-          },
-        });
-        const restoredUsage = await tx.clientPackageUsage.update({
-          where: { id: usage.id },
-          data: { revertedAt: new Date() },
-        });
-
-        restoredClientPackages = [...restoredClientPackages, restoredPackage];
-        restoredPackageUsages = [...restoredPackageUsages, restoredUsage];
-
-        await recordAuditLog(tx, req, {
-          action: 'restore package',
-          after: {
-            clientPackage: withStoredId(restoredPackage),
-            clientPackageUsage: withStoredId(restoredUsage),
-          },
-          before: withStoredId(packageBefore),
-          entity: 'ClientPackage',
-          entityId: restoredPackage.id,
-        });
+        const restored = await restorePackageLedgerUsage(tx, req, visit, usage);
+        restoredClientPackages = [...restoredClientPackages, restored.clientPackage];
+        restoredPackageUsages = [...restoredPackageUsages, restored.clientPackageUsage];
       }
 
       if (newUsesPackage) {
-        const existingUsage = await tx.clientPackageUsage.findUnique({
-          where: {
-            clientPackageId_visitId: {
-              clientPackageId,
-              visitId,
-            },
-          },
-        });
-        const clientPackageBefore = await tx.clientPackage.findUnique({
-          where: { id: clientPackageId },
-        });
-
-        if (!clientPackageBefore) {
-          throw validationError('Client package not found');
-        }
-
-        const packagePayload =
-          clientPackageBefore.payload && typeof clientPackageBefore.payload === 'object'
-            ? clientPackageBefore.payload
-            : {};
-        const currentRemaining = Number(clientPackageBefore.remainingVisits) || 0;
-
-        if (currentRemaining < packageSessionsUsed) {
-          throw validationError('Client package does not have enough remaining visits');
-        }
-
-        const nextRemaining = currentRemaining - packageSessionsUsed;
-        const nextStatus = resolveClientPackageStatus(
-          nextRemaining,
-          packagePayload.status ?? clientPackageBefore.status,
-        );
-        const writeOffHistory = Array.isArray(clientPackageBefore.writeOffHistory)
-          ? clientPackageBefore.writeOffHistory
-          : Array.isArray(packagePayload.writeOffHistory)
-            ? packagePayload.writeOffHistory
-            : [];
-        const nextWriteOffHistory = [
-          ...writeOffHistory.filter((item) => String(item?.visitId ?? '') !== String(visit.id)),
-          {
-            sessionsUsed: packageSessionsUsed,
-            usedAt: new Date().toISOString(),
-            visitId,
-          },
-        ];
-        const updated = await tx.clientPackage.updateMany({
-          where: {
-            id: clientPackageId,
-            remainingVisits: { gte: packageSessionsUsed },
-          },
-          data: {
-            remainingVisits: { decrement: packageSessionsUsed },
-            status: nextStatus,
-            writeOffHistory: nextWriteOffHistory,
-            payload: {
-              ...packagePayload,
-              remainingVisits: nextRemaining,
-              status: nextStatus,
-              writeOffHistory: nextWriteOffHistory,
-            },
-          },
-        });
-
-        if (updated.count !== 1) {
-          throw validationError('Client package does not have enough remaining visits');
-        }
-
-        clientPackageUsage = existingUsage
-          ? await tx.clientPackageUsage.update({
-              where: { id: existingUsage.id },
-              data: {
-                payload: {
-                  calendarEntryId,
-                  reason: 'update-completed',
-                },
-                revertedAt: null,
-                sessionsUsed: packageSessionsUsed,
-              },
-            })
-          : await tx.clientPackageUsage.create({
-              data: {
-                clientPackageId,
-                payload: {
-                  calendarEntryId,
-                  reason: 'update-completed',
-                },
-                sessionsUsed: packageSessionsUsed,
-                visitId,
-              },
-            });
-        clientPackage = await tx.clientPackage.findUnique({
-          where: { id: clientPackageId },
-        });
-
-        await recordAuditLog(tx, req, {
-          action: 'use package',
-          after: {
-            clientPackage: clientPackage ? withStoredId(clientPackage) : null,
-            clientPackageUsage: withStoredId(clientPackageUsage),
-          },
-          before: withStoredId(clientPackageBefore),
-          entity: 'ClientPackage',
-          entityId: clientPackageId,
-        });
+        ({ clientPackage, clientPackageUsage } = await applyPackageLedgerUsage(
+          tx,
+          req,
+          visitId,
+          visitPayload,
+          { action: 'use package', calendarEntryId, reason: 'update-completed' },
+        ));
       }
 
       for (const usage of activeCertificateUsages) {
