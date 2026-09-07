@@ -379,6 +379,19 @@ export const loadStoredCollection = (key) => {
   }
 };
 
+export const saveStoredValue = (key, value) => {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (error) {
+    console.warn("CRM local cache write failed", {
+      key,
+      message: error?.message || String(error),
+    });
+    return false;
+  }
+};
+
 export const loadStoredSettings = () => {
   try {
     const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);

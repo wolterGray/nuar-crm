@@ -25,6 +25,7 @@ import {
   SUPPLIES_STORAGE_KEY,
   TASKS_STORAGE_KEY,
   VISITS_STORAGE_KEY,
+  saveStoredValue,
 } from "../utils/crmStorage.js";
 
 export function useCrmLocalPersistence({
@@ -55,115 +56,79 @@ export function useCrmLocalPersistence({
   visits,
 }) {
   useEffect(() => {
-    window.localStorage.setItem(VISITS_STORAGE_KEY, JSON.stringify(visits));
+    saveStoredValue(VISITS_STORAGE_KEY, visits);
   }, [visits]);
 
   useEffect(() => {
-    window.localStorage.setItem(EMPLOYEES_STORAGE_KEY, JSON.stringify(employees));
+    saveStoredValue(EMPLOYEES_STORAGE_KEY, employees);
   }, [employees]);
 
   useEffect(() => {
-    window.localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(clientProfiles));
+    saveStoredValue(CLIENTS_STORAGE_KEY, clientProfiles);
   }, [clientProfiles]);
 
   useEffect(() => {
-    window.localStorage.setItem(SERVICES_STORAGE_KEY, JSON.stringify(serviceCatalog));
+    saveStoredValue(SERVICES_STORAGE_KEY, serviceCatalog);
   }, [serviceCatalog]);
 
   useEffect(() => {
-    window.localStorage.setItem(PACKAGES_STORAGE_KEY, JSON.stringify(packagesCatalog));
+    saveStoredValue(PACKAGES_STORAGE_KEY, packagesCatalog);
   }, [packagesCatalog]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      CLIENT_PACKAGES_STORAGE_KEY,
-      JSON.stringify(clientPackages),
-    );
+    saveStoredValue(CLIENT_PACKAGES_STORAGE_KEY, clientPackages);
   }, [clientPackages]);
 
   useEffect(() => {
-    window.localStorage.setItem(CERTIFICATES_STORAGE_KEY, JSON.stringify(certificates));
+    saveStoredValue(CERTIFICATES_STORAGE_KEY, certificates);
   }, [certificates]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      MESSAGE_TEMPLATES_STORAGE_KEY,
-      JSON.stringify(messageTemplates),
-    );
+    saveStoredValue(MESSAGE_TEMPLATES_STORAGE_KEY, messageTemplates);
   }, [messageTemplates]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      CALENDAR_ENTRIES_STORAGE_KEY,
-      JSON.stringify(calendarEntries),
-    );
+    saveStoredValue(CALENDAR_ENTRIES_STORAGE_KEY, calendarEntries);
   }, [calendarEntries]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      DISMISSED_CLIENT_ALERTS_STORAGE_KEY,
-      JSON.stringify(dismissedClientAlertIds),
-    );
+    saveStoredValue(DISMISSED_CLIENT_ALERTS_STORAGE_KEY, dismissedClientAlertIds);
   }, [dismissedClientAlertIds]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      SNOOZED_ALERTS_STORAGE_KEY,
-      JSON.stringify(alertSnoozes),
-    );
+    saveStoredValue(SNOOZED_ALERTS_STORAGE_KEY, alertSnoozes);
   }, [alertSnoozes]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      COMMUNICATION_LOG_STORAGE_KEY,
-      JSON.stringify(communicationLog),
-    );
+    saveStoredValue(COMMUNICATION_LOG_STORAGE_KEY, communicationLog);
   }, [communicationLog]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      NOTIFICATION_INBOX_STORAGE_KEY,
-      JSON.stringify(notificationInbox),
-    );
+    saveStoredValue(NOTIFICATION_INBOX_STORAGE_KEY, notificationInbox);
   }, [notificationInbox]);
 
   useEffect(() => {
-    window.localStorage.setItem(SMS_REMINDER_LOG_STORAGE_KEY, JSON.stringify(smsReminderLog));
+    saveStoredValue(SMS_REMINDER_LOG_STORAGE_KEY, smsReminderLog);
   }, [smsReminderLog]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      REVIEW_REQUEST_LOG_STORAGE_KEY,
-      JSON.stringify(reviewRequestLog),
-    );
+    saveStoredValue(REVIEW_REQUEST_LOG_STORAGE_KEY, reviewRequestLog);
   }, [reviewRequestLog]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY,
-      JSON.stringify(inactiveFollowUpLog),
-    );
+    saveStoredValue(INACTIVE_FOLLOW_UP_LOG_STORAGE_KEY, inactiveFollowUpLog);
   }, [inactiveFollowUpLog]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      WAITLIST_STORAGE_KEY,
-      JSON.stringify(waitlistEntries),
-    );
+    saveStoredValue(WAITLIST_STORAGE_KEY, waitlistEntries);
   }, [waitlistEntries]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      DAY_CLOSE_STORAGE_KEY,
-      JSON.stringify(dayCloseRecords),
-    );
+    saveStoredValue(DAY_CLOSE_STORAGE_KEY, dayCloseRecords);
   }, [dayCloseRecords]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      PAYROLL_STORAGE_KEY,
-      JSON.stringify(payrollRecords),
-    );
+    saveStoredValue(PAYROLL_STORAGE_KEY, payrollRecords);
   }, [payrollRecords]);
 
   useLayoutEffect(() => {
@@ -171,31 +136,22 @@ export function useCrmLocalPersistence({
   }, [appSettings]);
 
   useEffect(() => {
-    window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+    saveStoredValue(TASKS_STORAGE_KEY, tasks);
   }, [tasks]);
 
   useEffect(() => {
-    window.localStorage.setItem(SUPPLIES_STORAGE_KEY, JSON.stringify(supplies));
+    saveStoredValue(SUPPLIES_STORAGE_KEY, supplies);
   }, [supplies]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      IMPORT_DOCUMENTS_STORAGE_KEY,
-      JSON.stringify(importDocuments),
-    );
+    saveStoredValue(IMPORT_DOCUMENTS_STORAGE_KEY, importDocuments);
   }, [importDocuments]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      IMPORTED_MAIL_IDS_STORAGE_KEY,
-      JSON.stringify(importedMailIds),
-    );
+    saveStoredValue(IMPORTED_MAIL_IDS_STORAGE_KEY, importedMailIds);
   }, [importedMailIds]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY,
-      JSON.stringify(autoCompletedCalendarEntryIds),
-    );
+    saveStoredValue(AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY, autoCompletedCalendarEntryIds);
   }, [autoCompletedCalendarEntryIds]);
 }

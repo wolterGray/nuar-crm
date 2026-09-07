@@ -20,6 +20,30 @@ const reloadWithFreshAssets = () => {
   window.location.replace(url.toString());
 };
 
+const getSessionFlag = (key) => {
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const setSessionFlag = (key, value) => {
+  try {
+    window.sessionStorage.setItem(key, value);
+  } catch {
+    // Session storage can be blocked on mobile Safari; reloading is still safe.
+  }
+};
+
+const removeSessionFlag = (key) => {
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    // Session storage can be blocked on mobile Safari.
+  }
+};
+
 function ErrorFallback({error, onReload, onRetry}) {
   return (
     <section className="app-error-boundary">
@@ -70,7 +94,7 @@ export default class ErrorBoundary extends Component {
   componentDidMount() {
     const currentUrl = new URL(window.location.href);
     if (!currentUrl.searchParams.has("crm_reload")) {
-      window.sessionStorage.removeItem(CHUNK_RELOAD_STORAGE_KEY);
+      removeSessionFlag(CHUNK_RELOAD_STORAGE_KEY);
     }
   }
 
@@ -79,9 +103,9 @@ export default class ErrorBoundary extends Component {
 
     if (
       isChunkLoadError(error) &&
-      window.sessionStorage.getItem(CHUNK_RELOAD_STORAGE_KEY) !== "true"
+      getSessionFlag(CHUNK_RELOAD_STORAGE_KEY) !== "true"
     ) {
-      window.sessionStorage.setItem(CHUNK_RELOAD_STORAGE_KEY, "true");
+      setSessionFlag(CHUNK_RELOAD_STORAGE_KEY, "true");
       reloadWithFreshAssets();
     }
   }
