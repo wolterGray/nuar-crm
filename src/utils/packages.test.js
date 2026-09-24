@@ -1,6 +1,7 @@
 import {describe, expect, it} from "vitest";
 import {
   getPackagePlannedProgressLabel,
+  getPackageUsedLabel,
   getPackageVisitProgressLabel,
 } from "./packages.jsx";
 
@@ -131,7 +132,7 @@ describe("package visit progress", () => {
   it("deduplicates package write-off history by visit id", () => {
     const packageItem = {
       id: 10,
-      remainingVisits: 1,
+      remainingVisits: 4,
       totalVisits: 6,
       writeOffHistory: [
         {sessionsUsed: 1, visitId: 101},
@@ -150,5 +151,22 @@ describe("package visit progress", () => {
     };
 
     expect(getPackagePlannedProgressLabel(packageItem, currentEntry, [])).toBe("3/6");
+  });
+
+  it("uses the finished balance when write-off history is incomplete", () => {
+    const packageItem = {
+      id: 10,
+      remainingVisits: 0,
+      totalVisits: 6,
+      writeOffHistory: [
+        {sessionsUsed: 1, visitId: 101},
+        {sessionsUsed: 1, visitId: 102},
+        {sessionsUsed: 1, visitId: 103},
+        {sessionsUsed: 1, visitId: 104},
+        {sessionsUsed: 1, visitId: 105},
+      ],
+    };
+
+    expect(getPackageUsedLabel(packageItem)).toBe("6/6");
   });
 });

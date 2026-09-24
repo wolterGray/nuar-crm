@@ -32,7 +32,11 @@ export const getPackageUsedVisits = (packageItem) => {
   const total = Number(packageItem?.totalVisits) || 0;
   const remaining = Number(packageItem?.remainingVisits) || 0;
   const historyUsed = getPackageHistoryUsedVisits(packageItem);
-  const used = historyUsed ?? total - remaining;
+  const usedFromBalance = total - remaining;
+  const used =
+    historyUsed === null
+      ? usedFromBalance
+      : Math.max(historyUsed, usedFromBalance);
 
   return Math.max(0, Math.min(total, used));
 };
@@ -127,6 +131,12 @@ export const getPackageRemainingLabel = (packageItem) => {
   const remaining = Number(packageItem?.remainingVisits) || 0;
 
   return `${Math.max(0, Math.min(total, remaining))}/${total}`;
+};
+
+export const getPackageUsedLabel = (packageItem) => {
+  const total = Number(packageItem?.totalVisits) || 0;
+
+  return `${getPackageUsedVisits(packageItem)}/${total}`;
 };
 
 export const isUpcomingPackageVisit = (entry, now = new Date()) =>

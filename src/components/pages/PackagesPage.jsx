@@ -12,6 +12,7 @@ import {
 import {formatMoney} from "../../utils/formatters.jsx";
 import {
   getPackageRemainingLabel,
+  getPackageUsedLabel,
   getPackageUsedVisits,
 } from "../../utils/packages.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
@@ -28,6 +29,9 @@ function ClientPackageCard({
   setOpenMenuId,
 }) {
   const archived = isArchivedClientPackage(packageItem);
+  const progressLabel = archived
+    ? getPackageUsedLabel(packageItem)
+    : getPackageRemainingLabel(packageItem);
 
   return (
     <article
@@ -43,7 +47,7 @@ function ClientPackageCard({
       <div className="package-card-progress">
         <div className="flex items-center justify-between gap-2 text-[11px]">
           <span className="text-text-muted">{archived ? "Использовано" : "Осталось"}</span>
-          <strong className="text-text-main font-semibold tabular-nums">{getPackageRemainingLabel(packageItem)}</strong>
+          <strong className="text-text-main font-semibold tabular-nums">{progressLabel}</strong>
         </div>
         <progress
           className="w-full h-1.5 rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-field [&::-webkit-progress-value]:bg-accent [&::-moz-progress-bar]:bg-accent"
