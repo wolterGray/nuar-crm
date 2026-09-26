@@ -627,6 +627,59 @@ describe("employee payout validation and summaries", () => {
     expect(created[0]).toMatchObject({employeeId: 2, visitId: 55});
   });
 
+  it("repairs the legacy 06.08 cash Natali and Max paired massage without pair markers", async () => {
+    const created = [];
+    const tx = {
+      auditLog: {create: async () => ({})},
+      clientPackage: {
+        findMany: async () => [],
+      },
+      employeeEarning: {
+        create: async ({data}) => {
+          const earning = {id: 101 + created.length, payoutId: null, ...data};
+          created.push(earning);
+          return earning;
+        },
+        findMany: async () => [],
+      },
+      employee: {
+        findFirst: async ({where}) => {
+          const name = typeof where?.name === "string" ? where.name : where?.name?.equals;
+          if (name === "Natali" || name === "Наталья") return {id: 1, commissionRate: 40, name: "Natali"};
+          if (name === "Max" || name === "Макс") return {id: 2, commissionRate: 40, name: "Max"};
+          return null;
+        },
+        findUnique: async ({where}) =>
+          where.id === 1
+            ? {id: 1, commissionRate: 40, name: "Natali"}
+            : {id: 2, commissionRate: 40, name: "Max"},
+      },
+      visit: {
+        findMany: async () => [
+          {
+            id: 56,
+            employeeEarnings: [],
+            employeeId: 1,
+            payload: {
+              amount: 600,
+              date: "06.08.2026",
+              master: "Natali",
+              paidAmount: 600,
+              payment: "Gotówka",
+              service: "Masaż klasyczny",
+              status: "completed",
+            },
+          },
+        ],
+      },
+    };
+
+    await expect(cleanupPackageVisitEarningsAndEnsureSales(tx)).resolves.toBeUndefined();
+    expect(created).toHaveLength(2);
+    expect(created.map((earning) => earning.employeeId)).toEqual([1, 2]);
+    expect(created.map((earning) => String(earning.actualPrice))).toEqual(["300", "300"]);
+  });
+
   it("does not resync completed visits that already have enough earnings", async () => {
     const tx = {
       clientPackage: {

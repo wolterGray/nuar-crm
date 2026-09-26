@@ -7,6 +7,7 @@ const {
   isDayCloseCancelledVisit,
   isDayCloseCertificateVisit,
   isDayClosePackageVisit,
+  normalizeDayCloseDate,
 } = require('../utils/financeHelpers');
 const { validationError, withStoredId } = require('../utils/crudHelpers');
 const { recordAuditLog } = require('./loggingService');
@@ -167,6 +168,51 @@ const getExpectedParticipantCountForVisitPayload = (visitPayload = {}) => {
     ? Math.max(2, Number(visitPayload?.parallelParticipants) || savedParticipants.length || 2)
     : 1;
 };
+
+const isLegacyNataliMaxPairedCashVisit = (visitPayload = {}) => {
+  const visitDate = normalizeDayCloseDate(visitPayload?.date);
+  if (visitDate !== '2026-08-06') return false;
+  if (isDayClosePackageVisit(visitPayload) || isDayCloseCertificateVisit(visitPayload)) return false;
+
+  const masterNorm = normalizeMasterNameKey(visitPayload?.master ?? visitPayload?.employeeName);
+  const serviceNorm = normalizeMasterNameKey(visitPayload?.service ?? visitPayload?.serviceName);
+  const paymentNorm = normalizeMasterNameKey(visitPayload?.payment ?? visitPayload?.paymentMethod);
+  const isNataliOrMax =
+    masterNorm.includes('natali') ||
+    masterNorm.includes('natalia') ||
+    masterNorm.includes('natasha') ||
+    masterNorm.includes('натал') ||
+    masterNorm.includes('наташ') ||
+    masterNorm.includes('max') ||
+    masterNorm.includes('макс');
+  const isMassage =
+    serviceNorm.includes('masa') ||
+    serviceNorm.includes('masaz') ||
+    serviceNorm.includes('massaz') ||
+    serviceNorm.includes('massage') ||
+    serviceNorm.includes('массаж') ||
+    serviceNorm.includes('масаж');
+  const isCash =
+    paymentNorm.includes('got') ||
+    paymentNorm.includes('gotowka') ||
+    paymentNorm.includes('cash') ||
+    paymentNorm.includes('нал') ||
+    paymentNorm.includes('готів');
+  const actualPrice = Number(getActualPriceForEarning(visitPayload)) || 0;
+
+  return isNataliOrMax && isMassage && isCash && actualPrice > 0;
+};
+
+const withLegacyPairRepairPayload = (visit, visitPayload) => ({
+  ...visit,
+  payload: {
+    ...(visit?.payload && typeof visit.payload === 'object' ? visit.payload : {}),
+    ...visitPayload,
+    isParallel: true,
+    parallelParticipants: 2,
+    service: visitPayload.service || 'Masaż dla dwojga',
+  },
+});
 
 const normalizeMasterNameKey = (value = '') =>
   String(value ?? '')
@@ -755,11 +801,14 @@ const cleanupPackageVisitEarningsAndEnsureSales = async (tx) => {
     const visitPayload = getVisitPayloadForDayClose(visit);
     if (!isCompletedEarningEligibleVisit(visitPayload)) continue;
 
+    const isLegacyNataliMaxPair = isLegacyNataliMaxPairedCashVisit(visitPayload);
     const existingCount = Array.isArray(visit.employeeEarnings) ? visit.employeeEarnings.length : 0;
-    const expectedCount = getExpectedParticipantCountForVisitPayload(visitPayload);
+    const expectedCount = isLegacyNataliMaxPair ? 2 : getExpectedParticipantCountForVisitPayload(visitPayload);
     if (existingCount >= expectedCount) continue;
 
-    await syncEmployeeEarningForCompletedVisit(tx, null, visit, {
+    await syncEmployeeEarningForCompletedVisit(tx, null, isLegacyNataliMaxPair
+      ? withLegacyPairRepairPayload(visit, visitPayload)
+      : visit, {
       skipPaidConflicts: true,
     });
   }
