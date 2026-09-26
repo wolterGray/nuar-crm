@@ -434,7 +434,14 @@ const assertPaidEarningUnchanged = (existing, snapshot) => {
   }
 };
 
-const syncEmployeeEarningForCompletedVisit = async (tx, req, visit) => {
+const hasEarningSnapshotChanged = (existing, snapshot) =>
+  Number(existing.employeeId) !== Number(snapshot.employeeId) ||
+  !decimalEquals(existing.actualPrice, snapshot.actualPrice) ||
+  !decimalEquals(existing.commissionPercent, snapshot.commissionPercent) ||
+  !decimalEquals(existing.amount, snapshot.amount);
+
+const syncEmployeeEarningForCompletedVisit = async (tx, req, visit, options = {}) => {
+  const skipPaidConflicts = options.skipPaidConflicts === true;
   const existing = await tx.employeeEarning.findMany({
     where: { visitId: visit.id },
     include: EMPLOYEE_EARNING_INCLUDE,
@@ -444,6 +451,9 @@ const syncEmployeeEarningForCompletedVisit = async (tx, req, visit) => {
 
   if (snapshots.length === 0) {
     if (existing.some((earning) => earning.payoutId)) {
+      if (skipPaidConflicts) {
+        return null;
+      }
       throw stateConflictError(
         'This visit is already included in a payout. Cancel the payout before removing the earning.',
       );
@@ -464,11 +474,16 @@ const syncEmployeeEarningForCompletedVisit = async (tx, req, visit) => {
   for (const earning of existing.filter((item) => item.payoutId)) {
     const snapshot = snapshots.find((item) => Number(item.employeeId) === Number(earning.employeeId));
     if (!snapshot) {
+      if (skipPaidConflicts) {
+        continue;
+      }
       throw stateConflictError(
         'This visit is already included in a payout. Cancel the payout before changing financial details.',
       );
     }
-    assertPaidEarningUnchanged(earning, snapshot);
+    if (!skipPaidConflicts) {
+      assertPaidEarningUnchanged(earning, snapshot);
+    }
   }
 
   const synced = [];
@@ -489,6 +504,10 @@ const syncEmployeeEarningForCompletedVisit = async (tx, req, visit) => {
 
   for (const snapshot of snapshots) {
     const matching = existing.find((earning) => Number(earning.employeeId) === Number(snapshot.employeeId));
+    if (matching?.payoutId && skipPaidConflicts && hasEarningSnapshotChanged(matching, snapshot)) {
+      synced.push(matching);
+      continue;
+    }
     const data = {
       actualPrice: snapshot.actualPrice,
       amount: snapshot.amount,
@@ -673,13 +692,9 @@ const cleanupPackageVisitEarningsAndEnsureSales = async (tx) => {
   for (const visit of nonPackageVisits) {
     const visitPayload = getVisitPayloadForDayClose(visit);
     if (isCompletedEarningEligibleVisit(visitPayload)) {
-      try {
-        await syncEmployeeEarningForCompletedVisit(tx, null, visit);
-      } catch (error) {
-        if (error?.status !== 409) {
-          throw error;
-        }
-      }
+      await syncEmployeeEarningForCompletedVisit(tx, null, visit, {
+        skipPaidConflicts: true,
+      });
     }
   }
 };

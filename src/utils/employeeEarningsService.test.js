@@ -533,11 +533,18 @@ describe("employee payout validation and summaries", () => {
   });
 
   it("does not fail cleanup when an already paid old earning conflicts", async () => {
+    const created = [];
     const tx = {
+      auditLog: {create: async () => ({})},
       clientPackage: {
         findMany: async () => [],
       },
       employeeEarning: {
+        create: async ({data}) => {
+          const earning = {id: 101, payoutId: null, ...data};
+          created.push(earning);
+          return earning;
+        },
         findMany: async () => [
           {
             actualPrice: 600,
@@ -548,6 +555,7 @@ describe("employee payout validation and summaries", () => {
             payoutId: 9,
           },
         ],
+        update: async ({data, where}) => ({id: where.id, payoutId: 9, ...data}),
       },
       employee: {
         findFirst: async ({where}) => {
@@ -580,5 +588,7 @@ describe("employee payout validation and summaries", () => {
     };
 
     await expect(cleanupPackageVisitEarningsAndEnsureSales(tx)).resolves.toBeUndefined();
+    expect(created).toHaveLength(1);
+    expect(created[0]).toMatchObject({employeeId: 2, visitId: 55});
   });
 });
