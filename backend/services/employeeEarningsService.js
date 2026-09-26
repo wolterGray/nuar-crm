@@ -673,7 +673,13 @@ const cleanupPackageVisitEarningsAndEnsureSales = async (tx) => {
   for (const visit of nonPackageVisits) {
     const visitPayload = getVisitPayloadForDayClose(visit);
     if (isCompletedEarningEligibleVisit(visitPayload)) {
-      await syncEmployeeEarningForCompletedVisit(tx, null, visit);
+      try {
+        await syncEmployeeEarningForCompletedVisit(tx, null, visit);
+      } catch (error) {
+        if (error?.status !== 409) {
+          throw error;
+        }
+      }
     }
   }
 };

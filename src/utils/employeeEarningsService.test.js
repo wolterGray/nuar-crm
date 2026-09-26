@@ -4,6 +4,7 @@ import {describe, expect, it} from "vitest";
 const require = createRequire(import.meta.url);
 const {
   buildPackageSaleEarningSnapshot,
+  cleanupPackageVisitEarningsAndEnsureSales,
   buildEmployeeEarningSnapshots,
   buildEmployeeEarningSnapshot,
   calculateEmployeeAmount,
@@ -529,5 +530,55 @@ describe("employee payout validation and summaries", () => {
 
     expect(rows[0].paid).toBe("180");
     expect(rows[0].unpaid).toBe("144");
+  });
+
+  it("does not fail cleanup when an already paid old earning conflicts", async () => {
+    const tx = {
+      clientPackage: {
+        findMany: async () => [],
+      },
+      employeeEarning: {
+        findMany: async () => [
+          {
+            actualPrice: 600,
+            amount: 240,
+            commissionPercent: 40,
+            employeeId: 1,
+            id: 100,
+            payoutId: 9,
+          },
+        ],
+      },
+      employee: {
+        findFirst: async ({where}) => {
+          const name = typeof where?.name === "string" ? where.name : where?.name?.equals;
+          if (name === "Наталья") return {id: 1, commissionRate: 40, name: "Наталья"};
+          if (name === "Макс") return {id: 2, commissionRate: 40, name: "Макс"};
+          return null;
+        },
+        findUnique: async ({where}) =>
+          where.id === 1
+            ? {id: 1, commissionRate: 40, name: "Наталья"}
+            : {id: 2, commissionRate: 40, name: "Макс"},
+      },
+      visit: {
+        findMany: async () => [
+          {
+            id: 55,
+            employeeEarnings: [{employeeId: 1, payoutId: 9}],
+            payload: {
+              amount: 600,
+              date: "2026-08-06",
+              master: "Наталья",
+              parallelEmployees: [{name: "Наталья"}, {name: "Макс"}],
+              payment: "Наличные",
+              status: "completed",
+            },
+          },
+        ],
+      },
+    };
+
+    await expect(cleanupPackageVisitEarningsAndEnsureSales(tx)).resolves.toBeUndefined();
   });
 });
