@@ -178,12 +178,15 @@ const isDayCloseCancelledVisit = (visit) =>
   );
 
 const isDayClosePackageVisit = (visit) =>
+  Boolean(String(visit?.payment ?? '').trim()) &&
   normalizeDayClosePaymentMethod(visit?.payment) === 'package';
 
 const isDayCloseCertificateVisit = (visit) =>
+  Boolean(String(visit?.payment ?? '').trim()) &&
   normalizeDayClosePaymentMethod(visit?.payment) === 'certificate';
 
 const isDayCloseBarterVisit = (visit) =>
+  Boolean(String(visit?.payment ?? '').trim()) &&
   normalizeDayClosePaymentMethod(visit?.payment) === 'barter';
 
 const hasExplicitDayClosePaidAmount = (visit) =>
@@ -305,8 +308,27 @@ const getDayClosePackageSaleEmployeePayout = (clientPackage, employees = []) => 
   return Math.round(Math.max(0, dayCloseToFinanceNumber(clientPackage?.price)) * (rate / 100));
 };
 
-const getDayClosePackageVisitEmployeePayout = (_visit = null, _employees = [], _clientPackages = []) => {
-  return 0;
+const getDayClosePackageVisitEmployeePayout = (visit = null, employees = [], clientPackages = []) => {
+  const packageItem = clientPackages.find(
+    (item) => String(item.id) === String(visit?.packageUsageId),
+  );
+  const totalVisits = dayCloseToFinanceNumber(packageItem?.totalVisits);
+  const packagePrice = dayCloseToFinanceNumber(packageItem?.price);
+  const sessionsUsed = Math.max(1, dayCloseToFinanceNumber(visit?.packageSessionsUsed) || 1);
+  const serviceName = String(visit?.service ?? visit?.serviceName ?? '').toLowerCase();
+  const isPair =
+    Boolean(visit?.isParallel) ||
+    Boolean(visit?.secondaryMaster) ||
+    Number(visit?.parallelParticipants) > 1 ||
+    isPairDayCloseService(serviceName);
+  const participantCount = isPair ? Math.max(2, Number(visit?.parallelParticipants) || 2) : 1;
+  const base =
+    packagePrice > 0 && totalVisits > 0
+      ? (packagePrice / totalVisits) * sessionsUsed
+      : getDayCloseDiscountedAmount(visit);
+  const rate = getDayCloseEmployeeRate(employees, visit?.master);
+
+  return Math.round(Math.max(0, base / participantCount) * (rate / 100));
 };
 
 const isDayCloseCompletedVisit = (visit) => {

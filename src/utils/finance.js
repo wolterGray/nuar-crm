@@ -294,11 +294,30 @@ export const getPackageSaleEmployeePayout = (packageItem, employees = []) => {
 };
 
 export const getPackageVisitEmployeePayout = (
-  _visit = null,
-  _employees = [],
-  _clientPackages = [],
+  visit = null,
+  employees = [],
+  clientPackages = [],
 ) => {
-  return 0;
+  const packageItem = clientPackages.find(
+    (item) => String(item.id) === String(visit?.packageUsageId),
+  );
+  const totalVisits = toFinanceNumber(packageItem?.totalVisits);
+  const packagePrice = toFinanceNumber(packageItem?.price);
+  const sessionsUsed = Math.max(1, toFinanceNumber(visit?.packageSessionsUsed) || 1);
+  const serviceName = String(visit?.service ?? visit?.serviceName ?? "");
+  const isPair =
+    Boolean(visit?.isParallel) ||
+    Boolean(visit?.secondaryMaster) ||
+    Number(visit?.parallelParticipants) > 1 ||
+    isPairService(serviceName);
+  const participantCount = isPair ? Math.max(2, Number(visit?.parallelParticipants) || 2) : 1;
+  const base =
+    packagePrice > 0 && totalVisits > 0
+      ? (packagePrice / totalVisits) * sessionsUsed
+      : getVisitDiscountedAmount(visit);
+  const rate = getEmployeeRate(employees, visit?.master);
+
+  return Math.round(Math.max(0, base / participantCount) * (rate / 100));
 };
 
 export const getVisitNetProfit = (

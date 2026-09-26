@@ -48,16 +48,16 @@ const getEmployeeDisplayName = (employee, visitPayload = {}) =>
 
 const validateCommissionPercent = (employee) => {
   if (!employee) {
-    return normalizeDecimal(40);
+    throw validationError('Employee is not set for commission calculation');
   }
   const rawRate = employee.commissionRate;
   if (rawRate === null || rawRate === undefined || Number.isNaN(Number(rawRate))) {
-    return normalizeDecimal(40);
+    throw validationError('Commission percent is not set');
   }
 
   const commissionPercent = normalizeDecimal(rawRate);
   if (commissionPercent.isNegative() || commissionPercent.gt(100)) {
-    return normalizeDecimal(40);
+    throw validationError('Commission percent must be between 0 and 100');
   }
 
   return commissionPercent;
@@ -98,14 +98,11 @@ const isCompletedEarningEligibleVisit = (visitPayload) => {
   if (!visitPayload || visitPayload.recordType === 'operation') {
     return false;
   }
-  if (isDayClosePackageVisit(visitPayload)) {
-    return false;
-  }
   return !isDayCloseCancelledVisit(visitPayload) && !isDayCloseBarterVisit(visitPayload);
 };
 
 const getActualPriceForEarning = (visitPayload) => {
-  if (isDayCloseCertificateVisit(visitPayload)) {
+  if (isDayClosePackageVisit(visitPayload) || isDayCloseCertificateVisit(visitPayload)) {
     return normalizeDecimal(Math.max(0, getDayCloseDiscountedAmount(visitPayload)));
   }
   return normalizeDecimal(Math.max(0, getDayCloseServiceReceivedAmount(visitPayload)));
@@ -113,7 +110,22 @@ const getActualPriceForEarning = (visitPayload) => {
 
 const resolveActualPriceForEarning = async (tx, visitPayload) => {
   if (isDayClosePackageVisit(visitPayload)) {
-    return normalizeDecimal(0);
+    const packageId = Number(visitPayload?.packageUsageId);
+    if (Number.isInteger(packageId) && packageId > 0) {
+      const clientPackage = await tx.clientPackage.findUnique({ where: { id: packageId } });
+      const packagePayload =
+        clientPackage?.payload && typeof clientPackage.payload === 'object'
+          ? clientPackage.payload
+          : {};
+      const packagePrice = Number(clientPackage?.price ?? packagePayload.price) || 0;
+      const totalVisits = Number(clientPackage?.totalVisits ?? packagePayload.totalVisits) || 0;
+
+      if (packagePrice > 0 && totalVisits > 0) {
+        return normalizeDecimal(packagePrice / totalVisits);
+      }
+    }
+
+    return getActualPriceForEarning(visitPayload);
   }
   return getActualPriceForEarning(visitPayload);
 };
@@ -216,9 +228,11 @@ const normalizeVisitParticipants = async (tx, visitPayload = {}) => {
   ).trim();
 
   if (participants.length === 0) {
-    if (primaryMaster) {
+    const primaryEmployeeId = Number(visitPayload?.employeeId) || null;
+
+    if (primaryMaster || primaryEmployeeId) {
       participants.push({
-        employeeId: Number(visitPayload?.employeeId) || null,
+        employeeId: primaryEmployeeId,
         name: primaryMaster,
         shareAmount: null,
       });
@@ -344,9 +358,12 @@ const buildEmployeeEarningSnapshots = async (tx, visit) => {
       ? normalizeDecimal(decimal(totalActualPrice).div(participantCount))
       : totalActualPrice;
 
-  return Promise.all(
+  const snapshots = await Promise.all(
     participants.map(async (participant) => {
       const employee = await resolveEmployeeForVisitParticipant(tx, participant, visit, visitPayload);
+      if (!employee) {
+        return null;
+      }
       const commissionPercent = validateCommissionPercent(employee, {
         ...visitPayload,
         master: participant.name || visitPayload.master,
@@ -371,6 +388,8 @@ const buildEmployeeEarningSnapshots = async (tx, visit) => {
       };
     }),
   );
+
+  return snapshots.filter(Boolean);
 };
 
 const buildPackageSaleEarningSnapshot = async (tx, clientPackage) => {
@@ -631,29 +650,6 @@ const earningAmountSum = (earnings = []) =>
   earnings.reduce((sum, earning) => sum.plus(decimal(earning.amount)), decimal(0)).toDecimalPlaces(2);
 
 const cleanupPackageVisitEarningsAndEnsureSales = async (tx) => {
-  const unpaidVisitEarnings = await tx.employeeEarning.findMany({
-    where: {
-      payoutId: null,
-      visitId: { not: null },
-    },
-    include: {
-      visit: true,
-    },
-  });
-
-  const toDeleteIds = unpaidVisitEarnings
-    .filter((earning) => {
-      const visitPayload = getVisitPayloadForDayClose(earning.visit);
-      return isDayClosePackageVisit(visitPayload);
-    })
-    .map((earning) => earning.id);
-
-  if (toDeleteIds.length > 0) {
-    await tx.employeeEarning.deleteMany({
-      where: { id: { in: toDeleteIds } },
-    });
-  }
-
   const clientPackages = await tx.clientPackage.findMany({
     include: {
       employeeEarning: true,
@@ -673,10 +669,7 @@ const cleanupPackageVisitEarningsAndEnsureSales = async (tx) => {
   for (const visit of nonPackageVisits) {
     const visitPayload = getVisitPayloadForDayClose(visit);
     if (isCompletedEarningEligibleVisit(visitPayload)) {
-      const hasPaidPayout = Array.isArray(visit.employeeEarnings) && visit.employeeEarnings.some((e) => e.payoutId);
-      if (!hasPaidPayout) {
-        await syncEmployeeEarningForCompletedVisit(tx, null, visit);
-      }
+      await syncEmployeeEarningForCompletedVisit(tx, null, visit);
     }
   }
 };
@@ -703,4 +696,3 @@ module.exports = {
   syncEmployeeEarningForCompletedVisit,
   validateCommissionPercent,
 };
-
