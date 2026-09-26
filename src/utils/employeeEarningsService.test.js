@@ -197,7 +197,7 @@ describe("employee earning calculations", () => {
     expect(String(newSnapshot.amount)).toBe("135");
   });
 
-  it("allows a zero commission but rejects missing, negative, and >100 commission", async () => {
+  it("allows zero commission and falls back to 40% for missing or invalid commission", async () => {
     const txWithCommission = (commissionRate) => ({
       employee: {
         findUnique: async () => ({id: 7, commissionRate, name: "Макс"}),
@@ -210,12 +210,12 @@ describe("employee earning calculations", () => {
 
     await expect(buildEmployeeEarningSnapshot(txWithCommission(0), visit))
       .resolves.toMatchObject({employeeId: 7});
-    await expect(buildEmployeeEarningSnapshot(txWithCommission(null), visit))
-      .rejects.toThrow("Commission percent is not set");
-    await expect(buildEmployeeEarningSnapshot(txWithCommission(-1), visit))
-      .rejects.toThrow("must be between 0 and 100");
-    await expect(buildEmployeeEarningSnapshot(txWithCommission(101), visit))
-      .rejects.toThrow("must be between 0 and 100");
+    await expect(buildEmployeeEarningSnapshot(txWithCommission(null), visit).then((snapshot) => String(snapshot.commissionPercent)))
+      .resolves.toBe("40");
+    await expect(buildEmployeeEarningSnapshot(txWithCommission(-1), visit).then((snapshot) => String(snapshot.commissionPercent)))
+      .resolves.toBe("40");
+    await expect(buildEmployeeEarningSnapshot(txWithCommission(101), visit).then((snapshot) => String(snapshot.commissionPercent)))
+      .resolves.toBe("40");
   });
 
   it("creates package sale snapshot from employee commissionRate", async () => {

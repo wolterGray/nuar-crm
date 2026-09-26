@@ -48,16 +48,16 @@ const getEmployeeDisplayName = (employee, visitPayload = {}) =>
 
 const validateCommissionPercent = (employee) => {
   if (!employee) {
-    throw validationError('Employee is not set for commission calculation');
+    return normalizeDecimal(40);
   }
   const rawRate = employee.commissionRate;
   if (rawRate === null || rawRate === undefined || Number.isNaN(Number(rawRate))) {
-    throw validationError('Commission percent is not set');
+    return normalizeDecimal(40);
   }
 
   const commissionPercent = normalizeDecimal(rawRate);
   if (commissionPercent.isNegative() || commissionPercent.gt(100)) {
-    throw validationError('Commission percent must be between 0 and 100');
+    return normalizeDecimal(40);
   }
 
   return commissionPercent;
