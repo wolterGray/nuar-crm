@@ -137,12 +137,35 @@ const isPairService = (serviceName = '') => {
   const normalized = String(serviceName).toLowerCase();
   return (
     normalized.includes('dwojga') ||
+    normalized.includes('dwie osoby') ||
+    normalized.includes('2 osoby') ||
     normalized.includes('двоих') ||
+    normalized.includes('двоем') ||
     normalized.includes('парн') ||
     normalized.includes('pair') ||
+    normalized.includes('couple') ||
     normalized.includes('dla 2') ||
     normalized.includes('для 2')
   );
+};
+
+const getExpectedParticipantCountForVisitPayload = (visitPayload = {}) => {
+  const serviceName = String(visitPayload?.service ?? visitPayload?.serviceName ?? '');
+  const savedParticipants = Array.isArray(visitPayload?.parallelEmployees)
+    ? visitPayload.parallelEmployees
+    : Array.isArray(visitPayload?.employees)
+      ? visitPayload.employees
+      : [];
+  const isPair =
+    Boolean(visitPayload?.isParallel) ||
+    Number(visitPayload?.parallelParticipants) > 1 ||
+    savedParticipants.length > 1 ||
+    Boolean(visitPayload?.secondaryMaster ?? visitPayload?.secondMaster ?? visitPayload?.parallelMaster) ||
+    isPairService(serviceName);
+
+  return isPair
+    ? Math.max(2, Number(visitPayload?.parallelParticipants) || savedParticipants.length || 2)
+    : 1;
 };
 
 const normalizeMasterNameKey = (value = '') =>
@@ -180,17 +203,51 @@ const resolveEmployeeByMasterName = async (tx, rawName = '') => {
   return employee ?? null;
 };
 
+const resolveFirstEmployeeByMasterNames = async (tx, names = []) => {
+  for (const name of names) {
+    const employee = await resolveEmployeeByMasterName(tx, name);
+    if (employee) return employee;
+  }
+  return null;
+};
+
 const resolveSecondaryMasterForPair = async (tx, primaryMasterName = '') => {
   const primaryEmp = await resolveEmployeeByMasterName(tx, primaryMasterName);
   const primaryNorm = normalizeMasterNameKey(primaryEmp?.name || primaryMasterName);
+  const isPrimaryMax = primaryNorm.includes('max') || primaryNorm.includes('макс');
+  const isPrimaryNatali =
+    primaryNorm.includes('natali') ||
+    primaryNorm.includes('natalia') ||
+    primaryNorm.includes('natasha') ||
+    primaryNorm.includes('натал') ||
+    primaryNorm.includes('наташ');
+  const isPrimaryAlena =
+    primaryNorm.includes('ален') ||
+    primaryNorm.includes('alena') ||
+    primaryNorm.includes('alona') ||
+    primaryNorm.includes('alicj');
 
-  if (primaryNorm.includes('max') || primaryNorm.includes('максим')) {
-    const alona = await resolveEmployeeByMasterName(tx, 'Алена');
+  if (isPrimaryNatali) {
+    const max = await resolveFirstEmployeeByMasterNames(tx, ['Макс', 'Максим', 'Max']);
+    if (max) return max;
+  }
+
+  if (isPrimaryMax) {
+    const natali = await resolveFirstEmployeeByMasterNames(tx, [
+      'Natali',
+      'Natalia',
+      'Натали',
+      'Наталья',
+      'Наташа',
+    ]);
+    if (natali) return natali;
+
+    const alona = await resolveFirstEmployeeByMasterNames(tx, ['Алена', 'Alena', 'Alona', 'Alicja']);
     if (alona) return alona;
   }
 
-  if (primaryNorm.includes('ален') || primaryNorm.includes('alon') || primaryNorm.includes('alicj')) {
-    const max = await resolveEmployeeByMasterName(tx, 'Максим');
+  if (isPrimaryAlena) {
+    const max = await resolveFirstEmployeeByMasterNames(tx, ['Макс', 'Максим', 'Max']);
     if (max) return max;
   }
 
@@ -674,6 +731,11 @@ const earningAmountSum = (earnings = []) =>
 
 const cleanupPackageVisitEarningsAndEnsureSales = async (tx) => {
   const clientPackages = await tx.clientPackage.findMany({
+    where: {
+      employeeEarning: {
+        is: null,
+      },
+    },
     include: {
       employeeEarning: true,
     },
@@ -691,11 +753,15 @@ const cleanupPackageVisitEarningsAndEnsureSales = async (tx) => {
 
   for (const visit of nonPackageVisits) {
     const visitPayload = getVisitPayloadForDayClose(visit);
-    if (isCompletedEarningEligibleVisit(visitPayload)) {
-      await syncEmployeeEarningForCompletedVisit(tx, null, visit, {
-        skipPaidConflicts: true,
-      });
-    }
+    if (!isCompletedEarningEligibleVisit(visitPayload)) continue;
+
+    const existingCount = Array.isArray(visit.employeeEarnings) ? visit.employeeEarnings.length : 0;
+    const expectedCount = getExpectedParticipantCountForVisitPayload(visitPayload);
+    if (existingCount >= expectedCount) continue;
+
+    await syncEmployeeEarningForCompletedVisit(tx, null, visit, {
+      skipPaidConflicts: true,
+    });
   }
 };
 

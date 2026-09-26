@@ -432,6 +432,41 @@ describe("employee earning calculations", () => {
     expect(snapshots.map((snapshot) => String(snapshot.amount))).toEqual(["120", "120"]);
   });
 
+  it("pairs an old cash Natali visit with Max when the second master was not saved", async () => {
+    const employees = new Map([
+      [7, {id: 7, commissionRate: 40, name: "Natali"}],
+      [8, {id: 8, commissionRate: 40, name: "Max"}],
+      [9, {id: 9, commissionRate: 40, name: "Алена"}],
+    ]);
+    const tx = {
+      employee: {
+        findMany: async () => [...employees.values()],
+        findFirst: async ({where}) => {
+          const name = typeof where?.name === "string" ? where.name : where?.name?.equals;
+          return [...employees.values()].find((employee) => employee.name === name) ?? null;
+        },
+        findUnique: async ({where}) => employees.get(where.id) ?? null,
+      },
+    };
+
+    const snapshots = await buildEmployeeEarningSnapshots(tx, {
+      employeeId: 7,
+      payload: {
+        amount: 600,
+        master: "Natali",
+        paidAmount: 600,
+        payment: "Наличные",
+        service: "Masaż dla dwojga",
+        status: "completed",
+      },
+    });
+
+    expect(snapshots).toHaveLength(2);
+    expect(snapshots.map((snapshot) => snapshot.employeeId)).toEqual([7, 8]);
+    expect(snapshots.map((snapshot) => String(snapshot.actualPrice))).toEqual(["300", "300"]);
+    expect(snapshots.map((snapshot) => String(snapshot.amount))).toEqual(["120", "120"]);
+  });
+
   it("skips package sale snapshot when seller is not selected", async () => {
     const tx = {
       employee: {
@@ -590,5 +625,35 @@ describe("employee payout validation and summaries", () => {
     await expect(cleanupPackageVisitEarningsAndEnsureSales(tx)).resolves.toBeUndefined();
     expect(created).toHaveLength(1);
     expect(created[0]).toMatchObject({employeeId: 2, visitId: 55});
+  });
+
+  it("does not resync completed visits that already have enough earnings", async () => {
+    const tx = {
+      clientPackage: {
+        findMany: async () => [],
+      },
+      employeeEarning: {
+        findMany: async () => {
+          throw new Error("sync should not run");
+        },
+      },
+      visit: {
+        findMany: async () => [
+          {
+            id: 56,
+            employeeEarnings: [{employeeId: 1, payoutId: null}],
+            payload: {
+              amount: 300,
+              date: "2026-09-26",
+              master: "Natali",
+              payment: "Наличные",
+              status: "completed",
+            },
+          },
+        ],
+      },
+    };
+
+    await expect(cleanupPackageVisitEarningsAndEnsureSales(tx)).resolves.toBeUndefined();
   });
 });
