@@ -100,4 +100,33 @@ describe("dailyPayroll", () => {
       true,
     );
   });
+
+  it("includes a cash paired visit for the second master", () => {
+    const report = buildDailyPayrollDayReport({
+      date: "2026-08-06",
+      employee: {...employees[0], name: "Макс"},
+      employees: [
+        {...employees[0], name: "Макс"},
+        {...employees[1], name: "Наталья", commissionRate: 40, payrollSchedule: "daily"},
+      ],
+      visits: [
+        {
+          id: 10,
+          amount: 600,
+          client: "Pair",
+          date: "06.08.2026",
+          master: "Наталья",
+          parallelEmployees: [{name: "Наталья"}, {name: "Макс"}],
+          payment: "Наличные",
+          service: {payload: {isParallel: true, parallelParticipants: 2}},
+          serviceName: "Masaż",
+          status: "completed",
+          time: "12:00",
+        },
+      ],
+    });
+
+    expect(report.rows).toHaveLength(1);
+    expect(report.rows[0].payout).toBe(120);
+  });
 });

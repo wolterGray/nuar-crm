@@ -222,13 +222,17 @@ const normalizeVisitParticipants = async (tx, visitPayload = {}) => {
     }))
     .filter((participant) => participant.employeeId || participant.name);
 
-  const primaryMaster = String(visitPayload?.master ?? visitPayload?.employeeName ?? '').trim();
+  let primaryMaster = String(visitPayload?.master ?? visitPayload?.employeeName ?? '').trim();
   const secondaryMaster = String(
     visitPayload?.secondaryMaster ?? visitPayload?.secondMaster ?? visitPayload?.parallelMaster ?? '',
   ).trim();
 
   if (participants.length === 0) {
     const primaryEmployeeId = Number(visitPayload?.employeeId) || null;
+    if (!primaryMaster && primaryEmployeeId && tx) {
+      const primaryEmployee = await tx.employee.findUnique({ where: { id: primaryEmployeeId } });
+      primaryMaster = String(primaryEmployee?.name ?? '').trim();
+    }
 
     if (primaryMaster || primaryEmployeeId) {
       participants.push({

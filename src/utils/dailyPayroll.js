@@ -11,6 +11,7 @@ import {
   toFinanceNumber,
 } from "./finance.js";
 import {normalizePayrollDate} from "./payroll.js";
+import {getEntryMasters} from "./parallelVisits.js";
 
 export const PAYROLL_SCHEDULE_DAILY = "daily";
 export const PAYROLL_SCHEDULE_MONTHLY = "monthly";
@@ -74,7 +75,7 @@ export const buildDailyPayrollDayReport = ({
   const employeeVisits = visits
     .filter(
       (visit) =>
-        visit.master === employee.name &&
+        getEntryMasters(visit).includes(employee.name) &&
         isCompletedVisit(visit, now) &&
         !isCancelledVisit(visit) &&
         visit.recordType !== "operation" &&
@@ -85,7 +86,8 @@ export const buildDailyPayrollDayReport = ({
     );
 
   const rows = employeeVisits.map((visit) => {
-    const payout = getVisitMasterPayoutAmount(visit, employees, clientPackages);
+    const payoutVisit = {...visit, master: employee.name};
+    const payout = getVisitMasterPayoutAmount(payoutVisit, employees, clientPackages);
     const receivedAmount = isPackageVisit(visit)
       ? getVisitDiscountedAmount(visit)
       : getVisitServiceReceivedAmount(visit);

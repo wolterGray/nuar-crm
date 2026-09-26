@@ -118,6 +118,8 @@ export const normalizePaymentMethod = (method) => {
 };
 
 export const isPackageVisit = (visit) =>
+  Boolean(visit?.packageUsageId) ||
+  Number(visit?.packageSessionsUsed) > 0 ||
   normalizePaymentMethod(visit?.payment) === "package";
 
 export const isCertificateVisit = (visit) =>
@@ -255,19 +257,31 @@ const isPairService = (serviceName = "") => {
   );
 };
 
+const isParallelVisit = (visit) => {
+  const servicePayload =
+    visit?.service?.payload && typeof visit.service.payload === "object"
+      ? visit.service.payload
+      : {};
+  const serviceName = String(
+    visit?.serviceName ?? visit?.service?.name ?? visit?.service ?? "",
+  );
+
+  return (
+    Boolean(visit?.isParallel ?? visit?.payload?.isParallel ?? servicePayload.isParallel) ||
+    Boolean(visit?.secondaryMaster ?? visit?.payload?.secondaryMaster) ||
+    Number(visit?.parallelParticipants ?? visit?.payload?.parallelParticipants ?? servicePayload.parallelParticipants) > 1 ||
+    isPairService(serviceName)
+  );
+};
+
 export const getVisitEmployeePayout = (visit, employees = []) => {
   if (isCancelledVisit(visit) || isBarterVisit(visit)) {
     return 0;
   }
 
-  const serviceName = String(visit?.service ?? visit?.serviceName ?? "");
-  const isPair =
-    Boolean(visit?.isParallel) ||
-    Boolean(visit?.secondaryMaster) ||
-    Number(visit?.parallelParticipants) > 1 ||
-    isPairService(serviceName);
-
-  const participantCount = isPair ? Math.max(2, Number(visit?.parallelParticipants) || 2) : 1;
+  const participantCount = isParallelVisit(visit)
+    ? Math.max(2, Number(visit?.parallelParticipants ?? visit?.payload?.parallelParticipants ?? visit?.service?.payload?.parallelParticipants) || 2)
+    : 1;
 
   const employee = employees.find((item) => item.name === visit?.master);
   const rate = toFinanceNumber(employee?.commissionRate);
@@ -304,13 +318,9 @@ export const getPackageVisitEmployeePayout = (
   const totalVisits = toFinanceNumber(packageItem?.totalVisits);
   const packagePrice = toFinanceNumber(packageItem?.price);
   const sessionsUsed = Math.max(1, toFinanceNumber(visit?.packageSessionsUsed) || 1);
-  const serviceName = String(visit?.service ?? visit?.serviceName ?? "");
-  const isPair =
-    Boolean(visit?.isParallel) ||
-    Boolean(visit?.secondaryMaster) ||
-    Number(visit?.parallelParticipants) > 1 ||
-    isPairService(serviceName);
-  const participantCount = isPair ? Math.max(2, Number(visit?.parallelParticipants) || 2) : 1;
+  const participantCount = isParallelVisit(visit)
+    ? Math.max(2, Number(visit?.parallelParticipants ?? visit?.payload?.parallelParticipants ?? visit?.service?.payload?.parallelParticipants) || 2)
+    : 1;
   const base =
     packagePrice > 0 && totalVisits > 0
       ? (packagePrice / totalVisits) * sessionsUsed

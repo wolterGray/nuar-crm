@@ -350,6 +350,87 @@ describe("employee earning calculations", () => {
     expect(snapshots.map((snapshot) => String(snapshot.amount))).toEqual(["40", "40"]);
   });
 
+  it("detects an old paired package visit from service payload and package usage fields", async () => {
+    const employees = new Map([
+      [7, {id: 7, commissionRate: 40, name: "Наталья"}],
+      [8, {id: 8, commissionRate: 40, name: "Макс"}],
+    ]);
+    const tx = {
+      clientPackage: {
+        findUnique: async () => ({id: 12, price: 1200, totalVisits: 6, payload: {}}),
+      },
+      employee: {
+        findMany: async () => [...employees.values()],
+        findFirst: async ({where}) => {
+          const name = typeof where?.name === "string" ? where.name : where?.name?.equals;
+          return [...employees.values()].find((employee) => employee.name === name) ?? null;
+        },
+        findUnique: async ({where}) => employees.get(where.id) ?? null,
+      },
+    };
+
+    const snapshots = await buildEmployeeEarningSnapshots(tx, {
+      employeeId: 7,
+      payload: {
+        amount: 600,
+        packageSessionsUsed: 1,
+        packageUsageId: 12,
+        paidAmount: 0,
+        status: "completed",
+      },
+      service: {
+        name: "Masaż",
+        payload: {
+          isParallel: true,
+          parallelParticipants: 2,
+        },
+      },
+    });
+
+    expect(snapshots).toHaveLength(2);
+    expect(snapshots.map((snapshot) => snapshot.employeeId)).toEqual([7, 8]);
+    expect(snapshots.map((snapshot) => String(snapshot.amount))).toEqual(["40", "40"]);
+  });
+
+  it("creates earnings for an old cash paired visit from service payload", async () => {
+    const employees = new Map([
+      [7, {id: 7, commissionRate: 40, name: "Наталья"}],
+      [8, {id: 8, commissionRate: 40, name: "Макс"}],
+    ]);
+    const tx = {
+      employee: {
+        findMany: async () => [...employees.values()],
+        findFirst: async ({where}) => {
+          const name = typeof where?.name === "string" ? where.name : where?.name?.equals;
+          return [...employees.values()].find((employee) => employee.name === name) ?? null;
+        },
+        findUnique: async ({where}) => employees.get(where.id) ?? null,
+      },
+    };
+
+    const snapshots = await buildEmployeeEarningSnapshots(tx, {
+      employeeId: 7,
+      payload: {
+        amount: 600,
+        paidAmount: 600,
+        payment: "Наличные",
+        status: "completed",
+      },
+      service: {
+        name: "Masaż",
+        payload: {
+          isParallel: true,
+          parallelParticipants: 2,
+        },
+      },
+    });
+
+    expect(snapshots).toHaveLength(2);
+    expect(snapshots.map((snapshot) => snapshot.employeeId)).toEqual([7, 8]);
+    expect(snapshots.map((snapshot) => String(snapshot.actualPrice))).toEqual(["300", "300"]);
+    expect(snapshots.map((snapshot) => String(snapshot.amount))).toEqual(["120", "120"]);
+  });
+
   it("skips package sale snapshot when seller is not selected", async () => {
     const tx = {
       employee: {

@@ -144,6 +144,7 @@ const formatDateForDayClose = (value) => {
 
 const getVisitPayloadForDayClose = (visit) => {
   const payload = getRecordPayload(visit);
+  const servicePayload = getRecordPayload(visit?.service);
   return {
     ...payload,
     id: visit?.id,
@@ -151,6 +152,8 @@ const getVisitPayloadForDayClose = (visit) => {
     master: payload.master ?? payload.masterName ?? payload.employeeName ?? visit?.employee?.name ?? '',
     secondaryMaster: payload.secondaryMaster ?? payload.secondMaster ?? payload.parallelMaster ?? '',
     employeeId: payload.employeeId ?? visit?.employeeId ?? visit?.employee?.id ?? null,
+    isParallel: payload.isParallel ?? servicePayload.isParallel ?? false,
+    parallelParticipants: payload.parallelParticipants ?? servicePayload.parallelParticipants ?? 1,
     service: payload.service ?? payload.serviceName ?? visit?.service?.name ?? '',
     serviceId: payload.serviceId ?? visit?.serviceId ?? visit?.service?.id ?? null,
     amount: payload.amount ?? visit?.amount ?? 0,
@@ -178,8 +181,10 @@ const isDayCloseCancelledVisit = (visit) =>
   );
 
 const isDayClosePackageVisit = (visit) =>
-  Boolean(String(visit?.payment ?? '').trim()) &&
-  normalizeDayClosePaymentMethod(visit?.payment) === 'package';
+  Boolean(visit?.packageUsageId) ||
+  Number(visit?.packageSessionsUsed) > 0 ||
+  (Boolean(String(visit?.payment ?? '').trim()) &&
+    normalizeDayClosePaymentMethod(visit?.payment) === 'package');
 
 const isDayCloseCertificateVisit = (visit) =>
   Boolean(String(visit?.payment ?? '').trim()) &&
@@ -276,6 +281,27 @@ const isPairDayCloseService = (serviceName = '') => {
     normalized.includes('dla 2') ||
     normalized.includes('для 2')
   );
+};
+
+const getDayCloseVisitMasters = (visit) => {
+  const payload = getRecordPayload(visit);
+  const participants = Array.isArray(visit?.parallelEmployees)
+    ? visit.parallelEmployees
+    : Array.isArray(payload.parallelEmployees)
+      ? payload.parallelEmployees
+      : [];
+  const names = participants
+    .map((participant) => String(participant?.name ?? participant?.master ?? '').trim())
+    .filter(Boolean);
+  const secondaryMaster = String(
+    visit?.secondaryMaster ?? payload.secondaryMaster ?? payload.secondMaster ?? payload.parallelMaster ?? '',
+  ).trim();
+  const primaryMaster = String(visit?.master ?? payload.master ?? payload.employeeName ?? '').trim();
+
+  if (secondaryMaster) names.push(secondaryMaster);
+  if (primaryMaster) names.unshift(primaryMaster);
+
+  return [...new Set(names.filter(Boolean))];
 };
 
 const getDayCloseEmployeePayout = (visit, employees = []) => {
@@ -534,7 +560,9 @@ const buildServerPayrollReport = ({
   );
   const rows = filteredEmployees
     .map((employee) => {
-      const employeeVisits = completedVisits.filter((visit) => visit.master === employee.name);
+      const employeeVisits = completedVisits.filter((visit) =>
+        getDayCloseVisitMasters(visit).includes(employee.name),
+      );
       const employeePackages = packagesInPeriod.filter((item) => item.master === employee.name);
       const employeeCertificateSales = certificateSaleOperations.filter(
         (visit) => visit.master === employee.name,
@@ -551,12 +579,15 @@ const buildServerPayrollReport = ({
 
         if (isDayClosePackageVisit(visit)) {
           packageVisitPayout += getDayClosePackageVisitEmployeePayout(
-            visit,
+            {...visit, master: employee.name},
             filteredEmployees,
             clientPackagePayloads,
           );
         } else {
-          servicePayout += getDayCloseEmployeePayout(visit, filteredEmployees);
+          servicePayout += getDayCloseEmployeePayout(
+            {...visit, master: employee.name},
+            filteredEmployees,
+          );
         }
       }
 

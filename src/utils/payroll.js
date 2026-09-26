@@ -10,6 +10,7 @@ import {
   toFinanceNumber,
 } from "./finance.js";
 import {toDisplayDate} from "./formatters.jsx";
+import {getEntryMasters} from "./parallelVisits.js";
 
 export const normalizePayrollDate = (value) => {
   const parsed = parseAppDate(value);
@@ -43,7 +44,7 @@ export const buildPayrollReport = ({
   const rows = employees
     .map((employee) => {
       const employeeVisits = completedVisits.filter(
-        (visit) => visit.master === employee.name,
+        (visit) => getEntryMasters(visit).includes(employee.name),
       );
       const employeePackages = packagesInPeriod.filter(
         (item) => item.master === employee.name,
@@ -55,10 +56,12 @@ export const buildPayrollReport = ({
       for (const visit of employeeVisits) {
         tips += getVisitTipAmount(visit);
 
+        const payoutVisit = {...visit, master: employee.name};
+
         if (isPackageVisit(visit)) {
-          packageVisitPayout += getPackageVisitEmployeePayout(visit, employees, clientPackages);
+          packageVisitPayout += getPackageVisitEmployeePayout(payoutVisit, employees, clientPackages);
         } else {
-          servicePayout += getVisitEmployeePayout(visit, employees);
+          servicePayout += getVisitEmployeePayout(payoutVisit, employees);
         }
       }
 

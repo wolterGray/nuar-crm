@@ -77,6 +77,34 @@ describe("payroll", () => {
     );
   });
 
+  it("includes cash paired visits for the second master", () => {
+    const report = buildPayrollReport({
+      employees: [
+        {id: 1, name: "Макс", commissionRate: 40, status: "Активен"},
+        {id: 2, name: "Наталья", commissionRate: 40, status: "Активен"},
+      ],
+      endDate: "2026-08-31",
+      startDate: "2026-08-01",
+      visits: [
+        {
+          amount: 600,
+          date: "06.08.2026",
+          master: "Наталья",
+          parallelEmployees: [{name: "Наталья"}, {name: "Макс"}],
+          payment: "Наличные",
+          service: {payload: {isParallel: true, parallelParticipants: 2}},
+          serviceName: "Masaż",
+          status: "completed",
+          time: "12:00",
+        },
+      ],
+    });
+
+    expect(report.employees).toHaveLength(2);
+    expect(report.employees.find((row) => row.employeeName === "Макс")?.servicePayout).toBe(120);
+    expect(report.employees.find((row) => row.employeeName === "Наталья")?.servicePayout).toBe(120);
+  });
+
   it("returns current month range", () => {
     const range = getCurrentMonthPayrollRange(new Date("2026-06-15"));
 
