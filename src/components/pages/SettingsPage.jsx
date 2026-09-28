@@ -1151,12 +1151,12 @@ function SettingsPage({
                       }
                       className="mt-1"
                     >
-                      <option value="remaining">Только оставшиеся</option>
+                      <option value="remaining">Ближайшие по горизонту</option>
                       <option value="upcoming">Только ближайшие</option>
                     </Select>
                   </label>
                   <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
-                    <FieldLabel hint="Используется для режима «Только ближайшие»">
+                    <FieldLabel hint="Визиты дальше этого горизонта остаются в календаре, но не шумят в колокольчике">
                       Горизонт ближайших визитов
                     </FieldLabel>
                     <Select

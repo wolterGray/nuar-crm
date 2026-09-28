@@ -131,4 +131,41 @@ describe("alertCenter", () => {
       type: "unclosed_visit",
     });
   });
+
+  it("does not turn the whole remaining day schedule into notifications", () => {
+    const result = buildAlertCenter({
+      appSettings: {...baseSettings, upcomingVisitMinutes: 60},
+      calendarEntries: [
+        {
+          id: "v-near",
+          kind: "visit",
+          date: "2026-09-28",
+          time: "12:30",
+          client: "Near",
+          status: "scheduled",
+        },
+        {
+          id: "v-late",
+          kind: "visit",
+          date: "2026-09-28",
+          time: "18:00",
+          client: "Late",
+          status: "scheduled",
+        },
+      ],
+      clientPackages: [],
+      clientProfiles: [],
+      defaultAppSettings,
+      dismissedAlertIds: [],
+      inactiveClientDays: 14,
+      notificationInbox: [],
+      snoozes: {},
+      supplies: [],
+      tasks: [],
+      visits: [],
+      now: new Date("2026-09-28T12:00:00"),
+    });
+
+    expect(result.rawAlerts.map((alert) => alert.entityId)).toEqual(["v-near"]);
+  });
 });

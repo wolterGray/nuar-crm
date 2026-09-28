@@ -105,6 +105,27 @@ const isStaleVisitUpcomingEvent = (event = {}, calendarEntry = null, now = new D
   return false;
 };
 
+const isActionableVisitUpcomingEvent = (
+  event = {},
+  calendarEntry = null,
+  now = new Date(),
+  horizonMinutes = 180,
+) => {
+  if (event.type !== 'visit_upcoming') return true;
+  if (isStaleVisitUpcomingEvent(event, calendarEntry, now)) return false;
+
+  const today = toIsoDate(now);
+  const eventDate = getVisitEventDate(event, calendarEntry);
+  if (eventDate !== today) return false;
+
+  const eventMinutes = getMinutesFromTime(getVisitEventTime(event, calendarEntry));
+  if (eventMinutes === null) return false;
+
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const difference = eventMinutes - nowMinutes;
+  return difference >= 0 && difference <= Math.max(15, Number(horizonMinutes) || 180);
+};
+
 const resolveStaleVisitUpcomingEvents = async (prisma, {now = new Date()} = {}) => {
   const activeEvents = await prisma.notificationEvent.findMany({
     where: {
@@ -198,6 +219,7 @@ const normalizeNotificationEventInput = (input = {}) => {
 
 const listNotificationEvents = async (prisma, {limit = 50, status = 'active'} = {}) => {
   const take = Math.max(1, Math.min(100, Number(limit) || 50));
+  const internalTake = Math.min(100, Math.max(take * 3, take));
   const now = new Date();
   if (status === 'active') {
     await resolveStaleVisitUpcomingEvents(prisma, {now});
@@ -214,11 +236,14 @@ const listNotificationEvents = async (prisma, {limit = 50, status = 'active'} = 
 
   const events = await prisma.notificationEvent.findMany({
     orderBy: [{score: 'desc'}, {createdAt: 'desc'}],
-    take,
+    take: internalTake,
     where,
   });
 
-  return events.filter((event) => !isStaleVisitUpcomingEvent(event, null, now));
+  return events
+    .filter((event) => !isStaleVisitUpcomingEvent(event, null, now))
+    .filter((event) => isActionableVisitUpcomingEvent(event, null, now))
+    .slice(0, take);
 };
 
 const upsertNotificationEvent = (prisma, input) => {
@@ -227,7 +252,6 @@ const upsertNotificationEvent = (prisma, input) => {
   return prisma.notificationEvent.upsert({
     create: data,
     update: {
-      clientId: data.clientId,
       clientName: data.clientName,
       entityId: data.entityId,
       entityType: data.entityType,
@@ -254,6 +278,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
 
   const today = toIsoDate(now);
   const tomorrow = toIsoDate(new Date(now.getTime() + 86400000));
+  const upcomingVisitMinutes = Math.max(15, Number(settings.upcomingVisitMinutes) || 180);
   const generated = [];
 
   const tasks = await prisma.task.findMany({
@@ -321,7 +346,12 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
   });
 
   for (const entry of calendarEntries) {
-    if (isStaleVisitUpcomingEvent({type: 'visit_upcoming', payload: {date: entry.date, time: entry.time}}, entry, now)) {
+    if (!isActionableVisitUpcomingEvent(
+      {type: 'visit_upcoming', payload: {date: entry.date, time: entry.time}},
+      entry,
+      now,
+      upcomingVisitMinutes,
+    )) {
       continue;
     }
 
@@ -558,6 +588,7 @@ module.exports = {
   updateNotificationEvent,
   upsertNotificationEvent,
   _private: {
+    isActionableVisitUpcomingEvent,
     isStaleVisitUpcomingEvent,
     resolveStaleVisitUpcomingEvents,
     toIsoDate,

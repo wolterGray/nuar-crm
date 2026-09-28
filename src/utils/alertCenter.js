@@ -164,7 +164,6 @@ export const buildAlertCenter = ({
     });
 
   if (appSettings.todayVisitAlertsEnabled) {
-    const mode = appSettings.todayVisitAlertMode ?? "all";
     const upcomingMinutes = Math.max(
       15,
       Number(appSettings.upcomingVisitMinutes) || 180,
@@ -176,12 +175,7 @@ export const buildAlertCenter = ({
       .filter((entry) => {
         const [hours, minutes] = String(entry.time ?? "00:00").split(":").map(Number);
         const difference = hours * 60 + minutes - currentMinutes;
-
-        if (mode === "upcoming") {
-          return difference >= 0 && difference <= upcomingMinutes;
-        }
-
-        return difference >= 0;
+        return difference >= 0 && difference <= upcomingMinutes;
       })
       .forEach((entry) => {
         const alertId = `calendar-${entry.id}`;

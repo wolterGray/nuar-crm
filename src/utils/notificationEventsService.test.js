@@ -4,7 +4,11 @@ import {describe, expect, it} from "vitest";
 const require = createRequire(import.meta.url);
 const {
   listNotificationEvents,
-  _private: {isStaleVisitUpcomingEvent, resolveStaleVisitUpcomingEvents},
+  _private: {
+    isActionableVisitUpcomingEvent,
+    isStaleVisitUpcomingEvent,
+    resolveStaleVisitUpcomingEvents,
+  },
 } = require("../../backend/services/notificationEventsService.js");
 
 const toInputDate = (date) => [
@@ -12,6 +16,11 @@ const toInputDate = (date) => [
   String(date.getMonth() + 1).padStart(2, "0"),
   String(date.getDate()).padStart(2, "0"),
 ].join("-");
+
+const toTime = (date) => [
+  String(date.getHours()).padStart(2, "0"),
+  String(date.getMinutes()).padStart(2, "0"),
+].join(":");
 
 describe("notification events service", () => {
   it("treats past upcoming visit notifications as stale", () => {
@@ -59,10 +68,36 @@ describe("notification events service", () => {
     ).toBe(false);
   });
 
+  it("shows only upcoming visit notifications inside the near horizon", () => {
+    const now = new Date("2026-09-28T12:00:00");
+
+    expect(
+      isActionableVisitUpcomingEvent(
+        {
+          payload: {date: "2026-09-28", time: "13:00"},
+          type: "visit_upcoming",
+        },
+        null,
+        now,
+      ),
+    ).toBe(true);
+    expect(
+      isActionableVisitUpcomingEvent(
+        {
+          payload: {date: "2026-09-29", time: "10:00"},
+          type: "visit_upcoming",
+        },
+        null,
+        now,
+      ),
+    ).toBe(false);
+  });
+
   it("resolves stale visit notifications before listing active events", async () => {
     const now = new Date();
     const yesterday = toInputDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
-    const tomorrow = toInputDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+    const today = toInputDate(now);
+    const nearTime = toTime(new Date(now.getTime() + 60 * 60 * 1000));
     const updatedIds = [];
     const events = [
       {
@@ -75,7 +110,7 @@ describe("notification events service", () => {
       {
         id: 2,
         entityId: "11",
-        payload: {date: tomorrow, time: "13:00"},
+        payload: {date: today, time: nearTime},
         status: "new",
         type: "visit_upcoming",
       },

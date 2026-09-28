@@ -92,6 +92,7 @@ const getServerAlertActions = (event) => {
 };
 
 const SERVER_VISIT_GRACE_MINUTES = 30;
+const SERVER_VISIT_HORIZON_MINUTES = 180;
 
 const getMinutesFromTime = (value) => {
   const [hours, minutes] = String(value ?? "").split(":").map(Number);
@@ -121,6 +122,22 @@ const isStaleServerVisitEvent = (event, now = new Date()) => {
   }
 
   return false;
+};
+
+const isActionableServerVisitEvent = (event, now = new Date()) => {
+  if (event?.type !== "visit_upcoming") return true;
+  if (isStaleServerVisitEvent(event, now)) return false;
+
+  const payload = event.payload && typeof event.payload === "object" ? event.payload : {};
+  const eventDate = formatAppDate(payload.date, INPUT_DATE_FORMAT);
+  if (eventDate !== getTodayInput()) return false;
+
+  const eventMinutes = getMinutesFromTime(payload.time);
+  if (eventMinutes === null) return false;
+
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const difference = eventMinutes - nowMinutes;
+  return difference >= 0 && difference <= SERVER_VISIT_HORIZON_MINUTES;
 };
 
 const mapServerEventToAlert = (event) => ({
@@ -256,7 +273,7 @@ export function useClientAlerts({
   const serverAlerts = useMemo(
     () =>
       serverEvents
-        .filter((event) => !isStaleServerVisitEvent(event))
+        .filter((event) => isActionableServerVisitEvent(event))
         .map(mapServerEventToAlert),
     [serverEvents],
   );
