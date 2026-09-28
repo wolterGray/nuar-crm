@@ -87,4 +87,35 @@ describe("todayDashboard", () => {
     expect(dashboard.actionItems.some((item) => item.type === "birthday")).toBe(true);
     expect(dashboard.forecastRevenue).toBe(900);
   });
+
+  it("surfaces unclosed past visits as critical action items", () => {
+    const dashboard = buildTodayDashboard({
+      alertSummary: {},
+      alerts: [],
+      calendarEntries: [
+        {
+          id: "v-old",
+          kind: "visit",
+          date: "2026-09-27",
+          time: "15:00",
+          client: "Anna",
+          service: "Massage",
+          status: "scheduled",
+        },
+      ],
+      clientProfiles: [],
+      employees: [],
+      now: new Date("2026-09-28T12:00:00"),
+      supplies: [],
+      tasks: [],
+      visits: [],
+    });
+
+    expect(dashboard.unclosedPastVisits).toHaveLength(1);
+    expect(dashboard.actionItems[0]).toMatchObject({
+      id: "unclosed-visit-v-old",
+      priority: "critical",
+      type: "unclosed_visit",
+    });
+  });
 });

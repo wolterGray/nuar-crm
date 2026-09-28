@@ -9078,6 +9078,23 @@ button:focus-visible {
   gap: 12px;
 }
 
+.today-unclosed-row {
+  width: 100%;
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.today-unclosed-row:hover strong {
+  color: var(--today-red);
+}
+
 .today-task-line {
   gap: 8px;
   min-height: 30px;

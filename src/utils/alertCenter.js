@@ -13,11 +13,11 @@ import {
   toInputDate,
 } from "./formatters.jsx";
 import {getTodayInput} from "./dateHelpers.js";
-import {shiftAppDate} from "./dateUtils.js";
+import {normalizeCalendarEntryDate, shiftAppDate} from "./dateUtils.js";
 import {isAlertHidden} from "./alertSnooze.js";
 import {aggregateDisplayAlerts} from "./alertAggregation.js";
 import {isSupplyLowStock, isSupplyOutOfStock} from "./supplyStock.js";
-import {isCalendarVisitCompleted} from "./calendarVisitStatus.js";
+import {getMinutesFromTime, isCalendarVisitCompleted} from "./calendarVisitStatus.js";
 import {toVisitNumber} from "./visits.jsx";
 
 const PRIORITY_ORDER = {critical: 0, action: 1, info: 2};
@@ -39,6 +39,29 @@ const createAlert = (alert) => ({
   priority: "info",
   ...alert,
 });
+
+const getInputDateFromNow = (now = new Date()) => [
+  String(now.getFullYear()).padStart(4, "0"),
+  String(now.getMonth() + 1).padStart(2, "0"),
+  String(now.getDate()).padStart(2, "0"),
+].join("-");
+
+export const isUnclosedPastVisit = (entry, now = new Date()) => {
+  if (entry?.kind !== "visit") return false;
+  if (["completed", "cancelled", "no_show"].includes(String(entry.status ?? ""))) {
+    return false;
+  }
+
+  const today = getInputDateFromNow(now);
+  const entryDate = normalizeCalendarEntryDate(entry.date || today);
+  if (!entryDate) return false;
+  if (entryDate < today) return true;
+  if (entryDate > today) return false;
+
+  const endMinutes = getMinutesFromTime(entry.time) + (Number(entry.duration) || 60);
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  return endMinutes <= currentMinutes;
+};
 
 export const buildInactiveClients = ({
   calendarEntries,
@@ -108,12 +131,37 @@ export const buildAlertCenter = ({
     };
   }
 
-  const today = getTodayInput();
+  const today = getInputDateFromNow(now) || getTodayInput();
   const tomorrow = shiftAppDate(today, 1);
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const isHidden = (alertId) =>
     isAlertHidden(alertId, dismissedAlertIds, snoozes, now);
   const alerts = [];
+
+  calendarEntries
+    .filter((entry) => isUnclosedPastVisit(entry, now))
+    .forEach((entry) => {
+      const alertId = `unclosed-visit-${entry.id}`;
+
+      if (isHidden(alertId)) {
+        return;
+      }
+
+      alerts.push(
+        createAlert({
+          id: alertId,
+          type: "unclosed_visit",
+          group: "calendar",
+          priority: "critical",
+          title: "Закрыть прошедший визит",
+          message: `${entry.date || today} ${entry.time || ""} · ${entry.client || "Без клиента"} · ${entry.service || "Визит"}`,
+          page: "calendar",
+          entityId: entry.id,
+          actions: ["calendar", "snooze"],
+          meta: {entry},
+        }),
+      );
+    });
 
   if (appSettings.todayVisitAlertsEnabled) {
     const mode = appSettings.todayVisitAlertMode ?? "all";
@@ -123,7 +171,7 @@ export const buildAlertCenter = ({
     );
 
     calendarEntries
-      .filter((entry) => entry.date === today && entry.kind === "visit")
+      .filter((entry) => normalizeCalendarEntryDate(entry.date) === today && entry.kind === "visit")
       .filter((entry) => !["completed", "cancelled", "no_show"].includes(entry.status))
       .filter((entry) => {
         const [hours, minutes] = String(entry.time ?? "00:00").split(":").map(Number);
@@ -461,7 +509,7 @@ export const buildAlertCenter = ({
   ).length;
   const visitsToday = calendarEntries.filter(
     (entry) =>
-      entry.date === today &&
+      normalizeCalendarEntryDate(entry.date) === today &&
       entry.kind === "visit" &&
       !["cancelled", "no_show"].includes(entry.status),
   ).length;

@@ -344,6 +344,32 @@ function TodayReferenceBoard({
             )}
           </section>
 
+          {dashboard.unclosedPastVisits.length ? (
+            <section className="today-panel today-side-panel today-unclosed-panel">
+              <header className="today-panel-header">
+                <h2>
+                  Нужно закрыть <span className="today-count-pill">{dashboard.unclosedPastVisits.length}</span>
+                </h2>
+                <Button className="today-control-button is-secondary is-compact" variant="secondary" onClick={onOpenCalendar}>
+                  Календарь
+                </Button>
+              </header>
+              <div className="today-side-list">
+                {dashboard.unclosedPastVisits.slice(0, 4).map((entry) => (
+                  <button
+                    key={entry.id}
+                    className="today-side-row today-unclosed-row"
+                    type="button"
+                    onClick={() => onEditVisit?.(entry)}
+                  >
+                    <strong>{entry.date} · {entry.time || "—"}</strong>
+                    <span>{entry.client || "Без клиента"} · {entry.service || "Визит"}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           <section className="today-panel today-side-panel today-employees-panel">
             <header className="today-panel-header">
               <h2>Сотрудники</h2>
@@ -455,7 +481,7 @@ function TodayReferenceBoard({
               </h2>
             </header>
             <div className="today-side-list">
-              {dashboard.actionItems.slice(0, 2).map((item) => (
+              {dashboard.actionItems.slice(0, 4).map((item) => (
                 <div
                   key={item.id}
                   className={`today-alert-line today-action-${item.priority}`}

@@ -6,9 +6,16 @@ import {toDisplayDate} from "./formatters.jsx";
 import {buildTodayFreeSlots} from "./calendarFreeSlots.js";
 import {isSupplyLowStock} from "./supplyStock.js";
 import {buildScheduleQualityReport} from "./scheduleQuality.js";
+import {isUnclosedPastVisit} from "./alertCenter.js";
 
 const sortByTime = (left, right) =>
   String(left.time ?? "00:00").localeCompare(String(right.time ?? "00:00"));
+
+const getInputDateFromNow = (now = new Date()) => [
+  String(now.getFullYear()).padStart(4, "0"),
+  String(now.getMonth() + 1).padStart(2, "0"),
+  String(now.getDate()).padStart(2, "0"),
+].join("-");
 
 const isTodayVisit = (entry, today) =>
   entry.kind === "visit" &&
@@ -18,6 +25,7 @@ const isTodayVisit = (entry, today) =>
 const buildActionItems = ({
   dueTasks = [],
   lowStockSupplies = [],
+  unclosedPastVisits = [],
   priorityAlerts = [],
   scheduleQualityIssues = [],
   today,
@@ -25,6 +33,18 @@ const buildActionItems = ({
   todayStats,
 }) => {
   const items = [];
+
+  unclosedPastVisits.slice(0, 4).forEach((entry) => {
+    items.push({
+      id: `unclosed-visit-${entry.id}`,
+      action: "calendar",
+      entityId: entry.id,
+      message: `${entry.date || today} ${entry.time || ""} · ${entry.client || "Без клиента"}`,
+      priority: "critical",
+      title: "Закрыть прошедший визит",
+      type: "unclosed_visit",
+    });
+  });
 
   if (todayStats.debtVisits.length > 0) {
     items.push({
@@ -115,7 +135,7 @@ export const buildTodayDashboard = ({
   tasks = [],
   visits = [],
 }) => {
-  const today = getTodayInput();
+  const today = getInputDateFromNow(now) || getTodayInput();
   const todayStats = buildFinanceStats({
     calendarEntries,
     certificates,
@@ -136,6 +156,12 @@ export const buildTodayDashboard = ({
       ),
     }));
   const upcomingVisits = getUpcomingVisitsWithinHours(todayVisits, 3, now);
+  const unclosedPastVisits = calendarEntries
+    .filter((entry) => isUnclosedPastVisit(entry, now))
+    .sort((left, right) => {
+      const dateDiff = String(left.date ?? "").localeCompare(String(right.date ?? ""));
+      return dateDiff || sortByTime(left, right);
+    });
   const freeSlots = buildTodayFreeSlots({
     appSettings,
     calendarEntries,
@@ -172,6 +198,7 @@ export const buildTodayDashboard = ({
   const actionItems = buildActionItems({
     dueTasks,
     lowStockSupplies,
+    unclosedPastVisits,
     priorityAlerts,
     scheduleQualityIssues: scheduleQuality.issues,
     today,
@@ -199,6 +226,7 @@ export const buildTodayDashboard = ({
     todayBirthdays,
     todayDisplay: toDisplayDate(today),
     todayVisits,
+    unclosedPastVisits: unclosedPastVisits.slice(0, 8),
     upcomingVisits,
     urgentAlertsCount: Number(alertSummary.urgentCount) || priorityAlerts.length,
   };

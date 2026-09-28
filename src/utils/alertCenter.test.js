@@ -1,6 +1,6 @@
 import {describe, expect, it} from "vitest";
 import {defaultAppSettings} from "../constants/appDefaults.js";
-import {buildAlertCenter, filterAlertsByMode} from "./alertCenter.js";
+import {buildAlertCenter, filterAlertsByMode, isUnclosedPastVisit} from "./alertCenter.js";
 
 describe("alertCenter", () => {
   const baseSettings = {...defaultAppSettings, notificationsEnabled: true};
@@ -94,5 +94,41 @@ describe("alertCenter", () => {
 
     expect(result.totalCount).toBe(1);
     expect(result.alerts[0].type).toBe("aggregate");
+  });
+
+  it("raises a critical alert for an unclosed past visit", () => {
+    const now = new Date("2026-09-28T12:00:00");
+    const result = buildAlertCenter({
+      appSettings: baseSettings,
+      calendarEntries: [
+        {
+          id: "v-old",
+          kind: "visit",
+          date: "2026-09-27",
+          time: "15:00",
+          client: "Anna",
+          service: "Massage",
+          status: "scheduled",
+        },
+      ],
+      clientPackages: [],
+      clientProfiles: [],
+      defaultAppSettings,
+      dismissedAlertIds: [],
+      inactiveClientDays: 14,
+      notificationInbox: [],
+      snoozes: {},
+      supplies: [],
+      tasks: [],
+      visits: [],
+      now,
+    });
+
+    expect(isUnclosedPastVisit(result.rawAlerts[0].meta.entry, now)).toBe(true);
+    expect(result.rawAlerts[0]).toMatchObject({
+      id: "unclosed-visit-v-old",
+      priority: "critical",
+      type: "unclosed_visit",
+    });
   });
 });
