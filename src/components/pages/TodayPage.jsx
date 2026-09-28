@@ -61,6 +61,9 @@ function TodayReferenceBoard({
   onCompleteTask,
   onEditVisit,
   onOpenCalendar,
+  onOpenClients,
+  onOpenOperations,
+  onOpenPayments,
   onRemindVisit,
   openVisitMenuId,
   openVisitMenuRef,
@@ -129,6 +132,21 @@ function TodayReferenceBoard({
   const nextVisitTone = nextVisit
     ? visitToneById.get(getVisitId(nextVisit)) ?? "is-gold"
     : "is-gold";
+  const openActionItem = (item) => {
+    if (item.action === "payments") {
+      onOpenPayments?.();
+      return;
+    }
+    if (item.action === "clients") {
+      onOpenClients?.();
+      return;
+    }
+    if (item.action === "operations") {
+      onOpenOperations?.();
+      return;
+    }
+    onOpenCalendar?.();
+  };
 
   return (
     <section className="today-board">
@@ -192,14 +210,6 @@ function TodayReferenceBoard({
                   {dashboard.todayVisits.length} визитов
                 </span>
               </h2>
-              <div className="today-schedule-controls">
-                <div className="today-segmented-control" aria-label="Период расписания">
-                  <Button className="is-active" size="sm" variant="ghost">День</Button>
-                  <Button size="sm" variant="ghost">Неделя</Button>
-                  <Button size="sm" variant="ghost">Месяц</Button>
-                </div>
-                <IconButton className="today-icon-button" icon="more" label="Ещё" size="sm" variant="ghost" />
-              </div>
             </header>
             <div className="today-visit-timeline">
               {filteredVisits.length ? (
@@ -482,16 +492,18 @@ function TodayReferenceBoard({
             </header>
             <div className="today-side-list">
               {dashboard.actionItems.slice(0, 4).map((item) => (
-                <div
+                <button
                   key={item.id}
                   className={`today-alert-line today-action-${item.priority}`}
+                  type="button"
+                  onClick={() => openActionItem(item)}
                 >
                   <span aria-hidden="true" />
                   <div>
                     <strong>{item.title}</strong>
                     <small>{item.message}</small>
                   </div>
-                </div>
+                </button>
               ))}
               {!dashboard.actionItems.length ? (
                 <p className="today-empty-state">Нет новых уведомлений</p>
@@ -606,6 +618,9 @@ function TodayPage({
   onCompleteTask,
   onEditVisit,
   onOpenCalendar,
+  onOpenClients,
+  onOpenOperations,
+  onOpenPayments,
   onRemindVisit,
   supplies,
   tasks,
@@ -718,6 +733,9 @@ function TodayPage({
       onCompleteTask={onCompleteTask}
       onEditVisit={onEditVisit}
       onOpenCalendar={onOpenCalendar}
+      onOpenClients={onOpenClients}
+      onOpenOperations={onOpenOperations}
+      onOpenPayments={onOpenPayments}
       onRemindVisit={onRemindVisit}
       openVisitMenuId={openVisitMenuId}
       openVisitMenuRef={openVisitMenuRef}

@@ -9137,8 +9137,21 @@ button:focus-visible {
   grid-template-columns: 16px minmax(0, 1fr);
   align-items: start;
   gap: 8px;
+  width: 100%;
   min-height: 34px;
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
   padding: 7px 0;
+  text-align: left;
+}
+
+.today-alert-line:hover strong {
+  color: var(--today-accent);
 }
 
 .today-alert-line > span {
