@@ -7,6 +7,7 @@ import {buildTodayFreeSlots} from "./calendarFreeSlots.js";
 import {isSupplyLowStock} from "./supplyStock.js";
 import {buildScheduleQualityReport} from "./scheduleQuality.js";
 import {isUnclosedPastVisit} from "./alertCenter.js";
+import {buildFinancialQualityReport} from "./financialQuality.js";
 
 const sortByTime = (left, right) =>
   String(left.time ?? "00:00").localeCompare(String(right.time ?? "00:00"));
@@ -24,6 +25,7 @@ const isTodayVisit = (entry, today) =>
 
 const buildActionItems = ({
   dueTasks = [],
+  financialQualityIssues = [],
   lowStockSupplies = [],
   unclosedPastVisits = [],
   priorityAlerts = [],
@@ -43,6 +45,18 @@ const buildActionItems = ({
       priority: "critical",
       title: "Закрыть прошедший визит",
       type: "unclosed_visit",
+    });
+  });
+
+  financialQualityIssues.slice(0, 4).forEach((issue) => {
+    items.push({
+      id: `financial-quality-${issue.id}`,
+      action: issue.action || "calendar",
+      entityId: issue.entryId,
+      message: issue.message,
+      priority: issue.priority,
+      title: issue.title,
+      type: issue.type || "finance",
     });
   });
 
@@ -129,6 +143,7 @@ export const buildTodayDashboard = ({
   certificates = [],
   clientPackages = [],
   clientProfiles = [],
+  completedVisits = [],
   employees = [],
   now = new Date(),
   supplies = [],
@@ -189,6 +204,10 @@ export const buildTodayDashboard = ({
     clientProfiles,
     date: today,
   });
+  const financialQuality = buildFinancialQualityReport({
+    calendarEntries,
+    completedVisits,
+  });
   const todayBirthdays = clientProfiles
     .map((client) => ({
       ...client,
@@ -197,6 +216,7 @@ export const buildTodayDashboard = ({
     .filter((client) => client.birthdayInfo?.daysLeft === 0);
   const actionItems = buildActionItems({
     dueTasks,
+    financialQualityIssues: financialQuality.issues,
     lowStockSupplies,
     unclosedPastVisits,
     priorityAlerts,
@@ -210,6 +230,7 @@ export const buildTodayDashboard = ({
     actionItems,
     dueTasks,
     forecastRevenue: Number(alertSummary.revenueToday) || 0,
+    financialQuality,
     freeSlots: freeSlots.slice(0, 8),
     lowStockSupplies: lowStockSupplies.slice(0, 6),
     priorityAlerts,

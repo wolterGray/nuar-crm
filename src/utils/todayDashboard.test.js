@@ -118,4 +118,35 @@ describe("todayDashboard", () => {
       type: "unclosed_visit",
     });
   });
+
+  it("surfaces financial quality issues as critical action items", () => {
+    const dashboard = buildTodayDashboard({
+      alertSummary: {},
+      alerts: [],
+      calendarEntries: [
+        {
+          id: "v1",
+          kind: "visit",
+          date: "2026-09-28",
+          time: "10:00",
+          client: "Anna",
+          status: "completed",
+          visitId: 11,
+        },
+      ],
+      clientProfiles: [],
+      completedVisits: [{id: 11, employeeEarnings: []}],
+      employees: [],
+      now: new Date("2026-09-28T12:00:00"),
+      supplies: [],
+      tasks: [],
+      visits: [],
+    });
+
+    expect(dashboard.financialQuality.issues).toHaveLength(1);
+    expect(dashboard.actionItems[0]).toMatchObject({
+      priority: "critical",
+      type: "missing_earning",
+    });
+  });
 });

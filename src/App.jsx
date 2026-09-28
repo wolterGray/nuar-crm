@@ -727,6 +727,7 @@ function App() {
     clientAlertsOpen,
     clientPackages,
     clientProfiles,
+    completedVisits: visits,
     defaultAppSettings,
     dismissedClientAlertIds,
     inactiveClientDays,
@@ -744,7 +745,6 @@ function App() {
     setPreferredMessageClientId,
     supplies,
     tasks,
-    visits,
   });
 
   const serviceNames = useMemo(

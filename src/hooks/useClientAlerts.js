@@ -175,6 +175,7 @@ export function useClientAlerts({
   clientAlertsOpen,
   clientPackages,
   clientProfiles,
+  completedVisits = [],
   defaultAppSettings,
   dismissedClientAlertIds,
   inactiveClientDays,
@@ -192,7 +193,6 @@ export function useClientAlerts({
   setPreferredMessageClientId,
   supplies,
   tasks,
-  visits,
 }) {
   const smartVisitAlertIds = useRef(new Set());
   const [serverEvents, setServerEvents] = useState([]);
@@ -217,7 +217,7 @@ export function useClientAlerts({
         snoozes: alertSnoozes,
         supplies,
         tasks,
-        visits,
+        visits: completedVisits,
       }),
     [
       alertSnoozes,
@@ -226,13 +226,13 @@ export function useClientAlerts({
       certificates,
       clientPackages,
       clientProfiles,
+      completedVisits,
       defaultAppSettings,
       dismissedClientAlertIds,
       inactiveClientDays,
       notificationInbox,
       supplies,
       tasks,
-      visits,
     ],
   );
 

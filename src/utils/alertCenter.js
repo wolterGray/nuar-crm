@@ -19,6 +19,7 @@ import {aggregateDisplayAlerts} from "./alertAggregation.js";
 import {isSupplyLowStock, isSupplyOutOfStock} from "./supplyStock.js";
 import {getMinutesFromTime, isCalendarVisitCompleted} from "./calendarVisitStatus.js";
 import {toVisitNumber} from "./visits.jsx";
+import {buildFinancialQualityReport} from "./financialQuality.js";
 
 const PRIORITY_ORDER = {critical: 0, action: 1, info: 2};
 
@@ -137,6 +138,32 @@ export const buildAlertCenter = ({
   const isHidden = (alertId) =>
     isAlertHidden(alertId, dismissedAlertIds, snoozes, now);
   const alerts = [];
+
+  buildFinancialQualityReport({
+    calendarEntries,
+    completedVisits: visits,
+  }).issues.slice(0, 12).forEach((issue) => {
+    const alertId = `financial-quality-${issue.id}`;
+
+    if (isHidden(alertId)) {
+      return;
+    }
+
+    alerts.push(
+      createAlert({
+        id: alertId,
+        type: "financial_quality",
+        group: "calendar",
+        priority: issue.priority,
+        title: issue.title,
+        message: issue.message,
+        page: issue.action || "calendar",
+        entityId: issue.entryId,
+        actions: ["calendar", "snooze"],
+        meta: {issue},
+      }),
+    );
+  });
 
   calendarEntries
     .filter((entry) => isUnclosedPastVisit(entry, now))

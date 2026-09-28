@@ -46,6 +46,7 @@ export default function AppRoutes({activePage, ...props}) {
             clientPackages={props.clientPackages}
             clientProfiles={props.clientProfiles}
             employees={props.activeEmployees}
+            completedVisits={props.visits}
             supplies={props.supplies}
             tasks={props.tasks}
             visits={props.paymentRows}
