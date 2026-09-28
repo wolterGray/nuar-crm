@@ -6,6 +6,7 @@ const PRIORITY_SCORE = {
 };
 
 const ACTIVE_STATUSES = ['new', 'seen', 'snoozed'];
+const UPCOMING_VISIT_GRACE_MINUTES = 30;
 
 const cleanString = (value) => {
   const text = String(value ?? '').trim();
@@ -29,7 +30,16 @@ const toNumber = (value) => {
   return Number.isFinite(number) ? number : null;
 };
 
-const toIsoDate = (date = new Date()) => date.toISOString().slice(0, 10);
+const toIsoDate = (date = new Date()) => {
+  if (!date) return '';
+  const value = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(value.getTime())) return '';
+  return [
+    String(value.getFullYear()).padStart(4, '0'),
+    String(value.getMonth() + 1).padStart(2, '0'),
+    String(value.getDate()).padStart(2, '0'),
+  ].join('-');
+};
 
 const parseCrmDate = (value) => {
   const text = cleanString(value);
@@ -54,6 +64,86 @@ const daysUntil = (value, now = new Date()) => {
   if (!date) return null;
   const today = new Date(toIsoDate(now));
   return Math.floor((date.getTime() - today.getTime()) / 86400000);
+};
+
+const getMinutesFromTime = (value) => {
+  const [hours, minutes] = String(value ?? '').split(':').map(Number);
+  if (!Number.isFinite(hours)) return null;
+  return hours * 60 + (Number.isFinite(minutes) ? minutes : 0);
+};
+
+const getVisitEventDate = (event = {}, calendarEntry = null) => {
+  const payload = event.payload && typeof event.payload === 'object' ? event.payload : {};
+  return toIsoDate(parseCrmDate(calendarEntry?.date ?? payload.date));
+};
+
+const getVisitEventTime = (event = {}, calendarEntry = null) => {
+  const payload = event.payload && typeof event.payload === 'object' ? event.payload : {};
+  return cleanString(calendarEntry?.time ?? payload.time);
+};
+
+const isStaleVisitUpcomingEvent = (event = {}, calendarEntry = null, now = new Date()) => {
+  if (event.type !== 'visit_upcoming') return false;
+
+  const today = toIsoDate(now);
+  const tomorrow = toIsoDate(new Date(now.getTime() + 86400000));
+  const eventDate = getVisitEventDate(event, calendarEntry);
+  if (!eventDate) return false;
+  if (eventDate < today || eventDate > tomorrow) return true;
+
+  const calendarStatus = cleanString(calendarEntry?.status);
+  if (['cancelled', 'canceled', 'completed', 'no_show'].includes(calendarStatus)) return true;
+
+  if (eventDate === today) {
+    const eventMinutes = getMinutesFromTime(getVisitEventTime(event, calendarEntry));
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    if (eventMinutes !== null && eventMinutes + UPCOMING_VISIT_GRACE_MINUTES < nowMinutes) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const resolveStaleVisitUpcomingEvents = async (prisma, {now = new Date()} = {}) => {
+  const activeEvents = await prisma.notificationEvent.findMany({
+    where: {
+      status: {in: ACTIVE_STATUSES},
+      type: 'visit_upcoming',
+    },
+  });
+
+  if (activeEvents.length === 0) {
+    return 0;
+  }
+
+  const calendarEntryIds = activeEvents
+    .map((event) => Number(event.entityId))
+    .filter((id) => Number.isInteger(id) && id > 0);
+  const calendarEntries = calendarEntryIds.length > 0
+    ? await prisma.calendarEntry.findMany({
+        where: {id: {in: [...new Set(calendarEntryIds)]}},
+      })
+    : [];
+  const calendarById = new Map(calendarEntries.map((entry) => [Number(entry.id), entry]));
+  const staleIds = activeEvents
+    .filter((event) => isStaleVisitUpcomingEvent(event, calendarById.get(Number(event.entityId)), now))
+    .map((event) => event.id);
+
+  if (staleIds.length === 0) {
+    return 0;
+  }
+
+  const result = await prisma.notificationEvent.updateMany({
+    data: {
+      actionHistory: [{action: 'auto_resolve_stale_visit', at: now.toISOString()}],
+      resolvedAt: now,
+      status: 'resolved',
+    },
+    where: {id: {in: staleIds}},
+  });
+
+  return result.count;
 };
 
 const buildFingerprint = (event) => {
@@ -106,9 +196,12 @@ const normalizeNotificationEventInput = (input = {}) => {
   };
 };
 
-const listNotificationEvents = (prisma, {limit = 50, status = 'active'} = {}) => {
+const listNotificationEvents = async (prisma, {limit = 50, status = 'active'} = {}) => {
   const take = Math.max(1, Math.min(100, Number(limit) || 50));
   const now = new Date();
+  if (status === 'active') {
+    await resolveStaleVisitUpcomingEvents(prisma, {now});
+  }
   const where =
     status === 'all'
       ? {}
@@ -119,11 +212,13 @@ const listNotificationEvents = (prisma, {limit = 50, status = 'active'} = {}) =>
           }
         : {status};
 
-  return prisma.notificationEvent.findMany({
+  const events = await prisma.notificationEvent.findMany({
     orderBy: [{score: 'desc'}, {createdAt: 'desc'}],
     take,
     where,
   });
+
+  return events.filter((event) => !isStaleVisitUpcomingEvent(event, null, now));
 };
 
 const upsertNotificationEvent = (prisma, input) => {
@@ -150,6 +245,8 @@ const upsertNotificationEvent = (prisma, input) => {
 };
 
 const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) => {
+  await resolveStaleVisitUpcomingEvents(prisma, {now});
+
   const settings = await prisma.systemState
     .findUnique({where: {key: 'appSettings'}})
     .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
@@ -224,6 +321,10 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
   });
 
   for (const entry of calendarEntries) {
+    if (isStaleVisitUpcomingEvent({type: 'visit_upcoming', payload: {date: entry.date, time: entry.time}}, entry, now)) {
+      continue;
+    }
+
     const payload = entry.payload && typeof entry.payload === 'object' ? entry.payload : {};
     const clientName = cleanString(payload.client || payload.clientName);
     generated.push(
@@ -456,4 +557,9 @@ module.exports = {
   scoreNotificationEvent,
   updateNotificationEvent,
   upsertNotificationEvent,
+  _private: {
+    isStaleVisitUpcomingEvent,
+    resolveStaleVisitUpcomingEvents,
+    toIsoDate,
+  },
 };

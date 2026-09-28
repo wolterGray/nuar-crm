@@ -12,6 +12,7 @@ import {
   pruneExpiredSnoozes,
 } from "../utils/alertSnooze.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
+import {formatAppDate, INPUT_DATE_FORMAT} from "../utils/dateUtils.js";
 import {
   applyQuietHoursFilter,
   isQuietHours,
@@ -88,6 +89,38 @@ const getServerAlertActions = (event) => {
   if (event.recommendedAction === "open_calendar") return ["calendar", "snooze"];
   if (event.recommendedAction === "order_supply") return ["order", "open", "snooze"];
   return ["open", "snooze"];
+};
+
+const SERVER_VISIT_GRACE_MINUTES = 30;
+
+const getMinutesFromTime = (value) => {
+  const [hours, minutes] = String(value ?? "").split(":").map(Number);
+  if (!Number.isFinite(hours)) return null;
+  return hours * 60 + (Number.isFinite(minutes) ? minutes : 0);
+};
+
+const isStaleServerVisitEvent = (event, now = new Date()) => {
+  if (event?.type !== "visit_upcoming") return false;
+
+  const payload = event.payload && typeof event.payload === "object" ? event.payload : {};
+  const eventDate = formatAppDate(payload.date, INPUT_DATE_FORMAT);
+  if (!eventDate) return false;
+
+  const today = getTodayInput();
+  const tomorrow = formatAppDate(
+    new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
+    INPUT_DATE_FORMAT,
+  );
+
+  if (eventDate < today || eventDate > tomorrow) return true;
+
+  if (eventDate === today) {
+    const eventMinutes = getMinutesFromTime(payload.time);
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    return eventMinutes !== null && eventMinutes + SERVER_VISIT_GRACE_MINUTES < nowMinutes;
+  }
+
+  return false;
 };
 
 const mapServerEventToAlert = (event) => ({
@@ -221,7 +254,10 @@ export function useClientAlerts({
   }, [refreshServerEvents]);
 
   const serverAlerts = useMemo(
-    () => serverEvents.map(mapServerEventToAlert),
+    () =>
+      serverEvents
+        .filter((event) => !isStaleServerVisitEvent(event))
+        .map(mapServerEventToAlert),
     [serverEvents],
   );
 
