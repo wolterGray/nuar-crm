@@ -101,6 +101,7 @@ export default function NotificationDrawer({
 }) {
   const buttonRef = useRef(null);
   const swipeUndoTimerRef = useRef(null);
+  const wasOpenRef = useRef(isOpen);
   const [locallyHiddenAlerts, setLocallyHiddenAlerts] = useState({});
   const [localNow, setLocalNow] = useState(() => Date.now());
   const [popoverStyle, setPopoverStyle] = useState({});
@@ -168,6 +169,26 @@ export default function NotificationDrawer({
     trackMouse: false,
     trackTouch: isMobilePopover,
   });
+
+  useEffect(() => {
+    const openedNow = isOpen && !wasOpenRef.current;
+    wasOpenRef.current = isOpen;
+
+    if (
+      openedNow &&
+      alertFilter !== "urgent" &&
+      localAlertsCount === 0 &&
+      globalUrgentAlertsCount > 0
+    ) {
+      onFilterChange("urgent");
+    }
+  }, [
+    alertFilter,
+    globalUrgentAlertsCount,
+    isOpen,
+    localAlertsCount,
+    onFilterChange,
+  ]);
 
   useLayoutEffect(() => {
     if (!isOpen || !buttonRef.current) {
