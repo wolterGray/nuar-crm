@@ -168,4 +168,38 @@ describe("alertCenter", () => {
 
     expect(result.rawAlerts.map((alert) => alert.entityId)).toEqual(["v-near"]);
   });
+
+  it("keeps financial quality alerts in a separate finance filter", () => {
+    const result = buildAlertCenter({
+      appSettings: baseSettings,
+      calendarEntries: [
+        {
+          id: "v-money",
+          kind: "visit",
+          date: "2026-09-28",
+          time: "12:30",
+          client: "Natalia",
+          status: "completed",
+        },
+      ],
+      clientPackages: [],
+      clientProfiles: [],
+      defaultAppSettings,
+      dismissedAlertIds: [],
+      inactiveClientDays: 14,
+      notificationInbox: [],
+      snoozes: {},
+      supplies: [],
+      tasks: [],
+      visits: [],
+      now: new Date("2026-09-28T12:00:00"),
+    });
+    const financeAlerts = filterAlertsByMode(result.rawAlerts, "finance");
+
+    expect(financeAlerts).toHaveLength(1);
+    expect(financeAlerts[0]).toMatchObject({
+      group: "finance",
+      type: "financial_quality",
+    });
+  });
 });

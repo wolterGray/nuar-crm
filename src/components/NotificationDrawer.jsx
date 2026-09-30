@@ -72,6 +72,7 @@ const getPopoverStyle = (buttonRect) => {
 const FILTER_OPTIONS = [
   {id: "urgent", label: "Срочные"},
   {id: "all", label: "Все"},
+  {id: "finance", label: "Деньги"},
   {id: "operations", label: "Склад"},
   {id: "clients", label: "Клиенты"},
 ];
@@ -292,6 +293,7 @@ export default function NotificationDrawer({
 
   const groupOrder = [
     "calendar",
+    "finance",
     "operations",
     "packages",
     "birthdays",
@@ -435,6 +437,8 @@ export default function NotificationDrawer({
               <p className="client-alert-empty">
                 {alertFilter === "urgent"
                   ? "Срочных уведомлений нет."
+                  : alertFilter === "finance"
+                    ? "Финансовых ошибок нет."
                   : alertFilter === "clients"
                     ? "Клиентских уведомлений нет."
                     : alertFilter === "operations"

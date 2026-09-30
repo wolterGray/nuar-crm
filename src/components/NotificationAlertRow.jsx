@@ -35,12 +35,14 @@ const TYPE_BADGE_LABELS = {
   birthday: "День рождения",
   calendar: "Визит сегодня",
   certificate: "Сертификат",
+  financial_quality: "Деньги",
   forecast: "Прогноз",
   inactive: "Клиент",
   package: "Пакет",
   supply: "Склад",
   task: "Дело",
   undo: "Возврат",
+  unclosed_visit: "Закрыть визит",
   visit: "Визит",
 };
 

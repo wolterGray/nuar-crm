@@ -153,7 +153,7 @@ export const buildAlertCenter = ({
       createAlert({
         id: alertId,
         type: "financial_quality",
-        group: "calendar",
+        group: "finance",
         priority: issue.priority,
         title: issue.title,
         message: issue.message,
@@ -577,6 +577,14 @@ export const filterAlertsByMode = (alerts, mode = "all") => {
     );
   }
 
+  if (mode === "finance") {
+    return alerts.filter(
+      (alert) =>
+        alert.type === "financial_quality" ||
+        alert.aggregateKind === "financial_quality",
+    );
+  }
+
   return alerts;
 };
 
@@ -594,6 +602,7 @@ export const groupAlerts = (alerts) => {
 
 export const ALERT_GROUP_LABELS = {
   calendar: "Ближайшие визиты",
+  finance: "Деньги и расчёты",
   operations: "Задачи и склад",
   packages: "Пакеты клиентов",
   birthdays: "Дни рождения",
