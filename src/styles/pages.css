@@ -10451,7 +10451,7 @@ button:focus-visible {
   --payments-faint: var(--color-text-faint);
   --payments-accent: var(--color-primary);
 
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   width: 100%;
   min-width: 0;
   min-height: 0;
@@ -10462,11 +10462,120 @@ button:focus-visible {
 
 .nuar-payments .panel,
 .nuar-payments .visits-panel,
-.nuar-payments .day-close-panel {
+.nuar-payments .day-close-panel,
+.nuar-payments .financial-quality-panel {
   border: 1px solid var(--payments-border, var(--color-border));
   border-radius: 16px;
   background: var(--payments-panel, var(--color-card));
   box-shadow: none;
+}
+
+.nuar-payments .financial-quality-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+}
+
+.nuar-payments .financial-quality-panel.is-ok {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border-color: color-mix(in srgb, var(--color-success) 22%, transparent);
+  background: color-mix(in srgb, var(--color-success) 7%, var(--payments-panel));
+}
+
+.nuar-payments .financial-quality-panel.is-ok > div,
+.nuar-payments .financial-quality-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nuar-payments .financial-quality-header > div,
+.nuar-payments .financial-quality-panel.is-ok > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.nuar-payments .financial-quality-panel span {
+  color: var(--payments-faint);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.nuar-payments .financial-quality-panel strong {
+  color: var(--payments-text);
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.nuar-payments .financial-quality-panel small {
+  color: var(--payments-muted);
+  font-size: 12px;
+}
+
+.nuar-payments .financial-quality-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nuar-payments .financial-quality-filters button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--payments-border);
+  border-radius: 999px;
+  color: var(--payments-muted);
+  background: transparent;
+}
+
+.nuar-payments .financial-quality-filters button.is-active,
+.nuar-payments .financial-quality-filters button:hover {
+  border-color: color-mix(in srgb, var(--color-danger) 44%, var(--payments-border));
+  color: var(--payments-text);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
+.nuar-payments .financial-quality-list {
+  display: grid;
+  gap: 8px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.nuar-payments .financial-quality-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 22%, var(--payments-border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-danger) 6%, transparent);
+}
+
+.nuar-payments .financial-quality-row > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.nuar-payments .financial-quality-row strong,
+.nuar-payments .financial-quality-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nuar-payments .financial-quality-row .secondary-button {
+  min-height: 34px;
+  padding: 0 12px;
 }
 
 .nuar-payments .day-close-collapsible {

@@ -91,8 +91,10 @@ export default function AppRoutes({activePage, ...props}) {
       return (
         <PageSuspense>
           <PaymentsPage
+            calendarEntries={props.calendarEntries}
             clientProfiles={props.clientProfiles}
             closeDay={props.closeDay}
+            completedVisits={props.visits}
             dayCloseRecords={props.dayCloseRecords}
             filters={props.paymentFilters}
             getDayCloseJournal={props.getDayCloseJournal}
@@ -105,6 +107,7 @@ export default function AppRoutes({activePage, ...props}) {
             onDeleteVisit={props.deletePaymentRow}
             onEditVisit={props.editPaymentRow}
             onFilterChange={props.onPaymentFilterChange}
+            onOpenCalendarIssue={props.openCalendarIssue}
             onResetFilters={props.onPaymentFiltersReset}
             onToggleActionMenu={props.setOpenPaymentActionMenuId}
           />

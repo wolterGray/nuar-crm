@@ -1603,6 +1603,17 @@ function App() {
     ],
   );
 
+  const openCalendarIssue = useCallback(
+    (issue) => {
+      setActivePage("calendar");
+      setAlertFocus({
+        entityId: issue?.entryId ?? issue?.entityId,
+        type: "calendar",
+      });
+    },
+    [setActivePage],
+  );
+
   const handleToastAction = useCallback(
     (notification, actionItem) => {
       if (actionItem.action === "calendar") {
@@ -2088,6 +2099,7 @@ function App() {
             openEditService={openEditService}
             openEditSupply={openEditSupply}
             openEditTask={openEditTask}
+            openCalendarIssue={openCalendarIssue}
             openSettingsPage={() => setActivePage("settings")}
             packageSalesIncome={packageSalesIncome}
             packagesCatalog={packagesCatalog}
