@@ -193,6 +193,8 @@ export default function AppRoutes({activePage, ...props}) {
       return (
         <PageSuspense>
           <EmployeesPage
+            calendarEntries={props.calendarEntries}
+            completedVisits={props.visits}
             employees={props.employeeStats}
             getDailyPayrollReport={props.getDailyPayrollReport}
             getPayrollReport={props.getPayrollReport}
@@ -207,6 +209,7 @@ export default function AppRoutes({activePage, ...props}) {
             onAdd={props.openCreateEmployee}
             onEdit={props.openEditEmployee}
             onDelete={props.requestDeleteEmployee}
+            onOpenPayments={() => props.setActivePage("payments")}
           />
         </PageSuspense>
       );

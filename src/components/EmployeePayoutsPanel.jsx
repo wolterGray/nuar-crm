@@ -260,6 +260,38 @@ function EarningRowSkeleton() {
   );
 }
 
+function FinancialQualityWarning({report, onOpenPayments}) {
+  const issues = Array.isArray(report?.issues) ? report.issues : [];
+  if (issues.length === 0) return null;
+
+  return (
+    <section className="employee-payout-quality-warning" aria-label="Проверка денег">
+      <div>
+        <span>Проверка денег</span>
+        <strong>{report.criticalCount || issues.length} ошибок перед выплатой</strong>
+        <small>
+          Исправьте финансы до выплат сотрудникам, чтобы не оплатить неполные начисления.
+        </small>
+      </div>
+      <ul>
+        {issues.slice(0, 2).map((issue) => (
+          <li key={issue.id}>
+            <b>{issue.title}</b>
+            <span>{issue.message}</span>
+          </li>
+        ))}
+      </ul>
+      <Button
+        size="sm"
+        type="button"
+        variant="secondary"
+        onClick={onOpenPayments}>
+        Открыть проверку
+      </Button>
+    </section>
+  );
+}
+
 function PayoutHistory({disabled = false, onCancel, onClear, onOpen, onRemove, payouts}) {
   return (
     <section className="employee-payout-history">
@@ -339,7 +371,7 @@ function PayoutDetail({payout, onClose}) {
   );
 }
 
-function EmployeePayoutsPanel({pushNotification}) {
+function EmployeePayoutsPanel({financialQualityReport, pushNotification, onOpenPayments}) {
   const [mode, setMode] = useState("thisWeek");
   const [customRange, setCustomRange] = useState({endDate: "", startDate: ""});
   const [earningStatus, setEarningStatus] = useState("unpaid");
@@ -573,6 +605,11 @@ function EmployeePayoutsPanel({pushNotification}) {
           />
         </div>
       </div>
+
+      <FinancialQualityWarning
+        report={financialQualityReport}
+        onOpenPayments={onOpenPayments}
+      />
 
       <section
         className={`employee-payout-summary-list ${loading ? "is-loading" : ""}`}

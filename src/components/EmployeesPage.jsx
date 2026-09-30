@@ -3,6 +3,7 @@ import {useMemo, useState} from "react";
 
 import {getPayrollScheduleLabel} from "../utils/dailyPayroll.js";
 import {resolveEmployeeSiteBookingSlotMinutes} from "../utils/calendarBookableSlots.js";
+import {buildFinancialQualityReport} from "../utils/financialQuality.js";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 
 import PageHeader from "./ui/PageHeader.jsx";
@@ -84,7 +85,10 @@ function EmployeeCard({employee, onDelete, onEdit, openMenuId, setOpenMenuId}) {
 }
 
 function EmployeesPage({
+  calendarEntries = [],
+  completedVisits = [],
   employees,
+  onOpenPayments,
   pushNotification,
   onAdd,
   onEdit,
@@ -94,6 +98,14 @@ function EmployeesPage({
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
   const [activeTab, setActiveTab] = useState("team");
+  const financialQualityReport = useMemo(
+    () =>
+      buildFinancialQualityReport({
+        calendarEntries,
+        completedVisits,
+      }),
+    [calendarEntries, completedVisits],
+  );
 
   const filteredEmployees = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -223,7 +235,11 @@ function EmployeesPage({
         </section>
       ) : (
         <div className="employees-payroll-tab">
-          <EmployeePayoutsPanel pushNotification={pushNotification} />
+          <EmployeePayoutsPanel
+            financialQualityReport={financialQualityReport}
+            pushNotification={pushNotification}
+            onOpenPayments={onOpenPayments}
+          />
         </div>
       )}
     </div>
