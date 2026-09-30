@@ -13,7 +13,7 @@ const buildAlert = (id, priority = "info") => ({
 });
 
 describe("notificationDrawerCounts", () => {
-  it("uses the visible filtered list for both drawer count and bell badge", () => {
+  it("uses the visible list for drawer count and urgent actions for bell badge", () => {
     const visibleAlerts = Array.from({length: 13}, (_, index) =>
       buildAlert(`inactive-${index + 1}`, index < 3 ? "action" : "info"),
     );
@@ -24,7 +24,7 @@ describe("notificationDrawerCounts", () => {
     });
 
     expect(result.alertsCount).toBe(13);
-    expect(result.badgeCount).toBe(13);
+    expect(result.badgeCount).toBe(3);
     expect(result.totalAlertsCount).toBe(13);
     expect(result.urgentAlertsCount).toBe(3);
   });
@@ -37,7 +37,7 @@ describe("notificationDrawerCounts", () => {
     });
 
     expect(result.visibleAlerts.map((alert) => alert.id)).toEqual(["inactive-2"]);
-    expect(result.badgeCount).toBe(1);
+    expect(result.badgeCount).toBe(0);
     expect(result.alertsCount).toBe(1);
     expect(result.urgentAlertsCount).toBe(0);
   });
@@ -62,7 +62,7 @@ describe("notificationDrawerCounts", () => {
       now: 1000,
     });
 
-    expect(result.badgeCount).toBe(1);
+    expect(result.badgeCount).toBe(0);
     expect(result.visibleAlerts[0].children.map((alert) => alert.id)).toEqual(["inactive-2"]);
   });
 });

@@ -55,7 +55,7 @@ export const getNotificationDrawerCounts = ({
   return {
     activeHiddenIds,
     alertsCount: visibleAlerts.length,
-    badgeCount: visibleAlerts.length,
+    badgeCount: urgentAlertsCount,
     totalAlertsCount: visibleAlerts.length,
     urgentAlertsCount,
     visibleAlerts,
