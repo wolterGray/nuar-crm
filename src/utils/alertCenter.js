@@ -178,7 +178,7 @@ export const buildAlertCenter = ({
         createAlert({
           id: alertId,
           type: "unclosed_visit",
-          group: "calendar",
+          group: "closing",
           priority: "critical",
           title: "Закрыть прошедший визит",
           message: `${entry.date || today} ${entry.time || ""} · ${entry.client || "Без клиента"} · ${entry.service || "Визит"}`,
@@ -585,6 +585,10 @@ export const filterAlertsByMode = (alerts, mode = "all") => {
     );
   }
 
+  if (mode === "closing") {
+    return alerts.filter((alert) => alert.type === "unclosed_visit");
+  }
+
   return alerts;
 };
 
@@ -602,6 +606,7 @@ export const groupAlerts = (alerts) => {
 
 export const ALERT_GROUP_LABELS = {
   calendar: "Ближайшие визиты",
+  closing: "Нужно закрыть",
   finance: "Деньги и расчёты",
   operations: "Задачи и склад",
   packages: "Пакеты клиентов",

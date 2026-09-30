@@ -126,10 +126,12 @@ describe("alertCenter", () => {
 
     expect(isUnclosedPastVisit(result.rawAlerts[0].meta.entry, now)).toBe(true);
     expect(result.rawAlerts[0]).toMatchObject({
+      group: "closing",
       id: "unclosed-visit-v-old",
       priority: "critical",
       type: "unclosed_visit",
     });
+    expect(filterAlertsByMode(result.rawAlerts, "closing")).toHaveLength(1);
   });
 
   it("does not turn the whole remaining day schedule into notifications", () => {
