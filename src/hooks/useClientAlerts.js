@@ -93,6 +93,7 @@ const getServerAlertActions = (event) => {
 
 const SERVER_VISIT_GRACE_MINUTES = 30;
 const SERVER_VISIT_HORIZON_MINUTES = 180;
+const CLOSED_VISIT_STATUSES = new Set(["completed", "cancelled", "canceled", "no_show"]);
 
 const getMinutesFromTime = (value) => {
   const [hours, minutes] = String(value ?? "").split(":").map(Number);
@@ -100,23 +101,63 @@ const getMinutesFromTime = (value) => {
   return hours * 60 + (Number.isFinite(minutes) ? minutes : 0);
 };
 
-const isStaleServerVisitEvent = (event, now = new Date()) => {
-  if (event?.type !== "visit_upcoming") return false;
+const getInputDateFromNow = (now = new Date()) =>
+  formatAppDate(
+    new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+    INPUT_DATE_FORMAT,
+  );
 
-  const payload = event.payload && typeof event.payload === "object" ? event.payload : {};
-  const eventDate = formatAppDate(payload.date, INPUT_DATE_FORMAT);
-  if (!eventDate) return false;
-
-  const today = getTodayInput();
-  const tomorrow = formatAppDate(
+const getTomorrowInputFromNow = (now = new Date()) =>
+  formatAppDate(
     new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
     INPUT_DATE_FORMAT,
   );
 
+const getServerEventPayload = (event) =>
+  event?.payload && typeof event.payload === "object" ? event.payload : {};
+
+const getServerEventCalendarEntry = (event, calendarEntries = []) => {
+  if (event?.type !== "visit_upcoming") return null;
+
+  const entityId = String(event.entityId ?? "");
+  if (!entityId) return null;
+
+  return (
+    calendarEntries.find((entry) => String(entry.id) === entityId) ?? null
+  );
+};
+
+const getServerVisitDate = (event, calendarEntry = null) => {
+  const payload = getServerEventPayload(event);
+  return formatAppDate(calendarEntry?.date ?? payload.date, INPUT_DATE_FORMAT);
+};
+
+const getServerVisitTime = (event, calendarEntry = null) => {
+  const payload = getServerEventPayload(event);
+  return calendarEntry?.time ?? payload.time;
+};
+
+export const isStaleServerVisitEvent = (
+  event,
+  now = new Date(),
+  calendarEntry = null,
+) => {
+  if (event?.type !== "visit_upcoming") return false;
+
+  const eventDate = getServerVisitDate(event, calendarEntry);
+  if (!eventDate) return false;
+
+  const today = getInputDateFromNow(now);
+  const tomorrow = getTomorrowInputFromNow(now);
+
   if (eventDate < today || eventDate > tomorrow) return true;
 
+  if (CLOSED_VISIT_STATUSES.has(String(calendarEntry?.status ?? ""))) {
+    return true;
+  }
+
   if (eventDate === today) {
-    const eventMinutes = getMinutesFromTime(payload.time);
+    const eventMinutes = getMinutesFromTime(getServerVisitTime(event, calendarEntry));
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
     return eventMinutes !== null && eventMinutes + SERVER_VISIT_GRACE_MINUTES < nowMinutes;
   }
@@ -124,20 +165,24 @@ const isStaleServerVisitEvent = (event, now = new Date()) => {
   return false;
 };
 
-const isActionableServerVisitEvent = (event, now = new Date()) => {
+export const isActionableServerVisitEvent = (
+  event,
+  now = new Date(),
+  calendarEntry = null,
+  horizonMinutes = SERVER_VISIT_HORIZON_MINUTES,
+) => {
   if (event?.type !== "visit_upcoming") return true;
-  if (isStaleServerVisitEvent(event, now)) return false;
+  if (isStaleServerVisitEvent(event, now, calendarEntry)) return false;
 
-  const payload = event.payload && typeof event.payload === "object" ? event.payload : {};
-  const eventDate = formatAppDate(payload.date, INPUT_DATE_FORMAT);
-  if (eventDate !== getTodayInput()) return false;
+  const eventDate = getServerVisitDate(event, calendarEntry);
+  if (eventDate !== getInputDateFromNow(now)) return false;
 
-  const eventMinutes = getMinutesFromTime(payload.time);
+  const eventMinutes = getMinutesFromTime(getServerVisitTime(event, calendarEntry));
   if (eventMinutes === null) return false;
 
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const difference = eventMinutes - nowMinutes;
-  return difference >= 0 && difference <= SERVER_VISIT_HORIZON_MINUTES;
+  return difference >= 0 && difference <= Math.max(15, Number(horizonMinutes) || SERVER_VISIT_HORIZON_MINUTES);
 };
 
 const mapServerEventToAlert = (event) => ({
@@ -271,12 +316,55 @@ export function useClientAlerts({
   }, [refreshServerEvents]);
 
   const serverAlerts = useMemo(
-    () =>
-      serverEvents
-        .filter((event) => isActionableServerVisitEvent(event))
-        .map(mapServerEventToAlert),
-    [serverEvents],
+    () => {
+      const now = new Date();
+      const horizonMinutes = appSettings.upcomingVisitMinutes;
+
+      return serverEvents
+        .filter((event) => {
+          const calendarEntry = getServerEventCalendarEntry(event, calendarEntries);
+          return isActionableServerVisitEvent(
+            event,
+            now,
+            calendarEntry,
+            horizonMinutes,
+          );
+        })
+        .map(mapServerEventToAlert);
+    },
+    [appSettings.upcomingVisitMinutes, calendarEntries, serverEvents],
   );
+
+  useEffect(() => {
+    if (serverEvents.length === 0) {
+      return;
+    }
+
+    const now = new Date();
+    const staleEvents = serverEvents.filter((event) =>
+      isStaleServerVisitEvent(
+        event,
+        now,
+        getServerEventCalendarEntry(event, calendarEntries),
+      ),
+    );
+
+    if (staleEvents.length === 0) {
+      return;
+    }
+
+    staleEvents.forEach((event) => {
+      void updateNotificationEvent(event.id, {
+        action: "auto_resolve_stale_visit_client",
+        status: "resolved",
+      });
+    });
+    setServerEvents((current) =>
+      current.filter(
+        (event) => !staleEvents.some((staleEvent) => staleEvent.id === event.id),
+      ),
+    );
+  }, [calendarEntries, serverEvents]);
 
   useEffect(() => {
     if (!clientAlertsOpen || serverEvents.length === 0) {
