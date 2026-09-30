@@ -336,7 +336,11 @@ export const loadStoredAlertFilter = () => {
   try {
     const storedFilter = window.localStorage.getItem(ALERT_FILTER_STORAGE_KEY);
 
-    if (["urgent", "all", "operations", "clients"].includes(storedFilter)) {
+    if (
+      ["urgent", "all", "closing", "finance", "operations", "clients"].includes(
+        storedFilter,
+      )
+    ) {
       return storedFilter;
     }
 
