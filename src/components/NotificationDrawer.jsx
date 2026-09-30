@@ -81,6 +81,7 @@ const FILTER_OPTIONS = [
 export default function NotificationDrawer({
   alertFilter,
   alertSummary,
+  allAlerts,
   alerts,
   animationsEnabled,
   isOpen,
@@ -102,10 +103,8 @@ export default function NotificationDrawer({
   const [swipeUndo, setSwipeUndo] = useState(null);
   const transition = {duration: animationsEnabled ? 0.18 : 0};
   const {
-    badgeCount,
     alertsCount: localAlertsCount,
     totalAlertsCount: localTotalAlertsCount,
-    urgentAlertsCount: localUrgentAlertsCount,
     visibleAlerts: localVisibleAlerts,
   } = useMemo(
     () =>
@@ -116,8 +115,22 @@ export default function NotificationDrawer({
       }),
     [alerts, localNow, locallyHiddenAlerts],
   );
+  const {
+    badgeCount,
+    totalAlertsCount: globalTotalAlertsCount,
+    urgentAlertsCount: globalUrgentAlertsCount,
+    visibleAlerts: globalVisibleAlerts,
+  } = useMemo(
+    () =>
+      getNotificationDrawerCounts({
+        alerts: allAlerts ?? alerts,
+        locallyHiddenAlerts,
+        now: localNow,
+      }),
+    [allAlerts, alerts, localNow, locallyHiddenAlerts],
+  );
   const groupedAlerts = groupAlerts(localVisibleAlerts);
-  const urgentAlerts = localVisibleAlerts.filter(
+  const urgentAlerts = globalVisibleAlerts.filter(
     (alert) => alert.priority === "critical" || alert.priority === "action",
   );
   const onlyCalendarUrgentAlerts =
@@ -358,8 +371,8 @@ export default function NotificationDrawer({
             <div>
               <h2>Уведомления</h2>
               <p>
-                {localUrgentAlertsCount > 0
-                  ? `${localUrgentAlertsCount} срочных · ${localTotalAlertsCount} всего`
+                {globalUrgentAlertsCount > 0
+                  ? `${globalUrgentAlertsCount} срочных · ${globalTotalAlertsCount} всего`
                   : "Только события, требующие внимания"}
               </p>
             </div>
@@ -466,14 +479,14 @@ export default function NotificationDrawer({
           ref={buttonRef}
           aria-expanded={isOpen}
           badge={badgeCount > 0 ? badgeCount : null}
-          badgeClassName={localUrgentAlertsCount > 0 && !onlyCalendarUrgentAlerts ? undefined : "client-alert-button-info"}
+          badgeClassName={globalUrgentAlertsCount > 0 && !onlyCalendarUrgentAlerts ? undefined : "client-alert-button-info"}
           className="client-alert-button notification-trigger"
           icon="bell"
           label={
-            localUrgentAlertsCount > 0
-              ? `Уведомления: ${localUrgentAlertsCount} срочных`
-              : localTotalAlertsCount > 0
-                ? `Уведомления: ${localTotalAlertsCount}`
+            globalUrgentAlertsCount > 0
+              ? `Уведомления: ${globalUrgentAlertsCount} срочных`
+              : globalTotalAlertsCount > 0
+                ? `Уведомления: ${globalTotalAlertsCount}`
                 : "Центр уведомлений"
           }
           size="md"

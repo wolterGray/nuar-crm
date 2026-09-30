@@ -705,6 +705,7 @@ function App() {
 
   const {
     alertSummary,
+    allAlerts,
     alerts,
     alertsCount,
     dismissAlertPermanent,
@@ -1981,6 +1982,7 @@ function App() {
             <NotificationDrawer
               alertFilter={alertFilter}
               alertSummary={alertSummary}
+              allAlerts={allAlerts}
               alerts={alerts}
               alertsCount={alertsCount}
               animationsEnabled={appSettings.animationsEnabled}

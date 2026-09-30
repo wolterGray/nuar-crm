@@ -703,6 +703,7 @@ export function useClientAlerts({
 
   return {
     alertSummary: alertCenter.summary,
+    allAlerts: quietFilteredAlerts,
     alerts: visibleAlerts,
     alertsCount: drawerCounts.alertsCount,
     dismissAlertPermanent,
