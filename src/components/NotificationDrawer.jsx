@@ -2,7 +2,11 @@ import {AnimatePresence, motion} from "framer-motion";
 import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 import {useSwipeable} from "react-swipeable";
-import {ALERT_GROUP_LABELS, groupAlerts} from "../utils/alertCenter.js";
+import {
+  ALERT_GROUP_LABELS,
+  filterAlertsByMode,
+  groupAlerts,
+} from "../utils/alertCenter.js";
 import {
   getNotificationAlertIds,
   getNotificationDrawerCounts,
@@ -130,6 +134,17 @@ export default function NotificationDrawer({
     [allAlerts, alerts, localNow, locallyHiddenAlerts],
   );
   const groupedAlerts = groupAlerts(localVisibleAlerts);
+  const filterCounts = useMemo(
+    () =>
+      FILTER_OPTIONS.reduce((counts, option) => {
+        counts[option.id] = filterAlertsByMode(
+          globalVisibleAlerts,
+          option.id,
+        ).length;
+        return counts;
+      }, {}),
+    [globalVisibleAlerts],
+  );
   const urgentAlerts = globalVisibleAlerts.filter(
     (alert) => alert.priority === "critical" || alert.priority === "action",
   );
@@ -400,6 +415,11 @@ export default function NotificationDrawer({
                     variant="ghost"
                     onClick={() => onFilterChange(option.id)}>
                     {option.label}
+                    {filterCounts[option.id] > 0 ? (
+                      <span className="client-alert-filter-count">
+                        {filterCounts[option.id]}
+                      </span>
+                    ) : null}
                   </Button>
                 ))}
               </div>
