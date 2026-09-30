@@ -100,6 +100,7 @@ export default function AppRoutes({activePage, ...props}) {
             getDayCloseJournal={props.getDayCloseJournal}
             masters={props.masters}
             openActionMenuId={props.openPaymentActionMenuId}
+            qualityFocusToken={props.paymentQualityFocusToken}
             reopenDayClose={props.reopenDayClose}
             removeDayClose={props.removeDayClose}
             visits={props.filteredPaymentRows}
@@ -209,7 +210,7 @@ export default function AppRoutes({activePage, ...props}) {
             onAdd={props.openCreateEmployee}
             onEdit={props.openEditEmployee}
             onDelete={props.requestDeleteEmployee}
-            onOpenPayments={() => props.setActivePage("payments")}
+            onOpenPayments={props.openPaymentQualityCheck}
           />
         </PageSuspense>
       );

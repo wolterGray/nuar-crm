@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import VisitsTable from "../VisitsTable.jsx";
 import DayClosePanel from "../DayClosePanel.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
@@ -21,7 +21,7 @@ const ISSUE_TONE = {
   missing_paired_earning: "Парный",
 };
 
-function FinancialQualityPanel({report, onOpenIssue}) {
+function FinancialQualityPanel({focused = false, panelRef, report, onOpenIssue}) {
   const [activeFilter, setActiveFilter] = useState("all");
   const issues = Array.isArray(report?.issues) ? report.issues : [];
   const filteredIssues =
@@ -46,7 +46,10 @@ function FinancialQualityPanel({report, onOpenIssue}) {
   }
 
   return (
-    <section className="financial-quality-panel" aria-label="Проверка денег">
+    <section
+      ref={panelRef}
+      className={`financial-quality-panel ${focused ? "alert-focus-pulse" : ""}`}
+      aria-label="Проверка денег">
       <header className="financial-quality-header">
         <div>
           <span>Проверка денег</span>
@@ -100,6 +103,7 @@ function PaymentsPage({
   getDayCloseJournal,
   masters,
   openActionMenuId,
+  qualityFocusToken,
   reopenDayClose,
   removeDayClose,
   visits,
@@ -112,6 +116,8 @@ function PaymentsPage({
   onToggleActionMenu,
 }) {
   const {isMobile} = useBreakpoint();
+  const qualityPanelRef = useRef(null);
+  const [qualityPanelFocused, setQualityPanelFocused] = useState(false);
   const financialQualityReport = useMemo(
     () =>
       buildFinancialQualityReport({
@@ -121,9 +127,28 @@ function PaymentsPage({
     [calendarEntries, completedVisits],
   );
 
+  useEffect(() => {
+    if (!qualityFocusToken) return undefined;
+
+    const setupTimer = window.setTimeout(() => {
+      qualityPanelRef.current?.scrollIntoView({behavior: "smooth", block: "center"});
+      setQualityPanelFocused(true);
+    }, 80);
+    const clearTimer = window.setTimeout(() => {
+      setQualityPanelFocused(false);
+    }, 3800);
+
+    return () => {
+      window.clearTimeout(setupTimer);
+      window.clearTimeout(clearTimer);
+    };
+  }, [qualityFocusToken]);
+
   return (
     <section className={`payments-page nuar-payments ${isMobile ? "payments-page-mobile" : ""}`}>
       <FinancialQualityPanel
+        focused={qualityPanelFocused}
+        panelRef={qualityPanelRef}
         report={financialQualityReport}
         onOpenIssue={onOpenCalendarIssue}
       />

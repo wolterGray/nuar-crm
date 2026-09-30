@@ -231,6 +231,7 @@ function App() {
     client: "",
     date: "",
   });
+  const [paymentQualityFocusToken, setPaymentQualityFocusToken] = useState(0);
   const [calendarEntryDefaults, setCalendarEntryDefaults] = useState({});
   const [clientAlertsOpen, setClientAlertsOpen] = useState(false);
   const [alertFilter, setAlertFilter] = useState(loadStoredAlertFilter);
@@ -2102,6 +2103,11 @@ function App() {
             openEditSupply={openEditSupply}
             openEditTask={openEditTask}
             openCalendarIssue={openCalendarIssue}
+            openPaymentQualityCheck={() => {
+              setActivePage("payments");
+              setPaymentQualityFocusToken(Date.now());
+            }}
+            paymentQualityFocusToken={paymentQualityFocusToken}
             openSettingsPage={() => setActivePage("settings")}
             packageSalesIncome={packageSalesIncome}
             packagesCatalog={packagesCatalog}
