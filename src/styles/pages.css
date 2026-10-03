@@ -10526,12 +10526,29 @@ button:focus-visible {
 }
 
 .nuar-payments .financial-quality-filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 30px;
   padding: 0 10px;
   border: 1px solid var(--payments-border);
   border-radius: 999px;
   color: var(--payments-muted);
   background: transparent;
+}
+
+.nuar-payments .financial-quality-filters button span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 999px;
+  color: var(--payments-text);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  font-size: 10px;
+  line-height: 1;
 }
 
 .nuar-payments .financial-quality-filters button.is-active,

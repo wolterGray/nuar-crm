@@ -28,6 +28,13 @@ function FinancialQualityPanel({focused = false, panelRef, report, onOpenIssue})
     activeFilter === "all"
       ? issues
       : issues.filter((issue) => issue.type === activeFilter);
+  const issueCounts = issues.reduce(
+    (counts, issue) => ({
+      ...counts,
+      [issue.type]: (counts[issue.type] ?? 0) + 1,
+    }),
+    {all: issues.length},
+  );
   const visibleFilters = ISSUE_FILTERS.filter(
     (filter) =>
       filter.id === "all" || issues.some((issue) => issue.type === filter.id),
@@ -67,6 +74,7 @@ function FinancialQualityPanel({focused = false, panelRef, report, onOpenIssue})
             onClick={() => setActiveFilter(filter.id)}
           >
             {filter.label}
+            <span>{issueCounts[filter.id] ?? 0}</span>
           </button>
         ))}
       </div>
