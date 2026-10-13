@@ -15,6 +15,16 @@ const DEFAULT_MASTERS = ['Ольга', 'Максим'];
 const DEFAULT_WORKDAY_START = '08:00';
 const DEFAULT_WORKDAY_END = '22:00';
 const DEFAULT_SLOT_STEP = 15;
+const SITE_SERVICE_PRICE_FALLBACKS = [
+  { slug: 'masaz-klasyczny', title: 'Masaż klasyczny', time: [30, 60, 75, 90, 120], price: [170, 255, 310, 360, 450] },
+  { slug: 'masaz-sportowy', title: 'Masaż sportowy', time: [30, 60, 75, 90, 120], price: [170, 255, 310, 360, 450] },
+  { slug: 'masaz-relaksacyjny', title: 'Masaż relaksacyjny', time: [30, 60, 75, 90, 120], price: [170, 255, 310, 360, 450] },
+  { slug: 'masaz-limfatyczny', title: 'Masaż limfatyczny', time: [30, 60, 75, 90, 120], price: [170, 255, 310, 360, 450] },
+  { slug: 'masaz-antycellulitowy', title: 'Masaż antycellulitowy', time: [30, 60, 75, 90, 120], price: [170, 255, 310, 360, 450] },
+  { slug: 'masaz-twarzy-i-glowy', title: 'Masaż twarzy i głowy', time: [30, 60], price: [149, 220] },
+  { slug: 'masaz-autorski', title: 'Masaż autorski', time: [90, 120], price: [490, 590] },
+  { slug: 'masaz-dla-dzieci', title: 'Masaż dla dzieci', time: [30, 60, 75, 90, 120], price: [170, 250, 310, 360, 450] },
+];
 
 const SITE_MASTER_ALIASES = {
   max: 'Максим',
@@ -183,7 +193,19 @@ const getServiceBasePrice = ({ durationMinutes, serviceName, serviceSlug, servic
   });
 
   const variant = service?.variants?.find((item) => Number(item?.duration) === Number(durationMinutes));
-  return Math.max(0, Math.round(Number(variant?.price ?? service?.price ?? 0) || 0));
+  const crmPrice = Math.max(0, Math.round(Number(variant?.price ?? service?.price ?? 0) || 0));
+  if (crmPrice > 0) return crmPrice;
+
+  const fallback = SITE_SERVICE_PRICE_FALLBACKS.find(
+    (item) =>
+      normalizeText(item.slug) === normalizeText(serviceSlug) ||
+      normalizeText(item.title) === normalizeText(serviceName),
+  );
+  if (!fallback) return 0;
+
+  const durationIndex = fallback.time.findIndex((minutes) => Number(minutes) === Number(durationMinutes));
+  const priceIndex = durationIndex >= 0 ? durationIndex : 0;
+  return Math.max(0, Math.round(Number(fallback.price[priceIndex]) || 0));
 };
 
 const rangesOverlap = (firstStart, firstEnd, secondStart, secondEnd) =>
@@ -388,6 +410,21 @@ publicSiteBookingRouter.post('/site-booking-submit', async (req, res) => {
     if (!/^\d{2}:\d{2}$/.test(preferredTime)) throw validationError('preferredTime is invalid');
 
     await ensureSiteBookingTables(prisma);
+    const currentSlots = await buildSlots({
+      durationMinutes,
+      preferredDate,
+      preferredMaster: cleanString(req.body?.preferredMaster),
+      serviceName,
+      serviceSlug: cleanString(req.body?.serviceSlug),
+    });
+    const requestedSlot = currentSlots.find(
+      (slot) =>
+        cleanString(slot.startTime) === preferredTime &&
+        (!cleanString(req.body?.preferredMaster) ||
+          resolveMaster(slot.master) === resolveMaster(req.body?.preferredMaster)),
+    );
+    if (!requestedSlot) throw validationError('preferredTime is unavailable');
+
     const id = crypto.randomUUID();
     const rows = await prisma.$queryRaw`
       insert into site_booking_requests (
