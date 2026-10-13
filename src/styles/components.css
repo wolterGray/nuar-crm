@@ -1135,6 +1135,20 @@
     white-space: nowrap;
   }
 
+  .mobile-bottom-nav .nuar-nav-label,
+  .mobile-more-sheet-nav .nuar-nav-label {
+    display: block;
+    max-width: 100%;
+  }
+
+  .mobile-bottom-nav .nuar-nav-badge,
+  .mobile-more-sheet-nav .nuar-nav-badge {
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 9px !important;
+  }
+
   .mobile-more-sheet {
     right: var(--mobile-page-x, 16px) !important;
     bottom: calc(var(--mobile-nav-total, calc(72px + env(safe-area-inset-bottom, 0px))) + 10px) !important;
@@ -4106,8 +4120,38 @@
 }
 
 .nuar-sidebar-nav-item > span {
+  display: flex;
+  width: 100%;
   min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   justify-self: start;
+}
+
+.nuar-nav-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nuar-nav-badge {
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 42%, transparent);
+  border-radius: 999px;
+  color: var(--color-primary-text);
+  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 72%, #111 28%));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent);
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1;
 }
 
 .nuar-sidebar-nav-item svg {

@@ -1764,6 +1764,17 @@ function App() {
       ),
     [employees],
   );
+  const activeWaitlistCount = useMemo(
+    () => waitlistEntries.filter((entry) => entry.status === "active").length,
+    [waitlistEntries],
+  );
+  const navigationBadges = useMemo(
+    () => ({
+      operations: activeWaitlistCount,
+      site: siteBooking.pendingRequests.length,
+    }),
+    [activeWaitlistCount, siteBooking.pendingRequests.length],
+  );
 
   return (
     <AppGate
@@ -1801,6 +1812,7 @@ function App() {
       navigation={
         <AppNavigation
           activePage={activePage}
+          navBadges={navigationBadges}
           ownerName={appSettings.ownerName}
           sidebarVisible={appSettings.sidebarVisible}
           studioName={appSettings.studioName}

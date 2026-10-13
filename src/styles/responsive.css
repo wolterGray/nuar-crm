@@ -944,6 +944,20 @@
     white-space: nowrap;
   }
 
+  .mobile-bottom-nav .nuar-nav-label,
+  .mobile-more-sheet-nav .nuar-nav-label {
+    display: block;
+    max-width: 100%;
+  }
+
+  .mobile-bottom-nav .nuar-nav-badge,
+  .mobile-more-sheet-nav .nuar-nav-badge {
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 9px;
+  }
+
   .table-footer,
   .operations-page-tabs {
     display: flex;

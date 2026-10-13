@@ -3,6 +3,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { requireOwner } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
+const { upsertNotificationEvent } = require('../services/notificationEventsService');
 const { telegramDigest } = require('../services/telegramService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { ensureSiteBookingTables } = require('../utils/siteCmsTables');
@@ -62,6 +63,11 @@ const firstNonEmpty = (...values) => values.map(cleanString).find(Boolean) || ''
 const isInputDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value ?? ''));
 
 const normalizePhone = (value) => String(value ?? '').replace(/[^\d+]/g, '');
+
+const addMinutesToTime = (time, minutesToAdd) => {
+  const total = Math.min(24 * 60 - 1, Math.max(0, toMinutes(time) + Math.max(1, Number(minutesToAdd) || 0)));
+  return toClockTime(total);
+};
 
 const normalizeWorkingDays = (value) => {
   if (!Array.isArray(value)) return [1, 2, 3, 4, 5, 6, 0];
@@ -350,14 +356,28 @@ const notifyOwnerAboutBooking = async (booking) => {
     .then((row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {}))
     .catch(() => ({}));
 
-  if (settings.telegramEnabled !== true || settings.siteBookingNotifyTelegramEnabled !== true) return;
+  if (settings.telegramEnabled !== true || settings.siteBookingNotifyTelegramEnabled !== true) {
+    return {
+      error: 'telegram disabled in settings',
+      reason: 'telegram_disabled',
+      skipped: true,
+      success: false,
+    };
+  }
 
   const chatId = firstNonEmpty(
     settings.telegramChatId,
     process.env.TELEGRAM_CHAT_ID,
     process.env.TELEGRAM_OWNER_CHAT_ID,
   );
-  if (!chatId) return;
+  if (!chatId) {
+    return {
+      error: 'telegramChatId is required',
+      reason: 'telegram_chat_missing',
+      skipped: true,
+      success: false,
+    };
+  }
 
   const lines = [
     'Nowa rezerwacja NUAR',
@@ -369,14 +389,85 @@ const notifyOwnerAboutBooking = async (booking) => {
     booking.note ? `Uwagi: ${booking.note}` : null,
   ].filter(Boolean);
 
-  await telegramDigest({
+  const result = await telegramDigest({
     chatId,
+    notificationEventId: booking.notificationEventId,
     purpose: 'site-booking',
     text: lines.join('\n'),
   }).catch((error) => {
     console.error('Site booking owner notification failed:', error);
+    return {success: false, error: error?.message || 'Telegram request failed'};
+  });
+
+  if (!result?.success && !result?.skipped) {
+    await recordErrorEvent(prisma, {
+      context: {
+        bookingId: booking.id,
+        chatIdPresent: Boolean(chatId),
+        telegramError: result?.error ?? '',
+      },
+      error: new Error(result?.error || 'Telegram site booking notification failed'),
+      message: 'Telegram site booking notification failed',
+      source: 'site-booking',
+    }).catch(() => {});
+  }
+
+  return result;
+};
+
+const createSiteBookingWaitlistEntry = (tx, booking) => {
+  const contactLines = [
+    `Телефон: ${booking.clientPhone}`,
+    booking.clientEmail ? `Email: ${booking.clientEmail}` : null,
+    booking.note ? `Комментарий: ${booking.note}` : null,
+    `Заявка сайта: ${booking.id}`,
+  ].filter(Boolean);
+
+  return tx.waitlistEntry.create({
+    data: {
+      clientId: null,
+      clientName: booking.clientName,
+      note: contactLines.join('\n'),
+      payload: {
+        clientEmail: booking.clientEmail || null,
+        clientPhone: booking.clientPhone,
+        durationMinutes: booking.durationMinutes,
+        source: 'site-booking',
+        siteBookingRequestId: booking.id,
+      },
+      preferredDate: booking.preferredDate,
+      preferredMaster: booking.preferredMaster || null,
+      preferredService: booking.serviceName,
+      preferredTimeFrom: booking.preferredTime,
+      preferredTimeTo: addMinutesToTime(booking.preferredTime, booking.durationMinutes),
+      status: 'active',
+    },
   });
 };
+
+const createSiteBookingNotification = (tx, booking, waitlistEntry) =>
+  upsertNotificationEvent(tx, {
+    clientId: null,
+    clientName: booking.clientName,
+    entityId: booking.id,
+    entityType: 'site_booking_request',
+    fingerprint: `site-booking:${booking.id}`,
+    payload: {
+      durationMinutes: booking.durationMinutes,
+      preferredDate: booking.preferredDate,
+      preferredMaster: booking.preferredMaster,
+      preferredTime: booking.preferredTime,
+      serviceName: booking.serviceName,
+      waitlistEntryId: waitlistEntry?.id ?? null,
+    },
+    priority: 'high',
+    recommendedAction: 'open',
+    score: 80,
+    source: 'site-booking',
+    title: 'Новая заявка с сайта',
+    message: `${booking.clientName} · ${booking.serviceName} · ${booking.preferredDate} ${booking.preferredTime}`,
+    type: 'site_booking_request',
+  });
 
 publicSiteBookingRouter.post('/site-booking-availability', async (req, res) => {
   try {
@@ -426,35 +517,72 @@ publicSiteBookingRouter.post('/site-booking-submit', async (req, res) => {
     if (!requestedSlot) throw validationError('preferredTime is unavailable');
 
     const id = crypto.randomUUID();
-    const rows = await prisma.$queryRaw`
-      insert into site_booking_requests (
-        id, client_name, client_phone, client_email, service_slug, service_name,
-        preferred_date, preferred_time, preferred_master, duration_minutes,
-        status, note, locale, payload, created_at, updated_at
-      )
-      values (
-        ${id}, ${clientName}, ${clientPhone}, ${cleanString(req.body?.clientEmail) || null},
-        ${cleanString(req.body?.serviceSlug) || null}, ${serviceName}, ${preferredDate},
-        ${preferredTime}, ${cleanString(req.body?.preferredMaster) || null}, ${durationMinutes},
-        'pending', ${cleanString(req.body?.note) || null}, ${cleanString(req.body?.locale) || null},
-        ${JSON.stringify(req.body ?? {})}::jsonb, now(), now()
-      )
-      returning id
-    `;
-
-    await notifyOwnerAboutBooking({
+    const booking = {
       clientEmail: cleanString(req.body?.clientEmail),
       clientName,
       clientPhone,
       durationMinutes,
+      id,
       note: cleanString(req.body?.note),
       preferredDate,
       preferredMaster: cleanString(req.body?.preferredMaster),
       preferredTime,
       serviceName,
+      serviceSlug: cleanString(req.body?.serviceSlug),
+    };
+    let crmLinks = {};
+    const rows = await prisma.$transaction(async (tx) => {
+      const insertedRows = await tx.$queryRaw`
+        insert into site_booking_requests (
+          id, client_name, client_phone, client_email, service_slug, service_name,
+          preferred_date, preferred_time, preferred_master, duration_minutes,
+          status, note, locale, payload, created_at, updated_at
+        )
+        values (
+          ${id}, ${clientName}, ${clientPhone}, ${booking.clientEmail || null},
+          ${booking.serviceSlug || null}, ${serviceName}, ${preferredDate},
+          ${preferredTime}, ${booking.preferredMaster || null}, ${durationMinutes},
+          'pending', ${booking.note || null}, ${cleanString(req.body?.locale) || null},
+          ${JSON.stringify({...req.body, source: 'site-booking'})}::jsonb, now(), now()
+        )
+        returning id
+      `;
+      const waitlistEntry = await createSiteBookingWaitlistEntry(tx, booking);
+      const notificationEvent = await createSiteBookingNotification(tx, booking, waitlistEntry);
+      crmLinks = {
+        notificationEventId: notificationEvent?.id ?? null,
+        waitlistEntryId: waitlistEntry.id,
+      };
+
+      await tx.$executeRaw`
+        update site_booking_requests
+        set payload = coalesce(payload, '{}'::jsonb) || ${JSON.stringify(crmLinks)}::jsonb,
+            updated_at = now()
+        where id = ${id}
+      `;
+
+      return insertedRows;
     });
 
-    res.json({ success: true, data: { id: rows?.[0]?.id ?? id } });
+    const notifyResult = await notifyOwnerAboutBooking({
+      ...booking,
+      notificationEventId: crmLinks.notificationEventId,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        id: rows?.[0]?.id ?? id,
+        waitlistEntryId: crmLinks.waitlistEntryId ?? null,
+        notification: notifyResult
+          ? {
+              error: notifyResult.error ?? '',
+              skipped: notifyResult.skipped === true,
+              success: notifyResult.success === true,
+            }
+          : null,
+      },
+    });
   } catch (error) {
     await handleRouteError(req, res, error);
   }
@@ -524,6 +652,22 @@ siteBookingRouter.patch('/site-bookings/:id', requireOwner, async (req, res) => 
       entity: 'SiteBookingRequest',
       entityId: id,
     });
+
+    if (['applied', 'rejected'].includes(row.status)) {
+      await prisma.waitlistEntry
+        .updateMany({
+          data: {status: 'closed'},
+          where: {
+            payload: {
+              path: ['siteBookingRequestId'],
+              equals: id,
+            },
+          },
+        })
+        .catch((error) => {
+          console.error('Failed to close site booking waitlist entry:', error);
+        });
+    }
 
     res.json({ success: true, data: row });
   } catch (error) {

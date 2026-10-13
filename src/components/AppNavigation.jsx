@@ -4,6 +4,7 @@ import {AppIcon, Button, IconButton} from "./ui/index.js";
 
 export default function AppNavigation({
   activePage,
+  navBadges = {},
   onOpenClientSearch,
   sidebarVisible,
   onPageChange,
@@ -30,6 +31,25 @@ export default function AppNavigation({
   const hiddenMobileItems = navItems.filter(
     (item) => !mobileNavItems.some((mobileItem) => mobileItem.page === item.page),
   );
+  const getBadge = (page) => {
+    const value = Number(navBadges?.[page]) || 0;
+    if (value <= 0) return "";
+    return value > 99 ? "99+" : String(value);
+  };
+  const renderLabel = (item) => {
+    const badge = getBadge(item.page);
+
+    return (
+      <>
+        <span className="nuar-nav-label">{item.label}</span>
+        {badge ? (
+          <span className="nuar-nav-badge" aria-label={`${item.label}: ${badge}`}>
+            {badge}
+          </span>
+        ) : null}
+      </>
+    );
+  };
 
   return (
     <>
@@ -65,10 +85,11 @@ export default function AppNavigation({
               {groupIndex > 0 ? <span aria-hidden="true" className="nuar-sidebar-separator" /> : null}
               {group.items.map((item) => {
                 const isActive = activePage === item.page;
+                const badge = getBadge(item.page);
 
                 return (
                   <Button
-                    aria-label={item.label}
+                    aria-label={badge ? `${item.label}: ${badge}` : item.label}
                     data-label={item.label}
                     className={`nuar-sidebar-nav-item ${isActive ? "is-active" : ""}`}
                     key={item.page}
@@ -77,7 +98,7 @@ export default function AppNavigation({
                     variant="ghost"
                     onClick={() => handleDesktopPageChange(item.page)}
                   >
-                    {item.label}
+                    {renderLabel(item)}
                   </Button>
                 );
               })}
@@ -129,9 +150,11 @@ export default function AppNavigation({
           <nav className="mobile-more-sheet-nav grid grid-cols-2 gap-2">
             {hiddenMobileItems.map((item) => {
               const isActive = activePage === item.page;
+              const badge = getBadge(item.page);
 
               return (
                 <Button
+                  aria-label={badge ? `${item.label}: ${badge}` : item.label}
                   className={isActive ? "active" : ""}
                   key={item.page}
                   leftIcon={item.icon}
@@ -139,7 +162,7 @@ export default function AppNavigation({
                   variant="ghost"
                   onClick={() => handleSheetPageChange(item.page)}
                 >
-                  <span>{item.label}</span>
+                  {renderLabel(item)}
                 </Button>
               );
             })}
@@ -151,9 +174,11 @@ export default function AppNavigation({
       <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-45 flex select-none md:hidden" aria-label="Мобильная навигация">
         {mobileNavItems.map((item) => {
           const isActive = activePage === item.page;
+          const badge = getBadge(item.page);
 
           return (
             <Button
+              aria-label={badge ? `${item.label}: ${badge}` : item.label}
               className={isActive ? "active" : ""}
               key={item.page}
               leftIcon={item.icon}
@@ -161,7 +186,7 @@ export default function AppNavigation({
               variant="ghost"
               onClick={() => handleSheetPageChange(item.page)}
             >
-              {item.label}
+              {renderLabel(item)}
             </Button>
           );
         })}
