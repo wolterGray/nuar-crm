@@ -5,11 +5,13 @@ import {
   expandTasksForRange,
   getChecklistProgress,
   getDayStats,
+  getOverdueTasks,
   getTaskAssigneeId,
   getTaskDueDate,
   getTaskDueTime,
   getTaskEstimateMinutes,
   getTaskPayload,
+  getTaskStatusLabel,
   isTaskCompleted,
   isTaskMainOnDate,
   patchOccurrence,
@@ -183,5 +185,18 @@ describe("operationsPlanner", () => {
 
     expect(expandTasksForRange([monthly], "2026-11-01", "2026-11-30").map(getTaskDueDate))
       .toEqual(["2026-11-12"]);
+  });
+
+  it("shows untouched and started daily states without false recurring overdue items", () => {
+    const [untouched] = expandTasksForRange([repeatingTask], "2026-10-12", "2026-10-12");
+    const startedBase = patchOccurrence(untouched, "2026-10-12", {
+      checklist: [{done: true, id: "a", text: "Проверить кабинеты"}],
+    });
+    const [started] = expandTasksForRange([startedBase], "2026-10-12", "2026-10-12");
+
+    expect(getTaskStatusLabel(untouched, "2026-10-12", "08:00")).toBe("Не начата");
+    expect(getTaskStatusLabel(started, "2026-10-12", "08:00")).toBe("В процессе");
+    expect(getOverdueTasks([repeatingTask], "2026-10-14", "12:00")).toHaveLength(0);
+    expect(getOverdueTasks([startedBase], "2026-10-14", "12:00")).toHaveLength(1);
   });
 });

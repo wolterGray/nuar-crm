@@ -34,6 +34,14 @@ const makeChecklistItem = (text = "") => ({
   text,
 });
 
+const makeResultField = () => ({
+  id: `custom-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  label: "",
+  required: false,
+  type: "text",
+  unit: "",
+});
+
 function TaskForm({employees = [], task, onSubmit}) {
   const payload = getTaskPayload(task);
   const isNote = task?.type === "note";
@@ -57,6 +65,9 @@ function TaskForm({employees = [], task, onSubmit}) {
         }))
       : [];
   });
+  const [resultFields, setResultFields] = useState(() =>
+    Array.isArray(payload.resultFields) ? payload.resultFields.map((field) => ({...field})) : [],
+  );
   const progress = getChecklistProgress({...task, occurrenceChecklist: checklist});
   const repeatEnabled = taskKind === "daily";
   const repeatStartDate = dueDateValue;
@@ -96,6 +107,7 @@ function TaskForm({employees = [], task, onSubmit}) {
       <input name="type" type="hidden" value={isNote ? "note" : "task"} />
       <input name="checklistJson" type="hidden" value={JSON.stringify(checklist)} />
       <input name="repeatJson" type="hidden" value={JSON.stringify(repeatPayload)} />
+      <input name="resultFieldsJson" type="hidden" value={JSON.stringify(resultFields)} />
       <input name="isVirtualOccurrence" type="hidden" value={task?.isVirtualOccurrence ? "true" : ""} />
       <input name="baseId" type="hidden" value={task?.baseId ?? ""} />
       <input name="occurrenceDate" type="hidden" value={task?.occurrenceDate ?? ""} />
@@ -293,6 +305,50 @@ function TaskForm({employees = [], task, onSubmit}) {
                   onClick={() => setChecklist((current) => [...current, makeChecklistItem()])}>
                   Добавить пункт
                 </Button>
+              </section>
+
+              <section className="task-form-results-config">
+                <div className="task-form-section-head">
+                  <strong>Поля результата</strong>
+                  <small>{resultFields.length}</small>
+                </div>
+                <div className="task-result-field-list">
+                  {resultFields.map((field) => (
+                    <div className="task-result-field-row" key={field.id}>
+                      <Input
+                        aria-label="Название поля"
+                        placeholder="Название показателя"
+                        value={field.label}
+                        onChange={(event) => setResultFields((current) => current.map((item) => item.id === field.id ? {...item, label: event.target.value} : item))}
+                      />
+                      <Select
+                        aria-label="Тип поля"
+                        value={field.type}
+                        onChange={(event) => setResultFields((current) => current.map((item) => item.id === field.id ? {...item, type: event.target.value} : item))}>
+                        <option value="text">Текст</option>
+                        <option value="number">Число</option>
+                        <option value="date">Дата</option>
+                        <option value="textarea">Большой текст</option>
+                      </Select>
+                      <Input
+                        aria-label="Единица измерения"
+                        placeholder="Ед."
+                        value={field.unit ?? ""}
+                        onChange={(event) => setResultFields((current) => current.map((item) => item.id === field.id ? {...item, unit: event.target.value} : item))}
+                      />
+                      <label className="task-result-required">
+                        <input
+                          checked={field.required === true}
+                          type="checkbox"
+                          onChange={(event) => setResultFields((current) => current.map((item) => item.id === field.id ? {...item, required: event.target.checked} : item))}
+                        />
+                        Обязательно
+                      </label>
+                      <Button leftIcon="trash" size="sm" type="button" variant="ghost" onClick={() => setResultFields((current) => current.filter((item) => item.id !== field.id))}>Удалить</Button>
+                    </div>
+                  ))}
+                </div>
+                <Button leftIcon="plus" size="sm" type="button" variant="secondary" onClick={() => setResultFields((current) => [...current, makeResultField()])}>Добавить поле</Button>
               </section>
 
               {repeatEnabled ? (

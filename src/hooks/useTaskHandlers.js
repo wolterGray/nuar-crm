@@ -50,6 +50,7 @@ const ACQUISITION_TASK_TEMPLATES = [
     instructions: "Откройте Ads Manager, выберите вчерашний день, проверьте активные кампании и внесите фактические показатели. Сопоставьте обращения с записями в CRM, затем сформулируйте короткий вывод.",
     checklist: ["Проверить активные кампании", "Проверить рекламные расходы", "Посмотреть новые обращения", "Оценить стоимость обращения", "Сопоставить обращения с записями", "Сохранить показатели"],
     resultFields: [
+      {id: "statsDate", label: "Дата рекламной статистики", required: true, type: "date"},
       {id: "adSpend", label: "Расходы на рекламу", required: true, type: "number", unit: "zł"},
       {id: "leads", label: "Новые обращения", required: true, type: "number"},
       {id: "bookings", label: "Записи из рекламы", required: true, type: "number"},
@@ -62,7 +63,11 @@ const ACQUISITION_TASK_TEMPLATES = [
     note: "Проверьте доступность основных каналов записи и свободные окна на три дня вперёд.",
     instructions: "Проверьте, что профили открываются, услуги и цены актуальны, кнопки записи работают, а клиент видит реальные свободные часы. Все обнаруженные проблемы запишите в результат.",
     checklist: ["Проверить Booksy", "Проверить Google Business Profile", "Проверить доступность онлайн-записи", "Проверить свободные окна мастеров на ближайшие три дня", "Зафиксировать обнаруженные проблемы"],
-    resultFields: [{id: "issues", label: "Обнаруженные проблемы", type: "textarea"}],
+    resultFields: [
+      {id: "checkResult", label: "Результат проверки", required: true, type: "textarea"},
+      {id: "issues", label: "Обнаруженные проблемы", type: "textarea"},
+      {id: "requiredActions", label: "Необходимые действия", type: "textarea"},
+    ],
   },
   {
     aliases: ["Поиск новых клиентов и партнёров", "Поиск новых каналов привлечения"],
@@ -72,7 +77,7 @@ const ACQUISITION_TASK_TEMPLATES = [
     instructions: "Пн: изучите предложения конкурентов. Вт: найдите потенциальных партнёров. Ср: отправьте предложения. Чт: изучите новые площадки. Пт: проверьте ответы и назначьте следующие действия.",
     checklist: ["Выполнить действие текущего дня", "Сохранить названия или ссылки", "Зафиксировать отправленные предложения", "Проверить ответы", "Определить следующее действие"],
     resultFields: [
-      {id: "contacts", label: "Найдено партнёров", type: "number"},
+      {id: "contacts", label: "Найдено контактов", type: "number"},
       {id: "offers", label: "Отправлено предложений", type: "number"},
       {id: "replies", label: "Получено ответов", type: "number"},
       {id: "partners", label: "Названия или ссылки на партнёров", required: true, type: "textarea"},
@@ -86,12 +91,8 @@ const ACQUISITION_TASK_TEMPLATES = [
     note: "Сведите показатели каналов привлечения и зафиксируйте итог дня.",
     instructions: "Соберите фактические обращения и записи из доступных каналов. Не оценивайте приблизительно: если показатель неизвестен, оставьте поле пустым и укажите причину в комментарии.",
     checklist: ["Собрать обращения по каналам", "Сверить обращения с созданными записями", "Проверить источник каждой записи", "Зафиксировать итоговые показатели", "Записать вывод и следующее действие"],
-    resultFields: [
-      {id: "totalLeads", label: "Всего обращений", required: true, type: "number"},
-      {id: "totalBookings", label: "Всего записей", required: true, type: "number"},
-      {id: "topSource", label: "Лучший канал", type: "text"},
-      {id: "issues", label: "Проблемы и выводы", type: "textarea"},
-    ],
+    resultFields: [{id: "summaryNote", label: "Вывод по результатам привлечения", type: "textarea"}],
+    resultSource: "acquisitionSummary",
   },
 ];
 
@@ -113,8 +114,10 @@ const buildAcquisitionTask = (template, startDate) => ({
     instructions: template.instructions,
     repeat: {enabled: true, frequency: "weekdays", startDate, weekdays: [1, 2, 3, 4, 5]},
     resultFields: template.resultFields,
+    resultSource: template.resultSource ?? "manual",
     taskKind: "daily",
     templateKey: template.key,
+    templateVersion: 2,
   },
 });
 
@@ -204,6 +207,7 @@ export function useTaskHandlers({
         const priorityId = String(form.get("priorityId") ?? "medium");
         const assigneeId = String(form.get("assigneeId") ?? "").trim();
         const checklist = normalizeChecklist(parseJsonField(form.get("checklistJson"), []));
+        const resultFields = parseJsonField(form.get("resultFieldsJson"), getTaskResultFields(editingTask));
         const repeat = parseJsonField(form.get("repeatJson"), {enabled: false});
         const repeatEnabled = form.get("repeatEnabled") === "on";
         const repeatFrequency = String(repeat.frequency ?? "daily");
@@ -250,6 +254,7 @@ export function useTaskHandlers({
             startDate: repeatStartDate,
             weekdays: repeatWeekdays,
           },
+          resultFields,
           taskKind: String(form.get("taskKind") ?? "daily"),
         };
 
@@ -484,7 +489,11 @@ export function useTaskHandlers({
         .filter((text) => !existingTexts.has(normalizeTitle(text)))
         .map((text, index) => ({done: false, id: `${template.key}-added-${index + 1}`, text}));
       const resultFields = Array.isArray(payload.resultFields) ? payload.resultFields : [];
-      const resultIds = new Set(resultFields.map((field) => field.id));
+      const templateById = new Map(template.resultFields.map((field) => [field.id, field]));
+      const mergedResultFields = resultFields
+        .filter((field) => templateById.has(field.id) || !String(field.id).startsWith("template-"))
+        .map((field) => templateById.has(field.id) ? {...field, ...templateById.get(field.id)} : field);
+      const resultIds = new Set(mergedResultFields.map((field) => field.id));
       const missingResultFields = template.resultFields.filter((field) => !resultIds.has(field.id));
       const generatedTitle = template.aliases.some((title) => normalizeTitle(title) === normalizeTitle(existing.title));
 
@@ -497,9 +506,11 @@ export function useTaskHandlers({
           checklist: [...checklist, ...missingChecklist],
           instructions: payload.instructions || template.instructions,
           repeat: payload.repeat?.enabled ? payload.repeat : buildAcquisitionTask(template, startDate).payload.repeat,
-          resultFields: [...resultFields, ...missingResultFields],
+          resultFields: [...mergedResultFields, ...missingResultFields],
+          resultSource: template.resultSource ?? payload.resultSource ?? "manual",
           taskKind: "daily",
           templateKey: template.key,
+          templateVersion: 2,
         },
       }));
     });

@@ -154,7 +154,7 @@ export const getTaskResultFields = (task = {}) => {
         id: String(field?.id ?? `result-${index}`),
         label: String(field?.label ?? "Результат").trim(),
         required: field?.required === true,
-        type: field?.type === "number" ? "number" : field?.type === "textarea" ? "textarea" : "text",
+        type: ["date", "number", "textarea"].includes(field?.type) ? field.type : "text",
         unit: String(field?.unit ?? "").trim(),
       })).filter((field) => field.label)
     : [];
@@ -253,7 +253,11 @@ export const getTaskStatusLabel = (task = {}, today, nowTime) => {
   if (isTaskCompleted(task)) return "Готово";
   if (isTaskOverdue(task, today, nowTime)) return "Просрочено";
   if (record.status === "paused") return "Пауза";
-  return "В работе";
+  const occurrence = getTaskOccurrenceRecord(task);
+  const hasProgress = getTaskChecklist(task).some((item) => item.done) ||
+    Object.values(objectPayload(record.occurrenceResults ?? occurrence.results)).some((value) => String(value ?? "").trim()) ||
+    Boolean(String(record.occurrenceComment ?? occurrence.comment ?? "").trim());
+  return hasProgress ? "В процессе" : "Не начата";
 };
 
 const weeksBetween = (startDate, date) => {
@@ -382,7 +386,11 @@ export const getOverdueTasks = (tasks = [], today = getWarsawTodayInput(), nowTi
   const start = addDays(today, -60);
   return expandTasksForRange(tasks, start, today)
     .filter((task) => getTaskDueDate(task) !== today || getTaskDueTime(task))
-    .filter((task) => isTaskOverdue(task, today, nowTime));
+    .filter((task) => {
+      if (!isTaskRepeating(task)) return isTaskOverdue(task, today, nowTime);
+      const occurrence = getTaskOccurrenceRecord(task);
+      return Object.keys(occurrence).length > 0 && isTaskOverdue(task, today, nowTime);
+    });
 };
 
 export const applyOperationsFilters = (tasks = [], filters = {}) => {

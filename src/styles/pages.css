@@ -7394,17 +7394,21 @@ button:focus-visible {
 
 .operations-detail-backdrop {
   z-index: 90;
+  align-items: stretch;
+  justify-content: flex-end;
+  padding: 0;
 }
 
 .operations-detail-dialog {
   display: flex;
-  width: min(680px, calc(100vw - 32px));
-  max-height: min(88dvh, 820px);
+  width: min(660px, calc(100vw - 24px));
+  height: 100dvh;
+  max-height: 100dvh;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  gap: 0;
+  padding: 0;
   border-color: var(--operations-border);
-  border-radius: 14px;
+  border-radius: 0;
   color: var(--operations-text);
   background: var(--operations-panel);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
@@ -7502,6 +7506,45 @@ button:focus-visible {
   font-size: 11px;
 }
 
+.operations-derived-results,
+.operations-auto-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.operations-auto-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.operations-derived-results > div,
+.operations-auto-summary > div {
+  padding: 10px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 7px;
+  background: var(--operations-panel-soft);
+}
+
+.operations-derived-results span,
+.operations-auto-summary span,
+.operations-derived-results strong,
+.operations-auto-summary strong {
+  display: block;
+}
+
+.operations-derived-results span,
+.operations-auto-summary span {
+  color: var(--operations-muted);
+  font-size: 10px;
+}
+
+.operations-derived-results strong,
+.operations-auto-summary strong {
+  margin-top: 4px;
+  color: var(--operations-text);
+  font-size: 14px;
+}
+
 .operations-result-input {
   position: relative;
   display: block;
@@ -7539,8 +7582,14 @@ button:focus-visible {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: start;
-  padding-bottom: 12px;
+  padding: 18px 20px;
   border-bottom: 1px solid var(--operations-border-soft);
+}
+
+.operations-detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .operations-detail-header span {
@@ -7565,6 +7614,8 @@ button:focus-visible {
   gap: 12px;
   min-height: 0;
   overflow-y: auto;
+  padding: 18px 20px 28px;
+  overscroll-behavior: contain;
 }
 
 .operations-detail-meta {
@@ -7604,12 +7655,13 @@ button:focus-visible {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
-  padding-top: 12px;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--operations-border-soft);
 }
 
 .operations-detail-actions button {
   min-height: 36px;
+  min-width: 150px;
 }
 
 .operations-detail-actions .operations-detail-delete {
@@ -8060,6 +8112,10 @@ button:focus-visible {
 
   .operations-result-grid {
     grid-template-columns: 1fr;
+  }
+
+  .operations-auto-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .operations-result-grid > label:has(textarea) {

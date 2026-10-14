@@ -160,11 +160,13 @@ function TaskCard({
   const checklist = getChecklistProgress(task);
   const assigneeName = getTaskAssigneeName(task) || "Без исполнителя";
   const priority = getTaskPriorityId(task);
+  const statusTone = isCompleted ? "done" : isOverdue ? "overdue" : status === "В процессе" ? "progress" : "idle";
 
   return (
     <article
       className={[
         "operations-work-card",
+        `status-${statusTone}`,
         isCompleted ? "is-completed" : "",
         isMain ? "is-main" : "",
         isOverdue ? "is-overdue" : "",
@@ -193,7 +195,7 @@ function TaskCard({
           {getTaskEstimateMinutes(task) ? <em>{formatMinutes(getTaskEstimateMinutes(task))}</em> : null}
           {priority !== "medium" ? <em>{getTaskPriorityLabel(task)}</em> : null}
           {checklist.total ? <em>{checklist.done}/{checklist.total}</em> : null}
-          {status !== "В работе" ? <em>{status}</em> : null}
+          <em className="operations-task-status">{status}</em>
         </span>
       </button>
       <RowActionsMenu
@@ -227,9 +229,14 @@ function TaskCard({
   );
 }
 
-function TaskDetailsDialog({item, nowTime, onClose, onDelete, onEdit, onSave, today}) {
+function TaskDetailsDialog({item, nowTime, onClose, onEdit, onSave, relatedTasks, today}) {
+  const taskDate = getTaskDueDate(item);
+  const taskPayload = getTaskPayload(item);
+  const defaultResults = item?.occurrenceResults ?? {};
   const [checklist, setChecklist] = useState(() => item?.occurrenceChecklist ?? getTaskPayload(item).checklist ?? []);
-  const [results, setResults] = useState(() => item?.occurrenceResults ?? {});
+  const [results, setResults] = useState(() => taskPayload.templateKey === "acquisition-meta-control" && !defaultResults.statsDate
+    ? {...defaultResults, statsDate: addDays(taskDate, -1)}
+    : defaultResults);
   const [comment, setComment] = useState(() => item?.occurrenceComment ?? "");
   const [saving, setSaving] = useState(false);
 
@@ -241,6 +248,38 @@ function TaskDetailsDialog({item, nowTime, onClose, onDelete, onEdit, onSave, to
     .filter(([, record]) => record?.status === "completed" || Object.keys(record?.results ?? {}).length)
     .sort(([left], [right]) => right.localeCompare(left))
     .slice(0, 8);
+  const spend = Number(results.adSpend) || 0;
+  const leads = Number(results.leads) || 0;
+  const bookings = Number(results.bookings) || 0;
+  const acquisitionSummary = relatedTasks.reduce((summary, task) => {
+    const record = getTaskPayload(task).occurrences?.[taskDate];
+    if (!record?.results) return summary;
+    return {
+      adSpend: summary.adSpend + (Number(record.results.adSpend) || 0),
+      bookings: summary.bookings + (Number(record.results.bookings) || 0),
+      contacts: summary.contacts + (Number(record.results.contacts) || 0),
+      leads: summary.leads + (Number(record.results.leads) || 0),
+      offers: summary.offers + (Number(record.results.offers) || 0),
+      replies: summary.replies + (Number(record.results.replies) || 0),
+    };
+  }, {adSpend: 0, bookings: 0, contacts: 0, leads: 0, offers: 0, replies: 0});
+  const templateTask = item.isVirtualOccurrence
+    ? {
+        completed: item.baseCompleted,
+        createdAt: item.baseCreatedAt,
+        description: item.baseDescription,
+        dueDate: item.baseDueDate,
+        id: item.baseId,
+        note: item.baseNote,
+        payload: item.basePayload,
+        priority: item.basePriority,
+        sortOrder: item.baseSortOrder,
+        status: item.baseStatus,
+        title: item.baseTitle,
+        type: item.type,
+        updatedAt: item.baseUpdatedAt,
+      }
+    : item;
 
   const save = async (status) => {
     const missing = status === "completed"
@@ -271,14 +310,10 @@ function TaskDetailsDialog({item, nowTime, onClose, onDelete, onEdit, onSave, to
               <span>{getTaskKindLabel(item)}</span>
               <h2 id="operation-detail-title">{item.title}</h2>
             </div>
-            <IconButton
-              aria-label="Закрыть"
-              icon="x"
-              size="sm"
-              title="Закрыть"
-              variant="ghost"
-              onClick={onClose}
-            />
+            <div className="operations-detail-header-actions">
+              <Button leftIcon="edit" size="sm" variant="ghost" onClick={() => { onClose(); onEdit(templateTask); }}>Шаблон</Button>
+              <IconButton aria-label="Закрыть" icon="x" size="sm" title="Закрыть" variant="ghost" onClick={onClose} />
+            </div>
           </header>
           <div className="operations-detail-body">
             <div className="operations-detail-meta">
@@ -315,6 +350,16 @@ function TaskDetailsDialog({item, nowTime, onClose, onDelete, onEdit, onSave, to
             {resultFields.length ? (
               <section className="operations-detail-section">
                 <h3>Результат</h3>
+                {taskPayload.resultSource === "acquisitionSummary" ? (
+                  <div className="operations-auto-summary">
+                    <div><span>Расходы Meta</span><strong>{acquisitionSummary.adSpend || "—"}{acquisitionSummary.adSpend ? " zł" : ""}</strong></div>
+                    <div><span>Обращения</span><strong>{acquisitionSummary.leads || "—"}</strong></div>
+                    <div><span>Записи</span><strong>{acquisitionSummary.bookings || "—"}</strong></div>
+                    <div><span>Новые контакты</span><strong>{acquisitionSummary.contacts || "—"}</strong></div>
+                    <div><span>Предложения</span><strong>{acquisitionSummary.offers || "—"}</strong></div>
+                    <div><span>Ответы</span><strong>{acquisitionSummary.replies || "—"}</strong></div>
+                  </div>
+                ) : null}
                 <div className="operations-result-grid">
                   {resultFields.map((field) => (
                     <label key={field.id}>
@@ -327,12 +372,18 @@ function TaskDetailsDialog({item, nowTime, onClose, onDelete, onEdit, onSave, to
                     </label>
                   ))}
                 </div>
+                {taskPayload.templateKey === "acquisition-meta-control" ? (
+                  <div className="operations-derived-results">
+                    <div><span>Стоимость обращения</span><strong>{leads > 0 ? `${(spend / leads).toFixed(2)} zł` : "—"}</strong></div>
+                    <div><span>Стоимость записи</span><strong>{bookings > 0 ? `${(spend / bookings).toFixed(2)} zł` : "—"}</strong></div>
+                  </div>
+                ) : null}
                 {missingRequiredResult ? <small className="operations-result-hint">Заполните обязательные поля, чтобы завершить задачу.</small> : null}
               </section>
             ) : null}
             <section className="operations-detail-section">
-              <h3>Комментарий</h3>
-              <textarea rows="3" value={comment} placeholder="Выводы, проблемы или следующее действие" onChange={(event) => setComment(event.target.value)} />
+              <h3>Комментарий и вывод</h3>
+              <textarea rows="4" value={comment} placeholder={taskPayload.templateKey === "acquisition-meta-control" ? "Что сработало и что требует внимания" : "Выводы, проблемы или следующее действие"} onChange={(event) => setComment(event.target.value)} />
             </section>
             {history.length ? (
               <details className="operations-task-history">
@@ -346,12 +397,6 @@ function TaskDetailsDialog({item, nowTime, onClose, onDelete, onEdit, onSave, to
           <footer className="operations-detail-actions">
             <Button disabled={saving} size="sm" variant="secondary" onClick={() => save()}>Сохранить</Button>
             <Button disabled={saving || isTaskCompleted(item) || missingRequiredResult} leftIcon="check" size="sm" variant="primary" onClick={() => save("completed")}>Завершить за день</Button>
-            <Button leftIcon="edit" size="sm" variant="secondary" onClick={() => onEdit(item)}>
-              Изменить
-            </Button>
-            <Button className="operations-detail-delete" leftIcon="trash" size="sm" variant="danger" onClick={() => onDelete(item)}>
-              Удалить
-            </Button>
           </footer>
         </DialogContent>
       </DialogBackdrop>
@@ -537,12 +582,13 @@ function OperationsPage({
   }, [dayTasks]);
   const hasAcquisitionPlan = workTasks.some((task) => getTaskAreaId(task) === "acquisition");
   const acquisitionNeedsSync = ACQUISITION_TEMPLATE_KEYS.some((key) => !tasks.some((task) => getTaskPayload(task).templateKey === key));
+  const acquisitionNeedsUpgrade = tasks.some((task) => ACQUISITION_TEMPLATE_KEYS.includes(getTaskPayload(task).templateKey) && Number(getTaskPayload(task).templateVersion) < 2);
 
   useEffect(() => {
-    if (!tasks.length || (!legacyAcquisitionRecord && !acquisitionNeedsSync) || acquisitionSyncStarted.current || !onInitializeAcquisitionPlan) return;
+    if (!tasks.length || (!legacyAcquisitionRecord && !acquisitionNeedsSync && !acquisitionNeedsUpgrade) || acquisitionSyncStarted.current || !onInitializeAcquisitionPlan) return;
     acquisitionSyncStarted.current = true;
     onInitializeAcquisitionPlan();
-  }, [acquisitionNeedsSync, legacyAcquisitionRecord, onInitializeAcquisitionPlan, tasks.length]);
+  }, [acquisitionNeedsSync, acquisitionNeedsUpgrade, legacyAcquisitionRecord, onInitializeAcquisitionPlan, tasks.length]);
   const completedOccurrences = useMemo(
     () => workTasks.flatMap((task) => Object.entries(getTaskPayload(task).occurrences ?? {}).map(([date, record]) => ({date, record, task}))).filter(({record}) => record.status === "completed"),
     [workTasks],
@@ -846,9 +892,9 @@ function OperationsPage({
           nowTime={nowTime}
           today={today}
           onClose={() => setViewingTask(null)}
-          onDelete={onDeleteTask}
           onEdit={onEditTask}
           onSave={onSaveTaskOccurrence}
+          relatedTasks={workTasks}
         />
       ) : null}
     </section>
