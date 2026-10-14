@@ -20,6 +20,20 @@ const toDate = (date) => {
   return Number.isNaN(value.getTime()) ? null : value;
 };
 
+const objectPayload = (value) =>
+  value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+
+const getTaskPlannerPayload = (value) => {
+  const raw = objectPayload(value?.payload ?? value);
+  const nested = objectPayload(raw.payload);
+  return Object.keys(nested).length ? { ...raw, ...nested } : raw;
+};
+
+const buildTaskPayload = (payload) => {
+  const explicitPayload = objectPayload(payload?.payload);
+  return Object.keys(explicitPayload).length ? explicitPayload : objectPayload(payload);
+};
+
 const buildTaskData = (payload) => ({
   type: cleanOptionalString(payload?.type) || 'task',
   title: String(payload?.title ?? '').trim(),
@@ -36,8 +50,56 @@ const buildTaskData = (payload) => ({
     payload?.completed !== undefined
       ? Boolean(payload.completed)
       : payload?.status === 'completed',
-  payload,
+  payload: buildTaskPayload(payload),
 });
+
+const clearOtherMainTasks = async (tx, savedTask) => {
+  const savedPayload = getTaskPlannerPayload(savedTask);
+  if (savedPayload.isMain !== true || !savedPayload.mainDate) return;
+
+  const mainDate = String(savedPayload.mainDate);
+  const assigneeId = String(savedPayload.assigneeId ?? '');
+  const records = await tx.task.findMany({
+    where: { id: { not: savedTask.id } },
+    select: { id: true, payload: true },
+  });
+  const updates = records
+    .filter((record) => {
+      const payload = getTaskPlannerPayload(record);
+      return (
+        payload.isMain === true &&
+        String(payload.mainDate ?? '') === mainDate &&
+        String(payload.assigneeId ?? '') === assigneeId
+      );
+    })
+    .map((record) => {
+      const rawPayload = objectPayload(record.payload);
+      const nestedPayload = objectPayload(rawPayload.payload);
+      const nextPayload = Object.keys(nestedPayload).length
+        ? { ...rawPayload, payload: { ...nestedPayload, isMain: false } }
+        : { ...rawPayload, isMain: false };
+      return tx.task.update({
+        where: { id: record.id },
+        data: { payload: nextPayload },
+      });
+    });
+
+  await Promise.all(updates);
+};
+
+const createTaskWithMainGuard = (data) =>
+  prisma.$transaction(async (tx) => {
+    const savedTask = await tx.task.create({ data });
+    await clearOtherMainTasks(tx, savedTask);
+    return savedTask;
+  });
+
+const updateTaskWithMainGuard = (id, data) =>
+  prisma.$transaction(async (tx) => {
+    const savedTask = await tx.task.update({ where: { id }, data });
+    await clearOtherMainTasks(tx, savedTask);
+    return savedTask;
+  });
 
 const buildWaitlistEntryData = (payload) => ({
   clientId: payload?.clientId ? Number(payload.clientId) : null,
@@ -137,7 +199,7 @@ router.post('/tasks', (req, res) => {
     return res.status(400).json({ success: false, error: 'Task title is required' });
   }
 
-  auditCreate(prisma, req, res, prisma.task.create({ data }).then(withStoredId), 'Task', 'create task');
+  auditCreate(prisma, req, res, createTaskWithMainGuard(data).then(withStoredId), 'Task', 'create task');
 });
 
 router.get('/tasks/:id', (req, res) => {
@@ -158,7 +220,7 @@ router.put('/tasks/:id', async (req, res) => {
     res,
     'task',
     id,
-    prisma.task.update({ where: { id }, data }).then(withStoredId),
+    updateTaskWithMainGuard(id, data).then(withStoredId),
     'Task',
     'update task',
   );

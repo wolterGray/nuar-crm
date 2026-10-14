@@ -1392,14 +1392,17 @@ function App() {
     addQuickNote,
     completeTask,
     handleTaskSubmit,
+    moveTaskToDate,
     openCreateTask,
     openEditTask,
     performDeleteTask,
     reorderTasks,
     requestDeleteTask,
+    setMainTask,
   } = useTaskHandlers({
     createLocalId,
     editingTask,
+    employees,
     pushNotification,
     requestEntityDelete,
     setEditingTask,
@@ -2132,7 +2135,9 @@ function App() {
             preferredMessageClientId={preferredMessageClientId}
             pushNotification={pushNotification}
             remindCalendarClient={remindCalendarClient}
+            moveTaskToDate={moveTaskToDate}
             reorderTasks={reorderTasks}
+            setMainTask={setMainTask}
             reorderServices={reorderServiceCatalog}
             repeatClientVisit={repeatClientVisit}
             onClientDetailsOpenChange={setClientDetailsOpen}

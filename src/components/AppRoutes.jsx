@@ -240,6 +240,7 @@ export default function AppRoutes({activePage, ...props}) {
             alertFocus={props.alertFocus}
             tasks={props.tasks}
             supplies={props.supplies}
+            employees={props.employees}
             waitlistEntries={props.waitlistEntries}
             onAddTask={props.openCreateTask}
             onAddNote={props.addQuickNote}
@@ -251,8 +252,10 @@ export default function AppRoutes({activePage, ...props}) {
             onEditTask={props.openEditTask}
             onEditWaitlistEntry={props.openEditWaitlistEntry}
             onMessageWaitlistEntry={props.messageWaitlistEntryFromPanel}
+            onMoveTask={props.moveTaskToDate}
             onRemoveWaitlistEntry={props.removeWaitlistEntry}
             onReorderTasks={props.reorderTasks}
+            onSetMainTask={props.setMainTask}
             onAddSupply={props.openCreateSupply}
             onEditSupply={props.openEditSupply}
             onDeleteSupply={props.requestDeleteSupply}

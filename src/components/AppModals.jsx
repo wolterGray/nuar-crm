@@ -314,7 +314,7 @@ export default function AppModals({
               : "Новая задача"
         }
         onClose={onCloseTaskModal}>
-        <TaskForm task={editingTask} onSubmit={onTaskSubmit} />
+        <TaskForm employees={activeEmployees} task={editingTask} onSubmit={onTaskSubmit} />
       </FormModalShell>
 
       <FormModalShell

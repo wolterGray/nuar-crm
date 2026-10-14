@@ -1,0 +1,477 @@
+const WARSAW_TIME_ZONE = "Europe/Warsaw";
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const TASK_KIND_OPTIONS = [
+  {id: "daily", label: "Ежедневные дела"},
+  {id: "development", label: "Развитие"},
+];
+
+export const TASK_PRIORITY_OPTIONS = [
+  {id: "low", label: "Низкий"},
+  {id: "medium", label: "Средний"},
+  {id: "high", label: "Высокий"},
+];
+
+export const TASK_STATUS_OPTIONS = [
+  {id: "active", label: "В работе"},
+  {id: "completed", label: "Готово"},
+  {id: "paused", label: "Пауза"},
+];
+
+const WEEKDAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+const pad = (value) => String(value).padStart(2, "0");
+
+const getWarsawParts = (date = new Date()) =>
+  new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+    month: "2-digit",
+    timeZone: WARSAW_TIME_ZONE,
+    year: "numeric",
+  })
+    .formatToParts(date)
+    .reduce((parts, part) => {
+      if (part.type !== "literal") parts[part.type] = part.value;
+      return parts;
+    }, {});
+
+export const getWarsawTodayInput = (date = new Date()) => {
+  const parts = getWarsawParts(date);
+  return `${parts.year}-${parts.month}-${parts.day}`;
+};
+
+export const getWarsawTime = (date = new Date()) => {
+  const parts = getWarsawParts(date);
+  return `${parts.hour}:${parts.minute}`;
+};
+
+export const isInputDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value ?? ""));
+
+export const normalizeInputDate = (value) => {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  const match = /^(\d{4}-\d{2}-\d{2})/.exec(text);
+  return match?.[1] ?? "";
+};
+
+export const addDays = (date, days) => {
+  if (!isInputDate(date)) return "";
+  const value = new Date(`${date}T12:00:00.000Z`);
+  value.setUTCDate(value.getUTCDate() + Number(days || 0));
+  return `${value.getUTCFullYear()}-${pad(value.getUTCMonth() + 1)}-${pad(value.getUTCDate())}`;
+};
+
+export const compareInputDates = (left, right) =>
+  String(left || "").localeCompare(String(right || ""));
+
+export const getIsoWeekday = (date) => {
+  if (!isInputDate(date)) return 1;
+  const day = new Date(`${date}T12:00:00.000Z`).getUTCDay();
+  return day === 0 ? 7 : day;
+};
+
+export const getWeekStart = (date) => {
+  const weekday = getIsoWeekday(date);
+  return addDays(date, 1 - weekday);
+};
+
+export const getWeekDays = (date) => {
+  const start = getWeekStart(date);
+  return Array.from({length: 7}, (_, index) => {
+    const input = addDays(start, index);
+    return {
+      input,
+      label: WEEKDAY_LABELS[index],
+    };
+  });
+};
+
+export const formatDateShort = (date) => {
+  if (!isInputDate(date)) return "Без даты";
+  const [, month, day] = date.split("-");
+  return `${day}.${month}`;
+};
+
+const objectPayload = (value) =>
+  value && typeof value === "object" && !Array.isArray(value) ? value : {};
+
+export const getTaskPayload = (task = {}) => {
+  const basePayload = objectPayload(task?.basePayload);
+  const raw = Object.keys(basePayload).length ? basePayload : objectPayload(task?.payload);
+  const nested = objectPayload(raw.payload);
+  if (Object.keys(nested).length) {
+    const rest = {...raw};
+    delete rest.payload;
+    return {...rest, ...nested};
+  }
+  return raw;
+};
+
+const normalizePriorityId = (value) => {
+  const text = String(value ?? "").trim().toLowerCase();
+  if (["high", "высокий"].includes(text)) return "high";
+  if (["low", "низкий"].includes(text)) return "low";
+  return "medium";
+};
+
+const priorityLabelById = (id) =>
+  TASK_PRIORITY_OPTIONS.find((option) => option.id === id)?.label ?? "Средний";
+
+export const getTaskKind = (task = {}) => {
+  const payload = getTaskPayload(task);
+  const kind = String(payload.taskKind ?? payload.kind ?? "").trim();
+  return kind === "development" ? "development" : "daily";
+};
+
+export const getTaskKindLabel = (task = {}) =>
+  TASK_KIND_OPTIONS.find((option) => option.id === getTaskKind(task))?.label ?? "Ежедневные дела";
+
+export const getTaskAssigneeId = (task = {}) =>
+  String(getTaskPayload(task).assigneeId ?? task.assigneeId ?? "").trim();
+
+export const getTaskAssigneeName = (task = {}) =>
+  String(getTaskPayload(task).assigneeName ?? task.assigneeName ?? "").trim();
+
+export const getTaskDueDate = (task = {}) =>
+  normalizeInputDate(task.occurrenceDate ?? getTaskPayload(task).dueDate ?? task.dueDate);
+
+export const getTaskDueTime = (task = {}) =>
+  String(task.occurrenceDueTime ?? getTaskPayload(task).dueTime ?? "").trim();
+
+export const getTaskEstimateMinutes = (task = {}) =>
+  Math.max(0, Number(task.occurrenceEstimateMinutes ?? getTaskPayload(task).estimateMinutes) || 0);
+
+export const getTaskPriorityId = (task = {}) =>
+  normalizePriorityId(getTaskPayload(task).priorityId ?? task.priority);
+
+export const getTaskPriorityLabel = (task = {}) =>
+  priorityLabelById(getTaskPriorityId(task));
+
+export const getTaskChecklist = (task = {}) => {
+  const payload = getTaskPayload(task);
+  const list = task.occurrenceChecklist ?? payload.checklist;
+  return Array.isArray(list)
+    ? list.map((item, index) => ({
+        done: item?.done === true,
+        id: String(item?.id ?? `item-${index}`),
+        text: String(item?.text ?? "").trim(),
+      })).filter((item) => item.text)
+    : [];
+};
+
+export const getChecklistProgress = (task = {}) => {
+  const items = getTaskChecklist(task);
+  if (!items.length) return {done: 0, total: 0};
+  return {
+    done: items.filter((item) => item.done).length,
+    total: items.length,
+  };
+};
+
+export const isTaskCompleted = (task = {}) =>
+  task.occurrenceStatus === "completed" ||
+  task.status === "completed" ||
+  task.completed === true;
+
+export const isTaskRepeating = (task = {}) => {
+  const repeat = getTaskPayload(task).repeat;
+  return repeat?.enabled === true;
+};
+
+export const isTaskMainOnDate = (task = {}, date = getTaskDueDate(task)) => {
+  const payload = getTaskPayload(task);
+  const occurrence = payload.occurrences?.[date];
+  if (occurrence?.isMain === true) return true;
+  return payload.isMain === true && normalizeInputDate(payload.mainDate ?? getTaskDueDate(task)) === date;
+};
+
+export const isTaskOverdue = (
+  task = {},
+  today = getWarsawTodayInput(),
+  nowTime = getWarsawTime(),
+) => {
+  if (isTaskCompleted(task)) return false;
+  const dueDate = getTaskDueDate(task);
+  if (!dueDate) return false;
+  if (compareInputDates(dueDate, today) < 0) return true;
+  const dueTime = getTaskDueTime(task);
+  return dueDate === today && dueTime && dueTime <= nowTime;
+};
+
+export const getTaskStatusLabel = (task = {}, today, nowTime) => {
+  if (isTaskCompleted(task)) return "Готово";
+  if (isTaskOverdue(task, today, nowTime)) return "Просрочено";
+  if (task.status === "paused") return "Пауза";
+  return "В работе";
+};
+
+const weeksBetween = (startDate, date) => {
+  const startWeek = getWeekStart(startDate);
+  const dateWeek = getWeekStart(date);
+  return Math.floor(
+    (new Date(`${dateWeek}T12:00:00.000Z`) - new Date(`${startWeek}T12:00:00.000Z`)) /
+      (7 * DAY_MS),
+  );
+};
+
+export const occursOnDate = (task = {}, date) => {
+  const repeat = getTaskPayload(task).repeat;
+  if (!repeat?.enabled || !isInputDate(date)) return false;
+
+  const startDate = normalizeInputDate(repeat.startDate ?? getTaskDueDate(task));
+  if (!startDate || compareInputDates(date, startDate) < 0) return false;
+  const endDate = normalizeInputDate(repeat.endDate);
+  if (endDate && compareInputDates(date, endDate) > 0) return false;
+
+  const weekday = getIsoWeekday(date);
+  const selectedDays = Array.isArray(repeat.weekdays)
+    ? repeat.weekdays.map(Number).filter((item) => item >= 1 && item <= 7)
+    : [];
+  const frequency = repeat.frequency ?? "daily";
+
+  if (frequency === "daily") return true;
+  if (frequency === "weekdays") return selectedDays.includes(weekday);
+  if (frequency === "weekly") {
+    return selectedDays.length
+      ? selectedDays.includes(weekday)
+      : weekday === getIsoWeekday(startDate);
+  }
+  if (frequency === "intervalWeeks") {
+    const interval = Math.max(1, Number(repeat.intervalWeeks) || 1);
+    return weeksBetween(startDate, date) % interval === 0 && selectedDays.includes(weekday);
+  }
+
+  return false;
+};
+
+export const createTaskOccurrence = (task = {}, date) => {
+  const payload = getTaskPayload(task);
+  const occurrence = payload.occurrences?.[date] ?? {};
+  const checklist = occurrence.checklist ?? payload.checklist;
+  return {
+    ...task,
+    baseCompleted: task.completed,
+    baseCreatedAt: task.createdAt,
+    baseDescription: task.description,
+    baseDueDate: task.dueDate,
+    baseId: task.id,
+    baseNote: task.note,
+    basePayload: payload,
+    basePriority: task.priority,
+    baseSortOrder: task.sortOrder,
+    baseStatus: task.status,
+    baseTitle: task.title,
+    baseUpdatedAt: task.updatedAt,
+    id: `${task.id}::${date}`,
+    isVirtualOccurrence: true,
+    occurrenceDate: date,
+    occurrenceDueTime: occurrence.dueTime ?? payload.dueTime ?? "",
+    occurrenceEstimateMinutes: occurrence.estimateMinutes ?? payload.estimateMinutes ?? 0,
+    occurrenceKey: date,
+    occurrenceStatus: occurrence.status ?? "active",
+    occurrenceChecklist: checklist,
+    note: occurrence.note ?? task.note,
+    payload: {
+      ...payload,
+      isMain: occurrence.isMain === true || (payload.isMain === true && payload.mainDate === date),
+      mainDate: date,
+    },
+    status: occurrence.status ?? "active",
+    title: occurrence.title ?? task.title,
+  };
+};
+
+export const expandTasksForRange = (tasks = [], startDate, endDate, {includeNoDate = false} = {}) => {
+  const result = [];
+  const rangeStart = normalizeInputDate(startDate);
+  const rangeEnd = normalizeInputDate(endDate || startDate);
+
+  for (const task of tasks) {
+    if (task?.type === "note") continue;
+    const dueDate = getTaskDueDate(task);
+
+    if (isTaskRepeating(task)) {
+      const generatedDates = new Set();
+      for (let date = rangeStart; date && compareInputDates(date, rangeEnd) <= 0; date = addDays(date, 1)) {
+        if (occursOnDate(task, date)) {
+          generatedDates.add(date);
+          const occurrence = createTaskOccurrence(task, date);
+          if (occurrence.occurrenceStatus !== "cancelled") result.push(occurrence);
+        }
+      }
+
+      const occurrences = getTaskPayload(task).occurrences ?? {};
+      Object.entries(occurrences).forEach(([date, occurrence]) => {
+        if (!occurrence?.force || generatedDates.has(date)) return;
+        if (compareInputDates(date, rangeStart) < 0 || compareInputDates(date, rangeEnd) > 0) return;
+        const forcedOccurrence = createTaskOccurrence(task, date);
+        if (forcedOccurrence.occurrenceStatus !== "cancelled") result.push(forcedOccurrence);
+      });
+      continue;
+    }
+
+    if (dueDate) {
+      if (compareInputDates(dueDate, rangeStart) >= 0 && compareInputDates(dueDate, rangeEnd) <= 0) {
+        result.push(task);
+      }
+    } else if (includeNoDate) {
+      result.push(task);
+    }
+  }
+
+  return result;
+};
+
+export const getOverdueTasks = (tasks = [], today = getWarsawTodayInput(), nowTime = getWarsawTime()) => {
+  const start = addDays(today, -60);
+  return expandTasksForRange(tasks, start, today)
+    .filter((task) => getTaskDueDate(task) !== today || getTaskDueTime(task))
+    .filter((task) => isTaskOverdue(task, today, nowTime));
+};
+
+export const applyOperationsFilters = (tasks = [], filters = {}) => {
+  const query = String(filters.query ?? "").trim().toLowerCase();
+  return tasks.filter((task) => {
+    if (!filters.showCompleted && isTaskCompleted(task)) return false;
+    if (filters.assigneeId === "__none__" && getTaskAssigneeId(task)) return false;
+    if (filters.assigneeId && filters.assigneeId !== "__all__" && filters.assigneeId !== "__none__") {
+      if (getTaskAssigneeId(task) !== filters.assigneeId) return false;
+    }
+    if (filters.taskKind && filters.taskKind !== "__all__" && getTaskKind(task) !== filters.taskKind) return false;
+    if (filters.priority && filters.priority !== "__all__" && getTaskPriorityId(task) !== filters.priority) return false;
+    if (filters.status && filters.status !== "__all__") {
+      const status = isTaskCompleted(task) ? "completed" : task.status === "paused" ? "paused" : "active";
+      if (status !== filters.status) return false;
+    }
+    if (query) {
+      const haystack = [
+        task.title,
+        task.note,
+        task.description,
+        getTaskPayload(task).outcome,
+      ].join(" ").toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+    return true;
+  });
+};
+
+export const sortPlanTasks = (tasks = []) =>
+  [...tasks].sort((left, right) => {
+    if (isTaskMainOnDate(left, getTaskDueDate(left)) !== isTaskMainOnDate(right, getTaskDueDate(right))) {
+      return isTaskMainOnDate(left, getTaskDueDate(left)) ? -1 : 1;
+    }
+    const leftTime = getTaskDueTime(left) || "99:99";
+    const rightTime = getTaskDueTime(right) || "99:99";
+    if (leftTime !== rightTime) return leftTime.localeCompare(rightTime);
+    if (getTaskPriorityId(left) !== getTaskPriorityId(right)) {
+      const weight = {high: 0, medium: 1, low: 2};
+      return weight[getTaskPriorityId(left)] - weight[getTaskPriorityId(right)];
+    }
+    return String(left.title ?? "").localeCompare(String(right.title ?? ""), "ru");
+  });
+
+export const getDayStats = (tasks = []) => {
+  const planned = tasks.length;
+  const completed = tasks.filter(isTaskCompleted).length;
+  const remainingMinutes = tasks
+    .filter((task) => !isTaskCompleted(task))
+    .reduce((total, task) => total + getTaskEstimateMinutes(task), 0);
+  return {
+    completed,
+    planned,
+    progress: planned ? Math.round((completed / planned) * 100) : 0,
+    remainingMinutes,
+  };
+};
+
+const getBaseTaskFromOccurrence = (task, payload) => ({
+  completed: task.baseCompleted ?? task.completed,
+  createdAt: task.baseCreatedAt ?? task.createdAt,
+  description: task.baseDescription ?? task.description,
+  dueDate: task.baseDueDate ?? task.dueDate,
+  id: task.baseId ?? task.id,
+  note: task.baseNote ?? task.note,
+  payload,
+  priority: task.basePriority ?? task.priority,
+  sortOrder: task.baseSortOrder ?? task.sortOrder,
+  status: task.baseStatus ?? task.status,
+  title: task.baseTitle ?? task.title,
+  type: task.type,
+  updatedAt: task.baseUpdatedAt ?? task.updatedAt,
+});
+
+export const patchOccurrence = (task, date, patch = {}) => {
+  const payload = objectPayload(task?.basePayload) && Object.keys(objectPayload(task?.basePayload)).length
+    ? objectPayload(task.basePayload)
+    : getTaskPayload(task);
+  const current = payload.occurrences?.[date] ?? {};
+  const nextPayload = {
+    ...payload,
+    occurrences: {
+      ...(payload.occurrences ?? {}),
+      [date]: {
+        ...current,
+        ...patch,
+      },
+    },
+  };
+
+  if (task?.isVirtualOccurrence) {
+    return getBaseTaskFromOccurrence(task, nextPayload);
+  }
+
+  return {
+    ...task,
+    payload: {
+      ...nextPayload,
+    },
+  };
+};
+
+export const buildMovedTask = (task, nextDate) => {
+  if (task.isVirtualOccurrence) {
+    const payload = getTaskPayload(task);
+    const previousDate = task.occurrenceDate;
+    const currentOccurrence = payload.occurrences?.[previousDate] ?? {};
+    const cancelledTask = patchOccurrence(task, previousDate, {
+      movedTo: nextDate,
+      status: "cancelled",
+    });
+    const nextPayload = getTaskPayload(cancelledTask);
+    return {
+      ...cancelledTask,
+      payload: {
+        ...nextPayload,
+        occurrences: {
+          ...(nextPayload.occurrences ?? {}),
+          [nextDate]: {
+            ...currentOccurrence,
+            checklist: getTaskChecklist(task),
+            dueTime: getTaskDueTime(task),
+            estimateMinutes: getTaskEstimateMinutes(task),
+            force: true,
+            isMain: isTaskMainOnDate(task, previousDate),
+            movedFrom: previousDate,
+            note: task.note,
+            status: "active",
+            title: task.title,
+          },
+        },
+      },
+    };
+  }
+  const payload = getTaskPayload(task);
+  return {
+    ...task,
+    dueDate: nextDate,
+    payload: {
+      ...payload,
+      dueDate: nextDate,
+      ...(payload.isMain ? {mainDate: nextDate} : {}),
+    },
+  };
+};

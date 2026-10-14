@@ -9122,3 +9122,559 @@
     max-height: min(218px, calc(100dvh - 260px)) !important;
   }
 }
+
+/* Operations planner v2 */
+.operations-page.operations-workspace {
+  --operations-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.operations-page .operations-main-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  background: color-mix(in srgb, var(--operations-panel-soft) 92%, var(--operations-text) 2%);
+}
+
+.operations-page .operations-main-tabs button,
+.operations-page .operations-plan-mode button {
+  min-height: 32px;
+  border-radius: 6px;
+  color: var(--operations-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.operations-page .operations-main-tabs button.active,
+.operations-page .operations-plan-mode button.active {
+  color: var(--operations-text);
+  background: color-mix(in srgb, var(--operations-accent) 16%, transparent);
+}
+
+.operations-page .operations-plan-layout,
+.operations-page .operations-planner-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.operations-page .operations-planner-panel {
+  padding: 16px;
+  border-radius: var(--operations-radius);
+}
+
+.operations-page .operations-stock-alert {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--color-danger, var(--operations-accent)) 30%, transparent);
+  border-radius: var(--operations-radius);
+  color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 45%, var(--operations-text));
+  background: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 10%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.operations-page .operations-planner-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.operations-page .operations-planner-head span,
+.operations-page .operations-main-task span {
+  display: block;
+  color: var(--operations-faint);
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.operations-page .operations-planner-head h2 {
+  margin: 2px 0 0;
+  color: var(--operations-text);
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.operations-page .operations-date-controls {
+  display: grid;
+  grid-template-columns: 34px minmax(150px, 180px) 34px auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.operations-page .operations-date-controls input {
+  min-height: 34px;
+  border-radius: 7px;
+}
+
+.operations-page .operations-plan-mode {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  background: var(--operations-panel-soft);
+  overflow-x: auto;
+}
+
+.operations-page .operations-day-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.operations-page .operations-day-metrics > div {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
+}
+
+.operations-page .operations-day-metrics strong {
+  display: block;
+  color: var(--operations-text);
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.operations-page .operations-day-metrics span {
+  display: block;
+  margin-top: 4px;
+  color: var(--operations-faint);
+  font-size: 11px;
+}
+
+.operations-page .operations-progress-bar {
+  overflow: hidden;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--operations-panel-soft);
+}
+
+.operations-page .operations-progress-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--operations-accent);
+}
+
+.operations-page .operations-main-task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--operations-accent) 24%, var(--operations-border));
+  border-radius: var(--operations-radius);
+  background: color-mix(in srgb, var(--operations-accent) 8%, var(--operations-panel));
+}
+
+.operations-page .operations-main-task strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--operations-text);
+  font-size: 16px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.operations-page .operations-main-task small {
+  display: block;
+  margin-top: 3px;
+  color: var(--operations-muted);
+  font-size: 12px;
+}
+
+.operations-page .operations-filters {
+  display: grid;
+  grid-template-columns: auto minmax(160px, 1.4fr) repeat(4, minmax(130px, 1fr)) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.operations-page .operations-filters .settings-checkbox {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  background: var(--operations-panel-soft);
+  white-space: nowrap;
+}
+
+.operations-page .operations-filters input,
+.operations-page .operations-filters select {
+  min-height: 36px;
+  border-radius: 7px;
+}
+
+.operations-page .operations-plan-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.operations-page .operations-plan-group {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.operations-page .operations-plan-group > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.operations-page .operations-plan-group h3 {
+  margin: 0;
+  color: var(--operations-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.operations-page .operations-plan-group header span {
+  display: inline-grid;
+  min-width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 999px;
+  color: var(--operations-muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.operations-page .operations-task-list {
+  display: grid;
+  gap: 8px;
+}
+
+.operations-page .operations-plan-group .operations-empty {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+}
+
+.operations-page .operations-work-card {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  background: var(--operations-panel-soft);
+}
+
+.operations-page .operations-work-card:hover {
+  border-color: var(--operations-border);
+  background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
+}
+
+.operations-page .operations-work-card.is-main {
+  border-color: color-mix(in srgb, var(--operations-accent) 34%, var(--operations-border));
+}
+
+.operations-page .operations-work-card.is-overdue {
+  border-color: color-mix(in srgb, var(--color-danger, var(--operations-accent)) 34%, var(--operations-border));
+}
+
+.operations-page .operations-work-card.is-completed {
+  opacity: 0.7;
+}
+
+.operations-page .operations-task-check {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid var(--operations-border);
+  border-radius: 7px;
+  color: var(--operations-muted);
+  background: transparent;
+}
+
+.operations-page .operations-task-check.is-on {
+  color: var(--color-success, var(--operations-accent));
+  background: color-mix(in srgb, var(--color-success, var(--operations-accent)) 10%, transparent);
+}
+
+.operations-page .operations-work-card-main {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+}
+
+.operations-page .operations-work-card-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: var(--operations-text);
+}
+
+.operations-page .operations-work-card-title strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operations-page .operations-work-card-main small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--operations-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.operations-page .operations-work-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.operations-page .operations-work-card-meta em {
+  display: inline-flex;
+  min-height: 20px;
+  align-items: center;
+  padding: 0 7px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 999px;
+  color: var(--operations-muted);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  background: color-mix(in srgb, var(--operations-text) 4%, transparent);
+}
+
+.operations-page .operations-week-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.operations-page .operations-week-day {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  background: color-mix(in srgb, var(--operations-panel-soft) 90%, transparent);
+}
+
+.operations-page .operations-week-day > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.operations-page .operations-week-day strong,
+.operations-page .operations-week-day span {
+  display: block;
+}
+
+.operations-page .operations-week-day strong {
+  color: var(--operations-text);
+  font-size: 13px;
+}
+
+.operations-page .operations-week-day span {
+  color: var(--operations-faint);
+  font-size: 11px;
+}
+
+.operations-page .operations-notes-panel,
+.operations-page .operations-panel-supplies {
+  border-radius: var(--operations-radius);
+}
+
+.operations-page .operations-waitlist-meta {
+  margin: 8px 0 0;
+  color: var(--operations-muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.task-form-advanced {
+  gap: 12px;
+}
+
+.task-form-advanced .form-split {
+  gap: 10px;
+}
+
+.task-form-toggle {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  background: var(--color-card);
+}
+
+.task-form-extra,
+.task-form-checklist,
+.task-form-repeat {
+  display: grid;
+  gap: 10px;
+}
+
+.task-form-extra {
+  padding: 12px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-card) 90%, transparent);
+}
+
+.task-form-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-form-section-head strong {
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.task-form-section-head small {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.task-form-checklist-items {
+  display: grid;
+  gap: 8px;
+}
+
+.task-form-checklist-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.task-form-checklist-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.task-form-checklist-row button {
+  min-width: 0;
+}
+
+.task-form-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.task-form-weekdays button {
+  min-height: 34px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 7px;
+  color: var(--color-text-muted);
+  background: var(--color-field);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.task-form-weekdays button.is-active {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+@media (max-width: 1100px) {
+  .operations-page .operations-filters,
+  .operations-page .operations-plan-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-page .operations-filters .settings-checkbox {
+    justify-content: start;
+  }
+}
+
+@media (max-width: 768px) {
+  .operations-page .operations-main-tabs,
+  .operations-page .operations-plan-mode {
+    flex-wrap: nowrap;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .operations-page .operations-planner-panel {
+    padding: 12px;
+  }
+
+  .operations-page .operations-planner-head,
+  .operations-page .operations-main-task {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .operations-page .operations-date-controls {
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
+  }
+
+  .operations-page .operations-date-controls button:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .operations-page .operations-day-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .operations-page .operations-work-card {
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
+  }
+
+  .operations-page .operations-work-card-title strong {
+    white-space: normal;
+  }
+
+  .task-form-checklist-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .task-form-checklist-row button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
