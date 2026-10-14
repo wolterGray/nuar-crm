@@ -48,6 +48,7 @@ import {
 import {
   AppIcon,
   Button,
+  Checkbox,
   Dialog,
   DialogBackdrop,
   DialogContent,
@@ -340,7 +341,7 @@ function TaskDetailsDialog({item, nowTime, onClose, onEdit, onSave, relatedTasks
                 <div className="operations-detail-checklist">
                   {checklist.map((entry) => (
                     <label key={entry.id}>
-                      <input checked={entry.done === true} type="checkbox" onChange={(event) => setChecklist((current) => current.map((value) => value.id === entry.id ? {...value, done: event.target.checked} : value))} />
+                      <span className="operations-check-hit"><Checkbox checked={entry.done === true} onChange={(event) => setChecklist((current) => current.map((value) => value.id === entry.id ? {...value, done: event.target.checked} : value))} /></span>
                       <span>{entry.text}</span>
                     </label>
                   ))}

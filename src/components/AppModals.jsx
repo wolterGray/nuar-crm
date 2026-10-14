@@ -1,3 +1,4 @@
+import {useCallback, useRef} from "react";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import FormModalShell from "./FormModalShell.jsx";
 import {getEntityDeleteDialogContent} from "../utils/entityDeleteDialog.js";
@@ -156,6 +157,16 @@ export default function AppModals({
     (employee) => String(employee.status ?? "").trim() !== "Архив",
   );
   const entityDeleteDialog = getEntityDeleteDialogContent(pendingEntityDelete);
+  const taskFormDirtyRef = useRef(false);
+  const handleTaskDirtyChange = useCallback((dirty) => {
+    taskFormDirtyRef.current = dirty;
+  }, []);
+
+  const requestTaskClose = () => {
+    if (taskFormDirtyRef.current && !window.confirm("Закрыть редактор? Несохранённые изменения будут потеряны.")) return;
+    taskFormDirtyRef.current = false;
+    onCloseTaskModal();
+  };
 
   return (
     <>
@@ -313,8 +324,8 @@ export default function AppModals({
               ? "Редактировать задачу"
               : "Новая задача"
         }
-        onClose={onCloseTaskModal}>
-        <TaskForm employees={activeEmployees} task={editingTask} onSubmit={onTaskSubmit} />
+        onClose={requestTaskClose}>
+        <TaskForm employees={activeEmployees} key={editingTask?.id ?? "new-task"} task={editingTask} onCancel={requestTaskClose} onDirtyChange={handleTaskDirtyChange} onSubmit={onTaskSubmit} />
       </FormModalShell>
 
       <FormModalShell
