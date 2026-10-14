@@ -16,6 +16,7 @@ import {
   TASK_STATUS_OPTIONS,
   addDays,
   applyOperationsFilters,
+  createTaskOccurrence,
   expandTasksForRange,
   formatDateShort,
   getChecklistProgress,
@@ -37,6 +38,7 @@ import {
   isTaskMainOnDate,
   isTaskOverdue,
   isTaskRepeating,
+  occursOnDate,
   sortPlanTasks,
 } from "../../utils/operationsPlanner.js";
 import {
@@ -360,10 +362,12 @@ function OperationsPage({
     [weekEnd, weekStart, workTasks],
   );
   const allTasksRaw = useMemo(
-    () => [
-      ...expandTasksForRange(workTasks, addDays(selectedDate, -30), addDays(selectedDate, 60)),
-      ...expandTasksForRange(workTasks, selectedDate, selectedDate, {includeNoDate: true}).filter((task) => !getTaskDueDate(task)),
-    ],
+    () =>
+      workTasks.map((task) =>
+        isTaskRepeating(task) && occursOnDate(task, selectedDate)
+          ? createTaskOccurrence(task, selectedDate)
+          : task,
+      ),
     [selectedDate, workTasks],
   );
   const overdueTasks = useMemo(
