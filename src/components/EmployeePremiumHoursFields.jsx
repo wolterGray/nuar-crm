@@ -34,83 +34,90 @@ function EmployeePremiumHoursFields({employee}) {
           defaultValue={employee?.siteDiscountPercent ?? 0}
         />
       </label>
-      <FormCheckbox
-        checked={premiumHoursEnabled}
-        className="employee-premium-toggle"
-        name="premiumHoursEnabled"
-        onChange={(event) => setPremiumHoursEnabled(event.target.checked)}>
-        <span className="labeled-hint-row labeled-hint-row-nowrap">
-          Премиум-часы
-          <HintIcon>
-            Дополнительная наценка, если клиент записывается через сайт в
-            выбранные дни и время (например, у Ольги вечером в выходные).
-          </HintIcon>
-        </span>
-      </FormCheckbox>
-      <div
-        aria-disabled={!premiumHoursEnabled}
-        className={`employee-premium-fields${
-          premiumHoursEnabled ? "" : " is-disabled"
-        }`}>
-        <div className="employee-premium-rule-grid">
-          <label>
-            <FieldLabel hint="Сколько добавить к цене после скидки мастера.">
-              Наценка, %
-            </FieldLabel>
-            <Input
-              disabled={!premiumHoursEnabled}
-              min="0"
-              name="premiumHoursPercent"
-              type="number"
-              defaultValue={firstRule.percent ?? 15}
-            />
-          </label>
-          <label>
-            <FieldLabel hint="Начало интервала.">С</FieldLabel>
-            <Input
-              defaultValue={firstRule.startTime ?? "17:00"}
-              disabled={!premiumHoursEnabled}
-              name="premiumHoursStart"
-              type="time"
-            />
-          </label>
-          <label>
-            <FieldLabel hint="Конец интервала, не включая это время.">До</FieldLabel>
-            <Input
-              defaultValue={firstRule.endTime ?? "22:00"}
-              disabled={!premiumHoursEnabled}
-              name="premiumHoursEnd"
-              type="time"
-            />
-          </label>
-        </div>
-        <fieldset className="employee-premium-days" disabled={!premiumHoursEnabled}>
-          <legend>
+      <label className="employee-booking-toggle employee-disclosure-toggle employee-premium-disclosure-toggle">
+        <input
+          checked={premiumHoursEnabled}
+          className="employee-booking-toggle-input"
+          name="premiumHoursEnabled"
+          type="checkbox"
+          onChange={(event) => setPremiumHoursEnabled(event.target.checked)}
+        />
+        <span className="employee-booking-switch" aria-hidden="true" />
+        <span className="employee-booking-copy">
+          <strong>
             <span className="labeled-hint-row labeled-hint-row-nowrap">
-              Дни, когда действует наценка
+              Премиум-часы
               <HintIcon>
-                Отметьте дни недели, в которые сайт должен повысить цену, если клиент
-                выбрал время между «С» и «До». Пример: пятница–воскресенье, 17:00–22:00
-                дает +15% к стоимости массажа при записи онлайн.
+                Дополнительная наценка, если клиент записывается через сайт в
+                выбранные дни и время (например, у Ольги вечером в выходные).
               </HintIcon>
             </span>
-          </legend>
-          <div className="employee-premium-days-grid">
-            {WEEKDAY_OPTIONS.map((day) => (
-              <FormCheckbox
-                className="employee-premium-day-option"
-                defaultChecked={selectedDays.has(day.value)}
-                disabled={!premiumHoursEnabled}
-                key={day.value}
-                labelClassName="employee-premium-day-label"
-                name="premiumHoursDays"
-                value={day.value}>
-                {day.fullLabel}
-              </FormCheckbox>
-            ))}
+          </strong>
+          <small>
+            {premiumHoursEnabled
+              ? "Наценка активна для выбранных часов."
+              : "Выключены"}
+          </small>
+        </span>
+      </label>
+      {premiumHoursEnabled ? (
+        <div className="employee-premium-fields">
+          <div className="employee-premium-rule-grid">
+            <label>
+              <FieldLabel hint="Сколько добавить к цене после скидки мастера.">
+                Наценка, %
+              </FieldLabel>
+              <Input
+                min="0"
+                name="premiumHoursPercent"
+                type="number"
+                defaultValue={firstRule.percent ?? 15}
+              />
+            </label>
+            <label>
+              <FieldLabel hint="Начало интервала.">С</FieldLabel>
+              <Input
+                defaultValue={firstRule.startTime ?? "17:00"}
+                name="premiumHoursStart"
+                type="time"
+              />
+            </label>
+            <label>
+              <FieldLabel hint="Конец интервала, не включая это время.">До</FieldLabel>
+              <Input
+                defaultValue={firstRule.endTime ?? "22:00"}
+                name="premiumHoursEnd"
+                type="time"
+              />
+            </label>
           </div>
-        </fieldset>
-      </div>
+          <fieldset className="employee-premium-days">
+            <legend>
+              <span className="labeled-hint-row labeled-hint-row-nowrap">
+                Дни, когда действует наценка
+                <HintIcon>
+                  Отметьте дни недели, в которые сайт должен повысить цену, если клиент
+                  выбрал время между «С» и «До». Пример: пятница–воскресенье, 17:00–22:00
+                  дает +15% к стоимости массажа при записи онлайн.
+                </HintIcon>
+              </span>
+            </legend>
+            <div className="employee-premium-days-grid">
+              {WEEKDAY_OPTIONS.map((day) => (
+                <FormCheckbox
+                  className="employee-premium-day-option"
+                  defaultChecked={selectedDays.has(day.value)}
+                  key={day.value}
+                  labelClassName="employee-premium-day-label"
+                  name="premiumHoursDays"
+                  value={day.value}>
+                  {day.fullLabel}
+                </FormCheckbox>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -58,6 +58,9 @@ function EmployeeForm({ employee, onSubmit }) {
   const [selectedWorkingDays, setSelectedWorkingDays] = useState(workingDays);
   const [vacationStart, setVacationStart] = useState(initialVacation.start);
   const [vacationEnd, setVacationEnd] = useState(initialVacation.end);
+  const [vacationEnabled, setVacationEnabled] = useState(
+    Boolean(initialVacation.start || initialVacation.end),
+  );
   const [pendingBookings, setPendingBookings] = useState([]);
   const [bookingLoadError, setBookingLoadError] = useState('');
   const vacationDates = useMemo(
@@ -243,60 +246,79 @@ function EmployeeForm({ employee, onSubmit }) {
               ))}
             </div>
           </Field>
-          <Field
-            description={vacationDates.length ? `${vacationDates.length} закрытых дн.` : 'Оставь пустым, если отпуска нет'}
-            label="Отпуск">
-            <div className="employee-vacation-range">
-              <label>
-                С
-                <span className="employee-vacation-date-control">
-                  <span className="employee-vacation-date-value" aria-hidden="true">
-                    {toCompactDate(vacationStart)}
+          <div className="employee-vacation-section">
+            <label className="employee-booking-toggle employee-disclosure-toggle employee-vacation-toggle">
+              <input
+                className="employee-booking-toggle-input"
+                checked={vacationEnabled}
+                type="checkbox"
+                onChange={(event) => setVacationEnabled(event.target.checked)}
+              />
+              <span className="employee-booking-switch" aria-hidden="true" />
+              <span className="employee-booking-copy">
+                <strong>Отпуск</strong>
+                <small>
+                  {vacationEnabled
+                    ? vacationDates.length
+                      ? `${vacationDates.length} закрытых дн.`
+                      : 'Выбери период, чтобы закрыть запись.'
+                    : 'Выключен'}
+                </small>
+              </span>
+            </label>
+            {vacationEnabled ? (
+              <div className="employee-vacation-range">
+                <label>
+                  <span className="employee-compact-field-label">С</span>
+                  <span className="employee-vacation-date-control">
+                    <span className="employee-vacation-date-value" aria-hidden="true">
+                      {toCompactDate(vacationStart)}
+                    </span>
+                    <Input
+                      aria-label="Начало отпуска"
+                      className="employee-vacation-date-native"
+                      type="date"
+                      value={vacationStart}
+                      onChange={(event) => setVacationStart(event.target.value)}
+                    />
                   </span>
-                  <Input
-                    aria-label="Начало отпуска"
-                    className="employee-vacation-date-native"
-                    type="date"
-                    value={vacationStart}
-                    onChange={(event) => setVacationStart(event.target.value)}
-                  />
-                </span>
-              </label>
-              <label>
-                По
-                <span className="employee-vacation-date-control">
-                  <span className="employee-vacation-date-value" aria-hidden="true">
-                    {toCompactDate(vacationEnd)}
+                </label>
+                <label>
+                  <span className="employee-compact-field-label">По</span>
+                  <span className="employee-vacation-date-control">
+                    <span className="employee-vacation-date-value" aria-hidden="true">
+                      {toCompactDate(vacationEnd)}
+                    </span>
+                    <Input
+                      aria-label="Конец отпуска"
+                      className="employee-vacation-date-native"
+                      type="date"
+                      value={vacationEnd}
+                      onChange={(event) => setVacationEnd(event.target.value)}
+                    />
                   </span>
-                  <Input
-                    aria-label="Конец отпуска"
-                    className="employee-vacation-date-native"
-                    type="date"
-                    value={vacationEnd}
-                    onChange={(event) => setVacationEnd(event.target.value)}
-                  />
-                </span>
-              </label>
-              <Button
-                className="employee-vacation-clear"
-                size="sm"
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  setVacationStart('');
-                  setVacationEnd('');
-                }}>
-                Очистить
-              </Button>
-            </div>
+                </label>
+                <Button
+                  className="employee-vacation-clear"
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setVacationStart('');
+                    setVacationEnd('');
+                  }}>
+                  Очистить даты
+                </Button>
+              </div>
+            ) : null}
             <Textarea
               className="employee-vacation-hidden-dates"
               name="bookingBlockedDates"
               readOnly
               rows={1}
-              value={vacationDates.join('\n')}
+              value={vacationEnabled ? vacationDates.join('\n') : ''}
             />
-          </Field>
+          </div>
         </div>
         <EmployeePremiumHoursFields employee={employee} />
         <Button
