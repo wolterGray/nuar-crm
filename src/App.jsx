@@ -1392,12 +1392,14 @@ function App() {
     addQuickNote,
     completeTask,
     handleTaskSubmit,
+    initializeAcquisitionPlan,
     moveTaskToDate,
     openCreateTask,
     openEditTask,
     performDeleteTask,
     reorderTasks,
     requestDeleteTask,
+    saveTaskOccurrence,
     setMainTask,
   } = useTaskHandlers({
     createLocalId,
@@ -2136,7 +2138,9 @@ function App() {
             pushNotification={pushNotification}
             remindCalendarClient={remindCalendarClient}
             moveTaskToDate={moveTaskToDate}
+            initializeAcquisitionPlan={initializeAcquisitionPlan}
             reorderTasks={reorderTasks}
+            saveTaskOccurrence={saveTaskOccurrence}
             setMainTask={setMainTask}
             reorderServices={reorderServiceCatalog}
             repeatClientVisit={repeatClientVisit}

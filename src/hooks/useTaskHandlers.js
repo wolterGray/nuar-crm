@@ -11,6 +11,7 @@ import {
   getTaskDueDate,
   getTaskPayload,
   getTaskPriorityLabel,
+  getTaskResultFields,
   getWarsawTodayInput,
   isTaskCompleted,
   normalizeInputDate,
@@ -39,6 +40,62 @@ const getEmployeeName = (employees, id) =>
   employees.find((employee) => String(employee.id) === String(id))?.name ?? "";
 
 const getTaskStorageId = (task) => task?.baseId ?? task?.id;
+
+const ACQUISITION_TASK_TEMPLATES = [
+  {
+    key: "acquisition-meta-control",
+    title: "Контроль рекламы Meta",
+    note: "Проверьте рекламные кампании и сопоставьте обращения с реальными записями.",
+    checklist: ["Проверить активные кампании", "Проверить рекламные расходы", "Посмотреть новые обращения", "Оценить стоимость обращения", "Сопоставить обращения с записями", "Сохранить показатели"],
+    resultFields: [
+      {id: "adSpend", label: "Расходы на рекламу", required: true, type: "number", unit: "zł"},
+      {id: "leads", label: "Новые обращения", required: true, type: "number"},
+      {id: "bookings", label: "Записи из рекламы", required: true, type: "number"},
+    ],
+  },
+  {
+    key: "acquisition-channel-control",
+    title: "Контроль каналов привлечения",
+    note: "Проверьте доступность основных каналов записи и свободные окна на три дня вперёд.",
+    checklist: ["Проверить Booksy", "Проверить Google Business Profile", "Проверить доступность онлайн-записи", "Проверить свободные окна мастеров на ближайшие три дня", "Зафиксировать обнаруженные проблемы"],
+    resultFields: [{id: "issues", label: "Обнаруженные проблемы", type: "textarea"}],
+  },
+  {
+    key: "acquisition-partners",
+    title: "Поиск новых клиентов и партнёров",
+    note: "Пн: конкуренты. Вт: 5 партнёров. Ср: предложения. Чт: новые площадки. Пт: ответы и следующие действия.",
+    checklist: ["Выполнить действие дня", "Зафиксировать сделанное", "Определить следующее действие"],
+    resultFields: [
+      {id: "workDone", label: "Что сделано", required: true, type: "textarea"},
+      {id: "contacts", label: "Найдено контактов", type: "number"},
+      {id: "offers", label: "Отправлено предложений", type: "number"},
+      {id: "replies", label: "Получено ответов", type: "number"},
+      {id: "nextAction", label: "Следующее действие", type: "text"},
+    ],
+  },
+];
+
+const buildAcquisitionTask = (template, startDate) => ({
+  completed: false,
+  createdAt: new Date().toISOString(),
+  description: template.note,
+  dueDate: startDate,
+  note: template.note,
+  priority: "Средний",
+  status: "active",
+  title: template.title,
+  type: "task",
+  payload: {
+    areaId: "acquisition",
+    checklist: template.checklist.map((text, index) => ({done: false, id: `${template.key}-${index + 1}`, text})),
+    dueDate: startDate,
+    priorityId: "medium",
+    repeat: {enabled: true, frequency: "weekdays", startDate, weekdays: [1, 2, 3, 4, 5]},
+    resultFields: template.resultFields,
+    taskKind: "daily",
+    templateKey: template.key,
+  },
+});
 
 export function useTaskHandlers({
   employees = [],
@@ -138,7 +195,7 @@ export function useTaskHandlers({
           });
           return;
         }
-        if (repeatEnabled && repeatFrequency !== "daily" && repeatWeekdays.length === 0) {
+        if (repeatEnabled && !["daily", "monthly"].includes(repeatFrequency) && repeatWeekdays.length === 0) {
           pushNotification({
             title: "Повторение не сохранено",
             message: "Выберите хотя бы один день недели.",
@@ -149,6 +206,7 @@ export function useTaskHandlers({
 
         const payload = {
           ...getTaskPayload(editingTask),
+          areaId: String(form.get("areaId") ?? "general"),
           assigneeId,
           assigneeName: getEmployeeName(employees, assigneeId),
           checklist,
@@ -295,6 +353,19 @@ export function useTaskHandlers({
         const confirmed = window.confirm("В чек-листе есть незакрытые пункты. Завершить задачу?");
         if (!confirmed) return;
       }
+      const missingResult = getTaskResultFields(task).find((field) => {
+        if (!field.required) return false;
+        const value = task.occurrenceResults?.[field.id];
+        return value === undefined || value === null || String(value).trim() === "";
+      });
+      if (!isCompleted && missingResult) {
+        pushNotification({
+          title: "Заполните результат",
+          message: `Обязательное поле: ${missingResult.label}`,
+          persist: false,
+        });
+        return;
+      }
 
       const nextStatus = isCompleted ? "active" : "completed";
       const nextTask = task.isVirtualOccurrence
@@ -329,6 +400,39 @@ export function useTaskHandlers({
     },
     [pushNotification, setTasks],
   );
+
+  const saveTaskOccurrence = useCallback(
+    async (task, patch) => {
+      const date = normalizeInputDate(task?.occurrenceDate ?? getTaskDueDate(task));
+      if (!date) return false;
+      const nextTask = patchOccurrence(task, date, {...patch, updatedAt: new Date().toISOString()});
+      const storageTaskId = getTaskStorageId(task);
+      try {
+        const response = await updateTask(storageTaskId, nextTask);
+        const savedTask = response?.data ?? nextTask;
+        setTasks((current) => current.map((item) => String(item.id) === String(storageTaskId) ? savedTask : item));
+        pushNotification({title: "Результат сохранён", message: task.title});
+        return true;
+      } catch (error) {
+        pushNotification({title: "Результат не сохранён", message: error?.message || "Backend не принял данные", persist: false});
+        return false;
+      }
+    },
+    [pushNotification, setTasks],
+  );
+
+  const initializeAcquisitionPlan = useCallback(async () => {
+    const startDate = getWarsawTodayInput();
+    const responses = await Promise.allSettled(ACQUISITION_TASK_TEMPLATES.map((template) => createTask(buildAcquisitionTask(template, startDate))));
+    const created = responses.flatMap((response, index) => response.status === "fulfilled" ? [response.value?.data ?? buildAcquisitionTask(ACQUISITION_TASK_TEMPLATES[index], startDate)] : []);
+    if (created.length) {
+      setTasks((current) => [...created, ...current]);
+      pushNotification({title: "Направление добавлено", message: `Создано обязанностей: ${created.length} из ${ACQUISITION_TASK_TEMPLATES.length}`});
+    } else {
+      const error = responses.find((response) => response.status === "rejected")?.reason;
+      pushNotification({title: "План не создан", message: error?.message || "Backend не принял задачи", persist: false});
+    }
+  }, [pushNotification, setTasks]);
 
   const reorderTasks = useCallback(
     (draggedTaskId, targetTaskId) => {
@@ -527,11 +631,13 @@ export function useTaskHandlers({
     addQuickNote,
     completeTask,
     handleTaskSubmit,
+    initializeAcquisitionPlan,
     openCreateTask,
     openEditTask,
     performDeleteTask,
     reorderTasks,
     requestDeleteTask,
+    saveTaskOccurrence,
     moveTaskToDate,
     setMainTask,
   };

@@ -18,6 +18,16 @@ export const TASK_STATUS_OPTIONS = [
   {id: "paused", label: "Пауза"},
 ];
 
+export const WORK_AREA_OPTIONS = [
+  {id: "acquisition", label: "01. Привлечение новых клиентов"},
+  {id: "sales", label: "02. Продажи и работа с клиентами"},
+  {id: "content", label: "03. Контент и социальные сети"},
+  {id: "retention", label: "04. Удержание клиентов и репутация"},
+  {id: "growth", label: "05. Развитие бизнеса и партнёрства"},
+  {id: "studio", label: "06. Управление студией и командой"},
+  {id: "finance", label: "07. Финансы и аналитика"},
+];
+
 const WEEKDAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
 const pad = (value) => String(value).padStart(2, "0");
@@ -130,6 +140,28 @@ export const getTaskKind = (task = {}) => {
 
 export const getTaskKindLabel = (task = {}) =>
   TASK_KIND_OPTIONS.find((option) => option.id === getTaskKind(task))?.label ?? "Регулярное дело";
+
+export const getTaskAreaId = (task = {}) =>
+  String(getTaskPayload(task).areaId ?? "general").trim() || "general";
+
+export const getTaskAreaLabel = (task = {}) =>
+  WORK_AREA_OPTIONS.find((option) => option.id === getTaskAreaId(task))?.label ?? "Другие задачи";
+
+export const getTaskResultFields = (task = {}) => {
+  const fields = getTaskPayload(task).resultFields;
+  return Array.isArray(fields)
+    ? fields.map((field, index) => ({
+        id: String(field?.id ?? `result-${index}`),
+        label: String(field?.label ?? "Результат").trim(),
+        required: field?.required === true,
+        type: field?.type === "number" ? "number" : field?.type === "textarea" ? "textarea" : "text",
+        unit: String(field?.unit ?? "").trim(),
+      })).filter((field) => field.label)
+    : [];
+};
+
+export const getTaskOccurrenceRecord = (task = {}, date = getTaskDueDate(task)) =>
+  getTaskPayload(task).occurrences?.[date] ?? {};
 
 export const getTaskAssigneeId = (task = {}) => {
   const record = taskRecord(task);
@@ -250,6 +282,7 @@ export const occursOnDate = (task = {}, date) => {
   const frequency = repeat.frequency ?? "daily";
 
   if (frequency === "daily") return true;
+  if (frequency === "monthly") return date.slice(8, 10) === startDate.slice(8, 10);
   if (frequency === "weekdays") return selectedDays.includes(weekday);
   if (frequency === "weekly") {
     return selectedDays.length
@@ -289,15 +322,17 @@ export const createTaskOccurrence = (task = {}, date) => {
     occurrenceDueTime: occurrence.dueTime ?? payload.dueTime ?? "",
     occurrenceEstimateMinutes: occurrence.estimateMinutes ?? payload.estimateMinutes ?? 0,
     occurrenceKey: date,
-    occurrenceStatus: occurrence.status ?? "active",
+    occurrenceStatus: occurrence.status ?? record.status ?? "active",
     occurrenceChecklist: checklist,
+    occurrenceComment: occurrence.comment ?? "",
+    occurrenceResults: objectPayload(occurrence.results),
     note: occurrence.note ?? record.note,
     payload: {
       ...payload,
       isMain: occurrence.isMain === true || (payload.isMain === true && payload.mainDate === date),
       mainDate: date,
     },
-    status: occurrence.status ?? "active",
+    status: occurrence.status ?? record.status ?? "active",
     title: occurrence.title ?? record.title,
   };
 };
@@ -333,7 +368,7 @@ export const expandTasksForRange = (tasks = [], startDate, endDate, {includeNoDa
 
     if (dueDate) {
       if (compareInputDates(dueDate, rangeStart) >= 0 && compareInputDates(dueDate, rangeEnd) <= 0) {
-        result.push(task);
+        result.push(createTaskOccurrence(task, dueDate));
       }
     } else if (includeNoDate) {
       result.push(task);

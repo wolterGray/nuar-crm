@@ -253,9 +253,11 @@ export default function AppRoutes({activePage, ...props}) {
             onEditWaitlistEntry={props.openEditWaitlistEntry}
             onMessageWaitlistEntry={props.messageWaitlistEntryFromPanel}
             onMoveTask={props.moveTaskToDate}
+            onInitializeAcquisitionPlan={props.initializeAcquisitionPlan}
             onRemoveWaitlistEntry={props.removeWaitlistEntry}
             onReorderTasks={props.reorderTasks}
             onSetMainTask={props.setMainTask}
+            onSaveTaskOccurrence={props.saveTaskOccurrence}
             onAddSupply={props.openCreateSupply}
             onEditSupply={props.openEditSupply}
             onDeleteSupply={props.requestDeleteSupply}

@@ -3,6 +3,7 @@ import {
   applyOperationsFilters,
   buildMovedTask,
   expandTasksForRange,
+  getChecklistProgress,
   getDayStats,
   getTaskAssigneeId,
   getTaskDueDate,
@@ -155,5 +156,32 @@ describe("operationsPlanner", () => {
         "2026-10-14",
       ),
     ).toBe(true);
+  });
+
+  it("keeps occurrence results and checklist history on one date", () => {
+    const occurrence = expandTasksForRange([repeatingTask], "2026-10-12", "2026-10-12")[0];
+    const updated = patchOccurrence(occurrence, "2026-10-12", {
+      checklist: [{done: true, id: "a", text: "Проверить кабинеты"}],
+      results: {leads: "8", bookings: "2"},
+      status: "completed",
+    });
+    const [savedDay, nextDay] = expandTasksForRange([updated], "2026-10-12", "2026-10-14");
+
+    expect(savedDay.occurrenceResults).toEqual({leads: "8", bookings: "2"});
+    expect(getChecklistProgress(savedDay)).toEqual({done: 1, total: 1});
+    expect(nextDay.occurrenceResults).toEqual({});
+  });
+
+  it("creates monthly work on the template day of month", () => {
+    const monthly = {
+      ...repeatingTask,
+      payload: {
+        ...repeatingTask.payload,
+        repeat: {enabled: true, frequency: "monthly", startDate: "2026-10-12"},
+      },
+    };
+
+    expect(expandTasksForRange([monthly], "2026-11-01", "2026-11-30").map(getTaskDueDate))
+      .toEqual(["2026-11-12"]);
   });
 });

@@ -4,6 +4,7 @@ import {
   TASK_KIND_OPTIONS,
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
+  WORK_AREA_OPTIONS,
   getChecklistProgress,
   getTaskAssigneeId,
   getTaskDueDate,
@@ -126,6 +127,15 @@ function TaskForm({employees = [], task, onSubmit}) {
         <>
           <Field label="Описание">
             <Textarea name="note" defaultValue={task?.note ?? task?.description ?? ""} rows="3" />
+          </Field>
+
+          <Field label="Направление работы">
+            <Select name="areaId" defaultValue={payload.areaId ?? "general"}>
+              <option value="general">Другие задачи</option>
+              {WORK_AREA_OPTIONS.map((option) => (
+                <option key={option.id} value={option.id}>{option.label}</option>
+              ))}
+            </Select>
           </Field>
 
           <input name="taskKind" type="hidden" value={taskKind} />
@@ -293,8 +303,9 @@ function TaskForm({employees = [], task, onSubmit}) {
                         value={repeatFrequency}
                         onChange={(event) => setRepeatFrequency(event.target.value)}>
                         <option value="daily">Каждый день</option>
-                        <option value="weekdays">По дням недели</option>
+                        <option value="weekdays">Рабочие / выбранные дни</option>
                         <option value="weekly">Каждую неделю</option>
+                        <option value="monthly">Ежемесячно</option>
                         <option value="intervalWeeks">Каждые N недель</option>
                       </Select>
                     </Field>
@@ -315,7 +326,7 @@ function TaskForm({employees = [], task, onSubmit}) {
                     </Field>
                   ) : null}
 
-                  {repeatFrequency !== "daily" ? (
+                  {!["daily", "monthly"].includes(repeatFrequency) ? (
                     <div className="task-form-weekdays" aria-label="Дни недели">
                       {WEEKDAYS.map((weekday) => (
                         <button

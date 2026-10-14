@@ -23,13 +23,16 @@ import {
   getDayStats,
   getOverdueTasks,
   getTaskAssigneeName,
+  getTaskAreaId,
+  getTaskAreaLabel,
   getTaskDueDate,
   getTaskDueTime,
   getTaskEstimateMinutes,
-  getTaskKind,
   getTaskKindLabel,
+  getTaskPayload,
   getTaskPriorityId,
   getTaskPriorityLabel,
+  getTaskResultFields,
   getTaskStatusLabel,
   getWarsawTime,
   getWarsawTodayInput,
@@ -55,13 +58,13 @@ import {
 
 const NOTE_CATEGORIES = ["Мысль", "Заказать", "Идея", "Личное"];
 const VIEW_STORAGE_KEY = "nuar-crm-operations-view-v2";
-const FILTER_STORAGE_KEY = "nuar-crm-operations-filters-v2";
+const FILTER_STORAGE_KEY = "nuar-crm-operations-filters-v3";
 
 const DEFAULT_FILTERS = {
   assigneeId: "__all__",
   priority: "__all__",
   query: "",
-  showCompleted: false,
+  showCompleted: true,
   status: "__all__",
   taskKind: "__all__",
 };
@@ -91,6 +94,12 @@ const formatPlannerDate = (date) => {
     month: "long",
     weekday: "long",
   }).format(new Date(`${date}T12:00:00`));
+};
+
+const getMonthRange = (date) => {
+  const [year, month] = String(date).split("-").map(Number);
+  const endDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return {start: `${year}-${String(month).padStart(2, "0")}-01`, end: `${year}-${String(month).padStart(2, "0")}-${endDay}`};
 };
 
 const formatTaskDateTime = (task) => {
@@ -201,9 +210,36 @@ function TaskCard({
   );
 }
 
-function TaskDetailsDialog({item, nowTime, onClose, onComplete, onDelete, onEdit, today}) {
+function TaskDetailsDialog({item, nowTime, onClose, onDelete, onEdit, onSave, today}) {
+  const [checklist, setChecklist] = useState(() => item?.occurrenceChecklist ?? getTaskPayload(item).checklist ?? []);
+  const [results, setResults] = useState(() => item?.occurrenceResults ?? {});
+  const [comment, setComment] = useState(() => item?.occurrenceComment ?? "");
+  const [saving, setSaving] = useState(false);
+
   if (!item) return null;
-  const checklist = getChecklistProgress(item);
+  const progress = getChecklistProgress({...item, occurrenceChecklist: checklist});
+  const resultFields = getTaskResultFields(item);
+  const missingRequiredResult = resultFields.some((field) => field.required && String(results[field.id] ?? "").trim() === "");
+  const history = Object.entries(getTaskPayload(item).occurrences ?? {})
+    .filter(([, record]) => record?.status === "completed" || Object.keys(record?.results ?? {}).length)
+    .sort(([left], [right]) => right.localeCompare(left))
+    .slice(0, 8);
+
+  const save = async (status) => {
+    const missing = status === "completed"
+      ? resultFields.find((field) => field.required && String(results[field.id] ?? "").trim() === "")
+      : null;
+    if (missing) return;
+    setSaving(true);
+    const saved = await onSave?.(item, {
+      checklist,
+      comment: comment.trim(),
+      results,
+      ...(status ? {completedAt: new Date().toISOString(), status} : {}),
+    });
+    setSaving(false);
+    if (saved && status === "completed") onClose();
+  };
 
   return (
     <Dialog open={Boolean(item)}>
@@ -234,16 +270,58 @@ function TaskDetailsDialog({item, nowTime, onClose, onComplete, onDelete, onEdit
               <span>{getTaskPriorityLabel(item)}</span>
               <span>{getTaskStatusLabel(item, today, nowTime)}</span>
               {getTaskEstimateMinutes(item) ? <span>{formatMinutes(getTaskEstimateMinutes(item))}</span> : null}
-              {checklist.total ? <span>Чек-лист {checklist.done}/{checklist.total}</span> : null}
+              {progress.total ? <span>Чек-лист {progress.done}/{progress.total}</span> : null}
             </div>
             <section className="operations-detail-text">
               <p>{item.note || item.description || "Без описания"}</p>
             </section>
+            {checklist.length ? (
+              <section className="operations-detail-section">
+                <h3>Действия <span>{progress.done}/{progress.total}</span></h3>
+                <div className="operations-detail-checklist">
+                  {checklist.map((entry) => (
+                    <label key={entry.id}>
+                      <input checked={entry.done === true} type="checkbox" onChange={(event) => setChecklist((current) => current.map((value) => value.id === entry.id ? {...value, done: event.target.checked} : value))} />
+                      <span>{entry.text}</span>
+                    </label>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+            {resultFields.length ? (
+              <section className="operations-detail-section">
+                <h3>Результат</h3>
+                <div className="operations-result-grid">
+                  {resultFields.map((field) => (
+                    <label key={field.id}>
+                      <span>{field.label}{field.required ? " *" : ""}</span>
+                      {field.type === "textarea" ? (
+                        <textarea rows="3" value={results[field.id] ?? ""} onChange={(event) => setResults((current) => ({...current, [field.id]: event.target.value}))} />
+                      ) : (
+                        <span className="operations-result-input"><input min={field.type === "number" ? "0" : undefined} type={field.type} value={results[field.id] ?? ""} onChange={(event) => setResults((current) => ({...current, [field.id]: event.target.value}))} />{field.unit ? <em>{field.unit}</em> : null}</span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+                {missingRequiredResult ? <small className="operations-result-hint">Заполните обязательные поля, чтобы завершить задачу.</small> : null}
+              </section>
+            ) : null}
+            <section className="operations-detail-section">
+              <h3>Комментарий</h3>
+              <textarea rows="3" value={comment} placeholder="Выводы, проблемы или следующее действие" onChange={(event) => setComment(event.target.value)} />
+            </section>
+            {history.length ? (
+              <details className="operations-task-history">
+                <summary>Предыдущие выполнения ({history.length})</summary>
+                {history.map(([date, record]) => (
+                  <div key={date}><strong>{formatDateShort(date)}</strong><span>{record.comment || (record.status === "completed" ? "Выполнено" : "Результат сохранён")}</span></div>
+                ))}
+              </details>
+            ) : null}
           </div>
           <footer className="operations-detail-actions">
-            <Button leftIcon={isTaskCompleted(item) ? "rotateCcw" : "check"} size="sm" variant="secondary" onClick={() => onComplete(item)}>
-              {isTaskCompleted(item) ? "Вернуть" : "Завершить"}
-            </Button>
+            <Button disabled={saving} size="sm" variant="secondary" onClick={() => save()}>Сохранить</Button>
+            <Button disabled={saving || isTaskCompleted(item) || missingRequiredResult} leftIcon="check" size="sm" variant="primary" onClick={() => save("completed")}>Завершить за день</Button>
             <Button leftIcon="edit" size="sm" variant="secondary" onClick={() => onEdit(item)}>
               Изменить
             </Button>
@@ -254,6 +332,22 @@ function TaskDetailsDialog({item, nowTime, onClose, onComplete, onDelete, onEdit
         </DialogContent>
       </DialogBackdrop>
     </Dialog>
+  );
+}
+
+function WorkAreaGroup({label, tasks, ...cardProps}) {
+  const completed = tasks.filter(isTaskCompleted).length;
+  const progress = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
+  return (
+    <details className="operations-area" open>
+      <summary>
+        <span><strong>{label}</strong><small>{completed} из {tasks.length} выполнено</small></span>
+        <span className="operations-area-progress"><i style={{width: `${progress}%`}} /><em>{progress}%</em></span>
+      </summary>
+      <div className="operations-task-list">
+        {tasks.map((task) => <TaskCard key={task.id} task={task} {...cardProps} />)}
+      </div>
+    </details>
   );
 }
 
@@ -301,8 +395,10 @@ function OperationsPage({
   onEditWaitlistEntry,
   onMessageWaitlistEntry,
   onMoveTask,
+  onInitializeAcquisitionPlan,
   onRemoveWaitlistEntry,
   onSetMainTask,
+  onSaveTaskOccurrence,
   onAddSupply,
   onEditSupply,
   onDeleteSupply,
@@ -396,7 +492,41 @@ function OperationsPage({
     () => sortPlanTasks(applyOperationsFilters(allTasksRaw, filters)),
     [allTasksRaw, filters],
   );
-  const dayStats = getDayStats(dayTasks);
+  const dayStats = getDayStats(dayTasksRaw);
+  const visibleAreas = useMemo(() => {
+    const groups = new Map();
+    dayTasks.forEach((task) => {
+      const areaId = getTaskAreaId(task);
+      if (!groups.has(areaId)) groups.set(areaId, {id: areaId, label: getTaskAreaLabel(task), tasks: []});
+      groups.get(areaId).tasks.push(task);
+    });
+    return [...groups.values()].sort((left, right) => {
+      if (left.id === "acquisition") return -1;
+      if (right.id === "acquisition") return 1;
+      return left.label.localeCompare(right.label, "ru");
+    });
+  }, [dayTasks]);
+  const hasAcquisitionPlan = workTasks.some((task) => getTaskAreaId(task) === "acquisition");
+  const completedOccurrences = useMemo(
+    () => workTasks.flatMap((task) => Object.entries(getTaskPayload(task).occurrences ?? {}).map(([date, record]) => ({date, record, task}))).filter(({record}) => record.status === "completed"),
+    [workTasks],
+  );
+  const monthPrefix = selectedDate.slice(0, 7);
+  const monthRange = getMonthRange(selectedDate);
+  const reportWeekTasks = expandTasksForRange(workTasks, weekStart, weekEnd);
+  const reportMonthTasks = expandTasksForRange(workTasks, monthRange.start, monthRange.end);
+  const weekCompleted = completedOccurrences.filter(({date}) => date >= weekStart && date <= weekEnd).length;
+  const monthCompleted = completedOccurrences.filter(({date}) => date.startsWith(monthPrefix)).length;
+  const monthResults = completedOccurrences
+    .filter(({date}) => date.startsWith(monthPrefix))
+    .reduce((totals, {record}) => ({
+      adSpend: totals.adSpend + (Number(record.results?.adSpend) || 0),
+      bookings: totals.bookings + (Number(record.results?.bookings) || 0),
+      leads: totals.leads + (Number(record.results?.leads) || 0),
+      contacts: totals.contacts + (Number(record.results?.contacts) || 0),
+    }), {adSpend: 0, bookings: 0, contacts: 0, leads: 0});
+  const weekProgress = reportWeekTasks.length ? Math.min(100, Math.round((weekCompleted / reportWeekTasks.length) * 100)) : 0;
+  const monthProgress = reportMonthTasks.length ? Math.min(100, Math.round((monthCompleted / reportMonthTasks.length) * 100)) : 0;
 
   const updateFilter = (key, value) => {
     setFilters((current) => ({...current, [key]: value}));
@@ -431,8 +561,6 @@ function OperationsPage({
     today,
   };
 
-  const dailyTasks = dayTasks.filter((task) => getTaskKind(task) === "daily");
-  const developmentTasks = dayTasks.filter((task) => getTaskKind(task) === "development");
   const tabMeta = `${dayStats.completed}/${dayStats.planned} задач · ${formatMinutes(dayStats.remainingMinutes)}`;
 
   return (
@@ -464,6 +592,7 @@ function OperationsPage({
           ) : null}
 
           <section className="panel operations-planner-panel">
+            <div className="operations-workday-label">Мой рабочий день</div>
             <div className="operations-planner-head">
               <div>
                 <span>{selectedDate === today ? "Сегодня" : "Выбранный день"}</span>
@@ -475,6 +604,14 @@ function OperationsPage({
                 <IconButton icon="chevronRight" label="Следующий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, planMode === "week" ? 7 : 1))} />
                 <Button size="sm" variant="secondary" onClick={() => setSelectedDate(today)}>Сегодня</Button>
               </div>
+            </div>
+
+            <div className="operations-workday-summary">
+              <div><strong>{dayStats.planned}</strong><span>задач</span></div>
+              <div><strong>{dayStats.completed}</strong><span>выполнено</span></div>
+              <div><strong>{dayStats.progress}%</strong><span>прогресс</span></div>
+              <div className={overdueTasks.length ? "is-alert" : ""}><strong>{overdueTasks.length}</strong><span>просрочено</span></div>
+              <span className="operations-workday-progress"><i style={{width: `${dayStats.progress}%`}} /></span>
             </div>
 
             <div className="operations-plan-mode">
@@ -520,8 +657,14 @@ function OperationsPage({
                 {overdueTasks.length ? (
                   <TaskGroup title="Просрочено" tasks={overdueTasks} empty="Просроченных задач нет." {...cardProps} />
                 ) : null}
-                <TaskGroup title="Регулярные дела" tasks={dailyTasks} empty="На этот день нет регулярных дел." onAddTask={() => onAddTask?.({dueDate: selectedDate, taskKind: "daily"})} {...cardProps} />
-                <TaskGroup title="Развитие" tasks={developmentTasks} empty="На этот день нет задач развития." onAddTask={() => onAddTask?.({dueDate: selectedDate, taskKind: "development"})} {...cardProps} />
+                {!hasAcquisitionPlan ? (
+                  <section className="operations-plan-setup">
+                    <div><strong>Привлечение новых клиентов</strong><span>Добавьте три регулярные обязанности с чек-листами и измеримыми результатами.</span></div>
+                    <Button size="sm" variant="secondary" onClick={onInitializeAcquisitionPlan}>Добавить направление</Button>
+                  </section>
+                ) : null}
+                {visibleAreas.map((area) => <WorkAreaGroup key={area.id} label={area.label} tasks={area.tasks} {...cardProps} />)}
+                {!dayTasks.length && hasAcquisitionPlan ? <p className="operations-empty">На выбранный день задач нет.</p> : null}
               </div>
             ) : planMode === "week" ? (
               <div className="operations-week-list">
@@ -548,6 +691,16 @@ function OperationsPage({
                 <TaskGroup title="Без даты" tasks={allTasks.filter((task) => !getTaskDueDate(task))} empty="Задач без даты нет." onAddTask={onAddTask} {...cardProps} />
               </div>
             )}
+
+            <details className="operations-report">
+              <summary>Итоги и история</summary>
+              <div className="operations-report-grid">
+                <div><span>За день</span><strong>{dayStats.completed}/{dayStats.planned}</strong><small>выполнено</small></div>
+                <div><span>За неделю</span><strong>{weekProgress}%</strong><small>{weekCompleted} из {reportWeekTasks.length} задач</small></div>
+                <div><span>За месяц</span><strong>{monthProgress}%</strong><small>{monthCompleted} из {reportMonthTasks.length} задач</small></div>
+                <div><span>Привлечение за месяц</span><strong>{monthResults.adSpend} zł</strong><small>{monthResults.leads} обращений · {monthResults.bookings} записей · {monthResults.contacts} контактов</small></div>
+              </div>
+            </details>
           </section>
         </div>
       ) : null}
@@ -642,15 +795,18 @@ function OperationsPage({
         </section>
       ) : null}
 
-      <TaskDetailsDialog
-        item={viewingTask}
-        nowTime={nowTime}
-        today={today}
-        onClose={() => setViewingTask(null)}
-        onComplete={onCompleteTask}
-        onDelete={onDeleteTask}
-        onEdit={onEditTask}
-      />
+      {viewingTask ? (
+        <TaskDetailsDialog
+          item={viewingTask}
+          key={viewingTask.id}
+          nowTime={nowTime}
+          today={today}
+          onClose={() => setViewingTask(null)}
+          onDelete={onDeleteTask}
+          onEdit={onEditTask}
+          onSave={onSaveTaskOccurrence}
+        />
+      ) : null}
     </section>
   );
 }

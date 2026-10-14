@@ -9786,10 +9786,201 @@
 }
 
 .operations-page .operations-planner-panel {
-  width: min(100%, 1080px);
+  width: 100%;
   margin: 0 auto;
   padding: 18px 22px 24px;
   border-radius: var(--operations-radius);
+}
+
+.operations-page .operations-workday-label {
+  color: var(--operations-faint);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.operations-page .operations-workday-summary {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  padding-bottom: 5px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  background: var(--operations-border-soft);
+}
+
+.operations-page .operations-workday-summary > div {
+  min-width: 0;
+  padding: 12px 14px;
+  background: var(--operations-panel-soft);
+}
+
+.operations-page .operations-workday-summary strong,
+.operations-page .operations-workday-summary span {
+  display: block;
+}
+
+.operations-page .operations-workday-summary strong {
+  color: var(--operations-text);
+  font-size: 18px;
+}
+
+.operations-page .operations-workday-summary div > span {
+  margin-top: 3px;
+  color: var(--operations-muted);
+  font-size: 11px;
+}
+
+.operations-page .operations-workday-summary .is-alert strong {
+  color: var(--color-danger, var(--operations-accent));
+}
+
+.operations-page .operations-workday-progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: color-mix(in srgb, var(--operations-text) 5%, transparent);
+}
+
+.operations-page .operations-workday-progress i {
+  display: block;
+  height: 100%;
+  background: var(--operations-accent);
+  transition: width 0.2s ease;
+}
+
+.operations-page .operations-plan-setup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px dashed color-mix(in srgb, var(--operations-accent) 42%, var(--operations-border));
+  border-radius: var(--operations-radius);
+  background: color-mix(in srgb, var(--operations-accent) 5%, transparent);
+}
+
+.operations-page .operations-plan-setup strong,
+.operations-page .operations-plan-setup span {
+  display: block;
+}
+
+.operations-page .operations-plan-setup span {
+  margin-top: 4px;
+  color: var(--operations-muted);
+  font-size: 12px;
+}
+
+.operations-page .operations-area {
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  background: color-mix(in srgb, var(--operations-panel-soft) 55%, transparent);
+}
+
+.operations-page .operations-area > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 240px);
+  gap: 16px;
+  align-items: center;
+  padding: 13px 14px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.operations-page .operations-area > summary::-webkit-details-marker {
+  display: none;
+}
+
+.operations-page .operations-area summary strong,
+.operations-page .operations-area summary small {
+  display: block;
+}
+
+.operations-page .operations-area summary strong {
+  color: var(--operations-text);
+  font-size: 14px;
+}
+
+.operations-page .operations-area summary small {
+  margin-top: 3px;
+  color: var(--operations-muted);
+  font-size: 11px;
+}
+
+.operations-page .operations-area-progress {
+  position: relative;
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--operations-text) 8%, transparent);
+}
+
+.operations-page .operations-area-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--operations-accent);
+}
+
+.operations-page .operations-area-progress em {
+  position: absolute;
+  right: 0;
+  bottom: 9px;
+  color: var(--operations-muted);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.operations-page .operations-area > .operations-task-list {
+  padding: 0 10px 10px;
+}
+
+.operations-page .operations-report {
+  border-top: 1px solid var(--operations-border-soft);
+  padding-top: 12px;
+}
+
+.operations-page .operations-report > summary {
+  color: var(--operations-muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.operations-page .operations-report-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.operations-page .operations-report-grid > div {
+  padding: 12px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  background: var(--operations-panel-soft);
+}
+
+.operations-page .operations-report-grid span,
+.operations-page .operations-report-grid strong,
+.operations-page .operations-report-grid small {
+  display: block;
+}
+
+.operations-page .operations-report-grid span,
+.operations-page .operations-report-grid small {
+  color: var(--operations-muted);
+  font-size: 11px;
+}
+
+.operations-page .operations-report-grid strong {
+  margin: 7px 0 3px;
+  color: var(--operations-text);
+  font-size: 18px;
 }
 
 .operations-page .operations-stock-alert {
@@ -10530,6 +10721,20 @@
 
   .operations-page .operations-list-toolbar {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .operations-page .operations-workday-summary,
+  .operations-page .operations-report-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .operations-page .operations-plan-setup {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .operations-page .operations-area > summary {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .operations-page .operations-filter-menu {
