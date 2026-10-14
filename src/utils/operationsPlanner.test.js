@@ -4,7 +4,10 @@ import {
   buildMovedTask,
   expandTasksForRange,
   getDayStats,
+  getTaskAssigneeId,
   getTaskDueDate,
+  getTaskDueTime,
+  getTaskEstimateMinutes,
   getTaskPayload,
   isTaskCompleted,
   isTaskMainOnDate,
@@ -37,6 +40,14 @@ const repeatingTask = {
 };
 
 describe("operationsPlanner", () => {
+  it("keeps new empty task forms from crashing on null task data", () => {
+    expect(getTaskDueDate(null)).toBe("");
+    expect(getTaskDueTime(null)).toBe("");
+    expect(getTaskEstimateMinutes(null)).toBe(0);
+    expect(getTaskAssigneeId(null)).toBe("");
+    expect(isTaskCompleted(null)).toBe(false);
+  });
+
   it("reads legacy nested task payloads", () => {
     const task = {
       payload: {

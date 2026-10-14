@@ -98,6 +98,8 @@ export const formatDateShort = (date) => {
 const objectPayload = (value) =>
   value && typeof value === "object" && !Array.isArray(value) ? value : {};
 
+const taskRecord = (task) => objectPayload(task);
+
 export const getTaskPayload = (task = {}) => {
   const basePayload = objectPayload(task?.basePayload);
   const raw = Object.keys(basePayload).length ? basePayload : objectPayload(task?.payload);
@@ -129,30 +131,43 @@ export const getTaskKind = (task = {}) => {
 export const getTaskKindLabel = (task = {}) =>
   TASK_KIND_OPTIONS.find((option) => option.id === getTaskKind(task))?.label ?? "Ежедневные дела";
 
-export const getTaskAssigneeId = (task = {}) =>
-  String(getTaskPayload(task).assigneeId ?? task.assigneeId ?? "").trim();
+export const getTaskAssigneeId = (task = {}) => {
+  const record = taskRecord(task);
+  return String(getTaskPayload(record).assigneeId ?? record.assigneeId ?? "").trim();
+};
 
-export const getTaskAssigneeName = (task = {}) =>
-  String(getTaskPayload(task).assigneeName ?? task.assigneeName ?? "").trim();
+export const getTaskAssigneeName = (task = {}) => {
+  const record = taskRecord(task);
+  return String(getTaskPayload(record).assigneeName ?? record.assigneeName ?? "").trim();
+};
 
-export const getTaskDueDate = (task = {}) =>
-  normalizeInputDate(task.occurrenceDate ?? getTaskPayload(task).dueDate ?? task.dueDate);
+export const getTaskDueDate = (task = {}) => {
+  const record = taskRecord(task);
+  return normalizeInputDate(record.occurrenceDate ?? getTaskPayload(record).dueDate ?? record.dueDate);
+};
 
-export const getTaskDueTime = (task = {}) =>
-  String(task.occurrenceDueTime ?? getTaskPayload(task).dueTime ?? "").trim();
+export const getTaskDueTime = (task = {}) => {
+  const record = taskRecord(task);
+  return String(record.occurrenceDueTime ?? getTaskPayload(record).dueTime ?? "").trim();
+};
 
-export const getTaskEstimateMinutes = (task = {}) =>
-  Math.max(0, Number(task.occurrenceEstimateMinutes ?? getTaskPayload(task).estimateMinutes) || 0);
+export const getTaskEstimateMinutes = (task = {}) => {
+  const record = taskRecord(task);
+  return Math.max(0, Number(record.occurrenceEstimateMinutes ?? getTaskPayload(record).estimateMinutes) || 0);
+};
 
-export const getTaskPriorityId = (task = {}) =>
-  normalizePriorityId(getTaskPayload(task).priorityId ?? task.priority);
+export const getTaskPriorityId = (task = {}) => {
+  const record = taskRecord(task);
+  return normalizePriorityId(getTaskPayload(record).priorityId ?? record.priority);
+};
 
 export const getTaskPriorityLabel = (task = {}) =>
   priorityLabelById(getTaskPriorityId(task));
 
 export const getTaskChecklist = (task = {}) => {
-  const payload = getTaskPayload(task);
-  const list = task.occurrenceChecklist ?? payload.checklist;
+  const record = taskRecord(task);
+  const payload = getTaskPayload(record);
+  const list = record.occurrenceChecklist ?? payload.checklist;
   return Array.isArray(list)
     ? list.map((item, index) => ({
         done: item?.done === true,
@@ -172,9 +187,9 @@ export const getChecklistProgress = (task = {}) => {
 };
 
 export const isTaskCompleted = (task = {}) =>
-  task.occurrenceStatus === "completed" ||
-  task.status === "completed" ||
-  task.completed === true;
+  taskRecord(task).occurrenceStatus === "completed" ||
+  taskRecord(task).status === "completed" ||
+  taskRecord(task).completed === true;
 
 export const isTaskRepeating = (task = {}) => {
   const repeat = getTaskPayload(task).repeat;
@@ -202,9 +217,10 @@ export const isTaskOverdue = (
 };
 
 export const getTaskStatusLabel = (task = {}, today, nowTime) => {
+  const record = taskRecord(task);
   if (isTaskCompleted(task)) return "Готово";
   if (isTaskOverdue(task, today, nowTime)) return "Просрочено";
-  if (task.status === "paused") return "Пауза";
+  if (record.status === "paused") return "Пауза";
   return "В работе";
 };
 
@@ -248,24 +264,25 @@ export const occursOnDate = (task = {}, date) => {
 };
 
 export const createTaskOccurrence = (task = {}, date) => {
-  const payload = getTaskPayload(task);
+  const record = taskRecord(task);
+  const payload = getTaskPayload(record);
   const occurrence = payload.occurrences?.[date] ?? {};
   const checklist = occurrence.checklist ?? payload.checklist;
   return {
-    ...task,
-    baseCompleted: task.completed,
-    baseCreatedAt: task.createdAt,
-    baseDescription: task.description,
-    baseDueDate: task.dueDate,
-    baseId: task.id,
-    baseNote: task.note,
+    ...record,
+    baseCompleted: record.completed,
+    baseCreatedAt: record.createdAt,
+    baseDescription: record.description,
+    baseDueDate: record.dueDate,
+    baseId: record.id,
+    baseNote: record.note,
     basePayload: payload,
-    basePriority: task.priority,
-    baseSortOrder: task.sortOrder,
-    baseStatus: task.status,
-    baseTitle: task.title,
-    baseUpdatedAt: task.updatedAt,
-    id: `${task.id}::${date}`,
+    basePriority: record.priority,
+    baseSortOrder: record.sortOrder,
+    baseStatus: record.status,
+    baseTitle: record.title,
+    baseUpdatedAt: record.updatedAt,
+    id: `${record.id}::${date}`,
     isVirtualOccurrence: true,
     occurrenceDate: date,
     occurrenceDueTime: occurrence.dueTime ?? payload.dueTime ?? "",
@@ -273,14 +290,14 @@ export const createTaskOccurrence = (task = {}, date) => {
     occurrenceKey: date,
     occurrenceStatus: occurrence.status ?? "active",
     occurrenceChecklist: checklist,
-    note: occurrence.note ?? task.note,
+    note: occurrence.note ?? record.note,
     payload: {
       ...payload,
       isMain: occurrence.isMain === true || (payload.isMain === true && payload.mainDate === date),
       mainDate: date,
     },
     status: occurrence.status ?? "active",
-    title: occurrence.title ?? task.title,
+    title: occurrence.title ?? record.title,
   };
 };
 
