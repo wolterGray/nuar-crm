@@ -9308,18 +9308,89 @@
 }
 
 .operations-page .operations-filters .settings-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-height: 34px;
   padding: 0 10px;
   border: 1px solid var(--operations-border-soft);
   border-radius: var(--operations-radius);
   background: var(--operations-panel-soft);
+  color: var(--operations-muted);
+  font-size: 12px;
+  font-weight: 650;
   white-space: nowrap;
+  cursor: pointer;
 }
 
-.operations-page .operations-filters input,
+.operations-page .operations-filters input:not([type="checkbox"]),
 .operations-page .operations-filters select {
   min-height: 36px;
   border-radius: 7px;
+}
+
+.operations-page .operations-filters .settings-checkbox input[type="checkbox"],
+.task-form-toggle input[type="checkbox"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.operations-page .operations-filters .settings-checkbox span,
+.task-form-toggle span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.operations-page .operations-filters .settings-checkbox span::before,
+.task-form-toggle span::before {
+  content: "";
+  width: 28px;
+  height: 16px;
+  border: 1px solid var(--operations-border, var(--color-border-soft));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--operations-panel, var(--color-card)) 82%, var(--operations-text, var(--color-text)) 8%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #000 22%, transparent);
+}
+
+.operations-page .operations-filters .settings-checkbox span::after,
+.task-form-toggle span::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--operations-muted, var(--color-text-muted));
+  transition: transform 0.16s ease, background-color 0.16s ease;
+}
+
+.operations-page .operations-filters .settings-checkbox input[type="checkbox"]:checked + span,
+.task-form-toggle input[type="checkbox"]:checked + span {
+  color: var(--operations-text, var(--color-text));
+}
+
+.operations-page .operations-filters .settings-checkbox input[type="checkbox"]:checked + span::before,
+.task-form-toggle input[type="checkbox"]:checked + span::before {
+  border-color: color-mix(in srgb, var(--operations-accent, var(--color-primary)) 52%, transparent);
+  background: color-mix(in srgb, var(--operations-accent, var(--color-primary)) 28%, transparent);
+}
+
+.operations-page .operations-filters .settings-checkbox input[type="checkbox"]:checked + span::after,
+.task-form-toggle input[type="checkbox"]:checked + span::after {
+  background: var(--operations-accent, var(--color-primary));
+  transform: translateX(12px);
+}
+
+.operations-page .operations-filters .settings-checkbox input[type="checkbox"]:focus-visible + span::before,
+.task-form-toggle input[type="checkbox"]:focus-visible + span::before {
+  outline: 2px solid color-mix(in srgb, var(--operations-accent, var(--color-primary)) 58%, transparent);
+  outline-offset: 2px;
 }
 
 .operations-page .operations-plan-columns {
@@ -9539,11 +9610,19 @@
 }
 
 .task-form-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-height: 34px;
   padding: 0 10px;
   border: 1px solid var(--color-border-soft);
   border-radius: 8px;
   background: var(--color-card);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
 }
 
 .task-form-extra,
@@ -9590,8 +9669,10 @@
 }
 
 .task-form-checklist-row input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+  accent-color: var(--color-primary);
 }
 
 .task-form-checklist-row button {
