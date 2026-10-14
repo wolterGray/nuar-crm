@@ -15,7 +15,7 @@ import NotificationAggregateRow from "./NotificationAggregateRow.jsx";
 import NotificationAlertRow from "./NotificationAlertRow.jsx";
 import {AppIcon, Button, IconButton} from "./ui/index.js";
 
-const POPOVER_WIDTH = 360;
+const DESKTOP_POPOVER_WIDTH = 440;
 const POPOVER_GAP = 8;
 const VIEWPORT_PADDING = 16;
 const LOCAL_HIDE_MS = 30 * 60 * 1000;
@@ -49,7 +49,7 @@ const getPopoverStyle = (buttonRect) => {
   }
 
   const width = Math.min(
-    POPOVER_WIDTH,
+    DESKTOP_POPOVER_WIDTH,
     window.innerWidth - VIEWPORT_PADDING * 2,
   );
   let left = buttonRect.right - width;
