@@ -2,8 +2,8 @@ const WARSAW_TIME_ZONE = "Europe/Warsaw";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const TASK_KIND_OPTIONS = [
-  {id: "daily", label: "Ежедневные дела"},
-  {id: "development", label: "Развитие"},
+  {id: "daily", label: "Регулярное дело"},
+  {id: "development", label: "Задача развития"},
 ];
 
 export const TASK_PRIORITY_OPTIONS = [
@@ -129,7 +129,7 @@ export const getTaskKind = (task = {}) => {
 };
 
 export const getTaskKindLabel = (task = {}) =>
-  TASK_KIND_OPTIONS.find((option) => option.id === getTaskKind(task))?.label ?? "Ежедневные дела";
+  TASK_KIND_OPTIONS.find((option) => option.id === getTaskKind(task))?.label ?? "Регулярное дело";
 
 export const getTaskAssigneeId = (task = {}) => {
   const record = taskRecord(task);
@@ -192,8 +192,8 @@ export const isTaskCompleted = (task = {}) =>
   taskRecord(task).completed === true;
 
 export const isTaskRepeating = (task = {}) => {
-  const repeat = getTaskPayload(task).repeat;
-  return repeat?.enabled === true;
+  const payload = getTaskPayload(task);
+  return payload.repeat?.enabled === true || payload.taskKind === "daily";
 };
 
 export const isTaskMainOnDate = (task = {}, date = getTaskDueDate(task)) => {
@@ -234,8 +234,9 @@ const weeksBetween = (startDate, date) => {
 };
 
 export const occursOnDate = (task = {}, date) => {
-  const repeat = getTaskPayload(task).repeat;
-  if (!repeat?.enabled || !isInputDate(date)) return false;
+  const payload = getTaskPayload(task);
+  const repeat = payload.repeat ?? {};
+  if (!isTaskRepeating(task) || !isInputDate(date)) return false;
 
   const startDate = normalizeInputDate(repeat.startDate ?? getTaskDueDate(task));
   if (!startDate || compareInputDates(date, startDate) < 0) return false;

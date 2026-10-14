@@ -11,6 +11,7 @@ import {
   getTaskDueDate,
   getTaskPayload,
   getTaskPriorityLabel,
+  getWarsawTodayInput,
   isTaskCompleted,
   normalizeInputDate,
   patchOccurrence,
@@ -48,10 +49,35 @@ export function useTaskHandlers({
   setTaskModalOpen,
   setTasks,
 }) {
-  const openCreateTask = useCallback((type = "task") => {
-    const nextType = type === "note" ? "note" : "task";
+  const openCreateTask = useCallback((typeOrDefaults = "task") => {
+    const defaults =
+      typeOrDefaults &&
+      typeof typeOrDefaults === "object" &&
+      typeof typeOrDefaults.preventDefault !== "function"
+        ? typeOrDefaults
+        : {};
+    const nextType = typeOrDefaults === "note" || defaults.type === "note" ? "note" : "task";
+    const dueDate = defaults.dueDate || getWarsawTodayInput();
+    const taskKind = defaults.taskKind === "development" ? "development" : "daily";
 
-    setEditingTask(nextType === "note" ? {type: "note"} : null);
+    setEditingTask(
+      nextType === "note"
+        ? {type: "note"}
+        : {
+            dueDate,
+            payload: {
+              dueDate,
+              repeat: {
+                enabled: taskKind === "daily",
+                frequency: "daily",
+                startDate: dueDate,
+                weekdays: [],
+              },
+              taskKind,
+            },
+            type: "task",
+          },
+    );
     setTaskModalOpen(true);
   }, [setEditingTask, setTaskModalOpen]);
 

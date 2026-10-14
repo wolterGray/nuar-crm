@@ -20,6 +20,12 @@ import {isSupplyLowStock, isSupplyOutOfStock} from "./supplyStock.js";
 import {getMinutesFromTime, isCalendarVisitCompleted} from "./calendarVisitStatus.js";
 import {toVisitNumber} from "./visits.jsx";
 import {buildFinancialQualityReport} from "./financialQuality.js";
+import {
+  expandTasksForRange,
+  getTaskDueDate,
+  isTaskCompleted,
+  isTaskRepeating,
+} from "./operationsPlanner.js";
 
 const PRIORITY_ORDER = {critical: 0, action: 1, info: 2};
 
@@ -236,16 +242,22 @@ export const buildAlertCenter = ({
 
   if (appSettings.taskAlertsEnabled) {
     tasks
+      .flatMap((task) =>
+        isTaskRepeating(task)
+          ? expandTasksForRange([task], today, today)
+          : [task],
+      )
       .filter(
         (task) =>
           task.type !== "note" &&
-          task.status !== "completed" &&
-          task.dueDate &&
-          task.dueDate <= today,
+          !isTaskCompleted(task) &&
+          getTaskDueDate(task) &&
+          getTaskDueDate(task) <= today,
       )
       .forEach((task) => {
         const alertId = `task-${task.id}`;
-        const overdue = task.dueDate < today;
+        const taskDate = getTaskDueDate(task);
+        const overdue = taskDate < today;
 
         if (isHidden(alertId)) {
           return;
@@ -258,7 +270,7 @@ export const buildAlertCenter = ({
             group: "operations",
             priority: overdue ? "critical" : "action",
             title: task.title,
-            message: overdue ? `Просрочено: ${task.dueDate}` : "Срок сегодня",
+            message: overdue ? `Просрочено: ${taskDate}` : "Срок сегодня",
             page: "operations",
             entityId: task.id,
             section: "tasks",

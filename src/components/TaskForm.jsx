@@ -38,9 +38,10 @@ function TaskForm({employees = [], task, onSubmit}) {
   const isNote = task?.type === "note";
   const isEditing = Boolean(task?.id);
   const dueDate = getTaskDueDate(task);
+  const [taskKind, setTaskKind] = useState(getTaskKind(task));
+  const [dueDateValue, setDueDateValue] = useState(dueDate || getWarsawTodayInput());
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [hasTime, setHasTime] = useState(Boolean(getTaskDueTime(task)));
-  const [repeatEnabled, setRepeatEnabled] = useState(isTaskRepeating(task));
   const [repeatFrequency, setRepeatFrequency] = useState(payload.repeat?.frequency ?? "daily");
   const [repeatWeekdays, setRepeatWeekdays] = useState(
     Array.isArray(payload.repeat?.weekdays) ? payload.repeat.weekdays.map(Number) : [],
@@ -56,12 +57,13 @@ function TaskForm({employees = [], task, onSubmit}) {
       : [];
   });
   const progress = getChecklistProgress({...task, occurrenceChecklist: checklist});
-  const repeatStartDate = payload.repeat?.startDate ?? dueDate ?? getWarsawTodayInput();
+  const repeatEnabled = taskKind === "daily";
+  const repeatStartDate = dueDateValue;
 
   const repeatPayload = useMemo(
     () => ({
       enabled: repeatEnabled,
-      endDate: payload.repeat?.endDate ?? "",
+      endDate: repeatEnabled ? payload.repeat?.endDate ?? "" : "",
       frequency: repeatFrequency,
       intervalWeeks: Math.max(1, Number(payload.repeat?.intervalWeeks) || 2),
       startDate: repeatStartDate,
@@ -126,43 +128,42 @@ function TaskForm({employees = [], task, onSubmit}) {
             <Textarea name="note" defaultValue={task?.note ?? task?.description ?? ""} rows="3" />
           </Field>
 
-          <div className="form-split">
-            <Field label="Тип">
-              <Select name="taskKind" defaultValue={getTaskKind(task)}>
-                {TASK_KIND_OPTIONS.map((option) => (
-                  <option key={option.id} value={option.id}>{option.label}</option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Исполнитель">
-              <Select name="assigneeId" defaultValue={getTaskAssigneeId(task)}>
-                <option value="">Без исполнителя</option>
-                {employees.map((employee) => (
-                  <option key={employee.id} value={String(employee.id)}>
-                    {employee.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+          <input name="taskKind" type="hidden" value={taskKind} />
+          <input name="repeatEnabled" type="hidden" value={repeatEnabled ? "on" : ""} />
+          <div className="task-kind-picker" role="group" aria-label="Вид задачи">
+            {TASK_KIND_OPTIONS.map((option) => (
+              <button
+                aria-pressed={taskKind === option.id}
+                className={taskKind === option.id ? "is-active" : ""}
+                key={option.id}
+                type="button"
+                onClick={() => setTaskKind(option.id)}>
+                <strong>{option.label}</strong>
+                <span>
+                  {option.id === "daily"
+                    ? "Можно выполнить сегодня — завтра появится снова"
+                    : "Разовая задача с конкретным результатом"}
+                </span>
+              </button>
+            ))}
           </div>
 
-          <div className="form-split">
-            <Field label="Дата">
+          <div className="task-form-date-row">
+            <Field label={taskKind === "daily" ? "Начать с" : "Сделать до"}>
               <Input
                 name="dueDate"
                 type="date"
-                defaultValue={dueDate}
-              />
-            </Field>
-            <Field label="Оценка, мин">
-              <Input
-                min="0"
-                name="estimateMinutes"
-                type="number"
-                defaultValue={getTaskEstimateMinutes(task) || ""}
+                value={dueDateValue}
+                onChange={(event) => setDueDateValue(event.target.value)}
               />
             </Field>
           </div>
+
+          {taskKind === "daily" ? (
+            <p className="task-repeat-explainer">
+              Выполнение отмечается только за выбранный день. Следующее дело останется активным.
+            </p>
+          ) : null}
 
           <label className="settings-checkbox task-form-toggle">
             <input
@@ -180,26 +181,9 @@ function TaskForm({employees = [], task, onSubmit}) {
             </Field>
           ) : null}
 
-          <div className="form-split">
-            <Field label="Приоритет">
-              <Select name="priorityId" defaultValue={getTaskPriorityId(task)}>
-                {TASK_PRIORITY_OPTIONS.map((option) => (
-                  <option key={option.id} value={option.id}>{option.label}</option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Статус">
-              <Select name="status" defaultValue={task?.status ?? "active"}>
-                {TASK_STATUS_OPTIONS.map((option) => (
-                  <option key={option.id} value={option.id}>{option.label}</option>
-                ))}
-              </Select>
-            </Field>
-          </div>
-
           <label className="settings-checkbox task-form-toggle">
             <input
-              defaultChecked={isTaskMainOnDate(task, dueDate)}
+              defaultChecked={isTaskMainOnDate(task, dueDateValue)}
               name="isMain"
               type="checkbox"
               value="on"
@@ -216,8 +200,45 @@ function TaskForm({employees = [], task, onSubmit}) {
             Дополнительно
           </Button>
 
-          {showAdvanced ? (
-            <div className="task-form-extra">
+          <div className="task-form-extra" hidden={!showAdvanced}>
+              <div className="form-split">
+                <Field label="Исполнитель (необязательно)">
+                  <Select name="assigneeId" defaultValue={getTaskAssigneeId(task)}>
+                    <option value="">Без исполнителя</option>
+                    {employees.map((employee) => (
+                      <option key={employee.id} value={String(employee.id)}>
+                        {employee.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Оценка времени, мин (необязательно)">
+                  <Input
+                    min="0"
+                    name="estimateMinutes"
+                    type="number"
+                    defaultValue={getTaskEstimateMinutes(task) || ""}
+                  />
+                </Field>
+              </div>
+
+              <div className="form-split">
+                <Field label="Приоритет">
+                  <Select name="priorityId" defaultValue={getTaskPriorityId(task)}>
+                    {TASK_PRIORITY_OPTIONS.map((option) => (
+                      <option key={option.id} value={option.id}>{option.label}</option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Статус">
+                  <Select name="status" defaultValue={task?.status ?? "active"}>
+                    {TASK_STATUS_OPTIONS.map((option) => (
+                      <option key={option.id} value={option.id}>{option.label}</option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+
               <Field label="Ожидаемый результат">
                 <Textarea name="outcome" defaultValue={payload.outcome ?? ""} rows="2" />
               </Field>
@@ -260,21 +281,14 @@ function TaskForm({employees = [], task, onSubmit}) {
                 </Button>
               </section>
 
-              <label className="settings-checkbox task-form-toggle">
-                <input
-                  checked={repeatEnabled}
-                  name="repeatEnabled"
-                  type="checkbox"
-                  value="on"
-                  onChange={(event) => setRepeatEnabled(event.target.checked)}
-                />
-                <span>Повторять задачу</span>
-              </label>
-
               {repeatEnabled ? (
                 <section className="task-form-repeat">
+                  <div className="task-form-section-head">
+                    <strong>График регулярного дела</strong>
+                    <small>Необязательно</small>
+                  </div>
                   <div className="form-split">
-                    <Field label="Повтор">
+                    <Field label="Появляется">
                       <Select
                         value={repeatFrequency}
                         onChange={(event) => setRepeatFrequency(event.target.value)}>
@@ -284,10 +298,11 @@ function TaskForm({employees = [], task, onSubmit}) {
                         <option value="intervalWeeks">Каждые N недель</option>
                       </Select>
                     </Field>
-                    <Field label="Начало серии">
-                      <Input name="repeatStartDate" type="date" defaultValue={repeatStartDate} required={repeatEnabled} />
+                    <Field label="Показывать до (необязательно)">
+                      <Input name="repeatEndDate" type="date" defaultValue={payload.repeat?.endDate ?? ""} />
                     </Field>
                   </div>
+                  <input name="repeatStartDate" type="hidden" value={repeatStartDate} />
 
                   {repeatFrequency === "intervalWeeks" ? (
                     <Field label="Интервал недель">
@@ -313,10 +328,6 @@ function TaskForm({employees = [], task, onSubmit}) {
                       ))}
                     </div>
                   ) : null}
-
-                  <Field label="Окончание серии">
-                    <Input name="repeatEndDate" type="date" defaultValue={payload.repeat?.endDate ?? ""} />
-                  </Field>
                 </section>
               ) : null}
 
@@ -329,7 +340,6 @@ function TaskForm({employees = [], task, onSubmit}) {
                 </Field>
               ) : null}
             </div>
-          ) : null}
         </>
       )}
 

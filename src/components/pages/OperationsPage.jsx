@@ -501,7 +501,7 @@ function OperationsPage({
                   </>
                 )}
               </div>
-              <Button leftIcon="plus" size="sm" variant="primary" onClick={onAddTask}>Новая задача</Button>
+              <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: selectedDate})}>Новая задача</Button>
             </section>
 
             <section className="operations-filters">
@@ -539,8 +539,8 @@ function OperationsPage({
                 {overdueTasks.length ? (
                   <TaskGroup title="Просрочено" tasks={overdueTasks} empty="Просроченных задач нет." {...cardProps} />
                 ) : null}
-                <TaskGroup title="Ежедневные дела" tasks={dailyTasks} empty="На этот день нет ежедневных задач." onAddTask={onAddTask} {...cardProps} />
-                <TaskGroup title="Развитие" tasks={developmentTasks} empty="На этот день нет задач развития." onAddTask={onAddTask} {...cardProps} />
+                <TaskGroup title="Регулярные дела" tasks={dailyTasks} empty="На этот день нет регулярных дел." onAddTask={() => onAddTask?.({dueDate: selectedDate, taskKind: "daily"})} {...cardProps} />
+                <TaskGroup title="Развитие" tasks={developmentTasks} empty="На этот день нет задач развития." onAddTask={() => onAddTask?.({dueDate: selectedDate, taskKind: "development"})} {...cardProps} />
               </div>
             ) : planMode === "week" ? (
               <div className="operations-week-list">
@@ -550,7 +550,7 @@ function OperationsPage({
                     <section className="operations-week-day" key={day.input}>
                       <header>
                         <div><strong>{day.label}</strong><span>{formatDateShort(day.input)}</span></div>
-                        <Button size="sm" variant="secondary" onClick={() => { setSelectedDate(day.input); onAddTask?.(); }}>Добавить</Button>
+                        <Button size="sm" variant="secondary" onClick={() => { setSelectedDate(day.input); onAddTask?.({dueDate: day.input}); }}>Добавить</Button>
                       </header>
                       {tasksForDay.length ? (
                         <div className="operations-task-list">

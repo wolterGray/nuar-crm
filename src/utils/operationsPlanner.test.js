@@ -92,6 +92,24 @@ describe("operationsPlanner", () => {
     expect(isTaskCompleted(second)).toBe(false);
   });
 
+  it("treats a regular daily task as recurring even when an older record lacks repeat settings", () => {
+    const dailyTask = {
+      ...repeatingTask,
+      payload: {
+        ...repeatingTask.payload,
+        repeat: {enabled: false},
+        taskKind: "daily",
+      },
+    };
+    const occurrences = expandTasksForRange([dailyTask], "2026-10-12", "2026-10-14");
+
+    expect(occurrences.map(getTaskDueDate)).toEqual([
+      "2026-10-12",
+      "2026-10-13",
+      "2026-10-14",
+    ]);
+  });
+
   it("filters active assignee work and calculates day stats", () => {
     const tasks = [
       {

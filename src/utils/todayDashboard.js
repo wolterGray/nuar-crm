@@ -8,6 +8,13 @@ import {isSupplyLowStock} from "./supplyStock.js";
 import {buildScheduleQualityReport} from "./scheduleQuality.js";
 import {isUnclosedPastVisit} from "./alertCenter.js";
 import {buildFinancialQualityReport} from "./financialQuality.js";
+import {
+  expandTasksForRange,
+  getOverdueTasks,
+  getTaskDueDate,
+  isTaskCompleted,
+  isTaskRepeating,
+} from "./operationsPlanner.js";
 
 const sortByTime = (left, right) =>
   String(left.time ?? "00:00").localeCompare(String(right.time ?? "00:00"));
@@ -72,11 +79,12 @@ const buildActionItems = ({
   }
 
   dueTasks.slice(0, 3).forEach((task) => {
+    const dueDate = getTaskDueDate(task);
     items.push({
       id: `task-${task.id}`,
       action: "operations",
-      message: task.dueDate ? `Срок: ${task.dueDate}` : "Задача без даты",
-      priority: task.dueDate < today ? "critical" : "action",
+      message: dueDate ? `Срок: ${dueDate}` : "Задача без даты",
+      priority: dueDate < today ? "critical" : "action",
       title: task.title,
       type: "task",
     });
@@ -184,15 +192,13 @@ export const buildTodayDashboard = ({
     now,
     today,
   });
-  const dueTasks = tasks
-    .filter(
-      (task) =>
-        task.type !== "note" &&
-        task.status !== "completed" &&
-        task.dueDate &&
-        task.dueDate <= today,
-    )
-    .sort((left, right) => String(left.dueDate).localeCompare(String(right.dueDate)));
+  const taskCandidates = [
+    ...getOverdueTasks(tasks, today).filter((task) => !isTaskRepeating(task)),
+    ...expandTasksForRange(tasks, today, today),
+  ];
+  const dueTasks = [...new Map(taskCandidates.map((task) => [task.id, task])).values()]
+    .filter((task) => task.type !== "note" && !isTaskCompleted(task))
+    .sort((left, right) => getTaskDueDate(left).localeCompare(getTaskDueDate(right)));
   const lowStockSupplies = supplies
     .filter(isSupplyLowStock)
     .sort((left, right) => Number(left.stock) - Number(right.stock));
