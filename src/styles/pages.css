@@ -10440,6 +10440,12 @@ button:focus-visible {
   gap: 14px;
 }
 
+.content.payments-content,
+.content.visits-content.payments-content {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .nuar-payments {
   --payments-bg: var(--color-page);
   --payments-panel: var(--color-window);
@@ -10763,9 +10769,9 @@ button:focus-visible {
 }
 
 .nuar-payments:not(.payments-page-mobile) {
-  grid-template-rows: auto auto minmax(420px, 1fr);
+  grid-template-rows: auto auto auto;
   align-content: start;
-  min-height: 100%;
+  min-height: max-content;
   overflow: visible;
 }
 
@@ -10856,40 +10862,41 @@ button:focus-visible {
 }
 
 .nuar-payments:not(.payments-page-mobile) .visits-panel {
-  display: grid;
-  grid-template-rows: auto auto minmax(260px, 1fr) auto;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: 420px;
   padding: 16px;
+  overflow: visible;
 }
 
 .nuar-payments:not(.payments-page-mobile) .visits-panel .page-header-unified {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
   margin-bottom: 0;
 }
 
 .nuar-payments:not(.payments-page-mobile) .visits-panel .page-header-unified-top {
-  grid-column: 1 / -1;
+  order: 1;
 }
 
 .nuar-payments:not(.payments-page-mobile) .visits-panel .page-header-unified-actions {
-  grid-column: 2;
-  grid-row: 2;
+  order: 3;
   justify-content: flex-end;
   flex-wrap: nowrap;
 }
 
 .nuar-payments:not(.payments-page-mobile) .visits-panel .table-search-control {
-  grid-column: 1;
-  grid-row: 2;
-  align-self: center;
+  order: 2;
+  align-self: stretch;
   width: min(520px, 100%);
   margin: 0;
 }
 
 .nuar-payments:not(.payments-page-mobile) .visits-panel .visits-table {
+  flex: 0 0 auto;
   min-height: 260px;
 }
 
