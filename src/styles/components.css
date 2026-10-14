@@ -9996,3 +9996,35 @@
     justify-self: start;
   }
 }
+
+.modal-backdrop:not(.mobile-sheet-backdrop) .employee-modal.operations-form-modal.task-form-modal {
+  display: flex;
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(820px, calc(100dvh - 56px));
+  overflow: hidden;
+}
+
+.modal-backdrop:not(.mobile-sheet-backdrop) .employee-modal.operations-form-modal.task-form-modal > .task-form-advanced {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: start;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  scrollbar-gutter: stable;
+}
+
+.modal-backdrop:not(.mobile-sheet-backdrop) .employee-modal.operations-form-modal.task-form-modal .task-submit-button {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+  margin-top: 2px;
+  box-shadow: 0 -12px 18px var(--color-window);
+}
