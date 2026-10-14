@@ -9786,7 +9786,9 @@
 }
 
 .operations-page .operations-planner-panel {
-  padding: 16px;
+  width: min(100%, 1080px);
+  margin: 0 auto;
+  padding: 18px 22px 24px;
   border-radius: var(--operations-radius);
 }
 
@@ -9851,6 +9853,124 @@
   border-radius: var(--operations-radius);
   background: var(--operations-panel-soft);
   overflow-x: auto;
+}
+
+.operations-page .operations-list-toolbar {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--operations-border-soft);
+}
+
+.operations-page .operations-list-toolbar > input {
+  min-height: 36px;
+}
+
+.operations-page .operations-filter-menu {
+  position: relative;
+}
+
+.operations-page .operations-filter-menu > summary {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 7px;
+  color: var(--operations-muted);
+  background: var(--operations-panel-soft);
+  font-size: 12px;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+.operations-page .operations-filter-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.operations-page .operations-filter-menu[open] > summary,
+.operations-page .operations-filter-menu > summary:hover {
+  border-color: var(--operations-border);
+  color: var(--operations-text);
+}
+
+.operations-page .operations-filter-menu-content {
+  position: absolute;
+  z-index: 12;
+  top: calc(100% + 7px);
+  right: 0;
+  display: grid;
+  width: min(300px, calc(100vw - 40px));
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--operations-border);
+  border-radius: var(--operations-radius);
+  background: var(--operations-panel);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 28%);
+}
+
+.operations-page .operations-filter-menu-content .settings-checkbox {
+  position: relative;
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 7px;
+  color: var(--operations-muted);
+  background: var(--operations-panel-soft);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.operations-page .operations-filter-menu-content .settings-checkbox input[type="checkbox"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.operations-page .operations-filter-menu-content .settings-checkbox span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.operations-page .operations-filter-menu-content .settings-checkbox span::before {
+  content: "";
+  width: 28px;
+  height: 16px;
+  border: 1px solid var(--operations-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--operations-panel) 82%, var(--operations-text) 8%);
+}
+
+.operations-page .operations-filter-menu-content .settings-checkbox span::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--operations-muted);
+  transition: transform 0.16s ease, background-color 0.16s ease;
+}
+
+.operations-page .operations-filter-menu-content .settings-checkbox input:checked + span::before {
+  border-color: color-mix(in srgb, var(--operations-accent) 52%, transparent);
+  background: color-mix(in srgb, var(--operations-accent) 28%, transparent);
+}
+
+.operations-page .operations-filter-menu-content .settings-checkbox input:checked + span::after {
+  background: var(--operations-accent);
+  transform: translateX(12px);
 }
 
 .operations-page .operations-day-metrics {
@@ -10017,8 +10137,8 @@
 
 .operations-page .operations-plan-columns {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
   align-items: start;
 }
 
@@ -10026,6 +10146,11 @@
   display: grid;
   gap: 8px;
   min-width: 0;
+}
+
+.operations-page .operations-plan-group + .operations-plan-group {
+  padding-top: 18px;
+  border-top: 1px solid var(--operations-border-soft);
 }
 
 .operations-page .operations-plan-group > header {
@@ -10056,7 +10181,7 @@
 
 .operations-page .operations-task-list {
   display: grid;
-  gap: 8px;
+  gap: 2px;
 }
 
 .operations-page .operations-plan-group .operations-empty {
@@ -10074,10 +10199,11 @@
   gap: 8px;
   align-items: start;
   min-width: 0;
-  padding: 10px;
-  border: 1px solid var(--operations-border-soft);
-  border-radius: var(--operations-radius);
-  background: var(--operations-panel-soft);
+  padding: 9px 6px;
+  border: 1px solid transparent;
+  border-bottom-color: var(--operations-border-soft);
+  border-radius: 6px;
+  background: transparent;
 }
 
 .operations-page .operations-work-card:hover {
@@ -10174,8 +10300,8 @@
 
 .operations-page .operations-week-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   align-items: start;
 }
 
@@ -10183,10 +10309,11 @@
   display: grid;
   gap: 8px;
   min-width: 0;
-  padding: 10px;
-  border: 1px solid var(--operations-border-soft);
-  border-radius: var(--operations-radius);
-  background: color-mix(in srgb, var(--operations-panel-soft) 90%, transparent);
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--operations-border-soft);
+  border-radius: 0;
+  background: transparent;
 }
 
 .operations-page .operations-week-day > header {
@@ -10380,7 +10507,6 @@
 }
 
 @media (max-width: 1100px) {
-  .operations-page .operations-filters,
   .operations-page .operations-plan-columns {
     grid-template-columns: 1fr;
   }
@@ -10400,6 +10526,25 @@
 
   .operations-page .operations-planner-panel {
     padding: 12px;
+  }
+
+  .operations-page .operations-list-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .operations-page .operations-filter-menu {
+    grid-column: 1 / -1;
+  }
+
+  .operations-page .operations-filter-menu > summary {
+    width: 100%;
+  }
+
+  .operations-page .operations-filter-menu-content {
+    position: static;
+    width: 100%;
+    margin-top: 7px;
+    box-shadow: none;
   }
 
   .operations-page .operations-planner-head,

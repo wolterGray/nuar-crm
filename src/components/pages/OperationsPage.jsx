@@ -28,6 +28,7 @@ import {
   getTaskEstimateMinutes,
   getTaskKind,
   getTaskKindLabel,
+  getTaskPriorityId,
   getTaskPriorityLabel,
   getTaskStatusLabel,
   getWarsawTime,
@@ -83,6 +84,15 @@ const formatMinutes = (minutes) => {
   return rest ? `${hours} ч ${rest} мин` : `${hours} ч`;
 };
 
+const formatPlannerDate = (date) => {
+  if (!date) return "Без даты";
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    weekday: "long",
+  }).format(new Date(`${date}T12:00:00`));
+};
+
 const formatTaskDateTime = (task) => {
   const date = getTaskDueDate(task);
   const time = getTaskDueTime(task);
@@ -123,6 +133,7 @@ function TaskCard({
   const isOverdue = isTaskOverdue(task, today, nowTime);
   const checklist = getChecklistProgress(task);
   const assigneeName = getTaskAssigneeName(task) || "Без исполнителя";
+  const priority = getTaskPriorityId(task);
 
   return (
     <article
@@ -151,13 +162,12 @@ function TaskCard({
         {task.note ? <small>{task.note}</small> : null}
         <span className="operations-work-card-meta">
           <em>{getTaskKindLabel(task)}</em>
-          <em>{assigneeName}</em>
-          <em>{formatTaskDateTime(task)}</em>
+          {getTaskAssigneeName(task) ? <em>{assigneeName}</em> : null}
+          {dueDate !== today || getTaskDueTime(task) ? <em>{formatTaskDateTime(task)}</em> : null}
           {getTaskEstimateMinutes(task) ? <em>{formatMinutes(getTaskEstimateMinutes(task))}</em> : null}
-          <em>{getTaskPriorityLabel(task)}</em>
-          {isTaskRepeating(task) ? <em>Повтор</em> : null}
+          {priority !== "medium" ? <em>{getTaskPriorityLabel(task)}</em> : null}
           {checklist.total ? <em>{checklist.done}/{checklist.total}</em> : null}
-          <em>{status}</em>
+          {status !== "В работе" ? <em>{status}</em> : null}
         </span>
       </button>
       <RowActionsMenu
@@ -387,7 +397,6 @@ function OperationsPage({
     [allTasksRaw, filters],
   );
   const dayStats = getDayStats(dayTasks);
-  const mainTask = dayTasks.find((task) => isTaskMainOnDate(task, selectedDate));
 
   const updateFilter = (key, value) => {
     setFilters((current) => ({...current, [key]: value}));
@@ -441,12 +450,6 @@ function OperationsPage({
               <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>Расходники</SegmentButton>
               <SegmentButton active={activeTab === "waitlist"} onClick={() => setActiveTab("waitlist")}>Лист ожидания</SegmentButton>
             </div>
-            <div className="operations-summary">
-              <span><b>{dayStats.completed}</b> готово</span>
-              <span><b>{dayStats.planned}</b> в плане</span>
-              <span><b>{formatMinutes(dayStats.remainingMinutes)}</b></span>
-              <span className={lowStockCount > 0 ? "operations-summary-alert" : ""}><b>{lowStockCount}</b> пополнить</span>
-            </div>
           </>
         }
       />
@@ -464,7 +467,7 @@ function OperationsPage({
             <div className="operations-planner-head">
               <div>
                 <span>{selectedDate === today ? "Сегодня" : "Выбранный день"}</span>
-                <h2>{selectedDate}</h2>
+                <h2>{formatPlannerDate(selectedDate)}</h2>
               </div>
               <div className="operations-date-controls">
                 <IconButton icon="chevronLeft" label="Предыдущий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, planMode === "week" ? -7 : -1))} />
@@ -476,66 +479,40 @@ function OperationsPage({
 
             <div className="operations-plan-mode">
               <SegmentButton active={planMode === "today"} onClick={() => setPlanMode("today")}>Сегодня</SegmentButton>
-              <SegmentButton active={planMode === "week"} onClick={() => setPlanMode("week")}>Неделя</SegmentButton>
-              <SegmentButton active={planMode === "all"} onClick={() => setPlanMode("all")}>Все задачи</SegmentButton>
+              <SegmentButton active={planMode === "week"} onClick={() => setPlanMode("week")}>Предстоящие</SegmentButton>
+              <SegmentButton active={planMode === "all"} onClick={() => setPlanMode("all")}>Все</SegmentButton>
             </div>
 
-            <div className="operations-day-metrics">
-              <div><strong>{dayStats.planned}</strong><span>запланировано</span></div>
-              <div><strong>{dayStats.completed}</strong><span>выполнено</span></div>
-              <div><strong>{formatMinutes(dayStats.remainingMinutes)}</strong><span>осталось</span></div>
-              <div><strong>{dayStats.progress}%</strong><span>прогресс</span></div>
-            </div>
-            <div className="operations-progress-bar" aria-label={`Прогресс ${dayStats.progress}%`}>
-              <span style={{width: `${dayStats.progress}%`}} />
-            </div>
-
-            <section className="operations-main-task">
-              <div>
-                <span>Главная задача дня</span>
-                {mainTask ? (
-                  <>
-                    <strong>{mainTask.title}</strong>
-                    <small>{getTaskAssigneeName(mainTask) || "Без исполнителя"} · {getTaskKindLabel(mainTask)}</small>
-                  </>
-                ) : (
-                  <>
-                    <strong>Не выбрана</strong>
-                    <small>Назначьте из меню задачи или создайте новую.</small>
-                  </>
-                )}
-              </div>
-              <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: selectedDate})}>Новая задача</Button>
-            </section>
-
-            <section className="operations-filters">
-              <label className="settings-checkbox">
-                <input
-                  checked={filters.showCompleted}
-                  type="checkbox"
-                  onChange={(event) => updateFilter("showCompleted", event.target.checked)}
-                />
-                <span>Показывать завершённые</span>
-              </label>
+            <section className="operations-list-toolbar">
               <Input value={filters.query} placeholder="Поиск по задачам" onChange={(event) => updateFilter("query", event.target.value)} />
-              <Select value={filters.assigneeId} onChange={(event) => updateFilter("assigneeId", event.target.value)}>
-                <option value="__all__">Все исполнители</option>
-                <option value="__none__">Без исполнителя</option>
-                {employees.map((employee) => <option key={employee.id} value={String(employee.id)}>{employee.name}</option>)}
-              </Select>
-              <Select value={filters.taskKind} onChange={(event) => updateFilter("taskKind", event.target.value)}>
-                <option value="__all__">Все типы</option>
-                {TASK_KIND_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-              </Select>
-              <Select value={filters.priority} onChange={(event) => updateFilter("priority", event.target.value)}>
-                <option value="__all__">Любой приоритет</option>
-                {TASK_PRIORITY_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-              </Select>
-              <Select value={filters.status} onChange={(event) => updateFilter("status", event.target.value)}>
-                <option value="__all__">Любой статус</option>
-                {TASK_STATUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-              </Select>
-              <Button size="sm" variant="secondary" onClick={resetFilters}>Сбросить</Button>
+              <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: selectedDate})}>Добавить задачу</Button>
+              <details className="operations-filter-menu">
+                <summary>Фильтры</summary>
+                <div className="operations-filter-menu-content">
+                  <label className="settings-checkbox">
+                    <input checked={filters.showCompleted} type="checkbox" onChange={(event) => updateFilter("showCompleted", event.target.checked)} />
+                    <span>Показывать завершённые</span>
+                  </label>
+                  <Select value={filters.assigneeId} onChange={(event) => updateFilter("assigneeId", event.target.value)}>
+                    <option value="__all__">Все исполнители</option>
+                    <option value="__none__">Без исполнителя</option>
+                    {employees.map((employee) => <option key={employee.id} value={String(employee.id)}>{employee.name}</option>)}
+                  </Select>
+                  <Select value={filters.taskKind} onChange={(event) => updateFilter("taskKind", event.target.value)}>
+                    <option value="__all__">Все типы</option>
+                    {TASK_KIND_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+                  </Select>
+                  <Select value={filters.priority} onChange={(event) => updateFilter("priority", event.target.value)}>
+                    <option value="__all__">Любой приоритет</option>
+                    {TASK_PRIORITY_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+                  </Select>
+                  <Select value={filters.status} onChange={(event) => updateFilter("status", event.target.value)}>
+                    <option value="__all__">Любой статус</option>
+                    {TASK_STATUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+                  </Select>
+                  <Button size="sm" variant="ghost" onClick={resetFilters}>Сбросить</Button>
+                </div>
+              </details>
             </section>
 
             {planMode === "today" ? (
