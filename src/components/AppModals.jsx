@@ -313,7 +313,7 @@ export default function AppModals({
 
       <FormModalShell
         className="employee-modal catalog-modal operations-form-modal task-form-modal"
-        isOpen={taskModalOpen}
+        isOpen={taskModalOpen && editingTask?.type === "note"}
         labelledBy="task-modal-title"
         title={
           editingTask?.type === "note"

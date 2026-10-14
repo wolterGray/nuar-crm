@@ -240,6 +240,7 @@ function App() {
   const [, setActiveClientAlertId] = useState(null);
   const [preferredMessageClientId, setPreferredMessageClientId] = useState("");
   const contentRef = useRef(null);
+  const taskEditorDirtyRef = useRef(false);
   const autoCompletedCalendarEntryIdsRef = useRef(
     new Set(autoCompletedCalendarEntryIds),
   );
@@ -1824,7 +1825,15 @@ function App() {
           studioName={appSettings.studioName}
           onLogout={handleLogout}
           onOpenClientSearch={clientSearch.open}
-          onPageChange={setActivePage}
+          onPageChange={(page) => {
+            if (taskModalOpen && editingTask?.type !== "note" && taskEditorDirtyRef.current) {
+              if (!window.confirm("Перейти в другой раздел? Несохранённые изменения задачи будут потеряны.")) return;
+            }
+            taskEditorDirtyRef.current = false;
+            setTaskModalOpen(false);
+            setEditingTask(null);
+            setActivePage(page);
+          }}
           onSidebarVisibleChange={(sidebarVisible) =>
             setAppSettings((current) => ({...current, sidebarVisible}))
           }
@@ -2043,11 +2052,20 @@ function App() {
             changeSupplyStock={changeSupplyStock}
             clearAlertFocus={clearAlertFocus}
             clearPreferredMessageClientId={() => setPreferredMessageClientId("")}
+            closeTaskEditor={() => {
+              taskEditorDirtyRef.current = false;
+              setTaskModalOpen(false);
+              setEditingTask(null);
+            }}
             clientPackages={clientPackages}
             clientProfiles={clientProfiles}
             cloudConflict={cloudConflict}
             cloudEnabled={false}
             cloudHydrated={cloudHydrated}
+            editingTask={editingTask}
+            handleTaskSubmit={handleTaskSubmit}
+            onTaskEditorDirtyChange={(dirty) => { taskEditorDirtyRef.current = dirty; }}
+            taskModalOpen={taskModalOpen}
             cloudLoadError={cloudLoadError}
             cloudSyncing={cloudSyncing}
             communicationLog={communicationLog}
@@ -2110,7 +2128,10 @@ function App() {
             }}
             openCreateService={openCreateService}
             openCreateSupply={openCreateSupply}
-            openCreateTask={openCreateTask}
+            openCreateTask={(...args) => {
+              setActivePage("operations");
+              openCreateTask(...args);
+            }}
             openEditClient={openEditClient}
             openEditClientPackage={openEditClientPackage}
             openEditCertificate={openEditCertificate}
@@ -2119,7 +2140,10 @@ function App() {
             openEditPackage={openEditPackage}
             openEditService={openEditService}
             openEditSupply={openEditSupply}
-            openEditTask={openEditTask}
+            openEditTask={(task) => {
+              setActivePage("operations");
+              openEditTask(task);
+            }}
             openCalendarIssue={openCalendarIssue}
             openPaymentQualityCheck={() => {
               setActivePage("payments");

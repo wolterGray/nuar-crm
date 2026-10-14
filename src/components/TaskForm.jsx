@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from "react";
-import {AppIcon, Button, Field, IconButton, Input, Select, Switch, TabButton, Tabs, Textarea} from "./ui/index.js";
+import {AppIcon, Button, Field, IconButton, Input, Select, Switch, Textarea} from "./ui/index.js";
 import {
   TASK_KIND_OPTIONS, TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS, WORK_AREA_OPTIONS,
   getTaskAssigneeId, getTaskDueDate, getTaskDueTime, getTaskEstimateMinutes,
@@ -15,13 +15,13 @@ const EDITOR_TABS = [
 const makeChecklistItem = () => ({done: false, id: `check-${Date.now()}-${Math.random().toString(16).slice(2)}`, text: ""});
 const makeResultField = () => ({id: `custom-${Date.now()}-${Math.random().toString(16).slice(2)}`, label: "", required: false, type: "text", unit: ""});
 
-function TaskForm({employees = [], onCancel, onDirtyChange, onSubmit, task}) {
+function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyChange, onSubmit, saving: externalSaving, task}) {
   const payload = getTaskPayload(task);
   const isNote = task?.type === "note";
   const isEditing = Boolean(task?.id);
   const dueDate = getTaskDueDate(task);
   const [activeTab, setActiveTab] = useState("main");
-  const [saving, setSaving] = useState(false);
+  const [localSaving, setLocalSaving] = useState(false);
   const [taskKind, setTaskKind] = useState(getTaskKind(task));
   const [dueDateValue, setDueDateValue] = useState(dueDate || getWarsawTodayInput());
   const [hasTime, setHasTime] = useState(Boolean(getTaskDueTime(task)));
@@ -62,7 +62,18 @@ function TaskForm({employees = [], onCancel, onDirtyChange, onSubmit, task}) {
       return next;
     });
   };
-  const handleSubmit = async (event) => { setSaving(true); await onSubmit(event); setSaving(false); };
+  const saving = externalSaving ?? localSaving;
+  const handleSubmit = async (event) => {
+    if (externalSaving === undefined) setLocalSaving(true);
+    await onSubmit(event);
+    if (externalSaving === undefined) setLocalSaving(false);
+  };
+  const selectTab = (tabId) => {
+    setActiveTab(tabId);
+    requestAnimationFrame(() => {
+      document.querySelector(".content")?.scrollTo({top: 0, behavior: "instant"});
+    });
+  };
 
   if (isNote) {
     return (
@@ -77,7 +88,7 @@ function TaskForm({employees = [], onCancel, onDirtyChange, onSubmit, task}) {
   }
 
   return (
-    <form className="task-editor" onChange={markDirty} onSubmit={handleSubmit}>
+    <form className={`task-editor ${layout === "page" ? "task-editor-page-layout" : ""}`} id={formId} onChange={markDirty} onSubmit={handleSubmit}>
       <input name="type" type="hidden" value="task" />
       <input name="checklistJson" type="hidden" value={JSON.stringify(checklist)} />
       <input name="repeatJson" type="hidden" value={JSON.stringify(repeatPayload)} />
@@ -87,9 +98,9 @@ function TaskForm({employees = [], onCancel, onDirtyChange, onSubmit, task}) {
       <input name="baseId" type="hidden" value={task?.baseId ?? ""} />
       <input name="occurrenceDate" type="hidden" value={task?.occurrenceDate ?? ""} />
 
-      <Tabs className="task-editor-tabs">
-        {EDITOR_TABS.map((tab) => <TabButton active={activeTab === tab.id} badge={tab.id === "checklist" ? checklist.length : tab.id === "results" ? resultFields.length : undefined} key={tab.id} onClick={() => setActiveTab(tab.id)}>{tab.label}</TabButton>)}
-      </Tabs>
+      <nav className="task-editor-navigation" aria-label="Разделы задачи">
+        {EDITOR_TABS.map((tab) => <button aria-current={activeTab === tab.id ? "page" : undefined} className={activeTab === tab.id ? "is-active" : ""} key={tab.id} type="button" onClick={() => selectTab(tab.id)}><span>{tab.label}</span>{tab.id === "checklist" ? <small>{checklist.length}</small> : tab.id === "results" ? <small>{resultFields.length}</small> : null}</button>)}
+      </nav>
 
       <div className="task-editor-scroll">
         <section className="task-editor-panel" hidden={activeTab !== "main"}>
@@ -140,7 +151,7 @@ function TaskForm({employees = [], onCancel, onDirtyChange, onSubmit, task}) {
           {task?.isVirtualOccurrence || isTaskRepeating(task) ? <Field label="Применить изменения"><Select name="applyScope" defaultValue="future"><option value="single">Только выбранный день</option><option value="future">К шаблону и последующим</option></Select></Field> : null}
         </section>
       </div>
-      <EditorFooter isEditing={isEditing} saving={saving} onCancel={onCancel} />
+      {layout !== "page" ? <EditorFooter isEditing={isEditing} saving={saving} onCancel={onCancel} /> : null}
     </form>
   );
 }

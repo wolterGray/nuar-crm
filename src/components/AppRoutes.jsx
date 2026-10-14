@@ -9,6 +9,7 @@ const PackagesPage = lazy(() => import("./pages/PackagesPage.jsx"));
 const EmployeesPage = lazy(() => import("./EmployeesPage.jsx"));
 const MessageTemplatesPage = lazy(() => import("./pages/MessageTemplatesPage.jsx"));
 const OperationsPage = lazy(() => import("./pages/OperationsPage.jsx"));
+const TaskEditorPage = lazy(() => import("./pages/TaskEditorPage.jsx"));
 const ImportPage = lazy(() => import("./pages/ImportPage.jsx"));
 const PaymentsPage = lazy(() => import("./pages/PaymentsPage.jsx"));
 const StatisticsPage = lazy(() => import("./pages/StatisticsPage.jsx"));
@@ -234,6 +235,19 @@ export default function AppRoutes({activePage, ...props}) {
       );
 
     case "operations":
+      if (props.taskModalOpen && props.editingTask?.type !== "note") {
+        return (
+          <PageSuspense>
+            <TaskEditorPage
+              employees={props.activeEmployees}
+              task={props.editingTask}
+              onClose={props.closeTaskEditor}
+              onDirtyChange={props.onTaskEditorDirtyChange}
+              onSubmit={props.handleTaskSubmit}
+            />
+          </PageSuspense>
+        );
+      }
       return (
         <PageSuspense>
           <OperationsPage
