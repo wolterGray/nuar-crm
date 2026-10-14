@@ -228,6 +228,24 @@ function DayClosePanel({
     return null;
   }
 
+  const statusBadge = existingRecord ? (
+    <span className="day-close-status is-closed">
+      <AppIcon name="lock" size="sm" />
+      Закрыт{" "}
+      {new Date(existingRecord.closedAt).toLocaleString("ru-RU", {
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        month: "2-digit",
+      })}
+    </span>
+  ) : (
+    <span className="day-close-status is-open">
+      <AppIcon name="unlock" size="sm" />
+      Открыт
+    </span>
+  );
+
   return (
     <details className="day-close-collapsible" open={!isMobile}>
       <summary className="day-close-collapsible-summary">
@@ -247,26 +265,10 @@ function DayClosePanel({
     <section className="panel day-close-panel">
       <PageHeader
         description="Сверка наличных и поступлений по журналу за выбранный день"
+        headerActions={statusBadge}
         showNotifications={false}
-        title="Закрытие дня">
-        {existingRecord ? (
-          <span className="day-close-status is-closed">
-            <AppIcon name="lock" size="sm" />
-            Закрыт{" "}
-            {new Date(existingRecord.closedAt).toLocaleString("ru-RU", {
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              month: "2-digit",
-            })}
-          </span>
-        ) : (
-          <span className="day-close-status is-open">
-            <AppIcon name="unlock" size="sm" />
-            Открыт
-          </span>
-        )}
-      </PageHeader>
+        title="Закрытие дня"
+      />
 
       <DayCloseForm
         key={`${selectedDate}-${existingRecord?.id ?? "open"}`}

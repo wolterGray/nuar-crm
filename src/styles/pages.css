@@ -10762,6 +10762,113 @@ button:focus-visible {
   background: var(--button-ghost-hover-bg);
 }
 
+.nuar-payments:not(.payments-page-mobile) {
+  grid-template-rows: auto auto minmax(420px, 1fr);
+  align-content: start;
+  min-height: 100%;
+  overflow: visible;
+}
+
+.nuar-payments:not(.payments-page-mobile) .day-close-collapsible-summary {
+  display: none;
+}
+
+.nuar-payments:not(.payments-page-mobile) .day-close-panel,
+.nuar-payments:not(.payments-page-mobile) .financial-quality-panel,
+.nuar-payments:not(.payments-page-mobile) .visits-panel {
+  border-radius: 12px;
+}
+
+.nuar-payments:not(.payments-page-mobile) .financial-quality-panel {
+  padding: 14px;
+}
+
+.nuar-payments:not(.payments-page-mobile) .financial-quality-list {
+  max-height: 220px;
+  padding-right: 4px;
+}
+
+.nuar-payments:not(.payments-page-mobile) .day-close-panel {
+  display: grid;
+  align-content: start;
+  padding: 16px;
+}
+
+.nuar-payments .day-close-panel .page-header-unified-top {
+  min-height: 32px;
+}
+
+.nuar-payments .day-close-panel .page-header-unified-side {
+  justify-content: flex-end;
+}
+
+.nuar-payments .day-close-status {
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
+  justify-self: start;
+  white-space: nowrap;
+}
+
+.nuar-payments .day-close-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: start;
+}
+
+.nuar-payments .day-close-form > label,
+.nuar-payments .day-close-inputs label {
+  gap: 8px;
+}
+
+.nuar-payments .day-close-form > label > span:first-child,
+.nuar-payments .day-close-inputs label > span:first-child {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  min-height: 18px;
+  align-items: center;
+  padding: 0 6px;
+  border: 1px solid var(--payments-border-soft);
+  border-radius: 999px;
+  color: var(--payments-muted);
+  background: color-mix(in srgb, var(--payments-panel-soft) 78%, transparent);
+  font-size: 10px;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.nuar-payments .day-close-empty {
+  padding: 0 2px;
+}
+
+.nuar-payments .day-close-inputs {
+  align-items: end;
+}
+
+.nuar-payments .day-close-variance {
+  align-items: center;
+}
+
+.nuar-payments .day-close-actions {
+  margin-top: 0;
+}
+
+.nuar-payments:not(.payments-page-mobile) .visits-panel {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(260px, 1fr) auto;
+  align-content: start;
+  padding: 16px;
+}
+
+.nuar-payments:not(.payments-page-mobile) .visits-panel .page-header-unified {
+  margin-bottom: 0;
+}
+
+.nuar-payments:not(.payments-page-mobile) .visits-panel .visits-table {
+  min-height: 260px;
+}
+
 .payments-page-mobile.nuar-payments {
   display: block;
   min-height: 100%;
