@@ -464,17 +464,17 @@ function VisitsTable({
             title
           )
         }
-      />
-
-      {!isMobile ? (
-        <SearchControl
-          className="table-search-control"
-          placeholder="Поиск: клиент, мастер, услуга"
-          value={globalFilter}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          onClear={() => setGlobalFilter("")}
-        />
-      ) : null}
+      >
+        {!isMobile ? (
+          <SearchControl
+            className="table-search-control"
+            placeholder="Поиск: клиент, мастер, услуга"
+            value={globalFilter}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            onClear={() => setGlobalFilter("")}
+          />
+        ) : null}
+      </PageHeader>
 
       {isMobile ? null : (
       <div className="table-filters">

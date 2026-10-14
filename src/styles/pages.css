@@ -10784,8 +10784,9 @@ button:focus-visible {
 }
 
 .nuar-payments:not(.payments-page-mobile) .financial-quality-list {
-  max-height: 220px;
+  max-height: none;
   padding-right: 4px;
+  overflow: visible;
 }
 
 .nuar-payments:not(.payments-page-mobile) .day-close-panel {
@@ -10856,13 +10857,36 @@ button:focus-visible {
 
 .nuar-payments:not(.payments-page-mobile) .visits-panel {
   display: grid;
-  grid-template-rows: auto auto auto minmax(260px, 1fr) auto;
+  grid-template-rows: auto auto minmax(260px, 1fr) auto;
   align-content: start;
   padding: 16px;
 }
 
 .nuar-payments:not(.payments-page-mobile) .visits-panel .page-header-unified {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px 14px;
   margin-bottom: 0;
+}
+
+.nuar-payments:not(.payments-page-mobile) .visits-panel .page-header-unified-top {
+  grid-column: 1 / -1;
+}
+
+.nuar-payments:not(.payments-page-mobile) .visits-panel .page-header-unified-actions {
+  grid-column: 2;
+  grid-row: 2;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+.nuar-payments:not(.payments-page-mobile) .visits-panel .table-search-control {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: center;
+  width: min(520px, 100%);
+  margin: 0;
 }
 
 .nuar-payments:not(.payments-page-mobile) .visits-panel .visits-table {
