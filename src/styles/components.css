@@ -610,6 +610,348 @@
   }
 }
 
+/* Daily task execution workspace */
+.operations-detail-backdrop {
+  background: rgba(5, 6, 8, 0.58);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.operations-detail-dialog {
+  width: min(600px, 100vw);
+  max-width: 600px;
+}
+
+.operations-detail-header {
+  padding: 20px 22px 16px;
+}
+
+.operations-detail-heading {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.operations-detail-header .operations-detail-heading h2 {
+  font-size: 21px;
+  line-height: 1.3;
+}
+
+.operations-detail-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+.operations-detail-header .operations-detail-summary > :is(span, strong) {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  margin: 0;
+  padding: 0 8px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 6px;
+  color: var(--operations-muted);
+  background: var(--operations-panel-soft);
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: none;
+}
+
+.operations-detail-header .operations-detail-summary strong.status-progress {
+  border-color: color-mix(in srgb, var(--operations-accent) 38%, var(--operations-border));
+  color: color-mix(in srgb, var(--operations-accent) 68%, var(--operations-text));
+}
+
+.operations-detail-header .operations-detail-summary strong.status-done {
+  border-color: color-mix(in srgb, var(--color-success) 38%, var(--operations-border));
+  color: var(--color-success);
+}
+
+.operations-detail-progress {
+  overflow: hidden;
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--operations-text) 9%, transparent);
+}
+
+.operations-detail-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--operations-accent);
+  transition: width 0.18s ease;
+}
+
+.operations-detail-body {
+  gap: 20px;
+  padding: 18px 22px 32px;
+  scrollbar-gutter: stable;
+}
+
+.operations-detail-guide {
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--operations-panel-soft) 72%, transparent);
+}
+
+.operations-detail-guide summary {
+  padding: 11px 13px;
+  color: var(--operations-text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.operations-detail-guide p {
+  margin: 0;
+  padding: 0 13px 13px;
+  color: var(--operations-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.operations-detail-guide p + p {
+  padding-top: 4px;
+}
+
+.operations-detail-section {
+  gap: 12px;
+  padding: 0;
+}
+
+.operations-detail-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.operations-detail-section-head > div > :is(h3, span) {
+  display: block;
+  margin: 0;
+}
+
+.operations-detail-section-head h3 {
+  font-size: 15px;
+}
+
+.operations-detail-section-head > div > span {
+  margin-top: 3px;
+  color: var(--operations-muted);
+  font-size: 12px;
+}
+
+.operations-detail-section-head > b {
+  color: var(--operations-text);
+  font-size: 13px;
+}
+
+.operations-detail-checklist {
+  gap: 7px;
+}
+
+.operations-detail-checklist label {
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 11px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--operations-panel-soft) 74%, transparent);
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.operations-detail-checklist label:hover {
+  border-color: var(--operations-border);
+  background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 3%);
+}
+
+.operations-detail-checklist label.is-done {
+  color: var(--operations-muted);
+  background: color-mix(in srgb, var(--color-success) 7%, var(--operations-panel));
+}
+
+.operations-detail-checklist label.is-done > span:last-child {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.operations-detail-checklist .operations-check-hit {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  margin: 0;
+}
+
+.operations-detail-checklist .operations-check-hit .ui-checkbox {
+  width: 21px;
+  min-width: 21px;
+  height: 21px;
+  min-height: 21px;
+}
+
+.operations-results-section {
+  padding-top: 2px;
+  border-top: 1px solid var(--operations-border-soft);
+}
+
+.operations-result-date {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 220px);
+  gap: 14px;
+  align-items: end;
+  padding: 12px 14px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--operations-panel-soft) 80%, transparent);
+}
+
+.operations-result-date > span {
+  align-self: center;
+  color: var(--operations-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.operations-result-date label,
+.operations-result-grid > label {
+  display: grid;
+  gap: 6px;
+  color: var(--operations-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.operations-result-grid {
+  gap: 12px;
+}
+
+.operations-result-grid > label.is-wide {
+  grid-column: 1 / -1;
+}
+
+.operations-detail-section textarea,
+.operations-result-grid input,
+.operations-result-grid textarea,
+.operations-result-date input {
+  min-height: 44px;
+  padding: 10px 12px;
+  border-color: var(--operations-border);
+  font-size: 14px;
+}
+
+.operations-result-input em {
+  right: 12px;
+  font-size: 12px;
+}
+
+.operations-derived-results,
+.operations-auto-summary {
+  gap: 10px;
+}
+
+.operations-derived-results > div,
+.operations-auto-summary > div {
+  padding: 12px;
+}
+
+.operations-derived-results span,
+.operations-auto-summary span {
+  font-size: 12px;
+}
+
+.operations-derived-results strong,
+.operations-auto-summary strong {
+  font-size: 16px;
+}
+
+.operations-detail-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
+  gap: 10px;
+  padding: 14px 22px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--operations-panel) 96%, var(--operations-text) 2%);
+}
+
+.operations-detail-actions > div:last-child {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 10px;
+}
+
+.operations-detail-actions button {
+  width: 100%;
+  min-height: 44px;
+}
+
+.operations-completion-requirements {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 3px;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 32%, var(--operations-border-soft));
+  border-radius: 7px;
+  color: var(--operations-muted);
+  background: color-mix(in srgb, var(--color-danger) 6%, transparent);
+  font-size: 12px;
+}
+
+.operations-completion-requirements strong {
+  color: var(--operations-text);
+}
+
+@media (max-width: 768px) {
+  .operations-detail-backdrop {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .operations-detail-dialog {
+    width: 100%;
+    max-width: none;
+  }
+
+  .operations-detail-header,
+  .operations-detail-body,
+  .operations-detail-actions {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .operations-result-date {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-detail-actions > div:last-child {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
+  }
+
+  .operations-completion-requirements {
+    grid-column: 1 / -1;
+  }
+
+  .operations-detail-actions button {
+    min-width: 0;
+  }
+
+  .operations-detail-actions button span {
+    min-width: 0;
+    white-space: normal;
+  }
+}
+
 .section-loading-fallback {
   display: grid;
   grid-template-columns: 18px auto;
