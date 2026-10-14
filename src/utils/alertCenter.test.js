@@ -72,6 +72,25 @@ describe("alertCenter", () => {
     expect(filterAlertsByMode(alerts, "urgent")).toHaveLength(1);
   });
 
+  it("filters today mode by the alert entity date", () => {
+    const today = new Date();
+    const todayInput = [
+      today.getFullYear(),
+      String(today.getMonth() + 1).padStart(2, "0"),
+      String(today.getDate()).padStart(2, "0"),
+    ].join("-");
+    const alerts = [
+      {id: "today", type: "task", meta: {task: {dueDate: todayInput}}},
+      {id: "old", type: "task", meta: {task: {dueDate: "2020-01-01"}}},
+      {id: "calendar", type: "calendar", meta: {entry: {date: todayInput}}},
+    ];
+
+    expect(filterAlertsByMode(alerts, "today").map((alert) => alert.id)).toEqual([
+      "today",
+      "calendar",
+    ]);
+  });
+
   it("aggregates low-stock supplies in display list", () => {
     const result = buildAlertCenter({
       appSettings: baseSettings,

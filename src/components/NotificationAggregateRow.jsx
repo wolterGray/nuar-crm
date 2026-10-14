@@ -2,7 +2,7 @@ import {animate, motion, useMotionValue} from "framer-motion";
 import {useState} from "react";
 import {useSwipeable} from "react-swipeable";
 import NotificationAlertRow from "./NotificationAlertRow.jsx";
-import {AppIcon, Button} from "./ui/index.js";
+import {AppIcon, Button, IconButton} from "./ui/index.js";
 
 const SWIPE_CONFIRM_DELTA = 76;
 const SWIPE_HINT_LIMIT = 92;
@@ -32,6 +32,7 @@ const getAggregateTitle = (alert) => {
 export default function NotificationAggregateRow({
   alert,
   onAction,
+  onDismissPermanent,
   onSwipeAction,
   onSnoozeReview,
   onSnoozeToday,
@@ -204,6 +205,19 @@ export default function NotificationAggregateRow({
               Открыть группу
             </Button>
           </div>
+          <IconButton
+            className="client-alert-dismiss-button"
+            icon="x"
+            label="Скрыть группу уведомлений"
+            size="sm"
+            type="button"
+            variant="ghost"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDismissPermanent?.(alert);
+            }}
+            onPointerDown={(event) => event.stopPropagation()}
+          />
         </div>
         </motion.div>
       </div>
@@ -221,6 +235,7 @@ export default function NotificationAggregateRow({
                 alert={childAlert}
                 key={childAlert.id}
                 onAction={onAction}
+                onDismissPermanent={onDismissPermanent}
                 onSwipeAction={onSwipeAction}
                 onSnoozeReview={onSnoozeReview}
                 onSnoozeToday={onSnoozeToday}

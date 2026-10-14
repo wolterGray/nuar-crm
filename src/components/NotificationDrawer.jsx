@@ -74,6 +74,7 @@ const getPopoverStyle = (buttonRect) => {
 };
 
 const FILTER_OPTIONS = [
+  {id: "today", label: "Сегодня"},
   {id: "urgent", label: "Срочные"},
   {id: "all", label: "Все"},
   {id: "closing", label: "Закрыть"},
@@ -90,6 +91,7 @@ export default function NotificationDrawer({
   animationsEnabled,
   isOpen,
   onAction,
+  onDismissPermanent,
   onFilterChange,
   onRestoreSnooze,
   onSnoozeReview,
@@ -220,6 +222,17 @@ export default function NotificationDrawer({
 
     return () => window.clearInterval(timer);
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onToggleOpen();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onToggleOpen]);
 
   useEffect(
     () => () => {
@@ -360,6 +373,7 @@ export default function NotificationDrawer({
           alert={alert}
           key={alert.id}
           onAction={onAction}
+          onDismissPermanent={onDismissPermanent}
           onSwipeAction={handleSwipeAction}
           onSnoozeReview={handleSnoozeReview}
           onSnoozeToday={onSnoozeToday}
@@ -373,12 +387,17 @@ export default function NotificationDrawer({
         alert={alert}
         key={alert.id}
         onAction={onAction}
+        onDismissPermanent={onDismissPermanent}
         onSwipeAction={handleSwipeAction}
         onSnoozeReview={handleSnoozeReview}
         onSnoozeToday={onSnoozeToday}
         onSnoozeWeek={onSnoozeWeek}
       />
     );
+  };
+
+  const dismissVisibleAlerts = () => {
+    localVisibleAlerts.forEach((alert) => onDismissPermanent?.(alert));
   };
 
   const popover = (
@@ -412,14 +431,33 @@ export default function NotificationDrawer({
                   : "Только события, требующие внимания"}
               </p>
             </div>
-            <strong>{localAlertsCount}</strong>
+            <div className="client-alert-heading-actions">
+              {localAlertsCount > 0 ? (
+                <Button
+                  className="client-alert-clear-button"
+                  size="sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={dismissVisibleAlerts}>
+                  Убрать показанные
+                </Button>
+              ) : null}
+              <IconButton
+                icon="x"
+                label="Закрыть уведомления"
+                size="sm"
+                type="button"
+                variant="ghost"
+                onClick={onToggleOpen}
+              />
+            </div>
           </div>
 
           {localTotalAlertsCount > 0 || quietHoursActive ? (
             <div
               className={`client-alert-summary-bar${quietHoursActive ? " quiet-hours" : ""}`}>
               <div>
-                <strong>{quietHoursActive ? "Тихий режим" : "Сегодня"}</strong>
+                <strong>{quietHoursActive ? "Тихий режим" : "Сводка дня"}</strong>
                 <span>
                   {quietHoursActive
                     ? "Показываются только срочные уведомления"

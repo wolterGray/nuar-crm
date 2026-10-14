@@ -6,6 +6,236 @@
   box-shadow: var(--card-shadow);
 }
 
+.client-alert-dismiss-button {
+  display: none;
+}
+
+/* Desktop notification inbox */
+@media (min-width: 769px) {
+  .client-alert-backdrop {
+    background: rgba(0, 0, 0, 0.24);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .client-alert-popover-portal {
+    gap: 0;
+    width: min(440px, calc(100vw - 32px)) !important;
+    padding: 0;
+    border-radius: 10px;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+  }
+
+  .client-alert-heading {
+    flex: 0 0 auto;
+    min-height: 64px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+
+  .client-alert-heading h2 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .client-alert-heading p {
+    margin: 4px 0 0;
+    font-size: 11px;
+  }
+
+  .client-alert-heading-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .client-alert-clear-button {
+    min-height: 30px;
+    padding: 0 8px;
+    color: var(--color-text-muted);
+    font-size: 11px;
+  }
+
+  .client-alert-popover-portal .client-alert-summary-bar {
+    gap: 10px;
+    margin: 0;
+    padding: 12px 16px;
+    border: 0;
+    border-bottom: 1px solid var(--color-border-soft);
+    border-radius: 0;
+    background: color-mix(in srgb, var(--color-field) 72%, transparent);
+  }
+
+  .client-alert-summary-bar > div:first-child {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .client-alert-summary-bar > div:first-child strong,
+  .client-alert-summary-bar > div:first-child span {
+    margin: 0;
+  }
+
+  .client-alert-filter-chips {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .client-alert-filter-chips button {
+    justify-content: space-between;
+    min-width: 0;
+    min-height: 32px;
+    padding: 0 9px;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+
+  .client-alert-filter-count {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .client-alert-popover-portal .client-alert-list {
+    display: block;
+    padding: 8px 10px 12px;
+    overflow-y: auto;
+  }
+
+  .client-alert-group {
+    gap: 4px;
+  }
+
+  .client-alert-group + .client-alert-group {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border-soft);
+  }
+
+  .client-alert-group-heading {
+    min-height: 28px;
+    padding: 4px 4px;
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+
+  .client-alert-group-heading b {
+    display: inline-grid;
+    min-width: 18px;
+    height: 18px;
+    place-items: center;
+    margin-left: auto;
+    border-radius: 999px;
+    background: var(--color-field);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .client-alert-group-heading svg {
+    display: none;
+  }
+
+  .client-alert-swipe-shell {
+    border-radius: 7px;
+  }
+
+  .client-alert-row {
+    padding: 10px 38px 10px 11px;
+    border-radius: 7px;
+    background: var(--color-card);
+    box-shadow: none;
+  }
+
+  .client-alert-row:hover {
+    border-color: var(--color-border);
+    background: var(--color-field-hover);
+  }
+
+  .client-alert-row-unified.has-corner-badge,
+  .client-alert-row-unified.type-package,
+  .client-alert-row-unified.type-package.has-corner-badge {
+    padding: 10px 38px 10px 11px;
+  }
+
+  .client-alert-row-unified.has-corner-badge .client-alert-row-copy,
+  .client-alert-row-unified.type-package .client-alert-row-copy {
+    padding-right: 78px;
+  }
+
+  .client-alert-corner-badge,
+  .client-alert-row-unified.type-package .client-alert-corner-badge {
+    top: 10px;
+    right: 38px;
+    max-width: 78px;
+  }
+
+  .client-alert-dismiss-button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 4;
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+    padding: 0;
+    color: var(--color-text-faint);
+    opacity: 0;
+    display: inline-flex;
+  }
+
+  .client-alert-row:hover .client-alert-dismiss-button,
+  .client-alert-dismiss-button:focus-visible {
+    opacity: 1;
+  }
+
+  .client-alert-row-copy strong {
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .client-alert-row-copy > span:not(.client-alert-meta-badge) {
+    font-size: 11px;
+  }
+
+  .client-alert-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .client-alert-actions button,
+  .client-alert-row-unified.type-package .client-alert-actions button,
+  .client-alert-row-unified.aggregate-packages .client-alert-actions button {
+    width: auto;
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+
+  .client-alert-row-unified.type-package .client-alert-actions,
+  .client-alert-row-unified.aggregate-packages .client-alert-actions {
+    display: flex;
+  }
+
+  .client-alert-row-unified.type-package .client-alert-actions .client-alert-action-button:nth-child(3):last-child {
+    flex-basis: auto;
+  }
+
+  .client-alert-empty {
+    margin: 0;
+    padding: 36px 16px;
+    text-align: center;
+  }
+}
+
 /* ---- CRM design refresh: shared page rhythm ---- */
 
 .crm-shell :is(

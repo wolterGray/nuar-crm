@@ -549,6 +549,28 @@ export const buildAlertCenter = ({
 };
 
 export const filterAlertsByMode = (alerts, mode = "all") => {
+  if (mode === "today") {
+    const today = getTodayInput();
+    const isTodayAlert = (alert) => {
+      if (alert.type === "aggregate") {
+        return alert.children?.some(isTodayAlert);
+      }
+
+      const alertDate =
+        alert.meta?.entry?.date ||
+        alert.meta?.task?.dueDate ||
+        alert.meta?.notification?.createdAt ||
+        alert.createdAt;
+
+      if (["calendar", "forecast"].includes(alert.type)) return true;
+      if (!alertDate) return false;
+
+      return normalizeCalendarEntryDate(alertDate) === today;
+    };
+
+    return alerts.filter(isTodayAlert);
+  }
+
   if (mode === "urgent") {
     return alerts.filter(
       (alert) => alert.priority === "critical" || alert.priority === "action",

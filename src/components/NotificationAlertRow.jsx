@@ -1,7 +1,7 @@
 import {animate, motion, useMotionValue} from "framer-motion";
 import {useState} from "react";
 import {useSwipeable} from "react-swipeable";
-import {Button} from "./ui/index.js";
+import {Button, IconButton} from "./ui/index.js";
 
 const SWIPE_CONFIRM_DELTA = 76;
 const SWIPE_HINT_LIMIT = 92;
@@ -131,6 +131,7 @@ const getActionIcon = (action) => {
 export default function NotificationAlertRow({
   alert,
   onAction,
+  onDismissPermanent,
   onSwipeAction,
   onSnoozeReview,
   onSnoozeToday,
@@ -306,6 +307,19 @@ export default function NotificationAlertRow({
             {cornerBadge.label}
           </span>
         ) : null}
+        <IconButton
+          className="client-alert-dismiss-button"
+          icon="x"
+          label="Скрыть уведомление"
+          size="sm"
+          type="button"
+          variant="ghost"
+          onClick={(event) => {
+            event.stopPropagation();
+            onDismissPermanent?.(alert);
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+        />
         <div className="client-alert-row-main">
           <div className="client-alert-row-copy">
             {metaBadges.length ? (
