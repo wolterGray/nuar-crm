@@ -129,6 +129,10 @@ function TaskForm({employees = [], task, onSubmit}) {
             <Textarea name="note" defaultValue={task?.note ?? task?.description ?? ""} rows="3" />
           </Field>
 
+          <Field label="Пошаговая инструкция">
+            <Textarea name="instructions" defaultValue={payload.instructions ?? ""} rows="4" />
+          </Field>
+
           <Field label="Направление работы">
             <Select name="areaId" defaultValue={payload.areaId ?? "general"}>
               <option value="general">Другие задачи</option>

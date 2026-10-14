@@ -1410,6 +1410,7 @@ function App() {
     setEditingTask,
     setTaskModalOpen,
     setTasks,
+    tasks,
   });
 
   const {

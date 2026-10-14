@@ -43,9 +43,11 @@ const getTaskStorageId = (task) => task?.baseId ?? task?.id;
 
 const ACQUISITION_TASK_TEMPLATES = [
   {
+    aliases: ["Контроль рекламы Meta"],
     key: "acquisition-meta-control",
     title: "Контроль рекламы Meta",
     note: "Проверьте рекламные кампании и сопоставьте обращения с реальными записями.",
+    instructions: "Откройте Ads Manager, выберите вчерашний день, проверьте активные кампании и внесите фактические показатели. Сопоставьте обращения с записями в CRM, затем сформулируйте короткий вывод.",
     checklist: ["Проверить активные кампании", "Проверить рекламные расходы", "Посмотреть новые обращения", "Оценить стоимость обращения", "Сопоставить обращения с записями", "Сохранить показатели"],
     resultFields: [
       {id: "adSpend", label: "Расходы на рекламу", required: true, type: "number", unit: "zł"},
@@ -54,23 +56,41 @@ const ACQUISITION_TASK_TEMPLATES = [
     ],
   },
   {
+    aliases: ["Контроль каналов привлечения", "Проверка Booksy и Google"],
     key: "acquisition-channel-control",
-    title: "Контроль каналов привлечения",
+    title: "Проверка Booksy и Google",
     note: "Проверьте доступность основных каналов записи и свободные окна на три дня вперёд.",
+    instructions: "Проверьте, что профили открываются, услуги и цены актуальны, кнопки записи работают, а клиент видит реальные свободные часы. Все обнаруженные проблемы запишите в результат.",
     checklist: ["Проверить Booksy", "Проверить Google Business Profile", "Проверить доступность онлайн-записи", "Проверить свободные окна мастеров на ближайшие три дня", "Зафиксировать обнаруженные проблемы"],
     resultFields: [{id: "issues", label: "Обнаруженные проблемы", type: "textarea"}],
   },
   {
+    aliases: ["Поиск новых клиентов и партнёров", "Поиск новых каналов привлечения"],
     key: "acquisition-partners",
-    title: "Поиск новых клиентов и партнёров",
-    note: "Пн: конкуренты. Вт: 5 партнёров. Ср: предложения. Чт: новые площадки. Пт: ответы и следующие действия.",
-    checklist: ["Выполнить действие дня", "Зафиксировать сделанное", "Определить следующее действие"],
+    title: "Поиск новых каналов привлечения",
+    note: "Системный поиск партнёров, площадок и новых способов привлечения клиентов.",
+    instructions: "Пн: изучите предложения конкурентов. Вт: найдите потенциальных партнёров. Ср: отправьте предложения. Чт: изучите новые площадки. Пт: проверьте ответы и назначьте следующие действия.",
+    checklist: ["Выполнить действие текущего дня", "Сохранить названия или ссылки", "Зафиксировать отправленные предложения", "Проверить ответы", "Определить следующее действие"],
     resultFields: [
-      {id: "workDone", label: "Что сделано", required: true, type: "textarea"},
-      {id: "contacts", label: "Найдено контактов", type: "number"},
+      {id: "contacts", label: "Найдено партнёров", type: "number"},
       {id: "offers", label: "Отправлено предложений", type: "number"},
       {id: "replies", label: "Получено ответов", type: "number"},
+      {id: "partners", label: "Названия или ссылки на партнёров", required: true, type: "textarea"},
       {id: "nextAction", label: "Следующее действие", type: "text"},
+    ],
+  },
+  {
+    aliases: ["Учёт результатов привлечения", "Учет результатов привлечения"],
+    key: "acquisition-results-accounting",
+    title: "Учёт результатов привлечения",
+    note: "Сведите показатели каналов привлечения и зафиксируйте итог дня.",
+    instructions: "Соберите фактические обращения и записи из доступных каналов. Не оценивайте приблизительно: если показатель неизвестен, оставьте поле пустым и укажите причину в комментарии.",
+    checklist: ["Собрать обращения по каналам", "Сверить обращения с созданными записями", "Проверить источник каждой записи", "Зафиксировать итоговые показатели", "Записать вывод и следующее действие"],
+    resultFields: [
+      {id: "totalLeads", label: "Всего обращений", required: true, type: "number"},
+      {id: "totalBookings", label: "Всего записей", required: true, type: "number"},
+      {id: "topSource", label: "Лучший канал", type: "text"},
+      {id: "issues", label: "Проблемы и выводы", type: "textarea"},
     ],
   },
 ];
@@ -90,6 +110,7 @@ const buildAcquisitionTask = (template, startDate) => ({
     checklist: template.checklist.map((text, index) => ({done: false, id: `${template.key}-${index + 1}`, text})),
     dueDate: startDate,
     priorityId: "medium",
+    instructions: template.instructions,
     repeat: {enabled: true, frequency: "weekdays", startDate, weekdays: [1, 2, 3, 4, 5]},
     resultFields: template.resultFields,
     taskKind: "daily",
@@ -105,6 +126,7 @@ export function useTaskHandlers({
   setEditingTask,
   setTaskModalOpen,
   setTasks,
+  tasks = [],
 }) {
   const openCreateTask = useCallback((typeOrDefaults = "task") => {
     const defaults =
@@ -123,6 +145,7 @@ export function useTaskHandlers({
         : {
             dueDate,
             payload: {
+              areaId: defaults.areaId ?? "general",
               dueDate,
               repeat: {
                 enabled: taskKind === "daily",
@@ -214,6 +237,7 @@ export function useTaskHandlers({
           dueTime,
           estimateMinutes,
           isMain: form.get("isMain") === "on",
+          instructions: String(form.get("instructions") ?? getTaskPayload(editingTask).instructions ?? "").trim(),
           mainDate: dueDate,
           outcome: String(form.get("outcome") ?? "").trim(),
           priorityId,
@@ -423,16 +447,80 @@ export function useTaskHandlers({
 
   const initializeAcquisitionPlan = useCallback(async () => {
     const startDate = getWarsawTodayInput();
-    const responses = await Promise.allSettled(ACQUISITION_TASK_TEMPLATES.map((template) => createTask(buildAcquisitionTask(template, startDate))));
-    const created = responses.flatMap((response, index) => response.status === "fulfilled" ? [response.value?.data ?? buildAcquisitionTask(ACQUISITION_TASK_TEMPLATES[index], startDate)] : []);
-    if (created.length) {
-      setTasks((current) => [...created, ...current]);
-      pushNotification({title: "Направление добавлено", message: `Создано обязанностей: ${created.length} из ${ACQUISITION_TASK_TEMPLATES.length}`});
-    } else {
-      const error = responses.find((response) => response.status === "rejected")?.reason;
-      pushNotification({title: "План не создан", message: error?.message || "Backend не принял задачи", persist: false});
+    const normalizeTitle = (value) => String(value ?? "").trim().toLocaleLowerCase("ru");
+    const legacyDirection = tasks.find((task) => {
+      const payload = getTaskPayload(task);
+      return !payload.templateKey && normalizeTitle(task.title) === "01. привлечение новых клиентов";
+    });
+    const operations = [];
+
+    if (legacyDirection && !getTaskPayload(legacyDirection).hiddenFromPlan) {
+      operations.push(updateTask(legacyDirection.id, {
+        ...legacyDirection,
+        payload: {
+          ...getTaskPayload(legacyDirection),
+          areaId: "acquisition",
+          hiddenFromPlan: true,
+          legacyDirectionRecord: true,
+          migratedAt: new Date().toISOString(),
+        },
+      }));
     }
-  }, [pushNotification, setTasks]);
+
+    ACQUISITION_TASK_TEMPLATES.forEach((template) => {
+      const existing = tasks.find((task) => {
+        const payload = getTaskPayload(task);
+        return payload.templateKey === template.key || template.aliases.some((title) => normalizeTitle(title) === normalizeTitle(task.title));
+      });
+      if (!existing) {
+        operations.push(createTask(buildAcquisitionTask(template, startDate)));
+        return;
+      }
+
+      const payload = getTaskPayload(existing);
+      const checklist = Array.isArray(payload.checklist) ? payload.checklist : [];
+      const existingTexts = new Set(checklist.map((item) => normalizeTitle(item.text)));
+      const missingChecklist = template.checklist
+        .filter((text) => !existingTexts.has(normalizeTitle(text)))
+        .map((text, index) => ({done: false, id: `${template.key}-added-${index + 1}`, text}));
+      const resultFields = Array.isArray(payload.resultFields) ? payload.resultFields : [];
+      const resultIds = new Set(resultFields.map((field) => field.id));
+      const missingResultFields = template.resultFields.filter((field) => !resultIds.has(field.id));
+      const generatedTitle = template.aliases.some((title) => normalizeTitle(title) === normalizeTitle(existing.title));
+
+      operations.push(updateTask(existing.id, {
+        ...existing,
+        ...(generatedTitle ? {title: template.title} : {}),
+        payload: {
+          ...payload,
+          areaId: "acquisition",
+          checklist: [...checklist, ...missingChecklist],
+          instructions: payload.instructions || template.instructions,
+          repeat: payload.repeat?.enabled ? payload.repeat : buildAcquisitionTask(template, startDate).payload.repeat,
+          resultFields: [...resultFields, ...missingResultFields],
+          taskKind: "daily",
+          templateKey: template.key,
+        },
+      }));
+    });
+
+    const responses = await Promise.allSettled(operations);
+    const saved = responses.flatMap((response) => response.status === "fulfilled" && response.value?.data ? [response.value.data] : []);
+    if (saved.length) {
+      const savedById = new Map(saved.map((task) => [String(task.id), task]));
+      setTasks((current) => {
+        const updated = current.map((task) => savedById.get(String(task.id)) ?? task);
+        const knownIds = new Set(updated.map((task) => String(task.id)));
+        return [...saved.filter((task) => !knownIds.has(String(task.id))), ...updated];
+      });
+      pushNotification({title: "Направление подготовлено", message: "Задачи проверены, недостающие добавлены, история сохранена"});
+    } else if (operations.length) {
+      const error = responses.find((response) => response.status === "rejected")?.reason;
+      pushNotification({title: "План не обновлён", message: error?.message || "Backend не принял задачи", persist: false});
+    } else {
+      pushNotification({title: "Всё готово", message: "Все четыре задачи уже настроены"});
+    }
+  }, [pushNotification, setTasks, tasks]);
 
   const reorderTasks = useCallback(
     (draggedTaskId, targetTaskId) => {

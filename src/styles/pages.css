@@ -7429,6 +7429,20 @@ button:focus-visible {
   font-weight: 600;
 }
 
+.operations-detail-instructions {
+  padding: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--operations-accent) 60%, transparent);
+  background: color-mix(in srgb, var(--operations-accent) 5%, transparent);
+}
+
+.operations-detail-instructions p {
+  margin: 0;
+  color: var(--operations-text);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .operations-detail-section textarea,
 .operations-result-grid input,
 .operations-result-grid textarea {
