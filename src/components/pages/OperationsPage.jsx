@@ -104,6 +104,8 @@ const formatPlannerDate = (date) => {
   }).format(new Date(`${date}T12:00:00`));
 };
 
+const formatWeekRange = (start, end) => `${formatDateShort(start)} — ${formatDateShort(end)}`;
+
 const getMonthRange = (date) => {
   const [year, month] = String(date).split("-").map(Number);
   const endDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -485,6 +487,7 @@ function OperationsPage({
   const [filters, setFilters] = useState(() => readStoredJson(FILTER_STORAGE_KEY, DEFAULT_FILTERS));
   const [openItemMenuId, setOpenItemMenuId] = useState(null);
   const [viewingTask, setViewingTask] = useState(null);
+  const [expandedWeekDays, setExpandedWeekDays] = useState(() => new Set([getWarsawTodayInput()]));
   const acquisitionSyncStarted = useRef(false);
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
@@ -563,6 +566,7 @@ function OperationsPage({
     () => sortPlanTasks(applyOperationsFilters(weekTasksRaw, filters)),
     [filters, weekTasksRaw],
   );
+  const weekStats = useMemo(() => getDayStats(weekTasksRaw), [weekTasksRaw]);
   const allTasks = useMemo(
     () => sortPlanTasks(applyOperationsFilters(allTasksRaw, filters)),
     [allTasksRaw, filters],
@@ -598,7 +602,7 @@ function OperationsPage({
   const monthRange = getMonthRange(selectedDate);
   const reportWeekTasks = expandTasksForRange(workTasks, weekStart, weekEnd);
   const reportMonthTasks = expandTasksForRange(workTasks, monthRange.start, monthRange.end);
-  const weekCompleted = completedOccurrences.filter(({date}) => date >= weekStart && date <= weekEnd).length;
+  const weekCompleted = weekStats.completed;
   const monthCompleted = completedOccurrences.filter(({date}) => date.startsWith(monthPrefix)).length;
   const monthResults = completedOccurrences
     .filter(({date}) => date.startsWith(monthPrefix))
@@ -608,7 +612,7 @@ function OperationsPage({
       bookings: totals.bookings + (Number(record.results?.bookings) || 0) + (Number(record.results?.totalBookings) || 0),
       contacts: totals.contacts + (Number(record.results?.contacts) || 0),
     }), {adSpend: 0, bookings: 0, contacts: 0, leads: 0});
-  const weekProgress = reportWeekTasks.length ? Math.min(100, Math.round((weekCompleted / reportWeekTasks.length) * 100)) : 0;
+  const weekProgress = weekStats.progress;
   const monthProgress = reportMonthTasks.length ? Math.min(100, Math.round((monthCompleted / reportMonthTasks.length) * 100)) : 0;
 
   const updateFilter = (key, value) => {
@@ -616,6 +620,22 @@ function OperationsPage({
   };
 
   const resetFilters = () => setFilters(DEFAULT_FILTERS);
+
+  const changeWeek = (offset) => {
+    const nextDate = offset === 0 ? today : addDays(weekStart, offset * 7);
+    setSelectedDate(nextDate);
+    setExpandedWeekDays(new Set(offset === 0 ? [today] : []));
+  };
+
+  const toggleWeekDay = (date) => {
+    setSelectedDate(date);
+    setExpandedWeekDays((current) => {
+      const next = new Set(current);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
+      return next;
+    });
+  };
 
   const submitQuickNote = (event) => {
     event.preventDefault();
@@ -678,15 +698,23 @@ function OperationsPage({
             <div className="operations-workday-label">Мой рабочий день</div>
             <div className="operations-planner-head">
               <div>
-                <span>{selectedDate === today ? "Сегодня" : "Выбранный день"}</span>
-                <h2>{formatPlannerDate(selectedDate)}</h2>
+                <span>{planMode === "week" ? "Календарная неделя" : selectedDate === today ? "Сегодня" : "Выбранный день"}</span>
+                <h2>{planMode === "week" ? formatWeekRange(weekStart, weekEnd) : formatPlannerDate(selectedDate)}</h2>
               </div>
-              <div className="operations-date-controls">
-                <IconButton icon="chevronLeft" label="Предыдущий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, planMode === "week" ? -7 : -1))} />
-                <Input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} />
-                <IconButton icon="chevronRight" label="Следующий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, planMode === "week" ? 7 : 1))} />
-                <Button size="sm" variant="secondary" onClick={() => setSelectedDate(today)}>Сегодня</Button>
-              </div>
+              {planMode === "week" ? (
+                <div className="operations-week-controls">
+                  <IconButton icon="chevronLeft" label="Предыдущая неделя" size="sm" variant="secondary" onClick={() => changeWeek(-1)} />
+                  <Button size="sm" variant="secondary" onClick={() => changeWeek(0)}>Текущая неделя</Button>
+                  <IconButton icon="chevronRight" label="Следующая неделя" size="sm" variant="secondary" onClick={() => changeWeek(1)} />
+                </div>
+              ) : (
+                <div className="operations-date-controls">
+                  <IconButton icon="chevronLeft" label="Предыдущий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, -1))} />
+                  <Input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} />
+                  <IconButton icon="chevronRight" label="Следующий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, 1))} />
+                  <Button size="sm" variant="secondary" onClick={() => setSelectedDate(today)}>Сегодня</Button>
+                </div>
+              )}
             </div>
 
             <div className="operations-workday-summary">
@@ -699,7 +727,7 @@ function OperationsPage({
 
             <div className="operations-plan-mode">
               <SegmentButton active={planMode === "today"} onClick={() => setPlanMode("today")}>Сегодня</SegmentButton>
-              <SegmentButton active={planMode === "week"} onClick={() => setPlanMode("week")}>Предстоящие</SegmentButton>
+              <SegmentButton active={planMode === "week"} onClick={() => { setPlanMode("week"); changeWeek(0); }}>Неделя</SegmentButton>
               <SegmentButton active={planMode === "all"} onClick={() => setPlanMode("all")}>Все</SegmentButton>
             </div>
 
@@ -759,19 +787,33 @@ function OperationsPage({
               </div>
             ) : planMode === "week" ? (
               <div className="operations-week-list">
+                <section className="operations-week-progress" aria-label="Прогресс недели">
+                  <div><span>Прогресс недели</span><strong>{weekStats.completed} из {weekStats.planned}</strong></div>
+                  <b>{weekProgress}%</b>
+                  <span><i style={{width: `${weekProgress}%`}} /></span>
+                </section>
                 {weekDays.map((day) => {
                   const tasksForDay = weekTasks.filter((task) => getTaskDueDate(task) === day.input);
+                  const rawTasksForDay = weekTasksRaw.filter((task) => getTaskDueDate(task) === day.input);
+                  const stats = getDayStats(rawTasksForDay);
+                  const isExpanded = expandedWeekDays.has(day.input);
                   return (
-                    <section className="operations-week-day" key={day.input}>
-                      <header>
-                        <div><strong>{day.label}</strong><span>{formatDateShort(day.input)}</span></div>
-                        <Button size="sm" variant="secondary" onClick={() => { setSelectedDate(day.input); onAddTask?.({dueDate: day.input}); }}>Добавить</Button>
-                      </header>
-                      {tasksForDay.length ? (
-                        <div className="operations-task-list">
-                          {tasksForDay.map((task) => <TaskCard key={task.id} task={task} {...cardProps} />)}
+                    <section className={`operations-week-day ${isExpanded ? "is-expanded" : ""} ${day.input === today ? "is-today" : ""}`} key={day.input}>
+                      <button aria-expanded={isExpanded} className="operations-week-day-toggle" type="button" onClick={() => toggleWeekDay(day.input)}>
+                        <div><strong>{day.label}</strong><span>{formatDateShort(day.input)}{day.input === today ? " · Сегодня" : ""}</span></div>
+                        <span className="operations-week-day-count"><b>{stats.completed}</b> / {stats.planned}</span>
+                        <AppIcon name={isExpanded ? "chevronUp" : "chevronDown"} size="sm" />
+                      </button>
+                      {isExpanded ? (
+                        <div className={`operations-week-day-content ${tasksForDay.length ? "" : "is-empty"}`}>
+                          {tasksForDay.length ? (
+                            <div className="operations-task-list">
+                              {tasksForDay.map((task) => <TaskCard key={task.id} task={task} {...cardProps} />)}
+                            </div>
+                          ) : <p className="operations-week-empty">Задач на этот день нет.</p>}
+                          <Button leftIcon="plus" size="sm" variant="ghost" onClick={() => onAddTask?.({dueDate: day.input})}>Добавить задачу</Button>
                         </div>
-                      ) : <p className="operations-empty">Нет задач.</p>}
+                      ) : null}
                     </section>
                   );
                 })}

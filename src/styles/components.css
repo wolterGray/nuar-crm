@@ -10775,6 +10775,147 @@
   font-size: 11px;
 }
 
+.operations-page .operations-week-controls {
+  display: grid;
+  grid-template-columns: 34px auto 34px;
+  gap: 6px;
+  align-items: center;
+}
+
+.operations-page .operations-week-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px 16px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  background: var(--operations-panel-soft);
+}
+
+.operations-page .operations-week-progress div {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.operations-page .operations-week-progress div span {
+  color: var(--operations-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.operations-page .operations-week-progress strong,
+.operations-page .operations-week-progress > b {
+  color: var(--operations-text);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.operations-page .operations-week-progress > span {
+  overflow: hidden;
+  height: 5px;
+  grid-column: 1 / -1;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--operations-text) 8%, transparent);
+}
+
+.operations-page .operations-week-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--operations-accent);
+  transition: width 0.18s ease;
+}
+
+.operations-page .operations-week-day {
+  display: block;
+  padding: 0;
+}
+
+.operations-page .operations-week-day-toggle {
+  display: grid;
+  width: 100%;
+  min-height: 54px;
+  grid-template-columns: minmax(0, 1fr) auto 24px;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.operations-page .operations-week-day-toggle:hover,
+.operations-page .operations-week-day-toggle:focus-visible {
+  background: color-mix(in srgb, var(--operations-panel-soft) 88%, var(--operations-text) 4%);
+}
+
+.operations-page .operations-week-day-toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--operations-accent) 58%, transparent);
+  outline-offset: -2px;
+}
+
+.operations-page .operations-week-day-toggle > div {
+  display: flex;
+  min-width: 0;
+  gap: 9px;
+  align-items: baseline;
+}
+
+.operations-page .operations-week-day-toggle strong {
+  min-width: 92px;
+  font-size: 13px;
+}
+
+.operations-page .operations-week-day-toggle > svg {
+  color: var(--operations-muted);
+}
+
+.operations-page .operations-week-day-count {
+  min-width: 58px;
+  color: var(--operations-muted) !important;
+  font-size: 12px !important;
+  font-weight: 650;
+  text-align: right;
+}
+
+.operations-page .operations-week-day-count b {
+  color: var(--operations-text);
+}
+
+.operations-page .operations-week-day.is-today .operations-week-day-toggle strong {
+  color: color-mix(in srgb, var(--operations-accent) 72%, var(--operations-text));
+}
+
+.operations-page .operations-week-day-content {
+  display: grid;
+  gap: 8px;
+  padding: 2px 10px 12px 20px;
+}
+
+.operations-page .operations-week-day-content > button {
+  width: fit-content;
+}
+
+.operations-page .operations-week-day-content.is-empty {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding-top: 0;
+  padding-bottom: 8px;
+}
+
+.operations-page .operations-week-empty {
+  margin: 0;
+  padding: 7px 0;
+  color: var(--operations-faint);
+  font-size: 12px;
+}
+
 .operations-page .operations-notes-panel,
 .operations-page .operations-panel-supplies {
   border-radius: var(--operations-radius);
@@ -11039,6 +11180,36 @@
 
   .operations-page .operations-date-controls button:last-child {
     grid-column: 1 / -1;
+  }
+
+  .operations-page .operations-week-controls {
+    width: 100%;
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
+  }
+
+  .operations-page .operations-week-day-toggle {
+    min-height: 58px;
+    gap: 8px;
+    padding-right: 6px;
+    padding-left: 6px;
+  }
+
+  .operations-page .operations-week-day-toggle > div {
+    display: grid;
+    gap: 2px;
+  }
+
+  .operations-page .operations-week-day-toggle strong {
+    min-width: 0;
+  }
+
+  .operations-page .operations-week-day-content {
+    padding-right: 4px;
+    padding-left: 6px;
+  }
+
+  .operations-page .operations-week-day-content.is-empty {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .operations-page .operations-day-metrics {
