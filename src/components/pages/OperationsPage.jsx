@@ -32,16 +32,14 @@ import {
   getTaskAreaId,
   getTaskAreaLabel,
   getTaskAreaShortLabel,
+  getTaskChecklist,
   getTaskColorId,
   getTaskDueDate,
   getTaskDueTime,
   getTaskEstimateMinutes,
-  getTaskKindLabel,
   getTaskPayload,
   getTaskPriorityId,
-  getTaskPriorityLabel,
   getTaskResultFields,
-  getTaskStatusLabel,
   getWarsawTime,
   getWarsawTodayInput,
   getWeekDays,
@@ -129,13 +127,6 @@ const getMonthRange = (date) => {
   return {start: `${year}-${String(month).padStart(2, "0")}-01`, end: `${year}-${String(month).padStart(2, "0")}-${endDay}`};
 };
 
-const formatTaskDateTime = (task) => {
-  const date = getTaskDueDate(task);
-  const time = getTaskDueTime(task);
-  if (!date && !time) return "Без даты";
-  return [date || "Без даты", time].filter(Boolean).join(" · ");
-};
-
 const formatRepeatSchedule = (task) => {
   const repeat = getTaskPayload(task).repeat ?? {};
   if (!repeat.enabled) return "Без повторения";
@@ -159,8 +150,88 @@ function SegmentButton({active, children, onClick}) {
   );
 }
 
-function TaskCard({
-  compact = false,
+const TECHNICAL_CHECKLIST_LABELS = new Set(["сохранить показатели"]);
+
+const formatTaskTimeRange = (task) => {
+  const dueTime = getTaskDueTime(task);
+  const estimateMinutes = getTaskEstimateMinutes(task);
+  if (!dueTime && !estimateMinutes) return "Без времени";
+  if (!dueTime) return formatMinutes(estimateMinutes);
+  if (!estimateMinutes) return dueTime;
+
+  const [hStr, mStr] = dueTime.split(":");
+  const hours = parseInt(hStr, 10);
+  const minutes = parseInt(mStr, 10);
+  if (isNaN(hours) || isNaN(minutes)) return dueTime;
+
+  const endTotal = hours * 60 + minutes + estimateMinutes;
+  const endH = Math.floor((endTotal / 60) % 24);
+  const endM = endTotal % 60;
+  const endFormatted = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+  return `${dueTime} — ${endFormatted}`;
+};
+
+const formatDayFullTitle = (date) => {
+  if (!date) return "Без даты";
+  const weekdayIndex = (new Date(`${date}T12:00:00.000Z`).getUTCDay() || 7) - 1;
+  const weekdayName = WEEKDAY_FULL_LABELS[weekdayIndex] || "";
+  const dateFormatted = formatDayMonth(date);
+  return `${weekdayName}, ${dateFormatted}`;
+};
+
+function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
+  const {isOver, setNodeRef} = useDroppable({
+    id: `mini-day-${day.input}`,
+    data: {date: day.input},
+  });
+
+  const completedCount = tasks.filter(isTaskCompleted).length;
+  const totalCount = tasks.length;
+  const minutes = tasks.reduce((sum, task) => sum + (Number(getTaskEstimateMinutes(task)) || 0), 0);
+  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const weekdayIndex = (new Date(`${day.input}T12:00:00.000Z`).getUTCDay() || 7) - 1;
+  const weekdayName = WEEKDAY_FULL_LABELS[weekdayIndex] || day.label;
+  const dayMonthText = formatDayMonthShort(day.input);
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`operations-mini-day-dropzone ${isOver ? "is-over" : ""}`}
+    >
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isSelected}
+        className={`operations-mini-day-tab ${isSelected ? "is-selected" : ""} ${isCurrentDay ? "is-today" : ""}`}
+        onClick={() => onClick(day.input)}
+      >
+        <div className="operations-mini-day-head">
+          <span className="operations-mini-day-name">{weekdayName}</span>
+          {isCurrentDay ? <span className="operations-mini-today-badge" title="Сегодня">Сегодня</span> : null}
+        </div>
+        <div className="operations-mini-day-date">{dayMonthText}</div>
+        <div className="operations-mini-day-stats">
+          <span className="operations-mini-day-count">
+            {totalCount ? `${completedCount}/${totalCount} ${totalCount === 1 ? "задача" : totalCount < 5 ? "задачи" : "задач"}` : "Нет задач"}
+          </span>
+          {minutes ? (
+            <span className="operations-mini-day-time">
+              • {formatMinutes(minutes)}
+            </span>
+          ) : null}
+        </div>
+        <div className="operations-mini-day-progress-track">
+          <div
+            className="operations-mini-day-progress-bar"
+            style={{width: `${progressPercent}%`}}
+          />
+        </div>
+      </button>
+    </div>
+  );
+}
+
+function HorizontalDayTaskCard({
   dragHandleProps,
   nowTime,
   onComplete,
@@ -168,6 +239,7 @@ function TaskCard({
   onEdit,
   onMain,
   onMove,
+  onToggleChecklist,
   onView,
   openMenuId,
   setOpenMenuId,
@@ -175,57 +247,128 @@ function TaskCard({
   today,
 }) {
   const taskDueDate = getTaskDueDate(task);
-  const status = getTaskStatusLabel(task, today, nowTime);
   const isDone = isTaskCompleted(task);
   const isPrimary = isTaskMainOnDate(task, taskDueDate);
   const isLate = isTaskOverdue(task, today, nowTime);
-  const listProgress = getChecklistProgress(task);
   const rawAssignee = getTaskAssigneeName(task);
   const priority = getTaskPriorityId(task);
   const colorId = getTaskColorId(task);
-  const statusTone = isDone ? "done" : isLate ? "overdue" : status === "В процессе" ? "progress" : "idle";
   const areaLabel = getTaskAreaShortLabel(task);
+  const areaId = getTaskAreaId(task);
   const isHighPriority = priority === "high";
   const dueTime = getTaskDueTime(task);
   const estimateMinutes = getTaskEstimateMinutes(task);
+  const timeRangeText = formatTaskTimeRange(task);
+
+  const taskPayload = getTaskPayload(task);
+  const rawChecklist = getTaskChecklist(task);
+  const visibleChecklist = rawChecklist.filter((entry) => !(
+    ACQUISITION_TEMPLATE_KEYS.includes(taskPayload.templateKey) &&
+    TECHNICAL_CHECKLIST_LABELS.has(String(entry.text ?? "").trim().toLocaleLowerCase("ru"))
+  ));
+  const doneChecklistCount = visibleChecklist.filter((item) => item.done).length;
+  const totalChecklistCount = visibleChecklist.length;
 
   return (
     <article
       className={[
-        "operations-work-card",
+        "operations-horizontal-task-card",
         `task-color-${colorId}`,
-        `status-${statusTone}`,
-        `priority-${priority}`,
+        `area-${areaId}`,
         isDone ? "is-completed" : "",
         isPrimary ? "is-main" : "",
         isLate ? "is-overdue" : "",
-      ].filter(Boolean).join(" ")}>
-      <div className="operations-task-card-header">
-        <div className="operations-task-header-tags">
-          {dueTime ? (
-            <span className="operations-task-time-tag">{dueTime}</span>
+        isHighPriority ? "is-priority-high" : "",
+      ].filter(Boolean).join(" ")}
+    >
+      <div className="operations-htask-left">
+        <div className="operations-htask-time-block">
+          <span className="operations-htask-time">{timeRangeText}</span>
+          {dueTime && estimateMinutes ? (
+            <span className="operations-htask-duration">({formatMinutes(estimateMinutes)})</span>
           ) : null}
-          {dueTime && areaLabel ? <span className="operations-task-tag-sep">•</span> : null}
-          <span className="operations-task-category-tag">{areaLabel}</span>
+        </div>
+        <div className="operations-htask-tags">
+          <span className="operations-htask-category-tag">{areaLabel}</span>
           {isPrimary ? (
-            <span className="operations-task-primary-star" title="Главная задача дня">★</span>
+            <span className="operations-htask-primary-tag" title="Главная задача дня">
+              ★ Главная
+            </span>
           ) : null}
           {rawAssignee ? (
-            <span className="operations-task-assignee-micro" title={`Исполнитель: ${rawAssignee}`}>
+            <span className="operations-htask-assignee-tag" title={`Исполнитель: ${rawAssignee}`}>
               @{rawAssignee}
             </span>
           ) : null}
         </div>
-        <div className="operations-task-card-actions">
+      </div>
+
+      <div className="operations-htask-center">
+        <div className="operations-htask-title-row">
+          {isHighPriority ? (
+            <span className="operations-priority-dot is-high" title="Срочный приоритет" />
+          ) : null}
+          <button
+            type="button"
+            className="operations-htask-title-btn"
+            onClick={() => onView(task)}
+          >
+            <h3 className="operations-htask-title">{task.title}</h3>
+          </button>
+        </div>
+
+        {task.note ? (
+          <p className="operations-htask-note">{task.note}</p>
+        ) : null}
+
+        {totalChecklistCount > 0 ? (
+          <div className="operations-htask-checklist-box">
+            <div className="operations-htask-checklist-head">
+              <span className="operations-htask-checklist-title">
+                Чек-лист ({doneChecklistCount}/{totalChecklistCount})
+              </span>
+              <div className="operations-htask-checklist-mini-progress">
+                <div
+                  className="operations-htask-checklist-mini-bar"
+                  style={{width: `${Math.round((doneChecklistCount / totalChecklistCount) * 100)}%`}}
+                />
+              </div>
+            </div>
+            <div className="operations-htask-checklist-items">
+              {visibleChecklist.map((item) => (
+                <label
+                  key={item.id}
+                  className={`operations-htask-check-item ${item.done ? "is-checked" : ""}`}
+                >
+                  <Checkbox
+                    checked={item.done}
+                    onChange={(event) => onToggleChecklist?.(task, item.id, event.target.checked)}
+                  />
+                  <span className="operations-htask-check-text">{item.text}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="operations-htask-right">
+        <div className="operations-htask-top-actions">
+          {isHighPriority ? (
+            <span className="operations-htask-priority-badge">Срочно</span>
+          ) : null}
+
           {dragHandleProps ? (
             <button
-              aria-label="Перетащить задачу"
+              aria-label="Перетащить на другой день"
               className="operations-task-drag-handle"
               type="button"
-              {...dragHandleProps}>
+              {...dragHandleProps}
+            >
               <AppIcon name="grip" size="xs" />
             </button>
           ) : null}
+
           <RowActionsMenu
             className="operations-row-actions"
             extraActions={[
@@ -246,7 +389,7 @@ function TaskCard({
                 onClick: () => onComplete(task),
               },
             ]}
-            itemId={`task-${task.id}`}
+            itemId={`htask-${task.id}`}
             openMenuId={openMenuId}
             setOpenMenuId={setOpenMenuId}
             onDelete={() => onDelete(task)}
@@ -254,51 +397,44 @@ function TaskCard({
             onView={() => onView(task)}
           />
         </div>
-      </div>
-      <button
-        className="operations-task-card-body-btn"
-        type="button"
-        onClick={() => onView(task)}>
-        <div className="operations-task-title-line">
-          {isHighPriority ? (
-            <span
-              className="operations-priority-dot is-high"
-              title="Срочный приоритет"
-            />
-          ) : null}
-          <strong className="operations-task-title-text">{task.title}</strong>
-        </div>
-        {task.note ? <p className="operations-task-note-text">{task.note}</p> : null}
-      </button>
-      <footer className="operations-task-card-footer">
-        <IconButton
-          className={`operations-task-check ${isDone ? "is-on" : ""}`}
-          icon={isDone ? "rotateCcw" : "check"}
-          label={isDone ? "Вернуть задачу" : "Завершить задачу"}
-          size="sm"
-          variant="ghost"
-          onClick={() => onComplete(task)}
-        />
-        <div className="operations-task-footer-meta" onClick={() => onView(task)}>
-          {listProgress.total ? (
-            <span className={`operations-meta-pill ${listProgress.done === listProgress.total ? "is-done" : ""}`}>
-              {listProgress.done}/{listProgress.total}
-            </span>
-          ) : null}
-          {listProgress.total && estimateMinutes ? <span className="operations-meta-sep">•</span> : null}
-          {estimateMinutes ? (
-            <span className="operations-meta-pill">
-              {formatMinutes(estimateMinutes)}
-            </span>
-          ) : null}
+
+        <div className="operations-htask-status-block">
           {isLate && !isDone ? (
-            <span className="operations-meta-pill is-overdue">
-              Просрочено
-            </span>
+            <span className="operations-htask-overdue-tag">Просрочено</span>
           ) : null}
+          <button
+            type="button"
+            className={`operations-htask-complete-btn ${isDone ? "is-done" : ""}`}
+            onClick={() => onComplete(task)}
+            title={isDone ? "Вернуть задачу" : "Завершить задачу"}
+          >
+            <AppIcon name={isDone ? "rotateCcw" : "check"} size="sm" />
+            <span>{isDone ? "Выполнено" : "Завершить"}</span>
+          </button>
         </div>
-      </footer>
+      </div>
     </article>
+  );
+}
+
+function DraggableHorizontalTaskCard({cardProps, task}) {
+  const {attributes, isDragging, listeners, setNodeRef, transform} = useDraggable({
+    id: `htask-${task.id}-${getTaskDueDate(task)}`,
+    data: {task},
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`operations-htask-draggable ${isDragging ? "is-dragging" : ""}`}
+      style={{transform: CSS.Translate.toString(transform)}}
+    >
+      <HorizontalDayTaskCard
+        dragHandleProps={{...attributes, ...listeners}}
+        task={task}
+        {...cardProps}
+      />
+    </div>
   );
 }
 
@@ -328,7 +464,7 @@ function TaskTemplateCard({onDelete, onEdit, onMoveArea, onSelect, onToggleArchi
         <span className="operations-template-card-meta">
           <em>{formatRepeatSchedule(task)}</em>
           {nextDate ? <em>Ближайшая: {formatDateShort(nextDate)}</em> : null}
-          <em>{checklistCount} действий</em>
+          {checklistCount} действий
           {resultCount ? <em>{resultCount} полей результата</em> : null}
         </span>
       </button>
@@ -347,93 +483,6 @@ function TaskTemplateCard({onDelete, onEdit, onMoveArea, onSelect, onToggleArchi
     </article>
   );
 }
-
-function KanbanTaskCard({cardProps, task}) {
-  const {attributes, isDragging, listeners, setNodeRef, transform} = useDraggable({
-    id: `kanban-${task.id}-${getTaskDueDate(task)}`,
-    data: {task},
-  });
-  return <div className={`operations-kanban-draggable ${isDragging ? "is-dragging" : ""}`} ref={setNodeRef} style={{transform: CSS.Translate.toString(transform)}}>
-    <TaskCard compact dragHandleProps={{...attributes, ...listeners}} task={task} {...cardProps} />
-  </div>;
-}
-
-function KanbanDaySection({allTasksCount, cardProps, date, label, onAddTask, onResetFilters, tasks, today}) {
-  const {isOver, setNodeRef} = useDroppable({id: `kanban-day-${date}`, data: {date}});
-  const completed = tasks.filter(isTaskCompleted).length;
-  const minutes = tasks.reduce((total, task) => total + (Number(getTaskEstimateMinutes(task)) || 0), 0);
-  const weekdayIndex = (new Date(`${date}T12:00:00.000Z`).getUTCDay() || 7) - 1;
-  const fullLabel = WEEKDAY_FULL_LABELS[weekdayIndex] || label;
-  const dayMonthText = formatDayMonthShort(date);
-  const isCurrentDay = date === today;
-
-  return (
-    <section
-      className={`operations-kanban-day ${isOver ? "is-over" : ""} ${isCurrentDay ? "is-today" : ""} ${tasks.length ? "" : "is-empty"}`}
-      data-kanban-date={date}
-      ref={setNodeRef}
-    >
-      <header className="operations-kanban-day-header">
-        <div className="operations-kanban-day-header-left">
-          <strong className="operations-kanban-day-name">{fullLabel}</strong>
-          <span className="operations-kanban-day-date">{dayMonthText}</span>
-          {isCurrentDay ? <span className="operations-today-dot" title="Сегодня" /> : null}
-        </div>
-        <div className="operations-kanban-day-header-right">
-          <span className="operations-kanban-day-stats-pill">
-            {completed}/{tasks.length}{minutes ? ` • ${formatMinutes(minutes)}` : ""}
-          </span>
-          <button
-            aria-label={`Добавить задачу на ${fullLabel}`}
-            className="operations-kanban-day-add-icon-btn"
-            title="Добавить задачу"
-            type="button"
-            onClick={() => onAddTask?.({dueDate: date})}
-          >
-            <AppIcon name="plus" size="xs" />
-          </button>
-        </div>
-      </header>
-      <div className="operations-kanban-column-body">
-        {tasks.map((task) => (
-          <KanbanTaskCard cardProps={cardProps} key={`${task.id}-${getTaskDueDate(task)}`} task={task} />
-        ))}
-        {!tasks.length ? (
-          <div className="operations-kanban-empty">
-            <span>{allTasksCount ? `Скрыто: ${allTasksCount}` : "Нет задач"}</span>
-            {!tasks.length && allTasksCount ? (
-              <button className="operations-kanban-reset" type="button" onClick={onResetFilters}>
-                Показать задачи
-              </button>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-    </section>
-  );
-}
-
-function KanbanDayColumn({allTasks, cardProps, dates, labels, onAddTask, onResetFilters, tasks, today}) {
-  return (
-    <section className={`operations-kanban-column ${dates.length > 1 ? "is-weekend" : ""}`}>
-      {dates.map((date, index) => (
-        <KanbanDaySection
-          allTasksCount={allTasks.filter((task) => getTaskDueDate(task) === date).length}
-          cardProps={cardProps}
-          date={date}
-          key={date}
-          label={labels[index]}
-          onAddTask={onAddTask}
-          onResetFilters={onResetFilters}
-          tasks={tasks.filter((task) => getTaskDueDate(task) === date)}
-          today={today}
-        />
-      ))}
-    </section>
-  );
-}
-
-const TECHNICAL_CHECKLIST_LABELS = new Set(["сохранить показатели"]);
 
 function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
   const taskDate = getTaskDueDate(item);
@@ -702,7 +751,6 @@ function OperationsPage({
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
   const [moveUndo, setMoveUndo] = useState(null);
-  const kanbanBoardRef = useRef(null);
   const today = getWarsawTodayInput();
   const nowTime = getWarsawTime();
   const kanbanSensors = useSensors(useSensor(PointerSensor, {activationConstraint: {distance: 6}}));
@@ -886,28 +934,25 @@ function OperationsPage({
   const resetFilters = () => setFilters(DEFAULT_FILTERS);
 
   const changeWeek = (offset) => {
-    const nextDate = offset === 0 ? today : addDays(weekStart, offset * 7);
-    setSelectedDate(nextDate);
+    if (offset === 0) {
+      setSelectedDate(today);
+      return;
+    }
+    const currentWeekdayIndex = Math.max(0, weekDays.findIndex((d) => d.input === selectedDate));
+    const nextWeekStart = addDays(weekStart, offset * 7);
+    const nextWeekDays = getWeekDays(nextWeekStart);
+    const targetDay = nextWeekDays[currentWeekdayIndex]?.input ?? nextWeekStart;
+    setSelectedDate(targetDay);
   };
 
-  useEffect(() => {
-    if (!isMobile || planMode !== "week") return undefined;
-    const targetDate = selectedDate >= weekStart && selectedDate <= weekEnd ? selectedDate : weekStart;
-    const frame = window.requestAnimationFrame(() => {
-      const board = kanbanBoardRef.current;
-      const target = board?.querySelector(`[data-kanban-date="${targetDate}"]`);
-      if (!board || !target) return;
-      board.scrollTo({behavior: "smooth", left: Math.max(0, target.offsetLeft - board.offsetLeft)});
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [isMobile, planMode, selectedDate, weekEnd, weekStart]);
-
-  const focusKanbanDate = (date) => {
-    setSelectedDate(date);
-    const board = kanbanBoardRef.current;
-    const target = board?.querySelector(`[data-kanban-date="${date}"]`);
-    if (!board || !target) return;
-    board.scrollTo({behavior: "smooth", left: Math.max(0, target.offsetLeft - board.offsetLeft)});
+  const handleToggleWeekViewMode = (mode) => {
+    setWeekViewMode(mode);
+    if (mode === "workweek") {
+      const isWeekend = [weekDays[5]?.input, weekDays[6]?.input].filter(Boolean).includes(selectedDate);
+      if (isWeekend) {
+        setSelectedDate(weekDays[0]?.input || selectedDate);
+      }
+    }
   };
 
   const submitQuickNote = (event) => {
@@ -937,9 +982,30 @@ function OperationsPage({
     if (restored) setMoveUndo(null);
   };
 
+  const handleToggleChecklist = async (task, itemId, nextDone) => {
+    const currentList = getTaskChecklist(task);
+    const updatedList = currentList.map((item) => (
+      item.id === itemId ? {...item, done: nextDone} : item
+    ));
+
+    await onSaveTaskOccurrence?.(task, {
+      checklist: updatedList,
+      comment: task.occurrenceComment ?? "",
+      results: task.occurrenceResults ?? {},
+    });
+  };
+
   const handleTaskCompletionRequest = (task) => {
-    const requiresWorkspace = getChecklistProgress(task).total > 0 || getTaskResultFields(task).length > 0;
-    if (!isTaskCompleted(task) && requiresWorkspace) {
+    const listProgress = getChecklistProgress(task);
+    const resultFields = getTaskResultFields(task);
+    const results = task.occurrenceResults ?? {};
+    const missingRequiredFields = resultFields.filter((field) => (
+      field.required && String(results[field.id] ?? "").trim() === ""
+    ));
+    const hasUncheckedItems = listProgress.total > 0 && listProgress.done < listProgress.total;
+    const isDone = isTaskCompleted(task);
+
+    if (!isDone && (hasUncheckedItems || missingRequiredFields.length > 0)) {
       setViewingTask(task);
       return;
     }
@@ -953,6 +1019,7 @@ function OperationsPage({
     onEdit: onEditTask,
     onMain: (task) => onSetMainTask?.(task, getTaskDueDate(task) || selectedDate),
     onMove: handleMoveTask,
+    onToggleChecklist: handleToggleChecklist,
     onView: setViewingTask,
     openMenuId: openItemMenuId,
     setOpenMenuId: setOpenItemMenuId,
@@ -961,27 +1028,33 @@ function OperationsPage({
 
   const tabMeta = `${dayStats.completed}/${dayStats.planned} задач · ${formatMinutes(dayStats.remainingMinutes)}`;
   const isTemplateManager = activeTab === "plan" && planMode === "templates";
-  const weekendDates = useMemo(() => [weekDays[5]?.input, weekDays[6]?.input].filter(Boolean), [weekDays]);
   const weekendTaskCount = useMemo(() => {
+    const weekendDates = [weekDays[5]?.input, weekDays[6]?.input].filter(Boolean);
     return weekTasksRaw.filter((task) => weekendDates.includes(getTaskDueDate(task))).length;
-  }, [weekendDates, weekTasksRaw]);
-  const kanbanColumns = useMemo(() => {
-    if (isMobile) {
-      return weekDays.map((day) => ({
-        allTasks: weekTasksRaw.filter((task) => getTaskDueDate(task) === day.input),
-        dates: [day.input],
-        labels: [day.label],
-        tasks: weekTasks.filter((task) => getTaskDueDate(task) === day.input),
-      }));
-    }
-    const daysToShow = weekViewMode === "workweek" ? weekDays.slice(0, 5) : weekDays;
-    return daysToShow.map((day) => ({
-      allTasks: weekTasksRaw.filter((task) => getTaskDueDate(task) === day.input),
-      dates: [day.input],
-      labels: [day.label],
-      tasks: weekTasks.filter((task) => getTaskDueDate(task) === day.input),
-    }));
-  }, [isMobile, weekDays, weekTasks, weekTasksRaw, weekViewMode]);
+  }, [weekDays, weekTasksRaw]);
+
+  const miniWeekDays = useMemo(() => {
+    return weekViewMode === "workweek" ? weekDays.slice(0, 5) : weekDays;
+  }, [weekDays, weekViewMode]);
+
+  const selectedDayTasks = useMemo(() => {
+    return weekTasks.filter((task) => getTaskDueDate(task) === selectedDate);
+  }, [weekTasks, selectedDate]);
+
+  const allSelectedDayTasksCount = useMemo(() => {
+    return weekTasksRaw.filter((task) => getTaskDueDate(task) === selectedDate).length;
+  }, [weekTasksRaw, selectedDate]);
+
+  const selectedDayStats = useMemo(() => {
+    const rawDayTasks = weekTasksRaw.filter((task) => getTaskDueDate(task) === selectedDate);
+    const completed = rawDayTasks.filter(isTaskCompleted).length;
+    const totalMinutes = rawDayTasks.reduce((sum, task) => sum + (Number(getTaskEstimateMinutes(task)) || 0), 0);
+    return {
+      completed,
+      planned: rawDayTasks.length,
+      totalMinutes,
+    };
+  }, [selectedDate, weekTasksRaw]);
 
   const handleKanbanDragEnd = ({active, over}) => {
     const task = active.data.current?.task;
@@ -1053,14 +1126,14 @@ function OperationsPage({
                     <button
                       type="button"
                       className={`operations-week-mode-btn ${weekViewMode === "workweek" ? "is-active" : ""}`}
-                      onClick={() => setWeekViewMode("workweek")}
+                      onClick={() => handleToggleWeekViewMode("workweek")}
                     >
                       Будни (5 дней)
                     </button>
                     <button
                       type="button"
                       className={`operations-week-mode-btn ${weekViewMode === "fullweek" ? "is-active" : ""}`}
-                      onClick={() => setWeekViewMode("fullweek")}
+                      onClick={() => handleToggleWeekViewMode("fullweek")}
                     >
                       Вся неделя (7)
                       {weekendTaskCount > 0 && weekViewMode === "workweek" ? (
@@ -1072,7 +1145,7 @@ function OperationsPage({
               </div>
               <div className="operations-task-actions">
                 <Button leftIcon="settings" size="sm" variant="secondary" onClick={() => setPlanMode("templates")}>Управление задачами</Button>
-                <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: today >= weekStart && today <= weekEnd ? today : weekStart})}>Добавить задачу</Button>
+                <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: selectedDate})}>Добавить задачу</Button>
               </div>
             </div>}
 
@@ -1158,30 +1231,90 @@ function OperationsPage({
                   </details>
                 )) : <p className="operations-empty">Регулярных шаблонов по выбранным фильтрам нет.</p>}
               </section>
-            ) : <>
-              {isMobile ? <nav aria-label="Дни недели" className="operations-mobile-day-switcher">
-                {weekDays.map((day) => {
-                  const count = weekTasks.filter((task) => getTaskDueDate(task) === day.input).length;
-                  return (
-                    <button
-                      className={`${selectedDate === day.input ? "is-active" : ""} ${today === day.input ? "is-today" : ""}`}
-                      key={day.input}
-                      type="button"
-                      onClick={() => focusKanbanDate(day.input)}
-                    >
-                      <strong>{day.label}</strong>
-                      <span>{formatDayMonthShort(day.input)}</span>
-                      {count ? <em>{count}</em> : null}
-                    </button>
-                  );
-                })}
-              </nav> : null}
+            ) : (
               <DndContext sensors={kanbanSensors} onDragEnd={handleKanbanDragEnd}>
-                <div className={`operations-kanban-board mode-${weekViewMode}`} ref={kanbanBoardRef}>
-                  {kanbanColumns.map((column) => <KanbanDayColumn allTasks={column.allTasks} cardProps={cardProps} dates={column.dates} key={column.dates.join("-")} labels={column.labels} onAddTask={onAddTask} onResetFilters={resetFilters} tasks={column.tasks} today={today} />)}
+                <div className={`operations-mini-week-bar mode-${weekViewMode}`} role="tablist" aria-label="Дни недели">
+                  {miniWeekDays.map((day) => (
+                    <MiniWeekDayTab
+                      day={day}
+                      isCurrentDay={day.input === today}
+                      isSelected={day.input === selectedDate}
+                      key={day.input}
+                      onClick={setSelectedDate}
+                      tasks={weekTasksRaw.filter((task) => getTaskDueDate(task) === day.input)}
+                    />
+                  ))}
                 </div>
+
+                <section className="operations-day-focus-view">
+                  <header className="operations-day-focus-header">
+                    <div className="operations-day-focus-title-block">
+                      <div className="operations-day-focus-title-row">
+                        <h2 className="operations-day-focus-title">
+                          {formatDayFullTitle(selectedDate)}
+                        </h2>
+                        {selectedDate === today ? (
+                          <span className="operations-day-today-pill">Сегодня</span>
+                        ) : null}
+                      </div>
+                      <p className="operations-day-focus-subtitle">
+                        {selectedDayStats.planned
+                          ? `${selectedDayStats.planned} ${selectedDayStats.planned === 1 ? "задача" : selectedDayStats.planned < 5 ? "задачи" : "задач"} • ${selectedDayStats.completed} выполнено${selectedDayStats.totalMinutes ? ` • ${formatMinutes(selectedDayStats.totalMinutes)}` : ""}`
+                          : "Задач на выбранный день пока нет"}
+                      </p>
+                    </div>
+                    <div className="operations-day-focus-actions">
+                      <Button
+                        leftIcon="plus"
+                        size="sm"
+                        variant="primary"
+                        onClick={() => onAddTask?.({dueDate: selectedDate})}
+                      >
+                        + Новая задача
+                      </Button>
+                    </div>
+                  </header>
+
+                  <div className="operations-day-focus-list">
+                    {selectedDayTasks.map((task) => (
+                      <DraggableHorizontalTaskCard
+                        cardProps={cardProps}
+                        key={`${task.id}-${getTaskDueDate(task)}`}
+                        task={task}
+                      />
+                    ))}
+                    {!selectedDayTasks.length ? (
+                      <div className="operations-day-empty-state">
+                        <div className="operations-day-empty-icon">
+                          <AppIcon name="calendar" size="lg" />
+                        </div>
+                        <h3>{allSelectedDayTasksCount ? `Задачи скрыты фильтрами (${allSelectedDayTasksCount})` : "На этот день задач нет"}</h3>
+                        <p>
+                          {allSelectedDayTasksCount
+                            ? "Попробуйте сбросить фильтры или очистить поисковый запрос, чтобы увидеть задачи."
+                            : "Спланируйте важные дела студии или добавьте регулярную задачу на этот день."}
+                        </p>
+                        <div className="operations-day-empty-actions">
+                          {allSelectedDayTasksCount ? (
+                            <Button size="sm" variant="secondary" onClick={resetFilters}>
+                              Показать все задачи
+                            </Button>
+                          ) : null}
+                          <Button
+                            leftIcon="plus"
+                            size="sm"
+                            variant="primary"
+                            onClick={() => onAddTask?.({dueDate: selectedDate})}
+                          >
+                            + Новая задача
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </section>
               </DndContext>
-            </>}
+            )}
 
             {!isTemplateManager ? <details className="operations-report">
               <summary>Итоги и история</summary>
