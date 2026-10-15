@@ -11100,7 +11100,7 @@
 
 .operations-page .operations-kanban-board {
   display: grid;
-  grid-template-columns: repeat(6, minmax(210px, 1fr));
+  grid-template-columns: repeat(6, minmax(190px, 1fr));
   gap: 10px;
   min-width: 0;
   overflow-x: auto;
@@ -11109,20 +11109,36 @@
 }
 
 .operations-page .operations-kanban-column {
-  min-height: 360px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.operations-page .operations-kanban-day {
+  min-height: 320px;
   padding: 8px;
   border: 1px solid var(--operations-border-soft);
   border-radius: var(--operations-radius);
   background: color-mix(in srgb, var(--operations-panel-soft) 58%, transparent);
-  transition: border-color 150ms ease, background 150ms ease;
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
 }
 
-.operations-page .operations-kanban-column.is-over {
+.operations-page .operations-kanban-day.is-empty {
+  min-height: 150px;
+}
+
+.operations-page .operations-kanban-day.is-today {
+  border-color: color-mix(in srgb, var(--operations-accent) 48%, var(--operations-border));
+  box-shadow: inset 0 2px 0 var(--operations-accent);
+}
+
+.operations-page .operations-kanban-day.is-over {
   border-color: color-mix(in srgb, var(--operations-accent) 55%, var(--operations-border));
   background: color-mix(in srgb, var(--operations-accent) 8%, var(--operations-panel-soft));
 }
 
-.operations-page .operations-kanban-column > header {
+.operations-page .operations-kanban-day > header {
   display: flex;
   min-height: 44px;
   align-items: flex-start;
@@ -11131,21 +11147,36 @@
   padding: 3px 4px 10px;
 }
 
-.operations-page .operations-kanban-column > header div {
+.operations-page .operations-kanban-day > header div {
   display: grid;
   gap: 2px;
 }
 
-.operations-page .operations-kanban-column > header strong {
+.operations-page .operations-kanban-day > header strong {
   color: var(--operations-text);
   font-size: 13px;
 }
 
-.operations-page .operations-kanban-column > header span,
-.operations-page .operations-kanban-column > header em {
+.operations-page .operations-kanban-day > header span,
+.operations-page .operations-kanban-day > header em {
   color: var(--operations-faint);
   font-size: 11px;
   font-style: normal;
+}
+
+.operations-page .operations-kanban-day.is-today > header strong,
+.operations-page .operations-kanban-day.is-today > header span {
+  color: color-mix(in srgb, var(--operations-accent) 72%, var(--operations-text));
+}
+
+.operations-page .operations-kanban-day-stats {
+  justify-items: end;
+  white-space: nowrap;
+}
+
+.operations-page .operations-kanban-day-stats em:first-child {
+  color: var(--operations-text);
+  font-weight: 750;
 }
 
 .operations-page .operations-kanban-column-body {
@@ -11155,7 +11186,7 @@
 }
 
 .operations-page .operations-kanban-draggable {
-  touch-action: none;
+  min-width: 0;
 }
 
 .operations-page .operations-kanban-draggable.is-dragging {
@@ -11164,11 +11195,68 @@
 }
 
 .operations-page .operations-kanban-column .operations-work-card {
-  grid-template-columns: 30px minmax(0, 1fr) 28px;
+  grid-template-columns: 30px minmax(0, 1fr) 26px 28px;
   min-height: 92px;
   padding: 9px 7px;
   background: var(--operations-panel);
   box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+
+.operations-page .operations-task-drag-handle {
+  display: inline-flex;
+  width: 26px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: var(--operations-faint);
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+}
+
+.operations-page .operations-task-drag-handle:hover,
+.operations-page .operations-task-drag-handle:focus-visible {
+  color: var(--operations-text);
+  background: color-mix(in srgb, var(--operations-text) 7%, transparent);
+}
+
+.operations-page .operations-task-drag-handle:active {
+  cursor: grabbing;
+}
+
+.operations-page .operations-kanban-add {
+  display: inline-flex;
+  width: 100%;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px dashed transparent;
+  border-radius: 6px;
+  color: var(--operations-faint);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.operations-page .operations-kanban-add:hover,
+.operations-page .operations-kanban-add:focus-visible {
+  border-color: var(--operations-border);
+  color: var(--operations-text);
+  background: color-mix(in srgb, var(--operations-text) 4%, transparent);
+}
+
+.operations-page .operations-kanban-empty {
+  display: block;
+  padding: 12px 4px 4px;
+  color: var(--operations-faint);
+  font-size: 11px;
+  text-align: center;
 }
 
 .operations-page .operations-kanban-column .operations-work-card-main small {
@@ -12139,13 +12227,20 @@
   }
 
   .operations-page .operations-kanban-board {
-    grid-template-columns: repeat(6, minmax(78vw, 1fr));
+    grid-template-columns: repeat(6, minmax(86vw, 1fr));
     scroll-snap-type: x proximity;
   }
 
   .operations-page .operations-kanban-column {
-    min-height: 280px;
     scroll-snap-align: start;
+  }
+
+  .operations-page .operations-kanban-day {
+    min-height: 280px;
+  }
+
+  .operations-page .operations-kanban-day.is-empty {
+    min-height: 140px;
   }
 
   .operations-page .operations-task-commandbar > button {

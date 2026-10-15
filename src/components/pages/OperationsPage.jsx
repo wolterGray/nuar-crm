@@ -155,6 +155,8 @@ function SegmentButton({active, children, onClick}) {
 }
 
 function TaskCard({
+  compact = false,
+  dragHandleProps,
   nowTime,
   onComplete,
   onDelete,
@@ -204,15 +206,25 @@ function TaskCard({
         </span>
         {task.note ? <small>{task.note}</small> : null}
         <span className="operations-work-card-meta">
-          <em>{getTaskKindLabel(task)}</em>
-          {getTaskAssigneeName(task) ? <em>{assigneeName}</em> : null}
-          {dueDate !== today || getTaskDueTime(task) ? <em>{formatTaskDateTime(task)}</em> : null}
+          {!compact ? <em>{getTaskKindLabel(task)}</em> : null}
+          {!compact && getTaskAssigneeName(task) ? <em>{assigneeName}</em> : null}
+          {compact && getTaskDueTime(task) ? <em>{getTaskDueTime(task)}</em> : null}
+          {!compact && (dueDate !== today || getTaskDueTime(task)) ? <em>{formatTaskDateTime(task)}</em> : null}
           {getTaskEstimateMinutes(task) ? <em>{formatMinutes(getTaskEstimateMinutes(task))}</em> : null}
-          {priority !== "medium" ? <em>{getTaskPriorityLabel(task)}</em> : null}
+          {!compact && priority !== "medium" ? <em>{getTaskPriorityLabel(task)}</em> : null}
           {checklist.total ? <em>{checklist.done}/{checklist.total}</em> : null}
           <em className="operations-task-status">{status}</em>
         </span>
       </button>
+      {dragHandleProps ? (
+        <button
+          aria-label="Перетащить задачу"
+          className="operations-task-drag-handle"
+          type="button"
+          {...dragHandleProps}>
+          <AppIcon name="grip" size="sm" />
+        </button>
+      ) : null}
       <RowActionsMenu
         className="operations-row-actions"
         extraActions={[
@@ -295,21 +307,41 @@ function KanbanTaskCard({cardProps, task}) {
     id: `kanban-${task.id}-${getTaskDueDate(task)}`,
     data: {task},
   });
-  return <div className={`operations-kanban-draggable ${isDragging ? "is-dragging" : ""}`} ref={setNodeRef} style={{transform: CSS.Translate.toString(transform)}} {...attributes} {...listeners}>
-    <TaskCard task={task} {...cardProps} />
+  return <div className={`operations-kanban-draggable ${isDragging ? "is-dragging" : ""}`} ref={setNodeRef} style={{transform: CSS.Translate.toString(transform)}}>
+    <TaskCard compact dragHandleProps={{...attributes, ...listeners}} task={task} {...cardProps} />
   </div>;
 }
 
-function KanbanDayColumn({cardProps, dates, label, tasks}) {
-  const targetDate = dates[0];
-  const {isOver, setNodeRef} = useDroppable({id: `kanban-day-${targetDate}`, data: {date: targetDate}});
+function KanbanDaySection({cardProps, date, label, onAddTask, tasks, today}) {
+  const {isOver, setNodeRef} = useDroppable({id: `kanban-day-${date}`, data: {date}});
   const completed = tasks.filter(isTaskCompleted).length;
-  return <section className={`operations-kanban-column ${isOver ? "is-over" : ""}`} ref={setNodeRef}>
-    <header><div><strong>{label}</strong><span>{dates.map(formatDateShort).join(" / ")}</span></div><em>{completed}/{tasks.length}</em></header>
+  const minutes = tasks.reduce((total, task) => total + (Number(getTaskEstimateMinutes(task)) || 0), 0);
+  return <section className={`operations-kanban-day ${isOver ? "is-over" : ""} ${date === today ? "is-today" : ""} ${tasks.length ? "" : "is-empty"}`} ref={setNodeRef}>
+    <header>
+      <div><strong>{label}</strong><span>{formatDateShort(date)}{date === today ? " · Сегодня" : ""}</span></div>
+      <div className="operations-kanban-day-stats"><em>{completed}/{tasks.length}</em>{minutes ? <em>{formatMinutes(minutes)}</em> : null}</div>
+    </header>
     <div className="operations-kanban-column-body">
       {tasks.map((task) => <KanbanTaskCard cardProps={cardProps} key={`${task.id}-${getTaskDueDate(task)}`} task={task} />)}
-      {!tasks.length ? <span className="operations-kanban-empty">Нет задач</span> : null}
+      {!tasks.length ? <span className="operations-kanban-empty">Свободный день</span> : null}
+      <button className="operations-kanban-add" type="button" onClick={() => onAddTask?.({dueDate: date})}><AppIcon name="plus" size="sm" />Добавить</button>
     </div>
+  </section>;
+}
+
+function KanbanDayColumn({cardProps, dates, labels, onAddTask, tasks, today}) {
+  return <section className={`operations-kanban-column ${dates.length > 1 ? "is-weekend" : ""}`}>
+    {dates.map((date, index) => (
+      <KanbanDaySection
+        cardProps={cardProps}
+        date={date}
+        key={date}
+        label={labels[index]}
+        onAddTask={onAddTask}
+        tasks={tasks.filter((task) => getTaskDueDate(task) === date)}
+        today={today}
+      />
+    ))}
   </section>;
 }
 
@@ -730,9 +762,9 @@ function OperationsPage({
   const tabMeta = `${dayStats.completed}/${dayStats.planned} задач · ${formatMinutes(dayStats.remainingMinutes)}`;
   const isTemplateManager = activeTab === "plan" && planMode === "templates";
   const kanbanColumns = useMemo(() => {
-    const weekdayColumns = weekDays.slice(0, 5).map((day) => ({dates: [day.input], label: day.label}));
-    const weekendDates = weekDays.slice(5).map((day) => day.input);
-    return [...weekdayColumns, {dates: weekendDates, label: "Сб/Вс"}].map((column) => ({
+    const weekdayColumns = weekDays.slice(0, 5).map((day) => ({dates: [day.input], labels: [day.label]}));
+    const weekend = weekDays.slice(5);
+    return [...weekdayColumns, {dates: weekend.map((day) => day.input), labels: weekend.map((day) => day.label)}].map((column) => ({
       ...column,
       tasks: weekTasks.filter((task) => column.dates.includes(getTaskDueDate(task))),
     }));
@@ -870,7 +902,7 @@ function OperationsPage({
               </section>
             ) : <DndContext sensors={kanbanSensors} onDragEnd={handleKanbanDragEnd}>
               <div className="operations-kanban-board">
-                {kanbanColumns.map((column) => <KanbanDayColumn cardProps={{...cardProps, onView: onEditTask}} dates={column.dates} key={column.label} label={column.label} tasks={column.tasks} />)}
+                {kanbanColumns.map((column) => <KanbanDayColumn cardProps={{...cardProps, onView: onEditTask}} dates={column.dates} key={column.dates.join("-")} labels={column.labels} onAddTask={onAddTask} tasks={column.tasks} today={today} />)}
               </div>
             </DndContext>}
 
