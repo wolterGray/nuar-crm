@@ -10367,7 +10367,23 @@
   gap: 12px;
 }
 
+.operations-page .operations-page-header {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  min-height: 52px;
+  margin: 0;
+  padding: 4px 0 12px;
+}
+
+.operations-page .operations-page-header .page-header-unified-top {
+  min-height: 36px;
+}
+
 .operations-page .operations-main-tabs {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;

@@ -653,6 +653,7 @@ function OperationsPage({
   return (
     <section className={`operations-page operations-workspace ${isMobile ? "operations-page-mobile" : ""}`}>
       <PageHeader
+        className="operations-page-header"
         collapsedMeta={tabMeta}
         collapsible={false}
         description={isMobile ? undefined : "План дня, заметки, расходники и лист ожидания"}
