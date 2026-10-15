@@ -335,8 +335,10 @@ export function useTaskHandlers({
 
         if (editingTask?.isVirtualOccurrence && form.get("applyScope") !== "future") {
           const date = String(form.get("occurrenceDate") ?? editingTask.occurrenceDate ?? "").trim();
+          const targetDate = dueDate || date;
           const baseId = Number(form.get("baseId") || editingTask.baseId);
-          let nextTask = patchOccurrence(editingTask, date, {
+          const occurrenceTask = targetDate !== date ? buildMovedTask(editingTask, targetDate) : editingTask;
+          let nextTask = patchOccurrence(occurrenceTask, targetDate, {
             checklist,
             dueTime,
             estimateMinutes,
@@ -353,7 +355,7 @@ export function useTaskHandlers({
             payload: {
               ...nextPayload,
               isMain: payload.isMain,
-              mainDate: payload.isMain ? date : nextPayload.mainDate === date ? "" : nextPayload.mainDate,
+              mainDate: payload.isMain ? targetDate : nextPayload.mainDate === date ? "" : nextPayload.mainDate,
             },
           };
           try {

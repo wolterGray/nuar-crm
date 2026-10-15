@@ -1,10 +1,10 @@
 import {useEffect, useMemo, useState} from "react";
 import {AppIcon, Button, Checkbox, Field, IconButton, Input, Select, Switch, Textarea} from "./ui/index.js";
 import {
-  TASK_KIND_OPTIONS, TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS, WORK_AREA_OPTIONS,
+  TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS, WORK_AREA_OPTIONS, addDays,
   getTaskAssigneeId, getTaskDueDate, getTaskDueTime, getTaskEstimateMinutes,
   getTaskKind, getTaskPayload, getTaskPriorityId, getWarsawTodayInput,
-  isTaskMainOnDate, isTaskRepeating,
+  getWeekStart, isTaskMainOnDate, isTaskRepeating,
 } from "../utils/operationsPlanner.js";
 
 const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((label, index) => ({id: index + 1, label}));
@@ -32,6 +32,21 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
   const [resultValues, setResultValues] = useState(() => ({...(task?.occurrenceResults ?? {})}));
   const [occurrenceComment, setOccurrenceComment] = useState(task?.occurrenceComment ?? "");
   const repeatEnabled = taskKind === "daily";
+  const quickDays = useMemo(() => {
+    const weekStart = getWeekStart(dueDateValue);
+    return [
+      ...WEEKDAYS.slice(0, 5).map((day, index) => ({...day, dates: [addDays(weekStart, index)]})),
+      {id: 6, label: "Сб/Вс", dates: [addDays(weekStart, 5), addDays(weekStart, 6)]},
+    ];
+  }, [dueDateValue]);
+  const selectedWeekday = new Date(`${dueDateValue}T12:00:00`).getDay() || 7;
+  const selectQuickDay = (day) => {
+    markDirty();
+    setDueDateValue(day.dates[0]);
+    if (repeatEnabled && repeatFrequency !== "monthly") {
+      setRepeatWeekdays(day.id === 6 ? [6, 7] : [day.id]);
+    }
+  };
   useEffect(() => {
     onDirtyChange?.(false);
   }, [onDirtyChange]);
@@ -90,13 +105,21 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
       <input name="baseId" type="hidden" value={task?.baseId ?? ""} />
       <input name="occurrenceDate" type="hidden" value={task?.occurrenceDate ?? ""} />
 
+      {layout === "drawer" ? <div className="task-drawer-context">
+        <span>День недели</span>
+        <div className="task-drawer-days" role="group" aria-label="День недели">
+          {quickDays.map((day) => <button aria-pressed={day.id === (selectedWeekday >= 6 ? 6 : selectedWeekday)} className={day.id === (selectedWeekday >= 6 ? 6 : selectedWeekday) ? "is-active" : ""} key={day.id} type="button" onClick={() => selectQuickDay(day)}>{day.label}</button>)}
+        </div>
+        <Field label="Название задачи" required><Input className="task-drawer-title-input" name="title" defaultValue={task?.title ?? ""} placeholder="Что нужно сделать?" required /></Field>
+      </div> : null}
+
       <div className="task-editor-scroll">
         <section className="task-editor-panel">
           <SectionHead description="Содержание и ответственность за задачу." title="Основное" />
-          <Field label="Название" required><Input name="title" defaultValue={task?.title ?? ""} placeholder="Название задачи" required /></Field>
+          {layout !== "drawer" ? <Field label="Название" required><Input name="title" defaultValue={task?.title ?? ""} placeholder="Название задачи" required /></Field> : null}
           <Field label="Описание"><Textarea name="note" defaultValue={task?.note ?? task?.description ?? ""} rows="3" /></Field>
           <Field label="Пошаговая инструкция"><Textarea name="instructions" defaultValue={payload.instructions ?? ""} rows="5" /></Field>
-          <div className="task-editor-grid">
+          <div className="task-editor-grid task-editor-meta-grid">
             <Field label="Направление работы"><Select name="areaId" defaultValue={payload.areaId ?? "general"}><option value="general">Другие задачи</option>{WORK_AREA_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</Select></Field>
             <Field label="Ответственный"><Select name="assigneeId" defaultValue={getTaskAssigneeId(task)}><option value="">Без исполнителя</option>{employees.map((employee) => <option key={employee.id} value={String(employee.id)}>{employee.name}</option>)}</Select></Field>
             <Field label="Приоритет"><Select name="priorityId" defaultValue={getTaskPriorityId(task)}>{TASK_PRIORITY_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</Select></Field>
@@ -136,12 +159,11 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
 
         <section className="task-editor-panel">
           <SectionHead description="Когда задача появляется в рабочем плане." title="Расписание" />
-          <div className="task-kind-picker" role="group">{TASK_KIND_OPTIONS.map((option) => <button aria-pressed={taskKind === option.id} className={taskKind === option.id ? "is-active" : ""} key={option.id} type="button" onClick={() => { markDirty(); setTaskKind(option.id); }}><strong>{option.label}</strong><span>{option.id === "daily" ? "Повторяется по выбранному графику" : "Выполняется один раз"}</span></button>)}</div>
-          <div className="task-editor-grid"><Field label={repeatEnabled ? "Дата начала" : "Сделать до"}><Input name="dueDate" type="date" value={dueDateValue} onChange={(event) => setDueDateValue(event.target.value)} /></Field>{repeatEnabled ? <Field label="Дата окончания"><Input name="repeatEndDate" type="date" defaultValue={payload.repeat?.endDate ?? ""} /></Field> : null}</div>
+          <SwitchRow description="Задача автоматически появляется по расписанию" label="Регулярное дело"><Switch checked={repeatEnabled} onChange={(event) => { markDirty(); setTaskKind(event.target.checked ? "daily" : "oneTime"); if (event.target.checked && !["daily", "weekly", "monthly"].includes(repeatFrequency)) setRepeatFrequency("weekly"); }} /></SwitchRow>
+          {repeatEnabled ? <input name="dueDate" type="hidden" value={dueDateValue} /> : <Field label="Дата выполнения"><Input name="dueDate" type="date" value={dueDateValue} onChange={(event) => setDueDateValue(event.target.value)} /></Field>}
           <input name="repeatStartDate" type="hidden" value={dueDateValue} />
-          {repeatEnabled ? <><Field label="Повторение"><Select value={repeatFrequency} onChange={(event) => { markDirty(); setRepeatFrequency(event.target.value); }}><option value="daily">Каждый день</option><option value="weekdays">Рабочие / выбранные дни</option><option value="weekly">Еженедельно</option><option value="monthly">Ежемесячно</option><option value="intervalWeeks">Каждые N недель</option></Select></Field>{repeatFrequency === "intervalWeeks" ? <Field label="Интервал недель"><Input min="1" name="repeatIntervalWeeks" type="number" defaultValue={payload.repeat?.intervalWeeks ?? 2} /></Field> : null}{!["daily", "monthly"].includes(repeatFrequency) ? <div className="task-form-weekdays">{WEEKDAYS.map((day) => <button className={repeatWeekdays.includes(day.id) ? "is-active" : ""} key={day.id} type="button" onClick={() => { markDirty(); setRepeatWeekdays((current) => current.includes(day.id) ? current.filter((id) => id !== day.id) : [...current, day.id].sort()); }}>{day.label}</button>)}</div> : null}</> : null}
-          <SwitchRow description="Показывать задачу в определённое время" label="Указать время"><Switch checked={hasTime} name="hasTime" value="on" onChange={(event) => { markDirty(); setHasTime(event.target.checked); }} /></SwitchRow>
-          <div className="task-editor-grid">{hasTime ? <Field label="Время выполнения"><Input name="dueTime" type="time" defaultValue={getTaskDueTime(task)} /></Field> : <div />}<Field label="Плановое время, мин"><Input min="0" name="estimateMinutes" type="number" defaultValue={getTaskEstimateMinutes(task) || ""} /></Field></div>
+          {repeatEnabled ? <Field label="Повторение"><Select value={repeatFrequency} onChange={(event) => { markDirty(); setRepeatFrequency(event.target.value); }}><option value="daily">Каждый день</option><option value="weekly">Каждую неделю</option><option value="monthly">Каждый месяц</option></Select></Field> : null}
+          <div className="task-schedule-compact-row"><SwitchRow description="Показывать время" label="Указать время"><Switch checked={hasTime} name="hasTime" value="on" onChange={(event) => { markDirty(); setHasTime(event.target.checked); }} /></SwitchRow>{hasTime ? <Field label="Время"><Input name="dueTime" type="time" defaultValue={getTaskDueTime(task)} /></Field> : null}<Field label="Планируемое время, мин"><Input min="0" name="estimateMinutes" type="number" defaultValue={getTaskEstimateMinutes(task) || ""} /></Field></div>
           {task?.isVirtualOccurrence || isTaskRepeating(task) ? <Field label="Применить изменения"><Select name="applyScope" defaultValue={task?.isVirtualOccurrence ? "single" : "future"}><option value="single">Только выбранный день</option><option value="future">К шаблону и последующим</option></Select></Field> : null}
         </section>
       </div>
