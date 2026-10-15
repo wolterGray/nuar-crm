@@ -3,7 +3,14 @@ const path = require('path');
 require('dotenv').config();
 
 const API_URL = String(process.env.RESEED_API_URL || 'https://api.nuarr.pl').replace(/\/$/, '');
-const START_DATE = process.env.RESEED_START_DATE || new Date().toISOString().slice(0, 10);
+const today = new Date().toISOString().slice(0, 10);
+const getWeekStart = (date) => {
+  const value = new Date(`${date}T12:00:00.000Z`);
+  const weekday = value.getUTCDay() || 7;
+  value.setUTCDate(value.getUTCDate() + 1 - weekday);
+  return value.toISOString().slice(0, 10);
+};
+const START_DATE = process.env.RESEED_START_DATE || getWeekStart(today);
 const SEED_VERSION = 5;
 
 const templates = [

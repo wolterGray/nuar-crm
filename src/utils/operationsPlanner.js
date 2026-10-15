@@ -43,11 +43,11 @@ const DEFAULT_TASK_COLORS = {
   acquisition: "crimson",
   content: "violet",
   finance: "rose",
-  general: "graphite",
+  general: "blue",
   growth: "blue",
   retention: "teal",
   sales: "amber",
-  studio: "graphite",
+  studio: "amber",
 };
 
 const WEEKDAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
@@ -127,6 +127,70 @@ export const formatDateShort = (date) => {
   return `${day}.${month}`;
 };
 
+export const WEEKDAY_FULL_LABELS = [
+  "Понедельник",
+  "Вторник",
+  "Среда",
+  "Четверг",
+  "Пятница",
+  "Суббота",
+  "Воскресенье",
+];
+
+const MONTHS_GENITIVE = [
+  "января", "февраля", "марта", "апреля", "мая", "июня",
+  "июля", "августа", "сентября", "октября", "ноября", "декабря"
+];
+
+const MONTHS_SHORT = [
+  "янв", "фев", "мар", "апр", "мая", "июн",
+  "июл", "авг", "сен", "окт", "ноя", "дек"
+];
+
+export const formatHumanWeekRange = (start, end) => {
+  if (!start || !end) return "Без даты";
+  const [sy, sm, sd] = start.split("-").map(Number);
+  const [ey, em, ed] = end.split("-").map(Number);
+  const startMonth = MONTHS_GENITIVE[sm - 1] || "";
+  const endMonth = MONTHS_GENITIVE[em - 1] || "";
+
+  if (sy === ey) {
+    if (sm === em) {
+      return `${sd} — ${ed} ${endMonth} ${sy}`;
+    }
+    return `${sd} ${startMonth} — ${ed} ${endMonth} ${sy}`;
+  }
+  return `${sd} ${startMonth} ${sy} — ${ed} ${endMonth} ${ey}`;
+};
+
+export const getWeekRelativeLabel = (weekStart, today) => {
+  if (!weekStart || !today) return "";
+  const [wy, wm, wd] = weekStart.split("-").map(Number);
+  const currentWeekStart = getWeekStart(today);
+  const [cy, cm, cd] = currentWeekStart.split("-").map(Number);
+  const wDate = new Date(Date.UTC(wy, wm - 1, wd));
+  const cDate = new Date(Date.UTC(cy, cm - 1, cd));
+  const diffWeeks = Math.round((wDate - cDate) / (7 * 24 * 60 * 60 * 1000));
+
+  if (diffWeeks === 0) return "Текущая неделя";
+  if (diffWeeks === 1) return "Следующая неделя";
+  if (diffWeeks === -1) return "Прошлая неделя";
+  if (diffWeeks > 1) return `Через ${diffWeeks} нед.`;
+  return `${Math.abs(diffWeeks)} нед. назад`;
+};
+
+export const formatDayMonth = (date) => {
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return date || "";
+  const [, m, d] = date.split("-").map(Number);
+  return `${d} ${MONTHS_GENITIVE[m - 1] || ""}`;
+};
+
+export const formatDayMonthShort = (date) => {
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return date || "";
+  const [, m, d] = date.split("-").map(Number);
+  return `${d} ${MONTHS_SHORT[m - 1] || ""}`;
+};
+
 const objectPayload = (value) =>
   value && typeof value === "object" && !Array.isArray(value) ? value : {};
 
@@ -175,6 +239,21 @@ export const getTaskColorId = (task = {}) => {
 export const getTaskAreaLabel = (task = {}) =>
   String(getTaskPayload(task).areaLabel ?? "").trim() ||
   (WORK_AREA_OPTIONS.find((option) => option.id === getTaskAreaId(task))?.label ?? "Другие задачи");
+
+export const getTaskAreaShortLabel = (task = {}) => {
+  const areaId = getTaskAreaId(task);
+  const labels = {
+    acquisition: "Маркетинг",
+    sales: "Продажи",
+    content: "Контент",
+    retention: "Клиенты",
+    growth: "Развитие",
+    studio: "Студия",
+    finance: "Финансы",
+    general: "Общее",
+  };
+  return labels[areaId] ?? (getTaskAreaLabel(task).replace(/^\d+\.\s*/, "").slice(0, 12) || "Задача");
+};
 
 export const getTaskResultFields = (task = {}) => {
   const fields = getTaskPayload(task).resultFields;

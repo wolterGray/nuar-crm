@@ -3,9 +3,13 @@ import {
   applyOperationsFilters,
   buildMovedTask,
   expandTasksForRange,
+  formatHumanWeekRange,
+  formatDayMonth,
+  formatDayMonthShort,
   getChecklistProgress,
   getDayStats,
   getOverdueTasks,
+  getTaskAreaShortLabel,
   getTaskAssigneeId,
   getTaskColorId,
   getTaskDueDate,
@@ -13,6 +17,7 @@ import {
   getTaskEstimateMinutes,
   getTaskPayload,
   getTaskStatusLabel,
+  getWeekRelativeLabel,
   isTaskCompleted,
   isTaskMainOnDate,
   patchOccurrence,
@@ -214,5 +219,26 @@ describe("operationsPlanner", () => {
     expect(getTaskStatusLabel(started, "2026-10-12", "08:00")).toBe("В процессе");
     expect(getOverdueTasks([repeatingTask], "2026-10-14", "12:00")).toHaveLength(0);
     expect(getOverdueTasks([startedBase], "2026-10-14", "12:00")).toHaveLength(1);
+  });
+
+  it("formats human-readable week ranges and relative week labels", () => {
+    expect(formatHumanWeekRange("2026-10-12", "2026-10-18")).toBe("12 — 18 октября 2026");
+    expect(formatHumanWeekRange("2026-10-26", "2026-11-01")).toBe("26 октября — 1 ноября 2026");
+    expect(formatHumanWeekRange("2026-12-28", "2027-01-03")).toBe("28 декабря 2026 — 3 января 2027");
+
+    expect(getWeekRelativeLabel("2026-10-12", "2026-10-15")).toBe("Текущая неделя");
+    expect(getWeekRelativeLabel("2026-10-19", "2026-10-15")).toBe("Следующая неделя");
+    expect(getWeekRelativeLabel("2026-10-05", "2026-10-15")).toBe("Прошлая неделя");
+    expect(getWeekRelativeLabel("2026-10-26", "2026-10-15")).toBe("Через 2 нед.");
+
+    expect(formatDayMonth("2026-10-15")).toBe("15 октября");
+    expect(formatDayMonthShort("2026-10-15")).toBe("15 окт");
+  });
+
+  it("returns human short labels for task areas", () => {
+    expect(getTaskAreaShortLabel({payload: {areaId: "acquisition"}})).toBe("Маркетинг");
+    expect(getTaskAreaShortLabel({payload: {areaId: "studio"}})).toBe("Студия");
+    expect(getTaskAreaShortLabel({payload: {areaId: "finance"}})).toBe("Финансы");
+    expect(getTaskAreaShortLabel({payload: {areaId: "general"}})).toBe("Общее");
   });
 });
