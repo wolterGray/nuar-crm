@@ -272,6 +272,7 @@ export default function AppRoutes({activePage, ...props}) {
             onReorderTasks={props.reorderTasks}
             onSetMainTask={props.setMainTask}
             onSaveTaskOccurrence={props.saveTaskOccurrence}
+            onSetTaskTemplateArchived={props.setTaskTemplateArchived}
             onAddSupply={props.openCreateSupply}
             onEditSupply={props.openEditSupply}
             onDeleteSupply={props.requestDeleteSupply}

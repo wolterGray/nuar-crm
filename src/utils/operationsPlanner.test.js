@@ -77,6 +77,15 @@ describe("operationsPlanner", () => {
     expect(dates).toEqual(["2026-10-12", "2026-10-14"]);
   });
 
+  it("keeps archived templates out of future daily occurrences", () => {
+    const archivedTask = {
+      ...repeatingTask,
+      payload: {...repeatingTask.payload, templateArchived: true},
+    };
+
+    expect(expandTasksForRange([archivedTask], "2026-10-12", "2026-10-18")).toEqual([]);
+  });
+
   it("moves a single recurring occurrence without moving the whole series", () => {
     const occurrence = expandTasksForRange([repeatingTask], "2026-10-14", "2026-10-14")[0];
     const movedTask = buildMovedTask(occurrence, "2026-10-16");

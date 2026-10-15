@@ -232,27 +232,41 @@ function TaskCard({
   );
 }
 
-function TaskTemplateCard({onDelete, onEdit, openMenuId, setOpenMenuId, task}) {
+function TaskTemplateCard({onDelete, onEdit, onToggleArchived, openMenuId, setOpenMenuId, task, today}) {
   const payload = getTaskPayload(task);
+  const archived = payload.templateArchived === true;
+  const systemTemplate = ACQUISITION_TEMPLATE_KEYS.includes(payload.templateKey);
   const checklistCount = Array.isArray(payload.checklist) ? payload.checklist.length : 0;
   const resultCount = getTaskResultFields(task).length;
+  let nextDate = "";
+  if (!archived) {
+    for (let offset = 0; offset <= 90; offset += 1) {
+      const candidate = addDays(today, offset);
+      if (occursOnDate(task, candidate)) {
+        nextDate = candidate;
+        break;
+      }
+    }
+  }
 
   return (
-    <article className="operations-template-card">
+    <article className={`operations-template-card ${archived ? "is-archived" : ""}`}>
       <button className="operations-template-card-main" type="button" onClick={() => onEdit(task)}>
-        <span><strong>{task.title}</strong><em>{getTaskAreaLabel(task)}</em></span>
+        <span><strong>{task.title}</strong>{systemTemplate ? <em>Системный</em> : null}{archived ? <em>В архиве</em> : null}</span>
         {task.note ? <small>{task.note}</small> : null}
         <span className="operations-template-card-meta">
           <em>{formatRepeatSchedule(task)}</em>
+          {nextDate ? <em>Ближайшая: {formatDateShort(nextDate)}</em> : null}
           <em>{checklistCount} действий</em>
           {resultCount ? <em>{resultCount} полей результата</em> : null}
         </span>
       </button>
+      <Button size="sm" variant="ghost" onClick={() => onToggleArchived(task, !archived)}>{archived ? "Активировать" : "В архив"}</Button>
       <RowActionsMenu
         itemId={`template-${task.id}`}
         openMenuId={openMenuId}
         setOpenMenuId={setOpenMenuId}
-        onDelete={() => onDelete(task)}
+        onDelete={systemTemplate ? undefined : () => onDelete(task)}
         onEdit={() => onEdit(task)}
       />
     </article>
@@ -495,6 +509,7 @@ function OperationsPage({
   onRemoveWaitlistEntry,
   onSetMainTask,
   onSaveTaskOccurrence,
+  onSetTaskTemplateArchived,
   onAddSupply,
   onEditSupply,
   onDeleteSupply,
@@ -509,6 +524,7 @@ function OperationsPage({
   const [openItemMenuId, setOpenItemMenuId] = useState(null);
   const [viewingTask, setViewingTask] = useState(null);
   const [expandedWeekDays, setExpandedWeekDays] = useState(() => new Set([getWarsawTodayInput()]));
+  const [showArchivedTemplates, setShowArchivedTemplates] = useState(false);
   const acquisitionSyncStarted = useRef(false);
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
@@ -542,6 +558,7 @@ function OperationsPage({
   const notes = tasks.filter((task) => task.type === "note");
   const legacyAcquisitionRecord = tasks.find((task) => !getTaskPayload(task).templateKey && String(task.title ?? "").trim().toLocaleLowerCase("ru") === "01. привлечение новых клиентов");
   const workTasks = tasks.filter((task) => task.type !== "note" && getTaskPayload(task).hiddenFromPlan !== true);
+  const activeWorkTasks = workTasks.filter((task) => getTaskPayload(task).templateArchived !== true);
   const lowStockCount = supplies.filter(isSupplyLowStock).length;
   const activeWaitlistCount = waitlistEntries.filter((entry) => entry.status === "active").length;
   const sortedSupplies = useMemo(
@@ -559,25 +576,25 @@ function OperationsPage({
   const weekStart = weekDays[0]?.input ?? getWeekStart(selectedDate);
   const weekEnd = weekDays[6]?.input ?? addDays(weekStart, 6);
   const dayTasksRaw = useMemo(
-    () => expandTasksForRange(workTasks, selectedDate, selectedDate),
-    [selectedDate, workTasks],
+    () => expandTasksForRange(activeWorkTasks, selectedDate, selectedDate),
+    [activeWorkTasks, selectedDate],
   );
   const weekTasksRaw = useMemo(
-    () => expandTasksForRange(workTasks, weekStart, weekEnd),
-    [weekEnd, weekStart, workTasks],
+    () => expandTasksForRange(activeWorkTasks, weekStart, weekEnd),
+    [activeWorkTasks, weekEnd, weekStart],
   );
   const allTasksRaw = useMemo(
     () =>
-      workTasks.map((task) =>
+      activeWorkTasks.map((task) =>
         isTaskRepeating(task) && occursOnDate(task, selectedDate)
           ? createTaskOccurrence(task, selectedDate)
           : task,
       ),
-    [selectedDate, workTasks],
+    [activeWorkTasks, selectedDate],
   );
   const overdueTasks = useMemo(
-    () => sortPlanTasks(applyOperationsFilters(getOverdueTasks(workTasks, today, nowTime), filters)),
-    [filters, nowTime, today, workTasks],
+    () => sortPlanTasks(applyOperationsFilters(getOverdueTasks(activeWorkTasks, today, nowTime), filters)),
+    [activeWorkTasks, filters, nowTime, today],
   );
   const dayTasks = useMemo(
     () => sortPlanTasks(applyOperationsFilters(dayTasksRaw, filters)),
@@ -593,9 +610,18 @@ function OperationsPage({
     [allTasksRaw, filters],
   );
   const taskTemplates = useMemo(
-    () => sortPlanTasks(applyOperationsFilters(workTasks.filter(isTaskRepeating), filters)),
-    [filters, workTasks],
+    () => sortPlanTasks(applyOperationsFilters(workTasks.filter((task) => isTaskRepeating(task) && (showArchivedTemplates || getTaskPayload(task).templateArchived !== true)), filters)),
+    [filters, showArchivedTemplates, workTasks],
   );
+  const templateGroups = useMemo(() => {
+    const groups = new Map();
+    taskTemplates.forEach((task) => {
+      const areaId = getTaskAreaId(task);
+      if (!groups.has(areaId)) groups.set(areaId, {id: areaId, label: getTaskAreaLabel(task), tasks: []});
+      groups.get(areaId).tasks.push(task);
+    });
+    return [...groups.values()].sort((left, right) => left.label.localeCompare(right.label, "ru"));
+  }, [taskTemplates]);
   const dayStats = getDayStats(dayTasksRaw);
   const visibleAreas = useMemo(() => {
     const groups = new Map();
@@ -747,8 +773,8 @@ function OperationsPage({
 
             {planMode === "templates" ? (
               <div className="operations-template-summary">
-                <span><strong>{taskTemplates.length}</strong> регулярных шаблонов</span>
-                <span>Изменения расписания применяются к будущим дням</span>
+                <div><span><strong>{taskTemplates.length}</strong> регулярных шаблонов</span><span>Изменения расписания применяются к будущим дням</span></div>
+                <label className="operations-template-archive-toggle"><Checkbox checked={showArchivedTemplates} onChange={(event) => setShowArchivedTemplates(event.target.checked)} /><span>Показать архив</span></label>
               </div>
             ) : <div className="operations-workday-summary">
               <span><strong>{planMode === "week" ? weekStats.planned : planMode === "all" ? allTasks.length : dayStats.planned}</strong> задач</span>
@@ -846,15 +872,22 @@ function OperationsPage({
               </div>
             ) : planMode === "templates" ? (
               <section className="operations-template-list" aria-label="Шаблоны задач">
-                {taskTemplates.length ? taskTemplates.map((task) => (
-                  <TaskTemplateCard
-                    key={task.id}
-                    task={task}
-                    onDelete={onDeleteTask}
-                    onEdit={onEditTask}
-                    openMenuId={openItemMenuId}
-                    setOpenMenuId={setOpenItemMenuId}
-                  />
+                {templateGroups.length ? templateGroups.map((group) => (
+                  <section className="operations-template-group" key={group.id}>
+                    <header><strong>{group.label}</strong><span>{group.tasks.length}</span></header>
+                    {group.tasks.map((task) => (
+                      <TaskTemplateCard
+                        key={task.id}
+                        task={task}
+                        today={today}
+                        onDelete={onDeleteTask}
+                        onEdit={onEditTask}
+                        onToggleArchived={onSetTaskTemplateArchived}
+                        openMenuId={openItemMenuId}
+                        setOpenMenuId={setOpenItemMenuId}
+                      />
+                    ))}
+                  </section>
                 )) : <p className="operations-empty">Регулярных шаблонов по выбранным фильтрам нет.</p>}
               </section>
             ) : (

@@ -272,6 +272,7 @@ const weeksBetween = (startDate, date) => {
 export const occursOnDate = (task = {}, date) => {
   const payload = getTaskPayload(task);
   const repeat = payload.repeat ?? {};
+  if (payload.templateArchived === true) return false;
   if (!isTaskRepeating(task) || !isInputDate(date)) return false;
 
   const startDate = normalizeInputDate(repeat.startDate ?? getTaskDueDate(task));

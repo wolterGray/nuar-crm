@@ -1401,6 +1401,7 @@ function App() {
     reorderTasks,
     requestDeleteTask,
     saveTaskOccurrence,
+    setTaskTemplateArchived,
     setMainTask,
   } = useTaskHandlers({
     createLocalId,
@@ -2166,6 +2167,7 @@ function App() {
             initializeAcquisitionPlan={initializeAcquisitionPlan}
             reorderTasks={reorderTasks}
             saveTaskOccurrence={saveTaskOccurrence}
+            setTaskTemplateArchived={setTaskTemplateArchived}
             setMainTask={setMainTask}
             reorderServices={reorderServiceCatalog}
             repeatClientVisit={repeatClientVisit}

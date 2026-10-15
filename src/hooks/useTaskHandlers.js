@@ -450,6 +450,39 @@ export function useTaskHandlers({
     [pushNotification, setTasks],
   );
 
+  const setTaskTemplateArchived = useCallback(
+    async (task, archived) => {
+      const storageTaskId = getTaskStorageId(task);
+      if (!storageTaskId) return false;
+      const nextTask = {
+        ...task,
+        payload: {
+          ...getTaskPayload(task),
+          templateArchived: archived === true,
+        },
+        updatedAt: new Date().toISOString(),
+      };
+      try {
+        const response = await updateTask(storageTaskId, nextTask);
+        const savedTask = response?.data ?? nextTask;
+        setTasks((current) => current.map((item) => String(item.id) === String(storageTaskId) ? savedTask : item));
+        pushNotification({
+          title: archived ? "Шаблон перенесён в архив" : "Шаблон активирован",
+          message: task.title,
+        });
+        return true;
+      } catch (error) {
+        pushNotification({
+          title: "Шаблон не обновлён",
+          message: error?.message || "Backend не принял данные",
+          persist: false,
+        });
+        return false;
+      }
+    },
+    [pushNotification, setTasks],
+  );
+
   const initializeAcquisitionPlan = useCallback(async () => {
     const startDate = getWarsawTodayInput();
     const normalizeTitle = (value) => String(value ?? "").trim().toLocaleLowerCase("ru");
@@ -737,6 +770,7 @@ export function useTaskHandlers({
     reorderTasks,
     requestDeleteTask,
     saveTaskOccurrence,
+    setTaskTemplateArchived,
     moveTaskToDate,
     setMainTask,
   };
