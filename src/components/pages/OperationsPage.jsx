@@ -561,6 +561,7 @@ function OperationsPage({
   const acquisitionSyncStarted = useRef(false);
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
+  const [moveUndo, setMoveUndo] = useState(null);
   const kanbanBoardRef = useRef(null);
   const today = getWarsawTodayInput();
   const nowTime = getWarsawTime();
@@ -577,6 +578,12 @@ function OperationsPage({
   useEffect(() => {
     window.localStorage.setItem(AREA_ORDER_STORAGE_KEY, JSON.stringify(areaOrder));
   }, [areaOrder]);
+
+  useEffect(() => {
+    if (!moveUndo) return undefined;
+    const timer = window.setTimeout(() => setMoveUndo(null), 7000);
+    return () => window.clearTimeout(timer);
+  }, [moveUndo]);
 
   useEffect(() => {
     if (!alertFocus?.entityId) return undefined;
@@ -753,10 +760,23 @@ function OperationsPage({
     setNoteText("");
   };
 
+  const moveTaskWithUndo = async (task, nextDate) => {
+    const previousDate = getTaskDueDate(task);
+    if (!nextDate || previousDate === nextDate) return;
+    const moved = await onMoveTask?.(task, nextDate);
+    if (moved) setMoveUndo({from: previousDate, task, to: nextDate});
+  };
+
   const handleMoveTask = (task) => {
     const nextDate = window.prompt("Новая дата задачи (YYYY-MM-DD)", getTaskDueDate(task) || selectedDate);
     if (!nextDate || !/^\d{4}-\d{2}-\d{2}$/.test(nextDate)) return;
-    onMoveTask?.(task, nextDate);
+    moveTaskWithUndo(task, nextDate);
+  };
+
+  const undoTaskMove = async () => {
+    if (!moveUndo?.from) return;
+    const restored = await onMoveTask?.(moveUndo.task, moveUndo.from);
+    if (restored) setMoveUndo(null);
   };
 
   const handleTaskCompletionRequest = (task) => {
@@ -796,7 +816,7 @@ function OperationsPage({
     const task = active.data.current?.task;
     const date = over?.data.current?.date;
     if (!task || !date || getTaskDueDate(task) === date) return;
-    onMoveTask?.(task, date);
+    moveTaskWithUndo(task, date);
   };
 
   return (
@@ -846,10 +866,18 @@ function OperationsPage({
                 </div>
               </div>
               <div className="operations-task-actions">
-                <IconButton icon="settings" label="Управление направлениями и шаблонами" size="sm" variant="secondary" onClick={() => setPlanMode("templates")} />
-                <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: selectedDate})}>Добавить задачу</Button>
+                <Button leftIcon="settings" size="sm" variant="secondary" onClick={() => setPlanMode("templates")}>Управление задачами</Button>
+                <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: today >= weekStart && today <= weekEnd ? today : weekStart})}>Добавить задачу</Button>
               </div>
             </div>}
+
+            {moveUndo ? (
+              <div className="operations-move-undo" role="status">
+                <span><strong>Задача перенесена</strong><small>{formatDateShort(moveUndo.from)} → {formatDateShort(moveUndo.to)}</small></span>
+                <Button size="sm" variant="ghost" onClick={undoTaskMove}>Отменить</Button>
+                <IconButton icon="x" label="Скрыть" size="sm" variant="ghost" onClick={() => setMoveUndo(null)} />
+              </div>
+            ) : null}
 
             {planMode === "templates" ? (
               <div className="operations-template-summary">

@@ -876,7 +876,7 @@ export function useTaskHandlers({
           message: "У задачи должна быть дата.",
           persist: false,
         });
-        return;
+        return false;
       }
 
       const assigneeId = getTaskAssigneeId(task);
@@ -912,7 +912,7 @@ export function useTaskHandlers({
           message: error?.message || "Backend не принял изменение",
           persist: false,
         });
-        return;
+        return false;
       }
 
       setTasks((current) =>
@@ -967,6 +967,7 @@ export function useTaskHandlers({
         ),
       );
       pushNotification({title: "Задача перенесена", message: `${task.title} → ${date}`});
+      return true;
     },
     [pushNotification, setTasks],
   );

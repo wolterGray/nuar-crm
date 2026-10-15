@@ -10759,6 +10759,34 @@
   font-size: 12px;
 }
 
+.operations-page .operations-move-undo {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, var(--operations-border-soft));
+  border-radius: var(--operations-radius);
+  background: color-mix(in srgb, var(--color-success) 7%, var(--operations-panel));
+}
+
+.operations-page .operations-move-undo > span {
+  display: grid;
+  flex: 1;
+  gap: 1px;
+  min-width: 0;
+}
+
+.operations-page .operations-move-undo strong {
+  color: var(--operations-text);
+  font-size: 12px;
+}
+
+.operations-page .operations-move-undo small {
+  color: var(--operations-muted);
+  font-size: 11px;
+}
+
 .operations-page .operations-template-summary {
   display: flex;
   min-height: 44px;
