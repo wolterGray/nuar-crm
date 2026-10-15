@@ -94,7 +94,7 @@ describe("notification events service", () => {
   });
 
   it("resolves stale visit notifications before listing active events", async () => {
-    const now = new Date();
+    const now = new Date("2026-09-28T12:00:00");
     const yesterday = toInputDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
     const today = toInputDate(now);
     const nearTime = toTime(new Date(now.getTime() + 60 * 60 * 1000));
@@ -133,6 +133,7 @@ describe("notification events service", () => {
 
     const listed = await listNotificationEvents(prisma, {
       limit: 10,
+      now,
       status: "active",
     });
 

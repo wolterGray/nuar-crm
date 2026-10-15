@@ -217,10 +217,9 @@ const normalizeNotificationEventInput = (input = {}) => {
   };
 };
 
-const listNotificationEvents = async (prisma, {limit = 50, status = 'active'} = {}) => {
+const listNotificationEvents = async (prisma, {limit = 50, now = new Date(), status = 'active'} = {}) => {
   const take = Math.max(1, Math.min(100, Number(limit) || 50));
   const internalTake = Math.min(100, Math.max(take * 3, take));
-  const now = new Date();
   if (status === 'active') {
     await resolveStaleVisitUpcomingEvents(prisma, {now});
   }

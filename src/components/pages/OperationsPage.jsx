@@ -186,6 +186,8 @@ function TaskCard({
   const statusTone = isDone ? "done" : isLate ? "overdue" : status === "В процессе" ? "progress" : "idle";
   const areaLabel = getTaskAreaShortLabel(task);
   const isHighPriority = priority === "high";
+  const dueTime = getTaskDueTime(task);
+  const estimateMinutes = getTaskEstimateMinutes(task);
 
   return (
     <article
@@ -199,22 +201,18 @@ function TaskCard({
         isLate ? "is-overdue" : "",
       ].filter(Boolean).join(" ")}>
       <div className="operations-task-card-header">
-        <div className="operations-task-top-badges">
-          <span className="operations-task-area-pill">{areaLabel}</span>
-          {isPrimary ? (
-            <span className="operations-task-main-pill">
-              <AppIcon name="star" size="xs" />
-              <span>Главная</span>
-            </span>
+        <div className="operations-task-header-tags">
+          {dueTime ? (
+            <span className="operations-task-time-tag">{dueTime}</span>
           ) : null}
-          {isHighPriority ? (
-            <span className="operations-task-priority-pill is-high">
-              Срочно
-            </span>
+          {dueTime && areaLabel ? <span className="operations-task-tag-sep">•</span> : null}
+          <span className="operations-task-category-tag">{areaLabel}</span>
+          {isPrimary ? (
+            <span className="operations-task-primary-star" title="Главная задача дня">★</span>
           ) : null}
           {rawAssignee ? (
-            <span className="operations-task-assignee-pill" title={`Исполнитель: ${rawAssignee}`}>
-              {rawAssignee}
+            <span className="operations-task-assignee-micro" title={`Исполнитель: ${rawAssignee}`}>
+              @{rawAssignee}
             </span>
           ) : null}
         </div>
@@ -225,7 +223,7 @@ function TaskCard({
               className="operations-task-drag-handle"
               type="button"
               {...dragHandleProps}>
-              <AppIcon name="grip" size="sm" />
+              <AppIcon name="grip" size="xs" />
             </button>
           ) : null}
           <RowActionsMenu
@@ -257,7 +255,22 @@ function TaskCard({
           />
         </div>
       </div>
-      <div className="operations-task-card-body">
+      <button
+        className="operations-task-card-body-btn"
+        type="button"
+        onClick={() => onView(task)}>
+        <div className="operations-task-title-line">
+          {isHighPriority ? (
+            <span
+              className="operations-priority-dot is-high"
+              title="Срочный приоритет"
+            />
+          ) : null}
+          <strong className="operations-task-title-text">{task.title}</strong>
+        </div>
+        {task.note ? <p className="operations-task-note-text">{task.note}</p> : null}
+      </button>
+      <footer className="operations-task-card-footer">
         <IconButton
           className={`operations-task-check ${isDone ? "is-on" : ""}`}
           icon={isDone ? "rotateCcw" : "check"}
@@ -266,32 +279,24 @@ function TaskCard({
           variant="ghost"
           onClick={() => onComplete(task)}
         />
-        <button
-          className="operations-work-card-main"
-          type="button"
-          onClick={() => onView(task)}>
-          <span className="operations-work-card-title">
-            <strong>{task.title}</strong>
-          </span>
-          {task.note ? <small>{task.note}</small> : null}
-        </button>
-      </div>
-      <footer className="operations-task-card-footer" onClick={() => onView(task)}>
-        <span className="operations-work-card-meta">
-          {!compact ? <em>{getTaskKindLabel(task)}</em> : null}
-          {getTaskDueTime(task) ? <em>{getTaskDueTime(task)}</em> : null}
-          {!compact && (taskDueDate !== today || getTaskDueTime(task)) ? <em>{formatTaskDateTime(task)}</em> : null}
-          {getTaskEstimateMinutes(task) ? <em>{formatMinutes(getTaskEstimateMinutes(task))}</em> : null}
-          {!compact && priority !== "medium" ? <em>{getTaskPriorityLabel(task)}</em> : null}
+        <div className="operations-task-footer-meta" onClick={() => onView(task)}>
           {listProgress.total ? (
-            <em className={`meta-checklist ${listProgress.done === listProgress.total ? "is-done" : ""}`}>
-              {listProgress.done}/{listProgress.total} чек-лист
-            </em>
+            <span className={`operations-meta-pill ${listProgress.done === listProgress.total ? "is-done" : ""}`}>
+              {listProgress.done}/{listProgress.total}
+            </span>
           ) : null}
-          {statusTone === "progress" ? <em className="operations-task-status status-progress">В процессе</em> : null}
-          {statusTone === "overdue" ? <em className="operations-task-status status-overdue">Просрочено</em> : null}
-          {!compact && statusTone === "idle" ? <em className="operations-task-status">{status}</em> : null}
-        </span>
+          {listProgress.total && estimateMinutes ? <span className="operations-meta-sep">•</span> : null}
+          {estimateMinutes ? (
+            <span className="operations-meta-pill">
+              {formatMinutes(estimateMinutes)}
+            </span>
+          ) : null}
+          {isLate && !isDone ? (
+            <span className="operations-meta-pill is-overdue">
+              Просрочено
+            </span>
+          ) : null}
+        </div>
       </footer>
     </article>
   );
@@ -359,45 +364,73 @@ function KanbanDaySection({allTasksCount, cardProps, date, label, onAddTask, onR
   const minutes = tasks.reduce((total, task) => total + (Number(getTaskEstimateMinutes(task)) || 0), 0);
   const weekdayIndex = (new Date(`${date}T12:00:00.000Z`).getUTCDay() || 7) - 1;
   const fullLabel = WEEKDAY_FULL_LABELS[weekdayIndex] || label;
-  const dayMonthText = formatDayMonth(date);
+  const dayMonthText = formatDayMonthShort(date);
   const isCurrentDay = date === today;
 
-  return <section className={`operations-kanban-day ${isOver ? "is-over" : ""} ${isCurrentDay ? "is-today" : ""} ${tasks.length ? "" : "is-empty"}`} data-kanban-date={date} ref={setNodeRef}>
-    <header>
-      <div>
-        <div className="operations-kanban-day-title">
-          <strong>{fullLabel}</strong>
-          {isCurrentDay ? <span className="operations-today-badge">Сегодня</span> : null}
+  return (
+    <section
+      className={`operations-kanban-day ${isOver ? "is-over" : ""} ${isCurrentDay ? "is-today" : ""} ${tasks.length ? "" : "is-empty"}`}
+      data-kanban-date={date}
+      ref={setNodeRef}
+    >
+      <header className="operations-kanban-day-header">
+        <div className="operations-kanban-day-header-left">
+          <strong className="operations-kanban-day-name">{fullLabel}</strong>
+          <span className="operations-kanban-day-date">{dayMonthText}</span>
+          {isCurrentDay ? <span className="operations-today-dot" title="Сегодня" /> : null}
         </div>
-        <span className="operations-kanban-day-date">{dayMonthText}</span>
+        <div className="operations-kanban-day-header-right">
+          <span className="operations-kanban-day-stats-pill">
+            {completed}/{tasks.length}{minutes ? ` • ${formatMinutes(minutes)}` : ""}
+          </span>
+          <button
+            aria-label={`Добавить задачу на ${fullLabel}`}
+            className="operations-kanban-day-add-icon-btn"
+            title="Добавить задачу"
+            type="button"
+            onClick={() => onAddTask?.({dueDate: date})}
+          >
+            <AppIcon name="plus" size="xs" />
+          </button>
+        </div>
+      </header>
+      <div className="operations-kanban-column-body">
+        {tasks.map((task) => (
+          <KanbanTaskCard cardProps={cardProps} key={`${task.id}-${getTaskDueDate(task)}`} task={task} />
+        ))}
+        {!tasks.length ? (
+          <div className="operations-kanban-empty">
+            <span>{allTasksCount ? `Скрыто: ${allTasksCount}` : "Нет задач"}</span>
+            {!tasks.length && allTasksCount ? (
+              <button className="operations-kanban-reset" type="button" onClick={onResetFilters}>
+                Показать задачи
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
-      <div className="operations-kanban-day-stats"><em>{completed}/{tasks.length}</em>{minutes ? <em>{formatMinutes(minutes)}</em> : null}</div>
-    </header>
-    <div className="operations-kanban-column-body">
-      {tasks.map((task) => <KanbanTaskCard cardProps={cardProps} key={`${task.id}-${getTaskDueDate(task)}`} task={task} />)}
-      {!tasks.length ? <span className="operations-kanban-empty">{allTasksCount ? `Скрыто фильтрами: ${allTasksCount}` : "Свободный день"}</span> : null}
-      {!tasks.length && allTasksCount ? <button className="operations-kanban-reset" type="button" onClick={onResetFilters}>Показать задачи</button> : null}
-      <button className="operations-kanban-add" type="button" onClick={() => onAddTask?.({dueDate: date})}><AppIcon name="plus" size="sm" />Добавить</button>
-    </div>
-  </section>;
+    </section>
+  );
 }
 
 function KanbanDayColumn({allTasks, cardProps, dates, labels, onAddTask, onResetFilters, tasks, today}) {
-  return <section className={`operations-kanban-column ${dates.length > 1 ? "is-weekend" : ""}`}>
-    {dates.map((date, index) => (
-      <KanbanDaySection
-        cardProps={cardProps}
-        allTasksCount={allTasks.filter((task) => getTaskDueDate(task) === date).length}
-        date={date}
-        key={date}
-        label={labels[index]}
-        onAddTask={onAddTask}
-        onResetFilters={onResetFilters}
-        tasks={tasks.filter((task) => getTaskDueDate(task) === date)}
-        today={today}
-      />
-    ))}
-  </section>;
+  return (
+    <section className={`operations-kanban-column ${dates.length > 1 ? "is-weekend" : ""}`}>
+      {dates.map((date, index) => (
+        <KanbanDaySection
+          allTasksCount={allTasks.filter((task) => getTaskDueDate(task) === date).length}
+          cardProps={cardProps}
+          date={date}
+          key={date}
+          label={labels[index]}
+          onAddTask={onAddTask}
+          onResetFilters={onResetFilters}
+          tasks={tasks.filter((task) => getTaskDueDate(task) === date)}
+          today={today}
+        />
+      ))}
+    </section>
+  );
 }
 
 const TECHNICAL_CHECKLIST_LABELS = new Set(["сохранить показатели"]);
@@ -655,6 +688,7 @@ function OperationsPage({
   const [activeTab, setActiveTab] = useState(storedView.activeTab ?? "plan");
   const [planMode, setPlanMode] = useState(storedView.planMode === "templates" ? "templates" : "week");
   const [selectedDate, setSelectedDate] = useState(storedView.selectedDate ?? getWarsawTodayInput());
+  const [weekViewMode, setWeekViewMode] = useState(storedView.weekViewMode ?? "workweek");
   const [filters, setFilters] = useState(() => readStoredJson(FILTER_STORAGE_KEY, DEFAULT_FILTERS));
   const [openItemMenuId, setOpenItemMenuId] = useState(null);
   const [viewingTask, setViewingTask] = useState(null);
@@ -674,8 +708,8 @@ function OperationsPage({
   const kanbanSensors = useSensors(useSensor(PointerSensor, {activationConstraint: {distance: 6}}));
 
   useEffect(() => {
-    window.localStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify({activeTab, planMode, selectedDate}));
-  }, [activeTab, planMode, selectedDate]);
+    window.localStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify({activeTab, planMode, selectedDate, weekViewMode}));
+  }, [activeTab, planMode, selectedDate, weekViewMode]);
 
   useEffect(() => {
     window.localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
@@ -927,6 +961,10 @@ function OperationsPage({
 
   const tabMeta = `${dayStats.completed}/${dayStats.planned} задач · ${formatMinutes(dayStats.remainingMinutes)}`;
   const isTemplateManager = activeTab === "plan" && planMode === "templates";
+  const weekendDates = useMemo(() => [weekDays[5]?.input, weekDays[6]?.input].filter(Boolean), [weekDays]);
+  const weekendTaskCount = useMemo(() => {
+    return weekTasksRaw.filter((task) => weekendDates.includes(getTaskDueDate(task))).length;
+  }, [weekendDates, weekTasksRaw]);
   const kanbanColumns = useMemo(() => {
     if (isMobile) {
       return weekDays.map((day) => ({
@@ -936,14 +974,14 @@ function OperationsPage({
         tasks: weekTasks.filter((task) => getTaskDueDate(task) === day.input),
       }));
     }
-    const weekdayColumns = weekDays.slice(0, 5).map((day) => ({dates: [day.input], labels: [day.label]}));
-    const weekend = weekDays.slice(5);
-    return [...weekdayColumns, {dates: weekend.map((day) => day.input), labels: weekend.map((day) => day.label)}].map((column) => ({
-      ...column,
-      allTasks: weekTasksRaw.filter((task) => column.dates.includes(getTaskDueDate(task))),
-      tasks: weekTasks.filter((task) => column.dates.includes(getTaskDueDate(task))),
+    const daysToShow = weekViewMode === "workweek" ? weekDays.slice(0, 5) : weekDays;
+    return daysToShow.map((day) => ({
+      allTasks: weekTasksRaw.filter((task) => getTaskDueDate(task) === day.input),
+      dates: [day.input],
+      labels: [day.label],
+      tasks: weekTasks.filter((task) => getTaskDueDate(task) === day.input),
     }));
-  }, [isMobile, weekDays, weekTasks, weekTasksRaw]);
+  }, [isMobile, weekDays, weekTasks, weekTasksRaw, weekViewMode]);
 
   const handleKanbanDragEnd = ({active, over}) => {
     const task = active.data.current?.task;
@@ -1010,6 +1048,26 @@ function OperationsPage({
                     {isCurrentWeek ? "Текущая неделя" : "← К текущей неделе"}
                   </Button>
                   <IconButton icon="chevronRight" label="Следующая неделя" size="sm" variant="secondary" onClick={() => changeWeek(1)} />
+
+                  <div className="operations-week-mode-toggle" role="group" aria-label="Режим отображения недели">
+                    <button
+                      type="button"
+                      className={`operations-week-mode-btn ${weekViewMode === "workweek" ? "is-active" : ""}`}
+                      onClick={() => setWeekViewMode("workweek")}
+                    >
+                      Будни (5 дней)
+                    </button>
+                    <button
+                      type="button"
+                      className={`operations-week-mode-btn ${weekViewMode === "fullweek" ? "is-active" : ""}`}
+                      onClick={() => setWeekViewMode("fullweek")}
+                    >
+                      Вся неделя (7)
+                      {weekendTaskCount > 0 && weekViewMode === "workweek" ? (
+                        <span className="operations-weekend-dot" title={`${weekendTaskCount} задач на выходных`} />
+                      ) : null}
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="operations-task-actions">
@@ -1119,7 +1177,7 @@ function OperationsPage({
                 })}
               </nav> : null}
               <DndContext sensors={kanbanSensors} onDragEnd={handleKanbanDragEnd}>
-                <div className="operations-kanban-board" ref={kanbanBoardRef}>
+                <div className={`operations-kanban-board mode-${weekViewMode}`} ref={kanbanBoardRef}>
                   {kanbanColumns.map((column) => <KanbanDayColumn allTasks={column.allTasks} cardProps={cardProps} dates={column.dates} key={column.dates.join("-")} labels={column.labels} onAddTask={onAddTask} onResetFilters={resetFilters} tasks={column.tasks} today={today} />)}
                 </div>
               </DndContext>
