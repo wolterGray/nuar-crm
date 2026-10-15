@@ -8,7 +8,7 @@ export const navGroups = [
       {label: "Клиенты", page: "clients", icon: "users"},
       {label: "Club", page: "club", icon: "crown"},
       {label: "Оплаты", page: "payments", icon: "receipt"},
-      {label: "Операции", page: "operations", icon: "clipboardList"},
+      {label: "Работа", page: "operations", icon: "clipboardList"},
     ],
   },
   {
@@ -50,5 +50,5 @@ export const mobileNavItems = [
   {label: "Календарь", page: "calendar", icon: "calendarDays"},
   {label: "Визиты", page: "payments", icon: "receipt"},
   {label: "Клиенты", page: "clients", icon: "users"},
-  {label: "Операции", page: "operations", icon: "clipboardList"},
+  {label: "Работа", page: "operations", icon: "clipboardList"},
 ];

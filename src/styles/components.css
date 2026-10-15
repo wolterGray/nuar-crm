@@ -10425,65 +10425,52 @@
   box-shadow: none !important;
 }
 
-.operations-page .operations-workday-label {
-  color: var(--operations-faint);
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
 .operations-page .operations-workday-summary {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  padding-bottom: 5px;
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 12px;
   border: 1px solid var(--operations-border-soft);
   border-radius: var(--operations-radius);
-  background: var(--operations-border-soft);
+  background: color-mix(in srgb, var(--operations-panel-soft) 72%, transparent);
 }
 
-.operations-page .operations-workday-summary > div {
-  min-width: 0;
-  padding: 12px 14px;
-  background: var(--operations-panel-soft);
-}
-
-.operations-page .operations-workday-summary strong,
 .operations-page .operations-workday-summary span {
-  display: block;
+  color: var(--operations-muted);
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .operations-page .operations-workday-summary strong {
   color: var(--operations-text);
-  font-size: 18px;
-}
-
-.operations-page .operations-workday-summary div > span {
-  margin-top: 3px;
-  color: var(--operations-muted);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .operations-page .operations-workday-summary .is-alert strong {
   color: var(--color-danger, var(--operations-accent));
 }
 
-.operations-page .operations-workday-progress {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 4px;
+.operations-page .operations-summary-progress {
+  overflow: hidden;
+  height: 5px;
+  flex: 1 1 180px;
+  min-width: 80px;
+  border-radius: 999px;
   background: color-mix(in srgb, var(--operations-text) 5%, transparent);
 }
 
-.operations-page .operations-workday-progress i {
+.operations-page .operations-summary-progress i {
   display: block;
   height: 100%;
+  border-radius: inherit;
   background: var(--operations-accent);
   transition: width 0.2s ease;
+}
+
+.operations-page .operations-workday-summary > b {
+  color: var(--operations-text);
+  font-size: 12px;
 }
 
 .operations-page .operations-plan-setup {
@@ -10644,6 +10631,13 @@
   gap: 12px;
 }
 
+.operations-page .operations-task-commandbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
 .operations-page .operations-planner-head span,
 .operations-page .operations-main-task span {
   display: block;
@@ -10688,7 +10682,7 @@
 .operations-page .operations-list-toolbar {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
+  grid-template-columns: minmax(220px, 1fr) auto;
   gap: 8px;
   align-items: center;
   padding-bottom: 12px;
@@ -11543,13 +11537,34 @@
     padding: 10px 0 20px;
   }
 
+  .operations-page .operations-task-commandbar {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-page .operations-task-commandbar > button {
+    width: 100%;
+  }
+
   .operations-page .operations-list-toolbar {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .operations-page .operations-workday-summary,
   .operations-page .operations-report-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .operations-page .operations-workday-summary {
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+
+  .operations-page .operations-summary-progress {
+    flex-basis: calc(100% - 42px);
+    order: 4;
+  }
+
+  .operations-page .operations-workday-summary > b {
+    order: 5;
   }
 
   .operations-page .operations-plan-setup {

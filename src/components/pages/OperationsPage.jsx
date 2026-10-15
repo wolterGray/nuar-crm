@@ -656,12 +656,12 @@ function OperationsPage({
         className="operations-page-header"
         collapsedMeta={tabMeta}
         collapsible={false}
-        description={isMobile ? undefined : "План дня, заметки, расходники и лист ожидания"}
-        title="Операции"
+        description={isMobile ? undefined : "Задачи, заметки, расходники и лист ожидания"}
+        title="Работа"
       />
 
-      <nav aria-label="Разделы операций" className="operations-page-tabs operations-main-tabs">
-        <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>План работы</SegmentButton>
+      <nav aria-label="Разделы работы" className="operations-page-tabs operations-main-tabs">
+        <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>Задачи</SegmentButton>
         <SegmentButton active={activeTab === "notes"} onClick={() => setActiveTab("notes")}>Заметки</SegmentButton>
         <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>Расходники</SegmentButton>
         <SegmentButton active={activeTab === "waitlist"} onClick={() => setActiveTab("waitlist")}>Лист ожидания</SegmentButton>
@@ -677,45 +677,42 @@ function OperationsPage({
           ) : null}
 
           <section className="panel operations-planner-panel">
-            <div className="operations-workday-label">Мой рабочий день</div>
-            <div className="operations-planner-head">
-              <div>
-                <span>{planMode === "week" ? "Календарная неделя" : selectedDate === today ? "Сегодня" : "Выбранный день"}</span>
-                <h2>{planMode === "week" ? formatWeekRange(weekStart, weekEnd) : formatPlannerDate(selectedDate)}</h2>
+            <div className="operations-task-commandbar">
+              <div className="operations-plan-mode">
+                <SegmentButton active={planMode === "today"} onClick={() => setPlanMode("today")}>Сегодня</SegmentButton>
+                <SegmentButton active={planMode === "week"} onClick={() => { setPlanMode("week"); changeWeek(0); }}>Неделя</SegmentButton>
+                <SegmentButton active={planMode === "all"} onClick={() => setPlanMode("all")}>Все</SegmentButton>
               </div>
-              {planMode === "week" ? (
-                <div className="operations-week-controls">
-                  <IconButton icon="chevronLeft" label="Предыдущая неделя" size="sm" variant="secondary" onClick={() => changeWeek(-1)} />
-                  <Button size="sm" variant="secondary" onClick={() => changeWeek(0)}>Текущая неделя</Button>
-                  <IconButton icon="chevronRight" label="Следующая неделя" size="sm" variant="secondary" onClick={() => changeWeek(1)} />
-                </div>
-              ) : (
-                <div className="operations-date-controls">
-                  <IconButton icon="chevronLeft" label="Предыдущий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, -1))} />
-                  <Input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} />
-                  <IconButton icon="chevronRight" label="Следующий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, 1))} />
-                  <Button size="sm" variant="secondary" onClick={() => setSelectedDate(today)}>Сегодня</Button>
-                </div>
-              )}
+              <div className="operations-planner-head">
+                <h2>{planMode === "week" ? formatWeekRange(weekStart, weekEnd) : planMode === "all" ? "Все задачи" : formatPlannerDate(selectedDate)}</h2>
+                {planMode === "week" ? (
+                  <div className="operations-week-controls">
+                    <IconButton icon="chevronLeft" label="Предыдущая неделя" size="sm" variant="secondary" onClick={() => changeWeek(-1)} />
+                    <Button size="sm" variant="secondary" onClick={() => changeWeek(0)}>Текущая неделя</Button>
+                    <IconButton icon="chevronRight" label="Следующая неделя" size="sm" variant="secondary" onClick={() => changeWeek(1)} />
+                  </div>
+                ) : planMode === "today" ? (
+                  <div className="operations-date-controls">
+                    <IconButton icon="chevronLeft" label="Предыдущий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, -1))} />
+                    <Input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} />
+                    <IconButton icon="chevronRight" label="Следующий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, 1))} />
+                    <Button size="sm" variant="secondary" onClick={() => setSelectedDate(today)}>Сегодня</Button>
+                  </div>
+                ) : null}
+              </div>
+              <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: selectedDate})}>Добавить задачу</Button>
             </div>
 
             <div className="operations-workday-summary">
-              <div><strong>{dayStats.planned}</strong><span>задач</span></div>
-              <div><strong>{dayStats.completed}</strong><span>выполнено</span></div>
-              <div><strong>{dayStats.progress}%</strong><span>прогресс</span></div>
-              <div className={overdueTasks.length ? "is-alert" : ""}><strong>{overdueTasks.length}</strong><span>просрочено</span></div>
-              <span className="operations-workday-progress"><i style={{width: `${dayStats.progress}%`}} /></span>
-            </div>
-
-            <div className="operations-plan-mode">
-              <SegmentButton active={planMode === "today"} onClick={() => setPlanMode("today")}>Сегодня</SegmentButton>
-              <SegmentButton active={planMode === "week"} onClick={() => { setPlanMode("week"); changeWeek(0); }}>Неделя</SegmentButton>
-              <SegmentButton active={planMode === "all"} onClick={() => setPlanMode("all")}>Все</SegmentButton>
+              <span><strong>{planMode === "week" ? weekStats.planned : planMode === "all" ? allTasks.length : dayStats.planned}</strong> задач</span>
+              <span><strong>{planMode === "week" ? weekStats.completed : dayStats.completed}</strong> выполнено</span>
+              <span className={overdueTasks.length ? "is-alert" : ""}><strong>{overdueTasks.length}</strong> просрочено</span>
+              <span className="operations-summary-progress"><i style={{width: `${planMode === "week" ? weekProgress : dayStats.progress}%`}} /></span>
+              <b>{planMode === "week" ? weekProgress : dayStats.progress}%</b>
             </div>
 
             <section className="operations-list-toolbar">
               <Input value={filters.query} placeholder="Поиск по задачам" onChange={(event) => updateFilter("query", event.target.value)} />
-              <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: selectedDate})}>Добавить задачу</Button>
               <details className="operations-filter-menu">
                 <summary>Фильтры</summary>
                 <div className="operations-filter-menu-content">
