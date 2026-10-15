@@ -77,6 +77,10 @@ const ACQUISITION_TEMPLATE_KEYS = [
   "acquisition-channel-control",
   "acquisition-partners",
   "acquisition-results-accounting",
+  "marketing-monday-meta-analytics",
+  "marketing-monday-microbloggers",
+  "marketing-monday-content-editing",
+  "marketing-monday-content-planning",
 ];
 
 const readStoredJson = (key, fallback) => {
