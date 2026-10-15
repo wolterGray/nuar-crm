@@ -678,7 +678,7 @@ function OperationsPage({
             </button>
           ) : null}
 
-          <section className="operations-planner-panel">
+          <section className="panel operations-planner-panel">
             <div className="operations-workday-label">Мой рабочий день</div>
             <div className="operations-planner-head">
               <div>
