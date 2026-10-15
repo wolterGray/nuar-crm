@@ -267,6 +267,8 @@ export default function AppRoutes({activePage, ...props}) {
             onEditWaitlistEntry={props.openEditWaitlistEntry}
             onMessageWaitlistEntry={props.messageWaitlistEntryFromPanel}
             onMoveTask={props.moveTaskToDate}
+            onMoveTaskTemplateToArea={props.moveTaskTemplateToArea}
+            onRenameTaskArea={props.renameTaskArea}
             onInitializeAcquisitionPlan={props.initializeAcquisitionPlan}
             onRemoveWaitlistEntry={props.removeWaitlistEntry}
             onReorderTasks={props.reorderTasks}

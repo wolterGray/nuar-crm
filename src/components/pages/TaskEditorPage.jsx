@@ -1,18 +1,12 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import TaskForm from "../TaskForm.jsx";
 import {Button} from "../ui/index.js";
-import {getTaskPayload} from "../../utils/operationsPlanner.js";
-
-const AREA_LABELS = {
-  acquisition: "Привлечение новых клиентов",
-  general: "Другие задачи",
-};
+import {getTaskAreaLabel} from "../../utils/operationsPlanner.js";
 
 export default function TaskEditorPage({employees, onClose, onDirtyChange, onSubmit, task}) {
   const dirtyRef = useRef(false);
   const [saving, setSaving] = useState(false);
-  const payload = getTaskPayload(task);
-  const areaName = AREA_LABELS[payload.areaId] ?? "Рабочий план";
+  const areaName = getTaskAreaLabel(task);
   const title = task?.id ? task.title || "Редактирование задачи" : "Новая задача";
 
   const requestClose = useCallback(() => {

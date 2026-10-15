@@ -10517,27 +10517,44 @@
   border-top: 1px solid var(--operations-border-soft);
 }
 
-.operations-page .operations-template-group > header {
+.operations-page .operations-template-group > summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 10px 8px 8px;
+  list-style: none;
+  cursor: pointer;
 }
 
-.operations-page .operations-template-group > header strong {
+.operations-page .operations-template-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.operations-page .operations-template-group > summary > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.operations-page .operations-template-group > summary strong {
   color: var(--operations-text);
   font-size: 13px;
 }
 
-.operations-page .operations-template-group > header span {
+.operations-page .operations-template-group > summary em {
   color: var(--operations-faint);
   font-size: 11px;
+  font-style: normal;
+}
+
+.operations-page .operations-template-group:not([open]) .operations-template-group-chevron {
+  transform: rotate(-90deg);
 }
 
 .operations-page .operations-template-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 36px;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 240px) auto 36px;
   gap: 10px;
   align-items: center;
   min-height: 78px;
@@ -11703,10 +11720,10 @@
     grid-template-columns: minmax(0, 1fr) 36px;
   }
 
+  .operations-page .operations-template-card > select,
   .operations-page .operations-template-card > button:not(.operations-template-card-main) {
     width: 100%;
     grid-column: 1 / -1;
-    grid-row: 2;
   }
 
   .operations-page .operations-summary-progress {

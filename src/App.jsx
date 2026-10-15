@@ -1394,12 +1394,14 @@ function App() {
     completeTask,
     handleTaskSubmit,
     initializeAcquisitionPlan,
+    moveTaskTemplateToArea,
     moveTaskToDate,
     openCreateTask,
     openEditTask,
     performDeleteTask,
     reorderTasks,
     requestDeleteTask,
+    renameTaskArea,
     saveTaskOccurrence,
     setTaskTemplateArchived,
     setMainTask,
@@ -2164,6 +2166,8 @@ function App() {
             pushNotification={pushNotification}
             remindCalendarClient={remindCalendarClient}
             moveTaskToDate={moveTaskToDate}
+            moveTaskTemplateToArea={moveTaskTemplateToArea}
+            renameTaskArea={renameTaskArea}
             initializeAcquisitionPlan={initializeAcquisitionPlan}
             reorderTasks={reorderTasks}
             saveTaskOccurrence={saveTaskOccurrence}

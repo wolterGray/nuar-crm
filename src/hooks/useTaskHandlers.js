@@ -483,6 +483,41 @@ export function useTaskHandlers({
     [pushNotification, setTasks],
   );
 
+  const moveTaskTemplateToArea = useCallback(async (task, areaId) => {
+    const storageTaskId = getTaskStorageId(task);
+    if (!storageTaskId) return false;
+    const nextTask = {...task, payload: {...getTaskPayload(task), areaId, areaLabel: ""}, updatedAt: new Date().toISOString()};
+    try {
+      const response = await updateTask(storageTaskId, nextTask);
+      const savedTask = response?.data ?? nextTask;
+      setTasks((current) => current.map((item) => String(item.id) === String(storageTaskId) ? savedTask : item));
+      pushNotification({title: "Направление изменено", message: task.title});
+      return true;
+    } catch (error) {
+      pushNotification({title: "Шаблон не перемещён", message: error?.message || "Backend не принял данные", persist: false});
+      return false;
+    }
+  }, [pushNotification, setTasks]);
+
+  const renameTaskArea = useCallback(async (areaId, areaLabel) => {
+    const affected = tasks.filter((task) => getTaskPayload(task).areaId === areaId);
+    if (!affected.length) return false;
+    try {
+      const saved = await Promise.all(affected.map(async (task) => {
+        const nextTask = {...task, payload: {...getTaskPayload(task), areaLabel}, updatedAt: new Date().toISOString()};
+        const response = await updateTask(getTaskStorageId(task), nextTask);
+        return response?.data ?? nextTask;
+      }));
+      const byId = new Map(saved.map((task) => [String(task.id), task]));
+      setTasks((current) => current.map((task) => byId.get(String(task.id)) ?? task));
+      pushNotification({title: "Направление переименовано", message: areaLabel});
+      return true;
+    } catch (error) {
+      pushNotification({title: "Название не сохранено", message: error?.message || "Backend не принял данные", persist: false});
+      return false;
+    }
+  }, [pushNotification, setTasks, tasks]);
+
   const initializeAcquisitionPlan = useCallback(async () => {
     const startDate = getWarsawTodayInput();
     const normalizeTitle = (value) => String(value ?? "").trim().toLocaleLowerCase("ru");
@@ -764,11 +799,13 @@ export function useTaskHandlers({
     completeTask,
     handleTaskSubmit,
     initializeAcquisitionPlan,
+    moveTaskTemplateToArea,
     openCreateTask,
     openEditTask,
     performDeleteTask,
     reorderTasks,
     requestDeleteTask,
+    renameTaskArea,
     saveTaskOccurrence,
     setTaskTemplateArchived,
     moveTaskToDate,

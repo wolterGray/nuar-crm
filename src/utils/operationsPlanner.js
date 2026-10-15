@@ -145,7 +145,8 @@ export const getTaskAreaId = (task = {}) =>
   String(getTaskPayload(task).areaId ?? "general").trim() || "general";
 
 export const getTaskAreaLabel = (task = {}) =>
-  WORK_AREA_OPTIONS.find((option) => option.id === getTaskAreaId(task))?.label ?? "Другие задачи";
+  String(getTaskPayload(task).areaLabel ?? "").trim() ||
+  (WORK_AREA_OPTIONS.find((option) => option.id === getTaskAreaId(task))?.label ?? "Другие задачи");
 
 export const getTaskResultFields = (task = {}) => {
   const fields = getTaskPayload(task).resultFields;

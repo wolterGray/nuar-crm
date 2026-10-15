@@ -14,6 +14,7 @@ import {
   TASK_KIND_OPTIONS,
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
+  WORK_AREA_OPTIONS,
   addDays,
   applyOperationsFilters,
   createTaskOccurrence,
@@ -60,6 +61,7 @@ import {
 const NOTE_CATEGORIES = ["Мысль", "Заказать", "Идея", "Личное"];
 const VIEW_STORAGE_KEY = "nuar-crm-operations-view-v2";
 const FILTER_STORAGE_KEY = "nuar-crm-operations-filters-v3";
+const AREA_ORDER_STORAGE_KEY = "nuar-crm-task-area-order-v1";
 
 const DEFAULT_FILTERS = {
   assigneeId: "__all__",
@@ -232,7 +234,7 @@ function TaskCard({
   );
 }
 
-function TaskTemplateCard({onDelete, onEdit, onToggleArchived, openMenuId, setOpenMenuId, task, today}) {
+function TaskTemplateCard({onDelete, onEdit, onMoveArea, onToggleArchived, openMenuId, setOpenMenuId, task, today}) {
   const payload = getTaskPayload(task);
   const archived = payload.templateArchived === true;
   const systemTemplate = ACQUISITION_TEMPLATE_KEYS.includes(payload.templateKey);
@@ -261,6 +263,10 @@ function TaskTemplateCard({onDelete, onEdit, onToggleArchived, openMenuId, setOp
           {resultCount ? <em>{resultCount} полей результата</em> : null}
         </span>
       </button>
+      <Select aria-label="Направление шаблона" value={getTaskAreaId(task)} onChange={(event) => onMoveArea(task, event.target.value)}>
+        <option value="general">Другие задачи</option>
+        {WORK_AREA_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+      </Select>
       <Button size="sm" variant="ghost" onClick={() => onToggleArchived(task, !archived)}>{archived ? "Активировать" : "В архив"}</Button>
       <RowActionsMenu
         itemId={`template-${task.id}`}
@@ -505,6 +511,8 @@ function OperationsPage({
   onEditWaitlistEntry,
   onMessageWaitlistEntry,
   onMoveTask,
+  onMoveTaskTemplateToArea,
+  onRenameTaskArea,
   onInitializeAcquisitionPlan,
   onRemoveWaitlistEntry,
   onSetMainTask,
@@ -525,6 +533,7 @@ function OperationsPage({
   const [viewingTask, setViewingTask] = useState(null);
   const [expandedWeekDays, setExpandedWeekDays] = useState(() => new Set([getWarsawTodayInput()]));
   const [showArchivedTemplates, setShowArchivedTemplates] = useState(false);
+  const [areaOrder, setAreaOrder] = useState(() => readStoredJson(AREA_ORDER_STORAGE_KEY, []));
   const acquisitionSyncStarted = useRef(false);
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
@@ -538,6 +547,10 @@ function OperationsPage({
   useEffect(() => {
     window.localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
   }, [filters]);
+
+  useEffect(() => {
+    window.localStorage.setItem(AREA_ORDER_STORAGE_KEY, JSON.stringify(areaOrder));
+  }, [areaOrder]);
 
   useEffect(() => {
     if (!alertFocus?.entityId) return undefined;
@@ -620,8 +633,22 @@ function OperationsPage({
       if (!groups.has(areaId)) groups.set(areaId, {id: areaId, label: getTaskAreaLabel(task), tasks: []});
       groups.get(areaId).tasks.push(task);
     });
-    return [...groups.values()].sort((left, right) => left.label.localeCompare(right.label, "ru"));
-  }, [taskTemplates]);
+    return [...groups.values()].sort((left, right) => {
+      const leftIndex = areaOrder.indexOf(left.id);
+      const rightIndex = areaOrder.indexOf(right.id);
+      if (leftIndex >= 0 || rightIndex >= 0) return (leftIndex < 0 ? Number.MAX_SAFE_INTEGER : leftIndex) - (rightIndex < 0 ? Number.MAX_SAFE_INTEGER : rightIndex);
+      return left.label.localeCompare(right.label, "ru");
+    });
+  }, [areaOrder, taskTemplates]);
+
+  const moveTemplateArea = (areaId, offset) => {
+    const ids = templateGroups.map((group) => group.id);
+    const index = ids.indexOf(areaId);
+    const target = index + offset;
+    if (index < 0 || target < 0 || target >= ids.length) return;
+    [ids[index], ids[target]] = [ids[target], ids[index]];
+    setAreaOrder(ids);
+  };
   const dayStats = getDayStats(dayTasksRaw);
   const visibleAreas = useMemo(() => {
     const groups = new Map();
@@ -872,9 +899,9 @@ function OperationsPage({
               </div>
             ) : planMode === "templates" ? (
               <section className="operations-template-list" aria-label="Шаблоны задач">
-                {templateGroups.length ? templateGroups.map((group) => (
-                  <section className="operations-template-group" key={group.id}>
-                    <header><strong>{group.label}</strong><span>{group.tasks.length}</span></header>
+                {templateGroups.length ? templateGroups.map((group, groupIndex) => (
+                  <details className="operations-template-group" key={group.id} open>
+                    <summary><span><strong>{group.label}</strong><em>{group.tasks.length}</em></span><span><IconButton disabled={groupIndex === 0} icon="chevronUp" label="Поднять направление" size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); moveTemplateArea(group.id, -1); }} /><IconButton disabled={groupIndex === templateGroups.length - 1} icon="chevronDown" label="Опустить направление" size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); moveTemplateArea(group.id, 1); }} />{group.id !== "acquisition" ? <Button size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); const label = window.prompt("Название направления", group.label)?.trim(); if (label && label !== group.label) onRenameTaskArea?.(group.id, label); }}>Переименовать</Button> : <em>Системное направление</em>}<AppIcon className="operations-template-group-chevron" name="chevronDown" size="sm" /></span></summary>
                     {group.tasks.map((task) => (
                       <TaskTemplateCard
                         key={task.id}
@@ -882,12 +909,13 @@ function OperationsPage({
                         today={today}
                         onDelete={onDeleteTask}
                         onEdit={onEditTask}
+                        onMoveArea={onMoveTaskTemplateToArea}
                         onToggleArchived={onSetTaskTemplateArchived}
                         openMenuId={openItemMenuId}
                         setOpenMenuId={setOpenItemMenuId}
                       />
                     ))}
-                  </section>
+                  </details>
                 )) : <p className="operations-empty">Регулярных шаблонов по выбранным фильтрам нет.</p>}
               </section>
             ) : (
