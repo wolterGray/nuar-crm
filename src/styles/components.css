@@ -10402,8 +10402,11 @@
 .operations-page .operations-planner-panel {
   width: 100%;
   margin: 0 auto;
-  padding: 18px 22px 24px;
-  border-radius: var(--operations-radius);
+  padding: 8px 0 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .operations-page .operations-workday-label {
@@ -11521,7 +11524,7 @@
   }
 
   .operations-page .operations-planner-panel {
-    padding: 12px;
+    padding: 4px 0 20px;
   }
 
   .operations-page .operations-list-toolbar {
