@@ -517,7 +517,10 @@ function OperationsPage({
   const [viewingTask, setViewingTask] = useState(null);
   const [showArchivedTemplates, setShowArchivedTemplates] = useState(false);
   const [selectedTemplateIds, setSelectedTemplateIds] = useState(() => new Set());
-  const [areaOrder, setAreaOrder] = useState(() => readStoredJson(AREA_ORDER_STORAGE_KEY, []));
+  const [areaOrder, setAreaOrder] = useState(() => {
+    const storedAreaOrder = readStoredJson(AREA_ORDER_STORAGE_KEY, []);
+    return Array.isArray(storedAreaOrder) ? storedAreaOrder : [];
+  });
   const acquisitionSyncStarted = useRef(false);
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
