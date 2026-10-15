@@ -10507,6 +10507,25 @@
   cursor: pointer;
 }
 
+.operations-page .operations-template-summary-actions,
+.operations-page .operations-template-select-all,
+.operations-page .operations-template-group-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.operations-page .operations-template-summary-actions {
+  flex: 0 0 auto;
+  gap: 14px;
+}
+
+.operations-page .operations-template-select-all,
+.operations-page .operations-template-group-select {
+  color: var(--operations-muted);
+  cursor: pointer;
+}
+
 .operations-page .operations-template-list {
   display: grid;
   gap: 18px;
@@ -10554,12 +10573,16 @@
 
 .operations-page .operations-template-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(160px, 240px) auto 36px;
+  grid-template-columns: 24px minmax(0, 1fr) minmax(160px, 240px) auto 36px;
   gap: 10px;
   align-items: center;
   min-height: 78px;
   padding: 10px 8px;
   border-bottom: 1px solid var(--operations-border-soft);
+}
+
+.operations-page .operations-template-card.is-selected {
+  background: color-mix(in srgb, var(--operations-accent) 8%, transparent);
 }
 
 .operations-page .operations-template-card.is-archived {
@@ -11768,14 +11791,20 @@
     gap: 3px;
   }
 
+  .operations-page .operations-template-summary-actions {
+    width: 100%;
+    align-items: stretch;
+    gap: 10px;
+  }
+
   .operations-page .operations-template-card {
-    grid-template-columns: minmax(0, 1fr) 36px;
+    grid-template-columns: 24px minmax(0, 1fr) 36px;
   }
 
   .operations-page .operations-template-card > select,
   .operations-page .operations-template-card > button:not(.operations-template-card-main) {
     width: 100%;
-    grid-column: 1 / -1;
+    grid-column: 2 / -1;
   }
 
   .operations-page .operations-summary-progress {

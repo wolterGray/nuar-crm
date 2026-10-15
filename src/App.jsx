@@ -1392,6 +1392,7 @@ function App() {
   const {
     addQuickNote,
     completeTask,
+    deleteTaskTemplates,
     handleTaskSubmit,
     initializeAcquisitionPlan,
     moveTaskTemplateToArea,
@@ -2166,6 +2167,7 @@ function App() {
             pushNotification={pushNotification}
             remindCalendarClient={remindCalendarClient}
             moveTaskToDate={moveTaskToDate}
+            deleteTaskTemplates={deleteTaskTemplates}
             moveTaskTemplateToArea={moveTaskTemplateToArea}
             renameTaskArea={renameTaskArea}
             initializeAcquisitionPlan={initializeAcquisitionPlan}

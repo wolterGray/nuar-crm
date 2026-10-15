@@ -757,6 +757,34 @@ export function useTaskHandlers({
     [pushNotification, setTasks],
   );
 
+  const deleteTaskTemplates = useCallback(
+    async (templates) => {
+      const uniqueTemplates = [...new Map((templates ?? []).filter((task) => task?.id).map((task) => [String(task.id), task])).values()];
+      if (!uniqueTemplates.length) return {deleted: 0, failed: 0};
+
+      const results = await Promise.allSettled(uniqueTemplates.map((task) => deleteTask(task.id)));
+      const deletedIds = new Set(
+        uniqueTemplates
+          .filter((_, index) => results[index].status === "fulfilled")
+          .map((task) => String(task.id)),
+      );
+      const failed = uniqueTemplates.length - deletedIds.size;
+
+      if (deletedIds.size) {
+        setTasks((current) => current.filter((task) => !deletedIds.has(String(task.id))));
+      }
+      pushNotification({
+        title: failed ? "Удалено не всё" : "Шаблоны удалены",
+        message: failed
+          ? `Удалено: ${deletedIds.size}. Не удалось удалить: ${failed}.`
+          : `Удалено шаблонов: ${deletedIds.size}`,
+        persist: failed > 0,
+      });
+      return {deleted: deletedIds.size, failed};
+    },
+    [pushNotification, setTasks],
+  );
+
   const setMainTask = useCallback(
     async (task, date = getTaskDueDate(task)) => {
       if (!date) {
@@ -863,6 +891,7 @@ export function useTaskHandlers({
   return {
     addQuickNote,
     completeTask,
+    deleteTaskTemplates,
     handleTaskSubmit,
     initializeAcquisitionPlan,
     moveTaskTemplateToArea,

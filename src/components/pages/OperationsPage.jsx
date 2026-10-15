@@ -238,7 +238,7 @@ function TaskCard({
   );
 }
 
-function TaskTemplateCard({onDelete, onEdit, onMoveArea, onToggleArchived, openMenuId, setOpenMenuId, task, today}) {
+function TaskTemplateCard({onDelete, onEdit, onMoveArea, onSelect, onToggleArchived, openMenuId, selected, setOpenMenuId, task, today}) {
   const payload = getTaskPayload(task);
   const archived = payload.templateArchived === true;
   const systemTemplate = ACQUISITION_TEMPLATE_KEYS.includes(payload.templateKey);
@@ -256,7 +256,8 @@ function TaskTemplateCard({onDelete, onEdit, onMoveArea, onToggleArchived, openM
   }
 
   return (
-    <article className={`operations-template-card ${archived ? "is-archived" : ""}`}>
+    <article className={`operations-template-card ${archived ? "is-archived" : ""} ${selected ? "is-selected" : ""}`}>
+      <Checkbox aria-label={`Выбрать шаблон «${task.title}»`} checked={selected} onChange={(event) => onSelect(task, event.target.checked)} />
       <button className="operations-template-card-main" type="button" onClick={() => onEdit(task)}>
         <span><strong>{task.title}</strong>{systemTemplate ? <em>Системный</em> : null}{archived ? <em>В архиве</em> : null}</span>
         {task.note ? <small>{task.note}</small> : null}
@@ -510,6 +511,7 @@ function OperationsPage({
   onAlertFocusHandled,
   onBookWaitlistEntry,
   onCompleteTask,
+  onBulkDeleteTasks,
   onDeleteTask,
   onEditTask,
   onEditWaitlistEntry,
@@ -537,6 +539,7 @@ function OperationsPage({
   const [viewingTask, setViewingTask] = useState(null);
   const [expandedWeekDays, setExpandedWeekDays] = useState(() => new Set([getWarsawTodayInput()]));
   const [showArchivedTemplates, setShowArchivedTemplates] = useState(false);
+  const [selectedTemplateIds, setSelectedTemplateIds] = useState(() => new Set());
   const [areaOrder, setAreaOrder] = useState(() => readStoredJson(AREA_ORDER_STORAGE_KEY, []));
   const acquisitionSyncStarted = useRef(false);
   const [noteText, setNoteText] = useState("");
@@ -644,6 +647,38 @@ function OperationsPage({
       return left.label.localeCompare(right.label, "ru");
     });
   }, [areaOrder, taskTemplates]);
+  const selectedTemplates = useMemo(
+    () => taskTemplates.filter((task) => selectedTemplateIds.has(String(task.id))),
+    [selectedTemplateIds, taskTemplates],
+  );
+
+  const setTemplateSelected = (task, selected) => {
+    setSelectedTemplateIds((current) => {
+      const next = new Set(current);
+      if (selected) next.add(String(task.id));
+      else next.delete(String(task.id));
+      return next;
+    });
+  };
+
+  const setTemplatesSelected = (templates, selected) => {
+    setSelectedTemplateIds((current) => {
+      const next = new Set(current);
+      templates.forEach((task) => {
+        if (selected) next.add(String(task.id));
+        else next.delete(String(task.id));
+      });
+      return next;
+    });
+  };
+
+  const deleteSelectedTemplates = async () => {
+    if (!selectedTemplates.length) return;
+    const confirmed = window.confirm(`Удалить выбранные шаблоны (${selectedTemplates.length})? История этих задач также будет удалена.`);
+    if (!confirmed) return;
+    await onBulkDeleteTasks?.(selectedTemplates);
+    setSelectedTemplateIds(new Set());
+  };
 
   const moveTemplateArea = (areaId, offset) => {
     const ids = templateGroups.map((group) => group.id);
@@ -818,7 +853,11 @@ function OperationsPage({
             {planMode === "templates" ? (
               <div className="operations-template-summary">
                 <div><span><strong>{taskTemplates.length}</strong> регулярных шаблонов</span><span>Изменения расписания применяются к будущим дням</span></div>
-                <label className="operations-template-archive-toggle"><Checkbox checked={showArchivedTemplates} onChange={(event) => setShowArchivedTemplates(event.target.checked)} /><span>Показать архив</span></label>
+                <div className="operations-template-summary-actions">
+                  <label className="operations-template-select-all"><Checkbox checked={taskTemplates.length > 0 && selectedTemplates.length === taskTemplates.length} onChange={(event) => setTemplatesSelected(taskTemplates, event.target.checked)} /><span>Выбрать все</span></label>
+                  <label className="operations-template-archive-toggle"><Checkbox checked={showArchivedTemplates} onChange={(event) => setShowArchivedTemplates(event.target.checked)} /><span>Показать архив</span></label>
+                  {selectedTemplates.length ? <Button leftIcon="trash" size="sm" variant="danger" onClick={deleteSelectedTemplates}>Удалить ({selectedTemplates.length})</Button> : null}
+                </div>
               </div>
             ) : <div className="operations-workday-summary">
               <span><strong>{planMode === "week" ? weekStats.planned : planMode === "all" ? allTasks.length : dayStats.planned}</strong> задач</span>
@@ -918,7 +957,7 @@ function OperationsPage({
               <section className="operations-template-list" aria-label="Шаблоны задач">
                 {templateGroups.length ? templateGroups.map((group, groupIndex) => (
                   <details className="operations-template-group" key={group.id} open>
-                    <summary><span><strong>{group.label}</strong><em>{group.tasks.length}</em></span><span><IconButton disabled={groupIndex === 0} icon="chevronUp" label="Поднять направление" size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); moveTemplateArea(group.id, -1); }} /><IconButton disabled={groupIndex === templateGroups.length - 1} icon="chevronDown" label="Опустить направление" size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); moveTemplateArea(group.id, 1); }} />{group.id !== "acquisition" ? <Button size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); const label = window.prompt("Название направления", group.label)?.trim(); if (label && label !== group.label) onRenameTaskArea?.(group.id, label); }}>Переименовать</Button> : <em>Системное направление</em>}<AppIcon className="operations-template-group-chevron" name="chevronDown" size="sm" /></span></summary>
+                    <summary><span><label className="operations-template-group-select" onClick={(event) => event.stopPropagation()}><Checkbox checked={group.tasks.every((task) => selectedTemplateIds.has(String(task.id)))} onChange={(event) => setTemplatesSelected(group.tasks, event.target.checked)} /><span className="sr-only">Выбрать направление</span></label><strong>{group.label}</strong><em>{group.tasks.length}</em></span><span><IconButton disabled={groupIndex === 0} icon="chevronUp" label="Поднять направление" size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); moveTemplateArea(group.id, -1); }} /><IconButton disabled={groupIndex === templateGroups.length - 1} icon="chevronDown" label="Опустить направление" size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); moveTemplateArea(group.id, 1); }} />{group.id !== "acquisition" ? <Button size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); const label = window.prompt("Название направления", group.label)?.trim(); if (label && label !== group.label) onRenameTaskArea?.(group.id, label); }}>Переименовать</Button> : <em>Системное направление</em>}<AppIcon className="operations-template-group-chevron" name="chevronDown" size="sm" /></span></summary>
                     {group.tasks.map((task) => (
                       <TaskTemplateCard
                         key={task.id}
@@ -927,8 +966,10 @@ function OperationsPage({
                         onDelete={onDeleteTask}
                         onEdit={onEditTask}
                         onMoveArea={onMoveTaskTemplateToArea}
+                        onSelect={setTemplateSelected}
                         onToggleArchived={onSetTaskTemplateArchived}
                         openMenuId={openItemMenuId}
+                        selected={selectedTemplateIds.has(String(task.id))}
                         setOpenMenuId={setOpenItemMenuId}
                       />
                     ))}

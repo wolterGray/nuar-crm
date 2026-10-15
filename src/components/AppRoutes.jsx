@@ -262,6 +262,7 @@ export default function AppRoutes({activePage, ...props}) {
             onAlertFocusHandled={props.clearAlertFocus}
             onBookWaitlistEntry={props.bookWaitlistEntryFromPanel}
             onCompleteTask={props.completeTask}
+            onBulkDeleteTasks={props.deleteTaskTemplates}
             onDeleteTask={props.requestDeleteTask}
             onEditTask={props.openEditTask}
             onEditWaitlistEntry={props.openEditWaitlistEntry}
