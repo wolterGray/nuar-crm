@@ -119,6 +119,16 @@ const formatTaskDateTime = (task) => {
   return [date || "Без даты", time].filter(Boolean).join(" · ");
 };
 
+const formatRepeatSchedule = (task) => {
+  const repeat = getTaskPayload(task).repeat ?? {};
+  if (!repeat.enabled) return "Без повторения";
+  if (repeat.frequency === "daily") return "Каждый день";
+  if (repeat.frequency === "monthly") return "Ежемесячно";
+  if (repeat.frequency === "weekly") return "Еженедельно";
+  if (repeat.frequency === "intervalWeeks") return `Каждые ${repeat.intervalWeeks || 1} нед.`;
+  return "По выбранным дням";
+};
+
 function SegmentButton({active, children, onClick}) {
   return (
     <Button
@@ -217,6 +227,33 @@ function TaskCard({
         onDelete={() => onDelete(task)}
         onEdit={() => onEdit(task)}
         onView={() => onView(task)}
+      />
+    </article>
+  );
+}
+
+function TaskTemplateCard({onDelete, onEdit, openMenuId, setOpenMenuId, task}) {
+  const payload = getTaskPayload(task);
+  const checklistCount = Array.isArray(payload.checklist) ? payload.checklist.length : 0;
+  const resultCount = getTaskResultFields(task).length;
+
+  return (
+    <article className="operations-template-card">
+      <button className="operations-template-card-main" type="button" onClick={() => onEdit(task)}>
+        <span><strong>{task.title}</strong><em>{getTaskAreaLabel(task)}</em></span>
+        {task.note ? <small>{task.note}</small> : null}
+        <span className="operations-template-card-meta">
+          <em>{formatRepeatSchedule(task)}</em>
+          <em>{checklistCount} действий</em>
+          {resultCount ? <em>{resultCount} полей результата</em> : null}
+        </span>
+      </button>
+      <RowActionsMenu
+        itemId={`template-${task.id}`}
+        openMenuId={openMenuId}
+        setOpenMenuId={setOpenMenuId}
+        onDelete={() => onDelete(task)}
+        onEdit={() => onEdit(task)}
       />
     </article>
   );
@@ -555,6 +592,10 @@ function OperationsPage({
     () => sortPlanTasks(applyOperationsFilters(allTasksRaw, filters)),
     [allTasksRaw, filters],
   );
+  const taskTemplates = useMemo(
+    () => sortPlanTasks(applyOperationsFilters(workTasks.filter(isTaskRepeating), filters)),
+    [filters, workTasks],
+  );
   const dayStats = getDayStats(dayTasksRaw);
   const visibleAreas = useMemo(() => {
     const groups = new Map();
@@ -682,9 +723,10 @@ function OperationsPage({
                 <SegmentButton active={planMode === "today"} onClick={() => setPlanMode("today")}>Сегодня</SegmentButton>
                 <SegmentButton active={planMode === "week"} onClick={() => { setPlanMode("week"); changeWeek(0); }}>Неделя</SegmentButton>
                 <SegmentButton active={planMode === "all"} onClick={() => setPlanMode("all")}>Все</SegmentButton>
+                <SegmentButton active={planMode === "templates"} onClick={() => setPlanMode("templates")}>Шаблоны</SegmentButton>
               </div>
               <div className="operations-planner-head">
-                <h2>{planMode === "week" ? formatWeekRange(weekStart, weekEnd) : planMode === "all" ? "Все задачи" : formatPlannerDate(selectedDate)}</h2>
+                <h2>{planMode === "week" ? formatWeekRange(weekStart, weekEnd) : planMode === "all" ? "Все задачи" : planMode === "templates" ? "Шаблоны задач" : formatPlannerDate(selectedDate)}</h2>
                 {planMode === "week" ? (
                   <div className="operations-week-controls">
                     <IconButton icon="chevronLeft" label="Предыдущая неделя" size="sm" variant="secondary" onClick={() => changeWeek(-1)} />
@@ -700,16 +742,21 @@ function OperationsPage({
                   </div>
                 ) : null}
               </div>
-              <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: selectedDate})}>Добавить задачу</Button>
+              <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.(planMode === "templates" ? {taskKind: "daily"} : {dueDate: selectedDate})}>{planMode === "templates" ? "Новый шаблон" : "Добавить задачу"}</Button>
             </div>
 
-            <div className="operations-workday-summary">
+            {planMode === "templates" ? (
+              <div className="operations-template-summary">
+                <span><strong>{taskTemplates.length}</strong> регулярных шаблонов</span>
+                <span>Изменения расписания применяются к будущим дням</span>
+              </div>
+            ) : <div className="operations-workday-summary">
               <span><strong>{planMode === "week" ? weekStats.planned : planMode === "all" ? allTasks.length : dayStats.planned}</strong> задач</span>
               <span><strong>{planMode === "week" ? weekStats.completed : dayStats.completed}</strong> выполнено</span>
               <span className={overdueTasks.length ? "is-alert" : ""}><strong>{overdueTasks.length}</strong> просрочено</span>
               <span className="operations-summary-progress"><i style={{width: `${planMode === "week" ? weekProgress : dayStats.progress}%`}} /></span>
               <b>{planMode === "week" ? weekProgress : dayStats.progress}%</b>
-            </div>
+            </div>}
 
             <section className="operations-list-toolbar">
               <Input value={filters.query} placeholder="Поиск по задачам" onChange={(event) => updateFilter("query", event.target.value)} />
@@ -797,6 +844,19 @@ function OperationsPage({
                   );
                 })}
               </div>
+            ) : planMode === "templates" ? (
+              <section className="operations-template-list" aria-label="Шаблоны задач">
+                {taskTemplates.length ? taskTemplates.map((task) => (
+                  <TaskTemplateCard
+                    key={task.id}
+                    task={task}
+                    onDelete={onDeleteTask}
+                    onEdit={onEditTask}
+                    openMenuId={openItemMenuId}
+                    setOpenMenuId={setOpenItemMenuId}
+                  />
+                )) : <p className="operations-empty">Регулярных шаблонов по выбранным фильтрам нет.</p>}
+              </section>
             ) : (
               <div className="operations-plan-columns">
                 <TaskGroup title="Все задачи" tasks={allTasks.filter((task) => getTaskDueDate(task))} empty="Ничего не найдено по фильтрам." onAddTask={onAddTask} {...cardProps} />

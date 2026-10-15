@@ -10473,6 +10473,95 @@
   font-size: 12px;
 }
 
+.operations-page .operations-template-summary {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 12px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: var(--operations-radius);
+  color: var(--operations-muted);
+  background: color-mix(in srgb, var(--operations-panel-soft) 58%, transparent);
+  font-size: 12px;
+}
+
+.operations-page .operations-template-summary strong {
+  color: var(--operations-text);
+  font-size: 13px;
+}
+
+.operations-page .operations-template-list {
+  display: grid;
+  gap: 1px;
+  border-top: 1px solid var(--operations-border-soft);
+}
+
+.operations-page .operations-template-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 78px;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--operations-border-soft);
+}
+
+.operations-page .operations-template-card:hover {
+  background: color-mix(in srgb, var(--operations-panel-soft) 54%, transparent);
+}
+
+.operations-page .operations-template-card-main {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+}
+
+.operations-page .operations-template-card-main > span:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.operations-page .operations-template-card-main strong {
+  color: var(--operations-text);
+  font-size: 14px;
+}
+
+.operations-page .operations-template-card-main small {
+  overflow: hidden;
+  color: var(--operations-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operations-page .operations-template-card-main em,
+.operations-page .operations-template-card-meta em {
+  color: var(--operations-faint);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.operations-page .operations-template-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.operations-page .operations-template-card-meta em {
+  padding: 2px 7px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 999px;
+}
+
 .operations-page .operations-plan-setup {
   display: flex;
   align-items: center;
@@ -11556,6 +11645,12 @@
   .operations-page .operations-workday-summary {
     flex-wrap: wrap;
     gap: 8px 14px;
+  }
+
+  .operations-page .operations-template-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
   }
 
   .operations-page .operations-summary-progress {
