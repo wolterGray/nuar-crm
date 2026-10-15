@@ -360,8 +360,15 @@ function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
     : defaultResults);
   const [comment, setComment] = useState(() => item?.occurrenceComment ?? "");
   const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState("idle");
+  const [savedSnapshot, setSavedSnapshot] = useState(() => JSON.stringify({
+    checklist: item?.occurrenceChecklist ?? getTaskPayload(item).checklist ?? [],
+    comment: item?.occurrenceComment ?? "",
+    results: taskPayload.templateKey === "acquisition-meta-control" && !defaultResults.statsDate
+      ? {...defaultResults, statsDate: addDays(taskDate, -1)}
+      : defaultResults,
+  }));
 
-  if (!item) return null;
   const visibleChecklist = checklist.filter((entry) => !(
     ACQUISITION_TEMPLATE_KEYS.includes(taskPayload.templateKey) &&
     TECHNICAL_CHECKLIST_LABELS.has(String(entry.text ?? "").trim().toLocaleLowerCase("ru"))
@@ -381,6 +388,8 @@ function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
     ...missingRequiredFields.map((field) => `Заполните поле «${field.label}»`),
   ];
   const canComplete = !isCompleted && completionIssues.length === 0;
+  const currentSnapshot = JSON.stringify({checklist, comment, results});
+  const isDirty = currentSnapshot !== savedSnapshot;
   const history = Object.entries(getTaskPayload(item).occurrences ?? {})
     .filter(([, record]) => record?.status === "completed" || Object.keys(record?.results ?? {}).length)
     .sort(([left], [right]) => right.localeCompare(left))
@@ -408,15 +417,49 @@ function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
   const save = async (status) => {
     if (status === "completed" && !canComplete) return;
     setSaving(true);
+    setSaveState("saving");
+    const normalizedComment = comment.trim();
     const saved = await onSave?.(item, {
       checklist,
-      comment: comment.trim(),
+      comment: normalizedComment,
       results,
       ...(status ? {completedAt: new Date().toISOString(), status} : {}),
     });
     setSaving(false);
-    if (saved && status === "completed") onClose();
+    if (!saved) {
+      setSaveState("error");
+      return;
+    }
+    setComment(normalizedComment);
+    setSavedSnapshot(JSON.stringify({checklist, comment: normalizedComment, results}));
+    setSaveState("saved");
+    if (status === "completed") onClose();
   };
+
+  const requestClose = () => {
+    if (saving) return;
+    if (isDirty && !window.confirm("Закрыть задачу без сохранения изменений?")) return;
+    onClose();
+  };
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (!isDirty) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    const handleKeyDown = (event) => {
+      if (event.key !== "Escape" || saving) return;
+      if (isDirty && !window.confirm("Закрыть задачу без сохранения изменений?")) return;
+      onClose();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDirty, onClose, saving]);
 
   const updateResult = (id, value) => setResults((current) => ({...current, [id]: value}));
   const renderResultField = (field) => (
@@ -432,7 +475,7 @@ function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
 
   return (
     <Dialog open={Boolean(item)}>
-      <DialogBackdrop className="operations-detail-backdrop" onClick={onClose}>
+      <DialogBackdrop className="operations-detail-backdrop" onClick={requestClose}>
         <DialogContent
           aria-labelledby="operation-detail-title"
           className="operations-detail-dialog"
@@ -448,7 +491,10 @@ function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
               </div>
               <span className="operations-detail-progress"><i style={{width: `${progress.total ? Math.round((progress.done / progress.total) * 100) : isCompleted ? 100 : 0}%`}} /></span>
             </div>
-            <IconButton aria-label="Закрыть" icon="x" size="sm" title="Закрыть" variant="ghost" onClick={onClose} />
+            <div className="operations-detail-header-actions">
+              {isDirty ? <span>Есть несохранённые изменения</span> : saveState === "saved" ? <span className="is-saved">Сохранено</span> : null}
+              <IconButton aria-label="Закрыть" icon="x" size="sm" title="Закрыть" variant="ghost" onClick={requestClose} />
+            </div>
           </header>
           <div className="operations-detail-body">
             {item.note || item.description || taskPayload.instructions ? (
@@ -502,14 +548,19 @@ function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
               <details className="operations-task-history">
                 <summary>Предыдущие выполнения ({history.length})</summary>
                 {history.map(([date, record]) => (
-                  <div key={date}><strong>{formatDateShort(date)}</strong><span>{record.comment || (record.status === "completed" ? "Выполнено" : "Результат сохранён")}</span></div>
+                  <div className="operations-history-entry" key={date}>
+                    <strong>{formatDateShort(date)}</strong>
+                    <span>{record.comment || (record.status === "completed" ? "Выполнено" : "Результат сохранён")}</span>
+                    {Array.isArray(record.checklist) && record.checklist.length ? <small>{record.checklist.filter((entry) => entry.done).length}/{record.checklist.length} действий</small> : null}
+                    {Object.entries(record.results ?? {}).length ? <dl>{Object.entries(record.results).map(([key, value]) => <div key={key}><dt>{resultFields.find((field) => field.id === key)?.label ?? key}</dt><dd>{String(value).trim() || "—"}</dd></div>)}</dl> : null}
+                  </div>
                 ))}
               </details>
             ) : null}
           </div>
           <footer className="operations-detail-actions">
             {completionIssues.length && !isCompleted ? <div className="operations-completion-requirements"><strong>Чтобы завершить:</strong>{completionIssues.map((issue) => <span key={issue}>{issue}</span>)}</div> : null}
-            <div><Button disabled={saving} size="md" variant="secondary" onClick={() => save()}>Сохранить</Button><Button disabled={saving || !canComplete} leftIcon="check" size="md" variant="primary" onClick={() => save("completed")}>Завершить задачу</Button></div>
+            <div><Button disabled={saving || !isDirty} size="md" variant="secondary" onClick={() => save()}>{saving ? "Сохранение…" : saveState === "saved" && !isDirty ? "Сохранено" : "Сохранить"}</Button><Button disabled={saving || !canComplete} leftIcon="check" size="md" variant="primary" onClick={() => save("completed")}>{saving ? "Сохранение…" : "Завершить задачу"}</Button></div>
           </footer>
         </DialogContent>
       </DialogBackdrop>
@@ -635,6 +686,12 @@ function OperationsPage({
     () => expandTasksForRange(activeWorkTasks, weekStart, weekEnd),
     [activeWorkTasks, weekEnd, weekStart],
   );
+  const currentViewingTask = viewingTask && viewingTask.type !== "note"
+    ? weekTasksRaw.find((task) => (
+      String(task.baseId ?? task.id) === String(viewingTask.baseId ?? viewingTask.id) &&
+      getTaskDueDate(task) === getTaskDueDate(viewingTask)
+    )) ?? viewingTask
+    : viewingTask;
   const overdueTasks = useMemo(
     () => sortPlanTasks(applyOperationsFilters(getOverdueTasks(activeWorkTasks, today, nowTime), filters)),
     [activeWorkTasks, filters, nowTime, today],
@@ -1093,10 +1150,10 @@ function OperationsPage({
         </section>
       ) : null}
 
-      {viewingTask ? (
+      {currentViewingTask ? (
         <TaskDetailsDialog
-          item={viewingTask}
-          key={`${viewingTask.id}-${getTaskDueDate(viewingTask)}`}
+          item={currentViewingTask}
+          key={`${currentViewingTask.id}-${getTaskDueDate(currentViewingTask)}`}
           onClose={() => setViewingTask(null)}
           onSave={onSaveTaskOccurrence}
           relatedTasks={workTasks}
