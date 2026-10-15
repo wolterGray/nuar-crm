@@ -274,6 +274,8 @@ export function useTaskHandlers({
         const assigneeId = String(form.get("assigneeId") ?? "").trim();
         const checklist = normalizeChecklist(parseJsonField(form.get("checklistJson"), []));
         const resultFields = parseJsonField(form.get("resultFieldsJson"), getTaskResultFields(editingTask));
+        const occurrenceResults = parseJsonField(form.get("occurrenceResultsJson"), editingTask?.occurrenceResults ?? {});
+        const occurrenceComment = String(form.get("occurrenceComment") ?? editingTask?.occurrenceComment ?? "").trim();
         const repeat = parseJsonField(form.get("repeatJson"), {enabled: false});
         const repeatEnabled = form.get("repeatEnabled") === "on";
         const repeatFrequency = String(repeat.frequency ?? "daily");
@@ -340,6 +342,8 @@ export function useTaskHandlers({
             estimateMinutes,
             isMain: payload.isMain,
             note: task.note,
+            results: occurrenceResults,
+            comment: occurrenceComment,
             status: task.status,
             title,
           });

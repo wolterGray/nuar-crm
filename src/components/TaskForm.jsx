@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from "react";
-import {AppIcon, Button, Field, IconButton, Input, Select, Switch, Textarea} from "./ui/index.js";
+import {AppIcon, Button, Checkbox, Field, IconButton, Input, Select, Switch, Textarea} from "./ui/index.js";
 import {
   TASK_KIND_OPTIONS, TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS, WORK_AREA_OPTIONS,
   getTaskAssigneeId, getTaskDueDate, getTaskDueTime, getTaskEstimateMinutes,
@@ -8,10 +8,6 @@ import {
 } from "../utils/operationsPlanner.js";
 
 const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((label, index) => ({id: index + 1, label}));
-const EDITOR_TABS = [
-  {id: "main", label: "Основное"}, {id: "checklist", label: "Чек-лист"},
-  {id: "results", label: "Результаты"}, {id: "schedule", label: "Расписание"},
-];
 const makeChecklistItem = () => ({done: false, id: `check-${Date.now()}-${Math.random().toString(16).slice(2)}`, text: ""});
 const makeResultField = () => ({id: `custom-${Date.now()}-${Math.random().toString(16).slice(2)}`, label: "", required: false, type: "text", unit: ""});
 
@@ -20,7 +16,6 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
   const isNote = task?.type === "note";
   const isEditing = Boolean(task?.id);
   const dueDate = getTaskDueDate(task);
-  const [activeTab, setActiveTab] = useState("main");
   const [localSaving, setLocalSaving] = useState(false);
   const [taskKind, setTaskKind] = useState(getTaskKind(task));
   const [dueDateValue, setDueDateValue] = useState(dueDate || getWarsawTodayInput());
@@ -34,6 +29,8 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
     return Array.isArray(items) ? items.map((item, index) => ({done: item?.done === true, id: String(item?.id ?? `check-${index}`), text: String(item?.text ?? "")})) : [];
   });
   const [resultFields, setResultFields] = useState(() => Array.isArray(payload.resultFields) ? payload.resultFields.map((field) => ({...field})) : []);
+  const [resultValues, setResultValues] = useState(() => ({...(task?.occurrenceResults ?? {})}));
+  const [occurrenceComment, setOccurrenceComment] = useState(task?.occurrenceComment ?? "");
   const repeatEnabled = taskKind === "daily";
   useEffect(() => {
     onDirtyChange?.(false);
@@ -68,13 +65,6 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
     await onSubmit(event);
     if (externalSaving === undefined) setLocalSaving(false);
   };
-  const selectTab = (tabId) => {
-    setActiveTab(tabId);
-    requestAnimationFrame(() => {
-      document.querySelector(".content")?.scrollTo({top: 0, behavior: "instant"});
-    });
-  };
-
   if (isNote) {
     return (
       <form className="catalog-form task-form-note" onChange={markDirty} onSubmit={handleSubmit}>
@@ -88,22 +78,20 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
   }
 
   return (
-    <form className={`task-editor ${layout === "page" ? "task-editor-page-layout" : ""}`} id={formId} onChange={markDirty} onSubmit={handleSubmit}>
+    <form className={`task-editor ${layout === "page" ? "task-editor-page-layout" : ""} ${layout === "drawer" ? "task-editor-drawer-layout" : ""}`} id={formId} onChange={markDirty} onSubmit={handleSubmit}>
       <input name="type" type="hidden" value="task" />
       <input name="checklistJson" type="hidden" value={JSON.stringify(checklist)} />
       <input name="repeatJson" type="hidden" value={JSON.stringify(repeatPayload)} />
       <input name="resultFieldsJson" type="hidden" value={JSON.stringify(resultFields)} />
+      <input name="occurrenceResultsJson" type="hidden" value={JSON.stringify(resultValues)} />
+      <input name="occurrenceComment" type="hidden" value={occurrenceComment} />
       <input name="taskKind" type="hidden" value={taskKind} />
       <input name="repeatEnabled" type="hidden" value={repeatEnabled ? "on" : ""} />
       <input name="baseId" type="hidden" value={task?.baseId ?? ""} />
       <input name="occurrenceDate" type="hidden" value={task?.occurrenceDate ?? ""} />
 
-      <nav className="task-editor-navigation" aria-label="Разделы задачи">
-        {EDITOR_TABS.map((tab) => <button aria-current={activeTab === tab.id ? "page" : undefined} className={activeTab === tab.id ? "is-active" : ""} key={tab.id} type="button" onClick={() => selectTab(tab.id)}><span>{tab.label}</span>{tab.id === "checklist" ? <small>{checklist.length}</small> : tab.id === "results" ? <small>{resultFields.length}</small> : null}</button>)}
-      </nav>
-
       <div className="task-editor-scroll">
-        <section className="task-editor-panel" hidden={activeTab !== "main"}>
+        <section className="task-editor-panel">
           <SectionHead description="Содержание и ответственность за задачу." title="Основное" />
           <Field label="Название" required><Input name="title" defaultValue={task?.title ?? ""} placeholder="Название задачи" required /></Field>
           <Field label="Описание"><Textarea name="note" defaultValue={task?.note ?? task?.description ?? ""} rows="3" /></Field>
@@ -117,30 +105,36 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
           <SwitchRow description="Выделить задачу в рабочем плане" label="Главная задача дня"><Switch defaultChecked={isTaskMainOnDate(task, dueDateValue)} name="isMain" value="on" /></SwitchRow>
         </section>
 
-        <section className="task-editor-panel" hidden={activeTab !== "checklist"}>
+        <section className="task-editor-panel">
           <SectionHead count={checklist.length} description="Идентификаторы действий сохраняются в истории." title="Чек-лист" />
           <div className="task-checklist-editor">
             {checklist.map((item, index) => <article className="task-checklist-item" key={item.id}>
               <span className="task-drag-icon" title="Изменить порядок"><AppIcon name="grip" size="sm" /></span>
+              <Checkbox aria-label={`Выполнить «${item.text || "пункт"}»`} checked={item.done} onChange={(event) => updateChecklist(item.id, {done: event.target.checked})} />
               {editingChecklistId === item.id ? <Input autoFocus value={item.text} onChange={(event) => updateChecklist(item.id, {text: event.target.value})} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); setEditingChecklistId(null); } if (event.key === "Escape") setEditingChecklistId(null); }} /> : <button className="task-checklist-title" type="button" onClick={() => setEditingChecklistId(item.id)}>{item.text || "Без названия"}</button>}
               <div className="task-row-tools"><IconButton disabled={index === 0} icon="arrowUp" label="Поднять" size="sm" onClick={() => moveChecklist(item.id, -1)} /><IconButton disabled={index === checklist.length - 1} icon="arrowDown" label="Опустить" size="sm" onClick={() => moveChecklist(item.id, 1)} /><IconButton icon={editingChecklistId === item.id ? "check" : "edit"} label="Изменить" size="sm" onClick={() => setEditingChecklistId(editingChecklistId === item.id ? null : item.id)} /><IconButton icon="trash" label="Удалить" size="sm" onClick={() => { markDirty(); setChecklist((current) => current.filter((entry) => entry.id !== item.id)); }} /></div>
             </article>)}
-            {!checklist.length ? <div className="task-editor-empty">Добавьте первое действие задачи.</div> : null}
+            {!checklist.length ? <div className="task-editor-empty">Чек-лист пока пуст.</div> : null}
           </div>
-          <Button leftIcon="plus" type="button" variant="secondary" onClick={() => { const item = makeChecklistItem(); markDirty(); setChecklist((current) => [...current, item]); setEditingChecklistId(item.id); }}>Добавить действие</Button>
+          <button className="task-editor-add-link" type="button" onClick={() => { const item = makeChecklistItem(); markDirty(); setChecklist((current) => [...current, item]); setEditingChecklistId(item.id); }}>+ Добавить пункт чек-листа</button>
         </section>
 
-        <section className="task-editor-panel" hidden={activeTab !== "results"}>
+        <section className="task-editor-panel">
           <SectionHead count={resultFields.length} description="Данные, которые фиксируются при выполнении." title="Поля результатов" />
           <Field label="Ожидаемый результат"><Textarea name="outcome" defaultValue={payload.outcome ?? ""} rows="2" /></Field>
           <div className="task-result-builder">
             {resultFields.map((field) => <ResultFieldCard field={field} isOpen={editingResultId === field.id} key={field.id} onDelete={() => { markDirty(); setResultFields((current) => current.filter((entry) => entry.id !== field.id)); }} onToggle={() => setEditingResultId(editingResultId === field.id ? null : field.id)} onUpdate={(patch) => updateResult(field.id, patch)} />)}
             {!resultFields.length ? <div className="task-editor-empty">Поля результата пока не настроены.</div> : null}
           </div>
-          <Button leftIcon="plus" type="button" variant="secondary" onClick={() => { const field = makeResultField(); markDirty(); setResultFields((current) => [...current, field]); setEditingResultId(field.id); }}>Добавить поле</Button>
+          {task?.isVirtualOccurrence && resultFields.length ? <div className="task-occurrence-results">
+            <strong>Фактические значения за {task.occurrenceDate}</strong>
+            {resultFields.map((field) => <Field key={field.id} label={`${field.label || "Результат"}${field.unit ? `, ${field.unit}` : ""}`} required={field.required === true}>{field.type === "textarea" ? <Textarea rows="3" value={resultValues[field.id] ?? ""} onChange={(event) => { markDirty(); setResultValues((current) => ({...current, [field.id]: event.target.value})); }} /> : <Input type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"} value={resultValues[field.id] ?? ""} onChange={(event) => { markDirty(); setResultValues((current) => ({...current, [field.id]: event.target.value})); }} />}</Field>)}
+            <Field label="Комментарий за день"><Textarea rows="3" value={occurrenceComment} onChange={(event) => { markDirty(); setOccurrenceComment(event.target.value); }} /></Field>
+          </div> : null}
+          <button className="task-editor-add-link" type="button" onClick={() => { const field = makeResultField(); markDirty(); setResultFields((current) => [...current, field]); setEditingResultId(field.id); }}>+ Добавить поле результата</button>
         </section>
 
-        <section className="task-editor-panel" hidden={activeTab !== "schedule"}>
+        <section className="task-editor-panel">
           <SectionHead description="Когда задача появляется в рабочем плане." title="Расписание" />
           <div className="task-kind-picker" role="group">{TASK_KIND_OPTIONS.map((option) => <button aria-pressed={taskKind === option.id} className={taskKind === option.id ? "is-active" : ""} key={option.id} type="button" onClick={() => { markDirty(); setTaskKind(option.id); }}><strong>{option.label}</strong><span>{option.id === "daily" ? "Повторяется по выбранному графику" : "Выполняется один раз"}</span></button>)}</div>
           <div className="task-editor-grid"><Field label={repeatEnabled ? "Дата начала" : "Сделать до"}><Input name="dueDate" type="date" value={dueDateValue} onChange={(event) => setDueDateValue(event.target.value)} /></Field>{repeatEnabled ? <Field label="Дата окончания"><Input name="repeatEndDate" type="date" defaultValue={payload.repeat?.endDate ?? ""} /></Field> : null}</div>
@@ -148,10 +142,10 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
           {repeatEnabled ? <><Field label="Повторение"><Select value={repeatFrequency} onChange={(event) => { markDirty(); setRepeatFrequency(event.target.value); }}><option value="daily">Каждый день</option><option value="weekdays">Рабочие / выбранные дни</option><option value="weekly">Еженедельно</option><option value="monthly">Ежемесячно</option><option value="intervalWeeks">Каждые N недель</option></Select></Field>{repeatFrequency === "intervalWeeks" ? <Field label="Интервал недель"><Input min="1" name="repeatIntervalWeeks" type="number" defaultValue={payload.repeat?.intervalWeeks ?? 2} /></Field> : null}{!["daily", "monthly"].includes(repeatFrequency) ? <div className="task-form-weekdays">{WEEKDAYS.map((day) => <button className={repeatWeekdays.includes(day.id) ? "is-active" : ""} key={day.id} type="button" onClick={() => { markDirty(); setRepeatWeekdays((current) => current.includes(day.id) ? current.filter((id) => id !== day.id) : [...current, day.id].sort()); }}>{day.label}</button>)}</div> : null}</> : null}
           <SwitchRow description="Показывать задачу в определённое время" label="Указать время"><Switch checked={hasTime} name="hasTime" value="on" onChange={(event) => { markDirty(); setHasTime(event.target.checked); }} /></SwitchRow>
           <div className="task-editor-grid">{hasTime ? <Field label="Время выполнения"><Input name="dueTime" type="time" defaultValue={getTaskDueTime(task)} /></Field> : <div />}<Field label="Плановое время, мин"><Input min="0" name="estimateMinutes" type="number" defaultValue={getTaskEstimateMinutes(task) || ""} /></Field></div>
-          {task?.isVirtualOccurrence || isTaskRepeating(task) ? <Field label="Применить изменения"><Select name="applyScope" defaultValue="future"><option value="single">Только выбранный день</option><option value="future">К шаблону и последующим</option></Select></Field> : null}
+          {task?.isVirtualOccurrence || isTaskRepeating(task) ? <Field label="Применить изменения"><Select name="applyScope" defaultValue={task?.isVirtualOccurrence ? "single" : "future"}><option value="single">Только выбранный день</option><option value="future">К шаблону и последующим</option></Select></Field> : null}
         </section>
       </div>
-      {layout !== "page" ? <EditorFooter isEditing={isEditing} saving={saving} onCancel={onCancel} /> : null}
+      {layout === "modal" ? <EditorFooter isEditing={isEditing} saving={saving} onCancel={onCancel} /> : null}
     </form>
   );
 }

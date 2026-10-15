@@ -1,19 +1,23 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import TaskForm from "../TaskForm.jsx";
-import {Button} from "../ui/index.js";
+import {Button, IconButton} from "../ui/index.js";
 import {getTaskAreaLabel} from "../../utils/operationsPlanner.js";
 
 export default function TaskEditorPage({employees, onClose, onDirtyChange, onSubmit, task}) {
   const dirtyRef = useRef(false);
+  const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const areaName = getTaskAreaLabel(task);
   const title = task?.id ? task.title || "Редактирование задачи" : "Новая задача";
 
   const requestClose = useCallback(() => {
-    if (dirtyRef.current && !window.confirm("Вернуться к плану? Несохранённые изменения будут потеряны.")) return;
-    dirtyRef.current = false;
+    if (saving) return;
+    if (dirtyRef.current) {
+      document.getElementById("task-editor-form")?.requestSubmit();
+      return;
+    }
     onClose();
-  }, [onClose]);
+  }, [onClose, saving]);
 
   useEffect(() => {
     const warnBeforeLeave = (event) => {
@@ -30,37 +34,21 @@ export default function TaskEditorPage({employees, onClose, onDirtyChange, onSub
     await onSubmit(event);
     setSaving(false);
   };
+  const handleDirtyChange = useCallback((nextDirty) => {
+    dirtyRef.current = nextDirty;
+    setDirty(nextDirty);
+    onDirtyChange(nextDirty);
+  }, [onDirtyChange]);
 
-  return (
-    <main className="task-workspace-page">
-      <header className="task-workspace-header">
-        <div className="task-workspace-heading">
-          <Button leftIcon="chevronLeft" type="button" variant="ghost" onClick={requestClose}>
-            К плану работы
-          </Button>
-          <div>
-            <span>{areaName}</span>
-            <h1>{title}</h1>
-          </div>
-        </div>
-        <Button form="task-editor-form" leftIcon="save" loading={saving} type="submit" variant="primary">
-          Сохранить изменения
-        </Button>
+  return <div className="task-drawer-layer">
+    <button aria-label="Закрыть редактор" className="task-drawer-backdrop" type="button" onClick={requestClose} />
+    <aside aria-label="Редактор задачи" className="task-drawer">
+      <header className="task-drawer-header">
+        <div><span>{areaName}</span><h1>{title}</h1></div>
+        <IconButton icon="x" label="Закрыть и сохранить" variant="ghost" onClick={requestClose} />
       </header>
-
-      <TaskForm
-        employees={employees}
-        formId="task-editor-form"
-        layout="page"
-        saving={saving}
-        task={task}
-        onCancel={requestClose}
-        onDirtyChange={(dirty) => {
-          dirtyRef.current = dirty;
-          onDirtyChange(dirty);
-        }}
-        onSubmit={handleSubmit}
-      />
-    </main>
-  );
+      <TaskForm employees={employees} formId="task-editor-form" layout="drawer" saving={saving} task={task} onCancel={requestClose} onDirtyChange={handleDirtyChange} onSubmit={handleSubmit} />
+      <footer className="task-drawer-footer"><span>{dirty ? "Есть несохранённые изменения" : "Изменения сохранены"}</span><Button form="task-editor-form" leftIcon="save" loading={saving} type="submit" variant="primary">Сохранить</Button></footer>
+    </aside>
+  </div>;
 }

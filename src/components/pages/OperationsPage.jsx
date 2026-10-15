@@ -1,4 +1,6 @@
 import {useEffect, useMemo, useRef, useState} from "react";
+import {DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors} from "@dnd-kit/core";
+import {CSS} from "@dnd-kit/utilities";
 import WaitlistPanel from "../WaitlistPanel.jsx";
 import PageHeader from "../PageHeader.jsx";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
@@ -17,7 +19,6 @@ import {
   WORK_AREA_OPTIONS,
   addDays,
   applyOperationsFilters,
-  createTaskOccurrence,
   expandTasksForRange,
   formatDateShort,
   getChecklistProgress,
@@ -284,6 +285,29 @@ function TaskTemplateCard({onDelete, onEdit, onMoveArea, onSelect, onToggleArchi
   );
 }
 
+function KanbanTaskCard({cardProps, task}) {
+  const {attributes, isDragging, listeners, setNodeRef, transform} = useDraggable({
+    id: `kanban-${task.id}-${getTaskDueDate(task)}`,
+    data: {task},
+  });
+  return <div className={`operations-kanban-draggable ${isDragging ? "is-dragging" : ""}`} ref={setNodeRef} style={{transform: CSS.Translate.toString(transform)}} {...attributes} {...listeners}>
+    <TaskCard task={task} {...cardProps} />
+  </div>;
+}
+
+function KanbanDayColumn({cardProps, dates, label, tasks}) {
+  const targetDate = dates[0];
+  const {isOver, setNodeRef} = useDroppable({id: `kanban-day-${targetDate}`, data: {date: targetDate}});
+  const completed = tasks.filter(isTaskCompleted).length;
+  return <section className={`operations-kanban-column ${isOver ? "is-over" : ""}`} ref={setNodeRef}>
+    <header><div><strong>{label}</strong><span>{dates.map(formatDateShort).join(" / ")}</span></div><em>{completed}/{tasks.length}</em></header>
+    <div className="operations-kanban-column-body">
+      {tasks.map((task) => <KanbanTaskCard cardProps={cardProps} key={`${task.id}-${getTaskDueDate(task)}`} task={task} />)}
+      {!tasks.length ? <span className="operations-kanban-empty">Нет задач</span> : null}
+    </div>
+  </section>;
+}
+
 const TECHNICAL_CHECKLIST_LABELS = new Set(["сохранить показатели"]);
 
 function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
@@ -453,52 +477,6 @@ function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
   );
 }
 
-function WorkAreaGroup({label, onAddTask, tasks, ...cardProps}) {
-  const completed = tasks.filter(isTaskCompleted).length;
-  const progress = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
-  return (
-    <details className="operations-area" open>
-      <summary>
-        <span><strong>{label}</strong><small>{completed} из {tasks.length} выполнено</small></span>
-        <span className="operations-area-progress"><i style={{width: `${progress}%`}} /><em>{progress}%</em></span>
-      </summary>
-      <div className="operations-area-actions">
-        <Button leftIcon="plus" size="sm" variant="ghost" onClick={onAddTask}>Добавить задачу</Button>
-      </div>
-      <div className="operations-task-list">
-        {tasks.map((task) => <TaskCard key={task.id} task={task} {...cardProps} />)}
-      </div>
-    </details>
-  );
-}
-
-function TaskGroup({empty, onAddTask, tasks, title, ...cardProps}) {
-  return (
-    <section className="operations-plan-group">
-      <header>
-        <h3>{title}</h3>
-        <span>{tasks.length}</span>
-      </header>
-      {tasks.length ? (
-        <div className="operations-task-list">
-          {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} {...cardProps} />
-          ))}
-        </div>
-      ) : (
-        <div className="operations-empty">
-          <span>{empty}</span>
-          {onAddTask ? (
-            <Button leftIcon="plus" size="sm" variant="secondary" onClick={onAddTask}>
-              Добавить
-            </Button>
-          ) : null}
-        </div>
-      )}
-    </section>
-  );
-}
-
 function OperationsPage({
   alertFocus,
   employees = [],
@@ -532,12 +510,11 @@ function OperationsPage({
   const {isMobile} = useBreakpoint();
   const storedView = readStoredJson(VIEW_STORAGE_KEY, {});
   const [activeTab, setActiveTab] = useState(storedView.activeTab ?? "plan");
-  const [planMode, setPlanMode] = useState(storedView.planMode ?? "today");
+  const [planMode, setPlanMode] = useState(storedView.planMode === "templates" ? "templates" : "week");
   const [selectedDate, setSelectedDate] = useState(storedView.selectedDate ?? getWarsawTodayInput());
   const [filters, setFilters] = useState(() => readStoredJson(FILTER_STORAGE_KEY, DEFAULT_FILTERS));
   const [openItemMenuId, setOpenItemMenuId] = useState(null);
   const [viewingTask, setViewingTask] = useState(null);
-  const [expandedWeekDays, setExpandedWeekDays] = useState(() => new Set([getWarsawTodayInput()]));
   const [showArchivedTemplates, setShowArchivedTemplates] = useState(false);
   const [selectedTemplateIds, setSelectedTemplateIds] = useState(() => new Set());
   const [areaOrder, setAreaOrder] = useState(() => readStoredJson(AREA_ORDER_STORAGE_KEY, []));
@@ -546,6 +523,7 @@ function OperationsPage({
   const [noteCategory, setNoteCategory] = useState("Мысль");
   const today = getWarsawTodayInput();
   const nowTime = getWarsawTime();
+  const kanbanSensors = useSensors(useSensor(PointerSensor, {activationConstraint: {distance: 6}}));
 
   useEffect(() => {
     window.localStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify({activeTab, planMode, selectedDate}));
@@ -576,7 +554,10 @@ function OperationsPage({
   }, [alertFocus, onAlertFocusHandled]);
 
   const notes = tasks.filter((task) => task.type === "note");
-  const legacyAcquisitionRecord = tasks.find((task) => !getTaskPayload(task).templateKey && String(task.title ?? "").trim().toLocaleLowerCase("ru") === "01. привлечение новых клиентов");
+  const legacyAcquisitionRecord = tasks.find((task) => {
+    const payload = getTaskPayload(task);
+    return !payload.templateKey && payload.hiddenFromPlan !== true && String(task.title ?? "").trim().toLocaleLowerCase("ru") === "01. привлечение новых клиентов";
+  });
   const workTasks = tasks.filter((task) => task.type !== "note" && getTaskPayload(task).hiddenFromPlan !== true);
   const activeWorkTasks = workTasks.filter((task) => getTaskPayload(task).templateArchived !== true);
   const lowStockCount = supplies.filter(isSupplyLowStock).length;
@@ -603,32 +584,15 @@ function OperationsPage({
     () => expandTasksForRange(activeWorkTasks, weekStart, weekEnd),
     [activeWorkTasks, weekEnd, weekStart],
   );
-  const allTasksRaw = useMemo(
-    () =>
-      activeWorkTasks.map((task) =>
-        isTaskRepeating(task) && occursOnDate(task, selectedDate)
-          ? createTaskOccurrence(task, selectedDate)
-          : task,
-      ),
-    [activeWorkTasks, selectedDate],
-  );
   const overdueTasks = useMemo(
     () => sortPlanTasks(applyOperationsFilters(getOverdueTasks(activeWorkTasks, today, nowTime), filters)),
     [activeWorkTasks, filters, nowTime, today],
-  );
-  const dayTasks = useMemo(
-    () => sortPlanTasks(applyOperationsFilters(dayTasksRaw, filters)),
-    [dayTasksRaw, filters],
   );
   const weekTasks = useMemo(
     () => sortPlanTasks(applyOperationsFilters(weekTasksRaw, filters)),
     [filters, weekTasksRaw],
   );
   const weekStats = useMemo(() => getDayStats(weekTasksRaw), [weekTasksRaw]);
-  const allTasks = useMemo(
-    () => sortPlanTasks(applyOperationsFilters(allTasksRaw, filters)),
-    [allTasksRaw, filters],
-  );
   const taskTemplates = useMemo(
     () => sortPlanTasks(applyOperationsFilters(workTasks.filter((task) => isTaskRepeating(task) && (showArchivedTemplates || getTaskPayload(task).templateArchived !== true)), filters)),
     [filters, showArchivedTemplates, workTasks],
@@ -689,28 +653,13 @@ function OperationsPage({
     setAreaOrder(ids);
   };
   const dayStats = getDayStats(dayTasksRaw);
-  const visibleAreas = useMemo(() => {
-    const groups = new Map();
-    dayTasks.forEach((task) => {
-      const areaId = getTaskAreaId(task);
-      if (!groups.has(areaId)) groups.set(areaId, {id: areaId, label: getTaskAreaLabel(task), tasks: []});
-      groups.get(areaId).tasks.push(task);
-    });
-    return [...groups.values()].sort((left, right) => {
-      if (left.id === "acquisition") return -1;
-      if (right.id === "acquisition") return 1;
-      return left.label.localeCompare(right.label, "ru");
-    });
-  }, [dayTasks]);
-  const hasAcquisitionPlan = workTasks.some((task) => getTaskAreaId(task) === "acquisition");
-  const acquisitionNeedsSync = !tasks.some((task) => ACQUISITION_TEMPLATE_KEYS.includes(getTaskPayload(task).templateKey));
   const acquisitionNeedsUpgrade = tasks.some((task) => ACQUISITION_TEMPLATE_KEYS.includes(getTaskPayload(task).templateKey) && Number(getTaskPayload(task).templateVersion) < 3);
 
   useEffect(() => {
-    if (!tasks.length || (!legacyAcquisitionRecord && !acquisitionNeedsSync && !acquisitionNeedsUpgrade) || acquisitionSyncStarted.current || !onInitializeAcquisitionPlan) return;
+    if (!tasks.length || (!legacyAcquisitionRecord && !acquisitionNeedsUpgrade) || acquisitionSyncStarted.current || !onInitializeAcquisitionPlan) return;
     acquisitionSyncStarted.current = true;
     onInitializeAcquisitionPlan();
-  }, [acquisitionNeedsSync, acquisitionNeedsUpgrade, legacyAcquisitionRecord, onInitializeAcquisitionPlan, tasks.length]);
+  }, [acquisitionNeedsUpgrade, legacyAcquisitionRecord, onInitializeAcquisitionPlan, tasks.length]);
   const completedOccurrences = useMemo(
     () => workTasks.flatMap((task) => Object.entries(getTaskPayload(task).occurrences ?? {}).map(([date, record]) => ({date, record, task}))).filter(({record}) => record.status === "completed"),
     [workTasks],
@@ -741,17 +690,6 @@ function OperationsPage({
   const changeWeek = (offset) => {
     const nextDate = offset === 0 ? today : addDays(weekStart, offset * 7);
     setSelectedDate(nextDate);
-    setExpandedWeekDays(new Set(offset === 0 ? [today] : []));
-  };
-
-  const toggleWeekDay = (date) => {
-    setSelectedDate(date);
-    setExpandedWeekDays((current) => {
-      const next = new Set(current);
-      if (next.has(date)) next.delete(date);
-      else next.add(date);
-      return next;
-    });
   };
 
   const submitQuickNote = (event) => {
@@ -783,6 +721,21 @@ function OperationsPage({
 
   const tabMeta = `${dayStats.completed}/${dayStats.planned} задач · ${formatMinutes(dayStats.remainingMinutes)}`;
   const isTemplateManager = activeTab === "plan" && planMode === "templates";
+  const kanbanColumns = useMemo(() => {
+    const weekdayColumns = weekDays.slice(0, 5).map((day) => ({dates: [day.input], label: day.label}));
+    const weekendDates = weekDays.slice(5).map((day) => day.input);
+    return [...weekdayColumns, {dates: weekendDates, label: "Сб/Вс"}].map((column) => ({
+      ...column,
+      tasks: weekTasks.filter((task) => column.dates.includes(getTaskDueDate(task))),
+    }));
+  }, [weekDays, weekTasks]);
+
+  const handleKanbanDragEnd = ({active, over}) => {
+    const task = active.data.current?.task;
+    const date = over?.data.current?.date;
+    if (!task || !date || getTaskDueDate(task) === date) return;
+    onMoveTask?.(task, date);
+  };
 
   return (
     <section className={`operations-page operations-workspace ${isMobile ? "operations-page-mobile" : ""}`}>
@@ -791,7 +744,7 @@ function OperationsPage({
         collapsedMeta={tabMeta}
         collapsible={false}
         description={isMobile ? undefined : isTemplateManager ? "Направления, расписания и шаблоны регулярных задач" : "Задачи, заметки, расходники и лист ожидания"}
-        headerActions={isTemplateManager ? <Button leftIcon="chevronLeft" size="sm" variant="secondary" onClick={() => setPlanMode("today")}>К задачам</Button> : undefined}
+        headerActions={isTemplateManager ? <Button leftIcon="chevronLeft" size="sm" variant="secondary" onClick={() => setPlanMode("week")}>К задачам</Button> : undefined}
         title={isTemplateManager ? "Управление задачами" : "Работа"}
       />
 
@@ -821,28 +774,14 @@ function OperationsPage({
                 </div>
                 <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({taskKind: "daily"})}>Новый шаблон</Button>
               </div>
-            ) : <div className="operations-task-commandbar">
-              <div className="operations-plan-mode">
-                <SegmentButton active={planMode === "today"} onClick={() => setPlanMode("today")}>Сегодня</SegmentButton>
-                <SegmentButton active={planMode === "week"} onClick={() => { setPlanMode("week"); changeWeek(0); }}>Неделя</SegmentButton>
-                <SegmentButton active={planMode === "all"} onClick={() => setPlanMode("all")}>Все</SegmentButton>
-              </div>
+            ) : <div className="operations-task-commandbar operations-kanban-commandbar">
               <div className="operations-planner-head">
-                <h2>{planMode === "week" ? formatWeekRange(weekStart, weekEnd) : planMode === "all" ? "Все задачи" : formatPlannerDate(selectedDate)}</h2>
-                {planMode === "week" ? (
-                  <div className="operations-week-controls">
-                    <IconButton icon="chevronLeft" label="Предыдущая неделя" size="sm" variant="secondary" onClick={() => changeWeek(-1)} />
-                    <Button size="sm" variant="secondary" onClick={() => changeWeek(0)}>Текущая неделя</Button>
-                    <IconButton icon="chevronRight" label="Следующая неделя" size="sm" variant="secondary" onClick={() => changeWeek(1)} />
-                  </div>
-                ) : planMode === "today" ? (
-                  <div className="operations-date-controls">
-                    <IconButton icon="chevronLeft" label="Предыдущий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, -1))} />
-                    <Input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} />
-                    <IconButton icon="chevronRight" label="Следующий день" size="sm" variant="secondary" onClick={() => setSelectedDate(addDays(selectedDate, 1))} />
-                    <Button size="sm" variant="secondary" onClick={() => setSelectedDate(today)}>Сегодня</Button>
-                  </div>
-                ) : null}
+                <h2>{formatWeekRange(weekStart, weekEnd)}</h2>
+                <div className="operations-week-controls">
+                  <IconButton icon="chevronLeft" label="Предыдущая неделя" size="sm" variant="secondary" onClick={() => changeWeek(-1)} />
+                  <Button size="sm" variant="secondary" onClick={() => changeWeek(0)}>Текущая неделя</Button>
+                  <IconButton icon="chevronRight" label="Следующая неделя" size="sm" variant="secondary" onClick={() => changeWeek(1)} />
+                </div>
               </div>
               <div className="operations-task-actions">
                 <IconButton icon="settings" label="Управление направлениями и шаблонами" size="sm" variant="secondary" onClick={() => setPlanMode("templates")} />
@@ -860,11 +799,11 @@ function OperationsPage({
                 </div>
               </div>
             ) : <div className="operations-workday-summary">
-              <span><strong>{planMode === "week" ? weekStats.planned : planMode === "all" ? allTasks.length : dayStats.planned}</strong> задач</span>
-              <span><strong>{planMode === "week" ? weekStats.completed : dayStats.completed}</strong> выполнено</span>
+              <span><strong>{weekStats.planned}</strong> задач</span>
+              <span><strong>{weekStats.completed}</strong> выполнено</span>
               <span className={overdueTasks.length ? "is-alert" : ""}><strong>{overdueTasks.length}</strong> просрочено</span>
-              <span className="operations-summary-progress"><i style={{width: `${planMode === "week" ? weekProgress : dayStats.progress}%`}} /></span>
-              <b>{planMode === "week" ? weekProgress : dayStats.progress}%</b>
+              <span className="operations-summary-progress"><i style={{width: `${weekProgress}%`}} /></span>
+              <b>{weekProgress}%</b>
             </div>}
 
             <section className="operations-list-toolbar">
@@ -898,62 +837,7 @@ function OperationsPage({
               </details>
             </section>
 
-            {planMode === "today" ? (
-              <div className="operations-plan-columns">
-                {overdueTasks.length ? (
-                  <TaskGroup title="Просрочено" tasks={overdueTasks} empty="Просроченных задач нет." {...cardProps} />
-                ) : null}
-                {!hasAcquisitionPlan ? (
-                  <section className="operations-plan-setup">
-                    <div><strong>01. Привлечение новых клиентов</strong><span>Подготовьте четыре регулярные задачи с чек-листами и измеримыми результатами.</span></div>
-                    <Button size="sm" variant="secondary" onClick={onInitializeAcquisitionPlan}>Подготовить задачи</Button>
-                  </section>
-                ) : null}
-                {visibleAreas.map((area) => (
-                  <WorkAreaGroup
-                    key={area.id}
-                    label={area.label}
-                    tasks={area.tasks}
-                    onAddTask={() => onAddTask?.({areaId: area.id, dueDate: selectedDate, taskKind: "daily"})}
-                    {...cardProps}
-                  />
-                ))}
-                {!dayTasks.length && hasAcquisitionPlan ? <p className="operations-empty">На выбранный день задач нет.</p> : null}
-              </div>
-            ) : planMode === "week" ? (
-              <div className="operations-week-list">
-                <section className="operations-week-progress" aria-label="Прогресс недели">
-                  <div><span>Прогресс недели</span><strong>{weekStats.completed} из {weekStats.planned}</strong></div>
-                  <b>{weekProgress}%</b>
-                  <span><i style={{width: `${weekProgress}%`}} /></span>
-                </section>
-                {weekDays.map((day) => {
-                  const tasksForDay = weekTasks.filter((task) => getTaskDueDate(task) === day.input);
-                  const rawTasksForDay = weekTasksRaw.filter((task) => getTaskDueDate(task) === day.input);
-                  const stats = getDayStats(rawTasksForDay);
-                  const isExpanded = expandedWeekDays.has(day.input);
-                  return (
-                    <section className={`operations-week-day ${isExpanded ? "is-expanded" : ""} ${day.input === today ? "is-today" : ""}`} key={day.input}>
-                      <button aria-expanded={isExpanded} className="operations-week-day-toggle" type="button" onClick={() => toggleWeekDay(day.input)}>
-                        <div><strong>{day.label}</strong><span>{formatDateShort(day.input)}{day.input === today ? " · Сегодня" : ""}</span></div>
-                        <span className="operations-week-day-count"><b>{stats.completed}</b> / {stats.planned}</span>
-                        <AppIcon name={isExpanded ? "chevronUp" : "chevronDown"} size="sm" />
-                      </button>
-                      {isExpanded ? (
-                        <div className={`operations-week-day-content ${tasksForDay.length ? "" : "is-empty"}`}>
-                          {tasksForDay.length ? (
-                            <div className="operations-task-list">
-                              {tasksForDay.map((task) => <TaskCard key={task.id} task={task} {...cardProps} />)}
-                            </div>
-                          ) : <p className="operations-week-empty">Задач на этот день нет.</p>}
-                          <Button leftIcon="plus" size="sm" variant="ghost" onClick={() => onAddTask?.({dueDate: day.input})}>Добавить задачу</Button>
-                        </div>
-                      ) : null}
-                    </section>
-                  );
-                })}
-              </div>
-            ) : planMode === "templates" ? (
+            {planMode === "templates" ? (
               <section className="operations-template-list" aria-label="Шаблоны задач">
                 {templateGroups.length ? templateGroups.map((group, groupIndex) => (
                   <details className="operations-template-group" key={group.id} open>
@@ -976,12 +860,11 @@ function OperationsPage({
                   </details>
                 )) : <p className="operations-empty">Регулярных шаблонов по выбранным фильтрам нет.</p>}
               </section>
-            ) : (
-              <div className="operations-plan-columns">
-                <TaskGroup title="Все задачи" tasks={allTasks.filter((task) => getTaskDueDate(task))} empty="Ничего не найдено по фильтрам." onAddTask={onAddTask} {...cardProps} />
-                <TaskGroup title="Без даты" tasks={allTasks.filter((task) => !getTaskDueDate(task))} empty="Задач без даты нет." onAddTask={onAddTask} {...cardProps} />
+            ) : <DndContext sensors={kanbanSensors} onDragEnd={handleKanbanDragEnd}>
+              <div className="operations-kanban-board">
+                {kanbanColumns.map((column) => <KanbanDayColumn cardProps={{...cardProps, onView: onEditTask}} dates={column.dates} key={column.label} label={column.label} tasks={column.tasks} />)}
               </div>
-            )}
+            </DndContext>}
 
             {!isTemplateManager ? <details className="operations-report">
               <summary>Итоги и история</summary>

@@ -235,22 +235,9 @@ export default function AppRoutes({activePage, ...props}) {
       );
 
     case "operations":
-      if (props.taskModalOpen && props.editingTask?.type !== "note") {
-        return (
-          <PageSuspense>
-            <TaskEditorPage
-              employees={props.activeEmployees}
-              task={props.editingTask}
-              onClose={props.closeTaskEditor}
-              onDirtyChange={props.onTaskEditorDirtyChange}
-              onSubmit={props.handleTaskSubmit}
-            />
-          </PageSuspense>
-        );
-      }
       return (
         <PageSuspense>
-          <OperationsPage
+          <><OperationsPage
             alertFocus={props.alertFocus}
             tasks={props.tasks}
             supplies={props.supplies}
@@ -280,7 +267,7 @@ export default function AppRoutes({activePage, ...props}) {
             onEditSupply={props.openEditSupply}
             onDeleteSupply={props.requestDeleteSupply}
             onChangeSupplyStock={props.changeSupplyStock}
-          />
+          />{props.taskModalOpen && props.editingTask?.type !== "note" ? <TaskEditorPage employees={props.activeEmployees} task={props.editingTask} onClose={props.closeTaskEditor} onDirtyChange={props.onTaskEditorDirtyChange} onSubmit={props.handleTaskSubmit} /> : null}</>
         </PageSuspense>
       );
 
