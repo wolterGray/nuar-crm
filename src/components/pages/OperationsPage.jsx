@@ -82,6 +82,11 @@ const ACQUISITION_TEMPLATE_KEYS = [
   "marketing-monday-microbloggers",
   "marketing-monday-content-editing",
   "marketing-monday-content-planning",
+  "core-tuesday-dormant-clients",
+  "core-tuesday-reviews-reactivation",
+  "core-wednesday-studio-supplies",
+  "core-thursday-studio-strategy",
+  "core-friday-finance-reconciliation",
 ];
 
 const readStoredJson = (key, fallback) => {
@@ -656,7 +661,7 @@ function OperationsPage({
     setAreaOrder(ids);
   };
   const dayStats = getDayStats(dayTasksRaw);
-  const acquisitionNeedsUpgrade = tasks.some((task) => ACQUISITION_TEMPLATE_KEYS.includes(getTaskPayload(task).templateKey) && Number(getTaskPayload(task).templateVersion) < 3);
+  const acquisitionNeedsUpgrade = tasks.some((task) => ACQUISITION_TEMPLATE_KEYS.includes(getTaskPayload(task).templateKey) && Number(getTaskPayload(task).templateVersion) < 4);
 
   useEffect(() => {
     if (!tasks.length || (!legacyAcquisitionRecord && !acquisitionNeedsUpgrade) || acquisitionSyncStarted.current || !onInitializeAcquisitionPlan) return;

@@ -157,6 +157,83 @@ const ACQUISITION_TASK_TEMPLATES = [
     priorityId: "high",
     repeat: {enabled: true, frequency: "weekly", weekdays: [1]},
   },
+  {
+    aliases: ["05. Фильтрация и анализ спящей базы клиентов"],
+    areaId: "retention",
+    key: "core-tuesday-dormant-clients",
+    title: "05. Фильтрация и анализ спящей базы клиентов",
+    note: "Выгрузка списка клиентов, которые были в студии от 3 до 5 недель назад, но не имеют активных записей на будущее.",
+    instructions: "1. Зайти в модуль базы клиентов.\n2. Отфильтровать визиты за последние 30 дней.\n3. Исключить тех, у кого есть записи на эту или следующую неделю.\n4. Выписать 10-15 человек на мягкое касание.",
+    checklist: ["Отфильтровать клиентов без активных записей за последний месяц", "Сегментировать список по услугам (какой массаж делали ранее)", "Сформировать готовый список для отправки сообщений"],
+    resultFields: [{id: "dormantClients", label: "Количество спящих клиентов в списке", type: "number"}],
+    dueTime: "09:30",
+    estimateMinutes: 60,
+    repeat: {enabled: true, frequency: "weekly", weekdays: [2]},
+  },
+  {
+    aliases: ["06. Сервисный сбор отзывов и реактивация"],
+    areaId: "retention",
+    key: "core-tuesday-reviews-reactivation",
+    title: "06. Сервисный сбор отзывов и реактивация",
+    note: "Мягкое напоминание о себе спящим клиентам через заботу и сбор обратной связи от вчерашних посетителей.",
+    instructions: "1. Написать вчерашним клиентам и спросить о самочувствии.\n2. Написать спящим клиентам по заготовленному шаблону заботы.\n3. Скопировать текстовые отзывы в CRM.",
+    checklist: ["Опросить вчерашних клиентов о качестве сервиса и самочувствии", "Отправить 10-15 сервисных сообщений спящим клиентам", "Проверить остатки абонементов и сделать пометки Оле на продление"],
+    resultFields: [
+      {id: "sentMessages", label: "Количество отправленных сообщений", type: "number"},
+      {id: "responsesAndBookings", label: "Количество полученных записей/откликов", type: "number"},
+    ],
+    dueTime: "10:30",
+    estimateMinutes: 90,
+    repeat: {enabled: true, frequency: "weekly", weekdays: [2]},
+  },
+  {
+    aliases: ["07. Плановая закупка и контроль расходников студии"],
+    areaId: "studio",
+    key: "core-wednesday-studio-supplies",
+    title: "07. Плановая закупка и контроль расходников студии",
+    note: "Полное обеспечение студии необходимыми материалами на неделю вперёд, чтобы Оля не отвлекалась от работы.",
+    instructions: "1. Проверить шкафы и полки в студии.\n2. Зафиксировать нехватку.\n3. Оформить заказ на Allegro/Hurtownia или сделать быстрый выезд.",
+    checklist: ["Проверить запасы масел (базовые и арома)", "Проверить одноразовые простыни, салфетки и шапочки", "Контроль текстиля: наличие чистых полотенец и халатов", "Бытовой чек: заказать кофе, чай, сахар и воду для клиентов"],
+    resultFields: [
+      {id: "purchaseCosts", label: "Сумма затрат на закупки", type: "number", unit: "PLN"},
+      {id: "nextDeliveryDate", label: "Дата следующей доставки расходников", type: "date"},
+    ],
+    dueTime: "11:00",
+    estimateMinutes: 90,
+    repeat: {enabled: true, frequency: "weekly", weekdays: [3]},
+  },
+  {
+    aliases: ["08. Стратегический анализ студии и масштабирование"],
+    areaId: "growth",
+    key: "core-thursday-studio-strategy",
+    title: "08. Стратегический анализ студии и масштабирование",
+    note: "Оценка финансовых показателей бизнеса, плотности загрузки мастера и планирование роста прибыли.",
+    instructions: "1. Выгрузить отчёт по выручке за прошедшие дни.\n2. Посчитать плотность записи Оли.\n3. Проверить актуальные цены конкурентов в Варшаве.",
+    checklist: ["Посчитать процент загрузки Оли (если >80% — нужен второй мастер)", "Выделить топ-3 самых маржинальных услуг месяца", "Разработать или обновить оффер для подарочных сертификатов"],
+    resultFields: [
+      {id: "studioOccupancy", label: "Процент загрузки студии", type: "number", unit: "%"},
+      {id: "nextGrowthPoint", label: "Главная точка роста на следующую неделю", type: "text"},
+    ],
+    dueTime: "10:00",
+    estimateMinutes: 120,
+    repeat: {enabled: true, frequency: "weekly", weekdays: [4]},
+  },
+  {
+    aliases: ["09. Финансовый отчет, сверка кассы и Biuro Rachunkowe", "09. Финансовый отчёт, сверка кассы и Biuro Rachunkowe"],
+    areaId: "finance",
+    key: "core-friday-finance-reconciliation",
+    title: "09. Финансовый отчёт, сверка кассы и Biuro Rachunkowe",
+    note: "Сведение баланса недели, контроль оплат по картам и наличным и упаковка документов для бухгалтера.",
+    instructions: "1. Снять рапорт по терминалу (доходы по картам/Blik).\n2. Пересчитать наличные в кассе.\n3. Собрать входящие фактуры за неделю в рабочую папку.",
+    checklist: ["Сверить транзакции терминала с данными в CRM", "Провести инкассацию или сверку наличных в кассе", "Загрузить все входящие фактуры за неделю для бухгалтера", "Высчитать процент и выплату зарплаты Оле за неделю"],
+    resultFields: [
+      {id: "weeklyRevenue", label: "Общая выручка за неделю", type: "number", unit: "PLN"},
+      {id: "weeklyNetProfit", label: "Чистая прибыль за вычетом расходов", type: "number", unit: "PLN"},
+    ],
+    dueTime: "13:00",
+    estimateMinutes: 90,
+    repeat: {enabled: true, frequency: "weekly", weekdays: [5]},
+  },
 ];
 
 const buildAcquisitionTask = (template, startDate) => ({
@@ -170,7 +247,7 @@ const buildAcquisitionTask = (template, startDate) => ({
   title: template.title,
   type: "task",
   payload: {
-    areaId: "acquisition",
+    areaId: template.areaId ?? "acquisition",
     checklist: template.checklist.map((text, index) => ({done: false, id: `${template.key}-${index + 1}`, text})),
     dueDate: startDate,
     dueTime: template.dueTime ?? "",
@@ -183,7 +260,7 @@ const buildAcquisitionTask = (template, startDate) => ({
     resultSource: template.resultSource ?? "manual",
     taskKind: "daily",
     templateKey: template.key,
-    templateVersion: 3,
+    templateVersion: 4,
   },
 });
 
@@ -642,7 +719,7 @@ export function useTaskHandlers({
         ...(generatedTitle ? {title: template.title} : {}),
         payload: {
           ...payload,
-          areaId: "acquisition",
+          areaId: template.areaId ?? "acquisition",
           checklist: [...checklist, ...missingChecklist],
           instructions: payload.instructions || template.instructions,
           repeat: payload.repeat?.enabled ? payload.repeat : buildAcquisitionTask(template, startDate).payload.repeat,
@@ -650,7 +727,7 @@ export function useTaskHandlers({
           resultSource: template.resultSource ?? payload.resultSource ?? "manual",
           taskKind: "daily",
           templateKey: template.key,
-          templateVersion: 3,
+          templateVersion: 4,
         },
       }));
     });
@@ -664,12 +741,12 @@ export function useTaskHandlers({
         const knownIds = new Set(updated.map((task) => String(task.id)));
         return [...saved.filter((task) => !knownIds.has(String(task.id))), ...updated];
       });
-      pushNotification({title: "Направление подготовлено", message: "Задачи проверены, недостающие добавлены, история сохранена"});
+      pushNotification({title: "Рабочий план подготовлен", message: "Задачи проверены, недостающие добавлены, история сохранена"});
     } else if (operations.length) {
       const error = responses.find((response) => response.status === "rejected")?.reason;
       pushNotification({title: "План не обновлён", message: error?.message || "Backend не принял задачи", persist: false});
     } else {
-      pushNotification({title: "Всё готово", message: "Все четыре задачи уже настроены"});
+      pushNotification({title: "Всё готово", message: "Все базовые задачи уже настроены"});
     }
   }, [pushNotification, setTasks, tasks]);
 
