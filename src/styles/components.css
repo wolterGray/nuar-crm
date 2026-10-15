@@ -11341,7 +11341,7 @@
 }
 
 .operations-page .operations-kanban-day.is-today {
-  border-color: color-mix(in srgb, var(--operations-accent) 48%, var(--operations-border));
+  border-color: color-mix(in srgb, var(--operations-accent) 25%, var(--operations-border));
   box-shadow: inset 0 2px 0 var(--operations-accent);
 }
 
@@ -11407,17 +11407,64 @@
 }
 
 .operations-page .operations-kanban-column .operations-work-card {
-  grid-template-columns: 30px minmax(0, 1fr) 26px 28px;
-  min-height: 92px;
-  padding: 9px 7px;
-  background: var(--operations-panel);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+  grid-template-columns: 22px minmax(0, 1fr) 22px 26px;
+  gap: 7px;
+  min-height: 88px;
+  padding: 10px 7px 9px 8px;
+  border-color: var(--operations-border-soft);
+  border-left-width: 3px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--operations-panel) 94%, var(--task-card-color) 2%);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+  transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
+}
+
+.operations-page .operations-kanban-column .operations-work-card:hover {
+  border-color: color-mix(in srgb, var(--task-card-color) 38%, var(--operations-border));
+  border-left-color: var(--task-card-color);
+  background: color-mix(in srgb, var(--operations-panel) 90%, var(--task-card-color) 5%);
+  transform: translateY(-1px);
+}
+
+.operations-page .operations-kanban-column .operations-work-card.is-overdue {
+  border-color: var(--operations-border-soft);
+  border-left-color: var(--task-card-color);
+}
+
+.operations-page .operations-kanban-column .operations-task-check {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  min-height: 20px;
+  margin-top: 1px;
+  border-color: color-mix(in srgb, var(--operations-text) 22%, var(--operations-border));
+  border-radius: 5px;
+  color: var(--operations-faint);
+  background: transparent;
+}
+
+.operations-page .operations-kanban-column .operations-task-check:hover,
+.operations-page .operations-kanban-column .operations-task-check:focus-visible {
+  border-color: color-mix(in srgb, var(--task-card-color) 65%, var(--operations-border));
+  color: var(--task-card-color);
+  background: color-mix(in srgb, var(--task-card-color) 8%, transparent);
+}
+
+.operations-page .operations-kanban-column .operations-task-check.is-on {
+  border-color: color-mix(in srgb, var(--color-success) 60%, var(--operations-border));
+  color: #fff;
+  background: color-mix(in srgb, var(--color-success) 72%, var(--operations-panel));
+}
+
+.operations-page .operations-kanban-column .operations-task-check svg {
+  width: 12px;
+  height: 12px;
 }
 
 .operations-page .operations-task-drag-handle {
   display: inline-flex;
-  width: 26px;
-  height: 32px;
+  width: 22px;
+  height: 24px;
   align-items: center;
   justify-content: center;
   align-self: start;
@@ -11492,9 +11539,61 @@
   white-space: normal;
 }
 
+.operations-page .operations-kanban-column .operations-work-card-title {
+  gap: 0;
+}
+
+.operations-page .operations-kanban-column .operations-work-card-title::before {
+  display: none;
+}
+
+.operations-page .operations-kanban-column .operations-work-card-title strong {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.operations-page .operations-kanban-column .operations-work-card-main small {
+  color: color-mix(in srgb, var(--operations-muted) 88%, transparent);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.operations-page .operations-kanban-column .operations-row-actions .row-action-trigger {
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0;
+  color: var(--operations-faint);
+}
+
 .operations-page .operations-kanban-column .operations-work-card-meta em {
-  padding: 2px 5px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--operations-faint);
+  background: transparent;
   font-size: 10px;
+  font-weight: 650;
+}
+
+.operations-page .operations-kanban-column .operations-work-card-meta em + em::before {
+  margin-right: 5px;
+  color: color-mix(in srgb, var(--operations-faint) 55%, transparent);
+  content: "·";
+}
+
+.operations-page .operations-kanban-column .operations-work-card-meta .operations-task-status {
+  color: var(--operations-muted);
+}
+
+.operations-page .operations-kanban-column .operations-work-card.status-overdue .operations-task-status {
+  color: var(--color-danger);
+}
+
+.operations-page .operations-kanban-column .operations-work-card.status-done .operations-task-status {
+  color: var(--color-success);
 }
 
 .operations-page .operations-kanban-empty {
