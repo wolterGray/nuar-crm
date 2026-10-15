@@ -12,7 +12,8 @@
     "auth:create-owner": "node scripts/create-owner-user.js",
     "notifications:generate": "node scripts/generate-notification-events.js",
     "notifications:process-due": "node scripts/process-due-notifications.js",
-    "db:backup": "node scripts/backup-db.js"
+    "db:backup": "node scripts/backup-db.js",
+    "tasks:reseed-weekly": "node scripts/reseed-weekly-tasks.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
