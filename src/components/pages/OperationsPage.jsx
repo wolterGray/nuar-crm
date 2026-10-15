@@ -316,7 +316,7 @@ function KanbanDaySection({cardProps, date, label, onAddTask, tasks, today}) {
   const {isOver, setNodeRef} = useDroppable({id: `kanban-day-${date}`, data: {date}});
   const completed = tasks.filter(isTaskCompleted).length;
   const minutes = tasks.reduce((total, task) => total + (Number(getTaskEstimateMinutes(task)) || 0), 0);
-  return <section className={`operations-kanban-day ${isOver ? "is-over" : ""} ${date === today ? "is-today" : ""} ${tasks.length ? "" : "is-empty"}`} ref={setNodeRef}>
+  return <section className={`operations-kanban-day ${isOver ? "is-over" : ""} ${date === today ? "is-today" : ""} ${tasks.length ? "" : "is-empty"}`} data-kanban-date={date} ref={setNodeRef}>
     <header>
       <div><strong>{label}</strong><span>{formatDateShort(date)}{date === today ? " · Сегодня" : ""}</span></div>
       <div className="operations-kanban-day-stats"><em>{completed}/{tasks.length}</em>{minutes ? <em>{formatMinutes(minutes)}</em> : null}</div>
@@ -561,6 +561,7 @@ function OperationsPage({
   const acquisitionSyncStarted = useRef(false);
   const [noteText, setNoteText] = useState("");
   const [noteCategory, setNoteCategory] = useState("Мысль");
+  const kanbanBoardRef = useRef(null);
   const today = getWarsawTodayInput();
   const nowTime = getWarsawTime();
   const kanbanSensors = useSensors(useSensor(PointerSensor, {activationConstraint: {distance: 6}}));
@@ -732,6 +733,18 @@ function OperationsPage({
     setSelectedDate(nextDate);
   };
 
+  useEffect(() => {
+    if (!isMobile || planMode !== "week") return undefined;
+    const targetDate = today >= weekStart && today <= weekEnd ? today : weekStart;
+    const frame = window.requestAnimationFrame(() => {
+      const board = kanbanBoardRef.current;
+      const target = board?.querySelector(`[data-kanban-date="${targetDate}"]`);
+      if (!board || !target) return;
+      board.scrollTo({behavior: "smooth", left: Math.max(0, target.offsetLeft - board.offsetLeft)});
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isMobile, planMode, today, weekEnd, weekStart]);
+
   const submitQuickNote = (event) => {
     event.preventDefault();
     const title = noteText.trim();
@@ -746,9 +759,18 @@ function OperationsPage({
     onMoveTask?.(task, nextDate);
   };
 
+  const handleTaskCompletionRequest = (task) => {
+    const requiresWorkspace = getChecklistProgress(task).total > 0 || getTaskResultFields(task).length > 0;
+    if (!isTaskCompleted(task) && requiresWorkspace) {
+      setViewingTask(task);
+      return;
+    }
+    onCompleteTask?.(task);
+  };
+
   const cardProps = {
     nowTime,
-    onComplete: onCompleteTask,
+    onComplete: handleTaskCompletionRequest,
     onDelete: onDeleteTask,
     onEdit: onEditTask,
     onMain: (task) => onSetMainTask?.(task, getTaskDueDate(task) || selectedDate),
@@ -901,8 +923,8 @@ function OperationsPage({
                 )) : <p className="operations-empty">Регулярных шаблонов по выбранным фильтрам нет.</p>}
               </section>
             ) : <DndContext sensors={kanbanSensors} onDragEnd={handleKanbanDragEnd}>
-              <div className="operations-kanban-board">
-                {kanbanColumns.map((column) => <KanbanDayColumn cardProps={{...cardProps, onView: onEditTask}} dates={column.dates} key={column.dates.join("-")} labels={column.labels} onAddTask={onAddTask} tasks={column.tasks} today={today} />)}
+              <div className="operations-kanban-board" ref={kanbanBoardRef}>
+                {kanbanColumns.map((column) => <KanbanDayColumn cardProps={cardProps} dates={column.dates} key={column.dates.join("-")} labels={column.labels} onAddTask={onAddTask} tasks={column.tasks} today={today} />)}
               </div>
             </DndContext>}
 
@@ -1012,7 +1034,7 @@ function OperationsPage({
       {viewingTask ? (
         <TaskDetailsDialog
           item={viewingTask}
-          key={viewingTask.id}
+          key={`${viewingTask.id}-${getTaskDueDate(viewingTask)}`}
           onClose={() => setViewingTask(null)}
           onSave={onSaveTaskOccurrence}
           relatedTasks={workTasks}
