@@ -312,7 +312,7 @@ function KanbanTaskCard({cardProps, task}) {
   </div>;
 }
 
-function KanbanDaySection({cardProps, date, label, onAddTask, tasks, today}) {
+function KanbanDaySection({allTasksCount, cardProps, date, label, onAddTask, onResetFilters, tasks, today}) {
   const {isOver, setNodeRef} = useDroppable({id: `kanban-day-${date}`, data: {date}});
   const completed = tasks.filter(isTaskCompleted).length;
   const minutes = tasks.reduce((total, task) => total + (Number(getTaskEstimateMinutes(task)) || 0), 0);
@@ -323,21 +323,24 @@ function KanbanDaySection({cardProps, date, label, onAddTask, tasks, today}) {
     </header>
     <div className="operations-kanban-column-body">
       {tasks.map((task) => <KanbanTaskCard cardProps={cardProps} key={`${task.id}-${getTaskDueDate(task)}`} task={task} />)}
-      {!tasks.length ? <span className="operations-kanban-empty">Свободный день</span> : null}
+      {!tasks.length ? <span className="operations-kanban-empty">{allTasksCount ? `Скрыто фильтрами: ${allTasksCount}` : "Свободный день"}</span> : null}
+      {!tasks.length && allTasksCount ? <button className="operations-kanban-reset" type="button" onClick={onResetFilters}>Показать задачи</button> : null}
       <button className="operations-kanban-add" type="button" onClick={() => onAddTask?.({dueDate: date})}><AppIcon name="plus" size="sm" />Добавить</button>
     </div>
   </section>;
 }
 
-function KanbanDayColumn({cardProps, dates, labels, onAddTask, tasks, today}) {
+function KanbanDayColumn({allTasks, cardProps, dates, labels, onAddTask, onResetFilters, tasks, today}) {
   return <section className={`operations-kanban-column ${dates.length > 1 ? "is-weekend" : ""}`}>
     {dates.map((date, index) => (
       <KanbanDaySection
         cardProps={cardProps}
+        allTasksCount={allTasks.filter((task) => getTaskDueDate(task) === date).length}
         date={date}
         key={date}
         label={labels[index]}
         onAddTask={onAddTask}
+        onResetFilters={onResetFilters}
         tasks={tasks.filter((task) => getTaskDueDate(task) === date)}
         today={today}
       />
@@ -641,6 +644,9 @@ function OperationsPage({
     [filters, weekTasksRaw],
   );
   const weekStats = useMemo(() => getDayStats(weekTasksRaw), [weekTasksRaw]);
+  const activeFilterCount = useMemo(() => Object.entries(DEFAULT_FILTERS).reduce((count, [key, defaultValue]) => (
+    filters[key] !== defaultValue ? count + 1 : count
+  ), 0), [filters]);
   const taskTemplates = useMemo(
     () => sortPlanTasks(applyOperationsFilters(workTasks.filter((task) => isTaskRepeating(task) && (showArchivedTemplates || getTaskPayload(task).templateArchived !== true)), filters)),
     [filters, showArchivedTemplates, workTasks],
@@ -814,6 +820,7 @@ function OperationsPage({
   const kanbanColumns = useMemo(() => {
     if (isMobile) {
       return weekDays.map((day) => ({
+        allTasks: weekTasksRaw.filter((task) => getTaskDueDate(task) === day.input),
         dates: [day.input],
         labels: [day.label],
         tasks: weekTasks.filter((task) => getTaskDueDate(task) === day.input),
@@ -823,9 +830,10 @@ function OperationsPage({
     const weekend = weekDays.slice(5);
     return [...weekdayColumns, {dates: weekend.map((day) => day.input), labels: weekend.map((day) => day.label)}].map((column) => ({
       ...column,
+      allTasks: weekTasksRaw.filter((task) => column.dates.includes(getTaskDueDate(task))),
       tasks: weekTasks.filter((task) => column.dates.includes(getTaskDueDate(task))),
     }));
-  }, [isMobile, weekDays, weekTasks]);
+  }, [isMobile, weekDays, weekTasks, weekTasksRaw]);
 
   const handleKanbanDragEnd = ({active, over}) => {
     const task = active.data.current?.task;
@@ -912,9 +920,12 @@ function OperationsPage({
             </div>}
 
             <section className="operations-list-toolbar">
-              <Input value={filters.query} placeholder="Поиск по задачам" onChange={(event) => updateFilter("query", event.target.value)} />
+              <div className="operations-task-search">
+                <Input value={filters.query} placeholder="Поиск по задачам" onChange={(event) => updateFilter("query", event.target.value)} />
+                {filters.query ? <IconButton icon="x" label="Очистить поиск" size="sm" variant="ghost" onClick={() => updateFilter("query", "")} /> : null}
+              </div>
               <details className="operations-filter-menu">
-                <summary>Фильтры</summary>
+                <summary>Фильтры{activeFilterCount ? <span>{activeFilterCount}</span> : null}</summary>
                 <div className="operations-filter-menu-content">
                   <label className="settings-checkbox">
                     <input checked={filters.showCompleted} type="checkbox" onChange={(event) => updateFilter("showCompleted", event.target.checked)} />
@@ -974,7 +985,7 @@ function OperationsPage({
               </nav> : null}
               <DndContext sensors={kanbanSensors} onDragEnd={handleKanbanDragEnd}>
                 <div className="operations-kanban-board" ref={kanbanBoardRef}>
-                  {kanbanColumns.map((column) => <KanbanDayColumn cardProps={cardProps} dates={column.dates} key={column.dates.join("-")} labels={column.labels} onAddTask={onAddTask} tasks={column.tasks} today={today} />)}
+                  {kanbanColumns.map((column) => <KanbanDayColumn allTasks={column.allTasks} cardProps={cardProps} dates={column.dates} key={column.dates.join("-")} labels={column.labels} onAddTask={onAddTask} onResetFilters={resetFilters} tasks={column.tasks} today={today} />)}
                 </div>
               </DndContext>
             </>}
