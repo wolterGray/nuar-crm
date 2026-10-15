@@ -198,18 +198,7 @@ function TaskCard({
         isPrimary ? "is-main" : "",
         isLate ? "is-overdue" : "",
       ].filter(Boolean).join(" ")}>
-      <IconButton
-        className={`operations-task-check ${isDone ? "is-on" : ""}`}
-        icon={isDone ? "rotateCcw" : "check"}
-        label={isDone ? "Вернуть задачу" : "Завершить задачу"}
-        size="sm"
-        variant="ghost"
-        onClick={() => onComplete(task)}
-      />
-      <button
-        className="operations-work-card-main"
-        type="button"
-        onClick={() => onView(task)}>
+      <div className="operations-task-card-header">
         <div className="operations-task-top-badges">
           <span className="operations-task-area-pill">{areaLabel}</span>
           {isPrimary ? (
@@ -229,10 +218,65 @@ function TaskCard({
             </span>
           ) : null}
         </div>
-        <span className="operations-work-card-title">
-          <strong>{task.title}</strong>
-        </span>
-        {task.note ? <small>{task.note}</small> : null}
+        <div className="operations-task-card-actions">
+          {dragHandleProps ? (
+            <button
+              aria-label="Перетащить задачу"
+              className="operations-task-drag-handle"
+              type="button"
+              {...dragHandleProps}>
+              <AppIcon name="grip" size="sm" />
+            </button>
+          ) : null}
+          <RowActionsMenu
+            className="operations-row-actions"
+            extraActions={[
+              {
+                icon: "calendar",
+                label: "Перенести",
+                onClick: () => onMove(task),
+              },
+              {
+                disabled: !taskDueDate,
+                icon: "star",
+                label: "Главная",
+                onClick: () => onMain(task),
+              },
+              {
+                icon: isDone ? "rotateCcw" : "check",
+                label: isDone ? "Вернуть" : "Завершить",
+                onClick: () => onComplete(task),
+              },
+            ]}
+            itemId={`task-${task.id}`}
+            openMenuId={openMenuId}
+            setOpenMenuId={setOpenMenuId}
+            onDelete={() => onDelete(task)}
+            onEdit={() => onEdit(task)}
+            onView={() => onView(task)}
+          />
+        </div>
+      </div>
+      <div className="operations-task-card-body">
+        <IconButton
+          className={`operations-task-check ${isDone ? "is-on" : ""}`}
+          icon={isDone ? "rotateCcw" : "check"}
+          label={isDone ? "Вернуть задачу" : "Завершить задачу"}
+          size="sm"
+          variant="ghost"
+          onClick={() => onComplete(task)}
+        />
+        <button
+          className="operations-work-card-main"
+          type="button"
+          onClick={() => onView(task)}>
+          <span className="operations-work-card-title">
+            <strong>{task.title}</strong>
+          </span>
+          {task.note ? <small>{task.note}</small> : null}
+        </button>
+      </div>
+      <footer className="operations-task-card-footer" onClick={() => onView(task)}>
         <span className="operations-work-card-meta">
           {!compact ? <em>{getTaskKindLabel(task)}</em> : null}
           {getTaskDueTime(task) ? <em>{getTaskDueTime(task)}</em> : null}
@@ -248,43 +292,7 @@ function TaskCard({
           {statusTone === "overdue" ? <em className="operations-task-status status-overdue">Просрочено</em> : null}
           {!compact && statusTone === "idle" ? <em className="operations-task-status">{status}</em> : null}
         </span>
-      </button>
-      {dragHandleProps ? (
-        <button
-          aria-label="Перетащить задачу"
-          className="operations-task-drag-handle"
-          type="button"
-          {...dragHandleProps}>
-          <AppIcon name="grip" size="sm" />
-        </button>
-      ) : null}
-      <RowActionsMenu
-        className="operations-row-actions"
-        extraActions={[
-          {
-            icon: "calendar",
-            label: "Перенести",
-            onClick: () => onMove(task),
-          },
-          {
-            disabled: !taskDueDate,
-            icon: "star",
-            label: "Главная",
-            onClick: () => onMain(task),
-          },
-          {
-            icon: isDone ? "rotateCcw" : "check",
-            label: isDone ? "Вернуть" : "Завершить",
-            onClick: () => onComplete(task),
-          },
-        ]}
-        itemId={`task-${task.id}`}
-        openMenuId={openMenuId}
-        setOpenMenuId={setOpenMenuId}
-        onDelete={() => onDelete(task)}
-        onEdit={() => onEdit(task)}
-        onView={() => onView(task)}
-      />
+      </footer>
     </article>
   );
 }
