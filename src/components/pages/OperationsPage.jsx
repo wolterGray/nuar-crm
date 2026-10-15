@@ -657,17 +657,14 @@ function OperationsPage({
         collapsible={false}
         description={isMobile ? undefined : "План дня, заметки, расходники и лист ожидания"}
         title="Операции"
-        actions={
-          <>
-            <div className="operations-page-tabs operations-main-tabs">
-              <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>План работы</SegmentButton>
-              <SegmentButton active={activeTab === "notes"} onClick={() => setActiveTab("notes")}>Заметки</SegmentButton>
-              <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>Расходники</SegmentButton>
-              <SegmentButton active={activeTab === "waitlist"} onClick={() => setActiveTab("waitlist")}>Лист ожидания</SegmentButton>
-            </div>
-          </>
-        }
       />
+
+      <nav aria-label="Разделы операций" className="operations-page-tabs operations-main-tabs">
+        <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>План работы</SegmentButton>
+        <SegmentButton active={activeTab === "notes"} onClick={() => setActiveTab("notes")}>Заметки</SegmentButton>
+        <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>Расходники</SegmentButton>
+        <SegmentButton active={activeTab === "waitlist"} onClick={() => setActiveTab("waitlist")}>Лист ожидания</SegmentButton>
+      </nav>
 
       {activeTab === "plan" ? (
         <div className="operations-plan-layout">
