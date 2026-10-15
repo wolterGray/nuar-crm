@@ -742,7 +742,7 @@ function OperationsPage({
 
   useEffect(() => {
     if (!isMobile || planMode !== "week") return undefined;
-    const targetDate = today >= weekStart && today <= weekEnd ? today : weekStart;
+    const targetDate = selectedDate >= weekStart && selectedDate <= weekEnd ? selectedDate : weekStart;
     const frame = window.requestAnimationFrame(() => {
       const board = kanbanBoardRef.current;
       const target = board?.querySelector(`[data-kanban-date="${targetDate}"]`);
@@ -750,7 +750,15 @@ function OperationsPage({
       board.scrollTo({behavior: "smooth", left: Math.max(0, target.offsetLeft - board.offsetLeft)});
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [isMobile, planMode, today, weekEnd, weekStart]);
+  }, [isMobile, planMode, selectedDate, weekEnd, weekStart]);
+
+  const focusKanbanDate = (date) => {
+    setSelectedDate(date);
+    const board = kanbanBoardRef.current;
+    const target = board?.querySelector(`[data-kanban-date="${date}"]`);
+    if (!board || !target) return;
+    board.scrollTo({behavior: "smooth", left: Math.max(0, target.offsetLeft - board.offsetLeft)});
+  };
 
   const submitQuickNote = (event) => {
     event.preventDefault();
@@ -804,13 +812,20 @@ function OperationsPage({
   const tabMeta = `${dayStats.completed}/${dayStats.planned} задач · ${formatMinutes(dayStats.remainingMinutes)}`;
   const isTemplateManager = activeTab === "plan" && planMode === "templates";
   const kanbanColumns = useMemo(() => {
+    if (isMobile) {
+      return weekDays.map((day) => ({
+        dates: [day.input],
+        labels: [day.label],
+        tasks: weekTasks.filter((task) => getTaskDueDate(task) === day.input),
+      }));
+    }
     const weekdayColumns = weekDays.slice(0, 5).map((day) => ({dates: [day.input], labels: [day.label]}));
     const weekend = weekDays.slice(5);
     return [...weekdayColumns, {dates: weekend.map((day) => day.input), labels: weekend.map((day) => day.label)}].map((column) => ({
       ...column,
       tasks: weekTasks.filter((task) => column.dates.includes(getTaskDueDate(task))),
     }));
-  }, [weekDays, weekTasks]);
+  }, [isMobile, weekDays, weekTasks]);
 
   const handleKanbanDragEnd = ({active, over}) => {
     const task = active.data.current?.task;
@@ -950,11 +965,19 @@ function OperationsPage({
                   </details>
                 )) : <p className="operations-empty">Регулярных шаблонов по выбранным фильтрам нет.</p>}
               </section>
-            ) : <DndContext sensors={kanbanSensors} onDragEnd={handleKanbanDragEnd}>
-              <div className="operations-kanban-board" ref={kanbanBoardRef}>
-                {kanbanColumns.map((column) => <KanbanDayColumn cardProps={cardProps} dates={column.dates} key={column.dates.join("-")} labels={column.labels} onAddTask={onAddTask} tasks={column.tasks} today={today} />)}
-              </div>
-            </DndContext>}
+            ) : <>
+              {isMobile ? <nav aria-label="Дни недели" className="operations-mobile-day-switcher">
+                {weekDays.map((day) => {
+                  const count = weekTasks.filter((task) => getTaskDueDate(task) === day.input).length;
+                  return <button className={`${selectedDate === day.input ? "is-active" : ""} ${today === day.input ? "is-today" : ""}`} key={day.input} type="button" onClick={() => focusKanbanDate(day.input)}><strong>{day.label}</strong><span>{Number(day.input.slice(-2))}</span><em>{count}</em></button>;
+                })}
+              </nav> : null}
+              <DndContext sensors={kanbanSensors} onDragEnd={handleKanbanDragEnd}>
+                <div className="operations-kanban-board" ref={kanbanBoardRef}>
+                  {kanbanColumns.map((column) => <KanbanDayColumn cardProps={cardProps} dates={column.dates} key={column.dates.join("-")} labels={column.labels} onAddTask={onAddTask} tasks={column.tasks} today={today} />)}
+                </div>
+              </DndContext>
+            </>}
 
             {!isTemplateManager ? <details className="operations-report">
               <summary>Итоги и история</summary>

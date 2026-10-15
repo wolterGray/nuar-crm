@@ -11136,6 +11136,10 @@
   scrollbar-width: thin;
 }
 
+.operations-page .operations-mobile-day-switcher {
+  display: none;
+}
+
 .operations-page .operations-kanban-column {
   display: grid;
   align-content: start;
@@ -12255,8 +12259,71 @@
   }
 
   .operations-page .operations-kanban-board {
-    grid-template-columns: repeat(6, minmax(86vw, 1fr));
+    grid-template-columns: repeat(7, minmax(86vw, 1fr));
     scroll-snap-type: x proximity;
+  }
+
+  .operations-page .operations-mobile-day-switcher {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(42px, 1fr));
+    gap: 4px;
+    overflow-x: auto;
+    padding: 2px 0 6px;
+  }
+
+  .operations-page .operations-mobile-day-switcher button {
+    position: relative;
+    display: grid;
+    min-width: 42px;
+    min-height: 58px;
+    place-items: center;
+    gap: 1px;
+    padding: 5px 2px;
+    border: 1px solid var(--operations-border-soft);
+    border-radius: 7px;
+    color: var(--operations-muted);
+    background: color-mix(in srgb, var(--operations-panel-soft) 68%, transparent);
+  }
+
+  .operations-page .operations-mobile-day-switcher strong,
+  .operations-page .operations-mobile-day-switcher span,
+  .operations-page .operations-mobile-day-switcher em {
+    font-style: normal;
+    line-height: 1;
+  }
+
+  .operations-page .operations-mobile-day-switcher strong {
+    font-size: 10px;
+  }
+
+  .operations-page .operations-mobile-day-switcher span {
+    color: var(--operations-text);
+    font-size: 14px;
+    font-weight: 750;
+  }
+
+  .operations-page .operations-mobile-day-switcher em {
+    min-width: 16px;
+    padding: 2px 4px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--operations-text) 7%, transparent);
+    font-size: 9px;
+  }
+
+  .operations-page .operations-mobile-day-switcher button.is-active {
+    border-color: color-mix(in srgb, var(--operations-accent) 52%, var(--operations-border));
+    color: var(--operations-text);
+    background: color-mix(in srgb, var(--operations-accent) 13%, var(--operations-panel));
+  }
+
+  .operations-page .operations-mobile-day-switcher button.is-today::after {
+    position: absolute;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--operations-accent);
+    content: "";
   }
 
   .operations-page .operations-kanban-column {
