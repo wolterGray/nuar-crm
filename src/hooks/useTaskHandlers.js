@@ -183,7 +183,7 @@ const buildAcquisitionTask = (template, startDate) => ({
     resultSource: template.resultSource ?? "manual",
     taskKind: "daily",
     templateKey: template.key,
-    templateVersion: 2,
+    templateVersion: 3,
   },
 });
 
@@ -644,7 +644,7 @@ export function useTaskHandlers({
           resultSource: template.resultSource ?? payload.resultSource ?? "manual",
           taskKind: "daily",
           templateKey: template.key,
-          templateVersion: 2,
+          templateVersion: 3,
         },
       }));
     });

@@ -276,7 +276,7 @@ function TaskTemplateCard({onDelete, onEdit, onMoveArea, onToggleArchived, openM
         itemId={`template-${task.id}`}
         openMenuId={openMenuId}
         setOpenMenuId={setOpenMenuId}
-        onDelete={systemTemplate ? undefined : () => onDelete(task)}
+        onDelete={() => onDelete(task)}
         onEdit={() => onEdit(task)}
       />
     </article>
@@ -668,8 +668,8 @@ function OperationsPage({
     });
   }, [dayTasks]);
   const hasAcquisitionPlan = workTasks.some((task) => getTaskAreaId(task) === "acquisition");
-  const acquisitionNeedsSync = ACQUISITION_TEMPLATE_KEYS.some((key) => !tasks.some((task) => getTaskPayload(task).templateKey === key));
-  const acquisitionNeedsUpgrade = tasks.some((task) => ACQUISITION_TEMPLATE_KEYS.includes(getTaskPayload(task).templateKey) && Number(getTaskPayload(task).templateVersion) < 2);
+  const acquisitionNeedsSync = !tasks.some((task) => ACQUISITION_TEMPLATE_KEYS.includes(getTaskPayload(task).templateKey));
+  const acquisitionNeedsUpgrade = tasks.some((task) => ACQUISITION_TEMPLATE_KEYS.includes(getTaskPayload(task).templateKey) && Number(getTaskPayload(task).templateVersion) < 3);
 
   useEffect(() => {
     if (!tasks.length || (!legacyAcquisitionRecord && !acquisitionNeedsSync && !acquisitionNeedsUpgrade) || acquisitionSyncStarted.current || !onInitializeAcquisitionPlan) return;
