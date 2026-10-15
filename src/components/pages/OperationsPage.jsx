@@ -27,6 +27,7 @@ import {
   getTaskAssigneeName,
   getTaskAreaId,
   getTaskAreaLabel,
+  getTaskColorId,
   getTaskDueDate,
   getTaskDueTime,
   getTaskEstimateMinutes,
@@ -177,12 +178,14 @@ function TaskCard({
   const checklist = getChecklistProgress(task);
   const assigneeName = getTaskAssigneeName(task) || "Без исполнителя";
   const priority = getTaskPriorityId(task);
+  const colorId = getTaskColorId(task);
   const statusTone = isCompleted ? "done" : isOverdue ? "overdue" : status === "В процессе" ? "progress" : "idle";
 
   return (
     <article
       className={[
         "operations-work-card",
+        `task-color-${colorId}`,
         `status-${statusTone}`,
         isCompleted ? "is-completed" : "",
         isMain ? "is-main" : "",

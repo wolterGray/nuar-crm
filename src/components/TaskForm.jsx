@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useState} from "react";
 import {AppIcon, Button, Checkbox, Field, IconButton, Input, Select, Switch, Textarea} from "./ui/index.js";
 import {
-  TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS, WORK_AREA_OPTIONS, addDays,
+  TASK_COLOR_OPTIONS, TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS, WORK_AREA_OPTIONS, addDays,
   getTaskAssigneeId, getTaskDueDate, getTaskDueTime, getTaskEstimateMinutes,
   getTaskKind, getTaskPayload, getTaskPriorityId, getWarsawTodayInput,
   getWeekStart, isTaskMainOnDate, isTaskRepeating,
@@ -125,6 +125,12 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
             <Field label="Приоритет"><Select name="priorityId" defaultValue={getTaskPriorityId(task)}>{TASK_PRIORITY_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</Select></Field>
             <Field label="Статус"><Select name="status" defaultValue={task?.status ?? "active"}>{TASK_STATUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</Select></Field>
           </div>
+          <fieldset className="task-color-picker">
+            <legend>Цвет карточки</legend>
+            <div>
+              {TASK_COLOR_OPTIONS.map((option) => <label className={`task-color-option task-color-${option.id}`} key={option.id} title={option.label}><input defaultChecked={(payload.colorId ?? "auto") === option.id} name="colorId" type="radio" value={option.id} /><span aria-hidden="true" /><em>{option.label}</em></label>)}
+            </div>
+          </fieldset>
           <SwitchRow description="Выделить задачу в рабочем плане" label="Главная задача дня"><Switch defaultChecked={isTaskMainOnDate(task, dueDateValue)} name="isMain" value="on" /></SwitchRow>
         </section>
 

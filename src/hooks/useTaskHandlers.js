@@ -382,6 +382,7 @@ export function useTaskHandlers({
           assigneeId,
           assigneeName: getEmployeeName(employees, assigneeId),
           checklist,
+          colorId: String(form.get("colorId") ?? getTaskPayload(editingTask).colorId ?? "auto"),
           dueDate,
           dueTime,
           estimateMinutes,

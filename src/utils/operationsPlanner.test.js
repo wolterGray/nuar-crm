@@ -7,6 +7,7 @@ import {
   getDayStats,
   getOverdueTasks,
   getTaskAssigneeId,
+  getTaskColorId,
   getTaskDueDate,
   getTaskDueTime,
   getTaskEstimateMinutes,
@@ -68,6 +69,12 @@ describe("operationsPlanner", () => {
       priorityId: "low",
     });
     expect(getTaskPayload(task).payload).toBeUndefined();
+  });
+
+  it("assigns default task colors by area and respects a manual color", () => {
+    expect(getTaskColorId({payload: {areaId: "finance"}})).toBe("rose");
+    expect(getTaskColorId({payload: {areaId: "finance", colorId: "blue"}})).toBe("blue");
+    expect(getTaskColorId({payload: {areaId: "retention", colorId: "auto"}})).toBe("teal");
   });
 
   it("expands recurring work only on selected weekdays", () => {

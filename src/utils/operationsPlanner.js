@@ -28,6 +28,28 @@ export const WORK_AREA_OPTIONS = [
   {id: "finance", label: "07. Финансы и аналитика"},
 ];
 
+export const TASK_COLOR_OPTIONS = [
+  {id: "auto", label: "Авто"},
+  {id: "crimson", label: "Красный"},
+  {id: "amber", label: "Янтарный"},
+  {id: "teal", label: "Бирюзовый"},
+  {id: "blue", label: "Синий"},
+  {id: "violet", label: "Фиолетовый"},
+  {id: "rose", label: "Розовый"},
+  {id: "graphite", label: "Графитовый"},
+];
+
+const DEFAULT_TASK_COLORS = {
+  acquisition: "crimson",
+  content: "violet",
+  finance: "rose",
+  general: "graphite",
+  growth: "blue",
+  retention: "teal",
+  sales: "amber",
+  studio: "graphite",
+};
+
 const WEEKDAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
 const pad = (value) => String(value).padStart(2, "0");
@@ -143,6 +165,12 @@ export const getTaskKindLabel = (task = {}) =>
 
 export const getTaskAreaId = (task = {}) =>
   String(getTaskPayload(task).areaId ?? "general").trim() || "general";
+
+export const getTaskColorId = (task = {}) => {
+  const colorId = String(getTaskPayload(task).colorId ?? "auto").trim();
+  if (colorId && colorId !== "auto" && TASK_COLOR_OPTIONS.some((option) => option.id === colorId)) return colorId;
+  return DEFAULT_TASK_COLORS[getTaskAreaId(task)] ?? DEFAULT_TASK_COLORS.general;
+};
 
 export const getTaskAreaLabel = (task = {}) =>
   String(getTaskPayload(task).areaLabel ?? "").trim() ||
