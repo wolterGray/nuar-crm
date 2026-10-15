@@ -747,6 +747,7 @@ function OperationsPage({
   };
 
   const tabMeta = `${dayStats.completed}/${dayStats.planned} задач · ${formatMinutes(dayStats.remainingMinutes)}`;
+  const isTemplateManager = activeTab === "plan" && planMode === "templates";
 
   return (
     <section className={`operations-page operations-workspace ${isMobile ? "operations-page-mobile" : ""}`}>
@@ -754,20 +755,21 @@ function OperationsPage({
         className="operations-page-header"
         collapsedMeta={tabMeta}
         collapsible={false}
-        description={isMobile ? undefined : "Задачи, заметки, расходники и лист ожидания"}
-        title="Работа"
+        description={isMobile ? undefined : isTemplateManager ? "Направления, расписания и шаблоны регулярных задач" : "Задачи, заметки, расходники и лист ожидания"}
+        headerActions={isTemplateManager ? <Button leftIcon="chevronLeft" size="sm" variant="secondary" onClick={() => setPlanMode("today")}>К задачам</Button> : undefined}
+        title={isTemplateManager ? "Управление задачами" : "Работа"}
       />
 
-      <nav aria-label="Разделы работы" className="operations-page-tabs operations-main-tabs">
+      {!isTemplateManager ? <nav aria-label="Разделы работы" className="operations-page-tabs operations-main-tabs">
         <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>Задачи</SegmentButton>
         <SegmentButton active={activeTab === "notes"} onClick={() => setActiveTab("notes")}>Заметки</SegmentButton>
         <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>Расходники</SegmentButton>
         <SegmentButton active={activeTab === "waitlist"} onClick={() => setActiveTab("waitlist")}>Лист ожидания</SegmentButton>
-      </nav>
+      </nav> : null}
 
       {activeTab === "plan" ? (
         <div className="operations-plan-layout">
-          {lowStockCount > 0 ? (
+          {!isTemplateManager && lowStockCount > 0 ? (
             <button className="operations-stock-alert" type="button" onClick={() => setActiveTab("supplies")}>
               <AppIcon name="packagePlus" size="sm" />
               {lowStockCount} расходников ниже минимума
@@ -775,15 +777,23 @@ function OperationsPage({
           ) : null}
 
           <section className="panel operations-planner-panel">
-            <div className="operations-task-commandbar">
+            {isTemplateManager ? (
+              <div className="operations-template-manager-head">
+                <div>
+                  <span>Настройки рабочего плана</span>
+                  <h2>Направления и шаблоны</h2>
+                  <p>Управляйте структурой работы и расписанием регулярных задач.</p>
+                </div>
+                <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({taskKind: "daily"})}>Новый шаблон</Button>
+              </div>
+            ) : <div className="operations-task-commandbar">
               <div className="operations-plan-mode">
                 <SegmentButton active={planMode === "today"} onClick={() => setPlanMode("today")}>Сегодня</SegmentButton>
                 <SegmentButton active={planMode === "week"} onClick={() => { setPlanMode("week"); changeWeek(0); }}>Неделя</SegmentButton>
                 <SegmentButton active={planMode === "all"} onClick={() => setPlanMode("all")}>Все</SegmentButton>
-                <SegmentButton active={planMode === "templates"} onClick={() => setPlanMode("templates")}>Шаблоны</SegmentButton>
               </div>
               <div className="operations-planner-head">
-                <h2>{planMode === "week" ? formatWeekRange(weekStart, weekEnd) : planMode === "all" ? "Все задачи" : planMode === "templates" ? "Шаблоны задач" : formatPlannerDate(selectedDate)}</h2>
+                <h2>{planMode === "week" ? formatWeekRange(weekStart, weekEnd) : planMode === "all" ? "Все задачи" : formatPlannerDate(selectedDate)}</h2>
                 {planMode === "week" ? (
                   <div className="operations-week-controls">
                     <IconButton icon="chevronLeft" label="Предыдущая неделя" size="sm" variant="secondary" onClick={() => changeWeek(-1)} />
@@ -799,8 +809,11 @@ function OperationsPage({
                   </div>
                 ) : null}
               </div>
-              <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.(planMode === "templates" ? {taskKind: "daily"} : {dueDate: selectedDate})}>{planMode === "templates" ? "Новый шаблон" : "Добавить задачу"}</Button>
-            </div>
+              <div className="operations-task-actions">
+                <IconButton icon="settings" label="Управление направлениями и шаблонами" size="sm" variant="secondary" onClick={() => setPlanMode("templates")} />
+                <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: selectedDate})}>Добавить задачу</Button>
+              </div>
+            </div>}
 
             {planMode === "templates" ? (
               <div className="operations-template-summary">
@@ -929,7 +942,7 @@ function OperationsPage({
               </div>
             )}
 
-            <details className="operations-report">
+            {!isTemplateManager ? <details className="operations-report">
               <summary>Итоги и история</summary>
               <div className="operations-report-grid">
                 <div><span>За день</span><strong>{dayStats.completed}/{dayStats.planned}</strong><small>выполнено</small></div>
@@ -937,7 +950,7 @@ function OperationsPage({
                 <div><span>За месяц</span><strong>{monthProgress}%</strong><small>{monthCompleted} из {reportMonthTasks.length} задач</small></div>
                 <div><span>Привлечение за месяц</span><strong>{monthResults.adSpend} zł</strong><small>{monthResults.leads} обращений · {monthResults.bookings} записей · {monthResults.contacts} контактов</small></div>
               </div>
-            </details>
+            </details> : null}
           </section>
         </div>
       ) : null}
