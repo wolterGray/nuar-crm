@@ -798,6 +798,62 @@
   }
 }
 
+/* Drawer-specific controls stay restrained regardless of shared modal/mobile rules. */
+.task-editor-drawer-layout .task-checklist-item .ui-checkbox {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  min-height: 18px;
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 46%, var(--color-border));
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.task-editor-drawer-layout .task-checklist-item .ui-checkbox:hover {
+  border-color: color-mix(in srgb, var(--color-success) 55%, var(--color-border));
+}
+
+.task-editor-drawer-layout .task-checklist-item .ui-checkbox:checked {
+  border-color: color-mix(in srgb, var(--color-success) 72%, var(--color-border));
+  background: color-mix(in srgb, var(--color-success) 64%, var(--color-field));
+}
+
+.task-editor-drawer-layout .task-checklist-item .ui-checkbox:checked::after {
+  top: 2px;
+  left: 5px;
+  width: 5px;
+  height: 9px;
+  border-color: var(--color-window);
+}
+
+.task-editor-drawer-layout .task-checklist-item.is-done .task-checklist-title {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  opacity: 0.72;
+}
+
+.task-drawer .task-drawer-footer {
+  justify-content: flex-end;
+}
+
+.task-drawer .task-drawer-footer > span {
+  margin-right: auto;
+}
+
+.task-drawer .task-drawer-footer > button {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 132px;
+  max-width: 220px;
+  padding-right: 24px;
+  padding-left: 24px;
+  margin-left: auto;
+  justify-self: end;
+}
+
 @media (max-width: 720px) {
   .task-workspace-page {
     padding: 18px 14px 96px;

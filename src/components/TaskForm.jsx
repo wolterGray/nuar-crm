@@ -131,7 +131,7 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
         <section className="task-editor-panel">
           <SectionHead count={checklist.length} description="Идентификаторы действий сохраняются в истории." title="Чек-лист" />
           <div className="task-checklist-editor">
-            {checklist.map((item, index) => <article className="task-checklist-item" key={item.id}>
+            {checklist.map((item, index) => <article className={`task-checklist-item ${item.done ? "is-done" : ""}`} key={item.id}>
               <span className="task-drag-icon" title="Изменить порядок"><AppIcon name="grip" size="sm" /></span>
               <Checkbox aria-label={`Выполнить «${item.text || "пункт"}»`} checked={item.done} onChange={(event) => updateChecklist(item.id, {done: event.target.checked})} />
               {editingChecklistId === item.id ? <Input autoFocus value={item.text} onChange={(event) => updateChecklist(item.id, {text: event.target.value})} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); setEditingChecklistId(null); } if (event.key === "Escape") setEditingChecklistId(null); }} /> : <button className="task-checklist-title" type="button" onClick={() => setEditingChecklistId(item.id)}>{item.text || "Без названия"}</button>}
