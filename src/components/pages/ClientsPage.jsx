@@ -92,7 +92,7 @@ function ClientRowActions({
         ref={triggerRef}
         aria-expanded={isOpen}
         className="clients-row-menu-button"
-        icon="moreVertical"
+        icon="more"
         label="Действия"
         size="sm"
         variant="ghost"
@@ -320,8 +320,8 @@ function ClientsPage({
 
     const calculateCount = (height) => {
       const HEADER_HEIGHT = isMobile ? 0 : 35;
-      const ROW_HEIGHT = isMobile ? 86 : 44;
-      return calculateDynamicPageSize(height, HEADER_HEIGHT, ROW_HEIGHT, 4, 4);
+      const ROW_HEIGHT = isMobile ? 86 : 36;
+      return calculateDynamicPageSize(height, HEADER_HEIGHT, ROW_HEIGHT, 5, 4);
     };
 
     const update = () => {
@@ -793,48 +793,64 @@ function ClientsPage({
                   }
                 }}>
                 {/* Client info */}
-                <div className="flex flex-col min-w-0 md:col-span-1">
+                <div className="clients-col-client flex flex-col md:flex-row md:items-center min-w-0 gap-0.5 md:gap-2">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <strong className="clients-table-name text-foreground font-bold text-sm md:text-base truncate">{client.name}</strong>
+                    <strong className="clients-table-name text-foreground font-semibold text-sm md:text-[13px] truncate">
+                      {client.name || client.phone || "Без имени"}
+                    </strong>
                     {client.isVip && (
-                      <Badge className="client-vip-badge gap-1 shrink-0" size="sm" variant="premium">
+                      <Badge className="client-vip-badge gap-1 shrink-0 text-[10px] py-0.5 px-1.5" size="sm" variant="premium">
                         <AppIcon name="crown" size="xs" />
                         VIP
                       </Badge>
                     )}
                   </div>
-                  <small className="clients-table-phone text-muted-foreground text-xs truncate mt-0.5">{client.phone || "Телефон не указан"}</small>
+                  {client.phone && client.phone !== client.name ? (
+                    <small className="clients-table-phone text-muted-foreground md:text-zinc-500 text-xs font-normal truncate">
+                      {client.phone}
+                    </small>
+                  ) : (
+                    <small className="clients-table-phone text-muted-foreground text-xs truncate md:hidden">
+                      Телефон не указан
+                    </small>
+                  )}
                 </div>
 
-                {/* Mobile metadata / Status badge on Desktop */}
-                <div className="flex flex-wrap items-center gap-2 md:contents">
-                  <span data-label="Статус">
-                    <b
-                      className={`client-status-pill ${
-                        client.autoStatus === "Новый" ? "status-new" : "status-active"
-                      }`}>
-                      {client.autoStatus}
-                    </b>
-                  </span>
-                  <span className="inline-flex md:hidden items-center px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                {/* Status badge */}
+                <div className="clients-status-cell flex items-center" data-label="Статус">
+                  <b
+                    className={`client-status-pill ${
+                      client.autoStatus === "Новый" ? "status-new" : "status-active"
+                    }`}>
+                    {client.autoStatus}
+                  </b>
+                </div>
+
+                {/* Mobile metadata tags */}
+                <div className="flex md:hidden flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs font-medium">
                     Визитов: {client.visitsCount}
                   </span>
-                  <span className="inline-flex md:hidden items-center px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs font-medium">
                     Не был: {client.daysAbsent === null ? "Новый" : `${client.daysAbsent} дн.`}
                   </span>
                 </div>
 
                 {/* Desktop metadata columns */}
-                <span className="clients-table-number hidden md:inline text-foreground text-sm" data-label="Визитов">
+                <span className="clients-table-number hidden md:inline-flex items-center" data-label="Визитов">
                   {client.visitsCount}
                   {client.packagesCount > 0 ? <AppIcon className="clients-active-package" name="package" size="xs" /> : null}
                 </span>
-                <span className="clients-table-money hidden md:inline text-foreground text-sm font-semibold" data-label="Сумма">{formatMoney(client.totalIncome)}</span>
-                <span className="clients-last-visit hidden md:flex" data-label="Последний визит">
-                  <b>{client.lastVisit}</b>
-                  <small>{client.daysAbsent === null ? "Ещё не был" : `${client.daysAbsent} дн. назад`}</small>
+                <span className="clients-table-money hidden md:inline text-foreground text-[13px] font-semibold" data-label="Сумма">
+                  {formatMoney(client.totalIncome)}
                 </span>
-                <span className="clients-note-cell hidden md:flex" data-label="Заметка">
+                <span className="clients-last-visit hidden md:flex items-center gap-1.5 whitespace-nowrap" data-label="Последний визит">
+                  <span className="clients-last-visit-date">{client.lastVisit}</span>
+                  <span className="clients-last-visit-days">
+                    {client.daysAbsent === null ? "(новый)" : `(${client.daysAbsent} дн.)`}
+                  </span>
+                </span>
+                <span className="clients-note-cell hidden md:flex items-center" data-label="Заметка">
                   {client.note ? <><AppIcon name="fileText" size="xs" /><span>Есть заметка</span></> : "—"}
                 </span>
 

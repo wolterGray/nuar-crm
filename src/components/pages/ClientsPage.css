@@ -108,7 +108,7 @@
   overflow-x: auto !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 8px !important;
-  background: #14161c !important;
+  background: #121419 !important;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
@@ -124,9 +124,10 @@
 }
 
 .clients-table-head-row,
+.crm-shell .clients-table-item,
 .clients-table-item {
   display: grid !important;
-  grid-template-columns: minmax(200px, 1.4fr) 100px 75px 100px 150px minmax(120px, 1fr) 36px !important;
+  grid-template-columns: minmax(180px, 1.4fr) 95px 70px 100px 160px minmax(110px, 1fr) 36px !important;
   align-items: center !important;
   gap: 12px !important;
 }
@@ -137,7 +138,7 @@
   top: 0 !important;
   min-height: 35px !important;
   height: 35px !important;
-  padding: 8px 16px !important;
+  padding: 8px 12px !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   background: #121419 !important;
   color: #71717a !important;
@@ -159,14 +160,10 @@
 .crm-shell .clients-table-item,
 .clients-table-item {
   position: relative !important;
-  display: grid !important;
-  grid-template-columns: minmax(200px, 1.4fr) 100px 75px 100px 150px minmax(120px, 1fr) 36px !important;
-  align-items: center !important;
-  gap: 12px !important;
-  min-height: 44px !important;
-  height: 44px !important;
+  min-height: 35px !important;
+  height: 36px !important;
   margin: 0 !important;
-  padding: 0 16px !important;
+  padding: 5.5px 12px !important;
   border: 0 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
   border-radius: 0 !important;
@@ -174,6 +171,7 @@
   box-shadow: none !important;
   outline: none !important;
   cursor: pointer !important;
+  user-select: none !important;
   transition: background-color 100ms ease;
 }
 
@@ -208,8 +206,12 @@
   background: rgba(239, 68, 68, 0.04) !important;
 }
 
+.clients-col-client {
+  overflow: hidden;
+}
+
 .clients-table-name {
-  font-size: 13.5px !important;
+  font-size: 13px !important;
   font-weight: 600 !important;
   color: #f4f4f5 !important;
   line-height: 1.2 !important;
@@ -224,7 +226,7 @@
 .clients-table-number {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 5px !important;
   font-size: 12.5px !important;
   font-variant-numeric: tabular-nums !important;
   color: #d4d4d8 !important;
@@ -242,27 +244,38 @@
 }
 
 .clients-last-visit {
-  flex-direction: column !important;
-  gap: 1px !important;
-  font-size: 12px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 5px !important;
+  white-space: nowrap !important;
 }
 
-.clients-last-visit b {
-  color: #e4e4e7 !important;
-  font-weight: 600 !important;
-  font-size: 12px !important;
+.clients-last-visit-date {
+  color: #a1a1aa !important;
+  font-size: 11.5px !important;
+  font-variant-numeric: tabular-nums !important;
 }
 
-.clients-last-visit small {
+.clients-last-visit-days {
   color: #71717a !important;
   font-size: 11px !important;
 }
 
 .clients-note-cell {
+  display: flex !important;
   align-items: center !important;
   gap: 6px !important;
   color: #a1a1aa !important;
-  font-size: 11.5px !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.clients-note-cell svg {
+  color: #71717a !important;
+  flex-shrink: 0 !important;
 }
 
 .client-status-pill {
@@ -270,21 +283,40 @@
   align-items: center;
   padding: 2px 7px;
   font-size: 11px;
-  font-weight: 600;
-  border-radius: 999px;
+  font-weight: 500;
+  border-radius: 5px;
   line-height: 1.1;
+  letter-spacing: 0.01em;
 }
 
 .client-status-pill.status-active {
-  background: rgba(34, 197, 94, 0.12);
+  background: rgba(34, 197, 94, 0.1);
   color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.25);
+  border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
 .client-status-pill.status-new {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.1);
   color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.clients-row-menu-button {
+  width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  min-width: 28px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+  color: #71717a !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.clients-row-menu-button:hover {
+  color: #f4f4f5 !important;
+  background: rgba(255, 255, 255, 0.06) !important;
 }
 
 .client-view-sheet {
@@ -341,8 +373,9 @@
 
 @media (max-width: 1100px) {
   .clients-table-head-row,
+  .crm-shell .clients-table-item,
   .clients-table-item {
-    grid-template-columns: minmax(170px, 1.3fr) 95px 65px 90px 135px minmax(105px, 1fr) 36px !important;
+    grid-template-columns: minmax(160px, 1.3fr) 90px 65px 90px 145px minmax(100px, 1fr) 36px !important;
     gap: 8px !important;
   }
 }
