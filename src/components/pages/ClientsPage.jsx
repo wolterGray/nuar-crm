@@ -601,6 +601,7 @@ function ClientsPage({
         headerActions={
           <div className="clients-page-actions">
               <Button
+                aria-label="Анализ базы"
                 className="clients-page-quality-button"
                 leftIcon="barChart"
                 variant="secondary"

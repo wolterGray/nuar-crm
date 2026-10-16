@@ -139,8 +139,12 @@
 @media (max-width: 767px) {
   .clients-page-shell { gap: 12px; padding: 0; overflow: auto; }
   .clients-page-header { align-items: flex-start; }
-  .clients-page-actions { width: 100%; }
-  .clients-page-actions .ui-button { flex: 1; padding-inline: 10px; }
+  .clients-page-header .page-header-unified-top { gap: 10px; }
+  .clients-page-header .page-title { font-size: 24px; }
+  .clients-page-actions { width: auto; gap: 8px; }
+  .clients-page-actions .ui-button { padding-inline: 12px; white-space: nowrap; }
+  .clients-page-quality-button { width: 44px; min-width: 44px; padding: 0 !important; }
+  .clients-page-quality-button span:not(.ui-button-icon) { display: none; }
   .clients-filterbar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .clients-filterbar .clients-page-search { grid-column: 1 / -1; }
   .clients-filterbar > :last-child { grid-column: 1 / -1; }
@@ -149,6 +153,7 @@
   .clients-table-list { display: grid; gap: 10px !important; }
   .clients-table-item { display: flex; min-height: 0; flex-wrap: wrap; padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); }
   .clients-table-item > :first-child { width: calc(100% - 36px); }
+  .clients-table-number { display: none !important; }
   .clients-pagination { flex-direction: column; align-items: stretch; gap: 10px; }
   .clients-pagination-controls { justify-content: space-between; }
   .client-view-sheet { width: 100% !important; max-width: none !important; max-height: 100dvh !important; }
