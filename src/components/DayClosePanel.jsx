@@ -1,5 +1,4 @@
 import {useMemo, useState} from "react";
-import PageHeader from "./PageHeader.jsx";
 import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
 import {
@@ -201,6 +200,7 @@ function DayClosePanel({
   onCloseDay,
   onReopenDayClose,
   onRemoveDayClose,
+  inTab = true,
 }) {
   const {isMobile} = useBreakpoint();
   const [selectedDate, setSelectedDate] = useState(getTodayInput());
@@ -246,29 +246,15 @@ function DayClosePanel({
     </span>
   );
 
-  return (
-    <details className="day-close-collapsible" open={!isMobile}>
-      <summary className="day-close-collapsible-summary">
-        <span>Закрытие дня</span>
-        {existingRecord ? (
-          <span className="day-close-status is-closed">
-            <AppIcon name="lock" size="sm" />
-            Закрыт
-          </span>
-        ) : (
-          <span className="day-close-status is-open">
-            <AppIcon name="unlock" size="sm" />
-            Открыт
-          </span>
-        )}
-      </summary>
-    <section className="panel day-close-panel">
-      <PageHeader
-        description="Сверка наличных и поступлений по журналу за выбранный день"
-        headerActions={statusBadge}
-        showNotifications={false}
-        title="Закрытие дня"
-      />
+  const content = (
+    <section className="panel day-close-panel day-close-tab-panel">
+      <div className="day-close-tab-header">
+        <div className="day-close-tab-title-wrap">
+          <h3 className="day-close-tab-title">Закрытие смены</h3>
+          <p className="day-close-tab-desc">Сверка наличных и поступлений по журналу за выбранный день</p>
+        </div>
+        <div className="day-close-tab-status-wrap">{statusBadge}</div>
+      </div>
 
       <DayCloseForm
         key={`${selectedDate}-${existingRecord?.id ?? "open"}`}
@@ -303,6 +289,19 @@ function DayClosePanel({
         </div>
       ) : null}
     </section>
+  );
+
+  if (inTab) {
+    return content;
+  }
+
+  return (
+    <details className="day-close-collapsible" open={!isMobile}>
+      <summary className="day-close-collapsible-summary">
+        <span>Закрытие дня</span>
+        {statusBadge}
+      </summary>
+      {content}
     </details>
   );
 }

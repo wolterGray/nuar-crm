@@ -1,90 +1,58 @@
-import {useMemo, useState} from "react";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import {useCallback, useMemo, useState} from "react";
 import {paymentMethods} from "../constants/paymentMethods.js";
-import {getTodayInput} from "../utils/dateHelpers.js";
-import {formatMoney} from "../utils/formatters.jsx";
+import {formatMoney, toDisplayDate} from "../utils/formatters.jsx";
 import {
   getVisitCommission,
   getVisitDebt,
   getVisitTransactionTotal,
 } from "../utils/visits.jsx";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
-import VisitMobileCard from "./VisitMobileCard.jsx";
-import {useBreakpoint} from "../hooks/useBreakpoint.js";
-import PageHeader from "./PageHeader.jsx";
-import {
-  Badge,
-  Button,
-  Card,
-  Dropdown,
-  DropdownContent,
-  DropdownItem,
-  IconButton,
-  Input,
-  SearchControl,
-  Select,
-  Table,
-  TableCell,
-  TableHeader,
-  TableRow,
-  AppIcon,
-} from "./ui/index.js";
-
-const toCompactDate = (value) => {
-  const [year, month, day] = String(value ?? "").split("-");
-
-  return year && month && day ? `${day}.${month}.${year}` : "дд.мм.гггг";
-};
+import {RowActionsMenu} from "./RowActionMenuPortal.jsx";
+import {AppIcon, Badge, Button, IconButton} from "./ui/index.js";
 
 const parseVisitDateValue = (value) => {
   const date = String(value ?? "").trim();
-
-  if (!date) {
-    return 0;
-  }
-
+  if (!date) return 0;
   if (date.includes(".")) {
     const [day, month, year = new Date().getFullYear()] = date.split(".");
     return new Date(`${year}-${month}-${day}T00:00:00`).getTime() || 0;
   }
-
   return new Date(`${date}T00:00:00`).getTime() || 0;
 };
 
-const toSortableNumber = (value) => {
-  const number = Number(value);
-
-  return Number.isFinite(number) ? number : 0;
+const getPaymentIcon = (method) => {
+  const m = String(method || "").toLowerCase();
+  if (m.includes("карт") || m.includes("mono") || m.includes("blik")) return "creditCard";
+  if (m.includes("нал")) return "banknote";
+  if (m.includes("пакет")) return "package";
+  if (m.includes("сертиф")) return "gift";
+  return "wallet";
 };
 
 function VisitsTable({
-  clientProfiles,
-  visits,
-  title,
-  masters,
   filters,
+  masters = [],
+  onDeleteVisit,
+  onEditVisit,
   onFilterChange,
   onResetFilters,
-  onAddVisit,
-  openActionMenuId,
   onToggleActionMenu,
-  onEditVisit,
-  onDeleteVisit,
-  addLabel = "Добавить операцию",
+  openActionMenuId,
+  visits = [],
 }) {
-  const {isMobile} = useBreakpoint();
-  const [sorting, setSorting] = useState([{id: "date", desc: true}]);
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState("date");
+  const [sortAsc, setSortAsc] = useState(false);
+  const [expandedRowIds, setExpandedRowIds] = useState(new Set());
+  const [showExtraFilters, setShowExtraFilters] = useState(false);
+  const [pageSize, setPageSize] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const safeVisits = useMemo(
     () => (Array.isArray(visits) ? visits.filter(Boolean) : []),
     [visits],
   );
+
   const clientOptions = useMemo(
     () => [
       ...new Set(
@@ -95,563 +63,437 @@ function VisitsTable({
     ],
     [safeVisits],
   );
-  const columns = useMemo(
-    () => [
-      {
-        accessorKey: "date",
-        header: "Дата",
-        cell: ({row}) => row.original.date,
-        sortingFn: (rowA, rowB) =>
-          parseVisitDateValue(rowA.original.date) - parseVisitDateValue(rowB.original.date),
-      },
-      {
-        accessorKey: "client",
-        header: "Клиент",
-        cell: ({row}) => <TooltipCell value={row.original.client} />,
-        enableSorting: false,
-      },
-      {
-        accessorKey: "service",
-        header: "Услуга",
-        cell: ({row}) => (
-          <span>
-            {row.original.service}
-            {row.original.isPlanned && (
-              <Badge className="table-planned-badge" variant="success">
-                Запланирован
-              </Badge>
-            )}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "master",
-        header: "Работник",
-        cell: ({row}) => row.original.master,
-      },
-      {
-        accessorKey: "amount",
-        header: "Стоимость",
-        cell: ({row}) => formatMoney(row.original.amount),
-        sortingFn: (rowA, rowB) =>
-          toSortableNumber(rowA.original.amount) - toSortableNumber(rowB.original.amount),
-      },
-      {
-        accessorKey: "payment",
-        header: "Оплата",
-        cell: ({row}) => {
-          const visit = row.original;
-          const isMixedPayment = visit.payment === "Наличные + карта";
-          const paymentLabel = isMixedPayment
-            ? "Наличные + карта"
-            : visit.payment || "Не указано";
-          const paymentTooltip = isMixedPayment
-            ? `Наличные: ${formatMoney(visit.cashAmount ?? 0)} · Карта: ${formatMoney(visit.cardAmount ?? 0)}`
-            : visit.packageName
-              ? `${visit.packageName}: списано ${visit.packageSessionsUsed || 1}`
-              : paymentLabel;
 
-          return (
-            <TooltipCell
-              className={
-                String(visit.payment ?? "").includes("Пакет") ? "package" : isMixedPayment ? "mixed" : ""
-              }
-              value={paymentLabel}
-              tooltip={paymentTooltip}
-            />
-          );
-        },
-        enableSorting: false,
-      },
-      {
-        accessorKey: "tip",
-        header: "Чай",
-        cell: ({row}) => formatMoney(row.original.tip),
-        enableSorting: false,
-      },
-      {
-        id: "commission",
-        header: "Комиссия",
-        cell: ({row}) => (
-          <TooltipCell
-            value={formatMoney(getVisitCommission(row.original))}
-            tooltip={row.original.commissionType ?? "Без комиссии"}
-          />
-        ),
-        enableSorting: false,
-      },
-      {
-        accessorKey: "extra",
-        header: "Доп сумма",
-        cell: ({row}) => formatMoney(row.original.extra),
-        enableSorting: false,
-      },
-      {
-        id: "debt",
-        header: "Долг",
-        cell: ({row}) => (
-          <span className={getVisitDebt(row.original) > 0 ? "debt-cell" : ""}>
-            {formatMoney(getVisitDebt(row.original))}
-          </span>
-        ),
-        enableSorting: false,
-      },
-      {
-        accessorKey: "discount",
-        header: "Скидка",
-        cell: ({row}) => `${Number(row.original.discount) || 0}%`,
-        enableSorting: false,
-      },
-      {
-        id: "total",
-        header: "Итог",
-        cell: ({row}) => (
-          <span className="total-cell">
-            {formatMoney(getVisitTransactionTotal(row.original))}
-          </span>
-        ),
-        sortingFn: (rowA, rowB) =>
-          getVisitTransactionTotal(rowA.original) - getVisitTransactionTotal(rowB.original),
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({row}) => {
-          const visit = row.original;
-
-          return (
-            <Dropdown
-              className="row-actions row-action-trigger-wrap visit-row-actions"
-              onClick={(event) => event.stopPropagation()}>
-              <IconButton
-                aria-label="Действия"
-                className="row-action row-action-trigger"
-                icon="moreVertical"
-                label="Действия"
-                type="button"
-                onClick={() =>
-                  onToggleActionMenu(
-                    openActionMenuId === visit.id ? null : visit.id,
-                  )
-                }
-              />
-              {openActionMenuId === visit.id && (
-                <DropdownContent className="row-action-menu">
-                  {onEditVisit && (
-                    <DropdownItem onClick={() => onEditVisit(visit)}>
-                      Редактировать
-                    </DropdownItem>
-                  )}
-                  {onDeleteVisit && (
-                    <DropdownItem
-                      variant="danger"
-                      onClick={() => onDeleteVisit(visit)}>
-                      Удалить
-                    </DropdownItem>
-                  )}
-                </DropdownContent>
-              )}
-            </Dropdown>
-          );
-        },
-        enableSorting: false,
-        enableGlobalFilter: false,
-      },
-    ],
-    [
-      onDeleteVisit,
-      onEditVisit,
-      onToggleActionMenu,
-      openActionMenuId,
-    ],
-  );
-  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns function-bearing instances by design.
-  const table = useReactTable({
-    data: safeVisits,
-    columns,
-    state: {
-      globalFilter,
-      sorting,
-    },
-    globalFilterFn: (row, _columnId, filterValue) => {
-      const query = String(filterValue ?? "").trim().toLowerCase();
-
-      if (!query) {
-        return true;
+  const toggleRowExpanded = useCallback((id) => {
+    setExpandedRowIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
       }
+      return next;
+    });
+  }, []);
 
-      return [row.original.client, row.original.master, row.original.service]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query));
-    },
-    onGlobalFilterChange: setGlobalFilter,
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
-  const rows = table.getRowModel().rows;
-  const hasVisits = safeVisits.length > 0;
-  const hasSearch = globalFilter.trim().length > 0;
-  const exportVisits = () => {
-    const columns = [
-      ["Дата", (visit) => visit.date],
-      ["Клиент", (visit) => visit.client],
-      ["Услуга", (visit) => visit.service],
-      ["Работник", (visit) => visit.master],
-      ["Стоимость", (visit) => visit.amount],
-      ["Оплата", (visit) => visit.payment],
-      ["Чай", (visit) => visit.tip],
-      ["Комиссия", (visit) => getVisitCommission(visit)],
-      ["Доп сумма", (visit) => visit.extra],
-      ["Долг", (visit) => getVisitDebt(visit)],
-      ["Скидка %", (visit) => visit.discount],
-      ["Итог", (visit) => getVisitTransactionTotal(visit)],
-      ["Комментарий", (visit) => visit.note],
-    ];
-    const escapeCell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
-    const csv = [
-      columns.map(([label]) => escapeCell(label)).join(";"),
-      ...safeVisits.map((visit) =>
-        columns.map(([, getValue]) => escapeCell(getValue(visit))).join(";"),
-      ),
-    ].join("\n");
-    const link = document.createElement("a");
-
-    link.href = URL.createObjectURL(new Blob([`\uFEFF${csv}`], {type: "text/csv;charset=utf-8"}));
-    link.download = `nuar-visits-${getTodayInput()}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+  const handleSortToggle = (field) => {
+    if (sortField === field) {
+      setSortAsc((prev) => !prev);
+    } else {
+      setSortField(field);
+      setSortAsc(false);
+    }
   };
 
-  const mobileFilters = (
-    <div className="payments-mobile-filters table-filters">
-      <label>
-        Сотрудник
-        <Select
-          value={filters.master}
-          onChange={(event) => onFilterChange("master", event.target.value)}>
-          <option value="">Все</option>
-          {masters.map((master) => (
-            <option key={master}>{master}</option>
-          ))}
-        </Select>
-      </label>
-      <label>
-        Оплата
-        <Select
-          value={filters.payment}
-          onChange={(event) => onFilterChange("payment", event.target.value)}>
-          <option value="">Все</option>
-          {paymentMethods.map((payment) => (
-            <option key={payment}>{payment}</option>
-          ))}
-        </Select>
-      </label>
-      <label>
-        Клиент
-        <ClientAutocomplete
-          clients={clientOptions}
-          id="visit-filter-client-options-mobile"
-          name="client-filter-mobile"
-          placeholder="Все"
-          value={filters.client}
-          onChange={(event) => onFilterChange("client", event.target.value)}
-        />
-      </label>
-      <label>
-        Дата
-        <span className="payments-mobile-date-control">
-          <span className="payments-mobile-date-value" aria-hidden="true">
-            {toCompactDate(filters.date)}
-          </span>
-          <Input
-            aria-label="Дата"
-            className="payments-mobile-date-native"
-            type="date"
-            value={filters.date}
-            onChange={(event) => onFilterChange("date", event.target.value)}
-          />
-        </span>
-      </label>
-    </div>
-  );
+  const filteredVisits = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    let result = safeVisits;
 
-  const mobileScrollPanel = (
-    <div className="payments-mobile-scroll-panel">
-      <SearchControl
-        className="payments-search-control"
-        placeholder="Поиск: клиент, мастер, услуга"
-        value={globalFilter}
-        onChange={(event) => setGlobalFilter(event.target.value)}
-        onClear={() => setGlobalFilter("")}
-      />
-      {onAddVisit ? (
-        <Button
-          className="add-visit-button payments-add-button"
-          leftIcon="plus"
-          type="button"
-          variant="primary"
-          onClick={onAddVisit}>
-          Добавить
-        </Button>
-      ) : null}
-      {mobileFilters}
-    </div>
-  );
+    if (query) {
+      result = result.filter((visit) => {
+        const text = [visit.client, visit.master, visit.service, visit.payment]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return text.includes(query);
+      });
+    }
+
+    return [...result].sort((a, b) => {
+      let diff = 0;
+      if (sortField === "date") {
+        diff = parseVisitDateValue(a.date) - parseVisitDateValue(b.date);
+      } else if (sortField === "total") {
+        diff = getVisitTransactionTotal(a) - getVisitTransactionTotal(b);
+      } else if (sortField === "amount") {
+        diff = (Number(a.amount) || 0) - (Number(b.amount) || 0);
+      }
+      return sortAsc ? diff : -diff;
+    });
+  }, [safeVisits, searchQuery, sortAsc, sortField]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredVisits.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const pagedVisits = useMemo(() => {
+    if (pageSize >= 999999) return filteredVisits;
+    const start = (safeCurrentPage - 1) * pageSize;
+    return filteredVisits.slice(start, start + pageSize);
+  }, [filteredVisits, pageSize, safeCurrentPage]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const handlePageSizeChange = (event) => {
+    setPageSize(Number(event.target.value));
+    setCurrentPage(1);
+  };
 
   return (
-    <Card className={`panel visits-panel ${isMobile ? "visits-panel-mobile" : ""}`}>
-      <PageHeader
-        collapsedMeta={isMobile ? `${rows.length} из ${safeVisits.length}` : undefined}
-        collapsible={false}
-        actions={
-          isMobile ? (
-            mobileScrollPanel
+    <div className="payments-journal-container">
+      {/* 1. Compact Filter Bar */}
+      <div className="payments-filter-bar">
+        <div className="payments-search-wrap">
+          <AppIcon className="payments-search-icon" name="search" size="xs" />
+          <input
+            className="payments-search-input"
+            placeholder="Клиент, услуга..."
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+          {searchQuery ? (
+            <button
+              aria-label="Очистить поиск"
+              className="payments-search-clear"
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
+            >
+              <AppIcon name="x" size="xs" />
+            </button>
+          ) : null}
+        </div>
+
+        <div className="payments-select-wrap">
+          <select
+            aria-label="Фильтр по мастеру"
+            className="payments-filter-select"
+            value={filters.master || ""}
+            onChange={(e) => onFilterChange("master", e.target.value)}
+          >
+            <option value="">Все мастера</option>
+            {masters.map((master) => (
+              <option key={master} value={master}>
+                {master}
+              </option>
+            ))}
+          </select>
+          <AppIcon className="payments-select-arrow" name="chevronDown" size="xs" />
+        </div>
+
+        <div className="payments-select-wrap">
+          <select
+            aria-label="Фильтр по способу оплаты"
+            className="payments-filter-select"
+            value={filters.payment || ""}
+            onChange={(e) => onFilterChange("payment", e.target.value)}
+          >
+            <option value="">Все способы</option>
+            {paymentMethods.map((payment) => (
+              <option key={payment} value={payment}>
+                {payment}
+              </option>
+            ))}
+          </select>
+          <AppIcon className="payments-select-arrow" name="chevronDown" size="xs" />
+        </div>
+
+        <div className="payments-date-control-wrap">
+          <AppIcon className="payments-date-icon" name="calendar" size="xs" />
+          <span className="payments-date-label">
+            {filters.date ? toDisplayDate(filters.date) : "Все даты"}
+          </span>
+          {filters.date ? (
+            <button
+              aria-label="Сбросить дату"
+              className="payments-date-clear"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onFilterChange("date", "");
+              }}
+            >
+              <AppIcon name="x" size="xs" />
+            </button>
           ) : (
-            <>
-              <Button
-                aria-label="Экспорт CSV"
-                className="secondary-button"
-                leftIcon="download"
-                type="button"
-                variant="secondary"
-                onClick={exportVisits}>
-                <span>Экспорт CSV</span>
-              </Button>
-              <Button
-                aria-label="Сбросить фильтры"
-                className="secondary-button"
-                leftIcon="filter"
-                variant="secondary"
-                onClick={onResetFilters}>
-                <span>Сбросить</span>
-              </Button>
-              {onAddVisit ? (
-                <Button
-                  aria-label={addLabel}
-                  className="add-visit-button"
-                  leftIcon="plus"
-                  type="button"
-                  variant="primary"
-                  onClick={onAddVisit}>
-                  <span>{addLabel}</span>
-                </Button>
-              ) : null}
-            </>
-          )
-        }
-        description={isMobile ? undefined : `${rows.length} из ${safeVisits.length} записей`}
-        headerActions={
-          isMobile ? (
-            <IconButton
-              className="payments-header-icon"
-              icon="download"
-              label="Экспорт CSV"
+            <AppIcon className="payments-date-arrow" name="chevronDown" size="xs" />
+          )}
+          <input
+            aria-label="Выбрать дату"
+            className="payments-date-native-input"
+            type="date"
+            value={filters.date || ""}
+            onChange={(e) => onFilterChange("date", e.target.value)}
+          />
+        </div>
+
+        <button
+          aria-expanded={showExtraFilters}
+          className={`payments-filter-toggle-btn ${showExtraFilters || filters.client ? "is-active" : ""}`}
+          type="button"
+          onClick={() => setShowExtraFilters((prev) => !prev)}
+        >
+          <AppIcon name="sliders" size="xs" />
+          <span>Фильтры</span>
+          {filters.client ? <span className="payments-filter-badge">1</span> : null}
+        </button>
+      </div>
+
+      {/* Expandable Extra Filters (Client & Reset) */}
+      {showExtraFilters ? (
+        <div className="payments-extra-filters-panel">
+          <div className="payments-extra-filter-item">
+            <span className="payments-extra-filter-label">Клиент:</span>
+            <ClientAutocomplete
+              clients={clientOptions}
+              id="visit-filter-client-options"
+              name="client-filter"
+              placeholder="Все клиенты"
+              value={filters.client || ""}
+              onChange={(event) => onFilterChange("client", event.target.value)}
+            />
+          </div>
+          <div className="payments-extra-filter-actions">
+            <Button
+              leftIcon="rotateCcw"
               size="sm"
               variant="ghost"
-              onClick={exportVisits}>
-            </IconButton>
-          ) : undefined
-        }
-        title={
-          isMobile ? (
-            <span className="flex items-baseline gap-2">
-              <span>Визиты</span>
-              <span className="text-sm font-normal text-muted-foreground">({safeVisits.length})</span>
-            </span>
-          ) : (
-            title
-          )
-        }
-      >
-        {!isMobile ? (
-          <SearchControl
-            className="table-search-control"
-            placeholder="Поиск: клиент, мастер, услуга"
-            value={globalFilter}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            onClear={() => setGlobalFilter("")}
-          />
-        ) : null}
-      </PageHeader>
+              onClick={() => {
+                onResetFilters?.();
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
+            >
+              Сбросить фильтры
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
-      {isMobile ? null : (
-      <div className="table-filters">
-        <label>
-          Сотрудник
-          <Select
-            value={filters.master}
-            onChange={(event) => onFilterChange("master", event.target.value)}>
-            <option value="">Все</option>
-            {masters.map((master) => (
-              <option key={master}>{master}</option>
-            ))}
-          </Select>
-        </label>
-        <label>
-          Оплата
-          <Select
-            value={filters.payment}
-            onChange={(event) => onFilterChange("payment", event.target.value)}>
-            <option value="">Все</option>
-            {paymentMethods.map((payment) => (
-              <option key={payment}>{payment}</option>
-            ))}
-          </Select>
-        </label>
-        <label>
-          Клиент
-          <ClientAutocomplete
-            clients={clientOptions}
-            id="visit-filter-client-options"
-            name="client-filter"
-            placeholder="Все клиенты"
-            value={filters.client}
-            onChange={(event) => onFilterChange("client", event.target.value)}
-          />
-        </label>
-        <label>
-          Дата
-          <Input
-            type="date"
-            value={filters.date}
-            onChange={(event) => onFilterChange("date", event.target.value)}
-          />
-        </label>
-      </div>
-      )}
-
-      {isMobile ? (
-        <div className="visits-mobile-list">
-          {!hasVisits ? (
-            <div className="visits-mobile-empty">
-              <strong>Визитов пока нет</strong>
-              <span>Добавьте первый визит или поступление, и оно появится здесь.</span>
-            </div>
-          ) : rows.length === 0 ? (
-            <div className="visits-mobile-empty">
-              <strong>Ничего не найдено</strong>
-              <span>
-                {hasSearch
-                  ? "Попробуйте изменить поиск по клиенту, мастеру или услуге."
-                  : "Попробуйте изменить фильтры."}
-              </span>
-            </div>
-          ) : (
-            rows.map((row) => {
-              const visit = row.original;
+      {/* 2. Journal Table */}
+      <div className="payments-table-wrap">
+        <table className="payments-table">
+          <thead>
+            <tr>
+              <th
+                className="payments-th-date is-sortable"
+                onClick={() => handleSortToggle("date")}
+              >
+                <span>Дата</span>
+                {sortField === "date" ? (
+                  <AppIcon name={sortAsc ? "chevronUp" : "chevronDown"} size="xs" />
+                ) : null}
+              </th>
+              <th className="payments-th-client">Клиент</th>
+              <th className="payments-th-service">Услуга</th>
+              <th className="payments-th-master">Мастер</th>
+              <th className="payments-th-payment">Способ</th>
+              <th
+                className="payments-th-total is-sortable text-right"
+                onClick={() => handleSortToggle("total")}
+              >
+                <span>Итог</span>
+                {sortField === "total" ? (
+                  <AppIcon name={sortAsc ? "chevronUp" : "chevronDown"} size="xs" />
+                ) : null}
+              </th>
+              <th className="payments-th-actions" />
+            </tr>
+          </thead>
+          <tbody>
+            {pagedVisits.map((visit) => {
+              const isExpanded = expandedRowIds.has(visit.id);
+              const debt = getVisitDebt(visit);
+              const total = getVisitTransactionTotal(visit);
+              const paymentIcon = getPaymentIcon(visit.payment);
 
               return (
-                <VisitMobileCard
-                  clientProfiles={clientProfiles}
-                  enableSwipe={false}
-                  isPlanned={visit.isPlanned}
+                <tr
                   key={visit.id}
-                  openMenuId={openActionMenuId}
-                  setOpenMenuId={onToggleActionMenu}
-                  showMaster
-                  showStatus={Boolean(visit.status)}
-                  visit={visit}
-                  onDelete={onDeleteVisit}
-                  onEdit={onEditVisit}
-                />
+                  className={`payments-table-row ${isExpanded ? "is-expanded" : ""} ${visit.isPlanned ? "is-planned" : ""}`}
+                >
+                  <td colSpan={7} className="payments-row-cell-wrap">
+                    <div
+                      className="payments-row-main-line"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => toggleRowExpanded(visit.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          toggleRowExpanded(visit.id);
+                        }
+                      }}
+                    >
+                      <div className="payments-col-date">{visit.date}</div>
+                      <div className="payments-col-client" title={visit.client}>
+                        <span className="payments-client-name">{visit.client || "Без имени"}</span>
+                      </div>
+                      <div className="payments-col-service" title={visit.service}>
+                        <span className="payments-service-name">{visit.service || "Услуга"}</span>
+                        {visit.isPlanned ? (
+                          <Badge className="payments-planned-badge" variant="success">
+                            Запланирован
+                          </Badge>
+                        ) : null}
+                      </div>
+                      <div className="payments-col-master">{visit.master || "—"}</div>
+                      <div className="payments-col-payment">
+                        <span className="payments-method-badge">
+                          <AppIcon name={paymentIcon} size="xs" />
+                          <span>{visit.payment || "Не указано"}</span>
+                        </span>
+                      </div>
+                      <div className="payments-col-total">
+                        <span className="payments-total-amount">{formatMoney(total)}</span>
+                        {debt > 0 ? (
+                          <span className="payments-debt-badge" title="Сумма долга">
+                            Долг: {formatMoney(debt)}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div
+                        className="payments-col-actions"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <IconButton
+                          aria-label={isExpanded ? "Свернуть подробности" : "Раскрыть подробности"}
+                          className="payments-expand-btn"
+                          icon={isExpanded ? "chevronUp" : "chevronDown"}
+                          size="xs"
+                          variant="ghost"
+                          onClick={() => toggleRowExpanded(visit.id)}
+                        />
+                        <RowActionsMenu
+                          className="payments-row-menu"
+                          itemId={visit.id}
+                          openMenuId={openActionMenuId}
+                          setOpenMenuId={onToggleActionMenu}
+                          onDelete={onDeleteVisit ? () => onDeleteVisit(visit) : undefined}
+                          onEdit={onEditVisit ? () => onEditVisit(visit) : undefined}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Expandable detail card */}
+                    {isExpanded ? (
+                      <div className="payments-detail-panel">
+                        <div className="payments-detail-grid">
+                          <div className="payments-detail-item">
+                            <span className="payments-detail-label">Стоимость</span>
+                            <strong className="payments-detail-val">{formatMoney(visit.amount)}</strong>
+                          </div>
+                          <div className="payments-detail-item">
+                            <span className="payments-detail-label">Скидка</span>
+                            <strong className="payments-detail-val">
+                              {Number(visit.discount) > 0 ? `${visit.discount}%` : "0%"}
+                            </strong>
+                          </div>
+                          <div className="payments-detail-item">
+                            <span className="payments-detail-label">Комиссия</span>
+                            <strong className="payments-detail-val">
+                              {formatMoney(getVisitCommission(visit))}
+                            </strong>
+                          </div>
+                          <div className="payments-detail-item">
+                            <span className="payments-detail-label">Чаевые</span>
+                            <strong className="payments-detail-val">{formatMoney(visit.tip)}</strong>
+                          </div>
+                          <div className="payments-detail-item">
+                            <span className="payments-detail-label">Доп. сумма</span>
+                            <strong className="payments-detail-val">{formatMoney(visit.extra)}</strong>
+                          </div>
+                          <div className="payments-detail-item">
+                            <span className="payments-detail-label">Долг</span>
+                            <strong className={`payments-detail-val ${debt > 0 ? "is-debt" : ""}`}>
+                              {formatMoney(debt)}
+                            </strong>
+                          </div>
+                        </div>
+                        {visit.note ? (
+                          <div className="payments-detail-note">
+                            <span>Заметка:</span> {visit.note}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </td>
+                </tr>
               );
-            })
-          )}
+            })}
+            {!filteredVisits.length ? (
+              <tr>
+                <td colSpan={7} className="payments-empty-cell">
+                  <div className="payments-empty-state">
+                    <strong>Ничего не найдено</strong>
+                    <span>Попробуйте изменить строку поиска или параметры фильтрации.</span>
+                  </div>
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 3. Pagination Footer */}
+      <div className="payments-pagination-bar">
+        <div className="payments-pagination-info">
+          Показано {filteredVisits.length === 0 ? 0 : Math.min(filteredVisits.length, (safeCurrentPage - 1) * pageSize + 1)}
+          {filteredVisits.length > 1 && pageSize < 999999 ? `–${Math.min(filteredVisits.length, safeCurrentPage * pageSize)}` : ""}
+          {" "}из {filteredVisits.length} записей
         </div>
-      ) : (
-        <>
-          <Table className="visits-table visits-table-desktop">
-            <TableHeader className="table-row table-head">
-              {table.getFlatHeaders().map((header) => (
-                <TableCell key={header.id}>
-                  {header.column.getCanSort() ? (
-                    <Button
-                      className="table-sort-button"
-                      type="button"
-                      variant="ghost"
-                      onClick={header.column.getToggleSortingHandler()}>
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      <SortMark direction={header.column.getIsSorted()} />
-                    </Button>
-                  ) : (
-                    flexRender(header.column.columnDef.header, header.getContext())
-                  )}
-                </TableCell>
-              ))}
-            </TableHeader>
-            {rows.map((row) => (
-              <TableRow
-                className={`table-row ${row.original.isPlanned ? "table-row-planned" : ""}`}
-                key={row.original.id}>
-                {row.getVisibleCells().map((cell) =>
-                  cell.column.id === "actions" ? (
-                    <TableCell as="div" className="table-actions-cell" key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ) : ["client", "payment", "commission"].includes(cell.column.id) ? (
-                    <TableCell as="div" className="table-visible-cell" key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ) : (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ),
-                )}
-              </TableRow>
-            ))}
-            {!hasVisits && (
-              <div className="table-empty-state">
-                <strong>Визитов пока нет</strong>
-                <span>Добавьте первый визит или поступление, и оно появится здесь.</span>
-              </div>
-            )}
-            {hasVisits && rows.length === 0 && (
-              <div className="table-empty-state">
-                <strong>Ничего не найдено</strong>
-                <span>
-                  {hasSearch
-                    ? "Попробуйте изменить поиск по клиенту, мастеру или услуге."
-                    : "Попробуйте изменить фильтры таблицы."}
-                </span>
-              </div>
-            )}
-          </Table>
 
-          <footer className="table-footer">
-            <span>Визитов: {rows.length} из {safeVisits.length}</span>
-          </footer>
-        </>
-      )}
-    </Card>
-  );
-}
-function SortMark({direction}) {
-  if (!direction) {
-    return (
-      <span className="table-sort-mark">
-        <AppIcon name="arrowUpDown" size="xs" />
-      </span>
-    );
-  }
+        <div className="payments-pagination-controls">
+          <div className="payments-pagesize-wrap">
+            <select
+              aria-label="Количество записей на странице"
+              className="payments-pagesize-select"
+              value={pageSize}
+              onChange={handlePageSizeChange}
+            >
+              <option value={10}>10 на странице</option>
+              <option value={25}>25 на странице</option>
+              <option value={50}>50 на странице</option>
+              <option value={100}>100 на странице</option>
+              <option value={999999}>Все записи</option>
+            </select>
+            <AppIcon className="payments-pagesize-arrow" name="chevronDown" size="xs" />
+          </div>
 
-  return (
-    <span className="table-sort-mark">
-      <AppIcon name={direction === "asc" ? "arrowUp" : "arrowDown"} size="xs" />
-    </span>
-  );
-}
-
-function TooltipCell({value, tooltip = value, className = ""}) {
-  return (
-    <span className={`tooltip-cell ${className}`} tabIndex="0">
-      <span className="cell-value">{value}</span>
-      <span className="cell-tooltip" role="tooltip">
-        {tooltip}
-      </span>
-    </span>
+          <div className="payments-page-buttons">
+            <IconButton
+              aria-label="Предыдущая страница"
+              disabled={safeCurrentPage <= 1}
+              icon="chevronLeft"
+              size="sm"
+              variant="ghost"
+              onClick={() => handlePageChange(safeCurrentPage - 1)}
+            />
+            {Array.from({length: Math.min(totalPages, 5)}).map((_, idx) => {
+              const pageNum = idx + 1;
+              return (
+                <button
+                  key={pageNum}
+                  className={`payments-page-num-btn ${safeCurrentPage === pageNum ? "is-active" : ""}`}
+                  type="button"
+                  onClick={() => handlePageChange(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            {totalPages > 5 ? <span className="payments-page-ellipsis">…</span> : null}
+            <IconButton
+              aria-label="Следующая страница"
+              disabled={safeCurrentPage >= totalPages}
+              icon="chevronRight"
+              size="sm"
+              variant="ghost"
+              onClick={() => handlePageChange(safeCurrentPage + 1)}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

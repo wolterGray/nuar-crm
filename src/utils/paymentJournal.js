@@ -1,5 +1,11 @@
 import {attachClientLink} from "./clientLinks.js";
+import {getTodayInput} from "./dateHelpers.js";
 import {toInputDate} from "./formatters.jsx";
+import {
+  getVisitCommission,
+  getVisitDebt,
+  getVisitTransactionTotal,
+} from "./visits.jsx";
 
 export const resolvePaymentRowCalendarEntry = (row, calendarEntries) => {
   const entryId =
@@ -40,4 +46,35 @@ export const buildJournalVisitEntry = (visit, {clientProfiles, serviceCatalog}) 
     discount: visit.discount ?? "",
     note: visit.note ?? "",
   });
+};
+
+export const exportVisitsToCsv = (visits) => {
+  const columns = [
+    ["Дата", (visit) => visit.date],
+    ["Клиент", (visit) => visit.client],
+    ["Услуга", (visit) => visit.service],
+    ["Работник", (visit) => visit.master],
+    ["Стоимость", (visit) => visit.amount],
+    ["Оплата", (visit) => visit.payment],
+    ["Чай", (visit) => visit.tip],
+    ["Комиссия", (visit) => getVisitCommission(visit)],
+    ["Доп сумма", (visit) => visit.extra],
+    ["Долг", (visit) => getVisitDebt(visit)],
+    ["Скидка %", (visit) => visit.discount],
+    ["Итог", (visit) => getVisitTransactionTotal(visit)],
+    ["Комментарий", (visit) => visit.note],
+  ];
+  const escapeCell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  const csv = [
+    columns.map(([label]) => escapeCell(label)).join(";"),
+    ...visits.map((visit) =>
+      columns.map(([, getValue]) => escapeCell(getValue(visit))).join(";"),
+    ),
+  ].join("\n");
+  const link = document.createElement("a");
+
+  link.href = URL.createObjectURL(new Blob([`\uFEFF${csv}`], {type: "text/csv;charset=utf-8"}));
+  link.download = `nuar-payments-${getTodayInput()}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
 };
