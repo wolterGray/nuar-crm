@@ -36,10 +36,29 @@ const validatePasswordStrength = (password = '', {email = '', role = 'owner'} = 
     failures.push('Password contains an unsafe word or email fragment');
   }
 
+  const isValid = failures.length === 0;
   return {
-    ok: failures.length === 0,
+    ok: isValid,
+    isValid,
     failures,
   };
+};
+
+const cryptoRandomSegment = () =>
+  require('crypto').randomBytes(12).toString('base64url').replace(/[-_]/g, 'x');
+
+const createStrongTemporaryPassword = ({email = '', role = 'staff'} = {}) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const candidate = `Tmp-${cryptoRandomSegment()}-${cryptoRandomSegment()}!9aA`;
+    const strength = validatePasswordStrength(candidate, {email, role});
+    if (strength.ok && strength.isValid && !/(.)\1{3,}/.test(candidate)) {
+      return candidate;
+    }
+  }
+
+  const error = new Error('Не удалось сгенерировать безопасный временный пароль');
+  error.status = 500;
+  throw error;
 };
 
 const hashPassword = (password) => bcrypt.hash(String(password), PASSWORD_HASH_ROUNDS);
@@ -48,6 +67,7 @@ const verifyPassword = (password, passwordHash) =>
   bcrypt.compare(String(password), String(passwordHash || ''));
 
 module.exports = {
+  createStrongTemporaryPassword,
   hashPassword,
   normalizeEmail,
   validatePasswordStrength,

@@ -36,11 +36,48 @@ export function useAppSettingsHandlers({
   );
 
   const resetSettings = useCallback(() => {
-    setAppSettings(defaultAppSettings);
+    if (
+      typeof window !== "undefined" &&
+      typeof window.confirm === "function" &&
+      !window.confirm(
+        "Сбросить параметры интерфейса, календаря и уведомлений CRM к стандартным значениям? Подключения интеграций и доступы не изменятся.",
+      )
+    ) {
+      return false;
+    }
+
+    setAppSettings((current) => ({
+      ...defaultAppSettings,
+      studioName: current?.studioName || defaultAppSettings.studioName,
+      studioAddress: current?.studioAddress || defaultAppSettings.studioAddress,
+      ownerName: current?.ownerName || defaultAppSettings.ownerName,
+      smsEnabled: current?.smsEnabled ?? defaultAppSettings.smsEnabled,
+      smsSenderName: current?.smsSenderName || defaultAppSettings.smsSenderName,
+      smsRemindersLastRunAt: current?.smsRemindersLastRunAt ?? "",
+      telegramEnabled: current?.telegramEnabled ?? defaultAppSettings.telegramEnabled,
+      telegramChatId: current?.telegramChatId ?? "",
+      telegramDigestLastRunAt: current?.telegramDigestLastRunAt ?? "",
+      siteBookingNotifyTelegramEnabled:
+        current?.siteBookingNotifyTelegramEnabled ??
+        defaultAppSettings.siteBookingNotifyTelegramEnabled,
+      siteBookingNotifyWhatsappEnabled:
+        current?.siteBookingNotifyWhatsappEnabled ??
+        defaultAppSettings.siteBookingNotifyWhatsappEnabled,
+      ownerNotifyPhone: current?.ownerNotifyPhone ?? "",
+      gmailBooksySyncEnabled:
+        current?.gmailBooksySyncEnabled ?? defaultAppSettings.gmailBooksySyncEnabled,
+      gmailClientId: current?.gmailClientId ?? "",
+      reviewGoogleUrl: current?.reviewGoogleUrl ?? "",
+      reviewBooksyUrl: current?.reviewBooksyUrl ?? "",
+      reviewPrimaryUrl: current?.reviewPrimaryUrl ?? "",
+      reviewRequestLastRunAt: current?.reviewRequestLastRunAt ?? "",
+      inactiveFollowUpLastRunAt: current?.inactiveFollowUpLastRunAt ?? "",
+    }));
     pushNotification({
-      title: "Настройки сброшены",
-      message: "Вернули стандартный вид NUAR",
+      title: "Настройки интерфейса сброшены",
+      message: "Восстановлены стандартные параметры отображения. Интеграции сохранены.",
     });
+    return true;
   }, [defaultAppSettings, pushNotification, setAppSettings]);
 
   return {

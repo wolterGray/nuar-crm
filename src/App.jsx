@@ -570,7 +570,8 @@ function App() {
   }, [authSession, pushNotification, setAppSettings]);
 
   useEffect(() => {
-    if (!authSession || !systemStateLoadedRef.current) {
+    const isOwnerSession = !authSession?.user?.role || authSession.user.role === "owner";
+    if (!authSession || !isOwnerSession || !systemStateLoadedRef.current) {
       return undefined;
     }
 
@@ -1832,6 +1833,7 @@ function App() {
       navigation={
         <AppNavigation
           activePage={activePage}
+          authUser={authSession?.user}
           navBadges={navigationBadges}
           ownerName={appSettings.ownerName}
           sidebarVisible={appSettings.sidebarVisible}
@@ -2047,6 +2049,7 @@ function App() {
           <ErrorBoundary>
             <AppRoutes
             activePage={activePage}
+            authUser={authSession?.user}
             alertFocus={alertFocus}
             alertSummary={alertSummary}
             alerts={alerts}

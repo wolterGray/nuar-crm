@@ -11,6 +11,8 @@ const createSession = ({token, user}) => ({
   user: {
     id: user?.id || "local-admin",
     email: user?.email || "",
+    name: user?.name || "",
+    role: user?.role || "owner",
   },
 });
 
@@ -147,20 +149,26 @@ export function useAuth({onSessionLostRef, pushNotification}) {
           body: JSON.stringify({email, password}),
         });
 
+        const payload = await response.json().catch(() => ({}));
+
         if (!response.ok) {
-          throw new Error("Invalid credentials");
+          const disabled = response.status === 403;
+          const error = new Error(payload?.message || "Invalid credentials");
+          error.disabled = disabled;
+          throw error;
         }
 
-        const payload = await response.json();
         const session = createSession(payload);
         saveAuthSession(session);
         setPasswordRecovery(false);
         setAuthSession(session);
         setAuthReady(true);
-      } catch {
+      } catch (error) {
         pushNotification({
-          title: "Вход не выполнен",
-          message: "Проверьте email и пароль",
+          title: error?.disabled ? "Доступ отключён" : "Вход не выполнен",
+          message: error?.disabled
+            ? "Аккаунт деактивирован администратором"
+            : "Проверьте email и пароль",
           persist: false,
         });
       }
@@ -221,6 +229,8 @@ export function useAuth({onSessionLostRef, pushNotification}) {
 
       try {
         await resetPassword({token, newPassword});
+        clearStoredAuth();
+        setAuthSession(null);
         setPasswordRecovery(false);
         window.history.replaceState({}, "", "/");
         pushNotification({

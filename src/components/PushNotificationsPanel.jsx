@@ -61,79 +61,89 @@ export default function PushNotificationsPanel({pushNotification}) {
   const iosInstallRequired = state.reason === "ios-install-required";
 
   return (
-    <section className="rounded-card border border-border-soft bg-field p-4 sm:p-5 flex flex-col gap-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <span className="w-9 h-9 shrink-0 rounded-control border border-border flex items-center justify-center text-accent bg-surface">
+    <section className="rounded-control border border-border-soft bg-field px-3.5 py-3 flex flex-col gap-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="w-8 h-8 shrink-0 rounded-control border border-border flex items-center justify-center text-accent bg-surface">
             <AppIcon name="bellRing" size="sm" />
           </span>
-          <div>
-            <h3 className="m-0 text-text-main text-sm font-semibold">Push-уведомления</h3>
-            <p className="m-0 mt-1 text-text-muted text-xs leading-relaxed">
-              Системные уведомления приходят на это устройство, даже когда CRM закрыта.
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="m-0 text-text-main text-[13px] font-semibold">Push-уведомления в браузере</h3>
+              <span className={`inline-flex items-center rounded-full border border-border-soft bg-surface px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap ${current.tone}`}>
+                {current.label}
+              </span>
+            </div>
+            <p className="m-0 mt-0.5 text-text-muted text-xs leading-snug">
+              Системные уведомления на это устройство, даже когда вкладка CRM закрыта.
             </p>
           </div>
         </div>
-        <span className={`text-xs font-semibold whitespace-nowrap ${current.tone}`}>{current.label}</span>
+
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {state.state === "disconnected" || state.state === "error" ? (
+            <Button
+              leftIcon="bellRing"
+              loading={busy === "enable"}
+              size="sm"
+              type="button"
+              variant="primary"
+              onClick={() => run("enable", enableWebPush)}>
+              Подключить на устройстве
+            </Button>
+          ) : null}
+          {state.state === "connected" ? (
+            <>
+              <Button
+                loading={busy === "test"}
+                size="sm"
+                type="button"
+                variant="secondary"
+                onClick={() => run("test", async () => {
+                  const result = await sendTestPushNotification();
+                  pushNotification?.({
+                    title: "Тест отправлен",
+                    message: `Устройства: ${result.sent} из ${result.total}`,
+                    persist: false,
+                  });
+                  return state;
+                })}>
+                Тест
+              </Button>
+              <Button
+                loading={busy === "disable"}
+                size="sm"
+                type="button"
+                variant="ghost"
+                onClick={() => run("disable", disableWebPush)}>
+                Отключить
+              </Button>
+            </>
+          ) : null}
+          {state.state === "loading" ? <span className="text-xs text-text-faint">Проверка…</span> : null}
+        </div>
       </div>
 
       {iosInstallRequired ? (
-        <div className="rounded-control border border-border-soft bg-surface p-3 text-xs text-text-muted leading-relaxed">
-          На iPhone откройте CRM в Safari, нажмите «Поделиться» → «На экран Домой», затем запустите CRM с новой иконки и включите уведомления.
+        <div className="rounded-control border border-border-soft bg-surface px-3 py-2 text-xs text-text-muted leading-snug">
+          На iPhone откройте CRM в Safari → «Поделиться» → «На экран Домой», затем запустите CRM с иконки и подключите Push.
         </div>
       ) : null}
       {state.state === "blocked" ? (
-        <p className="m-0 text-xs text-text-muted leading-relaxed">
-          Разрешите уведомления в настройках браузера. На iPhone: Настройки → Уведомления → NUAR CRM.
+        <p className="m-0 text-xs text-text-muted leading-snug">
+          Разрешите уведомления для сайта в настройках браузера или в Настройки → Уведомления → NUAR CRM.
         </p>
       ) : null}
       {state.state === "unsupported" && !iosInstallRequired ? (
-        <p className="m-0 text-xs text-text-muted leading-relaxed">
-          Нужен современный браузер с Service Worker и Push API через защищённое HTTPS-соединение.
+        <p className="m-0 text-xs text-text-muted leading-snug">
+          Push-уведомления требуют современный браузер и защищённое HTTPS-соединение.
         </p>
       ) : null}
       {state.state === "error" ? (
         <p className="m-0 text-xs text-accentError">{state.reason || "Проверьте соединение с сервером."}</p>
       ) : null}
-
-      <div className="flex flex-wrap items-center gap-2">
-        {state.state === "disconnected" || state.state === "error" ? (
-          <Button
-            leftIcon="bellRing"
-            loading={busy === "enable"}
-            variant="primary"
-            onClick={() => run("enable", enableWebPush)}>
-            Включить уведомления
-          </Button>
-        ) : null}
-        {state.state === "connected" ? (
-          <>
-            <Button
-              loading={busy === "test"}
-              variant="primary"
-              onClick={() => run("test", async () => {
-                const result = await sendTestPushNotification();
-                pushNotification?.({
-                  title: "Тест отправлен",
-                  message: `Устройства: ${result.sent} из ${result.total}`,
-                  persist: false,
-                });
-                return state;
-              })}>
-              Отправить тестовое уведомление
-            </Button>
-            <Button
-              loading={busy === "disable"}
-              variant="secondary"
-              onClick={() => run("disable", disableWebPush)}>
-              Отключить
-            </Button>
-          </>
-        ) : null}
-        {state.state === "loading" ? <span className="text-xs text-text-faint">Проверяем это устройство…</span> : null}
-      </div>
       {isIosDevice() && state.state === "connected" ? (
-        <p className="m-0 text-[12px] text-text-faint">Уведомления подключены для установленной копии NUAR CRM на этом устройстве.</p>
+        <p className="m-0 text-[11px] text-text-faint">Подключено для установленного приложения NUAR CRM на этом устройстве.</p>
       ) : null}
     </section>
   );

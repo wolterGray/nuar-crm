@@ -2,8 +2,17 @@ import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 import {mobileNavItems, navGroups, navItems} from "../constants/navigation.js";
 import {AppIcon, Button, IconButton} from "./ui/index.js";
 
+const ROLE_LABELS = {
+  owner: "Владелец",
+  admin: "Администратор",
+  manager: "Менеджер",
+  staff: "Сотрудник",
+  readonly: "Только чтение",
+};
+
 export default function AppNavigation({
   activePage,
+  authUser = null,
   navBadges = {},
   onOpenClientSearch,
   sidebarVisible,
@@ -14,6 +23,12 @@ export default function AppNavigation({
   ownerName = "Влад",
 }) {
   const closeSidebar = () => onSidebarVisibleChange(false);
+  const displayUserName =
+    String(authUser?.name ?? "").trim() ||
+    (authUser?.role && authUser.role !== "owner"
+      ? String(authUser.email ?? "").split("@")[0] || "Сотрудник"
+      : ownerName);
+  const displayRoleLabel = ROLE_LABELS[authUser?.role] || "Владелец";
 
   const handleDesktopPageChange = (page) => {
     onPageChange(page);
@@ -107,10 +122,10 @@ export default function AppNavigation({
         </nav>
 
         <div className="nuar-sidebar-user">
-          <div>{(ownerName?.[0] || "В").toUpperCase()}</div>
+          <div>{(displayUserName?.[0] || "В").toUpperCase()}</div>
           <div>
-            <strong>{ownerName}</strong>
-            <span>Владелец</span>
+            <strong>{displayUserName}</strong>
+            <span>{displayRoleLabel}</span>
           </div>
           <IconButton
             className="nuar-sidebar-logout"

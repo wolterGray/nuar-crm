@@ -322,6 +322,7 @@ export default function AppRoutes({activePage, ...props}) {
       return (
         <PageSuspense>
           <SettingsPage
+            authUser={props.authUser}
             cloudConflict={props.cloudConflict}
             cloudEnabled={props.cloudEnabled}
             cloudHydrated={props.cloudHydrated}
