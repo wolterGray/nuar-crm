@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PageNotificationsSlot } from "../PageNotifications.jsx";
 import { buildTodayDashboard } from "../../utils/todayDashboard.js";
-import { useBreakpoint } from "../../hooks/useBreakpoint.js";
 import AppIcon from "../ui/AppIcon.jsx";
-import Card from "../ui/Card";
 import Button from "../ui/Button";
 import Checkbox from "../ui/Checkbox";
 import IconButton from "../ui/IconButton.jsx";
 import { formatCompactMoney, formatMoney } from "../../utils/formatters.jsx";
+import "./TodayPage.css";
 
 const visitStatusLabels = {
   scheduled: "Запланирован",
@@ -32,11 +31,11 @@ const visitToneClasses = [
   "is-green",
 ];
 
-function TodayKpiCard({ helper, icon, label, tone, value }) {
+function TodayKpiCard({ helper, icon, label, onClick, tone, value }) {
   const styles = toneStyles[tone] || toneStyles.upcoming;
 
   return (
-    <Card className="today-kpi-card" data-tone={styles}>
+    <button className={`today-kpi-card ${onClick ? "is-actionable" : ""}`} data-tone={styles} disabled={!onClick} type="button" onClick={onClick}>
       <div className="today-kpi-icon">
         <AppIcon name={icon} size="md" />
       </div>
@@ -45,20 +44,16 @@ function TodayKpiCard({ helper, icon, label, tone, value }) {
         <strong>{value}</strong>
         {helper ? <small>{helper}</small> : null}
       </div>
-    </Card>
+      {onClick ? <AppIcon className="today-kpi-chevron" name="chevronRight" size="sm" /> : null}
+    </button>
   );
 }
 
 function TodayReferenceBoard({
-  appSettings,
-  copiedReviewClientId,
   dashboard,
   formatIncome,
   freeMinutes,
-  firstTimersToday,
-  onAddTask,
   onAddVisit,
-  onCompleteTask,
   onEditVisit,
   onOpenCalendar,
   onOpenClients,
@@ -67,13 +62,13 @@ function TodayReferenceBoard({
   onRemindVisit,
   openVisitMenuId,
   openVisitMenuRef,
-  showSecondaryPanels = true,
   selectedEmployees,
+  selectedDate,
   selectedVisitId,
-  setCopiedReviewClientId,
   setSelectedEmployees,
   setSelectedVisitId,
   setOpenVisitMenuId,
+  onChangeDate,
 }) {
   const employeeOptions = useMemo(
     () =>
@@ -113,7 +108,8 @@ function TodayReferenceBoard({
     if (!filteredVisits.length) return null;
 
     const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const actualToday = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+    const currentMinutes = dashboard.today === actualToday ? now.getHours() * 60 + now.getMinutes() : -1;
 
     return (
       filteredVisits
@@ -122,7 +118,7 @@ function TodayReferenceBoard({
         .sort((first, second) => getTimeMinutes(first.time ?? first.startTime) - getTimeMinutes(second.time ?? second.startTime))[0] ??
       null
     );
-  }, [filteredVisits]);
+  }, [dashboard.today, filteredVisits]);
   const nextVisit = selectedVisit ?? nearestScheduleVisit;
   const activeVisitId = selectedVisit
     ? getVisitId(selectedVisit)
@@ -154,7 +150,11 @@ function TodayReferenceBoard({
         <div className="today-board-title">
           <h1>Сегодня</h1>
           <span>{formatTodayHeading(dashboard.today)}</span>
-          <AppIcon name="calendarDays" size="md" />
+          <div className="today-date-controls">
+            <IconButton icon="chevronLeft" label="Предыдущий день" size="sm" variant="ghost" onClick={() => onChangeDate(-1)} />
+            <input aria-label="Выбранная дата" type="date" value={selectedDate} onChange={(event) => onChangeDate(0, event.target.value)} />
+            <IconButton icon="chevronRight" label="Следующий день" size="sm" variant="ghost" onClick={() => onChangeDate(1)} />
+          </div>
         </div>
         <div className="today-board-actions">
           <Button className="today-control-button is-secondary" leftIcon="calendarDays" variant="secondary" onClick={onOpenCalendar}>
@@ -197,12 +197,12 @@ function TodayReferenceBoard({
           label="Проблемы"
           tone="debt"
           value={dashboard.actionItems.length}
+          onClick={dashboard.actionItems.length ? () => openActionItem(dashboard.actionItems[0]) : undefined}
         />
       </section>
 
       <div className="today-layout">
-        <div className="today-main-column">
-          <section className="today-panel today-schedule-panel">
+          <section className="today-panel today-schedule-panel today-grid-schedule">
             <header className="today-panel-header">
               <h2>
                 Расписание на сегодня{" "}
@@ -311,9 +311,7 @@ function TodayReferenceBoard({
                   );
                 })
               ) : (
-                <p className="today-empty-state">
-                  {selectedEmployees.length ? "У выбранных сотрудников нет визитов" : "На сегодня визитов нет"}
-                </p>
+                <div className="today-empty-state"><AppIcon name="calendar" size="lg" /><span>{selectedEmployees.length ? "У выбранных сотрудников нет визитов" : "На этот день визитов нет"}</span></div>
               )}
             </div>
             {filteredVisits.length > 7 ? (
@@ -322,11 +320,7 @@ function TodayReferenceBoard({
               </span>
             ) : null}
           </section>
-
-        </div>
-
-        <aside className="today-side-column">
-          <section className="today-panel today-side-panel today-next-panel">
+          <section className="today-panel today-side-panel today-next-panel today-grid-next">
             <header className="today-panel-header">
               <h2>{selectedVisit ? "Выбранный визит" : "Следующий визит"}</h2>
               <AppIcon name="chevronRight" size="sm" />
@@ -350,12 +344,28 @@ function TodayReferenceBoard({
                 </Button>
               </div>
             ) : (
-              <p className="today-empty-state">Ближайших визитов нет</p>
+              <div className="today-empty-state"><AppIcon name="calendar" size="lg" /><span>Ближайших визитов нет</span></div>
             )}
           </section>
 
-          {dashboard.unclosedPastVisits.length ? (
-            <section className="today-panel today-side-panel today-unclosed-panel">
+          <section className="today-panel today-side-panel today-grid-slots">
+            <header className="today-panel-header">
+              <h2>Свободные окна сегодня</h2>
+              <Button className="today-link-button" rightIcon="arrowRight" size="sm" variant="link" onClick={onOpenCalendar}>Все окна</Button>
+            </header>
+            <div className="today-side-list today-scroll-list">
+              {dashboard.freeSlots.map((slot) => (
+                <button key={`${slot.master}-${slot.startTime}`} className="today-side-row today-slot-row" type="button" onClick={onOpenCalendar}>
+                  <AppIcon name="clock" size="sm" />
+                  <strong>{slot.startTime} – {slot.endTime}</strong>
+                  <span>{slot.durationMinutes} мин</span>
+                </button>
+              ))}
+              {!dashboard.freeSlots.length ? <div className="today-empty-state is-compact"><span>Свободных окон нет</span></div> : null}
+            </div>
+          </section>
+
+            <section className="today-panel today-side-panel today-unclosed-panel today-grid-unclosed">
               <header className="today-panel-header">
                 <h2>
                   Нужно закрыть <span className="today-count-pill">{dashboard.unclosedPastVisits.length}</span>
@@ -365,7 +375,7 @@ function TodayReferenceBoard({
                 </Button>
               </header>
               <div className="today-side-list">
-                {dashboard.unclosedPastVisits.slice(0, 4).map((entry) => (
+                {dashboard.unclosedPastVisits.map((entry) => (
                   <button
                     key={entry.id}
                     className="today-side-row today-unclosed-row"
@@ -373,16 +383,16 @@ function TodayReferenceBoard({
                     onClick={() => onEditVisit?.(entry)}
                   >
                     <strong>{entry.date} · {entry.time || "—"}</strong>
-                    <span>{entry.client || "Без клиента"} · {entry.service || "Визит"}</span>
+                    <span title={`${entry.client || "Без клиента"} · ${entry.service || "Визит"}`}>{entry.client || "Без клиента"} · {entry.service || "Визит"}</span>
                   </button>
                 ))}
+                {!dashboard.unclosedPastVisits.length ? <div className="today-empty-state is-compact"><span>Все прошедшие визиты закрыты</span></div> : null}
               </div>
             </section>
-          ) : null}
 
-          <section className="today-panel today-side-panel today-employees-panel">
+          <section className="today-panel today-side-panel today-employees-panel today-grid-employees">
             <header className="today-panel-header">
-              <h2>Сотрудники</h2>
+              <h2><AppIcon name="users" size="sm" /> Сотрудники</h2>
               {selectedEmployees.length ? (
                 <Button
                   className="today-link-button"
@@ -418,156 +428,10 @@ function TodayReferenceBoard({
                   );
                 })
               ) : (
-                <p className="today-empty-state">Нет сотрудников в расписании</p>
+                <div className="today-empty-state is-inline"><span>Нет сотрудников в расписании</span></div>
               )}
             </div>
           </section>
-
-          <section className="today-panel today-side-panel">
-            <header className="today-panel-header">
-              <h2>Свободные окна сегодня</h2>
-              <Button className="today-control-button is-secondary is-compact" variant="secondary" onClick={onOpenCalendar}>
-                В календарь
-              </Button>
-            </header>
-            <div className="today-side-list">
-              {dashboard.freeSlots.slice(0, 3).map((slot) => (
-                <div
-                  key={`${slot.master}-${slot.startTime}`}
-                  className="today-side-row"
-                >
-                  <strong>{slot.startTime} – {slot.endTime}</strong>
-                  <span>{slot.durationMinutes} мин</span>
-                </div>
-              ))}
-              {!dashboard.freeSlots.length ? (
-                <p className="today-empty-state">Свободных окон нет</p>
-              ) : null}
-            </div>
-          </section>
-
-          <section className="today-panel today-side-panel today-tasks-panel">
-            <header className="today-panel-header">
-              <h2>
-                Задачи <span className="today-count-pill">{dashboard.dueTasks.length}</span>
-              </h2>
-              <Button className="today-control-button is-secondary is-compact" leftIcon="plus" variant="secondary" onClick={onAddTask}>
-                Задача
-              </Button>
-            </header>
-            <div className="today-side-list">
-              {dashboard.dueTasks.slice(0, 3).map((task) => (
-                <div
-                  key={task.id}
-                  className="today-task-line"
-                >
-                  <IconButton
-                    aria-label={`Завершить ${task.title}`}
-                    className="today-check-button"
-                    icon="check"
-                    label={`Завершить ${task.title}`}
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onCompleteTask?.(task)}
-                  />
-                  <strong>{task.title}</strong>
-                  <span>
-                    {task.dueDate < dashboard.today ? "Просрочено" : "Сегодня"}
-                  </span>
-                </div>
-              ))}
-              {!dashboard.dueTasks.length ? (
-                <p className="today-empty-state">Задач нет</p>
-              ) : null}
-            </div>
-          </section>
-
-          {showSecondaryPanels ? (
-            <>
-          <section className="today-panel today-side-panel today-alerts-panel">
-            <header className="today-panel-header">
-              <h2>
-                Уведомления <span className="today-count-pill">{dashboard.actionItems.length}</span>
-              </h2>
-            </header>
-            <div className="today-side-list">
-              {dashboard.actionItems.slice(0, 4).map((item) => (
-                <button
-                  key={item.id}
-                  className={`today-alert-line today-action-${item.priority}`}
-                  type="button"
-                  onClick={() => openActionItem(item)}
-                >
-                  <span aria-hidden="true" />
-                  <div>
-                    <strong>{item.title}</strong>
-                    <small>{item.message}</small>
-                  </div>
-                </button>
-              ))}
-              {!dashboard.actionItems.length ? (
-                <p className="today-empty-state">Нет новых уведомлений</p>
-              ) : null}
-            </div>
-          </section>
-
-          <section className="today-panel today-side-panel today-reviews-panel">
-            <header className="today-panel-header">
-              <h2>
-                Сбор отзывов <span className="today-count-pill">{firstTimersToday.length}</span>
-              </h2>
-            </header>
-            <div className="today-side-list">
-              {firstTimersToday.map((client) => (
-                <div
-                  key={client.id}
-                  className="today-review-row flex flex-col gap-2 p-2.5 rounded-lg border border-border bg-card/40"
-                >
-                  <div className="flex justify-between items-start gap-1">
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <strong className="text-foreground text-xs font-semibold truncate">{client.name}</strong>
-                      <small className="text-[10px] text-muted-foreground truncate">{client.service} · {client.master}</small>
-                    </div>
-                    <Button
-                      className="today-review-message-button"
-                      leftIcon="message"
-                      size="sm"
-                      type="button"
-                      variant="ghost"
-                      onClick={() => {
-                        const reviewText = `Cześć ${client.name || "kliencie"}! Dziękujemy za wizytę w NUAR. Będziemy wdzięczni za krótką opinię na Google: ${appSettings?.reviewGoogleUrl || "https://g.page/r/YOUR_GOOGLE_LINK/review"}`;
-                        navigator.clipboard.writeText(reviewText);
-                        
-                        setCopiedReviewClientId(client.id);
-                        setTimeout(() => setCopiedReviewClientId(""), 2000);
-                        
-                        const cleanTelegram = String(client.telegram ?? "").trim().replace("@", "");
-                        if (cleanTelegram) {
-                          window.open(`https://t.me/${cleanTelegram}`, "_blank");
-                        } else {
-                          const cleanPhone = String(client.phone ?? "").trim().replace(/\D/g, "");
-                          if (cleanPhone) {
-                            window.open(`https://t.me/+${cleanPhone}`, "_blank");
-                          } else {
-                            window.open("https://t.me", "_blank");
-                          }
-                        }
-                      }}
-                    >
-                      {copiedReviewClientId === client.id ? "Скопировано!" : "Запросить"}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              {!firstTimersToday.length ? (
-                <p className="today-empty-state">Нет новых клиентов сегодня</p>
-              ) : null}
-            </div>
-          </section>
-            </>
-          ) : null}
-
-        </aside>
       </div>
     </section>
   );
@@ -614,9 +478,7 @@ function TodayPage({
   clientProfiles,
   completedVisits = [],
   employees,
-  onAddTask,
   onAddVisit,
-  onCompleteTask,
   onEditVisit,
   onOpenCalendar,
   onOpenClients,
@@ -627,11 +489,13 @@ function TodayPage({
   tasks,
   visits,
 }) {
-  const { isMobile } = useBreakpoint();
   const [openVisitMenuId, setOpenVisitMenuId] = useState(null);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [selectedVisitId, setSelectedVisitId] = useState(null);
-  const [copiedReviewClientId, setCopiedReviewClientId] = useState("");
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const now = new Date();
+    return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+  });
   const openVisitMenuRef = useRef(null);
 
   const dashboard = useMemo(
@@ -646,6 +510,7 @@ function TodayPage({
         clientProfiles,
         completedVisits,
         employees,
+        now: new Date(`${selectedDate}T12:00:00`),
         supplies,
         tasks,
         visits,
@@ -660,43 +525,12 @@ function TodayPage({
       clientProfiles,
       completedVisits,
       employees,
+      selectedDate,
       supplies,
       tasks,
       visits,
     ],
   );
-
-  const firstTimersToday = useMemo(() => {
-    if (!dashboard.today) return [];
-
-    const completedVisitsToday = calendarEntries.filter(
-      (entry) =>
-        entry.date === dashboard.today &&
-        entry.kind === "visit" &&
-        entry.status === "completed" &&
-        entry.client
-    );
-
-    const list = [];
-    completedVisitsToday.forEach((visit) => {
-      const client = clientProfiles.find(
-        (c) =>
-          c.id === visit.clientId ||
-          (visit.client && c.name?.toLowerCase() === visit.client.toLowerCase())
-      );
-      if (client && client.visitsCount === 1) {
-        if (!list.some(item => item.id === client.id)) {
-          list.push({
-            ...client,
-            visitId: visit.id,
-            service: visit.service || "Услуга",
-            master: visit.master || "Мастер",
-          });
-        }
-      }
-    });
-    return list;
-  }, [calendarEntries, clientProfiles, dashboard.today]);
 
   const formatIncome = (value) =>
     Math.abs(Number(value) || 0) >= 1000 ? formatCompactMoney(value) : formatMoney(value);
@@ -705,6 +539,18 @@ function TodayPage({
     (total, slot) => total + (Number(slot.durationMinutes) || 0),
     0,
   );
+
+  const changeDate = (offset, exactDate) => {
+    if (exactDate) {
+      setSelectedDate(exactDate);
+      setSelectedVisitId(null);
+      return;
+    }
+    const next = new Date(`${selectedDate}T12:00:00`);
+    next.setDate(next.getDate() + offset);
+    setSelectedDate([next.getFullYear(), String(next.getMonth() + 1).padStart(2, "0"), String(next.getDate()).padStart(2, "0")].join("-"));
+    setSelectedVisitId(null);
+  };
 
   useEffect(() => {
     if (openVisitMenuId === null) {
@@ -725,15 +571,10 @@ function TodayPage({
 
   return (
     <TodayReferenceBoard
-      appSettings={appSettings}
-      copiedReviewClientId={copiedReviewClientId}
       dashboard={dashboard}
       formatIncome={formatIncome}
       freeMinutes={freeMinutes}
-      firstTimersToday={firstTimersToday}
-      onAddTask={onAddTask}
       onAddVisit={onAddVisit}
-      onCompleteTask={onCompleteTask}
       onEditVisit={onEditVisit}
       onOpenCalendar={onOpenCalendar}
       onOpenClients={onOpenClients}
@@ -742,13 +583,13 @@ function TodayPage({
       onRemindVisit={onRemindVisit}
       openVisitMenuId={openVisitMenuId}
       openVisitMenuRef={openVisitMenuRef}
-      showSecondaryPanels={!isMobile}
       selectedEmployees={selectedEmployees}
+      selectedDate={selectedDate}
       selectedVisitId={selectedVisitId}
-      setCopiedReviewClientId={setCopiedReviewClientId}
       setSelectedEmployees={setSelectedEmployees}
       setSelectedVisitId={setSelectedVisitId}
       setOpenVisitMenuId={setOpenVisitMenuId}
+      onChangeDate={changeDate}
     />
   );
 }
