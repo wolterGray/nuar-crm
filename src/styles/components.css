@@ -617,7 +617,7 @@
   background: var(--color-window);
 }
 
-.task-drawer-footer span {
+.task-drawer-footer > span {
   color: var(--color-text-muted);
   font-size: 12px;
 }
@@ -974,6 +974,12 @@
   padding-left: 24px;
   margin-left: auto;
   justify-self: end;
+  color: #fff;
+}
+
+.task-drawer .task-drawer-footer > button span,
+.task-drawer .task-drawer-footer > button svg {
+  color: inherit;
 }
 
 @media (max-width: 720px) {
@@ -12145,11 +12151,76 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 48px 24px;
+  min-height: clamp(190px, 25vh, 270px);
+  padding: 30px 24px;
   border: 1px dashed rgba(63, 63, 70, 0.6);
   border-radius: 20px;
   background: rgba(24, 24, 27, 0.3);
   margin-top: 4px;
+}
+
+@media (min-width: 769px) and (max-height: 900px) {
+  .operations-page.operations-workspace {
+    gap: 8px;
+  }
+
+  .operations-page .operations-top-bar {
+    padding-bottom: 4px;
+  }
+
+  .operations-page .operations-tabs-action-bar {
+    margin-bottom: 6px;
+  }
+
+  .operations-page .operations-tab-btn {
+    padding-top: 8px;
+    padding-bottom: 10px;
+  }
+
+  .operations-page .operations-planner-panel {
+    gap: 9px;
+    padding: 8px 0 16px;
+  }
+
+  .operations-page .operations-task-commandbar,
+  .operations-page .operations-workday-summary {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .operations-page .operations-mini-week-bar {
+    gap: 6px;
+    margin: 2px 0 8px;
+    padding: 5px;
+  }
+
+  .operations-page .operations-mini-day-tab {
+    height: 68px;
+  }
+
+  .operations-page .operations-day-focus-view {
+    gap: 8px;
+  }
+
+  .operations-page .operations-day-focus-header {
+    padding-top: 4px;
+    padding-bottom: 9px;
+  }
+
+  .operations-page .operations-day-empty-state {
+    min-height: clamp(170px, 23vh, 220px);
+    padding: 22px 20px;
+  }
+
+  .operations-page .operations-day-empty-icon {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 9px;
+  }
+
+  .operations-page .operations-day-empty-state p {
+    margin-bottom: 14px;
+  }
 }
 
 .operations-page .operations-day-empty-icon {
