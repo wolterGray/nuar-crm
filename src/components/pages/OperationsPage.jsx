@@ -4,6 +4,7 @@ import {CSS} from "@dnd-kit/utilities";
 import WaitlistPanel from "../WaitlistPanel.jsx";
 import HintIcon from "../HintIcon.jsx";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
+import OperationsHistory from "../OperationsHistory.jsx";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {formatMoney} from "../../utils/formatters.jsx";
@@ -1148,6 +1149,9 @@ function OperationsPage({
             <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>
               Задачи
             </SegmentButton>
+            <SegmentButton active={activeTab === "history"} onClick={() => setActiveTab("history")}>
+              История
+            </SegmentButton>
             <SegmentButton active={activeTab === "notes"} onClick={() => setActiveTab("notes")}>
               Заметки
             </SegmentButton>
@@ -1158,7 +1162,7 @@ function OperationsPage({
               Лист ожидания
             </SegmentButton>
           </nav>
-          <div className="operations-tabs-right">
+          {activeTab === "plan" ? <div className="operations-tabs-right">
             <Button
               className="operations-add-task-cta"
               leftIcon="plus"
@@ -1168,7 +1172,7 @@ function OperationsPage({
             >
               Добавить задачу
             </Button>
-          </div>
+          </div> : null}
         </div>
       ) : null}
 
@@ -1486,6 +1490,8 @@ function OperationsPage({
           </div>
         </section>
       ) : null}
+
+      {activeTab === "history" ? <OperationsHistory tasks={workTasks} /> : null}
 
       {activeTab === "supplies" ? (
         <section className="panel operations-panel operations-panel-supplies">
