@@ -133,9 +133,9 @@ function VisitsTable({
   };
 
   return (
-    <div className="payments-journal-container">
+    <div className="payments-journal-container flex-1 min-h-0 h-full flex flex-col overflow-hidden">
       {/* 1. Compact Filter Bar */}
-      <div className="payments-filter-bar">
+      <div className="payments-filter-bar shrink-0">
         <div className="payments-search-wrap">
           <AppIcon className="payments-search-icon" name="search" size="xs" />
           <input
@@ -270,7 +270,7 @@ function VisitsTable({
       ) : null}
 
       {/* 2. Journal Table */}
-      <div className="payments-table-wrap">
+      <div className="payments-table-wrap flex-1 min-h-0 overflow-y-auto">
         <table className="payments-table">
           <thead>
             <tr>
@@ -435,7 +435,7 @@ function VisitsTable({
       </div>
 
       {/* 3. Pagination Footer */}
-      <div className="payments-pagination-bar">
+      <div className="payments-pagination-bar shrink-0">
         <div className="payments-pagination-info">
           Показано {filteredVisits.length === 0 ? 0 : Math.min(filteredVisits.length, (safeCurrentPage - 1) * pageSize + 1)}
           {filteredVisits.length > 1 && pageSize < 999999 ? `–${Math.min(filteredVisits.length, safeCurrentPage * pageSize)}` : ""}

@@ -64,7 +64,9 @@ function FinancialQualityPanel({focused = false, panelRef, report, onOpenIssue})
   return (
     <section
       ref={panelRef}
-      className={`financial-quality-panel payments-quality-panel ${focused ? "alert-focus-pulse" : ""}`}
+      className={`financial-quality-panel payments-quality-panel flex-1 min-h-0 h-full flex flex-col overflow-hidden ${
+        focused ? "alert-focus-pulse" : ""
+      }`}
       aria-label="Проверка денег"
     >
       <header className="financial-quality-header payments-quality-header">
@@ -93,7 +95,7 @@ function FinancialQualityPanel({focused = false, panelRef, report, onOpenIssue})
         ))}
       </div>
 
-      <div className="financial-quality-list payments-quality-list">
+      <div className="financial-quality-list payments-quality-list flex-1 min-h-0 overflow-y-auto">
         {filteredIssues.map((issue) => (
           <article className="financial-quality-row payments-quality-row" key={issue.id}>
             <div className="payments-quality-row-info">
@@ -182,7 +184,11 @@ function PaymentsPage({
   }, [qualityFocusToken]);
 
   return (
-    <section className={`payments-page nuar-payments ${isMobile ? "payments-page-mobile" : ""}`}>
+    <section
+      className={`payments-page nuar-payments flex flex-col h-full w-full min-h-0 overflow-hidden ${
+        isMobile ? "payments-page-mobile" : ""
+      }`}
+    >
       {/* 1. Top Title Bar */}
       <div className="payments-top-bar">
         <div className="payments-top-title-wrap">
@@ -254,7 +260,7 @@ function PaymentsPage({
       </div>
 
       {/* 3. Active Tab Content */}
-      <div className="payments-tab-content">
+      <div className="payments-tab-content flex-1 min-h-0 h-full flex flex-col overflow-hidden">
         {activeTab === "journal" ? (
           <VisitsTable
             clientProfiles={clientProfiles}

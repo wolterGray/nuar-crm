@@ -247,7 +247,7 @@ function DayClosePanel({
   );
 
   const content = (
-    <section className="panel day-close-panel day-close-tab-panel">
+    <section className="panel day-close-panel day-close-tab-panel flex-1 min-h-0 h-full overflow-y-auto">
       <div className="day-close-tab-header">
         <div className="day-close-tab-title-wrap">
           <h3 className="day-close-tab-title">Закрытие смены</h3>
