@@ -48,7 +48,6 @@ function MessageTemplatesPage({
     return firstActive ? String(firstActive.id) : "";
   });
   const [activeLanguage, setActiveLanguage] = useState("pl"); // 'pl' | 'ru' | 'ua' | 'en'
-  const [workspaceMode, setWorkspaceMode] = useState(preferredClientId ? "preview" : "editor"); // 'editor' | 'preview'
   const [mobilePane, setMobilePane] = useState(preferredClientId ? "workspace" : "list"); // 'list' | 'workspace'
 
   // Editable local draft state for selected template
@@ -100,7 +99,6 @@ function MessageTemplatesPage({
     setPrevPreferredId(preferredClientId);
     setSelectedClientId(String(preferredClientId));
     setContextMode("client");
-    setWorkspaceMode("preview");
     setMobilePane("workspace");
   }
 
@@ -330,7 +328,6 @@ function MessageTemplatesPage({
 
     setMessageTemplates?.((current = []) => [newTemplate, ...current]);
     setSelectedTemplateId(newId);
-    setWorkspaceMode("editor");
     setIsDirty(true);
     if (isMobile) {
       setMobilePane("workspace");
@@ -750,42 +747,32 @@ function MessageTemplatesPage({
                 </div>
               </div>
 
-              {/* Mode Nav: Editor vs Preview */}
-              <nav className="templates-mode-nav" aria-label="Режим рабочей зоны">
-                <button
-                  className={`templates-mode-tab ${workspaceMode === "editor" ? "is-active" : ""}`}
-                  type="button"
-                  onClick={() => setWorkspaceMode("editor")}
-                >
-                  <AppIcon name="edit" size="xs" />
-                  <span>Редактор ({activeLanguage.toUpperCase()})</span>
-                </button>
-                <button
-                  className={`templates-mode-tab ${workspaceMode === "preview" ? "is-active" : ""}`}
-                  type="button"
-                  onClick={() => setWorkspaceMode("preview")}
-                >
-                  <AppIcon name="eye" size="xs" />
-                  <span>Предпросмотр и отправка</span>
-                </button>
-              </nav>
-
-              {/* VIEW 1: Editor Mode */}
-              {workspaceMode === "editor" ? (
-                <div className="templates-editor-container">
-                  {/* Dynamic Variables Insertion Bar */}
+              {/* Unified Workspace: Compact Editor + Live Preview & Quick Send */}
+              <div className="templates-unified-workspace">
+                {/* 1. Compact Editor Card */}
+                <div className="templates-editor-card">
+                  {/* Variables Bar */}
                   <div className="templates-variables-bar">
-                    <span className="templates-variables-title">Вставить переменную в текст:</span>
+                    <div className="templates-variables-header">
+                      <div className="templates-variables-title-group">
+                        <AppIcon name="sparkles" size="xs" />
+                        <span className="templates-variables-title">Переменные автоподстановки</span>
+                      </div>
+                      <span className="templates-variables-hint">
+                        Подставят реальные данные клиента при копировании
+                      </span>
+                    </div>
                     <div className="templates-variables-chips">
                       {DYNAMIC_VARIABLES.map((v) => (
                         <button
                           key={v.key}
                           className="templates-var-chip-btn"
-                          title={`${v.label} (пример: ${v.sample})`}
+                          title={`Вставить «${v.label}» (пример: ${v.sample})`}
                           type="button"
                           onClick={() => handleInsertVariable(v.key)}
                         >
-                          <span>{v.key}</span>
+                          <span className="templates-var-chip-label">{v.label}</span>
+                          <code className="templates-var-chip-code">{v.key}</code>
                         </button>
                       ))}
                     </div>
@@ -798,47 +785,32 @@ function MessageTemplatesPage({
                       aria-label={`Текст сообщения на ${activeLanguage.toUpperCase()}`}
                       className="templates-textarea"
                       placeholder={`Напишите текст сообщения на ${activeLanguage.toUpperCase()}...`}
+                      rows={4}
                       value={draftTranslations[activeLanguage] || ""}
                       onChange={handleTextChange}
                     />
-                  </div>
-
-                  {/* Editor Footer */}
-                  <div className="templates-editor-footer">
-                    <span className="templates-char-counter">
-                      {currentCharsCount} символов • {smsSegments} SMS {isCyrillic ? "(кириллица)" : "(латиница)"}
-                    </span>
-
-                    <div className="templates-editor-footer-actions flex items-center gap-2">
-                      <Button
-                        leftIcon="eye"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setWorkspaceMode("preview")}
-                      >
-                        Предпросмотр сообщения →
-                      </Button>
-                      <Button
-                        disabled={!isDirty || isSaving}
-                        leftIcon="save"
-                        size="sm"
-                        variant={isDirty ? "primary" : "secondary"}
-                        onClick={handleSave}
-                      >
-                        Сохранить шаблон
-                      </Button>
+                    <div className="templates-textarea-meta">
+                      <span className="templates-char-counter">
+                        {currentCharsCount} символов • {smsSegments} SMS {isCyrillic ? "(кириллица)" : "(латиница)"}
+                      </span>
+                      {isDirty ? (
+                        <span className="templates-dirty-indicator">
+                          ● Есть несохранённые изменения
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </div>
-              ) : null}
 
-              {/* VIEW 2: Preview & Send Mode */}
-              {workspaceMode === "preview" ? (
-                <div className="templates-preview-container">
+                {/* 2. Live Preview & Quick Send Card */}
+                <div className="templates-preview-card">
                   {/* Context selector panel */}
                   <div className="templates-context-panel">
                     <div className="templates-context-header">
-                      <span className="text-xs font-semibold text-zinc-400">Данные для подстановки:</span>
+                      <div className="templates-preview-title-group">
+                        <AppIcon name="eye" size="xs" />
+                        <span className="templates-preview-title">Готовое сообщение для отправки</span>
+                      </div>
                       <div className="templates-context-mode-switch" role="radiogroup">
                         <button
                           className={`templates-context-mode-btn ${contextMode === "demo" ? "is-active" : ""}`}
@@ -848,7 +820,7 @@ function MessageTemplatesPage({
                             onClearPreferredClient?.();
                           }}
                         >
-                          Тестовые демо-данные
+                          Демо-данные
                         </button>
                         <button
                           className={`templates-context-mode-btn ${contextMode === "client" ? "is-active" : ""}`}
@@ -948,7 +920,7 @@ function MessageTemplatesPage({
                         </div>
                       </div>
                       <span className="templates-chat-demo-badge">
-                        {activeLanguage.toUpperCase()} • SMS / Мессенджеры
+                        {activeLanguage.toUpperCase()} • Мессенджеры и SMS
                       </span>
                     </div>
 
@@ -1005,7 +977,7 @@ function MessageTemplatesPage({
                     </div>
                   </div>
                 </div>
-              ) : null}
+              </div>
             </>
           ) : (
             <div className="templates-empty-workspace">
