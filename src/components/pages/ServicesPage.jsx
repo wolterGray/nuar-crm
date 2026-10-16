@@ -640,20 +640,17 @@ export default function ServicesPage({
         {/* Status Dropdown Filter (Available in Active View) */}
         {viewScope === "active" ? (
           <div className="services-status-filter-wrap">
-            <div className="services-status-select-btn">
-              <AppIcon name="filter" size="xs" />
-              <span>Статус: {selectedStatus === "all" ? "Все" : selectedStatus}</span>
-              <AppIcon name="chevronDown" size="xs" />
-            </div>
+            <AppIcon className="services-status-icon" name="filter" size="xs" />
             <select
-              className="services-status-select-native"
+              className="services-status-select"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               aria-label="Фильтрация по статусу">
               <option value="all">Статус: Все</option>
-              <option value="Активна">Активна</option>
-              <option value="Скрыта">Скрыта</option>
+              <option value="Активна">Статус: Активные</option>
+              <option value="Скрыта">Статус: Скрытые</option>
             </select>
+            <AppIcon className="services-status-chevron" name="chevronDown" size="xs" />
           </div>
         ) : (
           <div className="services-archive-banner-pill">
@@ -663,55 +660,11 @@ export default function ServicesPage({
         )}
       </section>
 
-      {/* 3. BATCH ACTIONS BAR (when items are checked) */}
-      {selectedServiceIds.size > 0 ? (
-        <div className="services-batch-bar" role="toolbar" aria-label="Панель массовых действий">
-          <span className="services-batch-count">Выбрано: {selectedServiceIds.size}</span>
-          <div className="services-batch-actions">
-            {viewScope === "active" ? (
-              <>
-                <button
-                  className="services-batch-btn"
-                  type="button"
-                  onClick={() => handleBatchStatus("Активна")}>
-                  Активировать
-                </button>
-                <button
-                  className="services-batch-btn"
-                  type="button"
-                  onClick={() => handleBatchStatus("Скрыта")}>
-                  Скрыть
-                </button>
-                <button
-                  className="services-batch-btn services-batch-btn-danger"
-                  type="button"
-                  onClick={() => handleBatchStatus("Архив")}>
-                  В архив
-                </button>
-              </>
-            ) : (
-              <button
-                className="services-batch-btn services-batch-btn-accent"
-                type="button"
-                onClick={() => handleBatchStatus("Активна")}>
-                Восстановить из архива
-              </button>
-            )}
-            <button
-              className="services-batch-btn services-batch-btn-ghost"
-              type="button"
-              onClick={() => setSelectedServiceIds(new Set())}>
-              Снять выбор
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {/* 4. WORKSPACE CONTAINER (Table + Drawer) */}
+      {/* 3. WORKSPACE CONTAINER (Table + Drawer) */}
       <div className="services-workspace-container">
         {/* MAIN TABLE AREA */}
         <div className="services-table-area">
-          <div className="services-table-head">
+          <div className={`services-table-head ${selectedServiceIds.size > 0 ? "is-batch-active" : ""}`}>
             <div className="services-col-check">
               <Checkbox
                 checked={allFilteredSelected}
@@ -720,41 +673,87 @@ export default function ServicesPage({
                 aria-label="Выбрать все отображаемые услуги"
               />
             </div>
-            <div
-              className="services-col-service services-sortable-th"
-              onClick={() => handleSort("name")}>
-              <span>Услуга</span>
-              {sortField === "name" ? (
-                <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
-              ) : null}
-            </div>
-            <div
-              className="services-col-category services-sortable-th"
-              onClick={() => handleSort("category")}>
-              <span>Категория</span>
-              {sortField === "category" ? (
-                <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
-              ) : null}
-            </div>
-            <div className="services-col-variants">Варианты</div>
-            <div className="services-col-duration">Продолжительность</div>
-            <div
-              className="services-col-price services-sortable-th"
-              onClick={() => handleSort("price")}>
-              <span>Цена от</span>
-              {sortField === "price" ? (
-                <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
-              ) : null}
-            </div>
-            <div
-              className="services-col-status services-sortable-th"
-              onClick={() => handleSort("status")}>
-              <span>Статус</span>
-              {sortField === "status" ? (
-                <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
-              ) : null}
-            </div>
-            <div className="services-col-actions" />
+
+            {selectedServiceIds.size > 0 ? (
+              <div className="services-table-head-batch" role="toolbar" aria-label="Панель массовых действий">
+                <span className="services-batch-count">Выбрано: {selectedServiceIds.size}</span>
+                <div className="services-batch-actions">
+                  {viewScope === "active" ? (
+                    <>
+                      <button
+                        className="services-batch-btn"
+                        type="button"
+                        onClick={() => handleBatchStatus("Активна")}>
+                        Активировать
+                      </button>
+                      <button
+                        className="services-batch-btn"
+                        type="button"
+                        onClick={() => handleBatchStatus("Скрыта")}>
+                        Скрыть
+                      </button>
+                      <button
+                        className="services-batch-btn services-batch-btn-danger"
+                        type="button"
+                        onClick={() => handleBatchStatus("Архив")}>
+                        В архив
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="services-batch-btn services-batch-btn-accent"
+                      type="button"
+                      onClick={() => handleBatchStatus("Активна")}>
+                      Восстановить из архива
+                    </button>
+                  )}
+                  <button
+                    className="services-batch-btn services-batch-btn-ghost"
+                    type="button"
+                    onClick={() => setSelectedServiceIds(new Set())}>
+                    Снять выбор
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div
+                  className="services-col-service services-sortable-th"
+                  onClick={() => handleSort("name")}>
+                  <span>Услуга</span>
+                  {sortField === "name" ? (
+                    <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
+                  ) : null}
+                </div>
+                <div
+                  className="services-col-category services-sortable-th"
+                  onClick={() => handleSort("category")}>
+                  <span>Категория</span>
+                  {sortField === "category" ? (
+                    <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
+                  ) : null}
+                </div>
+                <div className="services-col-variants">Варианты</div>
+                <div className="services-col-duration">Продолжительность</div>
+                <div
+                  className="services-col-price services-sortable-th"
+                  onClick={() => handleSort("price")}>
+                  <span>Цена от</span>
+                  {sortField === "price" ? (
+                    <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
+                  ) : null}
+                </div>
+                <div
+                  className="services-col-status services-sortable-th"
+                  onClick={() => handleSort("status")}>
+                  <span>Статус</span>
+                  {sortField === "status" ? (
+                    <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
+                  ) : null}
+                </div>
+                <div className="services-col-actions" />
+              </>
+            )}
           </div>
 
           <div className="services-table-scroll">

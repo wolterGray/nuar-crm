@@ -297,84 +297,167 @@
 
 /* Status Filter Dropdown */
 .services-status-filter-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+  transition: all 120ms ease !important;
+  cursor: pointer !important;
 }
 
-.services-status-select-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 10px;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  color: #a1a1aa;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 120ms ease;
+.services-status-filter-wrap:hover {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
 }
 
-.services-status-select-btn:hover {
-  color: #f4f4f5;
-  border-color: rgba(255, 255, 255, 0.15);
+.services-status-filter-wrap:focus-within {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
 }
 
-.services-status-select-native {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
+.services-status-icon {
+  position: absolute !important;
+  left: 9px !important;
+  color: #71717a !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+.services-status-chevron {
+  position: absolute !important;
+  right: 8px !important;
+  color: #71717a !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+select.services-status-select {
+  all: unset !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  margin: 0 !important;
+  padding: 0 24px 0 26px !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  color: #a1a1aa !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  font-family: inherit !important;
+  line-height: 26px !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+.services-status-filter-wrap:hover select.services-status-select,
+.services-status-filter-wrap:hover .services-status-icon,
+.services-status-filter-wrap:hover .services-status-chevron {
+  color: #f4f4f5 !important;
+}
+
+select.services-status-select option {
+  background: #18181b !important;
+  color: #f4f4f5 !important;
+  padding: 6px 10px !important;
 }
 
 /* ==========================================================================
-   Batch Actions Bar
+   Batch Actions Header (In-place table head replacement, zero vertical jump)
    ========================================================================== */
 
-.services-batch-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 14px;
-  margin-bottom: 10px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  border-radius: 8px;
-  font-size: 12px;
-  color: #f4f4f5;
-  animation: fadeIn 150ms ease;
+.services-table-head.is-batch-active {
+  background: #241416 !important;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.4) !important;
+}
+
+.services-table-head-batch {
+  display: flex !important;
+  align-items: center !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  height: 100% !important;
+}
+
+.services-batch-count {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #f87171 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  margin-left: 6px !important;
+  white-space: nowrap !important;
 }
 
 .services-batch-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-left: auto !important;
 }
 
 .services-batch-btn {
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #18181b;
-  color: #d4d4d8;
-  font-size: 11.5px;
-  cursor: pointer;
-  transition: all 100ms ease;
+  height: 26px !important;
+  padding: 0 10px !important;
+  border-radius: 5px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: #18181b !important;
+  color: #e4e4e7 !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  transition: all 120ms ease !important;
+  white-space: nowrap !important;
 }
 
 .services-batch-btn:hover {
-  background: #27272a;
-  color: #ffffff;
+  background: #27272a !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
 }
 
 .services-batch-btn-danger:hover {
-  background: #7f1d1d;
-  color: #fca5a5;
-  border-color: #991b1b;
+  background: #7f1d1d !important;
+  color: #fca5a5 !important;
+  border-color: #ef4444 !important;
+}
+
+.services-batch-btn-accent {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #fca5a5 !important;
+}
+
+.services-batch-btn-accent:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+.services-batch-btn-ghost {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: #a1a1aa !important;
+}
+
+.services-batch-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f4f4f5 !important;
 }
 
 /* ==========================================================================
@@ -1108,8 +1191,7 @@
 
 .services-drawer-root select,
 .services-select-wrap select.services-select-input,
-.services-var-duration-wrap select.services-var-duration-select,
-.services-filter-bar select {
+.services-var-duration-wrap select.services-var-duration-select {
   all: unset !important;
   box-sizing: border-box !important;
   flex: 1 1 auto !important;
@@ -1137,8 +1219,7 @@
 
 .services-drawer-root select option,
 .services-select-wrap select option,
-.services-var-duration-wrap select option,
-.services-filter-bar select option {
+.services-var-duration-wrap select option {
   background: #18181b !important;
   color: #f4f4f5 !important;
 }

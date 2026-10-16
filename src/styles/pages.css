@@ -835,7 +835,7 @@ label {
 }
 
 input:not([type="checkbox"]):not([type="radio"]),
-select:not(.services-select-input):not(.services-var-duration-select),
+select:not(.services-select-input):not(.services-var-duration-select):not(.services-status-select),
 textarea {
   width: 100%;
   min-height: 45px;
@@ -853,7 +853,7 @@ textarea {
   resize: vertical;
 }
 
-select:not(.services-select-input):not(.services-var-duration-select) {
+select:not(.services-select-input):not(.services-var-duration-select):not(.services-status-select) {
   appearance: none;
   background-image:
     linear-gradient(45deg, transparent 50%, var(--color-text) 50%),
