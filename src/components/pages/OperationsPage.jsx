@@ -1131,6 +1131,7 @@ function OperationsPage({
         <div className="operations-top-actions">
           {isTemplateManager ? (
             <Button
+              className="operations-back-to-tasks-btn"
               leftIcon="chevronLeft"
               size="sm"
               variant="secondary"
@@ -1193,27 +1194,46 @@ function OperationsPage({
                   <h2>Направления и шаблоны</h2>
                   <p>Управляйте структурой работы и расписанием регулярных задач.</p>
                 </div>
-                <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({taskKind: "daily"})}>Новый шаблон</Button>
+                <Button
+                  className="operations-add-template-btn"
+                  leftIcon="plus"
+                  size="sm"
+                  variant="primary"
+                  onClick={() => onAddTask?.({taskKind: "daily"})}
+                >
+                  Новый шаблон
+                </Button>
               </div>
             ) : (
               <div className="operations-task-commandbar">
-                <div className="operations-week-info">
-                  <div className="operations-week-title-row">
-                    <h2>{formatHumanWeekRange(weekStart, weekEnd)}</h2>
-                    <span className={`operations-week-relative-tag ${isCurrentWeek ? "is-current" : ""}`}>
-                      {isCurrentWeek ? "Текущая неделя" : getWeekRelativeLabel(weekStart, today)}
-                    </span>
+                <div className="operations-week-switcher">
+                  <div className="operations-week-nav-group">
+                    <IconButton
+                      className="operations-week-nav-btn"
+                      icon="chevronLeft"
+                      label="Предыдущая неделя"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => changeWeek(-1)}
+                    />
+                    <div className="operations-week-info">
+                      <div className="operations-week-title-row">
+                        <h2 className="operations-week-title">{formatHumanWeekRange(weekStart, weekEnd)}</h2>
+                        <span className={`operations-week-relative-tag ${isCurrentWeek ? "is-current" : ""}`}>
+                          {isCurrentWeek ? "Текущая неделя" : getWeekRelativeLabel(weekStart, today)}
+                        </span>
+                      </div>
+                    </div>
+                    <IconButton
+                      className="operations-week-nav-btn"
+                      icon="chevronRight"
+                      label="Следующая неделя"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => changeWeek(1)}
+                    />
                   </div>
-                </div>
 
-                <div className="operations-week-nav-group">
-                  <IconButton
-                    icon="chevronLeft"
-                    label="Предыдущая неделя"
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => changeWeek(-1)}
-                  />
                   <Button
                     className={`operations-week-today-btn ${isCurrentWeek ? "is-on-current" : "is-jump-current"}`}
                     size="sm"
@@ -1222,13 +1242,6 @@ function OperationsPage({
                   >
                     {isCurrentWeek ? "Текущая неделя" : "← К текущей неделе"}
                   </Button>
-                  <IconButton
-                    icon="chevronRight"
-                    label="Следующая неделя"
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => changeWeek(1)}
-                  />
                 </div>
 
                 <div className="operations-week-mode-toggle" role="group" aria-label="Режим отображения недели">
