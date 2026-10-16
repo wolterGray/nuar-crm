@@ -107,7 +107,7 @@ export default function AppNavigation({
         </nav>
 
         <div className="nuar-sidebar-user">
-          <div>В</div>
+          <div>{(ownerName?.[0] || "В").toUpperCase()}</div>
           <div>
             <strong>{ownerName}</strong>
             <span>Владелец</span>

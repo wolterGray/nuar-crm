@@ -2,7 +2,8 @@ import {useEffect, useMemo, useRef, useState} from "react";
 import {DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors} from "@dnd-kit/core";
 import {CSS} from "@dnd-kit/utilities";
 import WaitlistPanel from "../WaitlistPanel.jsx";
-import PageHeader from "../PageHeader.jsx";
+import HintIcon from "../HintIcon.jsx";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {formatMoney} from "../../utils/formatters.jsx";
@@ -138,14 +139,14 @@ const formatRepeatSchedule = (task) => {
 
 function SegmentButton({active, children, onClick}) {
   return (
-    <Button
-      className={active ? "active" : ""}
-      size="sm"
+    <button
+      className={`operations-tab-btn ${active ? "is-active" : ""}`}
       type="button"
-      variant="ghost"
-      onClick={onClick}>
-      {children}
-    </Button>
+      onClick={onClick}
+    >
+      <span>{children}</span>
+      {active ? <span className="operations-tab-underline" /> : null}
+    </button>
   );
 }
 
@@ -180,17 +181,27 @@ const formatDayFullTitle = (date) => {
 
 const WEEKDAY_SHORT_LABELS = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
 
+const formatTaskCountRu = (count) => {
+  if (count === 0) return "Нет задач";
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod100 >= 11 && mod100 <= 19) return `${count} задач`;
+  if (mod10 === 1) return `${count} задача`;
+  if (mod10 >= 2 && mod10 <= 4) return `${count} задачи`;
+  return `${count} задач`;
+};
+
 function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
   const {isOver, setNodeRef} = useDroppable({
     id: `mini-day-${day.input}`,
     data: {date: day.input},
   });
 
-  const completedCount = tasks.filter(isTaskCompleted).length;
   const totalCount = tasks.length;
   const weekdayIndex = (new Date(`${day.input}T12:00:00.000Z`).getUTCDay() || 7) - 1;
   const weekdayShort = WEEKDAY_SHORT_LABELS[weekdayIndex] || day.label;
   const dayOfMonth = day.input ? String(parseInt(day.input.split("-")[2], 10)) : "";
+  const taskCountText = formatTaskCountRu(totalCount);
 
   return (
     <div
@@ -206,18 +217,7 @@ function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
       >
         <span className="operations-mini-day-weekday">{weekdayShort}</span>
         <span className="operations-mini-day-num">{dayOfMonth}</span>
-        <div className="operations-mini-day-load">
-          {totalCount > 0 ? (
-            <span
-              className={`operations-mini-day-badge ${completedCount === totalCount ? "is-all-done" : ""}`}
-              title={`${completedCount} из ${totalCount} выполнено`}
-            >
-              {totalCount}
-            </span>
-          ) : (
-            <span className="operations-mini-day-empty-dot" />
-          )}
-        </div>
+        <span className="operations-mini-day-task-count">{taskCountText}</span>
       </button>
     </div>
   );
@@ -308,7 +308,7 @@ function HorizontalDayTaskCard({
             <span className="operations-linear-time is-empty">—</span>
           )}
 
-          <span className="operations-linear-category-tag" title={`Категория: ${areaLabel}`}>
+          <span className={`operations-linear-category-tag area-pill-${areaId}`} title={`Категория: ${areaLabel}`}>
             {areaLabel}
           </span>
 
@@ -1081,7 +1081,6 @@ function OperationsPage({
     today,
   };
 
-  const tabMeta = `${dayStats.completed}/${dayStats.planned} задач · ${formatMinutes(dayStats.remainingMinutes)}`;
   const isTemplateManager = activeTab === "plan" && planMode === "templates";
   const weekendTaskCount = useMemo(() => {
     const weekendDates = [weekDays[5]?.input, weekDays[6]?.input].filter(Boolean);
@@ -1120,21 +1119,58 @@ function OperationsPage({
 
   return (
     <section className={`operations-page operations-workspace ${isMobile ? "operations-page-mobile" : ""}`}>
-      <PageHeader
-        className="operations-page-header"
-        collapsedMeta={tabMeta}
-        collapsible={false}
-        description={isMobile ? undefined : isTemplateManager ? "Направления, расписания и шаблоны регулярных задач" : "Задачи, заметки, расходники и лист ожидания"}
-        headerActions={isTemplateManager ? <Button leftIcon="chevronLeft" size="sm" variant="secondary" onClick={() => setPlanMode("week")}>К задачам</Button> : undefined}
-        title={isTemplateManager ? "Управление задачами" : "Работа"}
-      />
+      {/* Top Title Bar */}
+      <div className="operations-top-bar">
+        <div className="operations-top-title-wrap">
+          <h1 className="operations-top-title">
+            {isTemplateManager ? "Управление задачами" : "Работа"}
+          </h1>
+          <HintIcon text="Управление ежедневными и регулярными задачами салона, закупками и листом ожидания." />
+        </div>
+        <div className="operations-top-actions">
+          {isTemplateManager ? (
+            <Button
+              leftIcon="chevronLeft"
+              size="sm"
+              variant="secondary"
+              onClick={() => setPlanMode("week")}
+            >
+              К задачам
+            </Button>
+          ) : null}
+          <PageNotificationsSlot />
+        </div>
+      </div>
 
-      {!isTemplateManager ? <nav aria-label="Разделы работы" className="operations-page-tabs operations-main-tabs">
-        <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>Задачи</SegmentButton>
-        <SegmentButton active={activeTab === "notes"} onClick={() => setActiveTab("notes")}>Заметки</SegmentButton>
-        <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>Расходники</SegmentButton>
-        <SegmentButton active={activeTab === "waitlist"} onClick={() => setActiveTab("waitlist")}>Лист ожидания</SegmentButton>
-      </nav> : null}
+      {!isTemplateManager ? (
+        <div className="operations-tabs-action-bar">
+          <nav aria-label="Разделы работы" className="operations-tabs-nav">
+            <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>
+              Задачи
+            </SegmentButton>
+            <SegmentButton active={activeTab === "notes"} onClick={() => setActiveTab("notes")}>
+              Заметки
+            </SegmentButton>
+            <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>
+              Расходники
+            </SegmentButton>
+            <SegmentButton active={activeTab === "waitlist"} onClick={() => setActiveTab("waitlist")}>
+              Лист ожидания
+            </SegmentButton>
+          </nav>
+          <div className="operations-tabs-right">
+            <Button
+              className="operations-add-task-cta"
+              leftIcon="plus"
+              size="sm"
+              variant="primary"
+              onClick={() => onAddTask?.({dueDate: selectedDate})}
+            >
+              Добавить задачу
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {activeTab === "plan" ? (
         <div className="operations-plan-layout">
@@ -1155,18 +1191,25 @@ function OperationsPage({
                 </div>
                 <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({taskKind: "daily"})}>Новый шаблон</Button>
               </div>
-            ) : <div className="operations-task-commandbar operations-kanban-commandbar">
-              <div className="operations-planner-head">
+            ) : (
+              <div className="operations-task-commandbar">
                 <div className="operations-week-info">
                   <div className="operations-week-title-row">
                     <h2>{formatHumanWeekRange(weekStart, weekEnd)}</h2>
                     <span className={`operations-week-relative-tag ${isCurrentWeek ? "is-current" : ""}`}>
-                      {isCurrentWeek ? "● Текущая неделя" : getWeekRelativeLabel(weekStart, today)}
+                      {isCurrentWeek ? "Текущая неделя" : getWeekRelativeLabel(weekStart, today)}
                     </span>
                   </div>
                 </div>
-                <div className="operations-week-controls">
-                  <IconButton icon="chevronLeft" label="Предыдущая неделя" size="sm" variant="secondary" onClick={() => changeWeek(-1)} />
+
+                <div className="operations-week-nav-group">
+                  <IconButton
+                    icon="chevronLeft"
+                    label="Предыдущая неделя"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => changeWeek(-1)}
+                  />
                   <Button
                     className={`operations-week-today-btn ${isCurrentWeek ? "is-on-current" : "is-jump-current"}`}
                     size="sm"
@@ -1175,34 +1218,46 @@ function OperationsPage({
                   >
                     {isCurrentWeek ? "Текущая неделя" : "← К текущей неделе"}
                   </Button>
-                  <IconButton icon="chevronRight" label="Следующая неделя" size="sm" variant="secondary" onClick={() => changeWeek(1)} />
-
-                  <div className="operations-week-mode-toggle" role="group" aria-label="Режим отображения недели">
-                    <button
-                      type="button"
-                      className={`operations-week-mode-btn ${weekViewMode === "workweek" ? "is-active" : ""}`}
-                      onClick={() => handleToggleWeekViewMode("workweek")}
-                    >
-                      Будни (5 дней)
-                    </button>
-                    <button
-                      type="button"
-                      className={`operations-week-mode-btn ${weekViewMode === "fullweek" ? "is-active" : ""}`}
-                      onClick={() => handleToggleWeekViewMode("fullweek")}
-                    >
-                      Вся неделя (7)
-                      {weekendTaskCount > 0 && weekViewMode === "workweek" ? (
-                        <span className="operations-weekend-dot" title={`${weekendTaskCount} задач на выходных`} />
-                      ) : null}
-                    </button>
-                  </div>
+                  <IconButton
+                    icon="chevronRight"
+                    label="Следующая неделя"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => changeWeek(1)}
+                  />
                 </div>
+
+                <div className="operations-week-mode-toggle" role="group" aria-label="Режим отображения недели">
+                  <button
+                    type="button"
+                    className={`operations-week-mode-btn ${weekViewMode === "workweek" ? "is-active" : ""}`}
+                    onClick={() => handleToggleWeekViewMode("workweek")}
+                  >
+                    Будни (5)
+                  </button>
+                  <button
+                    type="button"
+                    className={`operations-week-mode-btn ${weekViewMode === "fullweek" ? "is-active" : ""}`}
+                    onClick={() => handleToggleWeekViewMode("fullweek")}
+                  >
+                    Вся неделя (7)
+                    {weekendTaskCount > 0 && weekViewMode === "workweek" ? (
+                      <span className="operations-weekend-dot" title={`${weekendTaskCount} задач на выходных`} />
+                    ) : null}
+                  </button>
+                </div>
+
+                <Button
+                  className="operations-manage-tasks-btn"
+                  leftIcon="settings"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setPlanMode("templates")}
+                >
+                  Управление задачами
+                </Button>
               </div>
-              <div className="operations-task-actions">
-                <Button leftIcon="settings" size="sm" variant="secondary" onClick={() => setPlanMode("templates")}>Управление задачами</Button>
-                <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({dueDate: selectedDate})}>Добавить задачу</Button>
-              </div>
-            </div>}
+            )}
 
             {moveUndo ? (
               <div className="operations-move-undo" role="status">
@@ -1221,21 +1276,50 @@ function OperationsPage({
                   {selectedTemplates.length ? <Button leftIcon="trash" size="sm" variant="danger" onClick={deleteSelectedTemplates}>Удалить ({selectedTemplates.length})</Button> : null}
                 </div>
               </div>
-            ) : <div className="operations-workday-summary">
-              <span><strong>{weekStats.planned}</strong> задач</span>
-              <span><strong>{weekStats.completed}</strong> выполнено</span>
-              <span className={overdueTasks.length ? "is-alert" : ""}><strong>{overdueTasks.length}</strong> просрочено</span>
-              <span className="operations-summary-progress"><i style={{width: `${weekProgress}%`}} /></span>
-              <b>{weekProgress}%</b>
-            </div>}
+            ) : (
+              <div className="operations-workday-summary">
+                <div className="operations-summary-stats">
+                  <span><strong>{weekStats.planned}</strong> {formatTaskCountRu(weekStats.planned)}</span>
+                  <span><strong>{weekStats.completed}</strong> выполнено</span>
+                  <span className={overdueTasks.length ? "is-alert" : ""}>
+                    <strong>{overdueTasks.length}</strong> {overdueTasks.length === 1 ? "просрочена" : "просрочено"}
+                  </span>
+                </div>
+                <div className="operations-summary-progress-wrap">
+                  <span className="operations-summary-progress">
+                    <i style={{width: `${weekProgress}%`}} />
+                  </span>
+                  <b>{weekProgress}%</b>
+                </div>
+              </div>
+            )}
 
             <section className="operations-list-toolbar">
               <div className="operations-task-search">
-                <Input value={filters.query} placeholder="Поиск по задачам" onChange={(event) => updateFilter("query", event.target.value)} />
-                {filters.query ? <IconButton icon="x" label="Очистить поиск" size="sm" variant="ghost" onClick={() => updateFilter("query", "")} /> : null}
+                <AppIcon name="search" size="sm" className="operations-task-search-icon" />
+                <Input
+                  value={filters.query}
+                  placeholder="Поиск по задачам"
+                  className="operations-task-search-input"
+                  onChange={(event) => updateFilter("query", event.target.value)}
+                />
+                {filters.query ? (
+                  <IconButton
+                    icon="x"
+                    label="Очистить поиск"
+                    size="sm"
+                    variant="ghost"
+                    className="operations-task-search-clear"
+                    onClick={() => updateFilter("query", "")}
+                  />
+                ) : null}
               </div>
               <details className="operations-filter-menu">
-                <summary>Фильтры{activeFilterCount ? <span>{activeFilterCount}</span> : null}</summary>
+                <summary className="operations-filter-summary">
+                  <AppIcon name="sliders" size="xs" />
+                  <span>Фильтры</span>
+                  {activeFilterCount ? <span className="operations-filter-badge">{activeFilterCount}</span> : null}
+                </summary>
                 <div className="operations-filter-menu-content">
                   <label className="settings-checkbox">
                     <input checked={filters.showCompleted} type="checkbox" onChange={(event) => updateFilter("showCompleted", event.target.checked)} />
@@ -1313,19 +1397,9 @@ function OperationsPage({
                         ) : null}
                         <span className="operations-day-meta-badge">
                           {selectedDayStats.planned
-                            ? `${selectedDayStats.planned} ${selectedDayStats.planned === 1 ? "задача" : selectedDayStats.planned < 5 ? "задачи" : "задач"}${selectedDayStats.totalMinutes ? ` • ${formatMinutes(selectedDayStats.totalMinutes)}` : ""}`
+                            ? `${selectedDayStats.planned} ${formatTaskCountRu(selectedDayStats.planned)}${selectedDayStats.totalMinutes ? ` • ${formatMinutes(selectedDayStats.totalMinutes)}` : ""}`
                             : "0 задач"}
                         </span>
-                      </div>
-                      <div className="operations-day-focus-actions">
-                        <Button
-                          leftIcon="plus"
-                          size="sm"
-                          variant="primary"
-                          onClick={() => onAddTask?.({dueDate: selectedDate})}
-                        >
-                          Новая задача
-                        </Button>
                       </div>
                     </header>
 
