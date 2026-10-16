@@ -781,6 +781,15 @@ function SettingsPage({
               />
             </label>
             <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+              Адрес студии
+              <Input
+                name="studioAddress"
+                defaultValue={settings.studioAddress ?? "Warszawa, ul. Złota 44"}
+                placeholder="Warszawa, ul. Złota 44"
+                className="mt-1"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
               Владелец
               <Input
                 name="ownerName"

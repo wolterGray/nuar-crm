@@ -228,6 +228,8 @@ export default function AppRoutes({activePage, ...props}) {
             bulkSms={props.bulkSms}
             calendarEntries={props.calendarEntries}
             clients={props.clientProfiles}
+            employees={props.employees}
+            masters={props.masters}
             preferredClientId={props.preferredMessageClientId}
             setMessageTemplates={props.setMessageTemplates}
             templates={props.messageTemplates}

@@ -5,6 +5,8 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
     ...appSettings,
     studioName:
       String(form.get("studioName") ?? "").trim() || defaultAppSettings.studioName,
+    studioAddress:
+      String(form.get("studioAddress") ?? "").trim() || defaultAppSettings.studioAddress,
     ownerName:
       String(form.get("ownerName") ?? "").trim() || defaultAppSettings.ownerName,
     colorTheme: form.get("colorTheme") || defaultAppSettings.colorTheme,

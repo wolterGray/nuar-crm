@@ -23,6 +23,7 @@ describe("settingsForm", () => {
     };
     const form = buildForm([
       ["studioName", "NUAR"],
+      ["studioAddress", "Warszawa, ul. Marszałkowska 10"],
       ["ownerName", "Owner"],
       ["colorTheme", "slate"],
       ["gmailBooksySyncEnabled", "on"],
@@ -31,6 +32,8 @@ describe("settingsForm", () => {
     ]);
 
     expect(parseSettingsForm(form, appSettings, defaultAppSettings)).toMatchObject({
+      studioName: "NUAR",
+      studioAddress: "Warszawa, ul. Marszałkowska 10",
       gmailBooksySyncEnabled: true,
       siteBookingNotifyTelegramEnabled: true,
       siteBookingNotifyWhatsappEnabled: true,

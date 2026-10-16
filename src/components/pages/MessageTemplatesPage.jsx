@@ -22,6 +22,8 @@ function MessageTemplatesPage({
   appSettings = {},
   calendarEntries = [],
   clients = [],
+  employees = [],
+  masters = [],
   onClearPreferredClient,
   onMessageSent,
   onNotify,
@@ -73,7 +75,7 @@ function MessageTemplatesPage({
   const [contextMode, setContextMode] = useState(preferredClientId ? "client" : "demo");
   const [selectedClientId, setSelectedClientId] = useState(preferredClientId ? String(preferredClientId) : "");
   const [selectedAppointmentId, setSelectedAppointmentId] = useState("");
-  const [customMissingValues, setCustomMissingValues] = useState({});
+  const [variableOverrides, setVariableOverrides] = useState({});
   const [copySuccess, setCopySuccess] = useState(false);
 
   // Textarea reference for inserting variables at cursor
@@ -91,7 +93,6 @@ function MessageTemplatesPage({
       en: selectedTemplate.translations?.en || "",
     });
     setIsDirty(false);
-    setCustomMissingValues({});
   }
 
   // Handle preferred client from navigation (render-time adjustment)
@@ -100,6 +101,7 @@ function MessageTemplatesPage({
     setSelectedClientId(String(preferredClientId));
     setContextMode("client");
     setMobilePane("workspace");
+    setVariableOverrides({});
   }
 
   // Filter templates list
@@ -159,14 +161,61 @@ function MessageTemplatesPage({
     [clientAppointments, effectiveAppointmentId],
   );
 
-  // Build current context for substitution
-  const effectiveContext = useMemo(() => {
-    if (contextMode === "client" && targetClient) {
-      const base = buildClientContext(targetClient, activeAppointment, appSettings);
-      return {...base, ...customMissingValues};
+  // Masters available for selection
+  const mastersList = useMemo(() => {
+    let raw = [];
+    if (Array.isArray(masters) && masters.length > 0) {
+      raw = masters;
+    } else if (Array.isArray(employees) && employees.length > 0) {
+      raw = employees
+        .filter((emp) => String(emp.status ?? "").trim() !== "Архив")
+        .map((emp) => emp.name)
+        .filter(Boolean);
     }
-    return {...DEFAULT_DEMO_CONTEXT, ...customMissingValues};
-  }, [contextMode, targetClient, activeAppointment, appSettings, customMissingValues]);
+    const set = [...new Set(raw.filter(Boolean))];
+    return set.length > 0 ? set : ["Natali"];
+  }, [masters, employees]);
+
+  // Base context from client visit or studio settings defaults
+  const baseContext = useMemo(() => {
+    if (contextMode === "client" && targetClient) {
+      return buildClientContext(targetClient, activeAppointment, appSettings);
+    }
+    return {
+      ...DEFAULT_DEMO_CONTEXT,
+      studio_address: appSettings?.studioAddress || DEFAULT_DEMO_CONTEXT.studio_address,
+      studio_name: appSettings?.studioName || DEFAULT_DEMO_CONTEXT.studio_name,
+    };
+  }, [contextMode, targetClient, activeAppointment, appSettings]);
+
+  // Build current context for substitution: base + any user overrides
+  const effectiveContext = useMemo(() => {
+    const merged = {...baseContext};
+    for (const [key, val] of Object.entries(variableOverrides)) {
+      if (val !== undefined && val !== null && String(val).trim() !== "") {
+        merged[key] = String(val).trim();
+      }
+    }
+    return merged;
+  }, [baseContext, variableOverrides]);
+
+  const activeOverridesCount = useMemo(() => {
+    return Object.entries(variableOverrides).filter(([key, val]) => {
+      if (val === undefined || val === null || String(val).trim() === "") return false;
+      return String(val).trim() !== String(baseContext[key] ?? "").trim();
+    }).length;
+  }, [variableOverrides, baseContext]);
+
+  const handleOverrideChange = (key, value) => {
+    setVariableOverrides((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleResetOverrides = () => {
+    setVariableOverrides({});
+  };
 
   // Active template text for the selected language
   const currentLanguageText = draftTranslations[activeLanguage] || "";
@@ -817,6 +866,7 @@ function MessageTemplatesPage({
                           type="button"
                           onClick={() => {
                             setContextMode("demo");
+                            setVariableOverrides({});
                             onClearPreferredClient?.();
                           }}
                         >
@@ -825,7 +875,10 @@ function MessageTemplatesPage({
                         <button
                           className={`templates-context-mode-btn ${contextMode === "client" ? "is-active" : ""}`}
                           type="button"
-                          onClick={() => setContextMode("client")}
+                          onClick={() => {
+                            setContextMode("client");
+                            setVariableOverrides({});
+                          }}
                         >
                           Клиент из CRM
                         </button>
@@ -842,6 +895,7 @@ function MessageTemplatesPage({
                           onChange={(e) => {
                             setSelectedClientId(e.target.value);
                             setSelectedAppointmentId("");
+                            setVariableOverrides({});
                           }}
                         >
                           <option value="">— Выберите клиента —</option>
@@ -857,7 +911,10 @@ function MessageTemplatesPage({
                             aria-label="Запись клиента"
                             className="templates-appointment-select"
                             value={effectiveAppointmentId}
-                            onChange={(e) => setSelectedAppointmentId(e.target.value)}
+                            onChange={(e) => {
+                              setSelectedAppointmentId(e.target.value);
+                              setVariableOverrides({});
+                            }}
                           >
                             {clientAppointments.length === 0 ? (
                               <option value="">У клиента нет визитов в календаре</option>
@@ -872,6 +929,110 @@ function MessageTemplatesPage({
                         ) : null}
                       </div>
                     ) : null}
+                  </div>
+
+                  {/* Quick Variables Override Panel */}
+                  <div className="templates-quick-vars-panel">
+                    <div className="templates-quick-vars-head">
+                      <div className="templates-quick-vars-title">
+                        <AppIcon name="sliders" size="xs" />
+                        <span>Значения для автоподстановки</span>
+                        <span className="templates-quick-vars-hint">
+                          (измените прямо здесь перед отправкой — не нужно править в телефоне)
+                        </span>
+                      </div>
+                      {activeOverridesCount > 0 ? (
+                        <button
+                          type="button"
+                          className="templates-quick-vars-reset-btn"
+                          onClick={handleResetOverrides}
+                          title="Сбросить к значениям CRM"
+                        >
+                          <AppIcon name="rotateCcw" size="xs" />
+                          <span>Сбросить замену ({activeOverridesCount})</span>
+                        </button>
+                      ) : null}
+                    </div>
+
+                    <div className="templates-quick-vars-grid">
+                      {/* Client Name */}
+                      <div className="templates-quick-field">
+                        <label className="templates-quick-field-label">Клиент</label>
+                        <input
+                          type="text"
+                          className={`templates-quick-field-input ${variableOverrides.client_name ? "is-overridden" : ""}`}
+                          placeholder={baseContext.client_name || "Имя клиента"}
+                          value={variableOverrides.client_name ?? ""}
+                          onChange={(e) => handleOverrideChange("client_name", e.target.value)}
+                        />
+                      </div>
+
+                      {/* Master Name with datalist of real masters */}
+                      <div className="templates-quick-field">
+                        <label className="templates-quick-field-label">Мастер</label>
+                        <input
+                          type="text"
+                          list="nuar-masters-datalist"
+                          className={`templates-quick-field-input ${variableOverrides.master_name ? "is-overridden" : ""}`}
+                          placeholder={baseContext.master_name || "Имя мастера"}
+                          value={variableOverrides.master_name ?? ""}
+                          onChange={(e) => handleOverrideChange("master_name", e.target.value)}
+                        />
+                        <datalist id="nuar-masters-datalist">
+                          {mastersList.map((m) => (
+                            <option key={m} value={m} />
+                          ))}
+                        </datalist>
+                      </div>
+
+                      {/* Date */}
+                      <div className="templates-quick-field templates-quick-field-sm">
+                        <label className="templates-quick-field-label">Дата</label>
+                        <input
+                          type="text"
+                          className={`templates-quick-field-input ${variableOverrides.appointment_date ? "is-overridden" : ""}`}
+                          placeholder={baseContext.appointment_date || "ДД.ММ.ГГГГ"}
+                          value={variableOverrides.appointment_date ?? ""}
+                          onChange={(e) => handleOverrideChange("appointment_date", e.target.value)}
+                        />
+                      </div>
+
+                      {/* Time */}
+                      <div className="templates-quick-field templates-quick-field-xs">
+                        <label className="templates-quick-field-label">Время</label>
+                        <input
+                          type="text"
+                          className={`templates-quick-field-input ${variableOverrides.appointment_time ? "is-overridden" : ""}`}
+                          placeholder={baseContext.appointment_time || "14:30"}
+                          value={variableOverrides.appointment_time ?? ""}
+                          onChange={(e) => handleOverrideChange("appointment_time", e.target.value)}
+                        />
+                      </div>
+
+                      {/* Service */}
+                      <div className="templates-quick-field templates-quick-field-wide">
+                        <label className="templates-quick-field-label">Услуга</label>
+                        <input
+                          type="text"
+                          className={`templates-quick-field-input ${variableOverrides.service_name ? "is-overridden" : ""}`}
+                          placeholder={baseContext.service_name || "Название услуги"}
+                          value={variableOverrides.service_name ?? ""}
+                          onChange={(e) => handleOverrideChange("service_name", e.target.value)}
+                        />
+                      </div>
+
+                      {/* Studio Address */}
+                      <div className="templates-quick-field templates-quick-field-wide">
+                        <label className="templates-quick-field-label">Адрес студии</label>
+                        <input
+                          type="text"
+                          className={`templates-quick-field-input ${variableOverrides.studio_address ? "is-overridden" : ""}`}
+                          placeholder={baseContext.studio_address || "Адрес студии"}
+                          value={variableOverrides.studio_address ?? ""}
+                          onChange={(e) => handleOverrideChange("studio_address", e.target.value)}
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Missing Variables Warning & Inline Quick-fill */}
@@ -892,13 +1053,8 @@ function MessageTemplatesPage({
                                 className="templates-missing-field"
                                 placeholder={def?.sample || "Значение..."}
                                 type="text"
-                                value={customMissingValues[cleanKey] || ""}
-                                onChange={(e) =>
-                                  setCustomMissingValues((prev) => ({
-                                    ...prev,
-                                    [cleanKey]: e.target.value,
-                                  }))
-                                }
+                                value={variableOverrides[cleanKey] || ""}
+                                onChange={(e) => handleOverrideChange(cleanKey, e.target.value)}
                               />
                             </div>
                           );

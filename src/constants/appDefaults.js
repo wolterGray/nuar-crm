@@ -50,6 +50,7 @@ export const initialMessageTemplates = [
 
 export const defaultAppSettings = {
   studioName: "NUAR",
+  studioAddress: "Warszawa, ul. Złota 44",
   ownerName: "Влад",
   accentColor: "#8B7CFF",
   colorTheme: "dark",
