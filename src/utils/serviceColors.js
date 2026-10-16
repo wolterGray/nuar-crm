@@ -53,6 +53,7 @@ export const normalizeServiceColors = (services) =>
 
 export const categoryColorMap = {
   "Массаж": "#ef4444",
+  "Массажи": "#ef4444",
   "Комплексы": "#38bdf8",
   "Body Wrapping": "#c084fc",
   "Без категории": "#71717a",

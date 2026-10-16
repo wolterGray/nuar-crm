@@ -9,9 +9,11 @@ import {
 describe("serviceColors", () => {
   it("returns predefined colors for standard categories", () => {
     expect(getCategoryColor("Массаж")).toBe(categoryColorMap["Массаж"]);
+    expect(getCategoryColor("Массажи")).toBe(categoryColorMap["Массажи"]);
     expect(getCategoryColor("Комплексы")).toBe(categoryColorMap["Комплексы"]);
     expect(getCategoryColor("Body Wrapping")).toBe(categoryColorMap["Body Wrapping"]);
     expect(getCategoryColor("")).toBe("#71717a");
+    expect(getServiceColor({id: 1, name: "Test", color: "#ef4444"})).toBe("#ef4444");
   });
 
   it("returns deterministic color for arbitrary category", () => {
