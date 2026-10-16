@@ -23,7 +23,6 @@ import {
   expandTasksForRange,
   formatDateShort,
   formatDayMonth,
-  formatDayMonthShort,
   formatHumanWeekRange,
   getChecklistProgress,
   getDayStats,
@@ -179,6 +178,8 @@ const formatDayFullTitle = (date) => {
   return `${weekdayName}, ${dateFormatted}`;
 };
 
+const WEEKDAY_SHORT_LABELS = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
+
 function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
   const {isOver, setNodeRef} = useDroppable({
     id: `mini-day-${day.input}`,
@@ -187,11 +188,9 @@ function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
 
   const completedCount = tasks.filter(isTaskCompleted).length;
   const totalCount = tasks.length;
-  const minutes = tasks.reduce((sum, task) => sum + (Number(getTaskEstimateMinutes(task)) || 0), 0);
-  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const weekdayIndex = (new Date(`${day.input}T12:00:00.000Z`).getUTCDay() || 7) - 1;
-  const weekdayName = WEEKDAY_FULL_LABELS[weekdayIndex] || day.label;
-  const dayMonthText = formatDayMonthShort(day.input);
+  const weekdayShort = WEEKDAY_SHORT_LABELS[weekdayIndex] || day.label;
+  const dayOfMonth = day.input ? String(parseInt(day.input.split("-")[2], 10)) : "";
 
   return (
     <div
@@ -205,26 +204,19 @@ function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
         className={`operations-mini-day-tab ${isSelected ? "is-selected" : ""} ${isCurrentDay ? "is-today" : ""}`}
         onClick={() => onClick(day.input)}
       >
-        <div className="operations-mini-day-head">
-          <span className="operations-mini-day-name">{weekdayName}</span>
-          {isCurrentDay ? <span className="operations-mini-today-badge" title="Сегодня">Сегодня</span> : null}
-        </div>
-        <div className="operations-mini-day-date">{dayMonthText}</div>
-        <div className="operations-mini-day-stats">
-          <span className="operations-mini-day-count">
-            {totalCount ? `${completedCount}/${totalCount} ${totalCount === 1 ? "задача" : totalCount < 5 ? "задачи" : "задач"}` : "Нет задач"}
-          </span>
-          {minutes ? (
-            <span className="operations-mini-day-time">
-              • {formatMinutes(minutes)}
+        <span className="operations-mini-day-weekday">{weekdayShort}</span>
+        <span className="operations-mini-day-num">{dayOfMonth}</span>
+        <div className="operations-mini-day-load">
+          {totalCount > 0 ? (
+            <span
+              className={`operations-mini-day-badge ${completedCount === totalCount ? "is-all-done" : ""}`}
+              title={`${completedCount} из ${totalCount} выполнено`}
+            >
+              {totalCount}
             </span>
-          ) : null}
-        </div>
-        <div className="operations-mini-day-progress-track">
-          <div
-            className="operations-mini-day-progress-bar"
-            style={{width: `${progressPercent}%`}}
-          />
+          ) : (
+            <span className="operations-mini-day-empty-dot" />
+          )}
         </div>
       </button>
     </div>
@@ -246,6 +238,7 @@ function HorizontalDayTaskCard({
   task,
   today,
 }) {
+  const [expanded, setExpanded] = useState(false);
   const taskDueDate = getTaskDueDate(task);
   const isDone = isTaskCompleted(task);
   const isPrimary = isTaskMainOnDate(task, taskDueDate);
@@ -256,7 +249,6 @@ function HorizontalDayTaskCard({
   const areaLabel = getTaskAreaShortLabel(task);
   const areaId = getTaskAreaId(task);
   const isHighPriority = priority === "high";
-  const dueTime = getTaskDueTime(task);
   const estimateMinutes = getTaskEstimateMinutes(task);
   const timeRangeText = formatTaskTimeRange(task);
 
@@ -272,147 +264,210 @@ function HorizontalDayTaskCard({
   return (
     <article
       className={[
-        "operations-horizontal-task-card",
+        "operations-linear-row",
         `task-color-${colorId}`,
         `area-${areaId}`,
         isDone ? "is-completed" : "",
         isPrimary ? "is-main" : "",
-        isLate ? "is-overdue" : "",
-        isHighPriority ? "is-priority-high" : "",
+        isLate && !isDone ? "is-overdue" : "",
+        expanded ? "is-expanded" : "",
       ].filter(Boolean).join(" ")}
     >
-      <div className="operations-htask-left">
-        <div className="operations-htask-time-block">
-          <span className="operations-htask-time">{timeRangeText}</span>
-          {dueTime && estimateMinutes ? (
-            <span className="operations-htask-duration">({formatMinutes(estimateMinutes)})</span>
-          ) : null}
-        </div>
-        <div className="operations-htask-tags">
-          <span className="operations-htask-category-tag">{areaLabel}</span>
-          {isPrimary ? (
-            <span className="operations-htask-primary-tag" title="Главная задача дня">
-              ★ Главная
-            </span>
-          ) : null}
-          {rawAssignee ? (
-            <span className="operations-htask-assignee-tag" title={`Исполнитель: ${rawAssignee}`}>
-              @{rawAssignee}
-            </span>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="operations-htask-center">
-        <div className="operations-htask-title-row">
-          {isHighPriority ? (
-            <span className="operations-priority-dot is-high" title="Срочный приоритет" />
-          ) : null}
+      <div
+        className="operations-linear-main-line"
+        role="button"
+        tabIndex={0}
+        onClick={() => setExpanded((prev) => !prev)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setExpanded((prev) => !prev);
+          }
+        }}
+      >
+        <div className="operations-linear-left">
           <button
             type="button"
-            className="operations-htask-title-btn"
-            onClick={() => onView(task)}
+            role="checkbox"
+            aria-checked={isDone}
+            aria-label={isDone ? "Вернуть задачу" : "Завершить задачу"}
+            className={`operations-linear-checkbox ${isDone ? "is-checked" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onComplete(task);
+            }}
           >
-            <h3 className="operations-htask-title">{task.title}</h3>
+            {isDone ? <AppIcon name="check" size="xs" /> : null}
           </button>
+
+          {timeRangeText && timeRangeText !== "Без времени" ? (
+            <span className="operations-linear-time" title={`Время: ${timeRangeText}`}>
+              {timeRangeText}
+            </span>
+          ) : (
+            <span className="operations-linear-time is-empty">—</span>
+          )}
+
+          <span className="operations-linear-category-tag" title={`Категория: ${areaLabel}`}>
+            {areaLabel}
+          </span>
+
+          <div className="operations-linear-title-wrap">
+            {isHighPriority ? (
+              <span className="operations-linear-priority-dot" title="Срочная задача" />
+            ) : null}
+            {isPrimary ? (
+              <span className="operations-linear-primary-star" title="Главная задача дня">★</span>
+            ) : null}
+            <span className="operations-linear-title">{task.title}</span>
+            {rawAssignee ? (
+              <span className="operations-linear-assignee-tag" title={`Исполнитель: ${rawAssignee}`}>
+                @{rawAssignee}
+              </span>
+            ) : null}
+          </div>
         </div>
 
-        {task.note ? (
-          <p className="operations-htask-note">{task.note}</p>
-        ) : null}
+        <div className="operations-linear-right">
+          {totalChecklistCount > 0 ? (
+            <span
+              className={`operations-linear-checklist-badge ${doneChecklistCount === totalChecklistCount ? "is-complete" : ""}`}
+              title={`Чек-лист: ${doneChecklistCount}/${totalChecklistCount}`}
+            >
+              <AppIcon name="list" size="xs" />
+              <span>{doneChecklistCount}/{totalChecklistCount}</span>
+            </span>
+          ) : null}
 
-        {totalChecklistCount > 0 ? (
-          <div className="operations-htask-checklist-box">
-            <div className="operations-htask-checklist-head">
-              <span className="operations-htask-checklist-title">
-                Чек-лист ({doneChecklistCount}/{totalChecklistCount})
-              </span>
-              <div className="operations-htask-checklist-mini-progress">
-                <div
-                  className="operations-htask-checklist-mini-bar"
-                  style={{width: `${Math.round((doneChecklistCount / totalChecklistCount) * 100)}%`}}
-                />
-              </div>
-            </div>
-            <div className="operations-htask-checklist-items">
-              {visibleChecklist.map((item) => (
-                <label
-                  key={item.id}
-                  className={`operations-htask-check-item ${item.done ? "is-checked" : ""}`}
-                >
-                  <Checkbox
-                    checked={item.done}
-                    onChange={(event) => onToggleChecklist?.(task, item.id, event.target.checked)}
-                  />
-                  <span className="operations-htask-check-text">{item.text}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </div>
-
-      <div className="operations-htask-right">
-        <div className="operations-htask-top-actions">
           {isHighPriority ? (
-            <span className="operations-htask-priority-badge">Срочно</span>
+            <span className="operations-linear-priority-badge">Срочно</span>
+          ) : null}
+
+          {isLate && !isDone ? (
+            <span className="operations-linear-overdue-badge">Просрочено</span>
           ) : null}
 
           {dragHandleProps ? (
             <button
               aria-label="Перетащить на другой день"
-              className="operations-task-drag-handle"
+              className="operations-linear-drag-handle"
               type="button"
+              onClick={(e) => e.stopPropagation()}
               {...dragHandleProps}
             >
               <AppIcon name="grip" size="xs" />
             </button>
           ) : null}
 
-          <RowActionsMenu
-            className="operations-row-actions"
-            extraActions={[
-              {
-                icon: "calendar",
-                label: "Перенести",
-                onClick: () => onMove(task),
-              },
-              {
-                disabled: !taskDueDate,
-                icon: "star",
-                label: "Главная",
-                onClick: () => onMain(task),
-              },
-              {
-                icon: isDone ? "rotateCcw" : "check",
-                label: isDone ? "Вернуть" : "Завершить",
-                onClick: () => onComplete(task),
-              },
-            ]}
-            itemId={`htask-${task.id}`}
-            openMenuId={openMenuId}
-            setOpenMenuId={setOpenMenuId}
-            onDelete={() => onDelete(task)}
-            onEdit={() => onEdit(task)}
-            onView={() => onView(task)}
-          />
-        </div>
-
-        <div className="operations-htask-status-block">
-          {isLate && !isDone ? (
-            <span className="operations-htask-overdue-tag">Просрочено</span>
-          ) : null}
           <button
             type="button"
-            className={`operations-htask-complete-btn ${isDone ? "is-done" : ""}`}
-            onClick={() => onComplete(task)}
-            title={isDone ? "Вернуть задачу" : "Завершить задачу"}
+            className="operations-linear-chevron-btn"
+            aria-label={expanded ? "Свернуть" : "Развернуть"}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((prev) => !prev);
+            }}
           >
-            <AppIcon name={isDone ? "rotateCcw" : "check"} size="sm" />
-            <span>{isDone ? "Выполнено" : "Завершить"}</span>
+            <AppIcon name={expanded ? "chevronUp" : "chevronDown"} size="xs" />
           </button>
+
+          <div onClick={(e) => e.stopPropagation()}>
+            <RowActionsMenu
+              className="operations-row-actions"
+              extraActions={[
+                {
+                  icon: "calendar",
+                  label: "Перенести",
+                  onClick: () => onMove(task),
+                },
+                {
+                  disabled: !taskDueDate,
+                  icon: "star",
+                  label: "Главная",
+                  onClick: () => onMain(task),
+                },
+                {
+                  icon: isDone ? "rotateCcw" : "check",
+                  label: isDone ? "Вернуть" : "Завершить",
+                  onClick: () => onComplete(task),
+                },
+              ]}
+              itemId={`htask-${task.id}`}
+              openMenuId={openMenuId}
+              setOpenMenuId={setOpenMenuId}
+              onDelete={() => onDelete(task)}
+              onEdit={() => onEdit(task)}
+              onView={() => onView(task)}
+            />
+          </div>
         </div>
       </div>
+
+      {expanded ? (
+        <div className="operations-linear-drawer">
+          {task.note ? (
+            <p className="operations-linear-drawer-note">{task.note}</p>
+          ) : null}
+
+          {totalChecklistCount > 0 ? (
+            <div className="operations-linear-drawer-checklist">
+              <div className="operations-linear-drawer-checklist-head">
+                <span className="operations-linear-drawer-checklist-title">
+                  Чек-лист ({doneChecklistCount}/{totalChecklistCount})
+                </span>
+                <div className="operations-linear-drawer-progress-track">
+                  <div
+                    className="operations-linear-drawer-progress-bar"
+                    style={{width: `${Math.round((doneChecklistCount / totalChecklistCount) * 100)}%`}}
+                  />
+                </div>
+              </div>
+              <div className="operations-linear-drawer-checklist-items">
+                {visibleChecklist.map((item) => (
+                  <label
+                    key={item.id}
+                    className={`operations-linear-drawer-check-item ${item.done ? "is-checked" : ""}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Checkbox
+                      checked={item.done}
+                      onChange={(event) => onToggleChecklist?.(task, item.id, event.target.checked)}
+                    />
+                    <span className="operations-linear-drawer-check-text">{item.text}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <div className="operations-linear-drawer-footer">
+            <div className="operations-linear-drawer-meta">
+              {rawAssignee ? (
+                <span>Исполнитель: <strong>{rawAssignee}</strong></span>
+              ) : null}
+              {isTaskRepeating(task) ? (
+                <span>Повтор: <strong>{formatRepeatSchedule(task)}</strong></span>
+              ) : null}
+              {estimateMinutes ? (
+                <span>Длительность: <strong>{formatMinutes(estimateMinutes)}</strong></span>
+              ) : null}
+            </div>
+            <div className="operations-linear-drawer-actions">
+              <button
+                type="button"
+                className="operations-linear-drawer-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(task);
+                }}
+              >
+                <AppIcon name="edit" size="xs" />
+                <span>Редактировать</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -1233,22 +1288,22 @@ function OperationsPage({
               </section>
             ) : (
               <DndContext sensors={kanbanSensors} onDragEnd={handleKanbanDragEnd}>
-                <div className={`operations-mini-week-bar mode-${weekViewMode}`} role="tablist" aria-label="Дни недели">
-                  {miniWeekDays.map((day) => (
-                    <MiniWeekDayTab
-                      day={day}
-                      isCurrentDay={day.input === today}
-                      isSelected={day.input === selectedDate}
-                      key={day.input}
-                      onClick={setSelectedDate}
-                      tasks={weekTasksRaw.filter((task) => getTaskDueDate(task) === day.input)}
-                    />
-                  ))}
-                </div>
+                <div className="operations-linear-container">
+                  <div className={`operations-mini-week-bar mode-${weekViewMode}`} role="tablist" aria-label="Дни недели">
+                    {miniWeekDays.map((day) => (
+                      <MiniWeekDayTab
+                        day={day}
+                        isCurrentDay={day.input === today}
+                        isSelected={day.input === selectedDate}
+                        key={day.input}
+                        onClick={setSelectedDate}
+                        tasks={weekTasksRaw.filter((task) => getTaskDueDate(task) === day.input)}
+                      />
+                    ))}
+                  </div>
 
-                <section className="operations-day-focus-view">
-                  <header className="operations-day-focus-header">
-                    <div className="operations-day-focus-title-block">
+                  <section className="operations-day-focus-view">
+                    <header className="operations-day-focus-header">
                       <div className="operations-day-focus-title-row">
                         <h2 className="operations-day-focus-title">
                           {formatDayFullTitle(selectedDate)}
@@ -1256,63 +1311,63 @@ function OperationsPage({
                         {selectedDate === today ? (
                           <span className="operations-day-today-pill">Сегодня</span>
                         ) : null}
+                        <span className="operations-day-meta-badge">
+                          {selectedDayStats.planned
+                            ? `${selectedDayStats.planned} ${selectedDayStats.planned === 1 ? "задача" : selectedDayStats.planned < 5 ? "задачи" : "задач"}${selectedDayStats.totalMinutes ? ` • ${formatMinutes(selectedDayStats.totalMinutes)}` : ""}`
+                            : "0 задач"}
+                        </span>
                       </div>
-                      <p className="operations-day-focus-subtitle">
-                        {selectedDayStats.planned
-                          ? `${selectedDayStats.planned} ${selectedDayStats.planned === 1 ? "задача" : selectedDayStats.planned < 5 ? "задачи" : "задач"} • ${selectedDayStats.completed} выполнено${selectedDayStats.totalMinutes ? ` • ${formatMinutes(selectedDayStats.totalMinutes)}` : ""}`
-                          : "Задач на выбранный день пока нет"}
-                      </p>
-                    </div>
-                    <div className="operations-day-focus-actions">
-                      <Button
-                        leftIcon="plus"
-                        size="sm"
-                        variant="primary"
-                        onClick={() => onAddTask?.({dueDate: selectedDate})}
-                      >
-                        + Новая задача
-                      </Button>
-                    </div>
-                  </header>
+                      <div className="operations-day-focus-actions">
+                        <Button
+                          leftIcon="plus"
+                          size="sm"
+                          variant="primary"
+                          onClick={() => onAddTask?.({dueDate: selectedDate})}
+                        >
+                          Новая задача
+                        </Button>
+                      </div>
+                    </header>
 
-                  <div className="operations-day-focus-list">
-                    {selectedDayTasks.map((task) => (
-                      <DraggableHorizontalTaskCard
-                        cardProps={cardProps}
-                        key={`${task.id}-${getTaskDueDate(task)}`}
-                        task={task}
-                      />
-                    ))}
-                    {!selectedDayTasks.length ? (
-                      <div className="operations-day-empty-state">
-                        <div className="operations-day-empty-icon">
-                          <AppIcon name="calendar" size="lg" />
-                        </div>
-                        <h3>{allSelectedDayTasksCount ? `Задачи скрыты фильтрами (${allSelectedDayTasksCount})` : "На этот день задач нет"}</h3>
-                        <p>
-                          {allSelectedDayTasksCount
-                            ? "Попробуйте сбросить фильтры или очистить поисковый запрос, чтобы увидеть задачи."
-                            : "Спланируйте важные дела студии или добавьте регулярную задачу на этот день."}
-                        </p>
-                        <div className="operations-day-empty-actions">
-                          {allSelectedDayTasksCount ? (
-                            <Button size="sm" variant="secondary" onClick={resetFilters}>
-                              Показать все задачи
+                    <div className="operations-day-focus-list">
+                      {selectedDayTasks.map((task) => (
+                        <DraggableHorizontalTaskCard
+                          cardProps={cardProps}
+                          key={`${task.id}-${getTaskDueDate(task)}`}
+                          task={task}
+                        />
+                      ))}
+                      {!selectedDayTasks.length ? (
+                        <div className="operations-day-empty-state">
+                          <div className="operations-day-empty-icon">
+                            <AppIcon name="calendar" size="lg" />
+                          </div>
+                          <h3>{allSelectedDayTasksCount ? `Задачи скрыты фильтрами (${allSelectedDayTasksCount})` : "На этот день задач нет"}</h3>
+                          <p>
+                            {allSelectedDayTasksCount
+                              ? "Попробуйте сбросить фильтры или очистить поисковый запрос, чтобы увидеть задачи."
+                              : "Спланируйте важные дела студии или добавьте регулярную задачу на этот день."}
+                          </p>
+                          <div className="operations-day-empty-actions">
+                            {allSelectedDayTasksCount ? (
+                              <Button size="sm" variant="secondary" onClick={resetFilters}>
+                                Показать все задачи
+                              </Button>
+                            ) : null}
+                            <Button
+                              leftIcon="plus"
+                              size="sm"
+                              variant="primary"
+                              onClick={() => onAddTask?.({dueDate: selectedDate})}
+                            >
+                              Новая задача
                             </Button>
-                          ) : null}
-                          <Button
-                            leftIcon="plus"
-                            size="sm"
-                            variant="primary"
-                            onClick={() => onAddTask?.({dueDate: selectedDate})}
-                          >
-                            + Новая задача
-                          </Button>
+                          </div>
                         </div>
-                      </div>
-                    ) : null}
-                  </div>
-                </section>
+                      ) : null}
+                    </div>
+                  </section>
+                </div>
               </DndContext>
             )}
 
