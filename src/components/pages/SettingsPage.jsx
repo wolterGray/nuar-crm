@@ -17,6 +17,7 @@ import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
 import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
+import PushNotificationsPanel from "../PushNotificationsPanel.jsx";
 import SettingsToggle from "../SettingsToggle.jsx";
 import {AppIcon, Button, Card, Input, PageHeader, Select, TabButton, Tabs} from "../ui/index.js";
 
@@ -858,6 +859,7 @@ function SettingsPage({
               </div>
             </div>
             <div className="flex flex-col gap-6">
+              <PushNotificationsPanel pushNotification={pushNotification} />
               <SettingsMobileSection isMobile={isMobile} title="Колокольчик и пакеты">
                 <SettingsToggle defaultChecked={settings.notificationsEnabled ?? true} name="notificationsEnabled">
                   <span className="labeled-hint-row labeled-hint-row-nowrap">

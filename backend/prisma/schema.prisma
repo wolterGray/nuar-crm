@@ -41,9 +41,11 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  passwordResetTokens PasswordResetToken[]
-  loyaltyTransactions LoyaltyTransaction[] @relation("LoyaltyTransactionCreatedBy")
-  redeemedLoyaltyRewards LoyaltyReward[] @relation("LoyaltyRewardRedeemedBy")
+  pushSubscriptions PushSubscription[]
+
+  passwordResetTokens    PasswordResetToken[]
+  loyaltyTransactions    LoyaltyTransaction[] @relation("LoyaltyTransactionCreatedBy")
+  redeemedLoyaltyRewards LoyaltyReward[]      @relation("LoyaltyRewardRedeemedBy")
 
   @@index([role])
   @@index([isActive])
@@ -59,38 +61,38 @@ model PasswordResetToken {
   userAgent String?
   createdAt DateTime  @default(now())
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
 }
 
 model Client {
-  id              Int      @id @default(autoincrement())
-  name            String
-  messageName     String?
-  phone           String?
-  email           String?  @unique
-  birthday        String?
-  instagram       String?
-  telegram        String?
-  source          String?
-  messageLanguage String?
-  preference      String?
-  status          String?
-  tags            String?
-  note            String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  visits          Visit[]
-  clientPackages  ClientPackage[]
-  certificates    Certificate[] @relation("CertificateBuyer")
-  certificateUses Certificate[] @relation("CertificateRecipient")
-  communicationLog CommunicationLog[]
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  messageName        String?
+  phone              String?
+  email              String?             @unique
+  birthday           String?
+  instagram          String?
+  telegram           String?
+  source             String?
+  messageLanguage    String?
+  preference         String?
+  status             String?
+  tags               String?
+  note               String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  visits             Visit[]
+  clientPackages     ClientPackage[]
+  certificates       Certificate[]       @relation("CertificateBuyer")
+  certificateUses    Certificate[]       @relation("CertificateRecipient")
+  communicationLog   CommunicationLog[]
   notificationEvents NotificationEvent[]
-  loyaltyCards LoyaltyCard[]
-  loyaltyChests LoyaltyChest[]
-  loyaltyRewards LoyaltyReward[]
+  loyaltyCards       LoyaltyCard[]
+  loyaltyChests      LoyaltyChest[]
+  loyaltyRewards     LoyaltyReward[]
 }
 
 model Service {
@@ -114,10 +116,10 @@ model Service {
 }
 
 model Employee {
-  id                     Int      @id @default(autoincrement())
+  id                     Int               @id @default(autoincrement())
   name                   String
   phone                  String?
-  email                  String?  @unique
+  email                  String?           @unique
   role                   String?
   status                 String?
   color                  String?
@@ -132,8 +134,8 @@ model Employee {
   payrollSettings        Json?
   shifts                 Json?
   payload                Json?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
   visits                 Visit[]
   soldClientPackages     ClientPackage[]
   soldCertificates       Certificate[]
@@ -143,49 +145,49 @@ model Employee {
 }
 
 model Visit {
-  id          Int      @id @default(autoincrement())
-  clientId    Int?
-  serviceId   Int?
-  employeeId  Int?
-  scheduledAt DateTime?
-  notes       String?
+  id              Int       @id @default(autoincrement())
+  clientId        Int?
+  serviceId       Int?
+  employeeId      Int?
+  scheduledAt     DateTime?
+  notes           String?
   calendarEntryId Int?
-  recordType  String?
-  payload     Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  recordType      String?
+  payload         Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  client    Client?  @relation(fields: [clientId], references: [id])
-  service   Service? @relation(fields: [serviceId], references: [id])
-  employee  Employee? @relation(fields: [employeeId], references: [id])
-  packageUsages ClientPackageUsage[]
-  certificateUsages CertificateUsage[]
+  client              Client?              @relation(fields: [clientId], references: [id])
+  service             Service?             @relation(fields: [serviceId], references: [id])
+  employee            Employee?            @relation(fields: [employeeId], references: [id])
+  packageUsages       ClientPackageUsage[]
+  certificateUsages   CertificateUsage[]
   loyaltyTransactions LoyaltyTransaction[]
-  loyaltyRewards LoyaltyReward[]
-  employeeEarnings EmployeeEarning[]
+  loyaltyRewards      LoyaltyReward[]
+  employeeEarnings    EmployeeEarning[]
 }
 
 model LoyaltyCard {
-  id              Int      @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   clientId        Int
-  publicToken     String?  @unique
-  publicTokenHash String   @unique
-  publicCode      String   @unique
-  cardLanguage    String   @default("ru")
-  stamps          Int      @default(0)
-  targetStamps    Int      @default(6)
-  lifetimeVisits  Int      @default(0)
-  cycleNumber     Int      @default(1)
-  rewardAvailable Boolean  @default(false)
-  isActive        Boolean  @default(true)
+  publicToken     String?   @unique
+  publicTokenHash String    @unique
+  publicCode      String    @unique
+  cardLanguage    String    @default("ru")
+  stamps          Int       @default(0)
+  targetStamps    Int       @default(6)
+  lifetimeVisits  Int       @default(0)
+  cycleNumber     Int       @default(1)
+  rewardAvailable Boolean   @default(false)
+  isActive        Boolean   @default(true)
   archivedAt      DateTime?
   archiveReason   String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  transactions    LoyaltyTransaction[]
-  chests          LoyaltyChest[]
+  client       Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  transactions LoyaltyTransaction[]
+  chests       LoyaltyChest[]
 
   @@index([clientId, isActive])
   @@index([isActive])
@@ -204,9 +206,9 @@ model LoyaltyTransaction {
   createdById   Int?
   createdAt     DateTime               @default(now())
 
-  loyaltyCard   LoyaltyCard            @relation(fields: [loyaltyCardId], references: [id], onDelete: Cascade)
-  appointment   Visit?                  @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  createdBy     User?                   @relation("LoyaltyTransactionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  loyaltyCard LoyaltyCard @relation(fields: [loyaltyCardId], references: [id], onDelete: Cascade)
+  appointment Visit?      @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  createdBy   User?       @relation("LoyaltyTransactionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@unique([appointmentId, type])
   @@index([loyaltyCardId, createdAt])
@@ -229,26 +231,26 @@ model LoyaltyRewardTemplate {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  rewards               LoyaltyReward[]
+  rewards LoyaltyReward[]
 
   @@index([tier, active])
   @@index([updatedAt])
 }
 
 model LoyaltyChest {
-  id            Int      @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   clientId      Int
   loyaltyCardId Int?
   tier          String
-  status        String   @default("available")
+  status        String    @default("available")
   visitNumber   Int?
   openedAt      DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  client        Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  loyaltyCard   LoyaltyCard? @relation(fields: [loyaltyCardId], references: [id], onDelete: SetNull)
-  reward        LoyaltyReward? @relation("LoyaltyRewardSourceChest")
+  client      Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  loyaltyCard LoyaltyCard?   @relation(fields: [loyaltyCardId], references: [id], onDelete: SetNull)
+  reward      LoyaltyReward? @relation("LoyaltyRewardSourceChest")
 
   @@unique([loyaltyCardId, visitNumber])
   @@index([clientId, status])
@@ -257,30 +259,30 @@ model LoyaltyChest {
 }
 
 model LoyaltyReward {
-  id                    Int      @id @default(autoincrement())
+  id                    Int       @id @default(autoincrement())
   clientId              Int
   templateId            Int?
-  sourceChestId         Int?     @unique
+  sourceChestId         Int?      @unique
   snapshotTier          String
   snapshotName          String
   snapshotDescription   String?
   snapshotType          String?
   snapshotDurationMin   Int?
   snapshotValue         Decimal?
-  requiresOwnerApproval Boolean  @default(false)
-  status                String   @default("available")
+  requiresOwnerApproval Boolean   @default(false)
+  status                String    @default("available")
   expiresAt             DateTime?
   redeemedAt            DateTime?
   redeemedById          Int?
   visitId               Int?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  client                Client                 @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  template              LoyaltyRewardTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  sourceChest           LoyaltyChest?          @relation("LoyaltyRewardSourceChest", fields: [sourceChestId], references: [id], onDelete: SetNull)
-  redeemedBy            User?                  @relation("LoyaltyRewardRedeemedBy", fields: [redeemedById], references: [id], onDelete: SetNull)
-  visit                 Visit?                 @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  client      Client                 @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  template    LoyaltyRewardTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  sourceChest LoyaltyChest?          @relation("LoyaltyRewardSourceChest", fields: [sourceChestId], references: [id], onDelete: SetNull)
+  redeemedBy  User?                  @relation("LoyaltyRewardRedeemedBy", fields: [redeemedById], references: [id], onDelete: SetNull)
+  visit       Visit?                 @relation(fields: [visitId], references: [id], onDelete: SetNull)
 
   @@index([clientId, status])
   @@index([templateId])
@@ -289,19 +291,19 @@ model LoyaltyReward {
 }
 
 model CalendarEntry {
-  id          Int      @id @default(autoincrement())
-  kind        String?
-  date        String?
-  time        String?
-  status      String?
-  visitId     Int?
-  payload     Json
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  kind      String?
+  date      String?
+  time      String?
+  status    String?
+  visitId   Int?
+  payload   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Task {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   type        String?
   title       String
   description String?
@@ -310,14 +312,14 @@ model Task {
   priority    String?
   status      String?
   sortOrder   Int?
-  completed   Boolean  @default(false)
+  completed   Boolean   @default(false)
   payload     Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model WaitlistEntry {
-  id                Int      @id @default(autoincrement())
+  id                Int       @id @default(autoincrement())
   clientId          Int?
   clientName        String?
   preferredDate     String?
@@ -330,8 +332,8 @@ model WaitlistEntry {
   lastOfferedAt     DateTime?
   lastOfferedSlot   Json?
   payload           Json?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Supply {
@@ -373,7 +375,7 @@ model CommunicationLog {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  client       Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  client Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
 }
 
 model SystemState {
@@ -385,17 +387,17 @@ model SystemState {
 }
 
 model Package {
-  id             Int      @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   name           String
   service        String?
   visitsCount    Int?
   price          Decimal?
   validityDays   Int?
   status         String?
-  active         Boolean  @default(true)
+  active         Boolean         @default(true)
   payload        Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   clientPackages ClientPackage[]
 }
 
@@ -419,26 +421,26 @@ model ClientPackage {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  client          Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  package         Package? @relation(fields: [packageId], references: [id], onDelete: SetNull)
-  employee        Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  client          Client?              @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  package         Package?             @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  employee        Employee?            @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   usages          ClientPackageUsage[]
   employeeEarning EmployeeEarning?
 }
 
 model ClientPackageUsage {
-  id              Int      @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   clientPackageId Int
   visitId         Int?
-  sessionsUsed    Int      @default(1)
-  usedAt          DateTime @default(now())
+  sessionsUsed    Int       @default(1)
+  usedAt          DateTime  @default(now())
   revertedAt      DateTime?
   payload         Json?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  clientPackage   ClientPackage @relation(fields: [clientPackageId], references: [id], onDelete: Cascade)
-  visit           Visit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  clientPackage ClientPackage @relation(fields: [clientPackageId], references: [id], onDelete: Cascade)
+  visit         Visit?        @relation(fields: [visitId], references: [id], onDelete: SetNull)
 
   @@unique([clientPackageId, visitId])
 }
@@ -464,61 +466,61 @@ model Certificate {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  client           Client? @relation("CertificateBuyer", fields: [clientId], references: [id], onDelete: SetNull)
-  recipient        Client? @relation("CertificateRecipient", fields: [recipientId], references: [id], onDelete: SetNull)
-  employee         Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
-  usages           CertificateUsage[]
+  client    Client?            @relation("CertificateBuyer", fields: [clientId], references: [id], onDelete: SetNull)
+  recipient Client?            @relation("CertificateRecipient", fields: [recipientId], references: [id], onDelete: SetNull)
+  employee  Employee?          @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  usages    CertificateUsage[]
 }
 
 model CertificateUsage {
-  id            Int      @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   certificateId Int
   visitId       Int?
   amount        Decimal?
-  usedAt        DateTime @default(now())
+  usedAt        DateTime  @default(now())
   revertedAt    DateTime?
   payload       Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  certificate   Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
-  visit         Visit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  certificate Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  visit       Visit?      @relation(fields: [visitId], references: [id], onDelete: SetNull)
 
   @@unique([certificateId, visitId])
 }
 
 model DayCloseRecord {
-  id             Int      @id @default(autoincrement())
-  date           String   @unique
-  cash           Decimal?
-  card           Decimal?
-  blik           Decimal?
-  certificates   Decimal?
-  packages       Decimal?
-  total          Decimal?
-  status         String?
-  note           String?
-  payload        Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  date         String   @unique
+  cash         Decimal?
+  card         Decimal?
+  blik         Decimal?
+  certificates Decimal?
+  packages     Decimal?
+  total        Decimal?
+  status       String?
+  note         String?
+  payload      Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model PayrollRecord {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int?
+  id           Int       @id @default(autoincrement())
+  employeeId   Int?
   employeeName String?
-  startDate   String?
-  endDate     String?
-  periodKey   String   @unique
-  amount      Decimal?
-  status      String?
-  paidAt      DateTime?
-  note        String?
-  payload     Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  startDate    String?
+  endDate      String?
+  periodKey    String    @unique
+  amount       Decimal?
+  status       String?
+  paidAt       DateTime?
+  note         String?
+  payload      Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  employee    Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
 }
 
 model EmployeeEarning {
@@ -534,10 +536,10 @@ model EmployeeEarning {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
-  visit             Visit?   @relation(fields: [visitId], references: [id], onDelete: Restrict)
-  clientPackage     ClientPackage? @relation(fields: [clientPackageId], references: [id], onDelete: Restrict)
-  payout            EmployeePayout? @relation(fields: [payoutId], references: [id], onDelete: Restrict)
+  employee      Employee        @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  visit         Visit?          @relation(fields: [visitId], references: [id], onDelete: Restrict)
+  clientPackage ClientPackage?  @relation(fields: [clientPackageId], references: [id], onDelete: Restrict)
+  payout        EmployeePayout? @relation(fields: [payoutId], references: [id], onDelete: Restrict)
 
   @@index([employeeId, createdAt])
   @@index([visitId])
@@ -545,21 +547,21 @@ model EmployeeEarning {
 }
 
 model EmployeePayout {
-  id               Int      @id @default(autoincrement())
+  id               Int       @id @default(autoincrement())
   employeeId       Int
   amount           Decimal
-  status           String   @default("PAID")
-  paidAt           DateTime @default(now())
+  status           String    @default("PAID")
+  paidAt           DateTime  @default(now())
   cancelledAt      DateTime?
   cancelledById    Int?
   note             String?
   cancellationNote String?
   payload          Json?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  employee         Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
-  earnings         EmployeeEarning[]
+  employee Employee          @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  earnings EmployeeEarning[]
 
   @@index([employeeId, paidAt])
   @@index([status])
@@ -597,27 +599,54 @@ model ErrorEvent {
 }
 
 model NotificationDelivery {
-  id                Int       @id @default(autoincrement())
+  id                  Int       @id @default(autoincrement())
   notificationEventId Int?
-  channel           String
-  recipient         String
-  templateKey       String?
-  messageText       String
-  status            String    @default("pending")
-  providerMessageId String?
-  errorMessage      String?
-  attempts          Int       @default(0)
-  scheduledAt       DateTime?
-  sentAt            DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  channel             String
+  recipient           String
+  templateKey         String?
+  messageText         String
+  status              String    @default("pending")
+  providerMessageId   String?
+  errorMessage        String?
+  attempts            Int       @default(0)
+  scheduledAt         DateTime?
+  sentAt              DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  notificationEvent NotificationEvent? @relation(fields: [notificationEventId], references: [id], onDelete: SetNull)
+  notificationEvent  NotificationEvent? @relation(fields: [notificationEventId], references: [id], onDelete: SetNull)
+  pushSubscription   PushSubscription?  @relation(fields: [pushSubscriptionId], references: [id], onDelete: SetNull)
+  pushSubscriptionId Int?
 
   @@index([status, scheduledAt])
   @@index([notificationEventId])
+  @@index([pushSubscriptionId])
   @@index([channel])
   @@index([createdAt])
+}
+
+model PushSubscription {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  endpoint     String    @unique
+  p256dh       String
+  auth         String
+  deviceName   String?
+  userAgent    String?
+  platform     String?
+  isActive     Boolean   @default(true)
+  lastUsedAt   DateTime?
+  lastErrorAt  DateTime?
+  lastError    String?
+  failureCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user       User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries NotificationDelivery[]
+
+  @@index([userId, isActive])
+  @@index([updatedAt])
 }
 
 model NotificationEvent {
@@ -643,8 +672,8 @@ model NotificationEvent {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  client            Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  deliveries        NotificationDelivery[]
+  client     Client?                @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  deliveries NotificationDelivery[]
 
   @@index([status, priority, score])
   @@index([type, status])

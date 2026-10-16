@@ -85,6 +85,8 @@ app.use('/api', verifyJwt, usersRouter);
 
 const notificationEventsRouter = require('./routes/notificationEvents');
 app.use('/api', verifyJwt, notificationEventsRouter);
+const pushNotificationsRouter = require('./routes/pushNotifications');
+app.use('/api', verifyJwt, pushNotificationsRouter);
 app.use('/api', verifyJwt, loyaltyRouter);
 
 const clientsRouter = require('./routes/clients');

@@ -93,6 +93,7 @@ import {useSiteBookingHandlers} from "./hooks/useSiteBookingHandlers.js";
 import {useTelegramDigest} from "./hooks/useTelegramDigest.js";
 import {useToastNotifications} from "./hooks/useToastNotifications.js";
 import {useAuth} from "./hooks/useAuth.js";
+import {detachWebPushOnLogout} from "./utils/webPush.js";
 import {useClientAlerts} from "./hooks/useClientAlerts.js";
 import {useCrmLocalPersistence} from "./hooks/useCrmLocalPersistence.js";
 import {useModalScrollLock} from "./hooks/useModalScrollLock.js";
@@ -266,6 +267,11 @@ function App() {
     onSessionLostRef,
     pushNotification,
   });
+
+  const handleAppLogout = useCallback(async () => {
+    await detachWebPushOnLogout().catch(() => {});
+    handleLogout();
+  }, [handleLogout]);
 
   useEffect(() => {
     if (!authSession) {
@@ -1801,7 +1807,7 @@ function App() {
       cloudLoadError={cloudLoadError}
       handleGoogleLogin={handleGoogleLogin}
       handleLogin={handleLogin}
-      handleLogout={handleLogout}
+      handleLogout={handleAppLogout}
       handleResetPassword={handleResetPassword}
       handleUpdatePassword={handleUpdatePassword}
       notifications={notifications}
@@ -1830,7 +1836,7 @@ function App() {
           ownerName={appSettings.ownerName}
           sidebarVisible={appSettings.sidebarVisible}
           studioName={appSettings.studioName}
-          onLogout={handleLogout}
+          onLogout={handleAppLogout}
           onOpenClientSearch={clientSearch.open}
           onPageChange={(page) => {
             if (taskModalOpen && editingTask?.type !== "note" && taskEditorDirtyRef.current) {

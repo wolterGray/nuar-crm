@@ -154,6 +154,9 @@ ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=CHANGE_ME_LONG_PASSWORD
 JWT_SECRET=CHANGE_ME_AT_LEAST_32_RANDOM_CHARACTERS
 CORS_ORIGIN=https://crm.example.com
+VAPID_PUBLIC_KEY=GENERATED_PUBLIC_KEY
+VAPID_PRIVATE_KEY=GENERATED_PRIVATE_KEY
+VAPID_SUBJECT=mailto:admin@example.com
 ```
 
 Important:
@@ -162,6 +165,18 @@ Important:
 - `ADMIN_PASSWORD` is the CRM admin password. Store it outside git.
 - `CORS_ORIGIN` must list exact frontend origins. In production, LAN wildcard behavior is disabled by `NODE_ENV=production`.
 - `VITE_BACKEND_URL` must be an HTTPS URL, otherwise browsers will block mixed content.
+
+Generate the VAPID pair once on a trusted machine:
+
+```bash
+cd backend
+npx web-push generate-vapid-keys
+```
+
+Store both values only in the protected backend environment. The public key may be
+returned to authenticated CRM clients; the private key must never be committed,
+placed in Vite variables, or exposed in frontend logs. Keep the pair stable so
+existing browser subscriptions continue to work.
 
 ## 6. Prisma
 
@@ -172,6 +187,9 @@ cd /var/www/nuar-crm/backend
 npm run prisma:generate
 npm run prisma:deploy
 ```
+
+The Web Push migration creates `PushSubscription` and links delivery attempts to
+`NotificationDelivery`. It does not create subscriptions or send notifications.
 
 Check database connection:
 
@@ -457,6 +475,9 @@ No VPS persistent upload volume is required right now. If future uploads are add
 19. `/api/clients` with token returns CRM data.
 20. PostgreSQL backup script creates a valid `.sql.gz`.
 21. Restore has been tested on a separate database.
+22. `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT` are configured only on the backend.
+23. `/sw.js` returns JavaScript with `Cache-Control: no-cache` or revalidation enabled.
+24. Push was enabled by the owner from Settings and the test notification was received.
 
 ## Risks Before First Production Deploy
 
