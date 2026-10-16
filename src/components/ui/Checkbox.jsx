@@ -19,6 +19,14 @@ const Checkbox = forwardRef(({className, indeterminate = false, ...props}, ref) 
         "ui-checkbox",
         className,
       )}
+      style={{
+        width: 18,
+        height: 18,
+        minWidth: 18,
+        minHeight: 18,
+        flexShrink: 0,
+        ...props.style,
+      }}
       {...props}
     />
   );
