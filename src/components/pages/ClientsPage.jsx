@@ -1,4 +1,5 @@
-import {memo, useCallback, useEffect, useMemo, useState} from "react";
+import {memo, useCallback, useEffect, useMemo, useRef, useState} from "react";
+import "./ClientsPage.css";
 import {
   formatMoney,
   getDaysSinceDisplayDate,
@@ -58,7 +59,7 @@ function ClientRowActions({
 
   const handleViewClient = useCallback(() => {
     setViewedClient(client);
-    setVisitHistoryTab("future");
+    setVisitHistoryTab("all");
     setOpenClientMenuId(null);
   }, [client, setViewedClient, setVisitHistoryTab, setOpenClientMenuId]);
 
@@ -298,15 +299,24 @@ function ClientsPage({
   }, [onAddVisit]);
 
   const [viewedClient, setViewedClient] = useState(null);
-  const [visitHistoryTab, setVisitHistoryTab] = useState("future");
+  const [visitHistoryTab, setVisitHistoryTab] = useState("all");
+  const [clientCardTab, setClientCardTab] = useState("overview");
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [lastVisitFilter, setLastVisitFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("recent");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
   const [showQuality, setShowQuality] = useState(false);
+  const returnFocusRef = useRef(null);
   const {isMobile} = useBreakpoint();
 
   // Memoized event handlers for client rows
-  const handleViewClient = useCallback((client) => {
+  const handleViewClient = useCallback((client, trigger = null) => {
+    returnFocusRef.current = trigger;
     setViewedClient(client);
-    setVisitHistoryTab("future");
+    setVisitHistoryTab("all");
+    setClientCardTab("overview");
   }, []);
 
   const handleMessageRow = useCallback((client) => {
@@ -319,10 +329,12 @@ function ClientsPage({
 
   const handleCloseModal = useCallback(() => {
     setViewedClient(null);
+    window.setTimeout(() => returnFocusRef.current?.focus?.(), 0);
   }, []);
 
   const handleSearchChange = useCallback((event) => {
     setSearch(event.target.value);
+    setPage(1);
     setOpenClientMenuId(null);
   }, []);
 
@@ -542,8 +554,9 @@ function ClientsPage({
       alertFocus.entityId === client.name);
 
   const normalizedSearch = search.trim().toLowerCase();
-  const filteredClients = clientsData.filter((client) =>
-    [
+  const normalizedPhoneSearch = search.replace(/\D/g, "");
+  const filteredClients = useMemo(() => clientsData.filter((client) => {
+    const searchableText = [
       client.name,
       client.phone,
       client.email,
@@ -558,31 +571,38 @@ function ClientsPage({
       client.lastVisit,
     ]
       .join(" ")
-      .toLowerCase()
-      .includes(normalizedSearch),
-  );
+      .toLowerCase();
+    const phoneMatches = normalizedPhoneSearch.length > 2
+      && String(client.phone || "").replace(/\D/g, "").includes(normalizedPhoneSearch);
+    const searchMatches = !normalizedSearch || searchableText.includes(normalizedSearch) || phoneMatches;
+    const statusMatches = statusFilter === "all" || client.autoStatus === statusFilter;
+    const lastVisitMatches = lastVisitFilter === "all"
+      || (lastVisitFilter === "never" && client.daysAbsent === null)
+      || (lastVisitFilter === "30" && client.daysAbsent !== null && client.daysAbsent <= 30)
+      || (lastVisitFilter === "90" && client.daysAbsent !== null && client.daysAbsent > 30 && client.daysAbsent <= 90)
+      || (lastVisitFilter === "inactive" && client.daysAbsent !== null && client.daysAbsent > 90);
+    return searchMatches && statusMatches && lastVisitMatches;
+  }).sort((first, second) => {
+    if (sortOrder === "name") return String(first.name).localeCompare(String(second.name), "ru");
+    if (sortOrder === "income") return second.totalIncome - first.totalIncome;
+    return (first.daysAbsent ?? Number.MAX_SAFE_INTEGER) - (second.daysAbsent ?? Number.MAX_SAFE_INTEGER);
+  }), [clientsData, lastVisitFilter, normalizedPhoneSearch, normalizedSearch, sortOrder, statusFilter]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredClients.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const paginatedClients = filteredClients.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <section
       className="clients-page-shell flex flex-col h-full w-full min-h-0 overflow-hidden bg-background text-foreground"
       onClick={() => setOpenClientMenuId(null)}>
       <PageHeader
-        className="clients-page-header !mb-3 md:!mb-6 pb-3 md:pb-5"
+        className="clients-page-header"
         actions={
-          <div className="clients-page-toolbar flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-            <SearchControl
-              className="clients-page-search w-full sm:w-64"
-              style={{ width: isMobile ? '100%' : undefined, maxWidth: isMobile ? '100%' : undefined }}
-              placeholder="Поиск клиента..."
-              value={search}
-              onChange={handleSearchChange}
-              onClear={handleClearSearch}
-            />
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="clients-page-actions">
               <Button
                 className="clients-page-quality-button"
                 leftIcon="barChart"
-                size="sm"
                 variant="secondary"
                 onClick={() => setShowQuality(!showQuality)}>
                 <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
@@ -590,12 +610,10 @@ function ClientsPage({
               <Button
                 className="clients-page-add-button"
                 leftIcon="plus"
-                size="sm"
                 variant="primary"
                 onClick={onAddClient}>
                 {isMobile ? "Добавить" : "Добавить клиента"}
               </Button>
-            </div>
           </div>
         }
         title={
@@ -612,33 +630,44 @@ function ClientsPage({
           onEditClient={onEditClient}
           onOpenClient={(client) => {
             setViewedClient(client);
-            setVisitHistoryTab("future");
+            setVisitHistoryTab("all");
           }}
         />
       )}
 
-      <div className="clients-table-shell flex-1 min-h-0 overflow-y-auto pr-1 select-none scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent">
+      <div className="clients-filterbar">
+        <SearchControl className="clients-page-search" placeholder="Имя, телефон или заметка..." value={search} onChange={handleSearchChange} onClear={handleClearSearch} />
+        <Select aria-label="Статус клиента" value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }}>
+          <option value="all">Все статусы</option><option value="Новый">Новые</option><option value="Активный">Активные</option>
+        </Select>
+        <Select aria-label="Последний визит" value={lastVisitFilter} onChange={(event) => { setLastVisitFilter(event.target.value); setPage(1); }}>
+          <option value="all">Последний визит</option><option value="30">До 30 дней</option><option value="90">31–90 дней</option><option value="inactive">Более 90 дней</option><option value="never">Ещё не был</option>
+        </Select>
+        <Select aria-label="Сортировка" value={sortOrder} onChange={(event) => setSortOrder(event.target.value)}>
+          <option value="recent">Сначала недавние</option><option value="name">По имени</option><option value="income">По сумме</option>
+        </Select>
+      </div>
+
+      <div className="clients-table-shell">
         {search.trim() && (
           <div className="px-4 py-2 text-xs text-muted-foreground font-medium border-b border-border/40 mb-2">
             Найдено результатов: <strong className="text-foreground">{filteredClients.length}</strong>
           </div>
         )}
         {/* Table Head */}
-        <div className="clients-table-head-row sticky top-0 z-10 hidden md:grid grid-cols-[minmax(180px,1.5fr)_110px_70px_90px_100px_130px_90px_minmax(120px,1fr)_50px] items-center gap-3 px-4 py-2 border-b border-border bg-card text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+        <div className="clients-table-head-row">
           <span>Клиент</span>
           <span>Статус</span>
-          <span>Визитов</span>
-          <span>Пакеты</span>
+          <span>Визиты</span>
           <span>Сумма</span>
           <span>Последний визит</span>
-          <span>Не был</span>
           <span>Заметка</span>
           <span></span>
         </div>
 
         {/* Table Body */}
         <div className="clients-table-list grid gap-2 p-4 md:p-0">
-          {filteredClients.map((client) => {
+          {paginatedClients.map((client) => {
             const needsContact = client.daysAbsent === null || client.daysAbsent >= inactiveClientDays;
             return (
               <div
@@ -649,11 +678,11 @@ function ClientsPage({
                 role="button"
                 tabIndex="0"
                 key={client.id}
-                onClick={() => handleViewClient(client)}
+                onClick={(event) => handleViewClient(client, event.currentTarget)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    handleViewClient(client);
+                    handleViewClient(client, event.currentTarget);
                   }
                 }}>
                 {/* Client info */}
@@ -689,16 +718,18 @@ function ClientsPage({
                 </div>
 
                 {/* Desktop metadata columns */}
-                <span className="clients-table-number hidden md:inline text-foreground text-sm" data-label="Визитов">{client.visitsCount}</span>
-                <span className="hidden md:inline text-foreground text-sm truncate" data-label="Пакеты">
-                  {client.packagesCount} / {client.packagesLeft}
+                <span className="clients-table-number hidden md:inline text-foreground text-sm" data-label="Визитов">
+                  {client.visitsCount}
+                  {client.packagesCount > 0 ? <AppIcon className="clients-active-package" name="package" size="xs" /> : null}
                 </span>
                 <span className="clients-table-money hidden md:inline text-foreground text-sm font-semibold" data-label="Сумма">{formatMoney(client.totalIncome)}</span>
-                <span className="hidden md:inline text-foreground text-sm" data-label="Последний визит">{client.lastVisit}</span>
-                <span className="hidden md:inline text-foreground text-sm" data-label="Не был">
-                  {client.daysAbsent === null ? "Новый" : `${client.daysAbsent} дн.`}
+                <span className="clients-last-visit hidden md:flex" data-label="Последний визит">
+                  <b>{client.lastVisit}</b>
+                  <small>{client.daysAbsent === null ? "Ещё не был" : `${client.daysAbsent} дн. назад`}</small>
                 </span>
-                <span className="hidden md:inline text-muted-foreground text-sm truncate" data-label="Заметка">{client.note || "—"}</span>
+                <span className="clients-note-cell hidden md:flex" data-label="Заметка">
+                  {client.note ? <><AppIcon name="fileText" size="xs" /><span>Есть заметка</span></> : "—"}
+                </span>
 
                 {/* Mobile Quick Actions */}
                 <div
@@ -751,20 +782,34 @@ function ClientsPage({
         )}
       </div>
 
+      <footer className="clients-pagination">
+        <span>{filteredClients.length ? `${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, filteredClients.length)} из ${filteredClients.length}` : "0 клиентов"}</span>
+        <div className="clients-pagination-controls">
+          <label>На странице:
+            <Select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }}>
+              <option value="8">8</option><option value="16">16</option><option value="32">32</option>
+            </Select>
+          </label>
+          <IconButton icon="chevronLeft" label="Предыдущая страница" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} />
+          <b>{currentPage}</b><span>из {pageCount}</span>
+          <IconButton icon="chevronRight" label="Следующая страница" disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))} />
+        </div>
+      </footer>
+
       {activeViewedClient && (
         <MobileSheet
-          className="client-details-modal client-view-sheet w-full md:w-[820px] max-h-[94dvh] md:max-h-[90dvh] flex flex-col p-0 overflow-hidden"
+          className={`client-details-modal client-view-sheet client-tab-${clientCardTab}`}
           fullscreen={isMobile}
           isOpen
           labelledBy="client-card-title"
-          title={
-            activeViewedClient.name +
-            (activeViewedClient.isVip ? " VIP" : "")
-          }
-          description="Карточка клиента"
+          title={<span className="client-card-title-line">{activeViewedClient.name}{activeViewedClient.isVip ? " VIP" : ""}<b className={`client-status-pill ${activeViewedClient.autoStatus === "Новый" ? "status-new" : "status-active"}`}>{activeViewedClient.autoStatus}</b></span>}
+          description={activeViewedClient.phone || "Телефон не указан"}
           onClose={handleCloseModal}
           footer={
-            <div className="grid grid-cols-3 gap-2 w-full">
+            <div className="client-card-footer-actions">
+              <Button className="clients-modal-action" leftIcon="message" variant="secondary" onClick={() => handleMessageClient(activeViewedClient)}>Написать</Button>
+              <a aria-disabled={!activeViewedClient.phone} className="clients-modal-action" href={activeViewedClient.phone ? `tel:${activeViewedClient.phone}` : undefined}><AppIcon name="phone" size="xs" />Позвонить</a>
+              <Button className="clients-modal-action" leftIcon="edit" variant="secondary" onClick={() => onEditClient?.(activeViewedClient)}>Изменить</Button>
               <Button
                 className="clients-modal-action is-primary"
                 leftIcon="calendarPlus"
@@ -772,27 +817,11 @@ function ClientsPage({
                 onClick={() => handleAddVisit(activeViewedClient)}>
                 Добавить визит
               </Button>
-              <Button
-                className="clients-modal-action"
-                leftIcon="message"
-                variant="secondary"
-                onClick={() => handleMessageClient(activeViewedClient)}>
-                Написать
-              </Button>
-              <a
-                aria-disabled={!activeViewedClient.phone}
-                className="clients-modal-action"
-                href={
-                  activeViewedClient.phone ? `tel:${activeViewedClient.phone}` : undefined
-                }>
-                <AppIcon name="phone" size="xs" />
-                Позвонить
-              </a>
             </div>
           }>
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 select-none scrollbar-thin scrollbar-thumb-accent scrollbar-track-transparent">
+          <div className="client-card-scroll">
             {/* Overview cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="client-card-summary">
               <article className="flex flex-col gap-1 p-3 rounded-xl bg-muted">
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Следующая запись</span>
                 <strong className="text-foreground text-xs md:text-sm font-bold truncate">{formatAppointmentSummary(activeViewedClient.nextAppointment)}</strong>
@@ -824,10 +853,38 @@ function ClientsPage({
               </article>
             </div>
 
+            <nav className="client-card-tabs" aria-label="Разделы карточки клиента">
+              {[["overview", "Обзор"], ["visits", `Визиты ${activeViewedClient.appointments.length}`], ["packages", "Пакеты"], ["club", "NUAR Club"], ["data", "Данные"]].map(([value, label]) => (
+                <button className={clientCardTab === value ? "is-active" : ""} key={value} type="button" onClick={() => setClientCardTab(value)}>{label}</button>
+              ))}
+            </nav>
+
+            <div className="client-card-overview">
+              <section className="client-overview-block">
+                <header><AppIcon name="calendar" size="sm" /><strong>Следующая запись</strong></header>
+                {activeViewedClient.nextAppointment ? (
+                  <div className="client-next-appointment">
+                    <b>{formatAppointmentSummary(activeViewedClient.nextAppointment)}</b>
+                    <span>{activeViewedClient.nextAppointment.service}</span>
+                  </div>
+                ) : (
+                  <div className="client-overview-empty"><b>Нет будущей записи</b><span>Можно записать в один клик</span></div>
+                )}
+              </section>
+              <section className="client-overview-block">
+                <header><AppIcon name="user" size="sm" /><strong>Предпочтения</strong></header>
+                <dl className="client-preferences-list">
+                  <div><dt>Мастер</dt><dd>{activeViewedClient.preference || "Любой мастер"}</dd></div>
+                  <div><dt>Язык SMS</dt><dd>{activeViewedClient.messageLanguage || "Польский"}</dd></div>
+                  <div><dt>Любимая услуга</dt><dd>{activeViewedClient.favoriteService}</dd></div>
+                </dl>
+              </section>
+            </div>
+
             {/* Assets */}
             {(activeViewedClient.activePackages.length > 0 ||
               activeViewedClient.activeCertificates.length > 0) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="client-card-assets grid grid-cols-1 md:grid-cols-2 gap-2">
                 {activeViewedClient.activePackages.length > 0 ? (
                   <section className="flex flex-col gap-2 p-3 rounded-xl bg-muted">
                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Активные пакеты</span>
@@ -856,7 +913,7 @@ function ClientsPage({
             )}
 
             {/* Client parameters grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="client-card-data grid grid-cols-2 md:grid-cols-3 gap-2">
               <span className="flex flex-col gap-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
                 Телефон <strong className="text-foreground text-sm font-semibold truncate mt-1">{activeViewedClient.phone || "—"}</strong>
               </span>
@@ -924,16 +981,16 @@ function ClientsPage({
             </div>
 
             {activeViewedClient.birthday && (
-              <div className="crm-alert crm-alert-warning flex items-center gap-2">
+              <div className="client-card-data crm-alert crm-alert-warning flex items-center gap-2">
                 <AppIcon name="cake" size="sm" />
                 Дата рождения участвует в уведомлениях CRM.
               </div>
             )}
 
-            <ClientLoyaltyCard client={activeViewedClient} key={activeViewedClient.id} />
+            <div className="client-card-club"><ClientLoyaltyCard client={activeViewedClient} key={activeViewedClient.id} /></div>
 
             {/* Note */}
-            <div className="flex flex-col gap-2">
+            <div className="client-card-note flex flex-col gap-2">
               <span className="text-xs text-muted-foreground font-semibold">Заметка</span>
               <Textarea
                 key={`${activeViewedClient.id}-${activeViewedClient.note || ""}`}
@@ -955,12 +1012,13 @@ function ClientsPage({
             </div>
 
             {/* Visit History */}
-            <div className="client-visit-history-section flex flex-col gap-3">
+            <div className="client-card-visits client-visit-history-section flex flex-col gap-3">
               <div className="client-visit-history-title flex justify-between items-center text-xs text-muted-foreground">
                 <span className="font-semibold">История визитов</span>
                 <b className="flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-full bg-muted text-foreground font-bold">{activeViewedClient.appointments.length}</b>
               </div>
               <div className="client-visit-history-tabs flex justify-center gap-1 p-1 rounded-lg bg-muted">
+                <Button className={`client-visit-history-tab flex-1 ${visitHistoryTab === "all" ? "is-active" : ""}`} size="sm" variant="ghost" onClick={() => setVisitHistoryTab("all")}>Все <b>{activeViewedClient.appointments.length}</b></Button>
                 <Button
                   className={`client-visit-history-tab flex-1 inline-flex items-center justify-center gap-2 min-h-9 px-3 rounded-md text-xs font-semibold transition-all ${
                     visitHistoryTab === "future" ? "is-active bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-transparent"
@@ -1000,7 +1058,7 @@ function ClientsPage({
                 <div className="divide-y divide-border/40">
                   {activeViewedClient.appointments
                     .filter((appointment) =>
-                      visitHistoryTab === "future"
+                      visitHistoryTab === "all" ? true : visitHistoryTab === "future"
                         ? appointment.status === "Запланирован"
                         : appointment.status !== "Запланирован",
                     )
@@ -1038,7 +1096,7 @@ function ClientsPage({
                       </div>
                     ))}
                   {activeViewedClient.appointments.filter((appointment) =>
-                    visitHistoryTab === "future"
+                    visitHistoryTab === "all" ? true : visitHistoryTab === "future"
                       ? appointment.status === "Запланирован"
                       : appointment.status !== "Запланирован",
                   ).length === 0 && (
@@ -1053,7 +1111,7 @@ function ClientsPage({
             </div>
 
             {/* Communications */}
-            <div className="flex flex-col gap-2">
+            <div className="client-card-communications flex flex-col gap-2">
               <span className="text-xs text-muted-foreground font-semibold">Последние сообщения</span>
               <div className="space-y-2">
                 {viewedClientCommunications.map((entry) => (
