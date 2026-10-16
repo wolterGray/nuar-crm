@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {paymentMethods} from "../constants/paymentMethods.js";
 import {formatMoney, toDisplayDate} from "../utils/formatters.jsx";
 import {
@@ -85,8 +85,55 @@ function VisitsTable({
   const [sortAsc, setSortAsc] = useState(false);
   const [expandedRowIds, setExpandedRowIds] = useState(new Set());
   const [showExtraFilters, setShowExtraFilters] = useState(false);
-  const [pageSize, setPageSize] = useState(10);
+  const tableWrapRef = useRef(null);
+  const [autoPageSize, setAutoPageSize] = useState(10);
+  const [pageSizeMode, setPageSizeMode] = useState("auto");
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const container = tableWrapRef.current;
+    if (!container) return undefined;
+
+    const calculateCount = (height) => {
+      if (!height || height <= 0) return 10;
+      const HEADER_HEIGHT = 34;
+      const ROW_HEIGHT = 36;
+      const available = height - HEADER_HEIGHT - 4;
+      return Math.max(5, Math.floor(available / ROW_HEIGHT));
+    };
+
+    const update = () => {
+      const h = container.clientHeight;
+      if (h > 0) {
+        const count = calculateCount(h);
+        setAutoPageSize((prev) => (prev !== count ? count : prev));
+      }
+    };
+
+    update();
+
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const h = entry.contentRect.height;
+          if (h > 0) {
+            const count = calculateCount(h);
+            setAutoPageSize((prev) => (prev !== count ? count : prev));
+          }
+        }
+      });
+      ro.observe(container);
+    }
+
+    window.addEventListener("resize", update);
+    return () => {
+      if (ro) ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  const pageSize = pageSizeMode === "auto" ? autoPageSize : Number(pageSizeMode);
 
   const safeVisits = useMemo(
     () => (Array.isArray(visits) ? visits.filter(Boolean) : []),
@@ -172,8 +219,10 @@ function VisitsTable({
     }
   };
 
+
   const handlePageSizeChange = (event) => {
-    setPageSize(Number(event.target.value));
+    const val = event.target.value;
+    setPageSizeMode(val === "auto" ? "auto" : Number(val));
     setCurrentPage(1);
   };
 
@@ -315,7 +364,7 @@ function VisitsTable({
       ) : null}
 
       {/* 2. Journal Table */}
-      <div className="payments-table-wrap flex-1 min-h-0 overflow-y-auto">
+      <div ref={tableWrapRef} className="payments-table-wrap flex-1 min-h-0 overflow-y-auto">
         <table className="payments-table">
           <thead>
             <tr>
@@ -492,9 +541,10 @@ function VisitsTable({
             <select
               aria-label="Количество записей на странице"
               className="payments-pagesize-select"
-              value={pageSize}
+              value={pageSizeMode}
               onChange={handlePageSizeChange}
             >
+              <option value="auto">Авто ({autoPageSize} на экране)</option>
               <option value={10}>10 на странице</option>
               <option value={15}>15 на странице</option>
               <option value={25}>25 на странице</option>

@@ -306,10 +306,57 @@ function ClientsPage({
   const [lastVisitFilter, setLastVisitFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("recent");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(8);
+  const tableShellRef = useRef(null);
+  const [autoPageSize, setAutoPageSize] = useState(8);
+  const [pageSizeMode, setPageSizeMode] = useState("auto");
   const [showQuality, setShowQuality] = useState(false);
   const returnFocusRef = useRef(null);
   const {isMobile} = useBreakpoint();
+
+  useEffect(() => {
+    const container = tableShellRef.current;
+    if (!container) return undefined;
+
+    const calculateCount = (height) => {
+      if (!height || height <= 0) return 8;
+      const HEADER_HEIGHT = 44;
+      const ROW_HEIGHT = isMobile ? 86 : 60;
+      const available = height - HEADER_HEIGHT - 6;
+      return Math.max(4, Math.floor(available / ROW_HEIGHT));
+    };
+
+    const update = () => {
+      const h = container.clientHeight;
+      if (h > 0) {
+        const count = calculateCount(h);
+        setAutoPageSize((prev) => (prev !== count ? count : prev));
+      }
+    };
+
+    update();
+
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const h = entry.contentRect.height;
+          if (h > 0) {
+            const count = calculateCount(h);
+            setAutoPageSize((prev) => (prev !== count ? count : prev));
+          }
+        }
+      });
+      ro.observe(container);
+    }
+
+    window.addEventListener("resize", update);
+    return () => {
+      if (ro) ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [isMobile]);
+
+  const pageSize = pageSizeMode === "auto" ? autoPageSize : Number(pageSizeMode);
 
   // Memoized event handlers for client rows
   const handleViewClient = useCallback((client, trigger = null) => {
@@ -649,7 +696,7 @@ function ClientsPage({
         </Select>
       </div>
 
-      <div className="clients-table-shell">
+      <div className="clients-table-shell" ref={tableShellRef}>
         {search.trim() && (
           <div className="px-4 py-2 text-xs text-muted-foreground font-medium border-b border-border/40 mb-2">
             Найдено результатов: <strong className="text-foreground">{filteredClients.length}</strong>
@@ -787,8 +834,15 @@ function ClientsPage({
         <span>{filteredClients.length ? `${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, filteredClients.length)} из ${filteredClients.length}` : "0 клиентов"}</span>
         <div className="clients-pagination-controls">
           <label>На странице:
-            <Select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }}>
-              <option value="8">8</option><option value="16">16</option><option value="32">32</option>
+            <Select value={pageSizeMode} onChange={(event) => {
+              const val = event.target.value;
+              setPageSizeMode(val === "auto" ? "auto" : Number(val));
+              setPage(1);
+            }}>
+              <option value="auto">Авто ({autoPageSize})</option>
+              <option value="8">8</option>
+              <option value="16">16</option>
+              <option value="32">32</option>
             </Select>
           </label>
           <IconButton icon="chevronLeft" label="Предыдущая страница" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} />
