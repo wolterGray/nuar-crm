@@ -22,7 +22,6 @@ import PageHeader from "../PageHeader.jsx";
 import MobileSheet from "../MobileSheet.jsx";
 import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import AppIcon from "../ui/AppIcon.jsx";
-import Badge from "../ui/Badge.jsx";
 import Button from "../ui/Button.jsx";
 import IconButton from "../ui/IconButton.jsx";
 import Select from "../ui/Select.jsx";
@@ -231,6 +230,20 @@ function ClientLoyaltyCard({client}) {
   );
 }
 
+function getClientInitials(name) {
+  if (!name || typeof name !== "string") return "—";
+  const trimmed = name.trim();
+  if (!trimmed) return "—";
+  if (trimmed.startsWith("+")) {
+    return trimmed.slice(1, 2) || trimmed.slice(0, 1);
+  }
+  const parts = trimmed.split(/[\s_-]+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return trimmed.slice(0, 2).toUpperCase();
+}
+
 function ClientsPage({
   alertFocus,
   calendarEntries = [],
@@ -304,11 +317,12 @@ function ClientsPage({
   const [clientCardTab, setClientCardTab] = useState("overview");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [lastVisitFilter, setLastVisitFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("recent");
+  const [segmentFilter, setSegmentFilter] = useState("all");
+  const [quickFilter, setQuickFilter] = useState(null); // 'active' | 'vip' | 'note' | 'debt' | null
   const [page, setPage] = useState(1);
   const tableShellRef = useRef(null);
-  const [autoPageSize, setAutoPageSize] = useState(8);
+  const [autoPageSize, setAutoPageSize] = useState(20);
   const [showQuality, setShowQuality] = useState(false);
   const returnFocusRef = useRef(null);
   const {isMobile} = useBreakpoint();
@@ -318,9 +332,9 @@ function ClientsPage({
     if (!container) return undefined;
 
     const calculateCount = (height) => {
-      const HEADER_HEIGHT = isMobile ? 0 : 35;
+      const HEADER_HEIGHT = isMobile ? 0 : 34;
       const ROW_HEIGHT = isMobile ? 86 : 36;
-      return calculateDynamicPageSize(height, HEADER_HEIGHT, ROW_HEIGHT, 5, 8);
+      return calculateDynamicPageSize(height, HEADER_HEIGHT, ROW_HEIGHT, 10, 8);
     };
 
     const update = () => {
@@ -521,11 +535,24 @@ function ClientsPage({
           clientVisits.length > 0 ? Math.round(totalIncome / clientVisits.length) : 0;
         const favoriteService = getFavoriteService(completedAppointments);
 
+        // Debt calculation across journal visits and calendar entries
+        const journalDebt = clientVisits.reduce(
+          (sum, visit) => sum + (Number(visit.debt) || 0),
+          0,
+        );
+        const calendarDebt = scheduledEntries.reduce(
+          (sum, entry) => sum + (Number(entry.debt) || 0),
+          0,
+        );
+        const totalDebt = journalDebt + calendarDebt + (Number(client.debt) || 0);
+        const hasDebt = totalDebt > 0;
+        const hasNote = Boolean(client.note && String(client.note).trim() !== "");
+
         return {
           ...client,
           visitsCount: appointments.length,
           autoStatus: getClientAutoStatus(appointments.length),
-          isVip: getClientAutoVip(appointments.length, totalIncome),
+          isVip: getClientAutoVip(appointments.length, totalIncome) || Boolean(client.isVip || client.vip),
           completedVisitsCount: clientVisits.length,
           upcomingVisitsCount: appointments.filter(
             (appointment) => appointment.status === "Запланирован",
@@ -546,6 +573,9 @@ function ClientsPage({
           lastVisit,
           nextAppointment: futureAppointments[0] ?? null,
           daysAbsent,
+          totalDebt,
+          hasDebt,
+          hasNote,
         };
       }),
     [calendarEntries, certificates, clientPackages, clients, employees, visits],
@@ -598,6 +628,22 @@ function ClientsPage({
     (String(alertFocus.entityId) === String(client.id) ||
       alertFocus.entityId === client.name);
 
+  const indicatorCounts = useMemo(() => {
+    let active = 0;
+    let vip = 0;
+    let withNote = 0;
+    let withDebt = 0;
+
+    for (const client of clientsData) {
+      if (client.autoStatus === "Активный") active += 1;
+      if (client.isVip) vip += 1;
+      if (client.hasNote) withNote += 1;
+      if (client.hasDebt) withDebt += 1;
+    }
+
+    return {active, vip, withNote, withDebt};
+  }, [clientsData]);
+
   const normalizedSearch = search.trim().toLowerCase();
   const normalizedPhoneSearch = search.replace(/\D/g, "");
   const filteredClients = useMemo(() => clientsData.filter((client) => {
@@ -620,18 +666,45 @@ function ClientsPage({
     const phoneMatches = normalizedPhoneSearch.length > 2
       && String(client.phone || "").replace(/\D/g, "").includes(normalizedPhoneSearch);
     const searchMatches = !normalizedSearch || searchableText.includes(normalizedSearch) || phoneMatches;
-    const statusMatches = statusFilter === "all" || client.autoStatus === statusFilter;
-    const lastVisitMatches = lastVisitFilter === "all"
-      || (lastVisitFilter === "never" && client.daysAbsent === null)
-      || (lastVisitFilter === "30" && client.daysAbsent !== null && client.daysAbsent <= 30)
-      || (lastVisitFilter === "90" && client.daysAbsent !== null && client.daysAbsent > 30 && client.daysAbsent <= 90)
-      || (lastVisitFilter === "inactive" && client.daysAbsent !== null && client.daysAbsent > 90);
-    return searchMatches && statusMatches && lastVisitMatches;
+    if (!searchMatches) return false;
+
+    // Status filter dropdown
+    if (statusFilter !== "all" && client.autoStatus !== statusFilter) {
+      return false;
+    }
+
+    // Quick filter pills
+    if (quickFilter === "active" && client.autoStatus !== "Активный") {
+      return false;
+    }
+    if (quickFilter === "vip" && !client.isVip) {
+      return false;
+    }
+    if (quickFilter === "note" && !client.hasNote) {
+      return false;
+    }
+    if (quickFilter === "debt" && !client.hasDebt) {
+      return false;
+    }
+
+    // Segment dropdown filter
+    if (segmentFilter === "vip" && !client.isVip) return false;
+    if (segmentFilter === "packages" && client.packagesCount <= 0) return false;
+    if (segmentFilter === "certificates" && client.activeCertificates.length <= 0) return false;
+    if (segmentFilter === "inactive_30" && (client.daysAbsent === null || client.daysAbsent <= 30)) return false;
+    if (segmentFilter === "inactive_90" && (client.daysAbsent === null || client.daysAbsent <= 90)) return false;
+    if (segmentFilter === "new" && client.visitsCount > 0) return false;
+
+    return true;
   }).sort((first, second) => {
-    if (sortOrder === "name") return String(first.name).localeCompare(String(second.name), "ru");
+    if (sortOrder === "name") return String(first.name || "").localeCompare(String(second.name || ""), "ru");
     if (sortOrder === "income") return second.totalIncome - first.totalIncome;
+    if (sortOrder === "oldest") {
+      return (second.daysAbsent ?? -1) - (first.daysAbsent ?? -1);
+    }
+    // "recent": most recent visit first (smallest daysAbsent first)
     return (first.daysAbsent ?? Number.MAX_SAFE_INTEGER) - (second.daysAbsent ?? Number.MAX_SAFE_INTEGER);
-  }), [clientsData, lastVisitFilter, normalizedPhoneSearch, normalizedSearch, sortOrder, statusFilter]);
+  }), [clientsData, normalizedPhoneSearch, normalizedSearch, quickFilter, segmentFilter, sortOrder, statusFilter]);
 
   const pageCount = Math.max(1, Math.ceil(filteredClients.length / pageSize));
   const currentPage = Math.min(page, pageCount);
@@ -663,9 +736,8 @@ function ClientsPage({
           </div>
         }
         title={
-          <span className="flex items-baseline gap-2">
-            <span>Клиенты</span>
-            <span className="text-sm font-normal text-muted-foreground">({clients.length})</span>
+          <span className="clients-title-line">
+            Клиенты <span className="clients-title-counter">({clients.length})</span>
           </span>
         }
       />
@@ -681,11 +753,12 @@ function ClientsPage({
         />
       )}
 
-      <div className="clients-filterbar payments-filter-bar">
-        <div className="payments-search-wrap">
-          <AppIcon className="payments-search-icon" name="search" size="xs" />
+      {/* 1. Filter Bar */}
+      <div className="clients-filterbar">
+        <div className="clients-search-wrap">
+          <AppIcon className="clients-search-icon" name="search" size="xs" />
           <input
-            className="payments-search-input"
+            className="clients-search-input"
             placeholder="Имя, телефон или заметка..."
             type="text"
             value={search}
@@ -694,7 +767,7 @@ function ClientsPage({
           {search ? (
             <button
               aria-label="Очистить поиск"
-              className="payments-search-clear"
+              className="clients-search-clear"
               type="button"
               onClick={handleClearSearch}
             >
@@ -703,10 +776,11 @@ function ClientsPage({
           ) : null}
         </div>
 
-        <div className="payments-select-wrap">
+        <div className="clients-select-wrap">
+          <AppIcon className="clients-select-lead-icon" name="sliders" size="xs" />
           <select
             aria-label="Статус клиента"
-            className="payments-filter-select"
+            className="clients-filter-select"
             value={statusFilter}
             onChange={(event) => {
               setStatusFilter(event.target.value);
@@ -714,44 +788,107 @@ function ClientsPage({
             }}
           >
             <option value="all">Все статусы</option>
-            <option value="Новый">Новые</option>
             <option value="Активный">Активные</option>
+            <option value="Новый">Новые</option>
           </select>
-          <AppIcon className="payments-select-arrow" name="chevronDown" size="xs" />
+          <AppIcon className="clients-select-arrow" name="chevronDown" size="xs" />
         </div>
 
-        <div className="payments-select-wrap">
+        <div className="clients-select-wrap">
+          <AppIcon className="clients-select-lead-icon" name="calendar" size="xs" />
           <select
-            aria-label="Последний визит"
-            className="payments-filter-select"
-            value={lastVisitFilter}
+            aria-label="Сортировка"
+            className="clients-filter-select"
+            value={sortOrder}
             onChange={(event) => {
-              setLastVisitFilter(event.target.value);
+              setSortOrder(event.target.value);
               setPage(1);
             }}
           >
-            <option value="all">Последний визит</option>
-            <option value="30">До 30 дней</option>
-            <option value="90">31–90 дней</option>
-            <option value="inactive">Более 90 дней</option>
-            <option value="never">Ещё не был</option>
+            <option value="recent">Последний визит ↓</option>
+            <option value="oldest">Последний визит ↑</option>
+            <option value="income">По сумме покупок</option>
+            <option value="name">По имени (А–Я)</option>
           </select>
-          <AppIcon className="payments-select-arrow" name="chevronDown" size="xs" />
+          <AppIcon className="clients-select-arrow" name="chevronDown" size="xs" />
         </div>
 
-        <div className="payments-select-wrap">
+        <div className="clients-select-wrap">
+          <AppIcon className="clients-select-lead-icon" name="filter" size="xs" />
           <select
-            aria-label="Сортировка"
-            className="payments-filter-select"
-            value={sortOrder}
-            onChange={(event) => setSortOrder(event.target.value)}
+            aria-label="Сегменты клиентов"
+            className="clients-filter-select"
+            value={segmentFilter}
+            onChange={(event) => {
+              setSegmentFilter(event.target.value);
+              setPage(1);
+            }}
           >
-            <option value="recent">Сначала недавние</option>
-            <option value="name">По имени</option>
-            <option value="income">По сумме</option>
+            <option value="all">Все сегменты</option>
+            <option value="vip">VIP клиенты</option>
+            <option value="packages">С активными пакетами</option>
+            <option value="certificates">С сертификатами</option>
+            <option value="inactive_30">Не были более 30 дней</option>
+            <option value="inactive_90">Не были более 90 дней</option>
+            <option value="new">Новые (без визитов)</option>
           </select>
-          <AppIcon className="payments-select-arrow" name="chevronDown" size="xs" />
+          <AppIcon className="clients-select-arrow" name="chevronDown" size="xs" />
         </div>
+      </div>
+
+      {/* 2. Interactive Indicator Pills */}
+      <div className="clients-indicator-pills">
+        <button
+          type="button"
+          className={`clients-indicator-pill pill-active ${quickFilter === "active" ? "is-selected" : ""}`}
+          onClick={() => {
+            setQuickFilter((prev) => (prev === "active" ? null : "active"));
+            setPage(1);
+          }}
+        >
+          <span className="pill-dot pill-dot-green" />
+          <span className="pill-label">Активные</span>
+          <span className="pill-count">{indicatorCounts.active}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`clients-indicator-pill pill-vip ${quickFilter === "vip" ? "is-selected" : ""}`}
+          onClick={() => {
+            setQuickFilter((prev) => (prev === "vip" ? null : "vip"));
+            setPage(1);
+          }}
+        >
+          <AppIcon name="crown" size="xs" className="pill-icon-gold" />
+          <span className="pill-label">VIP</span>
+          <span className="pill-count">{indicatorCounts.vip}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`clients-indicator-pill pill-note ${quickFilter === "note" ? "is-selected" : ""}`}
+          onClick={() => {
+            setQuickFilter((prev) => (prev === "note" ? null : "note"));
+            setPage(1);
+          }}
+        >
+          <AppIcon name="fileText" size="xs" className="pill-icon-muted" />
+          <span className="pill-label">С заметкой</span>
+          <span className="pill-count">{indicatorCounts.withNote}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`clients-indicator-pill pill-debt ${quickFilter === "debt" ? "is-selected" : ""}`}
+          onClick={() => {
+            setQuickFilter((prev) => (prev === "debt" ? null : "debt"));
+            setPage(1);
+          }}
+        >
+          <AppIcon name="ban" size="xs" className="pill-icon-red" />
+          <span className="pill-label">С долгом</span>
+          <span className="pill-count">{indicatorCounts.withDebt}</span>
+        </button>
       </div>
 
       <div className="clients-table-shell" ref={tableShellRef}>
@@ -768,7 +905,9 @@ function ClientsPage({
           <div className="clients-col-money">Сумма</div>
           <div className="clients-col-last-visit">Последний визит</div>
           <div className="clients-col-note">Заметка</div>
-          <div className="clients-col-actions" />
+          <div className="clients-col-actions">
+            <AppIcon name="moreVertical" size="xs" className="clients-col-actions-header-icon" />
+          </div>
         </div>
 
         {/* Table Body */}
@@ -793,19 +932,22 @@ function ClientsPage({
                 }}>
                 {/* Client info */}
                 <div className="clients-col-client">
+                  <span className="client-avatar">
+                    {getClientInitials(client.name || client.phone)}
+                  </span>
                   <span className="clients-client-name" title={client.name}>
                     {client.name || client.phone || "Без имени"}
                   </span>
                   {client.isVip && (
-                    <Badge className="client-vip-badge" size="sm" variant="premium">
+                    <span className="client-vip-tag">
                       <AppIcon name="crown" size="xs" />
                       VIP
-                    </Badge>
+                    </span>
                   )}
                   {client.phone && client.phone !== client.name ? (
-                    <small className="clients-table-phone md:hidden">
+                    <span className="clients-table-phone">
                       {client.phone}
-                    </small>
+                    </span>
                   ) : null}
                 </div>
 
@@ -832,6 +974,11 @@ function ClientsPage({
                 {/* Desktop metadata columns */}
                 <div className="clients-col-visits hidden md:flex" data-label="Визиты">
                   <span className="clients-visits-num">{client.visitsCount}</span>
+                  {client.visitsCount > 0 && (client.daysAbsent !== null && client.daysAbsent >= (inactiveClientDays || 30)) ? (
+                    <span className="clients-churn-alert" title="Давно не был">
+                      !
+                    </span>
+                  ) : null}
                   {client.packagesCount > 0 ? (
                     <AppIcon className="clients-active-package" name="package" size="xs" />
                   ) : null}
@@ -840,17 +987,25 @@ function ClientsPage({
                   <span className="clients-money-amount">{formatMoney(client.totalIncome)}</span>
                 </div>
                 <div className="clients-col-last-visit hidden md:flex" data-label="Последний визит">
-                  <span className="clients-last-visit-date">{client.lastVisit}</span>
-                  <span className="clients-last-visit-days">
-                    {client.daysAbsent === null ? "(новый)" : `(${client.daysAbsent} дн.)`}
-                  </span>
+                  {client.lastVisit && client.lastVisit !== "—" ? (
+                    <>
+                      <span className="clients-last-visit-date">{client.lastVisit}</span>
+                      {client.daysAbsent !== null ? (
+                        <span className="clients-last-visit-days">
+                          {` (${client.daysAbsent} дн.)`}
+                        </span>
+                      ) : null}
+                    </>
+                  ) : (
+                    <span className="clients-last-visit-empty">—</span>
+                  )}
                 </div>
                 <div className="clients-col-note hidden md:flex" data-label="Заметка" title={client.note || ""}>
-                  {client.note ? (
-                    <>
+                  {client.hasNote ? (
+                    <span className="clients-note-badge" title={client.note}>
                       <AppIcon name="fileText" size="xs" />
                       <span className="clients-note-text">Есть заметка</span>
-                    </>
+                    </span>
                   ) : (
                     <span className="clients-note-empty">—</span>
                   )}
