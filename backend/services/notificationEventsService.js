@@ -1,3 +1,5 @@
+const {recordBusinessNotificationEvent} = require('./businessPushService');
+
 const PRIORITY_SCORE = {
   critical: 100,
   high: 75,
@@ -22,6 +24,11 @@ const parseDate = (value) => {
 const normalizePriority = (value) => {
   const priority = cleanString(value) || 'normal';
   return PRIORITY_SCORE[priority] ? priority : 'normal';
+};
+
+const isImportantTask = (task = {}) => {
+  const priority = String(task.priority ?? task.payload?.priority ?? '').trim().toLowerCase();
+  return ['critical', 'high', 'urgent', 'срочно', 'высокий'].includes(priority) || task.payload?.isMain === true;
 };
 
 const toNumber = (value) => {
@@ -290,22 +297,30 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
   });
 
   for (const task of tasks) {
+    if (!isImportantTask(task)) continue;
     const overdue = task.dueDate && task.dueDate.getTime() < new Date(`${today}T00:00:00`).getTime();
+    const eventType = overdue ? 'task_important_overdue' : 'task_important_due';
     generated.push(
-      await upsertNotificationEvent(prisma, {
+      await recordBusinessNotificationEvent(prisma, {
         entityId: task.id,
         entityType: 'task',
-        fingerprint: `task:${task.id}:due`,
+        fingerprint: `task:${task.id}:${overdue ? 'important-overdue' : 'important-due'}`,
         payload: {dueDate: task.dueDate, priority: task.priority},
         priority: overdue ? 'high' : 'normal',
         recommendedAction: 'open_task',
         source: 'smart-generator',
         title: overdue ? 'Просроченная задача' : 'Задача скоро',
         message: task.title,
-        type: 'task_due',
+        type: eventType,
         urgency: overdue ? 20 : 8,
-      }),
+      }, upsertNotificationEvent),
     );
+    if (overdue) {
+      await prisma.notificationEvent.updateMany({
+        data: {resolvedAt: now, status: 'resolved'},
+        where: {fingerprint: `task:${task.id}:important-due`, status: {in: ACTIVE_STATUSES}},
+      });
+    }
   }
 
   const supplies = await prisma.supply.findMany({
@@ -590,6 +605,7 @@ module.exports = {
     isActionableVisitUpcomingEvent,
     isStaleVisitUpcomingEvent,
     resolveStaleVisitUpcomingEvents,
+    isImportantTask,
     toIsoDate,
   },
 };

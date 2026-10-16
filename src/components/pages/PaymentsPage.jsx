@@ -6,7 +6,7 @@ import {buildFinancialQualityReport} from "../../utils/financialQuality.js";
 import {exportVisitsToCsv} from "../../utils/paymentJournal.js";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import HintIcon from "../HintIcon.jsx";
-import {Button} from "../ui/index.js";
+import {AppIcon, Button} from "../ui/index.js";
 
 const ISSUE_FILTERS = [
   {id: "all", label: "Все"},
@@ -192,7 +192,7 @@ function PaymentsPage({
       {/* 1. Top Title Bar */}
       <div className="payments-top-bar">
         <div className="payments-top-title-wrap">
-          <h1 className="payments-top-title">Оплаты</h1>
+          <h1 className="payments-top-title">{isMobile ? "Визиты и оплаты" : "Оплаты"}</h1>
           <HintIcon>Управление платежами, закрытие смены и проверка финансовых несоответствий.</HintIcon>
         </div>
         <div className="payments-top-actions">
@@ -210,27 +210,32 @@ function PaymentsPage({
             className={`payments-tab-btn ${activeTab === "journal" ? "is-active" : ""}`}
             onClick={() => setActiveTab("journal")}
           >
-            <span>Журнал</span>
+            {isMobile ? <AppIcon className="payments-tab-icon" name="list" size="xs" /> : null}
+            <span className="payments-tab-label">Журнал</span>
             {activeTab === "journal" ? <span className="payments-tab-underline" /> : null}
           </button>
           <button
             type="button"
             role="tab"
+            aria-label="Закрытие дня"
             aria-selected={activeTab === "dayClose"}
             className={`payments-tab-btn ${activeTab === "dayClose" ? "is-active" : ""}`}
             onClick={() => setActiveTab("dayClose")}
           >
-            <span>Закрытие дня</span>
+            {isMobile ? <AppIcon className="payments-tab-icon" name="lock" size="xs" /> : null}
+            <span className="payments-tab-label">{isMobile ? "Закрытие" : "Закрытие дня"}</span>
             {activeTab === "dayClose" ? <span className="payments-tab-underline" /> : null}
           </button>
           <button
             type="button"
             role="tab"
+            aria-label="Проверка денег"
             aria-selected={activeTab === "quality"}
             className={`payments-tab-btn ${activeTab === "quality" ? "is-active" : ""}`}
             onClick={() => setActiveTab("quality")}
           >
-            <span>Проверка денег</span>
+            {isMobile ? <AppIcon className="payments-tab-icon" name="wallet" size="xs" /> : null}
+            <span className="payments-tab-label">{isMobile ? "Проверка" : "Проверка денег"}</span>
             {issueCount > 0 ? (
               <span className="payments-tab-badge">{issueCount}</span>
             ) : null}
@@ -240,14 +245,6 @@ function PaymentsPage({
 
         <div className="payments-tabs-actions">
           <Button
-            leftIcon="download"
-            size="sm"
-            variant="secondary"
-            onClick={() => exportVisitsToCsv(visits)}
-          >
-            Экспорт CSV
-          </Button>
-          <Button
             className="payments-add-payment-cta"
             leftIcon="plus"
             size="sm"
@@ -255,6 +252,16 @@ function PaymentsPage({
             onClick={onAddPayment}
           >
             Добавить поступление
+          </Button>
+          <Button
+            aria-label="Экспорт CSV"
+            className="payments-export-csv-btn"
+            leftIcon="download"
+            size="sm"
+            variant="secondary"
+            onClick={() => exportVisitsToCsv(visits)}
+          >
+            <span>CSV</span>
           </Button>
         </div>
       </div>

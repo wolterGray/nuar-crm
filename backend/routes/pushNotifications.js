@@ -12,6 +12,13 @@ const prisma = new PrismaClient();
 const router = express.Router();
 const testRequestTimes = new Map();
 const TEST_RATE_LIMIT_MS = 30 * 1000;
+const PREFERENCE_FIELDS = [
+  'pushNewVisits',
+  'pushVisitCancelled',
+  'pushVisitRescheduled',
+  'pushImportantTasks',
+  'pushOverdueTasks',
+];
 
 const cleanString = (value) => String(value ?? '').trim();
 
@@ -71,6 +78,41 @@ router.get('/push/config', async (req, res) => {
     });
   } catch (error) {
     await handleError(req, res, error, 'push.config');
+  }
+});
+
+router.get('/push/preferences', async (req, res) => {
+  try {
+    const user = await resolveAuthenticatedUser(req);
+    const preferences = await prisma.user.findUnique({select: Object.fromEntries(PREFERENCE_FIELDS.map((field) => [field, true])), where: {id: user.id}});
+    res.json({success: true, data: preferences});
+  } catch (error) {
+    await handleError(req, res, error, 'push.preferences.read');
+  }
+});
+
+router.put('/push/preferences', async (req, res) => {
+  try {
+    const user = await resolveAuthenticatedUser(req);
+    const data = {};
+    for (const field of PREFERENCE_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(req.body || {}, field)) {
+        if (typeof req.body[field] !== 'boolean') {
+          const error = new Error(`${field} must be boolean`);
+          error.status = 422;
+          throw error;
+        }
+        data[field] = req.body[field];
+      }
+    }
+    const preferences = await prisma.user.update({
+      data,
+      select: Object.fromEntries(PREFERENCE_FIELDS.map((field) => [field, true])),
+      where: {id: user.id},
+    });
+    res.json({success: true, data: preferences});
+  } catch (error) {
+    await handleError(req, res, error, 'push.preferences.update');
   }
 });
 

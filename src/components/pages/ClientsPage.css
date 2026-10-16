@@ -701,52 +701,439 @@
   .clients-col-note { min-width: 110px !important; }
 }
 
-@media (max-width: 767px) {
-  .clients-page-shell { gap: 12px; padding: 0; overflow: auto; }
-  .clients-page-header { align-items: flex-start; }
-  .clients-page-header .page-header-unified-top { gap: 10px; }
-  .clients-page-header .page-title { font-size: 24px; }
-  .clients-page-actions { width: auto; gap: 8px; }
-  .clients-page-actions .ui-button { padding-inline: 12px; white-space: nowrap; }
-  .clients-page-quality-button { width: 44px; min-width: 44px; padding: 0 !important; }
-  .clients-page-quality-button span:not(.ui-button-icon) { display: none; }
-  .clients-filterbar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .clients-filterbar .clients-page-search { grid-column: 1 / -1; }
-  .clients-filterbar > :last-child { grid-column: 1 / -1; }
-  .clients-table-shell { flex: none; overflow: visible; border: 0; background: transparent; }
-  .clients-table-head-row { display: none !important; }
-  .clients-table-list { display: grid; gap: 10px !important; }
+@media (max-width: 768px) {
+  .clients-page-shell {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    gap: 12px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+
+  .clients-page-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .clients-page-header .page-header-unified-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .clients-page-header .page-header-unified-copy {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .clients-page-header .page-title {
+    font-size: 22px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .clients-page-header .page-header-unified-actions {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .clients-page-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .clients-page-actions .ui-button,
+  .clients-page-actions button {
+    width: 100% !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    padding-inline: 12px !important;
+    border-radius: 9px !important;
+    font-size: 13.5px !important;
+    white-space: nowrap !important;
+    justify-content: center !important;
+  }
+
+  /* ── Compact mobile client card ── */
+  .clients-m-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: #151821;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .clients-m-card:active {
+    background: #181c26;
+  }
+
+  .clients-m-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .clients-m-avatar {
+    flex: none;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    border-radius: 50% !important;
+    font-size: 13px !important;
+  }
+
+  .clients-m-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .clients-m-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .clients-m-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
+    font-weight: 700;
+    color: #f4f4f5;
+  }
+
+  .clients-m-name-row .client-vip-tag {
+    flex: none;
+  }
+
+  .clients-m-sub-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .clients-m-sub-row .client-status-pill {
+    flex: none;
+    font-size: 10.5px !important;
+    padding: 1px 7px !important;
+  }
+
+  .clients-m-phone {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    color: #a1a1aa;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .clients-m-note {
+    display: inline-flex;
+    flex: none;
+    color: #a1a1aa;
+  }
+
+  .clients-m-menu {
+    flex: none;
+    align-self: flex-start;
+  }
+
+  .clients-m-menu > div {
+    position: static !important;
+  }
+
+  .clients-m-menu .clients-row-menu-button {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+
+  .clients-m-stats {
+    display: grid;
+    grid-template-columns: 0.8fr 1fr 1.3fr;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .clients-m-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    padding: 8px 10px;
+  }
+
+  .clients-m-stat + .clients-m-stat {
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .clients-m-stat span {
+    font-size: 10px;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .clients-m-stat strong {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f4f4f5;
+    white-space: nowrap;
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .clients-m-stat strong small {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: #71717a;
+  }
+
+  .clients-m-stat strong.is-warning small {
+    color: #f59e0b;
+  }
+
+  .clients-m-stat-icon {
+    align-self: center;
+    color: #a1a1aa;
+  }
+
+  .clients-m-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .clients-m-actions .ui-button,
+  .clients-m-actions button {
+    width: 100% !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    border-radius: 9px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    justify-content: center !important;
+  }
+
+  .clients-filterbar {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .clients-filterbar .clients-search-wrap {
+    grid-column: 1 / -1 !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: 40px !important;
+  }
+
+  .clients-search-input {
+    height: 40px !important;
+    font-size: 13.5px !important;
+    border-radius: 8px !important;
+  }
+
+  .clients-select-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 40px !important;
+  }
+
+  .clients-filterbar > .clients-select-wrap:last-child {
+    grid-column: 1 / -1 !important;
+  }
+
+  .clients-filter-select {
+    width: 100% !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+  }
+
+  .clients-indicator-pills {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 6px !important;
+    width: 100% !important;
+    padding-bottom: 2px !important;
+    scrollbar-width: none !important;
+  }
+
+  .clients-indicator-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .clients-indicator-pill {
+    flex: 0 0 auto !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 10px !important;
+  }
+
+  .clients-table-shell {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .clients-table-head-row {
+    display: none !important;
+  }
+
+  .clients-table-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
   .crm-shell .clients-table-item,
   .clients-table-item {
+    position: relative !important;
     display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px 8px !important;
     min-height: 0 !important;
     height: auto !important;
     max-height: none !important;
-    flex-wrap: wrap !important;
     padding: 14px !important;
-    border: 1px solid var(--border) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 10px !important;
-    background: var(--card) !important;
+    background: #151821 !important;
   }
+
+  .crm-shell .clients-table-item:hover,
+  .clients-table-item:hover {
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 10px !important;
+    background: #181c26 !important;
+  }
+
   .clients-col-client {
-    width: calc(100% - 36px) !important;
+    width: calc(100% - 108px) !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
     flex-direction: row !important;
     align-items: center !important;
     flex-wrap: wrap !important;
-    gap: 6px !important;
+    gap: 4px 8px !important;
+    padding-right: 0 !important;
   }
+
+  .clients-client-name {
+    font-size: 14.5px !important;
+    font-weight: 700 !important;
+  }
+
+  .clients-table-phone {
+    display: block !important;
+    width: 100% !important;
+    margin-left: 32px !important;
+    font-size: 12px !important;
+    color: #a1a1aa !important;
+  }
+
   .clients-col-status {
     width: auto !important;
-    margin-top: 6px !important;
+    flex: 0 0 auto !important;
+    padding-right: 32px !important;
+    margin-top: 0 !important;
   }
+
+  .clients-col-actions {
+    position: absolute !important;
+    top: 12px !important;
+    right: 10px !important;
+    width: 30px !important;
+  }
+
+  .clients-col-actions button,
+  .clients-row-menu-button {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+  }
+
   .clients-mobile-meta {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    gap: 6px !important;
-    margin-top: 6px !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-top: 4px !important;
+    padding: 8px 10px !important;
     width: 100% !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
   }
+
+  .clients-mobile-stat {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+  }
+
+  .clients-mobile-stat span {
+    font-size: 10px !important;
+    color: #71717a !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .clients-mobile-stat strong {
+    font-size: 12.5px !important;
+    color: #f4f4f5 !important;
+    font-weight: 600 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
   .clients-pagination { flex-direction: column; align-items: stretch; gap: 10px; }
   .clients-pagination-controls { justify-content: space-between; }
   .client-view-sheet { width: 100% !important; max-width: none !important; max-height: 100dvh !important; }

@@ -212,7 +212,7 @@ export default function AppNavigation({
           variant="ghost"
           onClick={() => onSidebarVisibleChange(!sidebarVisible)}
         >
-          Еще
+          <span className="nuar-nav-label">Ещё</span>
         </Button>
       </nav>
     </>

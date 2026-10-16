@@ -60,18 +60,18 @@ const createDelivery = (prisma, subscription, payload) =>
     },
   });
 
-const sendPushToSubscription = async (
+const deliverPush = async (
   prisma,
+  delivery,
   subscription,
   payload,
   {sendNotification = webpush.sendNotification, retryDelays = [250, 750]} = {},
 ) => {
   configureWebPush();
-  const delivery = await createDelivery(prisma, subscription, payload);
   let lastError = null;
-  let attempts = 0;
+  let attempts = Number(delivery.attempts) || 0;
 
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+  for (let attempt = attempts + 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     attempts = attempt;
     try {
       const result = await sendNotification(
@@ -82,13 +82,7 @@ const sendPushToSubscription = async (
       const now = new Date();
       await prisma.$transaction([
         prisma.notificationDelivery.update({
-          data: {
-            attempts: attempt,
-            errorMessage: null,
-            providerMessageId: result?.headers?.location || null,
-            sentAt: now,
-            status: 'sent',
-          },
+          data: {attempts, errorMessage: null, providerMessageId: result?.headers?.location || null, sentAt: now, status: 'sent'},
           where: {id: delivery.id},
         }),
         prisma.pushSubscription.update({
@@ -99,10 +93,7 @@ const sendPushToSubscription = async (
       return {ok: true, deliveryId: delivery.id, subscriptionId: subscription.id};
     } catch (error) {
       lastError = error;
-      if (isExpiredPushSubscriptionError(error)) {
-        break;
-      }
-
+      if (isExpiredPushSubscriptionError(error)) break;
       if (!isRetryablePushError(error) || attempt === MAX_ATTEMPTS) break;
       await sleep(retryDelays[attempt - 1] ?? 1000);
     }
@@ -110,32 +101,40 @@ const sendPushToSubscription = async (
 
   const statusCode = getPushStatusCode(lastError);
   const expired = isExpiredPushSubscriptionError(lastError);
-  const safeError = expired
-    ? `Push endpoint expired (${statusCode})`
-    : statusCode
-      ? `Web Push failed (${statusCode})`
-      : 'Web Push failed';
+  const retryable = isRetryablePushError(lastError) && attempts < MAX_ATTEMPTS;
+  const safeError = expired ? `Push endpoint expired (${statusCode})` : statusCode ? `Web Push failed (${statusCode})` : 'Web Push failed';
   await prisma.$transaction([
     prisma.notificationDelivery.update({
-      data: {attempts, errorMessage: safeError, status: 'failed'},
+      data: {attempts, errorMessage: safeError, status: retryable ? 'retrying' : 'failed'},
       where: {id: delivery.id},
     }),
     prisma.pushSubscription.update({
-      data: {
-        failureCount: {increment: 1},
-        ...(expired ? {isActive: false} : {}),
-        lastError: safeError,
-        lastErrorAt: new Date(),
-      },
+      data: {failureCount: {increment: 1}, ...(expired ? {isActive: false} : {}), lastError: safeError, lastErrorAt: new Date()},
       where: {id: subscription.id},
     }),
   ]);
-  return {
-    expired,
-    ok: false,
-    statusCode,
-    subscriptionId: subscription.id,
-  };
+  return {expired, ok: false, statusCode, subscriptionId: subscription.id};
+};
+
+const sendPushToSubscription = async (
+  prisma,
+  subscription,
+  payload,
+  {sendNotification = webpush.sendNotification, retryDelays = [250, 750]} = {},
+) => {
+  const delivery = await createDelivery(prisma, subscription, payload);
+  return deliverPush(prisma, delivery, subscription, payload, {sendNotification, retryDelays});
+};
+
+const processQueuedPushDelivery = async (prisma, delivery, options = {}) => {
+  let payload;
+  try {
+    payload = JSON.parse(delivery.messageText);
+  } catch {
+    await prisma.notificationDelivery.update({data: {errorMessage: 'Invalid Web Push payload', status: 'failed'}, where: {id: delivery.id}});
+    return {ok: false, deliveryId: delivery.id};
+  }
+  return deliverPush(prisma, delivery, delivery.pushSubscription, payload, options);
 };
 
 const sendPushToUser = async (prisma, userId, payload, options) => {
@@ -158,6 +157,7 @@ module.exports = {
   isExpiredPushSubscriptionError,
   isRetryablePushError,
   isWebPushConfigured,
+  processQueuedPushDelivery,
   sendPushToSubscription,
   sendPushToUser,
 };

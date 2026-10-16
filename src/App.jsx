@@ -1428,6 +1428,36 @@ function App() {
     tasks,
   });
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const calendarEntryId = params.get("entry");
+    const taskId = params.get("task");
+    if (calendarEntryId && window.location.pathname === "/calendar") {
+      params.delete("entry");
+      const timer = window.setTimeout(() => {
+        setActivePage("calendar");
+        setAlertFocus({entityId: calendarEntryId, open: true, type: "calendar"});
+      }, 0);
+      const query = params.toString();
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+      return () => window.clearTimeout(timer);
+    } else if (taskId && window.location.pathname === "/operations") {
+      const task = tasks.find((item) => String(item.id) === String(taskId));
+      if (!task) return;
+      params.delete("task");
+      const timer = window.setTimeout(() => {
+        setActivePage("operations");
+        setAlertFocus({entityId: taskId, section: "tasks", type: "task"});
+        openEditTask(task);
+      }, 0);
+      const query = params.toString();
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+      return () => window.clearTimeout(timer);
+    } else {
+      return;
+    }
+  }, [openEditTask, setActivePage, tasks]);
+
   const {
     changeSupplyStock,
     handleSupplySubmit,

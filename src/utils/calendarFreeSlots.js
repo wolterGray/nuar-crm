@@ -1,4 +1,4 @@
-import {getEmployeeShiftForDate} from "./employeeAvailability.js";
+import {getEmployeeShiftForDate, isEmployeeAvailableOnDate} from "./employeeAvailability.js";
 
 const toMinutes = (time) => {
   const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
@@ -49,6 +49,15 @@ export const buildTodayFreeSlots = ({
   const freeSlots = [];
 
   employees.forEach((employee) => {
+    if (
+      employee?.archived ||
+      employee?.isArchived ||
+      employee?.status === "archived" ||
+      employee?.active === false ||
+      !isEmployeeAvailableOnDate(employee, today)
+    ) {
+      return;
+    }
     const master = employee.name;
     const shift = getEmployeeShiftForDate(employee, today, {
       end: appSettings.workdayEnd || "22:00",

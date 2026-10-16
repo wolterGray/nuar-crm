@@ -505,6 +505,31 @@ function MessageTemplatesPage({
     }
   };
 
+  // Quick copy directly from template list card
+  const handleQuickCopyTemplate = async (template, e) => {
+    e.stopPropagation();
+    const rawText =
+      template.translations?.[activeLanguage] ||
+      template.translations?.pl ||
+      template.translations?.ru ||
+      template.body ||
+      "";
+    if (!rawText.trim()) return;
+    const {text: rendered} = substituteVariables(rawText, effectiveContext);
+    try {
+      await navigator.clipboard.writeText(rendered);
+      onNotify?.({
+        title: "Текст скопирован",
+        message: `Шаблон «${template.name}» скопирован в буфер обмена`,
+      });
+    } catch {
+      onNotify?.({
+        title: "Ошибка",
+        message: "Разрешите доступ к буферу обмена браузера",
+      });
+    }
+  };
+
   // Open external channel
   const handleOpenChannel = (channel) => {
     if (!renderedPreviewText.trim()) return;
@@ -692,6 +717,15 @@ function MessageTemplatesPage({
                         );
                       })}
                     </div>
+                    <button
+                      type="button"
+                      className="template-item-quick-copy-btn"
+                      onClick={(e) => handleQuickCopyTemplate(template, e)}
+                      aria-label={`Скопировать шаблон ${template.name}`}
+                    >
+                      <AppIcon name="copy" size="xs" />
+                      <span>Копировать</span>
+                    </button>
                   </div>
                 </div>
               );

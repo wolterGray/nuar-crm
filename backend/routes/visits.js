@@ -5,6 +5,7 @@ const { requireOwner } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { upsertNotificationEvent } = require('../services/notificationEventsService');
+const {recordBusinessNotificationEvent} = require('../services/businessPushService');
 const {
   earnForCompletedVisit,
   getActorUserId,
@@ -26,7 +27,6 @@ const {
   respondWithAudit,
   auditCreate,
   auditUpdate,
-  auditDelete,
   cleanOptionalString,
   getRouteId,
   withStoredId,
@@ -72,13 +72,14 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
     const clientId = afterPayload.clientId || beforePayload.clientId || null;
 
     const isDeleted = !after;
-    const isCancelledStatus = after && ['cancelled', 'no_show'].includes(after.status) && !['cancelled', 'no_show'].includes(before?.status);
+    const cancelledStatuses = ['cancelled', 'canceled', 'no_show'];
+    const isCancelledStatus = after && cancelledStatuses.includes(after.status) && !cancelledStatuses.includes(before?.status);
 
     if (isDeleted || isCancelledStatus) {
       const date = before?.date || '';
       const time = before?.time || '';
       
-      await upsertNotificationEvent(prisma, {
+      await recordBusinessNotificationEvent(prisma, {
         clientId: clientId ? Number(clientId) : null,
         clientName,
         entityId: String(id),
@@ -92,7 +93,26 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
         message: `${clientName} · ${serviceName} · ${date} ${time} · Мастер: ${masterName}`,
         type: 'visit_cancelled',
         urgency: 15,
-      });
+      }, upsertNotificationEvent);
+      return;
+    }
+
+    if (!before && after && !['cancelled', 'canceled', 'no_show'].includes(after.status)) {
+      await recordBusinessNotificationEvent(prisma, {
+        clientId: clientId ? Number(clientId) : null,
+        clientName,
+        entityId: String(id),
+        entityType: 'calendar_entry',
+        fingerprint: `visit:${id}:created`,
+        payload: {date: after.date, time: after.time, clientName, serviceName, masterName},
+        priority: 'normal',
+        recommendedAction: 'open_calendar',
+        source: 'visit-tracker',
+        title: 'Новая запись',
+        message: `${clientName} · ${serviceName} · ${after.date || ''} ${after.time || ''}`,
+        type: 'visit_created',
+        urgency: 10,
+      }, upsertNotificationEvent);
       return;
     }
 
@@ -101,7 +121,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
       const timeChanged = before.time !== after.time;
 
       if (dateChanged || timeChanged) {
-        await upsertNotificationEvent(prisma, {
+        await recordBusinessNotificationEvent(prisma, {
           clientId: clientId ? Number(clientId) : null,
           clientName,
           entityId: String(id),
@@ -123,7 +143,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
           message: `${clientName} · Было: ${before.date} ${before.time} · Стало: ${after.date} ${after.time}`,
           type: 'visit_rescheduled',
           urgency: 10,
-        });
+        }, upsertNotificationEvent);
       }
     }
   } catch (error) {
@@ -458,15 +478,12 @@ router.put('/calendar-entries/:id', (req, res) => {
 router.delete('/calendar-entries/:id', requireOwner, async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
-  await auditDelete(
-    prisma,
+  const before = await prisma.calendarEntry.findUnique({where: {id}});
+  localRespondWithAudit(
     req,
     res,
-    'calendarEntry',
-    id,
-    prisma.calendarEntry.delete({ where: { id } }).then(withStoredId),
-    'CalendarEntry',
-    'delete/cancel visit',
+    prisma.calendarEntry.delete({where: {id}}).then(withStoredId),
+    {action: 'delete/cancel visit', after: null, before, entity: 'CalendarEntry', entityId: id},
   );
 });
 

@@ -55,6 +55,10 @@ function VisitsTable({
     if (!container) return undefined;
 
     const update = () => {
+      if (window.innerWidth <= 768) {
+        setAutoPageSize(12);
+        return;
+      }
       const h = container.clientHeight;
       if (h > 0) {
         const count = calculateDynamicPageSize(h, 35, 36, 5, 8);
@@ -67,6 +71,10 @@ function VisitsTable({
     let ro = null;
     if (typeof ResizeObserver !== "undefined") {
       ro = new ResizeObserver((entries) => {
+        if (window.innerWidth <= 768) {
+          setAutoPageSize(12);
+          return;
+        }
         for (const entry of entries) {
           const h = entry.contentRect.height;
           if (h > 0) {

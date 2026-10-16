@@ -1,12 +1,24 @@
 import {useCallback, useEffect, useState} from "react";
-import {sendTestPushNotification} from "../api/pushNotifications.js";
+import {
+  fetchPushPreferences,
+  sendTestPushNotification,
+  updatePushPreferences,
+} from "../api/pushNotifications.js";
 import {
   disableWebPush,
   enableWebPush,
   getCurrentPushState,
   isIosDevice,
 } from "../utils/webPush.js";
-import {AppIcon, Button} from "./ui/index.js";
+import {AppIcon, Button, Switch} from "./ui/index.js";
+
+const PREFERENCE_OPTIONS = [
+  {key: "pushNewVisits", label: "Новые записи"},
+  {key: "pushVisitCancelled", label: "Отмены"},
+  {key: "pushVisitRescheduled", label: "Переносы"},
+  {key: "pushImportantTasks", label: "Важные задачи на сегодня"},
+  {key: "pushOverdueTasks", label: "Просроченные важные задачи"},
+];
 
 const STATUS = {
   loading: {label: "Проверяем…", tone: "text-text-muted"},
@@ -20,6 +32,7 @@ const STATUS = {
 export default function PushNotificationsPanel({pushNotification}) {
   const [state, setState] = useState({state: "loading", reason: null});
   const [busy, setBusy] = useState("");
+  const [preferences, setPreferences] = useState(null);
 
   const refresh = useCallback(async () => {
     setState({state: "loading", reason: null});
@@ -43,6 +56,25 @@ export default function PushNotificationsPanel({pushNotification}) {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetchPushPreferences()
+      .then((next) => active && setPreferences(next))
+      .catch((error) => pushNotification?.({title: "Настройки Push", message: error.message, persist: false}));
+    return () => { active = false; };
+  }, [pushNotification]);
+
+  const changePreference = async (key, checked) => {
+    const previous = preferences;
+    setPreferences((current) => ({...current, [key]: checked}));
+    try {
+      setPreferences(await updatePushPreferences({[key]: checked}));
+    } catch (error) {
+      setPreferences(previous);
+      pushNotification?.({title: "Настройки Push", message: error.message, persist: false});
+    }
+  };
 
   const run = async (action, callback) => {
     setBusy(action);
@@ -144,6 +176,23 @@ export default function PushNotificationsPanel({pushNotification}) {
       ) : null}
       {isIosDevice() && state.state === "connected" ? (
         <p className="m-0 text-[11px] text-text-faint">Подключено для установленного приложения NUAR CRM на этом устройстве.</p>
+      ) : null}
+      {preferences ? (
+        <div className="border-t border-border-soft pt-2.5">
+          <p className="m-0 mb-2 text-xs font-semibold text-text-main">Какие события присылать</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2">
+            {PREFERENCE_OPTIONS.map((option) => (
+              <label key={option.key} className="flex min-h-8 items-center justify-between gap-3 text-xs text-text-muted cursor-pointer">
+                <span>{option.label}</span>
+                <Switch
+                  checked={preferences[option.key] === true}
+                  aria-label={option.label}
+                  onChange={(event) => changePreference(option.key, event.target.checked)}
+                />
+              </label>
+            ))}
+          </div>
+        </div>
       ) : null}
     </section>
   );

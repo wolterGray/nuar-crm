@@ -23,6 +23,14 @@ const request = async (path, options = {}) => {
 
 export const fetchPushConfig = () => request("/api/push/config");
 
+export const fetchPushPreferences = () => request("/api/push/preferences");
+
+export const updatePushPreferences = (preferences) =>
+  request("/api/push/preferences", {
+    method: "PUT",
+    body: JSON.stringify(preferences),
+  });
+
 export const fetchPushSubscriptionStatus = (endpoint) =>
   request("/api/push/subscription/status", {
     method: "POST",

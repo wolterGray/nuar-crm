@@ -166,7 +166,7 @@
     gap: 10px;
   }
 
-  :is(.mobile-page-container:not([data-mobile-page="calendar"]), .mobile-sheet, .modal, .dialog, .form-modal, .confirm-dialog, .client-search-dialog, form) :is(button, input, select, textarea) {
+  :is(.mobile-page-container:not([data-mobile-page="calendar"]), .mobile-sheet, .modal, .dialog, .form-modal, .confirm-dialog, .client-search-dialog, form) :is(button:not([role="checkbox"]):not(.operations-m-checkbox):not(.operations-linear-checkbox), input, select, textarea) {
     min-height: var(--mobile-touch-target);
     max-width: 100%;
     font-size: 16px !important;
@@ -228,11 +228,16 @@
   }
 
   .mobile-bottom-nav svg {
-    width: 20px !important;
-    height: 20px !important;
+    width: 19px !important;
+    height: 19px !important;
   }
 
-  .mobile-bottom-nav span {
+  .mobile-bottom-nav button > span {
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .mobile-bottom-nav .nuar-nav-label {
     max-width: 100% !important;
     overflow: hidden !important;
     font-size: 10px !important;

@@ -328,16 +328,24 @@ function ClientsPage({
   const {isMobile} = useBreakpoint();
 
   useEffect(() => {
+    if (isMobile) {
+      return undefined;
+    }
+
     const container = tableShellRef.current;
     if (!container) return undefined;
 
     const calculateCount = (height) => {
-      const HEADER_HEIGHT = isMobile ? 0 : 34;
-      const ROW_HEIGHT = isMobile ? 86 : 36;
+      const HEADER_HEIGHT = 34;
+      const ROW_HEIGHT = 36;
       return calculateDynamicPageSize(height, HEADER_HEIGHT, ROW_HEIGHT, 10, 8);
     };
 
     const update = () => {
+      if (window.innerWidth <= 768) {
+        setAutoPageSize(15);
+        return;
+      }
       const h = container.clientHeight;
       if (h > 0) {
         const count = calculateCount(h);
@@ -350,6 +358,10 @@ function ClientsPage({
     let ro = null;
     if (typeof ResizeObserver !== "undefined") {
       ro = new ResizeObserver((entries) => {
+        if (window.innerWidth <= 768) {
+          setAutoPageSize(15);
+          return;
+        }
         for (const entry of entries) {
           const h = entry.contentRect.height;
           if (h > 0) {
@@ -368,7 +380,7 @@ function ClientsPage({
     };
   }, [isMobile]);
 
-  const pageSize = autoPageSize;
+  const pageSize = isMobile ? 15 : autoPageSize;
 
   // Memoized event handlers for client rows
   const handleViewClient = useCallback((client, trigger = null) => {
@@ -710,31 +722,34 @@ function ClientsPage({
   const currentPage = Math.min(page, pageCount);
   const paginatedClients = filteredClients.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  const headerButtons = (
+    <div className="clients-page-actions">
+      <Button
+        aria-label="Анализ базы"
+        className="clients-page-quality-button"
+        leftIcon="barChart"
+        variant="secondary"
+        onClick={() => setShowQuality(!showQuality)}>
+        <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
+      </Button>
+      <Button
+        className="clients-page-add-button"
+        leftIcon="plus"
+        variant="primary"
+        onClick={onAddClient}>
+        {isMobile ? "Добавить" : "Добавить клиента"}
+      </Button>
+    </div>
+  );
+
   return (
     <section
       className="clients-page-shell flex flex-col h-full w-full min-h-0 overflow-hidden bg-background text-foreground"
       onClick={() => setOpenClientMenuId(null)}>
       <PageHeader
+        actions={isMobile ? headerButtons : null}
         className="clients-page-header"
-        headerActions={
-          <div className="clients-page-actions">
-              <Button
-                aria-label="Анализ базы"
-                className="clients-page-quality-button"
-                leftIcon="barChart"
-                variant="secondary"
-                onClick={() => setShowQuality(!showQuality)}>
-                <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
-              </Button>
-              <Button
-                className="clients-page-add-button"
-                leftIcon="plus"
-                variant="primary"
-                onClick={onAddClient}>
-                {isMobile ? "Добавить" : "Добавить клиента"}
-              </Button>
-          </div>
-        }
+        headerActions={isMobile ? null : headerButtons}
         title={
           <span className="clients-title-line">
             Клиенты <span className="clients-title-counter">({clients.length})</span>
@@ -914,6 +929,123 @@ function ClientsPage({
         <div className="clients-table-list">
           {paginatedClients.map((client) => {
             const needsContact = client.daysAbsent === null || client.daysAbsent >= inactiveClientDays;
+            if (isMobile) {
+              const hasLastVisit = client.lastVisit && client.lastVisit !== "—";
+              const isChurnRisk =
+                client.visitsCount > 0 &&
+                client.daysAbsent !== null &&
+                client.daysAbsent >= (inactiveClientDays || 30);
+              const showPhone = client.phone && client.phone !== client.name;
+              return (
+                <article
+                  className={`clients-m-card ${isFocusedClient(client) ? "animate-pulse ring-2 ring-accent" : ""}`}
+                  id={`alert-focus-client-${client.id}`}
+                  key={client.id}
+                  role="button"
+                  tabIndex="0"
+                  onClick={(event) => handleViewClient(client, event.currentTarget)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleViewClient(client, event.currentTarget);
+                    }
+                  }}>
+                  <div className="clients-m-head">
+                    <span className="client-avatar clients-m-avatar">
+                      {getClientInitials(client.name || client.phone)}
+                    </span>
+                    <div className="clients-m-identity">
+                      <div className="clients-m-name-row">
+                        <strong className="clients-m-name" title={client.name}>
+                          {client.name || client.phone || "Без имени"}
+                        </strong>
+                        {client.isVip ? (
+                          <span className="client-vip-tag">
+                            <AppIcon name="crown" size="xs" />
+                            VIP
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="clients-m-sub-row">
+                        <span
+                          className={`client-status-pill ${
+                            client.autoStatus === "Новый" ? "status-new" : "status-active"
+                          }`}>
+                          {client.autoStatus}
+                        </span>
+                        {showPhone ? <span className="clients-m-phone">{client.phone}</span> : null}
+                        {client.hasNote ? (
+                          <span className="clients-m-note" title="Есть заметка">
+                            <AppIcon name="fileText" size="xs" />
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="clients-m-menu" onClick={(e) => e.stopPropagation()}>
+                      <MemoizedClientRowActions
+                        client={client}
+                        handleAddToWaitlist={handleAddToWaitlist}
+                        handleMessageClient={handleMessageClient}
+                        onDeleteClient={onDeleteClient}
+                        onEditClient={onEditClient}
+                        openClientMenuId={openClientMenuId}
+                        setOpenClientMenuId={setOpenClientMenuId}
+                        setViewedClient={setViewedClient}
+                        setVisitHistoryTab={setVisitHistoryTab}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="clients-m-stats">
+                    <div className="clients-m-stat">
+                      <span>Визиты</span>
+                      <strong>
+                        {client.visitsCount}
+                        {client.packagesCount > 0 ? (
+                          <AppIcon className="clients-m-stat-icon" name="package" size="xs" />
+                        ) : null}
+                      </strong>
+                    </div>
+                    <div className="clients-m-stat">
+                      <span>Сумма</span>
+                      <strong>{formatMoney(client.totalIncome)}</strong>
+                    </div>
+                    <div className="clients-m-stat">
+                      <span>Последний визит</span>
+                      <strong className={isChurnRisk ? "is-warning" : ""}>
+                        {hasLastVisit ? client.lastVisit : "—"}
+                        {hasLastVisit && client.daysAbsent !== null ? (
+                          <small>{client.daysAbsent} дн.</small>
+                        ) : null}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="clients-m-actions" onClick={(event) => event.stopPropagation()}>
+                    <Button
+                      aria-label={`Написать ${client.name}`}
+                      className="client-action-write"
+                      leftIcon="message"
+                      size="sm"
+                      type="button"
+                      variant="secondary"
+                      onClick={() => handleMessageRow(client)}>
+                      Написать
+                    </Button>
+                    <Button
+                      aria-label={`Записать ${client.name}`}
+                      className="client-action-record"
+                      leftIcon="calendarPlus"
+                      size="sm"
+                      type="button"
+                      variant="primary"
+                      onClick={() => handleAddVisitRow(client)}>
+                      Запись
+                    </Button>
+                  </div>
+                </article>
+              );
+            }
             return (
               <div
                 className={`clients-table-item ${
@@ -963,12 +1095,24 @@ function ClientsPage({
 
                 {/* Mobile metadata tags */}
                 <div className="clients-mobile-meta md:hidden">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs font-medium">
-                    Визитов: {client.visitsCount}
-                  </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs font-medium">
-                    Не был: {client.daysAbsent === null ? "Новый" : `${client.daysAbsent} дн.`}
-                  </span>
+                  <div className="clients-mobile-stat">
+                    <span>Визиты</span>
+                    <strong>{client.visitsCount}</strong>
+                  </div>
+                  <div className="clients-mobile-stat">
+                    <span>Сумма</span>
+                    <strong>{formatMoney(client.totalIncome)}</strong>
+                  </div>
+                  <div className="clients-mobile-stat">
+                    <span>Последний визит</span>
+                    <strong>
+                      {client.lastVisit && client.lastVisit !== "—"
+                        ? client.lastVisit
+                        : client.daysAbsent === null
+                          ? "Новый"
+                          : `${client.daysAbsent} дн. назад`}
+                    </strong>
+                  </div>
                 </div>
 
                 {/* Desktop metadata columns */}

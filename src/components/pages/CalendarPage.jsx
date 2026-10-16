@@ -260,6 +260,7 @@ function CalendarPage({
   const [mobileWeekAnimation, setMobileWeekAnimation] = useState(null);
   const [scheduleViewportWidth, setScheduleViewportWidth] = useState(0);
   const schedulePanelRef = useRef(null);
+  const onEditRef = useRef(onEdit);
   const weekCarouselRef = useRef(null);
   const longPressRef = useRef(null);
   const mobileWeekSwipeRef = useRef(null);
@@ -274,6 +275,9 @@ function CalendarPage({
       activationConstraint: {delay: 320, tolerance: 8},
     }),
   );
+  useEffect(() => {
+    onEditRef.current = onEdit;
+  }, [onEdit]);
   const isFocusedEntry = (entryId) =>
     alertFocus?.type === "calendar" &&
     String(alertFocus.entityId) === String(entryId);
@@ -290,6 +294,10 @@ function CalendarPage({
     const setupTimer = window.setTimeout(() => {
       if (entry?.date) {
         setSelectedDate(normalizeCalendarEntryDate(entry.date));
+      }
+
+      if (entry && alertFocus.open) {
+        onEditRef.current?.(entry);
       }
 
       window.setTimeout(() => {

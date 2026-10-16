@@ -148,11 +148,16 @@ function TodayReferenceBoard({
     <section className="today-board">
       <header className="today-board-header">
         <div className="today-board-title">
-          <h1>Сегодня</h1>
-          <span>{formatTodayHeading(dashboard.today)}</span>
+          <div className="today-board-title-main">
+            <h1>Сегодня</h1>
+            <span>{formatTodayHeading(dashboard.today)}</span>
+          </div>
           <div className="today-date-controls">
             <IconButton icon="chevronLeft" label="Предыдущий день" size="sm" variant="ghost" onClick={() => onChangeDate(-1)} />
-            <input aria-label="Выбранная дата" type="date" value={selectedDate} onChange={(event) => onChangeDate(0, event.target.value)} />
+            <label className="today-date-picker-trigger" title="Выбрать дату">
+              <AppIcon className="today-date-picker-icon" name="calendarDays" size="sm" />
+              <input aria-label="Выбранная дата" type="date" value={selectedDate} onChange={(event) => onChangeDate(0, event.target.value)} />
+            </label>
             <IconButton icon="chevronRight" label="Следующий день" size="sm" variant="ghost" onClick={() => onChangeDate(1)} />
           </div>
         </div>
@@ -185,16 +190,16 @@ function TodayReferenceBoard({
           value={formatIncome(dashboard.snapshot.received)}
         />
         <TodayKpiCard
-          helper="сегодня"
+          helper={dashboard.freeSlots.length ? `окно в графике: ${dashboard.freeSlots.length}` : "свободных окон нет"}
           icon="clock"
-          label="Свободного времени"
+          label="Свободное время"
           tone="upcoming"
           value={formatDuration(freeMinutes)}
         />
         <TodayKpiCard
-          helper="требуют внимания"
+          helper={dashboard.actionItems.length ? "требуют внимания" : "всё под контролем"}
           icon="walletCards"
-          label="Проблемы"
+          label="Требует внимания"
           tone="debt"
           value={dashboard.actionItems.length}
           onClick={dashboard.actionItems.length ? () => openActionItem(dashboard.actionItems[0]) : undefined}
@@ -244,7 +249,7 @@ function TodayReferenceBoard({
                           {entry.client || "Без клиента"}
                         </strong>
                         <span>
-                          {entry.service || "Визит"} · {formatDuration(entry.duration || 60)}
+                          {entry.service || "Визит"}{entry.master ? ` · ${entry.master}` : ` · ${formatDuration(entry.duration || 60)}`}
                         </span>
                       </div>
                       <div className="today-visit-status">
@@ -351,7 +356,7 @@ function TodayReferenceBoard({
           <section className="today-panel today-side-panel today-grid-slots">
             <header className="today-panel-header">
               <h2>Свободные окна сегодня</h2>
-              <Button className="today-link-button" rightIcon="arrowRight" size="sm" variant="link" onClick={onOpenCalendar}>Все окна</Button>
+              <Button className="today-link-button" rightIcon="chevronRight" size="sm" variant="link" onClick={onOpenCalendar}>Все окна</Button>
             </header>
             <div className="today-side-list today-scroll-list">
               {dashboard.freeSlots.map((slot) => (
@@ -535,10 +540,19 @@ function TodayPage({
   const formatIncome = (value) =>
     Math.abs(Number(value) || 0) >= 1000 ? formatCompactMoney(value) : formatMoney(value);
 
-  const freeMinutes = dashboard.freeSlots.reduce(
-    (total, slot) => total + (Number(slot.durationMinutes) || 0),
-    0,
-  );
+  const freeMinutes = useMemo(() => {
+    const slots = selectedEmployees.length
+      ? dashboard.freeSlots.filter((slot) => selectedEmployees.includes(slot.master))
+      : dashboard.freeSlots;
+    if (!slots.length) return 0;
+    const totalMinutes = slots.reduce(
+      (total, slot) => total + (Number(slot.durationMinutes) || 0),
+      0,
+    );
+    const uniqueMastersCount =
+      new Set(slots.map((slot) => slot.master).filter(Boolean)).size || 1;
+    return Math.min(14 * 60, Math.round(totalMinutes / uniqueMastersCount));
+  }, [dashboard.freeSlots, selectedEmployees]);
 
   const changeDate = (offset, exactDate) => {
     if (exactDate) {

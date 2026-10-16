@@ -1,0 +1,130 @@
+const {isWebPushConfigured, processQueuedPushDelivery} = require('./webPushService');
+
+const EVENT_CONFIG = {
+  visit_created: {preference: 'pushNewVisits', title: 'Новая запись'},
+  visit_cancelled: {preference: 'pushVisitCancelled', title: 'Запись отменена'},
+  visit_rescheduled: {preference: 'pushVisitRescheduled', title: 'Запись перенесена'},
+  task_important_due: {preference: 'pushImportantTasks', title: 'Важная задача на сегодня'},
+  task_important_overdue: {preference: 'pushOverdueTasks', title: 'Важная задача просрочена'},
+};
+
+const cleanString = (value) => String(value ?? '').trim();
+
+const formatDateTime = (date, time) => [cleanString(date), cleanString(time)].filter(Boolean).join(' · ');
+
+const buildBusinessPushPayload = (event) => {
+  const config = EVENT_CONFIG[event?.type];
+  if (!config) return null;
+  const payload = event.payload && typeof event.payload === 'object' ? event.payload : {};
+
+  if (event.type === 'visit_rescheduled') {
+    return {
+      body: `Новое время: ${formatDateTime(payload.newDate, payload.newTime) || 'откройте календарь'}`,
+      tag: `nuar-${event.fingerprint}`,
+      title: config.title,
+      ttl: 3600,
+      type: event.type,
+      url: `/calendar?entry=${encodeURIComponent(event.entityId || '')}`,
+    };
+  }
+  if (event.type.startsWith('visit_')) {
+    return {
+      body: formatDateTime(payload.date, payload.time) || 'Откройте календарь, чтобы посмотреть запись',
+      tag: `nuar-${event.fingerprint}`,
+      title: config.title,
+      ttl: 3600,
+      type: event.type,
+      url: `/calendar?entry=${encodeURIComponent(event.entityId || '')}`,
+    };
+  }
+  return {
+    body: cleanString(event.message) || 'Откройте задачу, чтобы посмотреть детали',
+    tag: `nuar-${event.fingerprint}`,
+    title: config.title,
+    ttl: 3600,
+    type: event.type,
+    url: `/operations?task=${encodeURIComponent(event.entityId || '')}`,
+  };
+};
+
+const queueBusinessPushDeliveries = async (prisma, event) => {
+  const config = EVENT_CONFIG[event?.type];
+  const pushPayload = buildBusinessPushPayload(event);
+  if (!config || !pushPayload || !isWebPushConfigured()) return {queued: 0, skipped: true};
+
+  const owners = await prisma.user.findMany({
+    select: {
+      id: true,
+      [config.preference]: true,
+      pushSubscriptions: {select: {id: true}, where: {isActive: true}},
+    },
+    where: {isActive: true, role: 'owner', [config.preference]: true},
+  });
+  const deliveries = owners.flatMap((owner) => owner.pushSubscriptions.map((subscription) => ({
+    channel: 'web_push',
+    deduplicationKey: `web-push:event:${event.id}:subscription:${subscription.id}`,
+    messageText: JSON.stringify(pushPayload),
+    notificationEventId: event.id,
+    pushSubscriptionId: subscription.id,
+    recipient: `push-subscription:${subscription.id}`,
+    scheduledAt: new Date(),
+    status: 'pending',
+    templateKey: event.type,
+  })));
+  if (deliveries.length === 0) return {queued: 0};
+  const result = await prisma.notificationDelivery.createMany({data: deliveries, skipDuplicates: true});
+  return {queued: result.count};
+};
+
+const recordBusinessNotificationEvent = async (prisma, input, upsertNotificationEvent) => {
+  const event = await upsertNotificationEvent(prisma, input);
+  await queueBusinessPushDeliveries(prisma, event);
+  return event;
+};
+
+const processDueWebPushDeliveries = async (prisma, {limit = 50, sendNotification} = {}) => {
+  if (!isWebPushConfigured()) return {processed: 0, skipped: true, skippedReason: 'not_configured'};
+  const staleClaim = new Date(Date.now() - 5 * 60 * 1000);
+  const deliveries = await prisma.notificationDelivery.findMany({
+    include: {pushSubscription: true},
+    orderBy: {createdAt: 'asc'},
+    take: Math.max(1, Math.min(200, Number(limit) || 50)),
+    where: {
+      channel: 'web_push',
+      scheduledAt: {lte: new Date()},
+      OR: [
+        {status: {in: ['pending', 'retrying']}},
+        {status: 'processing', updatedAt: {lte: staleClaim}},
+      ],
+    },
+  });
+  let processed = 0;
+  for (const delivery of deliveries) {
+    const claim = await prisma.notificationDelivery.updateMany({
+      data: {status: 'processing'},
+      where: {
+        id: delivery.id,
+        OR: [
+          {status: {in: ['pending', 'retrying']}},
+          {status: 'processing', updatedAt: {lte: staleClaim}},
+        ],
+      },
+    });
+    if (claim.count !== 1) continue;
+    if (!delivery.pushSubscription?.isActive) {
+      await prisma.notificationDelivery.update({data: {status: 'failed', errorMessage: 'Push subscription inactive'}, where: {id: delivery.id}});
+      continue;
+    }
+    await processQueuedPushDelivery(prisma, delivery, {sendNotification});
+    processed += 1;
+  }
+  return {processed};
+};
+
+module.exports = {
+  EVENT_CONFIG,
+  buildBusinessPushPayload,
+  processDueWebPushDeliveries,
+  queueBusinessPushDeliveries,
+  recordBusinessNotificationEvent,
+};

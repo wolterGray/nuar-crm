@@ -2437,68 +2437,96 @@
 
 @media (max-width: 768px) {
   .mobile-bottom-nav {
-    height: var(--mobile-nav-total, calc(72px + env(safe-area-inset-bottom, 0px))) !important;
-    padding: 4px 8px var(--mobile-safe-bottom, env(safe-area-inset-bottom, 0px)) !important;
+    height: var(--mobile-nav-total, calc(68px + env(safe-area-inset-bottom, 0px))) !important;
+    padding: 4px 6px var(--mobile-safe-bottom, env(safe-area-inset-bottom, 0px)) !important;
     border-top: 1px solid var(--color-border) !important;
-    background: color-mix(in srgb, var(--color-page) 94%, transparent) !important;
+    background: color-mix(in srgb, var(--color-page) 96%, #090a0d 4%) !important;
+    backdrop-filter: blur(16px);
     box-shadow: var(--shadow-dropdown) !important;
+    align-items: center !important;
+    gap: 2px !important;
   }
 
   .mobile-bottom-nav button {
+    position: relative !important;
     display: flex !important;
+    flex-direction: column !important;
     flex: 1 1 0 !important;
     min-width: 0 !important;
-    height: var(--mobile-nav-height, 72px) !important;
-    min-height: 0 !important;
+    height: 58px !important;
+    min-height: 58px !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 5px !important;
-    padding: 6px 2px 8px !important;
+    gap: 4px !important;
+    padding: 6px 2px !important;
     border: 0 !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     background: transparent !important;
     color: var(--color-text-muted) !important;
     font-size: 10px !important;
+    overflow: visible !important;
   }
 
   .mobile-bottom-nav button.active {
     color: var(--color-primary) !important;
     font-weight: var(--font-weight-semibold) !important;
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
     box-shadow: none;
   }
 
   .mobile-bottom-nav svg {
-    width: 18px !important;
-    height: 18px !important;
+    width: 19px !important;
+    height: 19px !important;
     flex: 0 0 auto;
   }
 
-  .mobile-bottom-nav span {
-    max-width: 100%;
-    overflow: hidden;
-    font-size: 10px !important;
-    line-height: 1.05 !important;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .mobile-bottom-nav button > span {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
   }
 
   .mobile-bottom-nav .nuar-nav-label,
   .mobile-more-sheet-nav .nuar-nav-label {
-    display: block;
-    max-width: 100%;
+    display: block !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    font-size: 10px !important;
+    line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
-  .mobile-bottom-nav .nuar-nav-badge,
+  .mobile-bottom-nav .nuar-nav-badge {
+    position: absolute !important;
+    top: 4px !important;
+    left: calc(50% + 2px) !important;
+    z-index: 2 !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    padding: 0 4px !important;
+    font-size: 9px !important;
+    line-height: 1 !important;
+    box-shadow: 0 0 0 2px var(--color-page, #111317) !important;
+  }
+
   .mobile-more-sheet-nav .nuar-nav-badge {
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
+    position: absolute !important;
+    top: 6px !important;
+    right: 6px !important;
+    z-index: 2 !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    padding: 0 4px !important;
     font-size: 9px !important;
   }
 
   .mobile-more-sheet {
     right: var(--mobile-page-x, 16px) !important;
-    bottom: calc(var(--mobile-nav-total, calc(72px + env(safe-area-inset-bottom, 0px))) + 10px) !important;
+    bottom: calc(var(--mobile-nav-total, calc(68px + env(safe-area-inset-bottom, 0px))) + 10px) !important;
     left: var(--mobile-page-x, 16px) !important;
     z-index: 82 !important;
     max-height: min(58dvh, 430px) !important;
@@ -2549,6 +2577,7 @@
   }
 
   .mobile-more-sheet-nav button {
+    position: relative !important;
     display: grid !important;
     width: 100% !important;
     min-width: 0 !important;
@@ -2564,6 +2593,7 @@
     font-size: 10px !important;
     font-weight: 700 !important;
     line-height: 1.12 !important;
+    overflow: visible !important;
   }
 
   .mobile-more-sheet-nav button.active {
@@ -2750,15 +2780,19 @@
     justify-content: center;
   }
 
-  .mobile-page-container .operations-page-tabs {
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  .mobile-page-container .operations-page-tabs,
+  .mobile-page-container .operations-tabs-nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
 
-  .mobile-page-container .operations-page-tabs button {
-    min-width: 0 !important;
-    padding-inline: 6px !important;
-    font-size: 12px !important;
+  .mobile-page-container .operations-page-tabs button,
+  .mobile-page-container .operations-tabs-nav button {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
   }
 
   .mobile-page-container[data-mobile-page="services"] .services-page {
@@ -7002,11 +7036,11 @@
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
     min-height: 0 !important;
-    margin-inline: calc(var(--mobile-page-x, 16px) * -1) !important;
-    padding: 0 var(--mobile-page-x, 16px) !important;
+    margin-inline: 0 !important;
+    padding: 0 !important;
     overflow: visible !important;
     background: transparent !important;
   }
@@ -7083,16 +7117,27 @@
     min-width: 34px !important;
     min-height: 34px !important;
     padding: 0 !important;
-    border: 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 8px !important;
-    color: var(--color-text) !important;
-    background: transparent !important;
+    color: #e4e4e7 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
     box-shadow: none !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    position: relative !important;
+  }
+
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .client-alert-button svg,
+  .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .notification-trigger.client-alert-button svg {
+    width: 18px !important;
+    height: 18px !important;
+    color: #e4e4e7 !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-page-mobile .notification-trigger.client-alert-button > span {
-    top: 0 !important;
-    right: 0 !important;
+    position: absolute !important;
+    top: -4px !important;
+    right: -4px !important;
   }
 
   .mobile-page-container[data-mobile-page="operations"] .operations-page-tabs {
@@ -11524,6 +11569,12 @@
   flex-shrink: 0;
 }
 
+.operations-page .operations-week-controls-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .operations-page .operations-week-nav-group {
   display: inline-flex;
   align-items: center;
@@ -13544,6 +13595,56 @@
 }
 
 @media (max-width: 768px) {
+  .operations-page .operations-top-bar {
+    padding-bottom: 4px;
+  }
+
+  .operations-page .operations-top-title {
+    font-size: 20px;
+  }
+
+  .operations-page .operations-tabs-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    border-bottom: none;
+    margin-bottom: 8px;
+  }
+
+  .operations-page .operations-tabs-nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
+  }
+
+  .operations-page .operations-tabs-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .operations-page .operations-tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 8px 12px 10px;
+    font-size: 13px;
+  }
+
+  .operations-page .operations-tabs-right {
+    width: 100%;
+  }
+
+  .operations-page .operations-add-task-cta {
+    width: 100%;
+    min-height: 40px;
+    height: 40px;
+    justify-content: center;
+  }
+
   .operations-page .operations-main-tabs,
   .operations-page .operations-plan-mode {
     flex-wrap: nowrap;
@@ -13552,17 +13653,20 @@
   }
 
   .operations-page .operations-planner-panel {
-    padding: 10px 0 20px;
+    padding: 6px 0 20px;
+    gap: 10px;
   }
 
   .operations-page .operations-task-commandbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
     padding: 10px;
   }
 
   .operations-page .operations-week-switcher {
+    grid-column: 1 / -1;
     width: 100%;
     flex-direction: column;
     align-items: stretch;
@@ -13574,12 +13678,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 6px;
   }
 
   .operations-page .operations-week-info {
     width: auto;
     min-width: 0;
     flex: 1 1 auto;
+  }
+
+  .operations-page .operations-week-title-row {
+    flex-wrap: wrap;
+    gap: 4px 6px;
   }
 
   .operations-page .operations-week-title {
@@ -13594,19 +13704,102 @@
     flex: 1 1 auto !important;
   }
 
+  .operations-page .operations-week-today-btn.is-on-current {
+    display: none !important;
+  }
+
   .operations-page .operations-week-mode-toggle {
     width: 100%;
     display: flex;
+    min-width: 0;
   }
 
   .operations-page .operations-week-mode-btn {
     flex: 1;
     justify-content: center;
+    padding: 0 8px;
+    font-size: 12px;
   }
 
   .operations-page .operations-manage-tasks-btn {
     width: 100% !important;
+    padding: 0 10px !important;
+    font-size: 12.5px !important;
     justify-content: center !important;
+  }
+
+  .operations-page .operations-linear-main-line {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    padding: 10px 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .operations-page .operations-linear-left {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-linear-checkbox {
+    grid-row: auto !important;
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    max-height: 22px !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  .operations-page .operations-linear-time {
+    display: none !important;
+  }
+
+  .operations-page .operations-linear-category-tag {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    font-size: 10.5px !important;
+    padding: 2px 7px !important;
+    border-radius: 999px !important;
+  }
+
+  .operations-page .operations-linear-title-wrap {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-linear-title {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.35 !important;
+    font-size: 14.5px !important;
+    font-weight: 600 !important;
+    color: #f4f4f5 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .operations-page .operations-linear-right {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-linear-drag-handle {
+    display: none !important;
   }
 
   .operations-page .operations-task-actions,
@@ -15577,59 +15770,1347 @@ input[type="checkbox"].ui-checkbox:disabled,
 }
 
 @media (max-width: 768px) {
-  .payments-tabs-action-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .payments-tabs-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .payments-detail-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .payments-pagination-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-}
-
-@media (max-width: 480px) {
   .content.payments-content,
   .content.visits-content.payments-content {
-    padding: 6px 10px 8px !important;
+    display: block !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+
+  .payments-page.nuar-payments {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+
+  .payments-top-bar {
+    padding: 0 0 8px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .payments-top-title {
+    font-size: 22px !important;
+  }
+
+  .payments-tabs-action-bar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    border-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .payments-tabs-nav {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    width: 100% !important;
+    padding: 4px !important;
+    background: #161820 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 10px !important;
+  }
+
+  .payments-tab-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    min-width: 0 !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 4px !important;
+    border-radius: 7px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+  }
+
+  .payments-tab-icon {
+    flex: none !important;
+    width: 14px !important;
+    height: 14px !important;
+    opacity: 0.75;
+  }
+
+  .payments-tab-btn.is-active .payments-tab-icon {
+    opacity: 1;
+    color: #ef4444;
+  }
+
+  .payments-tab-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: clip;
+  }
+
+  .payments-tab-btn .payments-tab-badge {
+    flex: none !important;
+    margin-left: 0 !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    padding: 0 4px !important;
+    font-size: 10px !important;
+    line-height: 16px !important;
+  }
+
+  .payments-tab-btn.is-active {
+    background: rgba(239, 68, 68, 0.14) !important;
+    color: #ffffff !important;
+  }
+
+  .payments-tab-underline {
+    display: none !important;
   }
 
   .payments-tabs-actions {
-    flex-direction: column;
-    width: 100%;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    width: 100% !important;
   }
 
-  .payments-tabs-actions button {
-    width: 100%;
+  .payments-add-payment-cta {
+    width: 100% !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    font-size: 13.5px !important;
+    justify-content: center !important;
+  }
+
+  .payments-export-csv-btn {
+    width: auto !important;
+    min-width: 78px !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    padding: 0 12px !important;
+    font-size: 12.5px !important;
+    justify-content: center !important;
+  }
+
+  .payments-tab-content,
+  .payments-journal-container {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    gap: 10px !important;
+  }
+
+  .payments-filter-bar {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
   }
 
   .payments-search-wrap {
-    max-width: none;
-    min-width: 100%;
+    grid-column: 1 / -1 !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    width: 100% !important;
   }
 
-  .payments-select-wrap,
+  .payments-search-input,
+  .payments-filter-select,
   .payments-date-control-wrap,
   .payments-filter-toggle-btn {
-    width: 100%;
+    height: 40px !important;
+    min-height: 40px !important;
+    width: 100% !important;
+    font-size: 13px !important;
   }
 
-  .payments-filter-select {
-    width: 100%;
+  .payments-select-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .payments-search-icon {
+    left: 12px !important;
+    width: 15px !important;
+    height: 15px !important;
+    z-index: 1;
+  }
+
+  .payments-search-input {
+    padding-left: 36px !important;
+    padding-right: 34px !important;
+  }
+
+  .payments-filter-toggle-btn {
+    justify-content: center !important;
+  }
+
+  .payments-extra-filters-panel {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .payments-extra-filter-item {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .payments-extra-filter-actions {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .payments-table-wrap {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .payments-table,
+  .payments-table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .payments-table thead {
+    display: none !important;
+  }
+
+  .payments-table-row {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 10px !important;
+    background: #151821 !important;
+    overflow: hidden !important;
+  }
+
+  .payments-row-cell-wrap {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    border-bottom: 0 !important;
+  }
+
+  .payments-row-main-line {
+    display: grid !important;
+    /* date | master | price (fixed) | actions (fixed) — фиксированные колонки,
+       чтобы цена и кнопки были на одном месте во всех карточках */
+    grid-template-columns: auto minmax(0, 1fr) 96px 66px !important;
+    grid-template-areas:
+      "client client total actions"
+      "service service service service"
+      "metadate metamaster metapayment metapayment" !important;
+    align-items: center !important;
+    gap: 6px 8px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 12px !important;
+  }
+
+  .payments-col-client {
+    grid-area: client !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding-right: 0 !important;
+    font-size: 14.5px !important;
+    font-weight: 700 !important;
+    overflow: hidden !important;
+  }
+
+  .payments-col-client .payments-client-name {
+    display: block !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .payments-col-total {
+    grid-area: total !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-right: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    text-align: right !important;
+  }
+
+  .payments-total-amount {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .payments-col-total .payments-debt-badge {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 10.5px !important;
+  }
+
+  .payments-col-actions {
+    grid-area: actions !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 4px !important;
+  }
+
+  .payments-col-actions .payments-row-menu {
+    display: inline-flex !important;
+    margin: 0 !important;
+  }
+
+  .payments-col-actions button,
+  .payments-col-actions .payments-expand-btn,
+  .payments-col-actions .row-action-trigger {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    flex: none !important;
+  }
+
+  .payments-col-service {
+    grid-area: service !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-right: 0 !important;
+    font-size: 13px !important;
+    color: #d4d4d8 !important;
+    white-space: normal !important;
+    flex-wrap: wrap !important;
+  }
+
+  .payments-service-name {
+    white-space: normal !important;
+    overflow: visible !important;
+    line-height: 1.3 !important;
+  }
+
+  .payments-col-date {
+    grid-area: metadate !important;
+    width: auto !important;
+    font-size: 11.5px !important;
+    color: #a1a1aa !important;
+    padding-top: 4px !important;
+  }
+
+  .payments-col-master {
+    grid-area: metamaster !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 4px !important;
+    font-size: 11.5px !important;
+    color: #a1a1aa !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .payments-col-payment {
+    grid-area: metapayment !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 4px !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+
+  .payments-col-payment .payments-method-badge {
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .payments-col-payment .payments-method-badge span {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .payments-detail-panel {
+    margin: 0 10px 10px !important;
+    padding: 10px 12px !important;
   }
 
   .payments-detail-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
   }
+
+  .payments-pagination-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  /* Day Close & Quality panels on mobile */
+  .day-close-tab-panel,
+  .payments-quality-panel {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 12px !important;
+  }
+
+  .day-close-tab-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .day-close-tab-panel .day-close-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .day-close-tab-panel .day-close-inputs {
+    grid-template-columns: 1fr !important;
+  }
+
+  .payments-quality-list {
+    flex: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .payments-quality-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+}
+
+
+/* ============================================================
+   Работа (/operations) — mobile containment & layout fix
+   Причина переполнения: grid/flex-элементы с min-width:auto
+   растягивались по самому широкому ребёнку (лента дней,
+   переключатель недели), и вся страница уезжала вправо.
+   ============================================================ */
+/* ============================================================
+   Работа (/operations) — качественная мобильная адаптация
+   ============================================================ */
+@media (max-width: 768px) {
+  .operations-page {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    gap: 10px !important;
+  }
+
+  .operations-page .operations-top-bar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 2px 0 8px !important;
+  }
+
+  .operations-page .operations-top-title-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+  }
+
+  .operations-page .operations-top-title {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    color: #f4f4f5 !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  .operations-page .operations-top-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex: none !important;
+  }
+
+  .operations-page .operations-top-actions .page-header-actions {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .operations-page .operations-top-actions .client-alert-control {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+
+  .operations-page .notification-trigger.client-alert-button,
+  .operations-page .client-alert-button {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 9px !important;
+    color: #ffffff !important;
+    background: #1e202a !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    position: relative !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+  }
+
+  .operations-page .notification-trigger.client-alert-button svg,
+  .operations-page .client-alert-button svg {
+    width: 19px !important;
+    height: 19px !important;
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    stroke-width: 2 !important;
+    display: block !important;
+    margin: auto !important;
+  }
+
+  .operations-page .notification-trigger.client-alert-button > span[class*="badge"],
+  .operations-page .client-alert-button > span[class*="badge"],
+  .operations-page .notification-trigger.client-alert-button > span {
+    position: absolute !important;
+    top: -4px !important;
+    right: -4px !important;
+    z-index: 5 !important;
+  }
+
+  /* 1. Верхние вкладки разделов */
+  .operations-page .operations-tabs-action-bar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    margin-bottom: 0 !important;
+    border-bottom: 0 !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-tabs-nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 4px !important;
+    background: #161820 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .operations-page .operations-tabs-nav::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .operations-page .operations-tab-btn {
+    flex: 0 0 auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    min-width: fit-content !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 14px !important;
+    border-radius: 7px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #a1a1aa !important;
+    white-space: nowrap !important;
+    background: transparent !important;
+    border: 0 !important;
+    transition: background 120ms ease, color 120ms ease !important;
+  }
+
+  .operations-page .operations-tab-btn.is-active {
+    background: rgba(239, 68, 68, 0.18) !important;
+    color: #ef4444 !important;
+    box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.35) !important;
+  }
+
+  .operations-page .operations-tab-underline {
+    display: none !important;
+  }
+
+  /* Кнопка добавления задачи */
+  .operations-page .operations-tabs-right {
+    width: 100% !important;
+  }
+
+  .operations-page .operations-add-task-cta {
+    width: 100% !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    border-radius: 9px !important;
+    justify-content: center !important;
+  }
+
+  /* 2. Навигация по неделе */
+  .operations-page .operations-planner-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .operations-page .operations-task-commandbar {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    background: #151821 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .operations-page .operations-week-switcher {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-week-nav-group {
+    display: grid !important;
+    grid-template-columns: 32px minmax(0, 1fr) 32px !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-week-nav-btn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+  }
+
+  .operations-page .operations-week-info {
+    min-width: 0 !important;
+    text-align: center !important;
+  }
+
+  .operations-page .operations-week-title-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+
+  .operations-page .operations-week-title {
+    font-size: 14.5px !important;
+    font-weight: 700 !important;
+    color: #f4f4f5 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    margin: 0 !important;
+  }
+
+  .operations-page .operations-week-relative-tag {
+    flex: none !important;
+    font-size: 10.5px !important;
+    padding: 1px 6px !important;
+    border-radius: 999px !important;
+    background: rgba(34, 197, 94, 0.15) !important;
+    color: #86efac !important;
+    border: 1px solid rgba(34, 197, 94, 0.25) !important;
+  }
+
+  .operations-page .operations-week-today-btn {
+    width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    font-size: 12px !important;
+    justify-content: center !important;
+    border-radius: 7px !important;
+  }
+
+  /* Вторая строка: режим Будни/Вся + кнопка Шаблоны в ОДНУ аккуратную строку */
+  .operations-page .operations-week-controls-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-week-controls-row > .operations-week-mode-toggle {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2px !important;
+    padding: 2px !important;
+    height: 34px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 8px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .operations-page .operations-week-mode-btn {
+    min-width: 0 !important;
+    height: 28px !important;
+    padding: 0 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+  }
+
+  .operations-page .operations-week-controls-row > .operations-manage-tasks-btn {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    justify-content: center !important;
+    border-radius: 8px !important;
+    white-space: nowrap !important;
+  }
+
+  /* 3. Сводка недели */
+  .operations-page .operations-workday-summary {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 8px 12px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 10px !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 75px !important;
+    flex: 0 0 auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .operations-page .operations-summary-stats {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    font-size: 12px !important;
+    color: #a1a1aa !important;
+  }
+
+  .operations-page .operations-summary-stats strong {
+    color: #f4f4f5 !important;
+    font-weight: 700 !important;
+  }
+
+  .operations-page .operations-summary-stats span.is-alert strong,
+  .operations-page .operations-summary-stats span.is-alert {
+    color: #ef4444 !important;
+  }
+
+  .operations-page .operations-summary-progress-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-summary-progress {
+    flex: 1 1 auto !important;
+    height: 5px !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    overflow: hidden !important;
+  }
+
+  .operations-page .operations-summary-progress i {
+    display: block !important;
+    height: 100% !important;
+    border-radius: 999px !important;
+    background: #22c55e !important;
+  }
+
+  .operations-page .operations-summary-progress-wrap b {
+    font-size: 11.5px !important;
+    color: #a1a1aa !important;
+    min-width: 28px !important;
+    text-align: right !important;
+  }
+
+  /* 4. Поиск и фильтры */
+  .operations-page .operations-list-toolbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-task-search {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-task-search-input {
+    height: 38px !important;
+    min-height: 38px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+  }
+
+  .operations-page .operations-filter-summary {
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+    white-space: nowrap !important;
+  }
+
+  /* 5. Полоса дней недели (календарь) */
+  .operations-page .operations-mini-week-bar {
+    display: grid !important;
+    gap: 4px !important;
+    padding: 4px !important;
+    width: 100% !important;
+    background: #161820 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    margin: 2px 0 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  .operations-page .operations-mini-week-bar.mode-workweek {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+
+  .operations-page .operations-mini-week-bar.mode-fullweek {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  }
+
+  .operations-page .operations-mini-day-dropzone {
+    flex: initial !important;
+    min-width: 0 !important;
+  }
+
+  .operations-page .operations-mini-day-tab {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    padding: 4px 2px !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    transition: all 120ms ease !important;
+  }
+
+  .operations-page .operations-mini-day-weekday {
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    color: #71717a !important;
+    text-transform: uppercase !important;
+    line-height: 1 !important;
+  }
+
+  .operations-page .operations-mini-day-num {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #e4e4e7 !important;
+    line-height: 1.1 !important;
+  }
+
+  .operations-page .operations-mini-day-count-full {
+    display: none !important;
+  }
+
+  .operations-page .operations-mini-day-count-compact {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 15px !important;
+    height: 15px !important;
+    padding: 0 4px !important;
+    border-radius: 999px !important;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #a1a1aa !important;
+    line-height: 15px !important;
+  }
+
+  .operations-page .operations-mini-day-tab.is-selected {
+    background: rgba(239, 68, 68, 0.16) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+  }
+
+  .operations-page .operations-mini-day-tab.is-selected .operations-mini-day-num {
+    color: #ffffff !important;
+  }
+
+  .operations-page .operations-mini-day-tab.is-selected .operations-mini-day-weekday {
+    color: #ef4444 !important;
+  }
+
+  .operations-page .operations-mini-day-tab.is-selected .operations-mini-day-count-compact {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+  }
+
+  /* 6. Заголовок выбранного дня */
+  .operations-page .operations-day-focus-header {
+    padding: 6px 0 8px !important;
+  }
+
+  .operations-page .operations-day-focus-title-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-day-focus-title {
+    font-size: 15.5px !important;
+    font-weight: 700 !important;
+    color: #f4f4f5 !important;
+    margin: 0 !important;
+  }
+
+  .operations-page .operations-day-today-pill {
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    padding: 2px 7px !important;
+    border-radius: 999px !important;
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #ef4444 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  }
+
+  .operations-page .operations-day-meta-badge {
+    font-size: 11px !important;
+    color: #a1a1aa !important;
+    padding: 2px 7px !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    margin-left: auto !important;
+  }
+
+  /* 7. Список и карточки задач */
+  .operations-page .operations-day-focus-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding-bottom: 95px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-linear-row {
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: #151821 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    transition: background 150ms ease, border-color 150ms ease !important;
+  }
+
+  .operations-page .operations-linear-row:active {
+    background: #181c26 !important;
+  }
+
+  .operations-page .operations-linear-row.is-completed {
+    opacity: 0.7 !important;
+  }
+
+  /* Мобильная структура карточки: 3 уровня */
+  .operations-page .operations-m-task-card {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 10px 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  /* Строка 1: Чекбокс, бейджи слева, меню ··· справа */
+  .operations-page .operations-m-task-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .operations-page .operations-m-task-top-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    min-width: 0 !important;
+    flex-wrap: wrap !important;
+  }
+
+  .operations-page .operations-m-task-top-right {
+    display: flex !important;
+    align-items: center !important;
+    flex: none !important;
+  }
+
+  .operations-page .operations-m-checkbox,
+  .operations-page .operations-linear-checkbox {
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    max-width: 22px !important;
+    min-height: 22px !important;
+    max-height: 22px !important;
+    flex: 0 0 22px !important;
+    flex-shrink: 0 !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #ffffff !important;
+    box-sizing: border-box !important;
+    align-self: center !important;
+    line-height: 1 !important;
+    transition: all 120ms ease !important;
+  }
+
+  .operations-page .operations-m-checkbox.is-checked,
+  .operations-page .operations-linear-checkbox.is-checked {
+    background: #22c55e !important;
+    border-color: #22c55e !important;
+    color: #ffffff !important;
+  }
+
+  .operations-page .operations-linear-checklist-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #a1a1aa !important;
+  }
+
+  .operations-page .operations-linear-checklist-badge.is-complete {
+    background: rgba(34, 197, 94, 0.15) !important;
+    color: #86efac !important;
+  }
+
+  .operations-page .operations-linear-priority-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    border-radius: 6px !important;
+    background: rgba(239, 68, 68, 0.16) !important;
+    color: #ef4444 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+  }
+
+  .operations-page .operations-linear-overdue-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    border-radius: 6px !important;
+    background: rgba(239, 68, 68, 0.16) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  }
+
+  .operations-page .operations-row-actions button,
+  .operations-page .operations-linear-right button {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 0 !important;
+  }
+
+  /* Строка 2: Название задачи на ВСЮ ширину */
+  .operations-page .operations-m-task-body {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 6px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .operations-page .operations-linear-primary-star {
+    font-size: 13.5px !important;
+    color: #f59e0b !important;
+    flex: none !important;
+    line-height: 1 !important;
+  }
+
+  .operations-page .operations-m-task-title {
+    font-size: 14.5px !important;
+    font-weight: 600 !important;
+    color: #f4f4f5 !important;
+    line-height: 1.35 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    text-align: left !important;
+  }
+
+  .operations-page .operations-linear-row.is-completed .operations-m-task-title {
+    text-decoration: line-through !important;
+    color: #71717a !important;
+  }
+
+  /* Строка 3: Метаданные (категория, время, исполнитель) */
+  .operations-page .operations-m-task-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin-top: 2px !important;
+  }
+
+  .operations-page .operations-linear-category-tag {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    padding: 2px 7px !important;
+    border-radius: 999px !important;
+    line-height: 1.2 !important;
+  }
+
+  .operations-page .operations-m-task-time {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: #a1a1aa !important;
+    padding: 2px 6px !important;
+    border-radius: 6px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .operations-page .operations-linear-assignee-tag {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 11px !important;
+    color: #94a3b8 !important;
+    padding: 1px 4px !important;
+  }
+
+  /* Раскрывающийся блок деталей */
+  .operations-page .operations-linear-drawer {
+    padding: 10px 12px 12px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .operations-page .operations-linear-drawer-checklist {
+    margin-top: 8px !important;
+  }
+
+  .operations-page .operations-linear-drawer-check-item {
+    padding: 6px 0 !important;
+    font-size: 13px !important;
+  }
+
+  .operations-page .operations-linear-drawer-footer {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+  }
+
+  .operations-page .operations-linear-drawer-meta {
+    font-size: 11.5px !important;
+    color: #71717a !important;
+  }
+
+  .operations-page .operations-linear-drawer-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* Operations mobile command center: one compact, predictable vertical flow. */
+@media (max-width: 768px) {
+  .operations-page.operations-workspace {
+    gap: 9px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: clip !important;
+  }
+  .operations-page .operations-task-commandbar {
+    gap: 6px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+  .operations-page .operations-week-switcher { gap: 5px !important; }
+  .operations-page .operations-week-nav-group {
+    grid-template-columns: 34px minmax(0, 1fr) 34px !important;
+    gap: 6px !important;
+  }
+  .operations-page .operations-week-nav-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+  }
+  .operations-page .operations-week-info {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+  .operations-page .operations-week-title-row { gap: 5px !important; }
+  .operations-page .operations-week-title { font-size: 13.5px !important; }
+  .operations-page .operations-week-controls-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 6px !important;
+  }
+  .operations-page .operations-week-controls-row > .operations-week-mode-toggle,
+  .operations-page .operations-week-controls-row > .operations-manage-tasks-btn {
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    box-sizing: border-box !important;
+  }
+  .operations-page .operations-week-controls-row > .operations-week-mode-toggle { overflow: hidden !important; }
+  .operations-page .operations-week-mode-btn {
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+  }
+  .operations-page .operations-week-controls-row > .operations-manage-tasks-btn { padding-inline: 10px !important; }
+  .operations-page .operations-workday-summary {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 72px !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 48px !important;
+    height: 48px !important;
+    max-height: 48px !important;
+    padding: 7px 10px !important;
+  }
+  .operations-page .operations-summary-stats {
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    font-size: 11.5px !important;
+    overflow: hidden !important;
+  }
+  .operations-page .operations-summary-stats span { min-width: 0 !important; }
+  .operations-page .operations-summary-progress-wrap {
+    gap: 6px !important;
+    min-width: 0 !important;
+    width: 72px !important;
+  }
+  .operations-page .operations-summary-progress {
+    flex: 1 1 auto !important;
+    flex-basis: auto !important;
+    order: initial !important;
+    width: auto !important;
+    min-width: 0 !important;
+  }
+  .operations-page .operations-summary-progress-wrap b { min-width: 25px !important; }
+  .operations-page .operations-list-toolbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+  }
+  .operations-page .operations-filter-menu,
+  .operations-page .operations-filter-summary {
+    width: auto !important;
+    min-width: 96px !important;
+    margin: 0 !important;
+  }
+  .operations-page .operations-filter-menu { grid-column: auto !important; }
+  .operations-page .operations-filter-summary {
+    justify-content: center !important;
+    padding-inline: 10px !important;
+  }
+  .operations-page .operations-mini-week-bar { margin: 0 0 4px !important; }
 }

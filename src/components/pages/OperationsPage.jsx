@@ -181,14 +181,23 @@ const formatDayFullTitle = (date) => {
 
 const WEEKDAY_SHORT_LABELS = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
 
-const formatTaskCountRu = (count) => {
-  if (count === 0) return "Нет задач";
+const formatTaskNounRu = (count) => {
   const mod10 = count % 10;
   const mod100 = count % 100;
-  if (mod100 >= 11 && mod100 <= 19) return `${count} задач`;
-  if (mod10 === 1) return `${count} задача`;
-  if (mod10 >= 2 && mod10 <= 4) return `${count} задачи`;
-  return `${count} задач`;
+  if (mod100 >= 11 && mod100 <= 19) return "задач";
+  if (mod10 === 1) return "задача";
+  if (mod10 >= 2 && mod10 <= 4) return "задачи";
+  return "задач";
+};
+
+const formatTaskCountRu = (count) => {
+  if (count === 0) return "Нет задач";
+  return `${count} ${formatTaskNounRu(count)}`;
+};
+
+const formatCompactWeekRange = (start, end) => {
+  const full = formatHumanWeekRange(start, end);
+  return full.replace(/\s*\d{4}\b/, "").trim();
 };
 
 function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
@@ -217,7 +226,10 @@ function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
       >
         <span className="operations-mini-day-weekday">{weekdayShort}</span>
         <span className="operations-mini-day-num">{dayOfMonth}</span>
-        <span className="operations-mini-day-task-count">{taskCountText}</span>
+        <span className="operations-mini-day-task-count">
+          <span className="operations-mini-day-count-full">{taskCountText}</span>
+          <span className="operations-mini-day-count-compact">{totalCount > 0 ? totalCount : "—"}</span>
+        </span>
       </button>
     </div>
   );
@@ -225,6 +237,7 @@ function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
 
 function HorizontalDayTaskCard({
   dragHandleProps,
+  isMobile = false,
   nowTime,
   onComplete,
   onDelete,
@@ -239,6 +252,8 @@ function HorizontalDayTaskCard({
   today,
 }) {
   const [expanded, setExpanded] = useState(false);
+  const {isMobile: isMobileViewport} = useBreakpoint();
+  const isMobileEffective = Boolean(isMobile || isMobileViewport);
   const taskDueDate = getTaskDueDate(task);
   const isDone = isTaskCompleted(task);
   const isPrimary = isTaskMainOnDate(task, taskDueDate);
@@ -261,6 +276,25 @@ function HorizontalDayTaskCard({
   const doneChecklistCount = visibleChecklist.filter((item) => item.done).length;
   const totalChecklistCount = visibleChecklist.length;
 
+  const rowMenuActions = [
+    {
+      icon: "calendar",
+      label: "Перенести",
+      onClick: () => onMove(task),
+    },
+    {
+      disabled: !taskDueDate,
+      icon: "star",
+      label: "Главная",
+      onClick: () => onMain(task),
+    },
+    {
+      icon: isDone ? "rotateCcw" : "check",
+      label: isDone ? "Вернуть" : "Завершить",
+      onClick: () => onComplete(task),
+    },
+  ];
+
   return (
     <article
       className={[
@@ -271,137 +305,216 @@ function HorizontalDayTaskCard({
         isPrimary ? "is-main" : "",
         isLate && !isDone ? "is-overdue" : "",
         expanded ? "is-expanded" : "",
+        isMobileEffective ? "is-mobile-row" : "",
       ].filter(Boolean).join(" ")}
     >
-      <div
-        className="operations-linear-main-line"
-        role="button"
-        tabIndex={0}
-        onClick={() => setExpanded((prev) => !prev)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setExpanded((prev) => !prev);
-          }
-        }}
-      >
-        <div className="operations-linear-left">
-          <button
-            type="button"
-            role="checkbox"
-            aria-checked={isDone}
-            aria-label={isDone ? "Вернуть задачу" : "Завершить задачу"}
-            className={`operations-linear-checkbox ${isDone ? "is-checked" : ""}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onComplete(task);
-            }}
-          >
-            {isDone ? <AppIcon name="check" size="xs" /> : null}
-          </button>
+      {isMobileEffective ? (
+        <div
+          className="operations-m-task-card"
+          role="button"
+          tabIndex={0}
+          onClick={() => setExpanded((prev) => !prev)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setExpanded((prev) => !prev);
+            }
+          }}
+        >
+          {/* 1. Верхняя строка: Чекбокс, Статус/индикатор прогресса, Просрочено, Меню ··· */}
+          <div className="operations-m-task-top">
+            <div className="operations-m-task-top-left">
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={isDone}
+                aria-label={isDone ? "Вернуть задачу" : "Завершить задачу"}
+                className={`operations-m-checkbox ${isDone ? "is-checked" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onComplete(task);
+                }}
+              >
+                {isDone ? <AppIcon name="check" size="xs" /> : null}
+              </button>
 
-          {timeRangeText && timeRangeText !== "Без времени" ? (
-            <span className="operations-linear-time" title={`Время: ${timeRangeText}`}>
-              {timeRangeText}
-            </span>
-          ) : (
-            <span className="operations-linear-time is-empty">—</span>
-          )}
+              {totalChecklistCount > 0 ? (
+                <span
+                  className={`operations-linear-checklist-badge ${doneChecklistCount === totalChecklistCount ? "is-complete" : ""}`}
+                  title={`Чек-лист: ${doneChecklistCount}/${totalChecklistCount}`}
+                >
+                  <AppIcon name="list" size="xs" />
+                  <span>{doneChecklistCount}/{totalChecklistCount}</span>
+                </span>
+              ) : null}
 
-          <span className={`operations-linear-category-tag area-pill-${areaId}`} title={`Категория: ${areaLabel}`}>
-            {areaLabel}
-          </span>
+              {isHighPriority ? (
+                <span className="operations-linear-priority-badge">Срочно</span>
+              ) : null}
 
-          <div className="operations-linear-title-wrap">
-            {isHighPriority ? (
-              <span className="operations-linear-priority-dot" title="Срочная задача" />
-            ) : null}
+              {isLate && !isDone ? (
+                <span className="operations-linear-overdue-badge">Просрочено</span>
+              ) : null}
+            </div>
+
+            <div className="operations-m-task-top-right" onClick={(e) => e.stopPropagation()}>
+              <RowActionsMenu
+                className="operations-row-actions"
+                extraActions={rowMenuActions}
+                itemId={`htask-${task.id}`}
+                openMenuId={openMenuId}
+                setOpenMenuId={setOpenMenuId}
+                onDelete={() => onDelete(task)}
+                onEdit={() => onEdit(task)}
+                onView={() => onView(task)}
+              />
+            </div>
+          </div>
+
+          {/* 2. Основная часть: Название задачи на ВСЮ доступную ширину */}
+          <div className="operations-m-task-body">
             {isPrimary ? (
               <span className="operations-linear-primary-star" title="Главная задача дня">★</span>
             ) : null}
-            <span className="operations-linear-title">{task.title}</span>
-            {rawAssignee ? (
-              <span className="operations-linear-assignee-tag" title={`Исполнитель: ${rawAssignee}`}>
-                @{rawAssignee}
+            <span className="operations-m-task-title">{task.title}</span>
+          </div>
+
+          {/* 3. Дополнительная информация: только существующие данные */}
+          {(areaLabel || (timeRangeText && timeRangeText !== "Без времени") || rawAssignee) ? (
+            <div className="operations-m-task-meta">
+              {areaLabel ? (
+                <span className={`operations-linear-category-tag area-pill-${areaId}`} title={`Категория: ${areaLabel}`}>
+                  {areaLabel}
+                </span>
+              ) : null}
+              {timeRangeText && timeRangeText !== "Без времени" ? (
+                <span className="operations-m-task-time">
+                  <AppIcon name="clock" size="xs" />
+                  <span>{timeRangeText}</span>
+                </span>
+              ) : null}
+              {rawAssignee ? (
+                <span className="operations-linear-assignee-tag">
+                  @{rawAssignee}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div
+          className="operations-linear-main-line"
+          role="button"
+          tabIndex={0}
+          onClick={() => setExpanded((prev) => !prev)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setExpanded((prev) => !prev);
+            }
+          }}
+        >
+          <div className="operations-linear-left">
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked={isDone}
+              aria-label={isDone ? "Вернуть задачу" : "Завершить задачу"}
+              className={`operations-linear-checkbox ${isDone ? "is-checked" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onComplete(task);
+              }}
+            >
+              {isDone ? <AppIcon name="check" size="xs" /> : null}
+            </button>
+
+            {timeRangeText && timeRangeText !== "Без времени" ? (
+              <span className="operations-linear-time" title={`Время: ${timeRangeText}`}>
+                {timeRangeText}
+              </span>
+            ) : (
+              <span className="operations-linear-time is-empty">—</span>
+            )}
+
+            <span className={`operations-linear-category-tag area-pill-${areaId}`} title={`Категория: ${areaLabel}`}>
+              {areaLabel}
+            </span>
+
+            <div className="operations-linear-title-wrap">
+              {isHighPriority ? (
+                <span className="operations-linear-priority-dot" title="Срочная задача" />
+              ) : null}
+              {isPrimary ? (
+                <span className="operations-linear-primary-star" title="Главная задача дня">★</span>
+              ) : null}
+              <span className="operations-linear-title">{task.title}</span>
+              {rawAssignee ? (
+                <span className="operations-linear-assignee-tag" title={`Исполнитель: ${rawAssignee}`}>
+                  @{rawAssignee}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="operations-linear-right">
+            {totalChecklistCount > 0 ? (
+              <span
+                className={`operations-linear-checklist-badge ${doneChecklistCount === totalChecklistCount ? "is-complete" : ""}`}
+                title={`Чек-лист: ${doneChecklistCount}/${totalChecklistCount}`}
+              >
+                <AppIcon name="list" size="xs" />
+                <span>{doneChecklistCount}/{totalChecklistCount}</span>
               </span>
             ) : null}
-          </div>
-        </div>
 
-        <div className="operations-linear-right">
-          {totalChecklistCount > 0 ? (
-            <span
-              className={`operations-linear-checklist-badge ${doneChecklistCount === totalChecklistCount ? "is-complete" : ""}`}
-              title={`Чек-лист: ${doneChecklistCount}/${totalChecklistCount}`}
-            >
-              <AppIcon name="list" size="xs" />
-              <span>{doneChecklistCount}/{totalChecklistCount}</span>
-            </span>
-          ) : null}
+            {isHighPriority ? (
+              <span className="operations-linear-priority-badge">Срочно</span>
+            ) : null}
 
-          {isHighPriority ? (
-            <span className="operations-linear-priority-badge">Срочно</span>
-          ) : null}
+            {isLate && !isDone ? (
+              <span className="operations-linear-overdue-badge">Просрочено</span>
+            ) : null}
 
-          {isLate && !isDone ? (
-            <span className="operations-linear-overdue-badge">Просрочено</span>
-          ) : null}
+            {dragHandleProps ? (
+              <button
+                aria-label="Перетащить на другой день"
+                className="operations-linear-drag-handle"
+                type="button"
+                onClick={(e) => e.stopPropagation()}
+                {...dragHandleProps}
+              >
+                <AppIcon name="grip" size="xs" />
+              </button>
+            ) : null}
 
-          {dragHandleProps ? (
             <button
-              aria-label="Перетащить на другой день"
-              className="operations-linear-drag-handle"
               type="button"
-              onClick={(e) => e.stopPropagation()}
-              {...dragHandleProps}
+              className="operations-linear-chevron-btn"
+              aria-label={expanded ? "Свернуть" : "Развернуть"}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded((prev) => !prev);
+              }}
             >
-              <AppIcon name="grip" size="xs" />
+              <AppIcon name={expanded ? "chevronUp" : "chevronDown"} size="xs" />
             </button>
-          ) : null}
 
-          <button
-            type="button"
-            className="operations-linear-chevron-btn"
-            aria-label={expanded ? "Свернуть" : "Развернуть"}
-            onClick={(e) => {
-              e.stopPropagation();
-              setExpanded((prev) => !prev);
-            }}
-          >
-            <AppIcon name={expanded ? "chevronUp" : "chevronDown"} size="xs" />
-          </button>
-
-          <div onClick={(e) => e.stopPropagation()}>
-            <RowActionsMenu
-              className="operations-row-actions"
-              extraActions={[
-                {
-                  icon: "calendar",
-                  label: "Перенести",
-                  onClick: () => onMove(task),
-                },
-                {
-                  disabled: !taskDueDate,
-                  icon: "star",
-                  label: "Главная",
-                  onClick: () => onMain(task),
-                },
-                {
-                  icon: isDone ? "rotateCcw" : "check",
-                  label: isDone ? "Вернуть" : "Завершить",
-                  onClick: () => onComplete(task),
-                },
-              ]}
-              itemId={`htask-${task.id}`}
-              openMenuId={openMenuId}
-              setOpenMenuId={setOpenMenuId}
-              onDelete={() => onDelete(task)}
-              onEdit={() => onEdit(task)}
-              onView={() => onView(task)}
-            />
+            <div onClick={(e) => e.stopPropagation()}>
+              <RowActionsMenu
+                className="operations-row-actions"
+                extraActions={rowMenuActions}
+                itemId={`htask-${task.id}`}
+                openMenuId={openMenuId}
+                setOpenMenuId={setOpenMenuId}
+                onDelete={() => onDelete(task)}
+                onEdit={() => onEdit(task)}
+                onView={() => onView(task)}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {expanded ? (
         <div className="operations-linear-drawer">
@@ -1063,7 +1176,19 @@ function OperationsPage({
     onCompleteTask?.(task);
   };
 
+  const tabsNavRef = useRef(null);
+
+  useEffect(() => {
+    if (isMobile && tabsNavRef.current) {
+      const activeBtn = tabsNavRef.current.querySelector(".is-active");
+      if (activeBtn) {
+        activeBtn.scrollIntoView({behavior: "smooth", block: "nearest", inline: "center"});
+      }
+    }
+  }, [activeTab, isMobile]);
+
   const cardProps = {
+    isMobile,
     nowTime,
     onComplete: handleTaskCompletionRequest,
     onDelete: onDeleteTask,
@@ -1130,7 +1255,7 @@ function OperationsPage({
 
       {!isTemplateManager ? (
         <div className="operations-tabs-action-bar">
-          <nav aria-label="Разделы работы" className="operations-tabs-nav">
+          <nav aria-label="Разделы работы" className="operations-tabs-nav" ref={tabsNavRef}>
             <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>
               Задачи
             </SegmentButton>
@@ -1141,10 +1266,10 @@ function OperationsPage({
               Заметки
             </SegmentButton>
             <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>
-              Расходники
+              {isMobile ? "Склад" : "Расходники"}
             </SegmentButton>
             <SegmentButton active={activeTab === "waitlist"} onClick={() => setActiveTab("waitlist")}>
-              Лист ожидания
+              {isMobile ? "Очередь" : "Лист ожидания"}
             </SegmentButton>
           </nav>
           {activeTab === "plan" ? <div className="operations-tabs-right">
@@ -1212,9 +1337,11 @@ function OperationsPage({
                     />
                     <div className="operations-week-info">
                       <div className="operations-week-title-row">
-                        <h2 className="operations-week-title">{formatHumanWeekRange(weekStart, weekEnd)}</h2>
+                        <h2 className="operations-week-title">
+                          {isMobile ? formatCompactWeekRange(weekStart, weekEnd) : formatHumanWeekRange(weekStart, weekEnd)}
+                        </h2>
                         <span className={`operations-week-relative-tag ${isCurrentWeek ? "is-current" : ""}`}>
-                          {isCurrentWeek ? "Текущая неделя" : getWeekRelativeLabel(weekStart, today)}
+                          {isCurrentWeek ? (isMobile ? "Текущая" : "Текущая неделя") : getWeekRelativeLabel(weekStart, today)}
                         </span>
                       </div>
                     </div>
@@ -1228,45 +1355,49 @@ function OperationsPage({
                     />
                   </div>
 
+                  {!isCurrentWeek ? (
+                    <Button
+                      className="operations-week-today-btn is-jump-current"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => changeWeek(0)}
+                    >
+                      {isMobile ? "← К текущей" : "← К текущей неделе"}
+                    </Button>
+                  ) : null}
+                </div>
+
+                <div className="operations-week-controls-row">
+                  <div className="operations-week-mode-toggle" role="group" aria-label="Режим отображения недели">
+                    <button
+                      type="button"
+                      className={`operations-week-mode-btn ${weekViewMode === "workweek" ? "is-active" : ""}`}
+                      onClick={() => handleToggleWeekViewMode("workweek")}
+                    >
+                      Будни (5)
+                    </button>
+                    <button
+                      type="button"
+                      className={`operations-week-mode-btn ${weekViewMode === "fullweek" ? "is-active" : ""}`}
+                      onClick={() => handleToggleWeekViewMode("fullweek")}
+                    >
+                      {isMobile ? "Вся (7)" : "Вся неделя (7)"}
+                      {weekendTaskCount > 0 && weekViewMode === "workweek" ? (
+                        <span className="operations-weekend-dot" title={`${weekendTaskCount} задач на выходных`} />
+                      ) : null}
+                    </button>
+                  </div>
+
                   <Button
-                    className={`operations-week-today-btn ${isCurrentWeek ? "is-on-current" : "is-jump-current"}`}
+                    className="operations-manage-tasks-btn"
+                    leftIcon="settings"
                     size="sm"
-                    variant={isCurrentWeek ? "secondary" : "primary"}
-                    onClick={() => changeWeek(0)}
+                    variant="secondary"
+                    onClick={() => setPlanMode("templates")}
                   >
-                    {isCurrentWeek ? "Текущая неделя" : "← К текущей неделе"}
+                    {isMobile ? "Шаблоны" : "Управление задачами"}
                   </Button>
                 </div>
-
-                <div className="operations-week-mode-toggle" role="group" aria-label="Режим отображения недели">
-                  <button
-                    type="button"
-                    className={`operations-week-mode-btn ${weekViewMode === "workweek" ? "is-active" : ""}`}
-                    onClick={() => handleToggleWeekViewMode("workweek")}
-                  >
-                    Будни (5)
-                  </button>
-                  <button
-                    type="button"
-                    className={`operations-week-mode-btn ${weekViewMode === "fullweek" ? "is-active" : ""}`}
-                    onClick={() => handleToggleWeekViewMode("fullweek")}
-                  >
-                    Вся неделя (7)
-                    {weekendTaskCount > 0 && weekViewMode === "workweek" ? (
-                      <span className="operations-weekend-dot" title={`${weekendTaskCount} задач на выходных`} />
-                    ) : null}
-                  </button>
-                </div>
-
-                <Button
-                  className="operations-manage-tasks-btn"
-                  leftIcon="settings"
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => setPlanMode("templates")}
-                >
-                  Управление задачами
-                </Button>
               </div>
             )}
 
@@ -1290,7 +1421,7 @@ function OperationsPage({
             ) : (
               <div className="operations-workday-summary">
                 <div className="operations-summary-stats">
-                  <span><strong>{weekStats.planned}</strong> {formatTaskCountRu(weekStats.planned)}</span>
+                  <span><strong>{weekStats.planned}</strong> {formatTaskNounRu(weekStats.planned)}</span>
                   <span><strong>{weekStats.completed}</strong> выполнено</span>
                   <span className={overdueTasks.length ? "is-alert" : ""}>
                     <strong>{overdueTasks.length}</strong> {overdueTasks.length === 1 ? "просрочена" : "просрочено"}
@@ -1420,7 +1551,7 @@ function OperationsPage({
                         ) : null}
                         <span className="operations-day-meta-badge">
                           {selectedDayStats.planned
-                            ? `${selectedDayStats.planned} ${formatTaskCountRu(selectedDayStats.planned)}${selectedDayStats.totalMinutes ? ` • ${formatMinutes(selectedDayStats.totalMinutes)}` : ""}`
+                            ? `${formatTaskCountRu(selectedDayStats.planned)}${selectedDayStats.totalMinutes ? ` • ${formatMinutes(selectedDayStats.totalMinutes)}` : ""}`
                             : "0 задач"}
                         </span>
                       </div>
