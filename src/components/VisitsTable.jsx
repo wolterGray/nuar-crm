@@ -29,6 +29,46 @@ const getPaymentIcon = (method) => {
   return "wallet";
 };
 
+const getPaginationItems = (currentPage, totalPages) => {
+  if (totalPages <= 7) {
+    return Array.from({length: totalPages}, (_, i) => i + 1);
+  }
+
+  // Sliding window showing numbers around currentPage (including forward pages 6, 7, 8 etc.)
+  let start = Math.max(2, currentPage - 2);
+  let end = Math.min(totalPages - 1, currentPage + 3);
+
+  // Near start: show 1..6
+  if (currentPage <= 4) {
+    start = 2;
+    end = Math.min(totalPages - 1, 6);
+  }
+
+  // Near end: show last 6
+  if (currentPage >= totalPages - 3) {
+    start = Math.max(2, totalPages - 5);
+    end = totalPages - 1;
+  }
+
+  const items = [1];
+
+  if (start > 2) {
+    items.push({type: "ellipsis", targetPage: Math.max(1, currentPage - 5), key: "ellipsis-prev"});
+  }
+
+  for (let p = start; p <= end; p++) {
+    items.push(p);
+  }
+
+  if (end < totalPages - 1) {
+    items.push({type: "ellipsis", targetPage: Math.min(totalPages, currentPage + 5), key: "ellipsis-next"});
+  }
+
+  items.push(totalPages);
+
+  return items;
+};
+
 function VisitsTable({
   filters,
   masters = [],
@@ -45,7 +85,7 @@ function VisitsTable({
   const [sortAsc, setSortAsc] = useState(false);
   const [expandedRowIds, setExpandedRowIds] = useState(new Set());
   const [showExtraFilters, setShowExtraFilters] = useState(false);
-  const [pageSize, setPageSize] = useState(25);
+  const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
   const safeVisits = useMemo(
@@ -114,6 +154,11 @@ function VisitsTable({
 
   const totalPages = Math.max(1, Math.ceil(filteredVisits.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const paginationItems = useMemo(
+    () => getPaginationItems(safeCurrentPage, totalPages),
+    [safeCurrentPage, totalPages],
+  );
 
   const pagedVisits = useMemo(() => {
     if (pageSize >= 999999) return filteredVisits;
@@ -437,9 +482,9 @@ function VisitsTable({
       {/* 3. Pagination Footer */}
       <div className="payments-pagination-bar shrink-0">
         <div className="payments-pagination-info">
-          Показано {filteredVisits.length === 0 ? 0 : Math.min(filteredVisits.length, (safeCurrentPage - 1) * pageSize + 1)}
-          {filteredVisits.length > 1 && pageSize < 999999 ? `–${Math.min(filteredVisits.length, safeCurrentPage * pageSize)}` : ""}
-          {" "}из {filteredVisits.length} записей
+          {filteredVisits.length <= pageSize
+            ? `Показано ${filteredVisits.length} записей`
+            : `Показано ${(safeCurrentPage - 1) * pageSize + 1}–${Math.min(filteredVisits.length, safeCurrentPage * pageSize)} из ${filteredVisits.length} записей`}
         </div>
 
         <div className="payments-pagination-controls">
@@ -451,6 +496,7 @@ function VisitsTable({
               onChange={handlePageSizeChange}
             >
               <option value={10}>10 на странице</option>
+              <option value={15}>15 на странице</option>
               <option value={25}>25 на странице</option>
               <option value={50}>50 на странице</option>
               <option value={100}>100 на странице</option>
@@ -468,8 +514,22 @@ function VisitsTable({
               variant="ghost"
               onClick={() => handlePageChange(safeCurrentPage - 1)}
             />
-            {Array.from({length: Math.min(totalPages, 5)}).map((_, idx) => {
-              const pageNum = idx + 1;
+            {paginationItems.map((item) => {
+              if (typeof item === "object" && item.type === "ellipsis") {
+                return (
+                  <button
+                    key={item.key}
+                    aria-label={`Перейти на страницу ${item.targetPage}`}
+                    className="payments-page-ellipsis-btn"
+                    title={`Перейти на страницу ${item.targetPage}`}
+                    type="button"
+                    onClick={() => handlePageChange(item.targetPage)}
+                  >
+                    …
+                  </button>
+                );
+              }
+              const pageNum = item;
               return (
                 <button
                   key={pageNum}
@@ -481,7 +541,6 @@ function VisitsTable({
                 </button>
               );
             })}
-            {totalPages > 5 ? <span className="payments-page-ellipsis">…</span> : null}
             <IconButton
               aria-label="Следующая страница"
               disabled={safeCurrentPage >= totalPages}

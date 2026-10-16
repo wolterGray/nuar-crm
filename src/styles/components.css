@@ -14525,8 +14525,8 @@
 .payments-row-main-line {
   display: flex;
   align-items: center;
-  padding: 7px 12px;
-  min-height: 38px;
+  padding: 5.5px 12px;
+  min-height: 35px;
   cursor: pointer;
   user-select: none;
 }
@@ -14813,15 +14813,31 @@
 
 .payments-page-num-btn.is-active {
   color: #ffffff;
-  background: #1e2129;
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(239, 68, 68, 0.12);
+  border-color: #ef4444;
   font-weight: 600;
 }
 
-.payments-page-ellipsis {
-  padding: 0 3px;
+.payments-page-ellipsis-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 28px;
+  padding: 0 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
   color: #71717a;
-  font-size: 11px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.payments-page-ellipsis-btn:hover {
+  color: #f4f4f5;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* 6. Day Close Tab Integration (Compact & Scrollable within Tab) */
