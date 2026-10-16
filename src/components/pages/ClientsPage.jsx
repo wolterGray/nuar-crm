@@ -320,7 +320,7 @@ function ClientsPage({
 
     const calculateCount = (height) => {
       const HEADER_HEIGHT = isMobile ? 0 : 35;
-      const ROW_HEIGHT = isMobile ? 86 : 48;
+      const ROW_HEIGHT = isMobile ? 86 : 44;
       return calculateDynamicPageSize(height, HEADER_HEIGHT, ROW_HEIGHT, 4, 4);
     };
 
@@ -773,7 +773,7 @@ function ClientsPage({
         </div>
 
         {/* Table Body */}
-        <div className="clients-table-list grid gap-2 p-4 md:p-0">
+        <div className="clients-table-list">
           {paginatedClients.map((client) => {
             const needsContact = client.daysAbsent === null || client.daysAbsent >= inactiveClientDays;
             return (

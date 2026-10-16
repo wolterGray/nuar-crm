@@ -149,33 +149,61 @@
 }
 
 .clients-table-list {
+  display: flex !important;
+  flex-direction: column !important;
   gap: 0 !important;
+  margin: 0 !important;
   padding: 0 !important;
 }
 
+.crm-shell .clients-table-item,
 .clients-table-item {
-  min-height: 48px !important;
-  height: 48px !important;
-  padding: 5px 16px !important;
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(200px, 1.4fr) 100px 75px 100px 150px minmax(120px, 1fr) 36px !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  margin: 0 !important;
+  padding: 0 16px !important;
+  border: 0 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
   cursor: pointer !important;
   transition: background-color 100ms ease;
 }
 
+.crm-shell .clients-table-item:last-child,
 .clients-table-item:last-child {
   border-bottom: 0 !important;
 }
 
+.crm-shell .clients-table-item:hover,
+.crm-shell .clients-table-item:focus-visible,
 .clients-table-item:hover,
 .clients-table-item:focus-visible {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  border-radius: 0 !important;
   background: rgba(255, 255, 255, 0.025) !important;
-  outline: none;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
+.crm-shell .clients-table-item.is-needs-contact,
 .clients-table-item.is-needs-contact {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
   box-shadow: none !important;
 }
 
+.crm-shell .clients-table-item.is-needs-contact:hover,
 .clients-table-item.is-needs-contact:hover {
   background: rgba(239, 68, 68, 0.04) !important;
 }

@@ -319,7 +319,6 @@
 .crm-shell :is(
   .service-card.catalog-card,
   .client-card,
-  .clients-table-item,
   .visit-mobile-card,
   .payment-mobile-card,
   .operations-panel,
@@ -341,7 +340,6 @@
 .crm-shell :is(
   .service-card.catalog-card,
   .client-card,
-  .clients-table-item,
   .visit-mobile-card,
   .payment-mobile-card,
   .task-row,
@@ -373,7 +371,6 @@
     .service-card.catalog-card,
     .employee-card,
     .client-card,
-    .clients-table-item,
     .visit-mobile-card,
     .payment-mobile-card,
     .task-row,
@@ -1813,28 +1810,30 @@
   background: var(--button-primary-bg-hover);
 }
 
-.clients-table-item {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  color: var(--color-text);
-  background: var(--color-card);
-  cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
+@media (max-width: 767px) {
+  .clients-table-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    color: var(--color-text);
+    background: var(--color-card);
+    cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
 
-.clients-table-item:hover {
-  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-card));
-}
+  .clients-table-item:hover {
+    background: color-mix(in srgb, var(--color-primary) 5%, var(--color-card));
+  }
 
-.clients-table-item.is-needs-contact {
-  border-left: 4px solid var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-card));
+  .clients-table-item.is-needs-contact {
+    border-left: 4px solid var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 5%, var(--color-card));
+  }
 }
 
 .clients-modal-action,
