@@ -1,374 +1,656 @@
-import {useMemo, useState} from "react";
-import {
-  closestCenter,
-  DndContext,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {rectSortingStrategy, SortableContext, useSortable} from "@dnd-kit/sortable";
-import {CSS} from "@dnd-kit/utilities";
+import {useCallback, useMemo, useState} from "react";
+import AppIcon from "../ui/AppIcon.jsx";
 import {formatMoney} from "../../utils/formatters.jsx";
-import {serviceColorPalette} from "../../utils/serviceColors.js";
-import {useBreakpoint} from "../../hooks/useBreakpoint.js";
-import PageHeader from "../ui/PageHeader.jsx";
-import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
-import SearchControl from "../ui/SearchControl.jsx";
-import {Button, EmptyState, Input, Select} from "../ui/index.js";
+import {getCategoryColor} from "../../utils/serviceColors.js";
+import ServiceDrawer from "../services/ServiceDrawer.jsx";
+import CategoryManagerModal from "../services/CategoryManagerModal.jsx";
+import "./ServicesPage.css";
 
-const DEFAULT_CATEGORIES = ["Массаж", "Комплексы"];
 const ALL_CATEGORIES = "__all__";
+
 const normalizeCategory = (value) => String(value ?? "").trim();
 
-function SortableServiceCard({children, service}) {
-  const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({
-    id: String(service.id),
-    data: {service},
-  });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+const getMinPrice = (service) => {
+  if (Array.isArray(service.variants) && service.variants.length > 0) {
+    const validPrices = service.variants
+      .map((v) => Number(v.price))
+      .filter((p) => !isNaN(p) && p > 0);
+    if (validPrices.length > 0) {
+      return Math.min(...validPrices);
+    }
+  }
+  return Number(service.price) || 0;
+};
+
+const getDurationsSummary = (service) => {
+  if (Array.isArray(service.variants) && service.variants.length > 0) {
+    const sortedDurations = [...service.variants]
+      .map((v) => Number(v.duration))
+      .filter((d) => !isNaN(d) && d > 0)
+      .sort((a, b) => a - b);
+
+    if (sortedDurations.length > 0) {
+      return `${sortedDurations.join(" / ")} мин`;
+    }
+  }
+  if (service.durationMin) {
+    return `${service.durationMin} мин`;
+  }
+  return "Без длительности";
+};
+
+export default function ServicesPage({
+  services = [],
+  serviceCategories = [],
+  employees = [],
+  onSaveService,
+  onDuplicateService,
+  onToggleStatus,
+  onAdd: _onAdd,
+  onCreateCategory,
+  onDeleteCategory,
+  onEdit: _onEdit,
+  onDelete,
+  onMoveServiceToCategory: _onMoveServiceToCategory,
+  onRenameCategory,
+  onReorder: _onReorder,
+  pushNotification: _pushNotification,
+}) {
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES);
+  const [selectedStatus, setSelectedStatus] = useState("all"); // "all" | "Активна" | "Скрыта" | "Архив"
+  const [sortField, setSortField] = useState(null); // "name" | "category" | "price" | "status"
+  const [sortDirection, setSortDirection] = useState("asc");
+
+  // Selection state
+  const [selectedServiceIds, setSelectedServiceIds] = useState(new Set());
+
+  // Drawer state
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState("edit"); // "edit" | "create"
+  const [activeDrawerService, setActiveDrawerService] = useState(null);
+
+  // Category modal state
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+
+  // Row action menu dropdown
+  const [openMenuServiceId, setOpenMenuServiceId] = useState(null);
+
+  // Dynamic categories from actual services + stored categories
+  const categories = useMemo(() => {
+    const names = [
+      ...serviceCategories,
+      ...services.map((s) => normalizeCategory(s.category)),
+    ].filter(Boolean);
+
+    const unique = [...new Set(names)];
+    // Ensure "Массаж" is first if present
+    unique.sort((a, b) => {
+      if (a === "Массаж") return -1;
+      if (b === "Массаж") return 1;
+      return a.localeCompare(b, "ru");
+    });
+    return unique;
+  }, [serviceCategories, services]);
+
+  // Counts by category
+  const serviceCountsByCategory = useMemo(() => {
+    const counts = new Map();
+    services.forEach((s) => {
+      const cat = normalizeCategory(s.category) || "Без категории";
+      counts.set(cat, (counts.get(cat) ?? 0) + 1);
+    });
+    return counts;
+  }, [services]);
+
+  // Filtered & sorted services
+  const filteredServices = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    let list = services.filter((service) => {
+      // Category filter
+      if (selectedCategory !== ALL_CATEGORIES) {
+        const cat = normalizeCategory(service.category) || "Без категории";
+        if (cat !== selectedCategory) return false;
+      }
+
+      // Status filter
+      const svcStatus = service.status || "Активна";
+      if (selectedStatus !== "all" && svcStatus !== selectedStatus) {
+        return false;
+      }
+
+      // Search query
+      if (query) {
+        const variantsText = (service.variants ?? [])
+          .flatMap((v) => [String(v.duration), String(v.price)])
+          .join(" ");
+        const matchString = `${service.name} ${service.category || ""} ${variantsText} ${svcStatus}`.toLowerCase();
+        if (!matchString.includes(query)) return false;
+      }
+
+      return true;
+    });
+
+    // Sorting
+    if (sortField) {
+      list = [...list].sort((a, b) => {
+        let valA, valB;
+        if (sortField === "name") {
+          valA = a.name || "";
+          valB = b.name || "";
+          return sortDirection === "asc"
+            ? valA.localeCompare(valB, "ru")
+            : valB.localeCompare(valA, "ru");
+        }
+        if (sortField === "category") {
+          valA = a.category || "";
+          valB = b.category || "";
+          return sortDirection === "asc"
+            ? valA.localeCompare(valB, "ru")
+            : valB.localeCompare(valA, "ru");
+        }
+        if (sortField === "price") {
+          valA = getMinPrice(a);
+          valB = getMinPrice(b);
+          return sortDirection === "asc" ? valA - valB : valB - valA;
+        }
+        if (sortField === "status") {
+          valA = a.status || "Активна";
+          valB = b.status || "Активна";
+          return sortDirection === "asc"
+            ? valA.localeCompare(valB, "ru")
+            : valB.localeCompare(valA, "ru");
+        }
+        return 0;
+      });
+    }
+
+    return list;
+  }, [search, selectedCategory, selectedStatus, services, sortDirection, sortField]);
+
+  // Selection handlers
+  const allFilteredSelected =
+    filteredServices.length > 0 &&
+    filteredServices.every((s) => selectedServiceIds.has(s.id));
+
+  const handleToggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedServiceIds(new Set());
+    } else {
+      setSelectedServiceIds(new Set(filteredServices.map((s) => s.id)));
+    }
+  };
+
+  const handleToggleSelectRow = (id, e) => {
+    e.stopPropagation();
+    setSelectedServiceIds((curr) => {
+      const next = new Set(curr);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  // Open Drawer in edit mode
+  const handleOpenEdit = useCallback(
+    (service, e) => {
+      e?.stopPropagation();
+      setOpenMenuServiceId(null);
+      setActiveDrawerService(service);
+      setDrawerMode("edit");
+      setIsDrawerOpen(true);
+    },
+    [],
+  );
+
+  // Open Drawer in create mode
+  const handleOpenCreate = useCallback(() => {
+    setOpenMenuServiceId(null);
+    setActiveDrawerService(null);
+    setDrawerMode("create");
+    setIsDrawerOpen(true);
+  }, []);
+
+  const handleCloseDrawer = useCallback(() => {
+    setIsDrawerOpen(false);
+    setActiveDrawerService(null);
+  }, []);
+
+  // Save service callback
+  const handleSaveService = async (servicePayload, previousService) => {
+    if (onSaveService) {
+      await onSaveService(servicePayload, previousService);
+    }
+  };
+
+  // Duplicate service callback
+  const handleDuplicate = async (service, e) => {
+    e?.stopPropagation();
+    setOpenMenuServiceId(null);
+    if (onDuplicateService) {
+      await onDuplicateService(service);
+    }
+  };
+
+  // Toggle status callback
+  const handleToggleStatusAction = async (service, nextStatus, e) => {
+    e?.stopPropagation();
+    setOpenMenuServiceId(null);
+    if (onToggleStatus) {
+      await onToggleStatus(service, nextStatus);
+    }
+  };
+
+  // Delete service callback
+  const handleDeleteService = (service, e) => {
+    e?.stopPropagation();
+    setOpenMenuServiceId(null);
+    onDelete?.(service);
+  };
+
+  // Batch actions
+  const handleBatchStatus = async (nextStatus) => {
+    const ids = Array.from(selectedServiceIds);
+    if (ids.length === 0) return;
+
+    for (const id of ids) {
+      const svc = services.find((s) => s.id === id);
+      if (svc && onToggleStatus) {
+        await onToggleStatus(svc, nextStatus);
+      }
+    }
+    setSelectedServiceIds(new Set());
+  };
+
+  // Sort toggle helper
+  const handleSort = (field) => {
+    if (sortField === field) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else {
+        setSortField(null);
+        setSortDirection("asc");
+      }
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
   };
 
   return (
-    <article
-      className={`catalog-card service-card ${isDragging ? "is-dragging" : ""}`}
-      key={service.id}
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}>
-      {children}
-    </article>
-  );
-}
-
-function ServicesPage({
-  services,
-  serviceCategories = [],
-  onAdd,
-  onCreateCategory,
-  onDelete,
-  onDeleteCategory,
-  onEdit,
-  onMoveServiceToCategory,
-  onRenameCategory,
-  onReorder,
-}) {
-  const {isMobile} = useBreakpoint();
-  const [search, setSearch] = useState("");
-  const [openMenuId, setOpenMenuId] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES);
-  const [newCategory, setNewCategory] = useState("");
-  const [editingCategoryName, setEditingCategoryName] = useState("");
-  const sensors = useSensors(
-    useSensor(PointerSensor, {activationConstraint: {distance: 8}}),
-    useSensor(TouchSensor, {activationConstraint: {delay: 180, tolerance: 8}}),
-  );
-
-  const categories = useMemo(() => {
-    const names = [
-      ...DEFAULT_CATEGORIES,
-      ...serviceCategories,
-      ...services.map((service) => normalizeCategory(service.category)),
-    ].filter(Boolean);
-
-    return [...new Set(names)].sort((left, right) => left.localeCompare(right, "ru"));
-  }, [serviceCategories, services]);
-
-  const serviceCountsByCategory = useMemo(
-    () =>
-      services.reduce((counts, service) => {
-        const category = normalizeCategory(service.category) || "Без категории";
-        counts.set(category, (counts.get(category) ?? 0) + 1);
-        return counts;
-      }, new Map()),
-    [services],
-  );
-
-  const filteredServices = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    const categoryFilteredServices =
-      selectedCategory === ALL_CATEGORIES
-        ? services
-        : services.filter(
-            (service) =>
-              (normalizeCategory(service.category) || "Без категории") === selectedCategory,
-          );
-
-    if (!query) return categoryFilteredServices;
-
-    return categoryFilteredServices.filter((service) =>
-      [
-        service.name,
-        service.category,
-        ...(service.variants ?? []).flatMap((variant) => [
-          String(variant.duration),
-          String(variant.price),
-        ]),
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(query),
-    );
-  }, [search, selectedCategory, services]);
-
-  const selectedCategoryCount =
-    selectedCategory === ALL_CATEGORIES
-      ? services.length
-      : serviceCountsByCategory.get(selectedCategory) ?? 0;
-  const canManageSelectedCategory = selectedCategory !== ALL_CATEGORIES;
-
-  return (
     <div
-      className="services-page"
-      onClick={() => setOpenMenuId(null)}>
-      <PageHeader
-        className="services-page-header"
-        actions={
-          <div className="services-page-toolbar">
-            <SearchControl
-              className="services-page-search"
-              placeholder="Поиск услуги"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setOpenMenuId(null);
-              }}
-              onClear={() => setSearch("")}
-            />
-            <Button
-              className="services-page-add-button"
-              leftIcon="plus"
-              variant="secondary"
-              onClick={() => onAdd("service")}>
-              {isMobile ? "Добавить" : "Добавить услугу"}
-            </Button>
-            <Button
-              className="services-page-add-button"
-              leftIcon="plus"
-              variant="primary"
-              onClick={() => onAdd("combo")}>
-              {isMobile ? "Комплекс" : "Комплекс услуг"}
-            </Button>
-          </div>
-        }
-        description={isMobile ? undefined : `${filteredServices.length} из ${services.length} услуг в базе`}
-        title={
-          isMobile ? (
-            <span className="flex items-baseline gap-2">
-              <span>Услуги</span>
-              <span className="text-sm font-normal text-muted-foreground">({services.length})</span>
+      className="services-page-root"
+      onClick={() => setOpenMenuServiceId(null)}>
+      {/* 1. TOP HEADER */}
+      <header className="services-top-header">
+        <div className="services-title-area">
+          <div className="services-title-row">
+            <h1 className="services-main-title">Услуги</h1>
+            <span className="services-count-badge" title="Всего услуг в каталоге">
+              {services.length}
             </span>
-          ) : (
-            "Услуги"
-          )
-        }
-      />
+          </div>
+          <p className="services-subtitle">Управление услугами и ценами</p>
+        </div>
 
-      <section className="service-categories-panel" aria-label="Категории услуг">
-        <div className="service-category-tabs">
+        <div className="services-header-controls">
+          {/* Search Box */}
+          <div className="services-search-box">
+            <AppIcon className="services-search-icon" name="search" size="xs" />
+            <input
+              className="services-search-input"
+              placeholder="Поиск услуг..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search ? (
+              <button
+                className="services-search-clear"
+                type="button"
+                onClick={() => setSearch("")}
+                aria-label="Очистить поиск">
+                <AppIcon name="close" size="xs" />
+              </button>
+            ) : null}
+          </div>
+
+          {/* Manage Categories Button */}
           <button
-            className={selectedCategory === ALL_CATEGORIES ? "is-active" : ""}
+            className="services-btn-categories"
+            type="button"
+            onClick={() => setIsCatModalOpen(true)}>
+            <AppIcon name="sliders" size="xs" />
+            Управление категориями
+          </button>
+
+          {/* Add Service Button */}
+          <button
+            className="services-btn-add-primary"
+            type="button"
+            onClick={handleOpenCreate}>
+            <AppIcon name="plus" size="xs" />
+            Добавить услугу
+          </button>
+        </div>
+      </header>
+
+      {/* 2. FILTER BAR (Categories + Status) */}
+      <section className="services-filter-bar" aria-label="Фильтры услуг">
+        <div className="services-cat-pills-row">
+          <button
+            className={`services-cat-pill ${selectedCategory === ALL_CATEGORIES ? "is-active" : ""}`}
             type="button"
             onClick={() => setSelectedCategory(ALL_CATEGORIES)}>
-            Все <span>{services.length}</span>
+            Все
+            <span className="services-cat-pill-count">{services.length}</span>
           </button>
-          {categories.map((category) => (
-            <button
-              className={selectedCategory === category ? "is-active" : ""}
-              key={category}
-              type="button"
-              onClick={() => {
-                setSelectedCategory(category);
-                setEditingCategoryName(category);
-              }}>
-              {category} <span>{serviceCountsByCategory.get(category) ?? 0}</span>
-            </button>
-          ))}
+
+          {categories.map((cat) => {
+            const count = serviceCountsByCategory.get(cat) ?? 0;
+            return (
+              <button
+                key={cat}
+                className={`services-cat-pill ${selectedCategory === cat ? "is-active" : ""}`}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}>
+                {cat}
+                <span className="services-cat-pill-count">{count}</span>
+              </button>
+            );
+          })}
         </div>
-        <form
-          className="service-category-create"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const name = normalizeCategory(newCategory);
-            if (!name) return;
-            onCreateCategory?.(name);
-            setSelectedCategory(name);
-            setEditingCategoryName(name);
-            setNewCategory("");
-          }}>
-          <Input
-            aria-label="Новая категория"
-            placeholder="Новая категория"
-            value={newCategory}
-            onChange={(event) => setNewCategory(event.target.value)}
-          />
-          <Button size="sm" type="submit" variant="secondary">
-            Создать
-          </Button>
-        </form>
+
+        {/* Status Dropdown Filter */}
+        <div className="services-status-filter-wrap">
+          <div className="services-status-select-btn">
+            <AppIcon name="filter" size="xs" />
+            <span>Статус: {selectedStatus === "all" ? "Все" : selectedStatus}</span>
+            <AppIcon name="chevronDown" size="xs" />
+          </div>
+          <select
+            className="services-status-select-native"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            aria-label="Фильтрация по статусу">
+            <option value="all">Статус: Все</option>
+            <option value="Активна">Активна</option>
+            <option value="Скрыта">Скрыта</option>
+            <option value="Архив">Архив</option>
+          </select>
+        </div>
       </section>
 
-      {canManageSelectedCategory ? (
-        <section className="service-category-manage">
-          <span>{selectedCategoryCount} услуг</span>
-          <Input
-            aria-label="Название категории"
-            value={editingCategoryName || selectedCategory}
-            onChange={(event) => setEditingCategoryName(event.target.value)}
-          />
-          <Button
-            size="sm"
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              const nextName = normalizeCategory(editingCategoryName);
-              if (!nextName) return;
-              onRenameCategory?.(selectedCategory, nextName);
-              setSelectedCategory(nextName);
-              setEditingCategoryName(nextName);
-            }}>
-            Переименовать
-          </Button>
-          <Button
-            size="sm"
-            type="button"
-            variant="danger"
-            onClick={() => {
-              const confirmed =
-                selectedCategoryCount === 0 ||
-                window.confirm(
-                  `Удалить категорию "${selectedCategory}"? Услуги будут перенесены в "Без категории".`,
-                );
-              if (!confirmed) return;
-              onDeleteCategory?.(selectedCategory);
-              setSelectedCategory(ALL_CATEGORIES);
-              setEditingCategoryName("");
-            }}>
-            Удалить
-          </Button>
-        </section>
+      {/* 3. BATCH ACTIONS BAR (when items are checked) */}
+      {selectedServiceIds.size > 0 ? (
+        <div className="services-batch-bar">
+          <span>Выбрано услуг: {selectedServiceIds.size}</span>
+          <div className="services-batch-actions">
+            <button
+              className="services-batch-btn"
+              type="button"
+              onClick={() => handleBatchStatus("Активна")}>
+              Активировать
+            </button>
+            <button
+              className="services-batch-btn"
+              type="button"
+              onClick={() => handleBatchStatus("Скрыта")}>
+              Скрыть
+            </button>
+            <button
+              className="services-batch-btn"
+              type="button"
+              onClick={() => handleBatchStatus("Архив")}>
+              В архив
+            </button>
+            <button
+              className="services-batch-btn"
+              type="button"
+              onClick={() => setSelectedServiceIds(new Set())}>
+              Снять выбор
+            </button>
+          </div>
+        </div>
       ) : null}
 
-      <DndContext
-        collisionDetection={closestCenter}
-        sensors={sensors}
-        onDragEnd={({active, over}) => {
-          const activeServiceId = String(active.id);
-          const overServiceId = over?.id ? String(over.id) : null;
-
-          if (activeServiceId && overServiceId && activeServiceId !== overServiceId) {
-            onReorder?.(
-              activeServiceId,
-              overServiceId,
-              filteredServices.map((service) => service.id),
-            );
-          }
-        }}>
-        <SortableContext
-          items={filteredServices.map((service) => String(service.id))}
-          strategy={rectSortingStrategy}>
-          <div className="services-grid">
-            {filteredServices.length === 0 ? (
-              <EmptyState
-                className="services-empty-state"
-                description={
-                  search.trim()
-                    ? "Попробуйте изменить запрос."
-                    : "Добавьте первую услугу в каталог."
-                }
-                icon={search.trim() ? "search" : "plus"}
-                title={search.trim() ? "Ничего не найдено" : "Услуг пока нет"}
+      {/* 4. WORKSPACE CONTAINER (Table + Drawer) */}
+      <div className="services-workspace-container">
+        {/* MAIN TABLE AREA */}
+        <div className="services-table-area">
+          <div className="services-table-head">
+            <div className="services-col-check">
+              <input
+                type="checkbox"
+                className="services-checkbox-input"
+                checked={allFilteredSelected}
+                onChange={handleToggleSelectAll}
+                aria-label="Выбрать все услуги"
               />
+            </div>
+            <div
+              className="services-col-service services-sortable-th"
+              onClick={() => handleSort("name")}>
+              <span>Услуга</span>
+              {sortField === "name" ? (
+                <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
+              ) : null}
+            </div>
+            <div
+              className="services-col-category services-sortable-th"
+              onClick={() => handleSort("category")}>
+              <span>Категория</span>
+              {sortField === "category" ? (
+                <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
+              ) : null}
+            </div>
+            <div className="services-col-variants">Варианты</div>
+            <div className="services-col-duration">Продолжительность</div>
+            <div
+              className="services-col-price services-sortable-th"
+              onClick={() => handleSort("price")}>
+              <span>Цена от</span>
+              {sortField === "price" ? (
+                <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
+              ) : null}
+            </div>
+            <div
+              className="services-col-status services-sortable-th"
+              onClick={() => handleSort("status")}>
+              <span>Статус</span>
+              {sortField === "status" ? (
+                <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
+              ) : null}
+            </div>
+            <div className="services-col-actions" />
+          </div>
+
+          <div className="services-table-scroll">
+            {filteredServices.length === 0 ? (
+              <div className="p-8 text-center text-zinc-400 text-sm">
+                {search ? "По вашему запросу услуг не найдено" : "Услуги не найдены"}
+              </div>
             ) : (
               filteredServices.map((service) => {
-                const variants = service.variants ?? [];
+                const isSelected = selectedServiceIds.has(service.id);
+                const isActiveRow = activeDrawerService?.id === service.id && isDrawerOpen;
+                const minPrice = getMinPrice(service);
+                const durationText = getDurationsSummary(service);
+                const variantsCount = (service.variants ?? []).length || 1;
+                const svcStatus = service.status || "Активна";
                 const isCombo = (service.serviceType ?? service.payload?.serviceType) === "combo";
+                const catColor = getCategoryColor(service.category);
+                const isMenuOpen = openMenuServiceId === service.id;
 
                 return (
-                  <SortableServiceCard key={service.id} service={service}>
-                    {/* Main Head */}
-                    <div className="service-card-header">
-                      <div className="service-card-title">
-                        <h3>{service.name}</h3>
-                        <span>
-                          <span
-                            className="service-card-dot"
-                            style={{backgroundColor: service.color ?? serviceColorPalette[0]}}
-                          />
-                          {service.category || "Без категории"}
-                        </span>
-                      </div>
-
-                      <RowActionsMenu
-                        itemId={service.id}
-                        openMenuId={openMenuId}
-                        setOpenMenuId={setOpenMenuId}
-                        onDelete={() => onDelete(service)}
-                        onEdit={() => onEdit(service)}
+                  <div
+                    key={service.id}
+                    className={`services-table-row ${isActiveRow ? "is-active-row" : ""}`}
+                    onClick={(e) => handleOpenEdit(service, e)}>
+                    {/* Checkbox */}
+                    <div className="services-col-check">
+                      <input
+                        type="checkbox"
+                        className="services-checkbox-input"
+                        checked={isSelected}
+                        onChange={(e) => handleToggleSelectRow(service.id, e)}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Выбрать ${service.name}`}
                       />
                     </div>
 
-                    <div className="service-card-meta">
-                      <span>{variants.length} вариантов</span>
-                      <span>•</span>
-                      <span>
-                        {variants.length > 0
-                          ? `${Math.min(...variants.map((v) => Number(v.duration) || 0))}-${Math.max(...variants.map((v) => Number(v.duration) || 0))} мин`
-                          : "Без длительности"}
-                      </span>
-                      {isCombo ? (
-                        <>
-                          <span>•</span>
-                          <span>{service.payload?.comboItems?.length ?? service.comboItems?.length ?? 0} услуг</span>
-                        </>
-                      ) : null}
-                      <Select
-                        className="service-card-category-select"
-                        aria-label="Перенести в категорию"
-                        value={service.category || "Без категории"}
-                        onPointerDown={(event) => event.stopPropagation()}
-                        onClick={(event) => event.stopPropagation()}
-                        onChange={(event) => onMoveServiceToCategory?.(service, event.target.value)}>
-                        {categories.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                        {!categories.includes("Без категории") ? (
-                          <option value="Без категории">Без категории</option>
-                        ) : null}
-                      </Select>
+                    {/* Service Name */}
+                    <div className="services-col-service" title={service.name}>
+                      <span className="services-service-name">{service.name}</span>
+                      {isCombo ? <span className="services-combo-badge">Комплекс</span> : null}
                     </div>
 
-                    {/* Variants Price Box */}
-                    <div className="service-variants">
-                      {variants.length > 0 ? (
-                        <>
-                          {variants.map((variant, index) => (
-                            <span key={`${variant.duration}-${variant.price}-${index}`} className="service-variant-pill">
-                              {isCombo ? "комплекс" : `${variant.duration} мин`}
-                              <strong className="text-text-main font-semibold">{formatMoney(variant.price)}</strong>
-                            </span>
-                          ))}
-                        </>
-                      ) : (
-                        <span className="service-variant-pill is-empty">
-                          Настроить цену
-                        </span>
-                      )}
+                    {/* Category */}
+                    <div className="services-col-category">
+                      <span
+                        className="services-cat-dot"
+                        style={{backgroundColor: catColor}}
+                        aria-hidden="true"
+                      />
+                      <span>{service.category || "Без категории"}</span>
                     </div>
-                  </SortableServiceCard>
+
+                    {/* Variants Count */}
+                    <div className="services-col-variants">{variantsCount}</div>
+
+                    {/* Duration list */}
+                    <div className="services-col-duration" title={durationText}>
+                      {durationText}
+                    </div>
+
+                    {/* Price From */}
+                    <div className="services-col-price">{formatMoney(minPrice)}</div>
+
+                    {/* Status */}
+                    <div className="services-col-status">
+                      <span
+                        className={`services-status-badge status-${
+                          svcStatus === "Активна"
+                            ? "active"
+                            : svcStatus === "Скрыта"
+                              ? "hidden"
+                              : "archived"
+                        }`}>
+                        <span className="services-badge-dot" />
+                        {svcStatus}
+                      </span>
+                    </div>
+
+                    {/* Actions menu */}
+                    <div
+                      className="services-col-actions"
+                      style={{position: "relative"}}
+                      onClick={(e) => e.stopPropagation()}>
+                      <button
+                        className="services-row-action-btn"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuServiceId(isMenuOpen ? null : service.id);
+                        }}
+                        aria-label="Действия с услугой">
+                        <AppIcon name="more" size="xs" />
+                      </button>
+
+                      {isMenuOpen ? (
+                        <div
+                          className="services-action-menu-dropdown"
+                          onClick={(e) => e.stopPropagation()}>
+                          <button
+                            className="services-menu-item"
+                            type="button"
+                            onClick={(e) => handleOpenEdit(service, e)}>
+                            <AppIcon name="edit" size="xs" />
+                            Редактировать
+                          </button>
+                          <button
+                            className="services-menu-item"
+                            type="button"
+                            onClick={(e) => handleDuplicate(service, e)}>
+                            <AppIcon name="copy" size="xs" />
+                            Дублировать
+                          </button>
+                          {svcStatus === "Скрыта" ? (
+                            <button
+                              className="services-menu-item"
+                              type="button"
+                              onClick={(e) => handleToggleStatusAction(service, "Активна", e)}>
+                              <AppIcon name="eye" size="xs" />
+                              Показать
+                            </button>
+                          ) : (
+                            <button
+                              className="services-menu-item"
+                              type="button"
+                              onClick={(e) => handleToggleStatusAction(service, "Скрыта", e)}>
+                              <AppIcon name="eyeOff" size="xs" />
+                              Скрыть
+                            </button>
+                          )}
+                          {svcStatus === "Архив" ? (
+                            <button
+                              className="services-menu-item"
+                              type="button"
+                              onClick={(e) => handleToggleStatusAction(service, "Активна", e)}>
+                              <AppIcon name="package" size="xs" />
+                              Разархивировать
+                            </button>
+                          ) : (
+                            <button
+                              className="services-menu-item"
+                              type="button"
+                              onClick={(e) => handleToggleStatusAction(service, "Архив", e)}>
+                              <AppIcon name="package" size="xs" />
+                              Архивировать
+                            </button>
+                          )}
+                          <button
+                            className="services-menu-item services-menu-item-danger"
+                            type="button"
+                            onClick={(e) => handleDeleteService(service, e)}>
+                            <AppIcon name="trash" size="xs" />
+                            Удалить
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
                 );
               })
             )}
           </div>
-        </SortableContext>
-      </DndContext>
+        </div>
+
+        {/* 5. RIGHT DRAWER FOR EDIT / CREATE */}
+        <ServiceDrawer
+          isOpen={isDrawerOpen}
+          mode={drawerMode}
+          service={activeDrawerService}
+          categories={categories}
+          employees={employees}
+          onClose={handleCloseDrawer}
+          onSave={handleSaveService}
+        />
+      </div>
+
+      {/* 6. CATEGORY MANAGEMENT MODAL */}
+      <CategoryManagerModal
+        isOpen={isCatModalOpen}
+        categories={categories}
+        categoryCounts={serviceCountsByCategory}
+        onClose={() => setIsCatModalOpen(false)}
+        onCreateCategory={onCreateCategory}
+        onRenameCategory={onRenameCategory}
+        onDeleteCategory={onDeleteCategory}
+      />
     </div>
   );
 }
-
-export default ServicesPage;

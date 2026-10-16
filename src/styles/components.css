@@ -1625,19 +1625,23 @@
 
 .content.services-content,
 .content.services-content.home-content {
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
   height: 100% !important;
+  max-height: 100% !important;
   min-height: 0 !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  overscroll-behavior-y: contain;
+  padding: 0 !important;
+  overflow: hidden !important;
 }
 
-.content.services-content .services-page {
-  height: auto;
-  min-height: max-content;
-  overflow: visible;
+.content.services-content .services-page,
+.content.services-content .services-page-root {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
+
 
 @media (max-width: 768px) {
   .payments-page-mobile.nuar-payments .visits-panel-mobile .page-header-unified-trailing {

@@ -1339,6 +1339,7 @@ function App() {
   const {
     createServiceCategory,
     deleteServiceCategory,
+    duplicateService,
     handlePackageSubmit,
     handleServiceSubmit,
     moveServiceToCategory,
@@ -1352,6 +1353,8 @@ function App() {
     reorderServiceCatalog,
     requestDeletePackage,
     requestDeleteService,
+    saveService,
+    toggleServiceStatus,
   } = useServiceHandlers({
     createLocalId,
     employees,
@@ -2193,8 +2196,11 @@ function App() {
             serviceCategories={serviceCategories}
             createServiceCategory={createServiceCategory}
             deleteServiceCategory={deleteServiceCategory}
+            duplicateService={duplicateService}
             moveServiceToCategory={moveServiceToCategory}
             renameServiceCategory={renameServiceCategory}
+            saveService={saveService}
+            toggleServiceStatus={toggleServiceStatus}
             siteBooking={siteBooking}
             setActivePage={setActivePage}
             setOpenPaymentActionMenuId={setOpenPaymentActionMenuId}

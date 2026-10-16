@@ -309,12 +309,191 @@ export function useServiceHandlers({
     [pushNotification, serviceCatalog, setServiceCatalog],
   );
 
+  const applySavedServiceToState = useCallback(
+    (savedService, previousName, isEdit) => {
+      setServiceCatalog((current) =>
+        isEdit
+          ? current.map((item) => (item.id === savedService.id ? savedService : item))
+          : withServiceSortOrder([...current, savedService]),
+      );
+      setServiceCategories((current) => {
+        const category = normalizeCategoryName(savedService.category);
+        if (!category || current.some((item) => item.toLowerCase() === category.toLowerCase())) {
+          return current;
+        }
+        return [...current, category].sort((left, right) => left.localeCompare(right, "ru"));
+      });
+      setCalendarEntries((current) =>
+        current.map((entry) =>
+          entry.serviceId === savedService.id
+            ? {...entry, service: savedService.name, color: savedService.color}
+            : entry,
+        ),
+      );
+
+      if (previousName && previousName !== savedService.name) {
+        setVisits((current) =>
+          current.map((visit) =>
+            visit.service === previousName
+              ? {...visit, service: savedService.name}
+              : visit,
+          ),
+        );
+        setPackagesCatalog((current) =>
+          current.map((packageItem) =>
+            packageItem.service === previousName
+              ? {...packageItem, service: savedService.name}
+              : packageItem,
+          ),
+        );
+        setClientPackages((current) =>
+          current.map((packageItem) =>
+            packageItem.service === previousName
+              ? {...packageItem, service: savedService.name}
+              : packageItem,
+          ),
+        );
+      }
+    },
+    [
+      setCalendarEntries,
+      setClientPackages,
+      setPackagesCatalog,
+      setServiceCatalog,
+      setServiceCategories,
+      setVisits,
+    ],
+  );
+
+  const saveService = useCallback(
+    async (serviceData, previousService = null) => {
+      const name = String(serviceData?.name ?? "").trim();
+      const previousName = previousService?.name;
+      if (!name) {
+        const err = new Error("Укажите название услуги");
+        pushNotification({
+          title: "Услуга не сохранена",
+          message: err.message,
+          persist: false,
+        });
+        throw err;
+      }
+
+      const isCombo = (serviceData?.serviceType ?? serviceData?.payload?.serviceType) === "combo";
+      const variants = Array.isArray(serviceData?.variants)
+        ? serviceData.variants
+            .map((v) => ({
+              duration: Number(v.duration) || 0,
+              price: Number(v.price) || 0,
+            }))
+            .filter((v) => v.duration > 0 && v.price >= 0)
+        : [];
+
+      if (!isCombo && variants.length === 0) {
+        const err = new Error("Добавьте хотя бы одну цену и длительность услуги.");
+        pushNotification({
+          title: "Услуга не сохранена",
+          message: err.message,
+          persist: false,
+        });
+        throw err;
+      }
+
+      const isEdit = Boolean(previousService?.id || serviceData?.id);
+      const targetId = previousService?.id ?? serviceData?.id;
+
+      const payload = {
+        ...(isEdit ? {id: targetId} : {}),
+        ...serviceData,
+        name,
+        category: String(serviceData?.category ?? "").trim() || "Массаж",
+        status: String(serviceData?.status ?? previousService?.status ?? "Активна").trim(),
+        description: String(serviceData?.description ?? "").trim(),
+        color: serviceData?.color || previousService?.color || getRandomServiceColor(),
+        sortOrder:
+          serviceData?.sortOrder !== undefined && serviceData?.sortOrder !== null
+            ? serviceData.sortOrder
+            : previousService?.sortOrder !== undefined && previousService?.sortOrder !== null
+              ? previousService.sortOrder
+              : serviceCatalog.length,
+        variants,
+      };
+
+      let savedService;
+      try {
+        const response = isEdit
+          ? await updateService(targetId, payload)
+          : await createService(payload);
+        savedService = response?.data ?? payload;
+      } catch (error) {
+        pushNotification({
+          title: "Услуга не сохранена",
+          message: error?.message || "Backend не принял изменения услуги",
+          persist: false,
+        });
+        throw error;
+      }
+
+      applySavedServiceToState(savedService, previousName, isEdit);
+
+      pushNotification({
+        title: isEdit ? "Услуга обновлена" : "Услуга добавлена",
+        message: `${savedService.name} сохранена в базе услуг`,
+      });
+
+      return savedService;
+    },
+    [
+      applySavedServiceToState,
+      pushNotification,
+      serviceCatalog.length,
+    ],
+  );
+
+  const duplicateService = useCallback(
+    async (service) => {
+      if (!service) return;
+      const cloneName = `${service.name} (Копия)`;
+      const cloned = {
+        ...service,
+        name: cloneName,
+        status: "Активна",
+      };
+      delete cloned.id;
+      delete cloned.createdAt;
+      delete cloned.updatedAt;
+
+      try {
+        return await saveService(cloned, null);
+      } catch {
+        // error already notified
+      }
+    },
+    [saveService],
+  );
+
+  const toggleServiceStatus = useCallback(
+    async (service, nextStatus) => {
+      if (!service?.id) return;
+      const updated = {
+        ...service,
+        status: nextStatus,
+        siteVisible: nextStatus === "Активна",
+      };
+      try {
+        return await saveService(updated, service);
+      } catch {
+        // error already notified
+      }
+    },
+    [saveService],
+  );
+
   const handleServiceSubmit = useCallback(
     async (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const name = String(form.get("name") ?? "").trim();
-      const previousName = editingService?.name;
       const assignedEmployeeIds = form
         .getAll("assignedEmployeeIds")
         .map((value) => String(value).trim())
@@ -415,6 +594,7 @@ export function useServiceHandlers({
           .filter((variant) => variant.price > 0),
         ...parseServiceBookingBuffersFromForm(form, editingService),
       };
+
       if (isCombo && comboItems.length < 2) {
         pushNotification({
           title: "Комплекс не сохранен",
@@ -439,89 +619,26 @@ export function useServiceHandlers({
         });
         return;
       }
-      let savedService;
 
       try {
-        const response = editingService
-          ? await updateService(editingService.id, service)
-          : await createService(service);
-        savedService = response?.data ?? service;
-      } catch (error) {
-        pushNotification({
-          title: "Услуга не сохранена",
-          message: error?.message || "Backend не принял изменения услуги",
-          persist: false,
-        });
-        return;
+        await saveService(service, editingService);
+        setServiceModalOpen(false);
+        setEditingService(null);
+        setServiceCreateType("service");
+      } catch {
+        // error already handled in saveService
       }
-
-      setServiceCatalog((current) =>
-        editingService
-          ? current.map((item) => (item.id === savedService.id ? savedService : item))
-          : withServiceSortOrder([...current, savedService]),
-      );
-      setServiceCategories((current) => {
-        const category = normalizeCategoryName(savedService.category);
-        if (!category || current.some((item) => item.toLowerCase() === category.toLowerCase())) {
-          return current;
-        }
-        return [...current, category].sort((left, right) => left.localeCompare(right, "ru"));
-      });
-      setCalendarEntries((current) =>
-        current.map((entry) =>
-          entry.serviceId === savedService.id
-            ? {...entry, service: savedService.name, color: savedService.color}
-            : entry,
-        ),
-      );
-
-      if (previousName && previousName !== savedService.name) {
-        setVisits((current) =>
-          current.map((visit) =>
-            visit.service === previousName
-              ? {...visit, service: savedService.name}
-              : visit,
-          ),
-        );
-        setPackagesCatalog((current) =>
-          current.map((packageItem) =>
-            packageItem.service === previousName
-              ? {...packageItem, service: savedService.name}
-              : packageItem,
-          ),
-        );
-        setClientPackages((current) =>
-          current.map((packageItem) =>
-            packageItem.service === previousName
-              ? {...packageItem, service: savedService.name}
-              : packageItem,
-          ),
-        );
-      }
-
-      setServiceModalOpen(false);
-      setEditingService(null);
-      setServiceCreateType("service");
-      pushNotification({
-        title: editingService ? "Услуга обновлена" : "Услуга добавлена",
-        message: `${savedService.name} сохранена в базе услуг`,
-      });
     },
     [
       editingService,
       employees,
       pushNotification,
-      serviceCreateType,
+      saveService,
       serviceCatalog,
-      setCalendarEntries,
-      setClientPackages,
+      serviceCreateType,
       setEditingService,
-      setPackagesCatalog,
       setServiceCreateType,
-      setServiceCatalog,
-      setServiceCategories,
       setServiceModalOpen,
-      setVisits,
     ],
   );
 
@@ -661,6 +778,7 @@ export function useServiceHandlers({
   return {
     createServiceCategory,
     deleteServiceCategory,
+    duplicateService,
     handlePackageSubmit,
     handleServiceSubmit,
     moveServiceToCategory,
@@ -674,5 +792,7 @@ export function useServiceHandlers({
     reorderServiceCatalog,
     requestDeletePackage,
     requestDeleteService,
+    saveService,
+    toggleServiceStatus,
   };
 }

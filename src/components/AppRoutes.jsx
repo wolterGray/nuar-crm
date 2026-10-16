@@ -157,6 +157,10 @@ export default function AppRoutes({activePage, ...props}) {
           <ServicesPage
             services={props.serviceCatalog}
             serviceCategories={props.serviceCategories}
+            employees={props.employees || props.activeEmployees}
+            onSaveService={props.saveService}
+            onDuplicateService={props.duplicateService}
+            onToggleStatus={props.toggleServiceStatus}
             onAdd={props.openCreateService}
             onCreateCategory={props.createServiceCategory}
             onDeleteCategory={props.deleteServiceCategory}

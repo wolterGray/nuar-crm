@@ -50,3 +50,23 @@ export const normalizeServiceColors = (services) =>
     ...service,
     color: getServiceColor(service, index),
   }));
+
+export const categoryColorMap = {
+  "Массаж": "#ef4444",
+  "Комплексы": "#38bdf8",
+  "Body Wrapping": "#c084fc",
+  "Без категории": "#71717a",
+  "Другие": "#a1a1aa",
+};
+
+export const getCategoryColor = (categoryName) => {
+  const normalized = String(categoryName ?? "").trim();
+  if (!normalized) return "#71717a";
+  if (categoryColorMap[normalized]) {
+    return categoryColorMap[normalized];
+  }
+  return serviceColorPalette[
+    [...normalized].reduce((acc, c) => acc + c.charCodeAt(0), 0) % serviceColorPalette.length
+  ];
+};
+
