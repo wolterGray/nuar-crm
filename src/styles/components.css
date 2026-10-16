@@ -10975,6 +10975,18 @@
   transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 100ms ease, opacity 140ms ease;
 }
 
+.operations-page .operations-add-template-btn span,
+.operations-page .operations-add-template-btn svg {
+  color: #fff !important;
+  opacity: 1 !important;
+}
+
+.operations-page .operations-template-create-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .operations-page .operations-add-task-cta:hover,
 .operations-page .operations-add-template-btn:hover {
   background: #dc2626 !important;
@@ -11179,12 +11191,15 @@
 
 .operations-page .operations-template-list {
   display: grid;
-  gap: 18px;
+  gap: 12px;
 }
 
 .operations-page .operations-template-group {
   display: grid;
-  border-top: 1px solid var(--operations-border-soft);
+  overflow: hidden;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--operations-panel) 88%, transparent);
 }
 
 .operations-page .operations-template-group > summary {
@@ -11192,9 +11207,36 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 8px 8px;
+  min-height: 58px;
+  padding: 9px 12px;
+  border-bottom: 1px solid transparent;
+  background: color-mix(in srgb, var(--operations-panel-soft) 72%, transparent);
   list-style: none;
   cursor: pointer;
+}
+
+.operations-page .operations-template-group[open] > summary {
+  border-bottom-color: var(--operations-border-soft);
+}
+
+.operations-page .operations-template-group-title > span {
+  display: grid;
+  gap: 2px;
+}
+
+.operations-page .operations-template-group-title small {
+  color: var(--operations-faint);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.operations-page .operations-template-group-actions {
+  margin-left: auto;
+}
+
+.operations-page .operations-template-group-actions button {
+  min-height: 34px;
 }
 
 .operations-page .operations-template-group > summary::-webkit-details-marker {
@@ -11224,11 +11266,11 @@
 
 .operations-page .operations-template-card {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) minmax(160px, 240px) auto 36px;
+  grid-template-columns: 24px minmax(0, 1fr) auto auto 36px;
   gap: 10px;
   align-items: center;
   min-height: 78px;
-  padding: 10px 8px;
+  padding: 12px;
   border-bottom: 1px solid var(--operations-border-soft);
 }
 
@@ -11253,6 +11295,15 @@
   color: inherit;
   background: transparent;
   text-align: left;
+  cursor: pointer;
+}
+
+.operations-page .operations-template-card-main:hover strong {
+  color: #fff;
+}
+
+.operations-page .operations-template-edit-btn {
+  min-width: 128px;
 }
 
 .operations-page .operations-template-card-main > span:first-child {
@@ -13567,6 +13618,27 @@
   .operations-page .operations-template-explainer {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .operations-page .operations-template-create-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .operations-page .operations-template-create-actions > button {
+    width: 100%;
+  }
+
+  .operations-page .operations-template-group > summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .operations-page .operations-template-group-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    margin-left: 0;
   }
 
   .operations-page .operations-template-explainer-arrow {

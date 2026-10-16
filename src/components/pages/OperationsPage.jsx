@@ -18,7 +18,6 @@ import {
   TASK_KIND_OPTIONS,
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
-  WORK_AREA_OPTIONS,
   WEEKDAY_FULL_LABELS,
   addDays,
   applyOperationsFilters,
@@ -494,7 +493,7 @@ function DraggableHorizontalTaskCard({cardProps, task}) {
   );
 }
 
-function TaskTemplateCard({onDelete, onEdit, onMoveArea, onSelect, onToggleArchived, openMenuId, selected, setOpenMenuId, task, today}) {
+function TaskTemplateCard({onDelete, onEdit, onSelect, onToggleArchived, openMenuId, selected, setOpenMenuId, task, today}) {
   const payload = getTaskPayload(task);
   const archived = payload.templateArchived === true;
   const systemTemplate = ACQUISITION_TEMPLATE_KEYS.includes(payload.templateKey);
@@ -524,10 +523,7 @@ function TaskTemplateCard({onDelete, onEdit, onMoveArea, onSelect, onToggleArchi
           {resultCount ? <em>{resultCount} полей результата</em> : null}
         </span>
       </button>
-      <Select aria-label="Направление шаблона" value={getTaskAreaId(task)} onChange={(event) => onMoveArea(task, event.target.value)}>
-        <option value="general">Другие задачи</option>
-        {WORK_AREA_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-      </Select>
+      <Button className="operations-template-edit-btn" leftIcon="edit" size="sm" variant="secondary" onClick={() => onEdit(task)}>Редактировать</Button>
       <Button size="sm" variant="ghost" onClick={() => onToggleArchived(task, !archived)}>{archived ? "Активировать" : "В архив"}</Button>
       <RowActionsMenu
         itemId={`template-${task.id}`}
@@ -776,7 +772,6 @@ function OperationsPage({
   onEditWaitlistEntry,
   onMessageWaitlistEntry,
   onMoveTask,
-  onMoveTaskTemplateToArea,
   onRenameTaskArea,
   onInitializeAcquisitionPlan,
   onRemoveWaitlistEntry,
@@ -1193,20 +1188,14 @@ function OperationsPage({
                   <h2>Регулярные задачи</h2>
                   <p>Здесь задаются дела, которые CRM автоматически показывает в нужные дни недели.</p>
                 </div>
-                <Button
-                  className="operations-add-template-btn"
-                  leftIcon="plus"
-                  size="sm"
-                  variant="primary"
-                  onClick={() => onAddTask?.({taskKind: "daily"})}
-                >
-                  Новая регулярная задача
-                </Button>
-              </div>
-              <div className="operations-template-explainer">
-                <div><AppIcon name="folder" size="sm" /><span><strong>Направление</strong><small>Группа связанных задач. Название можно изменить в заголовке группы.</small></span></div>
-                <AppIcon className="operations-template-explainer-arrow" name="chevronRight" size="sm" />
-                <div><AppIcon name="rotateCcw" size="sm" /><span><strong>Регулярная задача</strong><small>Содержит чек-лист, результаты и расписание будущих выполнений.</small></span></div>
+                <div className="operations-template-create-actions">
+                  <Button leftIcon="folder" size="sm" variant="secondary" onClick={() => {
+                    const areaLabel = window.prompt("Название нового направления")?.trim();
+                    if (!areaLabel) return;
+                    onAddTask?.({areaId: `custom-${Date.now()}`, areaLabel, taskKind: "daily"});
+                  }}>Новое направление</Button>
+                  <Button className="operations-add-template-btn" leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.({taskKind: "daily"})}>Новая регулярная задача</Button>
+                </div>
               </div>
               </>
             ) : (
@@ -1373,7 +1362,20 @@ function OperationsPage({
               <section className="operations-template-list" aria-label="Регулярные задачи по направлениям">
                 {templateGroups.length ? templateGroups.map((group, groupIndex) => (
                   <details className="operations-template-group" key={group.id} open>
-                    <summary><span><label className="operations-template-group-select" onClick={(event) => event.stopPropagation()}><Checkbox checked={group.tasks.every((task) => selectedTemplateIds.has(String(task.id)))} onChange={(event) => setTemplatesSelected(group.tasks, event.target.checked)} /><span className="sr-only">Выбрать направление</span></label><strong>{group.label}</strong><em>{group.tasks.length}</em></span><span><IconButton disabled={groupIndex === 0} icon="chevronUp" label="Поднять направление" size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); moveTemplateArea(group.id, -1); }} /><IconButton disabled={groupIndex === templateGroups.length - 1} icon="chevronDown" label="Опустить направление" size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); moveTemplateArea(group.id, 1); }} />{group.id !== "acquisition" ? <Button size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); const label = window.prompt("Название направления", group.label)?.trim(); if (label && label !== group.label) onRenameTaskArea?.(group.id, label); }}>Переименовать</Button> : <em>Системное направление</em>}<AppIcon className="operations-template-group-chevron" name="chevronDown" size="sm" /></span></summary>
+                    <summary>
+                      <span className="operations-template-group-title">
+                        <label className="operations-template-group-select" onClick={(event) => event.stopPropagation()}><Checkbox checked={group.tasks.every((task) => selectedTemplateIds.has(String(task.id)))} onChange={(event) => setTemplatesSelected(group.tasks, event.target.checked)} /><span className="sr-only">Выбрать направление</span></label>
+                        <span><small>Направление</small><strong>{group.label}</strong></span>
+                        <em>{group.tasks.length} {group.tasks.length === 1 ? "задача" : "задачи"}</em>
+                      </span>
+                      <span className="operations-template-group-actions" onClick={(event) => event.stopPropagation()}>
+                        <Button leftIcon="plus" size="sm" variant="secondary" onClick={() => onAddTask?.({areaId: group.id, areaLabel: group.label, taskKind: "daily"})}>Добавить задачу</Button>
+                        <Button leftIcon="edit" size="sm" variant="ghost" onClick={() => { const label = window.prompt("Название направления", group.label)?.trim(); if (label && label !== group.label) onRenameTaskArea?.(group.id, label); }}>Переименовать</Button>
+                        <IconButton disabled={groupIndex === 0} icon="chevronUp" label="Поднять направление" size="sm" variant="ghost" onClick={() => moveTemplateArea(group.id, -1)} />
+                        <IconButton disabled={groupIndex === templateGroups.length - 1} icon="chevronDown" label="Опустить направление" size="sm" variant="ghost" onClick={() => moveTemplateArea(group.id, 1)} />
+                        <AppIcon className="operations-template-group-chevron" name="chevronDown" size="sm" />
+                      </span>
+                    </summary>
                     {group.tasks.map((task) => (
                       <TaskTemplateCard
                         key={task.id}
@@ -1381,7 +1383,6 @@ function OperationsPage({
                         today={today}
                         onDelete={onDeleteTask}
                         onEdit={onEditTask}
-                        onMoveArea={onMoveTaskTemplateToArea}
                         onSelect={setTemplateSelected}
                         onToggleArchived={onSetTaskTemplateArchived}
                         openMenuId={openItemMenuId}

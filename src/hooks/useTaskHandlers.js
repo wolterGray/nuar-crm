@@ -292,6 +292,7 @@ export function useTaskHandlers({
             dueDate,
             payload: {
               areaId: defaults.areaId ?? "general",
+              areaLabel: defaults.areaLabel ?? "",
               dueDate,
               repeat: {
                 enabled: taskKind === "daily",

@@ -13,6 +13,8 @@ const makeResultField = () => ({id: `custom-${Date.now()}-${Math.random().toStri
 
 function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyChange, onSubmit, saving: externalSaving, task}) {
   const payload = getTaskPayload(task);
+  const currentAreaId = payload.areaId ?? "general";
+  const hasCustomArea = currentAreaId !== "general" && !WORK_AREA_OPTIONS.some((option) => option.id === currentAreaId);
   const isNote = task?.type === "note";
   const isEditing = Boolean(task?.id);
   const dueDate = getTaskDueDate(task);
@@ -120,7 +122,7 @@ function TaskForm({employees = [], formId, layout = "modal", onCancel, onDirtyCh
           <Field label="Описание"><Textarea name="note" defaultValue={task?.note ?? task?.description ?? ""} rows="3" /></Field>
           <Field label="Пошаговая инструкция"><Textarea name="instructions" defaultValue={payload.instructions ?? ""} rows="5" /></Field>
           <div className="task-editor-grid task-editor-meta-grid">
-            <Field label="Направление работы"><Select name="areaId" defaultValue={payload.areaId ?? "general"}><option value="general">Другие задачи</option>{WORK_AREA_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</Select></Field>
+            <Field label="Направление работы"><Select name="areaId" defaultValue={currentAreaId}><option value="general">Другие задачи</option>{hasCustomArea ? <option value={currentAreaId}>{payload.areaLabel || currentAreaId}</option> : null}{WORK_AREA_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</Select></Field>
             <Field label="Ответственный"><Select name="assigneeId" defaultValue={getTaskAssigneeId(task)}><option value="">Без исполнителя</option>{employees.map((employee) => <option key={employee.id} value={String(employee.id)}>{employee.name}</option>)}</Select></Field>
             <Field label="Приоритет"><Select name="priorityId" defaultValue={getTaskPriorityId(task)}>{TASK_PRIORITY_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</Select></Field>
             <Field label="Статус"><Select name="status" defaultValue={task?.status ?? "active"}>{TASK_STATUS_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</Select></Field>
