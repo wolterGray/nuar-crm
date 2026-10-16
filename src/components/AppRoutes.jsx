@@ -220,16 +220,19 @@ export default function AppRoutes({activePage, ...props}) {
       return (
         <PageSuspense>
           <MessageTemplatesPage
+            appSettings={props.appSettings}
             bulkSms={props.bulkSms}
-            templates={props.messageTemplates}
+            calendarEntries={props.calendarEntries}
             clients={props.clientProfiles}
             preferredClientId={props.preferredMessageClientId}
-            onClearPreferredClient={props.clearPreferredMessageClientId}
+            setMessageTemplates={props.setMessageTemplates}
+            templates={props.messageTemplates}
             onAdd={props.openCreateMessageTemplate}
-            onEdit={props.openEditMessageTemplate}
+            onClearPreferredClient={props.clearPreferredMessageClientId}
             onDelete={props.requestDeleteMessageTemplate}
-            onNotify={props.pushNotification}
+            onEdit={props.openEditMessageTemplate}
             onMessageSent={props.logClientMessage}
+            onNotify={props.pushNotification}
           />
         </PageSuspense>
       );

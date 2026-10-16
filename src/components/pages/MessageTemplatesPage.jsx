@@ -1,628 +1,1026 @@
-import {motion} from "framer-motion";
-import {useMemo, useState} from "react";
-import PageHeader from "../ui/PageHeader.jsx";
-import BulkSmsPanel from "../BulkSmsPanel.jsx";
-import {getClientMessageName} from "../../utils/clientMessageName.js";
-import {
-  getMessageTemplatePurposeLabel,
-  MESSAGE_TEMPLATE_PURPOSES,
-} from "../../utils/messageTemplates.js";
+import {useMemo, useRef, useState} from "react";
+import "./MessageTemplatesPage.css";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
-import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
-import SearchControl from "../ui/SearchControl.jsx";
-import Button from "../ui/Button.jsx";
-import {AppIcon, Field, IconButton, Input, Select} from "../ui/index.js";
-
-function MessageTemplateCard({
-  isMobile,
-  onCopy,
-  onDelete,
-  onEdit,
-  onSend,
-  openMenuId,
-  setOpenMenuId,
-  template,
-}) {
-  const iconName = template.channel === "Email" ? "mail" : "message";
-
-  if (isMobile) {
-    return (
-      <motion.article
-        animate={{opacity: 1, y: 0}}
-        className="catalog-card message-template-card message-template-mobile-card"
-        initial={{opacity: 0, y: 6}}>
-        <div className="message-template-mobile-head">
-          <div className="message-template-card-header">
-            <AppIcon name={iconName} size="md" />
-            <div>
-              <h3>{template.name}</h3>
-              <span>
-                {getMessageTemplatePurposeLabel(template.purpose)} · {template.channel}
-              </span>
-            </div>
-          </div>
-          <RowActionsMenu
-            className="message-template-row-actions"
-            itemId={template.id}
-            openMenuId={openMenuId}
-            setOpenMenuId={setOpenMenuId}
-            onDelete={() => onDelete(template)}
-            onEdit={() => onEdit(template)}
-          />
-        </div>
-        <div className="message-template-mobile-meta">
-          <span>{template.language}</span>
-          <span>{template.audience}</span>
-        </div>
-        {template.subject ? (
-          <strong className="message-template-mobile-subject">{template.subject}</strong>
-        ) : null}
-        <p>{template.body}</p>
-        <div className="message-template-mobile-actions">
-          <Button
-            className="secondary-button"
-            leftIcon="copy"
-            size="sm"
-            type="button"
-            variant="secondary"
-            onClick={() => onCopy(template)}>
-            Копировать
-          </Button>
-          <Button
-            className="add-visit-button"
-            leftIcon="send"
-            size="sm"
-            type="button"
-            variant="primary"
-            onClick={() => onSend(template)}>
-            Отправить
-          </Button>
-        </div>
-      </motion.article>
-    );
-  }
-
-  return (
-    <article className="catalog-card message-template-card" key={template.id}>
-      <div className="message-template-card-header">
-        <AppIcon name={iconName} size="md" />
-        <div>
-          <h3>{template.name}</h3>
-          <span>
-            {getMessageTemplatePurposeLabel(template.purpose)} · {template.channel} ·{" "}
-            {template.language} · {template.audience}
-          </span>
-        </div>
-      </div>
-      {template.subject && <strong>{template.subject}</strong>}
-      <p>{template.body}</p>
-      <div className="message-template-actions">
-        <IconButton
-          className="template-icon-button"
-          icon="copy"
-          label="Копировать текст"
-          size="sm"
-          title="Копировать"
-          onClick={() => onCopy(template)}>
-        </IconButton>
-        <IconButton
-          className="template-icon-button template-send-button"
-          icon="send"
-          label="Отправить клиенту"
-          size="sm"
-          title="Отправить клиенту"
-          onClick={() => onSend(template)}>
-        </IconButton>
-        <IconButton
-          className="template-icon-button"
-          icon="edit"
-          label="Редактировать шаблон"
-          size="sm"
-          title="Редактировать"
-          onClick={() => onEdit(template)}>
-        </IconButton>
-        <IconButton
-          className="template-icon-button template-delete-button"
-          icon="trash"
-          label="Удалить шаблон"
-          size="sm"
-          title="Удалить"
-          variant="danger"
-          onClick={() => onDelete(template)}>
-        </IconButton>
-      </div>
-    </article>
-  );
-}
+import {AppIcon, Button, IconButton} from "../ui/index.js";
+import {
+  createMessageTemplate,
+  deleteMessageTemplate,
+  updateMessageTemplate,
+} from "../../api/operations.js";
+import {
+  buildClientContext,
+  DEFAULT_DEMO_CONTEXT,
+  DYNAMIC_VARIABLES,
+  findClientAppointments,
+  normalizeTemplateList,
+  substituteVariables,
+  TEMPLATE_CATEGORIES,
+  TEMPLATE_LANGUAGES,
+} from "../../utils/templateManager.js";
 
 function MessageTemplatesPage({
-  bulkSms = null,
-  templates,
-  clients,
-  preferredClientId,
+  appSettings = {},
+  calendarEntries = [],
+  clients = [],
   onClearPreferredClient,
-  onAdd,
-  onEdit,
-  onDelete,
-  onNotify,
   onMessageSent,
+  onNotify,
+  preferredClientId = "",
+  setMessageTemplates,
+  templates = [],
 }) {
   const {isMobile} = useBreakpoint();
-  const [sendingTemplate, setSendingTemplate] = useState(null);
-  const [selectedClientId, setSelectedClientId] = useState("");
-  const [clientQuery, setClientQuery] = useState("");
-  const [sendChannel, setSendChannel] = useState("SMS");
-  const [openMenuId, setOpenMenuId] = useState(null);
-  const [filters, setFilters] = useState({
-    query: "",
-    channel: "",
-    language: "",
-    audience: "",
-    purpose: "",
+
+  // Normalized template list with NUAR starter templates fallback
+  const normalizedTemplates = useMemo(
+    () => normalizeTemplateList(templates),
+    [templates],
+  );
+
+  // Filters state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active"); // 'active' | 'all' | 'archived'
+
+  // Selected template & language state
+  const [selectedTemplateId, setSelectedTemplateId] = useState(() => {
+    const firstActive = normalizedTemplates.find((t) => !t.archived) || normalizedTemplates[0];
+    return firstActive ? String(firstActive.id) : "";
   });
+  const [activeLanguage, setActiveLanguage] = useState("pl"); // 'pl' | 'ru' | 'ua' | 'en'
+  const [workspaceMode, setWorkspaceMode] = useState(preferredClientId ? "preview" : "editor"); // 'editor' | 'preview'
+  const [mobilePane, setMobilePane] = useState(preferredClientId ? "workspace" : "list"); // 'list' | 'workspace'
 
-  const filteredTemplates = useMemo(() => {
-    const query = filters.query.trim().toLowerCase();
+  // Editable local draft state for selected template
+  const selectedTemplate = useMemo(
+    () => normalizedTemplates.find((t) => String(t.id) === String(selectedTemplateId)) || null,
+    [normalizedTemplates, selectedTemplateId],
+  );
 
-    return templates.filter((template) => {
-      const matchesQuery =
-        !query ||
-        [template.name, template.subject, template.body, getMessageTemplatePurposeLabel(template.purpose)]
-          .join(" ")
-          .toLowerCase()
-          .includes(query);
+  const [prevTemplateId, setPrevTemplateId] = useState(() => selectedTemplate?.id);
+  const [draftName, setDraftName] = useState(() => selectedTemplate?.name || "");
+  const [draftCategory, setDraftCategory] = useState(() => selectedTemplate?.category || "booking_confirmation");
+  const [draftTranslations, setDraftTranslations] = useState(() => ({
+    pl: selectedTemplate?.translations?.pl || "",
+    ru: selectedTemplate?.translations?.ru || "",
+    ua: selectedTemplate?.translations?.ua || "",
+    en: selectedTemplate?.translations?.en || "",
+  }));
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-      return (
-        matchesQuery &&
-        (!filters.channel || template.channel === filters.channel) &&
-        (!filters.language || template.language === filters.language) &&
-        (!filters.audience || template.audience === filters.audience) &&
-        (!filters.purpose ||
-          String(template.purpose ?? "general") === filters.purpose)
-      );
+  // Preview context state (Demo vs Real Client)
+  const [prevPreferredId, setPrevPreferredId] = useState(preferredClientId);
+  const [contextMode, setContextMode] = useState(preferredClientId ? "client" : "demo");
+  const [selectedClientId, setSelectedClientId] = useState(preferredClientId ? String(preferredClientId) : "");
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState("");
+  const [customMissingValues, setCustomMissingValues] = useState({});
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // Textarea reference for inserting variables at cursor
+  const textareaRef = useRef(null);
+
+  // Sync draft whenever selected template changes (render-time adjustment)
+  if (selectedTemplate && selectedTemplate.id !== prevTemplateId) {
+    setPrevTemplateId(selectedTemplate.id);
+    setDraftName(selectedTemplate.name || "");
+    setDraftCategory(selectedTemplate.category || "booking_confirmation");
+    setDraftTranslations({
+      pl: selectedTemplate.translations?.pl || "",
+      ru: selectedTemplate.translations?.ru || "",
+      ua: selectedTemplate.translations?.ua || "",
+      en: selectedTemplate.translations?.en || "",
     });
-  }, [filters, templates]);
+    setIsDirty(false);
+    setCustomMissingValues({});
+  }
 
-  const setFilter = (name, value) => {
-    setOpenMenuId(null);
-    setFilters((current) => ({...current, [name]: value}));
-  };
+  // Handle preferred client from navigation (render-time adjustment)
+  if (preferredClientId && preferredClientId !== prevPreferredId) {
+    setPrevPreferredId(preferredClientId);
+    setSelectedClientId(String(preferredClientId));
+    setContextMode("client");
+    setWorkspaceMode("preview");
+    setMobilePane("workspace");
+  }
 
-  const selectedClient = clients.find(
-    (client) => String(client.id) === selectedClientId,
+  // Filter templates list
+  const filteredTemplates = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return normalizedTemplates.filter((item) => {
+      // Status filter
+      if (statusFilter === "active" && item.archived) return false;
+      if (statusFilter === "archived" && !item.archived) return false;
+
+      // Category filter
+      if (selectedCategory !== "all" && item.category !== selectedCategory) return false;
+
+      // Search query across name and all translations
+      if (query) {
+        const texts = [
+          item.name,
+          item.translations?.pl,
+          item.translations?.ru,
+          item.translations?.ua,
+          item.translations?.en,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!texts.includes(query)) return false;
+      }
+
+      return true;
+    });
+  }, [normalizedTemplates, searchQuery, selectedCategory, statusFilter]);
+
+  // Client preview data calculation
+  const targetClient = useMemo(
+    () => clients.find((c) => String(c.id) === String(selectedClientId)) || null,
+    [clients, selectedClientId],
   );
-  const preferredClient = clients.find(
-    (client) => String(client.id) === preferredClientId,
+
+  const clientAppointments = useMemo(
+    () => findClientAppointments(targetClient, calendarEntries),
+    [targetClient, calendarEntries],
   );
-  const getPersonalizedText = (template, client) =>
-    template.body.replaceAll("{name}", getClientMessageName(client) || "клиент");
 
-  const copyText = async (template, client = null) => {
-    const text = client ? getPersonalizedText(template, client) : template.body;
+  const effectiveAppointmentId =
+    selectedAppointmentId && clientAppointments.some((a) => String(a.id) === String(selectedAppointmentId))
+      ? selectedAppointmentId
+      : clientAppointments[0]?.id
+        ? String(clientAppointments[0].id)
+        : "";
 
-    try {
-      await navigator.clipboard.writeText(text);
-      onNotify({
-        title: "Сообщение скопировано",
-        message: client
-          ? `Текст для ${client.name} готов`
-          : `${template.name} скопирован в буфер обмена`,
-      });
-    } catch {
-      onNotify({
-        title: "Не удалось скопировать",
-        message: "Разрешите браузеру доступ к буферу обмена",
-      });
+  const activeAppointment = useMemo(
+    () =>
+      clientAppointments.find((a) => String(a.id) === String(effectiveAppointmentId)) ||
+      clientAppointments[0] ||
+      null,
+    [clientAppointments, effectiveAppointmentId],
+  );
+
+  // Build current context for substitution
+  const effectiveContext = useMemo(() => {
+    if (contextMode === "client" && targetClient) {
+      const base = buildClientContext(targetClient, activeAppointment, appSettings);
+      return {...base, ...customMissingValues};
+    }
+    return {...DEFAULT_DEMO_CONTEXT, ...customMissingValues};
+  }, [contextMode, targetClient, activeAppointment, appSettings, customMissingValues]);
+
+  // Active template text for the selected language
+  const currentLanguageText = draftTranslations[activeLanguage] || "";
+
+  // Rendered text with variables substituted
+  const {text: renderedPreviewText, missing: missingVariables} = useMemo(
+    () => substituteVariables(currentLanguageText, effectiveContext),
+    [currentLanguageText, effectiveContext],
+  );
+
+  // Navigation / Template Switcher with unsaved changes guard
+  const handleSelectTemplate = (templateId) => {
+    if (isDirty) {
+      const confirmLeave = window.confirm("У вас есть несохранённые изменения в текущем шаблоне. Переключиться без сохранения?");
+      if (!confirmLeave) return;
+    }
+    setSelectedTemplateId(templateId);
+    if (isMobile) {
+      setMobilePane("workspace");
     }
   };
 
-  const openSendDialog = (template) => {
-    const preferredClientForDialog = clients.find(
-      (client) => String(client.id) === preferredClientId,
-    );
-
-    setSendingTemplate(template);
-    setSelectedClientId(
-      preferredClientForDialog ? String(preferredClientForDialog.id) : "",
-    );
-    setClientQuery(preferredClientForDialog?.name ?? "");
-    setSendChannel(template.channel === "Email" ? "Email" : "SMS");
+  // Draft change helpers
+  const handleNameChange = (e) => {
+    setDraftName(e.target.value);
+    setIsDirty(true);
   };
 
-  const closeSendDialog = () => {
-    setSendingTemplate(null);
-    setSelectedClientId("");
-    setClientQuery("");
+  const handleCategoryChange = (e) => {
+    setDraftCategory(e.target.value);
+    setIsDirty(true);
   };
 
-  const sendMessage = () => {
-    if (!sendingTemplate || !selectedClient) {
+  const handleTextChange = (e) => {
+    const val = e.target.value;
+    setDraftTranslations((prev) => ({
+      ...prev,
+      [activeLanguage]: val,
+    }));
+    setIsDirty(true);
+  };
+
+  // Insert variable into cursor position
+  const handleInsertVariable = (varKey) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setDraftTranslations((prev) => ({
+        ...prev,
+        [activeLanguage]: (prev[activeLanguage] || "") + varKey,
+      }));
+      setIsDirty(true);
       return;
     }
 
-    const body = getPersonalizedText(sendingTemplate, selectedClient);
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    const currentText = draftTranslations[activeLanguage] || "";
+    const updated = currentText.substring(0, start) + varKey + currentText.substring(end);
 
-    if (sendChannel === "Instagram") {
-      const instagram = String(selectedClient.instagram ?? "").trim();
+    setDraftTranslations((prev) => ({
+      ...prev,
+      [activeLanguage]: updated,
+    }));
+    setIsDirty(true);
 
-      if (!instagram) {
-        onNotify({
-          title: "Instagram не указан",
-          message: `Добавьте Instagram в карточку клиента ${selectedClient.name}`,
-        });
-        return;
-      }
-
-      void copyText(sendingTemplate, selectedClient);
-      const profileUrl = instagram.startsWith("http")
-        ? instagram
-        : `https://www.instagram.com/${instagram.replace(/^@/, "")}/`;
-      window.open(profileUrl, "_blank", "noopener,noreferrer");
-    } else if (sendChannel === "Telegram") {
-      const telegram = String(selectedClient.telegram ?? "").trim();
-
-      if (!telegram) {
-        onNotify({
-          title: "Telegram не указан",
-          message: `Добавьте Telegram в карточку клиента ${selectedClient.name}`,
-        });
-        return;
-      }
-
-      void copyText(sendingTemplate, selectedClient);
-      const profileUrl = telegram.startsWith("http")
-        ? telegram
-        : `https://t.me/${telegram.replace(/^@/, "")}`;
-      window.open(profileUrl, "_blank", "noopener,noreferrer");
-    } else if (sendChannel === "WhatsApp") {
-      const phone = String(selectedClient.phone ?? "").replace(/\D/g, "");
-
-      if (phone.length < 7) {
-        onNotify({
-          title: "Телефон не указан",
-          message: `Добавьте номер в карточку клиента ${selectedClient.name}`,
-        });
-        return;
-      }
-
-      window.open(
-        `https://wa.me/${phone}?text=${encodeURIComponent(body)}`,
-        "_blank",
-        "noopener,noreferrer",
-      );
-    } else if (sendChannel === "Email") {
-      if (!selectedClient.email) {
-        onNotify({
-          title: "Email не указан",
-          message: `Добавьте email в карточку клиента ${selectedClient.name}`,
-        });
-        return;
-      }
-
-      window.open(
-        `mailto:${selectedClient.email}?subject=${encodeURIComponent(
-          sendingTemplate.subject,
-        )}&body=${encodeURIComponent(body)}`,
-        "_self",
-      );
-    } else {
-      const phone = String(selectedClient.phone ?? "").replace(/[^\d+]/g, "");
-
-      if (phone.replace(/\D/g, "").length < 7) {
-        onNotify({
-          title: "Телефон не указан",
-          message: `Добавьте номер в карточку клиента ${selectedClient.name}`,
-        });
-        return;
-      }
-
-      window.open(`sms:${phone}?body=${encodeURIComponent(body)}`, "_self");
-    }
-
-    onMessageSent({
-      client: selectedClient,
-      channel: sendChannel,
-      template: sendingTemplate,
-      body,
-    });
-    closeSendDialog();
+    // Reposition cursor right after inserted variable
+    setTimeout(() => {
+      textarea.focus();
+      const newCursor = start + varKey.length;
+      textarea.setSelectionRange(newCursor, newCursor);
+    }, 10);
   };
 
-  const filterFields = (
-    <>
-      <Select
-        value={filters.channel}
-        onChange={(event) => setFilter("channel", event.target.value)}>
-        <option value="">Все каналы</option>
-        <option>SMS</option>
-        <option>Email</option>
-      </Select>
-      <Select
-        value={filters.language}
-        onChange={(event) => setFilter("language", event.target.value)}>
-        <option value="">Все языки</option>
-        <option>Русский</option>
-        <option>Польский</option>
-        <option>Английский</option>
-        <option>Украинский</option>
-      </Select>
-      <Select
-        value={filters.audience}
-        onChange={(event) => setFilter("audience", event.target.value)}>
-        <option value="">Все аудитории</option>
-        <option>Все</option>
-        <option>Девушки</option>
-        <option>Парни</option>
-        <option>Поляки</option>
-        <option>Англичане</option>
-        <option>Украинцы</option>
-      </Select>
-      <Select
-        value={filters.purpose}
-        onChange={(event) => setFilter("purpose", event.target.value)}>
-        <option value="">Все назначения</option>
-        {Object.entries(MESSAGE_TEMPLATE_PURPOSES).map(([value, meta]) => (
-          <option key={value} value={value}>
-            {meta.label}
-          </option>
-        ))}
-      </Select>
-    </>
-  );
+  // Save changes
+  const handleSave = async () => {
+    if (!draftName.trim()) {
+      onNotify?.({title: "Ошибка", message: "Укажите название шаблона"});
+      return;
+    }
+
+    setIsSaving(true);
+    const updatedPayload = {
+      ...(selectedTemplate || {}),
+      name: draftName.trim(),
+      category: draftCategory,
+      purpose: draftCategory,
+      archived: selectedTemplate?.archived || false,
+      channel: selectedTemplate?.channel || "SMS",
+      language: activeLanguage === "pl" ? "Польский" : activeLanguage === "ru" ? "Русский" : activeLanguage === "ua" ? "Украинский" : "Английский",
+      body: draftTranslations[activeLanguage] || draftTranslations.pl || draftTranslations.ru || "",
+      translations: draftTranslations,
+      payload: {
+        ...(selectedTemplate?.payload || {}),
+        category: draftCategory,
+        archived: selectedTemplate?.archived || false,
+        translations: draftTranslations,
+      },
+    };
+
+    try {
+      const isNew = String(selectedTemplate?.id || "").startsWith("new-") || !selectedTemplate?.id;
+      let saved;
+
+      if (isNew) {
+        const response = await createMessageTemplate(updatedPayload);
+        saved = response?.data || {...updatedPayload, id: Date.now()};
+      } else {
+        const response = await updateMessageTemplate(selectedTemplate.id, updatedPayload);
+        saved = response?.data || updatedPayload;
+      }
+
+      setMessageTemplates?.((current = []) => {
+        const existing = current.find((item) => String(item.id) === String(saved.id));
+        if (existing) {
+          return current.map((item) => (String(item.id) === String(saved.id) ? saved : item));
+        }
+        return [saved, ...current];
+      });
+
+      setSelectedTemplateId(String(saved.id));
+      setIsDirty(false);
+      onNotify?.({
+        title: "Шаблон сохранён",
+        message: `«${saved.name}» успешно обновлен`,
+      });
+    } catch (err) {
+      onNotify?.({
+        title: "Не удалось сохранить",
+        message: err?.message || "Проверьте соединение с сервером",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Create new template draft
+  const handleCreateNew = () => {
+    if (isDirty) {
+      const confirmLeave = window.confirm("У вас есть несохранённые изменения. Создать новый шаблон?");
+      if (!confirmLeave) return;
+    }
+
+    const newId = `new-${Date.now()}`;
+    const newTemplate = {
+      id: newId,
+      name: "Новый шаблон",
+      category: selectedCategory !== "all" ? selectedCategory : "booking_confirmation",
+      channel: "SMS",
+      archived: false,
+      translations: {
+        pl: "",
+        ru: "",
+        ua: "",
+        en: "",
+      },
+      body: "",
+      language: "Польский",
+    };
+
+    setMessageTemplates?.((current = []) => [newTemplate, ...current]);
+    setSelectedTemplateId(newId);
+    setWorkspaceMode("editor");
+    setIsDirty(true);
+    if (isMobile) {
+      setMobilePane("workspace");
+    }
+  };
+
+  // Duplicate current template
+  const handleDuplicate = async () => {
+    if (!selectedTemplate) return;
+    const duplicatedName = `${draftName.trim() || selectedTemplate.name} (копия)`;
+    const newPayload = {
+      ...selectedTemplate,
+      id: undefined,
+      name: duplicatedName,
+      category: draftCategory,
+      translations: draftTranslations,
+      body: draftTranslations[activeLanguage] || selectedTemplate.body || "",
+      payload: {
+        ...(selectedTemplate.payload || {}),
+        category: draftCategory,
+        translations: draftTranslations,
+      },
+    };
+
+    try {
+      const response = await createMessageTemplate(newPayload);
+      const saved = response?.data || {...newPayload, id: Date.now()};
+
+      setMessageTemplates?.((current = []) => [saved, ...current]);
+      setSelectedTemplateId(String(saved.id));
+      onNotify?.({
+        title: "Шаблон продублирован",
+        message: `Создана копия: «${duplicatedName}»`,
+      });
+    } catch {
+      const fallback = {...newPayload, id: Date.now()};
+      setMessageTemplates?.((current = []) => [fallback, ...current]);
+      setSelectedTemplateId(String(fallback.id));
+    }
+  };
+
+  // Toggle archive
+  const handleToggleArchive = async () => {
+    if (!selectedTemplate) return;
+    const nextArchived = !selectedTemplate.archived;
+    const updated = {
+      ...selectedTemplate,
+      archived: nextArchived,
+      payload: {
+        ...(selectedTemplate.payload || {}),
+        archived: nextArchived,
+      },
+    };
+
+    try {
+      await updateMessageTemplate(selectedTemplate.id, updated);
+      setMessageTemplates?.((current = []) =>
+        current.map((item) => (String(item.id) === String(selectedTemplate.id) ? updated : item)),
+      );
+      onNotify?.({
+        title: nextArchived ? "В архиве" : "Восстановлен",
+        message: nextArchived ? `«${selectedTemplate.name}» перемещён в архив` : `«${selectedTemplate.name}» восстановлен`,
+      });
+    } catch {
+      setMessageTemplates?.((current = []) =>
+        current.map((item) => (String(item.id) === String(selectedTemplate.id) ? updated : item)),
+      );
+    }
+  };
+
+  // Delete template
+  const handleDelete = async () => {
+    if (!selectedTemplate) return;
+    const confirmDelete = window.confirm(`Удалить шаблон «${selectedTemplate.name}» безвозвратно?`);
+    if (!confirmDelete) return;
+
+    try {
+      await deleteMessageTemplate(selectedTemplate.id);
+      setMessageTemplates?.((current = []) =>
+        current.filter((item) => String(item.id) !== String(selectedTemplate.id)),
+      );
+      onNotify?.({
+        title: "Шаблон удалён",
+        message: `«${selectedTemplate.name}» удалён`,
+      });
+      // Select another template
+      const remaining = normalizedTemplates.filter((t) => String(t.id) !== String(selectedTemplate.id));
+      if (remaining.length > 0) {
+        setSelectedTemplateId(String(remaining[0].id));
+      }
+    } catch (err) {
+      onNotify?.({
+        title: "Ошибка удаления",
+        message: err?.message || "Не удалось удалить шаблон",
+      });
+    }
+  };
+
+  // Copy rendered message text to clipboard
+  const handleCopyMessage = async () => {
+    if (!renderedPreviewText.trim()) return;
+
+    try {
+      await navigator.clipboard.writeText(renderedPreviewText);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2400);
+
+      onNotify?.({
+        title: "Текст скопирован",
+        message: targetClient ? `Сообщение для ${targetClient.name} готово к отправке` : "Текст скопирован в буфер обмена",
+      });
+
+      if (targetClient && onMessageSent) {
+        onMessageSent({
+          client: targetClient,
+          channel: "Копирование",
+          template: selectedTemplate,
+          body: renderedPreviewText,
+        });
+      }
+    } catch {
+      onNotify?.({
+        title: "Ошибка",
+        message: "Разрешите доступ к буферу обмена браузера",
+      });
+    }
+  };
+
+  // Open external channel
+  const handleOpenChannel = (channel) => {
+    if (!renderedPreviewText.trim()) return;
+
+    void handleCopyMessage();
+
+    if (channel === "whatsapp") {
+      const phone = String(targetClient?.phone || "").replace(/\D/g, "");
+      if (phone.length >= 7) {
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(renderedPreviewText)}`, "_blank", "noopener,noreferrer");
+      } else {
+        window.open(`https://wa.me/?text=${encodeURIComponent(renderedPreviewText)}`, "_blank", "noopener,noreferrer");
+      }
+    } else if (channel === "telegram") {
+      const tg = String(targetClient?.telegram || "").trim().replace(/^@/, "");
+      if (tg) {
+        window.open(`https://t.me/${tg}`, "_blank", "noopener,noreferrer");
+      }
+    } else if (channel === "sms") {
+      const phone = String(targetClient?.phone || "").replace(/[^\d+]/g, "");
+      window.open(`sms:${phone}?body=${encodeURIComponent(renderedPreviewText)}`, "_self");
+    } else if (channel === "instagram") {
+      const insta = String(targetClient?.instagram || "").trim().replace(/^@/, "");
+      if (insta) {
+        window.open(`https://www.instagram.com/${insta}/`, "_blank", "noopener,noreferrer");
+      }
+    }
+  };
+
+  // SMS length calculation
+  const currentCharsCount = currentLanguageText.length;
+  const isCyrillic = /[а-яёіїє]/i.test(currentLanguageText);
+  const smsMaxFirst = isCyrillic ? 70 : 160;
+  const smsMaxNext = isCyrillic ? 67 : 153;
+  const smsSegments = currentCharsCount <= smsMaxFirst ? (currentCharsCount > 0 ? 1 : 0) : Math.ceil(currentCharsCount / smsMaxNext);
 
   return (
-    <section
-      className={`catalog-page message-templates-page ${
-        isMobile ? "message-templates-page-mobile" : ""
-      }`}
-      onClick={() => setOpenMenuId(null)}>
-      <PageHeader
-        className="message-templates-page-header"
-        collapsedMeta={`${templates.length} шаблонов`}
-        collapsible={false}
-        actions={
-          <div className="message-templates-page-toolbar">
-            {isMobile ? (
-              <SearchControl
-                className="message-templates-search-control"
-                placeholder="Поиск шаблона"
-                value={filters.query}
-                onChange={(event) => setFilter("query", event.target.value)}
-                onClear={() => setFilter("query", "")}
-              />
+    <section className="templates-workspace nuar-templates" aria-label="Шаблоны сообщений">
+      {/* 1. Header Bar */}
+      <header className="templates-top-bar">
+        <div className="templates-top-title-wrap">
+          <div className="templates-top-title-row">
+            <h1 className="templates-top-title">Шаблоны</h1>
+            {isMobile && mobilePane === "workspace" ? (
+              <Button size="xs" variant="ghost" onClick={() => setMobilePane("list")}>
+                ← К списку
+              </Button>
             ) : null}
-            <Button
-              className="message-templates-add-button"
-              leftIcon="plus"
+          </div>
+          <p className="templates-top-subtitle">
+            Быстрые ответы и шаблоны сообщений для массажной студии Nuar
+          </p>
+        </div>
+
+        <div className="templates-top-actions">
+          {/* Search */}
+          <div className="templates-search-wrap">
+            <AppIcon className="templates-search-icon" name="search" size="xs" />
+            <input
+              className="templates-search-input"
+              placeholder="Поиск по названию или тексту..."
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery ? (
+              <button aria-label="Очистить" className="templates-search-clear" type="button" onClick={() => setSearchQuery("")}>
+                <AppIcon name="x" size="xs" />
+              </button>
+            ) : null}
+          </div>
+
+          {/* Status filter: Active / All / Archive */}
+          <div className="templates-filter-segmented" role="radiogroup" aria-label="Статус шаблонов">
+            <button
+              className={`templates-filter-seg-btn ${statusFilter === "active" ? "is-active" : ""}`}
               type="button"
-              variant="primary"
-              onClick={onAdd}>
-              {isMobile ? "Добавить" : "Добавить шаблон"}
-            </Button>
+              onClick={() => setStatusFilter("active")}
+            >
+              Активные
+            </button>
+            <button
+              className={`templates-filter-seg-btn ${statusFilter === "all" ? "is-active" : ""}`}
+              type="button"
+              onClick={() => setStatusFilter("all")}
+            >
+              Все
+            </button>
+            <button
+              className={`templates-filter-seg-btn ${statusFilter === "archived" ? "is-active" : ""}`}
+              type="button"
+              onClick={() => setStatusFilter("archived")}
+            >
+              Архив
+            </button>
           </div>
-        }
-        description={
-          isMobile
-            ? `${filteredTemplates.length} из ${templates.length} шаблонов`
-            : `${filteredTemplates.length} из ${templates.length} шаблонов`
-        }
-        title="Шаблоны"
-      />
 
-      {isMobile ? (
-        <details className="message-templates-filters-collapsible">
-          <summary>
-            Фильтры
-            <span>
-              {filteredTemplates.length} / {templates.length}
-            </span>
-          </summary>
-          <div className="message-template-filters message-template-filters-mobile">
-            {filterFields}
-          </div>
-        </details>
-      ) : null}
-
-      {!isMobile ? (
-        <div className="message-template-filters">
-          <SearchControl
-            className="message-templates-search-control"
-            placeholder="Поиск шаблона"
-            value={filters.query}
-            onChange={(event) => setFilter("query", event.target.value)}
-            onClear={() => setFilter("query", "")}
-          />
-          {filterFields}
-        </div>
-      ) : null}
-
-      {preferredClient ? (
-        <div className="preferred-message-client message-templates-preferred-mobile">
-          <AppIcon name="message" size="sm" />
-          <span>
-            Сообщение для <strong>{preferredClient.name}</strong>
-          </span>
-          <IconButton
-            icon="x"
-            label="Убрать выбранного клиента"
+          {/* Create Template CTA Button */}
+          <Button
+            className="templates-create-btn"
+            leftIcon="plus"
             size="sm"
-            title="Убрать клиента"
-            variant="ghost"
-            onClick={onClearPreferredClient}
-          />
+            variant="primary"
+            onClick={handleCreateNew}
+          >
+            Создать шаблон
+          </Button>
         </div>
-      ) : null}
+      </header>
 
-      <div className="catalog-grid message-template-grid message-templates-scroll">
-        {filteredTemplates.map((template) => (
-          <MessageTemplateCard
-            key={template.id}
-            isMobile={isMobile}
-            openMenuId={openMenuId}
-            setOpenMenuId={setOpenMenuId}
-            template={template}
-            onCopy={copyText}
-            onDelete={onDelete}
-            onEdit={onEdit}
-            onSend={openSendDialog}
-          />
-        ))}
-        {filteredTemplates.length === 0 ? (
-          <div className="message-templates-empty">
-            <strong>Шаблоны не найдены</strong>
-            <span>Измените фильтры или добавьте новый шаблон.</span>
+      {/* 2. Main Workspace Layout (Two-column) */}
+      <div className="templates-main-grid">
+        {/* Left Column: Template Library */}
+        <aside className={`templates-sidebar ${isMobile && mobilePane !== "list" ? "is-mobile-hidden" : ""}`}>
+          {/* Categories Horizontal Pills Bar */}
+          <div className="templates-categories-bar" role="tablist" aria-label="Категории шаблонов">
+            {TEMPLATE_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                className={`templates-cat-chip ${selectedCategory === cat.id ? "is-active" : ""}`}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+              >
+                <AppIcon name={cat.icon} size="xs" />
+                <span>{cat.shortLabel}</span>
+              </button>
+            ))}
           </div>
-        ) : null}
-      </div>
 
-      {bulkSms ? (
-        isMobile ? (
-          <details className="message-templates-bulk-collapsible">
-            <summary>Bulk SMS</summary>
-            <BulkSmsPanel
-              bulkSms={bulkSms}
-              messageTemplates={templates}
-              onNotify={onNotify}
-            />
-          </details>
-        ) : (
-          <div className="message-templates-secondary">
-            <BulkSmsPanel
-              bulkSms={bulkSms}
-              messageTemplates={templates}
-              onNotify={onNotify}
-            />
-          </div>
-        )
-      ) : null}
+          {/* Templates List */}
+          <div className="templates-list-scroll">
+            {filteredTemplates.map((template) => {
+              const isSelected = String(template.id) === String(selectedTemplateId);
+              const previewSnippet =
+                template.translations?.[activeLanguage] ||
+                template.translations?.pl ||
+                template.translations?.ru ||
+                template.body ||
+                "Нет текста";
 
-      {sendingTemplate ? (
-        <div
-          className="modal-backdrop"
-          role="presentation"
-          onClick={closeSendDialog}>
-          <section
-            aria-labelledby="send-template-title"
-            aria-modal="true"
-            className="employee-modal send-template-modal"
-            role="dialog"
-            onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header">
-              <div>
-                <h2 id="send-template-title">Отправить клиенту</h2>
-                <p>{sendingTemplate.name}</p>
+              const categoryMeta =
+                TEMPLATE_CATEGORIES.find((c) => c.id === template.category) ||
+                TEMPLATE_CATEGORIES.find((c) => c.id === "other");
+
+              return (
+                <div
+                  key={template.id}
+                  className={`template-item-card ${isSelected ? "is-active" : ""}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleSelectTemplate(String(template.id))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleSelectTemplate(String(template.id));
+                    }
+                  }}
+                >
+                  <div className="template-item-head">
+                    <h3 className="template-item-title">{template.name}</h3>
+                    {template.archived ? (
+                      <span className="template-archived-tag">Архив</span>
+                    ) : (
+                      <span className="template-item-cat-badge">
+                        <AppIcon name={categoryMeta.icon} size="xs" />
+                        {categoryMeta.shortLabel}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="template-item-snippet">{previewSnippet}</p>
+
+                  <div className="template-item-footer">
+                    <div className="template-lang-dots">
+                      {TEMPLATE_LANGUAGES.map((lang) => {
+                        const hasText = Boolean(template.translations?.[lang.code]?.trim());
+                        return (
+                          <span
+                            key={lang.code}
+                            className={`template-lang-pill ${hasText ? "has-translation" : "no-translation"}`}
+                            title={`${lang.name}: ${hasText ? "заполнено" : "нет перевода"}`}
+                          >
+                            {lang.label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {filteredTemplates.length === 0 ? (
+              <div className="templates-empty-library">
+                <AppIcon name="message" size="lg" />
+                <strong>Шаблоны не найдены</strong>
+                <span>Попробуйте изменить категорию или поисковый запрос.</span>
               </div>
-              <IconButton
-                className="modal-close"
-                icon="x"
-                label="Закрыть отправку"
-                size="sm"
-                variant="ghost"
-                onClick={closeSendDialog}>
-              </IconButton>
-            </div>
-            <Field label="Клиент">
-              <Input
-                list="message-client-options"
-                placeholder="Начните вводить имя"
-                value={clientQuery}
-                onChange={(event) => {
-                  const query = event.target.value;
-                  const matchingClient = clients.find(
-                    (client) =>
-                      client.name.toLowerCase() === query.toLowerCase(),
-                  );
+            ) : null}
+          </div>
+        </aside>
 
-                  setClientQuery(query);
-                  setSelectedClientId(
-                    matchingClient ? String(matchingClient.id) : "",
-                  );
-                }}
-              />
-              <datalist id="message-client-options">
-                {clients.map((client) => (
-                  <option key={client.id} value={client.name} />
-                ))}
-              </datalist>
-            </Field>
-            <div className="send-channel-control" aria-label="Способ отправки">
-              <Button
-                className={sendChannel === "Instagram" ? "active" : ""}
-                leftIcon="external"
-                size="sm"
-                type="button"
-                variant="ghost"
-                onClick={() => setSendChannel("Instagram")}>
-                Instagram
-              </Button>
-              <Button
-                className={sendChannel === "Email" ? "active" : ""}
-                leftIcon="mail"
-                size="sm"
-                type="button"
-                variant="ghost"
-                onClick={() => setSendChannel("Email")}>
-                Email
-              </Button>
-              <Button
-                className={sendChannel === "SMS" ? "active" : ""}
-                leftIcon="message"
-                size="sm"
-                type="button"
-                variant="ghost"
-                onClick={() => setSendChannel("SMS")}>
-                SMS
-              </Button>
-              <Button
-                className={sendChannel === "Telegram" ? "active" : ""}
-                leftIcon="at"
-                size="sm"
-                type="button"
-                variant="ghost"
-                onClick={() => setSendChannel("Telegram")}>
-                Telegram
-              </Button>
-              <Button
-                className={sendChannel === "WhatsApp" ? "active" : ""}
-                leftIcon="message"
-                size="sm"
-                type="button"
-                variant="ghost"
-                onClick={() => setSendChannel("WhatsApp")}>
-                WhatsApp
+        {/* Right Column: Active Workspace (Editor & Preview) */}
+        <main className={`templates-workspace-area ${isMobile && mobilePane !== "workspace" ? "is-mobile-hidden" : ""}`}>
+          {selectedTemplate ? (
+            <>
+              {/* Workspace Header */}
+              <div className="templates-workspace-header">
+                <div className="templates-workspace-meta-row">
+                  <input
+                    aria-label="Название шаблона"
+                    className="templates-workspace-title-input"
+                    placeholder="Название шаблона..."
+                    type="text"
+                    value={draftName}
+                    onChange={handleNameChange}
+                  />
+
+                  <select
+                    aria-label="Категория"
+                    className="templates-category-select"
+                    value={draftCategory}
+                    onChange={handleCategoryChange}
+                  >
+                    {TEMPLATE_CATEGORIES.filter((c) => c.id !== "all").map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Multi-language Selector */}
+                <div className="templates-lang-selector" role="tablist" aria-label="Язык шаблона">
+                  {TEMPLATE_LANGUAGES.map((lang) => {
+                    const hasText = Boolean(draftTranslations[lang.code]?.trim());
+                    const isActive = activeLanguage === lang.code;
+
+                    return (
+                      <button
+                        key={lang.code}
+                        className={`templates-lang-btn ${isActive ? "is-active" : ""}`}
+                        title={`${lang.name} ${hasText ? "(есть перевод)" : "(нет перевода)"}`}
+                        type="button"
+                        onClick={() => setActiveLanguage(lang.code)}
+                      >
+                        <span className={`templates-lang-status-dot ${hasText ? "is-present" : "is-empty"}`} />
+                        <span>{lang.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Workspace Top Actions */}
+                <div className="templates-workspace-actions">
+                  <Button
+                    disabled={!isDirty || isSaving}
+                    leftIcon="save"
+                    size="xs"
+                    variant={isDirty ? "primary" : "secondary"}
+                    onClick={handleSave}
+                  >
+                    {isSaving ? "Сохраняем..." : "Сохранить"}
+                  </Button>
+                  <IconButton
+                    icon="copy"
+                    label="Дублировать шаблон"
+                    size="xs"
+                    title="Дублировать шаблон"
+                    variant="ghost"
+                    onClick={handleDuplicate}
+                  />
+                  <IconButton
+                    icon={selectedTemplate.archived ? "rotateCcw" : "package"}
+                    label={selectedTemplate.archived ? "Восстановить из архива" : "В архив"}
+                    size="xs"
+                    title={selectedTemplate.archived ? "Восстановить из архива" : "В архив"}
+                    variant="ghost"
+                    onClick={handleToggleArchive}
+                  />
+                  <IconButton
+                    icon="trash"
+                    label="Удалить шаблон"
+                    size="xs"
+                    title="Удалить шаблон"
+                    variant="danger"
+                    onClick={handleDelete}
+                  />
+                </div>
+              </div>
+
+              {/* Mode Nav: Editor vs Preview */}
+              <nav className="templates-mode-nav" aria-label="Режим рабочей зоны">
+                <button
+                  className={`templates-mode-tab ${workspaceMode === "editor" ? "is-active" : ""}`}
+                  type="button"
+                  onClick={() => setWorkspaceMode("editor")}
+                >
+                  <AppIcon name="edit" size="xs" />
+                  <span>Редактор ({activeLanguage.toUpperCase()})</span>
+                </button>
+                <button
+                  className={`templates-mode-tab ${workspaceMode === "preview" ? "is-active" : ""}`}
+                  type="button"
+                  onClick={() => setWorkspaceMode("preview")}
+                >
+                  <AppIcon name="eye" size="xs" />
+                  <span>Предпросмотр и отправка</span>
+                </button>
+              </nav>
+
+              {/* VIEW 1: Editor Mode */}
+              {workspaceMode === "editor" ? (
+                <div className="templates-editor-container">
+                  {/* Dynamic Variables Insertion Bar */}
+                  <div className="templates-variables-bar">
+                    <span className="templates-variables-title">Вставить переменную в текст:</span>
+                    <div className="templates-variables-chips">
+                      {DYNAMIC_VARIABLES.map((v) => (
+                        <button
+                          key={v.key}
+                          className="templates-var-chip-btn"
+                          title={`${v.label} (пример: ${v.sample})`}
+                          type="button"
+                          onClick={() => handleInsertVariable(v.key)}
+                        >
+                          <span>{v.key}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Message Textarea */}
+                  <div className="templates-textarea-wrap">
+                    <textarea
+                      ref={textareaRef}
+                      aria-label={`Текст сообщения на ${activeLanguage.toUpperCase()}`}
+                      className="templates-textarea"
+                      placeholder={`Напишите текст сообщения на ${activeLanguage.toUpperCase()}...`}
+                      value={draftTranslations[activeLanguage] || ""}
+                      onChange={handleTextChange}
+                    />
+                  </div>
+
+                  {/* Editor Footer */}
+                  <div className="templates-editor-footer">
+                    <span className="templates-char-counter">
+                      {currentCharsCount} символов • {smsSegments} SMS {isCyrillic ? "(кириллица)" : "(латиница)"}
+                    </span>
+
+                    <div className="templates-editor-footer-actions flex items-center gap-2">
+                      <Button
+                        leftIcon="eye"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setWorkspaceMode("preview")}
+                      >
+                        Предпросмотр сообщения →
+                      </Button>
+                      <Button
+                        disabled={!isDirty || isSaving}
+                        leftIcon="save"
+                        size="sm"
+                        variant={isDirty ? "primary" : "secondary"}
+                        onClick={handleSave}
+                      >
+                        Сохранить шаблон
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {/* VIEW 2: Preview & Send Mode */}
+              {workspaceMode === "preview" ? (
+                <div className="templates-preview-container">
+                  {/* Context selector panel */}
+                  <div className="templates-context-panel">
+                    <div className="templates-context-header">
+                      <span className="text-xs font-semibold text-zinc-400">Данные для подстановки:</span>
+                      <div className="templates-context-mode-switch" role="radiogroup">
+                        <button
+                          className={`templates-context-mode-btn ${contextMode === "demo" ? "is-active" : ""}`}
+                          type="button"
+                          onClick={() => {
+                            setContextMode("demo");
+                            onClearPreferredClient?.();
+                          }}
+                        >
+                          Тестовые демо-данные
+                        </button>
+                        <button
+                          className={`templates-context-mode-btn ${contextMode === "client" ? "is-active" : ""}`}
+                          type="button"
+                          onClick={() => setContextMode("client")}
+                        >
+                          Клиент из CRM
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Client & Appointment Selector (when in Client mode) */}
+                    {contextMode === "client" ? (
+                      <div className="templates-client-select-wrap">
+                        <select
+                          aria-label="Выбрать клиента"
+                          className="templates-client-select"
+                          value={selectedClientId}
+                          onChange={(e) => {
+                            setSelectedClientId(e.target.value);
+                            setSelectedAppointmentId("");
+                          }}
+                        >
+                          <option value="">— Выберите клиента —</option>
+                          {clients.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name} {c.phone ? `(${c.phone})` : ""}
+                            </option>
+                          ))}
+                        </select>
+
+                        {targetClient ? (
+                          <select
+                            aria-label="Запись клиента"
+                            className="templates-appointment-select"
+                            value={effectiveAppointmentId}
+                            onChange={(e) => setSelectedAppointmentId(e.target.value)}
+                          >
+                            {clientAppointments.length === 0 ? (
+                              <option value="">У клиента нет визитов в календаре</option>
+                            ) : (
+                              clientAppointments.map((app) => (
+                                <option key={app.id} value={app.id}>
+                                  {app.date} {app.time} — {app.service || "Услуга"} ({app.master || "Мастер"})
+                                </option>
+                              ))
+                            )}
+                          </select>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {/* Missing Variables Warning & Inline Quick-fill */}
+                  {missingVariables.length > 0 ? (
+                    <div className="templates-missing-alert">
+                      <div className="templates-missing-alert-head">
+                        <AppIcon name="alert" size="xs" />
+                        <span>Внимание: не хватает данных для {missingVariables.join(", ")}</span>
+                      </div>
+                      <div className="templates-missing-inputs">
+                        {missingVariables.map((vKey) => {
+                          const cleanKey = vKey.replace(/[{}]/g, "");
+                          const def = DYNAMIC_VARIABLES.find((d) => d.key === vKey);
+                          return (
+                            <div key={vKey} className="templates-missing-input-item">
+                              <span className="templates-missing-input-label">{def?.label || cleanKey}:</span>
+                              <input
+                                className="templates-missing-field"
+                                placeholder={def?.sample || "Значение..."}
+                                type="text"
+                                value={customMissingValues[cleanKey] || ""}
+                                onChange={(e) =>
+                                  setCustomMissingValues((prev) => ({
+                                    ...prev,
+                                    [cleanKey]: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Messenger Chat Bubble Mockup */}
+                  <div className="templates-chat-mockup">
+                    <div className="templates-chat-head">
+                      <div className="templates-chat-avatar-wrap">
+                        <div className="templates-chat-avatar">N</div>
+                        <div>
+                          <div className="templates-chat-sender">{appSettings.studioName || "NUAR Massage Studio"}</div>
+                          <span className="text-[10.5px] text-zinc-500">
+                            {contextMode === "client" && targetClient ? `Для: ${targetClient.name}` : "Демонстрационный предпросмотр"}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="templates-chat-demo-badge">
+                        {activeLanguage.toUpperCase()} • SMS / Мессенджеры
+                      </span>
+                    </div>
+
+                    <div className="templates-chat-bubble-wrap">
+                      <div className="templates-chat-bubble">
+                        {renderedPreviewText || <span className="text-zinc-500 italic">Текст сообщения отсутствует на выбранном языке.</span>}
+                        <div className="templates-chat-bubble-meta">
+                          <span>{new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}</span>
+                          <span>✓✓</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Preview Actions Footer */}
+                  <div className="templates-preview-actions">
+                    <button
+                      className={`templates-copy-main-btn ${copySuccess ? "is-copied" : ""}`}
+                      type="button"
+                      onClick={handleCopyMessage}
+                    >
+                      <AppIcon name={copySuccess ? "check" : "copy"} size="sm" />
+                      <span>{copySuccess ? "Скопировано в буфер!" : "Скопировать готовое сообщение"}</span>
+                    </button>
+
+                    <div className="templates-channels-row">
+                      <button
+                        className="templates-channel-btn"
+                        title="Открыть в WhatsApp с подставленным текстом"
+                        type="button"
+                        onClick={() => handleOpenChannel("whatsapp")}
+                      >
+                        <AppIcon name="message" size="xs" />
+                        <span>WhatsApp</span>
+                      </button>
+                      <button
+                        className="templates-channel-btn"
+                        title="Открыть Telegram"
+                        type="button"
+                        onClick={() => handleOpenChannel("telegram")}
+                      >
+                        <AppIcon name="at" size="xs" />
+                        <span>Telegram</span>
+                      </button>
+                      <button
+                        className="templates-channel-btn"
+                        title="Открыть SMS"
+                        type="button"
+                        onClick={() => handleOpenChannel("sms")}
+                      >
+                        <AppIcon name="phone" size="xs" />
+                        <span>SMS</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div className="templates-empty-workspace">
+              <div className="templates-empty-workspace-icon">
+                <AppIcon name="message" size="lg" />
+              </div>
+              <strong>Шаблон не выбран</strong>
+              <span>Выберите существующий шаблон из библиотеки слева или создайте новый для клиентов студии.</span>
+              <Button leftIcon="plus" size="sm" variant="primary" onClick={handleCreateNew}>
+                Создать шаблон
               </Button>
             </div>
-            <div className="send-template-preview">
-              <span>Предпросмотр</span>
-              <p>{getPersonalizedText(sendingTemplate, selectedClient)}</p>
-            </div>
-            <div className="send-template-actions">
-              <Button
-                className="secondary-button"
-                disabled={!selectedClient}
-                leftIcon="copy"
-                size="sm"
-                type="button"
-                variant="secondary"
-                onClick={() => copyText(sendingTemplate, selectedClient)}>
-                Копировать
-              </Button>
-              <Button
-                className="submit-button"
-                disabled={!selectedClient}
-                leftIcon="send"
-                size="sm"
-                type="button"
-                variant="primary"
-                onClick={sendMessage}>
-                {["Instagram", "Telegram"].includes(sendChannel)
-                  ? `Открыть ${sendChannel}`
-                  : "Отправить"}
-              </Button>
-            </div>
-          </section>
-        </div>
-      ) : null}
+          )}
+        </main>
+      </div>
     </section>
   );
 }
