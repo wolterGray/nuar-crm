@@ -598,7 +598,7 @@ function ClientsPage({
       onClick={() => setOpenClientMenuId(null)}>
       <PageHeader
         className="clients-page-header"
-        actions={
+        headerActions={
           <div className="clients-page-actions">
               <Button
                 className="clients-page-quality-button"
