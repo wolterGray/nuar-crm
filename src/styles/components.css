@@ -12467,6 +12467,68 @@
   min-width: 0;
 }
 
+.operations-page .operations-template-manager-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.operations-page .operations-back-to-tasks-btn {
+  min-height: 34px;
+  margin: 0 0 16px -8px;
+  color: var(--operations-muted) !important;
+}
+
+.operations-page .operations-back-to-tasks-btn:hover {
+  color: var(--operations-text) !important;
+}
+
+.operations-page .operations-add-template-btn {
+  min-height: 42px;
+  padding-inline: 18px !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+
+.operations-page .operations-template-explainer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--operations-border-soft);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--operations-panel-soft) 82%, transparent);
+}
+
+.operations-page .operations-template-explainer > div {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 11px;
+  color: var(--operations-muted);
+}
+
+.operations-page .operations-template-explainer > div > span {
+  display: grid;
+  gap: 3px;
+}
+
+.operations-page .operations-template-explainer strong {
+  color: var(--operations-text);
+  font-size: 13px;
+}
+
+.operations-page .operations-template-explainer small {
+  color: var(--operations-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.operations-page .operations-template-explainer-arrow {
+  color: var(--operations-faint);
+}
+
 .operations-page .operations-template-manager-head span {
   display: block;
   color: var(--operations-faint);
@@ -13500,6 +13562,15 @@
   .operations-page .operations-template-manager-head {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .operations-page .operations-template-explainer {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .operations-page .operations-template-explainer-arrow {
+    display: none;
   }
 
   .operations-page .operations-task-actions > button,

@@ -1129,17 +1129,6 @@ function OperationsPage({
           <HintIcon text="Управление ежедневными и регулярными задачами салона, закупками и листом ожидания." />
         </div>
         <div className="operations-top-actions">
-          {isTemplateManager ? (
-            <Button
-              className="operations-back-to-tasks-btn"
-              leftIcon="chevronLeft"
-              size="sm"
-              variant="secondary"
-              onClick={() => setPlanMode("week")}
-            >
-              К задачам
-            </Button>
-          ) : null}
           <PageNotificationsSlot />
         </div>
       </div>
@@ -1188,11 +1177,21 @@ function OperationsPage({
 
           <section className="panel operations-planner-panel">
             {isTemplateManager ? (
+              <>
               <div className="operations-template-manager-head">
-                <div>
-                  <span>Настройки рабочего плана</span>
-                  <h2>Направления и шаблоны</h2>
-                  <p>Управляйте структурой работы и расписанием регулярных задач.</p>
+                <div className="operations-template-manager-copy">
+                  <Button
+                    className="operations-back-to-tasks-btn"
+                    leftIcon="chevronLeft"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setPlanMode("week")}
+                  >
+                    Вернуться к неделе
+                  </Button>
+                  <span>Настройка повторяющейся работы</span>
+                  <h2>Регулярные задачи</h2>
+                  <p>Здесь задаются дела, которые CRM автоматически показывает в нужные дни недели.</p>
                 </div>
                 <Button
                   className="operations-add-template-btn"
@@ -1201,9 +1200,15 @@ function OperationsPage({
                   variant="primary"
                   onClick={() => onAddTask?.({taskKind: "daily"})}
                 >
-                  Новый шаблон
+                  Новая регулярная задача
                 </Button>
               </div>
+              <div className="operations-template-explainer">
+                <div><AppIcon name="folder" size="sm" /><span><strong>Направление</strong><small>Группа связанных задач. Название можно изменить в заголовке группы.</small></span></div>
+                <AppIcon className="operations-template-explainer-arrow" name="chevronRight" size="sm" />
+                <div><AppIcon name="rotateCcw" size="sm" /><span><strong>Регулярная задача</strong><small>Содержит чек-лист, результаты и расписание будущих выполнений.</small></span></div>
+              </div>
+              </>
             ) : (
               <div className="operations-task-commandbar">
                 <div className="operations-week-switcher">
@@ -1286,7 +1291,7 @@ function OperationsPage({
 
             {planMode === "templates" ? (
               <div className="operations-template-summary">
-                <div><span><strong>{taskTemplates.length}</strong> регулярных шаблонов</span><span>Изменения расписания применяются к будущим дням</span></div>
+                <div><span><strong>{taskTemplates.length}</strong> регулярных задач</span><span>Изменения применяются к будущим дням; история выполнений сохраняется</span></div>
                 <div className="operations-template-summary-actions">
                   <label className="operations-template-select-all"><Checkbox checked={taskTemplates.length > 0 && selectedTemplates.length === taskTemplates.length} onChange={(event) => setTemplatesSelected(taskTemplates, event.target.checked)} /><span>Выбрать все</span></label>
                   <label className="operations-template-archive-toggle"><Checkbox checked={showArchivedTemplates} onChange={(event) => setShowArchivedTemplates(event.target.checked)} /><span>Показать архив</span></label>
@@ -1365,7 +1370,7 @@ function OperationsPage({
             </section>
 
             {planMode === "templates" ? (
-              <section className="operations-template-list" aria-label="Шаблоны задач">
+              <section className="operations-template-list" aria-label="Регулярные задачи по направлениям">
                 {templateGroups.length ? templateGroups.map((group, groupIndex) => (
                   <details className="operations-template-group" key={group.id} open>
                     <summary><span><label className="operations-template-group-select" onClick={(event) => event.stopPropagation()}><Checkbox checked={group.tasks.every((task) => selectedTemplateIds.has(String(task.id)))} onChange={(event) => setTemplatesSelected(group.tasks, event.target.checked)} /><span className="sr-only">Выбрать направление</span></label><strong>{group.label}</strong><em>{group.tasks.length}</em></span><span><IconButton disabled={groupIndex === 0} icon="chevronUp" label="Поднять направление" size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); moveTemplateArea(group.id, -1); }} /><IconButton disabled={groupIndex === templateGroups.length - 1} icon="chevronDown" label="Опустить направление" size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); moveTemplateArea(group.id, 1); }} />{group.id !== "acquisition" ? <Button size="sm" variant="ghost" onClick={(event) => { event.preventDefault(); const label = window.prompt("Название направления", group.label)?.trim(); if (label && label !== group.label) onRenameTaskArea?.(group.id, label); }}>Переименовать</Button> : <em>Системное направление</em>}<AppIcon className="operations-template-group-chevron" name="chevronDown" size="sm" /></span></summary>
@@ -1385,7 +1390,7 @@ function OperationsPage({
                       />
                     ))}
                   </details>
-                )) : <p className="operations-empty">Регулярных шаблонов по выбранным фильтрам нет.</p>}
+                )) : <p className="operations-empty">Регулярных задач по выбранным фильтрам нет.</p>}
               </section>
             ) : (
               <DndContext sensors={kanbanSensors} onDragEnd={handleKanbanDragEnd}>
