@@ -48,6 +48,7 @@ model User {
   pushOverdueTasks     Boolean @default(false)
 
   pushSubscriptions PushSubscription[]
+  notificationRecipients NotificationRecipient[]
 
   passwordResetTokens    PasswordResetToken[]
   loyaltyTransactions    LoyaltyTransaction[] @relation("LoyaltyTransactionCreatedBy")
@@ -681,12 +682,33 @@ model NotificationEvent {
 
   client     Client?                @relation(fields: [clientId], references: [id], onDelete: SetNull)
   deliveries NotificationDelivery[]
+  recipients NotificationRecipient[]
 
   @@index([status, priority, score])
   @@index([type, status])
   @@index([clientId])
   @@index([snoozedUntil])
   @@index([createdAt])
+}
+
+model NotificationRecipient {
+  id                  Int       @id @default(autoincrement())
+  notificationEventId Int
+  userId              Int
+  status              String    @default("new")
+  snoozedUntil        DateTime?
+  lastSeenAt          DateTime?
+  resolvedAt          DateTime?
+  actionHistory       Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  notificationEvent NotificationEvent @relation(fields: [notificationEventId], references: [id], onDelete: Cascade)
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationEventId, userId])
+  @@index([userId, status, snoozedUntil])
+  @@index([notificationEventId])
 }
 
 model IntegrationJob {

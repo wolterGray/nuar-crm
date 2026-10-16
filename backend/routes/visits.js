@@ -85,7 +85,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
         entityId: String(id),
         entityType: 'calendar_entry',
         fingerprint: `visit:${id}:cancelled`,
-        payload: { date, time, clientName, serviceName, masterName },
+        payload: { date, time, clientName, deleted: isDeleted, serviceName, masterName },
         priority: 'high',
         recommendedAction: 'open_calendar',
         source: 'visit-tracker',
@@ -148,6 +148,58 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
     }
   } catch (error) {
     console.error('Failed to handle calendar entry change for notifications:', error);
+  }
+};
+
+const toWarsawDateTime = (value) => {
+  if (!value) return {date: '', time: ''};
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return {date: '', time: ''};
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+    day: '2-digit', hour: '2-digit', hour12: false, minute: '2-digit', month: '2-digit',
+    timeZone: 'Europe/Warsaw', year: 'numeric',
+  }).formatToParts(date).map((part) => [part.type, part.value]));
+  return {date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}`};
+};
+
+const handleVisitChange = async (before, after) => {
+  try {
+    const visit = after || before;
+    if (!visit) return;
+    const service = visit.serviceId ? await prisma.service.findUnique({where: {id: visit.serviceId}}) : null;
+    const current = toWarsawDateTime(after?.scheduledAt || before?.scheduledAt);
+    const previous = toWarsawDateTime(before?.scheduledAt);
+    const common = {
+      entityId: String(visit.id), entityType: 'visit', priority: 'normal',
+      recommendedAction: 'open_calendar', source: 'visit-tracker',
+    };
+    if (!after) {
+      await recordBusinessNotificationEvent(prisma, {
+        ...common, fingerprint: `visit-record:${visit.id}:cancelled`,
+        payload: {...previous, deleted: true, serviceName: service?.name || ''},
+        priority: 'high', title: 'Запись отменена', message: service?.name || 'Запись отменена',
+        type: 'visit_cancelled', urgency: 15,
+      }, upsertNotificationEvent);
+      return;
+    }
+    if (!before) {
+      await recordBusinessNotificationEvent(prisma, {
+        ...common, fingerprint: `visit-record:${visit.id}:created`,
+        payload: {...current, serviceName: service?.name || ''}, title: 'Новая запись',
+        message: service?.name || 'Новая запись', type: 'visit_created', urgency: 10,
+      }, upsertNotificationEvent);
+      return;
+    }
+    if (before.scheduledAt?.getTime() !== after.scheduledAt?.getTime()) {
+      await recordBusinessNotificationEvent(prisma, {
+        ...common, fingerprint: `visit-record:${visit.id}:rescheduled:${current.date}:${current.time}`,
+        payload: {newDate: current.date, newTime: current.time, oldDate: previous.date, oldTime: previous.time, serviceName: service?.name || ''},
+        title: 'Запись перенесена', message: service?.name || 'Запись перенесена',
+        type: 'visit_rescheduled', urgency: 10,
+      }, upsertNotificationEvent);
+    }
+  } catch (error) {
+    console.error('Failed to handle visit change for notifications:', error);
   }
 };
 
@@ -1918,6 +1970,9 @@ router.post('/visits', (req, res) => {
         scheduledAt: new Date(scheduledAt),
         notes,
       },
+    }).then(async (visit) => {
+      await handleVisitChange(null, visit);
+      return visit;
     }),
     'Visit',
     'create visit',
@@ -1932,6 +1987,7 @@ router.get('/visits/:id', (req, res) => {
 router.put('/visits/:id', async (req, res) => {
   const id = Number(req.params.id);
   const { clientId, serviceId, employeeId, scheduledAt, notes } = req.body;
+  const before = await prisma.visit.findUnique({where: {id}});
   await auditUpdate(
     prisma,
     req,
@@ -1947,6 +2003,9 @@ router.put('/visits/:id', async (req, res) => {
         scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
         notes,
       },
+    }).then(async (visit) => {
+      await handleVisitChange(before, visit);
+      return visit;
     }),
     'Visit',
     'update visit',
@@ -1957,11 +2016,13 @@ router.delete('/visits/:id', requireOwner, async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
   try {
+    let deletedVisit = null;
     const result = await prisma.$transaction(async (tx) => {
       const before = await tx.visit.findUnique({ where: { id } });
       await assertVisitCanBeRemoved(tx, id);
       await removeUnpaidEmployeeEarningForVisit(tx, req, id);
       const deleted = await tx.visit.delete({ where: { id } });
+      deletedVisit = before || deleted;
       await recordAuditLog(tx, req, {
         action: 'delete/cancel visit',
         after: null,
@@ -1971,6 +2032,7 @@ router.delete('/visits/:id', requireOwner, async (req, res) => {
       });
       return deleted;
     });
+    await handleVisitChange(deletedVisit, null);
     res.json({ success: true, data: result });
   } catch (err) {
     const response = getHttpErrorResponse(err);

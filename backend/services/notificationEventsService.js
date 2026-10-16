@@ -31,6 +31,12 @@ const isImportantTask = (task = {}) => {
   return ['critical', 'high', 'urgent', 'срочно', 'высокий'].includes(priority) || task.payload?.isMain === true;
 };
 
+const isInactiveTask = (task = {}) => {
+  const status = String(task.status ?? task.payload?.status ?? '').trim().toLowerCase();
+  return ['archive', 'archived', 'cancelled', 'canceled', 'completed', 'done', 'архив', 'отменена', 'выполнена'].includes(status)
+    || task.payload?.templateArchived === true;
+};
+
 const toNumber = (value) => {
   if (value === null || value === undefined) return null;
   const number = Number(value);
@@ -297,7 +303,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
   });
 
   for (const task of tasks) {
-    if (!isImportantTask(task)) continue;
+    if (!isImportantTask(task) || isInactiveTask(task)) continue;
     const overdue = task.dueDate && task.dueDate.getTime() < new Date(`${today}T00:00:00`).getTime();
     const eventType = overdue ? 'task_important_overdue' : 'task_important_due';
     generated.push(
@@ -594,18 +600,94 @@ const updateNotificationEvent = async (prisma, id, patch = {}) => {
   });
 };
 
+const mergeRecipientState = (event, recipient) => ({
+  ...event,
+  actionHistory: recipient?.actionHistory ?? event.actionHistory,
+  lastSeenAt: recipient?.lastSeenAt ?? null,
+  resolvedAt: recipient?.resolvedAt ?? null,
+  snoozedUntil: recipient?.snoozedUntil ?? null,
+  status: recipient?.status || 'new',
+});
+
+const listNotificationEventsForUser = async (prisma, userId, options = {}) => {
+  const numericUserId = Number(userId);
+  const requestedStatus = options.status || 'active';
+  const events = await listNotificationEvents(prisma, {...options, status: requestedStatus === 'all' ? 'all' : 'active'});
+  if (!Number.isInteger(numericUserId) || events.length === 0) return events;
+
+  await prisma.notificationRecipient.createMany({
+    data: events.map((event) => ({notificationEventId: event.id, userId: numericUserId})),
+    skipDuplicates: true,
+  });
+  const recipients = await prisma.notificationRecipient.findMany({
+    where: {notificationEventId: {in: events.map((event) => event.id)}, userId: numericUserId},
+  });
+  const byEventId = new Map(recipients.map((recipient) => [recipient.notificationEventId, recipient]));
+  const now = options.now || new Date();
+
+  return events
+    .map((event) => mergeRecipientState(event, byEventId.get(event.id)))
+    .filter((event) => requestedStatus === 'all'
+      || (requestedStatus === 'active'
+        ? ACTIVE_STATUSES.includes(event.status) && (!event.snoozedUntil || event.snoozedUntil <= now)
+        : event.status === requestedStatus));
+};
+
+const updateNotificationRecipient = async (prisma, userId, id, patch = {}) => {
+  const eventId = Number(id);
+  const numericUserId = Number(userId);
+  if (!Number.isInteger(eventId) || eventId <= 0 || !Number.isInteger(numericUserId) || numericUserId <= 0) {
+    const error = new Error('notification recipient is invalid');
+    error.status = 422;
+    throw error;
+  }
+  const event = await prisma.notificationEvent.findUnique({where: {id: eventId}});
+  if (!event) {
+    const error = new Error('notification event not found');
+    error.status = 404;
+    throw error;
+  }
+  const current = await prisma.notificationRecipient.upsert({
+    create: {notificationEventId: eventId, userId: numericUserId},
+    update: {},
+    where: {notificationEventId_userId: {notificationEventId: eventId, userId: numericUserId}},
+  });
+  const status = cleanString(patch.status);
+  const data = {};
+  if (status) {
+    data.status = status;
+    if (['resolved', 'dismissed'].includes(status)) data.resolvedAt = new Date();
+    if (status === 'seen') data.lastSeenAt = new Date();
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'snoozedUntil')) {
+    data.snoozedUntil = parseDate(patch.snoozedUntil);
+    if (data.snoozedUntil) data.status = 'snoozed';
+  }
+  if (patch.action) {
+    data.actionHistory = appendActionHistory(current.actionHistory, {
+      action: cleanString(patch.action) || 'update',
+      meta: patch.actionMeta && typeof patch.actionMeta === 'object' ? patch.actionMeta : {},
+    });
+  }
+  const recipient = await prisma.notificationRecipient.update({data, where: {id: current.id}});
+  return mergeRecipientState(event, recipient);
+};
+
 module.exports = {
   generateSmartNotificationEvents,
   listNotificationEvents,
+  listNotificationEventsForUser,
   normalizeNotificationEventInput,
   scoreNotificationEvent,
   updateNotificationEvent,
+  updateNotificationRecipient,
   upsertNotificationEvent,
   _private: {
     isActionableVisitUpcomingEvent,
     isStaleVisitUpcomingEvent,
     resolveStaleVisitUpcomingEvents,
     isImportantTask,
+    isInactiveTask,
     toIsoDate,
   },
 };

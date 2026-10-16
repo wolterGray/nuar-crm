@@ -1431,12 +1431,25 @@ function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const calendarEntryId = params.get("entry");
+    const visitId = params.get("visit");
+    const calendarDate = params.get("date");
     const taskId = params.get("task");
-    if (calendarEntryId && window.location.pathname === "/calendar") {
+    if ((calendarEntryId || visitId || calendarDate) && window.location.pathname === "/calendar") {
+      const linkedEntry = visitId
+        ? calendarEntries.find((entry) => String(entry.visitId) === String(visitId))
+        : null;
       params.delete("entry");
+      params.delete("visit");
+      params.delete("date");
       const timer = window.setTimeout(() => {
         setActivePage("calendar");
-        setAlertFocus({entityId: calendarEntryId, open: true, type: "calendar"});
+        setAlertFocus({
+          date: calendarDate || linkedEntry?.date || null,
+          entityId: calendarEntryId || linkedEntry?.id || null,
+          open: Boolean(calendarEntryId || visitId),
+          type: "calendar",
+          visitId: visitId || null,
+        });
       }, 0);
       const query = params.toString();
       window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
@@ -1456,7 +1469,7 @@ function App() {
     } else {
       return;
     }
-  }, [openEditTask, setActivePage, tasks]);
+  }, [calendarEntries, openEditTask, setActivePage, tasks]);
 
   const {
     changeSupplyStock,

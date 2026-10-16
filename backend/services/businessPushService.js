@@ -11,6 +11,17 @@ const EVENT_CONFIG = {
 const cleanString = (value) => String(value ?? '').trim();
 
 const formatDateTime = (date, time) => [cleanString(date), cleanString(time)].filter(Boolean).join(' · ');
+const getVisitUrl = (event, payload) => {
+  if (payload.deleted === true) return `/calendar?date=${encodeURIComponent(payload.date || '')}`;
+  const parameter = event.entityType === 'visit' ? 'visit' : 'entry';
+  const date = event.entityType === 'visit' && payload.date ? `&date=${encodeURIComponent(payload.date)}` : '';
+  return `/calendar?${parameter}=${encodeURIComponent(event.entityId || '')}${date}`;
+};
+const formatVisitBody = (payload) => [
+  formatDateTime(payload.date, payload.time),
+  cleanString(payload.serviceName),
+  Number(payload.durationMin) > 0 ? `${Number(payload.durationMin)} мин` : '',
+].filter(Boolean).join(' · ');
 
 const buildBusinessPushPayload = (event) => {
   const config = EVENT_CONFIG[event?.type];
@@ -18,27 +29,33 @@ const buildBusinessPushPayload = (event) => {
   const payload = event.payload && typeof event.payload === 'object' ? event.payload : {};
 
   if (event.type === 'visit_rescheduled') {
+    const oldDateTime = formatDateTime(payload.oldDate, payload.oldTime);
+    const newDateTime = formatDateTime(payload.newDate, payload.newTime);
     return {
-      body: `Новое время: ${formatDateTime(payload.newDate, payload.newTime) || 'откройте календарь'}`,
+      body: [oldDateTime && newDateTime ? `${oldDateTime} → ${newDateTime}` : `Новое время: ${newDateTime || 'откройте календарь'}`, cleanString(payload.serviceName)].filter(Boolean).join(' · '),
       tag: `nuar-${event.fingerprint}`,
       title: config.title,
       ttl: 3600,
       type: event.type,
-      url: `/calendar?entry=${encodeURIComponent(event.entityId || '')}`,
+      url: getVisitUrl(event, payload),
     };
   }
   if (event.type.startsWith('visit_')) {
     return {
-      body: formatDateTime(payload.date, payload.time) || 'Откройте календарь, чтобы посмотреть запись',
+      body: formatVisitBody(payload) || 'Откройте календарь, чтобы посмотреть запись',
       tag: `nuar-${event.fingerprint}`,
       title: config.title,
       ttl: 3600,
       type: event.type,
-      url: `/calendar?entry=${encodeURIComponent(event.entityId || '')}`,
+      url: getVisitUrl(event, payload),
     };
   }
+  const dueDate = payload.dueDate ? new Date(payload.dueDate) : null;
+  const dueLabel = dueDate && !Number.isNaN(dueDate.getTime())
+    ? new Intl.DateTimeFormat('ru-RU', {day: 'numeric', month: 'long', timeZone: 'Europe/Warsaw'}).format(dueDate)
+    : '';
   return {
-    body: cleanString(event.message) || 'Откройте задачу, чтобы посмотреть детали',
+    body: dueLabel ? `Срок: ${dueLabel}. Откройте задачу, чтобы посмотреть детали` : 'Откройте задачу, чтобы посмотреть детали',
     tag: `nuar-${event.fingerprint}`,
     title: config.title,
     ttl: 3600,
@@ -71,6 +88,10 @@ const queueBusinessPushDeliveries = async (prisma, event) => {
     status: 'pending',
     templateKey: event.type,
   })));
+  await prisma.notificationRecipient.createMany({
+    data: owners.map((owner) => ({notificationEventId: event.id, userId: owner.id})),
+    skipDuplicates: true,
+  });
   if (deliveries.length === 0) return {queued: 0};
   const result = await prisma.notificationDelivery.createMany({data: deliveries, skipDuplicates: true});
   return {queued: result.count};

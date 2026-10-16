@@ -4,8 +4,8 @@ const {recordAuditLog, recordErrorEvent} = require('../services/loggingService')
 const {planNotificationDeliveries} = require('../services/notificationDeliveryPlanner');
 const {
   generateSmartNotificationEvents,
-  listNotificationEvents,
-  updateNotificationEvent,
+  listNotificationEventsForUser,
+  updateNotificationRecipient,
   upsertNotificationEvent,
 } = require('../services/notificationEventsService');
 const {getHttpErrorResponse} = require('../utils/httpErrors');
@@ -13,9 +13,26 @@ const {getHttpErrorResponse} = require('../utils/httpErrors');
 const prisma = new PrismaClient();
 const router = express.Router();
 
+const resolveAuthenticatedUser = async (req) => {
+  const numericId = Number(req.auth?.sub || req.auth?.id);
+  const email = String(req.auth?.email ?? '').trim().toLowerCase();
+  const user = Number.isInteger(numericId) && numericId > 0
+    ? await prisma.user.findUnique({where: {id: numericId}})
+    : email
+      ? await prisma.user.findUnique({where: {email}})
+      : null;
+  if (!user?.isActive) {
+    const error = new Error('Notifications require an active database user');
+    error.status = 409;
+    throw error;
+  }
+  return user;
+};
+
 router.get('/notification-events', async (req, res) => {
   try {
-    const events = await listNotificationEvents(prisma, {
+    const user = await resolveAuthenticatedUser(req);
+    const events = await listNotificationEventsForUser(prisma, user.id, {
       limit: req.query.limit,
       status: req.query.status || 'active',
     });
@@ -105,16 +122,17 @@ router.post('/notification-events/plan-delivery', async (req, res) => {
 
 router.patch('/notification-events/:id', async (req, res) => {
   try {
-    const before = await prisma.notificationEvent.findUnique({
-      where: {id: Number(req.params.id)},
+    const user = await resolveAuthenticatedUser(req);
+    const before = await prisma.notificationRecipient.findUnique({
+      where: {notificationEventId_userId: {notificationEventId: Number(req.params.id), userId: user.id}},
     });
-    const event = await updateNotificationEvent(prisma, req.params.id, req.body);
+    const event = await updateNotificationRecipient(prisma, user.id, req.params.id, req.body);
     await recordAuditLog(prisma, req, {
       action: 'update notification event',
       after: event,
       before,
-      entity: 'NotificationEvent',
-      entityId: event.id,
+      entity: 'NotificationRecipient',
+      entityId: `${event.id}:${user.id}`,
     });
     res.json({success: true, data: event});
   } catch (error) {

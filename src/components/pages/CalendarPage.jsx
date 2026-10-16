@@ -283,24 +283,25 @@ function CalendarPage({
     String(alertFocus.entityId) === String(entryId);
 
   useEffect(() => {
-    if (!alertFocus?.entityId || alertFocus.type !== "calendar") {
+    if ((!alertFocus?.entityId && !alertFocus?.visitId && !alertFocus?.date) || alertFocus.type !== "calendar") {
       return undefined;
     }
 
     const entry = entries.find(
-      (item) => String(item.id) === String(alertFocus.entityId),
+      (item) => String(item.id) === String(alertFocus.entityId)
+        || (alertFocus.visitId && String(item.visitId) === String(alertFocus.visitId)),
     );
 
     const setupTimer = window.setTimeout(() => {
-      if (entry?.date) {
-        setSelectedDate(normalizeCalendarEntryDate(entry.date));
+      if (entry?.date || alertFocus.date) {
+        setSelectedDate(normalizeCalendarEntryDate(entry?.date || alertFocus.date));
       }
 
       if (entry && alertFocus.open) {
         onEditRef.current?.(entry);
       }
 
-      window.setTimeout(() => {
+      if (alertFocus.entityId) window.setTimeout(() => {
         document
           .getElementById(`alert-focus-calendar-${alertFocus.entityId}`)
           ?.scrollIntoView({behavior: "smooth", block: "center"});
