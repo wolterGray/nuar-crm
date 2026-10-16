@@ -21,6 +21,8 @@
 .today-date-controls { display: inline-flex; align-items: center; gap: 2px; }
 .today-date-controls input {
   width: 36px;
+  min-width: 36px;
+  max-width: 36px;
   min-height: 34px;
   padding: 0;
   border: 0;
@@ -175,12 +177,15 @@
 }
 
 @media (max-width: 560px) {
+  .today-board-header { position: relative; }
   .today-board-title { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
   .today-board-title h1 { font-size: 24px; }
   .today-board-title > span { grid-column: 1; white-space: normal; }
   .today-date-controls { grid-column: 2; grid-row: 1 / span 2; }
-  .today-board-actions { flex: 1; }
+  .today-date-controls input { width: 34px !important; min-width: 34px !important; max-width: 34px !important; color: transparent; }
+  .today-board-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: calc(100% - 42px); margin-right: 42px; }
   .today-board-actions > button { flex: 1; }
+  .today-board-notifications { position: absolute; right: 0; bottom: 2px; }
   .today-kpi-grid { grid-template-columns: 1fr; }
   .today-kpi-card { min-height: 76px; border-right: 0; border-bottom: 1px solid var(--today-border-soft); }
   .today-kpi-card:last-child { border-bottom: 0; }
