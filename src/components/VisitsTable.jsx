@@ -8,7 +8,8 @@ import {
 } from "../utils/visits.jsx";
 import ClientAutocomplete from "./ClientAutocomplete.jsx";
 import {RowActionsMenu} from "./RowActionMenuPortal.jsx";
-import {AppIcon, Badge, Button, IconButton} from "./ui/index.js";
+import {AppIcon, Badge, Button, IconButton, PaginationBar} from "./ui/index.js";
+import {calculateDynamicPageSize} from "../utils/pagination.js";
 
 const parseVisitDateValue = (value) => {
   const date = String(value ?? "").trim();
@@ -27,46 +28,6 @@ const getPaymentIcon = (method) => {
   if (m.includes("пакет")) return "package";
   if (m.includes("сертиф")) return "gift";
   return "wallet";
-};
-
-const getPaginationItems = (currentPage, totalPages) => {
-  if (totalPages <= 7) {
-    return Array.from({length: totalPages}, (_, i) => i + 1);
-  }
-
-  // Sliding window showing numbers around currentPage (including forward pages 6, 7, 8 etc.)
-  let start = Math.max(2, currentPage - 2);
-  let end = Math.min(totalPages - 1, currentPage + 3);
-
-  // Near start: show 1..6
-  if (currentPage <= 4) {
-    start = 2;
-    end = Math.min(totalPages - 1, 6);
-  }
-
-  // Near end: show last 6
-  if (currentPage >= totalPages - 3) {
-    start = Math.max(2, totalPages - 5);
-    end = totalPages - 1;
-  }
-
-  const items = [1];
-
-  if (start > 2) {
-    items.push({type: "ellipsis", targetPage: Math.max(1, currentPage - 5), key: "ellipsis-prev"});
-  }
-
-  for (let p = start; p <= end; p++) {
-    items.push(p);
-  }
-
-  if (end < totalPages - 1) {
-    items.push({type: "ellipsis", targetPage: Math.min(totalPages, currentPage + 5), key: "ellipsis-next"});
-  }
-
-  items.push(totalPages);
-
-  return items;
 };
 
 function VisitsTable({
@@ -94,18 +55,10 @@ function VisitsTable({
     const container = tableWrapRef.current;
     if (!container) return undefined;
 
-    const calculateCount = (height) => {
-      if (!height || height <= 0) return 10;
-      const HEADER_HEIGHT = 34;
-      const ROW_HEIGHT = 36;
-      const available = height - HEADER_HEIGHT - 4;
-      return Math.max(5, Math.floor(available / ROW_HEIGHT));
-    };
-
     const update = () => {
       const h = container.clientHeight;
       if (h > 0) {
-        const count = calculateCount(h);
+        const count = calculateDynamicPageSize(h, 35, 36, 5, 4);
         setAutoPageSize((prev) => (prev !== count ? count : prev));
       }
     };
@@ -118,7 +71,7 @@ function VisitsTable({
         for (const entry of entries) {
           const h = entry.contentRect.height;
           if (h > 0) {
-            const count = calculateCount(h);
+            const count = calculateDynamicPageSize(h, 35, 36, 5, 4);
             setAutoPageSize((prev) => (prev !== count ? count : prev));
           }
         }
@@ -202,11 +155,6 @@ function VisitsTable({
   const totalPages = Math.max(1, Math.ceil(filteredVisits.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
-  const paginationItems = useMemo(
-    () => getPaginationItems(safeCurrentPage, totalPages),
-    [safeCurrentPage, totalPages],
-  );
-
   const pagedVisits = useMemo(() => {
     if (pageSize >= 999999) return filteredVisits;
     const start = (safeCurrentPage - 1) * pageSize;
@@ -219,9 +167,7 @@ function VisitsTable({
     }
   };
 
-
-  const handlePageSizeChange = (event) => {
-    const val = event.target.value;
+  const handlePageSizeChange = (val) => {
     setPageSizeMode(val === "auto" ? "auto" : Number(val));
     setCurrentPage(1);
   };
@@ -529,79 +475,19 @@ function VisitsTable({
       </div>
 
       {/* 3. Pagination Footer */}
-      <div className="payments-pagination-bar shrink-0">
-        <div className="payments-pagination-info">
-          {filteredVisits.length <= pageSize
-            ? `Показано ${filteredVisits.length} записей`
-            : `Показано ${(safeCurrentPage - 1) * pageSize + 1}–${Math.min(filteredVisits.length, safeCurrentPage * pageSize)} из ${filteredVisits.length} записей`}
-        </div>
-
-        <div className="payments-pagination-controls">
-          <div className="payments-pagesize-wrap">
-            <select
-              aria-label="Количество записей на странице"
-              className="payments-pagesize-select"
-              value={pageSizeMode}
-              onChange={handlePageSizeChange}
-            >
-              <option value="auto">Авто ({autoPageSize} на экране)</option>
-              <option value={10}>10 на странице</option>
-              <option value={15}>15 на странице</option>
-              <option value={25}>25 на странице</option>
-              <option value={50}>50 на странице</option>
-              <option value={100}>100 на странице</option>
-              <option value={999999}>Все записи</option>
-            </select>
-            <AppIcon className="payments-pagesize-arrow" name="chevronDown" size="xs" />
-          </div>
-
-          <div className="payments-page-buttons">
-            <IconButton
-              aria-label="Предыдущая страница"
-              disabled={safeCurrentPage <= 1}
-              icon="chevronLeft"
-              size="sm"
-              variant="ghost"
-              onClick={() => handlePageChange(safeCurrentPage - 1)}
-            />
-            {paginationItems.map((item) => {
-              if (typeof item === "object" && item.type === "ellipsis") {
-                return (
-                  <button
-                    key={item.key}
-                    aria-label={`Перейти на страницу ${item.targetPage}`}
-                    className="payments-page-ellipsis-btn"
-                    title={`Перейти на страницу ${item.targetPage}`}
-                    type="button"
-                    onClick={() => handlePageChange(item.targetPage)}
-                  >
-                    …
-                  </button>
-                );
-              }
-              const pageNum = item;
-              return (
-                <button
-                  key={pageNum}
-                  className={`payments-page-num-btn ${safeCurrentPage === pageNum ? "is-active" : ""}`}
-                  type="button"
-                  onClick={() => handlePageChange(pageNum)}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-            <IconButton
-              aria-label="Следующая страница"
-              disabled={safeCurrentPage >= totalPages}
-              icon="chevronRight"
-              size="sm"
-              variant="ghost"
-              onClick={() => handlePageChange(safeCurrentPage + 1)}
-            />
-          </div>
-        </div>
-      </div>
+      <PaginationBar
+        allowAll={true}
+        autoPageSize={autoPageSize}
+        className="shrink-0"
+        currentPage={safeCurrentPage}
+        itemLabel="записей"
+        pageSize={pageSize}
+        pageSizeMode={pageSizeMode}
+        totalItems={filteredVisits.length}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+      />
     </div>
   );
 }

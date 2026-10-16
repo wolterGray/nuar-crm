@@ -23,11 +23,12 @@ import MobileSheet from "../MobileSheet.jsx";
 import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import AppIcon from "../ui/AppIcon.jsx";
 import Badge from "../ui/Badge.jsx";
-import SearchControl from "../ui/SearchControl.jsx";
 import Button from "../ui/Button.jsx";
 import IconButton from "../ui/IconButton.jsx";
 import Select from "../ui/Select.jsx";
 import Textarea from "../ui/Textarea.jsx";
+import PaginationBar from "../ui/PaginationBar.jsx";
+import {calculateDynamicPageSize} from "../../utils/pagination.js";
 import {LoyaltyCard} from "../LoyaltyCardPreview.jsx";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
@@ -318,11 +319,9 @@ function ClientsPage({
     if (!container) return undefined;
 
     const calculateCount = (height) => {
-      if (!height || height <= 0) return 8;
-      const HEADER_HEIGHT = 44;
-      const ROW_HEIGHT = isMobile ? 86 : 60;
-      const available = height - HEADER_HEIGHT - 6;
-      return Math.max(4, Math.floor(available / ROW_HEIGHT));
+      const HEADER_HEIGHT = isMobile ? 0 : 35;
+      const ROW_HEIGHT = isMobile ? 86 : 48;
+      return calculateDynamicPageSize(height, HEADER_HEIGHT, ROW_HEIGHT, 4, 4);
     };
 
     const update = () => {
@@ -683,17 +682,77 @@ function ClientsPage({
         />
       )}
 
-      <div className="clients-filterbar">
-        <SearchControl className="clients-page-search" placeholder="Имя, телефон или заметка..." value={search} onChange={handleSearchChange} onClear={handleClearSearch} />
-        <Select aria-label="Статус клиента" value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }}>
-          <option value="all">Все статусы</option><option value="Новый">Новые</option><option value="Активный">Активные</option>
-        </Select>
-        <Select aria-label="Последний визит" value={lastVisitFilter} onChange={(event) => { setLastVisitFilter(event.target.value); setPage(1); }}>
-          <option value="all">Последний визит</option><option value="30">До 30 дней</option><option value="90">31–90 дней</option><option value="inactive">Более 90 дней</option><option value="never">Ещё не был</option>
-        </Select>
-        <Select aria-label="Сортировка" value={sortOrder} onChange={(event) => setSortOrder(event.target.value)}>
-          <option value="recent">Сначала недавние</option><option value="name">По имени</option><option value="income">По сумме</option>
-        </Select>
+      <div className="clients-filterbar payments-filter-bar">
+        <div className="payments-search-wrap">
+          <AppIcon className="payments-search-icon" name="search" size="xs" />
+          <input
+            className="payments-search-input"
+            placeholder="Имя, телефон или заметка..."
+            type="text"
+            value={search}
+            onChange={handleSearchChange}
+          />
+          {search ? (
+            <button
+              aria-label="Очистить поиск"
+              className="payments-search-clear"
+              type="button"
+              onClick={handleClearSearch}
+            >
+              <AppIcon name="x" size="xs" />
+            </button>
+          ) : null}
+        </div>
+
+        <div className="payments-select-wrap">
+          <select
+            aria-label="Статус клиента"
+            className="payments-filter-select"
+            value={statusFilter}
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="all">Все статусы</option>
+            <option value="Новый">Новые</option>
+            <option value="Активный">Активные</option>
+          </select>
+          <AppIcon className="payments-select-arrow" name="chevronDown" size="xs" />
+        </div>
+
+        <div className="payments-select-wrap">
+          <select
+            aria-label="Последний визит"
+            className="payments-filter-select"
+            value={lastVisitFilter}
+            onChange={(event) => {
+              setLastVisitFilter(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="all">Последний визит</option>
+            <option value="30">До 30 дней</option>
+            <option value="90">31–90 дней</option>
+            <option value="inactive">Более 90 дней</option>
+            <option value="never">Ещё не был</option>
+          </select>
+          <AppIcon className="payments-select-arrow" name="chevronDown" size="xs" />
+        </div>
+
+        <div className="payments-select-wrap">
+          <select
+            aria-label="Сортировка"
+            className="payments-filter-select"
+            value={sortOrder}
+            onChange={(event) => setSortOrder(event.target.value)}
+          >
+            <option value="recent">Сначала недавние</option>
+            <option value="name">По имени</option>
+            <option value="income">По сумме</option>
+          </select>
+          <AppIcon className="payments-select-arrow" name="chevronDown" size="xs" />
+        </div>
       </div>
 
       <div className="clients-table-shell" ref={tableShellRef}>
@@ -830,26 +889,21 @@ function ClientsPage({
         )}
       </div>
 
-      <footer className="clients-pagination">
-        <span>{filteredClients.length ? `${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, filteredClients.length)} из ${filteredClients.length}` : "0 клиентов"}</span>
-        <div className="clients-pagination-controls">
-          <label>На странице:
-            <Select value={pageSizeMode} onChange={(event) => {
-              const val = event.target.value;
-              setPageSizeMode(val === "auto" ? "auto" : Number(val));
-              setPage(1);
-            }}>
-              <option value="auto">Авто ({autoPageSize})</option>
-              <option value="8">8</option>
-              <option value="16">16</option>
-              <option value="32">32</option>
-            </Select>
-          </label>
-          <IconButton icon="chevronLeft" label="Предыдущая страница" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} />
-          <b>{currentPage}</b><span>из {pageCount}</span>
-          <IconButton icon="chevronRight" label="Следующая страница" disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))} />
-        </div>
-      </footer>
+      <PaginationBar
+        autoPageSize={autoPageSize}
+        className="shrink-0"
+        currentPage={currentPage}
+        itemLabel="клиентов"
+        pageSize={pageSize}
+        pageSizeMode={pageSizeMode}
+        totalItems={filteredClients.length}
+        totalPages={pageCount}
+        onPageChange={setPage}
+        onPageSizeChange={(newMode) => {
+          setPageSizeMode(newMode);
+          setPage(1);
+        }}
+      />
 
       {activeViewedClient && (
         <MobileSheet
