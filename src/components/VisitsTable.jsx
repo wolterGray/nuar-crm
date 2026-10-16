@@ -48,7 +48,6 @@ function VisitsTable({
   const [showExtraFilters, setShowExtraFilters] = useState(false);
   const tableWrapRef = useRef(null);
   const [autoPageSize, setAutoPageSize] = useState(10);
-  const [pageSizeMode, setPageSizeMode] = useState("auto");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -58,7 +57,7 @@ function VisitsTable({
     const update = () => {
       const h = container.clientHeight;
       if (h > 0) {
-        const count = calculateDynamicPageSize(h, 35, 36, 5, 4);
+        const count = calculateDynamicPageSize(h, 35, 36, 5, 8);
         setAutoPageSize((prev) => (prev !== count ? count : prev));
       }
     };
@@ -71,7 +70,7 @@ function VisitsTable({
         for (const entry of entries) {
           const h = entry.contentRect.height;
           if (h > 0) {
-            const count = calculateDynamicPageSize(h, 35, 36, 5, 4);
+            const count = calculateDynamicPageSize(h, 35, 36, 5, 8);
             setAutoPageSize((prev) => (prev !== count ? count : prev));
           }
         }
@@ -86,7 +85,7 @@ function VisitsTable({
     };
   }, []);
 
-  const pageSize = pageSizeMode === "auto" ? autoPageSize : Number(pageSizeMode);
+  const pageSize = autoPageSize;
 
   const safeVisits = useMemo(
     () => (Array.isArray(visits) ? visits.filter(Boolean) : []),
@@ -165,11 +164,6 @@ function VisitsTable({
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
     }
-  };
-
-  const handlePageSizeChange = (val) => {
-    setPageSizeMode(val === "auto" ? "auto" : Number(val));
-    setCurrentPage(1);
   };
 
   return (
@@ -476,17 +470,14 @@ function VisitsTable({
 
       {/* 3. Pagination Footer */}
       <PaginationBar
-        allowAll={true}
         autoPageSize={autoPageSize}
         className="shrink-0"
         currentPage={safeCurrentPage}
         itemLabel="записей"
         pageSize={pageSize}
-        pageSizeMode={pageSizeMode}
         totalItems={filteredVisits.length}
         totalPages={totalPages}
         onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
       />
     </div>
   );

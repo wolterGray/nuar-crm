@@ -309,7 +309,6 @@ function ClientsPage({
   const [page, setPage] = useState(1);
   const tableShellRef = useRef(null);
   const [autoPageSize, setAutoPageSize] = useState(8);
-  const [pageSizeMode, setPageSizeMode] = useState("auto");
   const [showQuality, setShowQuality] = useState(false);
   const returnFocusRef = useRef(null);
   const {isMobile} = useBreakpoint();
@@ -321,7 +320,7 @@ function ClientsPage({
     const calculateCount = (height) => {
       const HEADER_HEIGHT = isMobile ? 0 : 35;
       const ROW_HEIGHT = isMobile ? 86 : 36;
-      return calculateDynamicPageSize(height, HEADER_HEIGHT, ROW_HEIGHT, 5, 4);
+      return calculateDynamicPageSize(height, HEADER_HEIGHT, ROW_HEIGHT, 5, 8);
     };
 
     const update = () => {
@@ -355,7 +354,7 @@ function ClientsPage({
     };
   }, [isMobile]);
 
-  const pageSize = pageSizeMode === "auto" ? autoPageSize : Number(pageSizeMode);
+  const pageSize = autoPageSize;
 
   // Memoized event handlers for client rows
   const handleViewClient = useCallback((client, trigger = null) => {
@@ -763,13 +762,13 @@ function ClientsPage({
         )}
         {/* Table Head */}
         <div className="clients-table-head-row">
-          <span>Клиент</span>
-          <span>Статус</span>
-          <span>Визиты</span>
-          <span>Сумма</span>
-          <span>Последний визит</span>
-          <span>Заметка</span>
-          <span></span>
+          <div className="clients-col-client">Клиент</div>
+          <div className="clients-col-status">Статус</div>
+          <div className="clients-col-visits">Визиты</div>
+          <div className="clients-col-money">Сумма</div>
+          <div className="clients-col-last-visit">Последний визит</div>
+          <div className="clients-col-note">Заметка</div>
+          <div className="clients-col-actions" />
         </div>
 
         {/* Table Body */}
@@ -793,41 +792,35 @@ function ClientsPage({
                   }
                 }}>
                 {/* Client info */}
-                <div className="clients-col-client flex flex-col md:flex-row md:items-center min-w-0 gap-0.5 md:gap-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <strong className="clients-table-name text-foreground font-semibold text-sm md:text-[13px] truncate">
-                      {client.name || client.phone || "Без имени"}
-                    </strong>
-                    {client.isVip && (
-                      <Badge className="client-vip-badge gap-1 shrink-0 text-[10px] py-0.5 px-1.5" size="sm" variant="premium">
-                        <AppIcon name="crown" size="xs" />
-                        VIP
-                      </Badge>
-                    )}
-                  </div>
+                <div className="clients-col-client">
+                  <span className="clients-client-name" title={client.name}>
+                    {client.name || client.phone || "Без имени"}
+                  </span>
+                  {client.isVip && (
+                    <Badge className="client-vip-badge" size="sm" variant="premium">
+                      <AppIcon name="crown" size="xs" />
+                      VIP
+                    </Badge>
+                  )}
                   {client.phone && client.phone !== client.name ? (
-                    <small className="clients-table-phone text-muted-foreground md:text-zinc-500 text-xs font-normal truncate">
+                    <small className="clients-table-phone md:hidden">
                       {client.phone}
                     </small>
-                  ) : (
-                    <small className="clients-table-phone text-muted-foreground text-xs truncate md:hidden">
-                      Телефон не указан
-                    </small>
-                  )}
+                  ) : null}
                 </div>
 
                 {/* Status badge */}
-                <div className="clients-status-cell flex items-center" data-label="Статус">
-                  <b
+                <div className="clients-col-status" data-label="Статус">
+                  <span
                     className={`client-status-pill ${
                       client.autoStatus === "Новый" ? "status-new" : "status-active"
                     }`}>
                     {client.autoStatus}
-                  </b>
+                  </span>
                 </div>
 
                 {/* Mobile metadata tags */}
-                <div className="flex md:hidden flex-wrap items-center gap-2">
+                <div className="clients-mobile-meta md:hidden">
                   <span className="inline-flex items-center px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs font-medium">
                     Визитов: {client.visitsCount}
                   </span>
@@ -837,22 +830,31 @@ function ClientsPage({
                 </div>
 
                 {/* Desktop metadata columns */}
-                <span className="clients-table-number hidden md:inline-flex items-center" data-label="Визитов">
-                  {client.visitsCount}
-                  {client.packagesCount > 0 ? <AppIcon className="clients-active-package" name="package" size="xs" /> : null}
-                </span>
-                <span className="clients-table-money hidden md:inline text-foreground text-[13px] font-semibold" data-label="Сумма">
-                  {formatMoney(client.totalIncome)}
-                </span>
-                <span className="clients-last-visit hidden md:flex items-center gap-1.5 whitespace-nowrap" data-label="Последний визит">
+                <div className="clients-col-visits hidden md:flex" data-label="Визиты">
+                  <span className="clients-visits-num">{client.visitsCount}</span>
+                  {client.packagesCount > 0 ? (
+                    <AppIcon className="clients-active-package" name="package" size="xs" />
+                  ) : null}
+                </div>
+                <div className="clients-col-money hidden md:flex" data-label="Сумма">
+                  <span className="clients-money-amount">{formatMoney(client.totalIncome)}</span>
+                </div>
+                <div className="clients-col-last-visit hidden md:flex" data-label="Последний визит">
                   <span className="clients-last-visit-date">{client.lastVisit}</span>
                   <span className="clients-last-visit-days">
                     {client.daysAbsent === null ? "(новый)" : `(${client.daysAbsent} дн.)`}
                   </span>
-                </span>
-                <span className="clients-note-cell hidden md:flex items-center" data-label="Заметка">
-                  {client.note ? <><AppIcon name="fileText" size="xs" /><span>Есть заметка</span></> : "—"}
-                </span>
+                </div>
+                <div className="clients-col-note hidden md:flex" data-label="Заметка" title={client.note || ""}>
+                  {client.note ? (
+                    <>
+                      <AppIcon name="fileText" size="xs" />
+                      <span className="clients-note-text">Есть заметка</span>
+                    </>
+                  ) : (
+                    <span className="clients-note-empty">—</span>
+                  )}
+                </div>
 
                 {/* Mobile Quick Actions */}
                 <div
@@ -881,17 +883,19 @@ function ClientsPage({
                 </div>
 
                 {/* Row actions */}
-                <MemoizedClientRowActions
-                  client={client}
-                  handleAddToWaitlist={handleAddToWaitlist}
-                  handleMessageClient={handleMessageClient}
-                  onDeleteClient={onDeleteClient}
-                  onEditClient={onEditClient}
-                  openClientMenuId={openClientMenuId}
-                  setOpenClientMenuId={setOpenClientMenuId}
-                  setViewedClient={setViewedClient}
-                  setVisitHistoryTab={setVisitHistoryTab}
-                />
+                <div className="clients-col-actions" onClick={(e) => e.stopPropagation()}>
+                  <MemoizedClientRowActions
+                    client={client}
+                    handleAddToWaitlist={handleAddToWaitlist}
+                    handleMessageClient={handleMessageClient}
+                    onDeleteClient={onDeleteClient}
+                    onEditClient={onEditClient}
+                    openClientMenuId={openClientMenuId}
+                    setOpenClientMenuId={setOpenClientMenuId}
+                    setViewedClient={setViewedClient}
+                    setVisitHistoryTab={setVisitHistoryTab}
+                  />
+                </div>
               </div>
             );
           })}
@@ -911,14 +915,9 @@ function ClientsPage({
         currentPage={currentPage}
         itemLabel="клиентов"
         pageSize={pageSize}
-        pageSizeMode={pageSizeMode}
         totalItems={filteredClients.length}
         totalPages={pageCount}
         onPageChange={setPage}
-        onPageSizeChange={(newMode) => {
-          setPageSizeMode(newMode);
-          setPage(1);
-        }}
       />
 
       {activeViewedClient && (

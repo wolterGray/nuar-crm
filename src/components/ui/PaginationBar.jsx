@@ -21,6 +21,7 @@ export default function PaginationBar({
   onPageSizeChange,
   pageSize = 10,
   pageSizeMode = "auto",
+  showPageSizeSelect = false,
   totalItems = 0,
   totalPages = 1,
 }) {
@@ -52,26 +53,28 @@ export default function PaginationBar({
       </div>
 
       <div className="crm-pagination-controls payments-pagination-controls">
-        <div className="crm-pagesize-wrap payments-pagesize-wrap">
-          <select
-            aria-label="Количество записей на странице"
-            className="crm-pagesize-select payments-pagesize-select"
-            value={pageSizeMode}
-            onChange={(e) => {
-              const val = e.target.value;
-              onPageSizeChange?.(val === "auto" ? "auto" : Number(val));
-            }}
-          >
-            <option value="auto">Авто ({autoPageSize} на экране)</option>
-            {PAGE_SIZE_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt} на странице
-              </option>
-            ))}
-            {allowAll ? <option value={999999}>Все записи</option> : null}
-          </select>
-          <AppIcon className="crm-pagesize-arrow payments-pagesize-arrow" name="chevronDown" size="xs" />
-        </div>
+        {showPageSizeSelect ? (
+          <div className="crm-pagesize-wrap payments-pagesize-wrap">
+            <select
+              aria-label="Количество записей на странице"
+              className="crm-pagesize-select payments-pagesize-select"
+              value={pageSizeMode}
+              onChange={(e) => {
+                const val = e.target.value;
+                onPageSizeChange?.(val === "auto" ? "auto" : Number(val));
+              }}
+            >
+              <option value="auto">Авто ({autoPageSize} на экране)</option>
+              {PAGE_SIZE_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt} на странице
+                </option>
+              ))}
+              {allowAll ? <option value={999999}>Все записи</option> : null}
+            </select>
+            <AppIcon className="crm-pagesize-arrow payments-pagesize-arrow" name="chevronDown" size="xs" />
+          </div>
+        ) : null}
 
         <div className="crm-page-buttons payments-page-buttons">
           <IconButton
