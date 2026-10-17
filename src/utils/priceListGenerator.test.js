@@ -9,6 +9,8 @@ import {
   loadPriceListSettings,
   savePriceListSettings,
   DEFAULT_PRICE_LIST_SETTINGS,
+  resolveDocumentStyle,
+  getHexLuminance,
 } from "./priceListGenerator.js";
 import { getTranslatedCategory, getTranslatedService, STUDIO_DEFAULT_CONTACTS } from "./priceListTranslations.js";
 
@@ -232,12 +234,36 @@ describe("priceListGenerator", () => {
   });
 
   describe("paginateCategories", () => {
-    it("creates balanced pages without breaking services", () => {
-      // Create a category with 15 services to force multi-page
-      const manyServices = Array.from({ length: 15 }, (_, i) => ({
+    it("fits 15 single-variant services comfortably on a single A4 sheet without artificial breaks", () => {
+      const normalServices = Array.from({ length: 15 }, (_, i) => ({
         id: i + 1,
         displayName: `Masaż ${i + 1}`,
         variants: [{ duration: 60, price: 250 }],
+      }));
+
+      const categories = [
+        {
+          id: "Masaże",
+          rawName: "Массажи",
+          localizedName: "Masaże",
+          services: normalServices,
+        },
+      ];
+
+      const pages = paginateCategories(categories, "a4", false);
+      expect(pages.length).toBe(1);
+      expect(pages[0].pageIndex).toBe(1);
+      expect(pages[0].totalPages).toBe(1);
+    });
+
+    it("splits larger catalogues (30 services) gracefully across multiple balanced pages", () => {
+      const manyServices = Array.from({ length: 30 }, (_, i) => ({
+        id: i + 1,
+        displayName: `Masaż ${i + 1}`,
+        variants: [
+          { duration: 60, price: 250 },
+          { duration: 90, price: 350 },
+        ],
       }));
 
       const categories = [
@@ -254,6 +280,36 @@ describe("priceListGenerator", () => {
       expect(pages[0].pageIndex).toBe(1);
       expect(pages[0].totalPages).toBe(pages.length);
       expect(pages[1].categories[0].localizedName).toContain("(cd.)");
+    });
+  });
+
+  describe("resolveDocumentStyle and getHexLuminance", () => {
+    it("computes luminance correctly for black and white", () => {
+      expect(getHexLuminance("#000000")).toBe(0);
+      expect(getHexLuminance("#ffffff")).toBeCloseTo(1, 1);
+    });
+
+    it("resolves dark preset to light text", () => {
+      const style = resolveDocumentStyle({ bgPreset: "nuar-dark" });
+      expect(style.effectiveTextMode).toBe("light");
+      expect(style.bgColor).toBe("#0d0d0f");
+      expect(style.text).toBe("#ffffff");
+    });
+
+    it("resolves cream preset to dark text", () => {
+      const style = resolveDocumentStyle({ bgPreset: "cream" });
+      expect(style.effectiveTextMode).toBe("dark");
+      expect(style.bgColor).toBe("#f7f5f0");
+      expect(style.text).toBe("#111113");
+    });
+
+    it("resolves custom light hex to dark text automatically", () => {
+      const style = resolveDocumentStyle({
+        bgPreset: "custom",
+        customBgColor: "#f0f4f8",
+        textColorMode: "auto",
+      });
+      expect(style.effectiveTextMode).toBe("dark");
     });
   });
 

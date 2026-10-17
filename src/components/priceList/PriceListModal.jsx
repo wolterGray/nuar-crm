@@ -1,12 +1,12 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Button from "../ui/Button.jsx";
 import IconButton from "../ui/IconButton.jsx";
 import PriceListPreview from "./PriceListPreview.jsx";
 import PriceListSettingsDrawer from "./PriceListSettingsDrawer.jsx";
 import {
+  preparePriceListData,
   loadPriceListSettings,
   savePriceListSettings,
-  preparePriceListData,
 } from "../../utils/priceListGenerator.js";
 import { exportPriceListToPng, printPriceList } from "../../utils/priceListExporter.js";
 import "./PriceList.css";
@@ -15,7 +15,6 @@ export default function PriceListModal({
   isOpen,
   onClose,
   services = [],
-  serviceCategories: _serviceCategories = [],
   appSettings = null,
   pushNotification,
 }) {
@@ -23,20 +22,20 @@ export default function PriceListModal({
   const [isSettingsOpen, setIsSettingsOpen] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
   const [isExportingPng, setIsExportingPng] = useState(false);
-  const [activePageNumber, setActivePageNumber] = useState(null); // null = all pages
+  const [activePageNumber, setActivePageNumber] = useState(null);
 
-  // Synchronize settings with localStorage whenever they change
-  const handleUpdateSettings = useCallback((newSettings) => {
+  // Sync settings changes to localStorage
+  const handleUpdateSettings = (newSettings) => {
     setSettings(newSettings);
     savePriceListSettings(newSettings);
-  }, []);
+  };
 
-  // Compute live price list data whenever services, settings or appSettings change
+  // Prepare price list data with automatic responsive pagination
   const priceListData = useMemo(() => {
     return preparePriceListData(services, settings, appSettings);
   }, [services, settings, appSettings]);
 
-  // Unique category names for the settings tree
+  // Unique sorted category names from CRM services
   const categoryNames = useMemo(() => {
     const raw = services
       .map((s) => s.category || "Без категории")
@@ -51,6 +50,17 @@ export default function PriceListModal({
       : null;
 
   // Auto-fit scale adjustment on window resize or initial mount
+  const handleFitWidth = () => {
+    const sheetWidth =
+      settings.format === "stories" ? 540 : settings.format === "post" ? 600 : 700;
+    const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+    const availableWidth = isMobile
+      ? window.innerWidth - 32
+      : window.innerWidth - (isSettingsOpen ? 420 : 80);
+    const scale = Math.min(1.4, Math.max(0.38, Number((availableWidth / sheetWidth).toFixed(2))));
+    setZoomScale(scale);
+  };
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -60,7 +70,7 @@ export default function PriceListModal({
         setIsSettingsOpen(false); // Mobile: settings collapsed by default for maximum preview area
         const screenW = window.innerWidth;
         if (screenW < 440) {
-          setZoomScale(0.55);
+          setZoomScale(0.52);
         } else if (screenW < 600) {
           setZoomScale(0.68);
         } else {
@@ -125,7 +135,12 @@ export default function PriceListModal({
   if (!isOpen) return null;
 
   return (
-    <div className="price-modal-overlay" role="dialog" aria-modal="true" aria-label="Генератор прайс-листа">
+    <div
+      className="price-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Генератор прайс-листа"
+    >
       <div className="price-modal-container">
         {/* TOP WORKSPACE NAVIGATION */}
         <header className="price-modal-navbar">
@@ -175,7 +190,9 @@ export default function PriceListModal({
                     <button
                       key={pNum}
                       type="button"
-                      className={`price-page-tab ${effectiveActivePage === pNum ? "is-active" : ""}`}
+                      className={`price-page-tab ${
+                        effectiveActivePage === pNum ? "is-active" : ""
+                      }`}
                       onClick={() => setActivePageNumber(pNum)}
                     >
                       {pNum}
@@ -185,13 +202,21 @@ export default function PriceListModal({
               </div>
             ) : null}
 
-            {/* Zoom Controls */}
+            {/* Responsive Zoom Controls with Fit-Width */}
             <div className="price-zoom-group">
+              <button
+                type="button"
+                className="price-zoom-fit-btn"
+                onClick={handleFitWidth}
+                title="Подогнать под ширину экрана"
+              >
+                По ширине
+              </button>
               <IconButton
                 icon="minus"
                 size="sm"
                 variant="ghost"
-                onClick={() => setZoomScale((s) => Math.max(0.4, Number((s - 0.1).toFixed(2))))}
+                onClick={() => setZoomScale((s) => Math.max(0.35, Number((s - 0.1).toFixed(2))))}
                 aria-label="Уменьшить масштаб"
               />
               <button
@@ -206,7 +231,7 @@ export default function PriceListModal({
                 icon="plus"
                 size="sm"
                 variant="ghost"
-                onClick={() => setZoomScale((s) => Math.min(1.5, Number((s + 0.1).toFixed(2))))}
+                onClick={() => setZoomScale((s) => Math.min(1.8, Number((s + 0.1).toFixed(2))))}
                 aria-label="Увеличить масштаб"
               />
             </div>
@@ -270,6 +295,11 @@ export default function PriceListModal({
             services={services}
             categories={categoryNames}
             resolvedContacts={priceListData.labels}
+            totalPages={priceListData.totalPages}
+            totalServices={priceListData.totalServices}
+            onExportPng={handleExportPng}
+            onPrintPdf={handlePrint}
+            isExportingPng={isExportingPng}
           />
         </div>
       </div>

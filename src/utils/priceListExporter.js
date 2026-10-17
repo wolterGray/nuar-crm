@@ -1,4 +1,5 @@
 import { UI_LABELS } from "./priceListTranslations.js";
+import { resolveDocumentStyle } from "./priceListGenerator.js";
 
 /**
  * Downloads a canvas or blob as a PNG file
@@ -15,10 +16,51 @@ function triggerFileDownload(blob, filename) {
 }
 
 /**
+ * Safely loads an image from a URL or data URL
+ */
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    if (!src) {
+      reject(new Error("Empty image source"));
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = (err) => reject(err);
+    img.src = src;
+  });
+}
+
+/**
  * Renders a single page of the price list onto a Canvas
  */
-function renderPageToCanvas(page, settings, labels, width, height) {
-  const { theme = "dark", priceMode = "full", showDescriptions = false } = settings;
+async function renderPageToCanvas(page, settings, labels, width, height) {
+  const {
+    priceMode = "full",
+    showDescriptions = false,
+    showContacts = true,
+    typographyFamily = "editorial",
+    typographyFontSize = "md",
+    density = "normal",
+    showLogo = true,
+    logoType = "default",
+    customLogoUrl,
+    logoSize = "md",
+    logoAlign = "center",
+    bgImage,
+    bgImageOpacity = 40,
+    bgImageSize = "cover",
+  } = settings;
+
+  // Await web fonts if document.fonts is supported
+  if (typeof document !== "undefined" && document.fonts && document.fonts.ready) {
+    try {
+      await document.fonts.ready;
+    } catch (err) {
+      console.warn("Fonts ready await warning:", err);
+    }
+  }
 
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -29,19 +71,52 @@ function renderPageToCanvas(page, settings, labels, width, height) {
     throw new Error("Unable to obtain 2D canvas context");
   }
 
-  // Color palette
-  const isDark = theme === "dark";
-  const bg = isDark ? "#0d0d0f" : "#ffffff";
-  const textPrimary = isDark ? "#ffffff" : "#111113";
-  const textSecondary = isDark ? "#9e9ea6" : "#63636b";
-  const textFaint = isDark ? "#686870" : "#8c8c94";
-  const accentRed = "#e11d2e";
-  const borderSoft = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)";
-  const dotColor = isDark ? "rgba(255, 255, 255, 0.16)" : "rgba(0, 0, 0, 0.18)";
+  // Cohesive document style
+  const docStyle = resolveDocumentStyle(settings);
+  const bg = docStyle.bgColor;
+  const textPrimary = docStyle.text;
+  const textSecondary = docStyle.muted;
+  const textFaint = docStyle.faint;
+  const accentRed = docStyle.accent;
+  const borderSoft = docStyle.border;
+  const dotColor = docStyle.dots;
 
-  // 1. Fill Background
+  // 1. Fill Background Color
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, width, height);
+
+  // 2. Optional Background Image with Legibility Overlay
+  if (bgImage) {
+    try {
+      const bgImg = await loadImage(bgImage);
+      if (bgImg && bgImg.naturalWidth > 0) {
+        if (bgImageSize === "contain") {
+          const scale = Math.min(width / bgImg.naturalWidth, height / bgImg.naturalHeight);
+          const w = bgImg.naturalWidth * scale;
+          const h = bgImg.naturalHeight * scale;
+          const x = (width - w) / 2;
+          const y = (height - h) / 2;
+          ctx.drawImage(bgImg, x, y, w, h);
+        } else {
+          // cover (default)
+          const scale = Math.max(width / bgImg.naturalWidth, height / bgImg.naturalHeight);
+          const w = bgImg.naturalWidth * scale;
+          const h = bgImg.naturalHeight * scale;
+          const x = (width - w) / 2;
+          const y = (height - h) / 2;
+          ctx.drawImage(bgImg, x, y, w, h);
+        }
+
+        // Overlay for legibility
+        const overlayColor = docStyle.effectiveTextMode === "light" ? "0, 0, 0" : "255, 255, 255";
+        const alpha = Math.max(0, Math.min(1, (bgImageOpacity ?? 40) / 100));
+        ctx.fillStyle = `rgba(${overlayColor}, ${alpha})`;
+        ctx.fillRect(0, 0, width, height);
+      }
+    } catch (err) {
+      console.warn("Could not load background image for export:", err);
+    }
+  }
 
   // Outer framing
   const margin = Math.round(width * 0.055);
@@ -59,40 +134,88 @@ function renderPageToCanvas(page, settings, labels, width, height) {
   ctx.fillRect(width - margin * 0.6 - cornerSize + 1, margin * 0.6 - 1, cornerSize, 2);
   ctx.fillRect(width - margin * 0.6 - 1, margin * 0.6 - 1, 2, cornerSize);
 
-  let currentY = margin + 12;
+  // Typography font selections
+  const headingFont =
+    typographyFamily === "classic"
+      ? "'Playfair Display', Georgia, serif"
+      : typographyFamily === "editorial"
+        ? "'Playfair Display', Georgia, serif"
+        : "Inter, system-ui, -apple-system, sans-serif";
 
-  // 2. Brand Header
-  ctx.textAlign = "center";
+  const bodyFont =
+    typographyFamily === "classic"
+      ? "Georgia, 'Times New Roman', serif"
+      : "Inter, system-ui, -apple-system, sans-serif";
 
+  // Font scale factor
+  const fontScale = typographyFontSize === "sm" ? 0.9 : typographyFontSize === "lg" ? 1.12 : 1.0;
+
+  let currentY = margin + (density === "compact" ? 8 : 14);
+
+  // 3. Brand Header
   if (page.isFirstPage) {
-    // Dominant "NUAR"
-    ctx.font = "bold 38px 'Playfair Display', Georgia, serif, system-ui";
-    ctx.fillStyle = textPrimary;
-    ctx.letterSpacing = "6px";
-    ctx.fillText("N U A R", width / 2, currentY);
-    currentY += 24;
+    if (showLogo) {
+      if (logoType === "custom" && customLogoUrl) {
+        try {
+          const logoImg = await loadImage(customLogoUrl);
+          const maxLogoH = logoSize === "sm" ? 36 : logoSize === "lg" ? 64 : 48;
+          const scale = maxLogoH / logoImg.naturalHeight;
+          const logoW = logoImg.naturalWidth * scale;
+          const logoH = maxLogoH;
 
+          let logoX = (width - logoW) / 2;
+          if (logoAlign === "left") logoX = margin;
+          if (logoAlign === "right") logoX = width - margin - logoW;
+
+          ctx.drawImage(logoImg, logoX, currentY, logoW, logoH);
+          currentY += logoH + 14;
+        } catch (err) {
+          console.warn("Could not draw custom logo in Canvas:", err);
+          // Fallback to text
+          ctx.textAlign = logoAlign === "left" ? "left" : logoAlign === "right" ? "right" : "center";
+          const textX = logoAlign === "left" ? margin : logoAlign === "right" ? width - margin : width / 2;
+          ctx.font = `bold ${Math.round(34 * fontScale)}px ${headingFont}`;
+          ctx.fillStyle = textPrimary;
+          ctx.letterSpacing = "6px";
+          ctx.fillText("N U A R", textX, currentY + 24);
+          currentY += 34;
+        }
+      } else {
+        // Text / Default NUAR Mark
+        ctx.textAlign = logoAlign === "left" ? "left" : logoAlign === "right" ? "right" : "center";
+        const textX = logoAlign === "left" ? margin : logoAlign === "right" ? width - margin : width / 2;
+
+        ctx.font = `bold ${Math.round(36 * fontScale)}px ${headingFont}`;
+        ctx.fillStyle = textPrimary;
+        ctx.letterSpacing = "6px";
+        ctx.fillText("N U A R", textX, currentY + 24);
+        currentY += 32;
+      }
+    }
+
+    ctx.textAlign = "center";
     // Subtitle: "MASSAGE STUDIO · WARSZAWA"
-    ctx.font = "600 11px system-ui, -apple-system, sans-serif";
+    ctx.font = `600 ${Math.round(11 * fontScale)}px ${bodyFont}`;
     ctx.fillStyle = textSecondary;
     ctx.letterSpacing = "3.2px";
     ctx.fillText(labels.brandSubtitle, width / 2, currentY);
-    currentY += 26;
+    currentY += 24;
 
     // Document Title: "CENNIK"
-    ctx.font = "700 15px system-ui, -apple-system, sans-serif";
+    ctx.font = `700 ${Math.round(15 * fontScale)}px ${bodyFont}`;
     ctx.fillStyle = textPrimary;
     ctx.letterSpacing = "2.5px";
     ctx.fillText(labels.docTitle, width / 2, currentY);
-    currentY += 18;
+    currentY += 16;
 
     // Red hairline accent bar
     ctx.fillStyle = accentRed;
     ctx.fillRect(width / 2 - 20, currentY, 40, 2);
-    currentY += 32;
+    currentY += density === "compact" ? 22 : 30;
   } else {
     // Secondary compact header for subsequent pages
-    ctx.font = "bold 18px 'Playfair Display', Georgia, serif, system-ui";
+    ctx.textAlign = "center";
+    ctx.font = `bold ${Math.round(17 * fontScale)}px ${headingFont}`;
     ctx.fillStyle = textPrimary;
     ctx.letterSpacing = "3px";
     ctx.fillText(`N U A R   ·   ${labels.docTitle} ${labels.continued}`, width / 2, currentY);
@@ -100,21 +223,24 @@ function renderPageToCanvas(page, settings, labels, width, height) {
 
     ctx.fillStyle = accentRed;
     ctx.fillRect(width / 2 - 18, currentY, 36, 1.5);
-    currentY += 30;
+    currentY += density === "compact" ? 20 : 28;
   }
 
-  // 3. Categories and Services
+  // 4. Categories and Services
   ctx.textAlign = "left";
   ctx.letterSpacing = "normal";
 
   const categories = page.categories || [];
-  const maxContentBottom = height - margin - 60;
+  const maxContentBottom = height - margin - (showContacts ? 60 : 30);
+
+  const catHeaderStep = density === "compact" ? 18 : 22;
+  const svcStep = density === "compact" ? 22 : 28;
 
   for (const cat of categories) {
-    if (currentY > maxContentBottom - 50) break;
+    if (currentY > maxContentBottom - 40) break;
 
     // Category Header
-    ctx.font = "bold 13.5px system-ui, -apple-system, sans-serif";
+    ctx.font = `bold ${Math.round(13 * fontScale)}px ${headingFont}`;
     ctx.letterSpacing = "1.5px";
     ctx.fillStyle = textPrimary;
     const catTitle = cat.localizedName.toUpperCase();
@@ -128,11 +254,11 @@ function renderPageToCanvas(page, settings, labels, width, height) {
     ctx.lineTo(margin + contentWidth, currentY - 4);
     ctx.stroke();
 
-    currentY += 22;
+    currentY += catHeaderStep;
 
     // Services list
     for (const service of cat.services) {
-      if (currentY > maxContentBottom - 26) break;
+      if (currentY > maxContentBottom - 20) break;
 
       const svcName = service.displayName;
       const variantCount = service.variants?.length || 1;
@@ -140,17 +266,17 @@ function renderPageToCanvas(page, settings, labels, width, height) {
 
       if (isMultiVariant) {
         // Multi-variant Layout: Title on top, structured variant grid underneath
-        ctx.font = "600 13.5px system-ui, -apple-system, sans-serif";
+        ctx.font = `600 ${Math.round(13 * fontScale)}px ${bodyFont}`;
         ctx.letterSpacing = "0.2px";
         ctx.fillStyle = textPrimary;
         ctx.fillText(svcName, margin, currentY);
-        currentY += 18;
+        currentY += 16;
 
         if (showDescriptions && service.description) {
-          ctx.font = "400 11px system-ui, -apple-system, sans-serif";
+          ctx.font = `400 ${Math.round(10.5 * fontScale)}px ${bodyFont}`;
           ctx.fillStyle = textSecondary;
           ctx.fillText(service.description.slice(0, 95), margin, currentY);
-          currentY += 16;
+          currentY += 15;
         }
 
         // Draw variant columns grid
@@ -160,18 +286,18 @@ function renderPageToCanvas(page, settings, labels, width, height) {
         variants.forEach((v, vIdx) => {
           const colX = margin + vIdx * colWidth;
 
-          // Duration Header
-          ctx.font = "500 10.5px system-ui, -apple-system, sans-serif";
+          // Duration in uppercase
+          ctx.font = `600 ${Math.round(10.5 * fontScale)}px ${bodyFont}`;
           ctx.fillStyle = textFaint;
           ctx.fillText(`${v.duration} ${labels.minUnit}`.toUpperCase(), colX, currentY);
 
           // Price underneath
-          ctx.font = "700 13px system-ui, -apple-system, sans-serif";
+          ctx.font = `700 ${Math.round(13 * fontScale)}px ${bodyFont}`;
           ctx.fillStyle = textPrimary;
           ctx.fillText(`${v.price} ${labels.currency}`, colX, currentY + 14);
         });
 
-        currentY += 28;
+        currentY += svcStep;
       } else {
         // Single Variant or Compact Mode: Clean Inline Row
         const priceText =
@@ -181,14 +307,14 @@ function renderPageToCanvas(page, settings, labels, width, height) {
               ? `${service.variants[0].duration} ${labels.minUnit} — ${service.variants[0].price} ${labels.currency}`
               : `${service.price} ${labels.currency}`;
 
-        ctx.font = "600 13.5px system-ui, -apple-system, sans-serif";
+        ctx.font = `600 ${Math.round(13 * fontScale)}px ${bodyFont}`;
         ctx.letterSpacing = "0.2px";
         ctx.fillStyle = textPrimary;
         ctx.fillText(svcName, margin, currentY);
 
         const nameWidth = ctx.measureText(svcName).width;
 
-        ctx.font = "700 13px system-ui, -apple-system, sans-serif";
+        ctx.font = `700 ${Math.round(13 * fontScale)}px ${bodyFont}`;
         ctx.fillStyle = textPrimary;
         const priceWidth = ctx.measureText(priceText).width;
 
@@ -197,59 +323,64 @@ function renderPageToCanvas(page, settings, labels, width, height) {
         ctx.textAlign = "left";
 
         // Dot leader
-        const dotsStartX = margin + nameWidth + 10;
-        const dotsEndX = margin + contentWidth - priceWidth - 10;
+        const dotStartX = margin + nameWidth + 12;
+        const dotEndX = margin + contentWidth - priceWidth - 12;
 
-        if (dotsEndX > dotsStartX + 20) {
+        if (dotEndX > dotStartX) {
           ctx.fillStyle = dotColor;
-          ctx.font = "12px monospace";
-          let dx = dotsStartX;
-          while (dx + 6 < dotsEndX) {
-            ctx.fillText(".", dx, currentY - 1);
-            dx += 8;
+          const dotSpacing = 8;
+          for (let x = dotStartX; x < dotEndX; x += dotSpacing) {
+            ctx.fillRect(x, currentY - 3, 1.5, 1.5);
           }
         }
 
-        currentY += 19;
-
         if (showDescriptions && service.description) {
-          ctx.font = "400 11px system-ui, -apple-system, sans-serif";
+          currentY += 15;
+          ctx.font = `400 ${Math.round(10.5 * fontScale)}px ${bodyFont}`;
           ctx.fillStyle = textSecondary;
           ctx.fillText(service.description.slice(0, 95), margin, currentY);
-          currentY += 16;
         }
-      }
 
-      currentY += 4;
+        currentY += density === "compact" ? 18 : 22;
+      }
     }
 
-    currentY += 12;
+    currentY += density === "compact" ? 8 : 14;
   }
 
-  // 4. Footer Branding & Contacts
-  const footerY = height - margin - 15;
+  // 5. Brand Footer
+  if (showContacts) {
+    const footerY = height - margin - 14;
 
-  ctx.strokeStyle = borderSoft;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(margin, footerY - 26);
-  ctx.lineTo(margin + contentWidth, footerY - 26);
-  ctx.stroke();
+    ctx.strokeStyle = borderSoft;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(margin, footerY - 24);
+    ctx.lineTo(margin + contentWidth, footerY - 24);
+    ctx.stroke();
 
-  ctx.textAlign = "center";
-  ctx.font = "500 11px system-ui, -apple-system, sans-serif";
-  ctx.fillStyle = textSecondary;
-  ctx.letterSpacing = "0.5px";
+    ctx.textAlign = "center";
+    ctx.font = `500 ${Math.round(11 * fontScale)}px ${bodyFont}`;
+    ctx.fillStyle = textSecondary;
+    ctx.letterSpacing = "0.5px";
 
-  const contactLine = `${labels.address}   ·   ${labels.phone}   ·   ${labels.website}`;
-  ctx.fillText(contactLine, width / 2, footerY - 8);
+    const contactLine = `${labels.address}   ·   ${labels.phone}   ·   ${labels.website}`;
+    ctx.fillText(contactLine, width / 2, footerY - 8);
 
-  ctx.font = "600 10.5px system-ui, -apple-system, sans-serif";
-  ctx.fillStyle = accentRed;
-  ctx.letterSpacing = "1.2px";
+    ctx.font = `600 ${Math.round(10.5 * fontScale)}px ${bodyFont}`;
+    ctx.fillStyle = accentRed;
+    ctx.letterSpacing = "1.2px";
 
-  const pageNumText = page.totalPages > 1 ? `   [${labels.pageLabel} ${page.pageIndex} ${labels.ofLabel} ${page.totalPages}]` : "";
-  ctx.fillText(`${labels.onlineBooking.toUpperCase()}: ${labels.website.toUpperCase()}${pageNumText}`, width / 2, footerY + 9);
+    const pageNumText =
+      page.totalPages > 1
+        ? `   [${labels.pageLabel} ${page.pageIndex} ${labels.ofLabel} ${page.totalPages}]`
+        : "";
+    ctx.fillText(
+      `${labels.onlineBooking.toUpperCase()}: ${labels.website.toUpperCase()}${pageNumText}`,
+      width / 2,
+      footerY + 9
+    );
+  }
 
   return canvas;
 }
@@ -285,7 +416,7 @@ export async function exportPriceListToPng(priceListData, settings, targetPageIn
   const downloadedFiles = [];
 
   for (const page of exportTargetPages) {
-    const canvas = renderPageToCanvas(page, settings, labels, width, height);
+    const canvas = await renderPageToCanvas(page, settings, labels, width, height);
 
     await new Promise((resolve, reject) => {
       canvas.toBlob((blob) => {

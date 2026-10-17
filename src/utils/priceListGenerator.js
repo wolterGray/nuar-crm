@@ -8,8 +8,35 @@ import {
 
 export const STORAGE_KEY_PRICE_LIST = "nuar_price_list_settings_v1";
 
+export const BACKGROUND_PRESETS = {
+  "nuar-dark": {
+    id: "nuar-dark",
+    label: "Nuar Dark",
+    bg: "#0d0d0f",
+    textMode: "light",
+  },
+  "warm-graphite": {
+    id: "warm-graphite",
+    label: "Warm Graphite",
+    bg: "#18171a",
+    textMode: "light",
+  },
+  "cream": {
+    id: "cream",
+    label: "Cream",
+    bg: "#f7f5f0",
+    textMode: "dark",
+  },
+  "white": {
+    id: "white",
+    label: "White",
+    bg: "#ffffff",
+    textMode: "dark",
+  },
+};
+
 export const DEFAULT_PRICE_LIST_SETTINGS = {
-  theme: "dark", // "dark" | "light"
+  theme: "dark", // "dark" | "light" (legacy compatibility)
   format: "a4", // "a4" | "stories" | "post"
   priceMode: "full", // "full" | "compact"
   language: "pl", // "pl" | "ru" | "en" | "ua"
@@ -20,7 +47,103 @@ export const DEFAULT_PRICE_LIST_SETTINGS = {
   studioPhone: "",
   excludedCategoryIds: [],
   excludedServiceIds: [],
+
+  // Typography
+  typographyFamily: "editorial", // "modern" | "classic" | "editorial"
+  typographyFontSize: "md", // "sm" | "md" | "lg"
+  typographyHeadingSize: "md", // "sm" | "md" | "lg"
+  density: "normal", // "compact" | "normal" | "spacious"
+
+  // Page layout mode
+  pageLayoutMode: "auto", // "auto" | "compact" | "spacious"
+
+  // Background
+  bgPreset: "nuar-dark", // "nuar-dark" | "warm-graphite" | "cream" | "white" | "custom"
+  customBgColor: "#0d0d0f",
+  bgImage: null, // data URL string
+  bgImageOpacity: 40, // 0..90
+  bgImageSize: "cover", // "cover" | "contain" | "repeat"
+  bgImagePosition: "center", // "center" | "top" | "bottom"
+  textColorMode: "auto", // "auto" | "light" | "dark"
+
+  // Logo
+  showLogo: true,
+  logoType: "default", // "default" | "custom" | "text"
+  customLogoUrl: null, // data URL string
+  logoSize: "md", // "sm" | "md" | "lg"
+  logoAlign: "center", // "left" | "center" | "right"
 };
+
+/**
+ * Calculates relative luminance of a HEX color
+ */
+export function getHexLuminance(hex) {
+  if (!hex || typeof hex !== "string") return 0;
+  const clean = hex.replace("#", "").trim();
+  if (clean.length !== 3 && clean.length !== 6) return 0;
+  const full =
+    clean.length === 3
+      ? clean
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : clean;
+  const num = parseInt(full, 16);
+  if (isNaN(num)) return 0;
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+/**
+ * Resolves full cohesive styling parameters for preview and export
+ */
+export function resolveDocumentStyle(settings = {}) {
+  const {
+    bgPreset = "nuar-dark",
+    customBgColor = "#0d0d0f",
+    textColorMode = "auto",
+    theme = "dark",
+  } = settings;
+
+  let base = BACKGROUND_PRESETS[bgPreset];
+  let bgColor = base ? base.bg : customBgColor;
+
+  if (bgPreset === "custom") {
+    bgColor = customBgColor || "#0d0d0f";
+  } else if (!base) {
+    bgColor = theme === "light" ? "#ffffff" : "#0d0d0f";
+  }
+
+  // Determine text lightness
+  let effectiveTextMode = textColorMode;
+  if (textColorMode === "auto") {
+    const lum = getHexLuminance(bgColor);
+    effectiveTextMode = lum > 0.45 ? "dark" : "light";
+  }
+
+  const isLightText = effectiveTextMode === "light";
+
+  return {
+    bgColor,
+    effectiveTextMode,
+    isLightText,
+    text: isLightText ? "#ffffff" : "#111113",
+    muted: isLightText ? "#9e9ea6" : "#64646c",
+    faint: isLightText ? "#6e6e76" : "#8a8a92",
+    border: isLightText
+      ? "rgba(255, 255, 255, 0.08)"
+      : "rgba(0, 0, 0, 0.08)",
+    dots: isLightText
+      ? "rgba(255, 255, 255, 0.16)"
+      : "rgba(0, 0, 0, 0.18)",
+    accent: isLightText ? "#e11d2e" : "#c91827",
+    chipBg: isLightText
+      ? "rgba(255, 255, 255, 0.04)"
+      : "rgba(0, 0, 0, 0.03)",
+  };
+}
 
 /**
  * Loads price list settings safely from localStorage
@@ -36,8 +159,12 @@ export function loadPriceListSettings() {
     return {
       ...DEFAULT_PRICE_LIST_SETTINGS,
       ...parsed,
-      excludedCategoryIds: Array.isArray(parsed.excludedCategoryIds) ? parsed.excludedCategoryIds : [],
-      excludedServiceIds: Array.isArray(parsed.excludedServiceIds) ? parsed.excludedServiceIds : [],
+      excludedCategoryIds: Array.isArray(parsed.excludedCategoryIds)
+        ? parsed.excludedCategoryIds
+        : [],
+      excludedServiceIds: Array.isArray(parsed.excludedServiceIds)
+        ? parsed.excludedServiceIds
+        : [],
     };
   } catch (err) {
     console.warn("Failed to load price list settings from localStorage:", err);
@@ -129,23 +256,45 @@ export function formatVariantsSummary(variants, priceMode, lang = "pl") {
 }
 
 /**
- * Capacity limits in units of height per format
+ * Realistic capacity limits in units of height per format and layout mode
  */
-const FORMAT_PAGE_CAPACITY = {
-  a4: 640,
-  stories: 480,
-  post: 420,
+export const FORMAT_PAGE_CAPACITY = {
+  a4: {
+    compact: 940,
+    auto: 860,
+    spacious: 740,
+  },
+  stories: {
+    compact: 800,
+    auto: 700,
+    spacious: 600,
+  },
+  post: {
+    compact: 620,
+    auto: 540,
+    spacious: 460,
+  },
 };
 
 /**
  * Calculates item weight for deterministic pagination
  */
-function getItemWeight(service, showDescriptions) {
+function getItemWeight(service, showDescriptions, density = "normal") {
   const variantCount = service.variants?.length || 1;
-  // Single variant service takes less vertical room than a 4-variant grid
-  let weight = variantCount > 1 ? 52 : 36;
+  const isMulti = variantCount > 1;
+
+  let weight;
+  if (density === "compact") {
+    weight = isMulti ? 36 : 24;
+  } else if (density === "spacious") {
+    weight = isMulti ? 58 : 38;
+  } else {
+    // normal
+    weight = isMulti ? 46 : 30;
+  }
+
   if (showDescriptions && service.description) {
-    weight += 20;
+    weight += density === "compact" ? 14 : density === "spacious" ? 22 : 18;
   }
   return weight;
 }
@@ -153,11 +302,26 @@ function getItemWeight(service, showDescriptions) {
 /**
  * Splits categorized services into balanced, un-severed editorial pages
  */
-export function paginateCategories(categories, format = "a4", showDescriptions = false, labels = UI_LABELS.pl) {
-  const maxCapacity = FORMAT_PAGE_CAPACITY[format] || FORMAT_PAGE_CAPACITY.a4;
-  const headerWeight = 110;
-  const footerWeight = 45;
-  const catHeaderWeight = 40;
+export function paginateCategories(
+  categories,
+  format = "a4",
+  showDescriptions = false,
+  labels = UI_LABELS.pl,
+  layoutOptions = {}
+) {
+  const density = layoutOptions.density || "normal";
+  const pageLayoutMode = layoutOptions.pageLayoutMode || "auto";
+
+  const formatCaps = FORMAT_PAGE_CAPACITY[format] || FORMAT_PAGE_CAPACITY.a4;
+  const maxCapacity =
+    typeof formatCaps === "number"
+      ? formatCaps
+      : formatCaps[pageLayoutMode] || formatCaps.auto;
+
+  const headerWeight = density === "compact" ? 85 : density === "spacious" ? 120 : 100;
+  const subHeaderWeight = density === "compact" ? 38 : density === "spacious" ? 55 : 45;
+  const footerWeight = density === "compact" ? 34 : density === "spacious" ? 48 : 40;
+  const catHeaderWeight = density === "compact" ? 26 : density === "spacious" ? 40 : 32;
 
   const pages = [];
   let currentPage = {
@@ -181,7 +345,7 @@ export function paginateCategories(categories, format = "a4", showDescriptions =
 
     for (let i = 0; i < cat.services.length; i++) {
       const svc = cat.services[i];
-      const svcWeight = getItemWeight(svc, showDescriptions);
+      const svcWeight = getItemWeight(svc, showDescriptions, density);
       const neededWeight = svcWeight + (!catHeaderAdded ? catHeaderWeight : 0);
 
       const hasContentOnCurrentPage =
@@ -200,7 +364,7 @@ export function paginateCategories(categories, format = "a4", showDescriptions =
         currentPage = {
           pageIndex: pages.length + 1,
           categories: [],
-          currentWeight: 75 + footerWeight, // Sub-header on subsequent pages
+          currentWeight: subHeaderWeight + footerWeight, // Sub-header on subsequent pages
         };
 
         // Next page starts continuation of this category
@@ -365,8 +529,19 @@ export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIS
     })
     .filter(Boolean);
 
-  // 5. Compute paginated pages
-  const pages = paginateCategories(categories, format, showDescriptions, labels);
+  // 5. Compute paginated pages with density and page layout mode
+  const pages = paginateCategories(
+    categories,
+    format,
+    showDescriptions,
+    labels,
+    {
+      density: settings.density || "normal",
+      pageLayoutMode: settings.pageLayoutMode || "auto",
+    }
+  );
+
+  const style = resolveDocumentStyle(settings);
 
   return {
     categories,
@@ -375,6 +550,7 @@ export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIS
     totalCategories: categories.length,
     totalPages: pages.length,
     labels,
+    style,
     unusualPricingServices,
   };
 }

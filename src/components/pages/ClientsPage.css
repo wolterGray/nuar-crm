@@ -712,6 +712,184 @@
   display: none;
 }
 
+@media (min-width: 768px) {
+  .client-drawer-panel {
+    width: min(560px, 42vw);
+    max-width: 560px;
+    border-left-color: rgba(255, 255, 255, 0.1);
+    background: #101012;
+    box-shadow: -18px 0 48px rgba(0, 0, 0, 0.42);
+  }
+
+  .client-workspace-drawer {
+    --client-desktop-card: #171719;
+    --client-desktop-border: rgba(255, 255, 255, 0.075);
+    background: #101012;
+  }
+
+  .client-workspace-header {
+    gap: 14px !important;
+    padding: 18px 20px 0 !important;
+    border-bottom-color: var(--client-desktop-border) !important;
+    background: #101012 !important;
+  }
+
+  .client-workspace-identity-main {
+    align-items: center !important;
+    gap: 12px !important;
+  }
+
+  .client-workspace-avatar {
+    width: 44px !important;
+    height: 44px !important;
+    border-color: var(--client-desktop-border) !important;
+    background: #202024 !important;
+    font-size: 13px !important;
+  }
+
+  .client-workspace-identity h2 {
+    max-width: 330px;
+    font-size: 20px !important;
+    line-height: 1.2;
+  }
+
+  .client-workspace-identity-main > div:last-child > div:last-child {
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 6px 12px !important;
+    margin-top: 4px !important;
+  }
+
+  .client-workspace-identity-main a {
+    min-width: 0;
+  }
+
+  .client-workspace-actions {
+    display: grid !important;
+    grid-template-columns: minmax(150px, 1fr) auto auto 34px;
+    gap: 8px !important;
+    padding-top: 0 !important;
+    overflow: visible !important;
+  }
+
+  .client-workspace-actions > button {
+    min-width: 0 !important;
+    min-height: 40px;
+    border-radius: 9px !important;
+  }
+
+  .client-workspace-actions-menu {
+    display: grid;
+    place-items: center;
+  }
+
+  .client-workspace-tabs {
+    display: flex !important;
+    min-width: 0;
+    gap: 4px !important;
+    margin: 0 -20px;
+    padding: 0 20px 10px !important;
+    border-top: 0 !important;
+    overflow-x: auto !important;
+  }
+
+  .client-workspace-tabs .clients-ws-tab {
+    height: 34px;
+    padding-inline: 9px;
+    border-color: rgba(255, 255, 255, 0.055);
+    background: #171719;
+    font-size: 11px;
+  }
+
+  .client-workspace-tabs .clients-ws-tab.is-active {
+    border-color: rgba(239, 56, 59, 0.42);
+    color: #ff6265;
+    background: rgba(239, 56, 59, 0.11);
+  }
+
+  .client-workspace-body {
+    padding: 16px 20px 28px !important;
+    background: #101012;
+    scroll-padding-top: 16px;
+  }
+
+  .client-workspace-overview {
+    display: grid;
+    gap: 12px !important;
+  }
+
+  .client-workspace-overview > .grid:first-child {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .client-workspace-overview > .grid:first-child > div {
+    min-width: 0;
+    min-height: 88px;
+    padding: 11px !important;
+    border-color: var(--client-desktop-border) !important;
+    border-radius: 10px !important;
+    background: var(--client-desktop-card) !important;
+  }
+
+  .client-workspace-overview > .grid:first-child strong,
+  .client-workspace-overview > .grid:first-child small,
+  .client-workspace-overview > .grid:first-child span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .client-workspace-next-visit,
+  .client-workspace-info,
+  .client-workspace-note,
+  .client-loyalty-card {
+    border-color: var(--client-desktop-border) !important;
+    border-radius: 10px !important;
+    background: var(--client-desktop-card) !important;
+  }
+
+  .client-workspace-next-visit {
+    min-height: 70px;
+  }
+
+  .client-workspace-section-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #f4f4f5;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .client-workspace-info-row {
+    display: grid !important;
+    min-height: 38px;
+    grid-template-columns: 22px minmax(105px, 0.8fr) minmax(0, 1.2fr) auto;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .client-workspace-info-row > svg {
+    color: #92929b;
+  }
+
+  .client-workspace-info-row > strong {
+    min-width: 0;
+    overflow: hidden;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .client-workspace-note textarea {
+    min-height: 92px !important;
+    margin-top: 6px;
+    border-color: var(--client-desktop-border) !important;
+    background: #1d1d20 !important;
+  }
+}
+
 /* Workspace Navigation Tabs */
 .clients-ws-tab {
   display: inline-flex;

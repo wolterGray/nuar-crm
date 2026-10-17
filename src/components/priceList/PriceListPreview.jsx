@@ -1,24 +1,105 @@
 import AppIcon from "../ui/AppIcon.jsx";
 
+function BrandHeader({ isFirstPage, labels, settings }) {
+  const {
+    showLogo = true,
+    logoType = "default",
+    customLogoUrl,
+    logoSize = "md",
+    logoAlign = "center",
+  } = settings;
+
+  if (!isFirstPage) {
+    return (
+      <header className={`price-header price-header-compact align-${logoAlign}`}>
+        <div className="price-compact-header-row">
+          {showLogo && logoType === "custom" && customLogoUrl ? (
+            <img
+              src={customLogoUrl}
+              alt="Logo"
+              className={`price-compact-custom-logo size-${logoSize}`}
+            />
+          ) : (
+            <span className="price-compact-brand">{labels.brandTitle || "NUAR"}</span>
+          )}
+          <span className="price-compact-sep">·</span>
+          <span className="price-compact-doc">
+            {labels.docTitle} {labels.continued}
+          </span>
+        </div>
+        <div className="price-header-accent-bar" aria-hidden="true" />
+      </header>
+    );
+  }
+
+  return (
+    <header className={`price-header price-header-main align-${logoAlign}`}>
+      {showLogo ? (
+        <div className={`price-logo-container align-${logoAlign}`}>
+          {logoType === "custom" && customLogoUrl ? (
+            <img
+              src={customLogoUrl}
+              alt={labels.brandTitle || "Logo"}
+              className={`price-custom-logo size-${logoSize}`}
+            />
+          ) : logoType === "text" ? (
+            <div className="price-logo-mark">
+              <span className="price-logo-text">{labels.brandTitle || "NUAR"}</span>
+            </div>
+          ) : (
+            <div className="price-logo-mark">
+              <span className="price-logo-text">{labels.brandTitle || "NUAR"}</span>
+              <span className="price-logo-dot" />
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      <div className="price-brand-subtitle">{labels.brandSubtitle}</div>
+      <h2 className="price-doc-title">{labels.docTitle}</h2>
+      <div className="price-header-accent-bar" aria-hidden="true" />
+    </header>
+  );
+}
+
 export default function PriceListPreview({
   priceListData,
   settings,
   scale = 1,
   activePageNumber = null,
 }) {
-  const { pages = [], labels = {} } = priceListData;
+  const { pages = [], labels = {}, style: docStyle = {} } = priceListData;
   const {
-    theme = "dark",
     format = "a4",
     priceMode = "full",
     showDescriptions = false,
     showContacts = true,
+    typographyFamily = "editorial",
+    typographyFontSize = "md",
+    typographyHeadingSize = "md",
+    density = "normal",
+    bgImage,
+    bgImageOpacity = 40,
+    bgImageSize = "cover",
+    bgImagePosition = "center",
   } = settings;
 
   // If a specific page is selected in tabs, filter to it; otherwise display all pages stacked
   const displayPages = activePageNumber
     ? pages.filter((p) => p.pageIndex === activePageNumber)
     : pages;
+
+  const sheetDynamicStyle = {
+    backgroundColor: docStyle.bgColor,
+    color: docStyle.text,
+    "--price-text": docStyle.text,
+    "--price-muted": docStyle.muted,
+    "--price-faint": docStyle.faint,
+    "--price-border": docStyle.border,
+    "--price-dots": docStyle.dots,
+    "--price-accent": docStyle.accent,
+    "--price-chip-bg": docStyle.chipBg,
+  };
 
   return (
     <div
@@ -30,7 +111,10 @@ export default function PriceListPreview({
     >
       <div className="price-sheets-stack">
         {displayPages.length === 0 ? (
-          <article className={`price-sheet theme-${theme} format-${format}`}>
+          <article
+            className={`price-sheet format-${format} font-${typographyFamily} size-${typographyFontSize} density-${density}`}
+            style={sheetDynamicStyle}
+          >
             <div className="price-empty-notice">
               <AppIcon name="info" size="sm" />
               <span>Нет выбранных услуг для отображения</span>
@@ -41,10 +125,34 @@ export default function PriceListPreview({
             <article
               key={page.pageIndex}
               id={`nuar-printable-price-list-page-${page.pageIndex}`}
-              className={`price-sheet theme-${theme} format-${format} price-sheet-page`}
+              className={`price-sheet format-${format} font-${typographyFamily} size-${typographyFontSize} heading-${typographyHeadingSize} density-${density} mode-${docStyle.effectiveTextMode || "light"} price-sheet-page`}
+              style={sheetDynamicStyle}
               data-page={page.pageIndex}
               aria-label={`Прайс-лист салона NUAR — Страница ${page.pageIndex} из ${page.totalPages}`}
             >
+              {/* Optional Background Image with Legibility Overlay */}
+              {bgImage ? (
+                <div
+                  className="price-sheet-bg-layer"
+                  aria-hidden="true"
+                  style={{
+                    backgroundImage: `url(${bgImage})`,
+                    backgroundSize: bgImageSize || "cover",
+                    backgroundPosition: bgImagePosition || "center",
+                    backgroundRepeat: bgImageSize === "repeat" ? "repeat" : "no-repeat",
+                  }}
+                >
+                  <div
+                    className="price-sheet-bg-overlay"
+                    style={{
+                      backgroundColor:
+                        docStyle.effectiveTextMode === "light" ? "#000000" : "#ffffff",
+                      opacity: (bgImageOpacity ?? 40) / 100,
+                    }}
+                  />
+                </div>
+              ) : null}
+
               {/* Subtle architectural frame */}
               <div className="price-frame-border" aria-hidden="true">
                 <div className="price-corner price-corner-tl" />
@@ -54,28 +162,12 @@ export default function PriceListPreview({
               </div>
 
               {/* 1. BRAND HEADER */}
-              {page.isFirstPage ? (
-                <header className="price-header price-header-main">
-                  <div className="price-logo-mark">
-                    <span className="price-logo-text">{labels.brandTitle || "NUAR"}</span>
-                    <span className="price-logo-dot" />
-                  </div>
-                  <div className="price-brand-subtitle">{labels.brandSubtitle}</div>
-                  <h2 className="price-doc-title">{labels.docTitle}</h2>
-                  <div className="price-header-accent-bar" aria-hidden="true" />
-                </header>
-              ) : (
-                <header className="price-header price-header-compact">
-                  <div className="price-compact-header-row">
-                    <span className="price-compact-brand">{labels.brandTitle || "NUAR"}</span>
-                    <span className="price-compact-sep">·</span>
-                    <span className="price-compact-doc">
-                      {labels.docTitle} {labels.continued}
-                    </span>
-                  </div>
-                  <div className="price-header-accent-bar" aria-hidden="true" />
-                </header>
-              )}
+              <BrandHeader
+                isFirstPage={page.isFirstPage}
+                labels={labels}
+                settings={settings}
+                page={page}
+              />
 
               {/* 2. CATEGORIES AND SERVICES */}
               <div className="price-content-body">
