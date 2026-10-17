@@ -438,7 +438,7 @@ function ClientList({
       </div>
 
       {/* 4. Pagination Bar pinned at bottom */}
-      <div className="p-2 border-t border-border/40 shrink-0 bg-surface">
+      <div className="clients-pagination-shell p-2 border-t border-border/40 shrink-0 bg-surface">
         <PaginationBar
           className="w-full"
           currentPage={page}
