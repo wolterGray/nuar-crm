@@ -103,14 +103,7 @@ function ClientWorkspace({
                   {client.name || client.phone || "Без имени"}
                 </h2>
 
-                {client.isVip && (
-                  <span className="flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-bold text-amber-400 bg-amber-400/10">
-                    <AppIcon name="crown" size="xs" />
-                    VIP
-                  </span>
-                )}
-
-                <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                <span className={`shrink-0 inline-flex items-center justify-center h-[18px] px-1.5 rounded text-[10px] font-semibold leading-none ${
                   client.autoStatus === "Новый"
                     ? "text-blue-400 bg-blue-400/10"
                     : client.autoStatus === "Активный"
@@ -122,8 +115,15 @@ function ClientWorkspace({
                   {client.autoStatus}
                 </span>
 
+                {client.isVip && (
+                  <span className="shrink-0 inline-flex items-center justify-center gap-1 h-[18px] px-1.5 rounded text-[10px] font-bold text-amber-400 bg-amber-400/10">
+                    <AppIcon name="crown" className="w-2.5 h-2.5 shrink-0" />
+                    <span>VIP</span>
+                  </span>
+                )}
+
                 {client.hasDebt && (
-                  <span className="px-1.5 py-0.2 rounded text-[10px] font-bold text-rose-400 bg-rose-400/10">
+                  <span className="shrink-0 inline-flex items-center justify-center h-[18px] px-1.5 rounded text-[10px] font-bold text-rose-400 bg-rose-400/10">
                     Долг: {formatMoney(client.totalDebt)}
                   </span>
                 )}
@@ -474,47 +474,55 @@ function ClientWorkspace({
         {/* ===================== TAB 2: VISITS ===================== */}
         {activeTab === "visits" && (
           <div className="space-y-3">
-            {/* Sub-tabs: All / Future / Past */}
-            <div className="flex items-center justify-between gap-1.5">
-              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-surface-2 border border-border">
-                <button
-                  type="button"
-                  className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                    visitHistoryFilter === "all" ? "bg-surface text-textPrimary shadow-sm border border-white/10" : "text-textMuted hover:text-textPrimary"
-                  }`}
-                  onClick={() => setVisitHistoryFilter("all")}>
-                  Все ({client.appointments.length})
-                </button>
-                <button
-                  type="button"
-                  className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                    visitHistoryFilter === "future" ? "bg-surface text-textPrimary shadow-sm border border-white/10" : "text-textMuted hover:text-textPrimary"
-                  }`}
-                  onClick={() => setVisitHistoryFilter("future")}>
-                  Будущие ({client.upcomingVisitsCount})
-                </button>
-                <button
-                  type="button"
-                  className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                    visitHistoryFilter === "past" ? "bg-surface text-textPrimary shadow-sm border border-white/10" : "text-textMuted hover:text-textPrimary"
-                  }`}
-                  onClick={() => setVisitHistoryFilter("past")}>
-                  Прошлые ({client.completedVisitsCount})
-                </button>
-              </div>
+            {/* Sub-tabs: All / Future / Past (Full-width Segmented Control) */}
+            <div className="grid grid-cols-3 p-1 rounded-xl bg-surface-2 border border-border/70 gap-1">
+              <button
+                type="button"
+                className={`flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs font-semibold transition-all select-none ${
+                  visitHistoryFilter === "all"
+                    ? "bg-surface text-textPrimary shadow-xs border border-white/10"
+                    : "text-textMuted hover:text-textPrimary hover:bg-white/[0.03] border border-transparent"
+                }`}
+                onClick={() => setVisitHistoryFilter("all")}>
+                <span>Все</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ${
+                  visitHistoryFilter === "all" ? "bg-white/10 text-textPrimary" : "bg-surface border border-border/50 text-textMuted"
+                }`}>
+                  {client.appointments.length}
+                </span>
+              </button>
 
-              <Button
-                leftIcon="calendarPlus"
-                size="sm"
-                variant="primary"
-                onClick={() => onAddVisit?.({
-                  client: client.name,
-                  clientId: client.id,
-                  date: new Date().toISOString().slice(0, 10),
-                  kind: "visit",
-                })}>
-                + Записать
-              </Button>
+              <button
+                type="button"
+                className={`flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs font-semibold transition-all select-none ${
+                  visitHistoryFilter === "future"
+                    ? "bg-surface text-textPrimary shadow-xs border border-white/10"
+                    : "text-textMuted hover:text-textPrimary hover:bg-white/[0.03] border border-transparent"
+                }`}
+                onClick={() => setVisitHistoryFilter("future")}>
+                <span>Будущие</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ${
+                  visitHistoryFilter === "future" ? "bg-white/10 text-textPrimary" : "bg-surface border border-border/50 text-textMuted"
+                }`}>
+                  {client.upcomingVisitsCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                className={`flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs font-semibold transition-all select-none ${
+                  visitHistoryFilter === "past"
+                    ? "bg-surface text-textPrimary shadow-xs border border-white/10"
+                    : "text-textMuted hover:text-textPrimary hover:bg-white/[0.03] border border-transparent"
+                }`}
+                onClick={() => setVisitHistoryFilter("past")}>
+                <span>Прошлые</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ${
+                  visitHistoryFilter === "past" ? "bg-white/10 text-textPrimary" : "bg-surface border border-border/50 text-textMuted"
+                }`}>
+                  {client.completedVisitsCount}
+                </span>
+              </button>
             </div>
 
             {/* Appointments List for Drawer */}

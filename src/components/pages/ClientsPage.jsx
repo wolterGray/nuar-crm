@@ -123,6 +123,7 @@ function ClientsPage({
 
   const [openClientMenuId, setOpenClientMenuId] = useState(null);
   const [messageBuilderClient, setMessageBuilderClient] = useState(null);
+  const [messageLanguage, setMessageLanguage] = useState("pl");
   const [messageText, setMessageText] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("remind");
   const [copiedState, setCopiedState] = useState(false);
@@ -138,23 +139,81 @@ function ClientsPage({
 
   const { isMobile } = useBreakpoint();
 
-  const getTemplates = useCallback((clientName) => ({
-    remind: {
-      name: "Напоминание о записи",
-      text: `Cześć ${clientName || "kliencie"}! Przypominamy o Twojej wizycie w salonie NUAR. Czekamy na Ciebie!`,
-    },
-    reactivate: {
-      name: "Давно не виделись",
-      text: `Cześć ${clientName || "kliencie"}! Dawno się nie widzieliśmy w salonie NUAR. Chętnie pomożemy dobrać dogodny termin na kolejną wizytę.`,
-    },
-    review: {
-      name: "Запрос отзыва",
-      text: `Cześć ${clientName || "kliencie"}! Dziękujemy za wizytę w NUAR. Będziemy wdzięczni za krótką opinię na Google: ${appSettings?.reviewGoogleUrl || "https://g.page/r/YOUR_GOOGLE_LINK/review"}`,
-    }
-  }), [appSettings]);
+  const getTemplates = useCallback((clientName, lang = "pl") => {
+    const name = clientName || (lang === "pl" ? "kliencie" : lang === "en" ? "client" : "клиент");
+    const reviewUrl = appSettings?.reviewGoogleUrl || "https://g.page/r/YOUR_GOOGLE_LINK/review";
+
+    const dict = {
+      pl: {
+        remind: {
+          name: "Напоминание о записи",
+          text: `Cześć ${name}! Przypominamy o Twojej wizycie в salonie NUAR. Czekamy na Ciebie!`,
+        },
+        reactivate: {
+          name: "Давно не виделись",
+          text: `Cześć ${name}! Dawno się nie widzieliśmy w salonie NUAR. Chętnie pomożemy dobrać dogodny termin na kolejną wizytę.`,
+        },
+        review: {
+          name: "Запрос отзыва",
+          text: `Cześć ${name}! Dziękujemy za wizytę w NUAR. Będziemy wdzięczni za krótką opinię na Google: ${reviewUrl}`,
+        },
+      },
+      ru: {
+        remind: {
+          name: "Напоминание о записи",
+          text: `Здравствуйте, ${name}! Напоминаем о вашей записи в салон NUAR. Ждём вас!`,
+        },
+        reactivate: {
+          name: "Давно не виделись",
+          text: `Здравствуйте, ${name}! Давно вас не видели в салоне NUAR. Будем рады подобрать для вас удобное время для визита!`,
+        },
+        review: {
+          name: "Запрос отзыва",
+          text: `Здравствуйте, ${name}! Спасибо за визит в салон NUAR. Будем очень благодарны за ваш отзыв в Google: ${reviewUrl}`,
+        },
+      },
+      ua: {
+        remind: {
+          name: "Напоминание о записи",
+          text: `Вітаємо, ${name}! Нагадуємо про ваш запис у салон NUAR. Чекаємо на вас!`,
+        },
+        reactivate: {
+          name: "Давно не виделись",
+          text: `Вітаємо, ${name}! Давно не бачилися в салоні NUAR. З радістю допоможемо обрати зручний час для наступного візиту!`,
+        },
+        review: {
+          name: "Запрос отзыва",
+          text: `Вітаємо, ${name}! Дякуємо за візит до NUAR. Будемо щиро вдячні за ваш відгук у Google: ${reviewUrl}`,
+        },
+      },
+      en: {
+        remind: {
+          name: "Напоминание о записи",
+          text: `Hello ${name}! Reminding you about your upcoming appointment at NUAR salon. We look forward to seeing you!`,
+        },
+        reactivate: {
+          name: "Давно не виделись",
+          text: `Hello ${name}! It's been a while since your last visit to NUAR salon. We'd love to help you book your next session!`,
+        },
+        review: {
+          name: "Запрос отзыва",
+          text: `Hello ${name}! Thank you for visiting NUAR salon. We would really appreciate your quick review on Google: ${reviewUrl}`,
+        },
+      },
+    };
+
+    return dict[lang] || dict.pl;
+  }, [appSettings]);
 
   const handleMessageClient = useCallback((client) => {
-    const templates = getTemplates(client.name);
+    const rawLang = String(client.messageLanguage || client.language || "").toLowerCase();
+    let initialLang = "pl";
+    if (rawLang.includes("рус") || rawLang.includes("ru")) initialLang = "ru";
+    else if (rawLang.includes("укр") || rawLang.includes("ua")) initialLang = "ua";
+    else if (rawLang.includes("англ") || rawLang.includes("en")) initialLang = "en";
+
+    setMessageLanguage(initialLang);
+    const templates = getTemplates(client.name, initialLang);
     setSelectedTemplate("remind");
     setMessageText(templates.remind.text);
     setCopiedState(false);
@@ -580,17 +639,30 @@ function ClientsPage({
         }
       />
 
-      {/* 2. Collapsible Quality Analysis Panel */}
+      {/* 2. Quality Analysis Modal Sheet (Eliminates scroll-in-scroll) */}
       {showQuality && (
-        <ClientQualityPanel
-          report={clientQualityReport}
-          onClose={() => setShowQuality(false)}
-          onEditClient={onEditClient}
-          onOpenClient={(client) => {
-            handleSelectClient(client);
-            setShowQuality(false);
-          }}
-        />
+        <MobileSheet
+          className="clients-quality-sheet w-full md:max-w-2xl max-h-[85vh] p-0 overflow-hidden flex flex-col"
+          description={`${clientQualityReport.score}% чистоты базы • ${clientQualityReport.issuesCount} пунктов требуют внимания`}
+          fullscreen={isMobile}
+          isOpen
+          title="Анализ качества базы"
+          onClose={() => setShowQuality(false)}>
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <ClientQualityPanel
+              report={clientQualityReport}
+              onClose={() => setShowQuality(false)}
+              onEditClient={(client) => {
+                setShowQuality(false);
+                onEditClient?.(client);
+              }}
+              onOpenClient={(client) => {
+                setShowQuality(false);
+                handleSelectClient(client);
+              }}
+            />
+          </div>
+        </MobileSheet>
       )}
 
       {/* 3. Full-Width Client List Pane */}
@@ -721,7 +793,36 @@ function ClientsPage({
               </Button>
             </div>
           }>
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-3.5">
+            {/* Language Selector */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-textMuted text-xs font-semibold">Язык сообщения</label>
+              <div className="grid grid-cols-4 gap-1 p-0.5 rounded-xl bg-surface-2 border border-border/70">
+                {[
+                  { id: "pl", label: "🇵🇱 Polski" },
+                  { id: "ru", label: "🇷🇺 Русский" },
+                  { id: "ua", label: "🇺🇦 Українська" },
+                  { id: "en", label: "🇬🇧 English" },
+                ].map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    className={`h-7 rounded-lg text-xs font-semibold transition-all select-none ${
+                      messageLanguage === l.id
+                        ? "bg-surface text-textPrimary shadow-xs border border-white/10"
+                        : "text-textMuted hover:text-textPrimary hover:bg-white/[0.03] border border-transparent"
+                    }`}
+                    onClick={() => {
+                      setMessageLanguage(l.id);
+                      const t = getTemplates(messageBuilderClient.name, l.id);
+                      setMessageText(t[selectedTemplate]?.text ?? "");
+                    }}>
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex flex-col gap-1.5">
               <label className="text-textMuted text-xs font-semibold">Шаблон сообщения</label>
               <Select
@@ -729,7 +830,7 @@ function ClientsPage({
                 onChange={(e) => {
                   const val = e.target.value;
                   setSelectedTemplate(val);
-                  const templates = getTemplates(messageBuilderClient.name);
+                  const templates = getTemplates(messageBuilderClient.name, messageLanguage);
                   setMessageText(templates[val]?.text ?? "");
                 }}>
                 <option value="remind">Напоминание о записи</option>
@@ -739,9 +840,9 @@ function ClientsPage({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-textMuted text-xs font-semibold">Текст</label>
+              <label className="text-textMuted text-xs font-semibold">Текст сообщения</label>
               <Textarea
-                className="w-full h-32 p-3 text-xs"
+                className="w-full h-32 p-3 text-xs leading-relaxed"
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
               />

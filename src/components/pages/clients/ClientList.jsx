@@ -105,7 +105,7 @@ function ClientList({
       </div>
 
       {/* 2. Secondary Filter Bar: Quick Indicator Tabs Underneath */}
-      <div className="clients-toolbar-secondary flex items-center gap-1.5 px-3.5 py-2 border-b border-border/50 shrink-0 bg-surface overflow-x-auto scrollbar-none">
+      <div className="clients-toolbar-secondary flex items-center gap-1.5 px-3.5 py-2 border-b border-border/50 shrink-0 bg-transparent overflow-x-auto scrollbar-none">
         <button
           type="button"
           className={`clients-quick-pill ${!quickFilter ? "is-active" : ""}`}
@@ -203,7 +203,7 @@ function ClientList({
                       {client.name || client.phone || "Без имени"}
                     </strong>
 
-                    <span className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                    <span className={`shrink-0 inline-flex items-center justify-center h-[18px] px-1.5 rounded text-[10px] font-semibold leading-none ${
                       client.autoStatus === "Новый"
                         ? "text-blue-400 bg-blue-400/10"
                         : client.autoStatus === "Активный"
@@ -216,14 +216,14 @@ function ClientList({
                     </span>
 
                     {client.isVip ? (
-                      <span className="client-badge-vip shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold text-amber-400 bg-amber-400/10">
-                        <AppIcon name="crown" size="xs" />
+                      <span className="client-badge-vip shrink-0 inline-flex items-center justify-center gap-1 h-[18px] px-1.5 rounded text-[10px] font-bold text-amber-400 bg-amber-400/10">
+                        <AppIcon name="crown" className="w-2.5 h-2.5 shrink-0" />
                         <span>VIP</span>
                       </span>
                     ) : null}
 
                     {client.hasDebt ? (
-                      <span className="client-badge-debt shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-rose-400 bg-rose-400/10" title={`Долг: ${formatMoney(client.totalDebt)}`}>
+                      <span className="client-badge-debt shrink-0 inline-flex items-center justify-center h-[18px] px-1.5 rounded text-[10px] font-bold text-rose-400 bg-rose-400/10" title={`Долг: ${formatMoney(client.totalDebt)}`}>
                         Долг
                       </span>
                     ) : null}

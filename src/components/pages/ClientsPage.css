@@ -310,7 +310,7 @@
 /* Row 2: Secondary Toolbar (Quick Filter Pills Underneath) */
 .clients-toolbar-secondary {
   min-height: 38px;
-  background: var(--surface, #141416);
+  background: transparent;
 }
 
 /* Compact Search Field in Row 1 */
@@ -411,10 +411,10 @@
   color: var(--text, #ffffff);
 }
 
-/* Clearly distinguished active state: matches active workspace tab */
+/* Clearly distinguished active state: transparent background, elegant subtle border */
 .clients-quick-pill.is-active {
-  background: var(--surface-2, #18181b);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.16);
   color: #ffffff;
   font-weight: 600;
   box-shadow: none;
@@ -422,17 +422,19 @@
 
 .clients-quick-pill .pill-count {
   font-size: 10px;
-  padding: 1px 5px;
+  padding: 0 2px;
   border-radius: var(--radius-pill, 999px);
-  background: var(--surface-2, #1b1b1e);
+  background: transparent;
   color: var(--text-muted, #a4a4ac);
-  font-weight: 650;
+  font-weight: 600;
+  opacity: 0.7;
   line-height: 1.2;
 }
 
 .clients-quick-pill.is-active .pill-count {
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   color: #ffffff;
+  opacity: 0.9;
 }
 
 .clients-quick-pill .pill-dot {
@@ -727,7 +729,7 @@
     height: 100%;
     width: 100% !important;
     max-width: 100% !important;
-    padding: calc(var(--mobile-safe-top, 0px) + 4px) 0 var(--mobile-content-bottom, calc(72px + env(safe-area-inset-bottom, 0px) + 16px)) 0 !important;
+    padding: calc(var(--mobile-safe-top, 0px) + 4px) 0 4px 0 !important;
     gap: 6px !important;
     box-sizing: border-box;
   }
@@ -847,7 +849,8 @@
 
   .clients-quick-pill .pill-count {
     font-size: 9.5px;
-    padding: 1px 5px;
+    padding: 0 2px;
+    background: transparent;
   }
 
   .clients-list-item {
@@ -893,5 +896,63 @@
   .clients-page-container {
     gap: 8px;
   }
+}
+
+/* ==========================================================================
+   Modal Sheets Header & Content Styling (Message Builder & Quality Sheet)
+   ========================================================================== */
+.message-builder-modal.mobile-sheet .mobile-sheet-header,
+.clients-quality-sheet.mobile-sheet .mobile-sheet-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 16px 18px !important;
+  border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.06)) !important;
+}
+
+.message-builder-modal .mobile-sheet-header-copy,
+.clients-quality-sheet .mobile-sheet-header-copy {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+}
+
+.message-builder-modal .mobile-sheet-header-copy h2,
+.clients-quality-sheet .mobile-sheet-header-copy h2 {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--text, #ffffff) !important;
+  margin: 0 !important;
+}
+
+.message-builder-modal .mobile-sheet-header-copy p,
+.clients-quality-sheet .mobile-sheet-header-copy p {
+  font-size: 12px !important;
+  color: var(--text-muted, #a4a4ac) !important;
+  margin: 2px 0 0 0 !important;
+}
+
+.message-builder-modal .mobile-sheet-close,
+.clients-quality-sheet .mobile-sheet-close {
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+}
+
+.clients-quality-sheet .clients-quality-panel {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  margin: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.clients-quality-sheet .quality-panel-header {
+  display: none !important;
+}
+
+.clients-quality-sheet .quality-items-list {
+  max-height: none !important;
+  overflow-y: visible !important;
 }
 
