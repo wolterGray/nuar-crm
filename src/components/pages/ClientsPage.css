@@ -2216,6 +2216,68 @@
   margin: 0 !important;
 }
 
+.message-builder-modal .message-language-switch {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  width: 100%;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: #111113;
+}
+
+.message-builder-modal .message-language-option {
+  display: grid;
+  min-width: 0;
+  min-height: 48px;
+  place-content: center;
+  gap: 3px;
+  padding: 5px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 8px;
+  color: #a1a1aa !important;
+  background: #19191c !important;
+  box-shadow: none !important;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
+}
+
+.message-builder-modal .message-language-option strong {
+  color: #f4f4f5;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.message-builder-modal .message-language-option span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 550;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-builder-modal .message-language-option:hover {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  color: #d4d4d8 !important;
+  background: #202024 !important;
+}
+
+.message-builder-modal .message-language-option.is-active {
+  border-color: rgba(239, 56, 59, 0.55) !important;
+  color: #ff7779 !important;
+  background: rgba(239, 56, 59, 0.12) !important;
+  box-shadow: inset 0 0 0 1px rgba(239, 56, 59, 0.08) !important;
+}
+
+.message-builder-modal .message-language-option.is-active strong {
+  color: #ff6265;
+}
+
 .clients-quality-sheet .clients-quality-panel {
   border: none !important;
   box-shadow: none !important;

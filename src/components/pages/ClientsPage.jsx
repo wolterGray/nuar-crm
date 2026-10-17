@@ -836,7 +836,8 @@ function ClientsPage({
                       const t = getTemplates(messageBuilderClient.name, l.id);
                       setMessageText(t[selectedTemplate]?.text ?? "");
                     }}>
-                    {l.label}
+                    <strong>{l.label}</strong>
+                    <span>{l.title}</span>
                   </button>
                 ))}
               </div>
