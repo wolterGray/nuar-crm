@@ -533,51 +533,36 @@ function ClientWorkspace({
         {activeTab === "visits" && (
           <div className="space-y-3">
             {/* Sub-tabs: All / Future / Past (Full-width Segmented Control) */}
-            <div className="grid grid-cols-3 p-1 rounded-xl bg-surface-2 border border-border/70 gap-1">
+            <div className="client-visit-filters" aria-label="Фильтр визитов">
               <button
                 type="button"
-                className={`flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs font-semibold transition-all select-none ${
-                  visitHistoryFilter === "all"
-                    ? "bg-surface text-textPrimary shadow-xs border border-white/10"
-                    : "text-textMuted hover:text-textPrimary hover:bg-white/[0.03] border border-transparent"
-                }`}
+                aria-pressed={visitHistoryFilter === "all"}
+                className={`client-visit-filter ${visitHistoryFilter === "all" ? "is-active" : ""}`}
                 onClick={() => setVisitHistoryFilter("all")}>
                 <span>Все</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ${
-                  visitHistoryFilter === "all" ? "bg-white/10 text-textPrimary" : "bg-surface border border-border/50 text-textMuted"
-                }`}>
+                <span className="client-visit-filter-count">
                   {client.appointments.length}
                 </span>
               </button>
 
               <button
                 type="button"
-                className={`flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs font-semibold transition-all select-none ${
-                  visitHistoryFilter === "future"
-                    ? "bg-surface text-textPrimary shadow-xs border border-white/10"
-                    : "text-textMuted hover:text-textPrimary hover:bg-white/[0.03] border border-transparent"
-                }`}
+                aria-pressed={visitHistoryFilter === "future"}
+                className={`client-visit-filter ${visitHistoryFilter === "future" ? "is-active" : ""}`}
                 onClick={() => setVisitHistoryFilter("future")}>
                 <span>Будущие</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ${
-                  visitHistoryFilter === "future" ? "bg-white/10 text-textPrimary" : "bg-surface border border-border/50 text-textMuted"
-                }`}>
+                <span className="client-visit-filter-count">
                   {client.upcomingVisitsCount}
                 </span>
               </button>
 
               <button
                 type="button"
-                className={`flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs font-semibold transition-all select-none ${
-                  visitHistoryFilter === "past"
-                    ? "bg-surface text-textPrimary shadow-xs border border-white/10"
-                    : "text-textMuted hover:text-textPrimary hover:bg-white/[0.03] border border-transparent"
-                }`}
+                aria-pressed={visitHistoryFilter === "past"}
+                className={`client-visit-filter ${visitHistoryFilter === "past" ? "is-active" : ""}`}
                 onClick={() => setVisitHistoryFilter("past")}>
                 <span>Прошлые</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ${
-                  visitHistoryFilter === "past" ? "bg-white/10 text-textPrimary" : "bg-surface border border-border/50 text-textMuted"
-                }`}>
+                <span className="client-visit-filter-count">
                   {client.completedVisitsCount}
                 </span>
               </button>
