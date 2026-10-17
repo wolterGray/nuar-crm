@@ -166,10 +166,16 @@
     gap: 10px;
   }
 
-  :is(.mobile-page-container:not([data-mobile-page="calendar"]), .mobile-sheet, .modal, .dialog, .form-modal, .confirm-dialog, .client-search-dialog, form) :is(button:not([role="checkbox"]):not(.operations-m-checkbox):not(.operations-linear-checkbox), input, select, textarea) {
+  /* iOS input auto-zoom prevention: inputs, selects and textareas must be 16px */
+  :is(.mobile-page-container:not([data-mobile-page="calendar"]), .mobile-sheet, .modal, .dialog, .form-modal, .confirm-dialog, .client-search-dialog, form) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
     min-height: var(--mobile-touch-target);
     max-width: 100%;
     font-size: 16px !important;
+  }
+
+  /* Form action buttons on mobile retain 48px touch target without destroying icon buttons, tabs, chips and badges */
+  :is(.mobile-sheet, .modal, .dialog, .form-modal, .confirm-dialog, form) :is(button[type="submit"], .form-actions button, .modal-actions button, .form-submit-btn, .dialog-actions button) {
+    min-height: var(--mobile-touch-target);
   }
 
   :is(.mobile-page-container, .mobile-sheet, .modal, .dialog, .form-modal, form) :is(input[type="date"], input[type="time"], input[type="datetime-local"]) {

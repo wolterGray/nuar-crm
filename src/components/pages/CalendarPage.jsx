@@ -115,7 +115,7 @@ const statusLabels = {
   cancelled: "Отменён",
 };
 
-const employeeAccentPalette = ["#b91c1c", "#7aa2ff", "#88e071", "#ff5f5f", "#a78bfa", "#38bdf8"];
+const employeeAccentPalette = ["#e11d2e", "#7aa2ff", "#88e071", "#ff5f5f", "#a78bfa", "#38bdf8"];
 const monthNames = [
   "Январь",
   "Февраль",

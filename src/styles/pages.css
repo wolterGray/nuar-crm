@@ -1393,6 +1393,8 @@ button:focus-visible {
   flex-shrink: 0;
   overflow: visible;
   margin-left: auto;
+  padding-right: 6px;
+  padding-top: 4px;
 }
 
 .page-header-unified-side {

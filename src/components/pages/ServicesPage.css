@@ -2411,15 +2411,15 @@ select.services-status-select option {
 
 @media (max-width: 768px) {
   .services-page-root {
-    --services-mobile-bg: #0d0d0f;
-    --services-mobile-surface: #161618;
-    --services-mobile-field: #1d1d20;
-    --services-mobile-raised: #232326;
-    --services-mobile-border: #2b2b2e;
-    --services-mobile-text: #f4f4f5;
-    --services-mobile-muted: #9a9a9f;
-    --services-mobile-accent: #ef383b;
-    --services-mobile-accent-soft: #351719;
+    --services-mobile-bg: var(--color-page, #0a0a0a);
+    --services-mobile-surface: var(--color-surface, #141416);
+    --services-mobile-field: var(--color-field, #1b1b1e);
+    --services-mobile-raised: var(--color-surface-soft, #1b1b1e);
+    --services-mobile-border: var(--color-border, rgba(255, 255, 255, 0.07));
+    --services-mobile-text: var(--color-text, #ffffff);
+    --services-mobile-muted: var(--color-text-muted, #a4a4ac);
+    --services-mobile-accent: var(--color-accent, #e11d2e);
+    --services-mobile-accent-soft: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
     padding: 2px 0 12px !important;
     color: var(--services-mobile-text) !important;
     background: var(--services-mobile-bg) !important;

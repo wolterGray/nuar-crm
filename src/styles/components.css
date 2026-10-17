@@ -34,19 +34,19 @@
   }
 
   .payments-page.nuar-payments.payments-page-mobile {
-    --payments-surface: #161618;
-    --payments-field: #1d1d20;
-    --payments-raised: #232326;
-    --payments-border: #2b2b2e;
-    --payments-text: #f4f4f5;
-    --payments-muted: #9a9a9f;
-    --payments-accent: #ef383b;
-    --payments-accent-soft: #351719;
+    --payments-surface: var(--color-surface, #141416);
+    --payments-field: var(--color-field, #1b1b1e);
+    --payments-raised: var(--color-surface-soft, #1b1b1e);
+    --payments-border: var(--color-border, rgba(255, 255, 255, 0.07));
+    --payments-text: var(--color-text, #ffffff);
+    --payments-muted: var(--color-text-muted, #a4a4ac);
+    --payments-accent: var(--color-accent, #e11d2e);
+    --payments-accent-soft: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
     width: 100% !important;
     min-height: 100% !important;
     padding: 2px 0 0 !important;
     gap: 10px !important;
-    background: #0d0d0f !important;
+    background: var(--color-page, #0a0a0a) !important;
     color: var(--payments-text) !important;
     box-sizing: border-box !important;
   }
@@ -17727,7 +17727,7 @@ input[type="checkbox"].ui-checkbox:disabled,
     padding: 0 !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
-    background: #0d0d0f !important;
+    background: var(--color-page, #0a0a0a) !important;
   }
 
   .payments-page.nuar-payments.payments-page-mobile {
@@ -17736,7 +17736,7 @@ input[type="checkbox"].ui-checkbox:disabled,
     padding: 2px 0 0 !important;
     gap: 10px !important;
     overflow: visible !important;
-    background: #0d0d0f !important;
+    background: var(--color-page, #0a0a0a) !important;
   }
 
   .payments-page-mobile .payments-top-bar {
@@ -17800,8 +17800,8 @@ input[type="checkbox"].ui-checkbox:disabled,
 
   .payments-page-mobile .payments-add-payment-cta {
     color: #fff !important;
-    background: #ef383b !important;
-    border-color: #ef383b !important;
+    background: var(--color-accent, #e11d2e) !important;
+    border-color: var(--color-accent, #e11d2e) !important;
     font-size: 14px !important;
   }
 

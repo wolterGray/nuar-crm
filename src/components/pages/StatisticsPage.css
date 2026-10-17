@@ -1,13 +1,13 @@
 @media (max-width: 768px) {
   .statistics-page-mobile {
-    --statistics-mobile-bg: #0d0d0f;
-    --statistics-mobile-surface: #161618;
-    --statistics-mobile-field: #1d1d20;
-    --statistics-mobile-raised: #232326;
-    --statistics-mobile-border: #2b2b2e;
-    --statistics-mobile-text: #f4f4f5;
-    --statistics-mobile-muted: #9a9a9f;
-    --statistics-mobile-accent: #ef383b;
+    --statistics-mobile-bg: var(--color-page, #0a0a0a);
+    --statistics-mobile-surface: var(--color-surface, #141416);
+    --statistics-mobile-field: var(--color-field, #1b1b1e);
+    --statistics-mobile-raised: var(--color-surface-soft, #1b1b1e);
+    --statistics-mobile-border: var(--color-border, rgba(255, 255, 255, 0.07));
+    --statistics-mobile-text: var(--color-text, #ffffff);
+    --statistics-mobile-muted: var(--color-text-muted, #a4a4ac);
+    --statistics-mobile-accent: var(--color-accent, #e11d2e);
     color: var(--statistics-mobile-text) !important;
     background: var(--statistics-mobile-bg) !important;
   }

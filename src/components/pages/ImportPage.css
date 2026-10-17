@@ -1,13 +1,13 @@
 @media (max-width: 768px) {
   .import-page {
-    --import-mobile-bg: #0d0d0f;
-    --import-mobile-surface: #161618;
-    --import-mobile-field: #1d1d20;
-    --import-mobile-raised: #232326;
-    --import-mobile-border: #2b2b2e;
-    --import-mobile-text: #f4f4f5;
-    --import-mobile-muted: #9a9a9f;
-    --import-mobile-accent: #ef383b;
+    --import-mobile-bg: var(--color-page, #0a0a0a);
+    --import-mobile-surface: var(--color-surface, #141416);
+    --import-mobile-field: var(--color-field, #1b1b1e);
+    --import-mobile-raised: var(--color-surface-soft, #1b1b1e);
+    --import-mobile-border: var(--color-border, rgba(255, 255, 255, 0.07));
+    --import-mobile-text: var(--color-text, #ffffff);
+    --import-mobile-muted: var(--color-text-muted, #a4a4ac);
+    --import-mobile-accent: var(--color-accent, #e11d2e);
     gap: 10px !important;
     padding-top: 2px !important;
     padding-bottom: 12px !important;

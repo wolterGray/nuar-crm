@@ -1369,15 +1369,15 @@
 
 @media (max-width: 768px) {
   .templates-workspace.nuar-templates {
-    --templates-mobile-bg: #0d0d0f;
-    --templates-mobile-surface: #161618;
-    --templates-mobile-field: #1d1d20;
-    --templates-mobile-raised: #232326;
-    --templates-mobile-border: #2b2b2e;
-    --templates-mobile-text: #f4f4f5;
-    --templates-mobile-muted: #9a9a9f;
-    --templates-mobile-accent: #ef383b;
-    --templates-mobile-accent-soft: #351719;
+    --templates-mobile-bg: var(--color-page, #0a0a0a);
+    --templates-mobile-surface: var(--color-surface, #141416);
+    --templates-mobile-field: var(--color-field, #1b1b1e);
+    --templates-mobile-raised: var(--color-surface-soft, #1b1b1e);
+    --templates-mobile-border: var(--color-border, rgba(255, 255, 255, 0.07));
+    --templates-mobile-text: var(--color-text, #ffffff);
+    --templates-mobile-muted: var(--color-text-muted, #a4a4ac);
+    --templates-mobile-accent: var(--color-accent, #e11d2e);
+    --templates-mobile-accent-soft: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
     gap: 9px !important;
     padding: 2px 0 12px !important;
     color: var(--templates-mobile-text) !important;

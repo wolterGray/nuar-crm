@@ -1,14 +1,14 @@
 @media (max-width: 768px) {
   .operations-page.operations-page-mobile {
-    --operations-mobile-bg: #0d0d0f;
-    --operations-mobile-surface: #161618;
-    --operations-mobile-field: #1d1d20;
-    --operations-mobile-raised: #232326;
-    --operations-mobile-border: #2b2b2e;
-    --operations-mobile-text: #f4f4f5;
-    --operations-mobile-muted: #9a9a9f;
-    --operations-mobile-accent: #ef383b;
-    --operations-mobile-accent-soft: #351719;
+    --operations-mobile-bg: var(--color-page, #0a0a0a);
+    --operations-mobile-surface: var(--color-surface, #141416);
+    --operations-mobile-field: var(--color-field, #1b1b1e);
+    --operations-mobile-raised: var(--color-surface-soft, #1b1b1e);
+    --operations-mobile-border: var(--color-border, rgba(255, 255, 255, 0.07));
+    --operations-mobile-text: var(--color-text, #ffffff);
+    --operations-mobile-muted: var(--color-text-muted, #a4a4ac);
+    --operations-mobile-accent: var(--color-accent, #e11d2e);
+    --operations-mobile-accent-soft: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
     gap: 10px !important;
     padding: 2px 0 0 !important;
     background: var(--operations-mobile-bg) !important;

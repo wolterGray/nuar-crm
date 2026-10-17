@@ -1,0 +1,18 @@
+---
+description: Architectural and Design System Standards for NUAR CRM
+globs: *
+alwaysApply: true
+---
+
+# NUAR CRM Architectural & Design Standards
+
+Single source of truth: **`AGENTS.md`** (located at repository root).
+
+Refer to `AGENTS.md` for:
+- 4-tier style hierarchy and `/today` as the official design benchmark.
+- Canonical design tokens in `src/styles/tokens.css`.
+- UI primitives in `src/components/ui/` (`Button`, `Input`, `Badge`, `Dialog`, `AppIcon`, etc.).
+- Mobile responsiveness guidelines (touch target >= 44-48px, 393x852 iPhone reference, no page-level horizontal scroll).
+- Strict prohibitions (no raw hex colors, no direct `lucide-react` imports, no local CSS variables).
+- 9-point verification checklist before completing tasks.
+- Operational context for Hetzner VPS and Lavandi CMS integration.

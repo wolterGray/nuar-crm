@@ -2,6 +2,7 @@
 @import "tailwindcss";
 @import "./design/tokens.css";
 @import "./design/typography.css";
+
 @theme {
   --color-app-bg: var(--bg);
   --color-surface: var(--surface);
@@ -10,9 +11,13 @@
   --color-border: var(--border);
   --color-border-soft: var(--border-soft);
   --color-text-main: var(--text);
+  --color-text-primary: var(--text);
+  --color-textPrimary: var(--text);
   --color-text-muted: var(--text-muted);
+  --color-textMuted: var(--text-muted);
   --color-text-faint: var(--text-faint);
   --color-accent: var(--accent);
+  --color-primary: var(--accent);
 
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);

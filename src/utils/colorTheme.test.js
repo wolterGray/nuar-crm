@@ -8,7 +8,7 @@ import {
 describe("colorTheme", () => {
   it("resolves explicit colorTheme ids", () => {
     expect(resolveColorTheme({colorTheme: "dark"}).id).toBe("dark");
-    expect(resolveColorTheme({colorTheme: "dark"}).accentColor).toBe("#b91c1c");
+    expect(resolveColorTheme({colorTheme: "dark"}).accentColor).toBe("#e11d2e");
     expect(resolveColorTheme({colorTheme: "light"}).mode).toBe("light");
   });
 
@@ -36,7 +36,7 @@ describe("colorTheme", () => {
 
     expect(synced.colorTheme).toBe("dark");
     expect(synced.theme).toBe("dark");
-    expect(synced.accentColor).toBe("#b91c1c");
+    expect(synced.accentColor).toBe("#e11d2e");
   });
 
   it("applyColorTheme resolves theme object", () => {
@@ -44,6 +44,6 @@ describe("colorTheme", () => {
 
     expect(theme.id).toBe("dark");
     expect(theme.mode).toBe("dark");
-    expect(theme.accentColor).toBe("#b91c1c");
+    expect(theme.accentColor).toBe("#e11d2e");
   });
 });
