@@ -7,6 +7,28 @@ import ClientLoyaltyCard from "./ClientLoyaltyCard.jsx";
 import ClientRowActions from "./ClientRowActions.jsx";
 import { getCertificateBalanceLabel } from "../../../utils/certificates.js";
 
+const formatInstagram = (raw) => {
+  if (!raw) return null;
+  const str = String(raw).trim();
+  if (!str) return null;
+
+  let username = str;
+  try {
+    if (str.includes("instagram.com/")) {
+      const parts = str.split("instagram.com/")[1].split("/")[0].split("?")[0].trim();
+      if (parts) username = parts;
+    }
+  } catch {
+    // fallback
+  }
+
+  username = username.replace(/^@/, "");
+  const cleanUrl = str.startsWith("http") ? str : `https://instagram.com/${username}`;
+  const displayHandle = `@${username}`;
+
+  return { displayHandle, url: cleanUrl };
+};
+
 function ClientWorkspace({
   client,
   isMobile,
@@ -91,7 +113,11 @@ function ClientWorkspace({
                 <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
                   client.autoStatus === "Новый"
                     ? "text-blue-400 bg-blue-400/10"
-                    : "text-emerald-400 bg-emerald-400/10"
+                    : client.autoStatus === "Активный"
+                    ? "text-emerald-400 bg-emerald-400/10"
+                    : client.autoStatus === "Редко"
+                    ? "text-amber-400 bg-amber-400/10"
+                    : "text-rose-400 bg-rose-400/10"
                 }`}>
                   {client.autoStatus}
                 </span>
@@ -358,12 +384,24 @@ function ClientWorkspace({
                   </div>
                 )}
 
-                {client.instagram && (
-                  <div className="flex items-center justify-between py-1">
-                    <span className="text-textMuted text-[11px]">Instagram</span>
-                    <strong className="text-textPrimary">{client.instagram}</strong>
-                  </div>
-                )}
+                {client.instagram && (() => {
+                  const insta = formatInstagram(client.instagram);
+                  if (!insta) return null;
+                  return (
+                    <div className="flex items-center justify-between py-1 gap-2">
+                      <span className="text-textMuted text-[11px] shrink-0">Instagram</span>
+                      <a
+                        className="text-pink-400 hover:text-pink-300 hover:underline flex items-center gap-1 font-semibold truncate max-w-[210px] transition-colors text-right"
+                        href={insta.url}
+                        rel="noreferrer"
+                        target="_blank"
+                        title={client.instagram}>
+                        <span className="truncate">{insta.displayHandle}</span>
+                        <AppIcon name="externalLink" size="xs" className="opacity-70 shrink-0" />
+                      </a>
+                    </div>
+                  );
+                })()}
 
                 {client.birthday && (
                   <div className="flex items-center justify-between py-1">
@@ -442,7 +480,7 @@ function ClientWorkspace({
                 <button
                   type="button"
                   className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                    visitHistoryFilter === "all" ? "bg-field text-textPrimary" : "text-textMuted hover:text-textPrimary"
+                    visitHistoryFilter === "all" ? "bg-surface text-textPrimary shadow-sm border border-white/10" : "text-textMuted hover:text-textPrimary"
                   }`}
                   onClick={() => setVisitHistoryFilter("all")}>
                   Все ({client.appointments.length})
@@ -450,7 +488,7 @@ function ClientWorkspace({
                 <button
                   type="button"
                   className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                    visitHistoryFilter === "future" ? "bg-field text-textPrimary" : "text-textMuted hover:text-textPrimary"
+                    visitHistoryFilter === "future" ? "bg-surface text-textPrimary shadow-sm border border-white/10" : "text-textMuted hover:text-textPrimary"
                   }`}
                   onClick={() => setVisitHistoryFilter("future")}>
                   Будущие ({client.upcomingVisitsCount})
@@ -458,7 +496,7 @@ function ClientWorkspace({
                 <button
                   type="button"
                   className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                    visitHistoryFilter === "past" ? "bg-field text-textPrimary" : "text-textMuted hover:text-textPrimary"
+                    visitHistoryFilter === "past" ? "bg-surface text-textPrimary shadow-sm border border-white/10" : "text-textMuted hover:text-textPrimary"
                   }`}
                   onClick={() => setVisitHistoryFilter("past")}>
                   Прошлые ({client.completedVisitsCount})

@@ -69,8 +69,29 @@ function getAppointmentStatus(entry) {
   return end < new Date() ? "Окончен" : "Запланирован";
 }
 
-function getClientAutoStatus(visitsCount) {
-  return (Number(visitsCount) || 0) > 0 ? "Активный" : "Новый";
+function getClientAutoStatus(
+  visitsCount,
+  daysAbsent,
+  inactiveClientDays = 14,
+  hasFutureAppointments = false,
+) {
+  const count = Number(visitsCount) || 0;
+  if (count <= 1) {
+    return "Новый";
+  }
+  if (hasFutureAppointments) {
+    return "Активный";
+  }
+  if (daysAbsent === null || daysAbsent === undefined) {
+    return "Новый";
+  }
+  if (daysAbsent <= inactiveClientDays) {
+    return "Активный";
+  }
+  if (daysAbsent <= 45) {
+    return "Редко";
+  }
+  return "Давно";
 }
 
 function getClientAutoVip(visitsCount, totalIncome) {
@@ -314,7 +335,12 @@ function ClientsPage({
         return {
           ...client,
           visitsCount: appointments.length,
-          autoStatus: getClientAutoStatus(appointments.length),
+          autoStatus: getClientAutoStatus(
+            appointments.length,
+            daysAbsent,
+            inactiveClientDays || 14,
+            futureAppointments.length > 0,
+          ),
           isVip: getClientAutoVip(appointments.length, totalIncome) || Boolean(client.isVip || client.vip),
           completedVisitsCount: clientVisits.length,
           upcomingVisitsCount: appointments.filter(
