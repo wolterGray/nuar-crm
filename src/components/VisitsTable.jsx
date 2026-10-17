@@ -61,7 +61,7 @@ function VisitsTable({
       }
       const h = container.clientHeight;
       if (h > 0) {
-        const count = calculateDynamicPageSize(h, 35, 36, 5, 8);
+        const count = calculateDynamicPageSize(h, 38, 46, 5, 8);
         setAutoPageSize((prev) => (prev !== count ? count : prev));
       }
     };
@@ -78,7 +78,7 @@ function VisitsTable({
         for (const entry of entries) {
           const h = entry.contentRect.height;
           if (h > 0) {
-            const count = calculateDynamicPageSize(h, 35, 36, 5, 8);
+            const count = calculateDynamicPageSize(h, 38, 46, 5, 8);
             setAutoPageSize((prev) => (prev !== count ? count : prev));
           }
         }

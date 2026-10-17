@@ -15726,6 +15726,230 @@ input[type="checkbox"].ui-checkbox:disabled,
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Desktop journal: align the payments workspace with the clients page. */
+@media (min-width: 769px) {
+  .content.payments-content,
+  .content.visits-content.payments-content {
+    padding: 18px 22px 14px !important;
+  }
+
+  .payments-page.nuar-payments {
+    gap: 10px !important;
+    background: #0a0a0a !important;
+  }
+
+  .payments-top-bar {
+    min-height: 44px;
+    padding: 0 2px;
+  }
+
+  .payments-top-title {
+    font-size: 24px;
+    letter-spacing: 0;
+  }
+
+  .payments-tabs-action-bar {
+    min-height: 52px;
+    padding: 6px;
+    margin: 0;
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    border-radius: 8px;
+    background: #141416;
+  }
+
+  .payments-tabs-nav {
+    gap: 4px;
+    padding: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 7px;
+    background: #101012;
+  }
+
+  .payments-tab-btn {
+    min-height: 36px;
+    padding: 0 13px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: #96969f;
+    font-size: 12.5px;
+    transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
+  }
+
+  .payments-tab-btn:hover {
+    color: #e4e4e7;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .payments-tab-btn.is-active {
+    border-color: rgba(239, 56, 59, 0.45);
+    color: #ff6265;
+    background: rgba(239, 56, 59, 0.12);
+  }
+
+  .payments-tab-icon {
+    color: currentColor;
+  }
+
+  .payments-tab-underline {
+    display: none;
+  }
+
+  .payments-tab-badge {
+    border: 0;
+    color: #fff;
+    background: #ef383b;
+  }
+
+  .payments-tabs-actions {
+    gap: 7px;
+  }
+
+  .payments-add-payment-cta,
+  .payments-export-csv-btn {
+    min-height: 38px !important;
+    border-radius: 7px !important;
+  }
+
+  .payments-add-payment-cta {
+    padding-inline: 16px !important;
+    box-shadow: none !important;
+  }
+
+  .payments-journal-container {
+    gap: 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    border-radius: 8px;
+    background: #141416;
+  }
+
+  .payments-filter-bar {
+    flex-wrap: nowrap;
+    gap: 8px;
+    min-height: 58px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: #141416;
+  }
+
+  .payments-search-wrap {
+    max-width: none;
+    flex: 1 1 auto;
+  }
+
+  .payments-search-input,
+  .payments-filter-select,
+  .payments-date-control-wrap,
+  .payments-filter-toggle-btn {
+    height: 38px;
+    border-color: rgba(255, 255, 255, 0.075);
+    border-radius: 7px;
+    background: #1b1b1e;
+  }
+
+  .payments-search-input {
+    font-size: 13px;
+  }
+
+  .payments-filter-select,
+  .payments-date-label,
+  .payments-filter-toggle-btn {
+    font-size: 12px;
+  }
+
+  .payments-extra-filters-panel {
+    margin: 8px 12px 0;
+    border-radius: 7px;
+    background: #18181b;
+  }
+
+  .payments-table-wrap {
+    border: 0;
+    border-radius: 0;
+    background: #141416;
+  }
+
+  .payments-table thead tr,
+  .payments-table th {
+    background: #111113 !important;
+  }
+
+  .payments-table th {
+    height: 38px;
+    padding: 0 14px;
+    border-bottom-color: rgba(255, 255, 255, 0.07);
+    color: #777780;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  .payments-table-row,
+  .payments-row-main-line {
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+  }
+
+  .payments-row-main-line {
+    padding: 0 14px !important;
+  }
+
+  .payments-row-cell-wrap {
+    border-bottom-color: rgba(255, 255, 255, 0.055);
+  }
+
+  .payments-table-row:hover {
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .payments-col-date {
+    color: #909099;
+    font-size: 12px;
+  }
+
+  .payments-col-client,
+  .payments-total-amount {
+    font-size: 12.5px;
+    font-weight: 650;
+  }
+
+  .payments-col-service,
+  .payments-col-master {
+    color: #a1a1aa;
+    font-size: 12px;
+  }
+
+  .payments-method-badge {
+    min-height: 25px;
+    padding: 3px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.045);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .payments-col-actions button,
+  .payments-col-actions .payments-expand-btn,
+  .payments-col-actions .row-action-trigger {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    border-radius: 6px !important;
+  }
+
+  .payments-pagination-bar {
+    min-height: 48px;
+    padding: 7px 12px;
+    border-top-color: rgba(255, 255, 255, 0.07);
+    background: #111113;
+  }
+
+  .payments-page-num-btn {
+    min-width: 30px;
+    height: 30px;
+    border-radius: 6px;
+  }
+}
+
 /* 6. Day Close Tab Integration (Compact & Scrollable within Tab) */
 .day-close-tab-panel {
   flex: 1 1 0 !important;

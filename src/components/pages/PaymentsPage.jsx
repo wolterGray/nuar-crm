@@ -210,7 +210,7 @@ function PaymentsPage({
             className={`payments-tab-btn ${activeTab === "journal" ? "is-active" : ""}`}
             onClick={() => setActiveTab("journal")}
           >
-            {isMobile ? <AppIcon className="payments-tab-icon" name="list" size="xs" /> : null}
+            <AppIcon className="payments-tab-icon" name="list" size="xs" />
             <span className="payments-tab-label">Журнал</span>
             {activeTab === "journal" ? <span className="payments-tab-underline" /> : null}
           </button>
@@ -222,7 +222,7 @@ function PaymentsPage({
             className={`payments-tab-btn ${activeTab === "dayClose" ? "is-active" : ""}`}
             onClick={() => setActiveTab("dayClose")}
           >
-            {isMobile ? <AppIcon className="payments-tab-icon" name="lock" size="xs" /> : null}
+            <AppIcon className="payments-tab-icon" name="lock" size="xs" />
             <span className="payments-tab-label">{isMobile ? "Закрытие" : "Закрытие дня"}</span>
             {activeTab === "dayClose" ? <span className="payments-tab-underline" /> : null}
           </button>
@@ -234,7 +234,7 @@ function PaymentsPage({
             className={`payments-tab-btn ${activeTab === "quality" ? "is-active" : ""}`}
             onClick={() => setActiveTab("quality")}
           >
-            {isMobile ? <AppIcon className="payments-tab-icon" name="wallet" size="xs" /> : null}
+            <AppIcon className="payments-tab-icon" name="wallet" size="xs" />
             <span className="payments-tab-label">{isMobile ? "Проверка" : "Проверка денег"}</span>
             {issueCount > 0 ? (
               <span className="payments-tab-badge">{issueCount}</span>
