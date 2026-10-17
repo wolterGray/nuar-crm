@@ -55,27 +55,42 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
 }
 
-/* Compact Search Field */
+/* ==========================================================================
+   Toolbar: Row 1 (Search + Dropdowns) & Row 2 (Quick Filter Tabs)
+   ========================================================================== */
+
+/* Row 1: Primary Toolbar (Search on Left, Dropdowns on Right) */
+.clients-toolbar-primary {
+  min-height: 44px;
+}
+
+/* Row 2: Secondary Toolbar (Quick Filter Pills Underneath) */
+.clients-toolbar-secondary {
+  min-height: 38px;
+  background: var(--surface, #141416);
+}
+
+/* Compact Search Field in Row 1 */
 .clients-search-box {
   display: flex;
   align-items: center;
-  gap: 7px;
-  height: 28px;
-  min-height: 28px;
-  padding: 0 8px;
+  gap: 8px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 10px;
   background: var(--field, rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
-  border-radius: var(--radius-control-sm, 7px);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-control-sm, 8px);
   transition: border-color var(--transition-fast, 150ms ease), background-color var(--transition-fast, 150ms ease);
 }
 
 .clients-search-box:focus-within {
-  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.18));
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.22));
   background: var(--color-field-hover, rgba(255, 255, 255, 0.06));
 }
 
 .clients-search-icon {
-  color: var(--text-muted, #a4a4ac);
+  color: var(--text-muted, #71717a);
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -98,7 +113,7 @@
   background: transparent !important;
   color: var(--text, #ffffff) !important;
   font-family: inherit !important;
-  font-size: 12px !important;
+  font-size: 12.5px !important;
   line-height: normal !important;
   outline: none !important;
 }
@@ -106,7 +121,7 @@
 .clients-search-box input.clients-search-input::placeholder,
 .theme-dark .clients-search-box input.clients-search-input::placeholder {
   color: var(--text-faint, #71717a) !important;
-  font-size: 12px !important;
+  font-size: 12.5px !important;
   line-height: normal !important;
   opacity: 1 !important;
 }
@@ -127,11 +142,6 @@
 
 .clients-search-clear:hover {
   color: var(--text, #ffffff);
-}
-
-/* Compact Toolbar in One Row */
-.clients-toolbar {
-  min-height: 42px;
 }
 
 /* Quick Filter Pills (Stable, no twitching on click) */
@@ -193,24 +203,25 @@
   background: var(--color-success, #6fcf97);
 }
 
-/* Compact Dropdown Filters */
+/* Compact Dropdown Filters in Row 1 */
 .clients-filter-dropdown {
-  height: 26px;
-  padding: 0 6px;
+  height: 30px;
+  padding: 0 8px;
   border-radius: var(--radius-control-sm, 8px);
   background: var(--field, rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--border-soft, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   color: var(--text-muted, #a4a4ac);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   outline: none;
   cursor: pointer;
-  transition: border-color 140ms ease;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
 }
 
 .clients-filter-dropdown:hover,
 .clients-filter-dropdown:focus {
-  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.18));
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.22));
+  background: var(--color-field-hover, rgba(255, 255, 255, 0.06));
   color: var(--text, #ffffff);
 }
 
@@ -472,6 +483,31 @@
     border-radius: 0;
     border-left: 0;
     border-right: 0;
+  }
+
+  .clients-toolbar-primary {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .clients-toolbar-primary .clients-search-box {
+    max-width: 100%;
+    width: 100%;
+    height: 34px;
+  }
+
+  .clients-toolbar-primary > div:last-child {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .clients-toolbar-secondary {
+    padding: 6px 10px;
   }
 
   .client-drawer-panel {

@@ -39,84 +39,32 @@ function ClientList({
 }) {
   return (
     <div className="clients-list-pane flex flex-col h-full w-full min-h-0 bg-surface border border-border rounded-card overflow-hidden">
-      {/* 1. Compact Single-Row Toolbar (Search + Quick Pills + Dropdowns) */}
-      <div className="clients-toolbar flex items-center justify-between gap-2.5 px-3 py-2 border-b border-border/70 shrink-0 bg-surface">
-        {/* Left Side: Search + Quick Pills */}
-        <div className="flex items-center gap-2 flex-1 min-w-0 overflow-x-auto scrollbar-none py-0.5">
-          {/* Compact Search */}
-          <div className="clients-search-box flex items-center shrink-0 w-[190px] md:w-[230px]">
-            <AppIcon className="clients-search-icon" name="search" size="xs" />
-            <input
-              aria-label="Поиск по клиентам"
-              className="clients-search-input"
-              placeholder="Поиск по клиентам..."
-              type="text"
-              value={search}
-              onChange={onSearchChange}
-            />
-            {search ? (
-              <button
-                aria-label="Очистить поиск"
-                className="clients-search-clear"
-                type="button"
-                onClick={onClearSearch}>
-                <AppIcon name="x" size="xs" />
-              </button>
-            ) : null}
-          </div>
-
-          <div className="h-4 w-px bg-border/60 shrink-0 mx-0.5 hidden sm:block" />
-
-          {/* Quick Filter Pills */}
-          <div className="flex items-center gap-1.5 shrink-0">
+      {/* 1. Primary Filter Bar: Search (Left) + Dropdown Selects (Right) */}
+      <div className="clients-toolbar-primary flex items-center justify-between gap-3 px-3.5 py-2.5 border-b border-border/50 shrink-0 bg-surface flex-wrap sm:flex-nowrap">
+        {/* Search Field */}
+        <div className="clients-search-box flex items-center flex-1 min-w-[200px] max-w-[340px]">
+          <AppIcon className="clients-search-icon" name="search" size="xs" />
+          <input
+            aria-label="Поиск по клиентам"
+            className="clients-search-input"
+            placeholder="Поиск по клиентам..."
+            type="text"
+            value={search}
+            onChange={onSearchChange}
+          />
+          {search ? (
             <button
+              aria-label="Очистить поиск"
+              className="clients-search-clear"
               type="button"
-              className={`clients-quick-pill ${!quickFilter ? "is-active" : ""}`}
-              onClick={() => onQuickFilterChange(null)}>
-              <span>Все</span>
-              <span className="pill-count">{totalFilteredCount}</span>
+              onClick={onClearSearch}>
+              <AppIcon name="x" size="xs" />
             </button>
-
-            <button
-              type="button"
-              className={`clients-quick-pill ${quickFilter === "vip" ? "is-active" : ""}`}
-              onClick={() => onQuickFilterChange(quickFilter === "vip" ? null : "vip")}>
-              <AppIcon name="crown" size="xs" className="text-amber-400" />
-              <span>VIP</span>
-              <span className="pill-count">{indicatorCounts.vip}</span>
-            </button>
-
-            <button
-              type="button"
-              className={`clients-quick-pill ${quickFilter === "note" ? "is-active" : ""}`}
-              onClick={() => onQuickFilterChange(quickFilter === "note" ? null : "note")}>
-              <AppIcon name="fileText" size="xs" className="text-textMuted" />
-              <span>С заметкой</span>
-              <span className="pill-count">{indicatorCounts.withNote}</span>
-            </button>
-
-            <button
-              type="button"
-              className={`clients-quick-pill ${quickFilter === "debt" ? "is-active" : ""}`}
-              onClick={() => onQuickFilterChange(quickFilter === "debt" ? null : "debt")}>
-              <AppIcon name="ban" size="xs" className="text-rose-400" />
-              <span>С долгом</span>
-              <span className="pill-count">{indicatorCounts.withDebt}</span>
-            </button>
-
-            <button
-              type="button"
-              className={`clients-quick-pill ${quickFilter === "active" ? "is-active" : ""}`}
-              onClick={() => onQuickFilterChange(quickFilter === "active" ? null : "active")}>
-              <span className="pill-dot pill-dot-green" />
-              <span>Активные</span>
-              <span className="pill-count">{indicatorCounts.active}</span>
-            </button>
-          </div>
+          ) : null}
         </div>
 
-        {/* Right Side: Compact Dropdown Controls */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* Dropdown Filters (Sort, Status, Segment) */}
+        <div className="flex items-center gap-2 shrink-0">
           <select
             aria-label="Сортировка"
             className="clients-filter-dropdown"
@@ -152,6 +100,53 @@ function ClientList({
             <option value="new">Без визитов</option>
           </select>
         </div>
+      </div>
+
+      {/* 2. Secondary Filter Bar: Quick Indicator Tabs Underneath */}
+      <div className="clients-toolbar-secondary flex items-center gap-1.5 px-3.5 py-2 border-b border-border/50 shrink-0 bg-surface overflow-x-auto scrollbar-none">
+        <button
+          type="button"
+          className={`clients-quick-pill ${!quickFilter ? "is-active" : ""}`}
+          onClick={() => onQuickFilterChange(null)}>
+          <span>Все</span>
+          <span className="pill-count">{totalFilteredCount}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`clients-quick-pill ${quickFilter === "vip" ? "is-active" : ""}`}
+          onClick={() => onQuickFilterChange(quickFilter === "vip" ? null : "vip")}>
+          <AppIcon name="crown" size="xs" className="text-amber-400" />
+          <span>VIP</span>
+          <span className="pill-count">{indicatorCounts.vip}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`clients-quick-pill ${quickFilter === "note" ? "is-active" : ""}`}
+          onClick={() => onQuickFilterChange(quickFilter === "note" ? null : "note")}>
+          <AppIcon name="fileText" size="xs" className="text-textMuted" />
+          <span>С заметкой</span>
+          <span className="pill-count">{indicatorCounts.withNote}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`clients-quick-pill ${quickFilter === "debt" ? "is-active" : ""}`}
+          onClick={() => onQuickFilterChange(quickFilter === "debt" ? null : "debt")}>
+          <AppIcon name="ban" size="xs" className="text-rose-400" />
+          <span>С долгом</span>
+          <span className="pill-count">{indicatorCounts.withDebt}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`clients-quick-pill ${quickFilter === "active" ? "is-active" : ""}`}
+          onClick={() => onQuickFilterChange(quickFilter === "active" ? null : "active")}>
+          <span className="pill-dot pill-dot-green" />
+          <span>Активные</span>
+          <span className="pill-count">{indicatorCounts.active}</span>
+        </button>
       </div>
 
       {/* 2. Structured Table-Like Header (Aligned Columns) */}
