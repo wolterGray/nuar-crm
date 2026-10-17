@@ -386,19 +386,19 @@
   color: var(--text, #ffffff);
 }
 
-/* Quick Filter Pills (Minimalist, completely transparent by default, dark when active) */
+/* Quick Filter Tabs (Matches Workspace Navigation Tabs aesthetic) */
 .clients-quick-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  height: 23px;
-  padding: 0 8px;
-  border-radius: var(--radius-pill, 999px);
+  gap: 5px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: var(--radius-control-sm, 8px);
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-muted, #a4a4ac);
-  font-size: 10.5px;
-  font-weight: 500;
+  font-size: 11.5px;
+  font-weight: 550;
   white-space: nowrap;
   cursor: pointer;
   transition: all 120ms ease;
@@ -407,32 +407,32 @@
 }
 
 .clients-quick-pill:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text, #ffffff);
 }
 
-/* Clearly distinguished active state: dark surface, subtle border, NO light gray */
+/* Clearly distinguished active state: matches active workspace tab */
 .clients-quick-pill.is-active {
   background: var(--surface-2, #18181b);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.12);
   color: #ffffff;
   font-weight: 600;
   box-shadow: none;
 }
 
 .clients-quick-pill .pill-count {
-  font-size: 9.5px;
-  opacity: 0.6;
-  font-weight: 700;
-  padding: 0 2px;
-  border-radius: 999px;
-  background: transparent;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-2, #1b1b1e);
+  color: var(--text-muted, #a4a4ac);
+  font-weight: 650;
+  line-height: 1.2;
 }
 
 .clients-quick-pill.is-active .pill-count {
-  background: transparent;
-  opacity: 0.9;
-  color: var(--text-muted, #a4a4ac);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .clients-quick-pill .pill-dot {
@@ -828,26 +828,26 @@
   }
 
   .clients-toolbar-secondary {
-    min-height: 28px;
+    min-height: 34px;
     padding: 3px 10px;
-    gap: 4px;
+    gap: 5px;
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
 
   .clients-quick-pill {
-    height: 22px;
-    padding: 0 7px;
-    font-size: 10px;
-    gap: 3px;
+    height: 30px;
+    padding: 0 10px;
+    font-size: 11px;
+    gap: 5px;
     flex-shrink: 0;
-    border-radius: var(--radius-pill, 999px);
+    border-radius: var(--radius-control-sm, 8px);
   }
 
   .clients-quick-pill .pill-count {
-    font-size: 9px;
-    padding: 0 3px;
+    font-size: 9.5px;
+    padding: 1px 5px;
   }
 
   .clients-list-item {
