@@ -111,7 +111,7 @@ function ClientList({
           className={`clients-quick-pill ${!quickFilter ? "is-active" : ""}`}
           onClick={() => onQuickFilterChange(null)}>
           <span>Все</span>
-          <span className="pill-count">{totalFilteredCount}</span>
+          <span className="pill-count">{indicatorCounts?.all ?? totalFilteredCount}</span>
         </button>
 
         <button
@@ -198,19 +198,12 @@ function ClientList({
                 </span>
 
                 <div className="flex flex-col min-w-0 flex-1 justify-center">
-                  <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
-                    <strong className="text-sm font-semibold text-textPrimary leading-snug break-words sm:truncate" title={client.name}>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <strong className="text-sm font-semibold text-textPrimary leading-snug break-words" title={client.name}>
                       {client.name || client.phone || "Без имени"}
                     </strong>
 
-                    {client.isVip ? (
-                      <span className="hidden sm:inline-flex client-badge-vip shrink-0 items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-bold text-amber-400 bg-amber-400/10">
-                        <AppIcon name="crown" size="xs" />
-                        <span>VIP</span>
-                      </span>
-                    ) : null}
-
-                    <span className={`hidden sm:inline-flex shrink-0 px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                    <span className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
                       client.autoStatus === "Новый"
                         ? "text-blue-400 bg-blue-400/10"
                         : client.autoStatus === "Активный"
@@ -222,8 +215,15 @@ function ClientList({
                       {client.autoStatus}
                     </span>
 
+                    {client.isVip ? (
+                      <span className="client-badge-vip shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold text-amber-400 bg-amber-400/10">
+                        <AppIcon name="crown" size="xs" />
+                        <span>VIP</span>
+                      </span>
+                    ) : null}
+
                     {client.hasDebt ? (
-                      <span className="hidden sm:inline-flex client-badge-debt shrink-0 px-1.5 py-0.2 rounded text-[10px] font-bold text-rose-400 bg-rose-400/10" title={`Долг: ${formatMoney(client.totalDebt)}`}>
+                      <span className="client-badge-debt shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-rose-400 bg-rose-400/10" title={`Долг: ${formatMoney(client.totalDebt)}`}>
                         Долг
                       </span>
                     ) : null}

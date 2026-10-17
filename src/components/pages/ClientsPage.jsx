@@ -429,7 +429,7 @@ function ClientsPage({
       if (client.hasDebt) withDebt += 1;
     }
 
-    return { active, vip, withNote, withDebt };
+    return { all: clientsData.length, active, vip, withNote, withDebt };
   }, [clientsData]);
 
   // 4. Filtering & Sorting
