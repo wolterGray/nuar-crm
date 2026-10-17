@@ -595,7 +595,8 @@ export default function ServicesPage({
             type="button"
             onClick={() => setIsCatModalOpen(true)}>
             <AppIcon name="sliders" size="xs" />
-            Управление категориями
+            <span className="services-categories-label-long">Управление категориями</span>
+            <span className="services-categories-label-short">Категории</span>
           </button>
 
           {/* Add Service Button */}
