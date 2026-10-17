@@ -1481,6 +1481,7 @@
   .nuar-templates .templates-categories-bar {
     gap: 6px !important;
     width: 100% !important;
+    margin-bottom: 10px !important;
     padding: 1px 0 0 !important;
     overflow-x: auto !important;
     overscroll-behavior-inline: contain !important;
@@ -1506,7 +1507,7 @@
   }
 
   .nuar-templates .templates-list-scroll {
-    gap: 8px !important;
+    gap: 10px !important;
   }
 
   .nuar-templates .template-item-card {
