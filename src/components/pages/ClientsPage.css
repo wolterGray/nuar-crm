@@ -1446,6 +1446,135 @@
     background: rgba(239, 56, 59, 0.24);
   }
 
+  .message-builder-modal.mobile-sheet-fullscreen {
+    display: grid !important;
+    height: 100dvh !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    border-radius: 0 !important;
+    background: #0c0d0f !important;
+  }
+
+  .message-builder-modal .mobile-sheet-header {
+    min-height: 68px !important;
+    align-items: center !important;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 18px 12px !important;
+    background: #0c0d0f !important;
+  }
+
+  .message-builder-modal .mobile-sheet-header-copy h2 {
+    font-size: 18px !important;
+  }
+
+  .message-builder-modal .mobile-sheet-header-copy p {
+    margin-top: 3px !important;
+    font-size: 12px !important;
+  }
+
+  .message-builder-modal .mobile-sheet-close {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    border-radius: 50% !important;
+    background: #19191c !important;
+  }
+
+  .message-builder-modal .mobile-sheet-body {
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: #0c0d0f !important;
+  }
+
+  .message-builder-content {
+    display: grid;
+    gap: 16px !important;
+    padding: 18px !important;
+  }
+
+  .message-builder-field {
+    gap: 7px !important;
+  }
+
+  .message-builder-field > label {
+    color: #92929b !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .message-language-switch {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 9px;
+    background: #121214;
+  }
+
+  .message-language-option {
+    min-width: 0;
+    min-height: 38px;
+    border: 1px solid transparent !important;
+    border-radius: 7px;
+    color: #92929b !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .message-language-option.is-active {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    background: #28282c !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .message-builder-modal select {
+    min-height: 44px !important;
+    border-radius: 8px !important;
+    background-color: #18181b !important;
+    font-size: 14px !important;
+  }
+
+  .message-builder-modal textarea {
+    width: 100% !important;
+    height: 156px !important;
+    min-height: 156px !important;
+    max-height: 240px !important;
+    padding: 13px !important;
+    border-radius: 8px !important;
+    background: #18181b !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    resize: vertical !important;
+  }
+
+  .message-builder-modal .mobile-sheet-footer {
+    margin: 0 !important;
+    padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: #111113 !important;
+  }
+
+  .message-builder-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+  }
+
+  .message-builder-actions button {
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding-inline: 10px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+  }
+
   .client-workspace-body {
     padding: 14px 18px 28px !important;
     background: #0c0d0f !important;

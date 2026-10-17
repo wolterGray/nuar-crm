@@ -777,7 +777,7 @@ function ClientsPage({
           description={`Связь с клиентом ${messageBuilderClient.name}`}
           onClose={() => setMessageBuilderClient(null)}
           footer={
-            <div className="flex gap-2 w-full">
+            <div className="message-builder-actions flex gap-2 w-full">
               <Button
                 className="flex-1"
                 leftIcon="send"
@@ -813,25 +813,23 @@ function ClientsPage({
               </Button>
             </div>
           }>
-          <div className="p-4 space-y-3.5">
+          <div className="message-builder-content p-4 space-y-3.5">
             {/* Language Selector */}
-            <div className="flex flex-col gap-1.5">
+            <div className="message-builder-field flex flex-col gap-1.5">
               <label className="text-textMuted text-xs font-semibold">Язык сообщения</label>
-              <div className="grid grid-cols-4 gap-1 p-0.5 rounded-xl bg-surface-2 border border-border/70">
+              <div className="message-language-switch">
                 {[
-                  { id: "pl", label: "🇵🇱 Polski" },
-                  { id: "ru", label: "🇷🇺 Русский" },
-                  { id: "ua", label: "🇺🇦 Українська" },
-                  { id: "en", label: "🇬🇧 English" },
+                  { id: "pl", label: "PL", title: "Polski" },
+                  { id: "ru", label: "RU", title: "Русский" },
+                  { id: "ua", label: "UA", title: "Українська" },
+                  { id: "en", label: "EN", title: "English" },
                 ].map((l) => (
                   <button
                     key={l.id}
                     type="button"
-                    className={`h-7 rounded-lg text-xs font-semibold transition-all select-none ${
-                      messageLanguage === l.id
-                        ? "bg-surface text-textPrimary shadow-xs border border-white/10"
-                        : "text-textMuted hover:text-textPrimary hover:bg-white/[0.03] border border-transparent"
-                    }`}
+                    aria-label={l.title}
+                    aria-pressed={messageLanguage === l.id}
+                    className={`message-language-option ${messageLanguage === l.id ? "is-active" : ""}`}
                     onClick={() => {
                       setMessageLanguage(l.id);
                       const t = getTemplates(messageBuilderClient.name, l.id);
@@ -843,7 +841,7 @@ function ClientsPage({
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="message-builder-field flex flex-col gap-1.5">
               <label className="text-textMuted text-xs font-semibold">Шаблон сообщения</label>
               <Select
                 value={selectedTemplate}
@@ -859,7 +857,7 @@ function ClientsPage({
               </Select>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="message-builder-field message-builder-text-field flex flex-col gap-1.5">
               <label className="text-textMuted text-xs font-semibold">Текст сообщения</label>
               <Textarea
                 className="w-full h-32 p-3 text-xs leading-relaxed"
