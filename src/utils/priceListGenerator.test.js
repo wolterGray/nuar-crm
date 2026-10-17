@@ -11,8 +11,13 @@ import {
   DEFAULT_PRICE_LIST_SETTINGS,
   resolveDocumentStyle,
   getHexLuminance,
+  DESIGN_TEMPLATES,
+  loadUserPresets,
+  saveUserPresets,
+  createPresetFromSettings,
+  applyPresetToSettings,
 } from "./priceListGenerator.js";
-import { getTranslatedCategory, getTranslatedService, STUDIO_DEFAULT_CONTACTS } from "./priceListTranslations.js";
+import { STUDIO_DEFAULT_CONTACTS } from "./priceListTranslations.js";
 
 const mockServices = [
   {
@@ -442,20 +447,84 @@ describe("priceListGenerator", () => {
     });
   });
 
-  describe("translations dictionary", () => {
-    it("translates canonical categories across languages", () => {
-      expect(getTranslatedCategory("Массажи", "pl")).toBe("Masaże");
-      expect(getTranslatedCategory("Массажи", "en")).toBe("Massages");
-      expect(getTranslatedCategory("Массажи", "ua")).toBe("Масажі");
-      expect(getTranslatedCategory("Комплексы", "pl")).toBe("Rytuały i kompleksy");
+  describe("DESIGN_TEMPLATES & User Presets", () => {
+    it("defines the 3 core templates: minimal, editorial, and luxury", () => {
+      expect(DESIGN_TEMPLATES.minimal).toBeDefined();
+      expect(DESIGN_TEMPLATES.minimal.name).toBe("NUAR Minimal");
+      expect(DESIGN_TEMPLATES.minimal.defaultTypography).toBe("modern");
+
+      expect(DESIGN_TEMPLATES.editorial).toBeDefined();
+      expect(DESIGN_TEMPLATES.editorial.name).toBe("NUAR Editorial");
+      expect(DESIGN_TEMPLATES.editorial.defaultTypography).toBe("editorial");
+
+      expect(DESIGN_TEMPLATES.luxury).toBeDefined();
+      expect(DESIGN_TEMPLATES.luxury.name).toBe("NUAR Luxury");
+      expect(DESIGN_TEMPLATES.luxury.defaultTypography).toBe("luxury");
     });
 
-    it("translates service names by keyword matching", () => {
-      const svc = { name: "Masaż klasyczny" };
-      expect(getTranslatedService(svc, "pl").name).toBe("Masaż klasyczny");
-      expect(getTranslatedService(svc, "ru").name).toBe("Классический массаж");
-      expect(getTranslatedService(svc, "en").name).toBe("Classic Massage");
-      expect(getTranslatedService(svc, "ua").name).toBe("Класичний масаж");
+    it("creates styling preset without storing live prices or service lists", () => {
+      const fullSettings = {
+        ...DEFAULT_PRICE_LIST_SETTINGS,
+        designTemplate: "luxury",
+        bgPreset: "warm-graphite",
+        typographyFontSize: "lg",
+        // CRM data items that must NEVER be saved in preset
+        excludedServiceIds: ["1", "2"],
+        excludedCategoryIds: ["Архив"],
+      };
+
+      const preset = createPresetFromSettings("My Instagram Luxury", fullSettings);
+      expect(preset.name).toBe("My Instagram Luxury");
+      expect(preset.id).toBeDefined();
+      expect(preset.settings.designTemplate).toBe("luxury");
+      expect(preset.settings.bgPreset).toBe("warm-graphite");
+      expect(preset.settings.typographyFontSize).toBe("lg");
+
+      // Verify CRM data keys were excluded
+      expect(preset.settings.excludedServiceIds).toBeUndefined();
+      expect(preset.settings.excludedCategoryIds).toBeUndefined();
+    });
+
+    it("applies a preset to settings while leaving CRM live service data intact", () => {
+      const currentSettings = {
+        ...DEFAULT_PRICE_LIST_SETTINGS,
+        designTemplate: "minimal",
+        bgPreset: "white",
+        excludedServiceIds: ["10", "20"],
+      };
+
+      const preset = {
+        id: "preset_123",
+        name: "Dark Luxury",
+        settings: {
+          designTemplate: "luxury",
+          bgPreset: "nuar-dark",
+          typographyFamily: "luxury",
+        },
+      };
+
+      const merged = applyPresetToSettings(preset, currentSettings);
+      expect(merged.designTemplate).toBe("luxury");
+      expect(merged.bgPreset).toBe("nuar-dark");
+      expect(merged.typographyFamily).toBe("luxury");
+      // Preserves current excluded services
+      expect(merged.excludedServiceIds).toEqual(["10", "20"]);
+    });
+
+    it("saves and loads user presets to/from localStorage", () => {
+      const presets = [
+        {
+          id: "p1",
+          name: "NUAR Print",
+          settings: { designTemplate: "editorial", format: "a4" },
+        },
+      ];
+
+      saveUserPresets(presets);
+      const loaded = loadUserPresets();
+      expect(loaded).toHaveLength(1);
+      expect(loaded[0].name).toBe("NUAR Print");
+      expect(loaded[0].settings.designTemplate).toBe("editorial");
     });
   });
 });

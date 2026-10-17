@@ -35,7 +35,121 @@ export const BACKGROUND_PRESETS = {
   },
 };
 
+export const DESIGN_TEMPLATES = {
+  minimal: {
+    id: "minimal",
+    name: "NUAR Minimal",
+    tagline: "Apple / Linear",
+    description: "Современный минимализм: чистая sans-serif типографика, лаконичные разделители, строгая сетка цен",
+    defaultTypography: "modern",
+  },
+  editorial: {
+    id: "editorial",
+    name: "NUAR Editorial",
+    tagline: "Журнальный стиль",
+    description: "Премиальная журнальная типографика: заголовочный Playfair Display serif, сдержанная фирменная графика",
+    defaultTypography: "editorial",
+  },
+  luxury: {
+    id: "luxury",
+    name: "NUAR Luxury",
+    tagline: "Wellness Studio",
+    description: "Торжественная брендовая эстетика: благородный Cinzel, просторные интервалы, утончённая иерархия",
+    defaultTypography: "luxury",
+  },
+};
+
+export const STORAGE_KEY_USER_PRESETS = "nuar_price_list_user_presets_v1";
+
+export const PRESET_STYLING_KEYS = [
+  "designTemplate",
+  "theme",
+  "format",
+  "priceMode",
+  "typographyFamily",
+  "typographyFontSize",
+  "typographyHeadingSize",
+  "density",
+  "pageLayoutMode",
+  "bgPreset",
+  "customBgColor",
+  "bgImage",
+  "bgImageOpacity",
+  "bgImageSize",
+  "bgImagePosition",
+  "textColorMode",
+  "showLogo",
+  "logoType",
+  "customLogoUrl",
+  "logoSize",
+  "logoAlign",
+  "showDescriptions",
+  "showContacts",
+];
+
+/**
+ * Loads user presets safely from localStorage
+ */
+export function loadUserPresets() {
+  if (typeof window === "undefined" || !window.localStorage) return [];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY_USER_PRESETS);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.warn("Failed to load user presets from localStorage:", err);
+    return [];
+  }
+}
+
+/**
+ * Saves user presets safely to localStorage
+ */
+export function saveUserPresets(presets) {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY_USER_PRESETS, JSON.stringify(presets));
+  } catch (err) {
+    console.warn("Failed to save user presets to localStorage:", err);
+  }
+}
+
+/**
+ * Creates a clean styling preset object from current settings
+ */
+export function createPresetFromSettings(name, settings) {
+  const cleanStyles = {};
+  PRESET_STYLING_KEYS.forEach((key) => {
+    if (settings[key] !== undefined) {
+      cleanStyles[key] = settings[key];
+    }
+  });
+
+  return {
+    id: `preset_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    name: name.trim() || "Пользовательский стиль",
+    createdAt: new Date().toISOString(),
+    settings: cleanStyles,
+  };
+}
+
+/**
+ * Applies a preset's styling keys to settings while preserving live services, categories, and studio contacts
+ */
+export function applyPresetToSettings(preset, currentSettings) {
+  if (!preset || !preset.settings) return currentSettings;
+  const merged = { ...currentSettings };
+  PRESET_STYLING_KEYS.forEach((key) => {
+    if (preset.settings[key] !== undefined) {
+      merged[key] = preset.settings[key];
+    }
+  });
+  return merged;
+}
+
 export const DEFAULT_PRICE_LIST_SETTINGS = {
+  designTemplate: "editorial", // "minimal" | "editorial" | "luxury"
   theme: "dark", // "dark" | "light" (legacy compatibility)
   format: "a4", // "a4" | "stories" | "post"
   priceMode: "full", // "full" | "compact"
@@ -49,7 +163,7 @@ export const DEFAULT_PRICE_LIST_SETTINGS = {
   excludedServiceIds: [],
 
   // Typography
-  typographyFamily: "editorial", // "modern" | "classic" | "editorial"
+  typographyFamily: "editorial", // "modern" | "classic" | "editorial" | "luxury"
   typographyFontSize: "md", // "sm" | "md" | "lg"
   typographyHeadingSize: "md", // "sm" | "md" | "lg"
   density: "normal", // "compact" | "normal" | "spacious"

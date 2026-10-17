@@ -7,11 +7,12 @@ function BrandHeader({ isFirstPage, labels, settings }) {
     customLogoUrl,
     logoSize = "md",
     logoAlign = "center",
+    designTemplate = "editorial",
   } = settings;
 
   if (!isFirstPage) {
     return (
-      <header className={`price-header price-header-compact align-${logoAlign}`}>
+      <header className={`price-header price-header-compact align-${logoAlign} template-compact-${designTemplate}`}>
         <div className="price-compact-header-row">
           {showLogo && logoType === "custom" && customLogoUrl ? (
             <img
@@ -32,8 +33,67 @@ function BrandHeader({ isFirstPage, labels, settings }) {
     );
   }
 
+  if (designTemplate === "minimal") {
+    return (
+      <header className={`price-header price-header-main template-header-minimal align-${logoAlign}`}>
+        {showLogo ? (
+          <div className={`price-logo-container align-${logoAlign}`}>
+            {logoType === "custom" && customLogoUrl ? (
+              <img
+                src={customLogoUrl}
+                alt={labels.brandTitle || "Logo"}
+                className={`price-custom-logo size-${logoSize}`}
+              />
+            ) : (
+              <div className="price-logo-mark minimal-logo-mark">
+                <span className="price-logo-text">{labels.brandTitle || "NUAR"}</span>
+              </div>
+            )}
+          </div>
+        ) : null}
+        <div className="price-minimal-header-sub">
+          <span className="price-minimal-sub">{labels.brandSubtitle}</span>
+          <span className="price-minimal-sep">/</span>
+          <span className="price-minimal-doc">{labels.docTitle}</span>
+        </div>
+        <div className="price-minimal-hairline" aria-hidden="true" />
+      </header>
+    );
+  }
+
+  if (designTemplate === "luxury") {
+    return (
+      <header className={`price-header price-header-main template-header-luxury align-${logoAlign}`}>
+        {showLogo ? (
+          <div className={`price-logo-container align-${logoAlign}`}>
+            {logoType === "custom" && customLogoUrl ? (
+              <img
+                src={customLogoUrl}
+                alt={labels.brandTitle || "Logo"}
+                className={`price-custom-logo size-${logoSize}`}
+              />
+            ) : (
+              <div className="price-logo-mark luxury-logo-mark">
+                <span className="price-logo-text">{labels.brandTitle || "NUAR"}</span>
+              </div>
+            )}
+          </div>
+        ) : null}
+        <div className="price-luxury-ornament" aria-hidden="true">
+          <span className="price-luxury-line" />
+          <span className="price-luxury-diamond">✦</span>
+          <span className="price-luxury-line" />
+        </div>
+        <div className="price-brand-subtitle">{labels.brandSubtitle}</div>
+        <h2 className="price-doc-title">{labels.docTitle}</h2>
+        <div className="price-header-accent-bar luxury-accent-bar" aria-hidden="true" />
+      </header>
+    );
+  }
+
+  // Default: Editorial
   return (
-    <header className={`price-header price-header-main align-${logoAlign}`}>
+    <header className={`price-header price-header-main template-header-editorial align-${logoAlign}`}>
       {showLogo ? (
         <div className={`price-logo-container align-${logoAlign}`}>
           {logoType === "custom" && customLogoUrl ? (
@@ -124,15 +184,17 @@ export default function PriceListPreview({
             </div>
           </article>
         ) : (
-          displayPages.map((page) => (
-            <article
-              key={page.pageIndex}
-              id={`nuar-printable-price-list-page-${page.pageIndex}`}
-              className={`price-sheet format-${format} font-${typographyFamily} size-${typographyFontSize} heading-${typographyHeadingSize} density-${resolvedDensity} mode-${docStyle.effectiveTextMode || "light"} price-sheet-page`}
-              style={sheetDynamicStyle}
-              data-page={page.pageIndex}
-              aria-label={`Прайс-лист салона NUAR — Страница ${page.pageIndex} из ${page.totalPages}`}
-            >
+          displayPages.map((page) => {
+            const designTemplate = settings.designTemplate || "editorial";
+            return (
+              <article
+                key={page.pageIndex}
+                id={`nuar-printable-price-list-page-${page.pageIndex}`}
+                className={`price-sheet format-${format} template-${designTemplate} font-${typographyFamily} size-${typographyFontSize} heading-${typographyHeadingSize} density-${resolvedDensity} mode-${docStyle.effectiveTextMode || "light"} price-sheet-page`}
+                style={sheetDynamicStyle}
+                data-page={page.pageIndex}
+                aria-label={`Прайс-лист салона NUAR — Страница ${page.pageIndex} из ${page.totalPages}`}
+              >
               {/* Optional Background Image with Legibility Overlay */}
               {bgImage ? (
                 <div
@@ -294,7 +356,8 @@ export default function PriceListPreview({
                 </footer>
               ) : null}
             </article>
-          ))
+            );
+          })
         )}
       </div>
     </div>

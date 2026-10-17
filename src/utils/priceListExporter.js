@@ -119,29 +119,34 @@ async function renderPageToCanvas(page, settings, labels, width, height, effecti
     }
   }
 
-  // Outer framing
+  // Outer framing (Minimal has no heavy border, Editorial has classic corner brackets, Luxury has refined accents)
+  const designTemplate = settings.designTemplate || "editorial";
   const margin = Math.round(width * 0.055);
   const contentWidth = width - margin * 2;
 
-  ctx.strokeStyle = borderSoft;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(margin * 0.6, margin * 0.6, width - margin * 1.2, height - margin * 1.2);
+  if (designTemplate !== "minimal") {
+    ctx.strokeStyle = borderSoft;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(margin * 0.6, margin * 0.6, width - margin * 1.2, height - margin * 1.2);
 
-  // Corner brand accents
-  const cornerSize = 14;
-  ctx.fillStyle = accentRed;
-  ctx.fillRect(margin * 0.6 - 1, margin * 0.6 - 1, cornerSize, 2);
-  ctx.fillRect(margin * 0.6 - 1, margin * 0.6 - 1, 2, cornerSize);
-  ctx.fillRect(width - margin * 0.6 - cornerSize + 1, margin * 0.6 - 1, cornerSize, 2);
-  ctx.fillRect(width - margin * 0.6 - 1, margin * 0.6 - 1, 2, cornerSize);
+    // Corner brand accents
+    const cornerSize = designTemplate === "luxury" ? 18 : 14;
+    ctx.fillStyle = accentRed;
+    ctx.fillRect(margin * 0.6 - 1, margin * 0.6 - 1, cornerSize, 2);
+    ctx.fillRect(margin * 0.6 - 1, margin * 0.6 - 1, 2, cornerSize);
+    ctx.fillRect(width - margin * 0.6 - cornerSize + 1, margin * 0.6 - 1, cornerSize, 2);
+    ctx.fillRect(width - margin * 0.6 - 1, margin * 0.6 - 1, 2, cornerSize);
+  }
 
   // Typography font selections
   const headingFont =
-    typographyFamily === "classic"
-      ? "'Playfair Display', Georgia, serif"
-      : typographyFamily === "editorial"
-        ? "'Playfair Display', Georgia, serif"
-        : "Inter, system-ui, -apple-system, sans-serif";
+    designTemplate === "minimal" || typographyFamily === "modern"
+      ? "Inter, system-ui, -apple-system, sans-serif"
+      : designTemplate === "luxury" || typographyFamily === "luxury"
+        ? "'Cinzel', 'Playfair Display', Georgia, serif"
+        : typographyFamily === "classic"
+          ? "Georgia, 'Times New Roman', serif"
+          : "'Playfair Display', Georgia, serif";
 
   const bodyFont =
     typographyFamily === "classic"
@@ -172,12 +177,11 @@ async function renderPageToCanvas(page, settings, labels, width, height, effecti
           currentY += logoH + 14;
         } catch (err) {
           console.warn("Could not draw custom logo in Canvas:", err);
-          // Fallback to text
           ctx.textAlign = logoAlign === "left" ? "left" : logoAlign === "right" ? "right" : "center";
           const textX = logoAlign === "left" ? margin : logoAlign === "right" ? width - margin : width / 2;
           ctx.font = `bold ${Math.round(34 * fontScale)}px ${headingFont}`;
           ctx.fillStyle = textPrimary;
-          ctx.letterSpacing = "6px";
+          ctx.letterSpacing = designTemplate === "luxury" ? "10px" : "6px";
           ctx.fillText("N U A R", textX, currentY + 24);
           currentY += 34;
         }
@@ -188,31 +192,70 @@ async function renderPageToCanvas(page, settings, labels, width, height, effecti
 
         ctx.font = `bold ${Math.round(36 * fontScale)}px ${headingFont}`;
         ctx.fillStyle = textPrimary;
-        ctx.letterSpacing = "6px";
+        ctx.letterSpacing = designTemplate === "luxury" ? "10px" : "6px";
         ctx.fillText("N U A R", textX, currentY + 24);
         currentY += 32;
       }
     }
 
     ctx.textAlign = "center";
-    // Subtitle: "MASSAGE STUDIO · WARSZAWA"
-    ctx.font = `600 ${Math.round(11 * fontScale)}px ${bodyFont}`;
-    ctx.fillStyle = textSecondary;
-    ctx.letterSpacing = "3.2px";
-    ctx.fillText(labels.brandSubtitle, width / 2, currentY);
-    currentY += 24;
 
-    // Document Title: "CENNIK"
-    ctx.font = `700 ${Math.round(15 * fontScale)}px ${bodyFont}`;
-    ctx.fillStyle = textPrimary;
-    ctx.letterSpacing = "2.5px";
-    ctx.fillText(labels.docTitle, width / 2, currentY);
-    currentY += 16;
+    if (designTemplate === "minimal") {
+      // Minimal Header Subtitle
+      ctx.font = `500 ${Math.round(11 * fontScale)}px ${bodyFont}`;
+      ctx.fillStyle = textSecondary;
+      ctx.letterSpacing = "2px";
+      ctx.fillText(`${labels.brandSubtitle}   /   ${labels.docTitle}`, width / 2, currentY);
+      currentY += 16;
 
-    // Red hairline accent bar
-    ctx.fillStyle = accentRed;
-    ctx.fillRect(width / 2 - 20, currentY, 40, 2);
-    currentY += density === "compact" ? 22 : 30;
+      ctx.strokeStyle = borderSoft;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(width / 2 - 40, currentY);
+      ctx.lineTo(width / 2 + 40, currentY);
+      ctx.stroke();
+      currentY += density === "compact" ? 18 : 24;
+    } else if (designTemplate === "luxury") {
+      // Luxury Header Subtitle
+      ctx.font = `600 ${Math.round(10.5 * fontScale)}px ${bodyFont}`;
+      ctx.fillStyle = textSecondary;
+      ctx.letterSpacing = "4px";
+      ctx.fillText(labels.brandSubtitle, width / 2, currentY);
+      currentY += 20;
+
+      ctx.font = `700 ${Math.round(16 * fontScale)}px ${headingFont}`;
+      ctx.fillStyle = textPrimary;
+      ctx.letterSpacing = "4px";
+      ctx.fillText(labels.docTitle, width / 2, currentY);
+      currentY += 16;
+
+      // Delicate diamond ornament
+      ctx.fillStyle = accentRed;
+      ctx.fillRect(width / 2 - 32, currentY, 26, 1);
+      ctx.fillRect(width / 2 + 6, currentY, 26, 1);
+      ctx.font = "10px serif";
+      ctx.fillText("✦", width / 2, currentY + 3);
+      currentY += density === "compact" ? 22 : 30;
+    } else {
+      // Editorial Header Subtitle
+      ctx.font = `600 ${Math.round(11 * fontScale)}px ${bodyFont}`;
+      ctx.fillStyle = textSecondary;
+      ctx.letterSpacing = "3.2px";
+      ctx.fillText(labels.brandSubtitle, width / 2, currentY);
+      currentY += 24;
+
+      // Document Title: "CENNIK"
+      ctx.font = `700 ${Math.round(15 * fontScale)}px ${bodyFont}`;
+      ctx.fillStyle = textPrimary;
+      ctx.letterSpacing = "2.5px";
+      ctx.fillText(labels.docTitle, width / 2, currentY);
+      currentY += 16;
+
+      // Red hairline accent bar
+      ctx.fillStyle = accentRed;
+      ctx.fillRect(width / 2 - 20, currentY, 40, 2);
+      currentY += density === "compact" ? 22 : 30;
+    }
   } else {
     // Secondary compact header for subsequent pages
     ctx.textAlign = "center";
@@ -280,47 +323,44 @@ async function renderPageToCanvas(page, settings, labels, width, height, effecti
           currentY += 13;
         }
 
-        // Draw horizontal variant capsules
+        // Draw clean typographical columns
         const variants = service.variants;
-        let pillX = margin;
-        const pillH = Math.round(19 * fontScale);
+        let colX = margin;
+        const colGap = designTemplate === "luxury" ? 24 : 18;
 
-        variants.forEach((v) => {
+        variants.forEach((v, vIdx) => {
           const durText = `${v.duration} ${labels.minUnit}`.toUpperCase();
           const priceText = `${v.price} ${labels.currency}`;
 
           ctx.font = `500 ${Math.round(9.5 * fontScale)}px ${bodyFont}`;
           const durW = ctx.measureText(durText).width;
 
-          ctx.font = `700 ${Math.round(11.5 * fontScale)}px ${bodyFont}`;
+          ctx.font = `700 ${Math.round(12.5 * fontScale)}px ${bodyFont}`;
           const priceW = ctx.measureText(priceText).width;
 
-          const pillW = durW + priceW + 16;
+          const colWidth = Math.max(durW, priceW);
 
-          // Capsule background
-          ctx.fillStyle = docStyle.chipBg;
-          ctx.beginPath();
-          if (typeof ctx.roundRect === "function") {
-            ctx.roundRect(pillX, currentY - 11, pillW, pillH, 4);
-          } else {
-            ctx.rect(pillX, currentY - 11, pillW, pillH);
-          }
-          ctx.fill();
-
-          ctx.strokeStyle = borderSoft;
-          ctx.stroke();
-
-          // Duration text
+          // Duration in uppercase (muted/faint)
           ctx.font = `500 ${Math.round(9.5 * fontScale)}px ${bodyFont}`;
           ctx.fillStyle = textFaint;
-          ctx.fillText(durText, pillX + 6, currentY + 3);
+          ctx.fillText(durText, colX, currentY);
 
-          // Price text
-          ctx.font = `700 ${Math.round(11.5 * fontScale)}px ${bodyFont}`;
+          // Price underneath (bold, prominent)
+          ctx.font = `700 ${Math.round(13 * fontScale)}px ${bodyFont}`;
           ctx.fillStyle = textPrimary;
-          ctx.fillText(priceText, pillX + 6 + durW + 5, currentY + 3);
+          ctx.fillText(priceText, colX, currentY + 14);
 
-          pillX += pillW + 6;
+          // Subtle vertical separator rule in editorial template
+          if (designTemplate === "editorial" && vIdx < variants.length - 1) {
+            ctx.strokeStyle = borderSoft;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(colX + colWidth + colGap / 2, currentY - 8);
+            ctx.lineTo(colX + colWidth + colGap / 2, currentY + 16);
+            ctx.stroke();
+          }
+
+          colX += colWidth + colGap;
         });
 
         currentY += svcStep;

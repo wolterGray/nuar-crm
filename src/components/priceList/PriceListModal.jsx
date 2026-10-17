@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import AppIcon from "../ui/AppIcon.jsx";
 import Button from "../ui/Button.jsx";
 import IconButton from "../ui/IconButton.jsx";
 import PriceListPreview from "./PriceListPreview.jsx";
@@ -164,12 +165,19 @@ export default function PriceListModal({
 
               {priceListData.unusualPricingServices?.length > 0 ? (
                 <span
-                  className="price-modal-pricing-notice"
-                  title={`Обратите внимание: у ${priceListData.unusualPricingServices.length} услуг в CRM цена за большую длительность меньше меньшей. Отображается без изменений.`}
+                  className="price-modal-pricing-notice is-warning"
+                  title={`Обратите внимание: у ${priceListData.unusualPricingServices.length} услуг в CRM цена за большую длительность меньше меньшей (${priceListData.unusualPricingServices.map((s) => s.name).join(", ")}). Отображается без изменений из CRM.`}
                 >
-                  ⚠️ Цены в CRM
+                  ⚠️ Аномалия цен ({priceListData.unusualPricingServices.length})
                 </span>
-              ) : null}
+              ) : (
+                <span
+                  className="price-modal-pricing-notice is-synced"
+                  title="Все цены и услуги берутся напрямую из актуальной базы CRM"
+                >
+                  <AppIcon name="check" size="xs" /> Цены из CRM
+                </span>
+              )}
             </div>
           </div>
 
