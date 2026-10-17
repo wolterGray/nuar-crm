@@ -60,6 +60,7 @@ export default function ServicesPage({
   onMoveServiceToCategory: _onMoveServiceToCategory,
   onRenameCategory,
   onReorder: _onReorder,
+  appSettings = null,
   pushNotification,
 }) {
   const [search, setSearch] = useState("");
@@ -850,6 +851,7 @@ export default function ServicesPage({
         onClose={() => setIsPriceListOpen(false)}
         services={services}
         serviceCategories={categories}
+        appSettings={appSettings}
         pushNotification={pushNotification}
       />
     </div>

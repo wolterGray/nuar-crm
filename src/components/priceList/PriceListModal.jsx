@@ -16,12 +16,14 @@ export default function PriceListModal({
   onClose,
   services = [],
   serviceCategories: _serviceCategories = [],
+  appSettings = null,
   pushNotification,
 }) {
   const [settings, setSettings] = useState(() => loadPriceListSettings());
   const [isSettingsOpen, setIsSettingsOpen] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
   const [isExportingPng, setIsExportingPng] = useState(false);
+  const [activePageNumber, setActivePageNumber] = useState(null); // null = all pages
 
   // Synchronize settings with localStorage whenever they change
   const handleUpdateSettings = useCallback((newSettings) => {
@@ -29,10 +31,10 @@ export default function PriceListModal({
     savePriceListSettings(newSettings);
   }, []);
 
-  // Compute live price list data whenever services or settings change
+  // Compute live price list data whenever services, settings or appSettings change
   const priceListData = useMemo(() => {
-    return preparePriceListData(services, settings);
-  }, [services, settings]);
+    return preparePriceListData(services, settings, appSettings);
+  }, [services, settings, appSettings]);
 
   // Unique category names for the settings tree
   const categoryNames = useMemo(() => {
@@ -42,6 +44,12 @@ export default function PriceListModal({
     return Array.from(new Set(raw)).sort();
   }, [services]);
 
+  // Derived effective page number clamped to totalPages
+  const effectiveActivePage =
+    activePageNumber && activePageNumber <= priceListData.totalPages
+      ? activePageNumber
+      : null;
+
   // Auto-fit scale adjustment on window resize or initial mount
   useEffect(() => {
     if (!isOpen) return;
@@ -50,7 +58,6 @@ export default function PriceListModal({
       const isMobile = window.innerWidth <= 768;
       if (isMobile) {
         setIsSettingsOpen(false); // Mobile: settings collapsed by default for maximum preview area
-        // Auto scale for mobile screens to fit 390px
         const screenW = window.innerWidth;
         if (screenW < 440) {
           setZoomScale(0.55);
@@ -73,10 +80,13 @@ export default function PriceListModal({
   const handleExportPng = async () => {
     setIsExportingPng(true);
     try {
-      const result = await exportPriceListToPng(priceListData, settings);
+      const result = await exportPriceListToPng(priceListData, settings, activePageNumber);
       pushNotification?.({
-        title: "Экспорт выполнен",
-        message: `Прайс-лист сохранён (${result.filename}).`,
+        title: "Экспорт PNG выполнен",
+        message:
+          result.count > 1
+            ? `Экспортировано страниц: ${result.count}. Файлы сохранены.`
+            : `Прайс-лист сохранён (${result.filename}).`,
       });
     } catch (err) {
       console.error("PNG export error:", err);
@@ -93,7 +103,7 @@ export default function PriceListModal({
   const handlePrint = () => {
     pushNotification?.({
       title: "Печать / Экспорт в PDF",
-      message: "В окне печати выберите «Сохранить как PDF» для сохранения файла.",
+      message: "В окне печати выберите «Сохранить как PDF» для сохранения векторного документа.",
     });
     setTimeout(() => {
       printPriceList();
@@ -134,11 +144,47 @@ export default function PriceListModal({
               <h1 className="price-modal-title">Прайс-лист</h1>
               <span className="price-modal-badge">
                 {priceListData.totalServices} услуг · {priceListData.totalCategories} кат.
+                {priceListData.totalPages > 1 ? ` · ${priceListData.totalPages} стр.` : ""}
               </span>
+
+              {priceListData.unusualPricingServices?.length > 0 ? (
+                <span
+                  className="price-modal-pricing-notice"
+                  title={`Обратите внимание: у ${priceListData.unusualPricingServices.length} услуг в CRM цена за большую длительность меньше меньшей. Отображается без изменений.`}
+                >
+                  ⚠️ Цены в CRM
+                </span>
+              ) : null}
             </div>
           </div>
 
           <div className="price-modal-center">
+            {/* Multi-page switcher tabs */}
+            {priceListData.totalPages > 1 ? (
+              <div className="price-page-tabs" role="tablist" aria-label="Выбор страницы">
+                <button
+                  type="button"
+                  className={`price-page-tab ${effectiveActivePage === null ? "is-active" : ""}`}
+                  onClick={() => setActivePageNumber(null)}
+                >
+                  Все ({priceListData.totalPages})
+                </button>
+                {Array.from({ length: priceListData.totalPages }).map((_, idx) => {
+                  const pNum = idx + 1;
+                  return (
+                    <button
+                      key={pNum}
+                      type="button"
+                      className={`price-page-tab ${effectiveActivePage === pNum ? "is-active" : ""}`}
+                      onClick={() => setActivePageNumber(pNum)}
+                    >
+                      {pNum}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+
             {/* Zoom Controls */}
             <div className="price-zoom-group">
               <IconButton
@@ -211,6 +257,7 @@ export default function PriceListModal({
               priceListData={priceListData}
               settings={settings}
               scale={zoomScale}
+              activePageNumber={effectiveActivePage}
             />
           </main>
 
@@ -222,6 +269,7 @@ export default function PriceListModal({
             onUpdateSettings={handleUpdateSettings}
             services={services}
             categories={categoryNames}
+            resolvedContacts={priceListData.labels}
           />
         </div>
       </div>

@@ -15,24 +15,10 @@ function triggerFileDownload(blob, filename) {
 }
 
 /**
- * Renders high-resolution editorial Price List onto an HTML5 Canvas and exports as PNG
- * Supports 1080x1920 (Stories), 1080x1350 (Post), and 1240x1754 (A4)
+ * Renders a single page of the price list onto a Canvas
  */
-export async function exportPriceListToPng(priceListData, settings) {
-  const { format = "a4", theme = "dark", language = "pl", priceMode = "full", showDescriptions = false } = settings;
-  const labels = UI_LABELS[language] || UI_LABELS.pl;
-
-  // Dimensions
-  let width = 1240;
-  let height = 1754;
-
-  if (format === "stories") {
-    width = 1080;
-    height = 1920;
-  } else if (format === "post") {
-    width = 1080;
-    height = 1350;
-  }
+function renderPageToCanvas(page, settings, labels, width, height) {
+  const { theme = "dark", priceMode = "full", showDescriptions = false } = settings;
 
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -45,18 +31,19 @@ export async function exportPriceListToPng(priceListData, settings) {
 
   // Color palette
   const isDark = theme === "dark";
-  const bg = isDark ? "#0a0a0a" : "#ffffff";
+  const bg = isDark ? "#0d0d0f" : "#ffffff";
   const textPrimary = isDark ? "#ffffff" : "#111113";
   const textSecondary = isDark ? "#9e9ea6" : "#63636b";
+  const textFaint = isDark ? "#686870" : "#8c8c94";
   const accentRed = "#e11d2e";
   const borderSoft = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)";
-  const dotColor = isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.18)";
+  const dotColor = isDark ? "rgba(255, 255, 255, 0.16)" : "rgba(0, 0, 0, 0.18)";
 
-  // 1. Background
+  // 1. Fill Background
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, width, height);
 
-  // Subtle outer framing
+  // Outer framing
   const margin = Math.round(width * 0.055);
   const contentWidth = width - margin * 2;
 
@@ -72,147 +59,181 @@ export async function exportPriceListToPng(priceListData, settings) {
   ctx.fillRect(width - margin * 0.6 - cornerSize + 1, margin * 0.6 - 1, cornerSize, 2);
   ctx.fillRect(width - margin * 0.6 - 1, margin * 0.6 - 1, 2, cornerSize);
 
-  let currentY = margin + 15;
+  let currentY = margin + 12;
 
   // 2. Brand Header
   ctx.textAlign = "center";
 
-  // Monogram / Logo: "NUAR"
-  ctx.font = "bold 38px 'Playfair Display', Georgia, serif, system-ui";
-  ctx.fillStyle = textPrimary;
-  ctx.letterSpacing = "6px";
-  ctx.fillText("N U A R", width / 2, currentY);
-  currentY += 24;
+  if (page.isFirstPage) {
+    // Dominant "NUAR"
+    ctx.font = "bold 38px 'Playfair Display', Georgia, serif, system-ui";
+    ctx.fillStyle = textPrimary;
+    ctx.letterSpacing = "6px";
+    ctx.fillText("N U A R", width / 2, currentY);
+    currentY += 24;
 
-  // Tagline: "SALON MASAŻU & SPA · WARSZAWA"
-  ctx.font = "600 11.5px system-ui, -apple-system, sans-serif";
-  ctx.fillStyle = accentRed;
-  ctx.letterSpacing = "3.5px";
-  ctx.fillText(labels.brandSubtitle, width / 2, currentY);
-  currentY += 28;
+    // Subtitle: "MASSAGE STUDIO · WARSZAWA"
+    ctx.font = "600 11px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = textSecondary;
+    ctx.letterSpacing = "3.2px";
+    ctx.fillText(labels.brandSubtitle, width / 2, currentY);
+    currentY += 26;
 
-  // Document Title: "CENNIK USŁUG"
-  ctx.font = "500 13px system-ui, -apple-system, sans-serif";
-  ctx.fillStyle = textSecondary;
-  ctx.letterSpacing = "2px";
-  ctx.fillText(labels.docTitle, width / 2, currentY);
-  currentY += 24;
+    // Document Title: "CENNIK"
+    ctx.font = "700 15px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = textPrimary;
+    ctx.letterSpacing = "2.5px";
+    ctx.fillText(labels.docTitle, width / 2, currentY);
+    currentY += 18;
 
-  // Thin header divider line
-  ctx.strokeStyle = borderSoft;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(width / 2 - 120, currentY);
-  ctx.lineTo(width / 2 + 120, currentY);
-  ctx.stroke();
+    // Red hairline accent bar
+    ctx.fillStyle = accentRed;
+    ctx.fillRect(width / 2 - 20, currentY, 40, 2);
+    currentY += 32;
+  } else {
+    // Secondary compact header for subsequent pages
+    ctx.font = "bold 18px 'Playfair Display', Georgia, serif, system-ui";
+    ctx.fillStyle = textPrimary;
+    ctx.letterSpacing = "3px";
+    ctx.fillText(`N U A R   ·   ${labels.docTitle} ${labels.continued}`, width / 2, currentY);
+    currentY += 16;
 
-  // Small center diamond
-  ctx.fillStyle = accentRed;
-  ctx.fillRect(width / 2 - 3, currentY - 3, 6, 6);
-  currentY += 36;
+    ctx.fillStyle = accentRed;
+    ctx.fillRect(width / 2 - 18, currentY, 36, 1.5);
+    currentY += 30;
+  }
 
-  // 3. Category & Services Rendering
+  // 3. Categories and Services
   ctx.textAlign = "left";
   ctx.letterSpacing = "normal";
 
-  const categories = priceListData.categories || [];
-  const maxContentBottom = height - margin - 75;
+  const categories = page.categories || [];
+  const maxContentBottom = height - margin - 60;
 
   for (const cat of categories) {
-    if (currentY > maxContentBottom - 60) break;
+    if (currentY > maxContentBottom - 50) break;
 
-    // Category Header Box
-    ctx.font = "bold 13px system-ui, -apple-system, sans-serif";
-    ctx.letterSpacing = "1.8px";
+    // Category Header
+    ctx.font = "bold 13.5px system-ui, -apple-system, sans-serif";
+    ctx.letterSpacing = "1.5px";
     ctx.fillStyle = textPrimary;
     const catTitle = cat.localizedName.toUpperCase();
     ctx.fillText(catTitle, margin, currentY);
 
-    // Right-aligned subtle line connecting category
     const catTextWidth = ctx.measureText(catTitle).width;
     ctx.strokeStyle = borderSoft;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(margin + catTextWidth + 16, currentY - 4);
+    ctx.moveTo(margin + catTextWidth + 14, currentY - 4);
     ctx.lineTo(margin + contentWidth, currentY - 4);
     ctx.stroke();
 
     currentY += 22;
 
-    // Services list in category
+    // Services list
     for (const service of cat.services) {
-      if (currentY > maxContentBottom - 30) break;
+      if (currentY > maxContentBottom - 26) break;
 
       const svcName = service.displayName;
-      const priceText =
-        priceMode === "compact"
-          ? `${labels.fromPrice} ${service.minPrice} ${labels.currency}`
-          : (service.variants || [])
-              .map((v) => `${v.duration} ${labels.minUnit} — ${v.price} ${labels.currency}`)
-              .join("   ");
+      const variantCount = service.variants?.length || 1;
+      const isMultiVariant = priceMode === "full" && variantCount > 1;
 
-      // Font for service name
-      ctx.font = "600 13.5px system-ui, -apple-system, sans-serif";
-      ctx.letterSpacing = "0.2px";
-      ctx.fillStyle = textPrimary;
-      ctx.fillText(svcName, margin, currentY);
+      if (isMultiVariant) {
+        // Multi-variant Layout: Title on top, structured variant grid underneath
+        ctx.font = "600 13.5px system-ui, -apple-system, sans-serif";
+        ctx.letterSpacing = "0.2px";
+        ctx.fillStyle = textPrimary;
+        ctx.fillText(svcName, margin, currentY);
+        currentY += 18;
 
-      // Measure text widths for dot leader
-      const nameWidth = ctx.measureText(svcName).width;
-
-      // Font for prices
-      ctx.font = "600 13px system-ui, -apple-system, sans-serif";
-      ctx.letterSpacing = "0.3px";
-      ctx.fillStyle = isDark ? "#ffffff" : "#1a1a1e";
-      const priceWidth = ctx.measureText(priceText).width;
-
-      // Render Price (Right aligned)
-      ctx.textAlign = "right";
-      ctx.fillText(priceText, margin + contentWidth, currentY);
-      ctx.textAlign = "left";
-
-      // Render Dotted Leader between name and price
-      const dotsStartX = margin + nameWidth + 10;
-      const dotsEndX = margin + contentWidth - priceWidth - 10;
-
-      if (dotsEndX > dotsStartX + 20) {
-        ctx.fillStyle = dotColor;
-        ctx.font = "12px monospace";
-        const dotChar = ". ";
-        const dotCharWidth = ctx.measureText(dotChar).width;
-        let dx = dotsStartX;
-        while (dx + dotCharWidth < dotsEndX) {
-          ctx.fillText(".", dx, currentY - 1);
-          dx += 8;
+        if (showDescriptions && service.description) {
+          ctx.font = "400 11px system-ui, -apple-system, sans-serif";
+          ctx.fillStyle = textSecondary;
+          ctx.fillText(service.description.slice(0, 95), margin, currentY);
+          currentY += 16;
         }
-      }
 
-      currentY += 19;
+        // Draw variant columns grid
+        const variants = service.variants;
+        const colWidth = Math.min(105, Math.floor(contentWidth / variants.length));
 
-      // Optional short description if enabled and present
-      if (showDescriptions && service.description) {
-        ctx.font = "400 11px system-ui, -apple-system, sans-serif";
-        ctx.fillStyle = textSecondary;
-        const desc = service.description.length > 95 ? service.description.slice(0, 92) + "..." : service.description;
-        ctx.fillText(desc, margin, currentY);
-        currentY += 16;
+        variants.forEach((v, vIdx) => {
+          const colX = margin + vIdx * colWidth;
+
+          // Duration Header
+          ctx.font = "500 10.5px system-ui, -apple-system, sans-serif";
+          ctx.fillStyle = textFaint;
+          ctx.fillText(`${v.duration} ${labels.minUnit}`.toUpperCase(), colX, currentY);
+
+          // Price underneath
+          ctx.font = "700 13px system-ui, -apple-system, sans-serif";
+          ctx.fillStyle = textPrimary;
+          ctx.fillText(`${v.price} ${labels.currency}`, colX, currentY + 14);
+        });
+
+        currentY += 28;
+      } else {
+        // Single Variant or Compact Mode: Clean Inline Row
+        const priceText =
+          priceMode === "compact"
+            ? `${labels.fromPrice} ${service.minPrice} ${labels.currency}`
+            : service.variants?.[0]
+              ? `${service.variants[0].duration} ${labels.minUnit} — ${service.variants[0].price} ${labels.currency}`
+              : `${service.price} ${labels.currency}`;
+
+        ctx.font = "600 13.5px system-ui, -apple-system, sans-serif";
+        ctx.letterSpacing = "0.2px";
+        ctx.fillStyle = textPrimary;
+        ctx.fillText(svcName, margin, currentY);
+
+        const nameWidth = ctx.measureText(svcName).width;
+
+        ctx.font = "700 13px system-ui, -apple-system, sans-serif";
+        ctx.fillStyle = textPrimary;
+        const priceWidth = ctx.measureText(priceText).width;
+
+        ctx.textAlign = "right";
+        ctx.fillText(priceText, margin + contentWidth, currentY);
+        ctx.textAlign = "left";
+
+        // Dot leader
+        const dotsStartX = margin + nameWidth + 10;
+        const dotsEndX = margin + contentWidth - priceWidth - 10;
+
+        if (dotsEndX > dotsStartX + 20) {
+          ctx.fillStyle = dotColor;
+          ctx.font = "12px monospace";
+          let dx = dotsStartX;
+          while (dx + 6 < dotsEndX) {
+            ctx.fillText(".", dx, currentY - 1);
+            dx += 8;
+          }
+        }
+
+        currentY += 19;
+
+        if (showDescriptions && service.description) {
+          ctx.font = "400 11px system-ui, -apple-system, sans-serif";
+          ctx.fillStyle = textSecondary;
+          ctx.fillText(service.description.slice(0, 95), margin, currentY);
+          currentY += 16;
+        }
       }
 
       currentY += 4;
     }
 
-    currentY += 14;
+    currentY += 12;
   }
 
   // 4. Footer Branding & Contacts
-  const footerY = height - margin - 20;
+  const footerY = height - margin - 15;
 
-  // Subtle footer top line
   ctx.strokeStyle = borderSoft;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(margin, footerY - 28);
-  ctx.lineTo(margin + contentWidth, footerY - 28);
+  ctx.moveTo(margin, footerY - 26);
+  ctx.lineTo(margin + contentWidth, footerY - 26);
   ctx.stroke();
 
   ctx.textAlign = "center";
@@ -221,26 +242,71 @@ export async function exportPriceListToPng(priceListData, settings) {
   ctx.letterSpacing = "0.5px";
 
   const contactLine = `${labels.address}   ·   ${labels.phone}   ·   ${labels.website}`;
-  ctx.fillText(contactLine, width / 2, footerY - 10);
+  ctx.fillText(contactLine, width / 2, footerY - 8);
 
-  ctx.font = "600 11px system-ui, -apple-system, sans-serif";
+  ctx.font = "600 10.5px system-ui, -apple-system, sans-serif";
   ctx.fillStyle = accentRed;
-  ctx.letterSpacing = "1px";
-  ctx.fillText(`${labels.onlineBooking.toUpperCase()}: ${labels.website.toUpperCase()}`, width / 2, footerY + 8);
+  ctx.letterSpacing = "1.2px";
 
-  // Return PNG Blob
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        reject(new Error("Canvas toBlob failed"));
-        return;
-      }
-      const timestamp = new Date().toISOString().slice(0, 10);
-      const filename = `nuar-cennik-${language}-${format}-${timestamp}.png`;
-      triggerFileDownload(blob, filename);
-      resolve({ filename, size: blob.size });
-    }, "image/png");
-  });
+  const pageNumText = page.totalPages > 1 ? `   [${labels.pageLabel} ${page.pageIndex} ${labels.ofLabel} ${page.totalPages}]` : "";
+  ctx.fillText(`${labels.onlineBooking.toUpperCase()}: ${labels.website.toUpperCase()}${pageNumText}`, width / 2, footerY + 9);
+
+  return canvas;
+}
+
+/**
+ * Exports all pages (or specified page) of the price list as high-resolution PNG
+ */
+export async function exportPriceListToPng(priceListData, settings, targetPageIndex = null) {
+  const { format = "a4", language = "pl" } = settings;
+  const labels = priceListData.labels || UI_LABELS[language] || UI_LABELS.pl;
+  const pages = priceListData.pages || [];
+
+  if (pages.length === 0) {
+    throw new Error("No pages available to export");
+  }
+
+  let width = 1240;
+  let height = 1754;
+
+  if (format === "stories") {
+    width = 1080;
+    height = 1920;
+  } else if (format === "post") {
+    width = 1080;
+    height = 1350;
+  }
+
+  const exportTargetPages = targetPageIndex
+    ? pages.filter((p) => p.pageIndex === targetPageIndex)
+    : pages;
+
+  const timestamp = new Date().toISOString().slice(0, 10);
+  const downloadedFiles = [];
+
+  for (const page of exportTargetPages) {
+    const canvas = renderPageToCanvas(page, settings, labels, width, height);
+
+    await new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Canvas toBlob failed"));
+          return;
+        }
+        const pageSuffix = exportTargetPages.length > 1 ? `-page-${page.pageIndex}` : "";
+        const filename = `nuar-cennik-${language}-${format}${pageSuffix}-${timestamp}.png`;
+        triggerFileDownload(blob, filename);
+        downloadedFiles.push(filename);
+        setTimeout(resolve, 200); // Small interval between downloads
+      }, "image/png");
+    });
+  }
+
+  return {
+    filename: downloadedFiles[0] || "nuar-cennik.png",
+    count: downloadedFiles.length,
+    files: downloadedFiles,
+  };
 }
 
 /**

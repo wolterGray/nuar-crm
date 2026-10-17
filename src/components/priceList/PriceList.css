@@ -1,5 +1,5 @@
 /* ==========================================================================
-   NUAR CRM — Price List Generator Workspace & Artboard Styles
+   NUAR CRM — Price List Generator Workspace & Premium Editorial Artboard
    ========================================================================== */
 
 /* Fullscreen Workspace Modal */
@@ -70,12 +70,62 @@
   font-weight: 500;
 }
 
+.price-modal-pricing-notice {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill, 999px);
+  background: rgba(224, 164, 58, 0.12);
+  border: 1px solid rgba(224, 164, 58, 0.35);
+  font-size: 11px;
+  color: #e0a43a;
+  font-weight: 600;
+  cursor: help;
+}
+
 .price-modal-center {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
 }
 
+/* Multi-page switcher tabs */
+.price-page-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--color-field, #1b1b1e);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-control, 10px);
+  padding: 2px 3px;
+}
+
+.price-page-tab {
+  height: 28px;
+  padding: 0 9px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-text-muted, #a4a4ac);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.price-page-tab:hover {
+  color: var(--color-text, #ffffff);
+}
+
+.price-page-tab.is-active {
+  background: var(--color-surface, #27272a);
+  color: var(--color-text, #ffffff);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Zoom controls */
 .price-zoom-group {
   display: inline-flex;
   align-items: center;
@@ -127,7 +177,7 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 32px 20px 48px;
+  padding: 32px 20px 64px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -143,11 +193,18 @@
   will-change: transform;
 }
 
+.price-sheets-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  align-items: center;
+}
+
 /* 3. PRINTABLE ARTICLE DOCUMENT */
 .price-sheet {
   position: relative;
   box-sizing: border-box;
-  padding: 40px 36px 32px;
+  padding: 44px 40px 36px;
   display: flex;
   flex-direction: column;
   transition: all 180ms ease;
@@ -156,8 +213,8 @@
 
 /* Dimensions per format */
 .price-sheet.format-a4 {
-  width: 680px;
-  min-height: 960px;
+  width: 700px;
+  min-height: 990px;
   border-radius: 8px;
 }
 
@@ -182,7 +239,7 @@
   --price-text: #ffffff;
   --price-muted: #9e9ea6;
   --price-faint: #6e6e76;
-  --price-dots: rgba(255, 255, 255, 0.18);
+  --price-dots: rgba(255, 255, 255, 0.16);
   --price-accent: #e11d2e;
   --price-chip-bg: rgba(255, 255, 255, 0.04);
 }
@@ -196,7 +253,7 @@
   --price-text: #111113;
   --price-muted: #64646c;
   --price-faint: #8a8a92;
-  --price-dots: rgba(0, 0, 0, 0.2);
+  --price-dots: rgba(0, 0, 0, 0.18);
   --price-accent: #e11d2e;
   --price-chip-bg: rgba(0, 0, 0, 0.03);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
@@ -245,10 +302,10 @@
 /* 4. DOCUMENT HEADER */
 .price-header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
-.price-logo-mark {
+.price-header-main .price-logo-mark {
   display: inline-flex;
   align-items: baseline;
   justify-content: center;
@@ -256,16 +313,16 @@
   margin-bottom: 4px;
 }
 
-.price-logo-text {
+.price-header-main .price-logo-text {
   font-family: "Playfair Display", Georgia, serif, system-ui;
-  font-size: 28px;
+  font-size: 34px;
   font-weight: 700;
   letter-spacing: 0.24em;
   color: var(--price-text);
   line-height: 1;
 }
 
-.price-logo-dot {
+.price-header-main .price-logo-dot {
   display: inline-block;
   width: 5px;
   height: 5px;
@@ -273,54 +330,70 @@
   background: var(--price-accent);
 }
 
-.price-brand-subtitle {
+.price-header-main .price-brand-subtitle {
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.22em;
-  color: var(--price-accent);
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-.price-doc-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.24em;
   color: var(--price-muted);
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
-.price-header-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  max-width: 200px;
+.price-header-main .price-doc-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--price-text);
+  text-transform: uppercase;
+}
+
+.price-header-accent-bar {
+  width: 32px;
+  height: 2px;
+  background: var(--price-accent);
   margin: 0 auto;
 }
 
-.price-divider-line {
-  flex: 1;
-  height: 1px;
-  background: var(--price-border);
+/* Compact header on subsequent pages */
+.price-header-compact {
+  margin-bottom: 24px;
 }
 
-.price-divider-diamond {
-  width: 5px;
-  height: 5px;
-  background: var(--price-accent);
-  transform: rotate(45deg);
+.price-compact-header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.price-compact-brand {
+  font-family: "Playfair Display", Georgia, serif, system-ui;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--price-text);
+}
+
+.price-compact-sep {
+  color: var(--price-accent);
+  font-weight: 700;
+}
+
+.price-compact-doc {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--price-muted);
+  text-transform: uppercase;
 }
 
 /* 5. BODY: CATEGORIES & SERVICES */
 .price-content-body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   flex: 1 1 auto;
 }
 
@@ -337,7 +410,7 @@
 .price-category-block {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -346,13 +419,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-top: 4px;
 }
 
 .price-cat-title {
   margin: 0;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--price-text);
   white-space: nowrap;
@@ -367,51 +441,96 @@
 .price-services-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .price-service-row {
   display: flex;
   flex-direction: column;
-  gap: 3px;
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
-.price-service-main {
+/* Multi-variant Structured Matrix Layout */
+.price-service-matrix-layout {
   display: flex;
-  align-items: baseline;
-  width: 100%;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .price-service-name-wrap {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  white-space: nowrap;
-  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .price-service-name {
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--price-text);
-  letter-spacing: -0.01em;
+  line-height: 1.35;
 }
 
 .price-tag-badge {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 600;
   padding: 1px 5px;
   border-radius: var(--radius-xs, 4px);
-  background: rgba(225, 29, 46, 0.14);
+  background: rgba(225, 29, 46, 0.12);
   color: var(--price-accent);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.price-service-desc {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--price-muted);
+}
+
+.price-variant-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+
+.price-variant-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 58px;
+}
+
+.price-var-duration {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--price-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.price-var-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--price-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Single-variant / Compact Inline Layout */
+.price-service-inline-layout {
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
 .price-dot-leader {
   flex: 1 1 auto;
-  margin: 0 8px;
+  margin: 0 10px;
   border-bottom: 1.5px dotted var(--price-dots);
   transform: translateY(-3px);
   min-width: 16px;
@@ -420,6 +539,19 @@
 .price-service-prices {
   flex-shrink: 0;
   white-space: nowrap;
+}
+
+.price-single-val {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.price-var-duration-inline {
+  font-size: 11px;
+  color: var(--price-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .price-compact-val {
@@ -434,7 +566,7 @@
 }
 
 .price-amount {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--price-text);
   font-variant-numeric: tabular-nums;
@@ -445,51 +577,9 @@
   color: var(--price-muted);
 }
 
-.price-variants-group {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.price-variant-chip {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 3px;
-  font-size: 12.5px;
-}
-
-.price-var-duration {
-  color: var(--price-muted);
-  font-size: 11.5px;
-}
-
-.price-var-dash {
-  color: var(--price-faint);
-  font-size: 10px;
-}
-
-.price-var-amount {
-  font-weight: 600;
-  color: var(--price-text);
-  font-variant-numeric: tabular-nums;
-}
-
-.price-var-sep {
-  color: var(--price-faint);
-  margin-left: 3px;
-}
-
-.price-service-desc {
-  margin: 0;
-  font-size: 11px;
-  line-height: 1.35;
-  color: var(--price-muted);
-  padding-left: 2px;
-}
-
 /* 6. DOCUMENT FOOTER */
 .price-footer {
-  margin-top: 24px;
+  margin-top: 28px;
   padding-top: 14px;
   display: flex;
   flex-direction: column;
@@ -504,6 +594,13 @@
   height: 1px;
   background: var(--price-border);
   margin-bottom: 8px;
+}
+
+.price-footer-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
 }
 
 .price-footer-info {
@@ -535,6 +632,12 @@
   font-weight: 700;
   color: var(--price-accent);
   letter-spacing: 0.04em;
+}
+
+.price-footer-page-num {
+  font-size: 10px;
+  color: var(--price-faint);
+  margin-top: 2px;
 }
 
 /* 7. SETTINGS DRAWER / SIDEBAR */
@@ -769,7 +872,7 @@
   color: var(--color-text-faint, #7f7f86);
 }
 
-/* Options List (Checkboxes) */
+/* Options List (Checkboxes & Inputs) */
 .price-options-list {
   display: flex;
   flex-direction: column;
@@ -789,6 +892,45 @@
   color: var(--color-text, #ffffff);
   cursor: pointer;
   user-select: none;
+}
+
+/* Custom Contact Fields */
+.price-contacts-custom-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.05));
+}
+
+.price-custom-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.price-custom-field-label {
+  font-size: 10px;
+  color: var(--color-text-muted, #a4a4ac);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.price-custom-input {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  background: var(--color-surface, #141416);
+  color: var(--color-text, #ffffff);
+  font-size: 12px;
+  outline: none;
+}
+
+.price-custom-input:focus {
+  border-color: var(--color-accent, #e11d2e);
 }
 
 /* Categories & Services tree */
@@ -893,12 +1035,13 @@
   .price-modal-workspace,
   .price-viewport-area,
   .price-artboard-container,
-  #nuar-printable-price-list,
-  #nuar-printable-price-list * {
+  .price-sheets-stack,
+  .price-sheet-page,
+  .price-sheet-page * {
     visibility: visible;
   }
 
-  /* Hide app navigation, modals, drawers, header */
+  /* Hide UI chrome */
   .price-modal-navbar,
   .price-settings-drawer,
   .crm-app-nav,
@@ -917,37 +1060,43 @@
   .price-modal-container,
   .price-modal-workspace,
   .price-viewport-area,
-  .price-artboard-container {
+  .price-artboard-container,
+  .price-sheets-stack {
     padding: 0 !important;
     margin: 0 !important;
     transform: none !important;
     overflow: visible !important;
     height: auto !important;
     display: block !important;
+    gap: 0 !important;
   }
 
-  #nuar-printable-price-list {
-    position: static !important;
+  .price-sheet-page {
+    position: relative !important;
     width: 100% !important;
     max-width: 100% !important;
+    min-height: 98vh !important;
     box-shadow: none !important;
     border: none !important;
-    padding: 10mm 12mm !important;
+    padding: 12mm 14mm !important;
     margin: 0 auto !important;
     background: #ffffff !important;
     color: #111113 !important;
     --price-text: #111113 !important;
-    --price-muted: #4a4a50 !important;
-    --price-faint: #7a7a82 !important;
-    --price-dots: #b0b0b8 !important;
-    --price-border: #e0e0e4 !important;
+    --price-muted: #52525a !important;
+    --price-faint: #787882 !important;
+    --price-dots: #b8b8c0 !important;
+    --price-border: #e2e2e6 !important;
     --price-accent: #e11d2e !important;
+    break-inside: avoid !important;
+    page-break-after: always !important;
+    break-after: page !important;
   }
 
   .price-category-block {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 14px !important;
   }
 
   .price-service-row {
@@ -957,7 +1106,7 @@
 
   @page {
     size: A4 portrait;
-    margin: 8mm 10mm;
+    margin: 6mm 8mm;
   }
 }
 
@@ -990,6 +1139,10 @@
 
   .price-viewport-area {
     padding: 16px 8px 36px;
+  }
+
+  .price-sheet {
+    padding: 24px 20px 20px;
   }
 
   /* Drawer as bottom sheet / overlay on mobile */

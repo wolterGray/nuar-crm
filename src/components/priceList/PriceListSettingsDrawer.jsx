@@ -12,6 +12,7 @@ export default function PriceListSettingsDrawer({
   onUpdateSettings,
   services = [],
   categories = [],
+  resolvedContacts = null,
 }) {
   const [expandedCategories, setExpandedCategories] = useState({});
 
@@ -218,6 +219,31 @@ export default function PriceListSettingsDrawer({
                 onChange={(e) => handleChange("showContacts", e.target.checked)}
               />
             </label>
+
+            {settings.showContacts ? (
+              <div className="price-contacts-custom-fields">
+                <div className="price-custom-field">
+                  <span className="price-custom-field-label">Адрес:</span>
+                  <input
+                    type="text"
+                    className="price-custom-input"
+                    placeholder={resolvedContacts?.address || "ul. Świętojerska 5/7, Warszawa"}
+                    value={settings.studioAddress || ""}
+                    onChange={(e) => handleChange("studioAddress", e.target.value)}
+                  />
+                </div>
+                <div className="price-custom-field">
+                  <span className="price-custom-field-label">Телефон:</span>
+                  <input
+                    type="text"
+                    className="price-custom-input"
+                    placeholder={resolvedContacts?.phone || "+48 572 201 114"}
+                    value={settings.studioPhone || ""}
+                    onChange={(e) => handleChange("studioPhone", e.target.value)}
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
 

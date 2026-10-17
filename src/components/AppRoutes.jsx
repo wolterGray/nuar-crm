@@ -169,6 +169,7 @@ export default function AppRoutes({activePage, ...props}) {
             onMoveServiceToCategory={props.moveServiceToCategory}
             onRenameCategory={props.renameServiceCategory}
             onReorder={props.reorderServices}
+            appSettings={props.appSettings}
           />
         </PageSuspense>
       );
