@@ -134,6 +134,7 @@ const appIcons = {
   clipboardCheck: ClipboardCheck,
   clipboardList: ClipboardList,
   clock: Clock,
+  close: X,
   copy: Copy,
   crown: Crown,
   creditCard: CreditCard,

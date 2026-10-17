@@ -84,7 +84,7 @@ export default function CategoryManagerModal({
             type="button"
             onClick={onClose}
             aria-label="Закрыть">
-            <AppIcon name="close" size="sm" />
+            <AppIcon name="x" size="sm" />
           </button>
         </div>
 

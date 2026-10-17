@@ -573,8 +573,12 @@ export default function ServicesPage({
           <div className="services-search-box">
             <AppIcon className="services-search-icon" name="search" size="xs" />
             <input
+              autoComplete="off"
+              autoCorrect="off"
               className="services-search-input"
               placeholder="Поиск по названию или виду..."
+              spellCheck="false"
+              type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -584,7 +588,7 @@ export default function ServicesPage({
                 type="button"
                 onClick={() => setSearch("")}
                 aria-label="Очистить поиск">
-                <AppIcon name="close" size="xs" />
+                <AppIcon name="x" size="xs" />
               </button>
             ) : null}
           </div>
