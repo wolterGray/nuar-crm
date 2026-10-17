@@ -2486,6 +2486,43 @@ select.services-status-select option {
     font-size: 16px !important;
   }
 
+  .services-drawer-body .services-section-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .services-drawer-body .services-add-variant-btn {
+    align-self: flex-start !important;
+    height: 36px !important;
+    padding: 0 12px !important;
+    font-size: 12.5px !important;
+    border-radius: 8px !important;
+  }
+
+  .services-drawer-body .services-variant-row {
+    height: 52px !important;
+    padding: 0 10px !important;
+  }
+
+  .services-drawer-body .services-var-duration-wrap {
+    width: 120px !important;
+    height: 38px !important;
+    border-radius: 8px !important;
+  }
+
+  .services-drawer-body .services-var-price-input {
+    width: 80px !important;
+    height: 38px !important;
+    font-size: 15px !important;
+    border-radius: 8px !important;
+  }
+
+  .services-drawer-body .services-var-delete-btn {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
   .services-drawer-footer {
     padding: 12px 16px !important;
     padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
