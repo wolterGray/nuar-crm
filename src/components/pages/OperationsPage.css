@@ -304,6 +304,285 @@
   .operations-page-mobile .operations-history-section {
     border-color: var(--operations-mobile-border) !important;
   }
+
+  /* Secondary workspaces share the same compact mobile visual language. */
+  .operations-page-mobile :is(.operations-panel, .operations-history-page) {
+    min-width: 0 !important;
+  }
+
+  .operations-page-mobile .operations-panel {
+    gap: 10px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .operations-page-mobile .operations-panel-header {
+    min-height: 48px !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .operations-page-mobile .operations-panel-header > div {
+    gap: 9px !important;
+  }
+
+  .operations-page-mobile .operations-panel-header h2,
+  .operations-page-mobile .waitlist-panel .page-title {
+    color: var(--operations-mobile-text) !important;
+    font-size: 18px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .operations-page-mobile .operations-panel-header p,
+  .operations-page-mobile .waitlist-panel .page-header-description {
+    color: var(--operations-mobile-muted) !important;
+    font-size: 12px !important;
+  }
+
+  .operations-page-mobile :is(.operations-panel-header, .waitlist-panel) > .button,
+  .operations-page-mobile .waitlist-add-button {
+    min-height: 38px !important;
+    color: #fff !important;
+    background: var(--operations-mobile-accent) !important;
+    border-color: var(--operations-mobile-accent) !important;
+    border-radius: 8px !important;
+  }
+
+  .operations-page-mobile .quick-note-form {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 118px !important;
+    gap: 7px !important;
+    padding: 9px !important;
+    background: var(--operations-mobile-surface) !important;
+    border: 1px solid var(--operations-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+
+  .operations-page-mobile .quick-note-form > :is(input, select, .input, .select) {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 40px !important;
+    color: var(--operations-mobile-text) !important;
+    background: var(--operations-mobile-field) !important;
+    border-color: var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .quick-note-form > button {
+    grid-column: 1 / -1 !important;
+    min-height: 40px !important;
+    color: #fff !important;
+  }
+
+  .operations-page-mobile .operations-list {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  .operations-page-mobile :is(.note-row, .supply-row, .waitlist-card) {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 11px !important;
+    color: var(--operations-mobile-text) !important;
+    background: var(--operations-mobile-surface) !important;
+    border: 1px solid var(--operations-mobile-border) !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+  }
+
+  .operations-page-mobile :is(.note-row, .supply-row, .waitlist-card) strong {
+    color: var(--operations-mobile-text) !important;
+    font-size: 14px !important;
+  }
+
+  .operations-page-mobile :is(.note-row, .supply-row, .waitlist-card) span {
+    color: var(--operations-mobile-muted) !important;
+  }
+
+  .operations-page-mobile .operations-card-icon {
+    color: #c6c6ca !important;
+    background: var(--operations-mobile-field) !important;
+    border-color: var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .supply-meta {
+    gap: 7px !important;
+    margin-top: 9px !important;
+  }
+
+  .operations-page-mobile .supply-meta > span {
+    padding: 8px 9px !important;
+    background: var(--operations-mobile-field) !important;
+    border-color: var(--operations-mobile-border) !important;
+    border-radius: 7px !important;
+  }
+
+  .operations-page-mobile .supply-actions {
+    gap: 7px !important;
+    margin-top: 8px !important;
+  }
+
+  .operations-page-mobile .supply-actions button {
+    width: 38px !important;
+    height: 36px !important;
+    color: #d2d2d5 !important;
+    background: var(--operations-mobile-field) !important;
+    border-color: var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .supply-row.supply-low {
+    background: #1b1516 !important;
+    border-color: rgba(239, 56, 59, 0.35) !important;
+  }
+
+  .operations-page-mobile .waitlist-panel .page-header-unified {
+    min-height: 48px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .operations-page-mobile .waitlist-add-button {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .operations-page-mobile .client-packages-list {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  .operations-page-mobile .waitlist-card-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    margin-top: 9px !important;
+  }
+
+  .operations-page-mobile .waitlist-card-actions button {
+    min-height: 38px !important;
+    color: #d8d8db !important;
+    background: var(--operations-mobile-field) !important;
+    border-color: var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .waitlist-offered-block,
+  .operations-page-mobile .operations-empty {
+    color: var(--operations-mobile-muted) !important;
+    background: var(--operations-mobile-surface) !important;
+    border-color: var(--operations-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+
+  .operations-page-mobile .operations-history-page {
+    gap: 9px !important;
+  }
+
+  .operations-page-mobile .operations-history-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    overflow: hidden !important;
+    background: var(--operations-mobile-surface) !important;
+    border-color: var(--operations-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+
+  .operations-page-mobile .operations-history-summary > div {
+    gap: 2px !important;
+    padding: 10px 11px !important;
+    border-color: var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .operations-history-summary strong {
+    color: var(--operations-mobile-text) !important;
+    font-size: 19px !important;
+  }
+
+  .operations-page-mobile .operations-history-summary :is(span, small) {
+    color: var(--operations-mobile-muted) !important;
+    font-size: 11px !important;
+  }
+
+  .operations-page-mobile :is(.operations-history-toolbar, .operations-history-filters) {
+    gap: 7px !important;
+  }
+
+  .operations-page-mobile .operations-history-presets {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    padding: 3px !important;
+    background: var(--operations-mobile-surface) !important;
+    border-color: var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .operations-history-presets button {
+    min-width: 0 !important;
+    padding-inline: 5px !important;
+    color: var(--operations-mobile-muted) !important;
+  }
+
+  .operations-page-mobile .operations-history-presets button.is-active {
+    color: var(--operations-mobile-text) !important;
+    background: var(--operations-mobile-raised) !important;
+  }
+
+  .operations-page-mobile .operations-history-dates {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  .operations-page-mobile :is(.operations-history-dates input, .operations-history-search input, .operations-history-filters select) {
+    min-width: 0 !important;
+    height: 40px !important;
+    color: var(--operations-mobile-text) !important;
+    background: var(--operations-mobile-field) !important;
+    border-color: var(--operations-mobile-border) !important;
+    border-radius: 8px !important;
+  }
+
+  .operations-page-mobile .operations-history-search {
+    min-width: 0 !important;
+  }
+
+  .operations-page-mobile .operations-history-list {
+    display: grid !important;
+    gap: 7px !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border: 0 !important;
+  }
+
+  .operations-page-mobile .operations-history-row {
+    min-height: 82px !important;
+    padding: 11px !important;
+    background: var(--operations-mobile-surface) !important;
+    border: 1px solid var(--operations-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+
+  .operations-page-mobile .operations-history-row:first-of-type {
+    border-top: 1px solid var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile :is(.operations-history-date, .operations-history-task strong) {
+    color: var(--operations-mobile-text) !important;
+  }
+
+  .operations-page-mobile .operations-history-task small {
+    color: var(--operations-mobile-muted) !important;
+  }
+
+  .operations-page-mobile .operations-history-drawer {
+    width: 100vw !important;
+    border-left: 0 !important;
+    background: var(--operations-mobile-bg) !important;
+  }
+
+  .operations-page-mobile .operations-history-drawer > header,
+  .operations-page-mobile .operations-history-drawer-body {
+    padding-inline: 16px !important;
+  }
 }
 
 @media (max-width: 360px) {
