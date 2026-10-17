@@ -588,6 +588,16 @@ function ClientsPage({
     }, 220);
   }, []);
 
+  const handleDrawerAction = useCallback((action) => {
+    setIsDrawerOpen(false);
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setSelectedClientId(null);
+      setDrawerClient(null);
+      action?.();
+    }, 220);
+  }, []);
+
   // Escape key closes drawer
   useEffect(() => {
     if (!isDrawerOpen) return undefined;
@@ -732,14 +742,20 @@ function ClientsPage({
                 handleAddToWaitlist={handleAddToWaitlist}
                 handleRepeatVisit={handleRepeatVisit}
                 isMobile={isMobile}
-                onAddVisit={onAddVisit}
+                onAddVisit={(visitDefaults) => {
+                  handleDrawerAction(() => onAddVisit?.(visitDefaults));
+                }}
                 onClose={handleCloseDrawer}
                 onDeleteClient={(c) => {
                   handleCloseDrawer();
                   onDeleteClient?.(c);
                 }}
-                onEditClient={onEditClient}
-                onMessageClient={handleMessageClient}
+                onEditClient={(client) => {
+                  handleDrawerAction(() => onEditClient?.(client));
+                }}
+                onMessageClient={(client) => {
+                  handleDrawerAction(() => handleMessageClient(client));
+                }}
                 onUpdateClientNote={onUpdateClientNote}
               />
             </aside>

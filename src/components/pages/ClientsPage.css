@@ -1219,6 +1219,13 @@
   border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.06)) !important;
 }
 
+/* Client actions may open while the profile drawer is finishing its exit. */
+.mobile-sheet-backdrop:has(.message-builder-modal),
+.modal-backdrop:has(.client-form-modal),
+.calendar-entry-backdrop {
+  z-index: 110 !important;
+}
+
 .message-builder-modal .mobile-sheet-header-copy,
 .clients-quality-sheet .mobile-sheet-header-copy {
   flex: 1 1 0% !important;
