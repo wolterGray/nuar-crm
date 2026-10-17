@@ -233,7 +233,7 @@ describe("priceListGenerator", () => {
     });
   });
 
-  describe("paginateCategories", () => {
+  describe("paginateCategories & intelligent layout", () => {
     it("fits 15 single-variant services comfortably on a single A4 sheet without artificial breaks", () => {
       const normalServices = Array.from({ length: 15 }, (_, i) => ({
         id: i + 1,
@@ -254,6 +254,109 @@ describe("priceListGenerator", () => {
       expect(pages.length).toBe(1);
       expect(pages[0].pageIndex).toBe(1);
       expect(pages[0].totalPages).toBe(1);
+    });
+
+    it("fits 15 multi-variant services across 5 categories onto a single A4 page", () => {
+      // 5 categories with 3 services each, all having multiple variants
+      const categoriesList = ["Массажи", "Лицо", "Тело", "Комплексы", "Абонементы"];
+      const services = [];
+      let idCounter = 1;
+
+      categoriesList.forEach((catName) => {
+        for (let i = 1; i <= 3; i++) {
+          services.push({
+            id: idCounter++,
+            name: `${catName} Услуга ${i}`,
+            category: catName,
+            status: "Активна",
+            variants: [
+              { duration: 60, price: 250 },
+              { duration: 90, price: 350 },
+            ],
+          });
+        }
+      });
+
+      expect(services.length).toBe(15);
+
+      const result = preparePriceListData(services, {
+        ...DEFAULT_PRICE_LIST_SETTINGS,
+        format: "a4",
+        pageLayoutMode: "auto",
+      });
+
+      expect(result.totalServices).toBe(15);
+      expect(result.categories.length).toBe(5);
+      expect(result.totalPages).toBe(1);
+      expect(result.pages.length).toBe(1);
+    });
+
+    it("fits 20 services onto 1 page in compact density", () => {
+      const categoriesList = ["Массажи", "Лицо", "Тело", "Комплексы", "Абонементы"];
+      const services = [];
+      let idCounter = 1;
+
+      categoriesList.forEach((catName) => {
+        for (let i = 1; i <= 4; i++) {
+          services.push({
+            id: idCounter++,
+            name: `${catName} Услуга ${i}`,
+            category: catName,
+            status: "Активна",
+            variants: [
+              { duration: 60, price: 250 },
+              { duration: 90, price: 350 },
+            ],
+          });
+        }
+      });
+
+      expect(services.length).toBe(20);
+
+      const result = preparePriceListData(services, {
+        ...DEFAULT_PRICE_LIST_SETTINGS,
+        format: "a4",
+        density: "compact",
+        pageLayoutMode: "compact",
+      });
+
+      expect(result.totalServices).toBe(20);
+      expect(result.totalPages).toBe(1);
+    });
+
+    it("splits 30 services into exactly 2 balanced pages (not 3 pages with an awkward trailing page)", () => {
+      const categoriesList = ["Массажи", "Лицо", "Тело", "Комплексы", "Абонементы"];
+      const services = [];
+      let idCounter = 1;
+
+      categoriesList.forEach((catName) => {
+        for (let i = 1; i <= 6; i++) {
+          services.push({
+            id: idCounter++,
+            name: `${catName} Услуга ${i}`,
+            category: catName,
+            status: "Активна",
+            variants: [
+              { duration: 60, price: 250 },
+              { duration: 90, price: 350 },
+            ],
+          });
+        }
+      });
+
+      expect(services.length).toBe(30);
+
+      const result = preparePriceListData(services, {
+        ...DEFAULT_PRICE_LIST_SETTINGS,
+        format: "a4",
+        pageLayoutMode: "auto",
+      });
+
+      expect(result.totalServices).toBe(30);
+      expect(result.totalPages).toBe(2);
+      expect(result.pages.length).toBe(2);
+      expect(result.pages[0].pageIndex).toBe(1);
+      expect(result.pages[1].pageIndex).toBe(2);
     });
 
     it("splits larger catalogues (30 services) gracefully across multiple balanced pages", () => {

@@ -260,19 +260,19 @@ export function formatVariantsSummary(variants, priceMode, lang = "pl") {
  */
 export const FORMAT_PAGE_CAPACITY = {
   a4: {
-    compact: 940,
-    auto: 860,
-    spacious: 740,
+    compact: 960,
+    auto: 930,
+    spacious: 820,
   },
   stories: {
-    compact: 800,
-    auto: 700,
-    spacious: 600,
+    compact: 840,
+    auto: 760,
+    spacious: 660,
   },
   post: {
-    compact: 620,
-    auto: 540,
-    spacious: 460,
+    compact: 640,
+    auto: 560,
+    spacious: 480,
   },
 };
 
@@ -285,16 +285,16 @@ function getItemWeight(service, showDescriptions, density = "normal") {
 
   let weight;
   if (density === "compact") {
-    weight = isMulti ? 36 : 24;
+    weight = isMulti ? 34 : 22;
   } else if (density === "spacious") {
-    weight = isMulti ? 58 : 38;
+    weight = isMulti ? 52 : 34;
   } else {
     // normal
-    weight = isMulti ? 46 : 30;
+    weight = isMulti ? 40 : 26;
   }
 
   if (showDescriptions && service.description) {
-    weight += density === "compact" ? 14 : density === "spacious" ? 22 : 18;
+    weight += density === "compact" ? 12 : density === "spacious" ? 20 : 16;
   }
   return weight;
 }
@@ -318,10 +318,10 @@ export function paginateCategories(
       ? formatCaps
       : formatCaps[pageLayoutMode] || formatCaps.auto;
 
-  const headerWeight = density === "compact" ? 85 : density === "spacious" ? 120 : 100;
-  const subHeaderWeight = density === "compact" ? 38 : density === "spacious" ? 55 : 45;
-  const footerWeight = density === "compact" ? 34 : density === "spacious" ? 48 : 40;
-  const catHeaderWeight = density === "compact" ? 26 : density === "spacious" ? 40 : 32;
+  const headerWeight = density === "compact" ? 65 : density === "spacious" ? 95 : 75;
+  const subHeaderWeight = density === "compact" ? 28 : density === "spacious" ? 44 : 34;
+  const footerWeight = density === "compact" ? 26 : density === "spacious" ? 38 : 30;
+  const catHeaderWeight = density === "compact" ? 20 : density === "spacious" ? 32 : 24;
 
   const pages = [];
   let currentPage = {
@@ -529,17 +529,46 @@ export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIS
     })
     .filter(Boolean);
 
-  // 5. Compute paginated pages with density and page layout mode
-  const pages = paginateCategories(
+  // 5. Intelligent Multi-Pass Pagination
+  const requestedDensity = settings.density || "normal";
+  const pageLayoutMode = settings.pageLayoutMode || "auto";
+
+  let effectiveDensity = requestedDensity;
+  let pages = paginateCategories(
     categories,
     format,
     showDescriptions,
     labels,
     {
-      density: settings.density || "normal",
-      pageLayoutMode: settings.pageLayoutMode || "auto",
+      density: requestedDensity,
+      pageLayoutMode,
     }
   );
+
+  // If in "auto" mode (or normal density), check if slight compaction eliminates awkward page breaks:
+  // 1) If 2 pages but can comfortably fit on 1 page with compact spacing
+  // 2) If 3 pages but can comfortably fit on 2 balanced pages with compact spacing
+  if (pageLayoutMode === "auto" && requestedDensity === "normal" && pages.length > 1) {
+    const compactPages = paginateCategories(
+      categories,
+      format,
+      showDescriptions,
+      labels,
+      {
+        density: "compact",
+        pageLayoutMode: "auto",
+      }
+    );
+
+    // If compact pass fits everything on 1 page, or reduces 3 pages to 2 pages
+    if (
+      (pages.length === 2 && compactPages.length === 1) ||
+      (pages.length === 3 && compactPages.length === 2)
+    ) {
+      pages = compactPages;
+      effectiveDensity = "compact";
+    }
+  }
 
   const style = resolveDocumentStyle(settings);
 
@@ -549,6 +578,7 @@ export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIS
     totalServices: totalServicesCount,
     totalCategories: categories.length,
     totalPages: pages.length,
+    effectiveDensity,
     labels,
     style,
     unusualPricingServices,

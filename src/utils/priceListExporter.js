@@ -35,14 +35,13 @@ function loadImage(src) {
 /**
  * Renders a single page of the price list onto a Canvas
  */
-async function renderPageToCanvas(page, settings, labels, width, height) {
+async function renderPageToCanvas(page, settings, labels, width, height, effectiveDensity = null) {
   const {
     priceMode = "full",
     showDescriptions = false,
     showContacts = true,
     typographyFamily = "editorial",
     typographyFontSize = "md",
-    density = "normal",
     showLogo = true,
     logoType = "default",
     customLogoUrl,
@@ -52,6 +51,8 @@ async function renderPageToCanvas(page, settings, labels, width, height) {
     bgImageOpacity = 40,
     bgImageSize = "cover",
   } = settings;
+
+  const density = effectiveDensity || settings.density || "normal";
 
   // Await web fonts if document.fonts is supported
   if (typeof document !== "undefined" && document.fonts && document.fonts.ready) {
@@ -233,8 +234,8 @@ async function renderPageToCanvas(page, settings, labels, width, height) {
   const categories = page.categories || [];
   const maxContentBottom = height - margin - (showContacts ? 60 : 30);
 
-  const catHeaderStep = density === "compact" ? 18 : 22;
-  const svcStep = density === "compact" ? 22 : 28;
+  const catHeaderStep = density === "compact" ? 15 : 19;
+  const svcStep = density === "compact" ? 18 : 22;
 
   for (const cat of categories) {
     if (currentY > maxContentBottom - 40) break;
@@ -265,36 +266,61 @@ async function renderPageToCanvas(page, settings, labels, width, height) {
       const isMultiVariant = priceMode === "full" && variantCount > 1;
 
       if (isMultiVariant) {
-        // Multi-variant Layout: Title on top, structured variant grid underneath
+        // Multi-variant Layout: Title on top, horizontal variant capsules underneath
         ctx.font = `600 ${Math.round(13 * fontScale)}px ${bodyFont}`;
         ctx.letterSpacing = "0.2px";
         ctx.fillStyle = textPrimary;
         ctx.fillText(svcName, margin, currentY);
-        currentY += 16;
+        currentY += 14;
 
         if (showDescriptions && service.description) {
           ctx.font = `400 ${Math.round(10.5 * fontScale)}px ${bodyFont}`;
           ctx.fillStyle = textSecondary;
           ctx.fillText(service.description.slice(0, 95), margin, currentY);
-          currentY += 15;
+          currentY += 13;
         }
 
-        // Draw variant columns grid
+        // Draw horizontal variant capsules
         const variants = service.variants;
-        const colWidth = Math.min(105, Math.floor(contentWidth / variants.length));
+        let pillX = margin;
+        const pillH = Math.round(19 * fontScale);
 
-        variants.forEach((v, vIdx) => {
-          const colX = margin + vIdx * colWidth;
+        variants.forEach((v) => {
+          const durText = `${v.duration} ${labels.minUnit}`.toUpperCase();
+          const priceText = `${v.price} ${labels.currency}`;
 
-          // Duration in uppercase
-          ctx.font = `600 ${Math.round(10.5 * fontScale)}px ${bodyFont}`;
+          ctx.font = `500 ${Math.round(9.5 * fontScale)}px ${bodyFont}`;
+          const durW = ctx.measureText(durText).width;
+
+          ctx.font = `700 ${Math.round(11.5 * fontScale)}px ${bodyFont}`;
+          const priceW = ctx.measureText(priceText).width;
+
+          const pillW = durW + priceW + 16;
+
+          // Capsule background
+          ctx.fillStyle = docStyle.chipBg;
+          ctx.beginPath();
+          if (typeof ctx.roundRect === "function") {
+            ctx.roundRect(pillX, currentY - 11, pillW, pillH, 4);
+          } else {
+            ctx.rect(pillX, currentY - 11, pillW, pillH);
+          }
+          ctx.fill();
+
+          ctx.strokeStyle = borderSoft;
+          ctx.stroke();
+
+          // Duration text
+          ctx.font = `500 ${Math.round(9.5 * fontScale)}px ${bodyFont}`;
           ctx.fillStyle = textFaint;
-          ctx.fillText(`${v.duration} ${labels.minUnit}`.toUpperCase(), colX, currentY);
+          ctx.fillText(durText, pillX + 6, currentY + 3);
 
-          // Price underneath
-          ctx.font = `700 ${Math.round(13 * fontScale)}px ${bodyFont}`;
+          // Price text
+          ctx.font = `700 ${Math.round(11.5 * fontScale)}px ${bodyFont}`;
           ctx.fillStyle = textPrimary;
-          ctx.fillText(`${v.price} ${labels.currency}`, colX, currentY + 14);
+          ctx.fillText(priceText, pillX + 6 + durW + 5, currentY + 3);
+
+          pillX += pillW + 6;
         });
 
         currentY += svcStep;
@@ -335,17 +361,17 @@ async function renderPageToCanvas(page, settings, labels, width, height) {
         }
 
         if (showDescriptions && service.description) {
-          currentY += 15;
+          currentY += 14;
           ctx.font = `400 ${Math.round(10.5 * fontScale)}px ${bodyFont}`;
           ctx.fillStyle = textSecondary;
           ctx.fillText(service.description.slice(0, 95), margin, currentY);
         }
 
-        currentY += density === "compact" ? 18 : 22;
+        currentY += density === "compact" ? 17 : 21;
       }
     }
 
-    currentY += density === "compact" ? 8 : 14;
+    currentY += density === "compact" ? 6 : 10;
   }
 
   // 5. Brand Footer
@@ -415,8 +441,10 @@ export async function exportPriceListToPng(priceListData, settings, targetPageIn
   const timestamp = new Date().toISOString().slice(0, 10);
   const downloadedFiles = [];
 
+  const effectiveDensity = priceListData.effectiveDensity || settings.density || "normal";
+
   for (const page of exportTargetPages) {
-    const canvas = await renderPageToCanvas(page, settings, labels, width, height);
+    const canvas = await renderPageToCanvas(page, settings, labels, width, height, effectiveDensity);
 
     await new Promise((resolve, reject) => {
       canvas.toBlob((blob) => {

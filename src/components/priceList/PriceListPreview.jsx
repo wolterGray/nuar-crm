@@ -101,6 +101,9 @@ export default function PriceListPreview({
     "--price-chip-bg": docStyle.chipBg,
   };
 
+  // Use effectiveDensity if calculated by intelligent auto-compaction
+  const resolvedDensity = priceListData.effectiveDensity || density || "normal";
+
   return (
     <div
       className={`price-artboard-container format-${format}`}
@@ -112,7 +115,7 @@ export default function PriceListPreview({
       <div className="price-sheets-stack">
         {displayPages.length === 0 ? (
           <article
-            className={`price-sheet format-${format} font-${typographyFamily} size-${typographyFontSize} density-${density}`}
+            className={`price-sheet format-${format} font-${typographyFamily} size-${typographyFontSize} density-${resolvedDensity}`}
             style={sheetDynamicStyle}
           >
             <div className="price-empty-notice">
@@ -125,7 +128,7 @@ export default function PriceListPreview({
             <article
               key={page.pageIndex}
               id={`nuar-printable-price-list-page-${page.pageIndex}`}
-              className={`price-sheet format-${format} font-${typographyFamily} size-${typographyFontSize} heading-${typographyHeadingSize} density-${density} mode-${docStyle.effectiveTextMode || "light"} price-sheet-page`}
+              className={`price-sheet format-${format} font-${typographyFamily} size-${typographyFontSize} heading-${typographyHeadingSize} density-${resolvedDensity} mode-${docStyle.effectiveTextMode || "light"} price-sheet-page`}
               style={sheetDynamicStyle}
               data-page={page.pageIndex}
               aria-label={`Прайс-лист салона NUAR — Страница ${page.pageIndex} из ${page.totalPages}`}
