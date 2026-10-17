@@ -1266,7 +1266,7 @@
     display: flex;
     min-height: 64px;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     padding: 10px 18px 4px;
     background: #0c0d0f;
   }

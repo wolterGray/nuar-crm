@@ -97,16 +97,6 @@ function ClientWorkspace({
             variant="secondary"
             onClick={onClose}
           />
-          <ClientRowActions
-            client={client}
-            handleAddToWaitlist={handleAddToWaitlist}
-            handleMessageClient={onMessageClient}
-            isWorkspace
-            onDeleteClient={onDeleteClient}
-            onEditClient={onEditClient}
-            openClientMenuId={openActionMenuId}
-            setOpenClientMenuId={setOpenActionMenuId}
-          />
         </div>
       )}
 
@@ -232,7 +222,7 @@ function ClientWorkspace({
             Изменить
           </Button>
 
-          <div className="client-workspace-actions-menu shrink-0">
+          {!isMobile && <div className="client-workspace-actions-menu shrink-0">
             <ClientRowActions
               client={client}
               handleAddToWaitlist={handleAddToWaitlist}
@@ -243,7 +233,7 @@ function ClientWorkspace({
               openClientMenuId={openActionMenuId}
               setOpenClientMenuId={setOpenActionMenuId}
             />
-          </div>
+          </div>}
         </div>
 
         {isMobile && (
