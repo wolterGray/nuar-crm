@@ -215,7 +215,12 @@
 
 /* Client Row in List */
 .clients-list-item {
+  border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.065));
   transition: background-color 100ms ease, border-color 100ms ease;
+}
+
+.clients-list-item:last-child {
+  border-bottom: none;
 }
 
 .clients-list-item:hover {

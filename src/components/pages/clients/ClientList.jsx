@@ -164,7 +164,7 @@ function ClientList({
       </div>
 
       {/* 3. Client Rows List (Aligned Vertically in Columns) */}
-      <div className="clients-list-scroll flex-1 min-h-0 overflow-y-auto divide-y divide-border/25">
+      <div className="clients-list-scroll flex-1 min-h-0 overflow-y-auto">
         {clients.map((client) => {
           const isSelected = selectedClientId === client.id;
           const isFocused = isFocusedClient(client);
