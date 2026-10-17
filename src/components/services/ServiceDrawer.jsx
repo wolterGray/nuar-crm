@@ -2,6 +2,7 @@ import {useEffect, useMemo, useRef, useState} from "react";
 import AppIcon from "../ui/AppIcon.jsx";
 import Checkbox from "../ui/Checkbox.jsx";
 import Switch from "../ui/Switch.jsx";
+import {useModalScrollLock} from "../../hooks/useModalScrollLock.js";
 import {getCategoryColor, getRandomServiceColor, serviceColorPalette} from "../../utils/serviceColors.js";
 import {getServiceAssignedEmployeeIds} from "../../utils/serviceAssignments.js";
 import {normalizeSiteBookingBufferSettings} from "../../utils/siteBookingBuffers.js";
@@ -23,6 +24,7 @@ export default function ServiceDrawer({
   onClose,
   onSave,
 }) {
+  useModalScrollLock(isOpen);
   const [activeTab, setActiveTab] = useState("info"); // "info" | "variants" | "booking"
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Массажи");
