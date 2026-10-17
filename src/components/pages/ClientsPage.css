@@ -1147,3 +1147,242 @@
   .client-card-footer-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .client-card-footer-actions .clients-modal-action:last-child { grid-column: 1 / -1; margin-left: 0; }
 }
+
+/* Final mobile clients workspace: aligned with the payments visual system. */
+@media (max-width: 768px) {
+  .clients-page-shell {
+    --clients-mobile-bg: #0d0d0f;
+    --clients-mobile-surface: #161618;
+    --clients-mobile-field: #1d1d20;
+    --clients-mobile-raised: #232326;
+    --clients-mobile-border: #2b2b2e;
+    --clients-mobile-text: #f4f4f5;
+    --clients-mobile-muted: #9a9a9f;
+    --clients-mobile-accent: #ef383b;
+    --clients-mobile-accent-soft: #351719;
+    gap: 10px !important;
+    padding: 2px 0 0 !important;
+    background: var(--clients-mobile-bg) !important;
+  }
+
+  .clients-page-header {
+    gap: 9px !important;
+  }
+
+  .clients-page-header .page-title {
+    color: var(--clients-mobile-text) !important;
+    font-size: 23px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .clients-page-actions {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr) !important;
+    gap: 8px !important;
+  }
+
+  .clients-page-actions :is(.clients-page-quality-button, .clients-page-add-button) {
+    height: 44px !important;
+    min-height: 44px !important;
+    border-radius: 9px !important;
+    box-shadow: none !important;
+  }
+
+  .clients-page-actions .clients-page-quality-button {
+    color: #c7c7ca !important;
+    background: var(--clients-mobile-field) !important;
+    border-color: var(--clients-mobile-border) !important;
+  }
+
+  .clients-page-actions .clients-page-add-button {
+    color: #fff !important;
+    background: var(--clients-mobile-accent) !important;
+    border-color: var(--clients-mobile-accent) !important;
+  }
+
+  .clients-filterbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  .clients-filterbar .clients-search-wrap {
+    grid-column: 1 / -1 !important;
+    height: 44px !important;
+  }
+
+  .clients-search-input {
+    height: 44px !important;
+    min-height: 44px !important;
+    color: var(--clients-mobile-text) !important;
+    background: var(--clients-mobile-field) !important;
+    border-color: var(--clients-mobile-border) !important;
+    border-radius: 9px !important;
+    font-size: 16px !important;
+  }
+
+  .clients-search-input::placeholder {
+    color: var(--clients-mobile-muted) !important;
+  }
+
+  .clients-filterbar > .clients-select-wrap:last-child {
+    grid-column: auto !important;
+  }
+
+  .clients-select-wrap,
+  .clients-filter-select {
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+
+  .clients-filter-select {
+    min-width: 0 !important;
+    padding-left: 29px !important;
+    padding-right: 22px !important;
+    color: #d7d7da !important;
+    background: var(--clients-mobile-field) !important;
+    border-color: var(--clients-mobile-border) !important;
+    border-radius: 8px !important;
+    font-size: 11.5px !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .clients-select-lead-icon {
+    left: 9px !important;
+    color: var(--clients-mobile-muted) !important;
+  }
+
+  .clients-select-arrow {
+    right: 7px !important;
+  }
+
+  .clients-indicator-pills {
+    gap: 6px !important;
+    padding-bottom: 0 !important;
+  }
+
+  .clients-indicator-pill {
+    height: 32px !important;
+    min-height: 32px !important;
+    padding-inline: 9px !important;
+    color: #c7c7ca !important;
+    background: var(--clients-mobile-surface) !important;
+    border-color: var(--clients-mobile-border) !important;
+    border-radius: 8px !important;
+  }
+
+  .clients-indicator-pill.is-selected {
+    color: var(--clients-mobile-text) !important;
+    background: var(--clients-mobile-accent-soft) !important;
+    border-color: rgba(239, 56, 59, 0.55) !important;
+  }
+
+  .clients-table-list {
+    gap: 9px !important;
+  }
+
+  .clients-m-card {
+    gap: 9px !important;
+    padding: 12px !important;
+    color: var(--clients-mobile-text) !important;
+    background: var(--clients-mobile-surface) !important;
+    border-color: var(--clients-mobile-border) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+  }
+
+  .clients-m-card:active {
+    background: #18181b !important;
+  }
+
+  .clients-m-avatar {
+    color: #d7d7da !important;
+    background: var(--clients-mobile-raised) !important;
+    border: 1px solid var(--clients-mobile-border) !important;
+  }
+
+  .clients-m-name {
+    color: var(--clients-mobile-text) !important;
+  }
+
+  .clients-m-phone,
+  .clients-m-note {
+    color: var(--clients-mobile-muted) !important;
+  }
+
+  .clients-m-menu .clients-row-menu-button {
+    color: var(--clients-mobile-muted) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+  }
+
+  .clients-m-stats {
+    overflow: hidden !important;
+    background: var(--clients-mobile-field) !important;
+    border-color: var(--clients-mobile-border) !important;
+    border-radius: 9px !important;
+  }
+
+  .clients-m-stat {
+    min-height: 57px !important;
+    padding: 8px 9px !important;
+  }
+
+  .clients-m-stat + .clients-m-stat {
+    border-left-color: var(--clients-mobile-border) !important;
+  }
+
+  .clients-m-stat span {
+    color: #85858a !important;
+    letter-spacing: 0 !important;
+  }
+
+  .clients-m-stat strong {
+    color: var(--clients-mobile-text) !important;
+  }
+
+  .clients-m-actions {
+    gap: 8px !important;
+  }
+
+  .clients-m-actions :is(.client-action-write, .client-action-record) {
+    height: 38px !important;
+    min-height: 38px !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+  }
+
+  .clients-m-actions .client-action-write {
+    color: #c7c7ca !important;
+    background: var(--clients-mobile-field) !important;
+    border-color: var(--clients-mobile-border) !important;
+  }
+
+  .clients-m-actions .client-action-record {
+    color: #ff7476 !important;
+    background: var(--clients-mobile-accent-soft) !important;
+    border-color: rgba(239, 56, 59, 0.42) !important;
+  }
+
+  .clients-pagination {
+    padding-bottom: 0 !important;
+    border-color: var(--clients-mobile-border) !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .clients-filterbar {
+    gap: 5px !important;
+  }
+
+  .clients-filter-select {
+    padding-left: 8px !important;
+    font-size: 11px !important;
+  }
+
+  .clients-select-lead-icon {
+    display: none !important;
+  }
+
+  .clients-m-card {
+    padding: 10px !important;
+  }
+}
