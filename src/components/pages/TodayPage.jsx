@@ -6,6 +6,14 @@ import Button from "../ui/Button";
 import Checkbox from "../ui/Checkbox";
 import IconButton from "../ui/IconButton.jsx";
 import { formatCompactMoney, formatMoney } from "../../utils/formatters.jsx";
+import { useBreakpoint } from "../../hooks/useBreakpoint.js";
+import {
+  formatDuration,
+  getInputDate,
+  getTimeMinutes,
+  getVisitEndMinutes,
+} from "../../utils/todayFormat.js";
+import TodayMobile from "./TodayMobile.jsx";
 import "./TodayPage.css";
 
 const visitStatusLabels = {
@@ -108,7 +116,7 @@ function TodayReferenceBoard({
     if (!filteredVisits.length) return null;
 
     const now = new Date();
-    const actualToday = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+    const actualToday = getInputDate(now);
     const currentMinutes = dashboard.today === actualToday ? now.getHours() * 60 + now.getMinutes() : -1;
 
     return (
@@ -442,25 +450,6 @@ function TodayReferenceBoard({
   );
 }
 
-const formatDuration = (value) => {
-  const minutes = Number(value) || 0;
-  if (minutes < 60) return `${minutes} мин`;
-  const hours = Math.floor(minutes / 60);
-  const remainder = minutes % 60;
-  return remainder ? `${hours}ч ${remainder}м` : `${hours}ч`;
-};
-
-const getTimeMinutes = (value) => {
-  const [hours = 0, minutes = 0] = String(value ?? "")
-    .split(":")
-    .map((part) => Number(part));
-
-  return (Number.isFinite(hours) ? hours : 0) * 60 + (Number.isFinite(minutes) ? minutes : 0);
-};
-
-const getVisitEndMinutes = (entry) =>
-  getTimeMinutes(entry?.time ?? entry?.startTime) + Math.max(1, Number(entry?.duration) || 60);
-
 const formatTodayHeading = (value) => {
   const date = new Date(`${value}T12:00:00`);
   const day = new Intl.DateTimeFormat("ru-RU", {
@@ -502,6 +491,7 @@ function TodayPage({
     return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
   });
   const openVisitMenuRef = useRef(null);
+  const { isMobile } = useBreakpoint();
 
   const dashboard = useMemo(
     () =>
@@ -515,7 +505,9 @@ function TodayPage({
         clientProfiles,
         completedVisits,
         employees,
-        now: new Date(`${selectedDate}T12:00:00`),
+        // Для сегодняшней даты берём реальное время: от него зависят свободные окна,
+        // «ближайшие визиты» и незакрытые визиты. Для других дат — полдень выбранного дня.
+        now: selectedDate === getInputDate() ? new Date() : new Date(`${selectedDate}T12:00:00`),
         supplies,
         tasks,
         visits,
@@ -542,8 +534,8 @@ function TodayPage({
 
   const freeMinutes = useMemo(() => {
     const slots = selectedEmployees.length
-      ? dashboard.freeSlots.filter((slot) => selectedEmployees.includes(slot.master))
-      : dashboard.freeSlots;
+      ? dashboard.allFreeSlots.filter((slot) => selectedEmployees.includes(slot.master))
+      : dashboard.allFreeSlots;
     if (!slots.length) return 0;
     const totalMinutes = slots.reduce(
       (total, slot) => total + (Number(slot.durationMinutes) || 0),
@@ -552,7 +544,15 @@ function TodayPage({
     const uniqueMastersCount =
       new Set(slots.map((slot) => slot.master).filter(Boolean)).size || 1;
     return Math.min(14 * 60, Math.round(totalMinutes / uniqueMastersCount));
-  }, [dashboard.freeSlots, selectedEmployees]);
+  }, [dashboard.allFreeSlots, selectedEmployees]);
+
+  const mobileFreeSlots = useMemo(
+    () =>
+      selectedEmployees.length
+        ? dashboard.allFreeSlots.filter((slot) => selectedEmployees.includes(slot.master))
+        : dashboard.allFreeSlots,
+    [dashboard.allFreeSlots, selectedEmployees],
+  );
 
   const changeDate = (offset, exactDate) => {
     if (exactDate) {
@@ -582,6 +582,32 @@ function TodayPage({
     document.addEventListener("pointerdown", closeMenu);
     return () => document.removeEventListener("pointerdown", closeMenu);
   }, [openVisitMenuId]);
+
+  if (isMobile) {
+    return (
+      <TodayMobile
+        clientProfiles={clientProfiles}
+        dashboard={dashboard}
+        formatIncome={formatIncome}
+        freeMinutes={freeMinutes}
+        freeSlots={mobileFreeSlots}
+        onAddVisit={onAddVisit}
+        onChangeDate={changeDate}
+        onEditVisit={onEditVisit}
+        onOpenCalendar={onOpenCalendar}
+        onOpenClients={onOpenClients}
+        onOpenOperations={onOpenOperations}
+        onOpenPayments={onOpenPayments}
+        onRemindVisit={onRemindVisit}
+        openVisitMenuId={openVisitMenuId}
+        openVisitMenuRef={openVisitMenuRef}
+        selectedDate={selectedDate}
+        selectedEmployees={selectedEmployees}
+        setOpenVisitMenuId={setOpenVisitMenuId}
+        setSelectedEmployees={setSelectedEmployees}
+      />
+    );
+  }
 
   return (
     <TodayReferenceBoard

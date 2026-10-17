@@ -46,6 +46,7 @@ export const buildTodayFreeSlots = ({
     minSlotMinutes,
     Number(appSettings.calendarSlotMinutes) || 15,
   );
+  const gridMinutes = Math.max(5, Number(appSettings.calendarSlotMinutes) || 15);
   const freeSlots = [];
 
   employees.forEach((employee) => {
@@ -65,7 +66,12 @@ export const buildTodayFreeSlots = ({
     });
     const shiftStart = toMinutes(shift.start);
     const shiftEnd = toMinutes(shift.end);
-    const windowStart = Math.max(shiftStart, currentMinutes);
+    // Начало окна, вычисленное по текущему времени, округляем вверх до сетки календаря,
+    // чтобы не предлагать «11:57», а сразу ближайшее реальное время записи.
+    const windowStart =
+      currentMinutes > shiftStart
+        ? Math.ceil(currentMinutes / gridMinutes) * gridMinutes
+        : shiftStart;
     const windowEnd = shiftEnd;
 
     if (windowStart >= windowEnd) {

@@ -185,13 +185,19 @@ export const buildTodayDashboard = ({
       const dateDiff = String(left.date ?? "").localeCompare(String(right.date ?? ""));
       return dateDiff || sortByTime(left, right);
     });
-  const freeSlots = buildTodayFreeSlots({
-    appSettings,
-    calendarEntries,
-    employees,
-    now,
-    today,
-  });
+  // Свободные окна считаются от реального «сейчас» только для сегодняшнего дня.
+  // Для будущей даты окно открыто с начала смены, для прошедшей — окон нет.
+  const realToday = getInputDateFromNow(new Date());
+  const freeSlots =
+    today < realToday
+      ? []
+      : buildTodayFreeSlots({
+          appSettings,
+          calendarEntries,
+          employees,
+          now: today === realToday ? now : new Date(`${today}T00:00:00`),
+          today,
+        });
   const taskCandidates = [
     ...getOverdueTasks(tasks, today).filter((task) => !isTaskRepeating(task)),
     ...expandTasksForRange(tasks, today, today),
@@ -237,6 +243,7 @@ export const buildTodayDashboard = ({
     dueTasks,
     forecastRevenue: Number(alertSummary.revenueToday) || 0,
     financialQuality,
+    allFreeSlots: freeSlots,
     freeSlots: freeSlots.slice(0, 8),
     lowStockSupplies: lowStockSupplies.slice(0, 6),
     priorityAlerts,

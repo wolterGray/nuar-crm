@@ -38,9 +38,31 @@ describe("calendarFreeSlots", () => {
     );
     expect(slots.some((slot) => slot.startTime === "13:00")).toBe(true);
   });
+
+  it("rounds the start of the first window up to the calendar grid", () => {
+    const today = getTodayInput();
+    const slots = buildTodayFreeSlots({
+      appSettings: {workdayStart: "08:00", workdayEnd: "18:00", calendarSlotMinutes: 15},
+      calendarEntries: [],
+      employees: [{name: "Kasia", shiftStart: "08:00", shiftEnd: "18:00"}],
+      now: new Date(`${today}T11:57:00`),
+      today,
+    });
+
+    expect(slots[0].startTime).toBe("12:00");
+  });
 });
 
 describe("todayDashboard", () => {
+  it("has no free windows for past days", () => {
+    const dashboard = buildTodayDashboard({
+      employees: [{name: "Kasia", shiftStart: "08:00", shiftEnd: "18:00"}],
+      now: new Date("2020-01-06T12:00:00"),
+    });
+
+    expect(dashboard.freeSlots).toEqual([]);
+  });
+
   it("builds snapshot and operational lists", () => {
     const today = getTodayInput();
     const [, month, day] = today.split("-");
