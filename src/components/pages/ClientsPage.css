@@ -32,6 +32,235 @@
   overflow: visible;
 }
 
+/* ==========================================================================
+   Quality Intelligence Panel (Sleek Apple/Linear Analytics Card)
+   ========================================================================== */
+.clients-quality-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface, #141416);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-card, 14px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.quality-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  background: var(--surface-2, #18181b);
+  border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.05));
+}
+
+.quality-panel-icon-wrap {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--accent-soft, rgba(225, 29, 46, 0.12));
+  color: var(--accent, #e11d2e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.quality-panel-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text, #ffffff);
+  letter-spacing: -0.01em;
+}
+
+.quality-score-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.quality-score-pill.is-good {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  color: #4ade80;
+}
+
+.quality-score-pill.is-warning {
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  color: #facc15;
+}
+
+.quality-score-pill .score-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.quality-panel-summary {
+  font-size: 11.5px;
+  color: var(--text-muted, #a4a4ac);
+}
+
+/* 4-Column KPI Strip (matches /today KPI aesthetic) */
+.quality-metrics-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--surface, #141416);
+  border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.05));
+}
+
+.quality-metric-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 14px;
+  border-right: 1px solid var(--border-soft, rgba(255, 255, 255, 0.05));
+}
+
+.quality-metric-cell:last-child {
+  border-right: none;
+}
+
+.quality-metric-cell .metric-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted, #8e8e93);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.quality-metric-cell .metric-val-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.quality-metric-cell .metric-val {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.quality-metric-cell .metric-sub {
+  font-size: 11px;
+  color: var(--text-faint, #71717a);
+  white-space: nowrap;
+}
+
+/* Actionable Details 2-Column Grid */
+.quality-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  background: var(--surface, #141416);
+}
+
+.quality-action-col {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  border-right: 1px solid var(--border-soft, rgba(255, 255, 255, 0.05));
+}
+
+.quality-action-col:last-child {
+  border-right: none;
+}
+
+.quality-action-col-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--text-muted, #a4a4ac);
+  margin-bottom: 7px;
+}
+
+.quality-action-col-header .col-count {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-faint, #71717a);
+}
+
+.quality-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 125px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.quality-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 8px;
+  border-radius: var(--radius-md, 7px);
+  background: var(--surface-2, #18181b);
+  border: 1px solid var(--border-soft, rgba(255, 255, 255, 0.04));
+  transition: background-color 100ms ease, border-color 100ms ease;
+}
+
+.quality-item-row:hover {
+  background: var(--color-field-hover, rgba(255, 255, 255, 0.06));
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.12));
+}
+
+.quality-item-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--field, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border-soft, rgba(255, 255, 255, 0.08));
+  color: var(--text-muted, #a4a4ac);
+  font-size: 9px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.quality-item-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text, #ffffff);
+}
+
+.quality-item-tag {
+  font-size: 10.5px;
+  color: var(--color-warning, #e0a43a);
+}
+
+.quality-action-btn {
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 8px !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
+  flex-shrink: 0;
+}
+
+.quality-empty-notice {
+  font-size: 12px;
+  color: var(--text-faint, #71717a);
+  padding: 6px 0;
+  margin: 0;
+}
+
 /* Main Client List Area (100% full width) */
 .clients-main-workspace-area {
   display: flex;
@@ -483,6 +712,36 @@
     border-radius: 0;
     border-left: 0;
     border-right: 0;
+  }
+
+  .clients-quality-panel {
+    border-radius: 10px;
+    margin: 0 4px 6px;
+  }
+
+  .quality-metrics-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quality-metric-cell:nth-child(2) {
+    border-right: none;
+  }
+
+  .quality-metric-cell:nth-child(-n+2) {
+    border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.05));
+  }
+
+  .quality-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quality-action-col {
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.05));
+  }
+
+  .quality-action-col:last-child {
+    border-bottom: none;
   }
 
   .clients-toolbar-primary {

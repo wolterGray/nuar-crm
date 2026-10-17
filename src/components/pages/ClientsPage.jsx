@@ -554,6 +554,7 @@ function ClientsPage({
       {showQuality && (
         <ClientQualityPanel
           report={clientQualityReport}
+          onClose={() => setShowQuality(false)}
           onEditClient={onEditClient}
           onOpenClient={(client) => {
             handleSelectClient(client);

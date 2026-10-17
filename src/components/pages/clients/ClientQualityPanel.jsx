@@ -1,106 +1,207 @@
+import AppIcon from "../../ui/AppIcon.jsx";
 import Button from "../../ui/Button.jsx";
+import IconButton from "../../ui/IconButton.jsx";
 
-export default function ClientQualityPanel({ report, onEditClient, onOpenClient }) {
+export default function ClientQualityPanel({
+  report,
+  onClose,
+  onEditClient,
+  onOpenClient,
+}) {
   const topMissing = [
     ...report.missingPhone.map((client) => ({
       client,
       label: "Нет телефона",
+      type: "phone",
     })),
     ...report.missingSource.map((client) => ({
       client,
       label: "Нет источника",
+      type: "source",
     })),
     ...report.missingMessageLanguage.map((client) => ({
       client,
       label: "Нет языка SMS",
+      type: "lang",
     })),
   ].slice(0, 5);
-  const duplicateGroups = [...report.duplicatePhones, ...report.duplicateNames].slice(
-    0,
-    4,
-  );
+
+  const duplicateGroups = [
+    ...report.duplicatePhones.map((group) => ({ ...group, type: "phone" })),
+    ...report.duplicateNames.map((group) => ({ ...group, type: "name" })),
+  ].slice(0, 4);
+
+  const isGoodHealth = report.score >= 90;
 
   return (
-    <section className="clients-quality-panel grid grid-cols-1 md:grid-cols-[0.8fr_1.2fr_1.4fr] gap-3 mb-3 p-4 rounded-xl border border-border bg-surface">
-      {/* Quality Score */}
-      <div className="clients-quality-card clients-quality-score flex flex-col gap-1 p-3.5 rounded-xl border border-border bg-surface-2">
-        <span className="text-[10px] text-textMuted uppercase tracking-wider font-semibold">Качество базы</span>
-        <strong className="text-textPrimary text-3xl font-extrabold leading-none mt-1">{report.score}%</strong>
-        <small className="text-[11px] text-textMuted mt-2">
-          {report.hasIssues
-            ? `${report.issuesCount} пунктов к проверке`
-            : "База выглядит чисто"}
-        </small>
-      </div>
-
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-2 gap-2">
-        <article className="clients-quality-card flex flex-col justify-center p-3 rounded-xl border border-border bg-surface-2">
-          <span className="text-[10px] text-textMuted uppercase tracking-wider font-semibold">Дубли телефонов</span>
-          <strong className="text-textPrimary text-xl font-bold mt-1">{report.duplicatePhones.length}</strong>
-        </article>
-        <article className="clients-quality-card flex flex-col justify-center p-3 rounded-xl border border-border bg-surface-2">
-          <span className="text-[10px] text-textMuted uppercase tracking-wider font-semibold">Дубли имён</span>
-          <strong className="text-textPrimary text-xl font-bold mt-1">{report.duplicateNames.length}</strong>
-        </article>
-        <article className="clients-quality-card flex flex-col justify-center p-3 rounded-xl border border-border bg-surface-2">
-          <span className="text-[10px] text-textMuted uppercase tracking-wider font-semibold">Без телефона</span>
-          <strong className="text-textPrimary text-xl font-bold mt-1">{report.missingPhone.length}</strong>
-        </article>
-        <article className="clients-quality-card flex flex-col justify-center p-3 rounded-xl border border-border bg-surface-2">
-          <span className="text-[10px] text-textMuted uppercase tracking-wider font-semibold">Без источника/SMS</span>
-          <strong className="text-textPrimary text-xl font-bold mt-1">
-            {report.missingSource.length + report.missingMessageLanguage.length}
-          </strong>
-        </article>
-      </div>
-
-      {/* Quality Lists */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {/* Missing fields */}
-        <div className="clients-quality-card flex flex-col gap-1.5 p-3 rounded-xl border border-border bg-surface-2">
-          <span className="text-[10px] text-textMuted uppercase tracking-wider font-semibold mb-1">Быстро исправить</span>
-          {topMissing.length > 0 ? (
-            <div className="divide-y divide-border/40 overflow-y-auto max-h-36 pr-0.5">
-              {topMissing.map((item) => (
-                <Button
-                  key={`${item.label}-${item.client.id}`}
-                  className="flex flex-col items-start text-left py-1.5 w-full bg-transparent border-0 hover:text-accent group transition-colors cursor-pointer"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onEditClient?.(item.client)}>
-                  <strong className="text-xs text-textPrimary group-hover:text-accent font-semibold truncate w-full">{item.client.name}</strong>
-                  <small className="text-[10px] text-textMuted truncate w-full">{item.label}</small>
-                </Button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-textMuted py-2">Критичных пропусков нет.</p>
-          )}
+    <section aria-label="Анализ качества базы" className="clients-quality-panel">
+      {/* 1. Header Bar: Title, Health Score Badge, Close Button */}
+      <div className="quality-panel-header">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="quality-panel-icon-wrap">
+            <AppIcon name="barChart2" size="sm" />
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="quality-panel-title">Анализ качества базы</h3>
+            <span
+              className={`quality-score-pill ${
+                isGoodHealth ? "is-good" : "is-warning"
+              }`}>
+              <span className="score-dot" />
+              <span>{report.score}% чистоты</span>
+            </span>
+          </div>
+          <span className="quality-panel-summary hidden sm:inline">
+            {report.hasIssues
+              ? `${report.issuesCount} пунктов требуют внимания`
+              : "Критических проблем не обнаружено"}
+          </span>
         </div>
 
-        {/* Duplicates */}
-        <div className="clients-quality-card flex flex-col gap-1.5 p-3 rounded-xl border border-border bg-surface-2">
-          <span className="text-[10px] text-textMuted uppercase tracking-wider font-semibold mb-1">Похожие клиенты</span>
-          {duplicateGroups.length > 0 ? (
-            <div className="divide-y divide-border/40 overflow-y-auto max-h-36 pr-0.5">
-              {duplicateGroups.map((group) => (
-                <Button
-                  key={group.key}
-                  className="flex flex-col items-start text-left py-1.5 w-full bg-transparent border-0 hover:text-accent group transition-colors cursor-pointer"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onOpenClient(group.clients[0])}>
-                  <strong className="text-xs text-textPrimary group-hover:text-accent font-semibold truncate w-full">{group.clients.map((client) => client.name).join(" / ")}</strong>
-                  <small className="text-[10px] text-textMuted truncate w-full">{group.clients.length} записи · открыть</small>
-                </Button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-textMuted py-2">Дублей не найдено.</p>
-          )}
+        {onClose && (
+          <IconButton
+            icon="x"
+            label="Скрыть анализ"
+            size="sm"
+            variant="ghost"
+            onClick={onClose}
+          />
+        )}
+      </div>
+
+      {/* 2. Metrics Row (Clean 4-column KPI strip like /today) */}
+      <div className="quality-metrics-strip">
+        <div className="quality-metric-cell">
+          <span className="metric-label">Дубли телефонов</span>
+          <div className="metric-val-wrap">
+            <strong className={`metric-val ${report.duplicatePhones.length > 0 ? "text-amber-400" : "text-textPrimary"}`}>
+              {report.duplicatePhones.length}
+            </strong>
+            <span className="metric-sub">совпадающих</span>
+          </div>
+        </div>
+
+        <div className="quality-metric-cell">
+          <span className="metric-label">Дубли имён</span>
+          <div className="metric-val-wrap">
+            <strong className={`metric-val ${report.duplicateNames.length > 0 ? "text-amber-400" : "text-textPrimary"}`}>
+              {report.duplicateNames.length}
+            </strong>
+            <span className="metric-sub">одинаковых ФИО</span>
+          </div>
+        </div>
+
+        <div className="quality-metric-cell">
+          <span className="metric-label">Без телефона</span>
+          <div className="metric-val-wrap">
+            <strong className={`metric-val ${report.missingPhone.length > 0 ? "text-rose-400" : "text-textPrimary"}`}>
+              {report.missingPhone.length}
+            </strong>
+            <span className="metric-sub">нет контактов</span>
+          </div>
+        </div>
+
+        <div className="quality-metric-cell">
+          <span className="metric-label">Без источника / SMS</span>
+          <div className="metric-val-wrap">
+            <strong className={`metric-val ${(report.missingSource.length + report.missingMessageLanguage.length) > 0 ? "text-amber-400" : "text-emerald-400"}`}>
+              {report.missingSource.length + report.missingMessageLanguage.length}
+            </strong>
+            <span className="metric-sub">
+              {(report.missingSource.length + report.missingMessageLanguage.length) === 0 ? "все каналы есть" : "не заполнен канал"}
+            </span>
+          </div>
         </div>
       </div>
+
+      {/* 3. Actionable Details Grid (Two columns with lists) */}
+      {(topMissing.length > 0 || duplicateGroups.length > 0) && (
+        <div className="quality-actions-grid">
+          {/* Col 1: Missing Fields to Fix */}
+          <div className="quality-action-col">
+            <div className="quality-action-col-header">
+              <AppIcon name="edit3" size="xs" />
+              <span>Быстро заполнить профили</span>
+              <span className="col-count">({report.missingPhone.length + report.missingSource.length})</span>
+            </div>
+
+            {topMissing.length > 0 ? (
+              <div className="quality-items-list">
+                {topMissing.map((item) => (
+                  <div
+                    key={`${item.label}-${item.client.id}`}
+                    className="quality-item-row">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className="quality-item-avatar">
+                        {(item.client.name || "?").slice(0, 2).toUpperCase()}
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="quality-item-name truncate">
+                          {item.client.name || item.client.phone || "Без имени"}
+                        </span>
+                        <span className="quality-item-tag">
+                          {item.label}
+                        </span>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="subtle"
+                      className="quality-action-btn"
+                      onClick={() => onEditClient?.(item.client)}>
+                      <span>Заполнить</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="quality-empty-notice">Все важные контакты заполнены.</p>
+            )}
+          </div>
+
+          {/* Col 2: Duplicates */}
+          <div className="quality-action-col">
+            <div className="quality-action-col-header">
+              <AppIcon name="users" size="xs" />
+              <span>Возможные дубликаты</span>
+              <span className="col-count">({report.duplicatePhones.length + report.duplicateNames.length})</span>
+            </div>
+
+            {duplicateGroups.length > 0 ? (
+              <div className="quality-items-list">
+                {duplicateGroups.map((group) => {
+                  const firstClient = group.clients[0];
+                  return (
+                    <div
+                      key={group.key}
+                      className="quality-item-row">
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <span className="quality-item-name font-semibold truncate">
+                            {group.clients.map((c) => c.name).join(" · ")}
+                          </span>
+                        </div>
+                        <span className="quality-item-tag text-amber-400">
+                          {group.type === "phone" ? "Одинаковый телефон" : "Одинаковое имя"} · {group.clients.length} записи
+                        </span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="subtle"
+                        className="quality-action-btn"
+                        onClick={() => onOpenClient(firstClient)}>
+                        <span>Открыть</span>
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="quality-empty-notice">Дубликатов клиентов не найдено.</p>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
