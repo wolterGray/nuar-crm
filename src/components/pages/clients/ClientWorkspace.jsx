@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useEffect, useRef } from "react";
+import { memo, useState, useCallback } from "react";
 import AppIcon from "../../ui/AppIcon.jsx";
 import Button from "../../ui/Button.jsx";
 import IconButton from "../../ui/IconButton.jsx";
@@ -50,15 +50,6 @@ function ClientWorkspace({
   const [copiedField, setCopiedField] = useState(null);
   const [noteSavedFeedback, setNoteSavedFeedback] = useState(false);
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
-  const workspaceBodyRef = useRef(null);
-
-  useEffect(() => {
-    setActiveTab("overview");
-    setVisitHistoryFilter("all");
-    setOpenActionMenuId(null);
-    workspaceBodyRef.current?.scrollTo({ top: 0 });
-  }, [client?.id]);
-
   const copyToClipboard = useCallback((text, fieldKey) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
@@ -327,7 +318,7 @@ function ClientWorkspace({
       </div>
 
       {/* 2. Scrollable Body Content */}
-      <div ref={workspaceBodyRef} className="client-workspace-body flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+      <div className="client-workspace-body flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
         {/* ===================== TAB 1: OVERVIEW ===================== */}
         {activeTab === "overview" && (
           <div className="client-workspace-overview space-y-3.5">

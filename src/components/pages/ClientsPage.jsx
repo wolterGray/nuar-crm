@@ -735,6 +735,7 @@ function ClientsPage({
               onClick={(e) => e.stopPropagation()}>
               <ClientWorkspace
                 client={drawerClient}
+                key={drawerClient.id}
                 communicationLog={communicationLog}
                 formatAppointmentSummary={formatAppointmentSummary}
                 formatMoney={formatMoney}
