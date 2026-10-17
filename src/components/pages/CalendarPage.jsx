@@ -25,7 +25,7 @@ import {getEmployeeShiftForDate, isEmployeeAvailableOnDate} from "../../utils/em
 const QUARTER_HEIGHT = 22;
 const DESKTOP_SCHEDULE_HEADER_HEIGHT = 48;
 const MOBILE_SCHEDULE_HEADER_HEIGHT = 54;
-const MOBILE_TIME_AXIS_WIDTH = 30;
+const MOBILE_TIME_AXIS_WIDTH = 52;
 const MOBILE_MIN_MASTER_WIDTH = 140;
 const isValidInputDate = (date) =>
   /^\d{4}-\d{2}-\d{2}$/.test(String(date)) &&
@@ -50,6 +50,13 @@ const shiftDate = (date, days) => {
   nextDate.setDate(nextDate.getDate() + days);
   return nextDate.toISOString().slice(0, 10);
 };
+
+const toMobileWeekday = (date) =>
+  new Intl.DateTimeFormat("ru-RU", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date(`${date}T12:00:00`));
 
 const toClockTime = (minutes) =>
   `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(
@@ -680,7 +687,8 @@ return (
               />
               <div className="relative nuar-calendar-date-picker-wrapper">
                 <span className="nuar-calendar-date-display cursor-pointer hover:opacity-85 transition-opacity">
-                  {toDisplayDate(selectedDate)}
+                  <b>{toDisplayDate(selectedDate)}</b>
+                  <small>{toMobileWeekday(selectedDate)}</small>
                 </span>
                 <input
                   type="date"
@@ -704,6 +712,18 @@ return (
                 onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}
               />
             </div>
+            {isMobile && (
+              <label className="nuar-calendar-mobile-picker-button" aria-label="Открыть календарь">
+                <AppIcon name="calendar" size="md" />
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(event) => {
+                    if (event.target.value) selectCalendarDate(event.target.value);
+                  }}
+                />
+              </label>
+            )}
             {!isToday && !isMobile && (
               <Button
                 className="nuar-calendar-today-button"
@@ -722,18 +742,6 @@ return (
                 size="md"
                 variant="outline"
                 onClick={() => setRemindersVisible(true)}
-              />
-            )}
-            {isMobile && (
-              <IconButton
-                className={overlayOpen ? "hidden" : ""}
-                icon={showDayList ? "layoutGrid" : "list"}
-                label={showDayList ? "Показать сетку" : "Показать список"}
-                size="md"
-                variant="outline"
-                onClick={() =>
-                  setMobileCalendarView((current) => (current === "list" ? "grid" : "list"))
-                }
               />
             )}
             {!isMobile && (
@@ -810,6 +818,29 @@ return (
         })}
       </div>
 
+      <div className="nuar-calendar-mobile-view-switch" role="tablist" aria-label="Вид календаря">
+        <button
+          className={mobileCalendarView === "grid" ? "is-active" : ""}
+          type="button"
+          role="tab"
+          aria-selected={mobileCalendarView === "grid"}
+          onClick={() => setMobileCalendarView("grid")}
+        >
+          <AppIcon name="calendar" size="sm" />
+          Расписание
+        </button>
+        <button
+          className={mobileCalendarView === "list" ? "is-active" : ""}
+          type="button"
+          role="tab"
+          aria-selected={mobileCalendarView === "list"}
+          onClick={() => setMobileCalendarView("list")}
+        >
+          <AppIcon name="list" size="sm" />
+          Список
+        </button>
+      </div>
+
       {isMobile && !isToday && (
         <Button
           className={`nuar-calendar-floating-today ${
@@ -871,6 +902,13 @@ return (
               className="nuar-calendar-schedule min-w-0 min-h-0 max-h-full overflow-auto p-0 overscroll-contain scrollbar-thin"
               ref={schedulePanelRef}
             >
+              {isMobile && dayEntries.length === 0 && (
+                <div className="nuar-calendar-empty-day" aria-live="polite">
+                  <AppIcon name="calendar" size="lg" />
+                  <strong>На выбранный день визитов пока нет</strong>
+                  <span>Нажмите на свободное время, чтобы создать запись</span>
+                </div>
+              )}
               <div
                 className={`nuar-calendar-grid grid select-none ${
                   isMobile ? "w-full min-w-0" : "min-w-[700px]"

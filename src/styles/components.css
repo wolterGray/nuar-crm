@@ -7906,8 +7906,8 @@
     min-height: 0;
     gap: 8px;
     margin: 0;
-    padding: 10px var(--mobile-page-x, 16px) 8px;
-    border-bottom: 1px solid var(--color-border);
+    padding: 8px var(--mobile-page-x, 16px) 6px;
+    border-bottom: 0;
     background: transparent;
     overflow: visible;
   }
@@ -7960,7 +7960,7 @@
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-header .page-title {
-    font-size: 20px;
+    font-size: 30px;
     line-height: 1.2;
     overflow: visible;
   }
@@ -7994,7 +7994,7 @@
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-actions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 40px 40px;
+    grid-template-columns: minmax(0, 1fr) 48px;
     align-items: center;
     gap: 6px;
     width: 100%;
@@ -8003,31 +8003,111 @@
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-date-nav {
     display: grid;
-    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
     width: 100%;
     min-width: 0;
     gap: 6px;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] :is(.nuar-calendar-date-nav button, .nuar-calendar-actions > button) {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
     padding: 0;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-date-display {
-    display: inline-flex;
+    display: grid;
     width: 100%;
     min-width: 0;
-    min-height: 40px;
+    min-height: 48px;
+    place-content: center;
+    gap: 2px;
+    padding: 4px 8px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-date-display b {
+    font-size: 17px;
+    font-weight: 760;
+    line-height: 1.1;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-date-display small {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-picker-button {
+    position: relative;
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border: 1px solid var(--calendar-border);
+    border-radius: 10px;
+    color: var(--calendar-text);
+    background: var(--color-card);
+    overflow: hidden;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-picker-button input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-feed-button {
+    display: none !important;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-view-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    flex: 0 0 48px;
+    width: calc(100% - (var(--mobile-page-x, 16px) * 2));
+    min-height: 48px;
+    margin: 3px var(--mobile-page-x, 16px) 6px;
+    padding: 3px;
+    border: 1px solid var(--calendar-border);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--color-card) 84%, var(--color-page));
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-view-switch button {
+    display: inline-flex;
+    min-width: 0;
     align-items: center;
     justify-content: center;
-    padding: 0 10px;
-    font-size: 15px;
-    font-weight: 750;
-    white-space: nowrap;
+    gap: 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--color-text-muted);
+    background: transparent;
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-view-switch button.is-active {
+    border-color: color-mix(in srgb, var(--calendar-accent) 70%, transparent);
+    color: var(--color-text);
+    background: color-mix(in srgb, var(--calendar-accent) 20%, var(--color-card));
+    box-shadow: inset 0 0 18px color-mix(in srgb, var(--calendar-accent) 10%, transparent);
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-view-switch button.is-active svg {
+    color: var(--calendar-accent);
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-layout {
@@ -8053,10 +8133,12 @@
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-schedule {
+    position: relative;
     width: 100%;
     max-width: 100%;
-    height: calc(100dvh - var(--mobile-safe-top, env(safe-area-inset-top, 0px)) - var(--mobile-nav-total, calc(72px + env(safe-area-inset-bottom, 0px))) - 130px);
-    max-height: calc(100dvh - var(--mobile-safe-top, env(safe-area-inset-top, 0px)) - var(--mobile-nav-total, calc(72px + env(safe-area-inset-bottom, 0px))) - 130px);
+    height: auto;
+    max-height: none;
+    flex: 1 1 auto;
     min-height: 0;
     overflow-x: auto;
     overflow-y: auto;
@@ -8072,8 +8154,8 @@
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-time-axis {
-    width: var(--calendar-time-axis-width, 30px) !important;
-    min-width: var(--calendar-time-axis-width, 30px) !important;
+    width: var(--calendar-time-axis-width, 52px) !important;
+    min-width: var(--calendar-time-axis-width, 52px) !important;
     padding-top: 0 !important;
   }
 
@@ -8081,10 +8163,10 @@
     display: block !important;
     position: absolute !important;
     top: 0 !important;
-    right: 1px !important;
+    right: 8px !important;
     padding: 0 !important;
     text-align: right !important;
-    font-size: 7.5px !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
     color: var(--color-text-muted) !important;
     transform: translateY(-50%) !important;
@@ -8094,8 +8176,8 @@
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-minute-label {
     display: block !important;
     position: absolute !important;
-    right: 1px !important;
-    font-size: 6.5px !important;
+    right: 8px !important;
+    font-size: 8px !important;
     color: var(--color-text-faint) !important;
     opacity: 0.65 !important;
     transform: translateY(-50%) !important;
@@ -8109,11 +8191,11 @@
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-now-label {
     right: calc(100% + 2px);
     justify-content: flex-end;
-    width: calc(var(--calendar-time-axis-width, 30px) - 3px);
+    width: calc(var(--calendar-time-axis-width, 52px) - 4px);
     height: 14px;
     padding: 0;
     background: transparent;
-    font-size: 7.5px;
+    font-size: 10px;
     box-shadow: none;
   }
 
@@ -8138,6 +8220,50 @@
   .mobile-page-container[data-mobile-page="calendar"] .calendar-toolbar-actions > .add-visit-button.calendar-mobile-add-button,
   .mobile-page-container[data-mobile-page="calendar"] .mobile-calendar-feed-button {
     bottom: calc(var(--mobile-nav-total, calc(72px + env(safe-area-inset-bottom, 0px))) + 16px);
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-empty-day {
+    position: sticky;
+    z-index: 8;
+    top: 36%;
+    left: 52px;
+    display: grid;
+    height: 0;
+    width: min(310px, calc(100vw - 76px));
+    margin: 0 auto;
+    place-items: center;
+    gap: 7px;
+    padding: 0 14px;
+    color: var(--color-text-muted);
+    text-align: center;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-empty-day svg {
+    color: var(--color-text-faint);
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-empty-day strong {
+    color: var(--color-text);
+    font-size: 14px;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-empty-day span {
+    max-width: 250px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
+
+@media (min-width: 769px) {
+  .nuar-calendar-mobile-view-switch,
+  .nuar-calendar-mobile-picker-button {
+    display: none;
+  }
+
+  .nuar-calendar-date-display small {
+    display: none;
   }
 }
 
