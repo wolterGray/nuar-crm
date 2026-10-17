@@ -20,6 +20,7 @@ import SettingsToggle from "../SettingsToggle.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 import {AppIcon, Button, Card, Input, PageHeader, Select, TabButton, Tabs} from "../ui/index.js";
+import "./SettingsPage.css";
 
 function SettingsMobileSection({children, isMobile, title}) {
   if (!isMobile) {
@@ -929,7 +930,7 @@ function SettingsPage({
             className="flex items-center gap-1.5 cursor-pointer"
           >
             <AppIcon name="rotateCcw" size="sm" />
-            Сбросить вид
+            {isMobile ? "Сбросить" : "Сбросить вид"}
           </Button>
           <Button
             variant="primary"
@@ -952,7 +953,7 @@ function SettingsPage({
     <section
       className={clsx(
         "settings-page flex flex-col flex-1 h-full min-h-0 overflow-visible",
-        isMobile && "settings-page-mobile",
+        isMobile && "settings-page-mobile nuar-settings",
       )}
     >
       <PageHeader
