@@ -4,6 +4,7 @@ import {Button} from "../ui/index.js";
 import SiteAdminPanel from "../SiteAdminPanel.jsx";
 import SiteBookingNotifySettings from "../SiteBookingNotifySettings.jsx";
 import SiteBookingPanel from "../SiteBookingPanel.jsx";
+import "./SitePage.css";
 
 function SitePage({
   alertFocus,
@@ -31,7 +32,7 @@ function SitePage({
 
   if (isMobile) {
     return (
-      <section className="site-page site-page-mobile">
+      <section className="site-page site-page-mobile nuar-site">
         <PageHeader
           className="site-page-header"
           description={
@@ -56,15 +57,21 @@ function SitePage({
           </article>
           <article className="site-page-summary-card">
             <span>Telegram</span>
-            <strong>{telegramEnabled ? "Вкл" : "Выкл"}</strong>
+            <strong className={telegramEnabled ? "is-enabled" : ""}>
+              {telegramEnabled ? "Вкл" : "Выкл"}
+            </strong>
           </article>
           <article className="site-page-summary-card">
             <span>WhatsApp</span>
-            <strong>{whatsappEnabled ? "Вкл" : "Выкл"}</strong>
+            <strong className={whatsappEnabled ? "is-enabled" : ""}>
+              {whatsappEnabled ? "Вкл" : "Выкл"}
+            </strong>
           </article>
           <article className="site-page-summary-card">
             <span>Chat ID</span>
-            <strong>{hasChatId ? "Есть" : "Нет"}</strong>
+            <strong className={hasChatId ? "is-enabled" : ""}>
+              {hasChatId ? "Есть" : "Нет"}
+            </strong>
           </article>
         </div>
 

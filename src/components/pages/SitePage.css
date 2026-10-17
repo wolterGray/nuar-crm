@@ -1,0 +1,534 @@
+/* NUAR Design System: Site Page (Mobile & Desktop) */
+
+.nuar-site {
+  --site-surface: var(--color-window, #141416);
+  --site-surface-raised: var(--color-card-muted, #1b1b1e);
+  --site-field: var(--color-field, rgba(255, 255, 255, 0.04));
+  --site-border: var(--color-border, rgba(255, 255, 255, 0.07));
+  --site-border-soft: var(--color-border-soft, rgba(255, 255, 255, 0.045));
+  --site-accent: var(--color-primary, #e11d2e);
+  --site-accent-soft: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
+  --site-text: var(--color-text, #ffffff);
+  --site-muted: var(--color-text-muted, #a4a4ac);
+  --site-faint: var(--color-text-faint, #7f7f86);
+  --site-success: var(--color-success, #6fcf97);
+}
+
+/* ==========================================================================
+   Mobile Root & Header
+   ========================================================================== */
+.site-page-mobile.nuar-site {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 0 calc(var(--mobile-nav-total, 72px) + 24px) !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+/* Header row alignment */
+.nuar-site .site-page-header {
+  border-bottom: 1px solid var(--site-border) !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 0 !important;
+}
+
+.nuar-site .site-page-header .mobile-ui-page-header-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  min-height: 40px !important;
+}
+
+.nuar-site .site-page-header .mobile-ui-page-header-copy {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.nuar-site .site-page-header .mobile-ui-page-header-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  color: var(--site-text) !important;
+  margin: 0 !important;
+}
+
+/* Notification bell in header */
+.nuar-site .site-page-header .mobile-ui-page-header-trailing {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.nuar-site .site-page-header .page-notifications-slot,
+.nuar-site .site-page-header .client-alert-control,
+.nuar-site .site-page-header .notification-trigger.client-alert-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  background: var(--site-field) !important;
+  border: 1px solid var(--site-border) !important;
+  box-shadow: none !important;
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.nuar-site .site-page-header .client-alert-button svg {
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--site-text) !important;
+  display: block !important;
+}
+
+.nuar-site .site-page-header .notification-trigger.client-alert-button b,
+.nuar-site .site-page-header .notification-trigger.client-alert-button > span {
+  position: absolute !important;
+  top: -3px !important;
+  right: -3px !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  padding: 0 5px !important;
+  border-radius: 999px !important;
+  color: #ffffff !important;
+  background: var(--site-accent) !important;
+  box-shadow: 0 0 0 2px #0a0a0a !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  line-height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10 !important;
+}
+
+/* ==========================================================================
+   Admin Actions (Open Admin / Open Site)
+   ========================================================================== */
+.nuar-site .site-mobile-admin-panel {
+  display: grid !important;
+  width: 100% !important;
+}
+
+.nuar-site .site-admin-mobile-actions.toolbar-actions {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.nuar-site .site-admin-mobile-actions .add-visit-button,
+.nuar-site .site-admin-mobile-actions button[type="button"] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
+  background: var(--site-accent) !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border: 0 !important;
+  box-shadow: 0 2px 8px rgba(225, 29, 46, 0.25) !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+.nuar-site .site-admin-mobile-actions .secondary-button,
+.nuar-site .site-admin-mobile-actions a {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
+  background: var(--site-field) !important;
+  border: 1px solid var(--site-border) !important;
+  color: var(--site-text) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   Summary KPI Grid (2x2)
+   ========================================================================== */
+.nuar-site .site-page-summary {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.nuar-site .site-page-summary-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  min-height: 60px !important;
+  padding: 11px 14px !important;
+  border-radius: 12px !important;
+  background: var(--site-surface) !important;
+  border: 1px solid var(--site-border) !important;
+  box-shadow: none !important;
+}
+
+.nuar-site .site-page-summary-card span {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--site-muted) !important;
+  line-height: 1.2 !important;
+}
+
+.nuar-site .site-page-summary-card strong {
+  font-size: 17px !important;
+  font-weight: 750 !important;
+  color: var(--site-text) !important;
+  line-height: 1.15 !important;
+}
+
+.nuar-site .site-page-summary-card.is-active {
+  border-color: rgba(225, 29, 46, 0.45) !important;
+  background: var(--site-accent-soft) !important;
+}
+
+.nuar-site .site-page-summary-card.is-active strong {
+  color: var(--site-accent) !important;
+}
+
+.nuar-site .site-page-summary-card strong.is-enabled {
+  color: var(--site-success) !important;
+}
+
+/* ==========================================================================
+   Settings Panels / Cards
+   ========================================================================== */
+.nuar-site .site-mobile-section.panel,
+.nuar-site .site-booking-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  padding: 16px 14px !important;
+  border-radius: 14px !important;
+  background: var(--site-surface) !important;
+  border: 1px solid var(--site-border) !important;
+  box-shadow: none !important;
+}
+
+.nuar-site .site-booking-notify-settings {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+}
+
+.nuar-site .settings-panel-heading,
+.nuar-site .site-mobile-section-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin: 0 0 2px !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid var(--site-border-soft) !important;
+}
+
+.nuar-site .settings-panel-heading h2,
+.nuar-site .site-mobile-section-head h3 {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: var(--site-text) !important;
+  margin: 0 !important;
+}
+
+.nuar-site .site-mobile-section-meta {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--site-muted) !important;
+  background: var(--site-field) !important;
+  border: 1px solid var(--site-border-soft) !important;
+  padding: 2px 8px !important;
+  border-radius: 6px !important;
+}
+
+/* Field labels and inputs */
+.nuar-site .site-notify-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  width: 100% !important;
+}
+
+.nuar-site .site-notify-field label,
+.nuar-site .site-notify-field .field-label {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--site-muted) !important;
+}
+
+.nuar-site .site-page input,
+.nuar-site .site-notify-field input,
+.nuar-site :is(input, select, textarea) {
+  min-height: 44px !important;
+  height: 44px !important;
+  border-radius: 10px !important;
+  background: var(--site-field) !important;
+  border: 1px solid var(--site-border) !important;
+  color: var(--site-text) !important;
+  font-size: 14px !important;
+  padding: 0 12px !important;
+  transition: border-color 0.15s ease, background 0.15s ease !important;
+}
+
+.nuar-site .site-page input:focus,
+.nuar-site .site-notify-field input:focus {
+  border-color: rgba(225, 29, 46, 0.45) !important;
+  outline: none !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Checkbox toggle rows */
+.nuar-site .site-notify-toggles {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.nuar-site .form-checkbox.site-notify-toggle {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 46px !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  background: var(--site-field) !important;
+  border: 1px solid var(--site-border) !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+}
+
+.nuar-site .form-checkbox.site-notify-toggle .form-checkbox-label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--site-text) !important;
+  line-height: 1.25 !important;
+}
+
+/* ==========================================================================
+   Site Booking Panel: Status & Action Bar
+   ========================================================================== */
+.nuar-site .site-booking-panel .booksy-sync-status {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  padding: 12px 14px !important;
+  border-radius: 10px !important;
+  background: var(--site-field) !important;
+  border: 1px solid var(--site-border) !important;
+}
+
+.nuar-site .site-booking-panel .booksy-sync-status strong {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--site-success) !important;
+}
+
+.nuar-site .site-booking-panel .booksy-sync-status span {
+  font-size: 12px !important;
+  color: var(--site-muted) !important;
+  line-height: 1.35 !important;
+}
+
+.nuar-site .site-booking-panel .booksy-sync-status small {
+  font-size: 11px !important;
+  color: var(--site-faint) !important;
+}
+
+.nuar-site .site-booking-toolbar-mobile {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.nuar-site .site-booking-toolbar-mobile button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 14px !important;
+  border-radius: 10px !important;
+  background: var(--site-field) !important;
+  border: 1px solid var(--site-border) !important;
+  color: var(--site-text) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  transition: background 0.15s ease, border-color 0.15s ease !important;
+}
+
+.nuar-site .site-booking-toolbar-mobile button:active {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.nuar-site .site-booking-toolbar-mobile button svg {
+  width: 15px !important;
+  height: 15px !important;
+  color: var(--site-muted) !important;
+}
+
+/* ==========================================================================
+   Funnel & Request Cards (if any requests exist)
+   ========================================================================== */
+.nuar-site .site-booking-funnel {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  padding: 12px !important;
+  border-radius: 10px !important;
+  background: var(--site-field) !important;
+  border: 1px solid var(--site-border) !important;
+}
+
+.nuar-site .site-booking-funnel-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+}
+
+.nuar-site .site-booking-funnel-stages {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+.nuar-site .site-booking-funnel-stage {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 4px !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid var(--site-border-soft) !important;
+}
+
+.nuar-site .site-booking-funnel-stage span {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: var(--site-muted) !important;
+}
+
+.nuar-site .site-booking-funnel-stage strong {
+  font-size: 15px !important;
+  font-weight: 750 !important;
+  color: var(--site-text) !important;
+}
+
+/* Individual booking cards */
+.nuar-site .site-booking-card {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  padding: 14px !important;
+  border-radius: 12px !important;
+  background: var(--site-surface-raised) !important;
+  border: 1px solid var(--site-border) !important;
+}
+
+.nuar-site .site-booking-card-main {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.nuar-site .site-booking-card-main strong {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--site-text) !important;
+}
+
+.nuar-site .site-booking-card-actions {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin-top: 4px !important;
+}
+
+.nuar-site .site-booking-card-actions button {
+  height: 42px !important;
+  min-height: 42px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  justify-content: center !important;
+}
+
+/* ==========================================================================
+   Save Bar (Submit Button)
+   ========================================================================== */
+.nuar-site .settings-save-bar {
+  display: flex !important;
+  width: 100% !important;
+  margin-top: 4px !important;
+}
+
+.nuar-site .settings-save-bar .submit-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  border-radius: 10px !important;
+  background: var(--site-accent) !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+  border: 0 !important;
+  box-shadow: 0 4px 14px rgba(225, 29, 46, 0.28) !important;
+  cursor: pointer !important;
+}
+
+.nuar-site .settings-save-bar .submit-button svg {
+  width: 16px !important;
+  height: 16px !important;
+}
