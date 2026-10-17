@@ -236,6 +236,29 @@
   color: #ffffff;
 }
 
+.services-btn-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px;
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #d4d4d8;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 120ms ease;
+  white-space: nowrap;
+}
+
+.services-btn-price:hover {
+  background: #27272a;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
 .services-btn-add-primary {
   display: inline-flex;
   align-items: center;
@@ -2676,8 +2699,8 @@ select.services-status-select option {
   }
 
   .services-page-root .services-btn-add-primary,
-  .services-page-root .services-btn-categories {
-    grid-row: 3 !important;
+  .services-page-root .services-btn-categories,
+  .services-page-root .services-btn-price {
     width: 100% !important;
     height: 42px !important;
     justify-content: center !important;
@@ -2688,13 +2711,23 @@ select.services-status-select option {
   }
 
   .services-page-root .services-btn-add-primary {
-    grid-column: 1 !important;
+    grid-row: 3 !important;
+    grid-column: 1 / -1 !important;
     color: #fff !important;
     background: var(--services-mobile-accent) !important;
     border-color: var(--services-mobile-accent) !important;
   }
 
   .services-page-root .services-btn-categories {
+    grid-row: 4 !important;
+    grid-column: 1 !important;
+    color: #d8d8db !important;
+    background: var(--services-mobile-field) !important;
+    border-color: var(--services-mobile-border) !important;
+  }
+
+  .services-page-root .services-btn-price {
+    grid-row: 4 !important;
     grid-column: 2 !important;
     color: #d8d8db !important;
     background: var(--services-mobile-field) !important;

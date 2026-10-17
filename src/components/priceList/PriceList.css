@@ -1,0 +1,1017 @@
+/* ==========================================================================
+   NUAR CRM — Price List Generator Workspace & Artboard Styles
+   ========================================================================== */
+
+/* Fullscreen Workspace Modal */
+.price-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-page, #0a0a0a);
+  color: var(--color-text, #ffffff);
+  overflow: hidden;
+}
+
+.price-modal-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 1. TOP NAVBAR */
+.price-modal-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 56px;
+  padding: 0 16px;
+  background: var(--color-surface, #141416);
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.price-modal-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.price-modal-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text, #ffffff);
+  letter-spacing: -0.01em;
+}
+
+.price-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--color-field, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  font-size: 11.5px;
+  color: var(--color-text-muted, #a4a4ac);
+  font-weight: 500;
+}
+
+.price-modal-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.price-zoom-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--color-field, #1b1b1e);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-control, 10px);
+  padding: 2px 4px;
+}
+
+.price-zoom-label {
+  min-width: 44px;
+  padding: 0 6px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--color-text, #ffffff);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius-xs, 4px);
+  transition: background 120ms ease;
+}
+
+.price-zoom-label:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.price-modal-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 2. MAIN WORKSPACE AREA */
+.price-modal-workspace {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: calc(100% - 56px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Viewport for artboard */
+.price-viewport-area {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 32px 20px 48px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--color-page, #0a0a0a);
+}
+
+/* Artboard Scale Container */
+.price-artboard-container {
+  display: flex;
+  justify-content: center;
+  transform-origin: top center;
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+/* 3. PRINTABLE ARTICLE DOCUMENT */
+.price-sheet {
+  position: relative;
+  box-sizing: border-box;
+  padding: 40px 36px 32px;
+  display: flex;
+  flex-direction: column;
+  transition: all 180ms ease;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Dimensions per format */
+.price-sheet.format-a4 {
+  width: 680px;
+  min-height: 960px;
+  border-radius: 8px;
+}
+
+.price-sheet.format-stories {
+  width: 540px;
+  min-height: 960px;
+  border-radius: 12px;
+}
+
+.price-sheet.format-post {
+  width: 600px;
+  min-height: 750px;
+  border-radius: 12px;
+}
+
+/* Theme: Nuar Dark */
+.price-sheet.theme-dark {
+  background: #0d0d0f;
+  color: #f4f4f6;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  --price-border: rgba(255, 255, 255, 0.08);
+  --price-text: #ffffff;
+  --price-muted: #9e9ea6;
+  --price-faint: #6e6e76;
+  --price-dots: rgba(255, 255, 255, 0.18);
+  --price-accent: #e11d2e;
+  --price-chip-bg: rgba(255, 255, 255, 0.04);
+}
+
+/* Theme: Nuar Light */
+.price-sheet.theme-light {
+  background: #ffffff;
+  color: #111113;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  --price-border: rgba(0, 0, 0, 0.08);
+  --price-text: #111113;
+  --price-muted: #64646c;
+  --price-faint: #8a8a92;
+  --price-dots: rgba(0, 0, 0, 0.2);
+  --price-accent: #e11d2e;
+  --price-chip-bg: rgba(0, 0, 0, 0.03);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Framing & Corners */
+.price-frame-border {
+  position: absolute;
+  inset: 12px;
+  border: 1px solid var(--price-border);
+  pointer-events: none;
+}
+
+.price-corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--price-accent);
+  border-style: solid;
+}
+
+.price-corner-tl {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.price-corner-tr {
+  top: -1px;
+  right: -1px;
+  border-width: 2px 2px 0 0;
+}
+
+.price-corner-bl {
+  bottom: -1px;
+  left: -1px;
+  border-width: 0 0 2px 2px;
+}
+
+.price-corner-br {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+/* 4. DOCUMENT HEADER */
+.price-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.price-logo-mark {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.price-logo-text {
+  font-family: "Playfair Display", Georgia, serif, system-ui;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: var(--price-text);
+  line-height: 1;
+}
+
+.price-logo-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--price-accent);
+}
+
+.price-brand-subtitle {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--price-accent);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.price-doc-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--price-muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.price-header-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.price-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--price-border);
+}
+
+.price-divider-diamond {
+  width: 5px;
+  height: 5px;
+  background: var(--price-accent);
+  transform: rotate(45deg);
+}
+
+/* 5. BODY: CATEGORIES & SERVICES */
+.price-content-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1 1 auto;
+}
+
+.price-empty-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 16px;
+  color: var(--price-muted);
+  font-size: 13px;
+}
+
+.price-category-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.price-cat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.price-cat-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--price-text);
+  white-space: nowrap;
+}
+
+.price-cat-line {
+  flex: 1;
+  height: 1px;
+  background: var(--price-border);
+}
+
+.price-services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-service-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.price-service-main {
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+}
+
+.price-service-name-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.price-service-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--price-text);
+  letter-spacing: -0.01em;
+}
+
+.price-tag-badge {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: var(--radius-xs, 4px);
+  background: rgba(225, 29, 46, 0.14);
+  color: var(--price-accent);
+  text-transform: uppercase;
+}
+
+.price-dot-leader {
+  flex: 1 1 auto;
+  margin: 0 8px;
+  border-bottom: 1.5px dotted var(--price-dots);
+  transform: translateY(-3px);
+  min-width: 16px;
+}
+
+.price-service-prices {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.price-compact-val {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.price-from-label {
+  font-size: 11px;
+  color: var(--price-muted);
+}
+
+.price-amount {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--price-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.price-currency {
+  font-size: 11.5px;
+  color: var(--price-muted);
+}
+
+.price-variants-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.price-variant-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: 12.5px;
+}
+
+.price-var-duration {
+  color: var(--price-muted);
+  font-size: 11.5px;
+}
+
+.price-var-dash {
+  color: var(--price-faint);
+  font-size: 10px;
+}
+
+.price-var-amount {
+  font-weight: 600;
+  color: var(--price-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.price-var-sep {
+  color: var(--price-faint);
+  margin-left: 3px;
+}
+
+.price-service-desc {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--price-muted);
+  padding-left: 2px;
+}
+
+/* 6. DOCUMENT FOOTER */
+.price-footer {
+  margin-top: 24px;
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  break-inside: avoid;
+}
+
+.price-footer-line {
+  width: 100%;
+  height: 1px;
+  background: var(--price-border);
+  margin-bottom: 8px;
+}
+
+.price-footer-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--price-muted);
+}
+
+.price-footer-dot {
+  color: var(--price-faint);
+}
+
+.price-footer-booking {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+
+.price-booking-label {
+  color: var(--price-muted);
+}
+
+.price-booking-url {
+  font-weight: 700;
+  color: var(--price-accent);
+  letter-spacing: 0.04em;
+}
+
+/* 7. SETTINGS DRAWER / SIDEBAR */
+.price-settings-drawer {
+  width: 340px;
+  min-width: 340px;
+  height: 100%;
+  background: var(--color-surface, #141416);
+  border-left: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  z-index: 20;
+}
+
+.price-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  flex-shrink: 0;
+}
+
+.price-drawer-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-drawer-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text, #ffffff);
+}
+
+.price-drawer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-btn-reset-link {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted, #a4a4ac);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-xs, 4px);
+  transition: color 120ms ease;
+}
+
+.price-btn-reset-link:hover {
+  color: var(--color-accent, #e11d2e);
+}
+
+.price-drawer-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.price-settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-group-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.price-group-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted, #a4a4ac);
+}
+
+.price-count-hint {
+  font-size: 11px;
+  color: var(--color-text-faint, #7f7f86);
+}
+
+/* Pill selector (Theme & Price mode) */
+.price-pill-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  background: var(--color-field, #1b1b1e);
+  padding: 3px;
+  border-radius: var(--radius-control, 10px);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.06));
+}
+
+.price-pill-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted, #a4a4ac);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.price-pill-option.is-active {
+  background: var(--color-surface, #252528);
+  color: var(--color-text, #ffffff);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.price-theme-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.price-theme-dark {
+  background: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.price-theme-light {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Format Card Selector */
+.price-grid-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.price-format-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 4px;
+  background: var(--color-field, #1b1b1e);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-control, 10px);
+  cursor: pointer;
+  transition: all 120ms ease;
+  color: var(--color-text-muted, #a4a4ac);
+}
+
+.price-format-card:hover {
+  background: var(--color-surface-soft, #232326);
+  color: var(--color-text, #ffffff);
+}
+
+.price-format-card.is-active {
+  background: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
+  border-color: var(--color-accent, #e11d2e);
+  color: var(--color-text, #ffffff);
+}
+
+.price-format-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.price-format-name {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.price-format-hint {
+  font-size: 9.5px;
+  color: var(--color-text-faint, #7f7f86);
+}
+
+/* Language row */
+.price-lang-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.price-lang-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 42px;
+  background: var(--color-field, #1b1b1e);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-control, 10px);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.price-lang-btn:hover {
+  background: var(--color-surface-soft, #232326);
+}
+
+.price-lang-btn.is-active {
+  background: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
+  border-color: var(--color-accent, #e11d2e);
+}
+
+.price-lang-code {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text, #ffffff);
+}
+
+.price-lang-name {
+  font-size: 9px;
+  color: var(--color-text-faint, #7f7f86);
+}
+
+/* Options List (Checkboxes) */
+.price-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--color-field, #1b1b1e);
+  padding: 10px 12px;
+  border-radius: var(--radius-control, 10px);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.06));
+}
+
+.price-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--color-text, #ffffff);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Categories & Services tree */
+.price-tree-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--color-field, #1b1b1e);
+  padding: 8px;
+  border-radius: var(--radius-control, 10px);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.06));
+}
+
+.price-tree-category {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--color-surface, #141416);
+  border: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.045));
+}
+
+.price-tree-category.is-excluded {
+  opacity: 0.55;
+}
+
+.price-tree-cat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+}
+
+.price-tree-check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.price-tree-cat-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text, #ffffff);
+}
+
+.price-tree-cat-count {
+  font-size: 11px;
+  color: var(--color-text-faint, #7f7f86);
+}
+
+.price-tree-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted, #a4a4ac);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.price-tree-expand-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text, #ffffff);
+}
+
+.price-tree-services-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 10px 8px 28px;
+  border-top: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.04));
+}
+
+.price-tree-svc-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-muted, #a4a4ac);
+  cursor: pointer;
+  padding: 3px 0;
+}
+
+.price-tree-svc-item:hover {
+  color: var(--color-text, #ffffff);
+}
+
+/* 8. PRINT MEDIA STYLES FOR PDF & SAVE AS PDF */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .price-modal-overlay,
+  .price-modal-container,
+  .price-modal-workspace,
+  .price-viewport-area,
+  .price-artboard-container,
+  #nuar-printable-price-list,
+  #nuar-printable-price-list * {
+    visibility: visible;
+  }
+
+  /* Hide app navigation, modals, drawers, header */
+  .price-modal-navbar,
+  .price-settings-drawer,
+  .crm-app-nav,
+  .mobile-bottom-nav,
+  header,
+  nav {
+    display: none !important;
+  }
+
+  .price-modal-overlay {
+    position: static !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  .price-modal-container,
+  .price-modal-workspace,
+  .price-viewport-area,
+  .price-artboard-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+  }
+
+  #nuar-printable-price-list {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 10mm 12mm !important;
+    margin: 0 auto !important;
+    background: #ffffff !important;
+    color: #111113 !important;
+    --price-text: #111113 !important;
+    --price-muted: #4a4a50 !important;
+    --price-faint: #7a7a82 !important;
+    --price-dots: #b0b0b8 !important;
+    --price-border: #e0e0e4 !important;
+    --price-accent: #e11d2e !important;
+  }
+
+  .price-category-block {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 12px !important;
+  }
+
+  .price-service-row {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+}
+
+/* 9. MOBILE RESPONSIVE STYLES (<= 768px) */
+@media (max-width: 768px) {
+  .price-modal-navbar {
+    height: 52px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .price-modal-badge,
+  .price-modal-center {
+    display: none;
+  }
+
+  .price-modal-title {
+    font-size: 15px;
+  }
+
+  .price-btn-back,
+  .price-btn-settings,
+  .price-btn-export-png,
+  .price-btn-print {
+    height: 38px !important;
+    min-height: 38px !important;
+    padding-inline: 10px !important;
+    font-size: 12px !important;
+  }
+
+  .price-viewport-area {
+    padding: 16px 8px 36px;
+  }
+
+  /* Drawer as bottom sheet / overlay on mobile */
+  .price-settings-drawer {
+    position: absolute;
+    inset: auto 0 0 0;
+    width: 100%;
+    min-width: 100%;
+    max-height: 82vh;
+    border-left: none;
+    border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+    animation: priceDrawerSlideUp 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes priceDrawerSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}

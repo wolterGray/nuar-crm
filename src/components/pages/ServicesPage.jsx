@@ -11,6 +11,7 @@ import {
 } from "../../utils/serviceCategories.js";
 import ServiceDrawer from "../services/ServiceDrawer.jsx";
 import CategoryManagerModal from "../services/CategoryManagerModal.jsx";
+import PriceListModal from "../priceList/PriceListModal.jsx";
 import "./ServicesPage.css";
 
 const ALL_CATEGORIES = "__all__";
@@ -78,6 +79,9 @@ export default function ServicesPage({
 
   // Category modal state
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+
+  // Price list modal state
+  const [isPriceListOpen, setIsPriceListOpen] = useState(false);
 
   // Row action menu dropdown
   const [openMenuServiceId, setOpenMenuServiceId] = useState(null);
@@ -603,6 +607,15 @@ export default function ServicesPage({
             <span className="services-categories-label-short">Категории</span>
           </button>
 
+          {/* Price List Generator Button */}
+          <button
+            className="services-btn-price"
+            type="button"
+            onClick={() => setIsPriceListOpen(true)}>
+            <AppIcon name="fileText" size="xs" />
+            <span>Прайс</span>
+          </button>
+
           {/* Add Service Button */}
           <button
             className="services-btn-add-primary"
@@ -829,6 +842,15 @@ export default function ServicesPage({
         onCreateCategory={onCreateCategory}
         onRenameCategory={onRenameCategory}
         onDeleteCategory={onDeleteCategory}
+      />
+
+      {/* 7. PRICE LIST GENERATOR MODAL */}
+      <PriceListModal
+        isOpen={isPriceListOpen}
+        onClose={() => setIsPriceListOpen(false)}
+        services={services}
+        serviceCategories={categories}
+        pushNotification={pushNotification}
       />
     </div>
   );
