@@ -88,11 +88,33 @@ function ClientWorkspace({
 
   return (
     <div className="client-workspace-drawer flex flex-col h-full w-full min-h-0 bg-surface overflow-hidden">
+      {isMobile && (
+        <div className="client-workspace-mobile-nav">
+          <IconButton
+            aria-label="Вернуться к клиентам"
+            icon="chevronLeft"
+            size="md"
+            variant="secondary"
+            onClick={onClose}
+          />
+          <ClientRowActions
+            client={client}
+            handleAddToWaitlist={handleAddToWaitlist}
+            handleMessageClient={onMessageClient}
+            isWorkspace
+            onDeleteClient={onDeleteClient}
+            onEditClient={onEditClient}
+            openClientMenuId={openActionMenuId}
+            setOpenClientMenuId={setOpenActionMenuId}
+          />
+        </div>
+      )}
+
       {/* 1. Sticky Drawer Header */}
-      <div className="p-4 border-b border-border/70 shrink-0 bg-surface flex flex-col gap-3">
+      <div className="client-workspace-header p-4 border-b border-border/70 shrink-0 bg-surface flex flex-col gap-3">
         {/* Row 1: Identity & Close Button */}
-        <div className="flex items-start justify-between gap-2.5">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="client-workspace-identity flex items-start justify-between gap-2.5">
+          <div className="client-workspace-identity-main flex items-center gap-3 min-w-0 flex-1">
             <div className="client-workspace-avatar shrink-0 grid place-items-center w-8 h-8 rounded-full text-xs font-bold bg-surface-2 border border-border text-textPrimary">
               {getClientInitials(client.name || client.phone)}
             </div>
@@ -168,7 +190,7 @@ function ClientWorkspace({
           {/* Close button X */}
           <IconButton
             aria-label="Закрыть профиль"
-            className="text-textMuted hover:text-textPrimary"
+            className="client-workspace-close text-textMuted hover:text-textPrimary"
             icon="x"
             size="md"
             variant="ghost"
@@ -177,7 +199,7 @@ function ClientWorkspace({
         </div>
 
         {/* Row 2: Action buttons toolbar */}
-        <div className="flex items-center gap-2 pt-1 overflow-x-auto scrollbar-none">
+        <div className="client-workspace-actions flex items-center gap-2 pt-1 overflow-x-auto scrollbar-none">
           <Button
             className="flex-1 shrink-0"
             leftIcon="calendarPlus"
@@ -189,7 +211,7 @@ function ClientWorkspace({
               date: new Date().toISOString().slice(0, 10),
               kind: "visit",
             })}>
-            <span>{isMobile ? "+ Визит" : "+ Новый визит"}</span>
+            <span>{isMobile ? "Новый визит" : "+ Новый визит"}</span>
           </Button>
 
           <Button
@@ -210,7 +232,7 @@ function ClientWorkspace({
             Изменить
           </Button>
 
-          <div className="shrink-0">
+          <div className="client-workspace-actions-menu shrink-0">
             <ClientRowActions
               client={client}
               handleAddToWaitlist={handleAddToWaitlist}
@@ -224,8 +246,28 @@ function ClientWorkspace({
           </div>
         </div>
 
+        {isMobile && (
+          <div className="client-workspace-mobile-summary">
+            <div>
+              <AppIcon name="calendar" size="sm" />
+              <strong>{client.visitsCount}</strong>
+              <span>{client.visitsCount === 1 ? "визит" : "визитов"}</span>
+            </div>
+            <div>
+              <AppIcon name="creditCard" size="sm" />
+              <strong>{formatMoney(client.averageCheck)}</strong>
+              <span>средний чек</span>
+            </div>
+            <div>
+              <AppIcon name="info" size="sm" />
+              <strong>{client.lastVisit === "—" ? "—" : String(client.lastVisit).slice(0, 5)}</strong>
+              <span>последний визит</span>
+            </div>
+          </div>
+        )}
+
         {/* Row 3: Navigation Tabs */}
-        <div className="flex items-center gap-1 border-t border-border/50 pt-2 overflow-x-auto scrollbar-none">
+        <div className="client-workspace-tabs flex items-center gap-1 border-t border-border/50 pt-2 overflow-x-auto scrollbar-none">
           <button
             type="button"
             className={`clients-ws-tab ${activeTab === "overview" ? "is-active" : ""}`}
@@ -266,7 +308,7 @@ function ClientWorkspace({
 
           <button
             type="button"
-            className={`clients-ws-tab ${activeTab === "notes" ? "is-active" : ""}`}
+            className={`clients-ws-tab client-workspace-secondary-tab ${activeTab === "notes" ? "is-active" : ""}`}
             onClick={() => setActiveTab("notes")}>
             <AppIcon name="fileText" size="xs" />
             <span>Заметки</span>
@@ -275,7 +317,7 @@ function ClientWorkspace({
 
           <button
             type="button"
-            className={`clients-ws-tab ${activeTab === "messages" ? "is-active" : ""}`}
+            className={`clients-ws-tab client-workspace-secondary-tab ${activeTab === "messages" ? "is-active" : ""}`}
             onClick={() => setActiveTab("messages")}>
             <AppIcon name="message" size="xs" />
             <span>Сообщения</span>
@@ -287,12 +329,12 @@ function ClientWorkspace({
       </div>
 
       {/* 2. Scrollable Body Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+      <div className="client-workspace-body flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
         {/* ===================== TAB 1: OVERVIEW ===================== */}
         {activeTab === "overview" && (
-          <div className="space-y-3.5">
+          <div className="client-workspace-overview space-y-3.5">
             {/* 2x2 Stats Grid */}
-            <div className="grid grid-cols-2 gap-2">
+            {!isMobile && <div className="grid grid-cols-2 gap-2">
               <div className="p-3 rounded-xl bg-surface-2 border border-border/70 flex flex-col justify-between">
                 <span className="text-[10px] text-textMuted uppercase font-semibold tracking-wider">Всего визитов</span>
                 <strong className="text-base font-bold text-textPrimary mt-1">
@@ -328,10 +370,10 @@ function ClientWorkspace({
                   {client.daysAbsent === null ? "ещё не приходил" : `${client.daysAbsent} дн. назад`}
                 </small>
               </div>
-            </div>
+            </div>}
 
             {/* Next appointment */}
-            <div className="p-3 rounded-xl bg-surface-2 border border-border/70 flex items-center justify-between gap-2.5">
+            <div className="client-workspace-next-visit p-3 rounded-xl bg-surface-2 border border-border/70 flex items-center justify-between gap-2.5">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-field flex items-center justify-center text-textMuted shrink-0">
                   <AppIcon name="calendar" size="xs" />
@@ -361,13 +403,22 @@ function ClientWorkspace({
             </div>
 
             {/* Contacts & Parameters: Compact grouped list */}
-            <div className="p-3.5 rounded-xl bg-surface-2 border border-border/70 space-y-2.5">
-              <span className="text-[11px] text-textMuted font-semibold uppercase tracking-wider block">Контакты и параметры</span>
+            <div className="client-workspace-info p-3.5 rounded-xl bg-surface-2 border border-border/70 space-y-2.5">
+              <strong className="client-workspace-section-title">
+                <AppIcon name="info" size="sm" />
+                <span>Информация о клиенте</span>
+              </strong>
 
               <div className="space-y-1 text-xs divide-y divide-border/30">
-                <div className="flex items-center justify-between py-1">
+                <div className="client-workspace-info-row flex items-center justify-between py-1">
+                  <AppIcon name="phone" size="sm" />
                   <span className="text-textMuted text-[11px]">Телефон</span>
                   <strong className="text-textPrimary">{client.phone || "—"}</strong>
+                  {client.phone && (
+                    <button aria-label="Скопировать телефон" type="button" onClick={() => copyToClipboard(client.phone, "info-phone")}>
+                      <AppIcon name={copiedField === "info-phone" ? "check" : "copy"} size="xs" />
+                    </button>
+                  )}
                 </div>
 
                 {client.email && (
@@ -415,23 +466,27 @@ function ClientWorkspace({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between py-1">
+                <div className="client-workspace-info-row flex items-center justify-between py-1">
+                  <AppIcon name="user" size="sm" />
                   <span className="text-textMuted text-[11px]">Любимый мастер</span>
                   <strong className="text-textPrimary">{client.preference || "Любой мастер"}</strong>
                 </div>
 
-                <div className="flex items-center justify-between py-1">
+                <div className="client-workspace-info-row flex items-center justify-between py-1">
+                  <AppIcon name="globe" size="sm" />
                   <span className="text-textMuted text-[11px]">Язык сообщений</span>
                   <strong className="text-textPrimary">{client.messageLanguage || "Польский"}</strong>
                 </div>
 
-                <div className="flex items-center justify-between py-1">
+                <div className="client-workspace-info-row flex items-center justify-between py-1">
+                  <AppIcon name="gem" size="sm" />
                   <span className="text-textMuted text-[11px]">Любимая услуга</span>
                   <strong className="text-textPrimary truncate max-w-[220px]">{client.favoriteService || "—"}</strong>
                 </div>
 
                 {client.source && (
-                  <div className="flex items-center justify-between py-1">
+                  <div className="client-workspace-info-row flex items-center justify-between py-1">
+                    <AppIcon name="link" size="sm" />
                     <span className="text-textMuted text-[11px]">Источник</span>
                     <strong className="text-textPrimary">{client.source}</strong>
                   </div>
@@ -449,9 +504,12 @@ function ClientWorkspace({
             </div>
 
             {/* Note Editor */}
-            <div className="p-3.5 rounded-xl bg-surface-2 border border-border/70 space-y-1.5">
+            <div className="client-workspace-note p-3.5 rounded-xl bg-surface-2 border border-border/70 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-textMuted font-semibold uppercase tracking-wider">Заметка о клиенте</span>
+                <strong className="client-workspace-section-title">
+                  <AppIcon name="fileText" size="sm" />
+                  <span>Заметка о клиенте</span>
+                </strong>
                 {noteSavedFeedback && (
                   <span className="text-[10px] text-emerald-400 font-medium">Сохранено</span>
                 )}

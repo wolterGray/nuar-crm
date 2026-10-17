@@ -739,8 +739,12 @@ function ClientsPage({
                 formatAppointmentSummary={formatAppointmentSummary}
                 formatMoney={formatMoney}
                 getClientInitials={getClientInitials}
-                handleAddToWaitlist={handleAddToWaitlist}
-                handleRepeatVisit={handleRepeatVisit}
+                handleAddToWaitlist={(client) => {
+                  handleDrawerAction(() => handleAddToWaitlist?.(client));
+                }}
+                handleRepeatVisit={(client, appointment) => {
+                  handleDrawerAction(() => handleRepeatVisit?.(client, appointment));
+                }}
                 isMobile={isMobile}
                 onAddVisit={(visitDefaults) => {
                   handleDrawerAction(() => onAddVisit?.(visitDefaults));
