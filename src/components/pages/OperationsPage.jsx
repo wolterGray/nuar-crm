@@ -1244,6 +1244,16 @@ function OperationsPage({
       {/* Top Title Bar */}
       <div className="operations-top-bar">
         <div className="operations-top-title-wrap">
+          {isTemplateManager ? (
+            <IconButton
+              className="operations-back-to-tasks-btn"
+              icon="chevronLeft"
+              label="Вернуться к неделе"
+              size="sm"
+              variant="secondary"
+              onClick={() => setPlanMode("week")}
+            />
+          ) : null}
           <h1 className="operations-top-title">
             {isTemplateManager ? "Управление задачами" : "Работа"}
           </h1>
@@ -1301,15 +1311,6 @@ function OperationsPage({
               <>
               <div className="operations-template-manager-head">
                 <div className="operations-template-manager-copy">
-                  <Button
-                    className="operations-back-to-tasks-btn"
-                    leftIcon="chevronLeft"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setPlanMode("week")}
-                  >
-                    Вернуться к неделе
-                  </Button>
                   <span>Настройка повторяющейся работы</span>
                   <h2>Регулярные задачи</h2>
                   <p>Здесь задаются дела, которые CRM автоматически показывает в нужные дни недели.</p>
