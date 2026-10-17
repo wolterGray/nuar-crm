@@ -44,11 +44,12 @@ function ClientList({
         {/* Left Side: Search + Quick Pills */}
         <div className="flex items-center gap-2 flex-1 min-w-0 overflow-x-auto scrollbar-none py-0.5">
           {/* Compact Search */}
-          <div className="clients-search-box relative flex items-center shrink-0 w-[180px] md:w-[220px]">
-            <AppIcon className="absolute left-2.5 text-textMuted pointer-events-none" name="search" size="xs" />
+          <div className="clients-search-box flex items-center shrink-0 w-[190px] md:w-[230px]">
+            <AppIcon className="clients-search-icon" name="search" size="xs" />
             <input
-              className="w-full h-7 pl-7 pr-7 rounded-control-sm bg-field border border-border text-textPrimary text-xs placeholder:text-textFaint focus:outline-none focus:border-borderStrong transition-colors"
-              placeholder="Поиск..."
+              aria-label="Поиск по клиентам"
+              className="clients-search-input"
+              placeholder="Поиск по клиентам..."
               type="text"
               value={search}
               onChange={onSearchChange}
@@ -56,7 +57,7 @@ function ClientList({
             {search ? (
               <button
                 aria-label="Очистить поиск"
-                className="absolute right-2 text-textMuted hover:text-textPrimary p-0.5"
+                className="clients-search-clear"
                 type="button"
                 onClick={onClearSearch}>
                 <AppIcon name="x" size="xs" />
