@@ -181,26 +181,32 @@ function StatisticsFilters({
   onApplyPreviousMonthRange,
 }) {
   if (mobile) {
+    const monthStart = getMonthStart();
+    const today = getTodayInput();
+    const prevRange = getPreviousMonthRange();
+    const isCurrentMonthActive = startDate === monthStart && endDate === today;
+    const isPrevMonthActive = startDate === prevRange.start && endDate === prevRange.end;
+
     return (
       <div className="statistics-mobile-filters flex flex-col gap-2.5 w-full p-3 rounded-xl border border-border/60 bg-card/30">
         <div className="statistics-mobile-periods grid grid-cols-2 gap-2">
           <Button
-            className="min-h-[38px]"
+            className={`min-h-[38px] ${isCurrentMonthActive ? "statistics-filter-btn-active" : ""}`}
             size="sm"
-            variant="secondary"
+            variant={isCurrentMonthActive ? "subtle" : "secondary"}
             onClick={onApplyCurrentMonthRange}>
             Этот месяц
           </Button>
           <Button
-            className="min-h-[38px]"
+            className={`min-h-[38px] ${isPrevMonthActive ? "statistics-filter-btn-active" : ""}`}
             size="sm"
-            variant="secondary"
+            variant={isPrevMonthActive ? "subtle" : "secondary"}
             onClick={onApplyPreviousMonthRange}>
             Прошлый месяц
           </Button>
         </div>
 
-        <div className="statistics-mobile-date-grid grid grid-cols-1 gap-2">
+        <div className="statistics-mobile-date-grid grid grid-cols-2 gap-2">
           <Input
             aria-label="Дата начала"
             className="h-10 min-h-10 text-xs cursor-pointer"
@@ -217,9 +223,9 @@ function StatisticsFilters({
           />
         </div>
 
-        <div className="statistics-mobile-select-grid grid grid-cols-1 gap-2">
+        <div className="statistics-mobile-select-grid grid grid-cols-[2fr_1fr] gap-2">
           <Select
-            className="h-10 min-h-10 text-xs cursor-pointer"
+            className="h-10 min-h-10 text-xs cursor-pointer truncate"
             value={master}
             onChange={(event) => onMasterChange(event.target.value)}>
             <option value="">Все сотрудники</option>
@@ -630,6 +636,8 @@ function StatisticsPage({
   const incomeScopeLabel = master
     ? `Чистая прибыль мастера ${master}`
     : "Чистая прибыль бизнеса";
+  const repeatRate =
+    (analytics.repeatClients / Math.max(analytics.clientsCount, 1)) * 100;
   const kpiStats = [
     {
       label: "Клиенты",
@@ -668,9 +676,14 @@ function StatisticsPage({
       icon: "walletCards",
       color: "var(--color-kpi-debts)",
     },
+    {
+      label: "Возвратность",
+      value: `${Math.round(repeatRate)}%`,
+      helper: `${analytics.repeatClients} из ${analytics.clientsCount || 0} клиентов`,
+      icon: "rotateCcw",
+      color: "var(--color-kpi-repeat)",
+    },
   ];
-  const repeatRate =
-    (analytics.repeatClients / Math.max(analytics.clientsCount, 1)) * 100;
   const activityStats = [
     ["Пакетов продано", analytics.filteredPackages.length],
     ["Сертификатов", analytics.certificatesCount],
@@ -955,16 +968,21 @@ function StatisticsPage({
 
   const incomeCard = (
     <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card shadow-lg">
-      <div className="flex justify-between items-start gap-4">
-        <div className="flex flex-col">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{incomeScopeLabel}</span>
-          <strong className="text-foreground text-3xl md:text-5xl font-extrabold leading-none mt-1">{formatIncome(analytics.totalIncome)}</strong>
-          <p className="text-xs text-muted-foreground mt-1.5">
-            Поступления {formatIncome(analytics.totalReceived)} · расходы {formatIncome(analytics.expenses)} ·{" "}
-            {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-1">{scopeLabel}</p>
-          {!isMobile ? (
+      {isMobile ? (
+        <div className="flex items-center justify-between pb-1 border-b border-border/40">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground m-0">Структура дохода</h3>
+          <span className="text-xs font-bold text-accent">{currencyIcons[currency] || currency}</span>
+        </div>
+      ) : (
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{incomeScopeLabel}</span>
+            <strong className="text-foreground text-3xl md:text-5xl font-extrabold leading-none mt-1">{formatIncome(analytics.totalIncome)}</strong>
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Поступления {formatIncome(analytics.totalReceived)} · расходы {formatIncome(analytics.expenses)} ·{" "}
+              {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-1">{scopeLabel}</p>
             <small className="text-[10px] text-muted-foreground mt-2 max-w-lg">
               {master
                 ? "Вверху показана чистая прибыль выбранного мастера. Ниже видно, сколько пришло, сколько ушло и как это разложено по визитам, пакетам, сертификатам и операциям."
@@ -972,12 +990,12 @@ function StatisticsPage({
                   ? `Вверху показана чистая прибыль бизнеса. Отдельно считаются оплаты визитов, продажи пакетов, сертификаты и операции. Смешанные оплаты делятся между наличными и картой.`
                   : "Вверху показана чистая прибыль бизнеса. Отдельно считаются оплаты визитов и финансовые операции за период. Смешанные оплаты делятся между наличными и картой."}
             </small>
-          ) : null}
+          </div>
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent/10 text-accent font-extrabold text-lg select-none">
+            <span>{currencyIcons[currency] || currency}</span>
+          </div>
         </div>
-        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent/10 text-accent font-extrabold text-lg select-none">
-          <span>{currencyIcons[currency] || currency}</span>
-        </div>
-      </div>
+      )}
       <div className="grid grid-cols-3 gap-2 py-2.5 border-y border-border/40 text-xs">
         <span className="flex flex-col gap-0.5 text-muted-foreground">
           Поступления <b className="text-foreground font-bold text-sm mt-0.5">{formatIncome(analytics.totalReceived)}</b>
@@ -1031,7 +1049,7 @@ function StatisticsPage({
 
   if (isMobile) {
     return (
-      <section className="statistics-page statistics-page-mobile flex flex-col h-full w-full min-h-0 overflow-hidden bg-background text-foreground">
+      <section className="statistics-page statistics-page-mobile nuar-statistics flex flex-col h-full w-full min-h-0 overflow-hidden bg-background text-foreground">
         <header className="statistics-mobile-header">
           <h1>Статистика</h1>
           <div className="statistics-mobile-header-actions">
@@ -1041,17 +1059,30 @@ function StatisticsPage({
         </header>
 
         <div className="statistics-mobile-scroll flex-1 min-h-0 overflow-y-auto px-4 space-y-4 select-none pr-1 scrollbar-thin">
-          <div className="statistics-mobile-overview flex flex-col gap-1 pb-3 border-b border-border/40 mt-1">
-            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-              {master ? `Чистая прибыль мастера ${master}` : "Чистая прибыль бизнеса"}
-            </span>
-            <strong className="text-foreground text-3xl font-extrabold leading-none mt-1">
+          <div className="statistics-mobile-overview flex flex-col gap-1 p-3.5 rounded-xl border border-border bg-card shadow-sm mt-1">
+            <div className="flex items-start justify-between">
+              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                {master ? `Чистая прибыль мастера ${master}` : "Чистая прибыль бизнеса"}
+              </span>
+              <span className="text-xs font-bold text-accent">{currencyIcons[currency] || currency}</span>
+            </div>
+            <strong className="text-foreground text-3xl font-extrabold leading-none mt-0.5">
               {formatIncome(analytics.totalIncome)}
             </strong>
-            <p className="text-xs text-muted-foreground mt-1.5">
+            <p className="text-xs text-muted-foreground mt-1">
               Период: {toDisplayDate(startDate)} — {toDisplayDate(endDate)}
             </p>
-            <p className="text-[10px] text-muted-foreground mt-1">{scopeLabel}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{scopeLabel}</p>
+            <div className="grid grid-cols-2 gap-2 pt-2.5 mt-1.5 border-t border-border/40 text-xs">
+              <div>
+                <span className="text-[9.5px] uppercase font-semibold text-muted-foreground block">Поступления</span>
+                <b className="text-sm font-bold text-foreground mt-0.5 block">{formatIncome(analytics.totalReceived)}</b>
+              </div>
+              <div>
+                <span className="text-[9.5px] uppercase font-semibold text-muted-foreground block">Расходы</span>
+                <b className="text-sm font-bold text-foreground mt-0.5 block">{formatIncome(analytics.expenses)}</b>
+              </div>
+            </div>
           </div>
 
           <StatisticsFilters

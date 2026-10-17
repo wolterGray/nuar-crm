@@ -8373,11 +8373,11 @@
   .statistics-page-mobile .statistics-mobile-header-actions .page-notifications-slot,
   .statistics-page-mobile .statistics-mobile-header-actions .client-alert-control,
   .statistics-page-mobile .statistics-mobile-header-actions .notification-trigger.client-alert-button {
-    width: 34px !important;
-    min-width: 34px !important;
-    max-width: 34px !important;
-    height: 34px !important;
-    min-height: 34px !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;

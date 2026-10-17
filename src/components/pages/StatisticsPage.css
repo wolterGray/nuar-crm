@@ -1,42 +1,131 @@
+/* NUAR CRM - Statistics Page Styling */
+
+.statistics-page {
+  --stat-bg: var(--color-page, #0a0a0a);
+  --stat-surface: var(--color-surface, #141416);
+  --stat-surface-2: var(--color-surface-soft, #1b1b1e);
+  --stat-field: var(--color-field, rgba(255, 255, 255, 0.04));
+  --stat-border: var(--color-border, rgba(255, 255, 255, 0.07));
+  --stat-border-soft: var(--color-border-soft, rgba(255, 255, 255, 0.045));
+  --stat-text: var(--color-text, #ffffff);
+  --stat-muted: var(--color-text-muted, #a4a4ac);
+  --stat-faint: var(--color-text-faint, #7f7f86);
+  --stat-accent: var(--color-accent, #e11d2e);
+  --stat-accent-soft: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
+}
+
+/* ========================================================
+   Mobile Optimization (max-width: 768px, iPhone reference)
+   ======================================================== */
 @media (max-width: 768px) {
   .statistics-page-mobile {
-    --statistics-mobile-bg: var(--color-page, #0a0a0a);
-    --statistics-mobile-surface: var(--color-surface, #141416);
-    --statistics-mobile-field: var(--color-field, #1b1b1e);
-    --statistics-mobile-raised: var(--color-surface-soft, #1b1b1e);
-    --statistics-mobile-border: var(--color-border, rgba(255, 255, 255, 0.07));
-    --statistics-mobile-text: var(--color-text, #ffffff);
-    --statistics-mobile-muted: var(--color-text-muted, #a4a4ac);
-    --statistics-mobile-accent: var(--color-accent, #e11d2e);
-    color: var(--statistics-mobile-text) !important;
-    background: var(--statistics-mobile-bg) !important;
+    color: var(--stat-text) !important;
+    background: var(--stat-bg) !important;
   }
 
+  /* Header & Action Controls */
   .statistics-page-mobile .statistics-mobile-header {
-    min-height: 42px !important;
-    margin-bottom: 0 !important;
-    padding: 2px 0 10px !important;
-    border-color: var(--statistics-mobile-border) !important;
+    min-height: 44px !important;
+    margin-bottom: 2px !important;
+    padding: 0 0 12px !important;
+    border-bottom: 1px solid var(--stat-border) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    overflow: visible !important;
   }
 
   .statistics-page-mobile .statistics-mobile-header h1 {
-    color: var(--statistics-mobile-text) !important;
-    font-size: 23px !important;
-    letter-spacing: 0 !important;
+    color: var(--stat-text) !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+    margin: 0 !important;
   }
 
-  .statistics-page-mobile .statistics-mobile-header-actions .ui-button {
-    height: 36px !important;
-    min-height: 36px !important;
-    color: #d8d8db !important;
-    background: var(--statistics-mobile-field) !important;
-    border-color: var(--statistics-mobile-border) !important;
-    border-radius: 8px !important;
+  .statistics-page-mobile .statistics-mobile-header-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-header-actions .ui-button,
+  .statistics-page-mobile .statistics-mobile-header-actions .statistics-export-button {
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 12px !important;
+    color: #ffffff !important;
+    background: var(--stat-field) !important;
+    border: 1px solid var(--stat-border) !important;
+    border-radius: 9px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
     box-shadow: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
   }
 
+  /* Bell Notification Button */
+  .statistics-page-mobile .statistics-mobile-header-actions .page-notifications-slot,
+  .statistics-page-mobile .statistics-mobile-header-actions .client-alert-control {
+    display: inline-flex !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-header-actions .notification-trigger.client-alert-button,
+  .statistics-page-mobile .statistics-mobile-header-actions .client-alert-button {
+    position: relative !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 !important;
+    border: 1px solid var(--stat-border) !important;
+    border-radius: 9px !important;
+    background: var(--stat-field) !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    color: #ffffff !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-header-actions .client-alert-button svg {
+    width: 18px !important;
+    height: 18px !important;
+    color: #ffffff !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-header-actions .client-alert-button b,
+  .statistics-page-mobile .statistics-mobile-header-actions .client-alert-button > span {
+    position: absolute !important;
+    top: -3px !important;
+    right: -3px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 5px !important;
+    border-radius: 999px !important;
+    background: var(--stat-accent) !important;
+    color: #ffffff !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 18px !important;
+    box-shadow: 0 0 0 2px var(--stat-bg) !important;
+  }
+
+  /* Scrollable Body */
   .statistics-page-mobile .statistics-mobile-scroll {
-    padding: 0 0 12px !important;
+    padding: 0 0 16px !important;
     scrollbar-width: none !important;
   }
 
@@ -48,56 +137,65 @@
     margin-top: 10px !important;
   }
 
+  /* Overview Hero Card */
   .statistics-page-mobile .statistics-mobile-overview {
-    gap: 2px !important;
-    margin-top: 0 !important;
-    padding: 10px 0 !important;
-    border-color: var(--statistics-mobile-border) !important;
+    background: var(--stat-surface) !important;
+    border: 1px solid var(--stat-border) !important;
+    border-radius: 12px !important;
+    padding: 13px 14px !important;
+    box-shadow: none !important;
   }
 
-  .statistics-page-mobile .statistics-mobile-overview > span {
-    color: var(--statistics-mobile-muted) !important;
+  .statistics-page-mobile .statistics-mobile-overview strong {
+    color: #ffffff !important;
+    font-size: 28px !important;
+    letter-spacing: -0.02em !important;
   }
 
-  .statistics-page-mobile .statistics-mobile-overview > strong {
-    color: var(--statistics-mobile-text) !important;
-    font-size: 30px !important;
-  }
-
-  .statistics-page-mobile .statistics-mobile-overview > p {
-    margin-top: 3px !important;
-    color: var(--statistics-mobile-muted) !important;
-  }
-
+  /* Filters */
   .statistics-page-mobile .statistics-mobile-filters {
-    gap: 7px !important;
-    padding: 9px !important;
-    background: var(--statistics-mobile-surface) !important;
-    border-color: var(--statistics-mobile-border) !important;
-    border-radius: 10px !important;
+    gap: 8px !important;
+    padding: 11px 12px !important;
+    background: var(--stat-surface) !important;
+    border: 1px solid var(--stat-border) !important;
+    border-radius: 12px !important;
   }
 
   .statistics-page-mobile .statistics-mobile-periods {
-    gap: 7px !important;
+    gap: 8px !important;
   }
 
   .statistics-page-mobile .statistics-mobile-periods button {
     min-width: 0 !important;
-    min-height: 36px !important;
-    padding-inline: 8px !important;
-    color: #d8d8db !important;
-    background: var(--statistics-mobile-field) !important;
-    border-color: var(--statistics-mobile-border) !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding-inline: 10px !important;
+    color: var(--stat-muted) !important;
+    background: var(--stat-field) !important;
+    border: 1px solid var(--stat-border) !important;
     border-radius: 8px !important;
     font-size: 12px !important;
+    font-weight: 500 !important;
     box-shadow: none !important;
   }
 
-  .statistics-page-mobile .statistics-mobile-date-grid,
-  .statistics-page-mobile .statistics-mobile-select-grid {
+  .statistics-page-mobile .statistics-mobile-periods button.statistics-filter-btn-active {
+    background: var(--stat-accent-soft) !important;
+    border-color: rgba(225, 29, 46, 0.45) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-date-grid {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 7px !important;
+    gap: 8px !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-select-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) !important;
+    gap: 8px !important;
   }
 
   .statistics-page-mobile .statistics-mobile-filters :is(input, select) {
@@ -105,59 +203,85 @@
     min-width: 0 !important;
     height: 38px !important;
     min-height: 38px !important;
-    padding-inline: 9px !important;
-    color: var(--statistics-mobile-text) !important;
-    background: var(--statistics-mobile-field) !important;
-    border-color: var(--statistics-mobile-border) !important;
+    padding-inline: 10px !important;
+    color: #ffffff !important;
+    background: var(--stat-field) !important;
+    border: 1px solid var(--stat-border) !important;
     border-radius: 8px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
   }
 
+  /* KPI Grid */
   .statistics-page-mobile .statistics-mobile-kpi-grid {
-    gap: 7px !important;
-    margin-top: 10px !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-top: 2px !important;
   }
 
   .statistics-page-mobile .statistics-mobile-kpi-card {
-    min-height: 76px !important;
+    min-height: 68px !important;
     gap: 2px !important;
-    padding: 10px 11px !important;
-    background: var(--statistics-mobile-surface) !important;
-    border-color: var(--statistics-mobile-border) !important;
-    border-radius: 10px !important;
+    padding: 10px 12px !important;
+    background: var(--stat-surface) !important;
+    border: 1px solid var(--stat-border) !important;
+    border-radius: 12px !important;
     box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
   }
 
-  .statistics-page-mobile .statistics-mobile-kpi-card > span,
-  .statistics-page-mobile .statistics-mobile-kpi-card > small {
-    color: var(--statistics-mobile-muted) !important;
+  .statistics-page-mobile .statistics-mobile-kpi-card > span {
+    color: var(--stat-muted) !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
   }
 
   .statistics-page-mobile .statistics-mobile-kpi-card > strong {
-    color: var(--statistics-mobile-text) !important;
-    font-size: 16px !important;
+    color: #ffffff !important;
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+    margin-top: 1px !important;
   }
 
-  .statistics-page-mobile article {
-    border-color: var(--statistics-mobile-border) !important;
+  .statistics-page-mobile .statistics-mobile-kpi-card > small {
+    color: var(--stat-faint) !important;
+    font-size: 10px !important;
+    margin-top: 1px !important;
+  }
+
+  /* Common Articles & Panels */
+  .statistics-page-mobile article,
+  .statistics-page-mobile .statistics-income-card {
+    background: var(--stat-surface) !important;
+    border: 1px solid var(--stat-border) !important;
+    border-radius: 12px !important;
+    padding: 13px 14px !important;
     box-shadow: none !important;
   }
 
   .statistics-page-mobile .statistics-revenue-chart,
   .statistics-page-mobile .statistics-chart-empty {
-    background: var(--statistics-mobile-surface) !important;
-    border-color: var(--statistics-mobile-border) !important;
-    border-radius: 10px !important;
+    background: var(--stat-surface) !important;
+    border: 1px solid var(--stat-border) !important;
+    border-radius: 12px !important;
+    padding: 10px !important;
   }
 }
 
 @media (max-width: 360px) {
   .statistics-page-mobile .statistics-mobile-filters :is(input, select) {
     padding-inline: 7px !important;
-    font-size: 10px !important;
+    font-size: 11px !important;
   }
 
   .statistics-page-mobile .statistics-mobile-periods button {
     font-size: 11px !important;
+    padding-inline: 6px !important;
   }
 }
