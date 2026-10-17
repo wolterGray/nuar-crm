@@ -458,7 +458,7 @@ function ClientList({
           title="Фильтры и сортировка"
           onClose={() => setIsFilterSheetOpen(false)}
           footer={
-            <div className="flex items-center justify-between gap-3 w-full">
+            <div className="clients-filter-sheet-actions flex items-center justify-between gap-3 w-full">
               <Button
                 variant="outline"
                 size="md"
@@ -477,7 +477,7 @@ function ClientList({
               </Button>
             </div>
           }>
-          <div className="clients-filter-sheet-content space-y-5 p-1">
+          <div className="clients-filter-sheet-content">
             {/* 1. Sorting */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-textMuted uppercase tracking-wider block">
@@ -493,9 +493,11 @@ function ClientList({
                   <button
                     key={opt.value}
                     type="button"
+                    aria-pressed={sortOrder === opt.value}
                     className={`clients-sheet-option-btn ${sortOrder === opt.value ? "is-active" : ""}`}
                     onClick={() => onSortOrderChange({ target: { value: opt.value } })}>
-                    {opt.label}
+                    <span>{opt.label}</span>
+                    {sortOrder === opt.value && <AppIcon name="check" size="xs" />}
                   </button>
                 ))}
               </div>
@@ -517,9 +519,11 @@ function ClientList({
                   <button
                     key={opt.value}
                     type="button"
+                    aria-pressed={statusFilter === opt.value}
                     className={`clients-sheet-option-btn ${statusFilter === opt.value ? "is-active" : ""}`}
                     onClick={() => onStatusFilterChange({ target: { value: opt.value } })}>
-                    {opt.label}
+                    <span>{opt.label}</span>
+                    {statusFilter === opt.value && <AppIcon name="check" size="xs" />}
                   </button>
                 ))}
               </div>
@@ -543,9 +547,11 @@ function ClientList({
                   <button
                     key={opt.value}
                     type="button"
+                    aria-pressed={segmentFilter === opt.value}
                     className={`clients-sheet-option-btn ${segmentFilter === opt.value ? "is-active" : ""}`}
                     onClick={() => onSegmentFilterChange({ target: { value: opt.value } })}>
-                    {opt.label}
+                    <span>{opt.label}</span>
+                    {segmentFilter === opt.value && <AppIcon name="check" size="xs" />}
                   </button>
                 ))}
               </div>

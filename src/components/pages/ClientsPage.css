@@ -1184,28 +1184,116 @@
   }
 
   /* Sheet options */
+  .clients-filter-sheet.mobile-sheet {
+    display: grid !important;
+    max-height: min(82dvh, 680px) !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    border-bottom: 0 !important;
+    border-radius: 14px 14px 0 0 !important;
+    background: #111113 !important;
+  }
+
+  .clients-filter-sheet .mobile-sheet-header {
+    display: flex !important;
+    min-height: 58px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+    background: #111113 !important;
+  }
+
+  .clients-filter-sheet .mobile-sheet-header-copy h2 {
+    font-size: 17px !important;
+    line-height: 1.2 !important;
+  }
+
+  .clients-filter-sheet .mobile-sheet-close {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    margin: 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 9px !important;
+    background: #1b1b1e !important;
+  }
+
+  .clients-filter-sheet .mobile-sheet-body {
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .clients-filter-sheet-content {
+    display: grid;
+    gap: 18px;
+    padding: 16px;
+  }
+
+  .clients-filter-sheet-content > div {
+    display: grid;
+    gap: 8px !important;
+  }
+
+  .clients-filter-sheet-content label {
+    color: #85858e !important;
+    font-size: 10.5px !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .clients-filter-sheet-content label + div {
+    gap: 7px !important;
+  }
+
   .clients-sheet-option-btn {
-    height: 38px !important;
+    display: flex !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
     padding: 0 10px !important;
-    border-radius: var(--radius-control, 10px) !important;
-    background: var(--surface-2, #1b1b1e) !important;
-    border: 1px solid var(--border-soft, rgba(255, 255, 255, 0.08)) !important;
-    color: var(--text-muted, #a4a4ac) !important;
-    font-size: 12px !important;
-    font-weight: 550 !important;
-    text-align: center !important;
+    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    border-radius: 8px !important;
+    color: #a1a1aa !important;
+    background: #1a1a1d !important;
+    box-shadow: none !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    text-align: left !important;
     transition: all 120ms ease !important;
     cursor: pointer !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
   }
 
   .clients-sheet-option-btn.is-active {
-    background: var(--accent-soft, rgba(225, 29, 46, 0.14)) !important;
-    border-color: rgba(225, 29, 46, 0.45) !important;
-    color: var(--accent, #e11d2e) !important;
-    font-weight: 600 !important;
+    border-color: rgba(239, 56, 59, 0.32) !important;
+    color: #f4f4f5 !important;
+    background: rgba(239, 56, 59, 0.1) !important;
+  }
+
+  .clients-sheet-option-btn.is-active svg {
+    color: #ef383b !important;
+  }
+
+  .clients-filter-sheet .mobile-sheet-footer {
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+    background: #111113 !important;
+  }
+
+  .clients-filter-sheet-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+    gap: 8px !important;
+  }
+
+  .clients-filter-sheet-actions button {
+    width: 100% !important;
+    min-height: 42px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
   }
 
   .clients-quality-panel {
