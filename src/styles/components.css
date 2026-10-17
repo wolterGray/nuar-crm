@@ -16852,12 +16852,12 @@ input[type="checkbox"].ui-checkbox:disabled,
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
     -webkit-overflow-scrolling: touch !important;
-    gap: 6px !important;
+    gap: 3px !important;
     width: 100% !important;
     max-width: 100% !important;
-    padding: 4px !important;
-    background: #161820 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 3px !important;
+    background: #141416 !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
     border-radius: 10px !important;
     box-sizing: border-box !important;
   }
@@ -16867,29 +16867,31 @@ input[type="checkbox"].ui-checkbox:disabled,
   }
 
   .operations-page .operations-tab-btn {
-    flex: 0 0 auto !important;
+    flex: 1 1 0% !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     width: auto !important;
-    min-width: fit-content !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    padding: 0 14px !important;
-    border-radius: 7px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
+    min-width: 0 !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 6px !important;
+    border-radius: 8px !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
     color: #a1a1aa !important;
     white-space: nowrap !important;
     background: transparent !important;
-    border: 0 !important;
-    transition: background 120ms ease, color 120ms ease !important;
+    border: 1px solid transparent !important;
+    transition: background 120ms ease, color 120ms ease, border-color 120ms ease !important;
   }
 
   .operations-page .operations-tab-btn.is-active {
-    background: rgba(239, 68, 68, 0.18) !important;
-    color: #ef4444 !important;
-    box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.35) !important;
+    background: rgba(225, 29, 46, 0.14) !important;
+    color: #ffffff !important;
+    border-color: rgba(225, 29, 46, 0.45) !important;
+    box-shadow: none !important;
+    font-weight: 600 !important;
   }
 
   .operations-page .operations-tab-underline {
@@ -17117,24 +17119,76 @@ input[type="checkbox"].ui-checkbox:disabled,
   }
 
   .operations-page .operations-task-search {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
     min-width: 0 !important;
     width: 100% !important;
+    height: 42px !important;
+  }
+
+  .operations-page .operations-task-search-icon {
+    position: absolute !important;
+    left: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: var(--text-muted, #a4a4ac) !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 !important;
   }
 
   .operations-page .operations-task-search-input {
-    height: 38px !important;
-    min-height: 38px !important;
-    font-size: 13px !important;
+    width: 100% !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    line-height: 42px !important;
+    padding: 0 36px 0 36px !important;
+    font-size: 14px !important;
     border-radius: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .operations-page .operations-task-search-clear {
+    position: absolute !important;
+    right: 6px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 2 !important;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 0 !important;
+    color: var(--text-muted, #a4a4ac) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .operations-page .operations-filter-summary {
-    height: 38px !important;
-    min-height: 38px !important;
-    padding: 0 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 14px !important;
     font-size: 13px !important;
+    font-weight: 500 !important;
     border-radius: 8px !important;
     white-space: nowrap !important;
+    list-style: none !important;
+  }
+
+  .operations-page .operations-filter-summary::-webkit-details-marker {
+    display: none !important;
   }
 
   /* 5. Полоса дней недели (календарь) */
