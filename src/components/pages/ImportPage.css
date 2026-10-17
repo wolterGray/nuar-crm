@@ -1,0 +1,203 @@
+@media (max-width: 768px) {
+  .import-page {
+    --import-mobile-bg: #0d0d0f;
+    --import-mobile-surface: #161618;
+    --import-mobile-field: #1d1d20;
+    --import-mobile-raised: #232326;
+    --import-mobile-border: #2b2b2e;
+    --import-mobile-text: #f4f4f5;
+    --import-mobile-muted: #9a9a9f;
+    --import-mobile-accent: #ef383b;
+    gap: 10px !important;
+    padding-top: 2px !important;
+    padding-bottom: 12px !important;
+    color: var(--import-mobile-text) !important;
+    background: var(--import-mobile-bg) !important;
+  }
+
+  .import-page .import-page-header.ui-page-header {
+    margin-bottom: 0 !important;
+    padding-bottom: 10px !important;
+    border-color: var(--import-mobile-border) !important;
+  }
+
+  .import-page .import-page-header.ui-page-header h1 {
+    color: var(--import-mobile-text) !important;
+    font-size: 23px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .import-page .import-sync-panel.crm-card {
+    gap: 8px !important;
+    padding: 11px 12px !important;
+    background: var(--import-mobile-surface) !important;
+    border-color: var(--import-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+
+  .import-page .import-sync-panel h2 {
+    color: var(--import-mobile-text) !important;
+    font-size: 14px !important;
+  }
+
+  .import-page .import-sync-panel :is(p, small) {
+    color: var(--import-mobile-muted) !important;
+    font-size: 11px !important;
+  }
+
+  .import-page .import-summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    overflow: hidden !important;
+    background: var(--import-mobile-surface) !important;
+    border: 1px solid var(--import-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+
+  .import-page .import-summary-card {
+    min-height: 58px !important;
+    margin: 0 !important;
+    padding: 9px 10px !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .import-page .import-summary-card:nth-child(odd) {
+    border-right: 1px solid var(--import-mobile-border) !important;
+  }
+
+  .import-page .import-summary-card:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--import-mobile-border) !important;
+  }
+
+  .import-page .import-summary-card span {
+    color: var(--import-mobile-muted) !important;
+    font-size: 9px !important;
+  }
+
+  .import-page .import-summary-card strong {
+    color: var(--import-mobile-text) !important;
+    font-size: 17px !important;
+  }
+
+  .import-page .import-documents-panel.crm-card {
+    overflow: visible !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .import-page .import-documents-panel > div {
+    padding: 10px 0 !important;
+    border-color: var(--import-mobile-border) !important;
+  }
+
+  .import-page .import-documents-panel > div:first-child {
+    padding-top: 2px !important;
+  }
+
+  .import-page .import-documents-panel h2 {
+    color: var(--import-mobile-text) !important;
+    font-size: 15px !important;
+  }
+
+  .import-page .import-documents-panel p {
+    color: var(--import-mobile-muted) !important;
+    font-size: 11px !important;
+  }
+
+  .import-page .import-search-control.crm-search-input-control {
+    min-height: 40px !important;
+    color: var(--import-mobile-text) !important;
+    background: var(--import-mobile-field) !important;
+    border-color: var(--import-mobile-border) !important;
+    border-radius: 8px !important;
+  }
+
+  .import-page .import-document-filters {
+    display: block !important;
+  }
+
+  .import-page .import-mobile-filter-groups {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  .import-page .import-mobile-filter-select {
+    position: relative !important;
+    display: grid !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+  }
+
+  .import-page .import-mobile-filter-select > span {
+    overflow: hidden !important;
+    color: var(--import-mobile-muted) !important;
+    font-size: 9px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .import-page .import-mobile-filter-select > button {
+    min-width: 0 !important;
+    min-height: 38px !important;
+    padding: 0 20px 0 9px !important;
+    color: #d8d8db !important;
+    background: var(--import-mobile-field) !important;
+    border-color: var(--import-mobile-border) !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+  }
+
+  .import-page .import-mobile-filter-options {
+    position: absolute !important;
+    z-index: 20 !important;
+    top: calc(100% + 4px) !important;
+    left: 0 !important;
+    width: max(100%, 126px) !important;
+    margin: 0 !important;
+    background: var(--import-mobile-raised) !important;
+    border-color: var(--import-mobile-border) !important;
+  }
+
+  .import-page .import-mobile-filter-select:last-child .import-mobile-filter-options {
+    right: 0 !important;
+    left: auto !important;
+  }
+
+  .import-page .import-documents-grid {
+    gap: 9px !important;
+  }
+
+  .import-page .import-document-card {
+    padding: 11px 12px !important;
+    background: var(--import-mobile-surface) !important;
+    border-color: var(--import-mobile-border) !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+  }
+
+  .import-page .import-documents-panel .text-center {
+    min-height: 104px !important;
+    padding: 16px 12px !important;
+    background: var(--import-mobile-surface) !important;
+    border-color: var(--import-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .import-page .import-mobile-filter-groups {
+    gap: 5px !important;
+  }
+
+  .import-page .import-mobile-filter-select > button {
+    padding-left: 7px !important;
+    font-size: 10px !important;
+  }
+}

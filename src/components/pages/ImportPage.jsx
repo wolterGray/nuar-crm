@@ -18,6 +18,7 @@ import PageHeader from "../ui/PageHeader.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import Button from "../ui/Button.jsx";
 import {AppIcon, IconButton, Select} from "../ui/index.js";
+import "./ImportPage.css";
 
 const amountFilterOptions = [
   {value: IMPORT_DOCUMENT_AMOUNT_FILTERS.all, label: "Все"},
