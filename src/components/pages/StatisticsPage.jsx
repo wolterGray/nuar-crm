@@ -34,6 +34,7 @@ import {
 import {exportRowsToExcel} from "../../utils/exportExcel.js";
 import AppIcon from "../ui/AppIcon.jsx";
 import {Button, Input, Select} from "../ui/index.js";
+import "./StatisticsPage.css";
 
 const CURRENCY_CACHE_KEY = "nuar-crm-nbp-rates";
 const defaultRates = {PLN: 1, USD: 3.72, EUR: 4.28, UAH: 0.087};
@@ -181,8 +182,8 @@ function StatisticsFilters({
 }) {
   if (mobile) {
     return (
-      <div className="flex flex-col gap-2.5 w-full p-3 rounded-xl border border-border/60 bg-card/30">
-        <div className="grid grid-cols-2 gap-2">
+      <div className="statistics-mobile-filters flex flex-col gap-2.5 w-full p-3 rounded-xl border border-border/60 bg-card/30">
+        <div className="statistics-mobile-periods grid grid-cols-2 gap-2">
           <Button
             className="min-h-[38px]"
             size="sm"
@@ -199,7 +200,7 @@ function StatisticsFilters({
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-2">
+        <div className="statistics-mobile-date-grid grid grid-cols-1 gap-2">
           <Input
             aria-label="Дата начала"
             className="h-10 min-h-10 text-xs cursor-pointer"
@@ -216,7 +217,7 @@ function StatisticsFilters({
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-2">
+        <div className="statistics-mobile-select-grid grid grid-cols-1 gap-2">
           <Select
             className="h-10 min-h-10 text-xs cursor-pointer"
             value={master}
@@ -1039,8 +1040,8 @@ function StatisticsPage({
           </div>
         </header>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 space-y-4 select-none pr-1 scrollbar-thin">
-          <div className="flex flex-col gap-1 pb-3 border-b border-border/40 mt-1">
+        <div className="statistics-mobile-scroll flex-1 min-h-0 overflow-y-auto px-4 space-y-4 select-none pr-1 scrollbar-thin">
+          <div className="statistics-mobile-overview flex flex-col gap-1 pb-3 border-b border-border/40 mt-1">
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
               {master ? `Чистая прибыль мастера ${master}` : "Чистая прибыль бизнеса"}
             </span>
@@ -1068,9 +1069,9 @@ function StatisticsPage({
             onApplyPreviousMonthRange={applyPreviousMonthRange}
           />
 
-          <div className="grid grid-cols-2 gap-2 mt-1">
+          <div className="statistics-mobile-kpi-grid grid grid-cols-2 gap-2 mt-1">
             {kpiStats.map((item) => (
-              <article className="flex flex-col p-3 rounded-xl border border-border bg-card shadow-sm" key={item.label}>
+              <article className="statistics-mobile-kpi-card flex flex-col p-3 rounded-xl border border-border bg-card shadow-sm" key={item.label}>
                 <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{item.label}</span>
                 <strong className="text-foreground text-base font-bold mt-1">{item.value}</strong>
                 {item.helper && <small className="text-[9px] text-muted-foreground mt-0.5 truncate">{item.helper}</small>}

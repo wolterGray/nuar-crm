@@ -1,0 +1,163 @@
+@media (max-width: 768px) {
+  .statistics-page-mobile {
+    --statistics-mobile-bg: #0d0d0f;
+    --statistics-mobile-surface: #161618;
+    --statistics-mobile-field: #1d1d20;
+    --statistics-mobile-raised: #232326;
+    --statistics-mobile-border: #2b2b2e;
+    --statistics-mobile-text: #f4f4f5;
+    --statistics-mobile-muted: #9a9a9f;
+    --statistics-mobile-accent: #ef383b;
+    color: var(--statistics-mobile-text) !important;
+    background: var(--statistics-mobile-bg) !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-header {
+    min-height: 42px !important;
+    margin-bottom: 0 !important;
+    padding: 2px 0 10px !important;
+    border-color: var(--statistics-mobile-border) !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-header h1 {
+    color: var(--statistics-mobile-text) !important;
+    font-size: 23px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-header-actions .ui-button {
+    height: 36px !important;
+    min-height: 36px !important;
+    color: #d8d8db !important;
+    background: var(--statistics-mobile-field) !important;
+    border-color: var(--statistics-mobile-border) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-scroll {
+    padding: 0 0 12px !important;
+    scrollbar-width: none !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-scroll::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-scroll > * + * {
+    margin-top: 10px !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-overview {
+    gap: 2px !important;
+    margin-top: 0 !important;
+    padding: 10px 0 !important;
+    border-color: var(--statistics-mobile-border) !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-overview > span {
+    color: var(--statistics-mobile-muted) !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-overview > strong {
+    color: var(--statistics-mobile-text) !important;
+    font-size: 30px !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-overview > p {
+    margin-top: 3px !important;
+    color: var(--statistics-mobile-muted) !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-filters {
+    gap: 7px !important;
+    padding: 9px !important;
+    background: var(--statistics-mobile-surface) !important;
+    border-color: var(--statistics-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-periods {
+    gap: 7px !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-periods button {
+    min-width: 0 !important;
+    min-height: 36px !important;
+    padding-inline: 8px !important;
+    color: #d8d8db !important;
+    background: var(--statistics-mobile-field) !important;
+    border-color: var(--statistics-mobile-border) !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    box-shadow: none !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-date-grid,
+  .statistics-page-mobile .statistics-mobile-select-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-filters :is(input, select) {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding-inline: 9px !important;
+    color: var(--statistics-mobile-text) !important;
+    background: var(--statistics-mobile-field) !important;
+    border-color: var(--statistics-mobile-border) !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-kpi-grid {
+    gap: 7px !important;
+    margin-top: 10px !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-kpi-card {
+    min-height: 76px !important;
+    gap: 2px !important;
+    padding: 10px 11px !important;
+    background: var(--statistics-mobile-surface) !important;
+    border-color: var(--statistics-mobile-border) !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-kpi-card > span,
+  .statistics-page-mobile .statistics-mobile-kpi-card > small {
+    color: var(--statistics-mobile-muted) !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-kpi-card > strong {
+    color: var(--statistics-mobile-text) !important;
+    font-size: 16px !important;
+  }
+
+  .statistics-page-mobile article {
+    border-color: var(--statistics-mobile-border) !important;
+    box-shadow: none !important;
+  }
+
+  .statistics-page-mobile .statistics-revenue-chart,
+  .statistics-page-mobile .statistics-chart-empty {
+    background: var(--statistics-mobile-surface) !important;
+    border-color: var(--statistics-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .statistics-page-mobile .statistics-mobile-filters :is(input, select) {
+    padding-inline: 7px !important;
+    font-size: 10px !important;
+  }
+
+  .statistics-page-mobile .statistics-mobile-periods button {
+    font-size: 11px !important;
+  }
+}
