@@ -3,6 +3,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { requireOwner } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
+const { queueBusinessPushDeliveries } = require('../services/businessPushService');
 const { upsertNotificationEvent } = require('../services/notificationEventsService');
 const { telegramDigest } = require('../services/telegramService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
@@ -530,6 +531,7 @@ publicSiteBookingRouter.post('/site-booking-submit', async (req, res) => {
       serviceName,
       serviceSlug: cleanString(req.body?.serviceSlug),
     };
+    let businessEvent = null;
     let crmLinks = {};
     const rows = await prisma.$transaction(async (tx) => {
       const insertedRows = await tx.$queryRaw`
@@ -549,6 +551,7 @@ publicSiteBookingRouter.post('/site-booking-submit', async (req, res) => {
       `;
       const waitlistEntry = await createSiteBookingWaitlistEntry(tx, booking);
       const notificationEvent = await createSiteBookingNotification(tx, booking, waitlistEntry);
+      businessEvent = notificationEvent;
       crmLinks = {
         notificationEventId: notificationEvent?.id ?? null,
         waitlistEntryId: waitlistEntry.id,
@@ -563,6 +566,12 @@ publicSiteBookingRouter.post('/site-booking-submit', async (req, res) => {
 
       return insertedRows;
     });
+
+    if (businessEvent) {
+      await queueBusinessPushDeliveries(prisma, businessEvent).catch((error) => {
+        console.error('Site booking Web Push queue failed:', error);
+      });
+    }
 
     const notifyResult = await notifyOwnerAboutBooking({
       ...booking,

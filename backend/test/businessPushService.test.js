@@ -20,6 +20,28 @@ test('visit Push payload contains a deep link but no client personal data', () =
   assert.doesNotMatch(JSON.stringify(payload), /Sensitive Name|48123456789/);
 });
 
+test('site booking Push opens the exact request without exposing personal data', () => {
+  const payload = buildBusinessPushPayload({
+    entityId: 'booking-42',
+    fingerprint: 'site-booking:booking-42',
+    payload: {
+      clientEmail: 'private@example.com',
+      clientName: 'Sensitive Name',
+      clientPhone: '+48123456789',
+      durationMinutes: 60,
+      note: 'Private note',
+      preferredDate: '2026-10-17',
+      preferredTime: '14:30',
+      serviceName: 'Massage',
+    },
+    type: 'site_booking_request',
+  });
+
+  assert.equal(payload.url, '/site?booking=booking-42');
+  assert.match(payload.body, /2026-10-17.*14:30.*Massage.*60/);
+  assert.doesNotMatch(JSON.stringify(payload), /Sensitive Name|48123456789|private@example|Private note/);
+});
+
 test('queues one idempotent delivery per active owner device', async () => {
   const keys = webpush.generateVAPIDKeys();
   process.env.VAPID_PUBLIC_KEY = keys.publicKey;

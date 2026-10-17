@@ -1434,6 +1434,7 @@ function App() {
     const visitId = params.get("visit");
     const calendarDate = params.get("date");
     const taskId = params.get("task");
+    const bookingId = params.get("booking");
     if ((calendarEntryId || visitId || calendarDate) && window.location.pathname === "/calendar") {
       const linkedEntry = visitId
         ? calendarEntries.find((entry) => String(entry.visitId) === String(visitId))
@@ -1450,6 +1451,15 @@ function App() {
           type: "calendar",
           visitId: visitId || null,
         });
+      }, 0);
+      const query = params.toString();
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+      return () => window.clearTimeout(timer);
+    } else if (bookingId && window.location.pathname === "/site") {
+      params.delete("booking");
+      const timer = window.setTimeout(() => {
+        setActivePage("site");
+        setAlertFocus({entityId: bookingId, type: "site-booking"});
       }, 0);
       const query = params.toString();
       window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);

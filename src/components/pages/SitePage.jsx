@@ -6,9 +6,11 @@ import SiteBookingNotifySettings from "../SiteBookingNotifySettings.jsx";
 import SiteBookingPanel from "../SiteBookingPanel.jsx";
 
 function SitePage({
+  alertFocus,
   settings,
   siteBooking = null,
   pushNotification,
+  onAlertFocusHandled,
   onSubmit,
 }) {
   const {isMobile} = useBreakpoint();
@@ -74,6 +76,7 @@ function SitePage({
 
             {siteBooking ? (
               <SiteBookingPanel
+                alertFocus={alertFocus}
                 applyingRequestId={siteBooking.applyingRequestId}
                 isMobile
                 loadError={siteBooking.loadError}
@@ -81,6 +84,7 @@ function SitePage({
                 pendingRequests={siteBooking.pendingRequests}
                 recentRequests={siteBooking.recentRequests}
                 pushNotification={pushNotification}
+                onAlertFocusHandled={onAlertFocusHandled}
                 onApply={siteBooking.applyRequest}
                 onRefresh={siteBooking.refreshPendingRequests}
                 onReject={siteBooking.rejectRequest}
@@ -133,12 +137,14 @@ function SitePage({
 
         {siteBooking ? (
           <SiteBookingPanel
+            alertFocus={alertFocus}
             applyingRequestId={siteBooking.applyingRequestId}
             loadError={siteBooking.loadError}
             loading={siteBooking.loading}
             pendingRequests={siteBooking.pendingRequests}
             recentRequests={siteBooking.recentRequests}
             pushNotification={pushNotification}
+            onAlertFocusHandled={onAlertFocusHandled}
             onApply={siteBooking.applyRequest}
             onRefresh={siteBooking.refreshPendingRequests}
             onReject={siteBooking.rejectRequest}

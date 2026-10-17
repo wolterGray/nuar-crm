@@ -32,6 +32,7 @@ const isStalePendingRequest = (request, now) => {
 };
 
 function SiteBookingPanel({
+  alertFocus,
   applyingRequestId = "",
   isMobile = false,
   loadError,
@@ -39,6 +40,7 @@ function SiteBookingPanel({
   pendingRequests = [],
   recentRequests = [],
   onApply,
+  onAlertFocusHandled,
   onRefresh,
   onReject,
   pushNotification,
@@ -68,6 +70,18 @@ function SiteBookingPanel({
       }),
     [funnelNow, pendingRequests, recentRequests],
   );
+
+  useEffect(() => {
+    if (alertFocus?.type !== "site-booking" || !alertFocus.entityId) return undefined;
+    const timer = window.setTimeout(() => {
+      const element = document.getElementById(`site-booking-${alertFocus.entityId}`);
+      if (element) {
+        element.scrollIntoView({behavior: "smooth", block: "center"});
+        onAlertFocusHandled?.();
+      }
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [alertFocus, onAlertFocusHandled, pendingRequests]);
 
   const refreshNotifyStatus = useCallback(async () => {
     setNotifyStatus((current) => ({...current, loading: true}));
@@ -325,7 +339,12 @@ function SiteBookingPanel({
             <article
               className={`site-booking-card${
                 isMobile ? " site-booking-mobile-card" : ""
-              }${isStalePendingRequest(request, funnelNow) ? " is-stale" : ""}`}
+              }${isStalePendingRequest(request, funnelNow) ? " is-stale" : ""}${
+                alertFocus?.type === "site-booking" && String(alertFocus.entityId) === String(request.id)
+                  ? " alert-focus-pulse"
+                  : ""
+              }`}
+              id={`site-booking-${request.id}`}
               key={request.id}>
               <div className="site-booking-card-main">
                 <strong>{request.client_name}</strong>

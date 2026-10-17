@@ -1,6 +1,7 @@
 const {isWebPushConfigured, processQueuedPushDelivery} = require('./webPushService');
 
 const EVENT_CONFIG = {
+  site_booking_request: {preference: 'pushNewVisits', title: 'Новая заявка с сайта'},
   visit_created: {preference: 'pushNewVisits', title: 'Новая запись'},
   visit_cancelled: {preference: 'pushVisitCancelled', title: 'Запись отменена'},
   visit_rescheduled: {preference: 'pushVisitRescheduled', title: 'Запись перенесена'},
@@ -27,6 +28,22 @@ const buildBusinessPushPayload = (event) => {
   const config = EVENT_CONFIG[event?.type];
   if (!config) return null;
   const payload = event.payload && typeof event.payload === 'object' ? event.payload : {};
+
+  if (event.type === 'site_booking_request') {
+    return {
+      body: formatVisitBody({
+        date: payload.preferredDate,
+        durationMin: payload.durationMinutes,
+        serviceName: payload.serviceName,
+        time: payload.preferredTime,
+      }) || 'Откройте CRM, чтобы обработать заявку',
+      tag: `nuar-${event.fingerprint}`,
+      title: config.title,
+      ttl: 3600,
+      type: event.type,
+      url: `/site?booking=${encodeURIComponent(event.entityId || '')}`,
+    };
+  }
 
   if (event.type === 'visit_rescheduled') {
     const oldDateTime = formatDateTime(payload.oldDate, payload.oldTime);

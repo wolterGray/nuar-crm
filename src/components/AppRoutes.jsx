@@ -310,9 +310,11 @@ export default function AppRoutes({activePage, ...props}) {
       return (
         <PageSuspense>
           <SitePage
+            alertFocus={props.alertFocus}
             settings={props.appSettings}
             siteBooking={props.siteBooking}
             pushNotification={props.pushNotification}
+            onAlertFocusHandled={props.clearAlertFocus}
             onSubmit={props.handleSiteSettingsSubmit}
           />
         </PageSuspense>
