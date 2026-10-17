@@ -20,6 +20,7 @@ import PageHeader from "../ui/PageHeader.jsx";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import {Button, EmptyState} from "../ui/index.js";
+import "./PackagesPage.css";
 
 function ClientPackageCard({
   onDelete,
@@ -42,6 +43,13 @@ function ClientPackageCard({
           <span className="text-text-muted text-xs block leading-tight break-words">{packageItem.packageName}</span>
           <span className="text-text-faint text-[10px] block font-medium uppercase tracking-wider leading-tight break-words">{packageItem.service}</span>
         </div>
+        <RowActionsMenu
+          itemId={packageItem.id}
+          openMenuId={openMenuId}
+          setOpenMenuId={setOpenMenuId}
+          onDelete={() => onDelete(packageItem)}
+          onEdit={() => onEdit(packageItem)}
+        />
       </div>
 
       <div className="package-card-progress">
@@ -61,16 +69,6 @@ function ClientPackageCard({
         <span className={`package-status-pill ${packageItem.status === "Активен" ? "is-active" : ""}`}>
           {packageItem.status}
         </span>
-      </div>
-
-      <div className="package-card-actions">
-        <RowActionsMenu
-          itemId={packageItem.id}
-          openMenuId={openMenuId}
-          setOpenMenuId={setOpenMenuId}
-          onDelete={() => onDelete(packageItem)}
-          onEdit={() => onEdit(packageItem)}
-        />
       </div>
     </article>
   );
@@ -98,6 +96,13 @@ function CertificateCard({
               : `До ${certificate.expiryDate || "—"}`}
           </span>
         </div>
+        <RowActionsMenu
+          itemId={certificate.id}
+          openMenuId={openMenuId}
+          setOpenMenuId={setOpenMenuId}
+          onDelete={() => onDelete(certificate)}
+          onEdit={() => onEdit(certificate)}
+        />
       </div>
 
       <div className="package-card-progress">
@@ -120,16 +125,6 @@ function CertificateCard({
         <span className={`package-status-pill ${certificate.status === "Активен" ? "is-active" : ""}`}>
           {certificate.status}
         </span>
-      </div>
-
-      <div className="package-card-actions">
-        <RowActionsMenu
-          itemId={certificate.id}
-          openMenuId={openMenuId}
-          setOpenMenuId={setOpenMenuId}
-          onDelete={() => onDelete(certificate)}
-          onEdit={() => onEdit(certificate)}
-        />
       </div>
     </article>
   );
@@ -324,7 +319,7 @@ function PackagesPage({
 
   return (
     <div
-      className={`packages-page ${isMobile ? "packages-page-mobile" : ""}`}
+      className={`packages-page ${isMobile ? "packages-page-mobile" : ""} nuar-packages`}
       onClick={() => setOpenMenuId(null)}>
       <PageHeader
         className="packages-page-header"
