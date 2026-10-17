@@ -187,9 +187,9 @@ function ClientList({
                   ? "is-selected bg-surface-2 border-l-2 border-accent"
                   : "hover:bg-field/70 border-l-2 border-transparent"
               } ${isFocused ? "animate-pulse ring-1 ring-accent" : ""}`}>
-              {/* Col 1 / Mobile Main: Avatar + Name + Badges + Subtitle */}
-              <div className="flex items-center gap-3 min-w-0 flex-1 sm:flex-initial">
-                <span className={`client-list-avatar shrink-0 grid place-items-center w-10 h-10 sm:w-8 sm:h-8 rounded-full text-xs sm:text-[11px] font-bold ${
+              {/* Col 1 / Mobile Main: Compact Avatar (28px) + Name + Badges + Subtitle */}
+              <div className="flex items-center gap-2.5 min-w-0 flex-1 sm:flex-initial">
+                <span className={`client-list-avatar shrink-0 grid place-items-center w-7 h-7 rounded-full text-[10.5px] font-bold ${
                   isSelected ? "bg-accent/15 text-accent" : "bg-field text-textMuted"
                 }`}>
                   {getClientInitials(client.name || client.phone)}
@@ -197,18 +197,18 @@ function ClientList({
 
                 <div className="flex flex-col min-w-0 flex-1 justify-center">
                   <div className="flex items-center gap-1.5 flex-nowrap">
-                    <strong className="text-sm sm:text-sm font-semibold text-textPrimary truncate" title={client.name}>
+                    <strong className="text-sm font-semibold text-textPrimary truncate" title={client.name}>
                       {client.name || client.phone || "Без имени"}
                     </strong>
 
                     {client.isVip ? (
-                      <span className="client-badge-vip shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10.5px] font-bold text-amber-400 bg-amber-400/10">
+                      <span className="client-badge-vip shrink-0 flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-bold text-amber-400 bg-amber-400/10">
                         <AppIcon name="crown" size="xs" />
                         <span>VIP</span>
                       </span>
                     ) : null}
 
-                    <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10.5px] font-semibold ${
+                    <span className={`shrink-0 px-1.5 py-0.2 rounded text-[10px] font-semibold ${
                       client.autoStatus === "Новый"
                         ? "text-blue-400 bg-blue-400/10"
                         : "text-emerald-400 bg-emerald-400/10"
@@ -217,7 +217,7 @@ function ClientList({
                     </span>
 
                     {client.hasDebt ? (
-                      <span className="client-badge-debt shrink-0 px-1.5 py-0.5 rounded text-[10.5px] font-bold text-rose-400 bg-rose-400/10" title={`Долг: ${formatMoney(client.totalDebt)}`}>
+                      <span className="client-badge-debt shrink-0 px-1.5 py-0.2 rounded text-[10px] font-bold text-rose-400 bg-rose-400/10" title={`Долг: ${formatMoney(client.totalDebt)}`}>
                         Долг
                       </span>
                     ) : null}
@@ -235,7 +235,7 @@ function ClientList({
                   </div>
 
                   {/* Mobile sub-line: Phone • Visits • Revenue • Note */}
-                  <div className="flex sm:hidden items-center gap-1.5 text-xs text-textMuted mt-1 truncate">
+                  <div className="flex sm:hidden items-center gap-1.5 text-[11.5px] text-textMuted mt-0.5 truncate">
                     <span className="truncate">{client.phone || "Без тел."}</span>
                     <span className="text-textFaint shrink-0">•</span>
                     <span className="shrink-0">{client.visitsCount} виз.</span>

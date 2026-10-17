@@ -189,6 +189,7 @@ function ClientWorkspace({
               client={client}
               handleAddToWaitlist={handleAddToWaitlist}
               handleMessageClient={onMessageClient}
+              isWorkspace
               onDeleteClient={onDeleteClient}
               onEditClient={onEditClient}
               openClientMenuId={openActionMenuId}

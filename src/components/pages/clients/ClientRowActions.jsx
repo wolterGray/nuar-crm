@@ -13,6 +13,7 @@ function ClientRowActions({
   openClientMenuId,
   setOpenClientMenuId,
   onSelectClient,
+  isWorkspace = false,
 }) {
   const isOpen = openClientMenuId === client.id;
   const { menuRef, menuStyle, triggerRef } = useRowActionMenu({
@@ -75,46 +76,69 @@ function ClientRowActions({
         menuRef={menuRef}
         menuStyle={menuStyle}>
         <div className="clients-row-menu" role="menu">
-          <button
-            className="clients-row-menu-item"
-            role="menuitem"
-            type="button"
-            onClick={handleSelect}>
-            <AppIcon name="user" size="xs" />
-            <span>Профиль</span>
-          </button>
-          <button
-            className="clients-row-menu-item"
-            role="menuitem"
-            type="button"
-            onClick={handleMessage}>
-            <AppIcon name="message" size="xs" />
-            <span>Написать</span>
-          </button>
-          <button
-            className="clients-row-menu-item"
-            role="menuitem"
-            type="button"
-            onClick={handleAddWaitlist}>
-            <AppIcon name="calendarPlus" size="xs" />
-            <span>Записать</span>
-          </button>
-          <button
-            className="clients-row-menu-item"
-            role="menuitem"
-            type="button"
-            onClick={handleEdit}>
-            <AppIcon name="edit" size="xs" />
-            <span>Редактировать</span>
-          </button>
-          <button
-            className="clients-row-menu-item is-danger"
-            role="menuitem"
-            type="button"
-            onClick={handleDelete}>
-            <AppIcon name="trash" size="xs" />
-            <span>Удалить</span>
-          </button>
+          {isWorkspace ? (
+            <>
+              <button
+                className="clients-row-menu-item"
+                role="menuitem"
+                type="button"
+                onClick={handleAddWaitlist}>
+                <AppIcon name="clock" size="xs" />
+                <span>В лист ожидания</span>
+              </button>
+              <button
+                className="clients-row-menu-item is-danger"
+                role="menuitem"
+                type="button"
+                onClick={handleDelete}>
+                <AppIcon name="trash" size="xs" />
+                <span>Удалить клиента</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="clients-row-menu-item"
+                role="menuitem"
+                type="button"
+                onClick={handleSelect}>
+                <AppIcon name="user" size="xs" />
+                <span>Профиль</span>
+              </button>
+              <button
+                className="clients-row-menu-item"
+                role="menuitem"
+                type="button"
+                onClick={handleMessage}>
+                <AppIcon name="message" size="xs" />
+                <span>Написать</span>
+              </button>
+              <button
+                className="clients-row-menu-item"
+                role="menuitem"
+                type="button"
+                onClick={handleAddWaitlist}>
+                <AppIcon name="calendarPlus" size="xs" />
+                <span>Записать</span>
+              </button>
+              <button
+                className="clients-row-menu-item"
+                role="menuitem"
+                type="button"
+                onClick={handleEdit}>
+                <AppIcon name="edit" size="xs" />
+                <span>Редактировать</span>
+              </button>
+              <button
+                className="clients-row-menu-item is-danger"
+                role="menuitem"
+                type="button"
+                onClick={handleDelete}>
+                <AppIcon name="trash" size="xs" />
+                <span>Удалить</span>
+              </button>
+            </>
+          )}
         </div>
       </RowActionMenuPortal>
     </div>

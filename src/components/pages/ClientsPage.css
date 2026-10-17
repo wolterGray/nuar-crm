@@ -842,8 +842,8 @@
   }
 
   .clients-list-item {
-    min-height: 66px;
-    padding: 12px 14px;
+    min-height: 58px;
+    padding: 10px 12px;
     border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.055));
   }
 
