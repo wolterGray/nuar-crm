@@ -516,16 +516,20 @@ function ClientsPage({
   }, [isDrawerOpen, handleCloseDrawer]);
 
   const headerActions = (
-    <div className="flex items-center gap-2">
+    <div className="clients-header-actions flex items-center gap-2">
       <Button
         aria-label="Анализ базы"
+        className="flex-1 sm:flex-initial"
         leftIcon="barChart"
+        size={isMobile ? "sm" : "md"}
         variant="secondary"
         onClick={() => setShowQuality(!showQuality)}>
         <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
       </Button>
       <Button
+        className="flex-1 sm:flex-initial"
         leftIcon="plus"
+        size={isMobile ? "sm" : "md"}
         variant="primary"
         onClick={onAddClient}>
         <span>{isMobile ? "Добавить" : "Добавить клиента"}</span>

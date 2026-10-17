@@ -151,9 +151,9 @@ function ClientWorkspace({
         </div>
 
         {/* Row 2: Action buttons toolbar */}
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex items-center gap-2 pt-1 overflow-x-auto scrollbar-none">
           <Button
-            className="flex-1"
+            className="flex-1 shrink-0"
             leftIcon="calendarPlus"
             size="sm"
             variant="primary"
@@ -163,10 +163,11 @@ function ClientWorkspace({
               date: new Date().toISOString().slice(0, 10),
               kind: "visit",
             })}>
-            + Новый визит
+            <span>{isMobile ? "+ Визит" : "+ Новый визит"}</span>
           </Button>
 
           <Button
+            className="shrink-0"
             leftIcon="message"
             size="sm"
             variant="secondary"
@@ -175,6 +176,7 @@ function ClientWorkspace({
           </Button>
 
           <Button
+            className="shrink-0"
             leftIcon="edit"
             size="sm"
             variant="secondary"
@@ -182,15 +184,17 @@ function ClientWorkspace({
             Изменить
           </Button>
 
-          <ClientRowActions
-            client={client}
-            handleAddToWaitlist={handleAddToWaitlist}
-            handleMessageClient={onMessageClient}
-            onDeleteClient={onDeleteClient}
-            onEditClient={onEditClient}
-            openClientMenuId={openActionMenuId}
-            setOpenClientMenuId={setOpenActionMenuId}
-          />
+          <div className="shrink-0">
+            <ClientRowActions
+              client={client}
+              handleAddToWaitlist={handleAddToWaitlist}
+              handleMessageClient={onMessageClient}
+              onDeleteClient={onDeleteClient}
+              onEditClient={onEditClient}
+              openClientMenuId={openActionMenuId}
+              setOpenClientMenuId={setOpenActionMenuId}
+            />
+          </div>
         </div>
 
         {/* Row 3: Navigation Tabs */}

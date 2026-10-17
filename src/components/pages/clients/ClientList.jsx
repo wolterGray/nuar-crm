@@ -64,7 +64,7 @@ function ClientList({
         </div>
 
         {/* Dropdown Filters (Sort, Status, Segment) */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="clients-filter-dropdown-group flex items-center gap-2 shrink-0">
           <select
             aria-label="Сортировка"
             className="clients-filter-dropdown"
@@ -149,7 +149,7 @@ function ClientList({
         </button>
       </div>
 
-      {/* 2. Structured Table-Like Header (Aligned Columns) */}
+      {/* 2. Structured Table-Like Header (Aligned Columns on Desktop) */}
       <div className="clients-list-header-row hidden sm:grid grid-cols-[minmax(0,1fr)_90px_110px_130px_36px] items-center gap-3 px-3.5 py-2 border-b border-border/50 text-[10px] text-textMuted uppercase font-bold tracking-wider shrink-0 bg-surface">
         <div>Клиент</div>
         <div className="text-right">Визиты</div>
@@ -158,7 +158,7 @@ function ClientList({
         <div></div>
       </div>
 
-      {/* 3. Client Rows List (Aligned Vertically in Columns) */}
+      {/* 3. Client Rows List (Unified Modern Card/Row) */}
       <div className="clients-list-scroll flex-1 min-h-0 overflow-y-auto">
         {clients.map((client) => {
           const isSelected = selectedClientId === client.id;
@@ -182,33 +182,33 @@ function ClientList({
                   onSelectClient(client);
                 }
               }}
-              className={`clients-list-item grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_90px_110px_130px_36px] items-center gap-3 px-3.5 py-2.5 transition-colors cursor-pointer text-left select-none ${
+              className={`clients-list-item flex sm:grid sm:grid-cols-[minmax(0,1fr)_90px_110px_130px_36px] items-center justify-between sm:justify-normal gap-2.5 sm:gap-3 px-3 sm:px-3.5 py-2.5 transition-colors cursor-pointer text-left select-none ${
                 isSelected
                   ? "is-selected bg-surface-2 border-l-2 border-accent"
                   : "hover:bg-field/70 border-l-2 border-transparent"
               } ${isFocused ? "animate-pulse ring-1 ring-accent" : ""}`}>
-              {/* Col 1: Identity: Small Avatar (28px) + Name + Badges + Phone */}
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className={`client-list-avatar shrink-0 grid place-items-center w-7 h-7 rounded-full text-[10px] font-bold ${
+              {/* Col 1 / Mobile Main: Avatar + Name + Badges + Subtitle */}
+              <div className="flex items-center gap-2.5 min-w-0 flex-1 sm:flex-initial">
+                <span className={`client-list-avatar shrink-0 grid place-items-center w-8 h-8 sm:w-7 sm:h-7 rounded-full text-[11px] sm:text-[10px] font-bold ${
                   isSelected ? "bg-accent/15 text-accent" : "bg-field text-textMuted"
                 }`}>
                   {getClientInitials(client.name || client.phone)}
                 </span>
 
                 <div className="flex flex-col min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-1.5 flex-nowrap">
                     <strong className="text-xs sm:text-sm font-semibold text-textPrimary truncate" title={client.name}>
                       {client.name || client.phone || "Без имени"}
                     </strong>
 
                     {client.isVip ? (
-                      <span className="client-badge-vip flex items-center gap-0.5 px-1 py-0.2 rounded text-[10px] font-bold text-amber-400 bg-amber-400/10">
+                      <span className="client-badge-vip shrink-0 flex items-center gap-0.5 px-1 py-0.2 rounded text-[10px] font-bold text-amber-400 bg-amber-400/10">
                         <AppIcon name="crown" size="xs" />
                         <span>VIP</span>
                       </span>
                     ) : null}
 
-                    <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                    <span className={`shrink-0 px-1.5 py-0.2 rounded text-[10px] font-semibold ${
                       client.autoStatus === "Новый"
                         ? "text-blue-400 bg-blue-400/10"
                         : "text-emerald-400 bg-emerald-400/10"
@@ -217,13 +217,14 @@ function ClientList({
                     </span>
 
                     {client.hasDebt ? (
-                      <span className="client-badge-debt px-1.5 py-0.2 rounded text-[10px] font-bold text-rose-400 bg-rose-400/10" title={`Долг: ${formatMoney(client.totalDebt)}`}>
+                      <span className="client-badge-debt shrink-0 px-1.5 py-0.2 rounded text-[10px] font-bold text-rose-400 bg-rose-400/10" title={`Долг: ${formatMoney(client.totalDebt)}`}>
                         Долг
                       </span>
                     ) : null}
                   </div>
 
-                  <div className="flex items-center gap-2 text-[11px] text-textMuted mt-0.5">
+                  {/* Desktop sub-line: Phone + Note */}
+                  <div className="hidden sm:flex items-center gap-2 text-[11px] text-textMuted mt-0.5">
                     <span className="truncate">{client.phone || "Без телефона"}</span>
                     {client.hasNote ? (
                       <span title={client.note} className="text-textFaint flex items-center gap-0.5">
@@ -232,10 +233,22 @@ function ClientList({
                       </span>
                     ) : null}
                   </div>
+
+                  {/* Mobile sub-line: Phone • Visits • Revenue • Note */}
+                  <div className="flex sm:hidden items-center gap-1.5 text-[11px] text-textMuted mt-0.5 truncate">
+                    <span className="truncate">{client.phone || "Без тел."}</span>
+                    <span className="text-textFaint shrink-0">•</span>
+                    <span className="shrink-0">{client.visitsCount} виз.</span>
+                    <span className="text-textFaint shrink-0">•</span>
+                    <span className="shrink-0 text-textPrimary font-medium">{formatMoney(client.totalIncome)}</span>
+                    {client.hasNote ? (
+                      <AppIcon name="fileText" size="xs" className="shrink-0 text-textFaint ml-0.5" />
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
-              {/* Col 2: Visits Count (Strictly aligned in column) */}
+              {/* Col 2 (Desktop): Visits Count */}
               <div className="hidden sm:flex flex-col items-end text-right">
                 <span className="text-xs font-semibold text-textPrimary">
                   {client.visitsCount} виз.
@@ -245,15 +258,15 @@ function ClientList({
                 </span>
               </div>
 
-              {/* Col 3: Revenue (Strictly aligned in column) */}
+              {/* Col 3 (Desktop): Revenue */}
               <div className="hidden sm:flex flex-col items-end text-right">
                 <span className="text-xs font-semibold text-textPrimary">
                   {formatMoney(client.totalIncome)}
                 </span>
               </div>
 
-              {/* Col 4: Last Visit (Strictly aligned in column) */}
-              <div className="flex flex-col items-end text-right">
+              {/* Col 4 (Desktop): Last Visit */}
+              <div className="hidden sm:flex flex-col items-end text-right">
                 <span className="text-xs font-semibold text-textPrimary">
                   {hasLastVisit ? client.lastVisit : "—"}
                 </span>
@@ -262,8 +275,30 @@ function ClientList({
                 </span>
               </div>
 
-              {/* Col 5: Actions button */}
-              <div className="flex justify-end">
+              {/* Col 5 (Desktop): Actions button */}
+              <div className="hidden sm:flex justify-end">
+                <ClientRowActions
+                  client={client}
+                  handleAddToWaitlist={handleAddToWaitlist}
+                  handleMessageClient={handleMessageClient}
+                  onDeleteClient={onDeleteClient}
+                  onEditClient={onEditClient}
+                  openClientMenuId={openClientMenuId}
+                  setOpenClientMenuId={setOpenClientMenuId}
+                  onSelectClient={onSelectClient}
+                />
+              </div>
+
+              {/* Mobile Right Section: Last visit date & Action menu */}
+              <div className="flex sm:hidden items-center gap-2 shrink-0 ml-1.5">
+                <div className="flex flex-col items-end text-right">
+                  <span className="text-[11.5px] font-semibold text-textPrimary">
+                    {hasLastVisit ? client.lastVisit : "—"}
+                  </span>
+                  <span className={`text-[10px] ${isChurnRisk ? "text-amber-400 font-semibold" : "text-textMuted"}`}>
+                    {hasLastVisit && client.daysAbsent !== null ? `${client.daysAbsent} дн.` : "новый"}
+                  </span>
+                </div>
                 <ClientRowActions
                   client={client}
                   handleAddToWaitlist={handleAddToWaitlist}
