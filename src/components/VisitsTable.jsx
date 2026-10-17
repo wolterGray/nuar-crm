@@ -94,6 +94,7 @@ function VisitsTable({
   }, []);
 
   const pageSize = autoPageSize;
+  const extraFilterCount = [filters.client, filters.date].filter(Boolean).length;
 
   const safeVisits = useMemo(
     () => (Array.isArray(visits) ? visits.filter(Boolean) : []),
@@ -182,7 +183,7 @@ function VisitsTable({
           <AppIcon className="payments-search-icon" name="search" size="xs" />
           <input
             className="payments-search-input"
-            placeholder="Клиент, услуга..."
+            placeholder="Клиент или услуга..."
             type="text"
             value={searchQuery}
             onChange={(e) => {
@@ -239,7 +240,7 @@ function VisitsTable({
           <AppIcon className="payments-select-arrow" name="chevronDown" size="xs" />
         </div>
 
-        <div className="payments-date-control-wrap">
+        <div className="payments-date-control-wrap payments-date-control-primary">
           <AppIcon className="payments-date-icon" name="calendar" size="xs" />
           <span className="payments-date-label">
             {filters.date ? toDisplayDate(filters.date) : "Все даты"}
@@ -270,13 +271,15 @@ function VisitsTable({
 
         <button
           aria-expanded={showExtraFilters}
-          className={`payments-filter-toggle-btn ${showExtraFilters || filters.client ? "is-active" : ""}`}
+          className={`payments-filter-toggle-btn ${showExtraFilters || extraFilterCount ? "is-active" : ""}`}
           type="button"
           onClick={() => setShowExtraFilters((prev) => !prev)}
         >
           <AppIcon name="sliders" size="xs" />
           <span>Фильтры</span>
-          {filters.client ? <span className="payments-filter-badge">1</span> : null}
+          {extraFilterCount ? (
+            <span className="payments-filter-badge">{extraFilterCount}</span>
+          ) : null}
         </button>
       </div>
 
@@ -293,6 +296,37 @@ function VisitsTable({
               value={filters.client || ""}
               onChange={(event) => onFilterChange("client", event.target.value)}
             />
+          </div>
+          <div className="payments-extra-filter-item payments-mobile-date-filter">
+            <span className="payments-extra-filter-label">Дата:</span>
+            <div className="payments-date-control-wrap">
+              <AppIcon className="payments-date-icon" name="calendar" size="xs" />
+              <span className="payments-date-label">
+                {filters.date ? toDisplayDate(filters.date) : "Все даты"}
+              </span>
+              {filters.date ? (
+                <button
+                  aria-label="Сбросить дату"
+                  className="payments-date-clear"
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onFilterChange("date", "");
+                  }}
+                >
+                  <AppIcon name="x" size="xs" />
+                </button>
+              ) : (
+                <AppIcon className="payments-date-arrow" name="chevronDown" size="xs" />
+              )}
+              <input
+                aria-label="Выбрать дату"
+                className="payments-date-native-input"
+                type="date"
+                value={filters.date || ""}
+                onChange={(event) => onFilterChange("date", event.target.value)}
+              />
+            </div>
           </div>
           <div className="payments-extra-filter-actions">
             <Button
@@ -358,6 +392,7 @@ function VisitsTable({
                       className="payments-row-main-line"
                       role="button"
                       tabIndex={0}
+                      aria-expanded={isExpanded}
                       onClick={() => toggleRowExpanded(visit.id)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
