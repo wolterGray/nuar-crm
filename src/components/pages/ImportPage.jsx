@@ -17,7 +17,7 @@ import {formatMoney} from "../../utils/formatters.jsx";
 import PageHeader from "../ui/PageHeader.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
 import Button from "../ui/Button.jsx";
-import {AppIcon, IconButton, Select} from "../ui/index.js";
+import {AppIcon, EmptyState, IconButton, Select} from "../ui/index.js";
 import "./ImportPage.css";
 
 const amountFilterOptions = [
@@ -115,47 +115,6 @@ function ImportDocumentCard({document, onDelete}) {
   );
 }
 
-function ImportMobileFilterSelect({label, value, options, onChange}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const selectedOption = options.find((option) => option.value === value) ?? options[0];
-
-  const handleSelect = (nextValue) => {
-    onChange(nextValue);
-    setIsOpen(false);
-  };
-
-  return (
-    <div className="import-mobile-filter-select">
-      <span>{label}</span>
-      <Button
-        aria-expanded={isOpen}
-        className="import-mobile-filter-trigger"
-        size="sm"
-        type="button"
-        variant="ghost"
-        onClick={() => setIsOpen((current) => !current)}>
-        {selectedOption?.label}
-      </Button>
-      {isOpen && (
-        <div className="import-mobile-filter-options">
-          {options.map((option) => (
-            <Button
-              aria-current={value === option.value ? "true" : undefined}
-              className="import-mobile-filter-option"
-              key={option.value}
-              size="sm"
-              type="button"
-              variant="ghost"
-              onClick={() => handleSelect(option.value)}>
-              {option.label}
-            </Button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function ImportDocumentFilters({
   filters,
   sourceOptions,
@@ -171,69 +130,62 @@ function ImportDocumentFilters({
   ];
 
   return (
-    <div className="import-document-filters flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-      <div className="import-mobile-filter-groups">
-        <ImportMobileFilterSelect
-          label="Источник"
-          options={sourceFilterOptions}
-          value={filters.source}
-          onChange={(value) => updateFilter("source", value)}
-        />
-        <ImportMobileFilterSelect
-          label="Сумма"
-          options={amountFilterOptions}
-          value={filters.amount}
-          onChange={(value) => updateFilter("amount", value)}
-        />
-        <ImportMobileFilterSelect
-          label="Период"
-          options={periodFilterOptions}
-          value={filters.period}
-          onChange={(value) => updateFilter("period", value)}
-        />
-      </div>
-
-      <label className="import-filter-field">
-        <small className="text-text-faint text-[10px] font-bold tracking-wider uppercase">Источник</small>
-        <Select
-          className="import-filter-select"
-          value={filters.source}
-          onChange={(event) => updateFilter("source", event.target.value)}>
-          <option value="all">Все · {totalSummary.total}</option>
-          {sourceOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label} · {option.count}
-            </option>
-          ))}
-        </Select>
+    <div className="import-document-filters grid grid-cols-3 gap-2 sm:flex sm:items-center sm:gap-3.5 w-full">
+      <label className="import-filter-field flex flex-col gap-1 min-w-0 flex-1">
+        <span className="import-filter-label text-[10px] font-semibold text-text-muted uppercase tracking-wider truncate">
+          Источник
+        </span>
+        <div className="import-select-wrapper relative flex items-center">
+          <select
+            className="import-native-select w-full h-10 pl-3 pr-7 rounded-control bg-field border border-border text-white text-xs font-medium appearance-none focus:outline-none focus:border-accent transition-colors cursor-pointer"
+            value={filters.source}
+            onChange={(event) => updateFilter("source", event.target.value)}>
+            {sourceFilterOptions.map((option) => (
+              <option key={option.value} value={option.value} className="bg-[#141416] text-white">
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <AppIcon name="chevronDown" size="xs" className="import-select-arrow absolute right-2.5 pointer-events-none text-text-faint" />
+        </div>
       </label>
 
-      <label className="import-filter-field">
-        <small className="text-text-faint text-[10px] font-bold tracking-wider uppercase">Сумма</small>
-        <Select
-          className="import-filter-select"
-          value={filters.amount}
-          onChange={(event) => updateFilter("amount", event.target.value)}>
-          {amountFilterOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Select>
+      <label className="import-filter-field flex flex-col gap-1 min-w-0 flex-1">
+        <span className="import-filter-label text-[10px] font-semibold text-text-muted uppercase tracking-wider truncate">
+          Сумма
+        </span>
+        <div className="import-select-wrapper relative flex items-center">
+          <select
+            className="import-native-select w-full h-10 pl-3 pr-7 rounded-control bg-field border border-border text-white text-xs font-medium appearance-none focus:outline-none focus:border-accent transition-colors cursor-pointer"
+            value={filters.amount}
+            onChange={(event) => updateFilter("amount", event.target.value)}>
+            {amountFilterOptions.map((option) => (
+              <option key={option.value} value={option.value} className="bg-[#141416] text-white">
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <AppIcon name="chevronDown" size="xs" className="import-select-arrow absolute right-2.5 pointer-events-none text-text-faint" />
+        </div>
       </label>
 
-      <label className="import-filter-field">
-        <small className="text-text-faint text-[10px] font-bold tracking-wider uppercase">Период</small>
-        <Select
-          className="import-filter-select"
-          value={filters.period}
-          onChange={(event) => updateFilter("period", event.target.value)}>
-          {periodFilterOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Select>
+      <label className="import-filter-field flex flex-col gap-1 min-w-0 flex-1">
+        <span className="import-filter-label text-[10px] font-semibold text-text-muted uppercase tracking-wider truncate">
+          Период
+        </span>
+        <div className="import-select-wrapper relative flex items-center">
+          <select
+            className="import-native-select w-full h-10 pl-3 pr-7 rounded-control bg-field border border-border text-white text-xs font-medium appearance-none focus:outline-none focus:border-accent transition-colors cursor-pointer"
+            value={filters.period}
+            onChange={(event) => updateFilter("period", event.target.value)}>
+            {periodFilterOptions.map((option) => (
+              <option key={option.value} value={option.value} className="bg-[#141416] text-white">
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <AppIcon name="chevronDown" size="xs" className="import-select-arrow absolute right-2.5 pointer-events-none text-text-faint" />
+        </div>
       </label>
     </div>
   );
@@ -297,7 +249,7 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
     : "Импортированные faktury Allegro, Booksy, iPOS и другие появятся здесь с датой, номером, отправителем и вложениями.";
 
   return (
-    <div className="import-page flex flex-col gap-6 p-4 md:p-6 w-full">
+    <div className="import-page nuar-import flex flex-col gap-4 md:gap-6 p-4 md:p-6 w-full max-w-7xl mx-auto">
       <PageHeader
         className="import-page-header"
         description="Импорт визитов Booksy и фактур Allegro, Booksy, iPOS из Gmail"
@@ -432,10 +384,12 @@ function ImportPage({booksyGmailSync, calendarEntries, documents, onDeleteDocume
         {/* Documents Grid */}
         <div className="p-4 md:p-5">
           {filteredDocuments.length === 0 ? (
-            <div className="text-center py-10 text-text-muted max-w-md mx-auto flex flex-col items-center gap-2">
-              <p className="font-semibold text-sm m-0 text-text-main">Документы не найдены</p>
-              <p className="text-xs m-0 leading-relaxed">{emptyDocumentsMessage}</p>
-            </div>
+            <EmptyState
+              className="py-8 bg-transparent border-0"
+              description={emptyDocumentsMessage}
+              icon="fileText"
+              title="Документы не найдены"
+            />
           ) : (
             <div className="import-documents-grid grid grid-cols-1 gap-4">
               {documentCards}

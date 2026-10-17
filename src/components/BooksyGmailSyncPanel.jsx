@@ -33,11 +33,13 @@ function BooksyGmailSyncPanel({
 
   if (!isConfigured) {
     return (
-      <section className="crm-card import-sync-panel import-sync-panel-error crm-alert-panel crm-alert-panel-error">
-        <AppIcon className="crm-alert-icon" name="mailCheck" size="md" />
-        <div className="grid gap-0.5">
-          <h2 className="crm-alert-title">Booksy Gmail Sync</h2>
-          <p className="crm-alert-text">
+      <section className="crm-card import-sync-panel import-sync-panel-error border border-border bg-surface rounded-card p-3.5 md:p-5 flex items-start gap-3.5">
+        <span className="import-sync-icon flex items-center justify-center w-9 h-9 rounded-lg bg-accent/10 text-accent shrink-0 mt-0.5">
+          <AppIcon name="mailCheck" size="md" />
+        </span>
+        <div className="grid gap-0.5 min-w-0">
+          <h2 className="m-0 text-text-main text-sm md:text-base font-semibold leading-snug">Booksy Gmail Sync</h2>
+          <p className="m-0 text-text-muted text-xs leading-relaxed">
             Для серверной синхронизации нужны переменные Hetzner backend и Google OAuth.
           </p>
         </div>
