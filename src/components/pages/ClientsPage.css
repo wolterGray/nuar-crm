@@ -498,6 +498,153 @@
   border: 1px solid var(--border-soft, rgba(255, 255, 255, 0.06));
 }
 
+@media (min-width: 768px) {
+  .clients-list-pane {
+    gap: 0;
+    padding: 12px;
+    border-color: rgba(255, 255, 255, 0.065);
+    border-radius: 12px;
+    background: #101012;
+    box-shadow: none;
+  }
+
+  .clients-toolbar-primary {
+    min-height: 58px;
+    margin: -12px -12px 0;
+    padding: 12px 16px !important;
+    border-bottom-color: rgba(255, 255, 255, 0.055) !important;
+    background: #141416;
+  }
+
+  .clients-search-box {
+    height: 38px;
+    min-height: 38px;
+    padding-inline: 13px;
+    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 9px;
+    background: #1a1a1d;
+  }
+
+  .clients-filter-dropdown {
+    height: 38px;
+    min-width: 132px;
+    padding-inline: 12px;
+    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 9px;
+    color: #d4d4d8;
+    background: #1a1a1d;
+  }
+
+  .clients-toolbar-secondary {
+    min-height: 48px;
+    margin: 0 -12px;
+    padding: 8px 16px !important;
+    gap: 7px !important;
+    border-bottom-color: rgba(255, 255, 255, 0.055) !important;
+    background: #141416;
+  }
+
+  .clients-quick-pill {
+    height: 31px;
+    padding-inline: 10px;
+    border-color: rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
+    background: #1a1a1d;
+  }
+
+  .clients-quick-pill:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: #202023;
+  }
+
+  .clients-quick-pill.is-active {
+    border-color: rgba(239, 56, 59, 0.48);
+    color: #ff5b5e;
+    background: rgba(239, 56, 59, 0.12);
+  }
+
+  .clients-quick-pill.is-active .pill-count {
+    color: inherit;
+  }
+
+  .clients-list-header-row {
+    min-height: 38px;
+    margin: 0 -2px;
+    padding-inline: 14px !important;
+    border-bottom: 0 !important;
+    background: transparent !important;
+  }
+
+  .clients-list-scroll {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    gap: 7px;
+    padding: 0 2px 8px;
+    scrollbar-gutter: stable;
+  }
+
+  .clients-list-item {
+    min-height: 68px;
+    padding: 9px 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.065) !important;
+    border-left-width: 1px !important;
+    border-radius: 10px;
+    background: #161618;
+  }
+
+  .clients-list-item:last-child {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.065) !important;
+  }
+
+  .clients-list-item:hover {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    background: #1b1b1e;
+  }
+
+  .clients-list-item.is-selected {
+    border-color: rgba(239, 56, 59, 0.44) !important;
+    background: rgba(239, 56, 59, 0.07) !important;
+    box-shadow: inset 3px 0 0 #ef383b;
+  }
+
+  .clients-list-item .client-list-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    border-color: rgba(255, 255, 255, 0.09);
+    color: #d4d4d8;
+    background: #202024;
+    font-size: 12px !important;
+  }
+
+  .clients-list-item.is-selected .client-list-avatar {
+    border-color: rgba(239, 56, 59, 0.36);
+    color: #ff686b;
+    background: rgba(239, 56, 59, 0.12);
+  }
+
+  .client-desktop-identity {
+    gap: 12px !important;
+  }
+
+  .client-desktop-copy strong {
+    font-size: 13px;
+  }
+
+  .client-desktop-metric {
+    gap: 2px;
+    padding-left: 12px;
+    border-left: 1px solid rgba(255, 255, 255, 0.045);
+  }
+
+  .clients-pagination-shell {
+    margin: 0 -12px -12px;
+    padding: 9px 14px !important;
+    border-top-color: rgba(255, 255, 255, 0.065) !important;
+    background: #141416 !important;
+  }
+}
+
 /* ==========================================================================
    Right Side Drawer (Slide-in Workspace)
    NO dark dimming/backdrop over the left screen!

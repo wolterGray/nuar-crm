@@ -207,7 +207,7 @@ function ClientList({
       </div>
 
       {/* 3. Structured Table Header (Desktop Only) */}
-      <div className="clients-list-header-row hidden sm:grid grid-cols-[minmax(0,1fr)_90px_110px_130px_36px] items-center gap-3 px-3.5 py-2 border-b border-border/50 text-[10px] text-textMuted uppercase font-bold tracking-wider shrink-0 bg-surface">
+      <div className="clients-list-header-row hidden sm:grid grid-cols-[minmax(0,1fr)_100px_120px_145px_36px] items-center gap-3 px-3.5 py-2 text-[10px] text-textMuted uppercase font-bold tracking-wider shrink-0 bg-surface">
         <div>Клиент</div>
         <div className="text-right">Визиты</div>
         <div className="text-right">Выручка</div>
@@ -319,20 +319,20 @@ function ClientList({
                   onSelectClient(client);
                 }
               }}
-              className={`clients-list-item grid grid-cols-[minmax(0,1fr)_90px_110px_130px_36px] items-center gap-3 px-3.5 py-2.5 transition-colors cursor-pointer text-left select-none ${
+              className={`clients-list-item grid grid-cols-[minmax(0,1fr)_100px_120px_145px_36px] items-center gap-3 px-3.5 py-2.5 transition-colors cursor-pointer text-left select-none ${
                 isSelected
                   ? "is-selected bg-surface-2 border-l-2 border-accent"
                   : "hover:bg-white/[0.02] border-l-2 border-transparent"
               } ${isFocused ? "animate-pulse ring-1 ring-accent" : ""}`}>
               {/* Col 1: Small Avatar (28px) + Full Unclipped Name + Subtitle */}
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="client-desktop-identity flex items-center gap-2.5 min-w-0">
                 <span className={`client-list-avatar shrink-0 grid place-items-center w-7 h-7 rounded-full text-[10.5px] font-bold ${
                   isSelected ? "bg-accent/15 text-accent" : "bg-surface-2 border border-white/5 text-textMuted"
                 }`}>
                   {getClientInitials(client.name || client.phone)}
                 </span>
 
-                <div className="flex flex-col min-w-0 flex-1 justify-center">
+                <div className="client-desktop-copy flex flex-col min-w-0 flex-1 justify-center">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <strong className="text-sm font-semibold text-textPrimary leading-snug break-words" title={client.name}>
                       {client.name || client.phone || "Без имени"}
@@ -378,7 +378,7 @@ function ClientList({
               </div>
 
               {/* Col 2 (Desktop): Visits Count */}
-              <div className="flex flex-col items-end text-right">
+              <div className="client-desktop-metric flex flex-col items-end text-right">
                 <span className="text-xs font-semibold text-textPrimary">
                   {client.visitsCount} виз.
                 </span>
@@ -388,14 +388,14 @@ function ClientList({
               </div>
 
               {/* Col 3 (Desktop): Revenue */}
-              <div className="flex flex-col items-end text-right">
+              <div className="client-desktop-metric flex flex-col items-end text-right">
                 <span className="text-xs font-semibold text-textPrimary">
                   {formatMoney(client.totalIncome)}
                 </span>
               </div>
 
               {/* Col 4 (Desktop): Last Visit */}
-              <div className="flex flex-col items-end text-right">
+              <div className="client-desktop-metric client-desktop-last-visit flex flex-col items-end text-right">
                 <span className="text-xs font-semibold text-textPrimary">
                   {hasLastVisit ? client.lastVisit : "—"}
                 </span>
