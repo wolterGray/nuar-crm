@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from "react";
+import "./OperationsPage.css";
 import {DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors} from "@dnd-kit/core";
 import {CSS} from "@dnd-kit/utilities";
 import WaitlistPanel from "../WaitlistPanel.jsx";

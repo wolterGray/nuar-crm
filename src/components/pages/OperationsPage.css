@@ -1,0 +1,318 @@
+@media (max-width: 768px) {
+  .operations-page.operations-page-mobile {
+    --operations-mobile-bg: #0d0d0f;
+    --operations-mobile-surface: #161618;
+    --operations-mobile-field: #1d1d20;
+    --operations-mobile-raised: #232326;
+    --operations-mobile-border: #2b2b2e;
+    --operations-mobile-text: #f4f4f5;
+    --operations-mobile-muted: #9a9a9f;
+    --operations-mobile-accent: #ef383b;
+    --operations-mobile-accent-soft: #351719;
+    gap: 10px !important;
+    padding: 2px 0 0 !important;
+    background: var(--operations-mobile-bg) !important;
+  }
+
+  .operations-page-mobile .operations-top-bar {
+    min-height: 44px !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .operations-page-mobile .operations-top-title {
+    color: var(--operations-mobile-text) !important;
+    font-size: 23px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .operations-page-mobile .operations-tabs-action-bar {
+    gap: 9px !important;
+  }
+
+  .operations-page-mobile .operations-tabs-nav {
+    display: flex !important;
+    width: 100% !important;
+    padding: 3px !important;
+    gap: 3px !important;
+    overflow-x: auto !important;
+    background: var(--operations-mobile-surface) !important;
+    border: 1px solid var(--operations-mobile-border) !important;
+    border-radius: 10px !important;
+    scrollbar-width: none !important;
+    scroll-snap-type: x proximity;
+  }
+
+  .operations-page-mobile .operations-tabs-nav::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .operations-page-mobile .operations-tabs-nav button {
+    flex: 0 0 auto !important;
+    min-width: 78px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding-inline: 11px !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
+    color: var(--operations-mobile-muted) !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    scroll-snap-align: start;
+  }
+
+  .operations-page-mobile .operations-tabs-nav button.is-active,
+  .operations-page-mobile .operations-tabs-nav button[aria-selected="true"] {
+    color: var(--operations-mobile-text) !important;
+    background: var(--operations-mobile-accent-soft) !important;
+    border-color: rgba(239, 56, 59, 0.65) !important;
+    box-shadow: none !important;
+  }
+
+  .operations-page-mobile .operations-add-task-cta {
+    height: 44px !important;
+    min-height: 44px !important;
+    color: #fff !important;
+    background: var(--operations-mobile-accent) !important;
+    border-color: var(--operations-mobile-accent) !important;
+    border-radius: 9px !important;
+    box-shadow: none !important;
+  }
+
+  .operations-page-mobile .operations-planner-panel {
+    gap: 9px !important;
+  }
+
+  .operations-page-mobile .operations-task-commandbar {
+    gap: 7px !important;
+    padding: 9px !important;
+    background: var(--operations-mobile-surface) !important;
+    border-color: var(--operations-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+
+  .operations-page-mobile .operations-week-nav-btn,
+  .operations-page-mobile .operations-manage-tasks-btn {
+    color: #d2d2d5 !important;
+    background: var(--operations-mobile-field) !important;
+    border-color: var(--operations-mobile-border) !important;
+    box-shadow: none !important;
+  }
+
+  .operations-page-mobile .operations-week-title {
+    color: var(--operations-mobile-text) !important;
+  }
+
+  .operations-page-mobile .operations-week-relative-tag.is-current {
+    color: #5dd29a !important;
+    background: rgba(36, 138, 79, 0.12) !important;
+    border-color: rgba(66, 185, 128, 0.32) !important;
+  }
+
+  .operations-page-mobile .operations-week-mode-toggle {
+    background: #101012 !important;
+    border-color: var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .operations-week-mode-btn {
+    color: var(--operations-mobile-muted) !important;
+    background: transparent !important;
+  }
+
+  .operations-page-mobile .operations-week-mode-btn.is-active {
+    color: var(--operations-mobile-text) !important;
+    background: var(--operations-mobile-raised) !important;
+    box-shadow: none !important;
+  }
+
+  .operations-page-mobile .operations-workday-summary {
+    min-height: 48px !important;
+    height: 48px !important;
+    padding: 7px 10px !important;
+    background: var(--operations-mobile-surface) !important;
+    border-color: var(--operations-mobile-border) !important;
+    border-radius: 9px !important;
+  }
+
+  .operations-page-mobile .operations-summary-stats {
+    color: var(--operations-mobile-muted) !important;
+  }
+
+  .operations-page-mobile .operations-summary-stats strong {
+    color: var(--operations-mobile-text) !important;
+  }
+
+  .operations-page-mobile .operations-summary-progress {
+    background: var(--operations-mobile-raised) !important;
+  }
+
+  .operations-page-mobile .operations-summary-progress i {
+    background: #5dd29a !important;
+  }
+
+  .operations-page-mobile .operations-list-toolbar {
+    gap: 7px !important;
+  }
+
+  .operations-page-mobile .operations-task-search-input,
+  .operations-page-mobile .operations-filter-summary {
+    height: 42px !important;
+    min-height: 42px !important;
+    color: var(--operations-mobile-text) !important;
+    background: var(--operations-mobile-field) !important;
+    border-color: var(--operations-mobile-border) !important;
+    border-radius: 8px !important;
+  }
+
+  .operations-page-mobile .operations-task-search-input {
+    font-size: 16px !important;
+  }
+
+  .operations-page-mobile .operations-task-search-input::placeholder {
+    color: var(--operations-mobile-muted) !important;
+  }
+
+  .operations-page-mobile .operations-filter-menu-content {
+    background: var(--operations-mobile-surface) !important;
+    border-color: var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .operations-mini-week-bar {
+    margin: 0 0 4px !important;
+    padding: 4px !important;
+    background: var(--operations-mobile-surface) !important;
+    border-color: var(--operations-mobile-border) !important;
+    border-radius: 10px !important;
+  }
+
+  .operations-page-mobile .operations-mini-day-tab {
+    height: 56px !important;
+    min-height: 56px !important;
+    border-radius: 8px !important;
+  }
+
+  .operations-page-mobile .operations-mini-day-weekday {
+    color: #85858a !important;
+  }
+
+  .operations-page-mobile .operations-mini-day-num {
+    color: #d7d7da !important;
+  }
+
+  .operations-page-mobile .operations-mini-day-count-compact {
+    color: var(--operations-mobile-muted) !important;
+    background: var(--operations-mobile-raised) !important;
+  }
+
+  .operations-page-mobile .operations-mini-day-tab.is-selected {
+    background: var(--operations-mobile-accent-soft) !important;
+    border-color: rgba(239, 56, 59, 0.6) !important;
+  }
+
+  .operations-page-mobile .operations-mini-day-tab.is-selected .operations-mini-day-weekday {
+    color: #ff7476 !important;
+  }
+
+  .operations-page-mobile .operations-mini-day-tab.is-selected .operations-mini-day-count-compact {
+    color: #fff !important;
+    background: var(--operations-mobile-accent) !important;
+  }
+
+  .operations-page-mobile .operations-day-focus-header {
+    padding: 5px 0 7px !important;
+    border-color: var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .operations-day-focus-title {
+    color: var(--operations-mobile-text) !important;
+  }
+
+  .operations-page-mobile .operations-day-today-pill {
+    color: #ff7476 !important;
+    background: var(--operations-mobile-accent-soft) !important;
+    border-color: rgba(239, 56, 59, 0.42) !important;
+  }
+
+  .operations-page-mobile .operations-day-meta-badge {
+    color: var(--operations-mobile-muted) !important;
+    background: var(--operations-mobile-field) !important;
+    border: 1px solid var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .operations-day-focus-list {
+    gap: 8px !important;
+    padding-bottom: 0 !important;
+  }
+
+  .operations-page-mobile .operations-linear-row {
+    background: var(--operations-mobile-surface) !important;
+    border-color: var(--operations-mobile-border) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+  }
+
+  .operations-page-mobile .operations-linear-row:active {
+    background: #18181b !important;
+  }
+
+  .operations-page-mobile .operations-m-task-card {
+    gap: 7px !important;
+    padding: 11px 12px !important;
+  }
+
+  .operations-page-mobile :is(.operations-m-checkbox, .operations-linear-checkbox) {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    flex-basis: 20px !important;
+    background: transparent !important;
+    border: 1.5px solid #5d5d62 !important;
+    border-radius: 5px !important;
+    box-shadow: none !important;
+  }
+
+  .operations-page-mobile :is(.operations-m-checkbox, .operations-linear-checkbox).is-checked {
+    color: #fff !important;
+    background: #287a58 !important;
+    border-color: #45ad7e !important;
+  }
+
+  .operations-page-mobile .operations-linear-checklist-badge,
+  .operations-page-mobile .operations-m-task-time {
+    color: var(--operations-mobile-muted) !important;
+    background: var(--operations-mobile-raised) !important;
+    border: 1px solid var(--operations-mobile-border) !important;
+  }
+
+  .operations-page-mobile .operations-m-task-title {
+    color: var(--operations-mobile-text) !important;
+    font-size: 14px !important;
+  }
+
+  .operations-page-mobile .operations-linear-assignee-tag {
+    color: var(--operations-mobile-muted) !important;
+  }
+
+  .operations-page-mobile .operations-linear-drawer {
+    border-color: var(--operations-mobile-border) !important;
+    background: #141416 !important;
+  }
+
+  .operations-page-mobile .operations-history-section {
+    border-color: var(--operations-mobile-border) !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .operations-page-mobile .operations-tabs-nav button {
+    min-width: 72px !important;
+    padding-inline: 9px !important;
+  }
+
+  .operations-page-mobile .operations-task-commandbar {
+    padding-inline: 7px !important;
+  }
+}
