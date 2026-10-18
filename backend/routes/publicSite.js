@@ -2,6 +2,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { ensureSiteCmsTables } = require('../utils/siteCmsTables');
+const { buildPublicServicesCatalog } = require('../utils/siteServicesCatalog');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -13,6 +14,19 @@ const handleRouteError = (res, error) => {
   res.status(response.status).json({ success: false, error: response.message });
 };
 
+router.get('/site-services', async (_req, res) => {
+  try {
+    const crmServices = await prisma.service.findMany({
+      where: { status: { not: 'Архив' }, siteVisible: { not: false } },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    });
+    const catalog = buildPublicServicesCatalog(crmServices);
+    res.json({ success: true, data: catalog });
+  } catch (error) {
+    handleRouteError(res, error);
+  }
+});
+
 router.get('/site-content', async (_req, res) => {
   try {
     await ensureSiteCmsTables(prisma);
@@ -23,10 +37,25 @@ router.get('/site-content', async (_req, res) => {
       limit 1
     `;
     const row = rows?.[0] ?? null;
+    const overrides = row?.data ?? {};
+
+    // Single source of truth: merge live CRM service catalog & prices
+    try {
+      const crmServices = await prisma.service.findMany({
+        where: { status: { not: 'Архив' }, siteVisible: { not: false } },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      });
+      if (crmServices.length > 0) {
+        overrides.services = buildPublicServicesCatalog(crmServices, overrides.services);
+      }
+    } catch (e) {
+      console.warn('Could not load CRM services for site-content:', e.message);
+    }
+
     res.json({
       success: true,
       data: {
-        overrides: row?.data ?? {},
+        overrides,
         updatedAt: row?.updated_at ?? null,
       },
     });

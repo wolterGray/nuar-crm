@@ -137,8 +137,8 @@ describe("attachPricingToSlots", () => {
       ],
     });
 
-    expect(slots[0].finalPrice).toBe(209);
-    expect(slots[1].finalPrice).toBe(293);
+    expect(slots[0].finalPrice).toBe(164);
+    expect(slots[1].finalPrice).toBe(230);
   });
 
   it("resolves base price from slug when CRM catalog is empty", () => {
@@ -152,7 +152,7 @@ describe("attachPricingToSlots", () => {
       slots: [{master: "Максим", startTime: "12:00"}],
     });
 
-    expect(slots[0].basePrice).toBe(255);
+    expect(slots[0].basePrice).toBe(200);
   });
 });
 

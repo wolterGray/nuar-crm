@@ -76,7 +76,7 @@ describe("siteBooking", () => {
         [],
       ),
     ).toEqual({
-      amount: 255,
+      amount: 200,
       duration: 60,
       service: "Masaż klasyczny",
       serviceId: "",

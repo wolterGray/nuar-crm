@@ -18,14 +18,14 @@ const DEFAULT_WORKDAY_START = '08:00';
 const DEFAULT_WORKDAY_END = '22:00';
 const DEFAULT_SLOT_STEP = 15;
 const SITE_SERVICE_PRICE_FALLBACKS = [
-  { slug: 'masaz-klasyczny', title: 'Masaż klasyczny', time: [30, 60, 75, 90, 120], price: [170, 200, 250, 280, 360] },
-  { slug: 'masaz-sportowy', title: 'Masaż sportowy', time: [30, 60, 75, 90, 120], price: [170, 200, 250, 280, 360] },
-  { slug: 'masaz-relaksacyjny', title: 'Masaż relaksacyjny', time: [30, 60, 75, 90, 120], price: [170, 200, 250, 280, 360] },
-  { slug: 'masaz-limfatyczny', title: 'Masaż limfatyczny', time: [30, 60, 75, 90, 120], price: [170, 200, 250, 280, 360] },
-  { slug: 'masaz-antycellulitowy', title: 'Masaż antycellulitowy', time: [30, 60, 75, 90, 120], price: [170, 200, 250, 280, 360] },
-  { slug: 'masaz-twarzy-i-glowy', title: 'Masaż twarzy i głowy', time: [30, 60], price: [149, 220] },
-  { slug: 'masaz-autorski', title: 'Masaż autorski', time: [90, 120], price: [490, 590] },
-  { slug: 'masaz-dla-dzieci', title: 'Masaż dla dzieci', time: [30, 60, 75, 90, 120], price: [170, 250, 310, 360, 450] },
+  { slug: 'masaz-klasyczny', title: 'Masaż klasyczny', time: [60, 75, 90, 120], price: [200, 250, 280, 360], priceTopMaster: [310, 350, 370, 470] },
+  { slug: 'masaz-sportowy', title: 'Masaż sportowy', time: [60, 75, 90, 120], price: [200, 250, 280, 360], priceTopMaster: [310, 350, 370, 470] },
+  { slug: 'masaz-relaksacyjny', title: 'Masaż relaksacyjny', time: [60, 75, 90, 120], price: [200, 250, 280, 360], priceTopMaster: [310, 350, 370, 470] },
+  { slug: 'masaz-limfatyczny', title: 'Masaż limfatyczny', time: [60, 75, 90, 120], price: [200, 250, 280, 360], priceTopMaster: [310, 350, 370, 470] },
+  { slug: 'masaz-antycellulitowy', title: 'Masaż antycellulitowy', time: [60, 75, 90, 120], price: [200, 250, 280, 360], priceTopMaster: [310, 350, 370, 470] },
+  { slug: 'masaz-twarzy-i-glowy', title: 'Masaż twarzy i głowy', time: [60], price: [330], priceTopMaster: [330] },
+  { slug: 'masaz-autorski', title: 'Masaż autorski', time: [90, 120], price: [490, 590], priceTopMaster: [490, 590] },
+  { slug: 'masaz-dla-dwojga', title: 'Masaż dla dwojga', time: [60, 90], price: [500, 650], priceTopMaster: [500, 650] },
 ];
 
 const SITE_MASTER_ALIASES = {
@@ -243,7 +243,8 @@ const getServiceBasePrice = ({ durationMinutes, employee, serviceName, serviceSl
 
   const durationIndex = fallback.time.findIndex((minutes) => Number(minutes) === Number(durationMinutes));
   const priceIndex = durationIndex >= 0 ? durationIndex : 0;
-  return Math.max(0, Math.round(Number(fallback.price[priceIndex]) || 0));
+  const priceList = isTopMaster && fallback.priceTopMaster ? fallback.priceTopMaster : fallback.price;
+  return Math.max(0, Math.round(Number(priceList[priceIndex]) || 0));
 };
 
 const rangesOverlap = (firstStart, firstEnd, secondStart, secondEnd) =>
