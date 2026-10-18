@@ -520,16 +520,23 @@ export const buildAlertCenter = ({
   notificationInbox
     .filter((notification) => notification.undoAction)
     .forEach((notification) => {
+      const alertId = `undo-${notification.id}`;
+
+      if (isHidden(alertId)) {
+        return;
+      }
+
       alerts.push(
         createAlert({
-          id: `undo-${notification.id}`,
+          id: alertId,
           type: "undo",
           group: "system",
-          priority: "action",
+          priority: "info",
           title: notification.title,
           message: notification.message,
           actions: notification.undoAction ? ["undo", "dismiss"] : ["dismiss"],
-          meta: {notification},
+          createdAt: notification.archivedAt ?? notification.createdAt,
+          meta: {category: "information", notification},
         }),
       );
     });

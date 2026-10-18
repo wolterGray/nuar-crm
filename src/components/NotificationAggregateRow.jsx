@@ -2,30 +2,13 @@ import {animate, motion, useMotionValue} from "framer-motion";
 import {useState} from "react";
 import {useSwipeable} from "react-swipeable";
 import NotificationAlertRow from "./NotificationAlertRow.jsx";
-import {AppIcon, Button, IconButton} from "./ui/index.js";
+import {AppIcon, Button} from "./ui/index.js";
 
 const SWIPE_CONFIRM_DELTA = 76;
 const SWIPE_HINT_LIMIT = 92;
 const SWIPE_REVEAL_OFFSET = 86;
 
-const AGGREGATE_BADGE_LABELS = {
-  inactive: "Клиенты",
-  packages: "Пакеты",
-  supplies: "Склад",
-  tasks: "Дела",
-};
-
-const AGGREGATE_STATUS_LABELS = {
-  packages: "Низкий остаток",
-  supplies: "Ниже минимума",
-  tasks: "Требуют внимания",
-};
-
 const getAggregateTitle = (alert) => {
-  if (alert.aggregateKind === "inactive") return "Клиенты";
-  if (alert.aggregateKind === "packages") return "Пакеты";
-  if (alert.aggregateKind === "supplies") return "Склад";
-  if (alert.aggregateKind === "tasks") return "Задачи";
   return alert.title;
 };
 
@@ -172,21 +155,6 @@ export default function NotificationAggregateRow({
               onClick={() => setExpanded((current) => !current)}>
               <AppIcon className={expanded ? "open" : ""} name="chevronDown" size="xs" />
               <div className="client-alert-row-copy">
-                <div className="client-alert-meta-badges">
-                  <span
-                    className={`client-alert-meta-badge is-${alert.aggregateKind ?? alert.group}`}>
-                    {AGGREGATE_BADGE_LABELS[alert.aggregateKind] ?? "Группа"}
-                  </span>
-                  {AGGREGATE_STATUS_LABELS[alert.aggregateKind] ? (
-                    <span
-                      className={`client-alert-meta-badge is-${alert.aggregateKind}-status`}>
-                      {AGGREGATE_STATUS_LABELS[alert.aggregateKind]}
-                    </span>
-                  ) : null}
-                  <span className="client-alert-meta-badge is-count">
-                    {alert.children.length}
-                  </span>
-                </div>
                 <strong>{displayTitle}</strong>
                 <span>{alert.message}</span>
               </div>
@@ -203,22 +171,9 @@ export default function NotificationAggregateRow({
                 onAction(alert, "open");
               }}
               onPointerDown={(event) => event.stopPropagation()}>
-              Открыть группу
+              Посмотреть
             </Button>
           </div>
-          <IconButton
-            className="client-alert-dismiss-button"
-            icon="x"
-            label="Скрыть группу уведомлений"
-            size="sm"
-            type="button"
-            variant="ghost"
-            onClick={(event) => {
-              event.stopPropagation();
-              onDismissPermanent?.(alert);
-            }}
-            onPointerDown={(event) => event.stopPropagation()}
-          />
         </div>
         </motion.div>
       </div>

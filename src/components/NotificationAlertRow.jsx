@@ -128,6 +128,18 @@ const getActionIcon = (action) => {
   return ACTION_ICONS[action];
 };
 
+const formatAlertTime = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const now = new Date();
+  const sameDay = date.toDateString() === now.toDateString();
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  if (sameDay) return date.toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"});
+  if (date.toDateString() === yesterday.toDateString()) return "Вчера";
+  return date.toLocaleDateString("ru-RU", {day: "2-digit", month: "2-digit"});
+};
+
 export default function NotificationAlertRow({
   alert,
   onAction,
@@ -138,6 +150,7 @@ export default function NotificationAlertRow({
 }) {
   const [armedDirection, setArmedDirection] = useState(0);
   const [dismissDirection, setDismissDirection] = useState(0);
+  const [isDismissing, setIsDismissing] = useState(false);
   const [swipeHint, setSwipeHint] = useState(null);
   const swipeX = useMotionValue(0);
   const cardAction =
@@ -152,6 +165,10 @@ export default function NotificationAlertRow({
   const cornerBadge = getCornerBadge(alert);
   const displayTitle = getAlertDisplayTitle(alert);
   const displayMessage = getAlertDisplayMessage(alert, displayTitle);
+  const category = alert.category ?? alert.meta?.category ??
+    (["critical", "action"].includes(alert.priority) ? "action" : "information");
+  const canDismiss = category === "information" || category === "opportunity" || alert.type === "undo";
+  const timestamp = formatAlertTime(alert.createdAt ?? alert.meta?.notification?.archivedAt);
   const snoozeBySwipe = () => {
     if (alert.actions.includes("snooze")) {
       (onSnoozeReview ?? onSnoozeToday)(alert);
@@ -278,7 +295,7 @@ export default function NotificationAlertRow({
             }
           : {opacity: 1, x: 0}
       }
-      className={`client-alert-swipe-shell category-${alert.category ?? "information"} ${shellActionClass ? `is-${shellActionClass}` : ""}`}
+      className={`client-alert-swipe-shell category-${category} ${shellActionClass ? `is-${shellActionClass}` : ""}`}
       exit={{
         height: 0,
         marginTop: 0,
@@ -303,24 +320,27 @@ export default function NotificationAlertRow({
         onClick={cardAction ? handleCardAction : undefined}
         onKeyDown={cardAction ? handleCardKeyDown : undefined}>
         <span className="client-alert-category-mark" aria-hidden="true" />
-        {cornerBadge ? (
+        {cornerBadge && alert.type !== "undo" ? (
           <span className={`client-alert-corner-badge ${cornerBadge.className}`}>
             {cornerBadge.label}
           </span>
         ) : null}
-        <IconButton
+        {canDismiss ? <IconButton
           className="client-alert-dismiss-button"
+          disabled={isDismissing}
           icon="x"
           label="Скрыть уведомление"
           size="sm"
           type="button"
           variant="ghost"
-          onClick={(event) => {
+          onClick={async (event) => {
             event.stopPropagation();
-            onDismissPermanent?.(alert);
+            setIsDismissing(true);
+            await onDismissPermanent?.(alert);
+            setIsDismissing(false);
           }}
           onPointerDown={(event) => event.stopPropagation()}
-        />
+        /> : null}
         <div className="client-alert-row-main">
           <div className="client-alert-row-copy">
             {metaBadges.length ? (
@@ -334,7 +354,10 @@ export default function NotificationAlertRow({
                 ))}
               </div>
             ) : null}
-            <strong>{displayTitle}</strong>
+            <div className="client-alert-title-line">
+              <strong title={displayTitle}>{displayTitle}</strong>
+              {timestamp ? <time>{timestamp}</time> : null}
+            </div>
             <span>{displayMessage}</span>
           </div>
         </div>

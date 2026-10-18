@@ -77,7 +77,6 @@ const FILTER_OPTIONS = [
   {id: "urgent", label: "Внимание"},
   {id: "opportunity", label: "Возможности"},
   {id: "information", label: "История"},
-  {id: "all", label: "Все"},
 ];
 
 export default function NotificationDrawer({
@@ -141,15 +140,24 @@ export default function NotificationDrawer({
     : globalUrgentAlertsCount;
   const groupedAlerts = groupAlerts(localVisibleAlerts);
   const filterCounts = useMemo(
-    () =>
-      FILTER_OPTIONS.reduce((counts, option) => {
+    () => {
+      if (notificationCenterV2Enabled && serverCounts) {
+        return {
+          urgent: Number(serverCounts.attention) || 0,
+          opportunity: Number(serverCounts.opportunity) || 0,
+          information: Number(serverCounts.information) || 0,
+        };
+      }
+
+      return FILTER_OPTIONS.reduce((counts, option) => {
         counts[option.id] = filterAlertsByMode(
           globalVisibleAlerts,
           option.id,
         ).length;
         return counts;
-      }, {}),
-    [globalVisibleAlerts],
+      }, {});
+    },
+    [globalVisibleAlerts, notificationCenterV2Enabled, serverCounts],
   );
   const urgentAlerts = globalVisibleAlerts.filter(
     (alert) => alert.priority === "critical" || alert.priority === "action",
@@ -399,10 +407,6 @@ export default function NotificationDrawer({
     );
   };
 
-  const dismissVisibleAlerts = () => {
-    localVisibleAlerts.forEach((alert) => onDismissPermanent?.(alert));
-  };
-
   const popover = (
     <AnimatePresence>
       {isOpen ? (
@@ -431,7 +435,7 @@ export default function NotificationDrawer({
               <p>
                 {effectiveUrgentAlertsCount > 0
                   ? `${effectiveUrgentAlertsCount} требуют внимания`
-                  : "Ничего срочного"}
+                  : "Всё в порядке"}
               </p>
             </div>
             <div className="client-alert-heading-actions">
@@ -448,16 +452,14 @@ export default function NotificationDrawer({
 
           <div className="client-alert-toolbar">
             <span>{globalTotalAlertsCount} событий</span>
-            {localAlertsCount > 0 ? (
-              <Button
-                className="client-alert-clear-button"
-                size="sm"
-                type="button"
-                variant="ghost"
-                onClick={dismissVisibleAlerts}>
-                Убрать показанные
-              </Button>
-            ) : null}
+            <Button
+              className={alertFilter === "all" ? "client-alert-all-filter active" : "client-alert-all-filter"}
+              size="sm"
+              type="button"
+              variant="ghost"
+              onClick={() => onFilterChange("all")}>
+              Показать: все
+            </Button>
           </div>
 
           {quietHoursActive ? (
@@ -530,9 +532,11 @@ export default function NotificationDrawer({
             })}
 
             {localAlertsCount === 0 && (
-              <p className="client-alert-empty">
+              <div className="client-alert-empty">
+                <strong>{alertFilter === "urgent" ? "Всё в порядке" : "Событий нет"}</strong>
+                <span>
                 {alertFilter === "urgent"
-                  ? "Срочных уведомлений нет."
+                  ? "Сейчас нет вопросов, требующих внимания."
                   : alertFilter === "closing"
                     ? "Незакрытых прошедших визитов нет."
                   : alertFilter === "finance"
@@ -541,8 +545,9 @@ export default function NotificationDrawer({
                     ? "Клиентских уведомлений нет."
                     : alertFilter === "operations"
                       ? "Операционных уведомлений нет."
-                      : "Сейчас нет новых уведомлений."}
-              </p>
+                      : "Сейчас здесь нет новых уведомлений."}
+                </span>
+              </div>
             )}
           </div>
         </motion.div>

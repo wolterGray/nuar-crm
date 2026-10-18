@@ -193,6 +193,8 @@ export const isActionableServerVisitEvent = (
 
 const mapServerEventToAlert = (event) => ({
   actions: getServerAlertActions(event),
+  category: event.category,
+  createdAt: event.createdAt,
   entityId: event.clientId ?? event.entityId,
   group: getServerAlertGroup(event),
   id: `${SERVER_ALERT_PREFIX}${event.id}`,
@@ -553,8 +555,29 @@ export function useClientAlerts({
   );
 
   const dismissAlertPermanent = useCallback(
-    (alertOrId) => {
+    async (alertOrId) => {
       const alertIds = resolveAlertIds(alertOrId);
+      const serverAlertIds = alertIds.filter(isServerAlertId);
+
+      try {
+        await Promise.all(
+          serverAlertIds.map((alertId) => {
+            const eventId = getServerEventId(alertId);
+            if (!Number.isFinite(eventId)) return Promise.resolve();
+            return updateNotificationEvent(eventId, {
+              action: "dismiss",
+              status: "dismissed",
+            });
+          }),
+        );
+      } catch (error) {
+        pushNotification?.({
+          title: "Уведомление не скрыто",
+          message: error?.message || "Не удалось сохранить изменение",
+          persist: false,
+        });
+        return false;
+      }
 
       setDismissedClientAlertIds((current) => [
         ...current,
@@ -567,22 +590,16 @@ export function useClientAlerts({
         });
         return next;
       });
-      alertIds
-        .filter(isServerAlertId)
-        .forEach((alertId) => {
-          const eventId = getServerEventId(alertId);
-          if (!Number.isFinite(eventId)) return;
-          void updateNotificationEvent(eventId, {
-            action: "dismiss",
-            status: "dismissed",
-          });
-        });
       setServerEvents((current) =>
         current.filter((event) => !alertIds.includes(`${SERVER_ALERT_PREFIX}${event.id}`)),
       );
       setActiveClientAlertId(null);
+      if (serverAlertIds.length > 0) {
+        await refreshServerEvents();
+      }
+      return true;
     },
-    [setActiveClientAlertId, setAlertSnoozes, setDismissedClientAlertIds],
+    [pushNotification, refreshServerEvents, setActiveClientAlertId, setAlertSnoozes, setDismissedClientAlertIds],
   );
 
   const undoNotificationAction = useCallback(

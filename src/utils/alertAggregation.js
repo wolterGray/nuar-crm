@@ -31,6 +31,13 @@ const buildAggregateAlert = ({
 }) => ({
   actions: ["open", "snooze"],
   aggregateKind,
+  category: alerts.some((alert) => alert.category === "critical")
+    ? "critical"
+    : alerts.some((alert) => alert.category === "action")
+      ? "action"
+      : alerts.some((alert) => alert.category === "opportunity")
+        ? "opportunity"
+        : "information",
   children: alerts,
   group,
   id: `aggregate-${aggregateKind}`,
@@ -71,10 +78,10 @@ export const aggregateDisplayAlerts = (alerts, appSettings = {}) => {
         aggregateKind: "supplies",
         alerts: items,
         group: "operations",
-        message: formatNameList(items),
+        message: `${items.length} позиции требуют пополнения`,
         page: "operations",
         section: "supplies",
-        title: `Склад · ${items.length} позиций ниже минимума`,
+        title: `Запасы заканчиваются — ${items.length}`,
       }),
     );
   } else if (buckets.supply?.length) {
@@ -88,10 +95,10 @@ export const aggregateDisplayAlerts = (alerts, appSettings = {}) => {
         aggregateKind: "tasks",
         alerts: items,
         group: "operations",
-        message: formatNameList(items),
+        message: `${items.length} задач требуют решения`,
         page: "operations",
         section: "tasks",
-        title: `Задачи · ${items.length} требуют внимания`,
+        title: `Просроченные задачи — ${items.length}`,
       }),
     );
   } else if (buckets.task?.length) {
@@ -105,9 +112,9 @@ export const aggregateDisplayAlerts = (alerts, appSettings = {}) => {
         aggregateKind: "packages",
         alerts: items,
         group: "packages",
-        message: formatNameList(items),
+        message: `У ${items.length} пакетов осталось мало посещений`,
         page: "clients",
-        title: `Пакеты · ${items.length} клиентов с низким остатком`,
+        title: `Заканчиваются пакеты — ${items.length}`,
       }),
     );
   } else if (buckets.package?.length) {
@@ -121,9 +128,9 @@ export const aggregateDisplayAlerts = (alerts, appSettings = {}) => {
         aggregateKind: "inactive",
         alerts: items,
         group: "inactive",
-        message: formatNameList(items),
+        message: `${items.length} клиентов можно пригласить на повторный визит`,
         page: "clients",
-        title: `Клиенты · ${items.length} давно не были`,
+        title: `Давно не посещали студию — ${items.length}`,
       }),
     );
   } else if (buckets.inactive?.length) {

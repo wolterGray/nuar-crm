@@ -63,6 +63,42 @@ describe("alertCenter", () => {
     expect(result.totalCount).toBe(0);
   });
 
+  it("keeps undo events in history and does not recreate a dismissed undo", () => {
+    const notification = {
+      archivedAt: "2026-06-11T09:30:00.000Z",
+      id: "package-delete-1",
+      message: "Anna · Пакет 5+1",
+      title: "Пакет клиента удален",
+      undoAction: {type: "restore-client-package", payload: {id: 7}},
+    };
+    const build = (dismissedAlertIds = []) => buildAlertCenter({
+      appSettings: baseSettings,
+      calendarEntries: [],
+      clientPackages: [],
+      clientProfiles: [],
+      defaultAppSettings,
+      dismissedAlertIds,
+      inactiveClientDays: 14,
+      notificationInbox: [notification],
+      snoozes: {},
+      supplies: [],
+      tasks: [],
+      visits: [],
+      now: new Date("2026-06-11T10:00:00"),
+    });
+
+    const visible = build();
+    expect(visible.urgentCount).toBe(0);
+    expect(filterAlertsByMode(visible.alerts, "information")).toHaveLength(1);
+    expect(visible.alerts[0]).toMatchObject({
+      id: "undo-package-delete-1",
+      priority: "info",
+      type: "undo",
+    });
+
+    expect(build(["undo-package-delete-1"]).alerts).toHaveLength(0);
+  });
+
   it("filters urgent mode", () => {
     const alerts = [
       {id: "1", priority: "critical"},
