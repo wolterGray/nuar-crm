@@ -460,11 +460,13 @@ function App() {
         setPackagesCatalog(loadedPackages);
         setClientPackages(
           rawClientPackages.map((item) => {
+            const linkedClient = clients.find((c) => String(c.id) === String(item.clientId));
             const clientName =
               item.client ||
               item.clientName ||
               item.payload?.client ||
               item.payload?.clientName ||
+              linkedClient?.name ||
               "";
             const pkgName =
               item.packageName ||
@@ -489,17 +491,21 @@ function App() {
         );
         setCertificates(
           rawCertificates.map((cert) => {
+            const linkedClient = clients.find((c) => String(c.id) === String(cert.clientId));
+            const linkedRecipient = clients.find((c) => String(c.id) === String(cert.recipientId));
             const clientName =
               cert.client ||
               cert.clientName ||
               cert.payload?.client ||
               cert.payload?.clientName ||
+              linkedClient?.name ||
               "";
             const recipientName =
               cert.recipient ||
               cert.recipientName ||
               cert.payload?.recipient ||
               cert.payload?.recipientName ||
+              linkedRecipient?.name ||
               "";
             return {
               ...cert,

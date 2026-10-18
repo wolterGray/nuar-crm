@@ -23,33 +23,44 @@ import {Button, EmptyState} from "../ui/index.js";
 import "./PackagesPage.css";
 
 function getClientPackageDisplay(item, packages = [], clients = []) {
-  if (!item) return { client: "Клиент", packageName: "Пакет", service: "", price: 0 };
+  if (!item) return { client: "Клиент", packageName: "Пакет услуг", service: "", price: 0 };
   const payload = item.payload && typeof item.payload === "object" ? item.payload : {};
-  const linkedPackage = packages.find((p) => String(p.id) === String(item.packageId));
-  const linkedClient = clients.find((c) => String(c.id) === String(item.clientId));
+  const linkedPackage = packages.find((p) => String(p.id) === String(item.packageId || payload.packageId));
+  const linkedClient = clients.find((c) => String(c.id) === String(item.clientId || payload.clientId));
 
   const clientName =
     (typeof item.client === "string" && item.client.trim()) ||
     (typeof item.clientName === "string" && item.clientName.trim()) ||
+    (typeof item.client_name === "string" && item.client_name.trim()) ||
+    (typeof item.customer === "string" && item.customer.trim()) ||
+    (typeof item.customerName === "string" && item.customerName.trim()) ||
+    (typeof item.client?.name === "string" && item.client.name.trim()) ||
     (typeof payload.client === "string" && payload.client.trim()) ||
     (typeof payload.clientName === "string" && payload.clientName.trim()) ||
-    (typeof item.client?.name === "string" && item.client.name.trim()) ||
+    (typeof payload.client_name === "string" && payload.client_name.trim()) ||
+    (typeof payload.client?.name === "string" && payload.client.name.trim()) ||
     (typeof linkedClient?.name === "string" && linkedClient.name.trim()) ||
     "Клиент";
 
   const packageName =
     (typeof item.packageName === "string" && item.packageName.trim()) ||
+    (typeof item.package_name === "string" && item.package_name.trim()) ||
     (typeof item.name === "string" && item.name.trim()) ||
-    (typeof payload.packageName === "string" && payload.packageName.trim()) ||
-    (typeof payload.name === "string" && payload.name.trim()) ||
+    (typeof item.title === "string" && item.title.trim()) ||
     (typeof item.package?.name === "string" && item.package.name.trim()) ||
+    (typeof payload.packageName === "string" && payload.packageName.trim()) ||
+    (typeof payload.package_name === "string" && payload.package_name.trim()) ||
+    (typeof payload.name === "string" && payload.name.trim()) ||
+    (typeof payload.package?.name === "string" && payload.package.name.trim()) ||
     (typeof linkedPackage?.name === "string" && linkedPackage.name.trim()) ||
-    "Пакет";
+    "Пакет услуг";
 
   const service =
     (typeof item.service === "string" && item.service.trim()) ||
-    (typeof payload.service === "string" && payload.service.trim()) ||
+    (typeof item.serviceName === "string" && item.serviceName.trim()) ||
     (typeof item.package?.service === "string" && item.package.service.trim()) ||
+    (typeof payload.service === "string" && payload.service.trim()) ||
+    (typeof payload.serviceName === "string" && payload.serviceName.trim()) ||
     (typeof linkedPackage?.service === "string" && linkedPackage.service.trim()) ||
     "";
 
@@ -64,30 +75,36 @@ function getClientPackageDisplay(item, packages = [], clients = []) {
 }
 
 function getCertificateDisplay(cert, clients = []) {
-  if (!cert) return { client: "Без покупателя", recipient: "" };
+  if (!cert) return { client: "Без покупателя", recipient: "", nominal: 0, balance: 0 };
   const payload = cert.payload && typeof cert.payload === "object" ? cert.payload : {};
-  const linkedClient = clients.find((c) => String(c.id) === String(cert.clientId));
-  const linkedRecipient = clients.find((c) => String(c.id) === String(cert.recipientId));
+  const linkedClient = clients.find((c) => String(c.id) === String(cert.clientId || payload.clientId));
+  const linkedRecipient = clients.find((c) => String(c.id) === String(cert.recipientId || payload.recipientId));
 
   const clientName =
     (typeof cert.client === "string" && cert.client.trim()) ||
     (typeof cert.clientName === "string" && cert.clientName.trim()) ||
+    (typeof cert.client_name === "string" && cert.client_name.trim()) ||
+    (typeof cert.buyer === "string" && cert.buyer.trim()) ||
+    (typeof cert.client?.name === "string" && cert.client.name.trim()) ||
     (typeof payload.client === "string" && payload.client.trim()) ||
     (typeof payload.clientName === "string" && payload.clientName.trim()) ||
-    (typeof cert.client?.name === "string" && cert.client.name.trim()) ||
     (typeof linkedClient?.name === "string" && linkedClient.name.trim()) ||
     "Без покупателя";
 
   const recipientName =
     (typeof cert.recipient === "string" && cert.recipient.trim()) ||
     (typeof cert.recipientName === "string" && cert.recipientName.trim()) ||
+    (typeof cert.recipient_name === "string" && cert.recipient_name.trim()) ||
+    (typeof cert.recipient?.name === "string" && cert.recipient.name.trim()) ||
     (typeof payload.recipient === "string" && payload.recipient.trim()) ||
     (typeof payload.recipientName === "string" && payload.recipientName.trim()) ||
-    (typeof cert.recipient?.name === "string" && cert.recipient.name.trim()) ||
     (typeof linkedRecipient?.name === "string" && linkedRecipient.name.trim()) ||
     "";
 
-  return { client: clientName, recipient: recipientName };
+  const nominal = Number(cert.nominal ?? cert.amount ?? payload.nominal ?? payload.amount ?? 0);
+  const balance = Number(cert.remainingBalance ?? cert.balance ?? payload.remainingBalance ?? payload.balance ?? nominal);
+
+  return { client: clientName, recipient: recipientName, nominal, balance };
 }
 
 function ClientPackageCard({
@@ -116,13 +133,19 @@ function ClientPackageCard({
 
   return (
     <article
-      className={`package-card client-package-card ${archived ? "is-archived" : ""}`}>
-      <div className="package-card-top">
-        <div className="package-card-copy min-w-0">
-          <strong className="text-text-main text-sm font-semibold block leading-tight break-words">{display.client}</strong>
-          <span className="text-text-muted text-xs block leading-tight break-words">{display.packageName}</span>
+      className={`package-card client-package-card nuar-pkg-card ${archived ? "is-archived" : ""}`}>
+      <div className="package-card-top nuar-pkg-card-top">
+        <div className="package-card-copy nuar-pkg-card-copy min-w-0">
+          <strong className="package-card-client-name text-text-main text-sm font-semibold block leading-tight break-words">
+            {display.client}
+          </strong>
+          <span className="package-card-pkg-name text-text-muted text-xs block leading-tight break-words">
+            {display.packageName}
+          </span>
           {display.service ? (
-            <span className="package-service-tag text-text-faint text-[10px] block font-medium uppercase tracking-wider leading-tight break-words">{display.service}</span>
+            <span className="package-service-tag text-text-faint text-[10px] block font-medium uppercase tracking-wider leading-tight break-words">
+              {display.service}
+            </span>
           ) : null}
         </div>
         <RowActionsMenu
@@ -134,7 +157,7 @@ function ClientPackageCard({
         />
       </div>
 
-      <div className="package-card-progress">
+      <div className="package-card-progress nuar-pkg-card-progress">
         <div className="flex items-center justify-between gap-2 text-[11px]">
           <span className="text-text-muted">{archived ? "Использовано" : "Осталось"}</span>
           <strong className="text-text-main font-semibold tabular-nums">{progressLabel}</strong>
@@ -146,8 +169,8 @@ function ClientPackageCard({
         />
       </div>
 
-      <div className="package-card-footer">
-        <span className="text-text-muted font-medium">{formatMoney(display.price)}</span>
+      <div className="package-card-footer nuar-pkg-card-footer">
+        <span className="package-card-price text-text-muted font-medium">{formatMoney(display.price)}</span>
         <span className={`package-status-pill ${packageItem.status === "Активен" ? "is-active" : ""}`}>
           {packageItem.status}
         </span>
@@ -166,6 +189,8 @@ function CertificateCard({
 }) {
   const display = getCertificateDisplay(certificate, clients);
   const archived = isArchivedCertificate(certificate);
+  const remainingBalance = certificate.remainingBalance !== undefined ? certificate.remainingBalance : display.balance;
+  const nominal = certificate.nominal !== undefined ? certificate.nominal : display.nominal;
 
   const resolvedCert = {
     ...certificate,
@@ -173,15 +198,21 @@ function CertificateCard({
     clientName: display.client,
     recipient: display.recipient,
     recipientName: display.recipient,
+    remainingBalance,
+    nominal,
   };
 
   return (
     <article
-      className={`package-card certificate-card ${archived ? "is-archived" : ""}`}>
-      <div className="package-card-top">
-        <div className="package-card-copy min-w-0">
-          <strong className="text-text-main text-sm font-semibold block leading-tight break-words">{certificate.code}</strong>
-          <span className="text-text-muted text-xs block leading-tight break-words">{display.client}</span>
+      className={`package-card certificate-card nuar-pkg-card ${archived ? "is-archived" : ""}`}>
+      <div className="package-card-top nuar-pkg-card-top">
+        <div className="package-card-copy nuar-pkg-card-copy min-w-0">
+          <strong className="package-card-client-name text-text-main text-sm font-semibold block leading-tight break-words">
+            {certificate.code || "Сертификат"}
+          </strong>
+          <span className="package-card-pkg-name text-text-muted text-xs block leading-tight break-words">
+            Покупатель: {display.client}
+          </span>
           <span className="text-text-faint text-[10px] block font-medium mt-0.5 leading-tight break-words">
             {display.recipient && display.recipient !== display.client
               ? `Получатель: ${display.recipient}`
@@ -197,23 +228,23 @@ function CertificateCard({
         />
       </div>
 
-      <div className="package-card-progress">
+      <div className="package-card-progress nuar-pkg-card-progress">
         <div className="flex items-center justify-between gap-2 text-[11px]">
           <span className="text-text-muted">{archived ? "Использовано" : "Остаток"}</span>
           <strong className="text-text-main font-semibold tabular-nums">{getCertificateBalanceLabel(certificate)}</strong>
         </div>
         <progress
           className="w-full h-1.5 rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-field [&::-webkit-progress-value]:bg-accent [&::-moz-progress-bar]:bg-accent"
-          max={Math.max(Number(certificate.nominal) || 1, 1)}
+          max={Math.max(Number(nominal) || 1, 1)}
           value={Math.max(
             0,
-            Number(certificate.nominal) - Number(certificate.remainingBalance),
+            Number(nominal) - Number(remainingBalance),
           )}
         />
       </div>
 
-      <div className="package-card-footer">
-        <span className="text-text-muted font-medium">{certificate.purchaseDate}</span>
+      <div className="package-card-footer nuar-pkg-card-footer">
+        <span className="package-card-price text-text-muted font-medium">{formatMoney(nominal)}</span>
         <span className={`package-status-pill ${certificate.status === "Активен" ? "is-active" : ""}`}>
           {certificate.status}
         </span>
@@ -232,13 +263,17 @@ function PackageTemplateCard({
   return (
     <motion.article
       animate={{opacity: 1, y: 0}}
-      className="package-card package-template-card"
+      className="package-card package-template-card nuar-pkg-card"
       initial={{opacity: 0, y: 6}}
       key={packageItem.id}>
-      <div className="package-card-top">
-        <div className="package-card-copy min-w-0">
-          <h3 className="m-0 text-text-main text-sm font-semibold leading-snug break-words">{packageItem.name}</h3>
-          <span className="text-text-muted text-xs block leading-tight break-words">{packageItem.service}</span>
+      <div className="package-card-top nuar-pkg-card-top">
+        <div className="package-card-copy nuar-pkg-card-copy min-w-0">
+          <strong className="package-card-client-name text-text-main text-sm font-semibold leading-snug break-words">
+            {packageItem.name}
+          </strong>
+          <span className="package-card-pkg-name text-text-muted text-xs block leading-tight break-words">
+            {packageItem.service || "Общая услуга"}
+          </span>
         </div>
         <RowActionsMenu
           itemId={packageItem.id}
@@ -251,7 +286,7 @@ function PackageTemplateCard({
 
       <div className="package-template-meta">
         <div>
-          <span>Визитов</span>
+          <span>Визиты</span>
           <strong>{packageItem.visitsCount}</strong>
         </div>
         <div>

@@ -1,7 +1,9 @@
 import {animate, motion, useMotionValue} from "framer-motion";
 import {useState} from "react";
 import {useSwipeable} from "react-swipeable";
-import {Button, IconButton} from "./ui/index.js";
+import {AppIcon, Button, IconButton} from "./ui/index.js";
+
+const CRM_TIME_ZONE = "Europe/Warsaw";
 
 const SWIPE_CONFIRM_DELTA = 76;
 const SWIPE_HINT_LIMIT = 92;
@@ -132,16 +134,48 @@ const formatAlertTime = (value) => {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  const now = new Date();
-  const sameDay = date.toDateString() === now.toDateString();
-  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-  if (sameDay) return date.toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"});
-  if (date.toDateString() === yesterday.toDateString()) return "Вчера";
-  return date.toLocaleDateString("ru-RU", {day: "2-digit", month: "2-digit"});
+  return new Intl.DateTimeFormat("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: CRM_TIME_ZONE,
+  }).format(date);
+};
+
+const formatBusinessDate = (value, time = "") => {
+  if (!value) return "";
+  const normalized = /^\d{2}\.\d{2}\.\d{4}$/.test(String(value))
+    ? String(value).split(".").reverse().join("-")
+    : String(value);
+  const date = new Date(`${normalized}${time ? `T${time}` : "T12:00:00"}`);
+  if (Number.isNaN(date.getTime())) return [value, time].filter(Boolean).join(", ");
+  const formatted = new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "short",
+    timeZone: CRM_TIME_ZONE,
+  }).format(date).replace(".", "");
+  return time ? `${formatted}, ${time}` : formatted;
+};
+
+const getHistoryContext = (alert) => {
+  const event = alert.meta?.serverEvent;
+  const payload = event?.payload ?? alert.meta?.item ?? {};
+  if (!event) return alert.message;
+  const service = payload.serviceName ?? payload.service ?? event.clientName;
+  const master = payload.employeeName ?? payload.master;
+  const context = [service, master].filter(Boolean).join(" · ");
+  const oldDate = payload.oldDate ?? payload.previousDate ?? payload.fromDate;
+  const oldTime = payload.oldTime ?? payload.previousTime ?? payload.fromTime;
+  const newDate = payload.newDate ?? payload.date ?? payload.toDate;
+  const newTime = payload.newTime ?? payload.time ?? payload.toTime;
+  const schedule = event.type === "visit_rescheduled" && oldDate
+    ? `${formatBusinessDate(oldDate, oldTime)} → ${formatBusinessDate(newDate, newTime)}`
+    : formatBusinessDate(newDate, newTime);
+  return [context || alert.message, schedule].filter(Boolean).join("\n");
 };
 
 export default function NotificationAlertRow({
   alert,
+  historyMode = false,
   onAction,
   onDismissPermanent,
   onSwipeAction,
@@ -153,8 +187,9 @@ export default function NotificationAlertRow({
   const [isDismissing, setIsDismissing] = useState(false);
   const [swipeHint, setSwipeHint] = useState(null);
   const swipeX = useMotionValue(0);
-  const cardAction =
-    alert.type === "calendar" && alert.actions.includes("calendar")
+  const cardAction = historyMode
+    ? ["open", "calendar", "client"].find((action) => alert.actions.includes(action)) ?? null
+    : alert.type === "calendar" && alert.actions.includes("calendar")
       ? "calendar"
       : null;
   const primaryActions = alert.actions.filter(
@@ -164,7 +199,9 @@ export default function NotificationAlertRow({
   const metaBadges = getAlertMetaBadges(alert);
   const cornerBadge = getCornerBadge(alert);
   const displayTitle = getAlertDisplayTitle(alert);
-  const displayMessage = getAlertDisplayMessage(alert, displayTitle);
+  const displayMessage = historyMode
+    ? getHistoryContext(alert)
+    : getAlertDisplayMessage(alert, displayTitle);
   const category = alert.category ?? alert.meta?.category ??
     (["critical", "action"].includes(alert.priority) ? "action" : "information");
   const canDismiss = category === "information" || category === "opportunity" || alert.type === "undo";
@@ -313,13 +350,13 @@ export default function NotificationAlertRow({
         <span className="client-alert-swipe-cue is-close">Скрыть</span>
       </div>
       <motion.div
-        className={`client-alert-row client-alert-row-unified has-corner-badge priority-${alert.priority} type-${alert.type}`}
+        className={`client-alert-row client-alert-row-unified has-corner-badge priority-${alert.priority} type-${alert.type} ${historyMode ? "is-history" : ""}`}
         role={cardAction ? "button" : undefined}
         style={{x: swipeX}}
         tabIndex={cardAction ? 0 : undefined}
         onClick={cardAction ? handleCardAction : undefined}
         onKeyDown={cardAction ? handleCardKeyDown : undefined}>
-        {cornerBadge && alert.type !== "undo" ? (
+        {!historyMode && cornerBadge && alert.type !== "undo" ? (
           <span className={`client-alert-corner-badge ${cornerBadge.className}`}>
             {cornerBadge.label}
           </span>
@@ -360,7 +397,8 @@ export default function NotificationAlertRow({
             <span>{displayMessage}</span>
           </div>
         </div>
-        {primaryActions.length ? (
+        {historyMode && cardAction ? <AppIcon className="client-alert-history-chevron" name="chevronRight" size="sm" /> : null}
+        {!historyMode && primaryActions.length ? (
           <div className="client-alert-actions">
             {primaryActions.map((action) => {
               return (

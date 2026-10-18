@@ -1,4 +1,7 @@
-/* NUAR Design System: Packages Page (Mobile & Desktop) */
+/* ==========================================================================
+   NUAR Design System: Packages Page (Desktop & Mobile)
+   Design Reference Benchmark: /today
+   ========================================================================== */
 
 .nuar-packages {
   --pkg-surface: var(--color-window, #141416);
@@ -14,102 +17,355 @@
 }
 
 /* ==========================================================================
-   Shared Card Enhancements
+   Bulletproof Card Architecture (Shared Mobile & Desktop)
    ========================================================================== */
-.nuar-packages .package-card {
-  border-radius: var(--radius-card, 12px) !important;
+.nuar-packages .package-card,
+.nuar-packages .client-package-card,
+.nuar-packages .certificate-card,
+.nuar-packages .package-template-card,
+.nuar-packages .nuar-pkg-card {
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: none !important;
+  grid-template-rows: none !important;
+  grid-template-areas: none !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  flex: 0 0 auto !important;
+  align-self: stretch !important;
+  padding: 13px 15px !important;
+  border-radius: var(--radius-card, 14px) !important;
   background: var(--pkg-surface) !important;
   border: 1px solid var(--pkg-border) !important;
   box-shadow: none !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
   transition: border-color 150ms ease, background 150ms ease !important;
 }
 
-.nuar-packages .package-card-top {
+.nuar-packages .package-card:hover,
+.nuar-packages .nuar-pkg-card:hover {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: color-mix(in srgb, var(--pkg-surface) 96%, #ffffff) !important;
+}
+
+.nuar-packages .package-card.is-archived,
+.nuar-packages .nuar-pkg-card.is-archived {
+  opacity: 0.65 !important;
+  border-style: dashed !important;
+}
+
+/* Card Top: Head row with Client Copy on Left, Actions on Right */
+.nuar-packages .package-card-top,
+.nuar-packages .nuar-pkg-card-top {
   display: flex !important;
+  flex-direction: row !important;
+  grid-template-columns: none !important;
+  grid-template-rows: none !important;
   justify-content: space-between !important;
   align-items: flex-start !important;
   gap: 10px !important;
   width: 100% !important;
+  min-width: 0 !important;
+  flex: 0 0 auto !important;
 }
 
-.nuar-packages .package-card-copy {
+/* Copy block */
+.nuar-packages .package-card-copy,
+.nuar-packages .nuar-pkg-card-copy {
   display: flex !important;
   flex-direction: column !important;
   gap: 2px !important;
-  padding-left: 0 !important;
-  min-width: 0 !important;
   flex: 1 1 auto !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-.nuar-packages .package-card-copy strong {
+/* Client Name / Title: Always readable, contrasting white text, multi-line wrapping */
+.nuar-packages .package-card-copy strong,
+.nuar-packages .package-card-client-name,
+.nuar-packages .package-card-copy h3 {
   display: block !important;
-  font-size: 14px !important;
+  font-size: 15px !important;
   font-weight: 700 !important;
-  color: var(--pkg-text) !important;
+  color: #ffffff !important;
+  color: var(--pkg-text, #ffffff) !important;
   line-height: 1.25 !important;
   word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+  text-overflow: clip !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em !important;
 }
 
-.nuar-packages .package-card-copy span {
+/* Package Name */
+.nuar-packages .package-card-copy span,
+.nuar-packages .package-card-pkg-name {
   display: block !important;
-  font-size: 12px !important;
-  color: var(--pkg-muted) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--pkg-muted, #a4a4ac) !important;
   line-height: 1.3 !important;
   word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+  text-overflow: clip !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  margin: 0 !important;
 }
 
+/* Service Tag / Category */
 .nuar-packages .package-card-copy .package-service-tag {
-  font-size: 10px !important;
+  display: inline-block !important;
+  font-size: 10.5px !important;
   font-weight: 600 !important;
-  color: var(--pkg-faint) !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
+  color: var(--pkg-faint, #7f7f86) !important;
   margin-top: 1px !important;
+  line-height: 1.2 !important;
 }
 
+/* Actions Menu Button (32x32px clean touch target) */
 .nuar-packages .package-card-top .row-actions {
-  flex-shrink: 0 !important;
+  flex: 0 0 auto !important;
   margin-top: -2px !important;
   margin-right: -4px !important;
 }
 
 .nuar-packages .package-card-top .row-actions .row-action-trigger {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   width: 32px !important;
   height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
   border-radius: 8px !important;
-  color: var(--pkg-faint) !important;
+  color: var(--pkg-faint, #7f7f86) !important;
   background: transparent !important;
   border: 1px solid transparent !important;
+  padding: 0 !important;
+  transition: all 120ms ease !important;
+}
+
+.nuar-packages .package-card-top .row-actions .row-action-trigger svg {
+  width: 16px !important;
+  height: 16px !important;
 }
 
 .nuar-packages .package-card-top .row-actions .row-action-trigger:hover,
 .nuar-packages .package-card-top .row-actions .row-action-trigger:focus-visible,
 .nuar-packages .package-card-top .row-actions .row-action-trigger[aria-expanded="true"] {
-  color: var(--pkg-text) !important;
+  color: var(--pkg-text, #ffffff) !important;
   background: var(--pkg-field) !important;
   border-color: var(--pkg-border-soft) !important;
 }
 
-.nuar-packages .package-card-footer {
-  border-top: 1px solid var(--pkg-border-soft) !important;
-  padding-top: 6px !important;
-  margin-top: 2px !important;
+/* Progress bar section */
+.nuar-packages .package-card-progress,
+.nuar-packages .nuar-pkg-card-progress {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  flex: 0 0 auto !important;
+  margin: 1px 0 0 !important;
 }
 
+.nuar-packages .package-card-progress > div {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  font-size: 11.5px !important;
+  line-height: 1.2 !important;
+  min-width: 0 !important;
+}
+
+.nuar-packages .package-card-progress span {
+  color: var(--pkg-muted, #a4a4ac) !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+}
+
+.nuar-packages .package-card-progress strong {
+  color: var(--pkg-text, #ffffff) !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+}
+
+.nuar-packages .package-card-progress progress {
+  display: block !important;
+  width: 100% !important;
+  height: 5px !important;
+  border-radius: 999px !important;
+  border: none !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  overflow: hidden !important;
+}
+
+.nuar-packages .package-card-progress progress::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-radius: 999px !important;
+}
+
+.nuar-packages .package-card-progress progress::-webkit-progress-value {
+  background: var(--pkg-accent, #e11d2e) !important;
+  border-radius: 999px !important;
+}
+
+.nuar-packages .package-card-progress progress::-moz-progress-bar {
+  background: var(--pkg-accent, #e11d2e) !important;
+  border-radius: 999px !important;
+}
+
+/* Footer row */
+.nuar-packages .package-card-footer,
+.nuar-packages .nuar-pkg-card-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  padding-top: 8px !important;
+  border-top: 1px solid var(--pkg-border-soft) !important;
+  margin-top: 1px !important;
+  flex: 0 0 auto !important;
+}
+
+.nuar-packages .package-card-footer > span:first-child,
+.nuar-packages .package-card-price {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: var(--pkg-text, #ffffff) !important;
+  white-space: nowrap !important;
+}
+
+/* Status Pill */
 .nuar-packages .package-status-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 22px !important;
+  padding: 2px 9px !important;
   border-radius: 6px !important;
   background: var(--pkg-field) !important;
   color: var(--pkg-muted) !important;
   border: 1px solid var(--pkg-border-soft) !important;
-  padding: 2px 8px !important;
   font-size: 11px !important;
   font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
 }
 
 .nuar-packages .package-status-pill.is-active {
   background: var(--pkg-accent-soft) !important;
   color: var(--pkg-accent) !important;
   border-color: rgba(225, 29, 46, 0.3) !important;
+}
+
+/* Template Card Meta */
+.nuar-packages .package-template-meta {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 6px !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  background: var(--pkg-field) !important;
+  border: 1px solid var(--pkg-border-soft) !important;
+  text-align: center !important;
+}
+
+.nuar-packages .package-template-meta div {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.nuar-packages .package-template-meta span {
+  font-size: 10px !important;
+  color: var(--pkg-faint) !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+}
+
+.nuar-packages .package-template-meta strong {
+  font-size: 12.5px !important;
+  color: var(--pkg-text) !important;
+  font-weight: 700 !important;
+}
+
+/* Board, Panels, and Lists */
+.nuar-packages .packages-board {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  width: 100% !important;
+  min-height: 0 !important;
+}
+
+.nuar-packages .packages-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 0 !important;
+}
+
+.nuar-packages .packages-panel-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 2px 6px !important;
+  border-bottom: 1px solid var(--pkg-border-soft) !important;
+  min-height: 28px !important;
+  flex: 0 0 auto !important;
+}
+
+.nuar-packages .packages-panel-header h2 {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  color: var(--pkg-muted) !important;
+  margin: 0 !important;
+}
+
+.nuar-packages .packages-panel-header > span {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 2px 8px !important;
+  border-radius: 999px !important;
+  background: var(--pkg-field) !important;
+  border: 1px solid var(--pkg-border-soft) !important;
+  color: var(--pkg-faint) !important;
+}
+
+.nuar-packages .packages-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* ==========================================================================
@@ -161,7 +417,7 @@
     margin: 0 !important;
   }
 
-  /* Bell Notification Button (Consistent 38px touch target) */
+  /* Bell Notification Button */
   .nuar-packages .packages-page-header .mobile-ui-page-header-trailing {
     display: inline-flex !important;
     align-items: center !important;
@@ -223,7 +479,7 @@
     z-index: 10 !important;
   }
 
-  /* Toolbar: Search (row 1) + 2 Action buttons side-by-side (row 2) */
+  /* Toolbar: Search + Action buttons */
   .nuar-packages .packages-page-toolbar {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
@@ -258,7 +514,7 @@
     grid-column: 1 / -1 !important;
   }
 
-  /* Tabs (no gray background, soft red accent on active) */
+  /* Tabs */
   .nuar-packages .packages-page-tabs {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -301,164 +557,31 @@
     opacity: 0.8 !important;
   }
 
-  /* Board & Panels */
-  .nuar-packages .packages-board {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 14px !important;
-    width: 100% !important;
-  }
-
   .nuar-packages .packages-live-row {
     display: flex !important;
     flex-direction: column !important;
+    gap: 18px !important;
+    width: 100% !important;
+    min-height: 0 !important;
+  }
+}
+
+/* ==========================================================================
+   Desktop-Specific Layout (min-width: 769px)
+   ========================================================================== */
+@media (min-width: 769px) {
+  .nuar-packages .packages-live-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.95fr) !important;
+    align-items: start !important;
     gap: 16px !important;
     width: 100% !important;
-  }
-
-  .nuar-packages .packages-panel {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-    width: 100% !important;
-  }
-
-  .nuar-packages .packages-panel-header {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 2px 6px !important;
-    border-bottom: 1px solid var(--pkg-border-soft) !important;
-    min-height: 28px !important;
-  }
-
-  .nuar-packages .packages-panel-header h2 {
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.04em !important;
-    text-transform: uppercase !important;
-    color: var(--pkg-muted) !important;
-    margin: 0 !important;
-  }
-
-  .nuar-packages .packages-panel-header > span {
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    padding: 2px 8px !important;
-    border-radius: 999px !important;
-    background: var(--pkg-field) !important;
-    border: 1px solid var(--pkg-border-soft) !important;
-    color: var(--pkg-faint) !important;
-  }
-
-  .nuar-packages .packages-list {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    max-height: none !important;
-    overflow: visible !important;
-    padding: 0 !important;
-  }
-
-  /* Cards on Mobile */
-  .nuar-packages .package-card {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    padding: 12px 14px !important;
-    border-radius: 12px !important;
-    background: var(--pkg-surface) !important;
-    border: 1px solid var(--pkg-border) !important;
-    box-shadow: none !important;
     min-height: 0 !important;
   }
 
-  .nuar-packages .package-card-copy strong {
-    display: block !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    color: var(--pkg-text) !important;
-    line-height: 1.25 !important;
-    word-break: break-word !important;
-  }
-
-  .nuar-packages .package-card-copy span {
-    display: block !important;
-    font-size: 12px !important;
-    color: var(--pkg-muted) !important;
-    line-height: 1.3 !important;
-    word-break: break-word !important;
-  }
-
-  .nuar-packages .package-card-copy .package-service-tag {
-    font-size: 10px !important;
-    font-weight: 600 !important;
-    color: var(--pkg-faint) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-    margin-top: 1px !important;
-  }
-
-  .nuar-packages .package-card-progress {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 4px !important;
-    width: 100% !important;
-  }
-
-  .nuar-packages .package-card-progress progress {
-    width: 100% !important;
-    height: 5px !important;
-    border-radius: 999px !important;
-  }
-
-  .nuar-packages .package-card-footer {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 8px !important;
-    padding-top: 6px !important;
-    border-top: 1px solid var(--pkg-border-soft) !important;
-  }
-
-  .nuar-packages .package-card-footer > span:first-child {
-    font-size: 13px !important;
-    font-weight: 700 !important;
-    color: var(--pkg-text) !important;
-  }
-
-  /* Templates tab */
   .nuar-packages .packages-panel-templates .packages-list {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-  }
-
-  .nuar-packages .package-template-meta {
     display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 6px !important;
-    padding-top: 8px !important;
-    border-top: 1px solid var(--pkg-border-soft) !important;
-    text-align: center !important;
-  }
-
-  .nuar-packages .package-template-meta div {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 2px !important;
-  }
-
-  .nuar-packages .package-template-meta span {
-    font-size: 10px !important;
-    color: var(--pkg-faint) !important;
-    text-transform: uppercase !important;
-    font-weight: 600 !important;
-  }
-
-  .nuar-packages .package-template-meta strong {
-    font-size: 12px !important;
-    color: var(--pkg-text) !important;
-    font-weight: 700 !important;
+    grid-template-columns: repeat(3, minmax(220px, 1fr)) !important;
+    gap: 10px !important;
   }
 }

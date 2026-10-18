@@ -98,6 +98,11 @@ const getHistoryGroup = (alert, now = new Date()) => {
   return "earlier";
 };
 
+const countAlertObjects = (items = []) => items.reduce(
+  (total, alert) => total + (alert.type === "aggregate" ? alert.children.length : 1),
+  0,
+);
+
 export default function NotificationDrawer({
   alertFilter,
   allAlerts,
@@ -168,31 +173,15 @@ export default function NotificationDrawer({
     }, new Map());
   }, [alertFilter, localVisibleAlerts]);
   const underlyingObjectCount = useMemo(
-    () => localVisibleAlerts.reduce(
-      (total, alert) => total + (alert.type === "aggregate" ? alert.children.length : 1),
-      0,
-    ),
+    () => countAlertObjects(localVisibleAlerts),
     [localVisibleAlerts],
   );
   const filterCounts = useMemo(
-    () => {
-      if (notificationCenterV2Enabled && serverCounts) {
-        return {
-          urgent: Number(serverCounts.attention) || 0,
-          opportunity: Number(serverCounts.opportunity) || 0,
-          information: Number(serverCounts.information) || 0,
-        };
-      }
-
-      return FILTER_OPTIONS.reduce((counts, option) => {
-        counts[option.id] = filterAlertsByMode(
-          globalVisibleAlerts,
-          option.id,
-        ).length;
-        return counts;
-      }, {});
-    },
-    [globalVisibleAlerts, notificationCenterV2Enabled, serverCounts],
+    () => FILTER_OPTIONS.reduce((counts, option) => {
+      counts[option.id] = countAlertObjects(filterAlertsByMode(globalVisibleAlerts, option.id));
+      return counts;
+    }, {}),
+    [globalVisibleAlerts],
   );
   const urgentAlerts = globalVisibleAlerts.filter(
     (alert) => alert.priority === "critical" || alert.priority === "action",
@@ -446,6 +435,7 @@ export default function NotificationDrawer({
     return (
       <NotificationAlertRow
         alert={alert}
+        historyMode={alertFilter === "information"}
         key={alert.id}
         onAction={onAction}
         onDismissPermanent={onDismissPermanent}
@@ -504,24 +494,6 @@ export default function NotificationDrawer({
             </div>
           </div>
 
-          <div className="client-alert-toolbar">
-            <span>
-              {alertFilter === "opportunity"
-                ? `${underlyingObjectCount} объектов · ${localVisibleAlerts.length} групп`
-                : alertFilter === "urgent"
-                  ? `${underlyingObjectCount} актуальных вопросов`
-                  : `${underlyingObjectCount} событий`}
-            </span>
-            <Button
-              className={alertFilter === "all" ? "client-alert-all-filter active" : "client-alert-all-filter"}
-              size="sm"
-              type="button"
-              variant="ghost"
-              onClick={() => onFilterChange("all")}>
-              Показать: все
-            </Button>
-          </div>
-
           {quietHoursActive ? (
             <div className="client-alert-quiet-note">
               Тихий режим · показываются только срочные события
@@ -547,6 +519,16 @@ export default function NotificationDrawer({
                 ) : null}
               </Button>
             ))}
+          </div>
+
+          <div className="client-alert-toolbar">
+            <span>
+              {alertFilter === "opportunity"
+                ? `${localVisibleAlerts.length} группы · ${underlyingObjectCount} объектов`
+                : alertFilter === "urgent"
+                  ? `${underlyingObjectCount} актуальных вопросов`
+                  : `${underlyingObjectCount} событий`}
+            </span>
           </div>
 
           <AnimatePresence>

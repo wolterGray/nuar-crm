@@ -10,7 +10,12 @@ const SWIPE_REVEAL_OFFSET = 86;
 const CHILD_PAGE_SIZE = 12;
 
 const getAggregateTitle = (alert) => {
-  return alert.title;
+  return String(alert.title ?? "").replace(/\s*(?:—|·)\s*\d+(?:\s+клиентов)?$/, "");
+};
+
+const AGGREGATE_DETAILS = {
+  inactive: {icon: "users", unit: "клиентов", message: "Можно пригласить на повторный визит"},
+  packages: {icon: "package", unit: "пакетов", message: "Можно предложить продление"},
 };
 
 export default function NotificationAggregateRow({
@@ -28,6 +33,11 @@ export default function NotificationAggregateRow({
   const [swipeHint, setSwipeHint] = useState(null);
   const swipeX = useMotionValue(0);
   const displayTitle = getAggregateTitle(alert);
+  const details = AGGREGATE_DETAILS[alert.aggregateKind] ?? {
+    icon: "bell",
+    unit: "объектов",
+    message: alert.message,
+  };
   const snoozeBySwipe = () => (onSnoozeReview ?? onSnoozeToday)(alert);
   const dismissFromSwipe = (direction) => {
     setDismissDirection(direction);
@@ -154,10 +164,12 @@ export default function NotificationAggregateRow({
               type="button"
               variant="ghost"
               onClick={() => setExpanded((current) => !current)}>
+              <span className="client-alert-aggregate-icon"><AppIcon name={details.icon} size="sm" /></span>
               <div className="client-alert-row-copy">
                 <strong>{displayTitle}</strong>
-                <span>{alert.message}</span>
+                <span>{details.message}</span>
               </div>
+              <span className="client-alert-aggregate-count">{alert.children.length} {details.unit}</span>
               <AppIcon className={expanded ? "open" : ""} name="chevronDown" size="sm" />
             </Button>
           </div>
