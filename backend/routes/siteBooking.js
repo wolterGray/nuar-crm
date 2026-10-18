@@ -302,7 +302,7 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
 
   let employees = employeeRows
     .map(toPublicEmployee)
-    .filter((employee) => employee.siteVisible && employee.status !== 'Архив')
+    .filter((employee) => employee.siteVisible && employee.status !== 'Архив' && employee.status !== 'Удален')
     .filter((employee) => isEmployeeAvailableOnDate(employee, preferredDate));
   if (!employees.length) {
     employees = employeeRows.length

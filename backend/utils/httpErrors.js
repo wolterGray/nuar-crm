@@ -6,6 +6,13 @@ function getHttpErrorResponse(error) {
     };
   }
 
+  if (error?.code === 'P2003') {
+    return {
+      message: 'Cannot delete record because related data exists',
+      status: 409,
+    };
+  }
+
   if (error?.code === 'P2025') {
     return {
       message: 'Record not found',
