@@ -1377,6 +1377,262 @@ select.services-status-select option {
   height: 0;
 }
 
+/* Service Type Segmented Toggle */
+.services-type-segmented-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: var(--surface, #141416);
+  padding: 3px;
+  border-radius: var(--radius-control, 10px);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+}
+
+.services-type-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 38px;
+  border-radius: var(--radius-sm, 6px);
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #a4a4ac);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.services-type-btn:hover:not(.is-active) {
+  color: var(--text, #ffffff);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.services-type-btn.is-active {
+  background: var(--surface-2, #1b1b1e);
+  color: var(--text, #ffffff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Couple / For Two Card */
+.services-couple-toggle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface, #141416);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-control, 10px);
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.services-couple-toggle-card.is-active {
+  border-color: rgba(225, 29, 46, 0.35);
+  background: rgba(225, 29, 46, 0.04);
+}
+
+.services-couple-toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.services-couple-toggle-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.services-couple-icon {
+  color: var(--accent, #e11d2e);
+  flex-shrink: 0;
+}
+
+.services-couple-toggle-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text, #ffffff);
+}
+
+.services-couple-toggle-desc {
+  font-size: 11.5px;
+  color: var(--text-muted, #a4a4ac);
+  line-height: 1.35;
+}
+
+/* Proactive Duplicate Warning Banner */
+.services-drawer-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 13px;
+  background: rgba(224, 164, 58, 0.09);
+  border: 1px solid rgba(224, 164, 58, 0.28);
+  border-radius: var(--radius-sm, 8px);
+  color: var(--color-warning, #e0a43a);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.services-warning-banner-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--color-warning, #e0a43a);
+}
+
+.services-warning-banner-text {
+  flex: 1;
+}
+
+/* Complex Stages Card */
+.services-combo-stages-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface, #141416);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-card, 14px);
+}
+
+.services-add-stage-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  background: var(--surface-2, #1b1b1e);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text, #ffffff);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 120ms ease;
+  white-space: nowrap;
+}
+
+.services-add-stage-btn:hover {
+  background: #27272a;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.services-combo-stages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.services-combo-stage-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.services-combo-stage-num {
+  width: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint, #7f7f86);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.services-combo-stage-name-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  background: var(--field, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text, #ffffff);
+  font-size: 12px;
+}
+
+.services-combo-stage-name-input:focus {
+  outline: none;
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.14));
+}
+
+.services-combo-stage-dur-wrap {
+  position: relative;
+  width: 95px;
+  flex-shrink: 0;
+}
+
+.services-combo-stage-dur-select {
+  width: 100%;
+  height: 36px;
+  padding: 0 24px 0 10px;
+  background: var(--field, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text, #ffffff);
+  font-size: 12px;
+  appearance: none;
+}
+
+.services-combo-stage-del-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text-muted, #a4a4ac);
+  cursor: pointer;
+  transition: all 120ms ease;
+  flex-shrink: 0;
+}
+
+.services-combo-stage-del-btn:hover {
+  color: var(--color-danger, #ff4d5e);
+  border-color: rgba(255, 77, 94, 0.3);
+  background: rgba(255, 77, 94, 0.08);
+}
+
+.services-combo-stages-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-soft, rgba(255, 255, 255, 0.045));
+  font-size: 11.5px;
+  color: var(--text-muted, #a4a4ac);
+}
+
+.services-combo-total-dur strong {
+  color: var(--text, #ffffff);
+}
+
+.services-combo-variant-hint {
+  padding: 8px 12px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: var(--radius-sm, 6px);
+  color: #38bdf8;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.services-preview-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+
 /* ==========================================================================
    Tab 2: Variants & Prices
    ========================================================================== */

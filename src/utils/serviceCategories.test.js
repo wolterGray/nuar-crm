@@ -32,8 +32,11 @@ describe("serviceCategories", () => {
     expect(inferMassageSubType({name: "Masaż antycellulitowy (Top Master)"})).toBe("Антицеллюлитный");
     expect(inferMassageSubType({name: "Masaż autorski"})).toBe("Авторский");
     expect(inferMassageSubType({name: "Masaż dla dwojga"})).toBe("Парный");
+    expect(inferMassageSubType({name: "Парный массаж"})).toBe("Парный");
     expect(inferMassageSubType({name: "Masaż twarzy i głowy"})).toBe("Лицо и голова");
     expect(inferMassageSubType({name: "Masaż dla dzieci"})).toBe("Детский");
+    expect(inferMassageSubType({name: "Комплекс Nuar"})).toBeNull();
+    expect(inferMassageSubType({name: "SPA Комплекс Релакс"})).toBe("Расслабляющий");
   });
 
   it("prioritizes explicitly defined subType", () => {

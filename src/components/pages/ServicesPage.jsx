@@ -2,7 +2,11 @@ import {useCallback, useMemo, useState} from "react";
 import AppIcon from "../ui/AppIcon.jsx";
 import Checkbox from "../ui/Checkbox.jsx";
 import {formatMoney} from "../../utils/formatters.jsx";
-import {getCategoryColor} from "../../utils/serviceColors.js";
+import {
+  getCategoryColor,
+  getServiceBadgeStyle,
+  getServiceColor,
+} from "../../utils/serviceColors.js";
 import {
   CANONICAL_CATEGORIES,
   formatServiceCountRu,
@@ -384,10 +388,20 @@ export default function ServicesPage({
     const variantsCount = (service.variants ?? []).length || 1;
     const svcStatus = service.status || "Активна";
     const isCombo = (service.serviceType ?? service.payload?.serviceType) === "combo";
+    const isCouple = Boolean(
+      service.isCouple ||
+      service.isParallel ||
+      service.payload?.isCouple ||
+      service.payload?.isParallel ||
+      String(service.name || "").toLowerCase().includes("dwojga") ||
+      String(service.name || "").toLowerCase().includes("парный")
+    );
     const subType = inferMassageSubType(service);
     const normalizedCat = normalizeCategory(service.category);
     const catColor = getCategoryColor(normalizedCat);
     const isMenuOpen = openMenuServiceId === service.id;
+    const serviceColor = service.color || getServiceColor(service);
+    const badgeStyle = getServiceBadgeStyle(serviceColor);
 
     return (
       <div
@@ -408,8 +422,21 @@ export default function ServicesPage({
           <div className="services-service-info-wrap">
             <span className="services-service-name">{service.name}</span>
             <div className="services-service-tags-row">
-              {subType ? <span className="services-subtype-tag">{subType}</span> : null}
-              {isCombo ? <span className="services-combo-badge">Комплекс</span> : null}
+              {subType ? (
+                <span className="services-subtype-tag" style={badgeStyle}>
+                  {subType}
+                </span>
+              ) : null}
+              {isCouple && subType !== "Парный" ? (
+                <span className="services-subtype-tag" style={badgeStyle}>
+                  Парный
+                </span>
+              ) : null}
+              {isCombo ? (
+                <span className="services-combo-badge" style={badgeStyle}>
+                  Комплекс
+                </span>
+              ) : null}
             </div>
           </div>
         </div>
@@ -829,6 +856,7 @@ export default function ServicesPage({
           service={activeDrawerService}
           categories={categories}
           employees={employees}
+          allServices={services}
           onClose={handleCloseDrawer}
           onSave={handleSaveService}
         />

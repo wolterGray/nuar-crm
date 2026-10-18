@@ -33,7 +33,7 @@ export const inferMassageSubType = (service) => {
   }
   const name = String(service?.name ?? "").toLowerCase();
   if (name.includes("klasyczn") || name.includes("классическ")) return "Классический";
-  if (name.includes("relaks") || name.includes("расслабляющ")) return "Расслабляющий";
+  if (name.includes("relaks") || name.includes("расслабляющ") || name.includes("релакс")) return "Расслабляющий";
   if (name.includes("sport") || name.includes("спортивн")) return "Спортивный";
   if (
     name.includes("limfat") ||
@@ -46,7 +46,7 @@ export const inferMassageSubType = (service) => {
   }
   if (name.includes("antycellul") || name.includes("антицеллюлит")) return "Антицеллюлитный";
   if (name.includes("autorsk") || name.includes("авторск")) return "Авторский";
-  if (name.includes("dwojga") || name.includes("парный") || name.includes("комплекс")) return "Парный";
+  if (name.includes("dwojga") || name.includes("парный")) return "Парный";
   if (name.includes("twarz") || name.includes("glow") || name.includes("лицо") || name.includes("голов")) return "Лицо и голова";
   if (name.includes("dzieci") || name.includes("детск")) return "Детский";
   return service?.subType || null;

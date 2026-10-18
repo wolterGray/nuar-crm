@@ -3,7 +3,12 @@ import AppIcon from "../ui/AppIcon.jsx";
 import Checkbox from "../ui/Checkbox.jsx";
 import Switch from "../ui/Switch.jsx";
 import {useModalScrollLock} from "../../hooks/useModalScrollLock.js";
-import {getCategoryColor, getRandomServiceColor, serviceColorPalette} from "../../utils/serviceColors.js";
+import {
+  getCategoryColor,
+  getRandomServiceColor,
+  getServiceBadgeStyle,
+  serviceColorPalette,
+} from "../../utils/serviceColors.js";
 import {getServiceAssignedEmployeeIds} from "../../utils/serviceAssignments.js";
 import {normalizeSiteBookingBufferSettings} from "../../utils/siteBookingBuffers.js";
 import {
@@ -21,6 +26,7 @@ export default function ServiceDrawer({
   service,
   categories = CANONICAL_CATEGORIES,
   employees = [],
+  allServices = [],
   onClose,
   onSave,
 }) {
@@ -41,8 +47,9 @@ export default function ServiceDrawer({
   const [bufferAfterMinutes, setBufferAfterMinutes] = useState(30);
   const [siteVisible, setSiteVisible] = useState(true);
 
-  // Combo service support
+  // Service Type & Couple support
   const [isCombo, setIsCombo] = useState(false);
+  const [isCouple, setIsCouple] = useState(false);
   const [comboCustomPrice, setComboCustomPrice] = useState(false);
   const [comboItems, setComboItems] = useState([]);
 
@@ -98,8 +105,23 @@ export default function ServiceDrawer({
 
       const serviceType = service.serviceType ?? service.payload?.serviceType;
       const initialIsCombo = serviceType === "combo";
+      const initialIsCouple = Boolean(
+        service.isCouple ||
+        service.isParallel ||
+        service.payload?.isCouple ||
+        service.payload?.isParallel ||
+        String(service.name || "").toLowerCase().includes("dwojga") ||
+        String(service.name || "").toLowerCase().includes("парный")
+      );
       const initialComboCustomPrice = Boolean(service.comboCustomPrice ?? service.payload?.comboCustomPrice);
-      const initialComboItems = service.comboItems ?? service.payload?.comboItems ?? [];
+      const rawComboItems = service.comboItems ?? service.payload?.comboItems;
+      const initialComboItems = Array.isArray(rawComboItems) && rawComboItems.length > 0
+        ? rawComboItems.map((item, idx) => ({
+            id: item.id || `stage-${idx}-${Date.now()}`,
+            name: item.name || item.title || "",
+            duration: Number(item.duration) || 30,
+          }))
+        : [];
 
       setName(initialName);
       setCategory(initialCategory);
@@ -116,6 +138,7 @@ export default function ServiceDrawer({
       setBufferAfterMinutes(initialBufferAfterMinutes);
       setSiteVisible(initialSiteVisible);
       setIsCombo(initialIsCombo);
+      setIsCouple(initialIsCouple);
       setComboCustomPrice(initialComboCustomPrice);
       setComboItems(initialComboItems);
 
@@ -134,6 +157,9 @@ export default function ServiceDrawer({
         bufferAfterEnabled: initialBufferAfterEnabled,
         bufferAfterMinutes: initialBufferAfterMinutes,
         siteVisible: initialSiteVisible,
+        isCombo: initialIsCombo,
+        isCouple: initialIsCouple,
+        comboItems: initialComboItems,
       };
     } else {
       // Create mode
@@ -159,6 +185,7 @@ export default function ServiceDrawer({
       setBufferAfterMinutes(30);
       setSiteVisible(true);
       setIsCombo(false);
+      setIsCouple(false);
       setComboCustomPrice(false);
       setComboItems([]);
 
@@ -177,6 +204,9 @@ export default function ServiceDrawer({
         bufferAfterEnabled: false,
         bufferAfterMinutes: 30,
         siteVisible: true,
+        isCombo: false,
+        isCouple: false,
+        comboItems: [],
       };
     }
 
@@ -204,6 +234,9 @@ export default function ServiceDrawer({
       bufferAfterMinutes: Number(bufferAfterMinutes) || 0,
       assignedEmployeeIds: [...assignedEmployeeIds].sort(),
       variants: variants.map((v) => ({d: Number(v.duration), p: Number(v.price)})),
+      isCombo: Boolean(isCombo),
+      isCouple: Boolean(isCouple),
+      comboItems: comboItems.map((i) => ({n: (i.name || "").trim(), d: Number(i.duration)})),
     };
     return JSON.stringify(curr) !== JSON.stringify(init);
   }, [
@@ -221,6 +254,9 @@ export default function ServiceDrawer({
     bufferAfterEnabled,
     bufferAfterMinutes,
     variants,
+    isCombo,
+    isCouple,
+    comboItems,
   ]);
 
   function initialStateRef(init) {
@@ -239,6 +275,9 @@ export default function ServiceDrawer({
       bufferAfterMinutes: Number(init.bufferAfterMinutes) || 0,
       assignedEmployeeIds: [...(init.assignedEmployeeIds || [])].sort(),
       variants: (init.variants || []).map((v) => ({d: Number(v.duration), p: Number(v.price)})),
+      isCombo: Boolean(init.isCombo),
+      isCouple: Boolean(init.isCouple),
+      comboItems: (init.comboItems || []).map((i) => ({n: (i.name || "").trim(), d: Number(i.duration)})),
     };
   }
 
@@ -282,6 +321,81 @@ export default function ServiceDrawer({
     setVariants((curr) => curr.filter((item) => item.id !== id));
   };
 
+  // Complex (Combo) stages operations
+  const handleAddComboStage = () => {
+    const newStage = {
+      id: `stage-${Date.now()}-${Math.random()}`,
+      name: "",
+      duration: 30,
+    };
+    setComboItems((curr) => {
+      const next = [...curr, newStage];
+      const totalDur = next.reduce((sum, item) => sum + (Number(item.duration) || 0), 0);
+      if (variants.length === 1 && totalDur > 0) {
+        setVariants([{ ...variants[0], duration: totalDur }]);
+      }
+      return next;
+    });
+    setErrors((curr) => ({...curr, combo: undefined}));
+  };
+
+  const handleUpdateComboStage = (id, field, value) => {
+    setComboItems((curr) => {
+      const next = curr.map((item) => (item.id === id ? {...item, [field]: value} : item));
+      const totalDur = next.reduce((sum, item) => sum + (Number(item.duration) || 0), 0);
+      if (variants.length === 1 && totalDur > 0) {
+        setVariants([{ ...variants[0], duration: totalDur }]);
+      }
+      return next;
+    });
+    setErrors((curr) => ({...curr, combo: undefined}));
+  };
+
+  const handleDeleteComboStage = (id) => {
+    setComboItems((curr) => {
+      const next = curr.filter((item) => item.id !== id);
+      const totalDur = next.reduce((sum, item) => sum + (Number(item.duration) || 0), 0);
+      if (variants.length === 1 && totalDur > 0) {
+        setVariants([{ ...variants[0], duration: totalDur }]);
+      }
+      return next;
+    });
+  };
+
+  const comboTotalDuration = useMemo(() => {
+    return comboItems.reduce((sum, item) => sum + (Number(item.duration) || 0), 0);
+  }, [comboItems]);
+
+  // Proactive duplicate service warning (e.g. Masaż dla dwojga 60 min vs Masaż dla dwojga)
+  const duplicateWarning = useMemo(() => {
+    if (!name.trim() || !Array.isArray(allServices) || allServices.length === 0) return null;
+    const currentId = service?.id;
+    const cleanCurrent = name
+      .toLowerCase()
+      .replace(/[0-9]+\s*(min|мин|m)\b/gi, "")
+      .replace(/[^a-zа-я0-9]/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (cleanCurrent.length < 3) return null;
+
+    const match = allServices.find((s) => {
+      if (s.id && currentId && String(s.id) === String(currentId)) return false;
+      const cleanOther = (s.name || "")
+        .toLowerCase()
+        .replace(/[0-9]+\s*(min|мин|m)\b/gi, "")
+        .replace(/[^a-zа-я0-9]/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      return cleanOther === cleanCurrent && normalizeCategory(s.category) === normalizeCategory(category);
+    });
+
+    if (match) {
+      return `В категории «${normalizeCategory(category)}» уже есть похожая услуга: «${match.name}». Рекомендуется настроить разные варианты продолжительности в одной карточке услуги (вкладка «Варианты и цены»), вместо создания отдельной карточки-дубликата.`;
+    }
+    return null;
+  }, [name, category, service?.id, allServices]);
+
   // Specialist selection
   const handleToggleEmployee = (empId) => {
     const idStr = String(empId);
@@ -305,28 +419,42 @@ export default function ServiceDrawer({
       nextErrors.name = "Название услуги обязательно для заполнения";
     }
 
-    if (!isCombo) {
-      if (variants.length === 0) {
-        nextErrors.variants = "Добавьте минимум один вариант продолжительности";
-      } else {
-        const durations = variants.map((v) => Number(v.duration));
-        const hasZero = durations.some((d) => d <= 0);
-        if (hasZero) {
-          nextErrors.variants = "Длительность должна быть больше нуля";
-        }
-        const hasDuplicates = new Set(durations).size !== durations.length;
-        if (hasDuplicates) {
-          nextErrors.variants = "Услуга не может содержать одинаковые длительности";
-        }
-        const hasInvalidPrice = variants.some((v) => Number(v.price) < 0 || isNaN(Number(v.price)));
-        if (hasInvalidPrice) {
-          nextErrors.variants = "Стоимость не может быть отрицательной";
-        }
+    if (variants.length === 0) {
+      nextErrors.variants = isCombo
+        ? "Укажите длительность и стоимость комплекса"
+        : "Добавьте минимум один вариант продолжительности";
+    } else {
+      const durations = variants.map((v) => Number(v.duration));
+      const hasZero = durations.some((d) => d <= 0 || isNaN(d));
+      if (hasZero) {
+        nextErrors.variants = "Длительность должна быть больше нуля";
+      }
+
+      const seen = new Set();
+      const duplicates = [];
+      for (const d of durations) {
+        if (seen.has(d)) duplicates.push(d);
+        seen.add(d);
+      }
+      if (duplicates.length > 0) {
+        nextErrors.variants = `Услуга не может содержать одинаковые длительности (${duplicates.join(", ")} мин). Объедините их в один тариф или задайте разное время.`;
+      }
+
+      const hasInvalidPrice = variants.some((v) => Number(v.price) < 0 || isNaN(Number(v.price)));
+      if (hasInvalidPrice) {
+        nextErrors.variants = "Стоимость не может быть отрицательной";
+      }
+    }
+
+    if (isCombo && comboItems.length > 0) {
+      const hasEmpty = comboItems.some((item) => !String(item.name || "").trim());
+      if (hasEmpty) {
+        nextErrors.combo = "Укажите название для каждого этапа комплекса";
       }
     }
 
     setErrors(nextErrors);
-    if (nextErrors.name && activeTab !== "info") {
+    if ((nextErrors.name || nextErrors.combo) && activeTab !== "info") {
       setActiveTab("info");
     } else if (nextErrors.variants && activeTab !== "variants") {
       setActiveTab("variants");
@@ -380,14 +508,21 @@ export default function ServiceDrawer({
       },
     };
 
+    payload.serviceType = isCombo ? "combo" : "service";
+    payload.isCouple = isCouple;
+    payload.isParallel = isCouple;
+    payload.parallelParticipants = isCouple ? 2 : 1;
+
     if (isCombo) {
-      payload.serviceType = "combo";
-      payload.isParallel = true;
       payload.comboCustomPrice = comboCustomPrice;
-      payload.comboItems = comboItems;
+      payload.comboItems = comboItems.map((item) => ({
+        id: item.id,
+        name: (item.name || "").trim(),
+        duration: Number(item.duration) || 30,
+      }));
     } else {
-      payload.serviceType = "service";
-      payload.isParallel = false;
+      payload.comboItems = [];
+      payload.comboCustomPrice = false;
     }
 
     try {
@@ -484,6 +619,142 @@ export default function ServiceDrawer({
                 />
                 {errors.name ? <div className="services-field-error">{errors.name}</div> : null}
               </div>
+
+              {/* Proactive Duplicate Warning Banner */}
+              {duplicateWarning ? (
+                <div className="services-drawer-warning-banner" role="alert">
+                  <AppIcon name="alertTriangle" size="xs" className="services-warning-banner-icon" />
+                  <div className="services-warning-banner-text">{duplicateWarning}</div>
+                </div>
+              ) : null}
+
+              {/* Service Type Segmented Toggle */}
+              <div className="services-field-group">
+                <label className="services-field-label">Тип услуги</label>
+                <div className="services-type-segmented-wrap" role="group" aria-label="Тип услуги">
+                  <button
+                    type="button"
+                    className={`services-type-btn ${!isCombo ? "is-active" : ""}`}
+                    onClick={() => setIsCombo(false)}>
+                    <AppIcon name="user" size="xs" />
+                    <span>Обычная услуга</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`services-type-btn ${isCombo ? "is-active" : ""}`}
+                    onClick={() => {
+                      setIsCombo(true);
+                      if (comboItems.length === 0) {
+                        setComboItems([
+                          {id: `stage-1-${Date.now()}`, name: "Этап 1: Пилинг / Подготовка", duration: 30},
+                          {id: `stage-2-${Date.now()}`, name: "Этап 2: Основной массаж", duration: 60},
+                        ]);
+                        if (variants.length === 1) {
+                          setVariants([{ ...variants[0], duration: 90 }]);
+                        }
+                      }
+                    }}>
+                    <AppIcon name="package" size="xs" />
+                    <span>Комплекс (программа)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Couple / For Two Card */}
+              <div className={`services-couple-toggle-card ${isCouple ? "is-active" : ""}`}>
+                <div className="services-couple-toggle-info">
+                  <div className="services-couple-toggle-title-row">
+                    <AppIcon name="users" size="xs" className="services-couple-icon" />
+                    <span className="services-couple-toggle-title">Парная услуга (для двоих)</span>
+                  </div>
+                  <span className="services-couple-toggle-desc">
+                    Сеанс проводится одновременно для двух клиентов, требует 2 мастеров и парную комнату
+                  </span>
+                </div>
+                <Switch
+                  checked={isCouple}
+                  onChange={(checked) => setIsCouple(checked)}
+                  aria-label="Парная услуга"
+                />
+              </div>
+
+              {/* Complex constituent stages */}
+              {isCombo && (
+                <div className="services-combo-stages-card">
+                  <div className="services-section-header">
+                    <div className="services-section-title-wrap">
+                      <h4 className="services-section-title">
+                        <AppIcon name="layers" size="xs" />
+                        Состав комплекса
+                      </h4>
+                      <span className="services-section-desc">
+                        Процедуры и этапы, входящие в эту комплексную программу
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="services-add-stage-btn"
+                      onClick={handleAddComboStage}>
+                      <AppIcon name="plus" size="xs" />
+                      Добавить этап
+                    </button>
+                  </div>
+
+                  {errors.combo ? (
+                    <div className="services-field-error">{errors.combo}</div>
+                  ) : null}
+
+                  <div className="services-combo-stages-list">
+                    {comboItems.map((item, idx) => (
+                      <div key={item.id || idx} className="services-combo-stage-row">
+                        <span className="services-combo-stage-num">{idx + 1}</span>
+                        <input
+                          type="text"
+                          className="services-combo-stage-name-input"
+                          placeholder="Название этапа (например: Скрабирование)"
+                          value={item.name}
+                          onChange={(e) =>
+                            handleUpdateComboStage(item.id, "name", e.target.value)
+                          }
+                        />
+                        <div className="services-combo-stage-dur-wrap">
+                          <select
+                            className="services-combo-stage-dur-select"
+                            value={item.duration}
+                            onChange={(e) =>
+                              handleUpdateComboStage(
+                                item.id,
+                                "duration",
+                                Number(e.target.value) || 30
+                              )
+                            }>
+                            {[15, 20, 30, 40, 45, 60, 75, 90].map((d) => (
+                              <option key={d} value={d}>
+                                {d} мин
+                              </option>
+                            ))}
+                          </select>
+                          <AppIcon className="services-select-chevron" name="chevronDown" size="xs" />
+                        </div>
+                        <button
+                          type="button"
+                          className="services-combo-stage-del-btn"
+                          onClick={() => handleDeleteComboStage(item.id)}
+                          aria-label="Удалить этап">
+                          <AppIcon name="trash" size="xs" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="services-combo-stages-footer">
+                    <span>Всего этапов: {comboItems.length}</span>
+                    <span className="services-combo-total-dur">
+                      Общая длительность: <strong>{comboTotalDuration} мин</strong>
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* 2-Column: Category & Massage Sub-type */}
               <div className="services-form-row-2col">
@@ -591,7 +862,7 @@ export default function ServiceDrawer({
               <div className="services-field-group">
                 <div className="services-label-with-counter">
                   <label className="services-field-label">Цвет в календаре</label>
-                  <span className="services-field-hint-inline">Для расписания</span>
+                  <span className="services-field-hint-inline">Для расписания и бейджей</span>
                 </div>
                 <div className="services-color-picker-row">
                   {serviceColorPalette.slice(0, 8).map((c) => {
@@ -637,6 +908,31 @@ export default function ServiceDrawer({
                     );
                   })()}
                 </div>
+
+                {/* Live Preview of dynamic badge style */}
+                {(() => {
+                  const liveBadgeStyle = getServiceBadgeStyle(color);
+                  return (
+                    <div className="services-preview-badges-row">
+                      <span className="services-field-hint-inline">Предпросмотр бейджей:</span>
+                      {isMassageCategory && inferredSubType ? (
+                        <span className="services-subtype-tag" style={liveBadgeStyle}>
+                          {inferredSubType}
+                        </span>
+                      ) : null}
+                      {isCouple ? (
+                        <span className="services-subtype-tag" style={liveBadgeStyle}>
+                          Парный
+                        </span>
+                      ) : null}
+                      {isCombo ? (
+                        <span className="services-combo-badge" style={liveBadgeStyle}>
+                          Комплекс
+                        </span>
+                      ) : null}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -657,6 +953,12 @@ export default function ServiceDrawer({
                   Добавить вариант
                 </button>
               </div>
+
+              {isCombo && comboTotalDuration > 0 ? (
+                <div className="services-combo-variant-hint">
+                  💡 Длительность этапов комплекса в сумме составляет {comboTotalDuration} мин. Рекомендуется использовать эту продолжительность для основного тарифа.
+                </div>
+              ) : null}
 
               {errors.variants ? (
                 <div className="services-variants-error-msg">{errors.variants}</div>

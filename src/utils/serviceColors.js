@@ -71,3 +71,28 @@ export const getCategoryColor = (categoryName) => {
   ];
 };
 
+export const hexToRgba = (hex, alpha = 1) => {
+  if (!hex || typeof hex !== "string") return `rgba(138, 143, 152, ${alpha})`;
+  let clean = hex.replace("#", "").trim();
+  if (clean.length === 3) {
+    clean = clean.split("").map((c) => c + c).join("");
+  }
+  if (clean.length < 6) return `rgba(138, 143, 152, ${alpha})`;
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
+    return `rgba(138, 143, 152, ${alpha})`;
+  }
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+export const getServiceBadgeStyle = (serviceColor) => {
+  const base = serviceColor || "#8a8f98";
+  return {
+    backgroundColor: hexToRgba(base, 0.14),
+    borderColor: hexToRgba(base, 0.28),
+    color: base,
+  };
+};
+
