@@ -1,8 +1,10 @@
 import {useEffect, useMemo, useRef, useState} from "react";
+import {createPortal} from "react-dom";
 import AppIcon from "../ui/AppIcon.jsx";
 import Checkbox from "../ui/Checkbox.jsx";
 import Switch from "../ui/Switch.jsx";
 import {useModalScrollLock} from "../../hooks/useModalScrollLock.js";
+import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {
   getCategoryColor,
   getRandomServiceColor,
@@ -30,6 +32,7 @@ export default function ServiceDrawer({
   onSave,
 }) {
   useModalScrollLock(isOpen);
+  const {isMobile} = useBreakpoint();
   const [activeTab, setActiveTab] = useState("info"); // "info" | "variants" | "booking"
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Массажи");
@@ -43,7 +46,7 @@ export default function ServiceDrawer({
   const [bufferBeforeEnabled, setBufferBeforeEnabled] = useState(false);
   const [bufferBeforeMinutes, setBufferBeforeMinutes] = useState(15);
   const [bufferAfterEnabled, setBufferAfterEnabled] = useState(false);
-  const [bufferAfterMinutes, setBufferAfterMinutes] = useState(30);
+  const [bufferAfterMinutes, setBufferAfterMinutes] = useState(15);
   const [siteVisible, setSiteVisible] = useState(true);
 
   // Service Type & Couple support
@@ -97,9 +100,13 @@ export default function ServiceDrawer({
 
       const buffers = normalizeSiteBookingBufferSettings(service);
       const initialBufferBeforeEnabled = buffers.beforeEnabled;
-      const initialBufferBeforeMinutes = buffers.beforeMinutes || 15;
+      const rawBeforeMin = Number(service.siteBookingBufferBeforeMinutes);
+      const initialBufferBeforeMinutes =
+        rawBeforeMin > 0 ? rawBeforeMin : buffers.beforeMinutes > 0 ? buffers.beforeMinutes : 15;
       const initialBufferAfterEnabled = buffers.afterEnabled;
-      const initialBufferAfterMinutes = buffers.afterMinutes || 30;
+      const rawAfterMin = Number(service.siteBookingBufferAfterMinutes);
+      const initialBufferAfterMinutes =
+        rawAfterMin > 0 ? rawAfterMin : buffers.afterMinutes > 0 ? buffers.afterMinutes : 15;
       const initialSiteVisible = service.siteVisible !== false;
 
       const serviceType = service.serviceType ?? service.payload?.serviceType;
@@ -541,7 +548,7 @@ export default function ServiceDrawer({
 
   const isMassageCategory = normalizeCategory(category) === "Массажи";
 
-  return (
+  const drawerContent = (
     <aside
       className="services-drawer-root"
       aria-label={mode === "edit" ? "Редактирование услуги" : "Добавить услугу"}>
@@ -994,6 +1001,8 @@ export default function ServiceDrawer({
                             onChange={(e) =>
                               handleUpdateVariant(v.id, "price", e.target.value)
                             }
+                            onFocus={(e) => e.target.select()}
+                            onClick={(e) => e.target.select()}
                           />
                           <span className="services-var-price-unit">zł</span>
                         </div>
@@ -1119,14 +1128,35 @@ export default function ServiceDrawer({
                             step="5"
                             className="services-buffer-number-input"
                             value={bufferBeforeMinutes}
-                            onChange={(e) => setBufferBeforeMinutes(Number(e.target.value) || 0)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "") {
+                                setBufferBeforeMinutes("");
+                                return;
+                              }
+                              const parsed = parseInt(val, 10);
+                              setBufferBeforeMinutes(isNaN(parsed) ? "" : Math.max(0, parsed));
+                            }}
+                            onBlur={() => {
+                              if (bufferBeforeMinutes === "" || bufferBeforeMinutes === null) {
+                                setBufferBeforeMinutes(0);
+                              }
+                            }}
+                            onFocus={(e) => e.target.select()}
+                            onClick={(e) => e.target.select()}
                           />
                           <span className="services-buffer-unit">мин</span>
                         </div>
                       ) : null}
                       <Switch
                         checked={bufferBeforeEnabled}
-                        onChange={(e) => setBufferBeforeEnabled(e.target.checked)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setBufferBeforeEnabled(checked);
+                          if (checked && (!bufferBeforeMinutes || Number(bufferBeforeMinutes) === 0)) {
+                            setBufferBeforeMinutes(15);
+                          }
+                        }}
                         aria-label="Включить буфер перед услугой"
                         className="services-site-switch"
                       />
@@ -1148,14 +1178,35 @@ export default function ServiceDrawer({
                             step="5"
                             className="services-buffer-number-input"
                             value={bufferAfterMinutes}
-                            onChange={(e) => setBufferAfterMinutes(Number(e.target.value) || 0)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "") {
+                                setBufferAfterMinutes("");
+                                return;
+                              }
+                              const parsed = parseInt(val, 10);
+                              setBufferAfterMinutes(isNaN(parsed) ? "" : Math.max(0, parsed));
+                            }}
+                            onBlur={() => {
+                              if (bufferAfterMinutes === "" || bufferAfterMinutes === null) {
+                                setBufferAfterMinutes(0);
+                              }
+                            }}
+                            onFocus={(e) => e.target.select()}
+                            onClick={(e) => e.target.select()}
                           />
                           <span className="services-buffer-unit">мин</span>
                         </div>
                       ) : null}
                       <Switch
                         checked={bufferAfterEnabled}
-                        onChange={(e) => setBufferAfterEnabled(e.target.checked)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setBufferAfterEnabled(checked);
+                          if (checked && (!bufferAfterMinutes || Number(bufferAfterMinutes) === 0)) {
+                            setBufferAfterMinutes(15);
+                          }
+                        }}
                         aria-label="Включить буфер после услуги"
                         className="services-site-switch"
                       />
@@ -1214,4 +1265,10 @@ export default function ServiceDrawer({
       </div>
     </aside>
   );
+
+  if (isMobile && typeof document !== "undefined") {
+    return createPortal(drawerContent, document.body);
+  }
+
+  return drawerContent;
 }
