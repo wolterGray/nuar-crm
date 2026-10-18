@@ -47,6 +47,9 @@ export const inferMassageSubType = (service) => {
   if (name.includes("antycellul") || name.includes("антицеллюлит")) return "Антицеллюлитный";
   if (name.includes("autorsk") || name.includes("авторск")) return "Авторский";
   if (name.includes("dwojga") || name.includes("парный")) return "Парный";
+  if (name.includes("rytuał") || name.includes("rytuł") || name.includes("ритуал")) return "Ритуал";
+  if (name.includes("modelow") || name.includes("моделир") || name.includes("gipsoterapi")) return "Моделирование";
+  if (name.includes("termo") || name.includes("термо") || name.includes("collistar")) return "Термопроцедура";
   if (name.includes("twarz") || name.includes("glow") || name.includes("лицо") || name.includes("голов")) return "Лицо и голова";
   if (name.includes("dzieci") || name.includes("детск")) return "Детский";
   return service?.subType || null;

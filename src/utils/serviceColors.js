@@ -54,8 +54,13 @@ export const normalizeServiceColors = (services) =>
 export const categoryColorMap = {
   "Массаж": "#ef4444",
   "Массажи": "#ef4444",
+  "Masaże": "#ef4444",
   "Комплексы": "#38bdf8",
   "Body Wrapping": "#c084fc",
+  "Массажи (Master)": "#f97316",
+  "Masaże (Master)": "#f97316",
+  "Массажи (Top-Master)": "#eab308",
+  "Masaże (Top-Master)": "#eab308",
   "Без категории": "#71717a",
   "Другие": "#a1a1aa",
 };
@@ -95,4 +100,28 @@ export const getServiceBadgeStyle = (serviceColor) => {
     color: base,
   };
 };
+
+export const subTypeColorMap = {
+  "Классический": "#22c55e",
+  "Расслабляющий": "#f43f5e",
+  "Спортивный": "#ef4444",
+  "Лимфодренажный": "#06b6d4",
+  "Антицеллюлитный": "#f97316",
+  "Авторский": "#a855f7",
+  "Парный": "#38bdf8",
+  "Комплекс": "#38bdf8",
+  "Ритуал": "#a78bfa",
+  "Моделирование": "#c084fc",
+  "Термопроцедура": "#c084fc",
+  "Лицо и голова": "#eab308",
+  "Детский": "#3b82f6",
+};
+
+export const getBadgeColor = (type, serviceColor) => {
+  if (type && subTypeColorMap[type]) {
+    return subTypeColorMap[type];
+  }
+  return serviceColor || "#8a8f98";
+};
+
 

@@ -35,6 +35,7 @@ router.get('/notification-events', async (req, res) => {
     const user = await resolveAuthenticatedUser(req);
     const events = await listNotificationEventsForUser(prisma, user.id, {
       limit: req.query.limit,
+      offset: req.query.offset,
       status: req.query.status || 'active',
     });
     res.json({success: true, data: events});

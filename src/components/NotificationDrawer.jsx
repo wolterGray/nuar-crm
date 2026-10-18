@@ -94,6 +94,7 @@ export default function NotificationDrawer({
   onSnoozeWeek,
   onToggleOpen,
   quietHoursActive,
+  serverConnected,
   serverCounts,
   theme = "dark",
 }) {
@@ -433,7 +434,11 @@ export default function NotificationDrawer({
             <div>
               <h2>Уведомления</h2>
               <p>
-                {effectiveUrgentAlertsCount > 0
+                {serverConnected === null
+                  ? "Загрузка событий…"
+                  : serverConnected === false
+                    ? "Нет связи с сервером"
+                    : effectiveUrgentAlertsCount > 0
                   ? `${effectiveUrgentAlertsCount} требуют внимания`
                   : "Всё в порядке"}
               </p>

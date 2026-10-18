@@ -19,16 +19,31 @@ const parseResponse = async (res) => {
   return data.data;
 };
 
-export const fetchNotificationEvents = async ({limit = 50, status = "active"} = {}) => {
+export const fetchNotificationEvents = async ({limit = 50, offset = 0, status = "active"} = {}) => {
   const headers = await authHeaders();
   const params = new URLSearchParams({
     limit: String(limit),
+    offset: String(offset),
     status,
   });
   const res = await fetch(`${API_URL}/api/notification-events?${params.toString()}`, {
     headers,
   });
   return parseResponse(res);
+};
+
+export const fetchAllNotificationEvents = async ({pageSize = 100, status = "active"} = {}) => {
+  const events = [];
+  let offset = 0;
+
+  while (offset < 500) {
+    const page = await fetchNotificationEvents({limit: pageSize, offset, status});
+    events.push(...page);
+    if (page.length < pageSize) break;
+    offset += page.length;
+  }
+
+  return events;
 };
 
 export const fetchNotificationEventCounts = async () => {

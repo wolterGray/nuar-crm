@@ -731,6 +731,7 @@ const listNotificationEventsForUser = async (prisma, userId, options = {}) => {
   const numericUserId = Number(userId);
   const requestedStatus = options.status || 'active';
   const requestedLimit = Math.max(1, Math.min(100, Number(options.limit) || 50));
+  const requestedOffset = Math.max(0, Math.min(500, Number(options.offset) || 0));
   const events = await listNotificationEvents(prisma, {
     ...options,
     limit: 500,
@@ -768,7 +769,7 @@ const listNotificationEventsForUser = async (prisma, userId, options = {}) => {
       if (right.score !== left.score) return right.score - left.score;
       return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
     })
-    .slice(0, requestedLimit);
+    .slice(requestedOffset, requestedOffset + requestedLimit);
   const selectedWithoutRecipient = selected.filter((event) => !byEventId.has(event.id));
   if (selectedWithoutRecipient.length > 0) {
     await prisma.notificationRecipient.createMany({

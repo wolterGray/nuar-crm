@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {
   fetchNotificationEventCounts,
-  fetchNotificationEvents,
+  fetchAllNotificationEvents,
   updateNotificationEvent,
 } from "../api/notificationEvents.js";
 import {buildAlertCenter, filterAlertsByMode} from "../utils/alertCenter.js";
@@ -251,7 +251,7 @@ export function useClientAlerts({
 }) {
   const smartVisitAlertIds = useRef(new Set());
   const [serverEvents, setServerEvents] = useState([]);
-  const [serverConnected, setServerConnected] = useState(false);
+  const [serverConnected, setServerConnected] = useState(null);
   const [serverCounts, setServerCounts] = useState(null);
 
   useEffect(() => {
@@ -307,7 +307,7 @@ export function useClientAlerts({
 
     try {
       const [events, counts] = await Promise.all([
-        fetchNotificationEvents({limit: 40, status: "active"}),
+        fetchAllNotificationEvents({status: "active"}),
         fetchNotificationEventCounts(),
       ]);
       setServerEvents(Array.isArray(events) ? events : []);
@@ -749,6 +749,7 @@ export function useClientAlerts({
     snoozeAlertWeek,
     totalAlertsCount: drawerCounts.totalAlertsCount,
     serverCounts,
+    serverConnected,
     undoNotificationAction,
     urgentAlertsCount: drawerCounts.urgentAlertsCount,
   };

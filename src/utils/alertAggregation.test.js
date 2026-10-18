@@ -21,7 +21,7 @@ describe("alertAggregation", () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].type).toBe("aggregate");
-    expect(result[0].title).toContain("2 позиций");
+    expect(result[0].title).toContain("Запасы заканчиваются — 2");
     expect(getAggregateChildIds(result[0])).toEqual(["supply-1", "supply-2"]);
   });
 

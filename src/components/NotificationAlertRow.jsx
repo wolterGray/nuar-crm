@@ -319,7 +319,6 @@ export default function NotificationAlertRow({
         tabIndex={cardAction ? 0 : undefined}
         onClick={cardAction ? handleCardAction : undefined}
         onKeyDown={cardAction ? handleCardKeyDown : undefined}>
-        <span className="client-alert-category-mark" aria-hidden="true" />
         {cornerBadge && alert.type !== "undo" ? (
           <span className={`client-alert-corner-badge ${cornerBadge.className}`}>
             {cornerBadge.label}

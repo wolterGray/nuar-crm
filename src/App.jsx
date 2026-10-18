@@ -721,6 +721,7 @@ function App() {
     openClientMessageTemplates,
     quietHoursActive,
     restoreAlertSnooze,
+    serverConnected,
     serverCounts,
     snoozeAlertDays,
     snoozeAlertReview,
@@ -2087,6 +2088,7 @@ function App() {
               totalAlertsCount={totalAlertsCount}
               urgentAlertsCount={urgentAlertsCount}
               quietHoursActive={quietHoursActive}
+              serverConnected={serverConnected}
               serverCounts={serverCounts}
               theme={colorTheme.mode}
               onAction={handleAlertAction}

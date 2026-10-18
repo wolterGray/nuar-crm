@@ -1,15 +1,16 @@
 import {useCallback, useMemo, useState} from "react";
 import AppIcon from "../ui/AppIcon.jsx";
 import Checkbox from "../ui/Checkbox.jsx";
+import Switch from "../ui/Switch.jsx";
 import {formatMoney} from "../../utils/formatters.jsx";
 import {
+  getBadgeColor,
   getCategoryColor,
   getServiceBadgeStyle,
   getServiceColor,
 } from "../../utils/serviceColors.js";
 import {
   CANONICAL_CATEGORIES,
-  formatServiceCountRu,
   inferMassageSubType,
   normalizeCategory,
 } from "../../utils/serviceCategories.js";
@@ -19,6 +20,14 @@ import PriceListModal from "../priceList/PriceListModal.jsx";
 import "./ServicesPage.css";
 
 const ALL_CATEGORIES = "__all__";
+
+const PREFERRED_CATEGORY_ORDER = [
+  "Массажи",
+  "Комплексы",
+  "Body Wrapping",
+  "Массажи (Master)",
+  "Массажи (Top-Master)",
+];
 
 const getMinPrice = (service) => {
   if (Array.isArray(service.variants) && service.variants.length > 0) {
@@ -71,8 +80,6 @@ export default function ServicesPage({
   const [viewScope, setViewScope] = useState("active"); // "active" (Действующие) | "archive" (Архив)
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES);
   const [selectedStatus, setSelectedStatus] = useState("all"); // "all" | "Активна" | "Скрыта"
-  const [sortField, setSortField] = useState(null); // "name" | "category" | "price" | "status"
-  const [sortDirection, setSortDirection] = useState("asc");
 
   // Selection state
   const [selectedServiceIds, setSelectedServiceIds] = useState(new Set());
@@ -88,8 +95,38 @@ export default function ServicesPage({
   // Price list modal state
   const [isPriceListOpen, setIsPriceListOpen] = useState(false);
 
+  // Filter dropdown popover state
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+
   // Row action menu dropdown
   const [openMenuServiceId, setOpenMenuServiceId] = useState(null);
+
+  // Collapsed categories state (persisted in sessionStorage)
+  const [collapsedCategories, setCollapsedCategories] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem("nuar_services_collapsed_cats");
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  const toggleCategoryCollapse = useCallback((catName) => {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(catName)) {
+        next.delete(catName);
+      } else {
+        next.add(catName);
+      }
+      try {
+        sessionStorage.setItem("nuar_services_collapsed_cats", JSON.stringify([...next]));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
+  }, []);
 
   // Scope pools
   const activePool = useMemo(
@@ -113,10 +150,10 @@ export default function ServicesPage({
     ];
     const unique = [...new Set(rawNames.filter(Boolean))];
 
-    // Canonical order first
+    // Canonical order first according to reference sequence
     unique.sort((a, b) => {
-      const idxA = CANONICAL_CATEGORIES.indexOf(a);
-      const idxB = CANONICAL_CATEGORIES.indexOf(b);
+      const idxA = PREFERRED_CATEGORY_ORDER.indexOf(a);
+      const idxB = PREFERRED_CATEGORY_ORDER.indexOf(b);
       if (idxA !== -1 && idxB !== -1) return idxA - idxB;
       if (idxA !== -1) return -1;
       if (idxB !== -1) return 1;
@@ -165,52 +202,16 @@ export default function ServicesPage({
       return true;
     });
 
-    // Sorting
-    if (sortField) {
-      list = [...list].sort((a, b) => {
-        let valA, valB;
-        if (sortField === "name") {
-          valA = a.name || "";
-          valB = b.name || "";
-          return sortDirection === "asc"
-            ? valA.localeCompare(valB, "ru")
-            : valB.localeCompare(valA, "ru");
-        }
-        if (sortField === "category") {
-          valA = normalizeCategory(a.category);
-          valB = normalizeCategory(b.category);
-          return sortDirection === "asc"
-            ? valA.localeCompare(valB, "ru")
-            : valB.localeCompare(valA, "ru");
-        }
-        if (sortField === "price") {
-          valA = getMinPrice(a);
-          valB = getMinPrice(b);
-          return sortDirection === "asc" ? valA - valB : valB - valA;
-        }
-        if (sortField === "status") {
-          valA = a.status || "Активна";
-          valB = b.status || "Активна";
-          return sortDirection === "asc"
-            ? valA.localeCompare(valB, "ru")
-            : valB.localeCompare(valA, "ru");
-        }
-        return 0;
-      });
-    }
-
     return list;
-  }, [currentPool, search, selectedCategory, selectedStatus, sortDirection, sortField, viewScope]);
+  }, [currentPool, search, selectedCategory, selectedStatus, viewScope]);
 
-  // Grouped structure: when "Все" category is selected and no sorting applied
-  const isGrouped = selectedCategory === ALL_CATEGORIES && !sortField && !search.trim();
-
-  const groupedServices = useMemo(() => {
-    if (!isGrouped) return null;
-
+  // Category card groups: structured by category card blocks
+  const categoryGroups = useMemo(() => {
     const groups = new Map();
-    // Initialize groups in canonical order
-    categories.forEach((cat) => {
+    const targetCategories =
+      selectedCategory === ALL_CATEGORIES ? categories : [selectedCategory];
+
+    targetCategories.forEach((cat) => {
       groups.set(cat, []);
     });
 
@@ -222,11 +223,10 @@ export default function ServicesPage({
       groups.get(cat).push(service);
     });
 
-    // Return only non-empty groups
     return Array.from(groups.entries())
       .filter(([_, list]) => list.length > 0)
       .map(([name, list]) => ({name, services: list}));
-  }, [categories, filteredServices, isGrouped]);
+  }, [categories, filteredServices, selectedCategory]);
 
   // Selection handlers
   const allFilteredSelected =
@@ -355,21 +355,6 @@ export default function ServicesPage({
     });
   };
 
-  // Sort toggle helper
-  const handleSort = (field) => {
-    if (sortField === field) {
-      if (sortDirection === "asc") {
-        setSortDirection("desc");
-      } else {
-        setSortField(null);
-        setSortDirection("asc");
-      }
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
-
   // Scope switcher handler
   const handleSwitchScope = (nextScope) => {
     setViewScope(nextScope);
@@ -379,14 +364,14 @@ export default function ServicesPage({
     setOpenMenuServiceId(null);
   };
 
-  // Render a single service table row
+  // Render a single service row within a category card
   const renderServiceRow = (service) => {
     const isSelected = selectedServiceIds.has(service.id);
     const isActiveRow = activeDrawerService?.id === service.id && isDrawerOpen;
     const minPrice = getMinPrice(service);
     const durationText = getDurationsSummary(service);
-    const variantsCount = (service.variants ?? []).length || 1;
     const svcStatus = service.status || "Активна";
+    const isActive = svcStatus === "Активна";
     const isCombo = (service.serviceType ?? service.payload?.serviceType) === "combo";
     const isCouple = Boolean(
       service.isCouple ||
@@ -397,16 +382,13 @@ export default function ServicesPage({
       String(service.name || "").toLowerCase().includes("парный")
     );
     const subType = inferMassageSubType(service);
-    const normalizedCat = normalizeCategory(service.category);
-    const catColor = getCategoryColor(normalizedCat);
     const isMenuOpen = openMenuServiceId === service.id;
     const serviceColor = service.color || getServiceColor(service);
-    const badgeStyle = getServiceBadgeStyle(serviceColor);
 
     return (
       <div
         key={service.id}
-        className={`services-table-row ${isActiveRow ? "is-active-row" : ""} ${isSelected ? "is-selected-row" : ""}`}
+        className={`services-card-row ${isActiveRow ? "is-active-row" : ""} ${isSelected ? "is-selected-row" : ""}`}
         onClick={(e) => handleOpenEdit(service, e)}>
         {/* Checkbox (Mass Selection) */}
         <div className="services-col-check" onClick={(e) => e.stopPropagation()}>
@@ -417,23 +399,29 @@ export default function ServicesPage({
           />
         </div>
 
-        {/* Service Name & Subtype Tag */}
+        {/* Service Name & Subtype / Couple / Combo Badges */}
         <div className="services-col-service" title={service.name}>
           <div className="services-service-info-wrap">
             <span className="services-service-name">{service.name}</span>
             <div className="services-service-tags-row">
               {subType ? (
-                <span className="services-subtype-tag" style={badgeStyle}>
+                <span
+                  className="services-badge-pill"
+                  style={getServiceBadgeStyle(getBadgeColor(subType, serviceColor))}>
                   {subType}
                 </span>
               ) : null}
               {isCouple && subType !== "Парный" ? (
-                <span className="services-subtype-tag" style={badgeStyle}>
+                <span
+                  className="services-badge-pill"
+                  style={getServiceBadgeStyle(getBadgeColor("Парный", serviceColor))}>
                   Парный
                 </span>
               ) : null}
               {isCombo ? (
-                <span className="services-combo-badge" style={badgeStyle}>
+                <span
+                  className="services-badge-pill"
+                  style={getServiceBadgeStyle(getBadgeColor("Комплекс", serviceColor))}>
                   Комплекс
                 </span>
               ) : null}
@@ -441,22 +429,7 @@ export default function ServicesPage({
           </div>
         </div>
 
-        {/* Category */}
-        <div className="services-col-category">
-          <span
-            className="services-cat-dot"
-            style={{backgroundColor: catColor}}
-            aria-hidden="true"
-          />
-          <span>{normalizedCat}</span>
-        </div>
-
-        {/* Variants Count */}
-        <div className="services-col-variants">
-          <span className="services-variants-badge">{variantsCount}</span>
-        </div>
-
-        {/* Duration list */}
+        {/* Duration */}
         <div className="services-col-duration" title={durationText}>
           {durationText}
         </div>
@@ -464,19 +437,19 @@ export default function ServicesPage({
         {/* Price From */}
         <div className="services-col-price">{formatMoney(minPrice)}</div>
 
-        {/* Status */}
-        <div className="services-col-status">
-          <span
-            className={`services-status-badge status-${
-              svcStatus === "Активна"
-                ? "active"
-                : svcStatus === "Скрыта"
-                  ? "hidden"
-                  : "archived"
-            }`}>
-            <span className="services-badge-dot" />
-            {svcStatus}
-          </span>
+        {/* Active Toggle Switch (Semantic Green #10b981) */}
+        <div className="services-col-switch" onClick={(e) => e.stopPropagation()}>
+          <Switch
+            checked={isActive}
+            onChange={() =>
+              handleToggleStatusAction(
+                service,
+                isActive ? "Скрыта" : "Активна",
+              )
+            }
+            aria-label={isActive ? "Скрыть услугу" : "Сделать активной"}
+            className="services-row-switch"
+          />
         </div>
 
         {/* Actions menu */}
@@ -581,48 +554,113 @@ export default function ServicesPage({
         </div>
 
         <div className="services-header-controls">
-          {/* Scope Toggle: Действующие | Архив */}
-          <div className="services-scope-toggle" role="group" aria-label="Режим каталога">
-            <button
-              type="button"
-              className={`services-scope-btn ${viewScope === "active" ? "is-active" : ""}`}
-              onClick={() => handleSwitchScope("active")}>
-              Действующие
-              <span className="services-scope-count">{activePool.length}</span>
-            </button>
-            <button
-              type="button"
-              className={`services-scope-btn ${viewScope === "archive" ? "is-active" : ""}`}
-              onClick={() => handleSwitchScope("archive")}>
-              Архив
-              {archivePool.length > 0 ? (
-                <span className="services-scope-count">{archivePool.length}</span>
+          {/* Search Box + Filter Popover */}
+          <div className="services-search-with-filter">
+            <div className="services-search-box">
+              <AppIcon className="services-search-icon" name="search" size="xs" />
+              <input
+                autoComplete="off"
+                autoCorrect="off"
+                className="services-search-input"
+                placeholder="Поиск по названию или виду..."
+                spellCheck="false"
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search ? (
+                <button
+                  className="services-search-clear"
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Очистить поиск">
+                  <AppIcon name="x" size="xs" />
+                </button>
               ) : null}
-            </button>
-          </div>
+            </div>
 
-          {/* Search Box */}
-          <div className="services-search-box">
-            <AppIcon className="services-search-icon" name="search" size="xs" />
-            <input
-              autoComplete="off"
-              autoCorrect="off"
-              className="services-search-input"
-              placeholder="Поиск по названию или виду..."
-              spellCheck="false"
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search ? (
+            {/* Filter icon button with popover */}
+            <div className="services-filter-popover-wrap">
               <button
-                className="services-search-clear"
+                className={`services-filter-icon-btn ${viewScope === "archive" || selectedStatus !== "all" ? "is-active" : ""}`}
                 type="button"
-                onClick={() => setSearch("")}
-                aria-label="Очистить поиск">
-                <AppIcon name="x" size="xs" />
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsFilterMenuOpen((prev) => !prev);
+                }}
+                aria-label="Фильтры каталога"
+                title="Фильтры каталога">
+                <AppIcon name="sliders" size="xs" />
+                {viewScope === "archive" || selectedStatus !== "all" ? (
+                  <span className="services-filter-active-dot" />
+                ) : null}
               </button>
-            ) : null}
+
+              {isFilterMenuOpen && (
+                <div
+                  className="services-filter-dropdown"
+                  onClick={(e) => e.stopPropagation()}>
+                  <div className="services-filter-dropdown-section">
+                    <span className="services-filter-dropdown-title">Режим каталога</span>
+                    <div className="services-filter-toggle-row">
+                      <button
+                        type="button"
+                        className={`services-filter-toggle-btn ${viewScope === "active" ? "is-active" : ""}`}
+                        onClick={() => {
+                          handleSwitchScope("active");
+                          setIsFilterMenuOpen(false);
+                        }}>
+                        Действующие ({activePool.length})
+                      </button>
+                      <button
+                        type="button"
+                        className={`services-filter-toggle-btn ${viewScope === "archive" ? "is-active" : ""}`}
+                        onClick={() => {
+                          handleSwitchScope("archive");
+                          setIsFilterMenuOpen(false);
+                        }}>
+                        Архив ({archivePool.length})
+                      </button>
+                    </div>
+                  </div>
+
+                  {viewScope === "active" && (
+                    <div className="services-filter-dropdown-section">
+                      <span className="services-filter-dropdown-title">Статус активности</span>
+                      <div className="services-filter-toggle-row">
+                        <button
+                          type="button"
+                          className={`services-filter-toggle-btn ${selectedStatus === "all" ? "is-active" : ""}`}
+                          onClick={() => {
+                            setSelectedStatus("all");
+                            setIsFilterMenuOpen(false);
+                          }}>
+                          Все
+                        </button>
+                        <button
+                          type="button"
+                          className={`services-filter-toggle-btn ${selectedStatus === "Активна" ? "is-active" : ""}`}
+                          onClick={() => {
+                            setSelectedStatus("Активна");
+                            setIsFilterMenuOpen(false);
+                          }}>
+                          Активные
+                        </button>
+                        <button
+                          type="button"
+                          className={`services-filter-toggle-btn ${selectedStatus === "Скрыта" ? "is-active" : ""}`}
+                          onClick={() => {
+                            setSelectedStatus("Скрыта");
+                            setIsFilterMenuOpen(false);
+                          }}>
+                          Скрытые
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Manage Categories Button */}
@@ -655,20 +693,18 @@ export default function ServicesPage({
         </div>
       </header>
 
-      {/* 2. FILTER BAR (Categories + Status) */}
-      <section className="services-filter-bar" aria-label="Фильтры услуг">
+      {/* 2. FILTER BAR (Category Pills) */}
+      <section className="services-filter-bar" aria-label="Фильтры категорий">
         <div className="services-cat-pills-row">
           <button
             className={`services-cat-pill ${selectedCategory === ALL_CATEGORIES ? "is-active" : ""}`}
             type="button"
             onClick={() => setSelectedCategory(ALL_CATEGORIES)}>
-            Все
-            <span className="services-cat-pill-count">{currentPool.length}</span>
+            Все {currentPool.length}
           </button>
 
           {categories.map((cat) => {
             const count = serviceCountsByCategory.get(cat) ?? 0;
-            // Hide category pill if it has 0 services in current pool (unless it's canonical in active view)
             if (count === 0 && !CANONICAL_CATEGORIES.includes(cat)) return null;
             return (
               <button
@@ -676,131 +712,75 @@ export default function ServicesPage({
                 className={`services-cat-pill ${selectedCategory === cat ? "is-active" : ""}`}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}>
-                {cat}
-                <span className="services-cat-pill-count">{count}</span>
+                {cat} {count}
               </button>
             );
           })}
         </div>
 
-        {/* Status Dropdown Filter (Available in Active View) */}
-        {viewScope === "active" ? (
-          <div className="services-status-filter-wrap">
-            <AppIcon className="services-status-icon" name="filter" size="xs" />
-            <select
-              className="services-status-select"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              aria-label="Фильтрация по статусу">
-              <option value="all">Статус: Все</option>
-              <option value="Активна">Статус: Активные</option>
-              <option value="Скрыта">Статус: Скрытые</option>
-            </select>
-            <AppIcon className="services-status-chevron" name="chevronDown" size="xs" />
-          </div>
-        ) : (
+        {viewScope === "archive" ? (
           <div className="services-archive-banner-pill">
             <AppIcon name="package" size="xs" />
             <span>Архивные позиции ({archivePool.length})</span>
           </div>
-        )}
+        ) : null}
       </section>
 
-      {/* 3. WORKSPACE CONTAINER (Table + Drawer) */}
+      {/* 3. WORKSPACE CONTAINER (Category Cards + Drawer) */}
       <div className="services-workspace-container">
-        {/* MAIN TABLE AREA */}
+        {/* MAIN LIST AREA */}
         <div className="services-table-area">
-          <div className={`services-table-head ${selectedServiceIds.size > 0 ? "is-batch-active" : ""}`}>
-            <div className="services-col-check">
-              <Checkbox
-                checked={allFilteredSelected}
-                indeterminate={isSomeFilteredSelected}
-                onChange={handleToggleSelectAll}
-                aria-label="Выбрать все отображаемые услуги"
-              />
-            </div>
-
-            {selectedServiceIds.size > 0 ? (
-              <div className="services-table-head-batch" role="toolbar" aria-label="Панель массовых действий">
+          {/* Batch Actions Bar (when rows are selected) */}
+          {selectedServiceIds.size > 0 && (
+            <div className="services-batch-bar" role="toolbar" aria-label="Панель массовых действий">
+              <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
+                <Checkbox
+                  checked={allFilteredSelected}
+                  indeterminate={isSomeFilteredSelected}
+                  onChange={handleToggleSelectAll}
+                  aria-label="Выбрать все"
+                />
                 <span className="services-batch-count">Выбрано: {selectedServiceIds.size}</span>
-                <div className="services-batch-actions">
-                  {viewScope === "active" ? (
-                    <>
-                      <button
-                        className="services-batch-btn"
-                        type="button"
-                        onClick={() => handleBatchStatus("Активна")}>
-                        Активировать
-                      </button>
-                      <button
-                        className="services-batch-btn"
-                        type="button"
-                        onClick={() => handleBatchStatus("Скрыта")}>
-                        Скрыть
-                      </button>
-                      <button
-                        className="services-batch-btn services-batch-btn-danger"
-                        type="button"
-                        onClick={() => handleBatchStatus("Архив")}>
-                        В архив
-                      </button>
-                    </>
-                  ) : (
+              </div>
+              <div className="services-batch-actions">
+                {viewScope === "active" ? (
+                  <>
                     <button
-                      className="services-batch-btn services-batch-btn-accent"
+                      className="services-batch-btn"
                       type="button"
                       onClick={() => handleBatchStatus("Активна")}>
-                      Восстановить из архива
+                      Активировать
                     </button>
-                  )}
+                    <button
+                      className="services-batch-btn"
+                      type="button"
+                      onClick={() => handleBatchStatus("Скрыта")}>
+                      Скрыть
+                    </button>
+                    <button
+                      className="services-batch-btn services-batch-btn-danger"
+                      type="button"
+                      onClick={() => handleBatchStatus("Архив")}>
+                      В архив
+                    </button>
+                  </>
+                ) : (
                   <button
-                    className="services-batch-btn services-batch-btn-ghost"
+                    className="services-batch-btn services-batch-btn-accent"
                     type="button"
-                    onClick={() => setSelectedServiceIds(new Set())}>
-                    Снять выбор
+                    onClick={() => handleBatchStatus("Активна")}>
+                    Восстановить из архива
                   </button>
-                </div>
+                )}
+                <button
+                  className="services-batch-btn services-batch-btn-ghost"
+                  type="button"
+                  onClick={() => setSelectedServiceIds(new Set())}>
+                  Снять выбор
+                </button>
               </div>
-            ) : (
-              <>
-                <div
-                  className="services-col-service services-sortable-th"
-                  onClick={() => handleSort("name")}>
-                  <span>Услуга</span>
-                  {sortField === "name" ? (
-                    <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
-                  ) : null}
-                </div>
-                <div
-                  className="services-col-category services-sortable-th"
-                  onClick={() => handleSort("category")}>
-                  <span>Категория</span>
-                  {sortField === "category" ? (
-                    <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
-                  ) : null}
-                </div>
-                <div className="services-col-variants">Варианты</div>
-                <div className="services-col-duration">Продолжительность</div>
-                <div
-                  className="services-col-price services-sortable-th"
-                  onClick={() => handleSort("price")}>
-                  <span>Цена от</span>
-                  {sortField === "price" ? (
-                    <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
-                  ) : null}
-                </div>
-                <div
-                  className="services-col-status services-sortable-th"
-                  onClick={() => handleSort("status")}>
-                  <span>Статус</span>
-                  {sortField === "status" ? (
-                    <AppIcon name={sortDirection === "asc" ? "chevronUp" : "chevronDown"} size="xs" />
-                  ) : null}
-                </div>
-                <div className="services-col-actions" />
-              </>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="services-table-scroll">
             {filteredServices.length === 0 ? (
@@ -822,29 +802,55 @@ export default function ServicesPage({
                   </button>
                 ) : null}
               </div>
-            ) : isGrouped && groupedServices ? (
-              // Grouped view by category with elegant non-collapsible section headers
-              groupedServices.map((group) => (
-                <div key={group.name} className="services-table-group-section">
-                  <div className="services-group-divider">
-                    <div className="services-group-divider-content">
-                      <span
-                        className="services-group-dot"
-                        style={{backgroundColor: getCategoryColor(group.name)}}
-                        aria-hidden="true"
-                      />
-                      <strong className="services-group-title">{group.name}</strong>
-                      <span className="services-group-count">
-                        · {group.services.length} {formatServiceCountRu(group.services.length)}
-                      </span>
-                    </div>
-                  </div>
-                  {group.services.map(renderServiceRow)}
-                </div>
-              ))
             ) : (
-              // Flat view (when filtered by category, searched, or sorted)
-              filteredServices.map(renderServiceRow)
+              categoryGroups.map((group) => {
+                const isCollapsed = collapsedCategories.has(group.name);
+                return (
+                  <div key={group.name} className="services-category-card">
+                    <div
+                      className="services-category-card-header"
+                      onClick={() => toggleCategoryCollapse(group.name)}>
+                      <div className="services-category-header-left">
+                        <span
+                          className="services-category-card-dot"
+                          style={{backgroundColor: getCategoryColor(group.name)}}
+                          aria-hidden="true"
+                        />
+                        <h3 className="services-category-card-title">{group.name}</h3>
+                        <span className="services-category-card-count">{group.services.length}</span>
+                      </div>
+                      <div className="services-category-header-right">
+                        <span className="services-category-col-label services-col-label-duration">
+                          Длительность
+                        </span>
+                        <span className="services-category-col-label services-col-label-price">
+                          Цена от
+                        </span>
+                        <button
+                          type="button"
+                          className="services-category-collapse-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleCategoryCollapse(group.name);
+                          }}
+                          aria-label={
+                            isCollapsed
+                              ? `Развернуть категорию ${group.name}`
+                              : `Свернуть категорию ${group.name}`
+                          }>
+                          <AppIcon name={isCollapsed ? "chevronDown" : "chevronUp"} size="xs" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {!isCollapsed && (
+                      <div className="services-category-card-body">
+                        {group.services.map(renderServiceRow)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

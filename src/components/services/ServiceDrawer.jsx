@@ -6,7 +6,6 @@ import {useModalScrollLock} from "../../hooks/useModalScrollLock.js";
 import {
   getCategoryColor,
   getRandomServiceColor,
-  getServiceBadgeStyle,
   serviceColorPalette,
 } from "../../utils/serviceColors.js";
 import {getServiceAssignedEmployeeIds} from "../../utils/serviceAssignments.js";
@@ -628,23 +627,81 @@ export default function ServiceDrawer({
                 </div>
               ) : null}
 
-              {/* Service Type Segmented Toggle */}
+              {/* 2-Column: Category & Status */}
+              <div className="services-form-row-2col">
+                {/* Category */}
+                <div className="services-field-group">
+                  <label className="services-field-label" htmlFor="service-category-select">
+                    Категория <span className="services-required-star">*</span>
+                  </label>
+                  <div className="services-select-wrap">
+                    <span
+                      className="services-category-preview-dot"
+                      style={{backgroundColor: getCategoryColor(category)}}
+                      aria-hidden="true"
+                    />
+                    <select
+                      id="service-category-select"
+                      className="services-select-input"
+                      value={normalizeCategory(category)}
+                      onChange={(e) => setCategory(e.target.value)}>
+                      {availableCategories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                    <AppIcon className="services-select-chevron" name="chevronDown" size="xs" />
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className="services-field-group">
+                  <label className="services-field-label" htmlFor="service-status-select">
+                    Статус
+                  </label>
+                  <div className="services-select-wrap">
+                    <span
+                      className={`services-status-preview-dot status-${
+                        status === "Активна" ? "active" : status === "Скрыта" ? "hidden" : "archived"
+                      }`}
+                      aria-hidden="true"
+                    />
+                    <select
+                      id="service-status-select"
+                      className="services-select-input"
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}>
+                      <option value="Активна">Активна</option>
+                      <option value="Скрыта">Скрыта</option>
+                      <option value="Архив">Архив</option>
+                    </select>
+                    <AppIcon className="services-select-chevron" name="chevronDown" size="xs" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Service Type: 3 Pills (Обычная / Комплекс / Парная) */}
               <div className="services-field-group">
                 <label className="services-field-label">Тип услуги</label>
-                <div className="services-type-segmented-wrap" role="group" aria-label="Тип услуги">
+                <div className="services-type-pills-row" role="group" aria-label="Тип услуги">
                   <button
                     type="button"
-                    className={`services-type-btn ${!isCombo ? "is-active" : ""}`}
-                    onClick={() => setIsCombo(false)}>
-                    <AppIcon name="user" size="xs" />
-                    <span>Обычная услуга</span>
+                    className={`services-type-pill ${!isCombo && !isCouple ? "is-active" : ""}`}
+                    onClick={() => {
+                      setIsCombo(false);
+                      setIsCouple(false);
+                    }}>
+                    <span className="services-type-pill-dot">{!isCombo && !isCouple ? "●" : "○"}</span>
+                    <span>Обычная</span>
                   </button>
                   <button
                     type="button"
-                    className={`services-type-btn ${isCombo ? "is-active" : ""}`}
+                    className={`services-type-pill ${isCombo ? "is-active" : ""}`}
                     onClick={() => {
-                      setIsCombo(true);
-                      if (comboItems.length === 0) {
+                      const next = !isCombo;
+                      setIsCombo(next);
+                      if (next && comboItems.length === 0) {
                         setComboItems([
                           {id: `stage-1-${Date.now()}`, name: "Этап 1: Пилинг / Подготовка", duration: 30},
                           {id: `stage-2-${Date.now()}`, name: "Этап 2: Основной массаж", duration: 60},
@@ -654,31 +711,20 @@ export default function ServiceDrawer({
                         }
                       }
                     }}>
-                    <AppIcon name="package" size="xs" />
-                    <span>Комплекс (программа)</span>
+                    <span className="services-type-pill-dot">{isCombo ? "●" : "○"}</span>
+                    <span>Комплекс</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`services-type-pill ${isCouple ? "is-active" : ""}`}
+                    onClick={() => setIsCouple(!isCouple)}>
+                    <span className="services-type-pill-dot">{isCouple ? "●" : "○"}</span>
+                    <span>Парная</span>
                   </button>
                 </div>
               </div>
 
-              {/* Couple / For Two Card */}
-              <div className={`services-couple-toggle-card ${isCouple ? "is-active" : ""}`}>
-                <div className="services-couple-toggle-info">
-                  <div className="services-couple-toggle-title-row">
-                    <AppIcon name="users" size="xs" className="services-couple-icon" />
-                    <span className="services-couple-toggle-title">Парная услуга (для двоих)</span>
-                  </div>
-                  <span className="services-couple-toggle-desc">
-                    Сеанс проводится одновременно для двух клиентов, требует 2 мастеров и парную комнату
-                  </span>
-                </div>
-                <Switch
-                  checked={isCouple}
-                  onChange={(checked) => setIsCouple(checked)}
-                  aria-label="Парная услуга"
-                />
-              </div>
-
-              {/* Complex constituent stages */}
+              {/* Complex constituent stages (shown if isCombo) */}
               {isCombo && (
                 <div className="services-combo-stages-card">
                   <div className="services-section-header">
@@ -756,61 +802,7 @@ export default function ServiceDrawer({
                 </div>
               )}
 
-              {/* 2-Column: Category & Massage Sub-type */}
-              <div className="services-form-row-2col">
-                {/* Category */}
-                <div className="services-field-group">
-                  <label className="services-field-label" htmlFor="service-category-select">
-                    Категория
-                  </label>
-                  <div className="services-select-wrap">
-                    <span
-                      className="services-category-preview-dot"
-                      style={{backgroundColor: getCategoryColor(category)}}
-                      aria-hidden="true"
-                    />
-                    <select
-                      id="service-category-select"
-                      className="services-select-input"
-                      value={normalizeCategory(category)}
-                      onChange={(e) => setCategory(e.target.value)}>
-                      {availableCategories.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
-                    <AppIcon className="services-select-chevron" name="chevronDown" size="xs" />
-                  </div>
-                </div>
-
-                {/* Status */}
-                <div className="services-field-group">
-                  <label className="services-field-label" htmlFor="service-status-select">
-                    Статус
-                  </label>
-                  <div className="services-select-wrap">
-                    <span
-                      className={`services-status-preview-dot status-${
-                        status === "Активна" ? "active" : status === "Скрыта" ? "hidden" : "archived"
-                      }`}
-                      aria-hidden="true"
-                    />
-                    <select
-                      id="service-status-select"
-                      className="services-select-input"
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}>
-                      <option value="Активна">Активна</option>
-                      <option value="Скрыта">Скрыта</option>
-                      <option value="Архив">Архив</option>
-                    </select>
-                    <AppIcon className="services-select-chevron" name="chevronDown" size="xs" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Massage Sub-type (Only for massages category or when applicable) */}
+              {/* Massage Sub-type (Only for massages category when applicable) */}
               {isMassageCategory && (
                 <div className="services-field-group">
                   <div className="services-label-with-counter">
@@ -908,31 +900,24 @@ export default function ServiceDrawer({
                     );
                   })()}
                 </div>
+              </div>
 
-                {/* Live Preview of dynamic badge style */}
-                {(() => {
-                  const liveBadgeStyle = getServiceBadgeStyle(color);
-                  return (
-                    <div className="services-preview-badges-row">
-                      <span className="services-field-hint-inline">Предпросмотр бейджей:</span>
-                      {isMassageCategory && inferredSubType ? (
-                        <span className="services-subtype-tag" style={liveBadgeStyle}>
-                          {inferredSubType}
-                        </span>
-                      ) : null}
-                      {isCouple ? (
-                        <span className="services-subtype-tag" style={liveBadgeStyle}>
-                          Парный
-                        </span>
-                      ) : null}
-                      {isCombo ? (
-                        <span className="services-combo-badge" style={liveBadgeStyle}>
-                          Комплекс
-                        </span>
-                      ) : null}
-                    </div>
-                  );
-                })()}
+              {/* Website Visibility Card with Brand Red Switch */}
+              <div className="services-site-visible-card">
+                <div className="services-site-switch-wrap">
+                  <Switch
+                    checked={siteVisible}
+                    onChange={(checked) => setSiteVisible(checked)}
+                    aria-label="Отображать на сайте nuarr.pl"
+                    className="services-site-switch"
+                  />
+                </div>
+                <div className="services-site-visible-info">
+                  <span className="services-site-visible-title">Отображать на сайте nuarr.pl</span>
+                  <span className="services-site-visible-desc">
+                    Услуга будет доступна клиентам в форме онлайн-записи
+                  </span>
+                </div>
               </div>
             </div>
           )}

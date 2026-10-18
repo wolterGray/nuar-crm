@@ -18215,12 +18215,12 @@ input[type="checkbox"].ui-checkbox:disabled,
 .client-alert-popover-portal .client-alert-row-unified.has-corner-badge,
 .client-alert-popover-portal .client-alert-row-unified.type-package,
 .client-alert-popover-portal .client-alert-row-unified.type-package.has-corner-badge {
-  min-height: 68px; padding: 11px 34px 10px 18px; border: 0; border-bottom: 1px solid var(--color-border-soft);
+  min-height: 68px; padding: 11px 34px 10px 12px; border: 0; border-bottom: 1px solid var(--color-border-soft);
   border-radius: 0; background: transparent; box-shadow: none;
 }
 .client-alert-popover-portal .client-alert-swipe-shell { border-radius: 0; }
 .client-alert-popover-portal .client-alert-row:hover { background: color-mix(in srgb, var(--color-field) 54%, transparent); }
-.client-alert-popover-portal .client-alert-category-mark { top: 14px; bottom: 14px; left: 6px; }
+.client-alert-popover-portal .client-alert-category-mark { display: none; }
 .client-alert-popover-portal .client-alert-title-line {
   display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: 10px;
 }
@@ -18241,6 +18241,16 @@ input[type="checkbox"].ui-checkbox:disabled,
 .client-alert-popover-portal .client-alert-group-heading { padding: 5px 6px 2px; }
 .client-alert-popover-portal .client-alert-aggregate-children {
   max-height: 320px; overflow-y: auto; overscroll-behavior: contain;
+}
+.client-alert-popover-portal .client-alert-aggregate-toggle {
+  width: 100%; align-items: center; justify-content: space-between; gap: 12px;
+}
+.client-alert-popover-portal .client-alert-aggregate-toggle .client-alert-row-copy { flex: 1; min-width: 0; }
+.client-alert-popover-portal .client-alert-aggregate-toggle > span:last-child {
+  display: inline-flex; flex: 0 0 auto;
+}
+.client-alert-popover-portal .client-alert-load-more {
+  width: 100%; min-height: 38px; color: var(--color-text-muted); font-size: 12px;
 }
 .client-alert-popover-portal .client-alert-empty {
   display: grid; gap: 5px; padding: 52px 20px; color: var(--color-text-muted); text-align: center;

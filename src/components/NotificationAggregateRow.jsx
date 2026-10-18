@@ -7,6 +7,7 @@ import {AppIcon, Button} from "./ui/index.js";
 const SWIPE_CONFIRM_DELTA = 76;
 const SWIPE_HINT_LIMIT = 92;
 const SWIPE_REVEAL_OFFSET = 86;
+const CHILD_PAGE_SIZE = 12;
 
 const getAggregateTitle = (alert) => {
   return alert.title;
@@ -21,6 +22,7 @@ export default function NotificationAggregateRow({
   onSnoozeToday,
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [visibleChildren, setVisibleChildren] = useState(CHILD_PAGE_SIZE);
   const [armedDirection, setArmedDirection] = useState(0);
   const [dismissDirection, setDismissDirection] = useState(0);
   const [swipeHint, setSwipeHint] = useState(null);
@@ -146,32 +148,17 @@ export default function NotificationAggregateRow({
         <div
           className={`client-alert-row client-alert-row-unified priority-${alert.priority} aggregate-${alert.aggregateKind ?? alert.group}`}
         >
-          <span className="client-alert-category-mark" aria-hidden="true" />
           <div className="client-alert-row-main">
             <Button
               className="client-alert-aggregate-toggle"
               type="button"
               variant="ghost"
               onClick={() => setExpanded((current) => !current)}>
-              <AppIcon className={expanded ? "open" : ""} name="chevronDown" size="xs" />
               <div className="client-alert-row-copy">
                 <strong>{displayTitle}</strong>
                 <span>{alert.message}</span>
               </div>
-            </Button>
-          </div>
-          <div className="client-alert-actions">
-            <Button
-              className="client-alert-action-button is-open"
-              size="sm"
-              type="button"
-              variant="subtle"
-              onClick={(event) => {
-                event.stopPropagation();
-                onAction(alert, "open");
-              }}
-              onPointerDown={(event) => event.stopPropagation()}>
-              Посмотреть
+              <AppIcon className={expanded ? "open" : ""} name="chevronDown" size="sm" />
             </Button>
           </div>
         </div>
@@ -186,7 +173,7 @@ export default function NotificationAggregateRow({
             onPointerDown={(event) => event.stopPropagation()}
             onTouchMove={(event) => event.stopPropagation()}
             onTouchStart={(event) => event.stopPropagation()}>
-            {alert.children.map((childAlert) => (
+            {alert.children.slice(0, visibleChildren).map((childAlert) => (
               <NotificationAlertRow
                 alert={childAlert}
                 key={childAlert.id}
@@ -197,6 +184,15 @@ export default function NotificationAggregateRow({
                 onSnoozeToday={onSnoozeToday}
               />
             ))}
+            {visibleChildren < alert.children.length ? (
+              <Button
+                className="client-alert-load-more"
+                type="button"
+                variant="ghost"
+                onClick={() => setVisibleChildren((current) => current + CHILD_PAGE_SIZE)}>
+                Показать ещё · {alert.children.length - visibleChildren}
+              </Button>
+            ) : null}
           </motion.div>
         ) : null}
     </motion.div>
