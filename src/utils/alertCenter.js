@@ -568,9 +568,23 @@ export const buildAlertCenter = ({
 };
 
 export const filterAlertsByMode = (alerts, mode = "all") => {
-  const hasCategory = (alert, category) => {
-    if (alert.meta?.category === category) return true;
-    return alert.type === "aggregate" && alert.children?.some((child) => hasCategory(child, category));
+  const getCategory = (alert) => {
+    if (["inactive", "package", "birthday"].includes(alert?.type)) {
+      return "opportunity";
+    }
+
+    return alert?.category ?? alert?.meta?.category;
+  };
+  const filterByCategory = (alert, category) => {
+    if (alert?.type !== "aggregate") {
+      return getCategory(alert) === category ? alert : null;
+    }
+
+    const children = (alert.children ?? [])
+      .map((child) => filterByCategory(child, category))
+      .filter(Boolean);
+
+    return children.length > 0 ? {...alert, category, children} : null;
   };
 
   if (mode === "today") {
@@ -602,11 +616,11 @@ export const filterAlertsByMode = (alerts, mode = "all") => {
   }
 
   if (mode === "opportunity") {
-    return alerts.filter((alert) => hasCategory(alert, "opportunity"));
+    return alerts.map((alert) => filterByCategory(alert, "opportunity")).filter(Boolean);
   }
 
   if (mode === "information") {
-    return alerts.filter((alert) => hasCategory(alert, "information"));
+    return alerts.map((alert) => filterByCategory(alert, "information")).filter(Boolean);
   }
 
   if (mode === "clients") {

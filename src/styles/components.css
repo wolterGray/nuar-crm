@@ -18290,23 +18290,29 @@ input[type="checkbox"].ui-checkbox:disabled,
   }
   .client-alert-popover-portal .client-alert-heading { padding: 14px 14px 8px; }
   .client-alert-popover-portal > .client-alert-filter-chips {
-    display: grid !important; width: 100% !important;
+    position: relative !important; top: auto !important; z-index: 1;
+    display: grid !important; width: 100% !important; height: auto !important; flex: 0 0 auto;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 2px !important; padding-inline: 8px !important;
-    overflow: hidden;
+    overflow: visible !important;
   }
   .client-alert-popover-portal > .client-alert-filter-chips button {
     width: 100%; min-width: 0 !important; max-width: 100%; gap: 3px;
     padding-inline: 3px !important; font-size: 10px; overflow: hidden;
   }
   .client-alert-popover-portal > .client-alert-filter-chips button > span {
-    width: 100%; min-width: 0; justify-content: center; gap: 3px; overflow: hidden;
+    display: flex; width: auto !important; min-width: 0; justify-content: center; gap: 3px; overflow: hidden;
   }
   .client-alert-popover-portal > .client-alert-filter-chips .client-alert-filter-count {
     min-width: 16px; height: 16px; padding-inline: 3px;
   }
   .client-alert-popover-portal .client-alert-list {
-    display: block !important; padding: 6px 10px 10px; overflow-y: auto;
+    display: block !important; flex: 1 1 auto; min-height: 0;
+    padding: 6px 10px 10px; overflow-y: auto;
+  }
+  .client-alert-popover-portal .client-alert-toolbar {
+    position: relative; z-index: 1; flex: 0 0 auto; min-height: 32px;
+    background: var(--color-window);
   }
   .client-alert-popover-portal .client-alert-group { display: block; }
   .client-alert-popover-portal .client-alert-group + .client-alert-group {

@@ -108,6 +108,27 @@ describe("alertCenter", () => {
     expect(filterAlertsByMode(alerts, "urgent")).toHaveLength(1);
   });
 
+  it("keeps inactive clients in opportunities even with a legacy information category", () => {
+    const alerts = [
+      {
+        category: "information",
+        children: [
+          {id: "inactive-1", type: "inactive", meta: {category: "information"}},
+          {id: "history-1", type: "visit", meta: {category: "information"}},
+        ],
+        id: "mixed",
+        type: "aggregate",
+      },
+    ];
+
+    expect(filterAlertsByMode(alerts, "opportunity")[0].children.map(({id}) => id)).toEqual([
+      "inactive-1",
+    ]);
+    expect(filterAlertsByMode(alerts, "information")[0].children.map(({id}) => id)).toEqual([
+      "history-1",
+    ]);
+  });
+
   it("filters today mode by the alert entity date", () => {
     const today = new Date();
     const todayInput = [
