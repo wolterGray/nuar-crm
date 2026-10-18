@@ -549,7 +549,7 @@ export default function ServiceDrawer({
         {/* 1. FIXED HEADER */}
         <div className="services-drawer-header">
           <div className="services-drawer-title-wrap">
-            <h2>{mode === "edit" ? "Редактирование услуги" : "Добавить услугу"}</h2>
+            <h2>{mode === "edit" ? "Редактирование услуги" : "Новая услуга"}</h2>
             <span className="services-drawer-subtitle">
               {mode === "edit" ? (service?.name || "Услуга") : "Новая позиция в каталоге"}
             </span>
@@ -563,7 +563,7 @@ export default function ServiceDrawer({
           </button>
         </div>
 
-        {/* 2. REAL TABS NAVIGATION */}
+        {/* 2. REAL TABS NAVIGATION: Основное | Цены | Запись */}
         <div className="services-drawer-tabs" role="tablist">
           <button
             className={`services-drawer-tab ${activeTab === "info" ? "is-active" : ""}`}
@@ -571,8 +571,10 @@ export default function ServiceDrawer({
             role="tab"
             aria-selected={activeTab === "info"}
             onClick={() => setActiveTab("info")}>
-            <span>Основное</span>
-            {errors.name ? <span className="services-tab-error-dot" title="Ошибки в заполнении" /> : null}
+            <span className="services-drawer-tab-text">Основное</span>
+            {errors.name || errors.combo ? (
+              <span className="services-tab-error-dot" title="Ошибки в заполнении" />
+            ) : null}
           </button>
           <button
             className={`services-drawer-tab ${activeTab === "variants" ? "is-active" : ""}`}
@@ -580,9 +582,11 @@ export default function ServiceDrawer({
             role="tab"
             aria-selected={activeTab === "variants"}
             onClick={() => setActiveTab("variants")}>
-            <span>Варианты и цены</span>
+            <span className="services-drawer-tab-text">Цены</span>
             <span className="services-tab-badge">{variants.length}</span>
-            {errors.variants ? <span className="services-tab-error-dot" title="Ошибки в вариантах" /> : null}
+            {errors.variants ? (
+              <span className="services-tab-error-dot" title="Ошибки в тарифах" />
+            ) : null}
           </button>
           <button
             className={`services-drawer-tab ${activeTab === "booking" ? "is-active" : ""}`}
@@ -590,7 +594,7 @@ export default function ServiceDrawer({
             role="tab"
             aria-selected={activeTab === "booking"}
             onClick={() => setActiveTab("booking")}>
-            <span>Настройки записи</span>
+            <span className="services-drawer-tab-text">Запись</span>
           </button>
         </div>
 
@@ -734,7 +738,7 @@ export default function ServiceDrawer({
                         Состав комплекса
                       </h4>
                       <span className="services-section-desc">
-                        Процедуры и этапы, входящие в эту комплексную программу
+                        Процедуры и этапы, входящие в программу
                       </span>
                     </div>
                     <button
@@ -854,7 +858,7 @@ export default function ServiceDrawer({
               <div className="services-field-group">
                 <div className="services-label-with-counter">
                   <label className="services-field-label">Цвет в календаре</label>
-                  <span className="services-field-hint-inline">Для расписания и бейджей</span>
+                  <span className="services-field-hint-inline">Для расписания</span>
                 </div>
                 <div className="services-color-picker-row">
                   {serviceColorPalette.slice(0, 8).map((c) => {
@@ -902,40 +906,40 @@ export default function ServiceDrawer({
                 </div>
               </div>
 
-              {/* Website Visibility Card with Brand Red Switch */}
-              <div className="services-site-visible-card">
-                <div className="services-site-switch-wrap">
-                  <Switch
-                    checked={siteVisible}
-                    onChange={(checked) => setSiteVisible(checked)}
-                    aria-label="Отображать на сайте nuarr.pl"
-                    className="services-site-switch"
-                  />
-                </div>
-                <div className="services-site-visible-info">
+              {/* Website Visibility Row */}
+              <div className="services-site-visible-row">
+                <div className="services-site-visible-meta">
                   <span className="services-site-visible-title">Отображать на сайте nuarr.pl</span>
                   <span className="services-site-visible-desc">
                     Услуга будет доступна клиентам в форме онлайн-записи
                   </span>
                 </div>
+                <div className="services-site-switch-wrap">
+                  <Switch
+                    checked={siteVisible}
+                    onChange={(e) => setSiteVisible(e.target.checked)}
+                    aria-label="Отображать на сайте nuarr.pl"
+                    className="services-site-switch"
+                  />
+                </div>
               </div>
             </div>
           )}
 
-          {/* TAB 2: ВАРИАНТЫ И ЦЕНЫ */}
+          {/* TAB 2: ЦЕНЫ (ВАРИАНТЫ И СТОИМОСТЬ) */}
           {activeTab === "variants" && (
             <div className="services-tab-pane services-tab-pane-variants">
               <div className="services-section-header">
                 <div className="services-section-title-wrap">
                   <h3 className="services-section-title">Варианты продолжительности</h3>
-                  <span className="services-section-desc">Настройте тарифы по длительности сеанса</span>
+                  <span className="services-section-desc">Стоимость каждого варианта услуги</span>
                 </div>
                 <button
                   type="button"
                   className="services-add-variant-btn"
                   onClick={handleAddVariant}>
                   <AppIcon name="plus" size="xs" />
-                  Добавить вариант
+                  <span>+ Добавить</span>
                 </button>
               </div>
 
@@ -953,7 +957,7 @@ export default function ServiceDrawer({
               <div className="services-variants-table">
                 <div className="services-variants-thead">
                   <span className="services-var-th-duration">Длительность</span>
-                  <span className="services-var-th-price">Цена (PLN)</span>
+                  <span className="services-var-th-price">Цена (zł)</span>
                   <span className="services-var-th-action" />
                 </div>
 
@@ -1010,33 +1014,36 @@ export default function ServiceDrawer({
             </div>
           )}
 
-          {/* TAB 3: НАСТРОЙКИ ЗАПИСИ */}
+          {/* TAB 3: ЗАПИСЬ (МАСТЕРА, БУФЕРЫ, ОНЛАЙН) */}
           {activeTab === "booking" && (
             <div className="services-tab-pane services-tab-pane-booking">
-              {/* Available specialists */}
-              <div className="services-booking-card">
-                <div className="services-booking-card-header">
-                  <div>
-                    <h4 className="services-booking-card-title">Доступные специалисты</h4>
-                    <span className="services-booking-card-desc">Кто из мастеров может выполнять услугу</span>
-                  </div>
-                  <div className="services-toggles-row">
-                    <button
-                      type="button"
-                      className={`services-toggle-pill ${assignedMode === "all" ? "is-active" : ""}`}
-                      onClick={() => {
-                        setAssignedMode("all");
-                        setAssignedEmployeeIds([]);
-                      }}>
-                      Все мастера
-                    </button>
-                    <button
-                      type="button"
-                      className={`services-toggle-pill ${assignedMode === "custom" ? "is-active" : ""}`}
-                      onClick={() => setAssignedMode("custom")}>
-                      Выборочно
-                    </button>
-                  </div>
+              {/* Секция 1: Доступные специалисты */}
+              <div className="services-form-section">
+                <div className="services-section-title-wrap">
+                  <h4 className="services-section-title">Доступные специалисты</h4>
+                  <span className="services-section-desc">Кто может выполнять эту услугу</span>
+                </div>
+
+                <div className="services-assigned-mode-segmented" role="radiogroup" aria-label="Доступные специалисты">
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={assignedMode === "all"}
+                    className={`services-segmented-btn ${assignedMode === "all" ? "is-active" : ""}`}
+                    onClick={() => {
+                      setAssignedMode("all");
+                      setAssignedEmployeeIds([]);
+                    }}>
+                    Все мастера
+                  </button>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={assignedMode === "custom"}
+                    className={`services-segmented-btn ${assignedMode === "custom" ? "is-active" : ""}`}
+                    onClick={() => setAssignedMode("custom")}>
+                    Выборочно
+                  </button>
                 </div>
 
                 {assignedMode === "custom" && (
@@ -1085,86 +1092,91 @@ export default function ServiceDrawer({
                 )}
               </div>
 
-              {/* Online booking buffers */}
-              <div className="services-booking-card">
-                <h4 className="services-booking-card-title">Буферы онлайн-записи</h4>
-                <span className="services-booking-card-desc">
-                  Технические паузы для подготовки кабинета и дезинфекции
-                </span>
+              {/* Секция 2: Буферы онлайн-записи */}
+              <div className="services-form-section">
+                <div className="services-section-title-wrap">
+                  <h4 className="services-section-title">Буферы онлайн-записи</h4>
+                  <span className="services-section-desc">
+                    Технические паузы для подготовки кабинета и дезинфекции
+                  </span>
+                </div>
 
                 <div className="services-buffers-container">
                   {/* Buffer Before */}
                   <div className="services-buffer-row">
-                    <div className="services-buffer-meta">
-                      <div className="services-buffer-switch-label">
+                    <div className="services-buffer-top-line">
+                      <label className="services-buffer-switch-label">
                         <Switch
                           checked={bufferBeforeEnabled}
                           onChange={(e) => setBufferBeforeEnabled(e.target.checked)}
-                          aria-label="Включить буфер до услуги"
+                          aria-label="Включить буфер перед услугой"
+                          className="services-site-switch"
                         />
-                        <span className="services-buffer-title">Буфер перед услугой</span>
-                      </div>
-                      <span className="services-buffer-desc">Для подготовки кабинета к приходу клиента</span>
+                        <span className="services-buffer-title">Буфер перед</span>
+                      </label>
+                      {bufferBeforeEnabled ? (
+                        <div className="services-buffer-input-wrap">
+                          <input
+                            type="number"
+                            min="0"
+                            step="5"
+                            className="services-buffer-number-input"
+                            value={bufferBeforeMinutes}
+                            onChange={(e) => setBufferBeforeMinutes(Number(e.target.value) || 0)}
+                          />
+                          <span className="services-buffer-unit">мин</span>
+                        </div>
+                      ) : null}
                     </div>
-                    {bufferBeforeEnabled ? (
-                      <div className="services-buffer-input-wrap">
-                        <input
-                          type="number"
-                          min="0"
-                          step="5"
-                          className="services-buffer-number-input"
-                          value={bufferBeforeMinutes}
-                          onChange={(e) => setBufferBeforeMinutes(Number(e.target.value) || 0)}
-                        />
-                        <span className="services-buffer-unit">мин</span>
-                      </div>
-                    ) : null}
+                    <span className="services-buffer-desc">Время на подготовку кабинета</span>
                   </div>
 
                   {/* Buffer After */}
                   <div className="services-buffer-row">
-                    <div className="services-buffer-meta">
-                      <div className="services-buffer-switch-label">
+                    <div className="services-buffer-top-line">
+                      <label className="services-buffer-switch-label">
                         <Switch
                           checked={bufferAfterEnabled}
                           onChange={(e) => setBufferAfterEnabled(e.target.checked)}
                           aria-label="Включить буфер после услуги"
+                          className="services-site-switch"
                         />
-                        <span className="services-buffer-title">Буфер после услуги</span>
-                      </div>
-                      <span className="services-buffer-desc">Для уборки, проветривания и отдыха мастера</span>
+                        <span className="services-buffer-title">Буфер после</span>
+                      </label>
+                      {bufferAfterEnabled ? (
+                        <div className="services-buffer-input-wrap">
+                          <input
+                            type="number"
+                            min="0"
+                            step="5"
+                            className="services-buffer-number-input"
+                            value={bufferAfterMinutes}
+                            onChange={(e) => setBufferAfterMinutes(Number(e.target.value) || 0)}
+                          />
+                          <span className="services-buffer-unit">мин</span>
+                        </div>
+                      ) : null}
                     </div>
-                    {bufferAfterEnabled ? (
-                      <div className="services-buffer-input-wrap">
-                        <input
-                          type="number"
-                          min="0"
-                          step="5"
-                          className="services-buffer-number-input"
-                          value={bufferAfterMinutes}
-                          onChange={(e) => setBufferAfterMinutes(Number(e.target.value) || 0)}
-                        />
-                        <span className="services-buffer-unit">мин</span>
-                      </div>
-                    ) : null}
+                    <span className="services-buffer-desc">Время на уборку и подготовку</span>
                   </div>
                 </div>
               </div>
 
-              {/* Website visibility */}
-              <div className="services-booking-card services-site-visible-card">
-                <div className="services-buffer-meta">
-                  <div className="services-buffer-switch-label">
-                    <Switch
-                      checked={siteVisible}
-                      onChange={(e) => setSiteVisible(e.target.checked)}
-                      aria-label="Отображение на сайте nuarr.pl"
-                    />
-                    <span className="services-buffer-title">Отображать на сайте nuarr.pl</span>
-                  </div>
-                  <span className="services-buffer-desc">
+              {/* Секция 3: Отображение на сайте */}
+              <div className="services-form-section services-site-visible-row">
+                <div className="services-site-visible-meta">
+                  <span className="services-site-visible-title">Отображать на сайте nuarr.pl</span>
+                  <span className="services-site-visible-desc">
                     Услуга будет доступна клиентам в форме онлайн-записи
                   </span>
+                </div>
+                <div className="services-site-switch-wrap">
+                  <Switch
+                    checked={siteVisible}
+                    onChange={(e) => setSiteVisible(e.target.checked)}
+                    aria-label="Отображение на сайте nuarr.pl"
+                    className="services-site-switch"
+                  />
                 </div>
               </div>
             </div>
