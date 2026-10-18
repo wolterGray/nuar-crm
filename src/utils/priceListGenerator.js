@@ -6,298 +6,6 @@ import {
   STUDIO_DEFAULT_CONTACTS,
 } from "./priceListTranslations.js";
 
-export const STORAGE_KEY_PRICE_LIST = "nuar_price_list_settings_v1";
-
-export const BACKGROUND_PRESETS = {
-  "nuar-dark": {
-    id: "nuar-dark",
-    label: "Nuar Dark",
-    bg: "#0d0d0f",
-    textMode: "light",
-  },
-  "warm-graphite": {
-    id: "warm-graphite",
-    label: "Warm Graphite",
-    bg: "#18171a",
-    textMode: "light",
-  },
-  "cream": {
-    id: "cream",
-    label: "Cream",
-    bg: "#f7f5f0",
-    textMode: "dark",
-  },
-  "white": {
-    id: "white",
-    label: "White",
-    bg: "#ffffff",
-    textMode: "dark",
-  },
-};
-
-export const DESIGN_TEMPLATES = {
-  minimal: {
-    id: "minimal",
-    name: "NUAR Minimal",
-    tagline: "Apple / Linear",
-    description: "Современный минимализм: чистая sans-serif типографика, лаконичные разделители, строгая сетка цен",
-    defaultTypography: "modern",
-  },
-  editorial: {
-    id: "editorial",
-    name: "NUAR Editorial",
-    tagline: "Журнальный стиль",
-    description: "Премиальная журнальная типографика: заголовочный Playfair Display serif, сдержанная фирменная графика",
-    defaultTypography: "editorial",
-  },
-  luxury: {
-    id: "luxury",
-    name: "NUAR Luxury",
-    tagline: "Wellness Studio",
-    description: "Торжественная брендовая эстетика: благородный Cinzel, просторные интервалы, утончённая иерархия",
-    defaultTypography: "luxury",
-  },
-};
-
-export const STORAGE_KEY_USER_PRESETS = "nuar_price_list_user_presets_v1";
-
-export const PRESET_STYLING_KEYS = [
-  "designTemplate",
-  "theme",
-  "format",
-  "priceMode",
-  "typographyFamily",
-  "typographyFontSize",
-  "typographyHeadingSize",
-  "density",
-  "pageLayoutMode",
-  "bgPreset",
-  "customBgColor",
-  "bgImage",
-  "bgImageOpacity",
-  "bgImageSize",
-  "bgImagePosition",
-  "textColorMode",
-  "showLogo",
-  "logoType",
-  "customLogoUrl",
-  "logoSize",
-  "logoAlign",
-  "showDescriptions",
-  "showContacts",
-];
-
-/**
- * Loads user presets safely from localStorage
- */
-export function loadUserPresets() {
-  if (typeof window === "undefined" || !window.localStorage) return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY_USER_PRESETS);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.warn("Failed to load user presets from localStorage:", err);
-    return [];
-  }
-}
-
-/**
- * Saves user presets safely to localStorage
- */
-export function saveUserPresets(presets) {
-  if (typeof window === "undefined" || !window.localStorage) return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY_USER_PRESETS, JSON.stringify(presets));
-  } catch (err) {
-    console.warn("Failed to save user presets to localStorage:", err);
-  }
-}
-
-/**
- * Creates a clean styling preset object from current settings
- */
-export function createPresetFromSettings(name, settings) {
-  const cleanStyles = {};
-  PRESET_STYLING_KEYS.forEach((key) => {
-    if (settings[key] !== undefined) {
-      cleanStyles[key] = settings[key];
-    }
-  });
-
-  return {
-    id: `preset_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-    name: name.trim() || "Пользовательский стиль",
-    createdAt: new Date().toISOString(),
-    settings: cleanStyles,
-  };
-}
-
-/**
- * Applies a preset's styling keys to settings while preserving live services, categories, and studio contacts
- */
-export function applyPresetToSettings(preset, currentSettings) {
-  if (!preset || !preset.settings) return currentSettings;
-  const merged = { ...currentSettings };
-  PRESET_STYLING_KEYS.forEach((key) => {
-    if (preset.settings[key] !== undefined) {
-      merged[key] = preset.settings[key];
-    }
-  });
-  return merged;
-}
-
-export const DEFAULT_PRICE_LIST_SETTINGS = {
-  designTemplate: "editorial", // "minimal" | "editorial" | "luxury"
-  theme: "dark", // "dark" | "light" (legacy compatibility)
-  format: "a4", // "a4" | "stories" | "post"
-  priceMode: "full", // "full" | "compact"
-  language: "pl", // "pl" | "ru" | "en" | "ua"
-  includeHidden: false,
-  showDescriptions: false,
-  showContacts: true,
-  studioAddress: "", // If empty, falls back to confirmed studio address
-  studioPhone: "",
-  excludedCategoryIds: [],
-  excludedServiceIds: [],
-
-  // Typography
-  typographyFamily: "editorial", // "modern" | "classic" | "editorial" | "luxury"
-  typographyFontSize: "md", // "sm" | "md" | "lg"
-  typographyHeadingSize: "md", // "sm" | "md" | "lg"
-  density: "normal", // "compact" | "normal" | "spacious"
-
-  // Page layout mode
-  pageLayoutMode: "auto", // "auto" | "compact" | "spacious"
-
-  // Background
-  bgPreset: "nuar-dark", // "nuar-dark" | "warm-graphite" | "cream" | "white" | "custom"
-  customBgColor: "#0d0d0f",
-  bgImage: null, // data URL string
-  bgImageOpacity: 40, // 0..90
-  bgImageSize: "cover", // "cover" | "contain" | "repeat"
-  bgImagePosition: "center", // "center" | "top" | "bottom"
-  textColorMode: "auto", // "auto" | "light" | "dark"
-
-  // Logo
-  showLogo: true,
-  logoType: "default", // "default" | "custom" | "text"
-  customLogoUrl: null, // data URL string
-  logoSize: "md", // "sm" | "md" | "lg"
-  logoAlign: "center", // "left" | "center" | "right"
-};
-
-/**
- * Calculates relative luminance of a HEX color
- */
-export function getHexLuminance(hex) {
-  if (!hex || typeof hex !== "string") return 0;
-  const clean = hex.replace("#", "").trim();
-  if (clean.length !== 3 && clean.length !== 6) return 0;
-  const full =
-    clean.length === 3
-      ? clean
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : clean;
-  const num = parseInt(full, 16);
-  if (isNaN(num)) return 0;
-  const r = (num >> 16) & 255;
-  const g = (num >> 8) & 255;
-  const b = num & 255;
-  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-}
-
-/**
- * Resolves full cohesive styling parameters for preview and export
- */
-export function resolveDocumentStyle(settings = {}) {
-  const {
-    bgPreset = "nuar-dark",
-    customBgColor = "#0d0d0f",
-    textColorMode = "auto",
-    theme = "dark",
-  } = settings;
-
-  let base = BACKGROUND_PRESETS[bgPreset];
-  let bgColor = base ? base.bg : customBgColor;
-
-  if (bgPreset === "custom") {
-    bgColor = customBgColor || "#0d0d0f";
-  } else if (!base) {
-    bgColor = theme === "light" ? "#ffffff" : "#0d0d0f";
-  }
-
-  // Determine text lightness
-  let effectiveTextMode = textColorMode;
-  if (textColorMode === "auto") {
-    const lum = getHexLuminance(bgColor);
-    effectiveTextMode = lum > 0.45 ? "dark" : "light";
-  }
-
-  const isLightText = effectiveTextMode === "light";
-
-  return {
-    bgColor,
-    effectiveTextMode,
-    isLightText,
-    text: isLightText ? "#ffffff" : "#111113",
-    muted: isLightText ? "#9e9ea6" : "#64646c",
-    faint: isLightText ? "#6e6e76" : "#8a8a92",
-    border: isLightText
-      ? "rgba(255, 255, 255, 0.08)"
-      : "rgba(0, 0, 0, 0.08)",
-    dots: isLightText
-      ? "rgba(255, 255, 255, 0.16)"
-      : "rgba(0, 0, 0, 0.18)",
-    accent: isLightText ? "#e11d2e" : "#c91827",
-    chipBg: isLightText
-      ? "rgba(255, 255, 255, 0.04)"
-      : "rgba(0, 0, 0, 0.03)",
-  };
-}
-
-/**
- * Loads price list settings safely from localStorage
- */
-export function loadPriceListSettings() {
-  if (typeof window === "undefined" || !window.localStorage) {
-    return { ...DEFAULT_PRICE_LIST_SETTINGS };
-  }
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY_PRICE_LIST);
-    if (!raw) return { ...DEFAULT_PRICE_LIST_SETTINGS };
-    const parsed = JSON.parse(raw);
-    return {
-      ...DEFAULT_PRICE_LIST_SETTINGS,
-      ...parsed,
-      excludedCategoryIds: Array.isArray(parsed.excludedCategoryIds)
-        ? parsed.excludedCategoryIds
-        : [],
-      excludedServiceIds: Array.isArray(parsed.excludedServiceIds)
-        ? parsed.excludedServiceIds
-        : [],
-    };
-  } catch (err) {
-    console.warn("Failed to load price list settings from localStorage:", err);
-    return { ...DEFAULT_PRICE_LIST_SETTINGS };
-  }
-}
-
-/**
- * Saves price list settings to localStorage
- */
-export function savePriceListSettings(settings) {
-  if (typeof window === "undefined" || !window.localStorage) return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY_PRICE_LIST, JSON.stringify(settings));
-  } catch (err) {
-    console.warn("Failed to save price list settings to localStorage:", err);
-  }
-}
-
 /**
  * Resolves clean sorted variants for a service while preserving exact paired prices
  */
@@ -324,7 +32,7 @@ export function getServiceVariants(service) {
 }
 
 /**
- * Computes minPrice for compact mode
+ * Computes minPrice for service
  */
 export function getServiceMinPrice(service, variants = null) {
   const vars = variants || getServiceVariants(service);
@@ -353,9 +61,9 @@ export function checkUnusualPricing(variants) {
 }
 
 /**
- * Formats duration and price row for full or compact mode
+ * Formats duration and price summary string
  */
-export function formatVariantsSummary(variants, priceMode, lang = "pl") {
+export function formatVariantsSummary(variants, priceMode = "full", lang = "pl") {
   const labels = UI_LABELS[lang] || UI_LABELS.pl;
   if (!variants || variants.length === 0) return "";
 
@@ -370,72 +78,31 @@ export function formatVariantsSummary(variants, priceMode, lang = "pl") {
 }
 
 /**
- * Realistic capacity limits in units of height per format and layout mode
+ * Fixed A4 page height budget in relative units
  */
-export const FORMAT_PAGE_CAPACITY = {
-  a4: {
-    compact: 960,
-    auto: 930,
-    spacious: 820,
-  },
-  stories: {
-    compact: 840,
-    auto: 760,
-    spacious: 660,
-  },
-  post: {
-    compact: 640,
-    auto: 560,
-    spacious: 480,
-  },
-};
+export const A4_PAGE_CAPACITY = 920;
 
 /**
  * Calculates item weight for deterministic pagination
  */
-function getItemWeight(service, showDescriptions, density = "normal") {
+function getItemWeight(service) {
   const variantCount = service.variants?.length || 1;
-  const isMulti = variantCount > 1;
-
-  let weight;
-  if (density === "compact") {
-    weight = isMulti ? 34 : 22;
-  } else if (density === "spacious") {
-    weight = isMulti ? 52 : 34;
-  } else {
-    // normal
-    weight = isMulti ? 40 : 26;
-  }
-
-  if (showDescriptions && service.description) {
-    weight += density === "compact" ? 12 : density === "spacious" ? 20 : 16;
-  }
-  return weight;
+  // Multi-variant services occupy slightly more vertical height
+  if (variantCount <= 1) return 26;
+  if (variantCount <= 3) return 36;
+  return 46;
 }
 
 /**
- * Splits categorized services into balanced, un-severed editorial pages
+ * Splits categorized services into balanced A4 pages without awkward breaks
  */
-export function paginateCategories(
-  categories,
-  format = "a4",
-  showDescriptions = false,
-  labels = UI_LABELS.pl,
-  layoutOptions = {}
-) {
-  const density = layoutOptions.density || "normal";
-  const pageLayoutMode = layoutOptions.pageLayoutMode || "auto";
+export function paginateCategories(categories, labels = UI_LABELS.pl) {
+  const maxCapacity = A4_PAGE_CAPACITY;
 
-  const formatCaps = FORMAT_PAGE_CAPACITY[format] || FORMAT_PAGE_CAPACITY.a4;
-  const maxCapacity =
-    typeof formatCaps === "number"
-      ? formatCaps
-      : formatCaps[pageLayoutMode] || formatCaps.auto;
-
-  const headerWeight = density === "compact" ? 65 : density === "spacious" ? 95 : 75;
-  const subHeaderWeight = density === "compact" ? 28 : density === "spacious" ? 44 : 34;
-  const footerWeight = density === "compact" ? 26 : density === "spacious" ? 38 : 30;
-  const catHeaderWeight = density === "compact" ? 20 : density === "spacious" ? 32 : 24;
+  const headerWeight = 78;
+  const subHeaderWeight = 36;
+  const footerWeight = 32;
+  const catHeaderWeight = 26;
 
   const pages = [];
   let currentPage = {
@@ -459,29 +126,26 @@ export function paginateCategories(
 
     for (let i = 0; i < cat.services.length; i++) {
       const svc = cat.services[i];
-      const svcWeight = getItemWeight(svc, showDescriptions, density);
+      const svcWeight = getItemWeight(svc);
       const neededWeight = svcWeight + (!catHeaderAdded ? catHeaderWeight : 0);
 
       const hasContentOnCurrentPage =
         currentPage.categories.length > 0 || currentCatSegment.services.length > 0;
 
-      // If item doesn't fit on current page and page already has items, break to next page
+      // If item doesn't fit on current page, advance to next page
       if (currentPage.currentWeight + neededWeight > maxCapacity && hasContentOnCurrentPage) {
-        // Finalize current cat segment if it has items
         if (currentCatSegment.services.length > 0) {
           currentPage.categories.push(currentCatSegment);
         }
 
         pages.push(currentPage);
 
-        // Start new page
         currentPage = {
           pageIndex: pages.length + 1,
           categories: [],
-          currentWeight: subHeaderWeight + footerWeight, // Sub-header on subsequent pages
+          currentWeight: subHeaderWeight + footerWeight,
         };
 
-        // Next page starts continuation of this category
         currentCatSegment = {
           id: cat.id,
           rawName: cat.rawName,
@@ -510,7 +174,6 @@ export function paginateCategories(
     pages.push(currentPage);
   }
 
-  // Assign totalPages to every page
   const totalPages = pages.length;
   return pages.map((page, idx) => ({
     ...page,
@@ -523,33 +186,18 @@ export function paginateCategories(
 
 /**
  * Transforms and prepares raw CRM services into grouped price list structure with pagination
+ * Always uses Polish language, automatically excludes archive and inactive services.
  */
-export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIST_SETTINGS, appSettings = null) {
-  const {
-    language = "pl",
-    includeHidden = false,
-    excludedCategoryIds = [],
-    excludedServiceIds = [],
-    priceMode = "full",
-    format = "a4",
-    showDescriptions = false,
-    studioAddress = "",
-    studioPhone = "",
-  } = settings;
+export function preparePriceListData(services = [], appSettings = null) {
+  const language = "pl";
+  const baseLabels = UI_LABELS.pl;
 
-  const baseLabels = UI_LABELS[language] || UI_LABELS.pl;
-
-  // Resolve authentic studio contacts:
-  // Priority: 1. Manual override in settings -> 2. appSettings.studioAddress -> 3. Confirmed studio address
+  // Resolve studio contacts
   const resolvedAddress =
-    studioAddress?.trim() ||
-    appSettings?.studioAddress?.trim() ||
-    STUDIO_DEFAULT_CONTACTS.address;
+    appSettings?.studioAddress?.trim() || STUDIO_DEFAULT_CONTACTS.address;
 
   const resolvedPhone =
-    studioPhone?.trim() ||
-    appSettings?.ownerNotifyPhone?.trim() ||
-    STUDIO_DEFAULT_CONTACTS.phone;
+    appSettings?.ownerNotifyPhone?.trim() || STUDIO_DEFAULT_CONTACTS.phone;
 
   const labels = {
     ...baseLabels,
@@ -557,16 +205,11 @@ export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIS
     phone: resolvedPhone,
   };
 
-  const excludedCatSet = new Set(excludedCategoryIds);
-  const excludedSvcSet = new Set(excludedServiceIds.map(String));
-
-  // 1. Filter services: exclude Archive and optionally Hidden
+  // 1. Filter services: automatically exclude Archive and Inactive
   const eligibleServices = services.filter((svc) => {
     if (!svc) return false;
     const status = svc.status || "Активна";
-    if (status === "Архив") return false;
-    if (!includeHidden && status === "Скрыта") return false;
-    if (excludedSvcSet.has(String(svc.id))) return false;
+    if (status === "Архив" || status === "Неактивна") return false;
     return true;
   });
 
@@ -575,12 +218,8 @@ export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIS
   const unusualPricingServices = [];
 
   eligibleServices.forEach((svc) => {
-    const rawCat = svc.category || "Без категории";
+    const rawCat = svc.category || "Inne";
     const normCat = normalizeCategory(rawCat);
-
-    if (excludedCatSet.has(normCat) || excludedCatSet.has(rawCat)) {
-      return;
-    }
 
     if (!groupsMap.has(normCat)) {
       groupsMap.set(normCat, []);
@@ -608,7 +247,7 @@ export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIS
       variants,
       minPrice,
       isCombo: svc.serviceType === "combo",
-      formattedPrice: formatVariantsSummary(variants, priceMode, language),
+      formattedPrice: formatVariantsSummary(variants, "full", language),
     });
   });
 
@@ -622,14 +261,14 @@ export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIS
     return a.localeCompare(b);
   });
 
-  // 4. Assemble clean categories
+  // 4. Assemble clean categories and sort services within each category
   let totalServicesCount = 0;
   const categories = sortedCategoryNames
     .map((catName) => {
       const items = groupsMap.get(catName) || [];
       if (items.length === 0) return null;
 
-      // Sort services inside category by minPrice or name
+      // Sort services inside category by minPrice, then alphabetically
       items.sort((a, b) => a.minPrice - b.minPrice || a.displayName.localeCompare(b.displayName));
 
       totalServicesCount += items.length;
@@ -643,48 +282,8 @@ export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIS
     })
     .filter(Boolean);
 
-  // 5. Intelligent Multi-Pass Pagination
-  const requestedDensity = settings.density || "normal";
-  const pageLayoutMode = settings.pageLayoutMode || "auto";
-
-  let effectiveDensity = requestedDensity;
-  let pages = paginateCategories(
-    categories,
-    format,
-    showDescriptions,
-    labels,
-    {
-      density: requestedDensity,
-      pageLayoutMode,
-    }
-  );
-
-  // If in "auto" mode (or normal density), check if slight compaction eliminates awkward page breaks:
-  // 1) If 2 pages but can comfortably fit on 1 page with compact spacing
-  // 2) If 3 pages but can comfortably fit on 2 balanced pages with compact spacing
-  if (pageLayoutMode === "auto" && requestedDensity === "normal" && pages.length > 1) {
-    const compactPages = paginateCategories(
-      categories,
-      format,
-      showDescriptions,
-      labels,
-      {
-        density: "compact",
-        pageLayoutMode: "auto",
-      }
-    );
-
-    // If compact pass fits everything on 1 page, or reduces 3 pages to 2 pages
-    if (
-      (pages.length === 2 && compactPages.length === 1) ||
-      (pages.length === 3 && compactPages.length === 2)
-    ) {
-      pages = compactPages;
-      effectiveDensity = "compact";
-    }
-  }
-
-  const style = resolveDocumentStyle(settings);
+  // 5. Automatic A4 Pagination
+  const pages = paginateCategories(categories, labels);
 
   return {
     categories,
@@ -692,9 +291,7 @@ export function preparePriceListData(services = [], settings = DEFAULT_PRICE_LIS
     totalServices: totalServicesCount,
     totalCategories: categories.length,
     totalPages: pages.length,
-    effectiveDensity,
     labels,
-    style,
     unusualPricingServices,
   };
 }
