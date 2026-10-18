@@ -126,7 +126,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
           clientName,
           entityId: String(id),
           entityType: 'calendar_entry',
-          fingerprint: `visit:${id}:rescheduled:${after.date}:${after.time}`,
+          fingerprint: `visit:${id}:rescheduled:${before.date}:${before.time}:${after.date}:${after.time}`,
           payload: {
             oldDate: before.date,
             oldTime: before.time,
@@ -192,7 +192,8 @@ const handleVisitChange = async (before, after) => {
     }
     if (before.scheduledAt?.getTime() !== after.scheduledAt?.getTime()) {
       await recordBusinessNotificationEvent(prisma, {
-        ...common, fingerprint: `visit-record:${visit.id}:rescheduled:${current.date}:${current.time}`,
+        ...common,
+        fingerprint: `visit-record:${visit.id}:rescheduled:${previous.date}:${previous.time}:${current.date}:${current.time}`,
         payload: {newDate: current.date, newTime: current.time, oldDate: previous.date, oldTime: previous.time, serviceName: service?.name || ''},
         title: 'Запись перенесена', message: service?.name || 'Запись перенесена',
         type: 'visit_rescheduled', urgency: 10,

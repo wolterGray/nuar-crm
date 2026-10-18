@@ -561,6 +561,11 @@ export const buildAlertCenter = ({
 };
 
 export const filterAlertsByMode = (alerts, mode = "all") => {
+  const hasCategory = (alert, category) => {
+    if (alert.meta?.category === category) return true;
+    return alert.type === "aggregate" && alert.children?.some((child) => hasCategory(child, category));
+  };
+
   if (mode === "today") {
     const today = getTodayInput();
     const isTodayAlert = (alert) => {
@@ -587,6 +592,14 @@ export const filterAlertsByMode = (alerts, mode = "all") => {
     return alerts.filter(
       (alert) => alert.priority === "critical" || alert.priority === "action",
     );
+  }
+
+  if (mode === "opportunity") {
+    return alerts.filter((alert) => hasCategory(alert, "opportunity"));
+  }
+
+  if (mode === "information") {
+    return alerts.filter((alert) => hasCategory(alert, "information"));
   }
 
   if (mode === "clients") {

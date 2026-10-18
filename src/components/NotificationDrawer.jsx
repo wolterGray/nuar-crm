@@ -74,13 +74,10 @@ const getPopoverStyle = (buttonRect) => {
 };
 
 const FILTER_OPTIONS = [
-  {id: "today", label: "Сегодня"},
-  {id: "urgent", label: "Срочные"},
+  {id: "urgent", label: "Внимание"},
+  {id: "opportunity", label: "Возможности"},
+  {id: "information", label: "История"},
   {id: "all", label: "Все"},
-  {id: "closing", label: "Закрыть"},
-  {id: "finance", label: "Деньги"},
-  {id: "operations", label: "Склад"},
-  {id: "clients", label: "Клиенты"},
 ];
 
 export default function NotificationDrawer({
@@ -99,6 +96,7 @@ export default function NotificationDrawer({
   onSnoozeWeek,
   onToggleOpen,
   quietHoursActive,
+  serverCounts,
   theme = "dark",
 }) {
   const buttonRef = useRef(null);
@@ -123,7 +121,7 @@ export default function NotificationDrawer({
     [alerts, localNow, locallyHiddenAlerts],
   );
   const {
-    badgeCount,
+    badgeCount: localBadgeCount,
     totalAlertsCount: globalTotalAlertsCount,
     urgentAlertsCount: globalUrgentAlertsCount,
     visibleAlerts: globalVisibleAlerts,
@@ -136,6 +134,13 @@ export default function NotificationDrawer({
       }),
     [allAlerts, alerts, localNow, locallyHiddenAlerts],
   );
+  const notificationCenterV2Enabled = import.meta.env.VITE_NOTIFICATION_CENTER_V2 !== "false";
+  const badgeCount = notificationCenterV2Enabled && serverCounts
+    ? Number(serverCounts.attention) || 0
+    : localBadgeCount;
+  const effectiveUrgentAlertsCount = notificationCenterV2Enabled && serverCounts
+    ? Number(serverCounts.attention) || 0
+    : globalUrgentAlertsCount;
   const groupedAlerts = groupAlerts(localVisibleAlerts);
   const filterCounts = useMemo(
     () =>
@@ -180,13 +185,13 @@ export default function NotificationDrawer({
       openedNow &&
       alertFilter !== "urgent" &&
       localAlertsCount === 0 &&
-      globalUrgentAlertsCount > 0
+      effectiveUrgentAlertsCount > 0
     ) {
       onFilterChange("urgent");
     }
   }, [
     alertFilter,
-    globalUrgentAlertsCount,
+    effectiveUrgentAlertsCount,
     isOpen,
     localAlertsCount,
     onFilterChange,
@@ -426,8 +431,8 @@ export default function NotificationDrawer({
             <div>
               <h2>Уведомления</h2>
               <p>
-                {globalUrgentAlertsCount > 0
-                  ? `${globalUrgentAlertsCount} срочных · ${globalTotalAlertsCount} всего`
+                {effectiveUrgentAlertsCount > 0
+                  ? `${effectiveUrgentAlertsCount} требуют внимания · ${globalTotalAlertsCount} всего`
                   : "Только события, требующие внимания"}
               </p>
             </div>
@@ -558,12 +563,12 @@ export default function NotificationDrawer({
           ref={buttonRef}
           aria-expanded={isOpen}
           badge={badgeCount > 0 ? badgeCount : null}
-          badgeClassName={globalUrgentAlertsCount > 0 && !onlyCalendarUrgentAlerts ? undefined : "client-alert-button-info"}
+          badgeClassName={effectiveUrgentAlertsCount > 0 && !onlyCalendarUrgentAlerts ? undefined : "client-alert-button-info"}
           className="client-alert-button notification-trigger"
           icon="bell"
           label={
-            globalUrgentAlertsCount > 0
-              ? `Уведомления: ${globalUrgentAlertsCount} срочных`
+            effectiveUrgentAlertsCount > 0
+              ? `Уведомления: ${effectiveUrgentAlertsCount} требуют внимания`
               : globalTotalAlertsCount > 0
                 ? `Уведомления: ${globalTotalAlertsCount}`
                 : "Центр уведомлений"

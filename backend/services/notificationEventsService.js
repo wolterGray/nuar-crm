@@ -1,4 +1,11 @@
 const {recordBusinessNotificationEvent} = require('./businessPushService');
+const {
+  ACTIVE_EVENT_STATUSES,
+  CATEGORY,
+  getNotificationCategory,
+  isEventCurrent,
+  isRecipientVisible,
+} = require('./notificationTypeRegistry');
 
 const PRIORITY_SCORE = {
   critical: 100,
@@ -7,7 +14,7 @@ const PRIORITY_SCORE = {
   low: 20,
 };
 
-const ACTIVE_STATUSES = ['new', 'seen', 'snoozed'];
+const ACTIVE_STATUSES = ACTIVE_EVENT_STATUSES;
 const UPCOMING_VISIT_GRACE_MINUTES = 30;
 
 const cleanString = (value) => {
@@ -231,8 +238,8 @@ const normalizeNotificationEventInput = (input = {}) => {
 };
 
 const listNotificationEvents = async (prisma, {limit = 50, now = new Date(), status = 'active'} = {}) => {
-  const take = Math.max(1, Math.min(100, Number(limit) || 50));
-  const internalTake = Math.min(100, Math.max(take * 3, take));
+  const take = Math.max(1, Math.min(500, Number(limit) || 50));
+  const internalTake = Math.min(500, Math.max(take * 3, take));
   if (status === 'active') {
     await resolveStaleVisitUpcomingEvents(prisma, {now});
   }
@@ -258,8 +265,11 @@ const listNotificationEvents = async (prisma, {limit = 50, now = new Date(), sta
     .slice(0, take);
 };
 
-const upsertNotificationEvent = (prisma, input) => {
+const upsertNotificationEvent = async (prisma, input) => {
   const data = normalizeNotificationEventInput(input);
+  const current = input.reopenWhenCurrent
+    ? await prisma.notificationEvent.findUnique({where: {fingerprint: data.fingerprint}})
+    : null;
 
   return prisma.notificationEvent.upsert({
     create: data,
@@ -273,11 +283,113 @@ const upsertNotificationEvent = (prisma, input) => {
       recommendedAction: data.recommendedAction,
       score: data.score,
       source: data.source,
+      ...(current && ['resolved', 'dismissed'].includes(current.status)
+        ? {resolvedAt: null, status: 'new'}
+        : {}),
       title: data.title,
       type: data.type,
     },
     where: {fingerprint: data.fingerprint},
   });
+};
+
+const getEntityIds = (events, entityType) => [...new Set(events
+  .filter((event) => event.entityType === entityType)
+  .map((event) => Number(event.entityId))
+  .filter((id) => Number.isInteger(id) && id > 0))];
+
+const loadNotificationLinkedState = async (prisma, events) => {
+  const taskIds = getEntityIds(events, 'task');
+  const supplyIds = getEntityIds(events, 'supply');
+  const packageIds = getEntityIds(events, 'client_package');
+  const certificateIds = getEntityIds(events, 'certificate');
+  const waitlistIds = getEntityIds(events, 'waitlist_entry');
+  const clientIds = [...new Set(events
+    .filter((event) => event.type === 'client_inactive')
+    .map((event) => Number(event.clientId ?? event.entityId))
+    .filter((id) => Number.isInteger(id) && id > 0))];
+
+  const [tasks, supplies, packages, certificates, waitlistEntries, clients] = await Promise.all([
+    taskIds.length ? prisma.task.findMany({where: {id: {in: taskIds}}}) : [],
+    supplyIds.length ? prisma.supply.findMany({where: {id: {in: supplyIds}}}) : [],
+    packageIds.length ? prisma.clientPackage.findMany({where: {id: {in: packageIds}}}) : [],
+    certificateIds.length ? prisma.certificate.findMany({where: {id: {in: certificateIds}}}) : [],
+    waitlistIds.length ? prisma.waitlistEntry.findMany({where: {id: {in: waitlistIds}}}) : [],
+    clientIds.length
+      ? prisma.client.findMany({
+          include: {
+            visits: {orderBy: {scheduledAt: 'desc'}, select: {scheduledAt: true}, take: 1},
+          },
+          where: {id: {in: clientIds}},
+        })
+      : [],
+  ]);
+
+  return {
+    certificates: new Map(certificates.map((item) => [Number(item.id), item])),
+    clients: new Map(clients.map((item) => [Number(item.id), item])),
+    packages: new Map(packages.map((item) => [Number(item.id), item])),
+    supplies: new Map(supplies.map((item) => [Number(item.id), item])),
+    tasks: new Map(tasks.map((item) => [Number(item.id), item])),
+    waitlistEntries: new Map(waitlistEntries.map((item) => [Number(item.id), item])),
+  };
+};
+
+const getLinkedStateForEvent = (event, state) => ({
+  certificate: state.certificates.get(Number(event.entityId)),
+  client: state.clients.get(Number(event.clientId ?? event.entityId)),
+  clientPackage: state.packages.get(Number(event.entityId)),
+  supply: state.supplies.get(Number(event.entityId)),
+  task: state.tasks.get(Number(event.entityId)),
+  waitlistEntry: state.waitlistEntries.get(Number(event.entityId)),
+});
+
+const classifyNotificationEvents = async (prisma, events, {now = new Date()} = {}) => {
+  if (!events.length) return [];
+  const state = await loadNotificationLinkedState(prisma, events);
+  return events.map((event) => ({
+    ...event,
+    category: getNotificationCategory(event),
+    isCurrent: isEventCurrent(event, getLinkedStateForEvent(event, state), now),
+  }));
+};
+
+const reconcileNotificationEventLifecycle = async (
+  prisma,
+  {commit = false, now = new Date()} = {},
+) => {
+  const events = await prisma.notificationEvent.findMany({
+    where: {status: {in: ACTIVE_STATUSES}},
+  });
+  const classified = await classifyNotificationEvents(prisma, events, {now});
+  const stale = classified.filter(
+    (event) => event.category !== CATEGORY.INFORMATION && !event.isCurrent,
+  );
+  const byType = stale.reduce((counts, event) => {
+    counts[event.type] = (counts[event.type] || 0) + 1;
+    return counts;
+  }, {});
+
+  if (commit && stale.length > 0) {
+    if (process.env.NOTIFICATION_LIFECYCLE_V2_WRITE !== 'true') {
+      const error = new Error('Lifecycle writes require NOTIFICATION_LIFECYCLE_V2_WRITE=true');
+      error.status = 409;
+      throw error;
+    }
+    await prisma.$transaction(stale.map((event) => prisma.notificationEvent.update({
+      data: {
+        actionHistory: appendActionHistory(event.actionHistory, {
+          action: 'auto_resolve_stale_condition',
+          meta: {category: event.category, type: event.type},
+        }),
+        resolvedAt: now,
+        status: 'resolved',
+      },
+      where: {id: event.id},
+    })));
+  }
+
+  return {byType, commit, count: stale.length};
 };
 
 const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) => {
@@ -314,6 +426,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
         payload: {dueDate: task.dueDate, priority: task.priority},
         priority: overdue ? 'high' : 'normal',
         recommendedAction: 'open_task',
+        reopenWhenCurrent: true,
         source: 'smart-generator',
         title: overdue ? 'Просроченная задача' : 'Задача скоро',
         message: task.title,
@@ -347,6 +460,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
         payload: {minStock, orderUrl: supply.orderUrl, stock, unit: supply.unit},
         priority: stock <= 0 ? 'critical' : 'high',
         recommendedAction: supply.orderUrl ? 'order_supply' : 'open_supply',
+        reopenWhenCurrent: true,
         source: 'smart-generator',
         title: stock <= 0 ? 'Материал закончился' : 'Материал заканчивается',
         message: `${supply.name}: ${stock} ${supply.unit || ''}`,
@@ -415,6 +529,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
         payload: {packageName: item.packageName, remainingVisits: remaining, service: item.service},
         priority: remaining <= 0 ? 'high' : 'normal',
         recommendedAction: 'offer_package',
+        reopenWhenCurrent: true,
         source: 'smart-generator',
         title: remaining <= 0 ? 'Пакет закончился' : 'Пакет заканчивается',
         message: `${item.clientName || 'Клиент'} · ${item.packageName || 'пакет'} · осталось ${remaining}`,
@@ -448,6 +563,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
         payload: {code: certificate.code, expiresIn, expiryDate: certificate.expiryDate, remainingBalance},
         priority: expiresSoon && expiresIn <= 3 ? 'high' : 'normal',
         recommendedAction: 'contact_client',
+        reopenWhenCurrent: true,
         source: 'smart-generator',
         title: expiresSoon ? 'Сертификат скоро истекает' : 'Сертификат почти использован',
         message: `${certificate.recipientName || certificate.clientName || 'Клиент'} · ${certificate.code}`,
@@ -481,6 +597,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
         },
         priority: 'normal',
         recommendedAction: 'match_waitlist',
+        reopenWhenCurrent: true,
         source: 'smart-generator',
         title: 'Клиент в листе ожидания',
         message: `${entry.clientName || 'Клиент'} · ${entry.preferredService || 'любая услуга'}`,
@@ -527,6 +644,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
           payload: { daysAbsent, lastVisitDate: lastVisitDate.toISOString() },
           priority: daysAbsent >= inactiveDaysLimit * 2 ? 'high' : 'normal',
           recommendedAction: 'contact_client',
+          reopenWhenCurrent: true,
           source: 'smart-generator',
           title: 'Давно не было визитов',
           message: `${client.name} · отсутствовал ${daysAbsent} дней`,
@@ -612,25 +730,96 @@ const mergeRecipientState = (event, recipient) => ({
 const listNotificationEventsForUser = async (prisma, userId, options = {}) => {
   const numericUserId = Number(userId);
   const requestedStatus = options.status || 'active';
-  const events = await listNotificationEvents(prisma, {...options, status: requestedStatus === 'all' ? 'all' : 'active'});
+  const requestedLimit = Math.max(1, Math.min(100, Number(options.limit) || 50));
+  const events = await listNotificationEvents(prisma, {
+    ...options,
+    limit: 500,
+    status: requestedStatus === 'all' ? 'all' : 'active',
+  });
   if (!Number.isInteger(numericUserId) || events.length === 0) return events;
 
-  await prisma.notificationRecipient.createMany({
-    data: events.map((event) => ({notificationEventId: event.id, userId: numericUserId})),
-    skipDuplicates: true,
-  });
   const recipients = await prisma.notificationRecipient.findMany({
     where: {notificationEventId: {in: events.map((event) => event.id)}, userId: numericUserId},
   });
   const byEventId = new Map(recipients.map((recipient) => [recipient.notificationEventId, recipient]));
   const now = options.now || new Date();
 
-  return events
+  const personalized = events
     .map((event) => mergeRecipientState(event, byEventId.get(event.id)))
     .filter((event) => requestedStatus === 'all'
       || (requestedStatus === 'active'
         ? ACTIVE_STATUSES.includes(event.status) && (!event.snoozedUntil || event.snoozedUntil <= now)
         : event.status === requestedStatus));
+
+  const categoryOrder = {
+    [CATEGORY.CRITICAL]: 0,
+    [CATEGORY.ACTION]: 1,
+    [CATEGORY.OPPORTUNITY]: 2,
+    [CATEGORY.INFORMATION]: 3,
+  };
+  const classified = await classifyNotificationEvents(prisma, personalized, {now});
+  const selected = classified
+    .filter((event) => requestedStatus !== 'active'
+      || event.isCurrent
+      || event.category === CATEGORY.INFORMATION)
+    .sort((left, right) => {
+      const categoryDifference = categoryOrder[left.category] - categoryOrder[right.category];
+      if (categoryDifference !== 0) return categoryDifference;
+      if (right.score !== left.score) return right.score - left.score;
+      return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+    })
+    .slice(0, requestedLimit);
+  const selectedWithoutRecipient = selected.filter((event) => !byEventId.has(event.id));
+  if (selectedWithoutRecipient.length > 0) {
+    await prisma.notificationRecipient.createMany({
+      data: selectedWithoutRecipient.map((event) => ({notificationEventId: event.id, userId: numericUserId})),
+      skipDuplicates: true,
+    });
+  }
+  return selected;
+};
+
+const getNotificationCountsForUser = async (prisma, userId, {now = new Date()} = {}) => {
+  const numericUserId = Number(userId);
+  if (!Number.isInteger(numericUserId) || numericUserId <= 0) {
+    const error = new Error('notification recipient is invalid');
+    error.status = 422;
+    throw error;
+  }
+
+  const events = await prisma.notificationEvent.findMany({
+    orderBy: [{createdAt: 'desc'}],
+    where: {
+      status: {in: ACTIVE_STATUSES},
+      OR: [{snoozedUntil: null}, {snoozedUntil: {lte: now}}],
+    },
+  });
+  if (events.length === 0) {
+    return {attention: 0, critical: 0, action: 0, opportunity: 0, information: 0, stale: 0, total: 0};
+  }
+
+  const recipients = await prisma.notificationRecipient.findMany({
+    where: {notificationEventId: {in: events.map((event) => event.id)}, userId: numericUserId},
+  });
+  const recipientByEventId = new Map(recipients.map((recipient) => [recipient.notificationEventId, recipient]));
+  const classified = await classifyNotificationEvents(prisma, events, {now});
+  const counts = {attention: 0, critical: 0, action: 0, opportunity: 0, information: 0, stale: 0, total: 0};
+
+  classified.forEach((event) => {
+    const recipient = recipientByEventId.get(event.id);
+    if (!isRecipientVisible(recipient, now)) return;
+    if (!event.isCurrent) {
+      counts.stale += 1;
+      return;
+    }
+    counts.total += 1;
+    counts[event.category] += 1;
+    if (event.category === CATEGORY.CRITICAL || event.category === CATEGORY.ACTION) {
+      counts.attention += 1;
+    }
+  });
+
+  return counts;
 };
 
 const updateNotificationRecipient = async (prisma, userId, id, patch = {}) => {
@@ -674,10 +863,13 @@ const updateNotificationRecipient = async (prisma, userId, id, patch = {}) => {
 };
 
 module.exports = {
+  classifyNotificationEvents,
   generateSmartNotificationEvents,
+  getNotificationCountsForUser,
   listNotificationEvents,
   listNotificationEventsForUser,
   normalizeNotificationEventInput,
+  reconcileNotificationEventLifecycle,
   scoreNotificationEvent,
   updateNotificationEvent,
   updateNotificationRecipient,

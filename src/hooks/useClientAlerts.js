@@ -1,11 +1,14 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {
+  fetchNotificationEventCounts,
   fetchNotificationEvents,
-  generateNotificationEvents,
   updateNotificationEvent,
 } from "../api/notificationEvents.js";
 import {buildAlertCenter, filterAlertsByMode} from "../utils/alertCenter.js";
-import {getAggregateChildIds} from "../utils/alertAggregation.js";
+import {
+  aggregateDisplayAlerts,
+  getAggregateChildIds,
+} from "../utils/alertAggregation.js";
 import {
   getEndOfToday,
   getSnoozeUntilDays,
@@ -46,7 +49,7 @@ const getSnoozeUntilMinutes = (minutes, now = new Date()) =>
 
 const getServerAlertPage = (event) => {
   if (event.entityType === "calendar_entry" || event.type === "visit_upcoming") return "calendar";
-  if (event.entityType === "task" || event.type === "task_due") return "operations";
+  if (event.entityType === "task" || event.type?.startsWith("task_")) return "operations";
   if (event.entityType === "supply" || event.type === "supply_low_stock") return "operations";
   if (event.entityType === "waitlist_entry" || event.type === "waitlist_active") return "operations";
   if (event.entityType === "client_package" || event.type === "package_ending") return "packages";
@@ -55,7 +58,7 @@ const getServerAlertPage = (event) => {
 };
 
 const getServerAlertType = (event) => {
-  if (event.type === "task_due") return "task";
+  if (event.type?.startsWith("task_")) return "task";
   if (event.type === "supply_low_stock") return "supply";
   if (event.type === "package_ending") return "package";
   if (event.type?.startsWith("certificate_")) return "package";
@@ -68,12 +71,15 @@ const getServerAlertType = (event) => {
 
 const getServerAlertGroup = (event) => {
   if (event.type === "visit_upcoming" || event.type === "visit_cancelled" || event.type === "visit_rescheduled") return "calendar";
-  if (event.type === "task_due" || event.type === "supply_low_stock" || event.type === "waitlist_active" || event.type === "delivery_failed") return "operations";
+  if (event.type?.startsWith("task_") || event.type === "supply_low_stock" || event.type === "waitlist_active" || event.type === "delivery_failed") return "operations";
   if (event.type === "package_ending" || event.type?.startsWith("certificate_")) return "packages";
   return "inactive";
 };
 
 const getServerAlertPriority = (event) => {
+  if (event.category === "critical") return "critical";
+  if (event.category === "action") return "action";
+  if (event.category === "opportunity" || event.category === "information") return "info";
   if (event.priority === "critical") return "critical";
   if (event.priority === "high" || Number(event.score) >= 70) return "action";
   return "info";
@@ -192,6 +198,8 @@ const mapServerEventToAlert = (event) => ({
   id: `${SERVER_ALERT_PREFIX}${event.id}`,
   message: event.message,
   meta: {
+    category: event.category,
+    isCurrent: event.isCurrent,
     serverEvent: event,
     client: event.clientId ? {id: event.clientId, name: event.clientName} : null,
     entry:
@@ -242,6 +250,7 @@ export function useClientAlerts({
   const smartVisitAlertIds = useRef(new Set());
   const [serverEvents, setServerEvents] = useState([]);
   const [serverConnected, setServerConnected] = useState(false);
+  const [serverCounts, setServerCounts] = useState(null);
 
   useEffect(() => {
     setAlertSnoozes((current) => pruneExpiredSnoozes(current));
@@ -290,16 +299,21 @@ export function useClientAlerts({
     if (!appSettings.notificationsEnabled) {
       setServerEvents([]);
       setServerConnected(false);
+      setServerCounts(null);
       return;
     }
 
     try {
-      await generateNotificationEvents();
-      const events = await fetchNotificationEvents({limit: 40, status: "active"});
+      const [events, counts] = await Promise.all([
+        fetchNotificationEvents({limit: 40, status: "active"}),
+        fetchNotificationEventCounts(),
+      ]);
       setServerEvents(Array.isArray(events) ? events : []);
+      setServerCounts(counts && typeof counts === "object" ? counts : null);
       setServerConnected(true);
     } catch {
       setServerEvents([]);
+      setServerCounts(null);
       setServerConnected(false);
     }
   }, [appSettings.notificationsEnabled]);
@@ -321,6 +335,7 @@ export function useClientAlerts({
       const horizonMinutes = appSettings.upcomingVisitMinutes;
 
       return serverEvents
+        .filter((event) => event.isCurrent !== false || event.category === "information")
         .filter((event) => {
           const calendarEntry = getServerEventCalendarEntry(event, calendarEntries);
           return isActionableServerVisitEvent(
@@ -408,8 +423,9 @@ export function useClientAlerts({
             alert.type !== "inactive"
         )
       : alertCenter.alerts;
-    return [...serverAlerts, ...clientAlerts];
-  }, [alertCenter.alerts, serverAlerts, serverConnected]);
+    const groupedServerAlerts = aggregateDisplayAlerts(serverAlerts, appSettings);
+    return [...groupedServerAlerts, ...clientAlerts];
+  }, [alertCenter.alerts, appSettings, serverAlerts, serverConnected]);
 
   const quietFilteredAlerts = useMemo(
     () => applyQuietHoursFilter(combinedAlerts, appSettings),
@@ -715,6 +731,7 @@ export function useClientAlerts({
     snoozeAlertToday,
     snoozeAlertWeek,
     totalAlertsCount: drawerCounts.totalAlertsCount,
+    serverCounts,
     undoNotificationAction,
     urgentAlertsCount: drawerCounts.urgentAlertsCount,
   };

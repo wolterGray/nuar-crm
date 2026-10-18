@@ -4,6 +4,7 @@ const {recordAuditLog, recordErrorEvent} = require('../services/loggingService')
 const {planNotificationDeliveries} = require('../services/notificationDeliveryPlanner');
 const {
   generateSmartNotificationEvents,
+  getNotificationCountsForUser,
   listNotificationEventsForUser,
   updateNotificationRecipient,
   upsertNotificationEvent,
@@ -37,6 +38,17 @@ router.get('/notification-events', async (req, res) => {
       status: req.query.status || 'active',
     });
     res.json({success: true, data: events});
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.get('/notification-events/counts', async (req, res) => {
+  try {
+    const user = await resolveAuthenticatedUser(req);
+    const counts = await getNotificationCountsForUser(prisma, user.id);
+    res.json({success: true, data: counts});
   } catch (error) {
     const response = getHttpErrorResponse(error);
     res.status(response.status).json({success: false, error: response.message});

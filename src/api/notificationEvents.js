@@ -31,6 +31,12 @@ export const fetchNotificationEvents = async ({limit = 50, status = "active"} = 
   return parseResponse(res);
 };
 
+export const fetchNotificationEventCounts = async () => {
+  const headers = await authHeaders();
+  const res = await fetch(`${API_URL}/api/notification-events/counts`, {headers});
+  return parseResponse(res);
+};
+
 export const generateNotificationEvents = async () => {
   const headers = await authHeaders();
   const res = await fetch(`${API_URL}/api/notification-events/generate`, {

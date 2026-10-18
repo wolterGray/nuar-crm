@@ -1,0 +1,145 @@
+Pager usage is off.
+Null display is "(null)".
+BEGIN
+SET
+SET
+SET
+=== 01_database_identity ===
+ database_name | database_user | server_address | is_replica | transaction_read_only 
+---------------+---------------+----------------+------------+-----------------------
+ nuar_crm      | nuar_user     | ::1/128        | f          | on
+(1 row)
+
+=== 02_total_and_statuses ===
+ total_events | lifecycle_active | currently_visible | resolved | dismissed | currently_snoozed 
+--------------+------------------+-------------------+----------+-----------+-------------------
+          277 |              227 |               227 |       45 |         5 |                 0
+(1 row)
+
+=== 03_active_by_type_priority_source ===
+       type        | priority |     source      | active_count | score_70_plus |    oldest_created_at    |    latest_updated_at    
+-------------------+----------+-----------------+--------------+---------------+-------------------------+-------------------------
+ client_inactive   | high     | smart-generator |          103 |           103 | 2026-07-22 10:20:24.684 | 2026-10-18 07:01:26.167
+ visit_rescheduled | normal   | visit-tracker   |           46 |             0 | 2026-07-13 16:48:47.49  | 2026-10-17 15:49:13.415
+ visit_created     | normal   | visit-tracker   |           22 |             0 | 2026-10-17 07:58:52.042 | 2026-10-17 13:16:57.444
+ task_due          | high     | smart-generator |           19 |            19 | 2026-10-14 15:20:38.972 | 2026-10-17 02:29:01.398
+ client_inactive   | normal   | smart-generator |           17 |             0 | 2026-10-06 12:43:55.262 | 2026-10-18 07:01:26.205
+ task_due          | normal   | smart-generator |           13 |             0 | 2026-10-15 18:17:47.411 | 2026-10-15 19:15:05.839
+ visit_cancelled   | high     | visit-tracker   |            3 |             3 | 2026-10-17 07:59:11.663 | 2026-10-17 10:36:57.684
+ package_ending    | high     | smart-generator |            2 |             2 | 2026-07-29 14:23:02.752 | 2026-10-18 07:01:25.928
+ package_ending    | normal   | smart-generator |            1 |             0 | 2026-10-17 12:07:12.842 | 2026-10-18 07:01:25.913
+ supply_low_stock  | high     | smart-generator |            1 |             1 | 2026-07-21 08:17:00.471 | 2026-08-22 09:54:49.677
+(10 rows)
+
+=== 04_age_buckets_by_type ===
+       type        | age_0_1d | age_1_7d | age_7_30d | age_30d_plus |    latest_updated_at    
+-------------------+----------+----------+-----------+--------------+-------------------------
+ client_inactive   |        0 |        0 |        32 |           88 | 2026-10-18 07:01:26.205
+ package_ending    |        1 |        0 |         0 |            2 | 2026-10-18 07:01:25.928
+ supply_low_stock  |        0 |        0 |         0 |            1 | 2026-08-22 09:54:49.677
+ task_due          |        0 |       32 |         0 |            0 | 2026-10-17 02:29:01.398
+ visit_cancelled   |        2 |        1 |         0 |            0 | 2026-10-17 10:36:57.684
+ visit_created     |       21 |        1 |         0 |            0 | 2026-10-17 13:16:57.444
+ visit_rescheduled |        4 |        0 |        13 |           29 | 2026-10-17 15:49:13.415
+(7 rows)
+
+=== 05_current_priority_mapping ===
+ frontend_priority | event_count 
+-------------------+-------------
+ action            |         128
+ info              |          99
+(2 rows)
+
+=== 06_marketing_opportunities ===
+      type       | active_count 
+-----------------+--------------
+ client_inactive |          120
+ package_ending  |            3
+(2 rows)
+
+=== 07_duplicate_summary ===
+ duplicate_groups | events_in_duplicate_groups | excess_event_copies 
+------------------+----------------------------+---------------------
+                8 |                         19 |                  11
+(1 row)
+
+=== 08_duplicate_summary_by_type ===
+       type        | duplicate_groups | excess_event_copies 
+-------------------+------------------+---------------------
+ visit_rescheduled |                8 |                  11
+(1 row)
+
+=== 09_unique_fingerprint_constraint_check ===
+ duplicate_fingerprint_groups | excess_event_copies 
+------------------------------+---------------------
+                            0 |                   0
+(1 row)
+
+=== 10_missing_linked_objects ===
+      type       | missing_source_count 
+-----------------+----------------------
+ task_due        |                   27
+ visit_cancelled |                    3
+ visit_created   |                    3
+ client_inactive |                    2
+(4 rows)
+
+=== 11_task_relevance ===
+   type   | active_events | missing_task | completed_task | terminal_by_status | actually_overdue 
+----------+---------------+--------------+----------------+--------------------+------------------
+ task_due |            32 |           27 |              0 |                  0 |                5
+(1 row)
+
+=== 12_supply_relevance ===
+ active_events | missing_supply | replenished | still_low | out_of_stock 
+---------------+----------------+-------------+-----------+--------------
+             1 |              0 |           1 |         0 |            0
+(1 row)
+
+=== 13_package_relevance ===
+ active_events | unique_packages | missing_package | no_longer_low | terminal_package | still_relevant 
+---------------+-----------------+-----------------+---------------+------------------+----------------
+             3 |               3 |               0 |             0 |                0 |              3
+(1 row)
+
+=== 14_package_visual_duplicate_summary ===
+ clients_with_multiple_notifications | notifications_for_these_clients | unique_packages_for_these_clients | possible_same_package_duplicates 
+-------------------------------------+---------------------------------+-----------------------------------+----------------------------------
+                                   1 |                               2 |                                 2 |                                0
+(1 row)
+
+=== 15_visit_event_relevance ===
+       type        | active_events | missing_calendar_entry | terminal_calendar_entry | past_calendar_date | potentially_current 
+-------------------+---------------+------------------------+-------------------------+--------------------+---------------------
+ visit_cancelled   |             3 |                      3 |                       0 |                  0 |                   0
+ visit_created     |            22 |                      3 |                      19 |                 19 |                   0
+ visit_rescheduled |            46 |                      0 |                      42 |                 46 |                   0
+(3 rows)
+
+=== 16_inactive_client_events ===
+ active_events | missing_client | existing_clients 
+---------------+----------------+------------------
+           120 |              2 |              118
+(1 row)
+
+=== 17_recipient_statuses_aggregated ===
+  status  | recipient_states | currently_snoozed 
+----------+------------------+-------------------
+ seen     |               41 |                 0
+ new      |               28 |                 0
+ resolved |                3 |                 0
+(3 rows)
+
+=== 18_active_counts_per_owner_aggregated ===
+ active_owners | min_visible_events | max_visible_events | min_mapped_urgent | max_mapped_urgent 
+---------------+--------------------+--------------------+-------------------+-------------------
+             1 |                 69 |                 69 |                43 |                43
+(1 row)
+
+=== 19_frontend_limit_40_effect ===
+ all_visible_server_events | within_frontend_limit | hidden_by_limit | mapped_urgent_within_first_40 | mapped_urgent_hidden_after_40 
+---------------------------+-----------------------+-----------------+-------------------------------+-------------------------------
+                       227 |                    40 |             187 |                            40 |                            88
+(1 row)
+
+ROLLBACK
