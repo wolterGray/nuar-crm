@@ -30,6 +30,7 @@ export const fetchEmployees = async () => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/employees`, {
     method: "GET",
+    cache: "no-store",
     headers: {"Content-Type": "application/json", ...headers},
   });
 

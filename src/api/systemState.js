@@ -45,6 +45,7 @@ export const fetchSystemState = async () => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/system-state`, {
     method: "GET",
+    cache: "no-store",
     headers: {"Content-Type": "application/json", ...headers},
   });
 

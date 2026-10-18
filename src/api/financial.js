@@ -30,6 +30,7 @@ const request = async (path, {body, label, method = "GET"} = {}) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}${path}`, {
     method,
+    ...(method === "GET" ? {cache: "no-store"} : {}),
     headers: {"Content-Type": "application/json", ...headers},
     ...(body === undefined ? {} : {body: JSON.stringify(body)}),
   });

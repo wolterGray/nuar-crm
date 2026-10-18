@@ -54,6 +54,12 @@ app.options('*', cors(corsOptions));
 app.use(helmet());
 app.use(express.json({ limit: '15mb' }));
 
+// CRM data is mutable and must never be served from a stale browser cache.
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
 // Health endpoint
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 

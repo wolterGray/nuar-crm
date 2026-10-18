@@ -7,7 +7,6 @@ export default function AppGate({
   appSettings,
   authReady,
   authSession,
-  backendLoadError,
   children,
   closeNotification,
   cloudHydrated,
@@ -73,20 +72,6 @@ export default function AppGate({
         />
         <ToastStack notifications={notifications} onClose={closeNotification} />
       </>
-    );
-  }
-
-  if (backendLoadError) {
-    return (
-      <SystemScreen
-        actionLabel="Повторить загрузку"
-        message="Backend недоступен, данные могут быть устаревшими. Проверьте подключение к серверу и повторите загрузку."
-        mode="error"
-        settings={appSettings}
-        title="Backend недоступен"
-        onAction={() => window.location.reload()}
-        onLogout={handleLogout}
-      />
     );
   }
 

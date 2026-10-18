@@ -175,7 +175,6 @@ function App() {
   const [booksyGmailLastSyncAt, setBooksyGmailLastSyncAt] = useState(
     loadStoredBooksyGmailLastSyncAt,
   );
-  const [backendLoadError, setBackendLoadError] = useState("");
   const [appSettings, setAppSettings] = usePersistentState(
     SETTINGS_STORAGE_KEY,
     loadStoredSettings,
@@ -298,7 +297,6 @@ function App() {
           message: error?.message || "Не удалось загрузить клиентов из backend",
           persist: false,
         });
-        setBackendLoadError(error?.message || "Не удалось загрузить клиентов из backend");
       }
     };
 
@@ -336,7 +334,6 @@ function App() {
           message: error?.message || "Не удалось загрузить календарь из backend",
           persist: false,
         });
-        setBackendLoadError(error?.message || "Не удалось загрузить календарь из backend");
       }
     };
 
@@ -380,7 +377,6 @@ function App() {
           message: error?.message || "Не удалось загрузить услуги и мастеров из backend",
           persist: false,
         });
-        setBackendLoadError(error?.message || "Не удалось загрузить каталоги из backend");
       }
     };
 
@@ -427,7 +423,6 @@ function App() {
           message: error?.message || "Не удалось загрузить операционный блок из backend",
           persist: false,
         });
-        setBackendLoadError(error?.message || "Не удалось загрузить операции из backend");
       }
     };
 
@@ -460,7 +455,9 @@ function App() {
         setPackagesCatalog(loadedPackages);
         setClientPackages(
           rawClientPackages.map((item) => {
-            const linkedClient = clients.find((c) => String(c.id) === String(item.clientId));
+            const linkedClient = clientProfiles.find(
+              (client) => String(client.id) === String(item.clientId),
+            );
             const clientName =
               item.client ||
               item.clientName ||
@@ -491,8 +488,12 @@ function App() {
         );
         setCertificates(
           rawCertificates.map((cert) => {
-            const linkedClient = clients.find((c) => String(c.id) === String(cert.clientId));
-            const linkedRecipient = clients.find((c) => String(c.id) === String(cert.recipientId));
+            const linkedClient = clientProfiles.find(
+              (client) => String(client.id) === String(cert.clientId),
+            );
+            const linkedRecipient = clientProfiles.find(
+              (client) => String(client.id) === String(cert.recipientId),
+            );
             const clientName =
               cert.client ||
               cert.clientName ||
@@ -532,7 +533,6 @@ function App() {
           message: error?.message || "Не удалось загрузить финансовый блок из backend",
           persist: false,
         });
-        setBackendLoadError(error?.message || "Не удалось загрузить финансы из backend");
       }
     };
 
@@ -541,7 +541,7 @@ function App() {
     return () => {
       active = false;
     };
-  }, [authSession, pushNotification]);
+  }, [authSession, clientProfiles, pushNotification]);
 
   useEffect(() => {
     if (!authSession) {
@@ -616,7 +616,6 @@ function App() {
           message: error?.message || "Не удалось загрузить настройки и импорт из backend",
           persist: false,
         });
-        setBackendLoadError(error?.message || "Не удалось загрузить служебное состояние из backend");
       }
     };
 
@@ -1915,7 +1914,6 @@ function App() {
       appSettings={appSettings}
       authReady={authReady}
       authSession={authSession}
-      backendLoadError={backendLoadError}
       closeNotification={closeNotification}
       cloudHydrated={cloudHydrated}
       cloudLoadError={cloudLoadError}
