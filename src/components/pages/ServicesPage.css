@@ -330,6 +330,12 @@
 }
 
 /* Action Buttons */
+.services-header-secondary-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .services-btn-categories {
   display: inline-flex;
   align-items: center;
@@ -2864,85 +2870,154 @@ select.services-status-select option {
     border: none;
   }
 
-  .services-table-row {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto 32px;
-    grid-template-areas:
-      "service price actions"
-      "meta status status";
-    align-items: center;
-    gap: 8px 10px;
-    height: auto !important;
-    min-height: 0 !important;
-    padding: 12px 14px !important;
-    background: #141417 !important;
-    border: 1px solid rgba(255, 255, 255, 0.07) !important;
-    border-radius: 12px !important;
+  /* Category Card Header on Mobile */
+  .services-category-col-label {
+    display: none !important;
   }
 
-  .services-col-check,
-  .services-col-variants {
+  .services-category-card-header {
+    padding: 10px 14px !important;
+    min-height: 42px !important;
+  }
+
+  .services-category-header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .services-category-card-title {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+  }
+
+  .services-category-card-count {
+    font-size: 11px !important;
+  }
+
+  /* Service Card Rows on Mobile */
+  .services-card-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto 32px !important;
+    grid-template-rows: auto auto !important;
+    grid-template-areas:
+      "service price actions"
+      "duration switch actions" !important;
+    align-items: center !important;
+    gap: 6px 12px !important;
+    height: auto !important;
+    min-height: 58px !important;
+    padding: 11px 14px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.045) !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+  }
+
+  .services-card-row:last-child {
+    border-bottom: none !important;
+  }
+
+  .services-col-check {
     display: none !important;
   }
 
   .services-col-service {
-    grid-area: service;
-    min-width: 0;
-    padding-right: 0;
+    grid-area: service !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding: 0 !important;
   }
 
   .services-service-info-wrap {
-    overflow: visible;
-    gap: 4px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
   .services-service-name {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.3;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
   }
 
   .services-service-tags-row {
-    flex-wrap: wrap;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    margin-top: 2px !important;
+  }
+
+  .services-badge-pill {
+    font-size: 10.5px !important;
+    padding: 1px 6px !important;
+    border-radius: 4px !important;
+    white-space: nowrap !important;
   }
 
   .services-col-price {
-    grid-area: price;
-    width: auto;
-    padding-right: 0;
-    font-size: 14px;
-    font-weight: 700;
-    color: #ffffff;
-    align-self: flex-start;
-  }
-
-  .services-col-actions {
-    grid-area: actions;
-    width: 32px;
-    align-self: flex-start;
+    grid-area: price !important;
+    width: auto !important;
+    min-width: 0 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    white-space: nowrap !important;
+    text-align: right !important;
+    align-self: center !important;
+    padding: 0 !important;
   }
 
   .services-col-duration {
-    grid-area: meta;
-    display: block !important;
-    width: auto;
-    font-size: 12px;
-    color: #a1a1aa;
-    white-space: normal;
+    grid-area: duration !important;
+    display: flex !important;
+    align-items: center !important;
+    width: auto !important;
+    min-width: 0 !important;
+    font-size: 12px !important;
+    color: #a1a1aa !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    padding: 0 !important;
   }
 
-  .services-col-category {
-    display: none !important;
+  .services-col-switch {
+    grid-area: switch !important;
+    width: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    padding: 0 !important;
   }
 
-  .services-col-status {
-    grid-area: status;
-    width: auto;
-    justify-content: flex-end;
-    justify-self: end;
+  .services-col-actions {
+    grid-area: actions !important;
+    width: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    align-self: center !important;
+    padding: 0 !important;
+  }
+
+  .services-row-action-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: #a1a1aa !important;
   }
 
   .services-drawer-root,
@@ -3101,14 +3176,13 @@ select.services-status-select option {
   }
 
   .services-page-root .services-header-controls {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 7px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
     width: 100% !important;
   }
 
   .services-page-root .services-scope-toggle {
-    grid-column: 1 / -1 !important;
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     width: 100% !important;
@@ -3134,12 +3208,20 @@ select.services-status-select option {
     box-shadow: none !important;
   }
 
-  .services-page-root .services-search-box {
-    grid-column: 1 / -1 !important;
+  .services-page-root .services-search-with-filter {
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
     width: 100% !important;
+  }
+
+  .services-page-root .services-search-box {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
     height: 42px !important;
     min-height: 42px !important;
     max-height: 42px !important;
@@ -3151,89 +3233,53 @@ select.services-status-select option {
     overflow: hidden !important;
   }
 
-  .services-page-root .services-search-icon {
+  .services-page-root .services-filter-popover-wrap {
     flex-shrink: 0 !important;
-    color: var(--services-mobile-muted) !important;
-    margin: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
   }
 
-  .services-page-root .services-search-input {
-    flex: 1 1 0% !important;
-    min-width: 0 !important;
+  .services-page-root .services-filter-icon-btn {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .services-page-root .services-btn-add-primary {
     width: 100% !important;
-    height: 100% !important;
-    min-height: 0 !important;
-    max-height: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    outline: none !important;
-    background: transparent !important;
-    color: var(--services-mobile-text) !important;
-    font-size: 16px !important;
-    line-height: normal !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    background: var(--services-mobile-accent) !important;
+    border-color: var(--services-mobile-accent) !important;
     box-shadow: none !important;
   }
 
-  .services-page-root .services-search-input::placeholder {
-    color: var(--services-mobile-muted) !important;
+  .services-page-root .services-header-secondary-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
   }
 
-  .services-page-root .services-search-clear {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 24px !important;
-    height: 24px !important;
-    min-width: 24px !important;
-    min-height: 24px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    background: transparent !important;
-    color: var(--services-mobile-muted) !important;
-    cursor: pointer !important;
-    border-radius: 4px !important;
-    flex-shrink: 0 !important;
-  }
-
-  .services-page-root .services-btn-add-primary,
   .services-page-root .services-btn-categories,
   .services-page-root .services-btn-price {
     width: 100% !important;
-    height: 42px !important;
+    height: 40px !important;
+    min-height: 40px !important;
     justify-content: center !important;
     padding-inline: 10px !important;
     border-radius: 9px !important;
     font-size: 13px !important;
+    color: #d8d8db !important;
+    background: var(--services-mobile-field) !important;
+    border: 1px solid var(--services-mobile-border) !important;
     box-shadow: none !important;
-  }
-
-  .services-page-root .services-btn-add-primary {
-    grid-row: 3 !important;
-    grid-column: 1 / -1 !important;
-    color: #fff !important;
-    background: var(--services-mobile-accent) !important;
-    border-color: var(--services-mobile-accent) !important;
-  }
-
-  .services-page-root .services-btn-categories {
-    grid-row: 4 !important;
-    grid-column: 1 !important;
-    color: #d8d8db !important;
-    background: var(--services-mobile-field) !important;
-    border-color: var(--services-mobile-border) !important;
-  }
-
-  .services-page-root .services-btn-price {
-    grid-row: 4 !important;
-    grid-column: 2 !important;
-    color: #d8d8db !important;
-    background: var(--services-mobile-field) !important;
-    border-color: var(--services-mobile-border) !important;
   }
 
   .services-page-root .services-categories-label-long {
@@ -3314,13 +3360,9 @@ select.services-status-select option {
     padding: 8px 4px 3px !important;
   }
 
-  .services-page-root .services-table-row {
-    gap: 7px 9px !important;
-    padding: 11px 12px !important;
-    background: var(--services-mobile-surface) !important;
-    border: 1px solid var(--services-mobile-border) !important;
-    border-radius: 10px !important;
-    box-shadow: none !important;
+  .services-page-root .services-card-row {
+    gap: 6px 12px !important;
+    padding: 11px 14px !important;
   }
 
   .services-page-root .services-service-name,

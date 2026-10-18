@@ -727,24 +727,25 @@ export default function ServicesPage({
             </div>
           </div>
 
-          {/* Manage Categories Button */}
-          <button
-            className="services-btn-categories"
-            type="button"
-            onClick={() => setIsCatModalOpen(true)}>
-            <AppIcon name="sliders" size="xs" />
-            <span className="services-categories-label-long">Управление категориями</span>
-            <span className="services-categories-label-short">Категории</span>
-          </button>
+          {/* Secondary Actions: Categories & Price */}
+          <div className="services-header-secondary-actions">
+            <button
+              className="services-btn-categories"
+              type="button"
+              onClick={() => setIsCatModalOpen(true)}>
+              <AppIcon name="sliders" size="xs" />
+              <span className="services-categories-label-long">Управление категориями</span>
+              <span className="services-categories-label-short">Категории</span>
+            </button>
 
-          {/* Price List Generator Button */}
-          <button
-            className="services-btn-price"
-            type="button"
-            onClick={() => setIsPriceListOpen(true)}>
-            <AppIcon name="fileText" size="xs" />
-            <span>Прайс</span>
-          </button>
+            <button
+              className="services-btn-price"
+              type="button"
+              onClick={() => setIsPriceListOpen(true)}>
+              <AppIcon name="fileText" size="xs" />
+              <span>Прайс</span>
+            </button>
+          </div>
 
           {/* Add Service Button */}
           <button
