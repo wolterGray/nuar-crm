@@ -2749,46 +2749,50 @@ select.services-status-select option {
   }
 
   .services-header-controls {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
     width: 100%;
   }
 
-  .services-scope-toggle {
-    grid-column: 1 / -1;
+  .services-search-with-filter {
+    order: 1;
     width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .services-scope-btn {
-    justify-content: center;
-    height: 32px;
   }
 
   .services-search-box {
-    grid-column: 1 / -1;
     width: 100%;
     height: 42px;
     box-sizing: border-box;
   }
 
   .services-btn-add-primary {
-    grid-column: 1;
-    grid-row: 3;
+    order: 2;
+    grid-column: auto;
+    grid-row: auto;
     width: 100%;
-    height: 38px;
+    height: 44px;
     justify-content: center;
     font-size: 13px;
   }
 
-  .services-btn-categories {
-    grid-column: 2;
-    grid-row: 3;
-    height: 38px;
+  .services-header-secondary-actions {
+    order: 3;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .services-btn-categories,
+  .services-btn-price {
+    grid-column: auto;
+    grid-row: auto;
+    width: 100%;
+    height: 40px;
     padding: 0 12px;
     font-size: 12px;
+    justify-content: center;
   }
 
   .services-filter-bar {
@@ -3209,6 +3213,7 @@ select.services-status-select option {
   }
 
   .services-page-root .services-search-with-filter {
+    order: 1 !important;
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
@@ -3247,6 +3252,9 @@ select.services-status-select option {
   }
 
   .services-page-root .services-btn-add-primary {
+    order: 2 !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
     width: 100% !important;
     height: 44px !important;
     min-height: 44px !important;
@@ -3261,6 +3269,7 @@ select.services-status-select option {
   }
 
   .services-page-root .services-header-secondary-actions {
+    order: 3 !important;
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 8px !important;
@@ -3269,6 +3278,8 @@ select.services-status-select option {
 
   .services-page-root .services-btn-categories,
   .services-page-root .services-btn-price {
+    grid-column: auto !important;
+    grid-row: auto !important;
     width: 100% !important;
     height: 40px !important;
     min-height: 40px !important;
