@@ -108,15 +108,18 @@ export const buildDailyPayrollDayReport = ({
   });
 
   const totals = rows.reduce(
-    (summary, row) => ({
-      paidCount: summary.paidCount + (row.isPaid ? 1 : 0),
-      paidPayout: summary.paidPayout + (row.isPaid ? row.payout : 0),
-      tips: summary.tips + row.tip,
-      totalPayout: summary.totalPayout + row.payout,
-      unpaidCount: summary.unpaidCount + (row.isPaid ? 0 : 1),
-      unpaidPayout: summary.unpaidPayout + (row.isPaid ? 0 : row.payout),
-      visitsCount: summary.visitsCount + 1,
-    }),
+    (summary, row) => {
+      const hasPayout = row.payout > 0;
+      return {
+        paidCount: summary.paidCount + (hasPayout && row.isPaid ? 1 : 0),
+        paidPayout: summary.paidPayout + (hasPayout && row.isPaid ? row.payout : 0),
+        tips: summary.tips + row.tip,
+        totalPayout: summary.totalPayout + row.payout,
+        unpaidCount: summary.unpaidCount + (hasPayout && !row.isPaid ? 1 : 0),
+        unpaidPayout: summary.unpaidPayout + (hasPayout && !row.isPaid ? row.payout : 0),
+        visitsCount: summary.visitsCount + 1,
+      };
+    },
     {
       paidCount: 0,
       paidPayout: 0,

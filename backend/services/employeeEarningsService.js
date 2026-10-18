@@ -99,6 +99,9 @@ const isCompletedEarningEligibleVisit = (visitPayload) => {
   if (!visitPayload || visitPayload.recordType === 'operation') {
     return false;
   }
+  if (isDayClosePackageVisit(visitPayload)) {
+    return false;
+  }
   return !isDayCloseCancelledVisit(visitPayload) && !isDayCloseBarterVisit(visitPayload);
 };
 
@@ -793,12 +796,20 @@ const cleanupPackageVisitEarningsAndEnsureSales = async (tx) => {
     }
   }
 
-  const nonPackageVisits = await tx.visit.findMany({
+  const visits = await tx.visit.findMany({
     include: VISIT_WITH_EARNING_INCLUDE,
   });
 
-  for (const visit of nonPackageVisits) {
+  for (const visit of visits) {
     const visitPayload = getVisitPayloadForDayClose(visit);
+    if (isDayClosePackageVisit(visitPayload)) {
+      for (const earning of visit.employeeEarnings ?? []) {
+        if (!earning.payoutId) {
+          await tx.employeeEarning.delete({ where: { id: earning.id } });
+        }
+      }
+      continue;
+    }
     if (!isCompletedEarningEligibleVisit(visitPayload)) continue;
 
     const isLegacyNataliMaxPair = isLegacyNataliMaxPairedCashVisit(visitPayload);
@@ -827,6 +838,7 @@ module.exports = {
   EARNING_SOURCE_VISIT,
   earningAmountSum,
   getActualPriceForEarning,
+  isCompletedEarningEligibleVisit,
   serializeEmployeeEarning,
   serializeVisitWithEarning,
   removeUnpaidEmployeeEarningForClientPackage,

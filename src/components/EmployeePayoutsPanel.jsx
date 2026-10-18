@@ -311,7 +311,7 @@ function PayoutHistory({disabled = false, onCancel, onClear, onOpen, onRemove, p
             <button className="employee-payout-history-open" type="button" onClick={() => onOpen(payout.id)}>
               <strong>{payout.paidAt ? new Date(payout.paidAt).toLocaleDateString("ru-RU") : "Дата не указана"}</strong>
               <small>
-                {payout.employee?.name || payout.employeeName || "Сотрудник"} · {payout.earnings?.length ?? 0} массажей
+                {payout.employee?.name || payout.employeeName || "Сотрудник"} · {payout.earnings?.length ?? 0} начислений
               </small>
               <span className={`employee-payout-history-status is-${String(payout.status || "").toLowerCase()}`}>
                 {payout.status}
@@ -585,7 +585,7 @@ function EmployeePayoutsPanel({financialQualityReport, pushNotification, onOpenP
       <div className="employee-payouts-header">
         <div>
           <h2>Расчёты</h2>
-          <p>К выплате не обнуляется фильтрами: старые неоплаченные массажи остаются долгом.</p>
+          <p>К выплате не обнуляется фильтрами: старые неоплаченные начисления остаются долгом.</p>
         </div>
         <div className="employee-payout-period-row">
           <PeriodFilters
@@ -814,7 +814,7 @@ function EmployeePayoutsPanel({financialQualityReport, pushNotification, onOpenP
         message={
           payoutConfirmEarnings.length > 0
             ? [
-                `${payoutConfirmEarnings.length} массажей к выплате.`,
+                `${payoutConfirmEarnings.length} начислений к выплате.`,
                 ...payoutConfirmEarnings.slice(0, 3).map((earning) => {
                   const {client, service} = getVisitLabel(earning);
                   return `${service} · ${client} · ${formatMoney(earning.amount)}`;

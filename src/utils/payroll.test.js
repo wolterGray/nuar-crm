@@ -52,9 +52,9 @@ describe("payroll", () => {
     expect(report.employees).toHaveLength(1);
     expect(report.employees[0].employeeName).toBe("Max");
     expect(report.employees[0].servicePayout).toBe(200);
-    expect(report.employees[0].packageVisitPayout).toBe(80);
+    expect(report.employees[0].packageVisitPayout).toBe(0);
     expect(report.employees[0].packageSalePayout).toBe(400);
-    expect(report.totals.totalPayout).toBe(680);
+    expect(report.totals.totalPayout).toBe(600);
   });
 
   it("creates and finds payroll record by period key", () => {

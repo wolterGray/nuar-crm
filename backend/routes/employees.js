@@ -147,47 +147,25 @@ router.delete('/employees/:id', requireOwner, async (req, res) => {
       return res.status(404).json({ success: false, error: 'Employee not found' });
     }
 
-    const [visitCount, earningsCount, payoutCount, pkgCount, certCount, payrollCount] =
-      await Promise.all([
-        prisma.visit.count({ where: { employeeId: id } }),
-        prisma.employeeEarning.count({ where: { employeeId: id } }),
-        prisma.employeePayout.count({ where: { employeeId: id } }),
-        prisma.clientPackage.count({ where: { employeeId: id } }),
-        prisma.certificate.count({ where: { employeeId: id } }),
-        prisma.payrollRecord.count({ where: { employeeId: id } }),
-      ]);
-
-    const hasRelated =
-      visitCount > 0 ||
-      earningsCount > 0 ||
-      payoutCount > 0 ||
-      pkgCount > 0 ||
-      certCount > 0 ||
-      payrollCount > 0;
-
-    let deletePromise;
-    if (hasRelated) {
-      deletePromise = prisma.employee
-        .update({
-          where: { id },
-          data: {
+    // Employees are always archived so historical visits and payouts keep their owner.
+    const deletePromise = prisma.employee
+      .update({
+        where: { id },
+        data: {
+          status: 'Удален',
+          siteVisible: false,
+          email: null,
+          payload: {
+            ...(existing.payload && typeof existing.payload === 'object'
+              ? existing.payload
+              : {}),
+            deletedAt: new Date().toISOString(),
             status: 'Удален',
-            siteVisible: false,
-            email: existing.email ? `${existing.email}.deleted.${Date.now()}` : null,
-            payload: {
-              ...(existing.payload && typeof existing.payload === 'object'
-                ? existing.payload
-                : {}),
-              deletedAt: new Date().toISOString(),
-              status: 'Удален',
-              originalEmail: existing.email || null,
-            },
+            originalEmail: existing.email || null,
           },
-        })
-        .then(withStoredId);
-    } else {
-      deletePromise = prisma.employee.delete({ where: { id } }).then(withStoredId);
-    }
+        },
+      })
+      .then(withStoredId);
 
     await auditDelete(
       prisma,

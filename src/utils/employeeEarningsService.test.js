@@ -78,7 +78,7 @@ describe("employee earning calculations", () => {
     expect(String(snapshot.amount)).toBe("144");
   });
 
-  it("pays package visit executor from package unit price even when visit paidAmount is 0", async () => {
+  it("does not create an earning for a package visit", async () => {
     const tx = {
       clientPackage: {
         findUnique: async () => ({id: 12, price: 1200, totalVisits: 6, payload: {master: "Оля"}}),
@@ -100,10 +100,7 @@ describe("employee earning calculations", () => {
       },
     });
 
-    expect(snapshot.employeeId).toBe(7);
-    expect(String(snapshot.actualPrice)).toBe("200");
-    expect(String(snapshot.commissionPercent)).toBe("40");
-    expect(String(snapshot.amount)).toBe("80");
+    expect(snapshot).toBeNull();
   });
 
   it("splits a parallel visit actual price and pays every assigned employee by own rate", async () => {
@@ -238,7 +235,7 @@ describe("employee earning calculations", () => {
     expect(String(snapshot.amount)).toBe("60");
   });
 
-  it("keeps package sale commission separate from package visit executor commission", async () => {
+  it("pays the package seller once and does not pay the package visit executor", async () => {
     const employees = new Map([
       [7, {id: 7, commissionRate: 40, name: "Макс"}],
       [9, {id: 9, commissionRate: 20, name: "Оля"}],
@@ -276,9 +273,7 @@ describe("employee earning calculations", () => {
     expect(saleSnapshot.employeeId).toBe(9);
     expect(String(saleSnapshot.actualPrice)).toBe("1200");
     expect(String(saleSnapshot.amount)).toBe("240");
-    expect(visitSnapshot.employeeId).toBe(7);
-    expect(String(visitSnapshot.actualPrice)).toBe("200");
-    expect(String(visitSnapshot.amount)).toBe("80");
+    expect(visitSnapshot).toBeNull();
   });
 
   it("pays every master in a paired massage from their own service share", async () => {
@@ -312,7 +307,7 @@ describe("employee earning calculations", () => {
     expect(snapshots.map((snapshot) => String(snapshot.amount))).toEqual(["100", "100"]);
   });
 
-  it("creates earnings for an old paired package visit without saved parallel employees", async () => {
+  it("does not create earnings for an old paired package visit", async () => {
     const employees = new Map([
       [7, {id: 7, commissionRate: 40, name: "Наташа"}],
       [8, {id: 8, commissionRate: 40, name: "Алена"}],
@@ -345,13 +340,10 @@ describe("employee earning calculations", () => {
       },
     });
 
-    expect(snapshots).toHaveLength(2);
-    expect(snapshots.map((snapshot) => snapshot.employeeId)).toEqual([7, 8]);
-    expect(snapshots.map((snapshot) => String(snapshot.actualPrice))).toEqual(["100", "100"]);
-    expect(snapshots.map((snapshot) => String(snapshot.amount))).toEqual(["40", "40"]);
+    expect(snapshots).toEqual([]);
   });
 
-  it("detects an old paired package visit from service payload and package usage fields", async () => {
+  it("does not create earnings when a legacy paired visit has package usage fields", async () => {
     const employees = new Map([
       [7, {id: 7, commissionRate: 40, name: "Наталья"}],
       [8, {id: 8, commissionRate: 40, name: "Макс"}],
@@ -388,9 +380,7 @@ describe("employee earning calculations", () => {
       },
     });
 
-    expect(snapshots).toHaveLength(2);
-    expect(snapshots.map((snapshot) => snapshot.employeeId)).toEqual([7, 8]);
-    expect(snapshots.map((snapshot) => String(snapshot.amount))).toEqual(["40", "40"]);
+    expect(snapshots).toEqual([]);
   });
 
   it("creates earnings for an old cash paired visit from service payload", async () => {
@@ -625,6 +615,41 @@ describe("employee payout validation and summaries", () => {
     await expect(cleanupPackageVisitEarningsAndEnsureSales(tx)).resolves.toBeUndefined();
     expect(created).toHaveLength(1);
     expect(created[0]).toMatchObject({employeeId: 2, visitId: 55});
+  });
+
+  it("removes only unpaid package visit earnings and preserves paid history", async () => {
+    const deletedIds = [];
+    const tx = {
+      clientPackage: {
+        findMany: async () => [],
+      },
+      employeeEarning: {
+        delete: async ({where}) => {
+          deletedIds.push(where.id);
+          return {id: where.id};
+        },
+      },
+      visit: {
+        findMany: async () => [
+          {
+            id: 57,
+            employeeEarnings: [
+              {id: 201, payoutId: null},
+              {id: 202, payoutId: 12},
+            ],
+            payload: {
+              packageSessionsUsed: 1,
+              packageUsageId: 22,
+              payment: "Пакет",
+              status: "completed",
+            },
+          },
+        ],
+      },
+    };
+
+    await expect(cleanupPackageVisitEarningsAndEnsureSales(tx)).resolves.toBeUndefined();
+    expect(deletedIds).toEqual([201]);
   });
 
   it("repairs the legacy 06.08 cash Natali and Max paired massage without pair markers", async () => {

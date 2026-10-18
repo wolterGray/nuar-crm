@@ -90,12 +90,12 @@ describe("dailyPayroll", () => {
 
     expect(report.rows).toHaveLength(3);
     expect(report.rows[0].payout).toBe(100);
-    expect(report.rows[1].payout).toBe(80);
+    expect(report.rows[1].payout).toBe(0);
     expect(report.rows[2].payout).toBe(120);
-    expect(report.totals.totalPayout).toBe(300);
+    expect(report.totals.totalPayout).toBe(220);
     expect(report.totals.paidPayout).toBe(120);
-    expect(report.totals.unpaidPayout).toBe(180);
-    expect(report.totals.unpaidCount).toBe(2);
+    expect(report.totals.unpaidPayout).toBe(100);
+    expect(report.totals.unpaidCount).toBe(1);
     expect(isVisitMasterPayoutPaid({masterPayoutPaidAt: "2026-06-12T18:00:00.000Z"})).toBe(
       true,
     );
