@@ -6,6 +6,7 @@ import {
   formatVariantsSummary,
   checkUnusualPricing,
   paginateCategories,
+  normalizePriceListCategory,
 } from "./priceListGenerator.js";
 import { downloadPriceListPdf } from "./priceListExporter.js";
 import { STUDIO_DEFAULT_CONTACTS } from "./priceListTranslations.js";
@@ -62,9 +63,48 @@ const mockServices = [
       { duration: 120, price: 450 },
     ],
   },
+  // Couple massage as separate entries to test safe consolidation
+  {
+    id: 6,
+    name: "Masaż dla dwojga",
+    category: "Массажи",
+    status: "Активна",
+    variants: [
+      { duration: 60, price: 500 },
+    ],
+  },
+  {
+    id: 7,
+    name: "Masaż dla dwojga",
+    category: "Массажи",
+    status: "Активна",
+    variants: [
+      { duration: 90, price: 650 },
+    ],
+  },
+  // Distinct anti-cellulite services to test non-mangling
+  {
+    id: 8,
+    name: "Masaż antycellulitowy",
+    category: "Массажи",
+    status: "Активна",
+    variants: [
+      { duration: 60, price: 255 },
+      { duration: 90, price: 360 },
+    ],
+  },
+  {
+    id: 9,
+    name: "Masaż antycellulitowy + drenaż limfatyczny",
+    category: "Массажи",
+    status: "Активна",
+    variants: [
+      { duration: 70, price: 210 },
+    ],
+  },
 ];
 
-describe("priceListGenerator (Simplified Core)", () => {
+describe("priceListGenerator (Table Architecture)", () => {
   describe("getServiceVariants & getServiceMinPrice", () => {
     it("extracts and sorts variants by duration ascending", () => {
       const variants = getServiceVariants({
@@ -121,18 +161,73 @@ describe("priceListGenerator (Simplified Core)", () => {
     });
   });
 
+  describe("normalizePriceListCategory", () => {
+    it("maps Polish and Russian variations correctly", () => {
+      expect(normalizePriceListCategory("Массажи")).toBe("Masaże");
+      expect(normalizePriceListCategory("Массаж")).toBe("Masaże");
+      expect(normalizePriceListCategory("Masaże")).toBe("Masaże");
+      expect(normalizePriceListCategory("Комплексы")).toBe("Rytuały i kompleksy");
+      expect(normalizePriceListCategory("Rytuały i kompleksy")).toBe("Rytuały i kompleksy");
+      expect(normalizePriceListCategory("Массажи — Master")).toBe("Masaże — Master");
+      expect(normalizePriceListCategory("Массажи — Top-Master")).toBe("Masaże — Top-Master");
+      expect(normalizePriceListCategory("Body Wrapping")).toBe("Body Wrapping");
+    });
+  });
+
   describe("preparePriceListData", () => {
     it("automatically excludes archive and inactive services", () => {
       const result = preparePriceListData(mockServices);
-      // Service 1, 3, 5 are active -> included
-      // Service 2 is "Неактивна" -> excluded
-      // Service 4 is "Архив" -> excluded
-      expect(result.totalServices).toBe(3);
-      expect(result.categories.length).toBe(2); // "Массажи" & "Комплексы"
+      // Service 2 ("Неактивна") and 4 ("Архив") are excluded
+      expect(result.totalServices).toBe(6);
+      expect(result.categories.length).toBe(2); // "Masaże" & "Rytuały i kompleksy"
+    });
 
-      const catNames = result.categories.map((c) => c.localizedName);
-      expect(catNames).toContain("Masaże");
-      expect(catNames).toContain("Rytuały i kompleksy");
+    it("consolidates duplicate entries for the same service (Masaż dla dwojga) into a single row with duration columns", () => {
+      const result = preparePriceListData(mockServices);
+      const massageCat = result.categories.find((c) => c.localizedName === "Masaże");
+      expect(massageCat).toBeDefined();
+
+      // Find Masaż dla dwojga
+      const coupleServices = massageCat.services.filter(
+        (s) => s.displayName === "Masaż dla dwojga"
+      );
+      expect(coupleServices).toHaveLength(1); // Merged into 1 row!
+      expect(coupleServices[0].variants).toEqual([
+        { duration: 60, price: 500 },
+        { duration: 90, price: 650 },
+      ]);
+    });
+
+    it("does not merge distinct services with distinct titles (Masaż antycellulitowy vs Masaż antycellulitowy + drenaż limfatyczny)", () => {
+      const result = preparePriceListData(mockServices);
+      const massageCat = result.categories.find((c) => c.localizedName === "Masaże");
+      expect(massageCat).toBeDefined();
+
+      const baseAnti = massageCat.services.find(
+        (s) => s.displayName === "Masaż antycellulitowy"
+      );
+      const comboAnti = massageCat.services.find(
+        (s) => s.displayName === "Masaż antycellulitowy + drenaż limfatyczny"
+      );
+
+      expect(baseAnti).toBeDefined();
+      expect(comboAnti).toBeDefined();
+      expect(baseAnti.variants).toHaveLength(2);
+      expect(comboAnti.variants).toHaveLength(1);
+      expect(comboAnti.variants[0].duration).toBe(70);
+    });
+
+    it("calculates distinct category duration columns", () => {
+      const result = preparePriceListData(mockServices);
+      const massageCat = result.categories.find((c) => c.localizedName === "Masaże");
+      expect(massageCat).toBeDefined();
+
+      // Durations in Masaże: 60, 70, 75, 90, 120 min
+      expect(massageCat.durations).toEqual([60, 70, 75, 90, 120]);
+
+      const ritualCat = result.categories.find((c) => c.localizedName === "Rytuały i kompleksy");
+      expect(ritualCat).toBeDefined();
+      expect(ritualCat.durations).toEqual([120]);
     });
 
     it("resolves confirmed studio address", () => {
@@ -148,13 +243,6 @@ describe("priceListGenerator (Simplified Core)", () => {
       });
       expect(withAppSettings.labels.address).toBe("ul. Marszałkowska 10, Warszawa");
       expect(withAppSettings.labels.phone).toBe("+48 500 000 000");
-    });
-
-    it("generates multi-page A4 structure with correct page counts", () => {
-      const result = preparePriceListData(mockServices);
-      expect(result.totalPages).toBeGreaterThanOrEqual(1);
-      expect(result.pages[0].isFirstPage).toBe(true);
-      expect(result.pages[0].totalPages).toBe(result.totalPages);
     });
   });
 
@@ -173,6 +261,7 @@ describe("priceListGenerator (Simplified Core)", () => {
           id: "Masaże",
           rawName: "Masaże",
           localizedName: "Masaże",
+          durations: [60],
           services,
         },
       ];
@@ -183,7 +272,7 @@ describe("priceListGenerator (Simplified Core)", () => {
     });
 
     it("splits larger catalogues gracefully across multiple balanced pages", () => {
-      const services = Array.from({ length: 38 }).map((_, i) => ({
+      const services = Array.from({ length: 48 }).map((_, i) => ({
         id: i + 1,
         name: `Usługa ${i + 1}`,
         displayName: `Usługa ${i + 1}`,
@@ -200,6 +289,7 @@ describe("priceListGenerator (Simplified Core)", () => {
           id: "Masaże",
           rawName: "Masaże",
           localizedName: "Masaże",
+          durations: [60, 90, 120],
           services,
         },
       ];

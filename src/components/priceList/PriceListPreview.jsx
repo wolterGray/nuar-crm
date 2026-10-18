@@ -76,51 +76,80 @@ export default function PriceListPreview({ priceListData }) {
             {/* Document Header */}
             <DocumentHeader isFirstPage={page.isFirstPage} />
 
-            {/* Categories and Services */}
+            {/* Categories and Services in Table Layout */}
             <div className="price-content-body">
-              {page.categories.map((cat) => (
-                <section key={cat.id} className="price-category-block">
-                  <div className="price-cat-header">
-                    <h3 className="price-cat-title">{cat.localizedName}</h3>
-                    <div className="price-cat-divider" aria-hidden="true" />
-                  </div>
+              {page.categories.map((cat) => {
+                const durations = cat.durations || [];
+                const hasDurations = durations.length > 0;
 
-                  <div className="price-services-list">
-                    {cat.services.map((svc) => (
-                      <div key={svc.id} className="price-service-row">
-                        <div className="price-service-info">
-                          <span className="price-service-name">{svc.displayName}</span>
-                          {svc.isCombo && (
-                            <span className="price-service-badge">Pakiet</span>
-                          )}
-                        </div>
+                return (
+                  <section key={cat.id} className="price-category-block">
+                    {/* Category Title with strong contrast and accent line */}
+                    <div className="price-cat-header">
+                      <h3 className="price-cat-title">{cat.localizedName}</h3>
+                      <div className="price-cat-divider" aria-hidden="true" />
+                    </div>
 
-                        <div className="price-variants-matrix">
-                          {svc.variants && svc.variants.length > 0 ? (
-                            svc.variants.map((v, i) => (
-                              <div key={i} className="price-variant-item">
-                                <span className="price-var-duration">
-                                  {v.duration} min
+                    {/* Clean Table with Duration Columns */}
+                    <div className="price-table-wrapper">
+                      <table className="price-table">
+                        <thead>
+                          <tr className="price-table-head-row">
+                            <th className="price-th-service">Usługa</th>
+                            {hasDurations ? (
+                              durations.map((d) => (
+                                <th key={d} className="price-th-duration">
+                                  {d} min
+                                </th>
+                              ))
+                            ) : (
+                              <th className="price-th-duration">Cena</th>
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {cat.services.map((svc) => (
+                            <tr key={svc.id} className="price-table-row">
+                              <td className="price-td-service">
+                                <span className="price-service-name">
+                                  {svc.displayName}
                                 </span>
-                                <span className="price-var-dash">—</span>
-                                <span className="price-var-price">
-                                  {v.price} zł
-                                </span>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="price-variant-item">
-                              <span className="price-var-price">
-                                {svc.price || svc.minPrice} zł
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ))}
+                              </td>
+
+                              {hasDurations ? (
+                                durations.map((d) => {
+                                  const variant = svc.variants?.find(
+                                    (v) => v.duration === d
+                                  );
+                                  return (
+                                    <td key={d} className="price-td-price">
+                                      {variant ? (
+                                        <span className="price-val">
+                                          {variant.price} zł
+                                        </span>
+                                      ) : (
+                                        <span className="price-val-dash" aria-label="Brak wariantu">
+                                          —
+                                        </span>
+                                      )}
+                                    </td>
+                                  );
+                                })
+                              ) : (
+                                <td className="price-td-price">
+                                  <span className="price-val">
+                                    {svc.price || svc.minPrice} zł
+                                  </span>
+                                </td>
+                              )}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                );
+              })}
             </div>
 
             {/* Document Footer */}

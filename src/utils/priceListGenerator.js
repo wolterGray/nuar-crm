@@ -1,10 +1,21 @@
-import { normalizeCategory, CANONICAL_CATEGORIES } from "./serviceCategories.js";
+import { normalizeCategory } from "./serviceCategories.js";
 import {
   getTranslatedCategory,
   getTranslatedService,
   UI_LABELS,
   STUDIO_DEFAULT_CONTACTS,
 } from "./priceListTranslations.js";
+
+/**
+ * Standard Polish canonical category display order for the price list
+ */
+export const PRICE_LIST_CATEGORY_ORDER = [
+  "Masaże",
+  "Rytuały i kompleksy",
+  "Body Wrapping",
+  "Masaże — Master",
+  "Masaże — Top-Master",
+];
 
 /**
  * Resolves clean sorted variants for a service while preserving exact paired prices
@@ -61,7 +72,7 @@ export function checkUnusualPricing(variants) {
 }
 
 /**
- * Formats duration and price summary string
+ * Formats duration and price summary string (for text export/debug)
  */
 export function formatVariantsSummary(variants, priceMode = "full", lang = "pl") {
   const labels = UI_LABELS[lang] || UI_LABELS.pl;
@@ -78,31 +89,56 @@ export function formatVariantsSummary(variants, priceMode = "full", lang = "pl")
 }
 
 /**
+ * Normalizes category for price list grouping, mapping Polish and Russian variations
+ */
+export function normalizePriceListCategory(rawCategory) {
+  const s = String(rawCategory ?? "").trim();
+  if (!s) return "Pozostałe usługi";
+  const lower = s.toLowerCase();
+
+  // Top-Master
+  if (lower.includes("top-master") || lower.includes("топ-мастер")) {
+    return "Masaże — Top-Master";
+  }
+  // Master
+  if (lower.includes("master") || lower.includes("мастер")) {
+    return "Masaże — Master";
+  }
+  // Body Wrapping
+  if (lower.includes("body") || lower.includes("wrapping") || lower.includes("оберт") || lower.includes("обёрт")) {
+    return "Body Wrapping";
+  }
+  // Rituals / Complexes
+  if (lower.includes("kompleks") || lower.includes("комплекс") || lower.includes("rytuał") || lower.includes("ритуал")) {
+    return "Rytuały i kompleksy";
+  }
+  // General Massages
+  if (lower.includes("masaż") || lower.includes("masaz") || lower.includes("массаж") || lower.includes("массажи")) {
+    return "Masaże";
+  }
+
+  // Use general category normalizer fallback
+  const baseNorm = normalizeCategory(s);
+  return getTranslatedCategory(baseNorm, "pl");
+}
+
+/**
  * Fixed A4 page height budget in relative units
  */
 export const A4_PAGE_CAPACITY = 920;
 
 /**
- * Calculates item weight for deterministic pagination
- */
-function getItemWeight(service) {
-  const variantCount = service.variants?.length || 1;
-  // Multi-variant services occupy slightly more vertical height
-  if (variantCount <= 1) return 26;
-  if (variantCount <= 3) return 36;
-  return 46;
-}
-
-/**
- * Splits categorized services into balanced A4 pages without awkward breaks
+ * Splits categorized services into balanced A4 pages with table headers
  */
 export function paginateCategories(categories, labels = UI_LABELS.pl) {
   const maxCapacity = A4_PAGE_CAPACITY;
 
-  const headerWeight = 78;
-  const subHeaderWeight = 36;
-  const footerWeight = 32;
+  const headerWeight = 72;
+  const subHeaderWeight = 34;
+  const footerWeight = 30;
   const catHeaderWeight = 26;
+  const tableHeaderWeight = 18;
+  const rowWeight = 18; // Compact table row
 
   const pages = [];
   let currentPage = {
@@ -118,6 +154,7 @@ export function paginateCategories(categories, labels = UI_LABELS.pl) {
       id: cat.id,
       rawName: cat.rawName,
       localizedName: cat.localizedName,
+      durations: cat.durations,
       isContinuation: false,
       services: [],
     };
@@ -126,8 +163,7 @@ export function paginateCategories(categories, labels = UI_LABELS.pl) {
 
     for (let i = 0; i < cat.services.length; i++) {
       const svc = cat.services[i];
-      const svcWeight = getItemWeight(svc);
-      const neededWeight = svcWeight + (!catHeaderAdded ? catHeaderWeight : 0);
+      const neededWeight = rowWeight + (!catHeaderAdded ? (catHeaderWeight + tableHeaderWeight) : 0);
 
       const hasContentOnCurrentPage =
         currentPage.categories.length > 0 || currentCatSegment.services.length > 0;
@@ -150,6 +186,7 @@ export function paginateCategories(categories, labels = UI_LABELS.pl) {
           id: cat.id,
           rawName: cat.rawName,
           localizedName: `${cat.localizedName} ${labels.continued || "(cd.)"}`,
+          durations: cat.durations,
           isContinuation: true,
           services: [],
         };
@@ -157,12 +194,12 @@ export function paginateCategories(categories, labels = UI_LABELS.pl) {
       }
 
       if (!catHeaderAdded) {
-        currentPage.currentWeight += catHeaderWeight;
+        currentPage.currentWeight += (catHeaderWeight + tableHeaderWeight);
         catHeaderAdded = true;
       }
 
       currentCatSegment.services.push(svc);
-      currentPage.currentWeight += svcWeight;
+      currentPage.currentWeight += rowWeight;
     }
 
     if (currentCatSegment.services.length > 0) {
@@ -185,8 +222,9 @@ export function paginateCategories(categories, labels = UI_LABELS.pl) {
 }
 
 /**
- * Transforms and prepares raw CRM services into grouped price list structure with pagination
- * Always uses Polish language, automatically excludes archive and inactive services.
+ * Transforms and prepares raw CRM services into grouped price list structure with table pagination.
+ * Excludes archive/inactive, unifies duplicate entries representing variants of the same offer,
+ * calculates category durations matrix, and paginates for A4.
  */
 export function preparePriceListData(services = [], appSettings = null) {
   const language = "pl";
@@ -219,7 +257,7 @@ export function preparePriceListData(services = [], appSettings = null) {
 
   eligibleServices.forEach((svc) => {
     const rawCat = svc.category || "Inne";
-    const normCat = normalizeCategory(rawCat);
+    const normCat = normalizePriceListCategory(rawCat);
 
     if (!groupsMap.has(normCat)) {
       groupsMap.set(normCat, []);
@@ -243,41 +281,77 @@ export function preparePriceListData(services = [], appSettings = null) {
       id: svc.id,
       name: svc.name,
       displayName: translated.name,
-      description: translated.description,
       variants,
       minPrice,
-      isCombo: svc.serviceType === "combo",
-      formattedPrice: formatVariantsSummary(variants, "full", language),
     });
   });
 
-  // 3. Sort categories: canonical order first, then alphabetical
+  // 3. Sort categories according to canonical order
   const sortedCategoryNames = Array.from(groupsMap.keys()).sort((a, b) => {
-    const idxA = CANONICAL_CATEGORIES.indexOf(a);
-    const idxB = CANONICAL_CATEGORIES.indexOf(b);
+    const idxA = PRICE_LIST_CATEGORY_ORDER.indexOf(a);
+    const idxB = PRICE_LIST_CATEGORY_ORDER.indexOf(b);
     if (idxA !== -1 && idxB !== -1) return idxA - idxB;
     if (idxA !== -1) return -1;
     if (idxB !== -1) return 1;
     return a.localeCompare(b);
   });
 
-  // 4. Assemble clean categories and sort services within each category
+  // 4. Assemble clean categories and consolidate same-service variants within each category
   let totalServicesCount = 0;
   const categories = sortedCategoryNames
     .map((catName) => {
-      const items = groupsMap.get(catName) || [];
-      if (items.length === 0) return null;
+      const rawItems = groupsMap.get(catName) || [];
+      if (rawItems.length === 0) return null;
+
+      // Consolidate entries representing the same service offer (e.g. "Masaż dla dwojga" 60 min and 90 min)
+      // Only merge when names match exactly and their duration variants do not collide with conflicting prices
+      const consolidatedMap = new Map();
+
+      rawItems.forEach((item) => {
+        const key = item.displayName.toLowerCase().trim();
+        if (!consolidatedMap.has(key)) {
+          consolidatedMap.set(key, { ...item, variants: [...item.variants] });
+        } else {
+          const existing = consolidatedMap.get(key);
+          // Check for variant collisions
+          const existingDurations = new Set(existing.variants.map((v) => v.duration));
+          const canMerge = item.variants.every((v) => !existingDurations.has(v.duration));
+
+          if (canMerge) {
+            existing.variants.push(...item.variants);
+            existing.variants.sort((a, b) => a.duration - b.duration);
+            existing.minPrice = Math.min(existing.minPrice, item.minPrice);
+          } else {
+            // If duration conflict exists (e.g. separate tier), keep separate with unique key
+            consolidatedMap.set(`${key}_${item.id}`, { ...item, variants: [...item.variants] });
+          }
+        }
+      });
+
+      const consolidatedItems = Array.from(consolidatedMap.values());
 
       // Sort services inside category by minPrice, then alphabetically
-      items.sort((a, b) => a.minPrice - b.minPrice || a.displayName.localeCompare(b.displayName));
+      consolidatedItems.sort(
+        (a, b) => a.minPrice - b.minPrice || a.displayName.localeCompare(b.displayName)
+      );
 
-      totalServicesCount += items.length;
+      totalServicesCount += consolidatedItems.length;
+
+      // Extract all distinct duration columns present in this category
+      const durationsSet = new Set();
+      consolidatedItems.forEach((s) => {
+        s.variants.forEach((v) => {
+          if (v.duration > 0) durationsSet.add(v.duration);
+        });
+      });
+      const categoryDurations = Array.from(durationsSet).sort((a, b) => a - b);
 
       return {
         id: catName,
         rawName: catName,
         localizedName: getTranslatedCategory(catName, language),
-        services: items,
+        durations: categoryDurations,
+        services: consolidatedItems,
       };
     })
     .filter(Boolean);

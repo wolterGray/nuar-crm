@@ -118,6 +118,36 @@ export const UI_LABELS = {
 };
 
 export const CATEGORY_TRANSLATIONS = {
+  "Masaże": {
+    pl: "Masaże",
+    ru: "Массажи",
+    en: "Massages",
+    ua: "Масажі",
+  },
+  "Rytuały i kompleksy": {
+    pl: "Rytuały i kompleksy",
+    ru: "Ритуалы и комплексы",
+    en: "Rituals & Packages",
+    ua: "Ритуали та комплекси",
+  },
+  "Masaże — Master": {
+    pl: "Masaże — Master",
+    ru: "Массажи — Мастер",
+    en: "Massages — Master",
+    ua: "Масажі — Майстер",
+  },
+  "Masaże — Top-Master": {
+    pl: "Masaże — Top-Master",
+    ru: "Массажи — Топ-Мастер",
+    en: "Massages — Top-Master",
+    ua: "Масажі — Топ-Майстер",
+  },
+  "Pozostałe usługi": {
+    pl: "Pozostałe usługi",
+    ru: "Другие услуги",
+    en: "Other Services",
+    ua: "Інші послуги",
+  },
   "Массажи": {
     pl: "Masaże",
     ru: "Массажи",
@@ -484,9 +514,26 @@ export function getTranslatedService(service, lang = "pl") {
   }
 
   const rawName = String(service.name ?? "").trim();
+  if (!rawName) return { name: "", description: "" };
+
+  const hasCyrillic = /[а-яА-ЯёЁіІїЇєЄ]/.test(rawName);
+
+  // When Polish is requested and raw name is already in Latin/Polish, preserve the authentic service title
+  if (lang === "pl" && !hasCyrillic) {
+    let cleanName = rawName;
+    if (/^masz\s+twarzy\s+i\s+glowy$/i.test(cleanName)) cleanName = "Masaż twarzy i głowy";
+    if (/^masaz\s+dloni\s+i\s+nadgarstkow$/i.test(cleanName)) cleanName = "Masaż dłoni i nadgarstków";
+    if (/^masz\s+stop\s+i\s+lydek$/i.test(cleanName)) cleanName = "Masaż stóp i łydek";
+
+    return {
+      name: cleanName,
+      description: service.description || "",
+    };
+  }
+
   const lowerName = rawName.toLowerCase();
 
-  // 2. Dictionary match
+  // 2. Dictionary match for Cyrillic/foreign titles
   for (const entry of SERVICE_NAME_DICTIONARY) {
     if (entry.matches.some((kw) => lowerName.includes(kw))) {
       return {
