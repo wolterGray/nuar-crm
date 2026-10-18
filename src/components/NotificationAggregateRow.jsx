@@ -142,7 +142,7 @@ export default function NotificationAggregateRow({
             }
           : {opacity: 1, x: 0}
       }
-      className={`client-alert-swipe-shell client-alert-aggregate ${shellActionClass ? `is-${shellActionClass}` : ""}`}
+      className={`client-alert-swipe-shell client-alert-aggregate category-${alert.category ?? "information"} ${shellActionClass ? `is-${shellActionClass}` : ""}`}
       exit={{
         height: 0,
         marginTop: 0,
@@ -163,6 +163,7 @@ export default function NotificationAggregateRow({
         <div
           className={`client-alert-row client-alert-row-unified priority-${alert.priority} aggregate-${alert.aggregateKind ?? alert.group}`}
         >
+          <span className="client-alert-category-mark" aria-hidden="true" />
           <div className="client-alert-row-main">
             <Button
               className="client-alert-aggregate-toggle"

@@ -147,7 +147,7 @@ export default function NotificationAlertRow({
   const primaryActions = alert.actions.filter(
     (action) =>
       action !== "snooze" && action !== "dismiss" && action !== cardAction,
-  );
+  ).slice(0, 2);
   const metaBadges = getAlertMetaBadges(alert);
   const cornerBadge = getCornerBadge(alert);
   const displayTitle = getAlertDisplayTitle(alert);
@@ -278,7 +278,7 @@ export default function NotificationAlertRow({
             }
           : {opacity: 1, x: 0}
       }
-      className={`client-alert-swipe-shell ${shellActionClass ? `is-${shellActionClass}` : ""}`}
+      className={`client-alert-swipe-shell category-${alert.category ?? "information"} ${shellActionClass ? `is-${shellActionClass}` : ""}`}
       exit={{
         height: 0,
         marginTop: 0,
@@ -302,6 +302,7 @@ export default function NotificationAlertRow({
         tabIndex={cardAction ? 0 : undefined}
         onClick={cardAction ? handleCardAction : undefined}
         onKeyDown={cardAction ? handleCardKeyDown : undefined}>
+        <span className="client-alert-category-mark" aria-hidden="true" />
         {cornerBadge ? (
           <span className={`client-alert-corner-badge ${cornerBadge.className}`}>
             {cornerBadge.label}

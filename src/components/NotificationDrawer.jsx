@@ -82,7 +82,6 @@ const FILTER_OPTIONS = [
 
 export default function NotificationDrawer({
   alertFilter,
-  alertSummary,
   allAlerts,
   alerts,
   animationsEnabled,
@@ -109,7 +108,6 @@ export default function NotificationDrawer({
   const transition = {duration: animationsEnabled ? 0.18 : 0};
   const {
     alertsCount: localAlertsCount,
-    totalAlertsCount: localTotalAlertsCount,
     visibleAlerts: localVisibleAlerts,
   } = useMemo(
     () =>
@@ -214,7 +212,7 @@ export default function NotificationDrawer({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [isOpen, localAlertsCount, alertFilter, quietHoursActive, localTotalAlertsCount]);
+  }, [isOpen, localAlertsCount, alertFilter, quietHoursActive]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -432,21 +430,11 @@ export default function NotificationDrawer({
               <h2>Уведомления</h2>
               <p>
                 {effectiveUrgentAlertsCount > 0
-                  ? `${effectiveUrgentAlertsCount} требуют внимания · ${globalTotalAlertsCount} всего`
-                  : "Только события, требующие внимания"}
+                  ? `${effectiveUrgentAlertsCount} требуют внимания`
+                  : "Ничего срочного"}
               </p>
             </div>
             <div className="client-alert-heading-actions">
-              {localAlertsCount > 0 ? (
-                <Button
-                  className="client-alert-clear-button"
-                  size="sm"
-                  type="button"
-                  variant="ghost"
-                  onClick={dismissVisibleAlerts}>
-                  Убрать показанные
-                </Button>
-              ) : null}
               <IconButton
                 icon="x"
                 label="Закрыть уведомления"
@@ -458,37 +446,46 @@ export default function NotificationDrawer({
             </div>
           </div>
 
-          {localTotalAlertsCount > 0 || quietHoursActive ? (
-            <div
-              className={`client-alert-summary-bar${quietHoursActive ? " quiet-hours" : ""}`}>
-              <div>
-                <strong>{quietHoursActive ? "Тихий режим" : "Сводка дня"}</strong>
-                <span>
-                  {quietHoursActive
-                    ? "Показываются только срочные уведомления"
-                    : `${alertSummary.visitsToday} визитов · ~${alertSummary.revenueToday} zł`}
-                </span>
-              </div>
-              <div className="client-alert-filter-chips">
-                {FILTER_OPTIONS.map((option) => (
-                  <Button
-                    className={alertFilter === option.id ? "active" : ""}
-                    key={option.id}
-                    size="sm"
-                    type="button"
-                    variant="ghost"
-                    onClick={() => onFilterChange(option.id)}>
-                    {option.label}
-                    {filterCounts[option.id] > 0 ? (
-                      <span className="client-alert-filter-count">
-                        {filterCounts[option.id]}
-                      </span>
-                    ) : null}
-                  </Button>
-                ))}
-              </div>
+          <div className="client-alert-toolbar">
+            <span>{globalTotalAlertsCount} событий</span>
+            {localAlertsCount > 0 ? (
+              <Button
+                className="client-alert-clear-button"
+                size="sm"
+                type="button"
+                variant="ghost"
+                onClick={dismissVisibleAlerts}>
+                Убрать показанные
+              </Button>
+            ) : null}
+          </div>
+
+          {quietHoursActive ? (
+            <div className="client-alert-quiet-note">
+              Тихий режим · показываются только срочные события
             </div>
           ) : null}
+
+          <div className="client-alert-filter-chips" role="tablist" aria-label="Разделы уведомлений">
+            {FILTER_OPTIONS.map((option) => (
+              <Button
+                aria-selected={alertFilter === option.id}
+                className={alertFilter === option.id ? "active" : ""}
+                key={option.id}
+                role="tab"
+                size="sm"
+                type="button"
+                variant="ghost"
+                onClick={() => onFilterChange(option.id)}>
+                <span className="client-alert-filter-label">{option.label}</span>
+                {filterCounts[option.id] > 0 ? (
+                  <span className="client-alert-filter-count">
+                    {filterCounts[option.id]}
+                  </span>
+                ) : null}
+              </Button>
+            ))}
+          </div>
 
           <AnimatePresence>
             {swipeUndo ? (
