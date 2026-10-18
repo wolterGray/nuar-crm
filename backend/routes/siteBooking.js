@@ -18,11 +18,11 @@ const DEFAULT_WORKDAY_START = '08:00';
 const DEFAULT_WORKDAY_END = '22:00';
 const DEFAULT_SLOT_STEP = 15;
 const SITE_SERVICE_PRICE_FALLBACKS = [
-  { slug: 'masaz-klasyczny', title: 'Masaż klasyczny', time: [30, 60, 75, 90, 120], price: [170, 255, 310, 360, 450] },
-  { slug: 'masaz-sportowy', title: 'Masaż sportowy', time: [30, 60, 75, 90, 120], price: [170, 255, 310, 360, 450] },
-  { slug: 'masaz-relaksacyjny', title: 'Masaż relaksacyjny', time: [30, 60, 75, 90, 120], price: [170, 255, 310, 360, 450] },
-  { slug: 'masaz-limfatyczny', title: 'Masaż limfatyczny', time: [30, 60, 75, 90, 120], price: [170, 255, 310, 360, 450] },
-  { slug: 'masaz-antycellulitowy', title: 'Masaż antycellulitowy', time: [30, 60, 75, 90, 120], price: [170, 255, 310, 360, 450] },
+  { slug: 'masaz-klasyczny', title: 'Masaż klasyczny', time: [30, 60, 75, 90, 120], price: [170, 200, 250, 280, 360] },
+  { slug: 'masaz-sportowy', title: 'Masaż sportowy', time: [30, 60, 75, 90, 120], price: [170, 200, 250, 280, 360] },
+  { slug: 'masaz-relaksacyjny', title: 'Masaż relaksacyjny', time: [30, 60, 75, 90, 120], price: [170, 200, 250, 280, 360] },
+  { slug: 'masaz-limfatyczny', title: 'Masaż limfatyczny', time: [30, 60, 75, 90, 120], price: [170, 200, 250, 280, 360] },
+  { slug: 'masaz-antycellulitowy', title: 'Masaż antycellulitowy', time: [30, 60, 75, 90, 120], price: [170, 200, 250, 280, 360] },
   { slug: 'masaz-twarzy-i-glowy', title: 'Masaż twarzy i głowy', time: [30, 60], price: [149, 220] },
   { slug: 'masaz-autorski', title: 'Masaż autorski', time: [90, 120], price: [490, 590] },
   { slug: 'masaz-dla-dzieci', title: 'Masaż dla dzieci', time: [30, 60, 75, 90, 120], price: [170, 250, 310, 360, 450] },
@@ -148,29 +148,43 @@ const handleRouteError = async (req, res, error, context = {}) => {
 
 const resolveMaster = (preferredMaster = '', employees = []) => {
   const raw = cleanString(preferredMaster);
-  if (!raw) return cleanString(employees[0]?.name) || DEFAULT_MASTERS[0];
-
-  const alias = SITE_MASTER_ALIASES[normalizeText(raw)];
-  if (alias) return alias;
+  if (!raw) return cleanString(employees[0]?.name) || '';
 
   const matched = employees.find((employee) => normalizeText(employee.name) === normalizeText(raw));
-  return SITE_MASTER_ALIASES[normalizeText(matched?.name)] || cleanString(matched?.name) || raw;
+  if (matched) return cleanString(matched.name);
+
+  const canonicalName = SITE_MASTER_ALIASES[normalizeText(raw)];
+  if (canonicalName) {
+    const aliasedEmployee = employees.find(
+      (employee) =>
+        normalizeText(employee.name) === normalizeText(canonicalName) ||
+        SITE_MASTER_ALIASES[normalizeText(employee.name)] === canonicalName,
+    );
+    if (aliasedEmployee) return cleanString(aliasedEmployee.name);
+  }
+
+  return raw;
 };
 
 const readPayload = (row) => (row?.payload && typeof row.payload === 'object' ? row.payload : {});
 
 const toPublicEmployee = (row) => {
   const payload = readPayload(row);
+  const pricing = row?.pricing && typeof row.pricing === 'object' ? row.pricing : {};
   const name = cleanString(row?.name ?? payload.name);
   return {
     name,
     bookingBlockedDates: normalizeBlockedDates(payload.bookingBlockedDates),
-    premiumHoursEnabled: payload.premiumHoursEnabled === true,
-    premiumHoursRules: Array.isArray(payload.premiumHoursRules) ? payload.premiumHoursRules : [],
+    premiumHoursEnabled: pricing.premiumHoursEnabled === true || payload.premiumHoursEnabled === true,
+    premiumHoursRules: Array.isArray(pricing.premiumHoursRules)
+      ? pricing.premiumHoursRules
+      : Array.isArray(payload.premiumHoursRules)
+        ? payload.premiumHoursRules
+        : [],
     dailyShifts: normalizeDailyShifts(payload.dailyShifts ?? row?.shifts),
     shiftEnd: cleanString(row?.shiftEnd ?? payload.shiftEnd) || DEFAULT_WORKDAY_END,
     shiftStart: cleanString(row?.shiftStart ?? payload.shiftStart) || DEFAULT_WORKDAY_START,
-    siteDiscountPercent: Number(payload.siteDiscountPercent) || 0,
+    siteDiscountPercent: Number(pricing.siteDiscountPercent ?? payload.siteDiscountPercent) || 0,
     siteVisible: row?.siteVisible !== false && payload.siteBookingEnabled !== false,
     status: cleanString(row?.status ?? payload.status),
     workingDaysOfWeek: normalizeWorkingDays(payload.workingDaysOfWeek),
@@ -190,23 +204,40 @@ const toPublicService = (row) => {
   };
 };
 
-const getServiceBasePrice = ({ durationMinutes, serviceName, serviceSlug, services }) => {
-  const service = services.find((item) => {
+const cleanServiceTitle = (name) =>
+  normalizeText(name)
+    .replace(/\s*\((top[- ]?)?master\)/i, '')
+    .trim();
+
+const getServiceBasePrice = ({ durationMinutes, employee, serviceName, serviceSlug, services = [] }) => {
+  const normName = normalizeText(serviceName);
+  const cleanName = cleanServiceTitle(serviceName);
+  const isTopMaster = /top/i.test(employee?.role ?? '') || /top/i.test(employee?.name ?? '');
+
+  const matchedServices = services.filter((item) => {
     const payloadSlug = cleanString(item.payload?.slug);
+    const itemName = normalizeText(item.name);
     return (
-      normalizeText(item.name) === normalizeText(serviceName) ||
-      (serviceSlug && normalizeText(payloadSlug) === normalizeText(serviceSlug))
+      itemName === normName ||
+      (serviceSlug && normalizeText(payloadSlug) === normalizeText(serviceSlug)) ||
+      cleanServiceTitle(item.name) === cleanName
     );
   });
 
-  const variant = service?.variants?.find((item) => Number(item?.duration) === Number(durationMinutes));
-  const crmPrice = Math.max(0, Math.round(Number(variant?.price ?? service?.price ?? 0) || 0));
-  if (crmPrice > 0) return crmPrice;
+  const preferredService =
+    matchedServices.find((s) => (isTopMaster ? /top/i.test(s.name) : !/top/i.test(s.name))) ||
+    matchedServices[0];
+
+  if (preferredService) {
+    const variant = preferredService.variants?.find((item) => Number(item?.duration) === Number(durationMinutes));
+    const crmPrice = Math.max(0, Math.round(Number(variant?.price ?? preferredService.price ?? 0) || 0));
+    if (crmPrice > 0) return crmPrice;
+  }
 
   const fallback = SITE_SERVICE_PRICE_FALLBACKS.find(
     (item) =>
       normalizeText(item.slug) === normalizeText(serviceSlug) ||
-      normalizeText(item.title) === normalizeText(serviceName),
+      cleanServiceTitle(item.title) === cleanName,
   );
   if (!fallback) return 0;
 
@@ -263,11 +294,18 @@ const calculatePrice = ({ basePrice, date, durationMinutes = 0, employee, time }
 
 const overlaps = (start, end, interval) => start < interval.end && end > interval.start;
 
-const getCalendarIntervals = (rows, date, master) =>
+const getCalendarIntervals = (rows, date, master, employees = []) =>
   rows
     .filter((row) => cleanString(row.date) === date)
     .filter((row) => !['cancelled', 'no_show'].includes(cleanString(row.status)))
-    .filter((row) => !master || resolveMaster(readPayload(row).master ?? row.master) === master)
+    .filter((row) => {
+      if (!master) return true;
+      const rowMaster = cleanString(readPayload(row).master ?? row.master);
+      return (
+        resolveMaster(rowMaster, employees) === master ||
+        normalizeText(rowMaster) === normalizeText(master)
+      );
+    })
     .map((row) => {
       const payload = readPayload(row);
       const start = toMinutes(row.time ?? payload.time);
@@ -275,11 +313,18 @@ const getCalendarIntervals = (rows, date, master) =>
       return { start, end: start + duration };
     });
 
-const getPendingIntervals = (rows, date, master) =>
+const getPendingIntervals = (rows, date, master, employees = []) =>
   rows
     .filter((row) => cleanString(row.preferred_date) === date)
     .filter((row) => cleanString(row.status || 'pending') === 'pending')
-    .filter((row) => !master || resolveMaster(row.preferred_master) === master)
+    .filter((row) => {
+      if (!master) return true;
+      const pendingMaster = cleanString(row.preferred_master);
+      return (
+        resolveMaster(pendingMaster, employees) === master ||
+        normalizeText(pendingMaster) === normalizeText(master)
+      );
+    })
     .map((row) => {
       const start = toMinutes(row.preferred_time);
       return { start, end: start + Math.max(15, Number(row.duration_minutes) || 60) };
@@ -300,10 +345,13 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
     `,
   ]);
 
-  let employees = employeeRows
+  const activeEmployees = employeeRows
     .map(toPublicEmployee)
-    .filter((employee) => employee.siteVisible && employee.status !== 'Архив' && employee.status !== 'Удален')
-    .filter((employee) => isEmployeeAvailableOnDate(employee, preferredDate));
+    .filter((employee) => employee.siteVisible && employee.status !== 'Архив' && employee.status !== 'Удален');
+
+  const availableMasters = [...new Set(activeEmployees.map((e) => cleanString(e.name)).filter(Boolean))];
+
+  let employees = activeEmployees.filter((employee) => isEmployeeAvailableOnDate(employee, preferredDate));
   if (!employees.length) {
     employees = employeeRows.length
       ? []
@@ -321,34 +369,36 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
   }
 
   const services = serviceRows.map(toPublicService).filter((service) => service.siteVisible && service.status !== 'Архив');
-  const basePrice = getServiceBasePrice({ durationMinutes: duration, serviceName, serviceSlug, services });
   const today = new Date().toISOString().slice(0, 10);
   const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
 
-  return employees.flatMap((employee) => {
-    const master = resolveMaster(employee.name, employees);
+  const slots = employees.flatMap((employee) => {
+    const master = cleanString(employee.name);
+    const basePrice = getServiceBasePrice({ durationMinutes: duration, employee, serviceName, serviceSlug, services });
     const shift = getEmployeeShiftForDate(employee, preferredDate);
     const start = toMinutes(shift.start);
     const end = toMinutes(shift.end);
     const busy = [
-      ...getCalendarIntervals(calendarRows, preferredDate, master),
-      ...getPendingIntervals(bookingRows, preferredDate, master),
+      ...getCalendarIntervals(calendarRows, preferredDate, master, employees),
+      ...getPendingIntervals(bookingRows, preferredDate, master, employees),
     ];
-    const slots = [];
+    const employeeSlots = [];
 
     for (let minutes = start; minutes + duration <= end; minutes += DEFAULT_SLOT_STEP) {
       if (preferredDate === today && minutes <= nowMinutes + 60) continue;
       if (busy.some((interval) => overlaps(minutes, minutes + duration, interval))) continue;
       const startTime = toClockTime(minutes);
-      slots.push({
+      employeeSlots.push({
         master,
         startTime,
         ...calculatePrice({ basePrice, date: preferredDate, durationMinutes: duration, employee, time: startTime }),
       });
     }
 
-    return slots;
+    return employeeSlots;
   });
+
+  return { slots, masters: availableMasters.length ? availableMasters : DEFAULT_MASTERS };
 };
 
 const notifyOwnerAboutBooking = async (booking) => {
@@ -470,17 +520,31 @@ const createSiteBookingNotification = (tx, booking, waitlistEntry) =>
     type: 'site_booking_request',
   });
 
+publicSiteBookingRouter.get('/site-booking-masters', async (req, res) => {
+  try {
+    await ensureSiteBookingTables(prisma);
+    const rows = await prisma.employee.findMany();
+    const active = rows
+      .map(toPublicEmployee)
+      .filter((employee) => employee.siteVisible && employee.status !== 'Архив' && employee.status !== 'Удален');
+    const masters = [...new Set(active.map((e) => cleanString(e.name)).filter(Boolean))];
+    res.json({ success: true, data: { masters: masters.length ? masters : DEFAULT_MASTERS } });
+  } catch (error) {
+    await handleRouteError(req, res, error);
+  }
+});
+
 publicSiteBookingRouter.post('/site-booking-availability', async (req, res) => {
   try {
     await ensureSiteBookingTables(prisma);
-    const slots = await buildSlots({
+    const { slots, masters } = await buildSlots({
       durationMinutes: req.body?.durationMinutes,
       preferredDate: cleanString(req.body?.preferredDate),
       preferredMaster: cleanString(req.body?.preferredMaster),
       serviceName: cleanString(req.body?.serviceName),
       serviceSlug: cleanString(req.body?.serviceSlug),
     });
-    res.json({ success: true, data: { slots } });
+    res.json({ success: true, data: { slots, masters } });
   } catch (error) {
     await handleRouteError(req, res, error);
   }
@@ -502,7 +566,7 @@ publicSiteBookingRouter.post('/site-booking-submit', async (req, res) => {
     if (!/^\d{2}:\d{2}$/.test(preferredTime)) throw validationError('preferredTime is invalid');
 
     await ensureSiteBookingTables(prisma);
-    const currentSlots = await buildSlots({
+    const { slots: currentSlots } = await buildSlots({
       durationMinutes,
       preferredDate,
       preferredMaster: cleanString(req.body?.preferredMaster),
