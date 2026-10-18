@@ -727,6 +727,9 @@ const mergeRecipientState = (event, recipient) => ({
   status: recipient?.status || 'new',
 });
 
+const paginateNotificationEvents = (events, {limit, offset}) =>
+  events.slice(offset, offset + limit);
+
 const listNotificationEventsForUser = async (prisma, userId, options = {}) => {
   const numericUserId = Number(userId);
   const requestedStatus = options.status || 'active';
@@ -759,7 +762,7 @@ const listNotificationEventsForUser = async (prisma, userId, options = {}) => {
     [CATEGORY.INFORMATION]: 3,
   };
   const classified = await classifyNotificationEvents(prisma, personalized, {now});
-  const selected = classified
+  const ordered = classified
     .filter((event) => requestedStatus !== 'active'
       || event.isCurrent
       || event.category === CATEGORY.INFORMATION)
@@ -768,8 +771,11 @@ const listNotificationEventsForUser = async (prisma, userId, options = {}) => {
       if (categoryDifference !== 0) return categoryDifference;
       if (right.score !== left.score) return right.score - left.score;
       return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
-    })
-    .slice(requestedOffset, requestedOffset + requestedLimit);
+    });
+  const selected = paginateNotificationEvents(ordered, {
+    limit: requestedLimit,
+    offset: requestedOffset,
+  });
   const selectedWithoutRecipient = selected.filter((event) => !byEventId.has(event.id));
   if (selectedWithoutRecipient.length > 0) {
     await prisma.notificationRecipient.createMany({
@@ -870,6 +876,7 @@ module.exports = {
   listNotificationEvents,
   listNotificationEventsForUser,
   normalizeNotificationEventInput,
+  paginateNotificationEvents,
   reconcileNotificationEventLifecycle,
   scoreNotificationEvent,
   updateNotificationEvent,

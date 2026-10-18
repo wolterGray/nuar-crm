@@ -32,19 +32,26 @@ export const fetchNotificationEvents = async ({limit = 50, offset = 0, status = 
   return parseResponse(res);
 };
 
-export const fetchAllNotificationEvents = async ({pageSize = 100, status = "active"} = {}) => {
+export const collectNotificationEventPages = async (
+  fetchPage,
+  {maxItems = 500, pageSize = 100, status = "active"} = {},
+) => {
   const events = [];
   let offset = 0;
 
-  while (offset < 500) {
-    const page = await fetchNotificationEvents({limit: pageSize, offset, status});
+  while (offset < maxItems) {
+    const limit = Math.min(pageSize, maxItems - offset);
+    const page = await fetchPage({limit, offset, status});
     events.push(...page);
-    if (page.length < pageSize) break;
+    if (page.length < limit) break;
     offset += page.length;
   }
 
   return events;
 };
+
+export const fetchAllNotificationEvents = async (options = {}) =>
+  collectNotificationEventPages(fetchNotificationEvents, options);
 
 export const fetchNotificationEventCounts = async () => {
   const headers = await authHeaders();

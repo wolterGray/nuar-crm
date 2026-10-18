@@ -13,7 +13,7 @@ import {
 } from "../utils/notificationDrawerCounts.js";
 import NotificationAggregateRow from "./NotificationAggregateRow.jsx";
 import NotificationAlertRow from "./NotificationAlertRow.jsx";
-import {AppIcon, Button, IconButton} from "./ui/index.js";
+import {Button, IconButton} from "./ui/index.js";
 
 const DESKTOP_POPOVER_WIDTH = 440;
 const POPOVER_GAP = 8;
@@ -79,6 +79,25 @@ const FILTER_OPTIONS = [
   {id: "information", label: "История"},
 ];
 
+const HISTORY_GROUP_LABELS = {
+  today: "Сегодня",
+  yesterday: "Вчера",
+  earlier: "Ранее",
+};
+
+const getHistoryGroup = (alert, now = new Date()) => {
+  const timestamp = alert.createdAt ?? alert.meta?.notification?.archivedAt;
+  const date = timestamp ? new Date(timestamp) : null;
+  if (!date || Number.isNaN(date.getTime())) return "earlier";
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const eventDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayDifference = Math.round((today - eventDay) / 86_400_000);
+  if (dayDifference <= 0) return "today";
+  if (dayDifference === 1) return "yesterday";
+  return "earlier";
+};
+
 export default function NotificationDrawer({
   alertFilter,
   allAlerts,
@@ -139,7 +158,22 @@ export default function NotificationDrawer({
   const effectiveUrgentAlertsCount = notificationCenterV2Enabled && serverCounts
     ? Number(serverCounts.attention) || 0
     : globalUrgentAlertsCount;
-  const groupedAlerts = groupAlerts(localVisibleAlerts);
+  const groupedAlerts = useMemo(() => {
+    if (alertFilter !== "information") return groupAlerts(localVisibleAlerts);
+
+    return localVisibleAlerts.reduce((groups, alert) => {
+      const key = getHistoryGroup(alert);
+      groups.set(key, [...(groups.get(key) ?? []), alert]);
+      return groups;
+    }, new Map());
+  }, [alertFilter, localVisibleAlerts]);
+  const underlyingObjectCount = useMemo(
+    () => localVisibleAlerts.reduce(
+      (total, alert) => total + (alert.type === "aggregate" ? alert.children.length : 1),
+      0,
+    ),
+    [localVisibleAlerts],
+  );
   const filterCounts = useMemo(
     () => {
       if (notificationCenterV2Enabled && serverCounts) {
@@ -245,6 +279,15 @@ export default function NotificationDrawer({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onToggleOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !isMobilePopover) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMobilePopover, isOpen]);
 
   useEffect(
     () => () => {
@@ -366,7 +409,7 @@ export default function NotificationDrawer({
     onSnoozeReview?.(alert);
   };
 
-  const groupOrder = [
+  const defaultGroupOrder = [
     "closing",
     "calendar",
     "finance",
@@ -377,6 +420,12 @@ export default function NotificationDrawer({
     "forecast",
     "system",
   ];
+  const groupOrder = alertFilter === "information"
+    ? ["today", "yesterday", "earlier"]
+    : defaultGroupOrder;
+  const groupLabels = alertFilter === "information"
+    ? HISTORY_GROUP_LABELS
+    : ALERT_GROUP_LABELS;
 
   const renderAlert = (alert) => {
     if (alert.type === "aggregate") {
@@ -456,7 +505,13 @@ export default function NotificationDrawer({
           </div>
 
           <div className="client-alert-toolbar">
-            <span>{globalTotalAlertsCount} событий</span>
+            <span>
+              {alertFilter === "opportunity"
+                ? `${underlyingObjectCount} объектов · ${localVisibleAlerts.length} групп`
+                : alertFilter === "urgent"
+                  ? `${underlyingObjectCount} актуальных вопросов`
+                  : `${underlyingObjectCount} событий`}
+            </span>
             <Button
               className={alertFilter === "all" ? "client-alert-all-filter active" : "client-alert-all-filter"}
               size="sm"
@@ -524,11 +579,12 @@ export default function NotificationDrawer({
 
               return (
                 <motion.div className="client-alert-group" key={groupKey} layout>
-                  <div className="client-alert-group-heading">
-                    {ALERT_GROUP_LABELS[groupKey] ?? groupKey}
-                    <b>{groupAlertsList.length}</b>
-                    <AppIcon className="open" name="chevronDown" size="xs" />
-                  </div>
+                  {alertFilter !== "opportunity" ? (
+                    <div className="client-alert-group-heading">
+                      {groupLabels[groupKey] ?? groupKey}
+                      {groupAlertsList.length > 1 ? <b>{groupAlertsList.length}</b> : null}
+                    </div>
+                  ) : null}
                   <AnimatePresence initial={false}>
                     {groupAlertsList.map((alert) => renderAlert(alert))}
                   </AnimatePresence>
