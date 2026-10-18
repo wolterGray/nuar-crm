@@ -1,5 +1,8 @@
 import {describe, expect, it} from "vitest";
-import {getNotificationDrawerCounts} from "./notificationDrawerCounts.js";
+import {
+  countNotificationObjects,
+  getNotificationDrawerCounts,
+} from "./notificationDrawerCounts.js";
 
 const buildAlert = (id, priority = "info") => ({
   actions: ["open", "snooze"],
@@ -64,5 +67,15 @@ describe("notificationDrawerCounts", () => {
 
     expect(result.badgeCount).toBe(0);
     expect(result.visibleAlerts[0].children.map((alert) => alert.id)).toEqual(["inactive-2"]);
+  });
+
+  it("counts aggregate children as business objects instead of one display row", () => {
+    const aggregate = {
+      children: [buildAlert("inactive-1"), buildAlert("inactive-2"), buildAlert("inactive-3")],
+      id: "aggregate-inactive",
+      type: "aggregate",
+    };
+
+    expect(countNotificationObjects([aggregate, buildAlert("package-1")])).toBe(4);
   });
 });

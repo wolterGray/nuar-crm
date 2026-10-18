@@ -8,6 +8,7 @@ import {
   groupAlerts,
 } from "../utils/alertCenter.js";
 import {
+  countNotificationObjects,
   getNotificationAlertIds,
   getNotificationDrawerCounts,
 } from "../utils/notificationDrawerCounts.js";
@@ -98,11 +99,6 @@ const getHistoryGroup = (alert, now = new Date()) => {
   return "earlier";
 };
 
-const countAlertObjects = (items = []) => items.reduce(
-  (total, alert) => total + (alert.type === "aggregate" ? alert.children.length : 1),
-  0,
-);
-
 export default function NotificationDrawer({
   alertFilter,
   allAlerts,
@@ -173,12 +169,12 @@ export default function NotificationDrawer({
     }, new Map());
   }, [alertFilter, localVisibleAlerts]);
   const underlyingObjectCount = useMemo(
-    () => countAlertObjects(localVisibleAlerts),
+    () => countNotificationObjects(localVisibleAlerts),
     [localVisibleAlerts],
   );
   const filterCounts = useMemo(
     () => FILTER_OPTIONS.reduce((counts, option) => {
-      counts[option.id] = countAlertObjects(filterAlertsByMode(globalVisibleAlerts, option.id));
+      counts[option.id] = countNotificationObjects(filterAlertsByMode(globalVisibleAlerts, option.id));
       return counts;
     }, {}),
     [globalVisibleAlerts],

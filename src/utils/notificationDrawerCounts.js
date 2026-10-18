@@ -41,6 +41,11 @@ export const filterVisibleNotificationAlerts = (
     })
     .filter(Boolean);
 
+export const countNotificationObjects = (alerts = []) => alerts.reduce(
+  (total, alert) => total + (alert?.type === "aggregate" ? alert.children.length : 1),
+  0,
+);
+
 export const getNotificationDrawerCounts = ({
   alerts = [],
   locallyHiddenAlerts = {},
