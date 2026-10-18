@@ -17,6 +17,8 @@ import {
 import ServiceDrawer from "../services/ServiceDrawer.jsx";
 import CategoryManagerModal from "../services/CategoryManagerModal.jsx";
 import PriceListModal from "../priceList/PriceListModal.jsx";
+import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
+import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
 import "./ServicesPage.css";
 
 const ALL_CATEGORIES = "__all__";
@@ -57,6 +59,139 @@ const getDurationsSummary = (service) => {
   }
   return "Без длительности";
 };
+
+function ServiceRowActionsMenu({
+  service,
+  openMenuId,
+  setOpenMenuId,
+  onOpenEdit,
+  onDuplicate,
+  onToggleStatus,
+  onDelete,
+  viewScope,
+}) {
+  const isOpen = openMenuId === service.id;
+  const {menuRef, menuStyle, triggerRef} = useRowActionMenu({
+    isOpen,
+    setOpenMenuId,
+  });
+
+  const svcStatus = service.status || "Активна";
+
+  const runAction = (e, fn) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpenMenuId(null);
+    fn(service, e);
+  };
+
+  return (
+    <div
+      className="services-col-actions"
+      onClick={(e) => e.stopPropagation()}>
+      <button
+        ref={triggerRef}
+        className={`services-row-action-btn ${isOpen ? "is-open" : ""}`}
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpenMenuId(isOpen ? null : service.id);
+        }}
+        aria-label="Действия с услугой"
+        aria-expanded={isOpen}>
+        <AppIcon name="more" size="xs" />
+      </button>
+
+      <RowActionMenuPortal
+        isOpen={isOpen}
+        menuRef={menuRef}
+        menuStyle={menuStyle}>
+        <div
+          className="services-action-menu-dropdown services-action-menu-portal-dropdown"
+          role="menu"
+          onClick={(e) => e.stopPropagation()}>
+          <button
+            className="services-menu-item"
+            role="menuitem"
+            type="button"
+            onClick={(e) => runAction(e, onOpenEdit)}>
+            <AppIcon name="edit" size="xs" />
+            <span>Редактировать</span>
+          </button>
+          <button
+            className="services-menu-item"
+            role="menuitem"
+            type="button"
+            onClick={(e) => runAction(e, onDuplicate)}>
+            <AppIcon name="copy" size="xs" />
+            <span>Дублировать</span>
+          </button>
+
+          {viewScope === "archive" ? (
+            <button
+              className="services-menu-item services-menu-item-accent"
+              role="menuitem"
+              type="button"
+              onClick={(e) =>
+                runAction(e, (s, evt) => onToggleStatus(s, "Активна", evt))
+              }>
+              <AppIcon name="refresh" size="xs" />
+              <span>Восстановить</span>
+            </button>
+          ) : (
+            <>
+              {svcStatus === "Скрыта" ? (
+                <button
+                  className="services-menu-item"
+                  role="menuitem"
+                  type="button"
+                  onClick={(e) =>
+                    runAction(e, (s, evt) => onToggleStatus(s, "Активна", evt))
+                  }>
+                  <AppIcon name="eye" size="xs" />
+                  <span>Сделать активной</span>
+                </button>
+              ) : (
+                <button
+                  className="services-menu-item"
+                  role="menuitem"
+                  type="button"
+                  onClick={(e) =>
+                    runAction(e, (s, evt) => onToggleStatus(s, "Скрыта", evt))
+                  }>
+                  <AppIcon name="eyeOff" size="xs" />
+                  <span>Скрыть</span>
+                </button>
+              )}
+              <button
+                className="services-menu-item"
+                role="menuitem"
+                type="button"
+                onClick={(e) =>
+                  runAction(e, (s, evt) => onToggleStatus(s, "Архив", evt))
+                }>
+                <AppIcon name="package" size="xs" />
+                <span>В архив</span>
+              </button>
+            </>
+          )}
+
+          <div className="services-menu-divider" />
+
+          <button
+            className="services-menu-item services-menu-item-danger"
+            role="menuitem"
+            type="button"
+            onClick={(e) => runAction(e, onDelete)}>
+            <AppIcon name="trash" size="xs" />
+            <span>Удалить</span>
+          </button>
+        </div>
+      </RowActionMenuPortal>
+    </div>
+  );
+}
 
 export default function ServicesPage({
   services = [],
@@ -382,7 +517,6 @@ export default function ServicesPage({
       String(service.name || "").toLowerCase().includes("парный")
     );
     const subType = inferMassageSubType(service);
-    const isMenuOpen = openMenuServiceId === service.id;
     const serviceColor = service.color || getServiceColor(service);
 
     return (
@@ -452,87 +586,17 @@ export default function ServicesPage({
           />
         </div>
 
-        {/* Actions menu */}
-        <div
-          className="services-col-actions"
-          onClick={(e) => e.stopPropagation()}>
-          <button
-            className="services-row-action-btn"
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpenMenuServiceId(isMenuOpen ? null : service.id);
-            }}
-            aria-label="Действия с услугой">
-            <AppIcon name="more" size="xs" />
-          </button>
-
-          {isMenuOpen ? (
-            <div
-              className="services-action-menu-dropdown"
-              onClick={(e) => e.stopPropagation()}>
-              <button
-                className="services-menu-item"
-                type="button"
-                onClick={(e) => handleOpenEdit(service, e)}>
-                <AppIcon name="edit" size="xs" />
-                Редактировать
-              </button>
-              <button
-                className="services-menu-item"
-                type="button"
-                onClick={(e) => handleDuplicate(service, e)}>
-                <AppIcon name="copy" size="xs" />
-                Дублировать
-              </button>
-
-              {viewScope === "archive" ? (
-                <button
-                  className="services-menu-item services-menu-item-accent"
-                  type="button"
-                  onClick={(e) => handleToggleStatusAction(service, "Активна", e)}>
-                  <AppIcon name="refresh" size="xs" />
-                  Восстановить
-                </button>
-              ) : (
-                <>
-                  {svcStatus === "Скрыта" ? (
-                    <button
-                      className="services-menu-item"
-                      type="button"
-                      onClick={(e) => handleToggleStatusAction(service, "Активна", e)}>
-                      <AppIcon name="eye" size="xs" />
-                      Сделать активной
-                    </button>
-                  ) : (
-                    <button
-                      className="services-menu-item"
-                      type="button"
-                      onClick={(e) => handleToggleStatusAction(service, "Скрыта", e)}>
-                      <AppIcon name="eyeOff" size="xs" />
-                      Скрыть
-                    </button>
-                  )}
-                  <button
-                    className="services-menu-item"
-                    type="button"
-                    onClick={(e) => handleToggleStatusAction(service, "Архив", e)}>
-                    <AppIcon name="package" size="xs" />
-                    В архив
-                  </button>
-                </>
-              )}
-
-              <button
-                className="services-menu-item services-menu-item-danger"
-                type="button"
-                onClick={(e) => handleDeleteService(service, e)}>
-                <AppIcon name="trash" size="xs" />
-                Удалить
-              </button>
-            </div>
-          ) : null}
-        </div>
+        {/* Actions menu (Rendered via Portal to avoid container overflow clipping) */}
+        <ServiceRowActionsMenu
+          service={service}
+          openMenuId={openMenuServiceId}
+          setOpenMenuId={setOpenMenuServiceId}
+          onOpenEdit={handleOpenEdit}
+          onDuplicate={handleDuplicate}
+          onToggleStatus={handleToggleStatusAction}
+          onDelete={handleDeleteService}
+          viewScope={viewScope}
+        />
       </div>
     );
   };

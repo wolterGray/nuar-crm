@@ -939,7 +939,7 @@ export default function ServiceDrawer({
                   className="services-add-variant-btn"
                   onClick={handleAddVariant}>
                   <AppIcon name="plus" size="xs" />
-                  <span>+ Добавить</span>
+                  <span>Добавить</span>
                 </button>
               </div>
 
@@ -983,18 +983,20 @@ export default function ServiceDrawer({
                       </div>
 
                       <div className="services-var-cell-price">
-                        <input
-                          type="number"
-                          min="0"
-                          step="5"
-                          className="services-var-price-input"
-                          placeholder="0"
-                          value={v.price}
-                          onChange={(e) =>
-                            handleUpdateVariant(v.id, "price", e.target.value)
-                          }
-                        />
-                        <span className="services-var-price-unit">zł</span>
+                        <div className="services-var-price-input-wrap">
+                          <input
+                            type="number"
+                            min="0"
+                            step="5"
+                            className="services-var-price-input"
+                            placeholder="0"
+                            value={v.price}
+                            onChange={(e) =>
+                              handleUpdateVariant(v.id, "price", e.target.value)
+                            }
+                          />
+                          <span className="services-var-price-unit">zł</span>
+                        </div>
                       </div>
 
                       <div className="services-var-cell-action">
@@ -1104,16 +1106,11 @@ export default function ServiceDrawer({
                 <div className="services-buffers-container">
                   {/* Buffer Before */}
                   <div className="services-buffer-row">
-                    <div className="services-buffer-top-line">
-                      <label className="services-buffer-switch-label">
-                        <Switch
-                          checked={bufferBeforeEnabled}
-                          onChange={(e) => setBufferBeforeEnabled(e.target.checked)}
-                          aria-label="Включить буфер перед услугой"
-                          className="services-site-switch"
-                        />
-                        <span className="services-buffer-title">Буфер перед</span>
-                      </label>
+                    <div className="services-buffer-info">
+                      <span className="services-buffer-title">Буфер перед</span>
+                      <span className="services-buffer-desc">Время на подготовку кабинета</span>
+                    </div>
+                    <div className="services-buffer-controls">
                       {bufferBeforeEnabled ? (
                         <div className="services-buffer-input-wrap">
                           <input
@@ -1127,22 +1124,22 @@ export default function ServiceDrawer({
                           <span className="services-buffer-unit">мин</span>
                         </div>
                       ) : null}
+                      <Switch
+                        checked={bufferBeforeEnabled}
+                        onChange={(e) => setBufferBeforeEnabled(e.target.checked)}
+                        aria-label="Включить буфер перед услугой"
+                        className="services-site-switch"
+                      />
                     </div>
-                    <span className="services-buffer-desc">Время на подготовку кабинета</span>
                   </div>
 
                   {/* Buffer After */}
                   <div className="services-buffer-row">
-                    <div className="services-buffer-top-line">
-                      <label className="services-buffer-switch-label">
-                        <Switch
-                          checked={bufferAfterEnabled}
-                          onChange={(e) => setBufferAfterEnabled(e.target.checked)}
-                          aria-label="Включить буфер после услуги"
-                          className="services-site-switch"
-                        />
-                        <span className="services-buffer-title">Буфер после</span>
-                      </label>
+                    <div className="services-buffer-info">
+                      <span className="services-buffer-title">Буфер после</span>
+                      <span className="services-buffer-desc">Время на уборку и подготовку</span>
+                    </div>
+                    <div className="services-buffer-controls">
                       {bufferAfterEnabled ? (
                         <div className="services-buffer-input-wrap">
                           <input
@@ -1156,8 +1153,13 @@ export default function ServiceDrawer({
                           <span className="services-buffer-unit">мин</span>
                         </div>
                       ) : null}
+                      <Switch
+                        checked={bufferAfterEnabled}
+                        onChange={(e) => setBufferAfterEnabled(e.target.checked)}
+                        aria-label="Включить буфер после услуги"
+                        className="services-site-switch"
+                      />
                     </div>
-                    <span className="services-buffer-desc">Время на уборку и подготовку</span>
                   </div>
                 </div>
               </div>
