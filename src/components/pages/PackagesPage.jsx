@@ -22,33 +22,115 @@ import SearchControl from "../ui/SearchControl.jsx";
 import {Button, EmptyState} from "../ui/index.js";
 import "./PackagesPage.css";
 
+function getClientPackageDisplay(item, packages = [], clients = []) {
+  if (!item) return { client: "Клиент", packageName: "Пакет", service: "", price: 0 };
+  const payload = item.payload && typeof item.payload === "object" ? item.payload : {};
+  const linkedPackage = packages.find((p) => String(p.id) === String(item.packageId));
+  const linkedClient = clients.find((c) => String(c.id) === String(item.clientId));
+
+  const clientName =
+    (typeof item.client === "string" && item.client.trim()) ||
+    (typeof item.clientName === "string" && item.clientName.trim()) ||
+    (typeof payload.client === "string" && payload.client.trim()) ||
+    (typeof payload.clientName === "string" && payload.clientName.trim()) ||
+    (typeof item.client?.name === "string" && item.client.name.trim()) ||
+    (typeof linkedClient?.name === "string" && linkedClient.name.trim()) ||
+    "Клиент";
+
+  const packageName =
+    (typeof item.packageName === "string" && item.packageName.trim()) ||
+    (typeof item.name === "string" && item.name.trim()) ||
+    (typeof payload.packageName === "string" && payload.packageName.trim()) ||
+    (typeof payload.name === "string" && payload.name.trim()) ||
+    (typeof item.package?.name === "string" && item.package.name.trim()) ||
+    (typeof linkedPackage?.name === "string" && linkedPackage.name.trim()) ||
+    "Пакет";
+
+  const service =
+    (typeof item.service === "string" && item.service.trim()) ||
+    (typeof payload.service === "string" && payload.service.trim()) ||
+    (typeof item.package?.service === "string" && item.package.service.trim()) ||
+    (typeof linkedPackage?.service === "string" && linkedPackage.service.trim()) ||
+    "";
+
+  const price =
+    item.price !== undefined && item.price !== null && Number(item.price) > 0
+      ? Number(item.price)
+      : payload.price !== undefined && payload.price !== null && Number(payload.price) > 0
+        ? Number(payload.price)
+        : Number(linkedPackage?.price) || Number(item.price) || 0;
+
+  return { client: clientName, packageName, service, price };
+}
+
+function getCertificateDisplay(cert, clients = []) {
+  if (!cert) return { client: "Без покупателя", recipient: "" };
+  const payload = cert.payload && typeof cert.payload === "object" ? cert.payload : {};
+  const linkedClient = clients.find((c) => String(c.id) === String(cert.clientId));
+  const linkedRecipient = clients.find((c) => String(c.id) === String(cert.recipientId));
+
+  const clientName =
+    (typeof cert.client === "string" && cert.client.trim()) ||
+    (typeof cert.clientName === "string" && cert.clientName.trim()) ||
+    (typeof payload.client === "string" && payload.client.trim()) ||
+    (typeof payload.clientName === "string" && payload.clientName.trim()) ||
+    (typeof cert.client?.name === "string" && cert.client.name.trim()) ||
+    (typeof linkedClient?.name === "string" && linkedClient.name.trim()) ||
+    "Без покупателя";
+
+  const recipientName =
+    (typeof cert.recipient === "string" && cert.recipient.trim()) ||
+    (typeof cert.recipientName === "string" && cert.recipientName.trim()) ||
+    (typeof payload.recipient === "string" && payload.recipient.trim()) ||
+    (typeof payload.recipientName === "string" && payload.recipientName.trim()) ||
+    (typeof cert.recipient?.name === "string" && cert.recipient.name.trim()) ||
+    (typeof linkedRecipient?.name === "string" && linkedRecipient.name.trim()) ||
+    "";
+
+  return { client: clientName, recipient: recipientName };
+}
+
 function ClientPackageCard({
+  clients = [],
   onDelete,
   onEdit,
   openMenuId,
   packageItem,
+  packages = [],
   setOpenMenuId,
 }) {
+  const display = getClientPackageDisplay(packageItem, packages, clients);
   const archived = isArchivedClientPackage(packageItem);
   const progressLabel = archived
     ? getPackageUsedLabel(packageItem)
     : getPackageRemainingLabel(packageItem);
+
+  const resolvedItem = {
+    ...packageItem,
+    client: display.client,
+    clientName: display.client,
+    packageName: display.packageName,
+    service: display.service,
+    price: display.price,
+  };
 
   return (
     <article
       className={`package-card client-package-card ${archived ? "is-archived" : ""}`}>
       <div className="package-card-top">
         <div className="package-card-copy min-w-0">
-          <strong className="text-text-main text-sm font-semibold block leading-tight break-words">{packageItem.client}</strong>
-          <span className="text-text-muted text-xs block leading-tight break-words">{packageItem.packageName}</span>
-          <span className="text-text-faint text-[10px] block font-medium uppercase tracking-wider leading-tight break-words">{packageItem.service}</span>
+          <strong className="text-text-main text-sm font-semibold block leading-tight break-words">{display.client}</strong>
+          <span className="text-text-muted text-xs block leading-tight break-words">{display.packageName}</span>
+          {display.service ? (
+            <span className="package-service-tag text-text-faint text-[10px] block font-medium uppercase tracking-wider leading-tight break-words">{display.service}</span>
+          ) : null}
         </div>
         <RowActionsMenu
           itemId={packageItem.id}
           openMenuId={openMenuId}
           setOpenMenuId={setOpenMenuId}
-          onDelete={() => onDelete(packageItem)}
-          onEdit={() => onEdit(packageItem)}
+          onDelete={() => onDelete?.(resolvedItem)}
+          onEdit={() => onEdit?.(resolvedItem)}
         />
       </div>
 
@@ -65,7 +147,7 @@ function ClientPackageCard({
       </div>
 
       <div className="package-card-footer">
-        <span className="text-text-muted font-medium">{formatMoney(packageItem.price)}</span>
+        <span className="text-text-muted font-medium">{formatMoney(display.price)}</span>
         <span className={`package-status-pill ${packageItem.status === "Активен" ? "is-active" : ""}`}>
           {packageItem.status}
         </span>
@@ -76,12 +158,22 @@ function ClientPackageCard({
 
 function CertificateCard({
   certificate,
+  clients = [],
   onDelete,
   onEdit,
   openMenuId,
   setOpenMenuId,
 }) {
+  const display = getCertificateDisplay(certificate, clients);
   const archived = isArchivedCertificate(certificate);
+
+  const resolvedCert = {
+    ...certificate,
+    client: display.client,
+    clientName: display.client,
+    recipient: display.recipient,
+    recipientName: display.recipient,
+  };
 
   return (
     <article
@@ -89,10 +181,10 @@ function CertificateCard({
       <div className="package-card-top">
         <div className="package-card-copy min-w-0">
           <strong className="text-text-main text-sm font-semibold block leading-tight break-words">{certificate.code}</strong>
-          <span className="text-text-muted text-xs block leading-tight break-words">{certificate.client || "Без покупателя"}</span>
+          <span className="text-text-muted text-xs block leading-tight break-words">{display.client}</span>
           <span className="text-text-faint text-[10px] block font-medium mt-0.5 leading-tight break-words">
-            {certificate.recipient && certificate.recipient !== certificate.client
-              ? `Получатель: ${certificate.recipient}`
+            {display.recipient && display.recipient !== display.client
+              ? `Получатель: ${display.recipient}`
               : `До ${certificate.expiryDate || "—"}`}
           </span>
         </div>
@@ -100,8 +192,8 @@ function CertificateCard({
           itemId={certificate.id}
           openMenuId={openMenuId}
           setOpenMenuId={setOpenMenuId}
-          onDelete={() => onDelete(certificate)}
-          onEdit={() => onEdit(certificate)}
+          onDelete={() => onDelete?.(resolvedCert)}
+          onEdit={() => onEdit?.(resolvedCert)}
         />
       </div>
 
@@ -180,9 +272,11 @@ function PackageTemplateCard({
 }
 
 function PackagesPage({
-  packages,
-  clientPackages,
-  certificates,
+  packages = [],
+  clientPackages = [],
+  clientProfiles = [],
+  clients = [],
+  certificates = [],
   certificateSalesIncome,
   onAdd,
   onEdit,
@@ -200,6 +294,11 @@ function PackagesPage({
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
 
+  const allClients = useMemo(
+    () => (clientProfiles.length ? clientProfiles : clients),
+    [clientProfiles, clients],
+  );
+
   const activeClientPackages = useMemo(
     () => clientPackages.filter(isActiveClientPackage),
     [clientPackages],
@@ -216,6 +315,67 @@ function PackagesPage({
     () => certificates.filter(isArchivedCertificate),
     [certificates],
   );
+
+  const enrichedActiveClientPackages = useMemo(
+    () =>
+      activeClientPackages.map((item) => {
+        const d = getClientPackageDisplay(item, packages, allClients);
+        return {
+          ...item,
+          client: d.client,
+          clientName: d.client,
+          packageName: d.packageName,
+          service: d.service,
+          price: d.price,
+        };
+      }),
+    [activeClientPackages, allClients, packages],
+  );
+
+  const enrichedArchivedClientPackages = useMemo(
+    () =>
+      archivedClientPackages.map((item) => {
+        const d = getClientPackageDisplay(item, packages, allClients);
+        return {
+          ...item,
+          client: d.client,
+          clientName: d.client,
+          packageName: d.packageName,
+          service: d.service,
+          price: d.price,
+        };
+      }),
+    [archivedClientPackages, allClients, packages],
+  );
+
+  const enrichedActiveCertificates = useMemo(
+    () =>
+      activeCertificates.map((cert) => {
+        const d = getCertificateDisplay(cert, allClients);
+        return {
+          ...cert,
+          client: d.client,
+          clientName: d.client,
+          recipient: d.recipient,
+        };
+      }),
+    [activeCertificates, allClients],
+  );
+
+  const enrichedArchivedCertificates = useMemo(
+    () =>
+      archivedCertificates.map((cert) => {
+        const d = getCertificateDisplay(cert, allClients);
+        return {
+          ...cert,
+          client: d.client,
+          clientName: d.client,
+          recipient: d.recipient,
+        };
+      }),
+    [archivedCertificates, allClients],
+  );
+
   const remainingVisits = activeClientPackages.reduce(
     (sum, packageItem) => sum + (Number(packageItem.remainingVisits) || 0),
     0,
@@ -242,44 +402,48 @@ function PackagesPage({
 
   const filteredActiveCertificates = useMemo(
     () =>
-      filterByQuery(activeCertificates, [
+      filterByQuery(enrichedActiveCertificates, [
         "code",
         "client",
+        "clientName",
         "recipient",
         "status",
         "purchaseDate",
       ]),
-    [activeCertificates, filterByQuery],
+    [enrichedActiveCertificates, filterByQuery],
   );
   const filteredArchivedCertificates = useMemo(
     () =>
-      filterByQuery(archivedCertificates, [
+      filterByQuery(enrichedArchivedCertificates, [
         "code",
         "client",
+        "clientName",
         "recipient",
         "status",
       ]),
-    [archivedCertificates, filterByQuery],
+    [enrichedArchivedCertificates, filterByQuery],
   );
   const filteredActiveClientPackages = useMemo(
     () =>
-      filterByQuery(activeClientPackages, [
+      filterByQuery(enrichedActiveClientPackages, [
         "client",
+        "clientName",
         "packageName",
         "service",
         "status",
       ]),
-    [activeClientPackages, filterByQuery],
+    [enrichedActiveClientPackages, filterByQuery],
   );
   const filteredArchivedClientPackages = useMemo(
     () =>
-      filterByQuery(archivedClientPackages, [
+      filterByQuery(enrichedArchivedClientPackages, [
         "client",
+        "clientName",
         "packageName",
         "service",
         "status",
       ]),
-    [archivedClientPackages, filterByQuery],
+    [enrichedArchivedClientPackages, filterByQuery],
   );
   const filteredTemplates = useMemo(
     () =>
@@ -405,6 +569,8 @@ function PackagesPage({
                 {filteredActiveClientPackages.map((packageItem) => (
                   <ClientPackageCard
                     key={packageItem.id}
+                    clients={allClients}
+                    packages={packages}
                     onDelete={onDeleteClientPackage}
                     onEdit={onEditClientPackage}
                     openMenuId={openMenuId}
@@ -431,6 +597,7 @@ function PackagesPage({
                 {filteredActiveCertificates.map((certificate) => (
                   <CertificateCard
                     key={certificate.id}
+                    clients={allClients}
                     certificate={certificate}
                     onDelete={onDeleteCertificate}
                     onEdit={onEditCertificate}
@@ -489,6 +656,8 @@ function PackagesPage({
                 {filteredArchivedClientPackages.map((packageItem) => (
                   <ClientPackageCard
                     key={packageItem.id}
+                    clients={allClients}
+                    packages={packages}
                     onDelete={onDeleteClientPackage}
                     onEdit={onEditClientPackage}
                     openMenuId={openMenuId}
@@ -515,6 +684,7 @@ function PackagesPage({
                 {filteredArchivedCertificates.map((certificate) => (
                   <CertificateCard
                     key={certificate.id}
+                    clients={allClients}
                     certificate={certificate}
                     onDelete={onDeleteCertificate}
                     onEdit={onEditCertificate}

@@ -515,8 +515,8 @@ const buildClientPackageData = (payload) => ({
   clientId: payload?.clientId ? Number(payload.clientId) : null,
   packageId: payload?.packageId ? Number(payload.packageId) : null,
   employeeId: payload?.employeeId ? Number(payload.employeeId) : null,
-  clientName: cleanOptionalString(payload?.client),
-  packageName: cleanOptionalString(payload?.packageName),
+  clientName: cleanOptionalString(payload?.client ?? payload?.clientName),
+  packageName: cleanOptionalString(payload?.packageName ?? payload?.name),
   service: cleanOptionalString(payload?.service),
   totalVisits:
     payload?.totalVisits !== undefined && payload?.totalVisits !== null
@@ -544,8 +544,8 @@ const buildCertificateData = (payload) => ({
   recipientId: payload?.recipientId ? Number(payload.recipientId) : null,
   employeeId: payload?.employeeId ? Number(payload.employeeId) : null,
   saleVisitId: payload?.saleVisitId ? Number(payload.saleVisitId) : null,
-  clientName: cleanOptionalString(payload?.client),
-  recipientName: cleanOptionalString(payload?.recipient),
+  clientName: cleanOptionalString(payload?.client ?? payload?.clientName),
+  recipientName: cleanOptionalString(payload?.recipient ?? payload?.recipientName),
   nominal:
     payload?.nominal !== undefined && payload?.nominal !== null
       ? Number(payload.nominal) || 0
@@ -562,6 +562,67 @@ const buildCertificateData = (payload) => ({
   note: cleanOptionalString(payload?.note),
   payload,
 });
+
+const serializeClientPackage = (record) => {
+  if (!record) return record;
+  const base = withStoredId(record);
+  const payload = base.payload && typeof base.payload === 'object' ? base.payload : {};
+  const clientName =
+    base.client ||
+    base.clientName ||
+    record.client?.name ||
+    payload.client ||
+    payload.clientName ||
+    null;
+  const packageName =
+    base.packageName ||
+    base.name ||
+    record.package?.name ||
+    payload.packageName ||
+    payload.name ||
+    null;
+  const service =
+    base.service ||
+    record.package?.service ||
+    payload.service ||
+    null;
+
+  return {
+    ...base,
+    client: clientName,
+    clientName,
+    packageName,
+    service,
+  };
+};
+
+const serializeCertificate = (record) => {
+  if (!record) return record;
+  const base = withStoredId(record);
+  const payload = base.payload && typeof base.payload === 'object' ? base.payload : {};
+  const clientName =
+    base.client ||
+    base.clientName ||
+    record.client?.name ||
+    payload.client ||
+    payload.clientName ||
+    null;
+  const recipientName =
+    base.recipient ||
+    base.recipientName ||
+    record.recipient?.name ||
+    payload.recipient ||
+    payload.recipientName ||
+    null;
+
+  return {
+    ...base,
+    client: clientName,
+    clientName,
+    recipient: recipientName,
+    recipientName,
+  };
+};
 
 const buildDayCloseRecordData = (payload) => {
   const payments = payload?.journal?.paymentsByMethod ?? {};
@@ -610,8 +671,14 @@ router.get('/financial-state', async (req, res) => {
       payrollRecords,
     ] = await Promise.all([
       prisma.package.findMany({ orderBy: { name: 'asc' } }),
-      prisma.clientPackage.findMany({ orderBy: { createdAt: 'desc' } }),
-      prisma.certificate.findMany({ orderBy: { createdAt: 'desc' } }),
+      prisma.clientPackage.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: { client: true, package: true },
+      }),
+      prisma.certificate.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: { client: true, recipient: true },
+      }),
       prisma.dayCloseRecord.findMany({ orderBy: { date: 'desc' } }),
       prisma.payrollRecord.findMany({ orderBy: { paidAt: 'desc' } }),
     ]);
@@ -620,8 +687,8 @@ router.get('/financial-state', async (req, res) => {
       success: true,
       data: {
         packages: packages.map(withStoredId),
-        clientPackages: clientPackages.map(withStoredId),
-        certificates: certificates.map(withStoredId),
+        clientPackages: clientPackages.map(serializeClientPackage),
+        certificates: certificates.map(serializeCertificate),
         dayCloseRecords: dayCloseRecords.map(withStoredId),
         payrollRecords: payrollRecords.map(withStoredId),
       },
@@ -731,7 +798,15 @@ router.delete('/client-packages/:id', requireOwner, async (req, res) => {
 });
 
 router.get('/client-packages', (req, res) => {
-  respond(res, prisma.clientPackage.findMany({ orderBy: { createdAt: 'desc' } }).then((records) => records.map(withStoredId)));
+  respond(
+    res,
+    prisma.clientPackage
+      .findMany({
+        orderBy: { createdAt: 'desc' },
+        include: { client: true, package: true },
+      })
+      .then((records) => records.map(serializeClientPackage)),
+  );
 });
 
 // ==================== Certificates Sales & CRUD ====================
@@ -884,7 +959,15 @@ router.delete('/certificates/:id', requireOwner, async (req, res) => {
 });
 
 router.get('/certificates', (req, res) => {
-  respond(res, prisma.certificate.findMany({ orderBy: { createdAt: 'desc' } }).then((records) => records.map(withStoredId)));
+  respond(
+    res,
+    prisma.certificate
+      .findMany({
+        orderBy: { createdAt: 'desc' },
+        include: { client: true, recipient: true },
+      })
+      .then((records) => records.map(serializeCertificate)),
+  );
 });
 
 // ==================== Day Close Records ====================

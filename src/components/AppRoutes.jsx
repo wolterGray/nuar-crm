@@ -180,6 +180,8 @@ export default function AppRoutes({activePage, ...props}) {
           <PackagesPage
             packages={props.packagesCatalog}
             clientPackages={props.clientPackages}
+            clientProfiles={props.clientProfiles ?? props.clients ?? []}
+            clients={props.clients ?? props.clientProfiles ?? []}
             certificates={props.certificates}
             certificateSalesIncome={props.certificateSalesIncome}
             packageSalesIncome={props.packageSalesIncome}

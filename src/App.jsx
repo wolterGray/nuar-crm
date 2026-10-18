@@ -453,11 +453,63 @@ function App() {
         }
 
         const data = response?.data ?? {};
-        setPackagesCatalog(Array.isArray(data.packages) ? data.packages : []);
+        const loadedPackages = Array.isArray(data.packages) ? data.packages : [];
+        const rawClientPackages = Array.isArray(data.clientPackages) ? data.clientPackages : [];
+        const rawCertificates = Array.isArray(data.certificates) ? data.certificates : [];
+
+        setPackagesCatalog(loadedPackages);
         setClientPackages(
-          Array.isArray(data.clientPackages) ? data.clientPackages : [],
+          rawClientPackages.map((item) => {
+            const clientName =
+              item.client ||
+              item.clientName ||
+              item.payload?.client ||
+              item.payload?.clientName ||
+              "";
+            const pkgName =
+              item.packageName ||
+              item.name ||
+              item.payload?.packageName ||
+              item.payload?.name ||
+              (item.packageId ? loadedPackages.find((p) => String(p.id) === String(item.packageId))?.name : "") ||
+              "";
+            const serviceName =
+              item.service ||
+              item.payload?.service ||
+              (item.packageId ? loadedPackages.find((p) => String(p.id) === String(item.packageId))?.service : "") ||
+              "";
+            return {
+              ...item,
+              client: clientName,
+              clientName: clientName || item.clientName,
+              packageName: pkgName,
+              service: serviceName,
+            };
+          }),
         );
-        setCertificates(Array.isArray(data.certificates) ? data.certificates : []);
+        setCertificates(
+          rawCertificates.map((cert) => {
+            const clientName =
+              cert.client ||
+              cert.clientName ||
+              cert.payload?.client ||
+              cert.payload?.clientName ||
+              "";
+            const recipientName =
+              cert.recipient ||
+              cert.recipientName ||
+              cert.payload?.recipient ||
+              cert.payload?.recipientName ||
+              "";
+            return {
+              ...cert,
+              client: clientName,
+              clientName: clientName || cert.clientName,
+              recipient: recipientName,
+              recipientName: recipientName || cert.recipientName,
+            };
+          }),
+        );
         setDayCloseRecords(
           Array.isArray(data.dayCloseRecords) ? data.dayCloseRecords : [],
         );
