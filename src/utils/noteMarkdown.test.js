@@ -5,7 +5,7 @@ import {Markdown} from "@tiptap/markdown";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import {Table, TableCell, TableHeader, TableRow} from "@tiptap/extension-table";
-import {looksLikeMarkdown, stripMarkdownForSnippet} from "./noteMarkdown.js";
+import {looksLikeMarkdown, normalizeMarkdownForEditor, stripMarkdownForSnippet} from "./noteMarkdown.js";
 
 const TEST_DOCUMENT = `### 📅 Контент-план NUAR
 
@@ -54,6 +54,24 @@ describe("note Markdown", () => {
   it("builds a clean list preview without Markdown table syntax", () => {
     const snippet = stripMarkdownForSnippet(`## План\n\n| День | **Статус** |\n|---|---|\n| Пн | [Готово](https://nuarr.pl) |`);
     expect(snippet).toBe("План День Статус Пн Готово");
+  });
+
+  it("repairs loose ChatGPT tables without changing fenced code", () => {
+    const looseTable = `| День | Формат | Статус |
+
+| :--- | :--- | :---: |
+
+| Понедельник | **Stories** | [ ] |`;
+    expect(normalizeMarkdownForEditor(looseTable)).toBe(`| День | Формат | Статус |
+| :--- | :--- | :---: |
+| Понедельник | **Stories** | [ ] |`);
+    expect(looksLikeMarkdown(looseTable)).toBe(true);
+    const editor = createMarkdownEditor(normalizeMarkdownForEditor(looseTable));
+    expect(editor.getJSON().content.some((node) => node.type === "table")).toBe(true);
+    editor.destroy();
+
+    const code = "```md\n| one | two |\n\n| --- | --- |\n```";
+    expect(normalizeMarkdownForEditor(code)).toBe(code);
   });
 
   it("round-trips GFM tables, task lists and document blocks", () => {

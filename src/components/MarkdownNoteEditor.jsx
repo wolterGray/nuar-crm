@@ -7,7 +7,7 @@ import TaskItem from "@tiptap/extension-task-item";
 import {Table, TableCell, TableHeader, TableRow} from "@tiptap/extension-table";
 import Placeholder from "@tiptap/extension-placeholder";
 import {AppIcon} from "./ui/index.js";
-import {looksLikeMarkdown} from "../utils/noteMarkdown.js";
+import {looksLikeMarkdown, normalizeMarkdownForEditor} from "../utils/noteMarkdown.js";
 
 function ToolButton({active = false, children, disabled = false, icon, label, onClick, title}) {
   return (
@@ -102,7 +102,7 @@ function MarkdownNoteEditor({onBlur, onChange, value = ""}) {
   ], []);
 
   const editor = useEditor({
-    content: String(value || ""),
+    content: normalizeMarkdownForEditor(value),
     contentType: "markdown",
     extensions,
     immediatelyRender: false,
@@ -112,7 +112,7 @@ function MarkdownNoteEditor({onBlur, onChange, value = ""}) {
         const plainText = event.clipboardData?.getData("text/plain") || "";
         if (!looksLikeMarkdown(plainText)) return false;
         event.preventDefault();
-        editor?.chain().focus().insertContent(plainText, {contentType: "markdown"}).run();
+        editor?.chain().focus().insertContent(normalizeMarkdownForEditor(plainText), {contentType: "markdown"}).run();
         return true;
       },
     },
@@ -122,7 +122,7 @@ function MarkdownNoteEditor({onBlur, onChange, value = ""}) {
 
   useEffect(() => {
     if (!editor || editor.isDestroyed) return;
-    const nextValue = String(value || "");
+    const nextValue = normalizeMarkdownForEditor(value);
     if (editor.getMarkdown() === nextValue) return;
     editor.commands.setContent(nextValue, {contentType: "markdown", emitUpdate: false});
   }, [editor, value]);
