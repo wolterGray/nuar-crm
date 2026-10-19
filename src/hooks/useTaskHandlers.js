@@ -495,15 +495,28 @@ export function useTaskHandlers({
   );
 
   const addQuickNote = useCallback(
-    async ({title, category}) => {
+    async ({
+      title = "Новая страница",
+      category = "Процессы",
+      note: noteContent = "",
+      payload = {},
+    } = {}) => {
+      const cleanTitle = String(title ?? "").trim() || "Новая страница";
       const note = {
         type: "note",
-        title,
+        title: cleanTitle,
         dueDate: "",
-        priority: category || "Мысль",
-        note: "",
+        priority: category || "Процессы",
+        note: String(noteContent ?? ""),
+        description: String(noteContent ?? ""),
         status: "active",
         createdAt: new Date().toISOString(),
+        payload: {
+          icon: payload?.icon || "📄",
+          isPinned: Boolean(payload?.isPinned),
+          lastEditedAt: new Date().toISOString(),
+          ...(payload && typeof payload === "object" ? payload : {}),
+        },
       };
       let savedNote;
 
@@ -516,13 +529,68 @@ export function useTaskHandlers({
           message: error?.message || "Backend не принял заметку",
           persist: false,
         });
-        return;
+        return null;
       }
 
       setTasks((current) => [savedNote, ...current]);
-      pushNotification({title: "Заметка добавлена", message: savedNote.title});
+      pushNotification({title: "Заметка создана", message: savedNote.title});
+      return savedNote;
     },
     [pushNotification, setTasks],
+  );
+
+  const updateNote = useCallback(
+    async (id, updates = {}) => {
+      if (!id) return null;
+      let savedNote;
+
+      setTasks((current) =>
+        current.map((item) => {
+          if (String(item.id) !== String(id)) return item;
+          const currentPayload = item.payload && typeof item.payload === "object" ? item.payload : {};
+          const updatesPayload = updates.payload && typeof updates.payload === "object" ? updates.payload : {};
+          return {
+            ...item,
+            ...updates,
+            payload: {
+              ...currentPayload,
+              ...updatesPayload,
+              lastEditedAt: new Date().toISOString(),
+            },
+          };
+        }),
+      );
+
+      try {
+        const existing = tasks.find((item) => String(item.id) === String(id));
+        const currentPayload = existing?.payload && typeof existing.payload === "object" ? existing.payload : {};
+        const updatesPayload = updates.payload && typeof updates.payload === "object" ? updates.payload : {};
+        const nextTask = {
+          ...(existing || {}),
+          ...updates,
+          type: "note",
+          payload: {
+            ...currentPayload,
+            ...updatesPayload,
+            lastEditedAt: new Date().toISOString(),
+          },
+        };
+        const response = await updateTask(id, nextTask);
+        savedNote = response?.data ?? nextTask;
+        setTasks((current) =>
+          current.map((item) => (String(item.id) === String(id) ? savedNote : item)),
+        );
+        return savedNote;
+      } catch (error) {
+        pushNotification({
+          title: "Заметка не сохранена",
+          message: error?.message || "Backend не принял изменения",
+          persist: false,
+        });
+        return null;
+      }
+    },
+    [pushNotification, setTasks, tasks],
   );
 
   const completeTask = useCallback(
@@ -991,5 +1059,6 @@ export function useTaskHandlers({
     setTaskTemplateArchived,
     moveTaskToDate,
     setMainTask,
+    updateNote,
   };
 }

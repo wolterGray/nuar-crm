@@ -301,6 +301,7 @@ export default function AppModals({
           selectedDuration={calendarEntryDefaults.duration ?? 60}
           selectedKind={calendarEntryDefaults.kind ?? "visit"}
           selectedMaster={calendarEntryDefaults.master ?? masters[0] ?? ""}
+          selectedNote={calendarEntryDefaults.note ?? ""}
           selectedPayment={calendarEntryDefaults.payment ?? "Наличные"}
           selectedServiceId={calendarEntryDefaults.serviceId ?? ""}
           selectedTime={calendarEntryDefaults.time ?? "10:00"}

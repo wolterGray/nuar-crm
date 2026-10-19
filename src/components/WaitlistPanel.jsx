@@ -1,171 +1,352 @@
-import {memo, useCallback} from "react";
-import PageHeader from "./PageHeader.jsx";
-import {RowActionsMenu} from "./RowActionMenuPortal.jsx";
-import {AppIcon, Button, EmptyState} from "./ui/index.js";
+import {memo, useCallback, useMemo, useState} from "react";
+import "./WaitlistPanel.css";
+import WaitlistDetailDrawer from "./WaitlistDetailDrawer.jsx";
+import {AppIcon, Badge, Button, EmptyState} from "./ui/index.js";
 import {
+  formatWaitlistDisplayDate,
+  formatWaitlistDisplayTime,
   getActiveWaitlistEntries,
-  summarizeWaitlistEntry,
+  getDeletedWaitlistEntries,
+  getOfferedWaitlistEntries,
+  isWaitlistEntryDeleted,
+  parseWaitlistEntryDetails,
 } from "../utils/waitlist.js";
 
-const WaitlistCard = memo(
-  function WaitlistCard({
-    entry,
-    openMenuId,
-    setOpenMenuId,
-    onMessage,
-    onBook,
-    onEdit,
-    onRemove,
-  }) {
-    const handleMessage = useCallback(() => {
+const WaitlistCard = memo(function WaitlistCard({
+  clientProfiles,
+  entry,
+  onBook,
+  onMessage,
+  onOpenDetails,
+  onRestore,
+}) {
+  const details = useMemo(
+    () => parseWaitlistEntryDetails(entry, clientProfiles),
+    [entry, clientProfiles],
+  );
+
+  const handleCardClick = useCallback(() => {
+    onOpenDetails?.(entry);
+  }, [entry, onOpenDetails]);
+
+  const handleKeyDown = useCallback(
+    (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onOpenDetails?.(entry);
+      }
+    },
+    [entry, onOpenDetails],
+  );
+
+  const handleMessageClick = useCallback(
+    (event) => {
+      event.stopPropagation();
       onMessage?.(entry);
-    }, [onMessage, entry]);
+    },
+    [entry, onMessage],
+  );
 
-    const handleBook = useCallback(() => {
+  const handleBookClick = useCallback(
+    (event) => {
+      event.stopPropagation();
       onBook?.(entry);
-    }, [onBook, entry]);
+    },
+    [entry, onBook],
+  );
 
-    const handleEdit = useCallback(() => {
-      onEdit?.(entry);
-    }, [onEdit, entry]);
+  const handleRestoreClick = useCallback(
+    (event) => {
+      event.stopPropagation();
+      onRestore?.(entry.id);
+    },
+    [entry.id, onRestore],
+  );
 
-    const handleDelete = useCallback(() => {
-      onRemove?.(entry);
-    }, [onRemove, entry]);
-
-    return (
-      <article
-        className="client-package-card waitlist-card certificate-card"
-        key={entry.id}>
-        <div className="operations-card-head">
-          <span className="operations-card-icon waitlist-card-icon">
-            <AppIcon name="clock" size="sm" />
-          </span>
-          <div className="operations-card-body">
-            <strong>{entry.clientName}</strong>
-            {entry.note ? (
-              <span className="waitlist-row-note">{entry.note}</span>
+  return (
+    <article
+      aria-label={`Заявка от ${details.clientName}`}
+      className={`waitlist-card ${details.isDeleted ? "waitlist-card-deleted" : ""}`}
+      role="button"
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
+    >
+      {/* 1. Header: Client Name & Status */}
+      <div className="waitlist-card-head">
+        <div className="waitlist-card-title-group">
+          <h3 className="waitlist-card-client-name">{details.clientName}</h3>
+          <div className="waitlist-card-source-row">
+            <span className={`waitlist-source-pill waitlist-source-${details.source}`}>
+              <AppIcon name={details.source === "site" ? "globe" : "user"} size="xs" />
+              {details.sourceLabel}
+            </span>
+            {details.createdAt ? (
+              <span className="waitlist-drawer-created">
+                {new Date(details.createdAt).toLocaleDateString("ru-RU", {
+                  day: "numeric",
+                  month: "short",
+                })}
+              </span>
             ) : null}
           </div>
-          <RowActionsMenu
-            className="operations-row-actions"
-            itemId={`waitlist-${entry.id}`}
-            openMenuId={openMenuId}
-            setOpenMenuId={setOpenMenuId}
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-          />
         </div>
-        <div className="waitlist-meta">
-          <span className="waitlist-meta-item">
-            {summarizeWaitlistEntry(entry)}
+        <Badge size="sm" variant={details.statusBadge.variant}>
+          {details.statusBadge.label}
+        </Badge>
+      </div>
+
+      {/* 2. Main Slot: Preferred Date & Time */}
+      <div className="waitlist-card-time-block">
+        <AppIcon className="waitlist-card-time-icon" name="calendar" size="sm" />
+        <span>
+          {formatWaitlistDisplayDate(details.preferredDate)} ·{" "}
+          {formatWaitlistDisplayTime(details.preferredTimeFrom, details.preferredTimeTo)}
+        </span>
+      </div>
+
+      {/* 3. Detailed Parameter Chips: Service, Duration, Master */}
+      <div className="waitlist-card-chips">
+        <span className="waitlist-chip">
+          <AppIcon className="waitlist-chip-icon" name="sparkles" size="xs" />
+          <span>
+            Услуга: <strong>{details.preferredService || "Любая"}</strong>
           </span>
-        </div>
+        </span>
+        <span className="waitlist-chip">
+          <AppIcon className="waitlist-chip-icon" name="clock" size="xs" />
+          <span>{details.durationMinutes} мин</span>
+        </span>
+        <span className="waitlist-chip">
+          <AppIcon className="waitlist-chip-icon" name="user" size="xs" />
+          <span>
+            Мастер: <strong>{details.preferredMaster || "Любой"}</strong>
+          </span>
+        </span>
+      </div>
+
+      {/* 4. Client Comment Snippet */}
+      {details.clientComment ? (
+        <p className="waitlist-card-note" title={details.clientComment}>
+          💬 {details.clientComment}
+        </p>
+      ) : null}
+
+      {/* 5. Footer: Quick Actions & Open Hint */}
+      <div className="waitlist-card-foot">
         <div className="waitlist-card-actions">
-          <Button
-            className="waitlist-action-button"
-            leftIcon="message"
-            size="sm"
-            title="Шаблоны сообщений"
-            variant="secondary"
-            onClick={handleMessage}>
-            Написать
-          </Button>
-          <Button
-            className="waitlist-action-button"
-            leftIcon="calendarPlus"
-            size="sm"
-            title="Новая запись"
-            variant="secondary"
-            onClick={handleBook}>
-            Записать
-          </Button>
+          {details.isDeleted ? (
+            <Button
+              leftIcon="refreshCw"
+              size="sm"
+              variant="secondary"
+              onClick={handleRestoreClick}
+            >
+              Восстановить
+            </Button>
+          ) : (
+            <>
+              <Button
+                leftIcon="messageSquare"
+                size="sm"
+                variant="ghost"
+                onClick={handleMessageClick}
+              >
+                Связаться
+              </Button>
+              <Button
+                leftIcon="calendarPlus"
+                size="sm"
+                variant="secondary"
+                onClick={handleBookClick}
+              >
+                Записать
+              </Button>
+            </>
+          )}
         </div>
-      </article>
-    );
-  },
-  (prev, next) => {
-    // Custom comparison: memoize if critical data unchanged
-    return (
-      prev.entry.id === next.entry.id &&
-      prev.entry.clientName === next.entry.clientName &&
-      prev.entry.note === next.entry.note &&
-      prev.entry.status === next.entry.status &&
-      prev.entry.lastOfferedAt === next.entry.lastOfferedAt &&
-      prev.openMenuId === next.openMenuId
-    );
-  }
-);
+        <span className="waitlist-card-open-hint">
+          Детали <AppIcon name="chevronRight" size="xs" />
+        </span>
+      </div>
+    </article>
+  );
+});
 
 function WaitlistPanel({
-  openMenuId,
-  setOpenMenuId,
+  clientProfiles = [],
   waitlistEntries = [],
   onAdd,
   onBook,
   onEdit,
   onMessage,
   onRemove,
+  onRestore,
 }) {
-  const activeEntries = getActiveWaitlistEntries(waitlistEntries);
-  const offeredEntries = waitlistEntries.filter((entry) => entry.status === "offered");
+  const [filter, setFilter] = useState("active");
+  const [selectedEntryId, setSelectedEntryId] = useState(null);
+
+  // Group entries by status
+  const activeEntries = useMemo(
+    () => getActiveWaitlistEntries(waitlistEntries),
+    [waitlistEntries],
+  );
+  const offeredEntries = useMemo(
+    () => getOfferedWaitlistEntries(waitlistEntries),
+    [waitlistEntries],
+  );
+  const deletedEntries = useMemo(
+    () => getDeletedWaitlistEntries(waitlistEntries),
+    [waitlistEntries],
+  );
+  const allNonDeletedEntries = useMemo(
+    () => waitlistEntries.filter((item) => !isWaitlistEntryDeleted(item)),
+    [waitlistEntries],
+  );
+
+  // Determine current active item for detail drawer
+  const selectedEntry = useMemo(
+    () => waitlistEntries.find((item) => item.id === selectedEntryId) || null,
+    [waitlistEntries, selectedEntryId],
+  );
+
+  // Visible entries depending on active tab
+  const visibleEntries = useMemo(() => {
+    switch (filter) {
+      case "offered":
+        return offeredEntries;
+      case "deleted":
+        return deletedEntries;
+      case "all":
+        return allNonDeletedEntries;
+      case "active":
+      default:
+        return activeEntries;
+    }
+  }, [filter, activeEntries, offeredEntries, deletedEntries, allNonDeletedEntries]);
+
+  const handleOpenDetails = useCallback((entry) => {
+    setSelectedEntryId(entry.id);
+  }, []);
+
+  const handleCloseDetails = useCallback(() => {
+    setSelectedEntryId(null);
+  }, []);
 
   return (
-    <section className="panel operations-panel waitlist-panel">
-      <PageHeader
-        description="Клиенты, которым можно предложить освободившийся слот"
-        showNotifications={false}
-        title="Лист ожидания"
-      />
-      <Button
-        className="add-visit-button waitlist-add-button"
-        leftIcon="plus"
-        variant="primary"
-        onClick={onAdd}>
-        Добавить
-      </Button>
+    <section className="panel operations-panel waitlist-panel-container">
+      {/* 1. Header Toolbar with Title, Badge, and Add Action */}
+      <div className="waitlist-toolbar">
+        <div className="waitlist-toolbar-top">
+          <div className="waitlist-toolbar-title-group">
+            <h2 className="waitlist-toolbar-title">Очередь заявок</h2>
+            {activeEntries.length > 0 ? (
+              <Badge size="sm" variant="danger">
+                {activeEntries.length}
+              </Badge>
+            ) : null}
+          </div>
+          <Button
+            className="waitlist-add-btn"
+            leftIcon="plus"
+            size="sm"
+            variant="primary"
+            onClick={onAdd}
+          >
+            Добавить
+          </Button>
+        </div>
+        <p className="waitlist-toolbar-subtitle">
+          Онлайн-бронирования с сайта и клиенты листа ожидания
+        </p>
 
-      {activeEntries.length === 0 ? (
+        {/* 2. Filter Tabs Bar */}
+        <div className="waitlist-filters-bar" role="tablist">
+          <button
+            className={`waitlist-filter-chip ${filter === "active" ? "is-active" : ""}`}
+            type="button"
+            onClick={() => setFilter("active")}
+          >
+            <span>Активные</span>
+            <span className="waitlist-filter-chip-count">{activeEntries.length}</span>
+          </button>
+          <button
+            className={`waitlist-filter-chip ${filter === "offered" ? "is-active" : ""}`}
+            type="button"
+            onClick={() => setFilter("offered")}
+          >
+            <span>Предложено</span>
+            <span className="waitlist-filter-chip-count">{offeredEntries.length}</span>
+          </button>
+          <button
+            className={`waitlist-filter-chip ${filter === "all" ? "is-active" : ""}`}
+            type="button"
+            onClick={() => setFilter("all")}
+          >
+            <span>Все</span>
+            <span className="waitlist-filter-chip-count">{allNonDeletedEntries.length}</span>
+          </button>
+          {deletedEntries.length > 0 ? (
+            <button
+              className={`waitlist-filter-chip ${filter === "deleted" ? "is-active" : ""}`}
+              type="button"
+              onClick={() => setFilter("deleted")}
+            >
+              <span>Удалённые</span>
+              <span className="waitlist-filter-chip-count">{deletedEntries.length}</span>
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      {/* 3. Cards List or Empty State */}
+      {visibleEntries.length === 0 ? (
         <EmptyState
           className="operations-empty"
-          icon="clock"
-          title="Активных заявок пока нет."
+          icon={filter === "deleted" ? "trash" : "clock"}
+          title={
+            filter === "active"
+              ? "Активных заявок пока нет"
+              : filter === "offered"
+              ? "Нет заявок со статусом «Предложено»"
+              : filter === "deleted"
+              ? "Корзина удалённых заявок пуста"
+              : "Заявок не найдено"
+          }
+          description={
+            filter === "active"
+              ? "Новые онлайн-заявки с сайта и клиенты из листа ожидания появятся здесь."
+              : undefined
+          }
         />
       ) : (
-        <div className="client-packages-list">
-          {activeEntries.map((entry) => (
+        <div className="waitlist-cards-list">
+          {visibleEntries.map((entry) => (
             <WaitlistCard
               key={entry.id}
+              clientProfiles={clientProfiles}
               entry={entry}
-              openMenuId={openMenuId}
-              setOpenMenuId={setOpenMenuId}
-              onMessage={onMessage}
               onBook={onBook}
-              onEdit={onEdit}
-              onRemove={onRemove}
+              onMessage={onMessage}
+              onOpenDetails={handleOpenDetails}
+              onRestore={onRestore}
             />
           ))}
         </div>
       )}
 
-      {offeredEntries.length > 0 ? (
-        <div className="waitlist-offered-block">
-          <strong>
-            <AppIcon name="clock" size="sm" />
-            Недавно предложено ({offeredEntries.length})
-          </strong>
-          <ul>
-            {offeredEntries.slice(0, 5).map((entry) => (
-              <li key={entry.id}>
-                {entry.clientName}
-                {entry.lastOfferedAt
-                  ? ` · ${new Date(entry.lastOfferedAt).toLocaleDateString("ru-RU")}`
-                  : ""}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      {/* 4. Full Detail Drawer (Mobile Bottom Sheet / Desktop Side Drawer) */}
+      <WaitlistDetailDrawer
+        clientProfiles={clientProfiles}
+        entry={selectedEntry}
+        isOpen={Boolean(selectedEntry)}
+        onBook={onBook}
+        onClose={handleCloseDetails}
+        onEdit={onEdit}
+        onMessage={onMessage}
+        onRemove={onRemove}
+        onRestore={onRestore}
+      />
     </section>
   );
 }

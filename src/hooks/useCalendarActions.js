@@ -33,6 +33,7 @@ export function useCalendarActions({
   appSettings,
   autoCompletedCalendarEntryIdsRef,
   calendarEntries,
+  calendarEntryDefaults = {},
   certificates,
   clientPackages,
   clientProfiles,
@@ -42,6 +43,7 @@ export function useCalendarActions({
   employees,
   getCalendarServiceColor,
   onCalendarSlotFreed,
+  onWaitlistEntryBooked,
   pushNotification,
   serviceCatalog,
   setActiveClientAlertId,
@@ -464,6 +466,10 @@ export function useCalendarActions({
           : [...current, savedEntry],
       );
       await syncCompletedCalendarVisit(savedEntry);
+      const bookedWaitlistId = calendarEntryDefaults?.waitlistEntryId;
+      if (bookedWaitlistId && !isEditing) {
+        onWaitlistEntryBooked?.(bookedWaitlistId);
+      }
       setCalendarEntryModalOpen(false);
       setEditingCalendarEntry(null);
       setCalendarEntryDefaults({});
@@ -477,6 +483,8 @@ export function useCalendarActions({
     },
     [
       calendarEntries,
+      calendarEntryDefaults,
+      onWaitlistEntryBooked,
       pushNotification,
       removeCompletedVisitLink,
       setCalendarEntries,

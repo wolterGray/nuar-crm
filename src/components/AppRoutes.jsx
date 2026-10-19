@@ -257,6 +257,7 @@ export default function AppRoutes({activePage, ...props}) {
             waitlistEntries={props.waitlistEntries}
             onAddTask={props.openCreateTask}
             onAddNote={props.addQuickNote}
+            onUpdateNote={props.updateNote}
             onAddWaitlistEntry={props.openCreateWaitlistEntry}
             onAlertFocusHandled={props.clearAlertFocus}
             onBookWaitlistEntry={props.bookWaitlistEntryFromPanel}
@@ -271,6 +272,10 @@ export default function AppRoutes({activePage, ...props}) {
             onRenameTaskArea={props.renameTaskArea}
             onInitializeAcquisitionPlan={props.initializeAcquisitionPlan}
             onRemoveWaitlistEntry={props.removeWaitlistEntry}
+            onRestoreWaitlistEntry={props.restoreWaitlistEntry}
+            serviceCatalog={props.serviceCatalog}
+            clientProfiles={props.clientProfiles}
+            openClientMessageTemplates={props.openClientMessageTemplates}
             onReorderTasks={props.reorderTasks}
             onSetMainTask={props.setMainTask}
             onSaveTaskOccurrence={props.saveTaskOccurrence}

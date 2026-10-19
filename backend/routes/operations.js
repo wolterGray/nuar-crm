@@ -252,8 +252,8 @@ router.get('/tasks', (req, res) => {
 // ==================== Waitlist CRUD ====================
 router.post('/waitlist', (req, res) => {
   const data = buildWaitlistEntryData(req.body ?? {});
-  if (!data.clientId || !data.clientName) {
-    return res.status(400).json({ success: false, error: 'Waitlist client is required' });
+  if (!data.clientName) {
+    return res.status(400).json({ success: false, error: 'Waitlist client name is required' });
   }
 
   auditCreate(
@@ -274,8 +274,8 @@ router.get('/waitlist/:id', (req, res) => {
 router.put('/waitlist/:id', async (req, res) => {
   const id = Number(req.params.id);
   const data = buildWaitlistEntryData({ ...(req.body ?? {}), id });
-  if (!data.clientId || !data.clientName) {
-    return res.status(400).json({ success: false, error: 'Waitlist client is required' });
+  if (!data.clientName) {
+    return res.status(400).json({ success: false, error: 'Waitlist client name is required' });
   }
 
   await auditUpdate(
@@ -290,17 +290,71 @@ router.put('/waitlist/:id', async (req, res) => {
   );
 });
 
-router.delete('/waitlist/:id', requireOwner, async (req, res) => {
+router.delete('/waitlist/:id', async (req, res) => {
   const id = Number(req.params.id);
-  await auditDelete(
+  if (!Number.isFinite(id)) {
+    return res.status(400).json({ success: false, error: 'Invalid ID' });
+  }
+  const existing = await prisma.waitlistEntry.findUnique({ where: { id } });
+  if (!existing) {
+    return res.status(404).json({ success: false, error: 'Запись не найдена' });
+  }
+
+  const existingPayload = existing.payload && typeof existing.payload === 'object' ? existing.payload : {};
+  const nextPayload = {
+    ...existingPayload,
+    deletedAt: new Date().toISOString(),
+    previousStatus: existing.status || 'active',
+  };
+
+  await auditUpdate(
     prisma,
     req,
     res,
     'waitlistEntry',
     id,
-    prisma.waitlistEntry.delete({ where: { id } }).then(withStoredId),
+    prisma.waitlistEntry.update({
+      where: { id },
+      data: {
+        status: 'deleted',
+        payload: nextPayload,
+      },
+    }).then(withStoredId),
     'WaitlistEntry',
-    'delete waitlist entry',
+    'soft delete waitlist entry',
+  );
+});
+
+router.post('/waitlist/:id/restore', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) {
+    return res.status(400).json({ success: false, error: 'Invalid ID' });
+  }
+  const existing = await prisma.waitlistEntry.findUnique({ where: { id } });
+  if (!existing) {
+    return res.status(404).json({ success: false, error: 'Запись не найдена' });
+  }
+
+  const existingPayload = existing.payload && typeof existing.payload === 'object' ? { ...existing.payload } : {};
+  const targetStatus = existingPayload.previousStatus || 'active';
+  delete existingPayload.deletedAt;
+  delete existingPayload.previousStatus;
+
+  await auditUpdate(
+    prisma,
+    req,
+    res,
+    'waitlistEntry',
+    id,
+    prisma.waitlistEntry.update({
+      where: { id },
+      data: {
+        status: targetStatus,
+        payload: existingPayload,
+      },
+    }).then(withStoredId),
+    'WaitlistEntry',
+    'restore waitlist entry',
   );
 });
 

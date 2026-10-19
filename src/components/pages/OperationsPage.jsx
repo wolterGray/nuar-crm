@@ -3,6 +3,7 @@ import "./OperationsPage.css";
 import {DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors} from "@dnd-kit/core";
 import {CSS} from "@dnd-kit/utilities";
 import WaitlistPanel from "../WaitlistPanel.jsx";
+import NotionNotesWorkspace from "../NotionNotesWorkspace.jsx";
 import HintIcon from "../HintIcon.jsx";
 import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import OperationsHistory from "../OperationsHistory.jsx";
@@ -65,7 +66,6 @@ import {
   Select,
 } from "../ui/index.js";
 
-const NOTE_CATEGORIES = ["Мысль", "Заказать", "Идея", "Личное"];
 const VIEW_STORAGE_KEY = "nuar-crm-operations-view-v2";
 const FILTER_STORAGE_KEY = "nuar-crm-operations-filters-v3";
 const AREA_ORDER_STORAGE_KEY = "nuar-crm-task-area-order-v1";
@@ -138,14 +138,23 @@ const formatRepeatSchedule = (task) => {
   return "По выбранным дням";
 };
 
-function SegmentButton({active, children, onClick}) {
+import {isWaitlistEntryActive} from "../../utils/waitlist.js";
+
+function SegmentButton({active, badge, children, onClick}) {
   return (
     <button
       className={`operations-tab-btn ${active ? "is-active" : ""}`}
       type="button"
       onClick={onClick}
     >
-      <span>{children}</span>
+      <span className="operations-tab-label-wrap">
+        <span>{children}</span>
+        {badge ? (
+          <span className="operations-tab-badge" aria-label={`Заявок: ${badge}`}>
+            {badge}
+          </span>
+        ) : null}
+      </span>
       {active ? <span className="operations-tab-underline" /> : null}
     </button>
   );
@@ -876,6 +885,7 @@ function OperationsPage({
   waitlistEntries = [],
   onAddTask,
   onAddNote,
+  onUpdateNote,
   onAddWaitlistEntry,
   onAlertFocusHandled,
   onBookWaitlistEntry,
@@ -889,6 +899,9 @@ function OperationsPage({
   onRenameTaskArea,
   onInitializeAcquisitionPlan,
   onRemoveWaitlistEntry,
+  onRestoreWaitlistEntry,
+  clientProfiles = [],
+  serviceCatalog = [],
   onSetMainTask,
   onSaveTaskOccurrence,
   onSetTaskTemplateArchived,
@@ -913,8 +926,6 @@ function OperationsPage({
     return Array.isArray(storedAreaOrder) ? storedAreaOrder : [];
   });
   const acquisitionSyncStarted = useRef(false);
-  const [noteText, setNoteText] = useState("");
-  const [noteCategory, setNoteCategory] = useState("Мысль");
   const [moveUndo, setMoveUndo] = useState(null);
   const today = getWarsawTodayInput();
   const nowTime = getWarsawTime();
@@ -962,7 +973,7 @@ function OperationsPage({
   const workTasks = tasks.filter((task) => task.type !== "note" && getTaskPayload(task).hiddenFromPlan !== true);
   const activeWorkTasks = workTasks.filter((task) => getTaskPayload(task).templateArchived !== true);
   const lowStockCount = supplies.filter(isSupplyLowStock).length;
-  const activeWaitlistCount = waitlistEntries.filter((entry) => entry.status === "active").length;
+  const activeWaitlistCount = waitlistEntries.filter(isWaitlistEntryActive).length;
   const sortedSupplies = useMemo(
     () =>
       [...supplies].sort((left, right) => {
@@ -1120,14 +1131,6 @@ function OperationsPage({
     }
   };
 
-  const submitQuickNote = (event) => {
-    event.preventDefault();
-    const title = noteText.trim();
-    if (!title) return;
-    onAddNote({category: noteCategory, title});
-    setNoteText("");
-  };
-
   const moveTaskWithUndo = async (task, nextDate) => {
     const previousDate = getTaskDueDate(task);
     if (!nextDate || previousDate === nextDate) return;
@@ -1279,7 +1282,11 @@ function OperationsPage({
             <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>
               {isMobile ? "Склад" : "Расходники"}
             </SegmentButton>
-            <SegmentButton active={activeTab === "waitlist"} onClick={() => setActiveTab("waitlist")}>
+            <SegmentButton
+              active={activeTab === "waitlist"}
+              badge={activeWaitlistCount > 0 ? activeWaitlistCount : null}
+              onClick={() => setActiveTab("waitlist")}
+            >
               {isMobile ? "Очередь" : "Лист ожидания"}
             </SegmentButton>
           </nav>
@@ -1615,32 +1622,12 @@ function OperationsPage({
       ) : null}
 
       {activeTab === "notes" ? (
-        <section className="panel operations-panel operations-notes-panel">
-          <div className="operations-panel-header">
-            <div><AppIcon name="stickyNote" size="md" /><div><h2>Заметки</h2><p>{notes.length} записей</p></div></div>
-            <Button leftIcon="plus" size="sm" variant="primary" onClick={() => onAddTask?.("note")}>Заметка</Button>
-          </div>
-          <form className="quick-note-form" onSubmit={submitQuickNote}>
-            <Input value={noteText} placeholder="Мысль, идея или что заказать" onChange={(event) => setNoteText(event.target.value)} />
-            <Select value={noteCategory} onChange={(event) => setNoteCategory(event.target.value)}>
-              {NOTE_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
-            </Select>
-            <Button leftIcon="plus" type="submit" variant="primary">Записать</Button>
-          </form>
-          <div className="operations-list">
-            {notes.map((note) => (
-              <article className="note-row" key={note.id}>
-                <span className="operations-card-icon note-card-icon"><AppIcon name="stickyNote" size="sm" /></span>
-                <button className="operations-card-body operations-card-view" type="button" onClick={() => setViewingTask(note)}>
-                  <strong>{note.title}</strong>
-                  <span>{note.priority || "Мысль"}</span>
-                </button>
-                <RowActionsMenu itemId={`note-${note.id}`} openMenuId={openItemMenuId} setOpenMenuId={setOpenItemMenuId} onDelete={() => onDeleteTask(note)} onEdit={() => onEditTask(note)} />
-              </article>
-            ))}
-            {!notes.length ? <p className="operations-empty">Заметок пока нет.</p> : null}
-          </div>
-        </section>
+        <NotionNotesWorkspace
+          notes={notes}
+          onAddNote={onAddNote}
+          onDeleteNote={onDeleteTask}
+          onUpdateNote={onUpdateNote}
+        />
       ) : null}
 
       {activeTab === "history" ? <OperationsHistory tasks={workTasks} /> : null}
@@ -1693,7 +1680,10 @@ function OperationsPage({
       {activeTab === "waitlist" ? (
         <section className="operations-panel-waitlist">
           <WaitlistPanel
+            clientProfiles={clientProfiles}
+            employees={employees}
             openMenuId={openItemMenuId}
+            serviceCatalog={serviceCatalog}
             setOpenMenuId={setOpenItemMenuId}
             waitlistEntries={waitlistEntries}
             onAdd={onAddWaitlistEntry}
@@ -1701,8 +1691,8 @@ function OperationsPage({
             onEdit={onEditWaitlistEntry}
             onMessage={onMessageWaitlistEntry}
             onRemove={onRemoveWaitlistEntry}
+            onRestore={onRestoreWaitlistEntry}
           />
-          <p className="operations-waitlist-meta">{activeWaitlistCount} активных заявок</p>
         </section>
       ) : null}
 

@@ -1,0 +1,815 @@
+/* ==========================================================================
+   WaitlistPanel & WaitlistDetailDrawer — Nuar CRM Design System
+   Benchmark: /today (Deep dark surface, 1px subtle borders, red accent)
+   ========================================================================== */
+
+.waitlist-panel-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* 1. Header Toolbar */
+.waitlist-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.waitlist-toolbar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.waitlist-toolbar-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.waitlist-toolbar-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text, #ffffff);
+  letter-spacing: -0.3px;
+}
+
+.waitlist-toolbar-subtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted, #a4a4ac);
+}
+
+.waitlist-add-btn {
+  height: 38px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-control, 10px) !important;
+  box-shadow: 0 2px 8px rgba(225, 29, 46, 0.25) !important;
+}
+
+/* 2. Filter Tabs Row */
+.waitlist-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 0 4px;
+}
+
+.waitlist-filters-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.waitlist-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  background: var(--color-surface, #141416);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-pill, 999px);
+  color: var(--color-text-muted, #a4a4ac);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 150ms ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.waitlist-filter-chip:hover {
+  background: var(--color-surface-2, #1b1b1e);
+  color: var(--color-text, #ffffff);
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.14));
+}
+
+.waitlist-filter-chip.is-active {
+  background: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
+  color: #ffffff;
+  border-color: rgba(225, 29, 46, 0.45);
+  font-weight: 600;
+}
+
+.waitlist-filter-chip-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill, 999px);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted, #a4a4ac);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.waitlist-filter-chip.is-active .waitlist-filter-chip-count {
+  background: var(--color-accent, #e11d2e);
+  color: #ffffff;
+}
+
+/* 3. Cards Grid / List */
+.waitlist-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.waitlist-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--color-surface, #141416);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-card, 14px);
+  cursor: pointer;
+  transition: all 180ms ease;
+  user-select: none;
+}
+
+.waitlist-card:hover {
+  background: var(--color-surface-2, #1b1b1e);
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.14));
+  transform: translateY(-1px);
+}
+
+.waitlist-card:active {
+  transform: translateY(0);
+}
+
+.waitlist-card-deleted {
+  opacity: 0.75;
+  border-style: dashed;
+}
+
+/* Card Header */
+.waitlist-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.waitlist-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.waitlist-card-client-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text, #ffffff);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.waitlist-card-source-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.waitlist-source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-pill, 999px);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-muted, #a4a4ac);
+}
+
+.waitlist-source-site {
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+}
+
+/* Card Main Date & Time Block */
+.waitlist-card-time-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-surface-2, #1b1b1e);
+  border: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.045));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #ffffff);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.waitlist-card-time-icon {
+  color: var(--color-accent, #e11d2e);
+  flex-shrink: 0;
+}
+
+/* Card Details Chips */
+.waitlist-card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.waitlist-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.045));
+  border-radius: var(--radius-sm, 6px);
+  font-size: 12px;
+  color: var(--color-text-muted, #a4a4ac);
+}
+
+.waitlist-chip strong {
+  color: var(--color-text, #ffffff);
+  font-weight: 500;
+}
+
+.waitlist-chip-icon {
+  color: var(--color-text-faint, #7f7f86);
+  flex-shrink: 0;
+}
+
+/* Card Note Snippet */
+.waitlist-card-note {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted, #a4a4ac);
+  background: rgba(255, 255, 255, 0.025);
+  border-left: 2px solid var(--color-border-strong, rgba(255, 255, 255, 0.14));
+  padding: 5px 8px;
+  border-radius: 0 4px 4px 0;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Card Action Footer */
+.waitlist-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.045));
+}
+
+.waitlist-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.waitlist-card-open-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text-faint, #7f7f86);
+  transition: color 150ms ease;
+}
+
+.waitlist-card:hover .waitlist-card-open-hint {
+  color: var(--color-text, #ffffff);
+}
+
+/* ==========================================================================
+   4. DETAIL DRAWER (Side sheet on desktop, bottom sheet on mobile)
+   ========================================================================== */
+
+.waitlist-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: var(--modal-backdrop, rgba(0, 0, 0, 0.72));
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: flex-end;
+  animation: waitlistFadeIn 200ms ease;
+}
+
+@keyframes waitlistFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.waitlist-drawer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface, #141416);
+  border-left: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+  animation: waitlistSlideLeft 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+@keyframes waitlistSlideLeft {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.waitlist-drawer-desktop {
+  width: 460px;
+  max-width: 90vw;
+  height: 100vh;
+}
+
+.waitlist-drawer-mobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 92vh;
+  border-left: 0;
+  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-modal, 16px) var(--radius-modal, 16px) 0 0;
+  animation: waitlistSlideUp 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes waitlistSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Drawer Header */
+.waitlist-drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  background: var(--color-surface, #141416);
+  flex-shrink: 0;
+}
+
+.waitlist-drawer-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.waitlist-drawer-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.waitlist-drawer-client-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text, #ffffff);
+  line-height: 1.2;
+}
+
+.waitlist-drawer-source-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.waitlist-drawer-created {
+  color: var(--color-text-faint, #7f7f86);
+}
+
+.waitlist-drawer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.waitlist-drawer-menu-wrap {
+  position: relative;
+}
+
+.waitlist-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1010;
+}
+
+.waitlist-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 1020;
+  min-width: 210px;
+  padding: 5px;
+  background: var(--color-surface-2, #1b1b1e);
+  border: 1px solid var(--color-border-strong, rgba(255, 255, 255, 0.14));
+  border-radius: var(--radius-dropdown, 12px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: waitlistMenuPop 120ms ease;
+}
+
+@keyframes waitlistMenuPop {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.waitlist-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  color: var(--color-text, #ffffff);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.waitlist-menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.waitlist-menu-item.text-danger {
+  color: var(--color-error, #ff4d5e);
+}
+
+.waitlist-menu-item.text-danger:hover {
+  background: rgba(255, 77, 94, 0.12);
+}
+
+.waitlist-menu-item.text-success {
+  color: var(--color-success, #6fcf97);
+}
+
+.waitlist-menu-item.text-success:hover {
+  background: rgba(111, 207, 151, 0.12);
+}
+
+/* Delete Confirm Banner */
+.waitlist-delete-confirm-banner {
+  padding: 12px 18px;
+  background: rgba(255, 77, 94, 0.1);
+  border-bottom: 1px solid rgba(255, 77, 94, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.waitlist-delete-confirm-text strong {
+  color: var(--color-error, #ff4d5e);
+  font-size: 13.5px;
+}
+
+.waitlist-delete-confirm-text p {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted, #a4a4ac);
+}
+
+.waitlist-delete-confirm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Drawer Body */
+.waitlist-drawer-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  scrollbar-width: thin;
+}
+
+.waitlist-drawer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.waitlist-section-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-faint, #7f7f86);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Contact Card */
+.waitlist-contact-card {
+  padding: 14px;
+  background: var(--color-surface-2, #1b1b1e);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-card, 14px);
+}
+
+.waitlist-contact-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.waitlist-contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.waitlist-contact-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-muted, #a4a4ac);
+}
+
+.waitlist-contact-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.waitlist-contact-link {
+  color: var(--color-text, #ffffff);
+  font-size: 13.5px;
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+
+.waitlist-contact-link:hover {
+  color: #38bdf8;
+  text-decoration: underline;
+}
+
+.waitlist-contact-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.waitlist-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-pill, 999px);
+  color: var(--color-text, #ffffff);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 120ms ease;
+}
+
+.waitlist-action-pill:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.waitlist-pill-wa {
+  background: rgba(37, 211, 102, 0.12);
+  border-color: rgba(37, 211, 102, 0.3);
+  color: #25d366;
+}
+
+.waitlist-pill-wa:hover {
+  background: rgba(37, 211, 102, 0.22);
+}
+
+.waitlist-empty-val {
+  font-size: 13px;
+  color: var(--color-text-faint, #7f7f86);
+}
+
+/* Parameters List */
+.waitlist-params-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.waitlist-param-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--color-surface-2, #1b1b1e);
+  border: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.045));
+  border-radius: var(--radius-md, 8px);
+}
+
+.waitlist-param-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-accent, #e11d2e);
+  flex-shrink: 0;
+}
+
+.waitlist-param-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.waitlist-param-label {
+  font-size: 11px;
+  color: var(--color-text-faint, #7f7f86);
+  text-transform: uppercase;
+}
+
+.waitlist-param-value {
+  font-size: 13.5px;
+  color: var(--color-text, #ffffff);
+}
+
+/* Comment Box */
+.waitlist-comment-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: var(--radius-md, 8px);
+}
+
+.waitlist-comment-icon {
+  color: var(--color-accent, #e11d2e);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.waitlist-comment-text {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--color-text, #ffffff);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.waitlist-empty-comment {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-faint, #7f7f86);
+  font-style: italic;
+}
+
+/* Tech Chip */
+.waitlist-tech-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.045));
+  border-radius: var(--radius-sm, 6px);
+  font-size: 11.5px;
+  color: var(--color-text-muted, #a4a4ac);
+}
+
+.waitlist-tech-chip code {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--color-text, #ffffff);
+}
+
+.waitlist-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 0;
+  border-radius: 4px;
+  color: var(--color-text, #ffffff);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.waitlist-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Sticky Footer */
+.waitlist-drawer-footer {
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  background: var(--color-surface, #141416);
+  flex-shrink: 0;
+}
+
+.waitlist-footer-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.waitlist-footer-btn-secondary {
+  flex: 1 1 35% !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-control, 10px) !important;
+}
+
+.waitlist-footer-btn-primary {
+  flex: 1 1 65% !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-control, 10px) !important;
+  box-shadow: 0 4px 14px rgba(225, 29, 46, 0.35) !important;
+}
+
+.waitlist-footer-restore {
+  height: 46px !important;
+  min-height: 46px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+/* Mobile specific overrides */
+@media (max-width: 768px) {
+  .waitlist-card {
+    padding: 12px 14px;
+  }
+
+  .waitlist-card-client-name {
+    font-size: 15px;
+  }
+
+  .waitlist-card-time-block {
+    font-size: 13px;
+    padding: 7px 10px;
+  }
+
+  .waitlist-drawer-client-name {
+    font-size: 18px;
+  }
+
+  .waitlist-drawer-body {
+    padding: 14px 16px;
+    gap: 14px;
+  }
+
+  .waitlist-drawer-header {
+    padding: 14px 16px;
+  }
+
+  .waitlist-drawer-footer {
+    padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+}

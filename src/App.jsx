@@ -81,6 +81,7 @@ import {
 } from "./utils/importDocuments.js";
 import {useBooksyGmailSync} from "./hooks/useBooksyGmailSync.js";
 import {useWaitlistHandlers} from "./hooks/useWaitlistHandlers.js";
+import {isWaitlistEntryActive} from "./utils/waitlist.js";
 import {useDayCloseHandlers} from "./hooks/useDayCloseHandlers.js";
 import {usePayrollHandlers} from "./hooks/usePayrollHandlers.js";
 import {useDailyPayrollHandlers} from "./hooks/useDailyPayrollHandlers.js";
@@ -1156,6 +1157,7 @@ function App() {
   });
 
   const onCalendarSlotFreedRef = useRef(() => {});
+  const onWaitlistEntryBookedRef = useRef(() => {});
 
   const {
     cancelCalendarAction,
@@ -1176,6 +1178,7 @@ function App() {
     appSettings,
     autoCompletedCalendarEntryIdsRef,
     calendarEntries,
+    calendarEntryDefaults,
     certificates,
     clientPackages,
     clientProfiles,
@@ -1185,6 +1188,7 @@ function App() {
     employees,
     getCalendarServiceColor,
     onCalendarSlotFreed: (entry) => onCalendarSlotFreedRef.current(entry),
+    onWaitlistEntryBooked: (entryId) => onWaitlistEntryBookedRef.current(entryId),
     pushNotification,
     serviceCatalog,
     setActiveClientAlertId,
@@ -1211,12 +1215,14 @@ function App() {
     openClientMessageTemplates,
     openCreateCalendarEntry,
     pushNotification,
+    serviceCatalog,
     setWaitlistEntries,
     waitlistEntries,
   });
   useEffect(() => {
     onCalendarSlotFreedRef.current = waitlist.notifyCalendarSlotFreed;
-  }, [waitlist.notifyCalendarSlotFreed]);
+    onWaitlistEntryBookedRef.current = waitlist.markWaitlistBooked;
+  }, [waitlist.notifyCalendarSlotFreed, waitlist.markWaitlistBooked]);
 
   useEffect(() => {
     pullRefreshBlockedExtrasRef.current = {
@@ -1475,6 +1481,7 @@ function App() {
     saveTaskOccurrence,
     setTaskTemplateArchived,
     setMainTask,
+    updateNote,
   } = useTaskHandlers({
     createLocalId,
     editingTask,
@@ -1751,7 +1758,12 @@ function App() {
 
   const handleToastAction = useCallback(
     (notification, actionItem) => {
-      if (actionItem.action === "calendar") {
+      if (actionItem.action === "undo_waitlist_delete" || actionItem.action === "undo-delete-waitlist") {
+        const id = actionItem.entityId || notification.meta?.entityId || notification.meta?.id;
+        if (id) {
+          waitlist.restoreWaitlistEntry(id);
+        }
+      } else if (actionItem.action === "calendar") {
         setActivePage("calendar");
         setAlertFocus({
           entityId: actionItem.entityId ?? notification.meta?.entry?.id,
@@ -1772,7 +1784,7 @@ function App() {
 
       closeNotification(notification.id);
     },
-    [clientProfiles, closeNotification, openClientMessageTemplates, setActivePage],
+    [clientProfiles, closeNotification, openClientMessageTemplates, setActivePage, waitlist],
   );
 
   const {applyMailImports} = useMailImport({
@@ -1898,7 +1910,7 @@ function App() {
     [employees],
   );
   const activeWaitlistCount = useMemo(
-    () => waitlistEntries.filter((entry) => entry.status === "active").length,
+    () => waitlistEntries.filter(isWaitlistEntryActive).length,
     [waitlistEntries],
   );
   const navigationBadges = useMemo(
@@ -2169,6 +2181,7 @@ function App() {
             activeEmployees={activeEmployees}
             addClientCalendarVisit={addClientCalendarVisit}
             addQuickNote={addQuickNote}
+            updateNote={updateNote}
             appSettings={appSettings}
             applyMailImports={applyMailImports}
             booksyGmailSync={booksyGmailSync}
@@ -2229,6 +2242,7 @@ function App() {
             bookWaitlistEntryFromPanel={waitlist.bookWaitlistEntryFromPanel}
             messageWaitlistEntryFromPanel={waitlist.messageWaitlistEntryFromPanel}
             removeWaitlistEntry={waitlist.removeWaitlistEntry}
+            restoreWaitlistEntry={waitlist.restoreWaitlistEntry}
             waitlistEntries={waitlistEntries}
             closeDay={handleCloseDayRequest}
             dayCloseRecords={dayCloseRecords}

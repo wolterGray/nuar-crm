@@ -11462,6 +11462,31 @@
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
+.operations-tab-label-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.operations-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-accent, #e11d2e);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.2px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(225, 29, 46, 0.4);
+}
+
 .operations-page .operations-add-task-cta,
 .operations-page .operations-add-template-btn {
   display: inline-flex;

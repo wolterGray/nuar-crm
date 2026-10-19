@@ -2,7 +2,12 @@ import {describe, expect, it} from "vitest";
 import {
   buildWaitlistEntry,
   findWaitlistMatches,
+  isWaitlistEntryActive,
+  isWaitlistEntryCompleted,
+  isWaitlistEntryDeleted,
+  isWaitlistEntryOffered,
   matchesWaitlistPreferences,
+  parseWaitlistEntryDetails,
 } from "./waitlist.js";
 
 describe("waitlist", () => {
@@ -89,4 +94,52 @@ describe("waitlist", () => {
     expect(matches).toHaveLength(1);
     expect(matches[0].clientName).toBe("Anna");
   });
+
+  it("parses site booking entry details correctly", () => {
+    const rawEntry = {
+      id: 101,
+      clientName: "Olha",
+      note: "Телефон: +48452402306\nEmail: nuar.contact@gmail.com\nКомментарий: Болит поясница\nЗаявка сайта: 6bbc321a-a163-470a-b558-25cf19ba370e",
+      payload: {
+        source: "site-booking",
+        clientPhone: "+48452402306",
+        clientEmail: "nuar.contact@gmail.com",
+        durationMinutes: 75,
+        siteBookingRequestId: "6bbc321a-a163-470a-b558-25cf19ba370e",
+      },
+      preferredDate: "2026-10-20",
+      preferredMaster: "Max",
+      preferredService: "Masaż sportowy",
+      preferredTimeFrom: "08:15",
+      preferredTimeTo: "09:30",
+      status: "active",
+    };
+
+    const parsed = parseWaitlistEntryDetails(rawEntry, []);
+    expect(parsed.clientName).toBe("Olha");
+    expect(parsed.clientPhone).toBe("+48452402306");
+    expect(parsed.clientEmail).toBe("nuar.contact@gmail.com");
+    expect(parsed.clientComment).toBe("Болит поясница");
+    expect(parsed.siteBookingRequestId).toBe("6bbc321a-a163-470a-b558-25cf19ba370e");
+    expect(parsed.source).toBe("site");
+    expect(parsed.durationMinutes).toBe(75);
+    expect(parsed.isActive).toBe(true);
+    expect(parsed.isDeleted).toBe(false);
+  });
+
+  it("identifies deleted, booked, and offered statuses correctly", () => {
+    expect(isWaitlistEntryActive({ status: "active" })).toBe(true);
+    expect(isWaitlistEntryActive({ status: "offered" })).toBe(false);
+    expect(isWaitlistEntryActive({ status: "booked" })).toBe(false);
+    expect(isWaitlistEntryActive({ status: "deleted" })).toBe(false);
+    expect(isWaitlistEntryActive({ status: "active", payload: { deletedAt: "2026-10-19T10:00:00Z" } })).toBe(false);
+
+    expect(isWaitlistEntryDeleted({ status: "deleted" })).toBe(true);
+    expect(isWaitlistEntryDeleted({ status: "active", payload: { deletedAt: "2026-10-19T10:00:00Z" } })).toBe(true);
+
+    expect(isWaitlistEntryOffered({ status: "offered" })).toBe(true);
+    expect(isWaitlistEntryCompleted({ status: "booked" })).toBe(true);
+    expect(isWaitlistEntryCompleted({ status: "completed" })).toBe(true);
+  });
 });
+

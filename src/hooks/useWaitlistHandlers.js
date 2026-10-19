@@ -1,7 +1,8 @@
-import {useCallback, useState} from "react";
+import {useCallback, useRef, useState} from "react";
 import {
   createWaitlistEntry,
   deleteWaitlistEntry,
+  restoreWaitlistEntry,
   updateWaitlistEntry,
 } from "../api/waitlist.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
@@ -13,6 +14,7 @@ import {
   defaultWaitlistOfferTemplate,
   findWaitlistMatches,
   formatWaitlistSlotLabel,
+  parseWaitlistEntryDetails,
   personalizeWaitlistOfferTemplate,
 } from "../utils/waitlist.js";
 
@@ -23,6 +25,7 @@ export function useWaitlistHandlers({
   openClientMessageTemplates,
   openCreateCalendarEntry,
   pushNotification,
+  serviceCatalog = [],
   setWaitlistEntries,
   waitlistEntries,
 }) {
@@ -30,6 +33,7 @@ export function useWaitlistHandlers({
   const [waitlistModalOpen, setWaitlistModalOpen] = useState(false);
   const [editingWaitlistEntry, setEditingWaitlistEntry] = useState(null);
   const [waitlistDefaults, setWaitlistDefaults] = useState(null);
+  const restoringIdsRef = useRef(new Set());
 
   const closeWaitlistModal = useCallback(() => {
     setWaitlistModalOpen(false);
@@ -138,26 +142,87 @@ export function useWaitlistHandlers({
     ],
   );
 
-  const removeWaitlistEntry = useCallback(
-    async (entry) => {
+  const restoreWaitlistEntryHandler = useCallback(
+    async (id) => {
+      const numericId = Number(id);
+      if (!numericId || restoringIdsRef.current.has(numericId)) return;
+      restoringIdsRef.current.add(numericId);
+
       try {
-        await deleteWaitlistEntry(entry.id);
+        const response = await restoreWaitlistEntry(numericId);
+        const restored = response?.data;
+        setWaitlistEntries((current) =>
+          current.map((item) => {
+            if (Number(item.id) !== numericId) return item;
+            if (restored) return restored;
+            const prevStatus = item.payload?.previousStatus || "active";
+            const nextPayload = { ...(item.payload || {}) };
+            delete nextPayload.deletedAt;
+            delete nextPayload.previousStatus;
+            return { ...item, status: prevStatus, payload: nextPayload };
+          }),
+        );
+        pushNotification({
+          title: "Заявка восстановлена",
+          message: restored?.clientName || "Запись возвращена в очередь",
+          tone: "success",
+        });
       } catch (error) {
         pushNotification({
-          title: "Не удалено из листа ожидания",
+          title: "Не удалось восстановить заявку",
+          message: error?.message || "Ошибка сервера",
+          persist: false,
+        });
+      } finally {
+        restoringIdsRef.current.delete(numericId);
+      }
+    },
+    [pushNotification, setWaitlistEntries],
+  );
+
+  const removeWaitlistEntry = useCallback(
+    async (entry) => {
+      if (!entry?.id) return;
+      const targetId = Number(entry.id);
+
+      try {
+        const response = await deleteWaitlistEntry(targetId);
+        const deletedEntry = response?.data ?? {
+          ...entry,
+          status: "deleted",
+          payload: {
+            ...(entry.payload && typeof entry.payload === "object" ? entry.payload : {}),
+            deletedAt: new Date().toISOString(),
+            previousStatus: entry.status || "active",
+          },
+        };
+
+        setWaitlistEntries((current) =>
+          current.map((item) => (Number(item.id) === targetId ? deletedEntry : item)),
+        );
+
+        pushNotification({
+          title: "Заявка удалена",
+          message: entry.clientName || "Заявка из очереди",
+          tone: "neutral",
+          actions: [
+            {
+              action: "undo_waitlist_delete",
+              entityId: targetId,
+              label: "Отменить",
+              onClick: () => restoreWaitlistEntryHandler(targetId),
+            },
+          ],
+        });
+      } catch (error) {
+        pushNotification({
+          title: "Не удалено из очереди",
           message: error?.message || "Backend не удалил запись",
           persist: false,
         });
-        return;
       }
-
-      setWaitlistEntries((current) => current.filter((item) => item.id !== entry.id));
-      pushNotification({
-        title: "Удалено из листа ожидания",
-        message: entry.clientName,
-      });
     },
-    [pushNotification, setWaitlistEntries],
+    [pushNotification, restoreWaitlistEntryHandler, setWaitlistEntries],
   );
 
   const markWaitlistOffered = useCallback(
@@ -287,19 +352,56 @@ export function useWaitlistHandlers({
     ],
   );
 
+  const markWaitlistBooked = useCallback(
+    async (id) => {
+      if (!id) return;
+      const numericId = Number(id);
+      const target = waitlistEntries.find((item) => Number(item.id) === numericId);
+      if (!target) return;
+
+      const nextEntry = {
+        ...target,
+        status: "booked",
+      };
+
+      try {
+        await updateWaitlistEntry(numericId, nextEntry);
+      } catch (error) {
+        console.warn("Failed to mark waitlist entry booked on backend:", error);
+      }
+
+      setWaitlistEntries((current) =>
+        current.map((item) => (Number(item.id) === numericId ? nextEntry : item)),
+      );
+    },
+    [setWaitlistEntries, waitlistEntries],
+  );
+
   const bookWaitlistEntryFromPanel = useCallback(
     (entry) => {
+      const details = parseWaitlistEntryDetails(entry, clientProfiles);
+      const cleanServiceName = String(details.preferredService || "").toLowerCase().trim();
+      const matchedService = (serviceCatalog || []).find((s) => {
+        const sName = String(s.name || "").toLowerCase().trim();
+        return sName === cleanServiceName || sName.includes(cleanServiceName) || cleanServiceName.includes(sName);
+      });
+
       openCreateCalendarEntry({
-        client: entry.clientName,
-        clientId: entry.clientId,
+        amount: "",
+        client: details.clientName,
+        clientId: details.linkedClient?.id || entry.clientId || null,
         date: entry.preferredDate || getTodayInput(),
+        duration: details.durationMinutes,
         kind: "visit",
         master: entry.preferredMaster || "",
+        note: details.clientComment ? `Заявка: ${details.clientComment}` : "",
         service: entry.preferredService || "",
+        serviceId: matchedService?.id || "",
         time: entry.preferredTimeFrom || "10:00",
+        waitlistEntryId: entry.id,
       });
     },
-    [openCreateCalendarEntry],
+    [clientProfiles, openCreateCalendarEntry, serviceCatalog],
   );
 
   const messageWaitlistEntryFromPanel = useCallback(
@@ -322,6 +424,7 @@ export function useWaitlistHandlers({
     closeWaitlistModal,
     closeWaitlistOffer,
     editingWaitlistEntry,
+    markWaitlistBooked,
     markWaitlistOffered,
     messageWaitlistClient,
     messageWaitlistEntryFromPanel,
@@ -330,6 +433,7 @@ export function useWaitlistHandlers({
     openEditWaitlistEntry,
     pendingFreedSlot,
     removeWaitlistEntry,
+    restoreWaitlistEntry: restoreWaitlistEntryHandler,
     saveWaitlistEntry,
     waitlistDefaults,
     waitlistModalOpen,

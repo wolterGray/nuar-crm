@@ -117,7 +117,14 @@ function ToastStack({notifications, onAction, onClose}) {
                         size="sm"
                         type="button"
                         variant="subtle"
-                        onClick={() => onAction?.(notification, actionItem)}>
+                        onClick={() => {
+                          if (typeof actionItem.onClick === "function") {
+                            actionItem.onClick();
+                            onClose(notification.id);
+                          } else {
+                            onAction?.(notification, actionItem);
+                          }
+                        }}>
                         {actionItem.label}
                       </Button>
                     ))}

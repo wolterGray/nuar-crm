@@ -2,13 +2,16 @@ const ACTIVE_EVENT_STATUSES = ['new', 'seen', 'snoozed'];
 const TERMINAL_ENTITY_STATUSES = new Set([
   'archive',
   'archived',
+  'booked',
   'cancelled',
   'canceled',
   'closed',
   'completed',
+  'deleted',
   'done',
   'expired',
   'no_show',
+  'rejected',
 ]);
 
 const CATEGORY = Object.freeze({

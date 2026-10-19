@@ -67,3 +67,14 @@ export const deleteWaitlistEntry = async (id) => {
 
   return handleResponse(response, "Delete waitlist entry");
 };
+
+export const restoreWaitlistEntry = async (id) => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/waitlist/${id}/restore`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", ...headers},
+  });
+
+  return handleResponse(response, "Restore waitlist entry");
+};
+

@@ -93,6 +93,21 @@
     box-shadow: none !important;
   }
 
+  .operations-page-mobile .operations-tab-label-wrap {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+
+  .operations-page-mobile .operations-tab-badge {
+    min-width: 15px !important;
+    height: 15px !important;
+    padding: 0 3.5px !important;
+    font-size: 9.5px !important;
+    border-radius: 999px !important;
+  }
+
   .operations-page-mobile .operations-add-task-cta {
     height: 44px !important;
     min-height: 44px !important;

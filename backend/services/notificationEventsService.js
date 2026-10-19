@@ -577,7 +577,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
   const waitlist = await prisma.waitlistEntry.findMany({
     orderBy: [{createdAt: 'asc'}],
     take: 50,
-    where: {status: {notIn: ['closed', 'cancelled', 'done']}},
+    where: {status: {notIn: ['closed', 'cancelled', 'done', 'deleted', 'booked', 'rejected']}},
   });
 
   for (const entry of waitlist) {
