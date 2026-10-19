@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 const { verifyJwt } = require('../middleware/auth');
+const { authLoginLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
   isPasswordResetSmtpConfigured,
@@ -148,7 +149,7 @@ function createAuthRouter({
     });
   };
 
-  router.post('/login', async (req, res) => {
+  router.post('/login', authLoginLimiter, async (req, res) => {
     if (!getJwtSecret()) {
       return res.status(500).json({
         error: 'Auth is not configured',
@@ -271,7 +272,7 @@ function createAuthRouter({
     }
   });
 
-  router.post('/forgot-password', async (req, res) => {
+  router.post('/forgot-password', passwordResetLimiter, async (req, res) => {
     const email = normalizeEmail(req.body?.email);
     const responsePayload = {...PASSWORD_RESET_GENERIC_RESPONSE};
 
@@ -377,7 +378,7 @@ function createAuthRouter({
     }
   });
 
-  router.post('/reset-password', async (req, res) => {
+  router.post('/reset-password', passwordResetLimiter, async (req, res) => {
     const token = String(req.body?.token ?? '').trim();
     const newPassword = String(req.body?.newPassword ?? req.body?.password ?? '');
     const tokenHash = hashResetToken(token);

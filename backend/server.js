@@ -67,6 +67,11 @@ app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 const authRouter = require('./routes/auth');
 app.use('/api/auth', authRouter);
 
+const { publicApiLimiter } = require('./middleware/rateLimiter');
+
+// Public API Rate Limiting
+app.use('/api/public', publicApiLimiter);
+
 const publicSiteRouter = require('./routes/publicSite');
 app.use('/api/public', publicSiteRouter);
 

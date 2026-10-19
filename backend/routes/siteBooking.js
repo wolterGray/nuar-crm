@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { requireOwner } = require('../middleware/auth');
+const { publicBookingLimiter } = require('../middleware/rateLimiter');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { queueBusinessPushDeliveries } = require('../services/businessPushService');
 const { upsertNotificationEvent } = require('../services/notificationEventsService');
@@ -742,7 +743,7 @@ publicSiteBookingRouter.post('/site-booking-availability', async (req, res) => {
   }
 });
 
-publicSiteBookingRouter.post('/site-booking-submit', async (req, res) => {
+publicSiteBookingRouter.post('/site-booking-submit', publicBookingLimiter, async (req, res) => {
   const clientName = cleanString(req.body?.clientName);
   const clientPhone = normalizePhone(req.body?.clientPhone);
   const serviceName = cleanString(req.body?.serviceName);
