@@ -111,6 +111,34 @@ function NoteBoardColumn({column, notes, onOpen}) {
   );
 }
 
+function NotesViewSwitch({viewMode, onSelectView}) {
+  const views = [
+    {id: "list", icon: "list", label: "Список"},
+    {id: "board", icon: "columns", label: "Доска"},
+    {id: "gallery", icon: "layoutGrid", label: "Галерея"},
+    {id: "trash", icon: "trash", label: "Корзина"},
+  ];
+
+  return (
+    <div className="notion-view-switch" role="tablist" aria-label="Представление заметок">
+      {views.map((view) => (
+        <IconButton
+          aria-label={view.label}
+          aria-selected={viewMode === view.id}
+          className={viewMode === view.id ? "is-active" : ""}
+          icon={view.icon}
+          key={view.id}
+          role="tab"
+          size="sm"
+          title={view.label}
+          variant="ghost"
+          onClick={() => onSelectView(view.id)}
+        />
+      ))}
+    </div>
+  );
+}
+
 // Inner Editor component keyed by note.id so states initialize cleanly without effects
 function NotionDocEditor({
   isMobile,
@@ -385,48 +413,49 @@ function NotionDocEditor({
             {revisions.length ? revisions.map((revision) => <button key={String(revision.id)} type="button" onClick={() => restoreRevision(revision)}><span>{new Date(revision.created_at).toLocaleString("ru-RU")}</span><strong>{revision.title}</strong><small>Версия {revision.version}</small></button>) : <p>Предыдущих версий пока нет</p>}
           </section>
         ) : null}
-        {/* Emoji Selector */}
-        <div className="notion-icon-row">
-          <button
-            className="notion-emoji-btn"
-            title="Сменить иконку"
-            type="button"
-            onClick={() => setEmojiPickerOpen((prev) => !prev)}
-          >
-            {draftIcon}
-          </button>
+        <div className="notion-title-row">
+          {/* Emoji Selector */}
+          <div className="notion-icon-row">
+            <button
+              className="notion-emoji-btn"
+              title="Сменить иконку"
+              type="button"
+              onClick={() => setEmojiPickerOpen((prev) => !prev)}
+            >
+              {draftIcon}
+            </button>
 
-          {emojiPickerOpen ? (
-            <>
-              <div
-                className="notion-picker-backdrop"
-                onClick={() => setEmojiPickerOpen(false)}
-              />
-              <div className="notion-emoji-palette">
-                {POPULAR_EMOJIS.map((emoji) => (
-                  <button
-                    className="notion-emoji-choice"
-                    key={emoji}
-                    type="button"
-                    onClick={() => handleEmojiSelect(emoji)}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </>
-          ) : null}
+            {emojiPickerOpen ? (
+              <>
+                <div
+                  className="notion-picker-backdrop"
+                  onClick={() => setEmojiPickerOpen(false)}
+                />
+                <div className="notion-emoji-palette">
+                  {POPULAR_EMOJIS.map((emoji) => (
+                    <button
+                      className="notion-emoji-choice"
+                      key={emoji}
+                      type="button"
+                      onClick={() => handleEmojiSelect(emoji)}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </div>
+
+          <input
+            className="notion-title-input"
+            placeholder="Без названия"
+            type="text"
+            value={draftTitle}
+            onBlur={() => triggerImmediateSave({ title: draftTitle })}
+            onChange={handleTitleChange}
+          />
         </div>
-
-        {/* Big Title Input */}
-        <input
-          className="notion-title-input"
-          placeholder="Без названия"
-          type="text"
-          value={draftTitle}
-          onBlur={() => triggerImmediateSave({ title: draftTitle })}
-          onChange={handleTitleChange}
-        />
 
         {/* Document Body */}
         {docMode === "live" ? (
@@ -611,15 +640,6 @@ function NotionNotesWorkspace({
 
   return (
     <div className="notion-workspace-shell">
-      <header className="notion-workspace-toolbar">
-        <div className="notion-view-switch" role="tablist" aria-label="Представление заметок">
-          <Button leftIcon="list" size="sm" variant={viewMode === "list" ? "secondary" : "ghost"} onClick={() => selectView("list")}>Список</Button>
-          <Button leftIcon="columns" size="sm" variant={viewMode === "board" ? "secondary" : "ghost"} onClick={() => selectView("board")}>Доска</Button>
-          <Button leftIcon="layoutGrid" size="sm" variant={viewMode === "gallery" ? "secondary" : "ghost"} onClick={() => selectView("gallery")}>Галерея</Button>
-          <Button leftIcon="trash" size="sm" variant={viewMode === "trash" ? "secondary" : "ghost"} onClick={() => selectView("trash")}>Корзина</Button>
-        </div>
-        {viewMode !== "list" && viewMode !== "trash" ? <Button leftIcon="plus" size="sm" variant="primary" onClick={() => handleCreateNote()}>Новая заметка</Button> : null}
-      </header>
       {viewMode === "list" ? (
       <div className={`notion-workspace ${isMobile ? "is-mobile" : "is-desktop"}`}>
       {/* SIDEBAR */}
@@ -633,16 +653,17 @@ function NotionNotesWorkspace({
                 {visibleNotes.length}
               </Badge>
             </div>
+            <NotesViewSwitch viewMode={viewMode} onSelectView={selectView} />
             <div className="notion-sidebar-actions">
-              <Button
+              <IconButton
+                aria-label="Новая заметка"
                 className="notion-new-btn"
-                leftIcon="plus"
+                icon="plus"
                 size="sm"
+                title="Новая заметка"
                 variant="primary"
                 onClick={() => handleCreateNote()}
-              >
-                Новая
-              </Button>
+              />
               <IconButton
                 aria-label="Шаблоны процессов"
                 className="notion-template-trigger"
@@ -834,6 +855,14 @@ function NotionNotesWorkspace({
         </div>
       ) : (
         <div className="notion-visual-workspace">
+          <header className="notion-visual-header">
+            <div className="notion-sidebar-title-group">
+              <h2 className="notion-sidebar-title">Заметки</h2>
+              <Badge size="sm" variant="neutral">{viewMode === "trash" ? trashNotes.length : visibleNotes.length}</Badge>
+            </div>
+            <NotesViewSwitch viewMode={viewMode} onSelectView={selectView} />
+            {viewMode !== "trash" ? <IconButton aria-label="Новая заметка" icon="plus" size="sm" title="Новая заметка" variant="primary" onClick={() => handleCreateNote()} /> : null}
+          </header>
           {viewMode !== "trash" ? <div className="notion-visual-filters">
             <div className="notion-search-wrap"><AppIcon className="notion-search-icon" name="search" size="xs" /><input className="notion-search-input" placeholder="Поиск заметок" type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} /></div>
             <div className="notion-category-bar">{NOTION_NOTE_CATEGORIES.map((cat) => <button className={`notion-cat-chip ${activeCategory === cat.id ? "is-active" : ""}`} key={cat.id} type="button" onClick={() => setActiveCategory(cat.id)}><span>{cat.emoji || ""} {cat.label}</span></button>)}</div>
