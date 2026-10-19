@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { isOwnerAuth, requireOwner } = require('../middleware/auth');
 const { recordAuditLog } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const {
@@ -11,21 +11,82 @@ const {
 
 const prisma = new PrismaClient();
 
-const systemStateRecord = (record) => [record.key, record.payload];
+const SENSITIVE_SETTINGS_KEYS = [
+  'telegramBotToken',
+  'telegramChatId',
+  'smsApiKey',
+  'smsApiSecret',
+  'smsSenderName',
+  'gmailClientId',
+  'gmailClientSecret',
+  'gmailRefreshToken',
+  'adminPassword',
+  'adminEmail',
+  'backupEncryptionKey',
+  'backupKey',
+];
+
+const sanitizePayload = (key, payload, isOwner) => {
+  if (isOwner) return payload;
+  if (!payload || typeof payload !== 'object') return payload;
+
+  if (key === 'settings') {
+    const sanitized = { ...payload };
+    for (const secretKey of SENSITIVE_SETTINGS_KEYS) {
+      delete sanitized[secretKey];
+    }
+    return sanitized;
+  }
+
+  const lowerKey = String(key).toLowerCase();
+  if (
+    lowerKey.includes('secret') ||
+    lowerKey.includes('token') ||
+    lowerKey.includes('backup') ||
+    lowerKey.includes('credential')
+  ) {
+    return null;
+  }
+
+  return payload;
+};
 
 // ==================== System state settings ====================
-router.get('/system-state', (req, res) => {
-  respond(
-    res,
-    prisma.systemState.findMany({ orderBy: { key: 'asc' } }).then((records) =>
-      Object.fromEntries(records.map(systemStateRecord)),
-    ),
-  );
+router.get('/system-state', async (req, res) => {
+  try {
+    const isOwner = isOwnerAuth(req.auth);
+    const records = await prisma.systemState.findMany({ orderBy: { key: 'asc' } });
+    const result = {};
+    for (const record of records) {
+      const sanitized = sanitizePayload(record.key, record.payload, isOwner);
+      if (sanitized !== null) {
+        result[record.key] = sanitized;
+      }
+    }
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
-router.get('/system-state/:key', (req, res) => {
+router.get('/system-state/:key', async (req, res) => {
   const key = String(req.params.key ?? '').trim();
-  respond(res, prisma.systemState.findUnique({ where: { key } }).then((record) => record?.payload ?? null));
+  try {
+    const isOwner = isOwnerAuth(req.auth);
+    const record = await prisma.systemState.findUnique({ where: { key } });
+    if (!record) {
+      return res.json({ success: true, data: null });
+    }
+    const sanitized = sanitizePayload(key, record.payload, isOwner);
+    if (sanitized === null && !isOwner) {
+      return res.status(403).json({ success: false, error: 'Доступ к системным настройкам запрещён' });
+    }
+    res.json({ success: true, data: sanitized });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
 router.put('/system-state/:key', requireOwner, async (req, res) => {
@@ -97,5 +158,8 @@ router.put('/system-state', requireOwner, async (req, res) => {
     res.status(response.status).json({ success: false, error: response.message });
   }
 });
+
+router.SENSITIVE_SETTINGS_KEYS = SENSITIVE_SETTINGS_KEYS;
+router.sanitizePayload = sanitizePayload;
 
 module.exports = router;

@@ -37,6 +37,7 @@ import {
   AUTO_COMPLETED_CALENDAR_IDS_STORAGE_KEY,
   getInitialCrmCollections,
   loadAlertSnoozes,
+  clearCrmCollectionsCache,
   loadCommunicationLog,
   loadDismissedClientAlerts,
   loadNotificationInbox,
@@ -280,6 +281,47 @@ function App() {
     await detachWebPushOnLogout().catch(() => {});
     handleLogout();
   }, [handleLogout]);
+
+  // Reset/switch in-memory CRM collections on user session change to prevent data leakage
+  const prevUserIdRef = useRef(null);
+
+  useEffect(() => {
+    const currentUserId = authSession?.user?.id ?? null;
+    const currentUserRole = String(authSession?.user?.role || "").toLowerCase();
+    const prevUserId = prevUserIdRef.current;
+
+    if (prevUserId !== null && prevUserId !== currentUserId) {
+      clearCrmCollectionsCache();
+
+      const isNowOwner = currentUserRole === "owner" || authSession?.user?.id === "local-admin";
+      if (!isNowOwner) {
+        // Switched from owner/another user to staff: reset sensitive state arrays immediately
+        setVisits([]);
+        setClientProfiles([]);
+        setCalendarEntries([]);
+        setClientPackages([]);
+        setCertificates([]);
+        setDayCloseRecords([]);
+        setPayrollRecords([]);
+        setCommunicationLog([]);
+        setWaitlistEntries([]);
+      } else {
+        // Switched back to owner: reload owner's partitioned collections
+        const initial = getInitialCrmCollections(authSession.user);
+        setVisits(initial.visits);
+        setClientProfiles(initial.clients);
+        setCalendarEntries(initial.calendarEntries);
+        setClientPackages(initial.clientPackages);
+        setCertificates(initial.certificates);
+        setDayCloseRecords(loadStoredDayCloseRecords(authSession.user));
+        setPayrollRecords(loadStoredPayrollRecords(authSession.user));
+        setCommunicationLog(loadCommunicationLog(authSession.user));
+        setWaitlistEntries(loadStoredWaitlistEntries(authSession.user));
+      }
+    }
+
+    prevUserIdRef.current = currentUserId;
+  }, [authSession?.user]);
 
   // Automatically switch to first accessible page if current activePage is forbidden
   useEffect(() => {
@@ -915,6 +957,7 @@ function App() {
   useCrmLocalPersistence({
     alertSnoozes,
     appSettings,
+    authUser: authSession?.user,
     autoCompletedCalendarEntryIds,
     calendarEntries,
     certificates,

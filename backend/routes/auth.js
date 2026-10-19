@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
-const { verifyJwt, invalidateUserCache } = require('../middleware/auth');
+const { verifyJwt, requireActiveUser, invalidateUserCache } = require('../middleware/auth');
 const { getEffectivePermissions } = require('../constants/permissions');
 const { authLoginLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
@@ -495,6 +495,79 @@ function createAuthRouter({
       return res.status(500).json({
         success: false,
         error: 'Password reset failed',
+      });
+    }
+  });
+
+  router.post('/change-password', verifyJwt, requireActiveUser, async (req, res) => {
+    const rawId = req.auth?.sub || req.auth?.id;
+    const numericId = Number(rawId);
+    const currentPassword = String(req.body?.currentPassword ?? '');
+    const newPassword = String(req.body?.newPassword ?? '');
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Необходимо указать текущий и новый пароль',
+      });
+    }
+
+    if (!Number.isInteger(numericId) || numericId <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Смена пароля доступна только для пользователей базы данных',
+      });
+    }
+
+    try {
+      const dbUser = await prisma.user.findUnique({ where: { id: numericId } });
+      if (!dbUser || !dbUser.isActive) {
+        return res.status(401).json({ success: false, error: 'Пользователь не найден или отключён' });
+      }
+
+      const passwordMatches = await verifyPassword(currentPassword, dbUser.passwordHash);
+      if (!passwordMatches) {
+        return res.status(400).json({
+          success: false,
+          error: 'Неверный текущий пароль',
+        });
+      }
+
+      const strength = validatePasswordStrength(newPassword);
+      if (!strength.isValid) {
+        return res.status(400).json({
+          success: false,
+          error: strength.errors[0] || 'Новый пароль не соответствует требованиям безопасности',
+        });
+      }
+
+      const passwordHash = await hashPassword(newPassword);
+      const now = new Date();
+
+      await prisma.user.update({
+        where: { id: numericId },
+        data: {
+          passwordHash,
+          passwordChangedAt: now,
+        },
+      });
+
+      invalidateUserCache(numericId);
+
+      await recordPasswordResetAudit(req, {
+        action: 'password change success',
+        user: dbUser,
+      });
+
+      return res.json({
+        success: true,
+        message: 'Пароль успешно обновлён',
+      });
+    } catch (error) {
+      console.error('Change password failed:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Ошибка обновления пароля',
       });
     }
   });

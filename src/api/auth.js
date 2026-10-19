@@ -33,3 +33,18 @@ export async function resetPassword({token, newPassword}) {
 
   return parseAuthResponse(response);
 }
+
+export async function changePassword({currentPassword, newPassword}) {
+  const token = typeof window !== "undefined" ? window.localStorage.getItem("nuar_crm_auth_token") : null;
+  const response = await fetch(`${API_URL}/api/auth/change-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? {Authorization: `Bearer ${token}`} : {}),
+    },
+    body: JSON.stringify({currentPassword, newPassword}),
+  });
+
+  return parseAuthResponse(response);
+}
+

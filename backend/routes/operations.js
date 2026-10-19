@@ -238,7 +238,13 @@ const sanitizeCommLog = (log, canViewContacts) => {
 
 router.get('/operations-state', async (req, res) => {
   try {
+    const isOwner = isOwnerAuth(req.auth);
     const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+    const canViewLogs = hasPermission(req.auth, PERMISSIONS.LOGS_VIEW);
+    const canManageClients = hasPermission(req.auth, PERMISSIONS.CLIENTS_MANAGE);
+    const canViewAllCalendar = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
+    const userEmpId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+
     const [
       tasks,
       supplies,
@@ -250,9 +256,21 @@ router.get('/operations-state', async (req, res) => {
         .findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] }),
       prisma.supply.findMany({ orderBy: { name: 'asc' } }),
       prisma.waitlistEntry.findMany({ orderBy: { createdAt: 'asc' } }),
-      prisma.messageTemplate.findMany({ orderBy: { name: 'asc' } }),
-      prisma.communicationLog.findMany({ orderBy: { createdAt: 'desc' } }),
+      (isOwner || canManageClients)
+        ? prisma.messageTemplate.findMany({ orderBy: { name: 'asc' } })
+        : Promise.resolve([]),
+      (isOwner || canViewLogs)
+        ? prisma.communicationLog.findMany({ orderBy: { createdAt: 'desc' } })
+        : Promise.resolve([]),
     ]);
+
+    // Filter waitlist entries for staff without calendar.view_all
+    const filteredWaitlist = waitlistEntries.filter((w) => {
+      if (canViewAllCalendar) return true;
+      if (!userEmpId) return false;
+      const entryEmpId = w.employeeId || w.masterId;
+      return entryEmpId && Number(entryEmpId) === userEmpId;
+    });
 
     res.json({
       success: true,
@@ -261,9 +279,9 @@ router.get('/operations-state', async (req, res) => {
         messageTemplates: messageTemplates.map(withStoredId),
         supplies: supplies.map(withStoredId),
         tasks: tasks
-          .filter((task) => !isNote(task) || (isOwnerAuth(req.auth) && !notePayload(task).deletedAt))
+          .filter((task) => !isNote(task) || (isOwner && !notePayload(task).deletedAt))
           .map(withStoredId),
-        waitlistEntries: waitlistEntries.map((w) => sanitizeWaitlist(w, canViewContacts)),
+        waitlistEntries: filteredWaitlist.map((w) => sanitizeWaitlist(w, canViewContacts)),
       },
     });
   } catch (err) {

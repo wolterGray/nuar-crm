@@ -75,31 +75,41 @@ export default function MyEarningsPage({
     };
   }, [loadData]);
 
-  // Filter assigned visits in the period
+  // Filter assigned completed visits in the period
   const periodVisits = useMemo(() => {
     if (!Array.isArray(visits)) return [];
     return visits
       .filter((v) => {
-        const visitDate = (v.date || v.scheduledAt || "").slice(0, 10);
+        const status = String(v.status || v.payload?.status || "").toLowerCase();
+        const isCompleted = status === "completed" || Boolean(v.completed);
+        if (!isCompleted) return false;
+
+        const visitDate = (v.date || v.scheduledAt || v.inputDate || "").slice(0, 10);
         if (!visitDate) return false;
         if (visitDate < currentPeriod.startDate || visitDate > currentPeriod.endDate) {
           return false;
         }
-        // If employeeId is known, verify assignment
-        if (employeeId && v.employeeId && Number(v.employeeId) !== employeeId) {
+        // If employeeId is known, verify assignment by id or master name
+        if (employeeId) {
+          const vEmpId = v.employeeId ?? v.payload?.employeeId;
+          if (vEmpId && Number(vEmpId) === employeeId) return true;
+          if (v.master && authUser?.name && v.master.toLowerCase() === authUser.name.toLowerCase()) return true;
           return false;
         }
-        return true;
+        return false;
       })
       .sort((a, b) => {
         const da = a.date || a.scheduledAt || "";
         const db = b.date || b.scheduledAt || "";
         return db.localeCompare(da);
       });
-  }, [visits, currentPeriod, employeeId]);
+  }, [visits, currentPeriod, employeeId, authUser]);
 
-  // Calculate earnings from visits if summary not returned
+  // Calculate earnings from server payroll report totals.totalPayout or fallback to visits
   const totalEarned = useMemo(() => {
+    if (summaryData?.totals?.totalPayout !== undefined && summaryData?.totals?.totalPayout !== null) {
+      return Number(summaryData.totals.totalPayout);
+    }
     if (summaryData?.totalEarnings !== undefined && summaryData?.totalEarnings !== null) {
       return Number(summaryData.totalEarnings);
     }
@@ -115,11 +125,14 @@ export default function MyEarningsPage({
     }
     return payrollRecords
       .filter((r) => {
+        if (employeeId && r.employeeId && Number(r.employeeId) !== employeeId) {
+          return false;
+        }
         const paidDate = (r.paidAt || r.createdAt || "").slice(0, 10);
         return paidDate >= currentPeriod.startDate && paidDate <= currentPeriod.endDate;
       })
       .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
-  }, [summaryData, payrollRecords, currentPeriod]);
+  }, [summaryData, payrollRecords, currentPeriod, employeeId]);
 
   const balanceDue = useMemo(() => {
     if (summaryData?.balanceDue !== undefined && summaryData?.balanceDue !== null) {
@@ -127,6 +140,9 @@ export default function MyEarningsPage({
     }
     return Math.max(0, totalEarned - totalPaid);
   }, [summaryData, totalEarned, totalPaid]);
+
+  const visitsCount = summaryData?.totals?.visitsCount ?? periodVisits.length;
+  const tipsAmount = summaryData?.totals?.tips ? Number(summaryData.totals.tips) : 0;
 
   return (
     <main className="p-4 md:p-6 max-w-6xl mx-auto flex flex-col gap-6 select-none">
@@ -157,6 +173,21 @@ export default function MyEarningsPage({
         </Button>
       </header>
 
+      {/* Unlinked Master Alert / EmptyState */}
+      {!employeeId && (
+        <Card className="p-5 flex items-center gap-3.5 bg-accentWarning/10 border border-accentWarning/30 rounded-card">
+          <AppIcon name="alertTriangle" size="lg" className="text-accentWarning shrink-0" />
+          <div className="flex flex-col gap-0.5">
+            <strong className="text-xs text-text-main font-bold">
+              Учётная запись не привязана к профилю мастера
+            </strong>
+            <p className="text-xs text-text-muted m-0">
+              Для автоматического расчёта выплат и комиссий обратитесь к администратору студии для привязки аккаунта в разделе «Доступы».
+            </p>
+          </div>
+        </Card>
+      )}
+
       {/* KPI Cards */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" aria-label="Сводка начислений">
         <Card className="p-4 flex flex-col gap-1 bg-surface border border-border rounded-card">
@@ -165,13 +196,14 @@ export default function MyEarningsPage({
             {formatMoney(totalEarned)}
           </strong>
           <span className="text-[11px] text-text-faint">
-            {periodVisits.length} {periodVisits.length === 1 ? "визит" : "визитов"}
+            {visitsCount} {visitsCount === 1 ? "визит" : "визитов"}
+            {tipsAmount > 0 && ` • чаевые ${formatMoney(tipsAmount)}`}
           </span>
         </Card>
 
         <Card className="p-4 flex flex-col gap-1 bg-surface border border-border rounded-card">
           <span className="text-xs text-text-muted font-medium">Выплачено</span>
-          <strong className="text-lg md:text-xl font-bold text-emerald-400">
+          <strong className="text-lg md:text-xl font-bold text-accentSuccess">
             {formatMoney(totalPaid)}
           </strong>
           <span className="text-[11px] text-text-faint">За текущий месяц</span>

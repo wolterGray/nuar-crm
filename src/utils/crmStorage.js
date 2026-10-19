@@ -57,19 +57,121 @@ export const normalizeStoredSettings = (settings = {}) => {
   });
 };
 
-export const loadStoredVisits = () => {
-  try {
-    const storedVisits = window.localStorage.getItem(VISITS_STORAGE_KEY);
+export const SENSITIVE_STORAGE_KEYS = new Set([
+  VISITS_STORAGE_KEY,
+  CLIENTS_STORAGE_KEY,
+  CALENDAR_ENTRIES_STORAGE_KEY,
+  CLIENT_PACKAGES_STORAGE_KEY,
+  CERTIFICATES_STORAGE_KEY,
+  DAY_CLOSE_STORAGE_KEY,
+  PAYROLL_STORAGE_KEY,
+  COMMUNICATION_LOG_STORAGE_KEY,
+  WAITLIST_STORAGE_KEY,
+]);
 
-    if (!storedVisits) {
-      return visitsSeed;
+export const getActiveAuthUser = () => {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return null;
+    const raw = window.localStorage.getItem("nuar_crm_auth_session");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.user || null;
+  } catch {
+    return null;
+  }
+};
+
+export const getStorageScope = (user) => {
+  const target = user || getActiveAuthUser();
+  if (!target) return "owner";
+  const role = String(target.role || "").toLowerCase();
+  if (role === "owner" || target.id === "local-admin") {
+    return "owner";
+  }
+  const id = target.id ?? target.employeeId ?? "unknown";
+  return `staff_${id}`;
+};
+
+export const getScopedKey = (baseKey, user) => {
+  const scope = typeof user === "string" ? user : getStorageScope(user);
+  return `nuar_crm_${scope}_${baseKey}`;
+};
+
+export const loadScopedCollection = (key, user, fallback = []) => {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) {
+      return typeof fallback === "function" ? fallback() : fallback;
+    }
+    const isSensitive = SENSITIVE_STORAGE_KEYS.has(key);
+    if (!isSensitive) {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) return typeof fallback === "function" ? fallback() : fallback;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : (typeof fallback === "function" ? fallback() : fallback);
     }
 
-    const parsedVisits = JSON.parse(storedVisits);
-    return Array.isArray(parsedVisits) ? parsedVisits : visitsSeed;
+    const scope = typeof user === "string" ? user : getStorageScope(user);
+    const scopedKey = getScopedKey(key, scope);
+
+    if (scope === "owner") {
+      const scopedRaw = window.localStorage.getItem(scopedKey);
+      if (scopedRaw) {
+        const parsed = JSON.parse(scopedRaw);
+        return Array.isArray(parsed) ? parsed : (typeof fallback === "function" ? fallback() : fallback);
+      }
+      // Non-destructive migration from legacy baseKey: read & copy to scoped key without deleting legacy
+      const legacyRaw = window.localStorage.getItem(key);
+      if (legacyRaw) {
+        try {
+          window.localStorage.setItem(scopedKey, legacyRaw);
+        } catch {
+          // ignore quota error
+        }
+        const parsed = JSON.parse(legacyRaw);
+        return Array.isArray(parsed) ? parsed : (typeof fallback === "function" ? fallback() : fallback);
+      }
+      return typeof fallback === "function" ? fallback() : fallback;
+    }
+
+    // Staff / guest scope: read only their scoped partition, never leak owner data
+    const staffRaw = window.localStorage.getItem(scopedKey);
+    if (staffRaw) {
+      const parsed = JSON.parse(staffRaw);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+    return [];
   } catch {
-    return visitsSeed;
+    return typeof fallback === "function" ? fallback() : fallback;
   }
+};
+
+export const saveScopedValue = (key, value, user) => {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return false;
+    const isSensitive = SENSITIVE_STORAGE_KEYS.has(key);
+    if (!isSensitive) {
+      return saveStoredValue(key, value);
+    }
+
+    const scope = typeof user === "string" ? user : getStorageScope(user);
+    const scopedKey = getScopedKey(key, scope);
+
+    if (scope === "owner") {
+      saveStoredValue(scopedKey, value);
+      // Keep legacy base key synchronized for backward compatibility
+      return saveStoredValue(key, value);
+    }
+
+    // Staff: write ONLY to their scoped partition
+    return saveStoredValue(scopedKey, value);
+  } catch (error) {
+    console.warn("CRM scoped cache write failed", { key, message: error?.message || String(error) });
+    return false;
+  }
+};
+
+export const loadStoredVisits = (user = null) => {
+  return loadScopedCollection(VISITS_STORAGE_KEY, user, visitsSeed);
 };
 
 export const loadStoredActivePage = () => {
@@ -99,22 +201,10 @@ export const loadStoredEmployees = () => {
   }
 };
 
-export const loadStoredClients = () => {
-  try {
-    const storedClients = window.localStorage.getItem(CLIENTS_STORAGE_KEY);
-
-    if (!storedClients) {
-      return applyBooksySources(initialClients, loadStoredVisits());
-    }
-
-    const parsedClients = JSON.parse(storedClients);
-    return applyBooksySources(
-      Array.isArray(parsedClients) ? parsedClients : initialClients,
-      loadStoredVisits(),
-    );
-  } catch {
-    return applyBooksySources(initialClients, loadStoredVisits());
-  }
+export const loadStoredClients = (user = null) => {
+  return loadScopedCollection(CLIENTS_STORAGE_KEY, user, () =>
+    applyBooksySources(initialClients, loadStoredVisits(user)),
+  );
 };
 
 export const loadStoredServices = () => {
@@ -149,38 +239,12 @@ export const loadStoredPackages = () => {
   }
 };
 
-export const loadStoredClientPackages = () => {
-  try {
-    const storedClientPackages = window.localStorage.getItem(
-      CLIENT_PACKAGES_STORAGE_KEY,
-    );
-
-    if (!storedClientPackages) {
-      return [];
-    }
-
-    const parsedClientPackages = JSON.parse(storedClientPackages);
-    return Array.isArray(parsedClientPackages) ? parsedClientPackages : [];
-  } catch {
-    return [];
-  }
+export const loadStoredClientPackages = (user = null) => {
+  return loadScopedCollection(CLIENT_PACKAGES_STORAGE_KEY, user, []);
 };
 
-export const loadStoredCertificates = () => {
-  try {
-    const storedCertificates = window.localStorage.getItem(
-      CERTIFICATES_STORAGE_KEY,
-    );
-
-    if (!storedCertificates) {
-      return [];
-    }
-
-    const parsedCertificates = JSON.parse(storedCertificates);
-    return Array.isArray(parsedCertificates) ? parsedCertificates : [];
-  } catch {
-    return [];
-  }
+export const loadStoredCertificates = (user = null) => {
+  return loadScopedCollection(CERTIFICATES_STORAGE_KEY, user, []);
 };
 
 export const loadStoredSmsReminderLog = () => {
@@ -228,49 +292,16 @@ export const loadStoredInactiveFollowUpLog = () => {
   }
 };
 
-export const loadStoredWaitlistEntries = () => {
-  try {
-    const storedEntries = window.localStorage.getItem(WAITLIST_STORAGE_KEY);
-
-    if (!storedEntries) {
-      return [];
-    }
-
-    const parsedEntries = JSON.parse(storedEntries);
-    return Array.isArray(parsedEntries) ? parsedEntries : [];
-  } catch {
-    return [];
-  }
+export const loadStoredWaitlistEntries = (user = null) => {
+  return loadScopedCollection(WAITLIST_STORAGE_KEY, user, []);
 };
 
-export const loadStoredDayCloseRecords = () => {
-  try {
-    const storedRecords = window.localStorage.getItem(DAY_CLOSE_STORAGE_KEY);
-
-    if (!storedRecords) {
-      return [];
-    }
-
-    const parsedRecords = JSON.parse(storedRecords);
-    return Array.isArray(parsedRecords) ? parsedRecords : [];
-  } catch {
-    return [];
-  }
+export const loadStoredDayCloseRecords = (user = null) => {
+  return loadScopedCollection(DAY_CLOSE_STORAGE_KEY, user, []);
 };
 
-export const loadStoredPayrollRecords = () => {
-  try {
-    const storedRecords = window.localStorage.getItem(PAYROLL_STORAGE_KEY);
-
-    if (!storedRecords) {
-      return [];
-    }
-
-    const parsedRecords = JSON.parse(storedRecords);
-    return Array.isArray(parsedRecords) ? parsedRecords : [];
-  } catch {
-    return [];
-  }
+export const loadStoredPayrollRecords = (user = null) => {
+  return loadScopedCollection(PAYROLL_STORAGE_KEY, user, []);
 };
 
 export const loadStoredMessageTemplates = () => {
@@ -292,15 +323,8 @@ export const loadStoredMessageTemplates = () => {
   }
 };
 
-export const loadStoredCalendarEntries = () => {
-  try {
-    const storedEntries = window.localStorage.getItem(CALENDAR_ENTRIES_STORAGE_KEY);
-    const parsedEntries = storedEntries ? JSON.parse(storedEntries) : [];
-
-    return Array.isArray(parsedEntries) ? parsedEntries : [];
-  } catch {
-    return [];
-  }
+export const loadStoredCalendarEntries = (user = null) => {
+  return loadScopedCollection(CALENDAR_ENTRIES_STORAGE_KEY, user, []);
 };
 
 export const loadDismissedClientAlerts = () => {
@@ -350,15 +374,8 @@ export const loadStoredAlertFilter = () => {
   }
 };
 
-export const loadCommunicationLog = () => {
-  try {
-    const storedLog = window.localStorage.getItem(COMMUNICATION_LOG_STORAGE_KEY);
-    const parsedLog = storedLog ? JSON.parse(storedLog) : [];
-
-    return Array.isArray(parsedLog) ? parsedLog : [];
-  } catch {
-    return [];
-  }
+export const loadCommunicationLog = (user = null) => {
+  return loadScopedCollection(COMMUNICATION_LOG_STORAGE_KEY, user, []);
 };
 
 export const loadNotificationInbox = () => {
@@ -417,18 +434,36 @@ export const loadStoredSettings = () => {
   }
 };
 
-let initialCrmCollectionsCache = null;
+let initialCrmCollectionsCacheByScope = {};
 
-export const getInitialCrmCollections = () => {
-  if (initialCrmCollectionsCache) {
-    return initialCrmCollectionsCache;
+export const clearCrmCollectionsCache = () => {
+  initialCrmCollectionsCacheByScope = {};
+};
+
+export const getInitialCrmCollections = (user = null) => {
+  const scope = getStorageScope(user);
+  if (initialCrmCollectionsCacheByScope[scope]) {
+    return initialCrmCollectionsCacheByScope[scope];
   }
 
-  const visits = loadStoredVisits();
-  const clients = loadStoredClients();
-  const calendarEntries = loadStoredCalendarEntries();
-  const clientPackages = loadStoredClientPackages();
-  const certificates = loadStoredCertificates();
+  if (scope !== "owner") {
+    // For staff users: load strictly staff-scoped data (or empty array), never initial seed or legacy owner data
+    const collections = {
+      clients: loadStoredClients(user),
+      visits: loadStoredVisits(user),
+      calendarEntries: loadStoredCalendarEntries(user),
+      clientPackages: loadStoredClientPackages(user),
+      certificates: loadStoredCertificates(user),
+    };
+    initialCrmCollectionsCacheByScope[scope] = collections;
+    return collections;
+  }
+
+  const visits = loadStoredVisits(user);
+  const clients = loadStoredClients(user);
+  const calendarEntries = loadStoredCalendarEntries(user);
+  const clientPackages = loadStoredClientPackages(user);
+  const certificates = loadStoredCertificates(user);
   const migrated = migrateClientLinks(clients, {
     visits,
     calendarEntries,
@@ -436,19 +471,20 @@ export const getInitialCrmCollections = () => {
     certificates,
   });
 
-  initialCrmCollectionsCache = {
+  const collections = {
     clients,
     visits: migrated.visits,
     calendarEntries: migrated.calendarEntries,
     clientPackages: migrated.clientPackages,
     certificates: mergeLegacyCertificateSales(
       migrated.visits,
-      migrated.certificates ?? loadStoredCertificates(),
+      migrated.certificates ?? loadStoredCertificates(user),
       () => Date.now(),
     ).map(syncCertificateStatus),
   };
 
-  return initialCrmCollectionsCache;
+  initialCrmCollectionsCacheByScope[scope] = collections;
+  return collections;
 };
 
 export {

@@ -25,12 +25,14 @@ import {
   SUPPLIES_STORAGE_KEY,
   TASKS_STORAGE_KEY,
   VISITS_STORAGE_KEY,
+  saveScopedValue,
   saveStoredValue,
 } from "../utils/crmStorage.js";
 
 export function useCrmLocalPersistence({
   alertSnoozes,
   appSettings,
+  authUser = null,
   autoCompletedCalendarEntryIds,
   calendarEntries,
   certificates,
@@ -56,16 +58,16 @@ export function useCrmLocalPersistence({
   visits,
 }) {
   useEffect(() => {
-    saveStoredValue(VISITS_STORAGE_KEY, visits);
-  }, [visits]);
+    saveScopedValue(VISITS_STORAGE_KEY, visits, authUser);
+  }, [visits, authUser]);
 
   useEffect(() => {
     saveStoredValue(EMPLOYEES_STORAGE_KEY, employees);
   }, [employees]);
 
   useEffect(() => {
-    saveStoredValue(CLIENTS_STORAGE_KEY, clientProfiles);
-  }, [clientProfiles]);
+    saveScopedValue(CLIENTS_STORAGE_KEY, clientProfiles, authUser);
+  }, [clientProfiles, authUser]);
 
   useEffect(() => {
     saveStoredValue(SERVICES_STORAGE_KEY, serviceCatalog);
@@ -76,20 +78,20 @@ export function useCrmLocalPersistence({
   }, [packagesCatalog]);
 
   useEffect(() => {
-    saveStoredValue(CLIENT_PACKAGES_STORAGE_KEY, clientPackages);
-  }, [clientPackages]);
+    saveScopedValue(CLIENT_PACKAGES_STORAGE_KEY, clientPackages, authUser);
+  }, [clientPackages, authUser]);
 
   useEffect(() => {
-    saveStoredValue(CERTIFICATES_STORAGE_KEY, certificates);
-  }, [certificates]);
+    saveScopedValue(CERTIFICATES_STORAGE_KEY, certificates, authUser);
+  }, [certificates, authUser]);
 
   useEffect(() => {
     saveStoredValue(MESSAGE_TEMPLATES_STORAGE_KEY, messageTemplates);
   }, [messageTemplates]);
 
   useEffect(() => {
-    saveStoredValue(CALENDAR_ENTRIES_STORAGE_KEY, calendarEntries);
-  }, [calendarEntries]);
+    saveScopedValue(CALENDAR_ENTRIES_STORAGE_KEY, calendarEntries, authUser);
+  }, [calendarEntries, authUser]);
 
   useEffect(() => {
     saveStoredValue(DISMISSED_CLIENT_ALERTS_STORAGE_KEY, dismissedClientAlertIds);
@@ -100,8 +102,8 @@ export function useCrmLocalPersistence({
   }, [alertSnoozes]);
 
   useEffect(() => {
-    saveStoredValue(COMMUNICATION_LOG_STORAGE_KEY, communicationLog);
-  }, [communicationLog]);
+    saveScopedValue(COMMUNICATION_LOG_STORAGE_KEY, communicationLog, authUser);
+  }, [communicationLog, authUser]);
 
   useEffect(() => {
     saveStoredValue(NOTIFICATION_INBOX_STORAGE_KEY, notificationInbox);
@@ -120,16 +122,16 @@ export function useCrmLocalPersistence({
   }, [inactiveFollowUpLog]);
 
   useEffect(() => {
-    saveStoredValue(WAITLIST_STORAGE_KEY, waitlistEntries);
-  }, [waitlistEntries]);
+    saveScopedValue(WAITLIST_STORAGE_KEY, waitlistEntries, authUser);
+  }, [waitlistEntries, authUser]);
 
   useEffect(() => {
-    saveStoredValue(DAY_CLOSE_STORAGE_KEY, dayCloseRecords);
-  }, [dayCloseRecords]);
+    saveScopedValue(DAY_CLOSE_STORAGE_KEY, dayCloseRecords, authUser);
+  }, [dayCloseRecords, authUser]);
 
   useEffect(() => {
-    saveStoredValue(PAYROLL_STORAGE_KEY, payrollRecords);
-  }, [payrollRecords]);
+    saveScopedValue(PAYROLL_STORAGE_KEY, payrollRecords, authUser);
+  }, [payrollRecords, authUser]);
 
   useLayoutEffect(() => {
     applyColorTheme(appSettings);

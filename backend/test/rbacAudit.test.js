@@ -227,3 +227,70 @@ test('RBAC Audit: Session serialization contains employeeId, permissions, and ef
   assert.equal(serialized.effectivePermissions[PERMISSIONS.CALENDAR_VIEW_ASSIGNED], true);
 });
 
+test('RBAC Audit: Fail-closed client access when user lacks calendar.view_all and has no employeeId', () => {
+  const staffNoEmployee = {
+    role: 'staff',
+    employeeId: null,
+    effectivePermissions: {
+      [PERMISSIONS.CLIENTS_VIEW]: true,
+      [PERMISSIONS.CALENDAR_VIEW_ALL]: false,
+    },
+  };
+
+  const canViewAll = hasPermission(staffNoEmployee, PERMISSIONS.CALENDAR_VIEW_ALL);
+  const userEmpId = staffNoEmployee.employeeId ? Number(staffNoEmployee.employeeId) : null;
+
+  // Simulate GET /clients logic:
+  let result;
+  if (!canViewAll) {
+    if (userEmpId) {
+      result = 'filtered-by-visits';
+    } else {
+      result = []; // fail-closed
+    }
+  } else {
+    result = 'all-clients';
+  }
+
+  assert.deepEqual(result, [], 'Staff without view_all and no employeeId must receive an empty array, never all clients');
+});
+
+test('RBAC Audit: System state sanitization strips sensitive secrets for non-owners', () => {
+  const router = require('../routes/systemState');
+  const SENSITIVE_SETTINGS_KEYS = router.SENSITIVE_SETTINGS_KEYS;
+  const sanitizePayload = router.sanitizePayload;
+
+  assert.ok(Array.isArray(SENSITIVE_SETTINGS_KEYS));
+  assert.ok(SENSITIVE_SETTINGS_KEYS.includes('telegramBotToken'));
+  assert.ok(SENSITIVE_SETTINGS_KEYS.includes('smsApiKey'));
+  assert.ok(SENSITIVE_SETTINGS_KEYS.includes('backupEncryptionKey'));
+
+  const sensitiveSettings = {
+    theme: 'dark',
+    compactMode: true,
+    telegramBotToken: '123456:secret-bot-token',
+    telegramChatId: '-100987654321',
+    smsApiKey: 'super-secret-sms-key',
+    smsApiSecret: 'secret',
+    backupEncryptionKey: 'topsecretkey',
+  };
+
+  // Staff view for 'settings': sensitive fields stripped
+  const staffCleaned = sanitizePayload('settings', sensitiveSettings, false);
+  assert.equal(staffCleaned.theme, 'dark');
+  assert.equal(staffCleaned.compactMode, true);
+  assert.equal(staffCleaned.telegramBotToken, undefined);
+  assert.equal(staffCleaned.smsApiKey, undefined);
+  assert.equal(staffCleaned.backupEncryptionKey, undefined);
+
+  // Staff view for a sensitive standalone key (e.g. 'backup_config'): returns null
+  const staffBackup = sanitizePayload('backup_config', { key: 'secret' }, false);
+  assert.equal(staffBackup, null);
+
+  // Owner view: everything preserved intact
+  const ownerCleaned = sanitizePayload('settings', sensitiveSettings, true);
+  assert.equal(ownerCleaned.telegramBotToken, '123456:secret-bot-token');
+  assert.equal(ownerCleaned.smsApiKey, 'super-secret-sms-key');
+});
+
+

@@ -61,14 +61,22 @@ router.get('/clients', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, 
     const userEmpId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
 
     let where = {};
-    if (!canViewAll && userEmpId) {
-      where = {
-        visits: {
-          some: {
-            employeeId: userEmpId,
+    if (!canViewAll) {
+      if (userEmpId) {
+        where = {
+          visits: {
+            some: {
+              employeeId: userEmpId,
+            },
           },
-        },
-      };
+        };
+      } else {
+        // Fail-closed: user lacks calendar.view_all and has no employeeId assigned
+        return res.json({
+          success: true,
+          data: [],
+        });
+      }
     }
 
     const clients = await prisma.client.findMany({
@@ -103,18 +111,25 @@ router.get('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (r
     const canViewAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
     const userEmpId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
 
+    if (!canViewAll && !userEmpId) {
+      return res.status(403).json({
+        success: false,
+        error: 'Доступ к карточке клиента закрыт: пользователь не привязан к сотруднику',
+      });
+    }
+
     const client = await prisma.client.findUnique({
       where: { id },
       select: {
         ...clientSelect,
-        ...(canViewAll || !userEmpId ? {} : { visits: { select: { employeeId: true } } }),
+        ...(canViewAll ? {} : { visits: { select: { employeeId: true } } }),
       },
     });
     if (!client) {
       return res.status(404).json({ success: false, error: 'Client not found' });
     }
 
-    if (!canViewAll && userEmpId) {
+    if (!canViewAll) {
       const isAssigned = (client.visits || []).some((v) => Number(v.employeeId) === userEmpId);
       if (!isAssigned) {
         return res.status(403).json({ success: false, error: 'Доступ к клиенту запрещён: нет общих визитов' });
