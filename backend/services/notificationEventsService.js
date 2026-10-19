@@ -220,7 +220,7 @@ const normalizeNotificationEventInput = (input = {}) => {
   const message = cleanString(input.message) || title;
 
   return {
-    clientId: Number.isInteger(Number(input.clientId)) ? Number(input.clientId) : null,
+    clientId: Number.isInteger(Number(input.clientId)) && Number(input.clientId) > 0 ? Number(input.clientId) : null,
     clientName: cleanString(input.clientName),
     entityId: cleanString(input.entityId),
     entityType: cleanString(input.entityType),
