@@ -11,6 +11,7 @@ export default function AppGate({
   closeNotification,
   cloudHydrated,
   cloudLoadError,
+  handleCancelRecovery,
   handleGoogleLogin,
   handleLogin,
   handleLogout,
@@ -18,6 +19,7 @@ export default function AppGate({
   handleUpdatePassword,
   notifications,
   passwordRecovery,
+  resetToken,
 }) {
   const currentPath = window.location.pathname;
 
@@ -34,6 +36,27 @@ export default function AppGate({
           window.location.reload();
         }}
       />
+    );
+  }
+
+  // Password recovery route must display immediately without waiting for DB cloud hydration
+  if (passwordRecovery) {
+    return (
+      <>
+        <LoginPage
+          isRecovery={true}
+          resetToken={resetToken}
+          settings={appSettings}
+          onCancelRecovery={handleCancelRecovery}
+          onGoogleLogin={handleGoogleLogin}
+          onResetPassword={handleResetPassword}
+          onSubmit={handleLogin}
+          onUpdatePassword={handleUpdatePassword}
+          showGoogleLogin={false}
+          showPasswordReset={false}
+        />
+        <ToastStack notifications={notifications} onClose={closeNotification} />
+      </>
     );
   }
 
@@ -57,11 +80,11 @@ export default function AppGate({
     );
   }
 
-  if (!authSession || passwordRecovery) {
+  if (!authSession) {
     return (
       <>
         <LoginPage
-          isRecovery={passwordRecovery}
+          isRecovery={false}
           settings={appSettings}
           onGoogleLogin={handleGoogleLogin}
           onResetPassword={handleResetPassword}

@@ -3,6 +3,7 @@ import {
   getPageFromPath,
   getPathFromPage,
   isKnownAppPage,
+  isResetPasswordPath,
   resolveInitialPage,
 } from "../utils/appRouting.js";
 
@@ -32,6 +33,12 @@ export function useAppRouting(activePage, setActivePage) {
     }
 
     hasHydratedFromUrlRef.current = true;
+
+    // Never overwrite URL or redirect when on /reset-password
+    if (isResetPasswordPath(window.location.pathname)) {
+      return;
+    }
+
     const initialPage = resolveInitialPage({
       pathname: window.location.pathname,
       storedPage: activePage,
@@ -50,6 +57,10 @@ export function useAppRouting(activePage, setActivePage) {
 
   useEffect(() => {
     const handlePopState = () => {
+      if (isResetPasswordPath(window.location.pathname)) {
+        return;
+      }
+
       const pageFromUrl = getPageFromPath(window.location.pathname);
       const nextPage =
         pageFromUrl ??

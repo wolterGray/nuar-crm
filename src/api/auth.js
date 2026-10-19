@@ -4,7 +4,7 @@ const parseAuthResponse = async (response) => {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message = payload?.message || "Auth request failed";
+    const message = payload?.error || payload?.message || "Auth request failed";
     const error = new Error(message);
     error.payload = payload;
     error.status = response.status;

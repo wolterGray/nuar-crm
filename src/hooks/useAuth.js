@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useState} from "react";
 import {forgotPassword, resetPassword} from "../api/auth.js";
 import {API_URL} from "../api/config.js";
+import {isResetPasswordPath} from "../utils/appRouting.js";
 
 const AUTH_TOKEN_STORAGE_KEY = "nuar_crm_auth_token";
 const AUTH_SESSION_STORAGE_KEY = "nuar_crm_auth_session";
@@ -47,15 +48,23 @@ const loadStoredSession = () => {
   }
 };
 
-const getResetTokenFromUrl = () => {
-  const searchParams = new URLSearchParams(window.location.search);
-  const tokenFromSearch = searchParams.get("token");
+export const getResetTokenFromUrl = () => {
+  if (typeof window === "undefined") return "";
+  try {
+    const searchParams = new URLSearchParams(window.location.search);
+    const tokenFromSearch = searchParams.get("token");
 
-  if (tokenFromSearch) return tokenFromSearch;
+    if (tokenFromSearch) return tokenFromSearch.trim();
 
-  const hash = window.location.hash.replace(/^#/, "");
-  const hashParams = new URLSearchParams(hash);
-  return hashParams.get("token") || hash || "";
+    const hash = window.location.hash.replace(/^#/, "");
+    const hashParams = new URLSearchParams(hash);
+    const tokenFromHash = hashParams.get("token");
+    if (tokenFromHash) return tokenFromHash.trim();
+  } catch {
+    // ignore URL parsing error
+  }
+
+  return "";
 };
 
 export function getAuthToken() {
@@ -75,8 +84,9 @@ export function useAuth({onSessionLostRef, pushNotification}) {
   const [authSession, setAuthSession] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [passwordRecovery, setPasswordRecovery] = useState(
-    () => window.location.pathname === "/reset-password",
+    () => typeof window !== "undefined" && isResetPasswordPath(window.location.pathname),
   );
+  const [resetToken, setResetToken] = useState(() => getResetTokenFromUrl());
 
   useEffect(() => {
     let active = true;
@@ -90,6 +100,14 @@ export function useAuth({onSessionLostRef, pushNotification}) {
     };
 
     const restoreSession = async () => {
+      // If user navigated directly to /reset-password, terminate existing session and do not load CRM data
+      if (typeof window !== "undefined" && isResetPasswordPath(window.location.pathname)) {
+        clearStoredAuth();
+        setAuthSession(null);
+        setAuthReady(true);
+        return;
+      }
+
       const storedSession = loadStoredSession();
       if (!storedSession?.access_token) {
         rejectSession();
@@ -119,7 +137,7 @@ export function useAuth({onSessionLostRef, pushNotification}) {
         setAuthSession(session);
         setAuthReady(true);
       } catch (error) {
-        console.error("Failed to verify local auth session:", error);
+        console.error("Failed to verify local auth session:", error?.message || "network error");
         rejectSession();
       }
     };
@@ -211,20 +229,29 @@ export function useAuth({onSessionLostRef, pushNotification}) {
     [pushNotification],
   );
 
+  const handleCancelRecovery = useCallback(() => {
+    setPasswordRecovery(false);
+    setResetToken("");
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, "", "/");
+    }
+  }, []);
+
   const handleUpdatePassword = useCallback(
     async (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const newPassword = String(form.get("password") ?? "");
-      const token = getResetTokenFromUrl();
+      const token = resetToken || getResetTokenFromUrl();
 
       if (!token) {
+        const errorMsg = "Ссылка недействительна. Запросите новую ссылку для сброса пароля.";
         pushNotification({
           title: "Ссылка недействительна",
-          message: "Запросите новую ссылку для сброса пароля.",
+          message: errorMsg,
           persist: false,
         });
-        return false;
+        return {success: false, error: errorMsg};
       }
 
       try {
@@ -232,24 +259,32 @@ export function useAuth({onSessionLostRef, pushNotification}) {
         clearStoredAuth();
         setAuthSession(null);
         setPasswordRecovery(false);
-        window.history.replaceState({}, "", "/");
+        setResetToken("");
+        if (typeof window !== "undefined") {
+          window.history.replaceState({}, "", "/");
+        }
         pushNotification({
           title: "Пароль обновлён",
           message: "Теперь можно войти с новым паролем.",
           persist: false,
         });
-        return true;
+        return {success: true};
       } catch (error) {
-        console.error("Reset password failed:", error);
+        const errorMsg =
+          error?.payload?.error ||
+          error?.payload?.message ||
+          error?.message ||
+          "Ссылка недействительна или срок её действия истёк.";
+        console.error("Reset password failed:", error?.message || "auth error");
         pushNotification({
           title: "Пароль не обновлён",
-          message: error?.payload?.message || "Проверьте ссылку и требования к паролю.",
+          message: errorMsg,
           persist: false,
         });
-        return false;
+        return {success: false, error: errorMsg};
       }
     },
-    [pushNotification],
+    [pushNotification, resetToken],
   );
 
   const handleLogout = useCallback(() => {
@@ -261,11 +296,13 @@ export function useAuth({onSessionLostRef, pushNotification}) {
   return {
     authReady,
     authSession,
+    handleCancelRecovery,
     handleGoogleLogin,
     handleLogin,
     handleLogout,
     handleResetPassword,
     handleUpdatePassword,
     passwordRecovery,
+    resetToken,
   };
 }

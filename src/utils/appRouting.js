@@ -56,10 +56,13 @@ export const getPageFromPath = (pathname = "") => {
   return PATH_TO_PAGE[normalized] ?? null;
 };
 
+export const isResetPasswordPath = (pathname = "") =>
+  normalizeAppPath(pathname) === "/reset-password";
+
 export const isSupportedAppPath = (pathname = "") => {
   const normalized = normalizeAppPath(pathname);
 
-  if (normalized === "/" || normalized === "/reset-password") {
+  if (normalized === "/" || isResetPasswordPath(normalized)) {
     return true;
   }
 
@@ -67,6 +70,12 @@ export const isSupportedAppPath = (pathname = "") => {
 };
 
 export const resolveInitialPage = ({
-  pathname = window.location.pathname,
+  pathname = typeof window !== "undefined" ? window.location.pathname : "/",
   storedPage = "calendar",
-} = {}) => getPageFromPath(pathname) ?? storedPage;
+} = {}) => {
+  if (isResetPasswordPath(pathname)) {
+    return storedPage;
+  }
+
+  return getPageFromPath(pathname) ?? storedPage;
+};

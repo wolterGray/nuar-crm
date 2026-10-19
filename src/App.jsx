@@ -257,12 +257,14 @@ function App() {
   const {
     authReady,
     authSession,
+    handleCancelRecovery,
     handleGoogleLogin,
     handleLogin,
     handleLogout,
     handleResetPassword,
     handleUpdatePassword,
     passwordRecovery,
+    resetToken,
   } = useAuth({
     onSessionLostRef,
     pushNotification,
@@ -1929,13 +1931,15 @@ function App() {
       closeNotification={closeNotification}
       cloudHydrated={cloudHydrated}
       cloudLoadError={cloudLoadError}
+      handleCancelRecovery={handleCancelRecovery}
       handleGoogleLogin={handleGoogleLogin}
       handleLogin={handleLogin}
       handleLogout={handleAppLogout}
       handleResetPassword={handleResetPassword}
       handleUpdatePassword={handleUpdatePassword}
       notifications={notifications}
-      passwordRecovery={passwordRecovery}>
+      passwordRecovery={passwordRecovery}
+      resetToken={resetToken}>
     <AppShell
       compactMode={appSettings.compactMode}
       contentRef={contentRef}

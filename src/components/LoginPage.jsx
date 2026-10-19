@@ -5,6 +5,8 @@ import {AppIcon, Button, Card, IconButton, Input} from "./ui/index.js";
 
 function LoginPage({
   isRecovery,
+  resetToken = "",
+  onCancelRecovery,
   onGoogleLogin,
   onResetPassword,
   onSubmit,
@@ -17,12 +19,25 @@ function LoginPage({
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [resetRequested, setResetRequested] = useState(false);
   const [recoveryMessage, setRecoveryMessage] = useState("");
-  const activeMode = isRecovery ? "recovery" : mode;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const activeMode = mode;
   const themeMode = resolveColorTheme(settings).mode;
 
+  const hasToken = Boolean(
+    resetToken ||
+      (typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("token")),
+  );
+
   const handleForgotSubmit = async (event) => {
-    const ok = await onResetPassword(event);
-    if (ok) setResetRequested(true);
+    setIsSubmitting(true);
+    try {
+      const ok = await onResetPassword(event);
+      if (ok) setResetRequested(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRecoverySubmit = async (event) => {
@@ -43,7 +58,17 @@ function LoginPage({
     }
 
     setRecoveryMessage("");
-    await onUpdatePassword(event);
+    setIsSubmitting(true);
+    try {
+      const result = await onUpdatePassword(event);
+      if (result && typeof result === "object" && !result.success) {
+        setRecoveryMessage(result.error || "Ссылка недействительна или срок её действия истёк");
+      } else if (result === false) {
+        setRecoveryMessage("Ссылка недействительна или срок её действия истёк");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -61,14 +86,22 @@ function LoginPage({
               {settings.studioName}
             </small>
             <h1 className="m-0 text-text-main text-xl font-bold leading-tight">
-              {activeMode === "login" ? "Вход" : activeMode === "reset" ? "Сброс пароля" : "Новый пароль"}
+              {activeMode === "login"
+                ? "Вход"
+                : activeMode === "reset"
+                  ? "Сброс пароля"
+                  : !hasToken
+                    ? "Ссылка недействительна"
+                    : "Новый пароль"}
             </h1>
             <p className="m-0 mt-1 text-text-muted text-xs leading-normal">
               {activeMode === "login"
-                ? "Доступ только для владельца салона"
+                ? "Доступ только для сотрудников салона"
                 : activeMode === "reset"
                   ? "Пришлем защищённую ссылку на email"
-                  : "Задайте новый пароль для входа"}
+                  : !hasToken
+                    ? "В ссылке отсутствует токен сброса"
+                    : "Задайте новый пароль для входа"}
             </p>
           </div>
         </div>
@@ -164,13 +197,51 @@ function LoginPage({
               variant="link"
               type="button"
               className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
-              onClick={() => setMode("login")}>
+              onClick={() => {
+                if (onCancelRecovery) {
+                  onCancelRecovery();
+                }
+                setMode("login");
+              }}>
               Вернуться ко входу
             </Button>
           </form>
         )}
 
-        {activeMode === "recovery" && (
+        {activeMode === "recovery" && !hasToken && (
+          <div className="flex flex-col gap-4">
+            <div className="rounded-control border border-border bg-field p-3 text-xs leading-normal text-text-muted">
+              Ссылка не содержит токен для сброса пароля или недействительна. Запросите новую ссылку для сброса пароля на свой email.
+            </div>
+            <Button
+              variant="primary"
+              type="button"
+              leftIcon="mail"
+              className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer"
+              onClick={() => {
+                setResetRequested(false);
+                setMode("reset");
+              }}>
+              Запросить новую ссылку
+            </Button>
+            <Button
+              variant="link"
+              type="button"
+              className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
+              onClick={() => {
+                if (onCancelRecovery) {
+                  onCancelRecovery();
+                } else {
+                  window.history.replaceState({}, "", "/");
+                  window.location.replace("/");
+                }
+              }}>
+              Вернуться ко входу
+            </Button>
+          </div>
+        )}
+
+        {activeMode === "recovery" && hasToken && (
           <form className="flex flex-col gap-4" onSubmit={handleRecoverySubmit}>
             <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
               Новый пароль
@@ -218,6 +289,7 @@ function LoginPage({
               variant="primary"
               type="submit"
               leftIcon="refresh"
+              loading={isSubmitting}
               className="w-full flex items-center justify-center gap-2 mt-2 font-bold cursor-pointer">
               Сохранить новый пароль
             </Button>
@@ -225,7 +297,14 @@ function LoginPage({
               variant="link"
               type="button"
               className="text-accent hover:underline text-xs self-center bg-transparent border-0 cursor-pointer mt-1 focus:outline-none"
-              onClick={() => window.location.replace("/")}>
+              onClick={() => {
+                if (onCancelRecovery) {
+                  onCancelRecovery();
+                } else {
+                  window.history.replaceState({}, "", "/");
+                  window.location.replace("/");
+                }
+              }}>
               Вернуться ко входу
             </Button>
           </form>
