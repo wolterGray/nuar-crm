@@ -24,14 +24,10 @@ function invalidateUserCache(userId) {
 }
 
 const isOwnerAuth = (auth = {}) => {
-  const adminEmail = String(process.env.ADMIN_EMAIL ?? '').trim().toLowerCase();
-  const authEmail = String(auth.email ?? '').trim().toLowerCase();
-
   return (
-    auth.role === 'owner' ||
-    auth.sub === 'local-admin' ||
-    auth.id === 'local-admin' ||
-    (adminEmail && authEmail === adminEmail)
+    auth?.role === 'owner' ||
+    auth?.sub === 'local-admin' ||
+    auth?.id === 'local-admin'
   );
 };
 
@@ -127,10 +123,31 @@ function createActiveUserMiddleware(prismaClient = null) {
 
     const rawId = req.auth.sub || req.auth.id;
     const numericId = Number(rawId);
+    const db = prismaClient || req.prisma || req.app?.get?.('prisma') || getPrisma();
 
-    // Bypass DB check for local-admin or non-numeric ID
-    if (rawId === 'local-admin' || !Number.isInteger(numericId) || numericId <= 0) {
-      return next();
+    // Check emergency local-admin: only permitted if database has 0 active owners
+    if (rawId === 'local-admin') {
+      try {
+        const ownerCount = await db.user.count({
+          where: { isActive: true, role: 'owner' },
+        });
+        if (ownerCount > 0) {
+          return res.status(401).json({
+            success: false,
+            error: 'Emergency local-admin is disabled when database owners exist',
+          });
+        }
+        return next();
+      } catch {
+        if (process.env.NODE_ENV === 'production') {
+          return res.status(500).json({ success: false, error: 'Authentication verification failed' });
+        }
+        return next();
+      }
+    }
+
+    if (!Number.isInteger(numericId) || numericId <= 0) {
+      return res.status(401).json({ success: false, error: 'Invalid user ID in token' });
     }
 
     const cached = userCache.get(numericId);
@@ -138,12 +155,17 @@ function createActiveUserMiddleware(prismaClient = null) {
       if (!cached.user.isActive) {
         return res.status(401).json({ success: false, error: 'User is inactive or disabled' });
       }
+      if (cached.user.passwordChangedAt && req.auth.iat) {
+        const changedSec = Math.floor(new Date(cached.user.passwordChangedAt).getTime() / 1000);
+        if (req.auth.iat < changedSec) {
+          return res.status(401).json({ success: false, error: 'Password changed, please log in again' });
+        }
+      }
       req.auth = getEffectiveAuth(req.auth, cached.user);
       return next();
     }
 
     try {
-      const db = prismaClient || req.prisma || req.app?.get?.('prisma') || getPrisma();
       const dbUser = await db.user.findUnique({
         where: { id: numericId },
         select: {

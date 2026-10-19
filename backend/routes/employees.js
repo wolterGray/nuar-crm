@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { requireOwner, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { recordErrorEvent, recordAuditLog } = require('../services/loggingService');
 const {
-  respond,
   auditCreate,
   auditUpdate,
   auditDelete,
@@ -93,6 +92,36 @@ const validateEmployeeData = (data) => {
   }
 };
 
+const sanitizeEmployee = (employee, auth) => {
+  if (!employee) return employee;
+  const isOwnerOrAdmin = auth?.role === 'owner' || auth?.role === 'admin';
+  const canViewStats = hasPermission(auth, PERMISSIONS.FINANCE_VIEW_SALON_STATS);
+  const userEmpId = auth?.employeeId ? Number(auth.employeeId) : null;
+
+  if (isOwnerOrAdmin || canViewStats) {
+    return employee;
+  }
+
+  // An employee can view their own commission rate and payroll settings
+  if (userEmpId && Number(employee.id) === userEmpId) {
+    return employee;
+  }
+
+  const p = employee.payload && typeof employee.payload === 'object' ? employee.payload : {};
+  return {
+    ...employee,
+    commissionRate: null,
+    payrollSettings: null,
+    payrollSchedule: null,
+    payload: {
+      ...p,
+      commissionRate: null,
+      payrollSettings: null,
+      payrollSchedule: null,
+    },
+  };
+};
+
 // ==================== Employee ====================
 router.post('/employees', requireOwner, (req, res) => {
   const data = buildEmployeeData(req.body ?? {});
@@ -108,9 +137,15 @@ router.post('/employees', requireOwner, (req, res) => {
   auditCreate(prisma, req, res, prisma.employee.create({ data }).then(withStoredId), 'Employee', 'create employee');
 });
 
-router.get('/employees/:id', (req, res) => {
+router.get('/employees/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.employee.findUnique({ where: { id } }).then(withStoredId));
+  try {
+    const employee = await prisma.employee.findUnique({ where: { id } }).then(withStoredId);
+    if (!employee) return res.status(404).json({ success: false, error: 'Employee not found' });
+    res.json({ success: true, data: sanitizeEmployee(employee, req.auth) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 router.put('/employees/:id', requireOwner, async (req, res) => {
@@ -184,7 +219,7 @@ router.delete('/employees/:id', requireOwner, async (req, res) => {
   }
 });
 
-router.get('/employees', (req, res) => {
+router.get('/employees', async (req, res) => {
   const includeDeleted = req.query.includeDeleted === 'true';
   const where = includeDeleted
     ? {}
@@ -195,12 +230,12 @@ router.get('/employees', (req, res) => {
         ],
       };
 
-  respond(
-    res,
-    prisma.employee.findMany({ where, orderBy: { name: 'asc' } }).then((records) =>
-      records.map(withStoredId),
-    ),
-  );
+  try {
+    const records = await prisma.employee.findMany({ where, orderBy: { name: 'asc' } });
+    res.json({ success: true, data: records.map(withStoredId).map((e) => sanitizeEmployee(e, req.auth)) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ==================== Payroll Record ====================
@@ -282,14 +317,51 @@ router.delete('/payroll-records/:id', requireOwner, async (req, res) => {
   );
 });
 
-router.get('/payroll-records', (req, res) => {
-  respond(res, prisma.payrollRecord.findMany({ orderBy: { paidAt: 'desc' } }).then((records) => records.map(withStoredId)));
+router.get('/payroll-records', async (req, res) => {
+  try {
+    const canViewAll = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_ALL);
+    const canViewOwn = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_OWN);
+
+    if (!canViewAll && !canViewOwn) {
+      return res.status(403).json({ success: false, error: 'Доступ к выплатам запрещён' });
+    }
+
+    const userEmpId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+    const where = (!canViewAll && canViewOwn)
+      ? { employeeId: userEmpId ?? -1 }
+      : {};
+
+    const records = await prisma.payrollRecord.findMany({
+      where,
+      orderBy: { paidAt: 'desc' },
+    });
+
+    res.json({ success: true, data: records.map(withStoredId) });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    res.status(response.status).json({ success: false, error: response.message });
+  }
 });
 
-router.get('/payroll/summary', requireOwner, async (req, res) => {
+router.get('/payroll/summary', async (req, res) => {
+  const canViewAll = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_ALL);
+  const canViewOwn = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_OWN);
+
+  if (!canViewAll && !canViewOwn) {
+    return res.status(403).json({ success: false, error: 'Доступ к сводке зарплат запрещён' });
+  }
+
   const startDate = normalizeDayCloseDate(req.query.dateFrom ?? req.query.startDate);
   const endDate = normalizeDayCloseDate(req.query.dateTo ?? req.query.endDate);
-  const employeeId = req.query.employeeId ? Number(req.query.employeeId) : null;
+  let employeeId = req.query.employeeId ? Number(req.query.employeeId) : null;
+
+  if (!canViewAll && canViewOwn) {
+    const userEmpId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+    if (!userEmpId || (employeeId !== null && employeeId !== userEmpId)) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещён: нельзя просматривать чужую сводку зарплат' });
+    }
+    employeeId = userEmpId;
+  }
 
   if (!startDate || !endDate) {
     return res.status(400).json({ success: false, error: 'Payroll period is required' });

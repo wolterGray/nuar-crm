@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { requirePermission, PERMISSIONS } = require('../middleware/auth');
 const {
   respond,
   auditCreate,
@@ -82,7 +82,7 @@ const buildPackageData = (payload) => ({
 });
 
 // ==================== Service ====================
-router.post('/services', (req, res) => {
+router.post('/services', requirePermission(PERMISSIONS.CATALOG_MANAGE), (req, res) => {
   const data = buildServiceData(req.body ?? {});
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Service name is required' });
@@ -91,7 +91,7 @@ router.post('/services', (req, res) => {
   auditCreate(prisma, req, res, prisma.service.create({ data }).then(withStoredId), 'Service', 'create service');
 });
 
-router.patch('/services/reorder', requireOwner, async (req, res) => {
+router.patch('/services/reorder', requirePermission(PERMISSIONS.CATALOG_MANAGE), async (req, res) => {
   const ids = Array.isArray(req.body?.ids)
     ? req.body.ids.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)
     : [];
@@ -126,7 +126,7 @@ router.get('/services/:id', (req, res) => {
   respond(res, prisma.service.findUnique({ where: { id } }).then(withStoredId));
 });
 
-router.put('/services/:id', async (req, res) => {
+router.put('/services/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   const data = buildServiceData({ ...(req.body ?? {}), id });
   if (!data.name) {
@@ -145,7 +145,7 @@ router.put('/services/:id', async (req, res) => {
   );
 });
 
-router.delete('/services/:id', requireOwner, async (req, res) => {
+router.delete('/services/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE), async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
   await auditDelete(
@@ -170,7 +170,7 @@ router.get('/services', (req, res) => {
 });
 
 // ==================== Package ====================
-router.post('/packages', (req, res) => {
+router.post('/packages', requirePermission(PERMISSIONS.CATALOG_MANAGE), (req, res) => {
   const data = buildPackageData(req.body ?? {});
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Package name is required' });
@@ -184,7 +184,7 @@ router.get('/packages/:id', (req, res) => {
   respond(res, prisma.package.findUnique({ where: { id } }).then(withStoredId));
 });
 
-router.put('/packages/:id', async (req, res) => {
+router.put('/packages/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   const data = buildPackageData({ ...(req.body ?? {}), id });
   if (!data.name) {
@@ -203,7 +203,7 @@ router.put('/packages/:id', async (req, res) => {
   );
 });
 
-router.delete('/packages/:id', requireOwner, async (req, res) => {
+router.delete('/packages/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   await auditDelete(
     prisma,

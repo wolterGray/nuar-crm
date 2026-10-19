@@ -119,29 +119,37 @@ if (testDbUrl) {
   const {PrismaClient} = require('@prisma/client');
   const testPrisma = new PrismaClient({datasources: {db: {url: testDbUrl}}});
 
-  testPrisma.$connect()
-    .then(async () => {
+  (async () => {
+    try {
+      await testPrisma.$connect();
       const [users, clients, services, visits] = await Promise.all([
-        testPrisma.user.count().catch(() => -1),
-        testPrisma.client.count().catch(() => -1),
-        testPrisma.service.count().catch(() => -1),
-        testPrisma.visit.count().catch(() => -1),
+        testPrisma.user.count(),
+        testPrisma.client.count(),
+        testPrisma.service.count(),
+        testPrisma.visit.count(),
       ]);
 
       console.log(`\nTest Database Verification Summary:`);
-      console.log(` - Users:    ${users >= 0 ? users : 'N/A'}`);
-      console.log(` - Clients:  ${clients >= 0 ? clients : 'N/A'}`);
-      console.log(` - Services: ${services >= 0 ? services : 'N/A'}`);
-      console.log(` - Visits:   ${visits >= 0 ? visits : 'N/A'}`);
+      console.log(` - Users:    ${users}`);
+      console.log(` - Clients:  ${clients}`);
+      console.log(` - Services: ${services}`);
+      console.log(` - Visits:   ${visits}`);
+
+      if (users < 1 || services < 1) {
+        console.error(`\n❌ RESTORE VERIFICATION FAILED: Essential tables are empty (users=${users}, services=${services}). Backup is incomplete!`);
+        process.exit(1);
+      }
+
       console.log(`\n🎉 DRILL COMPLETED: Backup is 100% verified and restorable!`);
-    })
-    .catch((err) => {
-      console.warn(`⚠️ Connected to test database but failed to query row counts: ${err.message}`);
-    })
-    .finally(async () => {
+    } catch (err) {
+      console.error(`\n❌ RESTORE VERIFICATION FAILED: Database queries failed: ${err.message}`);
+      process.exit(1);
+    } finally {
       await testPrisma.$disconnect().catch(() => {});
-    });
+    }
+  })();
 } else {
-  console.log(`\n💡 Note: To run an end-to-end live restore drill into an isolated test database:`);
+  console.log(`\n✅ ARCHIVE STRUCTURAL CHECK PASSED: Binary header and TOC are 100% valid.`);
+  console.log(`💡 Note: To run an end-to-end live restore drill into an isolated test database:`);
   console.log(`   TEST_DATABASE_URL="postgres://user:pass@host:5432/nuar_crm_test" npm run db:backup:verify`);
 }

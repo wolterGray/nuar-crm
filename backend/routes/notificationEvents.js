@@ -9,6 +9,7 @@ const {
   updateNotificationRecipient,
   upsertNotificationEvent,
 } = require('../services/notificationEventsService');
+const {requirePermission, PERMISSIONS} = require('../middleware/auth');
 const {getHttpErrorResponse} = require('../utils/httpErrors');
 
 const prisma = new PrismaClient();
@@ -56,7 +57,7 @@ router.get('/notification-events/counts', async (req, res) => {
   }
 });
 
-router.post('/notification-events', async (req, res) => {
+router.post('/notification-events', requirePermission(PERMISSIONS.TASKS_MANAGE), async (req, res) => {
   try {
     const event = await upsertNotificationEvent(prisma, req.body);
     await recordAuditLog(prisma, req, {
@@ -79,7 +80,7 @@ router.post('/notification-events', async (req, res) => {
   }
 });
 
-router.post('/notification-events/generate', async (req, res) => {
+router.post('/notification-events/generate', requirePermission(PERMISSIONS.TASKS_MANAGE), async (req, res) => {
   try {
     const result = await generateSmartNotificationEvents(prisma);
     await recordAuditLog(prisma, req, {
@@ -102,7 +103,7 @@ router.post('/notification-events/generate', async (req, res) => {
   }
 });
 
-router.post('/notification-events/plan-delivery', async (req, res) => {
+router.post('/notification-events/plan-delivery', requirePermission(PERMISSIONS.TASKS_MANAGE), async (req, res) => {
   try {
     const commit = req.body?.commit === true;
     const result = await planNotificationDeliveries(prisma, {

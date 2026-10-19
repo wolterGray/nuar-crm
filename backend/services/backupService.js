@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const {spawnSync} = require('child_process');
 
 const PGDUMP_MAGIC = Buffer.from('PGDMP');
@@ -184,7 +185,7 @@ const isSafeTestDatabase = (testUrl, prodUrl) => {
     return {error: 'DANGER: TEST_DATABASE_URL is identical to DATABASE_URL (production)! Aborting.', safe: false};
   }
 
-  let testDbName = '';
+  let testDbName;
   let prodDbName = '';
 
   try {
@@ -222,9 +223,77 @@ const isSafeTestDatabase = (testUrl, prodUrl) => {
   return {databaseName: testDbName, safe: true};
 };
 
+/**
+ * Encrypt a backup dump file using AES-256-GCM.
+ * Output file format: [16 bytes IV][16 bytes AuthTag][Ciphertext]
+ */
+const encryptDumpFile = (sourcePath, destPath, secretKey) => {
+  if (!fs.existsSync(sourcePath)) {
+    throw new Error(`Source dump file does not exist: ${sourcePath}`);
+  }
+  if (!secretKey || String(secretKey).trim().length < 8) {
+    throw new Error('Encryption secretKey must be at least 8 characters');
+  }
+
+  const key = crypto.createHash('sha256').update(String(secretKey)).digest();
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+
+  const input = fs.readFileSync(sourcePath);
+  const encrypted = Buffer.concat([cipher.update(input), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+
+  const finalPayload = Buffer.concat([iv, authTag, encrypted]);
+  fs.writeFileSync(destPath, finalPayload);
+
+  return {
+    sourcePath,
+    destPath,
+    encryptedBytes: finalPayload.length,
+    algorithm: 'aes-256-gcm',
+  };
+};
+
+/**
+ * Decrypt an AES-256-GCM encrypted backup dump file.
+ */
+const decryptDumpFile = (sourcePath, destPath, secretKey) => {
+  if (!fs.existsSync(sourcePath)) {
+    throw new Error(`Encrypted file does not exist: ${sourcePath}`);
+  }
+  if (!secretKey) {
+    throw new Error('Decryption secretKey is required');
+  }
+
+  const fileBuffer = fs.readFileSync(sourcePath);
+  if (fileBuffer.length < 32) {
+    throw new Error('Encrypted file is too small or corrupted (missing IV or AuthTag)');
+  }
+
+  const iv = fileBuffer.subarray(0, 16);
+  const authTag = fileBuffer.subarray(16, 32);
+  const ciphertext = fileBuffer.subarray(32);
+
+  const key = crypto.createHash('sha256').update(String(secretKey)).digest();
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+  decipher.setAuthTag(authTag);
+
+  const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  fs.writeFileSync(destPath, decrypted);
+
+  return {
+    sourcePath,
+    destPath,
+    decryptedBytes: decrypted.length,
+    valid: true,
+  };
+};
+
 module.exports = {
   PGDUMP_MAGIC,
   applyRetentionPolicy,
+  decryptDumpFile,
+  encryptDumpFile,
   getBackupStatus,
   inspectDumpTOC,
   isSafeTestDatabase,

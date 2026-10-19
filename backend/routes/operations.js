@@ -2,7 +2,8 @@ const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { isOwnerAuth, requireOwner } = require('../middleware/auth');
+const { isOwnerAuth, requireOwner, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
+const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const {ensureNoteTables} = require('../utils/noteTables');
 const {
@@ -203,8 +204,41 @@ const buildCommunicationLogData = (payload) => ({
 });
 
 // ==================== Operations state and messaging ====================
+const sanitizeWaitlist = (entry, canViewContacts) => {
+  const base = withStoredId(entry);
+  if (canViewContacts || !base) return base;
+  const p = base.payload && typeof base.payload === 'object' ? base.payload : {};
+  return {
+    ...base,
+    phone: maskPhoneNumber(base.phone),
+    payload: {
+      ...p,
+      phone: maskPhoneNumber(p.phone),
+      email: maskEmail(p.email),
+    },
+  };
+};
+
+const sanitizeCommLog = (log, canViewContacts) => {
+  const base = withStoredId(log);
+  if (canViewContacts || !base) return base;
+  const p = base.payload && typeof base.payload === 'object' ? base.payload : {};
+  return {
+    ...base,
+    recipient: maskPhoneNumber(maskEmail(base.recipient)),
+    phone: maskPhoneNumber(base.phone),
+    payload: {
+      ...p,
+      recipient: maskPhoneNumber(maskEmail(p.recipient)),
+      phone: maskPhoneNumber(p.phone),
+      email: maskEmail(p.email),
+    },
+  };
+};
+
 router.get('/operations-state', async (req, res) => {
   try {
+    const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
     const [
       tasks,
       supplies,
@@ -223,13 +257,13 @@ router.get('/operations-state', async (req, res) => {
     res.json({
       success: true,
       data: {
-        communicationLog: communicationLog.map(withStoredId),
+        communicationLog: communicationLog.map((l) => sanitizeCommLog(l, canViewContacts)),
         messageTemplates: messageTemplates.map(withStoredId),
         supplies: supplies.map(withStoredId),
         tasks: tasks
           .filter((task) => !isNote(task) || (isOwnerAuth(req.auth) && !notePayload(task).deletedAt))
           .map(withStoredId),
-        waitlistEntries: waitlistEntries.map(withStoredId),
+        waitlistEntries: waitlistEntries.map((w) => sanitizeWaitlist(w, canViewContacts)),
       },
     });
   } catch (err) {
@@ -240,7 +274,7 @@ router.get('/operations-state', async (req, res) => {
 });
 
 // ==================== Task CRUD ====================
-router.post('/tasks', (req, res) => {
+router.post('/tasks', requirePermission(PERMISSIONS.TASKS_MANAGE), (req, res) => {
   const data = buildTaskData(req.body ?? {});
   if (isNote(data) && !isOwnerAuth(req.auth)) return denyOwnerOnly(res);
   if (!data.title) {
@@ -262,7 +296,7 @@ router.get('/tasks/:id', (req, res) => {
   }));
 });
 
-router.put('/tasks/:id', async (req, res) => {
+router.put('/tasks/:id', requirePermission(PERMISSIONS.TASKS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   const existing = await prisma.task.findUnique({where: {id}});
   if ((isNote(existing) || isNote(req.body)) && !isOwnerAuth(req.auth)) return denyOwnerOnly(res);
@@ -573,9 +607,16 @@ router.post('/waitlist', (req, res) => {
   );
 });
 
-router.get('/waitlist/:id', (req, res) => {
+router.get('/waitlist/:id', async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.waitlistEntry.findUnique({ where: { id } }).then(withStoredId));
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  try {
+    const record = await prisma.waitlistEntry.findUnique({ where: { id } });
+    if (!record) return res.status(404).json({ success: false, error: 'Waitlist entry not found' });
+    res.json({ success: true, data: sanitizeWaitlist(record, canViewContacts) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 router.put('/waitlist/:id', async (req, res) => {
@@ -665,13 +706,14 @@ router.post('/waitlist/:id/restore', async (req, res) => {
   );
 });
 
-router.get('/waitlist', (req, res) => {
-  respond(
-    res,
-    prisma.waitlistEntry
-      .findMany({ orderBy: { createdAt: 'asc' } })
-      .then((records) => records.map(withStoredId)),
-  );
+router.get('/waitlist', async (req, res) => {
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  try {
+    const records = await prisma.waitlistEntry.findMany({ orderBy: { createdAt: 'asc' } });
+    res.json({ success: true, data: records.map((r) => sanitizeWaitlist(r, canViewContacts)) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ==================== Supplies CRUD ====================
@@ -796,7 +838,7 @@ router.get('/message-templates', (req, res) => {
 });
 
 // ==================== Communication Log CRUD ====================
-router.post('/communication-log', (req, res) => {
+router.post('/communication-log', requirePermission(PERMISSIONS.CLIENTS_MANAGE), (req, res) => {
   const data = buildCommunicationLogData(req.body ?? {});
   if (!data.clientName && !data.body) {
     return res.status(400).json({ success: false, error: 'Communication log entry is empty' });
@@ -812,12 +854,19 @@ router.post('/communication-log', (req, res) => {
   );
 });
 
-router.get('/communication-log/:id', (req, res) => {
+router.get('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.communicationLog.findUnique({ where: { id } }).then(withStoredId));
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  try {
+    const record = await prisma.communicationLog.findUnique({ where: { id } });
+    if (!record) return res.status(404).json({ success: false, error: 'Communication log not found' });
+    res.json({ success: true, data: sanitizeCommLog(record, canViewContacts) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-router.put('/communication-log/:id', async (req, res) => {
+router.put('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   const data = buildCommunicationLogData({ ...(req.body ?? {}), id });
   await auditUpdate(
@@ -846,13 +895,14 @@ router.delete('/communication-log/:id', requireOwner, async (req, res) => {
   );
 });
 
-router.get('/communication-log', (req, res) => {
-  respond(
-    res,
-    prisma.communicationLog
-      .findMany({ orderBy: { createdAt: 'desc' } })
-      .then((records) => records.map(withStoredId)),
-  );
+router.get('/communication-log', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  try {
+    const records = await prisma.communicationLog.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json({ success: true, data: records.map((r) => sanitizeCommLog(r, canViewContacts)) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 module.exports = router;

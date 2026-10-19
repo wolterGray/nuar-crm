@@ -195,3 +195,53 @@ crontab -e
    pg_restore --dbname "$DATABASE_URL" --clean --if-exists --no-owner --no-acl backups/nuar-crm-pre-migration-*.dump
    ```
 4. Перезапустите предыдущую стабильную версию бэкенда в PM2.
+
+---
+
+## 5. Шифрование и внешнее хранение (Offsite Encrypted Backups)
+
+Для соответствия стандартам защиты персональных данных (RODO/GDPR) и защиты от физической потери сервера бэкапы шифруются алгоритмом **AES-256-GCM** перед передачей во внешнее хранилище.
+
+### 1. Шифрование и расшифровка дампа (CLI)
+
+```bash
+cd /opt/nuar-crm/backend
+
+# Шифрование дампа (создаст backups/nuar-crm-daily-2026-10-19.dump.enc)
+BACKUP_ENCRYPTION_KEY="YOUR_STRONG_SECRET_KEY" node scripts/encrypt-backup.js backups/nuar-crm-daily-2026-10-19.dump
+
+# Расшифровка зашифрованного архива перед восстановлением
+BACKUP_ENCRYPTION_KEY="YOUR_STRONG_SECRET_KEY" node scripts/encrypt-backup.js --decrypt backups/nuar-crm-daily-2026-10-19.dump.enc /tmp/decrypted.dump
+
+# Восстановление расшифрованного дампа
+pg_restore --dbname "$DATABASE_URL" --clean --if-exists --no-owner --no-acl /tmp/decrypted.dump
+```
+
+### 2. Автоматическая отправка на Hetzner Storage Box / Remote S3
+
+В ночной cron на сервере добавляется цепочка:
+1. Создание дампа (`backup-db.js`).
+2. Шифрование дампа (`encrypt-backup.js`).
+3. Передача зашифрованного файла по SFTP/rsync на Hetzner Storage Box или S3 (Rclone).
+4. Удаление локального незашифрованного временного файла (по желанию).
+
+Пример скрипта синхронизации с Hetzner Storage Box (`/opt/nuar-crm/backend/scripts/sync-offsite.sh`):
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+BACKUP_DIR="/opt/nuar-crm/backend/backups"
+LATEST_DUMP=$(ls -t "$BACKUP_DIR"/*.dump | head -n 1)
+
+if [ -f "$LATEST_DUMP" ]; then
+  # 1. Шифруем
+  node /opt/nuar-crm/backend/scripts/encrypt-backup.js "$LATEST_DUMP"
+  ENC_FILE="${LATEST_DUMP}.enc"
+
+  # 2. Передаем зашифрованный файл на Storage Box
+  # scp -P 23 "$ENC_FILE" uXXXXXX@uXXXXXX.your-storagebox.de:/home/backups/
+  echo "Offsite backup encrypted: $ENC_FILE"
+fi
+```
+

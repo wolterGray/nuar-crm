@@ -24,7 +24,6 @@ const {
   restoreClientPackageUsage: restorePackageLedgerUsage,
 } = require('../services/packageLedgerService');
 const {
-  respond,
   respondWithAudit,
   auditCreate,
   auditUpdate,
@@ -592,7 +591,23 @@ router.get('/visit-state', async (req, res) => {
 });
 
 router.post('/calendar-entries', (req, res) => {
+  const canManageAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL);
+  const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
+
+  if (!canManageAll && !canManageAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ к календарю запрещён' });
+  }
+
   const payload = req.body ?? {};
+  const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+
+  if (!canManageAll && canManageAssigned) {
+    const entryMasterId = Number(payload.employeeId ?? payload.masterId ?? payload.payload?.employeeId ?? payload.payload?.masterId);
+    if (!userEmployeeId || entryMasterId !== userEmployeeId) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещён: можно создавать записи только для себя' });
+    }
+  }
+
   localAuditCreate(
     req,
     res,
@@ -604,9 +619,30 @@ router.post('/calendar-entries', (req, res) => {
   );
 });
 
-router.put('/calendar-entries/:id', (req, res) => {
+router.put('/calendar-entries/:id', async (req, res) => {
+  const canManageAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL);
+  const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
+
+  if (!canManageAll && !canManageAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ к календарю запрещён' });
+  }
+
   const id = Number(req.params.id);
   const payload = { ...(req.body ?? {}), id };
+  const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+
+  if (!canManageAll && canManageAssigned) {
+    const existing = await prisma.calendarEntry.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Calendar entry not found' });
+    }
+    const existingMasterId = Number(existing.employeeId ?? existing.payload?.employeeId ?? existing.payload?.masterId);
+    const targetMasterId = Number(payload.employeeId ?? payload.masterId ?? payload.payload?.employeeId ?? payload.payload?.masterId ?? existingMasterId);
+    if (!userEmployeeId || existingMasterId !== userEmployeeId || targetMasterId !== userEmployeeId) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещён: можно изменять записи только для себя' });
+    }
+  }
+
   localAuditUpdate(
     req,
     res,
@@ -1009,6 +1045,13 @@ router.post('/calendar-entries/delete-completed', requireOwner, async (req, res)
 });
 
 router.post('/visits/complete', async (req, res) => {
+  const canManageAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL);
+  const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
+
+  if (!canManageAll && !canManageAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ запрещён: требуется право управления визитами' });
+  }
+
   const body = req.body ?? {};
   const calendarEntryId = Number(body.calendarEntryId ?? body.visit?.calendarEntryId);
   const completedAt = body.completedAt ?? body.calendarEntryPatch?.completedAt ?? new Date().toISOString();
@@ -1083,6 +1126,22 @@ router.post('/visits/complete', async (req, res) => {
         const error = new Error('Calendar entry not found');
         error.status = 404;
         throw error;
+      }
+
+      if (!canManageAll && canManageAssigned) {
+        const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+        const entryEmployeeId = Number(
+          calendarEntry.employeeId ??
+          calendarEntry.payload?.employeeId ??
+          calendarEntry.payload?.masterId ??
+          visitPayload.employeeId ??
+          visitPayload.masterId
+        );
+        if (!userEmployeeId || entryEmployeeId !== userEmployeeId) {
+          const error = new Error('Доступ запрещён: нельзя завершать визиты других мастеров');
+          error.status = 403;
+          throw error;
+        }
       }
 
       if (calendarEntry.status === 'completed' && calendarEntry.visitId) {
@@ -1392,6 +1451,13 @@ router.post('/visits/complete', async (req, res) => {
 });
 
 router.post('/visits/update-completed', async (req, res) => {
+  const canManageAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL);
+  const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
+
+  if (!canManageAll && !canManageAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ запрещён: требуется право управления визитами' });
+  }
+
   const body = req.body ?? {};
   const visitId = Number(body.visitId ?? body.visit?.id);
   const calendarEntryId = Number(body.calendarEntryId ?? body.visit?.calendarEntryId);
@@ -1475,6 +1541,16 @@ router.post('/visits/update-completed', async (req, res) => {
         const error = new Error('Visit not found');
         error.status = 404;
         throw error;
+      }
+
+      if (!canManageAll && canManageAssigned) {
+        const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+        const entryEmployeeId = Number(visit.employeeId ?? calendarEntry?.employeeId);
+        if (!userEmployeeId || entryEmployeeId !== userEmployeeId) {
+          const error = new Error('Доступ запрещён: нельзя изменять визиты других мастеров');
+          error.status = 403;
+          throw error;
+        }
       }
 
       if (!calendarEntry) {
@@ -2050,7 +2126,22 @@ router.post('/visits/revert-completed', requireOwner, async (req, res) => {
 
 // ==================== Basic CRUD Visit Routes ====================
 router.post('/visits', (req, res) => {
+  const canManageAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL);
+  const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
+
+  if (!canManageAll && !canManageAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ к визитам запрещён' });
+  }
+
   const { clientId, serviceId, employeeId, scheduledAt, notes } = req.body;
+  const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+
+  if (!canManageAll && canManageAssigned) {
+    if (!userEmployeeId || Number(employeeId) !== userEmployeeId) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещён: можно создавать визиты только для себя' });
+    }
+  }
+
   auditCreate(
     prisma,
     req,
@@ -2072,15 +2163,73 @@ router.post('/visits', (req, res) => {
   );
 });
 
-router.get('/visits/:id', (req, res) => {
+router.get('/visits/:id', async (req, res) => {
+  const canViewAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
+  const canViewAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ASSIGNED);
+
+  if (!canViewAll && !canViewAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ к визитам запрещён' });
+  }
+
   const id = Number(req.params.id);
-  respond(res, prisma.visit.findUnique({ where: { id } }));
+  const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  const canViewAllPayouts = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_ALL);
+  const canViewOwnPayouts = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_OWN);
+
+  try {
+    const visit = await prisma.visit.findUnique({
+      where: { id },
+      include: VISIT_WITH_EARNING_INCLUDE,
+    });
+
+    if (!visit) {
+      return res.status(404).json({ success: false, error: 'Visit not found' });
+    }
+
+    if (!canViewAll && canViewAssigned) {
+      if (!userEmployeeId || Number(visit.employeeId) !== userEmployeeId) {
+        return res.status(403).json({ success: false, error: 'Доступ запрещён: можно просматривать только свои визиты' });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: sanitizeVisit(visit, {
+        canViewContacts,
+        canViewAllPayouts,
+        canViewOwnPayouts,
+        userEmployeeId,
+      }),
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 router.put('/visits/:id', async (req, res) => {
+  const canManageAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL);
+  const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
+
+  if (!canManageAll && !canManageAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ к визитам запрещён' });
+  }
+
   const id = Number(req.params.id);
   const { clientId, serviceId, employeeId, scheduledAt, notes } = req.body;
+  const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
   const before = await prisma.visit.findUnique({where: {id}});
+
+  if (!before) {
+    return res.status(404).json({ success: false, error: 'Visit not found' });
+  }
+
+  if (!canManageAll && canManageAssigned) {
+    if (!userEmployeeId || Number(before.employeeId) !== userEmployeeId || (employeeId && Number(employeeId) !== userEmployeeId)) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещён: можно изменять только свои визиты' });
+    }
+  }
+
   await auditUpdate(
     prisma,
     req,
@@ -2134,8 +2283,44 @@ router.delete('/visits/:id', requireOwner, async (req, res) => {
   }
 });
 
-router.get('/visits', (req, res) => {
-  respond(res, prisma.visit.findMany());
+router.get('/visits', async (req, res) => {
+  const canViewAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
+  const canViewAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ASSIGNED);
+
+  if (!canViewAll && !canViewAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ к визитам запрещён' });
+  }
+
+  const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  const canViewAllPayouts = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_ALL);
+  const canViewOwnPayouts = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_OWN);
+
+  const where = (!canViewAll && canViewAssigned)
+    ? { employeeId: userEmployeeId ?? -1 }
+    : {};
+
+  try {
+    const visits = await prisma.visit.findMany({
+      where,
+      include: VISIT_WITH_EARNING_INCLUDE,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json({
+      success: true,
+      data: visits.map((v) =>
+        sanitizeVisit(v, {
+          canViewContacts,
+          canViewAllPayouts,
+          canViewOwnPayouts,
+          userEmployeeId,
+        }),
+      ),
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 module.exports = router;

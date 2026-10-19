@@ -4,7 +4,6 @@ const { PrismaClient } = require('@prisma/client');
 const { requireOwner, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const {
-  respond,
   auditCreate,
   auditUpdate,
   auditDelete,
@@ -137,7 +136,21 @@ router.delete('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_DELETE), asy
 });
 
 // ==================== Communication Log ====================
-router.post('/communication-log', (req, res) => {
+const sanitizeCommunicationLog = (log, canViewContacts) => {
+  const base = withStoredId(log);
+  if (canViewContacts || !base) return base;
+  const p = base.payload && typeof base.payload === 'object' ? base.payload : {};
+  return {
+    ...base,
+    recipient: maskPhoneNumber(maskEmail(base.recipient)),
+    payload: {
+      ...p,
+      recipient: maskPhoneNumber(maskEmail(p.recipient)),
+    },
+  };
+};
+
+router.post('/communication-log', requirePermission(PERMISSIONS.CLIENTS_MANAGE), (req, res) => {
   const data = buildCommunicationLogData(req.body ?? {});
   if (!data.clientName && !data.body) {
     return res.status(400).json({ success: false, error: 'Communication log entry is empty' });
@@ -153,12 +166,19 @@ router.post('/communication-log', (req, res) => {
   );
 });
 
-router.get('/communication-log/:id', (req, res) => {
+router.get('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.communicationLog.findUnique({ where: { id } }).then(withStoredId));
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  try {
+    const record = await prisma.communicationLog.findUnique({ where: { id } });
+    if (!record) return res.status(404).json({ success: false, error: 'Communication log not found' });
+    res.json({ success: true, data: sanitizeCommunicationLog(record, canViewContacts) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-router.put('/communication-log/:id', async (req, res) => {
+router.put('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   const data = buildCommunicationLogData({ ...(req.body ?? {}), id });
   await auditUpdate(
@@ -187,13 +207,14 @@ router.delete('/communication-log/:id', requireOwner, async (req, res) => {
   );
 });
 
-router.get('/communication-log', (req, res) => {
-  respond(
-    res,
-    prisma.communicationLog
-      .findMany({ orderBy: { createdAt: 'desc' } })
-      .then((records) => records.map(withStoredId)),
-  );
+router.get('/communication-log', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  try {
+    const records = await prisma.communicationLog.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json({ success: true, data: records.map((r) => sanitizeCommunicationLog(r, canViewContacts)) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 module.exports = router;

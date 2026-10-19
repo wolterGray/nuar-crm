@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner, requirePermission, PERMISSIONS } = require('../middleware/auth');
+const { requireOwner, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
+const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
   VISIT_WITH_EARNING_INCLUDE,
@@ -563,7 +564,7 @@ const buildCertificateData = (payload) => ({
   payload,
 });
 
-const serializeClientPackage = (record) => {
+const serializeClientPackage = (record, canViewContacts = true) => {
   if (!record) return record;
   const base = withStoredId(record);
   const payload = base.payload && typeof base.payload === 'object' ? base.payload : {};
@@ -587,16 +588,33 @@ const serializeClientPackage = (record) => {
     payload.service ||
     null;
 
+  const clientObj = record.client && typeof record.client === 'object' ? { ...record.client } : null;
+  if (clientObj && !canViewContacts) {
+    clientObj.phone = maskPhoneNumber(clientObj.phone);
+    clientObj.email = maskEmail(clientObj.email);
+  }
+
+  const sanitizedPayload = canViewContacts
+    ? payload
+    : {
+        ...payload,
+        phone: maskPhoneNumber(payload.phone),
+        clientPhone: maskPhoneNumber(payload.clientPhone),
+        email: maskEmail(payload.email),
+      };
+
   return {
     ...base,
     client: clientName,
     clientName,
     packageName,
     service,
+    ...(clientObj ? { client: clientObj } : {}),
+    payload: sanitizedPayload,
   };
 };
 
-const serializeCertificate = (record) => {
+const serializeCertificate = (record, canViewContacts = true) => {
   if (!record) return record;
   const base = withStoredId(record);
   const payload = base.payload && typeof base.payload === 'object' ? base.payload : {};
@@ -615,13 +633,44 @@ const serializeCertificate = (record) => {
     payload.recipientName ||
     null;
 
+  const sanitizedPayload = canViewContacts
+    ? payload
+    : {
+        ...payload,
+        phone: maskPhoneNumber(payload.phone),
+        clientPhone: maskPhoneNumber(payload.clientPhone),
+        email: maskEmail(payload.email),
+        recipientPhone: maskPhoneNumber(payload.recipientPhone),
+      };
+
   return {
     ...base,
     client: clientName,
     clientName,
     recipient: recipientName,
     recipientName,
+    payload: sanitizedPayload,
   };
+};
+
+const requireClientOrFinanceManage = (req, res, next) => {
+  if (
+    hasPermission(req.auth, PERMISSIONS.CLIENTS_MANAGE) ||
+    hasPermission(req.auth, PERMISSIONS.FINANCE_VIEW_SALON_STATS)
+  ) {
+    return next();
+  }
+  return res.status(403).json({ success: false, error: 'Доступ запрещён: требуется право управления клиентами или финансами' });
+};
+
+const requireClientOrFinanceView = (req, res, next) => {
+  if (
+    hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW) ||
+    hasPermission(req.auth, PERMISSIONS.FINANCE_VIEW_SALON_STATS)
+  ) {
+    return next();
+  }
+  return res.status(403).json({ success: false, error: 'Доступ запрещён: требуется право просмотра клиентов или финансов' });
 };
 
 const buildDayCloseRecordData = (payload) => {
@@ -701,7 +750,7 @@ router.get('/financial-state', requirePermission(PERMISSIONS.FINANCE_VIEW_SALON_
 });
 
 // ==================== Client Packages CRUD ====================
-router.post('/client-packages', async (req, res) => {
+router.post('/client-packages', requireClientOrFinanceManage, async (req, res) => {
   const data = buildClientPackageData(req.body ?? {});
   try {
     validateClientPackageData(data);
@@ -733,12 +782,22 @@ router.post('/client-packages', async (req, res) => {
   }
 });
 
-router.get('/client-packages/:id', (req, res) => {
+router.get('/client-packages/:id', requireClientOrFinanceView, async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.clientPackage.findUnique({ where: { id } }).then(withStoredId));
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  try {
+    const record = await prisma.clientPackage.findUnique({
+      where: { id },
+      include: { client: true, package: true },
+    });
+    if (!record) return res.status(404).json({ success: false, error: 'Client package not found' });
+    res.json({ success: true, data: serializeClientPackage(record, canViewContacts) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-router.put('/client-packages/:id', async (req, res) => {
+router.put('/client-packages/:id', requireClientOrFinanceManage, async (req, res) => {
   const id = Number(req.params.id);
   const data = buildClientPackageData({ ...(req.body ?? {}), id });
   try {
@@ -797,20 +856,21 @@ router.delete('/client-packages/:id', requireOwner, async (req, res) => {
   }
 });
 
-router.get('/client-packages', (req, res) => {
-  respond(
-    res,
-    prisma.clientPackage
-      .findMany({
-        orderBy: { createdAt: 'desc' },
-        include: { client: true, package: true },
-      })
-      .then((records) => records.map(serializeClientPackage)),
-  );
+router.get('/client-packages', requireClientOrFinanceView, async (req, res) => {
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  try {
+    const records = await prisma.clientPackage.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { client: true, package: true },
+    });
+    res.json({ success: true, data: records.map((r) => serializeClientPackage(r, canViewContacts)) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ==================== Certificates Sales & CRUD ====================
-router.post('/certificates/sell', async (req, res) => {
+router.post('/certificates/sell', requireClientOrFinanceManage, async (req, res) => {
   const body = req.body ?? {};
   const certificatePayload = body.certificate ?? body;
   const visitPayload = body.visit ?? {};
@@ -893,7 +953,7 @@ router.post('/certificates/sell', async (req, res) => {
   }
 });
 
-router.post('/certificates', (req, res) => {
+router.post('/certificates', requireClientOrFinanceManage, (req, res) => {
   const data = buildCertificateData(req.body ?? {});
   try {
     validateCertificateData(data);
@@ -914,12 +974,22 @@ router.post('/certificates', (req, res) => {
   );
 });
 
-router.get('/certificates/:id', (req, res) => {
+router.get('/certificates/:id', requireClientOrFinanceView, async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.certificate.findUnique({ where: { id } }).then(withStoredId));
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  try {
+    const record = await prisma.certificate.findUnique({
+      where: { id },
+      include: { client: true, recipient: true },
+    });
+    if (!record) return res.status(404).json({ success: false, error: 'Certificate not found' });
+    res.json({ success: true, data: serializeCertificate(record, canViewContacts) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-router.put('/certificates/:id', async (req, res) => {
+router.put('/certificates/:id', requireClientOrFinanceManage, async (req, res) => {
   const id = Number(req.params.id);
   const data = buildCertificateData({ ...(req.body ?? {}), id });
   try {
@@ -958,16 +1028,17 @@ router.delete('/certificates/:id', requireOwner, async (req, res) => {
   );
 });
 
-router.get('/certificates', (req, res) => {
-  respond(
-    res,
-    prisma.certificate
-      .findMany({
-        orderBy: { createdAt: 'desc' },
-        include: { client: true, recipient: true },
-      })
-      .then((records) => records.map(serializeCertificate)),
-  );
+router.get('/certificates', requireClientOrFinanceView, async (req, res) => {
+  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+  try {
+    const records = await prisma.certificate.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { client: true, recipient: true },
+    });
+    res.json({ success: true, data: records.map((r) => serializeCertificate(r, canViewContacts)) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ==================== Day Close Records ====================

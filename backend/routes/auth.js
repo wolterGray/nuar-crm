@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
-const { verifyJwt } = require('../middleware/auth');
+const { verifyJwt, invalidateUserCache } = require('../middleware/auth');
 const { authLoginLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
@@ -42,14 +42,10 @@ function createAuthRouter({
   };
 
   const getSessionRole = (auth = {}) => {
-    const adminEmail = String(process.env.ADMIN_EMAIL ?? '').trim().toLowerCase();
-    const authEmail = String(auth.email ?? '').trim().toLowerCase();
-
     if (
       auth.role === 'owner' ||
       auth.sub === 'local-admin' ||
-      auth.id === 'local-admin' ||
-      (adminEmail && authEmail === adminEmail)
+      auth.id === 'local-admin'
     ) {
       return 'owner';
     }
@@ -468,6 +464,8 @@ function createAuthRouter({
           data: {usedAt: now},
         }),
       ]);
+
+      invalidateUserCache(resetToken.user.id);
 
       req.auth = {
         email: resetToken.user.email,

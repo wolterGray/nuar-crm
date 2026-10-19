@@ -17,6 +17,7 @@
     "db:backup": "node scripts/backup-db.js",
     "db:backup:verify": "node scripts/verify-backup.js",
     "db:backup:status": "node scripts/backup-status.js",
+    "db:backup:encrypt": "node scripts/encrypt-backup.js",
     "tasks:reseed-weekly": "node scripts/reseed-weekly-tasks.js",
     "tasks:align-weekly": "node scripts/align-weekly-task-start-dates.js"
   },
