@@ -1262,47 +1262,46 @@ function OperationsPage({
           </h1>
           <HintIcon text="Управление ежедневными и регулярными задачами салона, закупками и листом ожидания." />
         </div>
+        {!isTemplateManager ? (
+          <div className="operations-tabs-action-bar">
+            <nav aria-label="Разделы работы" className="operations-tabs-nav" ref={tabsNavRef}>
+              <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>
+                Задачи
+              </SegmentButton>
+              <SegmentButton active={activeTab === "history"} onClick={() => setActiveTab("history")}>
+                История
+              </SegmentButton>
+              <SegmentButton active={activeTab === "notes"} onClick={() => setActiveTab("notes")}>
+                Заметки
+              </SegmentButton>
+              <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>
+                {isMobile ? "Склад" : "Расходники"}
+              </SegmentButton>
+              <SegmentButton
+                active={activeTab === "waitlist"}
+                badge={activeWaitlistCount > 0 ? activeWaitlistCount : null}
+                onClick={() => setActiveTab("waitlist")}
+              >
+                {isMobile ? "Очередь" : "Лист ожидания"}
+              </SegmentButton>
+            </nav>
+            {activeTab === "plan" ? <div className="operations-tabs-right">
+              <Button
+                className="operations-add-task-cta"
+                leftIcon="plus"
+                size="sm"
+                variant="primary"
+                onClick={() => onAddTask?.({dueDate: selectedDate})}
+              >
+                Добавить задачу
+              </Button>
+            </div> : null}
+          </div>
+        ) : null}
         <div className="operations-top-actions">
           <PageNotificationsSlot />
         </div>
       </div>
-
-      {!isTemplateManager ? (
-        <div className="operations-tabs-action-bar">
-          <nav aria-label="Разделы работы" className="operations-tabs-nav" ref={tabsNavRef}>
-            <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>
-              Задачи
-            </SegmentButton>
-            <SegmentButton active={activeTab === "history"} onClick={() => setActiveTab("history")}>
-              История
-            </SegmentButton>
-            <SegmentButton active={activeTab === "notes"} onClick={() => setActiveTab("notes")}>
-              Заметки
-            </SegmentButton>
-            <SegmentButton active={activeTab === "supplies"} onClick={() => setActiveTab("supplies")}>
-              {isMobile ? "Склад" : "Расходники"}
-            </SegmentButton>
-            <SegmentButton
-              active={activeTab === "waitlist"}
-              badge={activeWaitlistCount > 0 ? activeWaitlistCount : null}
-              onClick={() => setActiveTab("waitlist")}
-            >
-              {isMobile ? "Очередь" : "Лист ожидания"}
-            </SegmentButton>
-          </nav>
-          {activeTab === "plan" ? <div className="operations-tabs-right">
-            <Button
-              className="operations-add-task-cta"
-              leftIcon="plus"
-              size="sm"
-              variant="primary"
-              onClick={() => onAddTask?.({dueDate: selectedDate})}
-            >
-              Добавить задачу
-            </Button>
-          </div> : null}
-        </div>
-      ) : null}
 
       {activeTab === "plan" ? (
         <div className="operations-plan-layout">
