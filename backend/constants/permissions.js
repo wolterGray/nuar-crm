@@ -23,6 +23,7 @@ const PERMISSIONS = {
   PAYOUTS_MANAGE: 'payouts.manage',
 
   // Каталог и сотрудники
+  CATALOG_VIEW: 'catalog.view',
   CATALOG_MANAGE: 'catalog.manage',
   EMPLOYEES_MANAGE: 'employees.manage',
   TASKS_MANAGE: 'tasks.manage',
@@ -69,6 +70,7 @@ const PERMISSION_GROUPS = [
     id: 'management',
     title: 'Каталог, операции и сотрудники',
     permissions: [
+      { key: PERMISSIONS.CATALOG_VIEW, label: 'Просмотр каталога услуг', description: 'Видеть список услуг, длительности и цены' },
       { key: PERMISSIONS.CATALOG_MANAGE, label: 'Управление услугами и прайс-листом', description: 'Редактировать цены, длительности и описания услуг' },
       { key: PERMISSIONS.EMPLOYEES_MANAGE, label: 'Управление мастерами и сменами', description: 'Настраивать график работы, смены и ставки мастеров' },
       { key: PERMISSIONS.TASKS_MANAGE, label: 'Управление задачами и чек-листами', description: 'Создавать, отмечать и закрывать задачи студии' },
@@ -103,6 +105,7 @@ const ROLE_DEFAULT_PERMISSIONS = {
     [PERMISSIONS.PAYOUTS_VIEW_ALL]: true,
     [PERMISSIONS.PAYOUTS_VIEW_OWN]: true,
     [PERMISSIONS.PAYOUTS_MANAGE]: true,
+    [PERMISSIONS.CATALOG_VIEW]: true,
     [PERMISSIONS.CATALOG_MANAGE]: true,
     [PERMISSIONS.EMPLOYEES_MANAGE]: true,
     [PERMISSIONS.TASKS_MANAGE]: true,
@@ -124,6 +127,7 @@ const ROLE_DEFAULT_PERMISSIONS = {
     [PERMISSIONS.PAYOUTS_VIEW_ALL]: false,
     [PERMISSIONS.PAYOUTS_VIEW_OWN]: true,
     [PERMISSIONS.PAYOUTS_MANAGE]: false,
+    [PERMISSIONS.CATALOG_VIEW]: true,
     [PERMISSIONS.CATALOG_MANAGE]: false,
     [PERMISSIONS.EMPLOYEES_MANAGE]: false,
     [PERMISSIONS.TASKS_MANAGE]: true,
@@ -145,6 +149,7 @@ const ROLE_DEFAULT_PERMISSIONS = {
     [PERMISSIONS.PAYOUTS_VIEW_ALL]: false,
     [PERMISSIONS.PAYOUTS_VIEW_OWN]: true,
     [PERMISSIONS.PAYOUTS_MANAGE]: false,
+    [PERMISSIONS.CATALOG_VIEW]: false,
     [PERMISSIONS.CATALOG_MANAGE]: false,
     [PERMISSIONS.EMPLOYEES_MANAGE]: false,
     [PERMISSIONS.TASKS_MANAGE]: true,
@@ -166,6 +171,7 @@ const ROLE_DEFAULT_PERMISSIONS = {
     [PERMISSIONS.PAYOUTS_VIEW_ALL]: false,
     [PERMISSIONS.PAYOUTS_VIEW_OWN]: false,
     [PERMISSIONS.PAYOUTS_MANAGE]: false,
+    [PERMISSIONS.CATALOG_VIEW]: true,
     [PERMISSIONS.CATALOG_MANAGE]: false,
     [PERMISSIONS.EMPLOYEES_MANAGE]: false,
     [PERMISSIONS.TASKS_MANAGE]: false,

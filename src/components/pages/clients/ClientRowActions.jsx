@@ -86,14 +86,16 @@ function ClientRowActions({
                 <AppIcon name="clock" size="xs" />
                 <span>В лист ожидания</span>
               </button>
-              <button
-                className="clients-row-menu-item is-danger"
-                role="menuitem"
-                type="button"
-                onClick={handleDelete}>
-                <AppIcon name="trash" size="xs" />
-                <span>Удалить клиента</span>
-              </button>
+              {onDeleteClient ? (
+                <button
+                  className="clients-row-menu-item is-danger"
+                  role="menuitem"
+                  type="button"
+                  onClick={handleDelete}>
+                  <AppIcon name="trash" size="xs" />
+                  <span>Удалить клиента</span>
+                </button>
+              ) : null}
             </>
           ) : (
             <>
@@ -121,22 +123,26 @@ function ClientRowActions({
                 <AppIcon name="calendarPlus" size="xs" />
                 <span>Записать</span>
               </button>
-              <button
-                className="clients-row-menu-item"
-                role="menuitem"
-                type="button"
-                onClick={handleEdit}>
-                <AppIcon name="edit" size="xs" />
-                <span>Редактировать</span>
-              </button>
-              <button
-                className="clients-row-menu-item is-danger"
-                role="menuitem"
-                type="button"
-                onClick={handleDelete}>
-                <AppIcon name="trash" size="xs" />
-                <span>Удалить</span>
-              </button>
+              {onEditClient ? (
+                <button
+                  className="clients-row-menu-item"
+                  role="menuitem"
+                  type="button"
+                  onClick={handleEdit}>
+                  <AppIcon name="edit" size="xs" />
+                  <span>Редактировать</span>
+                </button>
+              ) : null}
+              {onDeleteClient ? (
+                <button
+                  className="clients-row-menu-item is-danger"
+                  role="menuitem"
+                  type="button"
+                  onClick={handleDelete}>
+                  <AppIcon name="trash" size="xs" />
+                  <span>Удалить</span>
+                </button>
+              ) : null}
             </>
           )}
         </div>

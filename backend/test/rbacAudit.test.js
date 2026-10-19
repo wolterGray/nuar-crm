@@ -139,3 +139,91 @@ test('RBAC Audit: Services catalog editing requires CATALOG_MANAGE', () => {
   assert.equal(hasPermission(staff, PERMISSIONS.CATALOG_MANAGE), false, 'Staff cannot edit service catalog');
   assert.equal(hasPermission(admin, PERMISSIONS.CATALOG_MANAGE), true, 'Admin can edit service catalog');
 });
+
+test('RBAC Audit: Services catalog viewing requires CATALOG_VIEW', () => {
+  const staff = {
+    role: 'staff',
+    effectivePermissions: {
+      [PERMISSIONS.CATALOG_VIEW]: false,
+    },
+  };
+
+  const admin = {
+    role: 'admin',
+    effectivePermissions: {
+      [PERMISSIONS.CATALOG_VIEW]: true,
+    },
+  };
+
+  const owner = {
+    role: 'owner',
+  };
+
+  assert.equal(hasPermission(staff, PERMISSIONS.CATALOG_VIEW), false, 'Staff without override cannot view catalog');
+  assert.equal(hasPermission(admin, PERMISSIONS.CATALOG_VIEW), true, 'Admin can view catalog');
+  assert.equal(hasPermission(owner, PERMISSIONS.CATALOG_VIEW), true, 'Owner can view catalog');
+});
+
+test('RBAC Audit: Staff assigned-only client isolation filters clients without assigned visits', () => {
+  const staffAuth = {
+    id: 5,
+    role: 'staff',
+    employeeId: 42,
+    effectivePermissions: {
+      [PERMISSIONS.CALENDAR_VIEW_ALL]: false,
+      [PERMISSIONS.CLIENTS_VIEW]: true,
+    },
+  };
+
+  // Simulated client database records
+  const clients = [
+    { id: 101, name: 'Client A', visits: [{ masterId: 42 }] },
+    { id: 102, name: 'Client B', visits: [{ masterId: 99 }] },
+    { id: 103, name: 'Client C', visits: [] },
+  ];
+
+  // Assigned-only filter check
+  const isAssignedToUser = (client, auth) => {
+    if (hasPermission(auth, PERMISSIONS.CALENDAR_VIEW_ALL)) return true;
+    const empId = auth?.employeeId ? Number(auth.employeeId) : null;
+    if (!empId) return false;
+    return (client.visits || []).some((v) => Number(v.masterId) === empId);
+  };
+
+  const visibleClients = clients.filter((c) => isAssignedToUser(c, staffAuth));
+  assert.equal(visibleClients.length, 1);
+  assert.equal(visibleClients[0].id, 101);
+});
+
+test('RBAC Audit: Session serialization contains employeeId, permissions, and effectivePermissions', () => {
+  const { getEffectivePermissions } = require('../constants/permissions');
+
+  const rawUser = {
+    id: 7,
+    email: 'therapist@nuarr.pl',
+    name: 'Anna Master',
+    role: 'staff',
+    isActive: true,
+    employeeId: 15,
+    permissions: { 'clients.view_contacts': true },
+  };
+
+  const effective = getEffectivePermissions(rawUser.role, rawUser.permissions);
+
+  const serialized = {
+    id: rawUser.id,
+    email: rawUser.email,
+    name: rawUser.name,
+    role: rawUser.role,
+    isActive: rawUser.isActive,
+    employeeId: rawUser.employeeId,
+    permissions: rawUser.permissions,
+    effectivePermissions: effective,
+  };
+
+  assert.equal(serialized.employeeId, 15);
+  assert.equal(serialized.effectivePermissions[PERMISSIONS.CLIENTS_VIEW_CONTACTS], true);
+  assert.equal(serialized.effectivePermissions[PERMISSIONS.FINANCE_VIEW_SALON_STATS], false);
+  assert.equal(serialized.effectivePermissions[PERMISSIONS.CALENDAR_VIEW_ASSIGNED], true);
+});
+

@@ -17,6 +17,12 @@ import {
 } from "./utils/serviceColors.js";
 import AppRoutes from "./components/AppRoutes.jsx";
 import {navItems} from "./constants/navigation.js";
+import {
+  canViewPage,
+  getDefaultPageForUser,
+  hasPermission,
+  PERMISSIONS,
+} from "./utils/permissions.js";
 import {isMobileViewport} from "./constants/breakpoints.js";
 import {
   ACTIVE_PAGE_STORAGE_KEY,
@@ -275,6 +281,15 @@ function App() {
     handleLogout();
   }, [handleLogout]);
 
+  // Automatically switch to first accessible page if current activePage is forbidden
+  useEffect(() => {
+    if (!authSession?.user) return;
+    if (!canViewPage(activePage, authSession.user)) {
+      const targetPage = getDefaultPageForUser(authSession.user);
+      setActivePage(targetPage);
+    }
+  }, [authSession?.user, activePage, setActivePage]);
+
   useEffect(() => {
     if (!authSession) {
       return undefined;
@@ -356,9 +371,15 @@ function App() {
 
     const loadBackendCatalogs = async () => {
       try {
+        const canViewCatalog =
+          hasPermission(authSession.user, PERMISSIONS.CATALOG_VIEW) ||
+          hasPermission(authSession.user, PERMISSIONS.CATALOG_MANAGE);
+
         const [servicesResponse, employeesResponse] = await Promise.all([
-          fetchServices(),
-          fetchEmployees(),
+          canViewCatalog
+            ? fetchServices().catch(() => ({data: []}))
+            : Promise.resolve({data: []}),
+          fetchEmployees().catch(() => ({data: []})),
         ]);
         if (!active) {
           return;
@@ -444,6 +465,14 @@ function App() {
     let active = true;
 
     const loadBackendFinancialState = async () => {
+      const canViewFinances = hasPermission(
+        authSession.user,
+        PERMISSIONS.FINANCE_VIEW_SALON_STATS,
+      );
+      if (!canViewFinances) {
+        return;
+      }
+
       try {
         const response = await fetchFinancialState();
         if (!active) {

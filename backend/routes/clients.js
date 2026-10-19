@@ -57,7 +57,22 @@ const sanitizeClientRecord = (client, canViewContacts) => {
 // ==================== Client ====================
 router.get('/clients', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
   try {
+    const canViewAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
+    const userEmpId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+
+    let where = {};
+    if (!canViewAll && userEmpId) {
+      where = {
+        visits: {
+          some: {
+            employeeId: userEmpId,
+          },
+        },
+      };
+    }
+
     const clients = await prisma.client.findMany({
+      where,
       select: clientSelect,
       orderBy: { name: 'asc' },
     });
@@ -85,9 +100,25 @@ router.post('/clients', requirePermission(PERMISSIONS.CLIENTS_MANAGE), (req, res
 router.get('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
   const id = Number(req.params.id);
   try {
-    const client = await prisma.client.findUnique({ where: { id }, select: clientSelect });
+    const canViewAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
+    const userEmpId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+
+    const client = await prisma.client.findUnique({
+      where: { id },
+      select: {
+        ...clientSelect,
+        ...(canViewAll || !userEmpId ? {} : { visits: { select: { employeeId: true } } }),
+      },
+    });
     if (!client) {
       return res.status(404).json({ success: false, error: 'Client not found' });
+    }
+
+    if (!canViewAll && userEmpId) {
+      const isAssigned = (client.visits || []).some((v) => Number(v.employeeId) === userEmpId);
+      if (!isAssigned) {
+        return res.status(403).json({ success: false, error: 'Доступ к клиенту запрещён: нет общих визитов' });
+      }
     }
 
     const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);

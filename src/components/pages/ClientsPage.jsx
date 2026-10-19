@@ -621,14 +621,16 @@ function ClientsPage({
         onClick={() => setShowQuality(!showQuality)}>
         <span>{isMobile ? "Анализ" : "Анализ базы"}</span>
       </Button>
-      <Button
-        className="flex-1 sm:flex-initial"
-        leftIcon="plus"
-        size={isMobile ? "sm" : "md"}
-        variant="primary"
-        onClick={onAddClient}>
-        <span>{isMobile ? "Добавить" : "Добавить клиента"}</span>
-      </Button>
+      {onAddClient && (
+        <Button
+          className="flex-1 sm:flex-initial"
+          leftIcon="plus"
+          size={isMobile ? "sm" : "md"}
+          variant="primary"
+          onClick={onAddClient}>
+          <span>{isMobile ? "Добавить" : "Добавить клиента"}</span>
+        </Button>
+      )}
     </div>
   );
 

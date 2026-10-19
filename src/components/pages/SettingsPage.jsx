@@ -22,6 +22,7 @@ import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 import "./SettingsPage.css";
 import {
   AppIcon,
+  Badge,
   Button,
   Card,
   Dialog,
@@ -38,6 +39,14 @@ import {
   TabButton,
   Tabs,
 } from "../ui/index.js";
+import {
+  PERMISSIONS,
+  ROLE_DEFAULT_PERMISSIONS,
+  canViewPage,
+  getAllowedMobileNav,
+  getAllowedNavigation,
+} from "../../utils/permissions.js";
+import {navGroups} from "../../constants/navigation.js";
 
 function SettingsMobileSection({children, isMobile, title}) {
   if (!isMobile) {
@@ -192,6 +201,8 @@ function UserAccessPanel({authUser, pushNotification}) {
   const [permissionGroups, setPermissionGroups] = useState([]);
   const [editingPermsUser, setEditingPermsUser] = useState(null);
   const [permsDraft, setPermsDraft] = useState({});
+  const [modalTab, setModalTab] = useState("permissions"); // "permissions" | "preview"
+  const [collapsedGroups, setCollapsedGroups] = useState({});
   const [savingPerms, setSavingPerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -377,6 +388,8 @@ function UserAccessPanel({authUser, pushNotification}) {
   const openPermissionsModal = (user) => {
     setEditingPermsUser(user);
     setPermsDraft({ ...(user.permissions || {}) });
+    setModalTab("permissions");
+    setCollapsedGroups({});
   };
 
   const handleTogglePermission = (key, currentVal) => {
@@ -386,9 +399,113 @@ function UserAccessPanel({authUser, pushNotification}) {
     }));
   };
 
+  const handleApplyRoleTemplate = (roleKey) => {
+    const templatePerms = ROLE_DEFAULT_PERMISSIONS[roleKey];
+    if (!templatePerms) return;
+    setPermsDraft({ ...templatePerms });
+    pushNotification?.({
+      title: "Шаблон применён",
+      message: `Загружены настройки прав для роли «${USER_ROLE_OPTIONS.find((r) => r.value === roleKey)?.label || roleKey}»`,
+      persist: false,
+    });
+  };
+
   const handleResetPermissionsToRole = () => {
     setPermsDraft({});
   };
+
+  const handleToggleSection = (group) => {
+    if (!editingPermsUser) return;
+    const roleDefaults = ROLE_DEFAULT_PERMISSIONS[editingPermsUser.role] || ROLE_DEFAULT_PERMISSIONS.staff;
+    const allEnabled = group.permissions.every((perm) => {
+      const val = permsDraft[perm.key] !== undefined ? permsDraft[perm.key] : roleDefaults[perm.key];
+      return Boolean(val);
+    });
+
+    const targetVal = !allEnabled;
+    setPermsDraft((prev) => {
+      const next = { ...prev };
+      group.permissions.forEach((perm) => {
+        next[perm.key] = targetVal;
+      });
+      return next;
+    });
+  };
+
+  const toggleGroupCollapse = (groupId) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }));
+  };
+
+  const effectivePermsUser = useMemo(() => {
+    if (!editingPermsUser) return null;
+    const roleDefaults = ROLE_DEFAULT_PERMISSIONS[editingPermsUser.role] || ROLE_DEFAULT_PERMISSIONS.staff;
+    const effectivePermissions = { ...roleDefaults, ...permsDraft };
+    return {
+      ...editingPermsUser,
+      effectivePermissions,
+      permissions: permsDraft,
+    };
+  }, [editingPermsUser, permsDraft]);
+
+  const summaryItems = useMemo(() => {
+    if (!effectivePermsUser) return [];
+    const p = effectivePermsUser.effectivePermissions || {};
+    const items = [];
+
+    // Calendar
+    if (p[PERMISSIONS.CALENDAR_VIEW_ALL]) {
+      items.push({ label: "Календарь", value: "Все мастера и смены", variant: "success", icon: "calendarDays" });
+    } else if (p[PERMISSIONS.CALENDAR_VIEW_ASSIGNED]) {
+      items.push({ label: "Календарь", value: "Только свои записи", variant: "warning", icon: "userCheck" });
+    } else {
+      items.push({ label: "Календарь", value: "Доступ закрыт", variant: "danger", icon: "calendarOff" });
+    }
+
+    // Contacts
+    if (p[PERMISSIONS.CLIENTS_VIEW_CONTACTS]) {
+      items.push({ label: "Контакты гостей", value: "Телефоны и email открыты", variant: "info", icon: "phone" });
+    } else {
+      items.push({ label: "Контакты гостей", value: "Телефоны и email скрыты", variant: "warning", icon: "phoneOff" });
+    }
+
+    // Finance
+    if (p[PERMISSIONS.FINANCE_VIEW_SALON_STATS]) {
+      items.push({ label: "Финансы", value: "Касса и выручка студии", variant: "neutral", icon: "coins" });
+    } else if (p[PERMISSIONS.PAYOUTS_VIEW_OWN]) {
+      items.push({ label: "Финансы", value: "Только личные начисления", variant: "neutral", icon: "receipt" });
+    } else {
+      items.push({ label: "Финансы", value: "Полностью скрыты", variant: "danger", icon: "walletCards" });
+    }
+
+    // Catalog
+    if (p[PERMISSIONS.CATALOG_MANAGE]) {
+      items.push({ label: "Каталог", value: "Управление ценами и услугами", variant: "info", icon: "briefcase" });
+    } else if (p[PERMISSIONS.CATALOG_VIEW]) {
+      items.push({ label: "Каталог", value: "Только просмотр услуг", variant: "neutral", icon: "eye" });
+    } else {
+      items.push({ label: "Каталог", value: "Скрыт от сотрудника", variant: "disabled", icon: "briefcase" });
+    }
+
+    // Access management
+    if (p[PERMISSIONS.USERS_MANAGE]) {
+      items.push({ label: "Безопасность", value: "Управление ролями и аккаунтами", variant: "warning", icon: "shield" });
+    }
+
+    return items;
+  }, [effectivePermsUser]);
+
+  const previewAllowedGroups = useMemo(() => {
+    if (!effectivePermsUser) return [];
+    return getAllowedNavigation(navGroups, effectivePermsUser);
+  }, [effectivePermsUser]);
+
+  const previewAllowedMobile = useMemo(() => {
+    if (!effectivePermsUser) return [];
+    return getAllowedMobileNav(effectivePermsUser);
+  }, [effectivePermsUser]);
 
   const handleSavePermissions = async () => {
     if (!editingPermsUser) return;
@@ -676,17 +793,24 @@ function UserAccessPanel({authUser, pushNotification}) {
       {/* Модальное окно индивидуальной настройки прав доступа (RBAC) */}
       <Dialog open={Boolean(editingPermsUser)}>
         <DialogBackdrop>
-          <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-5 bg-surface border-border rounded-modal shadow-modal">
+          <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-4 sm:p-5 bg-surface border-border rounded-modal shadow-modal">
             <DialogHeader className="border-b border-border-soft pb-3">
               <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <AppIcon name="shield" size="md" className="text-accent" />
-                  <div>
-                    <DialogTitle className="text-base font-bold text-text-main m-0">
-                      Права: {editingPermsUser?.name || editingPermsUser?.email}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-control bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent">
+                    <AppIcon name="shield" size="md" />
+                  </div>
+                  <div className="min-w-0">
+                    <DialogTitle className="text-base font-bold text-text-main m-0 truncate">
+                      Права доступа: {editingPermsUser?.name || editingPermsUser?.email}
                     </DialogTitle>
-                    <DialogDescription className="text-xs text-text-muted mt-0.5 m-0">
-                      Роль: <strong className="text-text-main">{USER_ROLE_OPTIONS.find((r) => r.value === editingPermsUser?.role)?.label || editingPermsUser?.role}</strong>. Настройте индивидуальные права при необходимости.
+                    <DialogDescription className="text-xs text-text-muted mt-0.5 m-0 flex items-center gap-1.5 flex-wrap">
+                      <span>Роль:</span>
+                      <strong className="text-text-main">
+                        {USER_ROLE_OPTIONS.find((r) => r.value === editingPermsUser?.role)?.label || editingPermsUser?.role}
+                      </strong>
+                      <span className="text-text-faint">•</span>
+                      <span>{editingPermsUser?.email}</span>
                     </DialogDescription>
                   </div>
                 </div>
@@ -699,44 +823,340 @@ function UserAccessPanel({authUser, pushNotification}) {
                   <AppIcon name="x" size="sm" />
                 </Button>
               </div>
+
+              {/* Переключатель вкладок: Настройки прав vs Предпросмотр */}
+              <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-border-soft">
+                <button
+                  type="button"
+                  onClick={() => setModalTab("permissions")}
+                  className={clsx(
+                    "px-3 py-1.5 rounded-control text-xs font-semibold transition-colors flex items-center gap-1.5",
+                    modalTab === "permissions"
+                      ? "bg-accent text-white shadow-sm"
+                      : "text-text-muted hover:text-text-main hover:bg-surface-2",
+                  )}
+                >
+                  <AppIcon name="shield" size="xs" />
+                  Настройки прав
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalTab("preview")}
+                  className={clsx(
+                    "px-3 py-1.5 rounded-control text-xs font-semibold transition-colors flex items-center gap-1.5",
+                    modalTab === "preview"
+                      ? "bg-accent text-white shadow-sm"
+                      : "text-text-muted hover:text-text-main hover:bg-surface-2",
+                  )}
+                >
+                  <AppIcon name="eye" size="xs" />
+                  Предпросмотр навигации
+                  {previewAllowedGroups.length > 0 && (
+                    <span className="ml-1 px-1.5 py-0.2 rounded-full bg-field text-[10px]">
+                      {previewAllowedGroups.length}
+                    </span>
+                  )}
+                </button>
+              </div>
             </DialogHeader>
 
             <div className="overflow-y-auto flex-1 py-3 pr-1 flex flex-col gap-4">
-              {permissionGroups.map((group) => (
-                <div key={group.id} className="rounded-control border border-border-soft bg-field p-3 flex flex-col gap-2.5">
-                  <strong className="text-xs font-semibold text-text-main tracking-tight uppercase">
-                    {group.title}
-                  </strong>
-                  <div className="flex flex-col gap-2">
-                    {group.permissions.map((perm) => {
-                      const isOverridden = permsDraft[perm.key] !== undefined;
-                      const isChecked = permsDraft[perm.key] ?? false;
+              {modalTab === "permissions" ? (
+                <>
+                  {/* Панель быстрых шаблонов ролей */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-control bg-surface-2/60 border border-border-soft">
+                    <div className="flex items-center gap-1.5 text-xs text-text-muted">
+                      <AppIcon name="sparkles" size="xs" className="text-accent" />
+                      <span className="font-medium">Шаблоны:</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        type="button"
+                        className="h-7 text-xs px-2.5"
+                        onClick={() => handleApplyRoleTemplate("owner")}
+                        title="Полный доступ ко всей CRM и настройкам"
+                      >
+                        Владелец
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        type="button"
+                        className="h-7 text-xs px-2.5"
+                        onClick={() => handleApplyRoleTemplate("admin")}
+                        title="Все операции кроме управления пользователями"
+                      >
+                        Админ
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        type="button"
+                        className="h-7 text-xs px-2.5"
+                        onClick={() => handleApplyRoleTemplate("staff")}
+                        title="Только свои визиты, маскированные контакты, свои начисления"
+                      >
+                        Массажист
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        type="button"
+                        className="h-7 text-xs px-2.5"
+                        onClick={() => handleApplyRoleTemplate("readonly")}
+                        title="Просмотр календаря и базы клиентов без редактирования"
+                      >
+                        Только чтение
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        type="button"
+                        className="h-7 text-xs px-2 text-text-faint hover:text-text-main"
+                        onClick={handleResetPermissionsToRole}
+                        title="Сбросить все индивидуальные переопределения к роли пользователя"
+                      >
+                        Сбросить
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Сводка доступа (Access Summary Card) */}
+                  <div className="flex flex-col gap-2 p-3 rounded-control bg-field border border-border-soft">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-bold text-text-faint uppercase tracking-wider">
+                        Итоговый профиль доступа сотрудника
+                      </span>
+                      <span className="text-[11px] text-text-muted">
+                        {Object.keys(permsDraft).length > 0 ? (
+                          <span className="text-accent font-medium">
+                            {Object.keys(permsDraft).length} индивидуальных переопределений
+                          </span>
+                        ) : (
+                          "Стандартные права роли"
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {summaryItems.map((item, idx) => (
+                        <Badge
+                          key={idx}
+                          variant={item.variant}
+                          size="sm"
+                          className="flex items-center gap-1.5 py-1 px-2.5 text-[11px] font-medium"
+                        >
+                          <AppIcon name={item.icon} size="xs" />
+                          <span>
+                            {item.label}: <strong className="font-semibold">{item.value}</strong>
+                          </span>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Двухуровневый список прав: Раздел (Level 1) → Действия (Level 2) */}
+                  <div className="flex flex-col gap-3">
+                    {permissionGroups.map((group) => {
+                      const roleDefaults = ROLE_DEFAULT_PERMISSIONS[editingPermsUser?.role] || ROLE_DEFAULT_PERMISSIONS.staff;
+                      const activeCount = group.permissions.filter((perm) => {
+                        const val = permsDraft[perm.key] !== undefined ? permsDraft[perm.key] : roleDefaults[perm.key];
+                        return Boolean(val);
+                      }).length;
+                      const allEnabled = activeCount === group.permissions.length;
+                      const isCollapsed = Boolean(collapsedGroups[group.id]);
+
                       return (
                         <div
-                          key={perm.key}
-                          className="flex items-center justify-between gap-3 p-2.5 rounded-control bg-surface/50 border border-border/40 hover:border-border transition-colors"
+                          key={group.id}
+                          className="rounded-control border border-border-soft bg-surface-2/40 overflow-hidden flex flex-col"
                         >
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-xs font-medium text-text-main">{perm.label}</span>
-                            <span className="text-[11px] text-text-faint">{perm.description}</span>
-                          </div>
-                          <div className="flex items-center gap-2.5 shrink-0">
-                            {isOverridden ? (
-                              <span className="rounded-pill bg-accent/15 px-2 py-0.5 text-[10px] text-accent font-semibold">
-                                Индивидуально
+                          {/* Уровень 1: Раздел */}
+                          <div className="flex items-center justify-between gap-3 p-3 bg-surface-2/70 border-b border-border-soft">
+                            <button
+                              type="button"
+                              onClick={() => toggleGroupCollapse(group.id)}
+                              className="flex items-center gap-2 text-left flex-1 hover:opacity-85 transition-opacity"
+                            >
+                              <AppIcon
+                                name={isCollapsed ? "chevronRight" : "chevronDown"}
+                                size="xs"
+                                className="text-text-muted shrink-0"
+                              />
+                              <div className="flex flex-col">
+                                <span className="text-xs font-bold text-text-main tracking-tight uppercase">
+                                  {group.title}
+                                </span>
+                                <span className="text-[10px] text-text-faint">
+                                  Активно: {activeCount} из {group.permissions.length}
+                                </span>
+                              </div>
+                            </button>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-[11px] text-text-muted hidden sm:inline">
+                                {allEnabled ? "Все включены" : activeCount === 0 ? "Отключено" : "Частично"}
                               </span>
-                            ) : null}
-                            <Switch
-                              checked={Boolean(isChecked)}
-                              onChange={() => handleTogglePermission(perm.key, isChecked)}
-                            />
+                              <Switch
+                                checked={allEnabled}
+                                onChange={() => handleToggleSection(group)}
+                                aria-label={`Переключить весь раздел ${group.title}`}
+                              />
+                            </div>
                           </div>
+
+                          {/* Уровень 2: Детальные действия */}
+                          {!isCollapsed && (
+                            <div className="flex flex-col gap-1.5 p-2.5">
+                              {group.permissions.map((perm) => {
+                                const isOverridden = permsDraft[perm.key] !== undefined;
+                                const isChecked = isOverridden
+                                  ? Boolean(permsDraft[perm.key])
+                                  : Boolean(roleDefaults[perm.key]);
+                                const isSensitive =
+                                  perm.key.endsWith(".delete") ||
+                                  perm.key === PERMISSIONS.USERS_MANAGE ||
+                                  perm.key === PERMISSIONS.FINANCE_DAY_CLOSE;
+
+                                return (
+                                  <div
+                                    key={perm.key}
+                                    className="flex items-center justify-between gap-3 p-2.5 rounded-control bg-surface/60 border border-border-soft hover:border-border transition-colors"
+                                  >
+                                    <div className="flex flex-col gap-0.5">
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="text-xs font-semibold text-text-main">{perm.label}</span>
+                                        {isSensitive && (
+                                          <Badge variant="danger" size="sm">
+                                            Опасное
+                                          </Badge>
+                                        )}
+                                        {isOverridden && (
+                                          <Badge variant="info" size="sm">
+                                            Изменено
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <span className="text-[11px] text-text-muted leading-tight">
+                                        {perm.description}
+                                      </span>
+                                    </div>
+                                    <div className="shrink-0">
+                                      <Switch
+                                        checked={isChecked}
+                                        onChange={() => handleTogglePermission(perm.key, isChecked)}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
                   </div>
+                </>
+              ) : (
+                /* Режим живого предпросмотра навигации (Navigation Preview) */
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-control border border-border-soft bg-surface-2/40 p-3 flex items-center gap-2.5 text-xs text-text-muted">
+                    <AppIcon name="info" size="sm" className="text-accent shrink-0" />
+                    <div>
+                      Режим предпросмотра отображает структуру навигации, доступную пользователю с текущим набором прав, без необходимости перезахода в систему.
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {/* Десктопное меню */}
+                    <div className="flex flex-col gap-2 rounded-control bg-field p-3.5 border border-border-soft">
+                      <div className="flex items-center gap-2 text-xs font-bold text-text-main border-b border-border-soft pb-2">
+                        <AppIcon name="monitor" size="xs" className="text-text-muted" />
+                        <span>Десктопное меню ({previewAllowedGroups.length} разделов)</span>
+                      </div>
+                      <div className="flex flex-col gap-3 py-1">
+                        {previewAllowedGroups.map((group) => (
+                          <div key={group.id} className="flex flex-col gap-1">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-text-faint px-1">
+                              {group.label}
+                            </span>
+                            <div className="flex flex-col gap-1">
+                              {group.items.map((item) => (
+                                <div
+                                  key={item.page}
+                                  className="flex items-center justify-between px-2.5 py-1.5 rounded-control text-xs bg-surface/80 border border-border-soft text-text-main"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <AppIcon name={item.icon} size="xs" className="text-accent" />
+                                    <span>{item.label}</span>
+                                  </div>
+                                  <span className="text-[10px] text-text-faint font-mono">/{item.page}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Мобильная навигация */}
+                    <div className="flex flex-col gap-3 rounded-control bg-field p-3.5 border border-border-soft">
+                      <div className="flex items-center gap-2 text-xs font-bold text-text-main border-b border-border-soft pb-2">
+                        <AppIcon name="smartphone" size="xs" className="text-text-muted" />
+                        <span>Мобильная нижняя панель ({previewAllowedMobile.length} кнопок)</span>
+                      </div>
+                      <div className="p-3 bg-surface rounded-control border border-border flex items-center justify-between gap-1 shadow-sm">
+                        {previewAllowedMobile.map((item) => (
+                          <div key={item.page} className="flex flex-col items-center gap-1 text-center flex-1">
+                            <div className="w-8 h-8 rounded-full bg-field border border-border-soft flex items-center justify-center text-accent">
+                              <AppIcon name={item.icon} size="xs" />
+                            </div>
+                            <span className="text-[10px] font-medium text-text-main leading-none truncate max-w-[54px]">
+                              {item.label}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex flex-col gap-1.5 border-t border-border-soft pt-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-text-faint">
+                          Доступность ключевых разделов
+                        </span>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          {[
+                            {name: "Календарь", page: "calendar"},
+                            {name: "Клиенты", page: "clients"},
+                            {name: "Выручка студии", page: "payments"},
+                            {name: "Мои начисления", page: "my-earnings"},
+                            {name: "Каталог услуг", page: "services"},
+                            {name: "Задачи/Чек-листы", page: "operations"},
+                            {name: "Сотрудники/Смены", page: "masters"},
+                            {name: "Статистика", page: "statistics"},
+                            {name: "Настройки", page: "settings"},
+                          ].map((sec) => {
+                            const allowed = canViewPage(sec.page, effectivePermsUser);
+                            return (
+                              <div
+                                key={sec.page}
+                                className={clsx(
+                                  "flex items-center gap-1.5 px-2 py-1 rounded text-[11px]",
+                                  allowed
+                                    ? "text-accentSuccess bg-accentSuccess/10 font-medium"
+                                    : "text-text-faint bg-field line-through opacity-60",
+                                )}
+                              >
+                                <AppIcon name={allowed ? "check" : "x"} size="xs" />
+                                <span>{sec.name}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
 
             <DialogFooter className="border-t border-border-soft pt-3 flex items-center justify-between gap-2 mt-auto">
@@ -745,6 +1165,7 @@ function UserAccessPanel({authUser, pushNotification}) {
                 variant="ghost"
                 type="button"
                 onClick={handleResetPermissionsToRole}
+                title="Сбросить все переопределения к стандартным правам роли"
               >
                 Сбросить к роли
               </Button>

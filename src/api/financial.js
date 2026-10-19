@@ -132,6 +132,11 @@ export const markPayrollPaidRecord = (payload) =>
     method: "POST",
   });
 
+export const fetchPayrollRecords = () =>
+  request("/api/payroll-records", {
+    label: "Payroll records",
+  });
+
 export const deletePayrollRecord = (id) =>
   request(`/api/payroll-records/${id}`, {
     label: "Delete payroll record",

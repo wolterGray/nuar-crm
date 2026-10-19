@@ -121,7 +121,7 @@ router.patch('/services/reorder', requirePermission(PERMISSIONS.CATALOG_MANAGE),
   }
 });
 
-router.get('/services/:id', (req, res) => {
+router.get('/services/:id', requirePermission(PERMISSIONS.CATALOG_VIEW), (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.service.findUnique({ where: { id } }).then(withStoredId));
 });
@@ -160,7 +160,7 @@ router.delete('/services/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE), as
   );
 });
 
-router.get('/services', (req, res) => {
+router.get('/services', requirePermission(PERMISSIONS.CATALOG_VIEW), (req, res) => {
   respond(
     res,
     prisma.service

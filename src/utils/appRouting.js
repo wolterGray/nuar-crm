@@ -6,6 +6,7 @@ export const APP_PAGE_PATHS = {
   clients: "/clients",
   club: "/club",
   payments: "/payments",
+  "my-earnings": "/my-earnings",
   operations: "/operations",
   services: "/services",
   packages: "/packages",
@@ -24,6 +25,7 @@ const PATH_TO_PAGE = Object.fromEntries(
 export const KNOWN_APP_PAGES = new Set([
   ...navItems.map((item) => item.page),
   "site",
+  "my-earnings",
 ]);
 
 export const isKnownAppPage = (page) => KNOWN_APP_PAGES.has(page);

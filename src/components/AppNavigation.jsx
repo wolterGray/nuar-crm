@@ -1,5 +1,6 @@
 import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
-import {mobileNavItems, navGroups, navItems} from "../constants/navigation.js";
+import {navGroups} from "../constants/navigation.js";
+import {getAllowedMobileNav, getAllowedNavigation} from "../utils/permissions.js";
 import {AppIcon, Button, IconButton} from "./ui/index.js";
 
 const ROLE_LABELS = {
@@ -43,8 +44,11 @@ export default function AppNavigation({
     closeSidebar();
   };
 
-  const hiddenMobileItems = navItems.filter(
-    (item) => !mobileNavItems.some((mobileItem) => mobileItem.page === item.page),
+  const allowedGroups = getAllowedNavigation(navGroups, authUser);
+  const allowedItems = allowedGroups.flatMap((group) => group.items);
+  const currentMobileNavItems = getAllowedMobileNav(authUser);
+  const hiddenMobileItems = allowedItems.filter(
+    (item) => !currentMobileNavItems.some((mobileItem) => mobileItem.page === item.page),
   );
   const getBadge = (page) => {
     const value = Number(navBadges?.[page]) || 0;
@@ -91,7 +95,7 @@ export default function AppNavigation({
             </kbd>
           </Button>
 
-          {navGroups.map((group, groupIndex) => (
+          {allowedGroups.map((group, groupIndex) => (
             <div
               aria-label={group.label}
               className="flex flex-col gap-0"
@@ -187,7 +191,7 @@ export default function AppNavigation({
 
       {/* Mobile Bottom Navigation Bar */}
       <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-45 flex select-none md:hidden" aria-label="Мобильная навигация">
-        {mobileNavItems.map((item) => {
+        {currentMobileNavItems.map((item) => {
           const isActive = activePage === item.page;
           const badge = getBadge(item.page);
 
@@ -205,15 +209,17 @@ export default function AppNavigation({
             </Button>
           );
         })}
-        <Button
-          className={sidebarVisible ? "active" : ""}
-          leftIcon="more"
-          size="sm"
-          variant="ghost"
-          onClick={() => onSidebarVisibleChange(!sidebarVisible)}
-        >
-          <span className="nuar-nav-label">Ещё</span>
-        </Button>
+        {hiddenMobileItems.length > 0 && (
+          <Button
+            className={sidebarVisible ? "active" : ""}
+            leftIcon="more"
+            size="sm"
+            variant="ghost"
+            onClick={() => onSidebarVisibleChange(!sidebarVisible)}
+          >
+            <span className="nuar-nav-label">Ещё</span>
+          </Button>
+        )}
       </nav>
     </>
   );

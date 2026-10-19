@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 const { verifyJwt, invalidateUserCache } = require('../middleware/auth');
+const { getEffectivePermissions } = require('../constants/permissions');
 const { authLoginLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
@@ -128,6 +129,9 @@ function createAuthRouter({
       email: config.ADMIN_EMAIL,
       name: '',
       role: 'owner',
+      employeeId: null,
+      permissions: {},
+      effectivePermissions: getEffectivePermissions('owner'),
     };
     const token = signAuthToken(user);
 
@@ -217,11 +221,19 @@ function createAuthRouter({
           },
         });
 
+        const effectivePermissions = getEffectivePermissions(
+          updatedUser.role,
+          updatedUser.permissions,
+        );
+
         const user = {
           id: String(updatedUser.id),
           email: updatedUser.email,
           name: updatedUser.name || '',
           role: updatedUser.role,
+          employeeId: updatedUser.employeeId ?? null,
+          permissions: updatedUser.permissions || {},
+          effectivePermissions,
         };
         const token = signAuthToken(user);
 
@@ -501,6 +513,11 @@ function createAuthRouter({
           });
         }
 
+        const effectivePermissions = getEffectivePermissions(
+          dbUser.role,
+          dbUser.permissions,
+        );
+
         return res.json({
           success: true,
           user: {
@@ -508,6 +525,9 @@ function createAuthRouter({
             email: dbUser.email,
             name: dbUser.name || '',
             role: dbUser.role,
+            employeeId: dbUser.employeeId ?? null,
+            permissions: dbUser.permissions || {},
+            effectivePermissions,
           },
         });
       } catch (error) {
@@ -517,13 +537,17 @@ function createAuthRouter({
       }
     }
 
+    const role = getSessionRole(req.auth);
     return res.json({
       success: true,
       user: {
         id: String(rawId),
         email: req.auth?.email || process.env.ADMIN_EMAIL || '',
         name: req.auth?.name || '',
-        role: getSessionRole(req.auth),
+        role,
+        employeeId: req.auth?.employeeId ? Number(req.auth.employeeId) : null,
+        permissions: req.auth?.permissions || {},
+        effectivePermissions: req.auth?.effectivePermissions || getEffectivePermissions(role, req.auth?.permissions),
       },
     });
   });

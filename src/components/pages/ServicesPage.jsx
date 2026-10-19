@@ -210,6 +210,7 @@ export default function ServicesPage({
   onReorder: _onReorder,
   appSettings = null,
   pushNotification,
+  canManageCatalog = true,
 }) {
   const [search, setSearch] = useState("");
   const [viewScope, setViewScope] = useState("active"); // "active" (Действующие) | "archive" (Архив)
@@ -523,15 +524,18 @@ export default function ServicesPage({
       <div
         key={service.id}
         className={`services-card-row ${isActiveRow ? "is-active-row" : ""} ${isSelected ? "is-selected-row" : ""}`}
-        onClick={(e) => handleOpenEdit(service, e)}>
+        style={{ cursor: canManageCatalog ? "pointer" : "default" }}
+        onClick={canManageCatalog ? (e) => handleOpenEdit(service, e) : undefined}>
         {/* Checkbox (Mass Selection) */}
-        <div className="services-col-check" onClick={(e) => e.stopPropagation()}>
-          <Checkbox
-            checked={isSelected}
-            onChange={(e) => handleToggleSelectRow(service.id, e)}
-            aria-label={`Выбрать ${service.name}`}
-          />
-        </div>
+        {canManageCatalog && (
+          <div className="services-col-check" onClick={(e) => e.stopPropagation()}>
+            <Checkbox
+              checked={isSelected}
+              onChange={(e) => handleToggleSelectRow(service.id, e)}
+              aria-label={`Выбрать ${service.name}`}
+            />
+          </div>
+        )}
 
         {/* Service Name & Subtype / Couple / Combo Badges */}
         <div className="services-col-service" title={service.name}>
@@ -571,32 +575,42 @@ export default function ServicesPage({
         {/* Price From */}
         <div className="services-col-price">{formatMoney(minPrice)}</div>
 
-        {/* Active Toggle Switch (Semantic Green #10b981) */}
-        <div className="services-col-switch" onClick={(e) => e.stopPropagation()}>
-          <Switch
-            checked={isActive}
-            onChange={() =>
-              handleToggleStatusAction(
-                service,
-                isActive ? "Скрыта" : "Активна",
-              )
-            }
-            aria-label={isActive ? "Скрыть услугу" : "Сделать активной"}
-            className="services-row-switch"
-          />
-        </div>
+        {/* Active Toggle Switch or Readonly Badge */}
+        {canManageCatalog ? (
+          <div className="services-col-switch" onClick={(e) => e.stopPropagation()}>
+            <Switch
+              checked={isActive}
+              onChange={() =>
+                handleToggleStatusAction(
+                  service,
+                  isActive ? "Скрыта" : "Активна",
+                )
+              }
+              aria-label={isActive ? "Скрыть услугу" : "Сделать активной"}
+              className="services-row-switch"
+            />
+          </div>
+        ) : (
+          <div className="services-col-switch">
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isActive ? "text-emerald-400 bg-emerald-500/10" : "text-text-muted bg-white/5"}`}>
+              {svcStatus}
+            </span>
+          </div>
+        )}
 
-        {/* Actions menu (Rendered via Portal to avoid container overflow clipping) */}
-        <ServiceRowActionsMenu
-          service={service}
-          openMenuId={openMenuServiceId}
-          setOpenMenuId={setOpenMenuServiceId}
-          onOpenEdit={handleOpenEdit}
-          onDuplicate={handleDuplicate}
-          onToggleStatus={handleToggleStatusAction}
-          onDelete={handleDeleteService}
-          viewScope={viewScope}
-        />
+        {/* Actions menu (Rendered only if canManageCatalog) */}
+        {canManageCatalog && (
+          <ServiceRowActionsMenu
+            service={service}
+            openMenuId={openMenuServiceId}
+            setOpenMenuId={setOpenMenuServiceId}
+            onOpenEdit={handleOpenEdit}
+            onDuplicate={handleDuplicate}
+            onToggleStatus={handleToggleStatusAction}
+            onDelete={handleDeleteService}
+            viewScope={viewScope}
+          />
+        )}
       </div>
     );
   };
@@ -729,14 +743,16 @@ export default function ServicesPage({
 
           {/* Secondary Actions: Categories & Price */}
           <div className="services-header-secondary-actions">
-            <button
-              className="services-btn-categories"
-              type="button"
-              onClick={() => setIsCatModalOpen(true)}>
-              <AppIcon name="sliders" size="xs" />
-              <span className="services-categories-label-long">Управление категориями</span>
-              <span className="services-categories-label-short">Категории</span>
-            </button>
+            {canManageCatalog && (
+              <button
+                className="services-btn-categories"
+                type="button"
+                onClick={() => setIsCatModalOpen(true)}>
+                <AppIcon name="sliders" size="xs" />
+                <span className="services-categories-label-long">Управление категориями</span>
+                <span className="services-categories-label-short">Категории</span>
+              </button>
+            )}
 
             <button
               className="services-btn-price"
@@ -748,13 +764,15 @@ export default function ServicesPage({
           </div>
 
           {/* Add Service Button */}
-          <button
-            className="services-btn-add-primary"
-            type="button"
-            onClick={handleOpenCreate}>
-            <AppIcon name="plus" size="xs" />
-            Добавить услугу
-          </button>
+          {canManageCatalog && (
+            <button
+              className="services-btn-add-primary"
+              type="button"
+              onClick={handleOpenCreate}>
+              <AppIcon name="plus" size="xs" />
+              Добавить услугу
+            </button>
+          )}
         </div>
       </header>
 
@@ -796,7 +814,7 @@ export default function ServicesPage({
         {/* MAIN LIST AREA */}
         <div className="services-table-area">
           {/* Batch Actions Bar (when rows are selected) */}
-          {selectedServiceIds.size > 0 && (
+          {canManageCatalog && selectedServiceIds.size > 0 && (
             <div className="services-batch-bar" role="toolbar" aria-label="Панель массовых действий">
               <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
                 <Checkbox

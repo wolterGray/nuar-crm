@@ -14,6 +14,9 @@ const createSession = ({token, user}) => ({
     email: user?.email || "",
     name: user?.name || "",
     role: user?.role || "owner",
+    employeeId: user?.employeeId ?? null,
+    permissions: user?.permissions || {},
+    effectivePermissions: user?.effectivePermissions || {},
   },
 });
 

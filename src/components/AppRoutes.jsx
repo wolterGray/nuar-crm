@@ -1,4 +1,6 @@
 import {lazy, Suspense} from "react";
+import ForbiddenScreen from "./ForbiddenScreen.jsx";
+import {canPerform, canViewPage, getDefaultPageForUser} from "../utils/permissions.js";
 
 const TodayPage = lazy(() => import("./pages/TodayPage.jsx"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage.jsx"));
@@ -12,6 +14,7 @@ const OperationsPage = lazy(() => import("./pages/OperationsPage.jsx"));
 const TaskEditorPage = lazy(() => import("./pages/TaskEditorPage.jsx"));
 const ImportPage = lazy(() => import("./pages/ImportPage.jsx"));
 const PaymentsPage = lazy(() => import("./pages/PaymentsPage.jsx"));
+const MyEarningsPage = lazy(() => import("./pages/MyEarningsPage.jsx"));
 const StatisticsPage = lazy(() => import("./pages/StatisticsPage.jsx"));
 const SitePage = lazy(() => import("./pages/SitePage.jsx"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage.jsx"));
@@ -33,7 +36,19 @@ function PageSuspense({children}) {
   );
 }
 
-export default function AppRoutes({activePage, ...props}) {
+export default function AppRoutes({activePage, authUser = null, ...props}) {
+  const user = authUser || props.authUser || null;
+
+  // Enforce access control: if user is not authorized to view the requested page, show ForbiddenScreen
+  if (user && !canViewPage(activePage, user)) {
+    return (
+      <ForbiddenScreen
+        pageName={`разделу "${activePage}"`}
+        onNavigate={() => props.setActivePage?.(getDefaultPageForUser(user))}
+      />
+    );
+  }
+
   switch (activePage) {
     case "today":
       return (
@@ -116,30 +131,55 @@ export default function AppRoutes({activePage, ...props}) {
         </PageSuspense>
       );
 
-    case "clients":
+    case "my-earnings":
+      return (
+        <PageSuspense>
+          <MyEarningsPage
+            authUser={user}
+            visits={props.paymentRows || props.visits}
+            pushNotification={props.pushNotification}
+          />
+        </PageSuspense>
+      );
+
+    case "clients": {
+      const canManageClients = canPerform("manage", "client", null, user);
+      const canDeleteClients = canPerform("delete", "client", null, user);
+
+      // Filter clients for staff to only assigned clients if employeeId is set
+      const clientsList = (!canPerform("view_all", "calendar_entry", null, user) && user?.employeeId)
+        ? (props.clientProfiles ?? []).filter((client) => {
+            const clientVisits = (props.visits || []).filter(
+              (v) => String(v.clientId) === String(client.id),
+            );
+            return clientVisits.some((v) => Number(v.employeeId) === Number(user.employeeId));
+          })
+        : props.clientProfiles;
+
       return (
         <PageSuspense>
           <ClientsPage
             alertFocus={props.alertFocus}
             visits={props.visits}
             calendarEntries={props.calendarEntries}
-            clients={props.clientProfiles}
+            clients={clientsList}
             clientPackages={props.clientPackages}
             certificates={props.certificates}
             communicationLog={props.communicationLog}
             employees={props.employees}
             inactiveClientDays={props.inactiveClientDays}
-            onAddClient={props.openCreateClient}
+            onAddClient={canManageClients ? props.openCreateClient : null}
             onAddVisit={props.openCreateCalendarEntry}
             onAlertFocusHandled={props.clearAlertFocus}
             appSettings={props.appSettings}
             onMessageClient={props.openClientMessageTemplates}
-            onEditClient={props.openEditClient}
-            onUpdateClientNote={props.updateClientNote}
-            onDeleteClient={props.requestDeleteClient}
+            onEditClient={canManageClients ? props.openEditClient : null}
+            onUpdateClientNote={canManageClients ? props.updateClientNote : null}
+            onDeleteClient={canDeleteClients ? props.requestDeleteClient : null}
           />
         </PageSuspense>
       );
+    }
 
     case "club":
       return (
@@ -151,13 +191,15 @@ export default function AppRoutes({activePage, ...props}) {
         </PageSuspense>
       );
 
-    case "services":
+    case "services": {
+      const canManageCatalog = canPerform("manage", "service", null, user);
       return (
         <PageSuspense>
           <ServicesPage
             services={props.serviceCatalog}
             serviceCategories={props.serviceCategories}
             employees={props.employees || props.activeEmployees}
+            canManageCatalog={canManageCatalog}
             onSaveService={props.saveService}
             onDuplicateService={props.duplicateService}
             onToggleStatus={props.toggleServiceStatus}
@@ -173,6 +215,7 @@ export default function AppRoutes({activePage, ...props}) {
           />
         </PageSuspense>
       );
+    }
 
     case "packages":
       return (
@@ -358,16 +401,25 @@ export default function AppRoutes({activePage, ...props}) {
       );
 
     default:
+      if (canViewPage("statistics", user)) {
+        return (
+          <PageSuspense>
+            <StatisticsPage
+              visits={props.paymentRows}
+              calendarEntries={props.calendarEntries}
+              clientPackages={props.clientPackages}
+              clients={props.clientProfiles}
+              employees={props.employees}
+            />
+          </PageSuspense>
+        );
+      }
+
       return (
-        <PageSuspense>
-          <StatisticsPage
-            visits={props.paymentRows}
-            calendarEntries={props.calendarEntries}
-            clientPackages={props.clientPackages}
-            clients={props.clientProfiles}
-            employees={props.employees}
-          />
-        </PageSuspense>
+        <ForbiddenScreen
+          pageName="запрошенной странице"
+          onNavigate={() => props.setActivePage?.(getDefaultPageForUser(user))}
+        />
       );
   }
 }
