@@ -18,6 +18,18 @@ describe("employeeAvailability", () => {
     expect(isEmployeeAvailableOnDate(employee, "2026-08-17")).toBe(true);
   });
 
+  it("allows turning off all days of the week (empty workingDaysOfWeek)", () => {
+    const employee = {name: "Алена", workingDaysOfWeek: []};
+    expect(getEmployeeWorkingDays(employee)).toEqual([]);
+    expect(isEmployeeAvailableOnDate(employee, "2026-08-16")).toBe(false);
+    expect(isEmployeeAvailableOnDate(employee, "2026-08-17")).toBe(false);
+  });
+
+  it("normalizes Sunday represented as 7 to 0", () => {
+    const employee = {name: "Алена", workingDaysOfWeek: [7]};
+    expect(getEmployeeWorkingDays(employee)).toEqual([0]);
+  });
+
   it("parses blocked dates from text", () => {
     expect(parseBlockedDatesText("2026-08-20, 20.08.2026\n2026-08-21")).toEqual([
       "2026-08-20",

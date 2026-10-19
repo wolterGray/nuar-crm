@@ -352,9 +352,12 @@ function CalendarPage({
   );
   const calendarMasters = useMemo(() => {
     if (employees.length > 0) {
-      return employees.filter((employee) =>
+      const working = employees.filter((employee) =>
         isEmployeeAvailableOnDate(employee, selectedDate),
       );
+      if (working.length > 0) {
+        return working;
+      }
     }
 
     const entryMasters = Array.from(

@@ -22,8 +22,16 @@ export const normalizeWorkingDays = (value) => {
     return ALL_WORKING_DAYS;
   }
 
-  const days = [...new Set(value.map(Number).filter((day) => day >= 0 && day <= 6))];
-  return days.length ? days : ALL_WORKING_DAYS;
+  return [
+    ...new Set(
+      value
+        .map((day) => {
+          const num = Number(day);
+          return num === 7 ? 0 : num;
+        })
+        .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6),
+    ),
+  ];
 };
 
 export const normalizeBlockedDates = (value) => {

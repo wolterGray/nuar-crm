@@ -97,8 +97,16 @@ const addMinutesToTime = (time, minutesToAdd) => {
 
 const normalizeWorkingDays = (value) => {
   if (!Array.isArray(value)) return [1, 2, 3, 4, 5, 6, 0];
-  const days = [...new Set(value.map(Number).filter((day) => day >= 0 && day <= 6))];
-  return days.length ? days : [1, 2, 3, 4, 5, 6, 0];
+  return [
+    ...new Set(
+      value
+        .map((day) => {
+          const num = Number(day);
+          return num === 7 ? 0 : num;
+        })
+        .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6),
+    ),
+  ];
 };
 
 const normalizeBlockedDates = (value) => {

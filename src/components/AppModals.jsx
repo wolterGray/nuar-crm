@@ -178,7 +178,11 @@ export default function AppModals({
           editingEmployee ? "Редактировать сотрудника" : "Добавить сотрудника"
         }
         onClose={onCloseEmployeeModal}>
-        <EmployeeForm employee={editingEmployee} onSubmit={onEmployeeSubmit} />
+        <EmployeeForm
+          key={editingEmployee?.id ?? "new"}
+          employee={editingEmployee}
+          onSubmit={onEmployeeSubmit}
+        />
       </FormModalShell>
 
       <FormModalShell
