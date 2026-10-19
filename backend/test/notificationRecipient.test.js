@@ -1,6 +1,21 @@
 const assert = require('node:assert/strict');
 const {test} = require('node:test');
-const {updateNotificationRecipient} = require('../services/notificationEventsService');
+const {
+  normalizeNotificationEventInput,
+  updateNotificationRecipient,
+} = require('../services/notificationEventsService');
+
+test('site booking notifications keep a missing client id as null', () => {
+  const event = normalizeNotificationEventInput({
+    clientId: null,
+    entityId: 'booking-42',
+    entityType: 'site_booking_request',
+    title: 'New site booking',
+    type: 'site_booking_request',
+  });
+
+  assert.equal(event.clientId, null);
+});
 
 test('marking an event seen updates only the authenticated recipient', async () => {
   const recipients = new Map();
