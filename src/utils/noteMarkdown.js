@@ -41,6 +41,8 @@ export function normalizeMarkdownForEditor(value = "") {
 }
 
 export const stripMarkdownForSnippet = (value = "") => String(value)
+  .replace(/<br\s*\/?>/gi, " ")
+  .replace(/<\/?[^>]+(>|$)/g, "")
   .replace(/^\s*\|?(?:\s*:?-{3,}:?\s*\|)+\s*$/gm, "")
   .replace(/^#{1,6}\s+/gm, "")
   .replace(/^\s*[-*+]\s+\[[ xX]\]\s*/gm, "")

@@ -98,7 +98,9 @@ import {
   Star,
   StickyNote,
   Sun,
+  Table as LucideTable,
   Trash2,
+  Underline as LucideUnderline,
   Unplug,
   Undo2,
   Unlock,
@@ -110,6 +112,9 @@ import {
   Wallet,
   WalletCards,
   X,
+  Maximize2,
+  Minimize2,
+  Quote,
 } from "lucide-react";
 import styles from "./AppIcon.module.css";
 
@@ -225,6 +230,11 @@ const appIcons = {
   wallet: Wallet,
   walletCards: WalletCards,
   x: X,
+  maximize: Maximize2,
+  minimize: Minimize2,
+  quote: Quote,
+  table: LucideTable,
+  underline: LucideUnderline,
 };
 
 export default function AppIcon({

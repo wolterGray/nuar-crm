@@ -37,7 +37,12 @@ const formatNoteDate = (isoString) => {
     const now = new Date();
     const isToday = d.toDateString() === now.toDateString();
     if (isToday) {
-      return `сегодня, ${d.toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"})}`;
+      return `Сегодня, ${d.toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"})}`;
+    }
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (d.toDateString() === yesterday.toDateString()) {
+      return `Вчера, ${d.toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"})}`;
     }
     return d.toLocaleDateString("ru-RU", {day: "numeric", month: "short"});
   } catch {
@@ -62,7 +67,7 @@ function NoteCover({noteId}) {
     let cancelled = false;
     fetchNoteAttachments(noteId)
       .then((items) => items.find((item) => String(item.mime_type).startsWith("image/")))
-      .then((cover) => cover ? fetchNoteAttachmentBlob(cover.id) : null)
+      .then((cover) => (cover ? fetchNoteAttachmentBlob(cover.id) : null))
       .then((blob) => {
         if (!blob || cancelled) return;
         objectUrl = URL.createObjectURL(blob);
@@ -79,7 +84,10 @@ function NoteCover({noteId}) {
 }
 
 function NoteVisualCard({draggable = true, note, onOpen, showCover = false}) {
-  const {attributes, listeners, setNodeRef, transform, isDragging} = useDraggable({id: `note:${note.id}`, disabled: !draggable});
+  const {attributes, listeners, setNodeRef, transform, isDragging} = useDraggable({
+    id: `note:${note.id}`,
+    disabled: !draggable,
+  });
   return (
     <article
       className={`notion-visual-card ${isDragging ? "is-dragging" : ""}`}
@@ -94,7 +102,16 @@ function NoteVisualCard({draggable = true, note, onOpen, showCover = false}) {
         <p>{stripMarkdownForSnippet(note.note || note.description) || "Пустая заметка"}</p>
         <small>{note.priority || "Без категории"} · {formatNoteDate(note.updatedAt || note.createdAt)}</small>
       </button>
-      {draggable ? <IconButton aria-label="Переместить карточку" className="notion-card-drag" icon="grip" size="sm" variant="ghost" {...listeners} /> : null}
+      {draggable ? (
+        <IconButton
+          aria-label="Переместить карточку"
+          className="notion-card-drag"
+          icon="grip"
+          size="sm"
+          variant="ghost"
+          {...listeners}
+        />
+      ) : null}
     </article>
   );
 }
@@ -103,15 +120,20 @@ function NoteBoardColumn({column, notes, onOpen}) {
   const {isOver, setNodeRef} = useDroppable({id: `note-status:${column.id}`});
   return (
     <section className={`notion-board-column ${isOver ? "is-over" : ""}`} ref={setNodeRef}>
-      <header><strong>{column.label}</strong><Badge size="sm" variant="neutral">{notes.length}</Badge></header>
+      <header>
+        <strong>{column.label}</strong>
+        <Badge size="sm" variant="neutral">{notes.length}</Badge>
+      </header>
       <div className="notion-board-column-list">
-        {notes.map((note) => <NoteVisualCard key={note.id} note={note} onOpen={onOpen} />)}
+        {notes.map((note) => (
+          <NoteVisualCard key={note.id} note={note} onOpen={onOpen} />
+        ))}
       </div>
     </section>
   );
 }
 
-function NotesViewSwitch({viewMode, onSelectView}) {
+function NotesViewSwitch({onSelectView, viewMode}) {
   const views = [
     {id: "list", icon: "list", label: "Список"},
     {id: "board", icon: "columns", label: "Доска"},
@@ -141,23 +163,30 @@ function NotesViewSwitch({viewMode, onSelectView}) {
 
 // Inner Editor component keyed by note.id so states initialize cleanly without effects
 function NotionDocEditor({
+  isFocusMode,
   isMobile,
   note,
   onBackToList,
   onDeleteNote,
+  onDuplicateNote,
+  onToggleFocusMode,
   onUpdateNote,
 }) {
   const [draftTitle, setDraftTitle] = useState(() => note.title || "");
+  const [draftSubtitle, setDraftSubtitle] = useState(() => note.payload?.subtitle || "");
   const [draftContent, setDraftContent] = useState(() => note.note || note.description || "");
   const [draftCategory, setDraftCategory] = useState(() => note.priority || "Процессы");
   const [draftIcon, setDraftIcon] = useState(() => getNoteIcon(note));
   const [draftPinned, setDraftPinned] = useState(() => Boolean(note.payload?.isPinned));
-  const [docMode, setDocMode] = useState("live");
+  const [rawMarkdownMode, setRawMarkdownMode] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [revisions, setRevisions] = useState([]);
   const [saveStatus, setSaveStatus] = useState("saved");
+  const [lastSavedAt, setLastSavedAt] = useState(() => note.updatedAt || note.createdAt || new Date().toISOString());
+
   const saveTimeoutRef = useRef(null);
   const pendingUpdatesRef = useRef({});
   const savingRef = useRef(false);
@@ -184,7 +213,10 @@ function NotionDocEditor({
     try {
       const saved = await onUpdateNote?.(note.id, {...updates, expectedVersion: versionRef.current});
       versionRef.current = Number(saved?.payload?.noteVersion) || versionRef.current + 1;
-      if (mountedRef.current) setSaveStatus(Object.keys(pendingUpdatesRef.current).length ? "saving" : "saved");
+      if (mountedRef.current) {
+        setSaveStatus(Object.keys(pendingUpdatesRef.current).length ? "saving" : "saved");
+        setLastSavedAt(new Date().toISOString());
+      }
     } catch {
       mergePendingUpdates(updates);
       if (mountedRef.current) setSaveStatus("error");
@@ -239,32 +271,42 @@ function NotionDocEditor({
     setDraftContent(nextContent);
     setDraftCategory(revision.priority || "Процессы");
     setHistoryOpen(false);
-    triggerImmediateSave({title: nextTitle, note: nextContent, description: nextContent, priority: revision.priority || "Процессы"});
+    triggerImmediateSave({
+      title: nextTitle,
+      note: nextContent,
+      description: nextContent,
+      priority: revision.priority || "Процессы",
+    });
   }, [triggerImmediateSave]);
 
   const handleTitleChange = useCallback(
     (event) => {
       const nextTitle = event.target.value;
       setDraftTitle(nextTitle);
-      triggerAutoSave({ title: nextTitle });
+      triggerAutoSave({title: nextTitle});
     },
     [triggerAutoSave],
   );
 
-  const handleContentChange = useCallback(
+  const handleSubtitleChange = useCallback(
     (event) => {
-      const nextContent = event.target.value;
-      setDraftContent(nextContent);
-      triggerAutoSave({ note: nextContent, description: nextContent });
+      const nextSubtitle = event.target.value;
+      setDraftSubtitle(nextSubtitle);
+      triggerAutoSave({
+        payload: {
+          ...(note.payload || {}),
+          subtitle: nextSubtitle,
+        },
+      });
     },
-    [triggerAutoSave],
+    [note.payload, triggerAutoSave],
   );
 
   const handleCategorySelect = useCallback(
     (category) => {
       setDraftCategory(category);
       setCategoryPickerOpen(false);
-      triggerImmediateSave({ priority: category });
+      triggerImmediateSave({priority: category});
     },
     [triggerImmediateSave],
   );
@@ -274,7 +316,7 @@ function NotionDocEditor({
       setDraftIcon(emoji);
       setEmojiPickerOpen(false);
       triggerImmediateSave({
-        payload: { ...(note.payload || {}), icon: emoji },
+        payload: {...(note.payload || {}), icon: emoji},
       });
     },
     [note.payload, triggerImmediateSave],
@@ -284,56 +326,60 @@ function NotionDocEditor({
     const nextPinned = !draftPinned;
     setDraftPinned(nextPinned);
     triggerImmediateSave({
-      payload: { ...(note.payload || {}), isPinned: nextPinned },
+      payload: {...(note.payload || {}), isPinned: nextPinned},
     });
   }, [draftPinned, note.payload, triggerImmediateSave]);
 
-  const insertBlock = useCallback(
-    (snippet) => {
-      setDocMode("edit");
-      setDraftContent((prev) => {
-        const next = prev ? `${prev}\n${snippet}` : snippet;
-        triggerAutoSave({ note: next, description: next });
-        return next;
-      });
-    },
-    [triggerAutoSave],
+  const handleExportMarkdown = useCallback(() => {
+    const headerTitle = draftTitle || "Заметка";
+    const headerSubtitle = draftSubtitle ? `> ${draftSubtitle}\n\n` : "";
+    const fullMarkdown = `# ${headerTitle}\n\n${headerSubtitle}${draftContent || ""}`;
+    const blob = new Blob([fullMarkdown], {type: "text/markdown;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${headerTitle.replace(/[^\wа-яёА-ЯЁ0-9 -]/gi, "_")}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setActionsMenuOpen(false);
+  }, [draftContent, draftSubtitle, draftTitle]);
+
+  const activeCategoryObj = useMemo(
+    () => NOTION_NOTE_CATEGORIES.find((c) => c.id === draftCategory) || {emoji: "⚙️", label: draftCategory},
+    [draftCategory],
   );
 
   return (
-    <div className="notion-doc-container">
+    <div className={`notion-doc-container ${isFocusMode ? "is-focus-mode" : ""}`}>
       {/* Top Header */}
       <header className="notion-doc-header">
         <div className="notion-doc-header-left">
           {isMobile ? (
-            <button
-              className="notion-back-btn"
-              type="button"
-              onClick={onBackToList}
-            >
+            <button className="notion-back-btn" type="button" onClick={onBackToList}>
               <AppIcon name="chevronLeft" size="sm" />
               <span>К заметкам</span>
             </button>
           ) : null}
 
-          {/* Category Selector Pill */}
+          {/* Category Selector Dropdown */}
           <div className="notion-category-picker-wrap">
             <button
               className="notion-doc-category-btn"
               type="button"
-              onClick={() => setCategoryPickerOpen((prev) => !prev)}
+              aria-label="Категория заметки"
+              onClick={() => {
+                setActionsMenuOpen(false);
+                setCategoryPickerOpen((prev) => !prev);
+              }}
             >
-              <AppIcon name="tag" size="xs" />
-              <span>{draftCategory}</span>
+              <span>{activeCategoryObj.emoji}</span>
+              <span className="notion-doc-category-label">{activeCategoryObj.label}</span>
               <AppIcon name="chevronDown" size="xs" />
             </button>
 
             {categoryPickerOpen ? (
               <>
-                <div
-                  className="notion-picker-backdrop"
-                  onClick={() => setCategoryPickerOpen(false)}
-                />
+                <div className="notion-picker-backdrop" onClick={() => setCategoryPickerOpen(false)} />
                 <div className="notion-category-dropdown">
                   {NOTION_NOTE_CATEGORIES.filter((c) => c.id !== "all").map((cat) => (
                     <button
@@ -351,57 +397,120 @@ function NotionDocEditor({
             ) : null}
           </div>
 
+          {/* Save Status Indicator */}
+          <button
+            className={`notion-save-status is-${saveStatus}`}
+            disabled={saveStatus !== "error"}
+            type="button"
+            onClick={() => void flushSave()}
+          >
+            {saveStatus === "saving" ? (
+              <>
+                <span className="notion-save-dot" />
+                <span>Сохранение...</span>
+              </>
+            ) : saveStatus === "error" ? (
+              "Не сохранено · повторить"
+            ) : (
+              `✓ Сохранено ${formatNoteDate(lastSavedAt)}`
+            )}
+          </button>
+        </div>
+
+        <div className="notion-doc-header-right">
+          {/* History */}
+          <IconButton
+            aria-label="История версий"
+            icon="history"
+            size="sm"
+            title="История изменений и версий"
+            variant="ghost"
+            onClick={() => setHistoryOpen((current) => !current)}
+          />
+
           {/* Pin toggle */}
           <button
-            className={`notion-pin-btn ${draftPinned ? "is-pinned" : ""}`}
+            className={`notion-doc-pin-btn ${draftPinned ? "is-pinned" : ""}`}
             title={draftPinned ? "Открепить страницу" : "Закрепить страницу"}
             type="button"
             onClick={handleTogglePin}
           >
             <span>📌</span>
-            <span className="notion-pin-label">{draftPinned ? "Закреплено" : "Закрепить"}</span>
           </button>
 
-          {/* Save Status Indicator */}
-          <button className={`notion-save-status is-${saveStatus}`} disabled={saveStatus !== "error"} type="button" onClick={() => void flushSave()}>
-            {saveStatus === "saving" ? "● Сохранение..." : saveStatus === "error" ? "Не сохранено · повторить" : "✓ Сохранено"}
-          </button>
-        </div>
+          {/* More Actions Dropdown (...) */}
+          <div className="notion-actions-dropdown-wrap">
+            <IconButton
+              aria-label="Действия с заметкой"
+              icon="more"
+              size="sm"
+              title="Действия"
+              variant="ghost"
+              onClick={() => {
+                setCategoryPickerOpen(false);
+                setActionsMenuOpen((prev) => !prev);
+              }}
+            />
 
-        <div className="notion-doc-header-right">
-          <IconButton aria-label="История версий" icon="history" size="sm" title="История версий" variant="ghost" onClick={() => setHistoryOpen((current) => !current)} />
-          {/* Mode Toggle: View / Edit */}
-          <div className="notion-mode-toggle">
-            <button
-              className={`notion-mode-btn ${docMode === "live" ? "is-active" : ""}`}
-              title="Интерактивный вид процесса (кликабельные чек-листы)"
-              type="button"
-              onClick={() => setDocMode("live")}
-            >
-              <AppIcon name="checkSquare" size="xs" />
-              <span>Процесс</span>
-            </button>
-            <button
-              className={`notion-mode-btn ${docMode === "edit" ? "is-active" : ""}`}
-              title="Текстовый редактор"
-              type="button"
-              onClick={() => setDocMode("edit")}
-            >
-              <AppIcon name="edit" size="xs" />
-              <span>Текст</span>
-            </button>
+            {actionsMenuOpen ? (
+              <>
+                <div className="notion-picker-backdrop" onClick={() => setActionsMenuOpen(false)} />
+                <div className="notion-doc-actions-menu">
+                  <button
+                    className="notion-dropdown-item"
+                    type="button"
+                    onClick={() => {
+                      onDuplicateNote?.(note);
+                      setActionsMenuOpen(false);
+                    }}
+                  >
+                    <AppIcon name="copy" size="xs" />
+                    <span>Дублировать заметку</span>
+                  </button>
+                  <button className="notion-dropdown-item" type="button" onClick={handleExportMarkdown}>
+                    <AppIcon name="download" size="xs" />
+                    <span>Скачать Markdown (.md)</span>
+                  </button>
+                  <button
+                    className="notion-dropdown-item"
+                    type="button"
+                    onClick={() => {
+                      setRawMarkdownMode((prev) => !prev);
+                      setActionsMenuOpen(false);
+                    }}
+                  >
+                    <AppIcon name="code" size="xs" />
+                    <span>{rawMarkdownMode ? "Вернуться в визуальный вид" : "Исходный Markdown"}</span>
+                  </button>
+                  <div className="notion-dropdown-separator" />
+                  <button
+                    className="notion-dropdown-item is-danger"
+                    type="button"
+                    onClick={() => {
+                      setActionsMenuOpen(false);
+                      onDeleteNote?.(note);
+                    }}
+                  >
+                    <AppIcon name="trash" size="xs" />
+                    <span>Удалить заметку</span>
+                  </button>
+                </div>
+              </>
+            ) : null}
           </div>
 
-          {/* Delete Button */}
-          <IconButton
-            aria-label="Удалить заметку"
-            className="notion-delete-btn"
-            icon="trash"
-            size="sm"
-            title="Удалить страницу"
-            variant="ghost"
-            onClick={() => onDeleteNote?.(note)}
-          />
+          {/* Focus Mode ("Развернуть" / "Свернуть") button */}
+          {!isMobile ? (
+            <Button
+              className="notion-focus-mode-btn"
+              leftIcon={isFocusMode ? "minimize" : "maximize"}
+              size="sm"
+              variant="secondary"
+              onClick={onToggleFocusMode}
+            >
+              {isFocusMode ? "Свернуть" : "Развернуть"}
+            </Button>
+          ) : null}
         </div>
       </header>
 
@@ -409,12 +518,45 @@ function NotionDocEditor({
       <div className="notion-doc-scrollable">
         {historyOpen ? (
           <section className="notion-history-panel">
-            <header><strong>История версий</strong><IconButton aria-label="Закрыть историю" icon="close" size="sm" variant="ghost" onClick={() => setHistoryOpen(false)} /></header>
-            {revisions.length ? revisions.map((revision) => <button key={String(revision.id)} type="button" onClick={() => restoreRevision(revision)}><span>{new Date(revision.created_at).toLocaleString("ru-RU")}</span><strong>{revision.title}</strong><small>Версия {revision.version}</small></button>) : <p>Предыдущих версий пока нет</p>}
+            <header>
+              <strong>История версий</strong>
+              <IconButton aria-label="Закрыть историю" icon="close" size="sm" variant="ghost" onClick={() => setHistoryOpen(false)} />
+            </header>
+            {revisions.length ? (
+              revisions.map((revision) => (
+                <button key={String(revision.id)} type="button" onClick={() => restoreRevision(revision)}>
+                  <span>{new Date(revision.created_at).toLocaleString("ru-RU")}</span>
+                  <strong>{revision.title}</strong>
+                  <small>Версия {revision.version}</small>
+                </button>
+              ))
+            ) : (
+              <p>Предыдущих версий пока нет</p>
+            )}
           </section>
         ) : null}
+
+        {/* Subtitle / Studio Rule Input */}
+        <div className="notion-subtitle-wrap">
+          <input
+            className="notion-subtitle-input"
+            placeholder="Правило студии или краткое описание процесса…"
+            type="text"
+            value={draftSubtitle}
+            onBlur={() =>
+              triggerImmediateSave({
+                payload: {
+                  ...(note.payload || {}),
+                  subtitle: draftSubtitle,
+                },
+              })
+            }
+            onChange={handleSubtitleChange}
+          />
+        </div>
+
+        {/* Title & Emoji Row */}
         <div className="notion-title-row">
-          {/* Emoji Selector */}
           <div className="notion-icon-row">
             <button
               className="notion-emoji-btn"
@@ -427,10 +569,7 @@ function NotionDocEditor({
 
             {emojiPickerOpen ? (
               <>
-                <div
-                  className="notion-picker-backdrop"
-                  onClick={() => setEmojiPickerOpen(false)}
-                />
+                <div className="notion-picker-backdrop" onClick={() => setEmojiPickerOpen(false)} />
                 <div className="notion-emoji-palette">
                   {POPULAR_EMOJIS.map((emoji) => (
                     <button
@@ -452,13 +591,28 @@ function NotionDocEditor({
             placeholder="Без названия"
             type="text"
             value={draftTitle}
-            onBlur={() => triggerImmediateSave({ title: draftTitle })}
+            onBlur={() => triggerImmediateSave({title: draftTitle})}
             onChange={handleTitleChange}
           />
         </div>
 
         {/* Document Body */}
-        {docMode === "live" ? (
+        {rawMarkdownMode ? (
+          <div className="notion-editor-area">
+            <textarea
+              className="notion-textarea"
+              placeholder="Исходный Markdown заметки…"
+              rows={18}
+              value={draftContent}
+              onBlur={() => triggerImmediateSave({note: draftContent, description: draftContent})}
+              onChange={(e) => {
+                const next = e.target.value;
+                setDraftContent(next);
+                triggerAutoSave({note: next, description: next});
+              }}
+            />
+          </div>
+        ) : (
           <div className="notion-live-area">
             <MarkdownNoteEditor
               value={draftContent}
@@ -469,27 +623,8 @@ function NotionDocEditor({
               }}
             />
           </div>
-        ) : (
-          <div className="notion-editor-area">
-            <div className="notion-block-toolbar">
-              <span className="notion-block-toolbar-label">Вставить:</span>
-              <button className="notion-block-tool" type="button" onClick={() => insertBlock("- [ ] Новый пункт чек-листа")}><AppIcon name="checkSquare" size="xs" /><span>Чекбокс</span></button>
-              <button className="notion-block-tool" type="button" onClick={() => insertBlock("- Пункт списка")}><AppIcon name="list" size="xs" /><span>Список</span></button>
-              <button className="notion-block-tool" type="button" onClick={() => insertBlock("1. Первый шаг")}><AppIcon name="listOrdered" size="xs" /><span>Шаги</span></button>
-              <button className="notion-block-tool" type="button" onClick={() => insertBlock("## Новый раздел")}><AppIcon name="heading" size="xs" /><span>Раздел H2</span></button>
-              <button className="notion-block-tool" type="button" onClick={() => insertBlock("> Важное замечание")}><AppIcon name="lightbulb" size="xs" /><span>Цитата</span></button>
-              <button className="notion-block-tool" type="button" onClick={() => insertBlock("---")}><AppIcon name="minus" size="xs" /><span>Линия</span></button>
-            </div>
-            <textarea
-              className="notion-textarea"
-              placeholder="Исходный Markdown заметки"
-              rows={16}
-              value={draftContent}
-              onBlur={() => triggerImmediateSave({ note: draftContent, description: draftContent })}
-              onChange={handleContentChange}
-            />
-          </div>
         )}
+
         <NoteAttachments noteId={note.id} />
       </div>
     </div>
@@ -507,6 +642,7 @@ function NotionNotesWorkspace({
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
   const [viewMode, setViewMode] = useState(() => window.localStorage.getItem(NOTE_VIEW_STORAGE_KEY) || "list");
   const [trashNotes, setTrashNotes] = useState([]);
   const [restoredNotes, setRestoredNotes] = useState([]);
@@ -522,7 +658,10 @@ function NotionNotesWorkspace({
   useEffect(() => {
     if (viewMode !== "trash") return;
     fetchNotesTrash()
-      .then((items) => { setTrashNotes(Array.isArray(items) ? items : []); setTrashStatus(""); })
+      .then((items) => {
+        setTrashNotes(Array.isArray(items) ? items : []);
+        setTrashStatus("");
+      })
       .catch(() => setTrashStatus("error"));
   }, [viewMode]);
 
@@ -554,6 +693,7 @@ function NotionNotesWorkspace({
         payload: {
           icon: newIcon,
           isPinned: false,
+          subtitle: preset.subtitle || "",
         },
       });
 
@@ -564,12 +704,30 @@ function NotionNotesWorkspace({
     [activeCategory, onAddNote],
   );
 
+  // Duplicate Note
+  const handleDuplicateNote = useCallback(
+    async (sourceNote) => {
+      if (!sourceNote) return;
+      const created = await onAddNote?.({
+        title: `${sourceNote.title || "Заметка"} (копия)`,
+        category: sourceNote.priority || "Процессы",
+        note: sourceNote.note || sourceNote.description || "",
+        payload: {
+          ...(sourceNote.payload || {}),
+          isPinned: false,
+        },
+      });
+      if (created?.id) {
+        setSelectedNoteId(created.id);
+      }
+    },
+    [onAddNote],
+  );
+
   // Filtered Notes
   const filteredNotes = useMemo(() => {
     return visibleNotes.filter((item) => {
-      const matchCat =
-        activeCategory === "all" ||
-        item.priority === activeCategory;
+      const matchCat = activeCategory === "all" || item.priority === activeCategory;
       const q = searchQuery.trim().toLowerCase();
       if (!q) return matchCat;
       const matchSearch =
@@ -590,33 +748,50 @@ function NotionNotesWorkspace({
 
   const showMobileDoc = isMobile && Boolean(selectedNoteId);
 
-  const handleBoardDragEnd = useCallback(async ({active, over}) => {
-    if (!over || !String(over.id).startsWith("note-status:")) return;
-    const noteId = String(active.id).replace("note:", "");
-    const status = String(over.id).replace("note-status:", "");
-    const note = visibleNotes.find((item) => String(item.id) === noteId);
-    if (!note || (note.payload?.noteStatus || "inbox") === status) return;
-    try {
-      const saved = await onUpdateNote?.(note.id, {payload: {...(note.payload || {}), noteStatus: status}});
-      if (saved) setRestoredNotes((current) => current.map((item) => String(item.id) === String(saved.id) ? saved : item));
-    } catch {
-      // The shared notification layer reports the save failure.
-    }
-  }, [visibleNotes, onUpdateNote]);
+  const handleBoardDragEnd = useCallback(
+    async ({active, over}) => {
+      if (!over || !String(over.id).startsWith("note-status:")) return;
+      const noteId = String(active.id).replace("note:", "");
+      const status = String(over.id).replace("note-status:", "");
+      const note = visibleNotes.find((item) => String(item.id) === noteId);
+      if (!note || (note.payload?.noteStatus || "inbox") === status) return;
+      try {
+        const saved = await onUpdateNote?.(note.id, {
+          payload: {...(note.payload || {}), noteStatus: status},
+        });
+        if (saved) {
+          setRestoredNotes((current) =>
+            current.map((item) => (String(item.id) === String(saved.id) ? saved : item)),
+          );
+        }
+      } catch {
+        // The shared notification layer reports the save failure.
+      }
+    },
+    [visibleNotes, onUpdateNote],
+  );
 
-  const handleUpdateNote = useCallback(async (id, updates) => {
-    const saved = await onUpdateNote?.(id, updates);
-    if (saved) {
-      setRestoredNotes((current) => current.map((item) => String(item.id) === String(saved.id) ? saved : item));
-    }
-    return saved;
-  }, [onUpdateNote]);
+  const handleUpdateNote = useCallback(
+    async (id, updates) => {
+      const saved = await onUpdateNote?.(id, updates);
+      if (saved) {
+        setRestoredNotes((current) =>
+          current.map((item) => (String(item.id) === String(saved.id) ? saved : item)),
+        );
+      }
+      return saved;
+    },
+    [onUpdateNote],
+  );
 
   const handleRestoreNote = useCallback(async (note) => {
     try {
       const restored = await restoreDeletedNote(note.id);
       setTrashNotes((current) => current.filter((item) => String(item.id) !== String(note.id)));
-      setRestoredNotes((current) => [restored, ...current.filter((item) => String(item.id) !== String(restored.id))]);
+      setRestoredNotes((current) => [
+        restored,
+        ...current.filter((item) => String(item.id) !== String(restored.id)),
+      ]);
     } catch {
       setTrashStatus("error");
     }
@@ -641,215 +816,237 @@ function NotionNotesWorkspace({
   return (
     <div className="notion-workspace-shell">
       {viewMode === "list" ? (
-      <div className={`notion-workspace ${isMobile ? "is-mobile" : "is-desktop"}`}>
-      {/* SIDEBAR */}
-      {(!isMobile || !showMobileDoc) && (
-        <aside className="notion-sidebar">
-          {/* Header */}
-          <div className="notion-sidebar-header">
-            <div className="notion-sidebar-title-group">
-              <h2 className="notion-sidebar-title">Заметки</h2>
-              <Badge size="sm" variant="neutral">
-                {visibleNotes.length}
-              </Badge>
-            </div>
-            <NotesViewSwitch viewMode={viewMode} onSelectView={selectView} />
-            <div className="notion-sidebar-actions">
-              <IconButton
-                aria-label="Новая заметка"
-                className="notion-new-btn"
-                icon="plus"
-                size="sm"
-                title="Новая заметка"
-                variant="primary"
-                onClick={() => handleCreateNote()}
-              />
-              <IconButton
-                aria-label="Шаблоны процессов"
-                className="notion-template-trigger"
-                icon="sparkles"
-                size="sm"
-                title="Готовые шаблоны процессов"
-                variant="secondary"
-                onClick={() => setTemplatesOpen((prev) => !prev)}
-              />
-            </div>
-          </div>
-
-          {/* Templates popover */}
-          {templatesOpen ? (
-            <div className="notion-templates-dropdown">
-              <div className="notion-templates-head">
-                <span>⚡ Быстрые шаблоны процессов</span>
-                <button
-                  className="notion-templates-close"
-                  type="button"
-                  onClick={() => setTemplatesOpen(false)}
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="notion-templates-list">
-                {NOTION_NOTE_TEMPLATES.map((tmpl) => (
-                  <button
-                    className="notion-template-item"
-                    key={tmpl.id}
-                    type="button"
-                    onClick={() => handleCreateNote(tmpl)}
+        <div
+          className={`notion-workspace ${isMobile ? "is-mobile" : "is-desktop"} ${
+            isFocusMode ? "is-focus-mode" : ""
+          }`}
+        >
+          {/* SIDEBAR (Panel 2) */}
+          {(!isMobile || !showMobileDoc) && !isFocusMode && (
+            <aside className="notion-sidebar">
+              {/* Header */}
+              <div className="notion-sidebar-header">
+                <div className="notion-sidebar-title-group">
+                  <h2 className="notion-sidebar-title">Заметки</h2>
+                  <Badge size="sm" variant="neutral">
+                    {visibleNotes.length}
+                  </Badge>
+                </div>
+                <NotesViewSwitch onSelectView={selectView} viewMode={viewMode} />
+                <div className="notion-sidebar-actions">
+                  <Button
+                    className="notion-new-note-btn"
+                    leftIcon="plus"
+                    size="sm"
+                    variant="primary"
+                    onClick={() => handleCreateNote()}
                   >
-                    <span className="notion-template-icon">{tmpl.icon}</span>
-                    <div className="notion-template-text">
-                      <strong>{tmpl.title}</strong>
-                      <small>{tmpl.category}</small>
-                    </div>
-                  </button>
-                ))}
+                    Новая
+                  </Button>
+                  <IconButton
+                    aria-label="Шаблоны процессов"
+                    className="notion-template-trigger"
+                    icon="sparkles"
+                    size="sm"
+                    title="Готовые шаблоны процессов"
+                    variant="ghost"
+                    onClick={() => setTemplatesOpen((prev) => !prev)}
+                  />
+                </div>
               </div>
-            </div>
-          ) : null}
 
-          {/* Search bar */}
-          <div className="notion-search-wrap">
-            <AppIcon className="notion-search-icon" name="search" size="xs" />
-            <input
-              className="notion-search-input"
-              placeholder="Поиск по заметкам и процессам..."
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery ? (
-              <button
-                className="notion-search-clear"
-                type="button"
-                onClick={() => setSearchQuery("")}
-              >
-                ✕
-              </button>
-            ) : null}
-          </div>
-
-          {/* Category Chips Bar */}
-          <div className="notion-category-bar" role="tablist">
-            {NOTION_NOTE_CATEGORIES.map((cat) => {
-              const count =
-                cat.id === "all"
-                  ? visibleNotes.length
-                  : visibleNotes.filter((n) => n.priority === cat.id).length;
-              return (
-                <button
-                  className={`notion-cat-chip ${activeCategory === cat.id ? "is-active" : ""}`}
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setActiveCategory(cat.id)}
-                >
-                  <span>{cat.emoji || ""} {cat.label}</span>
-                  <span className="notion-cat-count">{count}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Notes List */}
-          <div className="notion-notes-list">
-            {filteredNotes.length === 0 ? (
-              <div className="notion-sidebar-empty">
-                <AppIcon name="fileText" size="lg" />
-                <p>Заметок не найдено</p>
-                <Button size="sm" variant="secondary" onClick={() => handleCreateNote()}>
-                  Создать первую
-                </Button>
-              </div>
-            ) : (
-              <>
-                {pinnedNotes.length > 0 ? (
-                  <div className="notion-list-section">
-                    <span className="notion-section-label">📌 Закреплённые</span>
-                    {pinnedNotes.map((note) => (
-                      <article
-                        className={`notion-item-card ${resolvedActiveNoteId === note.id ? "is-active" : ""}`}
-                        key={note.id}
-                        onClick={() => setSelectedNoteId(note.id)}
+              {/* Templates Popover */}
+              {templatesOpen ? (
+                <div className="notion-templates-dropdown">
+                  <div className="notion-templates-head">
+                    <span>⚡ Шаблоны процессов</span>
+                    <button
+                      className="notion-templates-close"
+                      type="button"
+                      onClick={() => setTemplatesOpen(false)}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="notion-templates-list">
+                    {NOTION_NOTE_TEMPLATES.map((tmpl) => (
+                      <button
+                        className="notion-template-item"
+                        key={tmpl.id}
+                        type="button"
+                        onClick={() => handleCreateNote(tmpl)}
                       >
-                        <span className="notion-item-emoji">{getNoteIcon(note)}</span>
-                        <div className="notion-item-body">
-                          <h4 className="notion-item-title">{note.title || "Без названия"}</h4>
+                        <span className="notion-template-icon">{tmpl.icon}</span>
+                        <div className="notion-template-text">
+                          <strong>{tmpl.title}</strong>
+                          <small>{tmpl.category}</small>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Search & Filter Bar */}
+              <div className="notion-search-row">
+                <div className="notion-search-wrap">
+                  <AppIcon className="notion-search-icon" name="search" size="xs" />
+                  <input
+                    className="notion-search-input"
+                    placeholder="Поиск по заметкам..."
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery ? (
+                    <button
+                      className="notion-search-clear"
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                    >
+                      ✕
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
+              {/* Horizontal Category Chips Bar */}
+              <div className="notion-category-bar" role="tablist">
+                {NOTION_NOTE_CATEGORIES.map((cat) => {
+                  const count =
+                    cat.id === "all"
+                      ? visibleNotes.length
+                      : visibleNotes.filter((n) => n.priority === cat.id).length;
+                  return (
+                    <button
+                      className={`notion-cat-chip ${activeCategory === cat.id ? "is-active" : ""}`}
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setActiveCategory(cat.id)}
+                    >
+                      <span>{cat.emoji ? `${cat.emoji} ` : ""}{cat.label}</span>
+                      <span className="notion-cat-count">[{count}]</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Notes Cards List */}
+              <div className="notion-notes-list">
+                {filteredNotes.length === 0 ? (
+                  <div className="notion-sidebar-empty">
+                    <AppIcon name="fileText" size="lg" />
+                    <p>Заметок не найдено</p>
+                    <Button size="sm" variant="secondary" onClick={() => handleCreateNote()}>
+                      Создать первую
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    {pinnedNotes.length > 0 ? (
+                      <div className="notion-list-section">
+                        <span className="notion-section-label">📌 Закреплённые</span>
+                        {pinnedNotes.map((note) => (
+                          <article
+                            className={`notion-item-card ${
+                              resolvedActiveNoteId === note.id ? "is-active" : ""
+                            }`}
+                            key={note.id}
+                            onClick={() => setSelectedNoteId(note.id)}
+                          >
+                            <div className="notion-item-top">
+                              <span className="notion-item-emoji">{getNoteIcon(note)}</span>
+                              <h4 className="notion-item-title">{note.title || "Без названия"}</h4>
+                            </div>
+                            <p className="notion-item-snippet">
+                              {stripMarkdownForSnippet(note.note || note.description) || "Пустая страница..."}
+                            </p>
+                            <div className="notion-item-footer">
+                              <span className="notion-item-tag">{note.priority || "Процессы"}</span>
+                              <span className="notion-item-date">
+                                {formatNoteDate(note.updatedAt || note.createdAt)}
+                              </span>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    <div className="notion-list-section">
+                      {pinnedNotes.length > 0 ? (
+                        <span className="notion-section-label">📄 Все заметки</span>
+                      ) : null}
+                      {unpinnedNotes.map((note) => (
+                        <article
+                          className={`notion-item-card ${
+                            resolvedActiveNoteId === note.id ? "is-active" : ""
+                          }`}
+                          key={note.id}
+                          onClick={() => setSelectedNoteId(note.id)}
+                        >
+                          <div className="notion-item-top">
+                            <span className="notion-item-emoji">{getNoteIcon(note)}</span>
+                            <h4 className="notion-item-title">{note.title || "Без названия"}</h4>
+                          </div>
                           <p className="notion-item-snippet">
                             {stripMarkdownForSnippet(note.note || note.description) || "Пустая страница..."}
                           </p>
                           <div className="notion-item-footer">
                             <span className="notion-item-tag">{note.priority || "Процессы"}</span>
-                            <span className="notion-item-date">{formatNoteDate(note.createdAt)}</span>
+                            <span className="notion-item-date">
+                              {formatNoteDate(note.updatedAt || note.createdAt)}
+                            </span>
                           </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                ) : null}
-
-                <div className="notion-list-section">
-                  {pinnedNotes.length > 0 ? (
-                    <span className="notion-section-label">📄 Все страницы</span>
-                  ) : null}
-                  {unpinnedNotes.map((note) => (
-                    <article
-                      className={`notion-item-card ${resolvedActiveNoteId === note.id ? "is-active" : ""}`}
-                      key={note.id}
-                      onClick={() => setSelectedNoteId(note.id)}
-                    >
-                      <span className="notion-item-emoji">{getNoteIcon(note)}</span>
-                      <div className="notion-item-body">
-                        <h4 className="notion-item-title">{note.title || "Без названия"}</h4>
-                        <p className="notion-item-snippet">
-                          {stripMarkdownForSnippet(note.note || note.description) || "Пустая страница..."}
-                        </p>
-                        <div className="notion-item-footer">
-                          <span className="notion-item-tag">{note.priority || "Процессы"}</span>
-                          <span className="notion-item-date">{formatNoteDate(note.createdAt)}</span>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </aside>
-      )}
-
-      {/* CANVAS */}
-      {(!isMobile || showMobileDoc) && (
-        <main className="notion-canvas">
-          {activeNote ? (
-            <NotionDocEditor
-              isMobile={isMobile}
-              key={activeNote.id}
-              note={activeNote}
-              onBackToList={() => setSelectedNoteId(null)}
-              onDeleteNote={onDeleteNote}
-              onUpdateNote={handleUpdateNote}
-            />
-          ) : (
-            <div className="notion-no-doc-selected">
-              <span className="notion-empty-icon">📝</span>
-              <h3>Выберите заметку или создайте новую</h3>
-              <p>Записывайте рабочие процессы студии, регламенты открытия, чек-листы уборки и идеи в удобном стиле Notion.</p>
-              <Button leftIcon="plus" variant="primary" onClick={() => handleCreateNote()}>
-                Создать страницу процесса
-              </Button>
-            </div>
+                        </article>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </aside>
           )}
-        </main>
-      )}
-      </div>
+
+          {/* CANVAS (Panel 3) */}
+          {(!isMobile || showMobileDoc) && (
+            <main className="notion-canvas">
+              {activeNote ? (
+                <NotionDocEditor
+                  isFocusMode={isFocusMode}
+                  isMobile={isMobile}
+                  key={activeNote.id}
+                  note={activeNote}
+                  onBackToList={() => setSelectedNoteId(null)}
+                  onDeleteNote={onDeleteNote}
+                  onDuplicateNote={handleDuplicateNote}
+                  onToggleFocusMode={() => setIsFocusMode((prev) => !prev)}
+                  onUpdateNote={handleUpdateNote}
+                />
+              ) : (
+                <div className="notion-no-doc-selected">
+                  <span className="notion-empty-icon">📝</span>
+                  <h3>Выберите заметку или создайте новую</h3>
+                  <p>
+                    Записывайте контент-планы, рабочие процессы студии, регламенты и идеи в удобном стиле Notion.
+                  </p>
+                  <Button leftIcon="plus" variant="primary" onClick={() => handleCreateNote()}>
+                    Создать заметку
+                  </Button>
+                </div>
+              )}
+            </main>
+          )}
+        </div>
       ) : selectedNoteId && activeNote ? (
         <div className="notion-visual-editor">
           <NotionDocEditor
+            isFocusMode={false}
             isMobile
             key={activeNote.id}
             note={activeNote}
             onBackToList={() => setSelectedNoteId(null)}
             onDeleteNote={onDeleteNote}
+            onDuplicateNote={handleDuplicateNote}
+            onToggleFocusMode={() => {}}
             onUpdateNote={handleUpdateNote}
           />
         </div>
@@ -858,31 +1055,112 @@ function NotionNotesWorkspace({
           <header className="notion-visual-header">
             <div className="notion-sidebar-title-group">
               <h2 className="notion-sidebar-title">Заметки</h2>
-              <Badge size="sm" variant="neutral">{viewMode === "trash" ? trashNotes.length : visibleNotes.length}</Badge>
+              <Badge size="sm" variant="neutral">
+                {viewMode === "trash" ? trashNotes.length : visibleNotes.length}
+              </Badge>
             </div>
-            <NotesViewSwitch viewMode={viewMode} onSelectView={selectView} />
-            {viewMode !== "trash" ? <IconButton aria-label="Новая заметка" icon="plus" size="sm" title="Новая заметка" variant="primary" onClick={() => handleCreateNote()} /> : null}
+            <NotesViewSwitch onSelectView={selectView} viewMode={viewMode} />
+            {viewMode !== "trash" ? (
+              <Button
+                leftIcon="plus"
+                size="sm"
+                variant="primary"
+                onClick={() => handleCreateNote()}
+              >
+                Новая
+              </Button>
+            ) : null}
           </header>
-          {viewMode !== "trash" ? <div className="notion-visual-filters">
-            <div className="notion-search-wrap"><AppIcon className="notion-search-icon" name="search" size="xs" /><input className="notion-search-input" placeholder="Поиск заметок" type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} /></div>
-            <div className="notion-category-bar">{NOTION_NOTE_CATEGORIES.map((cat) => <button className={`notion-cat-chip ${activeCategory === cat.id ? "is-active" : ""}`} key={cat.id} type="button" onClick={() => setActiveCategory(cat.id)}><span>{cat.emoji || ""} {cat.label}</span></button>)}</div>
-          </div> : null}
+
+          {viewMode !== "trash" ? (
+            <div className="notion-visual-filters">
+              <div className="notion-search-wrap">
+                <AppIcon className="notion-search-icon" name="search" size="xs" />
+                <input
+                  className="notion-search-input"
+                  placeholder="Поиск заметок"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
+              </div>
+              <div className="notion-category-bar">
+                {NOTION_NOTE_CATEGORIES.map((cat) => (
+                  <button
+                    className={`notion-cat-chip ${activeCategory === cat.id ? "is-active" : ""}`}
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setActiveCategory(cat.id)}
+                  >
+                    <span>{cat.emoji || ""} {cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {viewMode === "trash" ? (
             <div className="notion-trash-list">
               {trashStatus === "loading" ? <p>Загрузка корзины…</p> : null}
               {trashStatus === "error" ? <p className="notion-trash-error">Не удалось загрузить корзину</p> : null}
-              {!trashStatus && !trashNotes.length ? <div className="notion-trash-empty"><AppIcon name="trash" size="lg" /><strong>Корзина пуста</strong><span>Удалённые заметки можно восстановить отсюда</span></div> : null}
-              {trashNotes.map((note) => <article className="notion-trash-card" key={note.id}><div><span>{getNoteIcon(note)}</span><div><strong>{note.title || "Без названия"}</strong><small>Удалено {formatNoteDate(note.payload?.deletedAt)}</small></div></div><div><Button leftIcon="rotateCcw" size="sm" variant="secondary" onClick={() => handleRestoreNote(note)}>Восстановить</Button><IconButton aria-label="Удалить навсегда" icon="trash" size="sm" title="Удалить навсегда" variant="ghost" onClick={() => handlePermanentDelete(note)} /></div></article>)}
+              {!trashStatus && !trashNotes.length ? (
+                <div className="notion-trash-empty">
+                  <AppIcon name="trash" size="lg" />
+                  <strong>Корзина пуста</strong>
+                  <span>Удалённые заметки можно восстановить отсюда</span>
+                </div>
+              ) : null}
+              {trashNotes.map((note) => (
+                <article className="notion-trash-card" key={note.id}>
+                  <div>
+                    <span>{getNoteIcon(note)}</span>
+                    <div>
+                      <strong>{note.title || "Без названия"}</strong>
+                      <small>Удалено {formatNoteDate(note.payload?.deletedAt)}</small>
+                    </div>
+                  </div>
+                  <div>
+                    <Button leftIcon="rotateCcw" size="sm" variant="secondary" onClick={() => handleRestoreNote(note)}>
+                      Восстановить
+                    </Button>
+                    <IconButton
+                      aria-label="Удалить навсегда"
+                      icon="trash"
+                      size="sm"
+                      title="Удалить навсегда"
+                      variant="ghost"
+                      onClick={() => handlePermanentDelete(note)}
+                    />
+                  </div>
+                </article>
+              ))}
             </div>
           ) : viewMode === "board" ? (
             <DndContext sensors={boardSensors} onDragEnd={handleBoardDragEnd}>
               <div className="notion-board">
-                {NOTE_BOARD_COLUMNS.map((column) => <NoteBoardColumn column={column} key={column.id} notes={filteredNotes.filter((note) => (note.payload?.noteStatus || "inbox") === column.id)} onOpen={setSelectedNoteId} />)}
+                {NOTE_BOARD_COLUMNS.map((column) => (
+                  <NoteBoardColumn
+                    column={column}
+                    key={column.id}
+                    notes={filteredNotes.filter(
+                      (note) => (note.payload?.noteStatus || "inbox") === column.id,
+                    )}
+                    onOpen={setSelectedNoteId}
+                  />
+                ))}
               </div>
             </DndContext>
           ) : (
             <div className="notion-gallery">
-              {filteredNotes.map((note) => <NoteVisualCard draggable={false} key={note.id} note={note} onOpen={setSelectedNoteId} showCover />)}
+              {filteredNotes.map((note) => (
+                <NoteVisualCard
+                  draggable={false}
+                  key={note.id}
+                  note={note}
+                  onOpen={setSelectedNoteId}
+                  showCover
+                />
+              ))}
             </div>
           )}
         </div>
