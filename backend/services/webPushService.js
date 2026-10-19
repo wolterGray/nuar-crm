@@ -65,13 +65,14 @@ const deliverPush = async (
   delivery,
   subscription,
   payload,
-  {sendNotification = webpush.sendNotification, retryDelays = [250, 750]} = {},
+  {sendNotification = webpush.sendNotification, retryDelays = [250, 750], maxAttemptsThisRun} = {},
 ) => {
   configureWebPush();
   let lastError = null;
   let attempts = Number(delivery.attempts) || 0;
+  const maxAttempts = maxAttemptsThisRun ? Math.min(MAX_ATTEMPTS, attempts + maxAttemptsThisRun) : MAX_ATTEMPTS;
 
-  for (let attempt = attempts + 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+  for (let attempt = attempts + 1; attempt <= maxAttempts; attempt += 1) {
     attempts = attempt;
     try {
       const result = await sendNotification(
@@ -103,9 +104,15 @@ const deliverPush = async (
   const expired = isExpiredPushSubscriptionError(lastError);
   const retryable = isRetryablePushError(lastError) && attempts < MAX_ATTEMPTS;
   const safeError = expired ? `Push endpoint expired (${statusCode})` : statusCode ? `Web Push failed (${statusCode})` : 'Web Push failed';
+  const nextScheduledAt = retryable ? new Date(Date.now() + Math.pow(2, attempts) * 15 * 1000) : undefined;
   await prisma.$transaction([
     prisma.notificationDelivery.update({
-      data: {attempts, errorMessage: safeError, status: retryable ? 'retrying' : 'failed'},
+      data: {
+        attempts,
+        errorMessage: safeError,
+        status: retryable ? 'retrying' : 'failed',
+        ...(nextScheduledAt ? {scheduledAt: nextScheduledAt} : {}),
+      },
       where: {id: delivery.id},
     }),
     prisma.pushSubscription.update({

@@ -120,7 +120,14 @@ app.use('/api', systemStateRouter);
 const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
 
+const {PrismaClient} = require('@prisma/client');
+const {startNotificationWorker} = require('./services/notificationWorker');
+const serverPrisma = new PrismaClient();
+
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Backend listening on http://localhost:${PORT}`);
+  startNotificationWorker(serverPrisma);
 });
+
+module.exports = {app, server};

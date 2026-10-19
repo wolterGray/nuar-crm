@@ -81,20 +81,47 @@ const buildBusinessPushPayload = (event) => {
   };
 };
 
-const queueBusinessPushDeliveries = async (prisma, event) => {
+const getTargetUsers = async (prisma, event, config) => {
+  const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {};
+  const roleConditions = [
+    {role: {in: ['owner', 'admin']}},
+  ];
+
+  const targetEmployeeId = Number(payload.employeeId || payload.masterId || payload.preferredMasterId);
+  if (Number.isInteger(targetEmployeeId) && targetEmployeeId > 0) {
+    roleConditions.push({employeeId: targetEmployeeId});
+  }
+
+  const targetUserId = Number(payload.userId || payload.assignedUserId);
+  if (Number.isInteger(targetUserId) && targetUserId > 0) {
+    roleConditions.push({id: targetUserId});
+  }
+
+  const where = {
+    isActive: true,
+    [config.preference]: true,
+    OR: roleConditions,
+  };
+
+  return prisma.user.findMany({
+    select: {
+      id: true,
+      role: true,
+      employeeId: true,
+      [config.preference]: true,
+      pushSubscriptions: {select: {id: true}, where: {isActive: true}},
+    },
+    where,
+  });
+};
+
+const queueBusinessPushDeliveries = async (prisma, event, options = {}) => {
   const config = EVENT_CONFIG[event?.type];
   const pushPayload = buildBusinessPushPayload(event);
   if (!config || !pushPayload || !isWebPushConfigured()) return {queued: 0, skipped: true};
 
-  const owners = await prisma.user.findMany({
-    select: {
-      id: true,
-      [config.preference]: true,
-      pushSubscriptions: {select: {id: true}, where: {isActive: true}},
-    },
-    where: {isActive: true, role: 'owner', [config.preference]: true},
-  });
-  const deliveries = owners.flatMap((owner) => owner.pushSubscriptions.map((subscription) => ({
+  const users = await getTargetUsers(prisma, event, config);
+  const deliveries = users.flatMap((user) => (user.pushSubscriptions || []).map((subscription) => ({
     channel: 'web_push',
     deduplicationKey: `web-push:event:${event.id}:subscription:${subscription.id}`,
     messageText: JSON.stringify(pushPayload),
@@ -106,21 +133,31 @@ const queueBusinessPushDeliveries = async (prisma, event) => {
     templateKey: event.type,
   })));
   await prisma.notificationRecipient.createMany({
-    data: owners.map((owner) => ({notificationEventId: event.id, userId: owner.id})),
+    data: users.map((user) => ({notificationEventId: event.id, userId: user.id})),
     skipDuplicates: true,
   });
   if (deliveries.length === 0) return {queued: 0};
   const result = await prisma.notificationDelivery.createMany({data: deliveries, skipDuplicates: true});
+
+  if (options.flushImmediately === true && typeof prisma?.notificationDelivery?.findMany === 'function') {
+    await processDueWebPushDeliveries(prisma, options);
+  } else if (options.flushImmediately !== false && typeof prisma?.notificationDelivery?.findMany === 'function') {
+    processDueWebPushDeliveries(prisma, options).catch((err) => {
+      console.error('[businessPush] Immediate flush error:', err);
+    });
+  }
+
   return {queued: result.count};
 };
 
-const recordBusinessNotificationEvent = async (prisma, input, upsertNotificationEvent) => {
+const recordBusinessNotificationEvent = async (prisma, input, upsertNotificationEvent, options = {}) => {
   const event = await upsertNotificationEvent(prisma, input);
-  await queueBusinessPushDeliveries(prisma, event);
+  await queueBusinessPushDeliveries(prisma, event, options);
   return event;
 };
 
-const processDueWebPushDeliveries = async (prisma, {limit = 50, sendNotification} = {}) => {
+const processDueWebPushDeliveries = async (prisma, options = {}) => {
+  const {limit = 50, sendNotification} = options;
   if (!isWebPushConfigured()) return {processed: 0, skipped: true, skippedReason: 'not_configured'};
   const staleClaim = new Date(Date.now() - 5 * 60 * 1000);
   const deliveries = await prisma.notificationDelivery.findMany({
@@ -153,7 +190,7 @@ const processDueWebPushDeliveries = async (prisma, {limit = 50, sendNotification
       await prisma.notificationDelivery.update({data: {status: 'failed', errorMessage: 'Push subscription inactive'}, where: {id: delivery.id}});
       continue;
     }
-    await processQueuedPushDelivery(prisma, delivery, {sendNotification});
+    await processQueuedPushDelivery(prisma, delivery, options);
     processed += 1;
   }
   return {processed};
@@ -162,6 +199,7 @@ const processDueWebPushDeliveries = async (prisma, {limit = 50, sendNotification
 module.exports = {
   EVENT_CONFIG,
   buildBusinessPushPayload,
+  getTargetUsers,
   processDueWebPushDeliveries,
   queueBusinessPushDeliveries,
   recordBusinessNotificationEvent,

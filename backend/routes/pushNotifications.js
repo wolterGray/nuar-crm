@@ -1,7 +1,9 @@
 const express = require('express');
 const {PrismaClient} = require('@prisma/client');
-const {requireOwner} = require('../middleware/auth');
+const {requireOwner, requirePermission} = require('../middleware/auth');
+const {PERMISSIONS} = require('../constants/permissions');
 const {recordAuditLog, recordErrorEvent} = require('../services/loggingService');
+const {getWorkerStatus, runWorkerCycle} = require('../services/notificationWorker');
 const {
   getVapidConfiguration,
   isWebPushConfigured,
@@ -223,6 +225,114 @@ router.post('/push/test', requireOwner, async (req, res) => {
     });
   } catch (error) {
     await handleError(req, res, error, 'push.test');
+  }
+});
+
+router.get('/push/diagnostics', requirePermission(PERMISSIONS.USERS_MANAGE), async (req, res) => {
+  try {
+    const vapidConfig = getVapidConfiguration();
+    const configured = isWebPushConfigured();
+    const now = new Date();
+    const oneDayAgo = new Date(Date.now() - 24 * 3600 * 1000);
+
+    const [
+      activeSubscriptions,
+      inactiveSubscriptions,
+      pendingDeliveries,
+      retryingDeliveries,
+      sentDeliveries24h,
+      failedDeliveries24h,
+      recentDeliveries,
+      staffUsers,
+    ] = await Promise.all([
+      prisma.pushSubscription.count({where: {isActive: true}}),
+      prisma.pushSubscription.count({where: {isActive: false}}),
+      prisma.notificationDelivery.count({where: {channel: 'web_push', status: 'pending'}}),
+      prisma.notificationDelivery.count({where: {channel: 'web_push', status: 'retrying'}}),
+      prisma.notificationDelivery.count({where: {channel: 'web_push', status: 'sent', sentAt: {gte: oneDayAgo}}}),
+      prisma.notificationDelivery.count({where: {channel: 'web_push', status: 'failed', updatedAt: {gte: oneDayAgo}}}),
+      prisma.notificationDelivery.findMany({
+        orderBy: {createdAt: 'desc'},
+        select: {
+          attempts: true,
+          createdAt: true,
+          errorMessage: true,
+          id: true,
+          recipient: true,
+          scheduledAt: true,
+          sentAt: true,
+          status: true,
+          templateKey: true,
+        },
+        take: 15,
+        where: {channel: 'web_push'},
+      }),
+      prisma.user.findMany({
+        select: {
+          _count: {select: {pushSubscriptions: {where: {isActive: true}}}},
+          email: true,
+          employeeId: true,
+          id: true,
+          name: true,
+          pushImportantTasks: true,
+          pushNewVisits: true,
+          pushOverdueTasks: true,
+          pushVisitCancelled: true,
+          pushVisitRescheduled: true,
+          role: true,
+        },
+        where: {isActive: true},
+      }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        configured,
+        counts: {
+          activeSubscriptions,
+          failedDeliveries24h,
+          inactiveSubscriptions,
+          pendingDeliveries,
+          retryingDeliveries,
+          sentDeliveries24h,
+        },
+        recentDeliveries,
+        staffUsers: staffUsers.map((u) => ({
+          activeSubscriptionsCount: u._count?.pushSubscriptions ?? 0,
+          email: u.email,
+          employeeId: u.employeeId,
+          id: u.id,
+          name: u.name,
+          preferences: {
+            pushImportantTasks: u.pushImportantTasks,
+            pushNewVisits: u.pushNewVisits,
+            pushOverdueTasks: u.pushOverdueTasks,
+            pushVisitCancelled: u.pushVisitCancelled,
+            pushVisitRescheduled: u.pushVisitRescheduled,
+          },
+          role: u.role,
+        })),
+        timestamp: now.toISOString(),
+        vapid: {
+          hasPrivateKey: Boolean(vapidConfig.privateKey),
+          hasPublicKey: Boolean(vapidConfig.publicKey),
+          subject: vapidConfig.subject || null,
+        },
+        worker: getWorkerStatus(),
+      },
+    });
+  } catch (error) {
+    await handleError(req, res, error, 'push.diagnostics');
+  }
+});
+
+router.post('/push/process-queue', requirePermission(PERMISSIONS.USERS_MANAGE), async (req, res) => {
+  try {
+    const result = await runWorkerCycle(prisma, {limit: Number(req.body?.limit) || 50});
+    res.json({success: true, data: result});
+  } catch (error) {
+    await handleError(req, res, error, 'push.process-queue');
   }
 });
 
