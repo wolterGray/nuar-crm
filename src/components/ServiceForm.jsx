@@ -73,7 +73,7 @@ function ServiceBookingBuffers({service}) {
             min="0"
             name="siteBookingBufferAfterMinutes"
             type="number"
-            defaultValue={service?.siteBookingBufferAfterMinutes ?? 30}
+            defaultValue={service?.siteBookingBufferAfterMinutes ?? 15}
           />
         </label>
       </div>

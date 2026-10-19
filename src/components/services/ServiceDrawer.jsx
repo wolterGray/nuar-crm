@@ -188,7 +188,7 @@ export default function ServiceDrawer({
       setBufferBeforeEnabled(false);
       setBufferBeforeMinutes(15);
       setBufferAfterEnabled(false);
-      setBufferAfterMinutes(30);
+      setBufferAfterMinutes(15);
       setSiteVisible(true);
       setIsCombo(false);
       setIsCouple(false);
@@ -208,7 +208,7 @@ export default function ServiceDrawer({
         bufferBeforeEnabled: false,
         bufferBeforeMinutes: 15,
         bufferAfterEnabled: false,
-        bufferAfterMinutes: 30,
+        bufferAfterMinutes: 15,
         siteVisible: true,
         isCombo: false,
         isCouple: false,

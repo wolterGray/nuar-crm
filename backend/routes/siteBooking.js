@@ -47,6 +47,8 @@ const normalizeText = (value) =>
   String(value ?? '')
     .trim()
     .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
     .replaceAll('ё', 'е');
 
 const toMinutes = (time) => {
@@ -195,6 +197,7 @@ const toPublicEmployee = (row) => {
   const pricing = row?.pricing && typeof row.pricing === 'object' ? row.pricing : {};
   const name = cleanString(row?.name ?? payload.name);
   return {
+    id: row?.id,
     name,
     bookingBlockedDates: normalizeBlockedDates(payload.bookingBlockedDates),
     premiumHoursEnabled: pricing.premiumHoursEnabled === true || payload.premiumHoursEnabled === true,
@@ -238,26 +241,78 @@ const isTopMasterEmployee = (employee) =>
   /top/i.test(employee?.name ?? '') ||
   SITE_MASTER_ALIASES[normalizeText(employee?.name)] === 'Ольга';
 
-const findPreferredService = ({ employee, serviceId, serviceName, serviceSlug, services = [] }) => {
+const getCatalogService = ({ serviceName, serviceSlug }) => {
+  const normalizedSlug = normalizeText(serviceSlug);
+  const normalizedName = cleanServiceTitle(serviceName);
+  const bySlug = SITE_SERVICE_PRICE_FALLBACKS.find((item) => normalizeText(item.slug) === normalizedSlug);
+  if (bySlug) return bySlug;
+
+  const byTitle = SITE_SERVICE_PRICE_FALLBACKS.find((item) => {
+    const title = cleanServiceTitle(item.title);
+    return normalizedName === title || normalizedName.includes(title) || title.includes(normalizedName);
+  });
+  if (byTitle) return byTitle;
+
+  const aliases = [
+    { pattern: /(?:twarzy|lica|лиц|face|glow)/i, slug: 'masaz-twarzy-i-glowy' },
+    { pattern: /(?:sport|спорт)/i, slug: 'masaz-sportowy' },
+    { pattern: /(?:klasycz|klass|классич)/i, slug: 'masaz-klasyczny' },
+    { pattern: /(?:relaks|relax|релакс)/i, slug: 'masaz-relaksacyjny' },
+    { pattern: /(?:limfat|lymph|лимфат)/i, slug: 'masaz-limfatyczny' },
+    { pattern: /(?:antycell|anticell|антицелл)/i, slug: 'masaz-antycellulitowy' },
+    { pattern: /(?:autorsk|signature|авторск)/i, slug: 'masaz-autorski' },
+    { pattern: /(?:dwojga|couples|парн|двоих)/i, slug: 'masaz-dla-dwojga' },
+  ];
+  const alias = aliases.find((item) => item.pattern.test(normalizedName));
+  return alias
+    ? SITE_SERVICE_PRICE_FALLBACKS.find((item) => item.slug === alias.slug) ?? null
+    : null;
+};
+
+const isServiceAssignedToEmployee = (service, employee) => {
+  if (!service || !employee) return false;
+  const assignedIds = Array.isArray(service.payload?.assignedEmployeeIds)
+    ? service.payload.assignedEmployeeIds.map((id) => String(id))
+    : Array.isArray(service.assignedEmployeeIds)
+      ? service.assignedEmployeeIds.map((id) => String(id))
+      : [];
+  const assignedNames = Array.isArray(service.payload?.assignedEmployeeNames)
+    ? service.payload.assignedEmployeeNames.map(normalizeText)
+    : Array.isArray(service.assignedEmployeeNames)
+      ? service.assignedEmployeeNames.map(normalizeText)
+      : [];
+  if (assignedIds.length === 0 && assignedNames.length === 0) {
+    return true;
+  }
+  return (
+    assignedIds.includes(String(employee.id)) ||
+    assignedNames.includes(normalizeText(employee.name))
+  );
+};
+
+const findPreferredService = ({ employee, requireAssigned = false, serviceId, serviceName, serviceSlug, services = [] }) => {
+  const availableServices = requireAssigned
+    ? services.filter((service) => isServiceAssignedToEmployee(service, employee))
+    : services;
   if (serviceId !== undefined && serviceId !== null && cleanString(serviceId)) {
-    const byId = services.find((service) => String(service.id) === String(serviceId));
+    const byId = availableServices.find((service) => String(service.id) === String(serviceId));
     if (byId) return byId;
   }
 
   const normName = normalizeText(serviceName);
   const cleanName = cleanServiceTitle(serviceName);
-  const catalogService = SITE_SERVICE_PRICE_FALLBACKS.find(
-    (item) => normalizeText(item.slug) === normalizeText(serviceSlug),
-  );
+  const catalogService = getCatalogService({ serviceName, serviceSlug });
   const catalogTitle = cleanServiceTitle(catalogService?.title);
-  const matchedServices = services.filter((item) => {
+  const matchedServices = availableServices.filter((item) => {
     const payloadSlug = cleanString(item.payload?.slug);
     const itemName = normalizeText(item.name);
     const itemTitle = cleanServiceTitle(item.name);
+    const itemCatalog = getCatalogService({ serviceName: item.name, serviceSlug: payloadSlug });
     return (
       itemName === normName ||
       (serviceSlug && normalizeText(payloadSlug) === normalizeText(serviceSlug)) ||
       itemTitle === cleanName ||
+      (catalogService && itemCatalog?.slug === catalogService.slug) ||
       (catalogTitle && (
         itemTitle === catalogTitle ||
         itemTitle.includes(catalogTitle) ||
@@ -274,19 +329,23 @@ const findPreferredService = ({ employee, serviceId, serviceName, serviceSlug, s
   );
 };
 
-const getServiceBuffers = (service) => ({
-  after: service?.buffers?.afterEnabled === true
-    ? Math.max(0, Number(service.buffers.afterMinutes) || 0)
-    : 0,
-  before: service?.buffers?.beforeEnabled === true
-    ? Math.max(0, Number(service.buffers.beforeMinutes) || 0)
-    : 0,
-});
+const getServiceBuffers = (service) => {
+  const buffers = service?.buffers && typeof service.buffers === 'object' ? service.buffers : service?.payload?.buffers;
+  const afterEnabled = buffers?.afterEnabled === true || service?.payload?.siteBookingBufferAfterEnabled === true;
+  const afterMinutes = afterEnabled
+    ? Math.max(0, Number(buffers?.afterMinutes ?? service?.payload?.siteBookingBufferAfterMinutes) || 0)
+    : 0;
+  const beforeEnabled = buffers?.beforeEnabled === true || service?.payload?.siteBookingBufferBeforeEnabled === true;
+  const beforeMinutes = beforeEnabled
+    ? Math.max(0, Number(buffers?.beforeMinutes ?? service?.payload?.siteBookingBufferBeforeMinutes) || 0)
+    : 0;
+  return { after: afterMinutes, before: beforeMinutes };
+};
 
 const getServiceBasePrice = ({ durationMinutes, employee, serviceName, serviceSlug, services = [] }) => {
   const cleanName = cleanServiceTitle(serviceName);
   const isTopMaster = isTopMasterEmployee(employee);
-  const preferredService = findPreferredService({ employee, serviceName, serviceSlug, services });
+  const preferredService = findPreferredService({ employee, requireAssigned: true, serviceName, serviceSlug, services });
 
   if (preferredService) {
     const variant = preferredService.variants?.find((item) => Number(item?.duration) === Number(durationMinutes));
@@ -353,7 +412,10 @@ const calculatePrice = ({ basePrice, date, durationMinutes = 0, employee, time }
   };
 };
 
-const overlaps = (start, end, interval) => start < interval.end && end > interval.start;
+const conflictsWithBuffers = (start, end, requestBuffers, interval) => (
+  start < interval.end + Math.max(interval.after || 0, requestBuffers.before || 0) &&
+  end + Math.max(requestBuffers.after || 0, interval.before || 0) > interval.start
+);
 
 const getCalendarIntervals = (rows, date, master, employees = [], services = []) =>
   rows
@@ -380,7 +442,7 @@ const getCalendarIntervals = (rows, date, master, employees = [], services = [])
         serviceName: payload.service,
         services,
       }));
-      return { start: Math.max(0, start - buffers.before), end: start + duration + buffers.after };
+      return { ...buffers, start, end: start + duration };
     });
 
 const getPendingIntervals = (rows, date, master, employees = [], services = []) =>
@@ -407,10 +469,33 @@ const getPendingIntervals = (rows, date, master, employees = [], services = []) 
         services,
       }));
       return {
-        start: Math.max(0, start - buffers.before),
-        end: start + Math.max(15, Number(row.duration_minutes) || 60) + buffers.after,
+        ...buffers,
+        start,
+        end: start + Math.max(15, Number(row.duration_minutes) || 60),
       };
     });
+
+const getServicesByMaster = (employees, services) => {
+  const result = {};
+  employees.forEach((employee) => {
+    const rawName = cleanString(employee.name);
+    const resolvedName = resolveMaster(rawName, employees) || rawName;
+    const slugs = [...new Set(
+      services
+        .filter((service) => isServiceAssignedToEmployee(service, employee))
+        .map((service) => getCatalogService({
+          serviceName: service.name,
+          serviceSlug: service.payload?.slug,
+        })?.slug)
+        .filter(Boolean),
+    )];
+    if (rawName) result[rawName] = slugs;
+    if (resolvedName) result[resolvedName] = slugs;
+    const alias = SITE_MASTER_ALIASES[normalizeText(rawName)];
+    if (alias) result[alias] = slugs;
+  });
+  return result;
+};
 
 const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, serviceName, serviceSlug }) => {
   if (!isInputDate(preferredDate)) throw validationError('preferredDate is invalid');
@@ -455,10 +540,21 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
 
   const slots = employees.flatMap((employee) => {
     const master = cleanString(employee.name);
-    const basePrice = getServiceBasePrice({ durationMinutes: duration, employee, serviceName, serviceSlug, services });
-    const requestBuffers = getServiceBuffers(
-      findPreferredService({ employee, serviceName, serviceSlug, services }),
+    const preferredService = findPreferredService({
+      employee,
+      requireAssigned: true,
+      serviceName,
+      serviceSlug,
+      services,
+    });
+    if (!preferredService) return [];
+    const requestedVariant = preferredService.variants?.find(
+      (item) => Number(item?.duration) === Number(duration),
     );
+    if (!requestedVariant && Number(preferredService.price) <= 0) return [];
+    const basePrice = getServiceBasePrice({ durationMinutes: duration, employee, serviceName, serviceSlug, services });
+    if (basePrice <= 0) return [];
+    const requestBuffers = getServiceBuffers(preferredService);
     const shift = getEmployeeShiftForDate(employee, preferredDate);
     const start = toMinutes(shift.start);
     const end = toMinutes(shift.end);
@@ -470,9 +566,7 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
 
     for (let minutes = start; minutes + duration <= end; minutes += DEFAULT_SLOT_STEP) {
       if (preferredDate === warsawNow.date && minutes <= warsawNow.minutes + 60) continue;
-      const blockedStart = Math.max(0, minutes - requestBuffers.before);
-      const blockedEnd = minutes + duration + requestBuffers.after;
-      if (busy.some((interval) => overlaps(blockedStart, blockedEnd, interval))) continue;
+      if (busy.some((interval) => conflictsWithBuffers(minutes, minutes + duration, requestBuffers, interval))) continue;
       const startTime = toClockTime(minutes);
       employeeSlots.push({
         master,
@@ -609,12 +703,24 @@ const createSiteBookingNotification = (tx, booking, waitlistEntry) =>
 publicSiteBookingRouter.get('/site-booking-masters', async (req, res) => {
   try {
     await ensureSiteBookingTables(prisma);
-    const rows = await prisma.employee.findMany();
+    const [rows, serviceRows] = await Promise.all([
+      prisma.employee.findMany(),
+      prisma.service.findMany(),
+    ]);
     const active = rows
       .map(toPublicEmployee)
       .filter((employee) => employee.siteVisible && employee.status !== 'Архив' && employee.status !== 'Удален');
+    const services = serviceRows
+      .map(toPublicService)
+      .filter((service) => service.siteVisible && service.status !== 'Архив');
     const masters = [...new Set(active.map((e) => cleanString(e.name)).filter(Boolean))];
-    res.json({ success: true, data: { masters: masters.length ? masters : DEFAULT_MASTERS } });
+    res.json({
+      success: true,
+      data: {
+        masters: masters.length ? masters : DEFAULT_MASTERS,
+        servicesByMaster: getServicesByMaster(active, services),
+      },
+    });
   } catch (error) {
     await handleRouteError(req, res, error);
   }
