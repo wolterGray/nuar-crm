@@ -15,6 +15,8 @@
     "notifications:reconcile": "node scripts/reconcile-notification-events.js",
     "notifications:process-due": "node scripts/process-due-notifications.js",
     "db:backup": "node scripts/backup-db.js",
+    "db:backup:verify": "node scripts/verify-backup.js",
+    "db:backup:status": "node scripts/backup-status.js",
     "tasks:reseed-weekly": "node scripts/reseed-weekly-tasks.js",
     "tasks:align-weekly": "node scripts/align-weekly-task-start-dates.js"
   },

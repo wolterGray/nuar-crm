@@ -1,181 +1,197 @@
-# Backup / Export / Restore Strategy
+# NUAR CRM — Backup & Disaster Recovery Strategy (Runbook)
 
-Date: 2026-07-06
+> **Статус:** Production Ready  
+> **Обновлено:** Октябрь 2026  
+> **Компоненты:** PostgreSQL, Prisma ORM, Hetzner VPS, Node.js Express API.
 
-## Current Database And Deploy Model
+---
 
-The current backend database is PostgreSQL, accessed through Prisma.
+## 1. Обзор архитектуры базы данных и резервного копирования
 
-Key files:
+- **СУБД:** PostgreSQL 16+ на Hetzner VPS.
+- **ORM:** Prisma (`backend/prisma/schema.prisma`).
+- **Строка подключения:** `DATABASE_URL` в `backend/.env`.
+- **Формат резервной копии:** Двоичный кастомный архив PostgreSQL (`--format=custom`, заголовок `PGDMP`).
+- **Каталог хранения на сервере:** `/opt/nuar-crm/backend/backups/`.
+- **Политика ротации (Retention):** Хранение последних 14 дампов (настраивается через `BACKUP_RETENTION_COUNT`).
 
-- Prisma schema: `backend/prisma/schema.prisma`
-- Prisma migrations: `backend/prisma/migrations/*/migration.sql`
-- Backend env examples:
-  - `backend/.env.example`
-  - `backend/.env.production.example`
-- Backend deploy/update flow:
-  - `npm run prisma:generate`
-  - `npm run prisma:deploy`
-  - restart backend process
+---
 
-`DATABASE_URL` is the source of truth for the Prisma database connection.
+## 2. Команды управления бэкапами (CLI / npm)
 
-## What Exists Now
-
-| Item | Status | Notes |
-| --- | --- | --- |
-| Prisma migrations | Exists | `backend/prisma/migrations` contains the deployable schema history |
-| Prisma deploy script | Exists | `backend/package.json` has `prisma:deploy` |
-| Local Docker PostgreSQL | Removed | Local backend/Postgres is no longer used; local frontend calls Hetzner backend |
-| Frontend JSON backup helpers | Exists | `src/utils/backupRestore.js`, `src/utils/backupFormat.js`; useful for UI snapshot import/export, not a full DB dump |
-| Seed data | Partial/legacy | `src/data/seed.js` is frontend seed/static data, not Prisma seed |
-| DB backup script | Backend-only | Run `npm run db:backup` inside `backend/` on Hetzner when needed |
-| Restore script | Intentionally not added | Restore is destructive and must remain manual/checklisted for now |
-| Dump docs | Added here | See commands below |
-
-## What Was Missing
-
-- No safe npm command for DB-level PostgreSQL export.
-- No central restore checklist.
-- No documented difference between frontend JSON snapshot and full database dump.
-- No `.gitignore` protection for local dump files.
-- No backup-related env placeholders.
-
-## Backup / Export
-
-### Preferred Hetzner Backend Command
-
-Run on the Hetzner backend host from `/opt/nuar-crm/backend`:
+Все команды выполняются в директории `backend/`:
 
 ```bash
+cd /opt/nuar-crm/backend
+```
+
+### 1. Создание резервной копии с автоматической валидацией и ротацией
+
+```bash
+# Ручной запуск со стандартным тегом
 npm run db:backup
+
+# Запуск с явным указанием тега (daily, weekly, pre-migration)
+node scripts/backup-db.js --tag=daily
+node scripts/backup-db.js --tag=pre-migration
 ```
 
-This runs `backend/scripts/backup-db.js`, which:
+**Что делает скрипт:**
+1. Подключается к `DATABASE_URL` и выполняет `pg_dump --format=custom --no-owner --no-acl`.
+2. Проверяет сигнатуру файла: размер > 1 КБ и magic header `PGDMP`.
+3. Запускает `pg_restore --list` для проверки целостности структуры таблицы оглавления (TOC).
+4. Удаляет старые дампы сверх лимита хранения (`maxKeep = 14`), защищая диск VPS от переполнения.
+5. Записывает метаданные последнего успешного бэкапа в `backups/latest-backup.json`.
 
-- reads `DATABASE_URL` from `backend/.env`;
-- runs `pg_dump`;
-- writes a custom-format dump into `backend/backups/` by default;
-- never writes to the database;
-- never runs restore.
+---
 
-Optional env fields:
+### 2. Проверка статуса и свежести бэкапов
 
 ```bash
-BACKUP_DIR=backups
-PGDUMP_PATH=/usr/bin/pg_dump
+npm run db:backup:status
 ```
 
-Use `PGDUMP_PATH` only if `pg_dump` is not available in `PATH`.
+Выводит количество доступных дампов, размер последнего архива, дату создания и статус валидности.
 
-### Manual pg_dump Command
+---
 
-Custom dump format:
+### 3. Проверка целостности дампа и тестовое восстановление
 
 ```bash
-pg_dump "$DATABASE_URL" --format=custom --no-owner --no-acl --file "backups/nuar-crm-$(date +%Y%m%d-%H%M%S).dump"
+# Структурная валидация последнего дампа (проверка заголовка и TOC)
+npm run db:backup:verify
+
+# Валидация конкретного файла
+node scripts/verify-backup.js --file=backups/nuar-crm-daily-2026-10-19.dump
+
+# БЕЗОПАСНЫЙ DRY-RUN: Тестовое восстановление в изолированную тестовую базу
+TEST_DATABASE_URL="postgresql://user:pass@127.0.0.1:5432/nuar_crm_test" npm run db:backup:verify
 ```
 
-Plain SQL format:
+> [!IMPORTANT]
+> **Встроенный предохранитель (Safety Guard):**  
+> Скрипт `verify-backup.js` программно блокирует запуск, если `TEST_DATABASE_URL` совпадает с `DATABASE_URL`, или если имя базы данных не содержит `test`, `staging` или `dev`. Восстановление поверх боевой базы невозможно.
+
+---
+
+## 3. Автоматизация на Hetzner VPS (Crontab)
+
+Для обеспечения ежедневных и еженедельных бэкапов на сервере Hetzner настраивается системный cron.
+
+Откройте crontab под пользователем, от которого работает CRM:
 
 ```bash
-pg_dump "$DATABASE_URL" --no-owner --no-acl --file "backups/nuar-crm-$(date +%Y%m%d-%H%M%S).sql"
+crontab -e
 ```
 
-## Restore Checklist
+Добавьте следующие строки:
 
-Do not restore directly into production without a maintenance window and a fresh backup.
+```cron
+# NUAR CRM — Ежедневный ночной бэкап в 03:00 (Europe/Warsaw)
+0 3 * * * cd /opt/nuar-crm/backend && /usr/bin/node scripts/backup-db.js --tag=daily >> /var/log/nuar-crm-backup.log 2>&1
 
-1. Identify target database:
-   - production
-2. Stop writes:
-   - stop backend or put CRM into maintenance mode;
-   - make sure no frontend session is actively writing.
-3. Create a fresh pre-restore backup:
-
-```bash
-npm run db:backup
+# NUAR CRM — Еженедельная проверка целостности бэкапа по воскресеньям в 04:00
+0 4 * * 0 cd /opt/nuar-crm/backend && /usr/bin/node scripts/verify-backup.js >> /var/log/nuar-crm-backup.log 2>&1
 ```
 
-4. Verify the dump file exists and has non-zero size.
-5. Restore into a clean staging database first, when a staging database exists.
-6. Run migrations after restore if the dump is older than the current code:
+Ротация файлов происходит автоматически при каждом вызове скрипта (хранятся последние 14 архивов).
 
-```bash
-cd backend
-npm run prisma:deploy
-```
+---
 
-7. Validate schema:
+## 4. Disaster Recovery Runbook (Пошаговые сценарии восстановления)
 
-```bash
-cd backend
-npx prisma validate
-```
+### Сценарий А: Полный сбой сервера Hetzner / Переезд на новый VPS
 
-8. Start backend and run smoke checks:
-   - login;
-   - clients list;
-   - calendar state;
-   - payment journal;
-   - day close summary;
-   - payroll summary.
-9. Only after staging/local verification, repeat the restore for production if needed.
+Если сервер Hetzner полностью уничтожен или недоступен:
 
-## Restore Commands
+1. **Создайте новый облачный сервер Hetzner (Ubuntu 24.04 LTS / Debian 12).**
+2. **Установите системные зависимости:**
+   ```bash
+   sudo apt update && sudo apt install -y curl git postgresql postgresql-contrib
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt install -y nodejs
+   sudo npm install -g pm2
+   ```
+3. **Настройте PostgreSQL и создайте пользователя и базу:**
+   ```bash
+   sudo -u postgres psql -c "CREATE USER nuar_user WITH PASSWORD 'STRONG_PASSWORD_HERE';"
+   sudo -u postgres psql -c "CREATE DATABASE nuar_production OWNER nuar_user;"
+   sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE nuar_production TO nuar_user;"
+   ```
+4. **Склонируйте репозиторий и настройте переменные окружения:**
+   ```bash
+   git clone https://github.com/wolterGray/nuar-crm.git /opt/nuar-crm
+   cd /opt/nuar-crm/backend
+   cp .env.production.example .env
+   # Впишите в .env актуальные DATABASE_URL, JWT_SECRET, VAPID_*, SMSAPI_TOKEN, ADMIN_*
+   npm install
+   npm run prisma:generate
+   ```
+5. **Скопируйте последний дамп (`nuar-crm-*.dump`) на сервер в `/opt/nuar-crm/backend/backups/`.**
+6. **Выполните восстановление базы:**
+   ```bash
+   pg_restore --dbname "$DATABASE_URL" --clean --if-exists --no-owner --no-acl /opt/nuar-crm/backend/backups/LATEST_DUMP.dump
+   ```
+7. **Примените актуальные миграции (если код новее дампа):**
+   ```bash
+   npm run prisma:deploy
+   npx prisma validate
+   ```
+8. **Запустите backend через PM2:**
+   ```bash
+   pm2 start server.js --name nuar-backend
+   pm2 save
+   pm2 startup
+   ```
+9. **Проведите Smoke-тест:**
+   ```bash
+   curl -I http://localhost:3001/health
+   # Проверьте логи
+   pm2 logs nuar-backend --lines 50
+   ```
 
-Custom dump into an empty target database:
+---
 
-```bash
-pg_restore --dbname "$DATABASE_URL" --clean --if-exists --no-owner --no-acl "backups/nuar-crm.dump"
-```
+### Сценарий Б: Локальное повреждение данных или случайное удаление
 
-Plain SQL:
+Если база данных работает, но произошла ошибка или потеря критических данных:
 
-```bash
-psql "$DATABASE_URL" < "backups/nuar-crm.sql"
-```
+1. **Немедленно остановите backend, чтобы прекратить входящую запись:**
+   ```bash
+   pm2 stop nuar-backend
+   ```
+2. **Создайте защитный дамп текущего состояния базы «как есть» перед откатом:**
+   ```bash
+   cd /opt/nuar-crm/backend
+   node scripts/backup-db.js --tag=pre-rollback
+   ```
+3. **Восстановите проверенную резервную копию:**
+   ```bash
+   pg_restore --dbname "$DATABASE_URL" --clean --if-exists --no-owner --no-acl backups/nuar-crm-daily-TARGET_DATE.dump
+   ```
+4. **Выполните проверку целостности Prisma:**
+   ```bash
+   npm run prisma:deploy
+   ```
+5. **Запустите backend:**
+   ```bash
+   pm2 start nuar-backend
+   ```
+6. **Проверьте авторизацию и основные экраны CRM (Календарь, Клиенты, Визиты).**
 
-## Important Safety Notes
+---
 
-- Restore is destructive when `--clean` is used.
-- Never commit dump files. `.gitignore` now excludes:
-  - `backups/`
-  - `backend/backups/`
-  - `*.dump`
-  - `*.sql`
-  - `*.backup`
-- Keep production dumps outside the repo and encrypted or stored in restricted access storage.
-- Frontend JSON backup is not a replacement for DB backup. It may miss backend-only tables such as `AuditLog`, `ErrorEvent`, `NotificationDelivery`, ledger records, and migration metadata.
+### Сценарий В: Откат после неудачной миграции Prisma
 
-## Migration Process
+Если при деплое новой версии миграция завершилась с ошибкой:
 
-Expected backend deployment process:
-
-```bash
-cd backend
-npm install
-npm run prisma:generate
-npm run prisma:deploy
-pm2 restart nuar-backend --update-env
-```
-
-Before applying new migrations to production:
-
-1. Create DB backup.
-2. Apply migrations on staging copy, when available.
-3. Run smoke checks.
-4. Apply production migration.
-5. Verify backend health and critical CRM flows.
-
-## What To Automate Later
-
-1. Scheduled daily `pg_dump` with rotation, for example 7 daily + 4 weekly backups.
-2. Encrypted offsite copy to cloud storage.
-3. Automated backup verification:
-   - restore latest dump into a disposable database;
-   - run `prisma validate`;
-   - run a small read-only smoke script.
-4. Owner-only backend endpoint or admin screen that reports backup freshness, without exposing dump download publicly.
-5. Separate staging database for restore drills.
-6. Runbook for emergency rollback after failed migration.
+1. Остановите процесс деплоя.
+2. Проверьте статус миграций:
+   ```bash
+   npx prisma migrate status
+   ```
+3. Если схема повреждена: восстановите дамп, созданный перед деплоем (`--tag=pre-migration`):
+   ```bash
+   pg_restore --dbname "$DATABASE_URL" --clean --if-exists --no-owner --no-acl backups/nuar-crm-pre-migration-*.dump
+   ```
+4. Перезапустите предыдущую стабильную версию бэкенда в PM2.
