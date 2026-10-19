@@ -35,9 +35,9 @@
    ========================================================================== */
 
 .notion-sidebar {
-  width: 320px;
+  width: 330px;
   min-width: 280px;
-  max-width: 380px;
+  max-width: 390px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -50,17 +50,29 @@
 /* Sidebar Header */
 .notion-sidebar-header {
   display: flex;
+  flex-direction: column;
+  padding: 0;
+  border-bottom: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.045));
+  gap: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.notion-sidebar-header-main {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.045));
+  padding: 10px 12px 8px;
   gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .notion-sidebar-title-group {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .notion-sidebar-title {
@@ -75,6 +87,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .notion-new-btn {
@@ -89,18 +102,67 @@
   font-size: 12px !important;
   font-weight: 600 !important;
   padding: 0 12px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
 }
 
 .notion-template-trigger {
   width: 32px !important;
   height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
   border-radius: var(--radius-sm, 6px) !important;
+  flex-shrink: 0 !important;
+}
+
+.notion-sidebar-views-row {
+  display: flex;
+  width: 100%;
+  padding: 0 12px 10px;
+  box-sizing: border-box;
+}
+
+.notion-sidebar-views-row .notion-view-switch {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  width: 100% !important;
+  gap: 3px !important;
+  padding: 3px !important;
+  border-radius: var(--radius-sm, 8px) !important;
+  background: var(--color-field, rgba(255, 255, 255, 0.04)) !important;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07)) !important;
+  box-sizing: border-box !important;
+}
+
+.notion-sidebar-views-row .notion-view-switch > button {
+  width: 100% !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--color-text-muted, #a4a4ac) !important;
+  transition: all 140ms ease !important;
+}
+
+.notion-sidebar-views-row .notion-view-switch > button:hover {
+  color: var(--color-text, #ffffff) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.notion-sidebar-views-row .notion-view-switch > button.is-active {
+  color: var(--color-text, #ffffff) !important;
+  background: var(--color-surface-2, #1b1b1e) !important;
+  border: 1px solid var(--color-border-strong, rgba(255, 255, 255, 0.14)) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Templates Dropdown Popover */
 .notion-templates-dropdown {
   position: absolute;
-  top: 56px;
+  top: 88px;
   left: 12px;
   right: 12px;
   z-index: 50;
@@ -1810,7 +1872,15 @@
   }
 
   .notion-sidebar-header {
-    padding: 10px 0 12px;
+    padding: 0;
+  }
+
+  .notion-sidebar-header-main {
+    padding: 8px 0 10px;
+  }
+
+  .notion-sidebar-views-row {
+    padding: 0 0 10px;
   }
 
   .notion-search-wrap {

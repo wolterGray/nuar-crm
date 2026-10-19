@@ -933,32 +933,36 @@ function NotionNotesWorkspace({
             <aside className="notion-sidebar">
               {/* Header */}
               <div className="notion-sidebar-header">
-                <div className="notion-sidebar-title-group">
-                  <h2 className="notion-sidebar-title">Заметки</h2>
-                  <Badge size="sm" variant="neutral">
-                    {visibleNotes.length}
-                  </Badge>
+                <div className="notion-sidebar-header-main">
+                  <div className="notion-sidebar-title-group">
+                    <h2 className="notion-sidebar-title">Заметки</h2>
+                    <Badge size="sm" variant="neutral">
+                      {visibleNotes.length}
+                    </Badge>
+                  </div>
+                  <div className="notion-sidebar-actions">
+                    <IconButton
+                      aria-label="Шаблоны процессов"
+                      className="notion-template-trigger"
+                      icon="sparkles"
+                      size="sm"
+                      title="Готовые шаблоны процессов"
+                      variant="ghost"
+                      onClick={() => setTemplatesOpen((prev) => !prev)}
+                    />
+                    <Button
+                      className="notion-new-note-btn"
+                      leftIcon="plus"
+                      size="sm"
+                      variant="primary"
+                      onClick={() => handleCreateNote()}
+                    >
+                      Новая
+                    </Button>
+                  </div>
                 </div>
-                <NotesViewSwitch onSelectView={selectView} viewMode={viewMode} />
-                <div className="notion-sidebar-actions">
-                  <Button
-                    className="notion-new-note-btn"
-                    leftIcon="plus"
-                    size="sm"
-                    variant="primary"
-                    onClick={() => handleCreateNote()}
-                  >
-                    Новая
-                  </Button>
-                  <IconButton
-                    aria-label="Шаблоны процессов"
-                    className="notion-template-trigger"
-                    icon="sparkles"
-                    size="sm"
-                    title="Готовые шаблоны процессов"
-                    variant="ghost"
-                    onClick={() => setTemplatesOpen((prev) => !prev)}
-                  />
+                <div className="notion-sidebar-views-row">
+                  <NotesViewSwitch onSelectView={selectView} viewMode={viewMode} />
                 </div>
               </div>
 
