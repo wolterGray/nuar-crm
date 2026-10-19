@@ -6,6 +6,7 @@ require('dotenv').config({path: path.join(__dirname, '..', '.env')});
 const {
   inspectDumpTOC,
   isSafeTestDatabase,
+  sanitizePostgresUrlForCli,
   validateDumpHeader,
 } = require('../services/backupService');
 
@@ -89,7 +90,7 @@ if (testDbUrl) {
     pgRestoreBin,
     [
       '--dbname',
-      testDbUrl,
+      sanitizePostgresUrlForCli(testDbUrl),
       '--clean',
       '--if-exists',
       '--no-owner',

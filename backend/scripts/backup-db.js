@@ -6,6 +6,7 @@ require('dotenv').config({path: path.join(__dirname, '..', '.env')});
 const {
   applyRetentionPolicy,
   inspectDumpTOC,
+  sanitizePostgresUrlForCli,
   validateDumpHeader,
 } = require('../services/backupService');
 
@@ -36,7 +37,7 @@ console.log(`[backup] Creating PostgreSQL dump [tag: ${tag}]...`);
 const result = spawnSync(
   pgDumpBin,
   [
-    databaseUrl,
+    sanitizePostgresUrlForCli(databaseUrl),
     '--format=custom',
     '--no-owner',
     '--no-acl',
@@ -67,7 +68,11 @@ if (result.stderr) {
 const headerCheck = validateDumpHeader(outputFile);
 if (!headerCheck.valid) {
   console.error(`❌ Dump validation failed: ${headerCheck.error}`);
-  try { fs.unlinkSync(outputFile); } catch {}
+  try {
+    fs.unlinkSync(outputFile);
+  } catch {
+    // ignore unlink error
+  }
   process.exit(1);
 }
 
@@ -75,7 +80,11 @@ if (!headerCheck.valid) {
 const tocCheck = inspectDumpTOC(outputFile, pgRestoreBin);
 if (!tocCheck.valid) {
   console.error(`❌ Dump TOC validation failed: ${tocCheck.error}`);
-  try { fs.unlinkSync(outputFile); } catch {}
+  try {
+    fs.unlinkSync(outputFile);
+  } catch {
+    // ignore unlink error
+  }
   process.exit(1);
 }
 
@@ -104,4 +113,6 @@ try {
     sizeBytes: headerCheck.size,
     tag,
   }, null, 2));
-} catch {}
+} catch {
+  // ignore metadata write error
+}

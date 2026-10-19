@@ -8,6 +8,7 @@ const {
   applyRetentionPolicy,
   getBackupStatus,
   isSafeTestDatabase,
+  sanitizePostgresUrlForCli,
   validateDumpHeader,
 } = require('../services/backupService');
 
@@ -124,4 +125,25 @@ test('getBackupStatus: correctly summarizes backup directory status', () => {
   assert.equal(status.latest.isValid, true);
 
   fs.rmSync(tmpDir, {force: true, recursive: true});
+});
+
+test('sanitizePostgresUrlForCli: removes Prisma schema and non-libpq query params', () => {
+  // 1. Removes schema=public
+  const prismaUrl = 'postgresql://nuar:secret@localhost:5432/nuar_crm?schema=public';
+  assert.equal(
+    sanitizePostgresUrlForCli(prismaUrl),
+    'postgresql://nuar:secret@localhost:5432/nuar_crm',
+  );
+
+  // 2. Removes multiple Prisma-specific params while keeping valid libpq params like sslmode
+  const complexUrl = 'postgresql://nuar:secret@10.0.0.1:5432/nuar_crm?schema=public&sslmode=require&connection_limit=5&pool_timeout=10';
+  assert.equal(
+    sanitizePostgresUrlForCli(complexUrl),
+    'postgresql://nuar:secret@10.0.0.1:5432/nuar_crm?sslmode=require',
+  );
+
+  // 3. Handles empty or non-URL strings safely
+  assert.equal(sanitizePostgresUrlForCli(''), '');
+  assert.equal(sanitizePostgresUrlForCli(null), '');
+  assert.equal(sanitizePostgresUrlForCli('not-a-valid-url'), 'not-a-valid-url');
 });

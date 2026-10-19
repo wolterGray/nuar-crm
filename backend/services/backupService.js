@@ -170,6 +170,33 @@ const getBackupStatus = (backupDir) => {
 };
 
 /**
+ * Strips non-standard connection parameters (such as Prisma's ?schema=public, ?connection_limit, etc.)
+ * from a PostgreSQL URL so that pg_dump and pg_restore (libpq) do not fail with
+ * "invalid URI query parameter".
+ */
+const sanitizePostgresUrlForCli = (rawUrl) => {
+  const clean = cleanString(rawUrl);
+  if (!clean) return '';
+
+  try {
+    const parsed = new URL(clean);
+    const nonLibpqParams = [
+      'schema',
+      'connection_limit',
+      'pool_timeout',
+      'statement_cache_size',
+      'pgbouncer',
+    ];
+    for (const param of nonLibpqParams) {
+      parsed.searchParams.delete(param);
+    }
+    return parsed.toString();
+  } catch {
+    return clean;
+  }
+};
+
+/**
  * Strict safety guard: verifies that a database URL is safe for test restores
  * and NOT the production database!
  */
@@ -297,5 +324,6 @@ module.exports = {
   getBackupStatus,
   inspectDumpTOC,
   isSafeTestDatabase,
+  sanitizePostgresUrlForCli,
   validateDumpHeader,
 };
