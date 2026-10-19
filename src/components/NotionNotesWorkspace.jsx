@@ -6,6 +6,7 @@ import {useBreakpoint} from "../hooks/useBreakpoint.js";
 import {AppIcon, Badge, Button, IconButton} from "./ui/index.js";
 import NoteAttachments from "./NoteAttachments.jsx";
 import MarkdownNoteEditor from "./MarkdownNoteEditor.jsx";
+import {stripMarkdownForSnippet} from "../utils/noteMarkdown.js";
 import {
   deleteNotePermanently,
   fetchNoteAttachmentBlob,
@@ -42,16 +43,6 @@ const formatNoteDate = (isoString) => {
   } catch {
     return "";
   }
-};
-
-const stripMarkdownForSnippet = (text = "") => {
-  return text
-    .replace(/^#+\s+/gm, "")
-    .replace(/^-\s*\[[ xX]\]\s*/gm, "")
-    .replace(/^[•\-*]\s+/gm, "")
-    .replace(/^>\s*/gm, "")
-    .replace(/\n+/g, " ")
-    .trim();
 };
 
 const NOTE_VIEW_STORAGE_KEY = "nuar-crm-notes-view-v1";
@@ -442,7 +433,7 @@ function NotionDocEditor({
           <div className="notion-live-area">
             <MarkdownNoteEditor
               value={draftContent}
-              onBlur={() => triggerImmediateSave({note: draftContent, description: draftContent})}
+              onBlur={(latestContent) => triggerImmediateSave({note: latestContent, description: latestContent})}
               onChange={(nextContent) => {
                 setDraftContent(nextContent);
                 triggerAutoSave({note: nextContent, description: nextContent});

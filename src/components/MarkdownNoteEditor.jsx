@@ -7,18 +7,7 @@ import TaskItem from "@tiptap/extension-task-item";
 import {Table, TableCell, TableHeader, TableRow} from "@tiptap/extension-table";
 import Placeholder from "@tiptap/extension-placeholder";
 import {AppIcon} from "./ui/index.js";
-
-const MARKDOWN_BLOCK_PATTERN = /(^|\n)(#{1,3}\s+|>\s+|[-*+]\s+|\d+\.\s+|-\s+\[[ xX]\]\s+|```|---\s*$)/m;
-const MARKDOWN_TABLE_PATTERN = /(^|\n)\s*\|?.+\|.+\n\s*\|?\s*:?-{3,}/m;
-const MARKDOWN_INLINE_PATTERN = /(\*\*[^*\n]+\*\*|~~[^~\n]+~~|`[^`\n]+`|\[[^\]]+\]\(https?:\/\/[^)]+\))/;
-
-const looksLikeMarkdown = (value = "") => {
-  const text = String(value);
-  if (!text.trim()) return false;
-  return MARKDOWN_BLOCK_PATTERN.test(text)
-    || MARKDOWN_TABLE_PATTERN.test(text)
-    || MARKDOWN_INLINE_PATTERN.test(text);
-};
+import {looksLikeMarkdown} from "../utils/noteMarkdown.js";
 
 function ToolButton({active = false, children, disabled = false, icon, label, onClick, title}) {
   return (
@@ -127,7 +116,7 @@ function MarkdownNoteEditor({onBlur, onChange, value = ""}) {
         return true;
       },
     },
-    onBlur: () => onBlur?.(),
+    onBlur: ({editor: currentEditor}) => onBlur?.(currentEditor.getMarkdown()),
     onUpdate: ({editor: currentEditor}) => onChange?.(currentEditor.getMarkdown()),
   });
 
