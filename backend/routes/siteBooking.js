@@ -246,13 +246,23 @@ const findPreferredService = ({ employee, serviceId, serviceName, serviceSlug, s
 
   const normName = normalizeText(serviceName);
   const cleanName = cleanServiceTitle(serviceName);
+  const catalogService = SITE_SERVICE_PRICE_FALLBACKS.find(
+    (item) => normalizeText(item.slug) === normalizeText(serviceSlug),
+  );
+  const catalogTitle = cleanServiceTitle(catalogService?.title);
   const matchedServices = services.filter((item) => {
     const payloadSlug = cleanString(item.payload?.slug);
     const itemName = normalizeText(item.name);
+    const itemTitle = cleanServiceTitle(item.name);
     return (
       itemName === normName ||
       (serviceSlug && normalizeText(payloadSlug) === normalizeText(serviceSlug)) ||
-      cleanServiceTitle(item.name) === cleanName
+      itemTitle === cleanName ||
+      (catalogTitle && (
+        itemTitle === catalogTitle ||
+        itemTitle.includes(catalogTitle) ||
+        catalogTitle.includes(itemTitle)
+      ))
     );
   });
   const isTopMaster = isTopMasterEmployee(employee);
