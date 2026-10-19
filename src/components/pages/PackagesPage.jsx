@@ -19,11 +19,11 @@ import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import PageHeader from "../ui/PageHeader.jsx";
 import {RowActionsMenu} from "../RowActionMenuPortal.jsx";
 import SearchControl from "../ui/SearchControl.jsx";
-import {Button, EmptyState} from "../ui/index.js";
+import {AppIcon, Button, EmptyState} from "../ui/index.js";
 import "./PackagesPage.css";
 
 function getClientPackageDisplay(item, packages = [], clients = []) {
-  if (!item) return { client: "Клиент", packageName: "Пакет услуг", service: "", price: 0 };
+  if (!item) return {client: "Клиент", packageName: "Пакет услуг", service: "", price: 0};
   const payload = item.payload && typeof item.payload === "object" ? item.payload : {};
   const linkedPackage = packages.find((p) => String(p.id) === String(item.packageId || payload.packageId));
   const linkedClient = clients.find((c) => String(c.id) === String(item.clientId || payload.clientId));
@@ -71,11 +71,11 @@ function getClientPackageDisplay(item, packages = [], clients = []) {
         ? Number(payload.price)
         : Number(linkedPackage?.price) || Number(item.price) || 0;
 
-  return { client: clientName, packageName, service, price };
+  return {client: clientName, packageName, service, price};
 }
 
 function getCertificateDisplay(cert, clients = []) {
-  if (!cert) return { client: "Без покупателя", recipient: "", nominal: 0, balance: 0 };
+  if (!cert) return {client: "Без покупателя", recipient: "", nominal: 0, balance: 0};
   const payload = cert.payload && typeof cert.payload === "object" ? cert.payload : {};
   const linkedClient = clients.find((c) => String(c.id) === String(cert.clientId || payload.clientId));
   const linkedRecipient = clients.find((c) => String(c.id) === String(cert.recipientId || payload.recipientId));
@@ -104,7 +104,7 @@ function getCertificateDisplay(cert, clients = []) {
   const nominal = Number(cert.nominal ?? cert.amount ?? payload.nominal ?? payload.amount ?? 0);
   const balance = Number(cert.remainingBalance ?? cert.balance ?? payload.remainingBalance ?? payload.balance ?? nominal);
 
-  return { client: clientName, recipient: recipientName, nominal, balance };
+  return {client: clientName, recipient: recipientName, nominal, balance};
 }
 
 function ClientPackageCard({
@@ -131,19 +131,22 @@ function ClientPackageCard({
     price: display.price,
   };
 
+  const totalVisits = Math.max(Number(packageItem.totalVisits) || 1, 1);
+  const usedVisits = getPackageUsedVisits(packageItem);
+  const percentUsed = Math.min(100, Math.max(0, Math.round((usedVisits / totalVisits) * 100)));
+
   return (
-    <article
-      className={`package-card client-package-card nuar-pkg-card ${archived ? "is-archived" : ""}`}>
-      <div className="package-card-top nuar-pkg-card-top">
-        <div className="package-card-copy nuar-pkg-card-copy min-w-0">
-          <strong className="package-card-client-name text-text-main text-sm font-semibold block leading-tight break-words">
+    <article className={`package-card client-package-card ${archived ? "is-archived" : ""}`}>
+      <div className="package-card-top">
+        <div className="package-card-copy">
+          <strong className="package-card-client-name" title={display.client}>
             {display.client}
           </strong>
-          <span className="package-card-pkg-name text-text-muted text-xs block leading-tight break-words">
+          <span className="package-card-pkg-name">
             {display.packageName}
           </span>
           {display.service ? (
-            <span className="package-service-tag text-text-faint text-[10px] block font-medium uppercase tracking-wider leading-tight break-words">
+            <span className="package-service-tag">
               {display.service}
             </span>
           ) : null}
@@ -157,22 +160,29 @@ function ClientPackageCard({
         />
       </div>
 
-      <div className="package-card-progress nuar-pkg-card-progress">
-        <div className="flex items-center justify-between gap-2 text-[11px]">
-          <span className="text-text-muted">{archived ? "Использовано" : "Осталось"}</span>
-          <strong className="text-text-main font-semibold tabular-nums">{progressLabel}</strong>
+      <div className="package-card-progress">
+        <div className="package-card-progress-header">
+          <span className="package-card-progress-label">
+            <AppIcon name="calendar" size="xs" />
+            <span>{archived ? "Использовано" : "Осталось визитов"}</span>
+          </span>
+          <span className="package-card-progress-counter">{progressLabel}</span>
         </div>
-        <progress
-          className="w-full h-1.5 rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-field [&::-webkit-progress-value]:bg-accent [&::-moz-progress-bar]:bg-accent"
-          max={Math.max(Number(packageItem.totalVisits) || 1, 1)}
-          value={getPackageUsedVisits(packageItem)}
-        />
+        <div className="package-card-progress-track" role="progressbar" aria-valuenow={percentUsed} aria-valuemin="0" aria-valuemax="100">
+          <div
+            className="package-card-progress-fill"
+            style={{width: `${percentUsed}%`}}
+          />
+        </div>
       </div>
 
-      <div className="package-card-footer nuar-pkg-card-footer">
-        <span className="package-card-price text-text-muted font-medium">{formatMoney(display.price)}</span>
+      <div className="package-card-footer">
+        <div className="package-card-cost-block">
+          <span className="package-card-cost-label">Стоимость</span>
+          <strong className="package-card-price">{formatMoney(display.price)}</strong>
+        </div>
         <span className={`package-status-pill ${packageItem.status === "Активен" ? "is-active" : ""}`}>
-          {packageItem.status}
+          {packageItem.status || "Активен"}
         </span>
       </div>
     </article>
@@ -202,22 +212,30 @@ function CertificateCard({
     nominal,
   };
 
+  const safeNominal = Math.max(Number(nominal) || 1, 1);
+  const usedAmount = Math.max(0, safeNominal - Number(remainingBalance));
+  const percentUsed = Math.min(100, Math.max(0, Math.round((usedAmount / safeNominal) * 100)));
+
   return (
-    <article
-      className={`package-card certificate-card nuar-pkg-card ${archived ? "is-archived" : ""}`}>
-      <div className="package-card-top nuar-pkg-card-top">
-        <div className="package-card-copy nuar-pkg-card-copy min-w-0">
-          <strong className="package-card-client-name text-text-main text-sm font-semibold block leading-tight break-words">
-            {certificate.code || "Сертификат"}
+    <article className={`package-card certificate-card ${archived ? "is-archived" : ""}`}>
+      <div className="package-card-top">
+        <div className="package-card-copy">
+          <strong className="package-card-client-name" title={certificate.code || "Сертификат"}>
+            <AppIcon name="gift" size="xs" className="cert-code-icon" />
+            <span>{certificate.code || "Сертификат"}</span>
           </strong>
-          <span className="package-card-pkg-name text-text-muted text-xs block leading-tight break-words">
+          <span className="package-card-pkg-name">
             Покупатель: {display.client}
           </span>
-          <span className="text-text-faint text-[10px] block font-medium mt-0.5 leading-tight break-words">
-            {display.recipient && display.recipient !== display.client
-              ? `Получатель: ${display.recipient}`
-              : `До ${certificate.expiryDate || "—"}`}
-          </span>
+          {display.recipient && display.recipient !== display.client ? (
+            <span className="package-recipient-tag">
+              Получатель: {display.recipient}
+            </span>
+          ) : (
+            <span className="package-expiry-tag">
+              До {certificate.expiryDate || "—"}
+            </span>
+          )}
         </div>
         <RowActionsMenu
           itemId={certificate.id}
@@ -228,25 +246,29 @@ function CertificateCard({
         />
       </div>
 
-      <div className="package-card-progress nuar-pkg-card-progress">
-        <div className="flex items-center justify-between gap-2 text-[11px]">
-          <span className="text-text-muted">{archived ? "Использовано" : "Остаток"}</span>
-          <strong className="text-text-main font-semibold tabular-nums">{getCertificateBalanceLabel(certificate)}</strong>
+      <div className="package-card-progress">
+        <div className="package-card-progress-header">
+          <span className="package-card-progress-label">
+            <AppIcon name="creditCard" size="xs" />
+            <span>{archived ? "Использовано" : "Остаток баланса"}</span>
+          </span>
+          <span className="package-card-progress-counter">{getCertificateBalanceLabel(certificate)}</span>
         </div>
-        <progress
-          className="w-full h-1.5 rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-field [&::-webkit-progress-value]:bg-accent [&::-moz-progress-bar]:bg-accent"
-          max={Math.max(Number(nominal) || 1, 1)}
-          value={Math.max(
-            0,
-            Number(nominal) - Number(remainingBalance),
-          )}
-        />
+        <div className="package-card-progress-track" role="progressbar" aria-valuenow={percentUsed} aria-valuemin="0" aria-valuemax="100">
+          <div
+            className="package-card-progress-fill"
+            style={{width: `${percentUsed}%`}}
+          />
+        </div>
       </div>
 
-      <div className="package-card-footer nuar-pkg-card-footer">
-        <span className="package-card-price text-text-muted font-medium">{formatMoney(nominal)}</span>
+      <div className="package-card-footer">
+        <div className="package-card-cost-block">
+          <span className="package-card-cost-label">Номинал</span>
+          <strong className="package-card-price">{formatMoney(nominal)}</strong>
+        </div>
         <span className={`package-status-pill ${certificate.status === "Активен" ? "is-active" : ""}`}>
-          {certificate.status}
+          {certificate.status || "Активен"}
         </span>
       </div>
     </article>
@@ -263,17 +285,21 @@ function PackageTemplateCard({
   return (
     <motion.article
       animate={{opacity: 1, y: 0}}
-      className="package-card package-template-card nuar-pkg-card"
+      className="package-card package-template-card"
       initial={{opacity: 0, y: 6}}
       key={packageItem.id}>
-      <div className="package-card-top nuar-pkg-card-top">
-        <div className="package-card-copy nuar-pkg-card-copy min-w-0">
-          <strong className="package-card-client-name text-text-main text-sm font-semibold leading-snug break-words">
+      <div className="package-card-top">
+        <div className="package-card-copy">
+          <strong className="package-card-client-name">
             {packageItem.name}
           </strong>
-          <span className="package-card-pkg-name text-text-muted text-xs block leading-tight break-words">
-            {packageItem.service || "Общая услуга"}
-          </span>
+          {packageItem.service ? (
+            <span className="package-service-tag">
+              {packageItem.service}
+            </span>
+          ) : (
+            <span className="package-card-pkg-name">Общая услуга</span>
+          )}
         </div>
         <RowActionsMenu
           itemId={packageItem.id}
@@ -299,10 +325,75 @@ function PackageTemplateCard({
         </div>
         <div>
           <span>Статус</span>
-          <strong>{packageItem.status}</strong>
+          <strong>{packageItem.status || "Активен"}</strong>
         </div>
       </div>
     </motion.article>
+  );
+}
+
+function PackagesKpiGrid({
+  clientPackagesCount,
+  packageSalesIncome,
+  certificatesCount,
+  certificateSalesIncome,
+  activeCertificateBalance,
+  remainingVisits,
+  isMobile,
+}) {
+  const stats = [
+    {
+      label: "Пакетов продано",
+      val: clientPackagesCount,
+      icon: "package",
+      tone: "accent",
+    },
+    {
+      label: "Доход от пакетов",
+      val: formatMoney(packageSalesIncome),
+      icon: "banknote",
+      tone: "success",
+    },
+    {
+      label: "Сертиф. продано",
+      val: certificatesCount,
+      icon: "gift",
+      tone: "info",
+    },
+    {
+      label: "Доход от сертиф.",
+      val: formatMoney(certificateSalesIncome),
+      icon: "wallet",
+      tone: "success",
+    },
+    {
+      label: "Остаток сертиф.",
+      val: formatMoney(activeCertificateBalance),
+      icon: "sparkles",
+      tone: "warning",
+    },
+    {
+      label: "Визитов в пакетах",
+      val: remainingVisits,
+      icon: "calendarClock",
+      tone: "cyan",
+    },
+  ];
+
+  return (
+    <div className={`packages-summary-grid ${isMobile ? "is-mobile" : ""}`}>
+      {stats.map((item, idx) => (
+        <div key={idx} className="packages-summary-card" data-tone={item.tone}>
+          <div className="packages-summary-icon">
+            <AppIcon name={item.icon} size="sm" />
+          </div>
+          <div className="packages-summary-copy">
+            <span className="packages-summary-label">{item.label}</span>
+            <strong className="packages-summary-value">{item.val}</strong>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -325,7 +416,8 @@ function PackagesPage({
   onDeleteCertificate,
 }) {
   const {isMobile} = useBreakpoint();
-  const [packageTab, setPackageTab] = useState("active");
+  const [packageTab, setPackageTab] = useState("active"); // "active" | "templates" | "archive"
+  const [subFilter, setSubFilter] = useState("all"); // "all" | "packages" | "certificates"
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
 
@@ -447,6 +539,7 @@ function PackagesPage({
       ]),
     [enrichedActiveCertificates, filterByQuery],
   );
+
   const filteredArchivedCertificates = useMemo(
     () =>
       filterByQuery(enrichedArchivedCertificates, [
@@ -458,6 +551,7 @@ function PackagesPage({
       ]),
     [enrichedArchivedCertificates, filterByQuery],
   );
+
   const filteredActiveClientPackages = useMemo(
     () =>
       filterByQuery(enrichedActiveClientPackages, [
@@ -469,6 +563,7 @@ function PackagesPage({
       ]),
     [enrichedActiveClientPackages, filterByQuery],
   );
+
   const filteredArchivedClientPackages = useMemo(
     () =>
       filterByQuery(enrichedArchivedClientPackages, [
@@ -480,6 +575,7 @@ function PackagesPage({
       ]),
     [enrichedArchivedClientPackages, filterByQuery],
   );
+
   const filteredTemplates = useMemo(
     () =>
       filterByQuery(packages, ["name", "service", "status"]).filter((item) => {
@@ -498,167 +594,254 @@ function PackagesPage({
 
   const archiveCount = archivedClientPackages.length + archivedCertificates.length;
   const activeCount = activeClientPackages.length + activeCertificates.length;
+
   const tabDescription =
     packageTab === "active"
       ? `${filteredActiveClientPackages.length} пакетов · ${filteredActiveCertificates.length} сертификатов`
       : packageTab === "templates"
         ? `${filteredTemplates.length} из ${packages.length} шаблонов`
         : `${filteredArchivedClientPackages.length} пакетов · ${filteredArchivedCertificates.length} сертификатов`;
+
   const tabs = [
     {id: "active", label: "Активные", count: activeCount},
     {id: "templates", label: "Шаблоны", count: packages.length},
     {id: "archive", label: "Архив", count: archiveCount},
   ];
+
   const searchPlaceholder =
     packageTab === "active"
-      ? "Поиск активных"
+      ? "Поиск по клиенту, пакету или коду..."
       : packageTab === "templates"
-        ? "Поиск шаблона"
-        : "Поиск архива";
+        ? "Поиск по шаблонам..."
+        : "Поиск в архиве...";
+
+  // Top action buttons for desktop header
+  const desktopHeaderActions = (
+    <div className="packages-desktop-header-actions">
+      {packageTab === "active" && (
+        <>
+          <Button leftIcon="gift" variant="secondary" size="sm" onClick={onSellCertificate}>
+            Продать сертификат
+          </Button>
+          <Button leftIcon="plus" variant="primary" size="sm" onClick={onSellPackage}>
+            Продать пакет
+          </Button>
+        </>
+      )}
+      {packageTab === "templates" && (
+        <Button leftIcon="plus" variant="primary" size="sm" onClick={onAdd}>
+          Добавить шаблон
+        </Button>
+      )}
+    </div>
+  );
+
+  // Mobile header action buttons
+  const mobileHeaderActions = (
+    <div className="packages-mobile-actions-row">
+      {packageTab === "active" && (
+        <div className="packages-mobile-actions-grid">
+          <Button leftIcon="gift" variant="secondary" size="md" fullWidth onClick={onSellCertificate}>
+            Сертификат
+          </Button>
+          <Button leftIcon="plus" variant="primary" size="md" fullWidth onClick={onSellPackage}>
+            Пакет
+          </Button>
+        </div>
+      )}
+      {packageTab === "templates" && (
+        <Button leftIcon="plus" variant="primary" size="md" fullWidth onClick={onAdd}>
+          Добавить шаблон пакета
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <div
       className={`packages-page ${isMobile ? "packages-page-mobile" : ""} nuar-packages`}
       onClick={() => setOpenMenuId(null)}>
+      {/* 1. Page Header */}
       <PageHeader
         className="packages-page-header"
-        collapsedMeta={tabDescription}
-        collapsible={isMobile}
-        actions={
-          <div className="packages-page-toolbar">
-            <SearchControl
-              className="packages-page-search"
-              placeholder={searchPlaceholder}
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setOpenMenuId(null);
-              }}
-              onClear={() => setSearch("")}
-            />
-            {packageTab === "active" && (
-              <>
-                <Button leftIcon="gift" variant="secondary" size="sm" onClick={onSellCertificate}>
-                  Продать сертификат
-                </Button>
-                <Button leftIcon="plus" variant="primary" size="sm" onClick={onSellPackage}>
-                  Продать пакет
-                </Button>
-              </>
-            )}
-            {packageTab === "templates" && (
-              <Button leftIcon="plus" variant="primary" size="sm" onClick={onAdd}>
-                Добавить пакет
-              </Button>
-            )}
-          </div>
-        }
+        headerActions={isMobile ? null : desktopHeaderActions}
+        actions={isMobile ? mobileHeaderActions : null}
         description={tabDescription}
-        title="Пакеты"
+        title={
+          <span className="packages-title-row">
+            <span>Пакеты</span>
+            <span className="packages-title-count">
+              ({packageTab === "active" ? activeCount : packageTab === "templates" ? packages.length : archiveCount})
+            </span>
+          </span>
+        }
       />
 
-      <div className="packages-page-tabs">
-        {tabs.map((tab) => (
-          <Button
-            key={tab.id}
-            className={packageTab === tab.id ? "is-active" : ""}
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              setPackageTab(tab.id);
+      {/* 2. Top Controls Bar: Tabs, View Filter & Search */}
+      <div className="packages-controls-bar">
+        <div className="packages-nav-group">
+          {/* Main Segmented Tabs */}
+          <div className="packages-page-tabs" role="tablist">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={packageTab === tab.id}
+                className={`packages-tab-btn ${packageTab === tab.id ? "is-active" : ""}`}
+                type="button"
+                onClick={() => {
+                  setPackageTab(tab.id);
+                  setSubFilter("all");
+                  setOpenMenuId(null);
+                }}>
+                <span>{tab.label}</span>
+                <span className="packages-tab-badge">{tab.count}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Sub-view Filter (For Active and Archive) */}
+          {(packageTab === "active" || packageTab === "archive") && (
+            <div className="packages-subfilter-group" role="group" aria-label="Фильтр элементов">
+              <button
+                type="button"
+                className={`packages-subfilter-btn ${subFilter === "all" ? "is-active" : ""}`}
+                onClick={() => setSubFilter("all")}>
+                Все
+              </button>
+              <button
+                type="button"
+                className={`packages-subfilter-btn ${subFilter === "packages" ? "is-active" : ""}`}
+                onClick={() => setSubFilter("packages")}>
+                Пакеты ({packageTab === "active" ? filteredActiveClientPackages.length : filteredArchivedClientPackages.length})
+              </button>
+              <button
+                type="button"
+                className={`packages-subfilter-btn ${subFilter === "certificates" ? "is-active" : ""}`}
+                onClick={() => setSubFilter("certificates")}>
+                Сертификаты ({packageTab === "active" ? filteredActiveCertificates.length : filteredArchivedCertificates.length})
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Search Control */}
+        <div className="packages-search-wrap">
+          <SearchControl
+            className="packages-page-search"
+            placeholder={searchPlaceholder}
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
               setOpenMenuId(null);
-            }}>
-            {tab.label} <span>{tab.count}</span>
-          </Button>
-        ))}
+            }}
+            onClear={() => setSearch("")}
+          />
+        </div>
       </div>
 
-      {/* Desktop stats cards */}
-      {!isMobile && (
-        <div className="packages-summary-grid">
-          {[
-            {label: "Пакетов продано", val: clientPackages.length},
-            {label: "Доход от пакетов", val: formatMoney(packageSalesIncome)},
-            {label: "Сертиф. продано", val: certificates.length},
-            {label: "Доход от сертиф.", val: formatMoney(certificateSalesIncome)},
-            {label: "Остаток сертиф.", val: formatMoney(activeCertificateBalance)},
-            {label: "Визитов в пакетах", val: remainingVisits},
-          ].map((item, idx) => (
-            <div key={idx} className="packages-summary-card">
-              <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider">{item.label}</span>
-              <strong className="text-base font-extrabold text-text-main mt-0.5">{item.val}</strong>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* 3. KPI Metrics Summary Cards */}
+      <PackagesKpiGrid
+        clientPackagesCount={clientPackages.length}
+        packageSalesIncome={packageSalesIncome}
+        certificatesCount={certificates.length}
+        certificateSalesIncome={certificateSalesIncome}
+        activeCertificateBalance={activeCertificateBalance}
+        remainingVisits={remainingVisits}
+        isMobile={isMobile}
+      />
 
+      {/* 4. Main Board Content */}
       <div className="packages-board">
+        {/* Active Tab */}
         {packageTab === "active" && (
-          <div className="packages-live-row">
-            <div className="packages-panel packages-panel-active">
-              <div className="packages-panel-header">
-                <h2>Активные пакеты</h2>
-                <span>{activeClientPackages.length}</span>
-              </div>
-              <div className="packages-list">
-                {filteredActiveClientPackages.map((packageItem) => (
-                  <ClientPackageCard
-                    key={packageItem.id}
-                    clients={allClients}
-                    packages={packages}
-                    onDelete={onDeleteClientPackage}
-                    onEdit={onEditClientPackage}
-                    openMenuId={openMenuId}
-                    packageItem={packageItem}
-                    setOpenMenuId={setOpenMenuId}
-                  />
-                ))}
-                {filteredActiveClientPackages.length === 0 && (
-                  <EmptyState
-                    className="packages-empty-state"
-                    icon="package"
-                    title="Активных пакетов нет"
-                  />
-                )}
-              </div>
-            </div>
+          <div className={`packages-live-row ${subFilter !== "all" ? "is-single-column" : ""}`}>
+            {/* Active Packages Column */}
+            {(subFilter === "all" || subFilter === "packages") && (
+              <section className="packages-panel packages-panel-active" aria-label="Активные пакеты">
+                <div className="packages-panel-header">
+                  <div className="packages-panel-title-wrap">
+                    <AppIcon name="package" size="sm" className="panel-title-icon" />
+                    <h2>Активные пакеты</h2>
+                  </div>
+                  <span className="packages-panel-count">{filteredActiveClientPackages.length}</span>
+                </div>
+                <div className="packages-list">
+                  {filteredActiveClientPackages.map((packageItem) => (
+                    <ClientPackageCard
+                      key={packageItem.id}
+                      clients={allClients}
+                      packages={packages}
+                      onDelete={onDeleteClientPackage}
+                      onEdit={onEditClientPackage}
+                      openMenuId={openMenuId}
+                      packageItem={packageItem}
+                      setOpenMenuId={setOpenMenuId}
+                    />
+                  ))}
+                  {filteredActiveClientPackages.length === 0 && (
+                    <EmptyState
+                      className="packages-empty-state"
+                      icon="package"
+                      title={search.trim() ? "Пакеты не найдены" : "Активных пакетов нет"}
+                      description={search.trim() ? "Попробуйте изменить поисковый запрос" : "Клиенты пока не приобрели абонементы"}
+                      actionLabel={search.trim() ? "Очистить поиск" : "Продать пакет"}
+                      onAction={search.trim() ? () => setSearch("") : onSellPackage}
+                    />
+                  )}
+                </div>
+              </section>
+            )}
 
-            <div className="packages-panel packages-panel-certificates">
-              <div className="packages-panel-header">
-                <h2>Активные сертификаты</h2>
-                <span>{activeCertificates.length}</span>
-              </div>
-              <div className="packages-list">
-                {filteredActiveCertificates.map((certificate) => (
-                  <CertificateCard
-                    key={certificate.id}
-                    clients={allClients}
-                    certificate={certificate}
-                    onDelete={onDeleteCertificate}
-                    onEdit={onEditCertificate}
-                    openMenuId={openMenuId}
-                    setOpenMenuId={setOpenMenuId}
-                  />
-                ))}
-                {filteredActiveCertificates.length === 0 && (
-                  <EmptyState
-                    className="packages-empty-state"
-                    icon="gift"
-                    title="Активных сертификатов нет"
-                  />
-                )}
-              </div>
-            </div>
+            {/* Active Certificates Column */}
+            {(subFilter === "all" || subFilter === "certificates") && (
+              <section className="packages-panel packages-panel-certificates" aria-label="Активные сертификаты">
+                <div className="packages-panel-header">
+                  <div className="packages-panel-title-wrap">
+                    <AppIcon name="gift" size="sm" className="panel-title-icon" />
+                    <h2>Активные сертификаты</h2>
+                  </div>
+                  <span className="packages-panel-count">{filteredActiveCertificates.length}</span>
+                </div>
+                <div className="packages-list">
+                  {filteredActiveCertificates.map((certificate) => (
+                    <CertificateCard
+                      key={certificate.id}
+                      clients={allClients}
+                      certificate={certificate}
+                      onDelete={onDeleteCertificate}
+                      onEdit={onEditCertificate}
+                      openMenuId={openMenuId}
+                      setOpenMenuId={setOpenMenuId}
+                    />
+                  ))}
+                  {filteredActiveCertificates.length === 0 && (
+                    <EmptyState
+                      className="packages-empty-state"
+                      icon="gift"
+                      title={search.trim() ? "Сертификаты не найдены" : "Активных сертификатов нет"}
+                      description={search.trim() ? "Попробуйте изменить поисковый запрос" : "Оформите подарочный сертификат для клиента"}
+                      actionLabel={search.trim() ? "Очистить поиск" : "Продать сертификат"}
+                      onAction={search.trim() ? () => setSearch("") : onSellCertificate}
+                    />
+                  )}
+                </div>
+              </section>
+            )}
           </div>
         )}
 
+        {/* Templates Tab */}
         {packageTab === "templates" && (
-          <div className="packages-panel packages-panel-templates">
+          <section className="packages-panel packages-panel-templates" aria-label="Шаблоны пакетов">
             <div className="packages-panel-header">
-              <h2>Шаблоны пакетов</h2>
-              <span>{packages.length}</span>
+              <div className="packages-panel-title-wrap">
+                <AppIcon name="package" size="sm" className="panel-title-icon" />
+                <h2>Шаблоны пакетов услуг</h2>
+              </div>
+              <span className="packages-panel-count">{filteredTemplates.length}</span>
             </div>
-            <div className="packages-list packages-list-tall">
+            <div className="packages-list packages-templates-grid">
               {filteredTemplates.map((packageItem) => (
                 <PackageTemplateCard
                   key={packageItem.id}
@@ -673,69 +856,87 @@ function PackagesPage({
                 <EmptyState
                   className="packages-empty-state"
                   icon="package"
-                  title="Шаблоны не найдены"
+                  title={search.trim() ? "Шаблоны не найдены" : "Шаблонов ещё нет"}
+                  description={search.trim() ? "Попробуйте изменить поисковый запрос" : "Создайте шаблон пакета услуг для быстрой продажи в CRM"}
+                  actionLabel={search.trim() ? "Очистить поиск" : "Создать шаблон"}
+                  onAction={search.trim() ? () => setSearch("") : onAdd}
                 />
               )}
             </div>
-          </div>
+          </section>
         )}
 
+        {/* Archive Tab */}
         {packageTab === "archive" && (
-          <div className="packages-live-row">
-            <div className="packages-panel packages-panel-active">
-              <div className="packages-panel-header">
-                <h2>Архив пакетов</h2>
-                <span>{archivedClientPackages.length}</span>
-              </div>
-              <div className="packages-list">
-                {filteredArchivedClientPackages.map((packageItem) => (
-                  <ClientPackageCard
-                    key={packageItem.id}
-                    clients={allClients}
-                    packages={packages}
-                    onDelete={onDeleteClientPackage}
-                    onEdit={onEditClientPackage}
-                    openMenuId={openMenuId}
-                    packageItem={packageItem}
-                    setOpenMenuId={setOpenMenuId}
-                  />
-                ))}
-                {filteredArchivedClientPackages.length === 0 && (
-                  <EmptyState
-                    className="packages-empty-state"
-                    icon="package"
-                    title="Архив пакетов пуст"
-                  />
-                )}
-              </div>
-            </div>
+          <div className={`packages-live-row ${subFilter !== "all" ? "is-single-column" : ""}`}>
+            {/* Archived Packages */}
+            {(subFilter === "all" || subFilter === "packages") && (
+              <section className="packages-panel packages-panel-active" aria-label="Архив пакетов">
+                <div className="packages-panel-header">
+                  <div className="packages-panel-title-wrap">
+                    <AppIcon name="package" size="sm" className="panel-title-icon" />
+                    <h2>Архив пакетов</h2>
+                  </div>
+                  <span className="packages-panel-count">{filteredArchivedClientPackages.length}</span>
+                </div>
+                <div className="packages-list">
+                  {filteredArchivedClientPackages.map((packageItem) => (
+                    <ClientPackageCard
+                      key={packageItem.id}
+                      clients={allClients}
+                      packages={packages}
+                      onDelete={onDeleteClientPackage}
+                      onEdit={onEditClientPackage}
+                      openMenuId={openMenuId}
+                      packageItem={packageItem}
+                      setOpenMenuId={setOpenMenuId}
+                    />
+                  ))}
+                  {filteredArchivedClientPackages.length === 0 && (
+                    <EmptyState
+                      className="packages-empty-state"
+                      icon="package"
+                      title="Архив пакетов пуст"
+                      description="Использованные и закрытые абонементы будут отображаться здесь"
+                    />
+                  )}
+                </div>
+              </section>
+            )}
 
-            <div className="packages-panel packages-panel-certificates">
-              <div className="packages-panel-header">
-                <h2>Архив сертификатов</h2>
-                <span>{archivedCertificates.length}</span>
-              </div>
-              <div className="packages-list">
-                {filteredArchivedCertificates.map((certificate) => (
-                  <CertificateCard
-                    key={certificate.id}
-                    clients={allClients}
-                    certificate={certificate}
-                    onDelete={onDeleteCertificate}
-                    onEdit={onEditCertificate}
-                    openMenuId={openMenuId}
-                    setOpenMenuId={setOpenMenuId}
-                  />
-                ))}
-                {filteredArchivedCertificates.length === 0 && (
-                  <EmptyState
-                    className="packages-empty-state"
-                    icon="gift"
-                    title="Архив сертификатов пуст"
-                  />
-                )}
-              </div>
-            </div>
+            {/* Archived Certificates */}
+            {(subFilter === "all" || subFilter === "certificates") && (
+              <section className="packages-panel packages-panel-certificates" aria-label="Архив сертификатов">
+                <div className="packages-panel-header">
+                  <div className="packages-panel-title-wrap">
+                    <AppIcon name="gift" size="sm" className="panel-title-icon" />
+                    <h2>Архив сертификатов</h2>
+                  </div>
+                  <span className="packages-panel-count">{filteredArchivedCertificates.length}</span>
+                </div>
+                <div className="packages-list">
+                  {filteredArchivedCertificates.map((certificate) => (
+                    <CertificateCard
+                      key={certificate.id}
+                      clients={allClients}
+                      certificate={certificate}
+                      onDelete={onDeleteCertificate}
+                      onEdit={onEditCertificate}
+                      openMenuId={openMenuId}
+                      setOpenMenuId={setOpenMenuId}
+                    />
+                  ))}
+                  {filteredArchivedCertificates.length === 0 && (
+                    <EmptyState
+                      className="packages-empty-state"
+                      icon="gift"
+                      title="Архив сертификатов пуст"
+                      description="Погашенные и истёкшие сертификаты будут сохраняться здесь"
+                    />
+                  )}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </div>
