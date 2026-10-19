@@ -65,6 +65,28 @@ const isInputDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value ?? ''));
 
 const normalizePhone = (value) => String(value ?? '').replace(/[^\d+]/g, '');
 
+const getWarsawNow = () => {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      day: '2-digit',
+      hour: '2-digit',
+      hour12: false,
+      minute: '2-digit',
+      month: '2-digit',
+      timeZone: 'Europe/Warsaw',
+      year: 'numeric',
+    })
+      .formatToParts(new Date())
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value]),
+  );
+
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    minutes: Number(parts.hour) * 60 + Number(parts.minute),
+  };
+};
+
 const addMinutesToTime = (time, minutesToAdd) => {
   const total = Math.min(24 * 60 - 1, Math.max(0, toMinutes(time) + Math.max(1, Number(minutesToAdd) || 0)));
   return toClockTime(total);
@@ -186,6 +208,7 @@ const toPublicEmployee = (row) => {
     shiftStart: cleanString(row?.shiftStart ?? payload.shiftStart) || DEFAULT_WORKDAY_START,
     siteDiscountPercent: Number(pricing.siteDiscountPercent ?? payload.siteDiscountPercent) || 0,
     siteVisible: row?.siteVisible !== false && payload.siteBookingEnabled !== false,
+    role: cleanString(row?.role ?? payload.role),
     status: cleanString(row?.status ?? payload.status),
     workingDaysOfWeek: normalizeWorkingDays(payload.workingDaysOfWeek),
   };
@@ -194,6 +217,7 @@ const toPublicEmployee = (row) => {
 const toPublicService = (row) => {
   const payload = readPayload(row);
   return {
+    id: row?.id,
     name: cleanString(row?.name ?? payload.name),
     buffers: row?.buffers && typeof row.buffers === 'object' ? row.buffers : {},
     payload,
@@ -209,11 +233,19 @@ const cleanServiceTitle = (name) =>
     .replace(/\s*\((top[- ]?)?master\)/i, '')
     .trim();
 
-const getServiceBasePrice = ({ durationMinutes, employee, serviceName, serviceSlug, services = [] }) => {
+const isTopMasterEmployee = (employee) =>
+  /top/i.test(employee?.role ?? '') ||
+  /top/i.test(employee?.name ?? '') ||
+  SITE_MASTER_ALIASES[normalizeText(employee?.name)] === 'Ольга';
+
+const findPreferredService = ({ employee, serviceId, serviceName, serviceSlug, services = [] }) => {
+  if (serviceId !== undefined && serviceId !== null && cleanString(serviceId)) {
+    const byId = services.find((service) => String(service.id) === String(serviceId));
+    if (byId) return byId;
+  }
+
   const normName = normalizeText(serviceName);
   const cleanName = cleanServiceTitle(serviceName);
-  const isTopMaster = /top/i.test(employee?.role ?? '') || /top/i.test(employee?.name ?? '');
-
   const matchedServices = services.filter((item) => {
     const payloadSlug = cleanString(item.payload?.slug);
     const itemName = normalizeText(item.name);
@@ -223,10 +255,28 @@ const getServiceBasePrice = ({ durationMinutes, employee, serviceName, serviceSl
       cleanServiceTitle(item.name) === cleanName
     );
   });
+  const isTopMaster = isTopMasterEmployee(employee);
 
-  const preferredService =
-    matchedServices.find((s) => (isTopMaster ? /top/i.test(s.name) : !/top/i.test(s.name))) ||
-    matchedServices[0];
+  return (
+    matchedServices.find((service) =>
+      isTopMaster ? /top/i.test(service.name) : !/top/i.test(service.name),
+    ) || matchedServices[0] || null
+  );
+};
+
+const getServiceBuffers = (service) => ({
+  after: service?.buffers?.afterEnabled === true
+    ? Math.max(0, Number(service.buffers.afterMinutes) || 0)
+    : 0,
+  before: service?.buffers?.beforeEnabled === true
+    ? Math.max(0, Number(service.buffers.beforeMinutes) || 0)
+    : 0,
+});
+
+const getServiceBasePrice = ({ durationMinutes, employee, serviceName, serviceSlug, services = [] }) => {
+  const cleanName = cleanServiceTitle(serviceName);
+  const isTopMaster = isTopMasterEmployee(employee);
+  const preferredService = findPreferredService({ employee, serviceName, serviceSlug, services });
 
   if (preferredService) {
     const variant = preferredService.variants?.find((item) => Number(item?.duration) === Number(durationMinutes));
@@ -295,7 +345,7 @@ const calculatePrice = ({ basePrice, date, durationMinutes = 0, employee, time }
 
 const overlaps = (start, end, interval) => start < interval.end && end > interval.start;
 
-const getCalendarIntervals = (rows, date, master, employees = []) =>
+const getCalendarIntervals = (rows, date, master, employees = [], services = []) =>
   rows
     .filter((row) => cleanString(row.date) === date)
     .filter((row) => !['cancelled', 'no_show'].includes(cleanString(row.status)))
@@ -311,10 +361,19 @@ const getCalendarIntervals = (rows, date, master, employees = []) =>
       const payload = readPayload(row);
       const start = toMinutes(row.time ?? payload.time);
       const duration = Math.max(15, Number(payload.duration) || 60);
-      return { start, end: start + duration };
+      const employee = employees.find(
+        (item) => resolveMaster(item.name, employees) === resolveMaster(master, employees),
+      );
+      const buffers = getServiceBuffers(findPreferredService({
+        employee,
+        serviceId: payload.serviceId,
+        serviceName: payload.service,
+        services,
+      }));
+      return { start: Math.max(0, start - buffers.before), end: start + duration + buffers.after };
     });
 
-const getPendingIntervals = (rows, date, master, employees = []) =>
+const getPendingIntervals = (rows, date, master, employees = [], services = []) =>
   rows
     .filter((row) => cleanString(row.preferred_date) === date)
     .filter((row) => cleanString(row.status || 'pending') === 'pending')
@@ -328,7 +387,19 @@ const getPendingIntervals = (rows, date, master, employees = []) =>
     })
     .map((row) => {
       const start = toMinutes(row.preferred_time);
-      return { start, end: start + Math.max(15, Number(row.duration_minutes) || 60) };
+      const employee = employees.find(
+        (item) => resolveMaster(item.name, employees) === resolveMaster(master, employees),
+      );
+      const buffers = getServiceBuffers(findPreferredService({
+        employee,
+        serviceName: row.service_name,
+        serviceSlug: row.service_slug,
+        services,
+      }));
+      return {
+        start: Math.max(0, start - buffers.before),
+        end: start + Math.max(15, Number(row.duration_minutes) || 60) + buffers.after,
+      };
     });
 
 const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, serviceName, serviceSlug }) => {
@@ -340,7 +411,7 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
     prisma.service.findMany(),
     prisma.calendarEntry.findMany({ where: { date: preferredDate } }),
     prisma.$queryRaw`
-      select preferred_date, preferred_time, preferred_master, duration_minutes, status
+      select preferred_date, preferred_time, preferred_master, duration_minutes, service_name, service_slug, status
       from site_booking_requests
       where preferred_date = ${preferredDate} and status = 'pending'
     `,
@@ -370,24 +441,28 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
   }
 
   const services = serviceRows.map(toPublicService).filter((service) => service.siteVisible && service.status !== 'Архив');
-  const today = new Date().toISOString().slice(0, 10);
-  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  const warsawNow = getWarsawNow();
 
   const slots = employees.flatMap((employee) => {
     const master = cleanString(employee.name);
     const basePrice = getServiceBasePrice({ durationMinutes: duration, employee, serviceName, serviceSlug, services });
+    const requestBuffers = getServiceBuffers(
+      findPreferredService({ employee, serviceName, serviceSlug, services }),
+    );
     const shift = getEmployeeShiftForDate(employee, preferredDate);
     const start = toMinutes(shift.start);
     const end = toMinutes(shift.end);
     const busy = [
-      ...getCalendarIntervals(calendarRows, preferredDate, master, employees),
-      ...getPendingIntervals(bookingRows, preferredDate, master, employees),
+      ...getCalendarIntervals(calendarRows, preferredDate, master, employees, services),
+      ...getPendingIntervals(bookingRows, preferredDate, master, employees, services),
     ];
     const employeeSlots = [];
 
     for (let minutes = start; minutes + duration <= end; minutes += DEFAULT_SLOT_STEP) {
-      if (preferredDate === today && minutes <= nowMinutes + 60) continue;
-      if (busy.some((interval) => overlaps(minutes, minutes + duration, interval))) continue;
+      if (preferredDate === warsawNow.date && minutes <= warsawNow.minutes + 60) continue;
+      const blockedStart = Math.max(0, minutes - requestBuffers.before);
+      const blockedEnd = minutes + duration + requestBuffers.after;
+      if (busy.some((interval) => overlaps(blockedStart, blockedEnd, interval))) continue;
       const startTime = toClockTime(minutes);
       employeeSlots.push({
         master,
