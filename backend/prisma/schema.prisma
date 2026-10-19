@@ -328,6 +328,37 @@ model Task {
   payload     Json?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  noteRevisions   NoteRevision[]
+  noteAttachments NoteAttachment[]
+}
+
+model NoteRevision {
+  id        BigInt   @id @default(autoincrement())
+  noteId    Int      @map("note_id")
+  title     String
+  content   String?
+  priority  String?
+  payload   Json?
+  version   Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  note      Task     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId, createdAt(sort: Desc)])
+  @@map("note_revisions")
+}
+
+model NoteAttachment {
+  id        String   @id
+  noteId    Int      @map("note_id")
+  fileName  String   @map("file_name")
+  mimeType  String   @map("mime_type")
+  sizeBytes Int      @map("size_bytes")
+  data      Bytes
+  createdAt DateTime @default(now()) @map("created_at")
+  note      Task     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId, createdAt])
+  @@map("note_attachments")
 }
 
 model WaitlistEntry {

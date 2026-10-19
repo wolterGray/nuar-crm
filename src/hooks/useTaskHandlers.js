@@ -4,6 +4,7 @@ import {
   deleteTask,
   updateTask,
 } from "../api/tasks.js";
+import {patchNote} from "../api/notes.js";
 import {
   buildMovedTask,
   getChecklistProgress,
@@ -543,15 +544,17 @@ export function useTaskHandlers({
     async (id, updates = {}) => {
       if (!id) return null;
       let savedNote;
+      const optimisticUpdates = {...updates};
+      delete optimisticUpdates.expectedVersion;
 
       setTasks((current) =>
         current.map((item) => {
           if (String(item.id) !== String(id)) return item;
           const currentPayload = item.payload && typeof item.payload === "object" ? item.payload : {};
-          const updatesPayload = updates.payload && typeof updates.payload === "object" ? updates.payload : {};
+          const updatesPayload = optimisticUpdates.payload && typeof optimisticUpdates.payload === "object" ? optimisticUpdates.payload : {};
           return {
             ...item,
-            ...updates,
+            ...optimisticUpdates,
             payload: {
               ...currentPayload,
               ...updatesPayload,
@@ -562,21 +565,7 @@ export function useTaskHandlers({
       );
 
       try {
-        const existing = tasks.find((item) => String(item.id) === String(id));
-        const currentPayload = existing?.payload && typeof existing.payload === "object" ? existing.payload : {};
-        const updatesPayload = updates.payload && typeof updates.payload === "object" ? updates.payload : {};
-        const nextTask = {
-          ...(existing || {}),
-          ...updates,
-          type: "note",
-          payload: {
-            ...currentPayload,
-            ...updatesPayload,
-            lastEditedAt: new Date().toISOString(),
-          },
-        };
-        const response = await updateTask(id, nextTask);
-        savedNote = response?.data ?? nextTask;
+        savedNote = await patchNote(id, updates);
         setTasks((current) =>
           current.map((item) => (String(item.id) === String(id) ? savedNote : item)),
         );
@@ -587,10 +576,10 @@ export function useTaskHandlers({
           message: error?.message || "Backend не принял изменения",
           persist: false,
         });
-        return null;
+        throw error;
       }
     },
-    [pushNotification, setTasks, tasks],
+    [pushNotification, setTasks],
   );
 
   const completeTask = useCallback(

@@ -1,8 +1,10 @@
 const express = require('express');
+const crypto = require('crypto');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { isOwnerAuth, requireOwner } = require('../middleware/auth');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
+const {ensureNoteTables} = require('../utils/noteTables');
 const {
   respond,
   auditCreate,
@@ -13,6 +15,49 @@ const {
 } = require('../utils/crudHelpers');
 
 const prisma = new PrismaClient();
+const NOTE_ATTACHMENT_MAX_BYTES = 8 * 1024 * 1024;
+const NOTE_ATTACHMENT_TYPES = new Set(['image/gif', 'image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
+
+const isNote = (record) => String(record?.type ?? '').trim() === 'note';
+const denyOwnerOnly = (res) => res.status(403).json({success: false, error: 'Owner role required'});
+const cleanFileName = (value) => [...String(value ?? 'attachment')]
+  .filter((character) => character.charCodeAt(0) >= 32)
+  .join('')
+  .replace(/[<>:"/\\|?*]+/g, '-')
+  .trim()
+  .slice(0, 180) || 'attachment';
+
+const decodeBase64 = (value) => {
+  const source = String(value ?? '').replace(/^data:[^;]+;base64,/, '');
+  if (!source || !/^[a-z0-9+/=\r\n]+$/i.test(source)) return null;
+  return Buffer.from(source, 'base64');
+};
+
+const notePayload = (value) => objectPayload(value?.payload ?? value);
+
+const saveRevisionIfDue = async (tx, note) => {
+  const latest = await tx.$queryRaw`
+    select created_at
+    from note_revisions
+    where note_id = ${note.id}
+    order by created_at desc
+    limit 1
+  `;
+  const latestAt = latest?.[0]?.created_at ? new Date(latest[0].created_at).getTime() : 0;
+  if (latestAt && Date.now() - latestAt < 10 * 60 * 1000) return;
+  const payload = notePayload(note);
+  await tx.$executeRaw`
+    insert into note_revisions (note_id, title, content, priority, payload, version)
+    values (
+      ${note.id},
+      ${note.title},
+      ${note.note ?? note.description ?? null},
+      ${note.priority ?? null},
+      ${JSON.stringify(payload)}::jsonb,
+      ${Number(payload.noteVersion) || 0}
+    )
+  `;
+};
 
 const toDate = (date) => {
   if (!date) return null;
@@ -181,7 +226,9 @@ router.get('/operations-state', async (req, res) => {
         communicationLog: communicationLog.map(withStoredId),
         messageTemplates: messageTemplates.map(withStoredId),
         supplies: supplies.map(withStoredId),
-        tasks: tasks.map(withStoredId),
+        tasks: tasks
+          .filter((task) => !isNote(task) || (isOwnerAuth(req.auth) && !notePayload(task).deletedAt))
+          .map(withStoredId),
         waitlistEntries: waitlistEntries.map(withStoredId),
       },
     });
@@ -195,6 +242,7 @@ router.get('/operations-state', async (req, res) => {
 // ==================== Task CRUD ====================
 router.post('/tasks', (req, res) => {
   const data = buildTaskData(req.body ?? {});
+  if (isNote(data) && !isOwnerAuth(req.auth)) return denyOwnerOnly(res);
   if (!data.title) {
     return res.status(400).json({ success: false, error: 'Task title is required' });
   }
@@ -204,11 +252,20 @@ router.post('/tasks', (req, res) => {
 
 router.get('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.task.findUnique({ where: { id } }).then(withStoredId));
+  respond(res, prisma.task.findUnique({ where: { id } }).then((task) => {
+    if (isNote(task) && !isOwnerAuth(req.auth)) {
+      const error = new Error('Owner role required');
+      error.status = 403;
+      throw error;
+    }
+    return withStoredId(task);
+  }));
 });
 
 router.put('/tasks/:id', async (req, res) => {
   const id = Number(req.params.id);
+  const existing = await prisma.task.findUnique({where: {id}});
+  if ((isNote(existing) || isNote(req.body)) && !isOwnerAuth(req.auth)) return denyOwnerOnly(res);
   const data = buildTaskData({ ...(req.body ?? {}), id });
   if (!data.title) {
     return res.status(400).json({ success: false, error: 'Task title is required' });
@@ -228,6 +285,21 @@ router.put('/tasks/:id', async (req, res) => {
 
 router.delete('/tasks/:id', requireOwner, async (req, res) => {
   const id = Number(req.params.id);
+  const existing = await prisma.task.findUnique({where: {id}});
+  if (isNote(existing)) {
+    const payload = {...notePayload(existing), deletedAt: new Date().toISOString()};
+    await auditUpdate(
+      prisma,
+      req,
+      res,
+      'task',
+      id,
+      prisma.task.update({where: {id}, data: {payload, status: 'deleted'}}).then(withStoredId),
+      'Task',
+      'move note to trash',
+    );
+    return;
+  }
   await auditDelete(
     prisma,
     req,
@@ -245,8 +317,243 @@ router.get('/tasks', (req, res) => {
     res,
     prisma.task
       .findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] })
-      .then((records) => records.map(withStoredId)),
+      .then((records) => records
+        .filter((task) => !isNote(task) || (isOwnerAuth(req.auth) && !notePayload(task).deletedAt))
+        .map(withStoredId)),
   );
+});
+
+// ==================== Owner notes ====================
+router.patch('/notes/:id', requireOwner, async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    await ensureNoteTables(prisma);
+    const saved = await prisma.$transaction(async (tx) => {
+      const existing = await tx.task.findUnique({where: {id}});
+      if (!existing || !isNote(existing)) {
+        const error = new Error('Note not found');
+        error.status = 404;
+        throw error;
+      }
+
+      const currentPayload = notePayload(existing);
+      const currentVersion = Number(currentPayload.noteVersion) || 0;
+      const expectedVersion = Number(req.body?.expectedVersion);
+      if (Number.isInteger(expectedVersion) && expectedVersion !== currentVersion) {
+        const error = new Error('Note was changed on another device');
+        error.status = 409;
+        throw error;
+      }
+
+      await saveRevisionIfDue(tx, existing);
+      const incomingPayload = objectPayload(req.body?.payload);
+      const nextPayload = {
+        ...currentPayload,
+        ...incomingPayload,
+        lastEditedAt: new Date().toISOString(),
+        noteVersion: currentVersion + 1,
+      };
+      const content = req.body?.note ?? req.body?.description ?? existing.note ?? existing.description;
+      return tx.task.update({
+        where: {id},
+        data: {
+          description: content,
+          note: content,
+          payload: nextPayload,
+          priority: req.body?.priority ?? existing.priority,
+          title: String(req.body?.title ?? existing.title).trim() || existing.title,
+        },
+      });
+    });
+    res.json({success: true, data: withStoredId(saved)});
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.get('/notes-trash', requireOwner, async (_req, res) => {
+  try {
+    const notes = await prisma.task.findMany({where: {type: 'note'}, orderBy: {updatedAt: 'desc'}});
+    res.json({success: true, data: notes.filter((note) => Boolean(notePayload(note).deletedAt)).map(withStoredId)});
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.post('/notes/:id/restore', requireOwner, async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    const existing = await prisma.task.findUnique({where: {id}});
+    if (!existing || !isNote(existing)) return res.status(404).json({success: false, error: 'Note not found'});
+    const payload = {...notePayload(existing)};
+    delete payload.deletedAt;
+    const saved = await prisma.task.update({where: {id}, data: {payload, status: 'active'}});
+    res.json({success: true, data: withStoredId(saved)});
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.delete('/notes/:id/permanent', requireOwner, async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    const existing = await prisma.task.findUnique({where: {id}});
+    if (!existing || !isNote(existing) || !notePayload(existing).deletedAt) {
+      return res.status(404).json({success: false, error: 'Deleted note not found'});
+    }
+    await prisma.task.delete({where: {id}});
+    res.json({success: true, data: {id}});
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.get('/notes/:id/revisions', requireOwner, async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    await ensureNoteTables(prisma);
+    const rows = await prisma.$queryRaw`
+      select id, note_id, title, content, priority, version, created_at
+      from note_revisions
+      where note_id = ${id}
+      order by created_at desc
+      limit 50
+    `;
+    res.json({
+      success: true,
+      data: rows.map((row) => ({...row, id: String(row.id)})),
+    });
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.post('/notes/:id/revisions/:revisionId/restore', requireOwner, async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    const revisionId = BigInt(req.params.revisionId);
+    await ensureNoteTables(prisma);
+    const saved = await prisma.$transaction(async (tx) => {
+      const existing = await tx.task.findUnique({where: {id}});
+      if (!existing || !isNote(existing)) {
+        const error = new Error('Note not found');
+        error.status = 404;
+        throw error;
+      }
+      const revisions = await tx.$queryRaw`
+        select title, content, priority, payload
+        from note_revisions
+        where id = ${revisionId} and note_id = ${id}
+        limit 1
+      `;
+      const revision = revisions?.[0];
+      if (!revision) {
+        const error = new Error('Revision not found');
+        error.status = 404;
+        throw error;
+      }
+      await saveRevisionIfDue(tx, existing);
+      const currentVersion = Number(notePayload(existing).noteVersion) || 0;
+      return tx.task.update({
+        where: {id},
+        data: {
+          description: revision.content,
+          note: revision.content,
+          payload: {...objectPayload(revision.payload), noteVersion: currentVersion + 1, lastEditedAt: new Date().toISOString()},
+          priority: revision.priority,
+          title: revision.title,
+        },
+      });
+    });
+    res.json({success: true, data: withStoredId(saved)});
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.get('/notes/:id/attachments', requireOwner, async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    await ensureNoteTables(prisma);
+    const rows = await prisma.$queryRaw`
+      select id, note_id, file_name, mime_type, size_bytes, created_at
+      from note_attachments
+      where note_id = ${id}
+      order by created_at asc
+    `;
+    res.json({success: true, data: rows});
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.post('/notes/:id/attachments', requireOwner, async (req, res) => {
+  const noteId = Number(req.params.id);
+  const mimeType = String(req.body?.mimeType ?? '').toLowerCase();
+  const data = decodeBase64(req.body?.dataBase64);
+  if (!NOTE_ATTACHMENT_TYPES.has(mimeType)) {
+    return res.status(422).json({success: false, error: 'Unsupported attachment type'});
+  }
+  if (!data?.length || data.length > NOTE_ATTACHMENT_MAX_BYTES) {
+    return res.status(422).json({success: false, error: 'Attachment must be smaller than 8 MB'});
+  }
+  try {
+    await ensureNoteTables(prisma);
+    const note = await prisma.task.findUnique({where: {id: noteId}});
+    if (!note || !isNote(note)) return res.status(404).json({success: false, error: 'Note not found'});
+    const id = crypto.randomUUID();
+    const fileName = cleanFileName(req.body?.fileName);
+    const rows = await prisma.$queryRaw`
+      insert into note_attachments (id, note_id, file_name, mime_type, size_bytes, data)
+      values (${id}, ${noteId}, ${fileName}, ${mimeType}, ${data.length}, ${data})
+      returning id, note_id, file_name, mime_type, size_bytes, created_at
+    `;
+    res.status(201).json({success: true, data: rows[0]});
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.get('/notes/attachments/:attachmentId/content', requireOwner, async (req, res) => {
+  try {
+    await ensureNoteTables(prisma);
+    const rows = await prisma.$queryRaw`
+      select file_name, mime_type, data
+      from note_attachments
+      where id = ${String(req.params.attachmentId)}
+      limit 1
+    `;
+    const attachment = rows?.[0];
+    if (!attachment) return res.status(404).json({success: false, error: 'Attachment not found'});
+    res.set('Content-Type', attachment.mime_type);
+    res.set('Content-Disposition', `inline; filename="${cleanFileName(attachment.file_name)}"`);
+    res.set('Cache-Control', 'private, max-age=300');
+    return res.send(attachment.data);
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    return res.status(response.status).json({success: false, error: response.message});
+  }
+});
+
+router.delete('/notes/attachments/:attachmentId', requireOwner, async (req, res) => {
+  try {
+    await ensureNoteTables(prisma);
+    const count = await prisma.$executeRaw`
+      delete from note_attachments where id = ${String(req.params.attachmentId)}
+    `;
+    res.json({success: true, data: {deleted: Number(count)}});
+  } catch (error) {
+    const response = getHttpErrorResponse(error);
+    res.status(response.status).json({success: false, error: response.message});
+  }
 });
 
 // ==================== Waitlist CRUD ====================
