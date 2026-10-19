@@ -322,6 +322,17 @@ function NotionDocEditor({
     [note.payload, triggerImmediateSave],
   );
 
+  const insertRawSnippet = useCallback(
+    (snippet) => {
+      setDraftContent((prev) => {
+        const next = prev ? `${prev}\n${snippet}` : snippet;
+        triggerAutoSave({note: next, description: next});
+        return next;
+      });
+    },
+    [triggerAutoSave],
+  );
+
   const handleTogglePin = useCallback(() => {
     const nextPinned = !draftPinned;
     setDraftPinned(nextPinned);
@@ -395,6 +406,32 @@ function NotionDocEditor({
                 </div>
               </>
             ) : null}
+          </div>
+
+          {/* Mode Switch: Visual / Raw Markdown */}
+          <div className="notion-doc-mode-tabs" role="tablist" aria-label="Режим отображения">
+            <button
+              className={`notion-doc-mode-tab ${!rawMarkdownMode ? "is-active" : ""}`}
+              type="button"
+              role="tab"
+              aria-selected={!rawMarkdownMode}
+              title="Интерактивный вид с таблицами и чекбоксами"
+              onClick={() => setRawMarkdownMode(false)}
+            >
+              <AppIcon name="eye" size="xs" />
+              <span>Вид</span>
+            </button>
+            <button
+              className={`notion-doc-mode-tab ${rawMarkdownMode ? "is-active" : ""}`}
+              type="button"
+              role="tab"
+              aria-selected={rawMarkdownMode}
+              title="Исходная разметка Markdown для вставки текста и таблиц"
+              onClick={() => setRawMarkdownMode(true)}
+            >
+              <AppIcon name="code" size="xs" />
+              <span>Разметка (MD)</span>
+            </button>
           </div>
 
           {/* Save Status Indicator */}
@@ -586,23 +623,87 @@ function NotionDocEditor({
             ) : null}
           </div>
 
-          <input
+          <textarea
             className="notion-title-input"
             placeholder="Без названия"
-            type="text"
+            rows={1}
             value={draftTitle}
             onBlur={() => triggerImmediateSave({title: draftTitle})}
             onChange={handleTitleChange}
+            onInput={(e) => {
+              e.target.style.height = "auto";
+              e.target.style.height = `${e.target.scrollHeight}px`;
+            }}
           />
         </div>
 
         {/* Document Body */}
         {rawMarkdownMode ? (
           <div className="notion-editor-area">
+            <div className="notion-raw-toolbar">
+              <span className="notion-raw-toolbar-label">Вставить разметку:</span>
+              <button
+                type="button"
+                className="notion-raw-btn"
+                title="Добавить пункт чек-листа"
+                onClick={() => insertRawSnippet("- [ ] ")}
+              >
+                <AppIcon name="checkSquare" size="xs" />
+                <span>Чекбокс</span>
+              </button>
+              <button
+                type="button"
+                className="notion-raw-btn"
+                title="Вставить шаблон таблицы"
+                onClick={() =>
+                  insertRawSnippet(
+                    "\n| День | Формат | Доля стратегии | Время (CET) | Цель алгоритма | Статус |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n| Понедельник | Stories | Вовлечение | 10:30 | Охваты | [ ] В плане |\n| Вторник | Stories | Бэкстейдж | 11:00 | Удержание | [ ] В плане |\n",
+                  )
+                }
+              >
+                <AppIcon name="table" size="xs" />
+                <span>Таблица</span>
+              </button>
+              <button
+                type="button"
+                className="notion-raw-btn"
+                title="Заголовок H2"
+                onClick={() => insertRawSnippet("## Новый заголовок\n")}
+              >
+                <span>H2</span>
+              </button>
+              <button
+                type="button"
+                className="notion-raw-btn"
+                title="Маркированный список"
+                onClick={() => insertRawSnippet("- Пункт списка\n")}
+              >
+                <AppIcon name="list" size="xs" />
+                <span>Список</span>
+              </button>
+              <button
+                type="button"
+                className="notion-raw-btn"
+                title="Цитата / Выделение"
+                onClick={() => insertRawSnippet("> Правило студии или цитата\n")}
+              >
+                <AppIcon name="quote" size="xs" />
+                <span>Цитата</span>
+              </button>
+              <button
+                type="button"
+                className="notion-raw-btn"
+                title="Разделительная линия"
+                onClick={() => insertRawSnippet("\n---\n")}
+              >
+                <AppIcon name="minus" size="xs" />
+                <span>Линия</span>
+              </button>
+            </div>
             <textarea
               className="notion-textarea"
-              placeholder="Исходный Markdown заметки…"
-              rows={18}
+              placeholder="Вставьте сюда готовую разметку Markdown из ChatGPT или пишите вручную:&#10;&#10;# Заголовок&#10;| День | Формат | Статус |&#10;| :--- | :--- | :--- |&#10;| Понедельник | Reels | [ ] Снять |&#10;&#10;Переключитесь на вкладку «Вид», чтобы увидеть интерактивный документ!"
+              rows={22}
               value={draftContent}
               onBlur={() => triggerImmediateSave({note: draftContent, description: draftContent})}
               onChange={(e) => {
@@ -611,6 +712,12 @@ function NotionDocEditor({
                 triggerAutoSave({note: next, description: next});
               }}
             />
+            <div className="notion-raw-hint">
+              <AppIcon name="info" size="xs" />
+              <span>
+                Здесь можно вставить или редактировать исходный текст Markdown (таблицы, заголовки, чекбоксы). Переключитесь на вкладку <strong>«Вид»</strong> вверху, чтобы работать с интерактивной таблицей, цветными бейджами и чекбоксами.
+              </span>
+            </div>
           </div>
         ) : (
           <div className="notion-live-area">

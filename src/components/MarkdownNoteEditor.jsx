@@ -265,7 +265,7 @@ function EditorToolbar({editor}) {
             </button>
 
             {tableMenuOpen && (
-              <div className="notion-rich-popover">
+              <div className="notion-rich-popover is-right-aligned">
                 <button
                   className="notion-popover-item"
                   type="button"
@@ -368,7 +368,7 @@ function EditorToolbar({editor}) {
         </button>
 
         {insertMenuOpen && (
-          <div className="notion-rich-popover">
+          <div className="notion-rich-popover is-right-aligned">
             <button
               className="notion-popover-item"
               type="button"
@@ -480,6 +480,16 @@ function MarkdownNoteEditor({onBlur, onChange, value = ""}) {
       <EditorToolbar editor={editor} />
       <div className="notion-rich-canvas" onDrop={(event) => event.stopPropagation()}>
         <EditorContent editor={editor} />
+        <button
+          type="button"
+          className="notion-rich-add-paragraph"
+          onClick={() => {
+            editor?.chain().focus("end").insertContent("<p></p>").run();
+          }}
+        >
+          <AppIcon name="plus" size="xs" />
+          <span>Добавить текст / блок ниже таблицы</span>
+        </button>
       </div>
       <p className="notion-rich-paste-hint">Markdown форматируется автоматически при вставке. Таблицы можно редактировать и масштабировать прямо в документе.</p>
     </div>
