@@ -19,8 +19,25 @@ import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SettingsToggle from "../SettingsToggle.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
-import {AppIcon, Button, Card, Input, PageHeader, Select, TabButton, Tabs} from "../ui/index.js";
 import "./SettingsPage.css";
+import {
+  AppIcon,
+  Button,
+  Card,
+  Dialog,
+  DialogBackdrop,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  PageHeader,
+  Select,
+  Switch,
+  TabButton,
+  Tabs,
+} from "../ui/index.js";
 
 function SettingsMobileSection({children, isMobile, title}) {
   if (!isMobile) {
@@ -170,7 +187,12 @@ const formatUserDate = (value) => {
 
 function UserAccessPanel({authUser, pushNotification}) {
   const [creating, setCreating] = useState(false);
-  const [draft, setDraft] = useState({email: "", name: "", role: "staff"});
+  const [draft, setDraft] = useState({email: "", employeeId: "", name: "", role: "staff"});
+  const [employees, setEmployees] = useState([]);
+  const [permissionGroups, setPermissionGroups] = useState([]);
+  const [editingPermsUser, setEditingPermsUser] = useState(null);
+  const [permsDraft, setPermsDraft] = useState({});
+  const [savingPerms, setSavingPerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [resetInfo, setResetInfo] = useState(null);
@@ -191,6 +213,8 @@ function UserAccessPanel({authUser, pushNotification}) {
     try {
       const payload = await fetchUsers();
       setRows(payload.users || []);
+      setEmployees(payload.employees || []);
+      setPermissionGroups(payload.permissionGroups || []);
     } catch (error) {
       const message = error?.message || "Не удалось загрузить список пользователей";
       setLoadError(message);
@@ -243,11 +267,12 @@ function UserAccessPanel({authUser, pushNotification}) {
     try {
       const payload = await createUser({
         email: normalizedEmail,
+        employeeId: draft.employeeId ? Number(draft.employeeId) : null,
         name: String(draft.name ?? "").trim(),
         role: draft.role,
       });
       setRows((current) => [...current, payload.user]);
-      setDraft({email: "", name: "", role: "staff"});
+      setDraft({email: "", employeeId: "", name: "", role: "staff"});
       if (payload.resetUrl) {
         setResetInfo({
           email: payload.user.email,
@@ -277,8 +302,10 @@ function UserAccessPanel({authUser, pushNotification}) {
     try {
       const payload = await updateUser(user.id, {
         email: user.email,
+        employeeId: user.employeeId ? Number(user.employeeId) : null,
         isActive: user.isActive,
         name: user.name,
+        permissions: user.permissions || {},
         role: user.role,
       });
       patchRow(user.id, payload.user);
@@ -347,15 +374,59 @@ function UserAccessPanel({authUser, pushNotification}) {
     }
   };
 
+  const openPermissionsModal = (user) => {
+    setEditingPermsUser(user);
+    setPermsDraft({ ...(user.permissions || {}) });
+  };
+
+  const handleTogglePermission = (key, currentVal) => {
+    setPermsDraft((prev) => ({
+      ...prev,
+      [key]: !currentVal,
+    }));
+  };
+
+  const handleResetPermissionsToRole = () => {
+    setPermsDraft({});
+  };
+
+  const handleSavePermissions = async () => {
+    if (!editingPermsUser) return;
+    setSavingPerms(true);
+    try {
+      const payload = await updateUser(editingPermsUser.id, {
+        email: editingPermsUser.email,
+        employeeId: editingPermsUser.employeeId ? Number(editingPermsUser.employeeId) : null,
+        isActive: editingPermsUser.isActive,
+        name: editingPermsUser.name,
+        permissions: permsDraft,
+        role: editingPermsUser.role,
+      });
+      patchRow(editingPermsUser.id, payload.user);
+      pushNotification?.({
+        title: "Права доступа сохранены",
+        message: `${payload.user.email} (${payload.user.role})`,
+      });
+      setEditingPermsUser(null);
+    } catch (error) {
+      pushNotification?.({
+        title: "Не удалось сохранить права",
+        message: error?.message || "Ошибка обновления прав доступа",
+      });
+    } finally {
+      setSavingPerms(false);
+    }
+  };
+
   return (
     <Card className="p-4 sm:p-5 flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-soft pb-3">
         <div className="flex items-center gap-2.5">
           <AppIcon name="shield" size="md" className="text-accent" />
           <div>
-            <h2 className="m-0 text-text-main text-[15px] font-bold">Доступы сотрудников</h2>
+            <h2 className="m-0 text-text-main text-[15px] font-bold">Доступы сотрудников и права</h2>
             <p className="m-0 mt-0.5 text-text-muted text-xs">
-              Учётные записи для входа в CRM, назначение ролей и создание ссылок на установку пароля.
+              Учётные записи, привязка к мастерам, роли и детальные разрешения доступа к CRM.
             </p>
           </div>
         </div>
@@ -374,10 +445,10 @@ function UserAccessPanel({authUser, pushNotification}) {
             <div className="flex items-center justify-between gap-2">
               <strong className="text-text-main text-[13px] font-semibold">Добавить пользователя</strong>
               <span className="text-text-faint text-[11px]">
-                После создания вы получите одноразовую ссылку для установки пароля
+                После создания вы получите ссылку для установки пароля
               </span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-[minmax(180px,1.2fr)_minmax(150px,0.9fr)_180px_auto] gap-2.5 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-[minmax(180px,1.2fr)_minmax(130px,0.8fr)_160px_170px_auto] gap-2.5 items-end">
               <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
                 Email для входа
                 <Input
@@ -408,8 +479,22 @@ function UserAccessPanel({authUser, pushNotification}) {
                   ))}
                 </Select>
               </label>
+              <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+                Привязка к мастеру
+                <Select
+                  value={draft.employeeId}
+                  onChange={(event) => setDraft((current) => ({...current, employeeId: event.target.value}))}
+                >
+                  <option value="">— Без привязки —</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name} {emp.role ? `(${emp.role})` : ""}
+                    </option>
+                  ))}
+                </Select>
+              </label>
               <Button
-                className="flex items-center justify-center gap-1.5"
+                className="flex items-center justify-center gap-1.5 min-h-10"
                 disabled={creating || !draft.email.trim()}
                 loading={creating}
                 type="button"
@@ -476,78 +561,109 @@ function UserAccessPanel({authUser, pushNotification}) {
                 </Button>
               </div>
             ) : rows.length ? (
-              rows.map((user) => (
-                <article
-                  className="grid grid-cols-1 xl:grid-cols-[minmax(180px,1.2fr)_minmax(130px,0.8fr)_175px_100px_145px_auto] gap-2.5 items-center rounded-control border border-border-soft bg-field px-3.5 py-2.5"
-                  key={user.id}
-                >
-                  <Input
-                    aria-label="Email"
-                    type="email"
-                    value={user.email}
-                    onChange={(event) => patchRow(user.id, {email: event.target.value})}
-                  />
-                  <Input
-                    aria-label="Имя"
-                    placeholder="Имя"
-                    value={user.name || ""}
-                    onChange={(event) => patchRow(user.id, {name: event.target.value})}
-                  />
-                  <Select
-                    aria-label="Роль"
-                    value={user.role}
-                    onChange={(event) => patchRow(user.id, {role: event.target.value})}
+              rows.map((user) => {
+                const customPermCount = Object.keys(user.permissions || {}).length;
+                return (
+                  <article
+                    className="grid grid-cols-1 xl:grid-cols-[minmax(160px,1.1fr)_minmax(110px,0.7fr)_140px_160px_90px_120px_auto] gap-2.5 items-center rounded-control border border-border-soft bg-field px-3.5 py-2.5"
+                    key={user.id}
                   >
-                    {USER_ROLE_OPTIONS.map((role) => (
-                      <option key={role.value} value={role.value}>{role.label}</option>
-                    ))}
-                  </Select>
-                  <span
-                    className={clsx(
-                      "settings-user-status inline-flex min-h-8 items-center justify-center rounded-control border px-2.5 text-xs font-bold",
-                      user.isActive ? "is-active" : "is-disabled",
-                    )}
-                  >
-                    {user.isActive ? "Активен" : "Отключён"}
-                  </span>
-                  <div className="text-[11px] text-text-muted leading-tight">
-                    <span className="block">Создан: {formatUserDate(user.createdAt)}</span>
-                    <span className="block mt-0.5">Вход: {formatUserDate(user.lastLoginAt)}</span>
-                  </div>
-                  <div className="flex flex-wrap justify-end gap-1.5">
-                    <Button
-                      disabled={savingId === user.id}
-                      size="sm"
-                      type="button"
-                      variant="secondary"
-                      onClick={() => handleUpdateUser(user)}
+                    <Input
+                      aria-label="Email"
+                      type="email"
+                      value={user.email}
+                      onChange={(event) => patchRow(user.id, {email: event.target.value})}
+                    />
+                    <Input
+                      aria-label="Имя"
+                      placeholder="Имя"
+                      value={user.name || ""}
+                      onChange={(event) => patchRow(user.id, {name: event.target.value})}
+                    />
+                    <Select
+                      aria-label="Роль"
+                      value={user.role}
+                      onChange={(event) => patchRow(user.id, {role: event.target.value})}
                     >
-                      Сохранить
-                    </Button>
-                    <Button
-                      disabled={savingId === user.id || !user.isActive}
-                      size="sm"
-                      title="Получить или отправить ссылку для смены пароля"
-                      type="button"
-                      variant="secondary"
-                      onClick={() => handleSendReset(user)}
+                      {USER_ROLE_OPTIONS.map((role) => (
+                        <option key={role.value} value={role.value}>{role.label}</option>
+                      ))}
+                    </Select>
+                    <Select
+                      aria-label="Мастер"
+                      value={user.employeeId || ""}
+                      onChange={(event) => patchRow(user.id, {employeeId: event.target.value ? Number(event.target.value) : null})}
                     >
-                      <AppIcon name="send" size="xs" />
-                      Пароль
-                    </Button>
-                    <Button
-                      disabled={savingId === user.id}
-                      size="sm"
-                      type="button"
-                      variant={user.isActive ? "danger" : "secondary"}
-                      onClick={() => handleToggleUser(user)}
+                      <option value="">— Без мастера —</option>
+                      {employees.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <span
+                      className={clsx(
+                        "settings-user-status inline-flex min-h-8 items-center justify-center rounded-control border px-2 text-xs font-bold",
+                        user.isActive ? "is-active" : "is-disabled",
+                      )}
                     >
-                      <AppIcon name="power" size="xs" />
-                      {user.isActive ? "Откл." : "Вкл."}
-                    </Button>
-                  </div>
-                </article>
-              ))
+                      {user.isActive ? "Активен" : "Отключён"}
+                    </span>
+                    <div className="text-[11px] text-text-muted leading-tight">
+                      <span className="block">Создан: {formatUserDate(user.createdAt)}</span>
+                      <span className="block mt-0.5">Вход: {formatUserDate(user.lastLoginAt)}</span>
+                    </div>
+                    <div className="flex flex-wrap justify-end gap-1.5">
+                      <Button
+                        size="sm"
+                        type="button"
+                        variant="secondary"
+                        title="Настройка индивидуальных прав доступа"
+                        onClick={() => openPermissionsModal(user)}
+                        className="flex items-center gap-1"
+                      >
+                        <AppIcon name="shield" size="xs" />
+                        Права
+                        {customPermCount > 0 ? (
+                          <span className="ml-0.5 rounded-full bg-accent/20 px-1 py-0.2 text-[10px] text-accent font-bold">
+                            {customPermCount}
+                          </span>
+                        ) : null}
+                      </Button>
+                      <Button
+                        disabled={savingId === user.id}
+                        size="sm"
+                        type="button"
+                        variant="secondary"
+                        onClick={() => handleUpdateUser(user)}
+                      >
+                        Сохранить
+                      </Button>
+                      <Button
+                        disabled={savingId === user.id || !user.isActive}
+                        size="sm"
+                        title="Получить или отправить ссылку для смены пароля"
+                        type="button"
+                        variant="secondary"
+                        onClick={() => handleSendReset(user)}
+                      >
+                        <AppIcon name="send" size="xs" />
+                        Пароль
+                      </Button>
+                      <Button
+                        disabled={savingId === user.id}
+                        size="sm"
+                        type="button"
+                        variant={user.isActive ? "danger" : "secondary"}
+                        onClick={() => handleToggleUser(user)}
+                      >
+                        <AppIcon name="power" size="xs" />
+                        {user.isActive ? "Откл." : "Вкл."}
+                      </Button>
+                    </div>
+                  </article>
+                );
+              })
             ) : (
               <div className="rounded-control border border-border bg-field p-3.5 text-xs text-text-muted">
                 Пользователей в базе пока нет. Создайте первую учётную запись выше.
@@ -556,6 +672,105 @@ function UserAccessPanel({authUser, pushNotification}) {
           </div>
         </>
       )}
+
+      {/* Модальное окно индивидуальной настройки прав доступа (RBAC) */}
+      <Dialog open={Boolean(editingPermsUser)}>
+        <DialogBackdrop>
+          <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-5 bg-surface border-border rounded-modal shadow-modal">
+            <DialogHeader className="border-b border-border-soft pb-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <AppIcon name="shield" size="md" className="text-accent" />
+                  <div>
+                    <DialogTitle className="text-base font-bold text-text-main m-0">
+                      Права: {editingPermsUser?.name || editingPermsUser?.email}
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-text-muted mt-0.5 m-0">
+                      Роль: <strong className="text-text-main">{USER_ROLE_OPTIONS.find((r) => r.value === editingPermsUser?.role)?.label || editingPermsUser?.role}</strong>. Настройте индивидуальные права при необходимости.
+                    </DialogDescription>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  type="button"
+                  onClick={() => setEditingPermsUser(null)}
+                >
+                  <AppIcon name="x" size="sm" />
+                </Button>
+              </div>
+            </DialogHeader>
+
+            <div className="overflow-y-auto flex-1 py-3 pr-1 flex flex-col gap-4">
+              {permissionGroups.map((group) => (
+                <div key={group.id} className="rounded-control border border-border-soft bg-field p-3 flex flex-col gap-2.5">
+                  <strong className="text-xs font-semibold text-text-main tracking-tight uppercase">
+                    {group.title}
+                  </strong>
+                  <div className="flex flex-col gap-2">
+                    {group.permissions.map((perm) => {
+                      const isOverridden = permsDraft[perm.key] !== undefined;
+                      const isChecked = permsDraft[perm.key] ?? false;
+                      return (
+                        <div
+                          key={perm.key}
+                          className="flex items-center justify-between gap-3 p-2.5 rounded-control bg-surface/50 border border-border/40 hover:border-border transition-colors"
+                        >
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-xs font-medium text-text-main">{perm.label}</span>
+                            <span className="text-[11px] text-text-faint">{perm.description}</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 shrink-0">
+                            {isOverridden ? (
+                              <span className="rounded-pill bg-accent/15 px-2 py-0.5 text-[10px] text-accent font-semibold">
+                                Индивидуально
+                              </span>
+                            ) : null}
+                            <Switch
+                              checked={Boolean(isChecked)}
+                              onChange={() => handleTogglePermission(perm.key, isChecked)}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <DialogFooter className="border-t border-border-soft pt-3 flex items-center justify-between gap-2 mt-auto">
+              <Button
+                size="sm"
+                variant="ghost"
+                type="button"
+                onClick={handleResetPermissionsToRole}
+              >
+                Сбросить к роли
+              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  type="button"
+                  onClick={() => setEditingPermsUser(null)}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  type="button"
+                  loading={savingPerms}
+                  onClick={handleSavePermissions}
+                >
+                  Сохранить права
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </DialogBackdrop>
+      </Dialog>
     </Card>
   );
 }

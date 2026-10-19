@@ -1,6 +1,7 @@
 const express = require('express');
 const {PrismaClient} = require('@prisma/client');
-const {requireOwner} = require('../middleware/auth');
+const {requireOwner, isOwnerAuth, invalidateUserCache} = require('../middleware/auth');
+const {PERMISSION_GROUPS} = require('../constants/permissions');
 const {recordAuditLog, recordErrorEvent} = require('../services/loggingService');
 const {
   isPasswordResetSmtpConfigured,
@@ -22,21 +23,34 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USER_SELECT = {
   createdAt: true,
   email: true,
+  employeeId: true,
   id: true,
   isActive: true,
   lastLoginAt: true,
   name: true,
+  permissions: true,
   role: true,
   updatedAt: true,
+  employee: {
+    select: {
+      id: true,
+      name: true,
+      role: true,
+    },
+  },
 };
 
 const serializeUser = (user) => ({
   createdAt: user.createdAt,
   email: user.email,
+  employeeId: user.employeeId || null,
+  employeeName: user.employee?.name || null,
+  employee: user.employee ? { id: user.employee.id, name: user.employee.name, role: user.employee.role } : null,
   id: user.id,
   isActive: user.isActive,
   lastLoginAt: user.lastLoginAt,
   name: user.name || '',
+  permissions: (user.permissions && typeof user.permissions === 'object') ? user.permissions : {},
   role: user.role,
   updatedAt: user.updatedAt,
 });
@@ -58,7 +72,22 @@ const parseUserPayload = (body = {}) => {
     throw error;
   }
 
-  return {email, name, role};
+  const rawEmployeeId = body.employeeId !== undefined && body.employeeId !== null && String(body.employeeId).trim() !== ''
+    ? Number(body.employeeId)
+    : null;
+
+  if (rawEmployeeId !== null && (!Number.isInteger(rawEmployeeId) || rawEmployeeId <= 0)) {
+    const error = new Error('Некорректный ID сотрудника');
+    error.status = 422;
+    throw error;
+  }
+
+  const permissions =
+    body.permissions && typeof body.permissions === 'object' && !Array.isArray(body.permissions)
+      ? body.permissions
+      : undefined;
+
+  return { email, name, role, employeeId: rawEmployeeId, permissions };
 };
 
 function createUsersRouter({
@@ -189,7 +218,9 @@ function createUsersRouter({
     const status = error?.status || (error?.code === 'P2002' ? 409 : 500);
     const message =
       error?.code === 'P2002'
-        ? 'Пользователь с таким email уже существует'
+        ? (error?.meta?.target?.includes?.('employeeId')
+            ? 'Этот сотрудник уже привязан к другому пользователю'
+            : 'Пользователь с таким email уже существует')
         : error?.message || 'Ошибка управления доступами';
 
     if (status >= 500) {
@@ -212,15 +243,30 @@ function createUsersRouter({
 
   router.get('/users', async (req, res) => {
     try {
-      const users = await prisma.user.findMany({
-        orderBy: [{role: 'asc'}, {createdAt: 'asc'}],
-        select: USER_SELECT,
-      });
+      const [users, employees] = await Promise.all([
+        prisma.user.findMany({
+          orderBy: [{role: 'asc'}, {createdAt: 'asc'}],
+          select: USER_SELECT,
+        }),
+        prisma.employee
+          ? prisma.employee.findMany({
+              orderBy: {name: 'asc'},
+              select: {id: true, name: true, role: true, email: true, status: true},
+            })
+          : Promise.resolve([]),
+      ]);
 
       res.json({
         success: true,
         smtpConfigured: Boolean(checkSmtpConfigured()),
         users: users.map(serializeUser),
+        employees: (employees || []).map((emp) => ({
+          id: emp.id,
+          name: emp.name,
+          role: emp.role,
+          status: emp.status,
+        })),
+        permissionGroups: PERMISSION_GROUPS,
       });
     } catch (error) {
       await handleRouteError(req, res, error);
@@ -229,7 +275,26 @@ function createUsersRouter({
 
   router.post('/users', async (req, res) => {
     try {
-      const {email, name, role} = parseUserPayload(req.body);
+      const {email, name, role, employeeId, permissions} = parseUserPayload(req.body);
+
+      // Non-owners cannot create an owner
+      if (role === 'owner' && !isOwnerAuth(req.auth)) {
+        const error = new Error('Только владелец может назначать роль владельца');
+        error.status = 403;
+        throw error;
+      }
+
+      if (employeeId && prisma.user.findUnique) {
+        const existingEmployeeUser = await prisma.user.findUnique({
+          where: { employeeId },
+        });
+        if (existingEmployeeUser) {
+          const error = new Error('Этот сотрудник уже привязан к другому пользователю');
+          error.status = 409;
+          throw error;
+        }
+      }
+
       const temporaryPassword = createStrongTemporaryPassword({email, role});
       const strength = validatePasswordStrength(temporaryPassword, {email, role});
 
@@ -243,9 +308,11 @@ function createUsersRouter({
       const user = await prisma.user.create({
         data: {
           email,
+          employeeId: employeeId || null,
           name,
           passwordChangedAt: null,
           passwordHash,
+          permissions: permissions || {},
           role,
         },
         select: USER_SELECT,
@@ -283,27 +350,77 @@ function createUsersRouter({
         return res.status(404).json({success: false, error: 'Пользователь не найден'});
       }
 
-      const {email, name, role} = parseUserPayload({
+      const {email, name, role, employeeId, permissions} = parseUserPayload({
         email: req.body?.email ?? current.email,
+        employeeId: req.body?.employeeId !== undefined ? req.body.employeeId : current.employeeId,
         name: req.body?.name ?? current.name,
+        permissions: req.body?.permissions !== undefined ? req.body.permissions : current.permissions,
         role: req.body?.role ?? current.role,
       });
 
       const nextIsActive =
         typeof req.body?.isActive === 'boolean' ? req.body.isActive : current.isActive;
 
+      // Anti-self-escalation: users cannot change own role, permissions, employeeId, or deactivate themselves
+      const isEditingSelf = String(req.auth?.id) === String(id);
+      if (isEditingSelf) {
+        if (role !== current.role) {
+          const error = new Error('Нельзя изменить собственную роль');
+          error.status = 403;
+          throw error;
+        }
+        if (permissions !== undefined && JSON.stringify(permissions) !== JSON.stringify(current.permissions || {})) {
+          const error = new Error('Нельзя изменить собственные права доступа');
+          error.status = 403;
+          throw error;
+        }
+        if (employeeId !== current.employeeId) {
+          const error = new Error('Нельзя изменить собственную привязку к мастеру');
+          error.status = 403;
+          throw error;
+        }
+        if (nextIsActive === false) {
+          const error = new Error('Нельзя отключить собственный аккаунт');
+          error.status = 403;
+          throw error;
+        }
+      }
+
+      // Non-owners cannot promote someone to owner
+      if (!isOwnerAuth(req.auth) && role === 'owner' && current.role !== 'owner') {
+        const error = new Error('Только владелец может назначать роль владельца');
+        error.status = 403;
+        throw error;
+      }
+
+      // Check unique employee binding
+      if (employeeId && employeeId !== current.employeeId && prisma.user.findUnique) {
+        const existingEmployeeUser = await prisma.user.findUnique({
+          where: { employeeId },
+        });
+        if (existingEmployeeUser && existingEmployeeUser.id !== id) {
+          const error = new Error('Этот сотрудник уже привязан к другому пользователю');
+          error.status = 409;
+          throw error;
+        }
+      }
+
       await ensureCanChangeOwnerStatus(current, {nextIsActive, nextRole: role});
 
       const updated = await prisma.user.update({
         data: {
           email,
+          employeeId: employeeId !== undefined ? employeeId : current.employeeId,
           isActive: nextIsActive,
           name,
+          permissions: permissions !== undefined ? permissions : current.permissions,
           role,
         },
         where: {id},
         select: USER_SELECT,
       });
+
+      invalidateUserCache(id);
 
       await auditUserAction(req, {
         action: 'user updated',
@@ -332,11 +449,17 @@ function createUsersRouter({
 
       await ensureCanChangeOwnerStatus(current, {nextIsActive: false});
 
+      if (String(req.auth?.id) === String(id)) {
+        return res.status(403).json({success: false, error: 'Нельзя отключить собственный аккаунт'});
+      }
+
       const updated = await prisma.user.update({
         data: {isActive: false},
         where: {id},
         select: USER_SELECT,
       });
+
+      invalidateUserCache(id);
 
       await auditUserAction(req, {
         action: 'user disabled',
@@ -368,6 +491,8 @@ function createUsersRouter({
         where: {id},
         select: USER_SELECT,
       });
+
+      invalidateUserCache(id);
 
       await auditUserAction(req, {
         action: 'user enabled',

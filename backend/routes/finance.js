@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { requireOwner, requirePermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
   VISIT_WITH_EARNING_INCLUDE,
@@ -661,7 +661,7 @@ const validateDayCloseRecordData = (data) => {
 };
 
 // ==================== Financial core endpoint ====================
-router.get('/financial-state', async (req, res) => {
+router.get('/financial-state', requirePermission(PERMISSIONS.FINANCE_VIEW_SALON_STATS), async (req, res) => {
   try {
     const [
       packages,
@@ -971,7 +971,7 @@ router.get('/certificates', (req, res) => {
 });
 
 // ==================== Day Close Records ====================
-router.post('/day-close-records/close', requireOwner, async (req, res) => {
+router.post('/day-close-records/close', requirePermission(PERMISSIONS.FINANCE_DAY_CLOSE), async (req, res) => {
   const body = req.body ?? {};
   const date = normalizeDayCloseDate(body.date);
 
@@ -1127,7 +1127,7 @@ router.delete('/day-close-records/:id', requireOwner, async (req, res) => {
   );
 });
 
-router.get('/day-close-records', (req, res) => {
+router.get('/day-close-records', requirePermission(PERMISSIONS.FINANCE_VIEW_SALON_STATS), (req, res) => {
   respond(res, prisma.dayCloseRecord.findMany({ orderBy: { date: 'desc' } }).then((records) => records.map(withStoredId)));
 });
 

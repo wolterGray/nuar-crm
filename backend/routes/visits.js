@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Prisma, PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { requireOwner, hasPermission, PERMISSIONS } = require('../middleware/auth');
+const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { upsertNotificationEvent } = require('../services/notificationEventsService');
@@ -474,10 +475,78 @@ const removeDuplicateCalendarVisit = async (tx, req, visit) => {
 };
 
 
+const sanitizeCalendarEntry = (entry, canViewContacts) => {
+  const base = withStoredId(entry);
+  if (canViewContacts) return base;
+
+  const rawPayload = base.payload && typeof base.payload === 'object' ? base.payload : {};
+  const sanitizedPayload = {
+    ...rawPayload,
+    phone: maskPhoneNumber(rawPayload.phone),
+    clientPhone: maskPhoneNumber(rawPayload.clientPhone),
+    email: maskEmail(rawPayload.email),
+  };
+
+  return {
+    ...base,
+    payload: sanitizedPayload,
+  };
+};
+
+const sanitizeVisit = (visit, { canViewContacts, canViewAllPayouts, canViewOwnPayouts, userEmployeeId }) => {
+  const base = serializeVisitWithEarning(visit);
+  const rawPayload = base.payload && typeof base.payload === 'object' ? base.payload : {};
+
+  // 1. Sanitize contacts
+  const sanitizedPayload = canViewContacts
+    ? rawPayload
+    : {
+        ...rawPayload,
+        phone: maskPhoneNumber(rawPayload.phone),
+        clientPhone: maskPhoneNumber(rawPayload.clientPhone),
+        email: maskEmail(rawPayload.email),
+      };
+
+  // 2. Scoped earnings
+  let sanitizedEarning = null;
+  let sanitizedEarnings = [];
+
+  if (canViewAllPayouts) {
+    sanitizedEarning = base.earning;
+    sanitizedEarnings = Array.isArray(base.employeeEarnings) ? base.employeeEarnings : [];
+  } else if (canViewOwnPayouts && userEmployeeId) {
+    if (base.earning && Number(base.earning.employeeId) === userEmployeeId) {
+      sanitizedEarning = base.earning;
+    }
+    if (Array.isArray(base.employeeEarnings)) {
+      sanitizedEarnings = base.employeeEarnings.filter((e) => Number(e.employeeId) === userEmployeeId);
+    }
+  }
+
+  return {
+    ...base,
+    earning: sanitizedEarning,
+    employeeEarnings: sanitizedEarnings,
+    payload: sanitizedPayload,
+  };
+};
+
 // ==================== Visit state used by the CRM UI ====================
 router.get('/visit-state', async (req, res) => {
   try {
-    const [calendarEntries, visits] = await Promise.all([
+    const canViewAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
+    const canViewAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ASSIGNED);
+
+    if (!canViewAll && !canViewAssigned) {
+      return res.status(403).json({ success: false, error: 'Доступ к календарю и записям запрещён' });
+    }
+
+    const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+    const canViewAllPayouts = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_ALL);
+    const canViewOwnPayouts = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_OWN);
+    const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+
+    let [calendarEntries, visits] = await Promise.all([
       prisma.calendarEntry.findMany({ orderBy: [{ date: 'asc' }, { time: 'asc' }, { id: 'asc' }] }),
       prisma.visit.findMany({
         include: VISIT_WITH_EARNING_INCLUDE,
@@ -485,11 +554,34 @@ router.get('/visit-state', async (req, res) => {
       }),
     ]);
 
+    // If scoped to assigned visits only
+    if (!canViewAll && canViewAssigned) {
+      if (!userEmployeeId) {
+        calendarEntries = [];
+        visits = [];
+      } else {
+        calendarEntries = calendarEntries.filter((entry) => {
+          const p = entry.payload && typeof entry.payload === 'object' ? entry.payload : {};
+          const assignedId = Number(entry.employeeId ?? p.employeeId);
+          return assignedId === userEmployeeId;
+        });
+
+        visits = visits.filter((v) => Number(v.employeeId) === userEmployeeId);
+      }
+    }
+
     res.json({
       success: true,
       data: {
-        calendarEntries: calendarEntries.map(withStoredId),
-        visits: visits.map(serializeVisitWithEarning),
+        calendarEntries: calendarEntries.map((e) => sanitizeCalendarEntry(e, canViewContacts)),
+        visits: visits.map((v) =>
+          sanitizeVisit(v, {
+            canViewContacts,
+            canViewAllPayouts,
+            canViewOwnPayouts,
+            userEmployeeId,
+          })
+        ),
       },
     });
   } catch (err) {

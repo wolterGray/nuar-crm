@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { requireOwner, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
+const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const {
   respond,
   auditCreate,
@@ -41,18 +42,39 @@ const buildCommunicationLogData = (payload) => ({
   payload,
 });
 
+const sanitizeClientRecord = (client, canViewContacts) => {
+  if (!client) return client;
+  if (canViewContacts) return client;
+
+  return {
+    ...client,
+    phone: maskPhoneNumber(client.phone),
+    email: maskEmail(client.email),
+    instagram: client.instagram ? '***' : null,
+    telegram: client.telegram ? '***' : null,
+  };
+};
+
 // ==================== Client ====================
-router.get('/clients', (req, res) => {
-  respond(
-    res,
-    prisma.client.findMany({
+router.get('/clients', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
+  try {
+    const clients = await prisma.client.findMany({
       select: clientSelect,
       orderBy: { name: 'asc' },
-    })
-  );
+    });
+
+    const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+    res.json({
+      success: true,
+      data: clients.map((c) => sanitizeClientRecord(c, canViewContacts)),
+    });
+  } catch (err) {
+    console.error('Error fetching clients:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-router.post('/clients', (req, res) => {
+router.post('/clients', requirePermission(PERMISSIONS.CLIENTS_MANAGE), (req, res) => {
   const data = buildClientData(req.body);
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Client name is required' });
@@ -61,12 +83,26 @@ router.post('/clients', (req, res) => {
   auditCreate(prisma, req, res, prisma.client.create({ data, select: clientSelect }), 'Client', 'create client');
 });
 
-router.get('/clients/:id', (req, res) => {
+router.get('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.client.findUnique({ where: { id }, select: clientSelect }));
+  try {
+    const client = await prisma.client.findUnique({ where: { id }, select: clientSelect });
+    if (!client) {
+      return res.status(404).json({ success: false, error: 'Client not found' });
+    }
+
+    const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
+    res.json({
+      success: true,
+      data: sanitizeClientRecord(client, canViewContacts),
+    });
+  } catch (err) {
+    console.error('Error fetching client by id:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-router.put('/clients/:id', async (req, res) => {
+router.put('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   const data = buildClientData(req.body);
   if (!data.name) {
@@ -85,7 +121,7 @@ router.put('/clients/:id', async (req, res) => {
   );
 });
 
-router.delete('/clients/:id', requireOwner, async (req, res) => {
+router.delete('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_DELETE), async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
   await auditDelete(

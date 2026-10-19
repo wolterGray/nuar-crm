@@ -38,8 +38,12 @@ model User {
   passwordChangedAt DateTime?
   failedLoginCount  Int       @default(0)
   lockedUntil       DateTime?
+  employeeId        Int?      @unique
+  permissions       Json?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
 
   pushNewVisits        Boolean @default(true)
   pushVisitCancelled   Boolean @default(true)
@@ -149,6 +153,7 @@ model Employee {
   payrollRecords         PayrollRecord[]
   employeeEarnings       EmployeeEarning[]
   employeePayouts        EmployeePayout[]
+  user                   User?
 }
 
 model Visit {

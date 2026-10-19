@@ -76,24 +76,27 @@ app.use('/api/public', publicSiteBookingRouter);
 const { publicLoyaltyRouter, loyaltyRouter } = require('./routes/loyalty');
 app.use('/api/public', publicLoyaltyRouter);
 
-const { verifyJwt } = require('./middleware/auth');
+const { verifyJwt, requireActiveUser } = require('./middleware/auth');
 
 const functionsRouter = require('./routes/functions');
-app.use('/functions', verifyJwt, functionsRouter);
+app.use('/functions', verifyJwt, requireActiveUser, functionsRouter);
+
+// Global authenticated & active-user check for all private CRM routes
+app.use('/api', verifyJwt, requireActiveUser);
 
 const siteCmsRouter = require('./routes/siteCms');
-app.use('/api', verifyJwt, siteCmsRouter);
+app.use('/api', siteCmsRouter);
 
-app.use('/api', verifyJwt, siteBookingRouter);
+app.use('/api', siteBookingRouter);
 
 const usersRouter = require('./routes/users');
-app.use('/api', verifyJwt, usersRouter);
+app.use('/api', usersRouter);
 
 const notificationEventsRouter = require('./routes/notificationEvents');
-app.use('/api', verifyJwt, notificationEventsRouter);
+app.use('/api', notificationEventsRouter);
 const pushNotificationsRouter = require('./routes/pushNotifications');
-app.use('/api', verifyJwt, pushNotificationsRouter);
-app.use('/api', verifyJwt, loyaltyRouter);
+app.use('/api', pushNotificationsRouter);
+app.use('/api', loyaltyRouter);
 
 const clientsRouter = require('./routes/clients');
 const employeesRouter = require('./routes/employees');
@@ -104,14 +107,14 @@ const employeePayoutsRouter = require('./routes/employeePayouts');
 const operationsRouter = require('./routes/operations');
 const systemStateRouter = require('./routes/systemState');
 
-app.use('/api', verifyJwt, clientsRouter);
-app.use('/api', verifyJwt, employeesRouter);
-app.use('/api', verifyJwt, servicesRouter);
-app.use('/api', verifyJwt, visitsRouter);
-app.use('/api', verifyJwt, financeRouter);
-app.use('/api', verifyJwt, employeePayoutsRouter);
-app.use('/api', verifyJwt, operationsRouter);
-app.use('/api', verifyJwt, systemStateRouter);
+app.use('/api', clientsRouter);
+app.use('/api', employeesRouter);
+app.use('/api', servicesRouter);
+app.use('/api', visitsRouter);
+app.use('/api', financeRouter);
+app.use('/api', employeePayoutsRouter);
+app.use('/api', operationsRouter);
+app.use('/api', systemStateRouter);
 
 // Error handling middleware – must be after routes
 const errorHandler = require('./middleware/errorHandler');
