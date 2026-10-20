@@ -12373,7 +12373,7 @@
 }
 
 .operations-page .operations-mini-day-tab.is-today:not(.is-selected) {
-  border-color: rgba(239, 68, 68, 0.35);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .operations-page .operations-mini-day-weekday {
@@ -12401,7 +12401,7 @@
 }
 
 .operations-page .operations-mini-day-tab.is-today:not(.is-selected) .operations-mini-day-num {
-  color: #f87171;
+  color: #f4f4f5;
 }
 
 .operations-page .operations-mini-day-task-count {

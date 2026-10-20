@@ -362,6 +362,22 @@
     background: var(--operations-mobile-raised) !important;
   }
 
+  .operations-page-mobile .operations-mini-day-count-compact.is-debt {
+    color: #ffffff !important;
+    background: var(--operations-mobile-accent) !important;
+  }
+
+  .operations-page-mobile .operations-mini-day-count-compact.is-done {
+    color: var(--color-success) !important;
+    background: color-mix(in srgb, var(--color-success) 22%, transparent) !important;
+  }
+
+  .operations-page-mobile .operations-mini-day-today-dot {
+    bottom: -3px !important;
+    width: 3.5px !important;
+    height: 3.5px !important;
+  }
+
   .operations-page-mobile .operations-mini-day-tab.is-selected {
     background: var(--operations-mobile-accent-soft) !important;
     border-color: rgba(239, 56, 59, 0.6) !important;
@@ -756,49 +772,51 @@
 }
 
 /* ==========================================================================
-   Unfinished Task Badges on Mini Week Day Tabs
+   Mini Week Day Tab Status Indicators & Typography
    ========================================================================== */
 
-.operations-mini-day-tab {
-  position: relative !important;
-}
-
-.operations-mini-day-badge {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  border-radius: var(--radius-pill, 999px);
-  background: var(--color-accent);
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 700;
-  display: flex;
+.operations-mini-day-num-wrap {
+  position: relative;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
-  z-index: 2;
 }
 
-.operations-mini-day-badge.is-past {
+.operations-mini-day-today-dot {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-pill, 999px);
   background: var(--color-accent);
-  box-shadow: 0 0 8px var(--color-accent-soft, rgba(225, 29, 46, 0.4));
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  pointer-events: none;
 }
 
-.operations-mini-day-badge.is-all-done {
-  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+.operations-mini-day-debt-text {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.operations-mini-day-done-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   color: var(--color-success);
-  border: 1px solid color-mix(in srgb, var(--color-success) 40%, transparent);
+  font-weight: 600;
 }
 
-.operations-mini-day-tab.has-debt:not(.is-selected) {
-  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent) !important;
-  background: color-mix(in srgb, var(--color-accent) 6%, transparent) !important;
+.operations-mini-day-count-compact.is-debt {
+  background: var(--color-accent) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.operations-mini-day-count-compact.is-done {
+  background: color-mix(in srgb, var(--color-success) 22%, transparent) !important;
+  color: var(--color-success) !important;
 }
 
 /* ==========================================================================
