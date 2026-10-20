@@ -363,192 +363,351 @@ function NotionDocEditor({
   return (
     <div className={`notion-doc-container ${isFocusMode ? "is-focus-mode" : ""}`}>
       {/* Top Header */}
-      <header className="notion-doc-header">
-        <div className="notion-doc-header-left">
-          {isMobile ? (
-            <button className="notion-back-btn" type="button" onClick={onBackToList}>
-              <AppIcon name="chevronLeft" size="sm" />
-              <span>К заметкам</span>
-            </button>
-          ) : null}
+      <header className={`notion-doc-header ${isMobile ? "is-mobile-header" : ""}`}>
+        {isMobile ? (
+          /* Mobile 2-Row Header */
+          <>
+            <div className="notion-doc-header-nav">
+              <div className="notion-doc-header-nav-left">
+                <button className="notion-back-btn" type="button" onClick={onBackToList}>
+                  <AppIcon name="chevronLeft" size="sm" />
+                  <span>Заметки</span>
+                </button>
 
-          {/* Category Selector Dropdown */}
-          <div className="notion-category-picker-wrap">
-            <button
-              className="notion-doc-category-btn"
-              type="button"
-              aria-label="Категория заметки"
-              onClick={() => {
-                setActionsMenuOpen(false);
-                setCategoryPickerOpen((prev) => !prev);
-              }}
-            >
-              <span>{activeCategoryObj.emoji}</span>
-              <span className="notion-doc-category-label">{activeCategoryObj.label}</span>
-              <AppIcon name="chevronDown" size="xs" />
-            </button>
+                {/* Category Selector Dropdown */}
+                <div className="notion-category-picker-wrap">
+                  <button
+                    className="notion-doc-category-btn"
+                    type="button"
+                    aria-label="Категория заметки"
+                    onClick={() => {
+                      setActionsMenuOpen(false);
+                      setCategoryPickerOpen((prev) => !prev);
+                    }}
+                  >
+                    <span>{activeCategoryObj.emoji}</span>
+                    <span className="notion-doc-category-label">{activeCategoryObj.label}</span>
+                    <AppIcon name="chevronDown" size="xs" />
+                  </button>
 
-            {categoryPickerOpen ? (
-              <>
-                <div className="notion-picker-backdrop" onClick={() => setCategoryPickerOpen(false)} />
-                <div className="notion-category-dropdown">
-                  {NOTION_NOTE_CATEGORIES.filter((c) => c.id !== "all").map((cat) => (
-                    <button
-                      className={`notion-dropdown-item ${draftCategory === cat.id ? "is-active" : ""}`}
-                      key={cat.id}
-                      type="button"
-                      onClick={() => handleCategorySelect(cat.id)}
-                    >
-                      <span>{cat.emoji}</span>
-                      <span>{cat.label}</span>
-                    </button>
-                  ))}
+                  {categoryPickerOpen ? (
+                    <>
+                      <div className="notion-picker-backdrop" onClick={() => setCategoryPickerOpen(false)} />
+                      <div className="notion-category-dropdown">
+                        {NOTION_NOTE_CATEGORIES.filter((c) => c.id !== "all").map((cat) => (
+                          <button
+                            className={`notion-dropdown-item ${draftCategory === cat.id ? "is-active" : ""}`}
+                            key={cat.id}
+                            type="button"
+                            onClick={() => handleCategorySelect(cat.id)}
+                          >
+                            <span>{cat.emoji}</span>
+                            <span>{cat.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : null}
                 </div>
-              </>
-            ) : null}
-          </div>
+              </div>
 
-          {/* Mode Switch: Visual / Raw Markdown */}
-          <div className="notion-doc-mode-tabs" role="tablist" aria-label="Режим отображения">
-            <button
-              className={`notion-doc-mode-tab ${!rawMarkdownMode ? "is-active" : ""}`}
-              type="button"
-              role="tab"
-              aria-selected={!rawMarkdownMode}
-              title="Интерактивный вид с таблицами и чекбоксами"
-              onClick={() => setRawMarkdownMode(false)}
-            >
-              <AppIcon name="eye" size="xs" />
-              <span>Вид</span>
-            </button>
-            <button
-              className={`notion-doc-mode-tab ${rawMarkdownMode ? "is-active" : ""}`}
-              type="button"
-              role="tab"
-              aria-selected={rawMarkdownMode}
-              title="Исходная разметка Markdown для вставки текста и таблиц"
-              onClick={() => setRawMarkdownMode(true)}
-            >
-              <AppIcon name="code" size="xs" />
-              <span>Разметка (MD)</span>
-            </button>
-          </div>
+              <div className="notion-doc-header-nav-right">
+                {/* Mobile Mode Toggle button */}
+                <button
+                  className={`notion-mobile-mode-toggle ${rawMarkdownMode ? "is-code" : "is-view"}`}
+                  type="button"
+                  title={rawMarkdownMode ? "Визуальный интерактивный вид" : "Исходный Markdown код"}
+                  onClick={() => setRawMarkdownMode((prev) => !prev)}
+                >
+                  <AppIcon name={rawMarkdownMode ? "code" : "eye"} size="xs" />
+                  <span>{rawMarkdownMode ? "MD" : "Вид"}</span>
+                </button>
 
-          {/* Save Status Indicator */}
-          <button
-            className={`notion-save-status is-${saveStatus}`}
-            disabled={saveStatus !== "error"}
-            type="button"
-            onClick={() => void flushSave()}
-          >
-            {saveStatus === "saving" ? (
-              <>
-                <span className="notion-save-dot" />
-                <span>Сохранение...</span>
-              </>
-            ) : saveStatus === "error" ? (
-              "Не сохранено · повторить"
-            ) : (
-              `✓ Сохранено ${formatNoteDate(lastSavedAt)}`
-            )}
-          </button>
-        </div>
+                {/* Pin toggle */}
+                <button
+                  className={`notion-doc-pin-btn ${draftPinned ? "is-pinned" : ""}`}
+                  title={draftPinned ? "Открепить страницу" : "Закрепить страницу"}
+                  type="button"
+                  onClick={handleTogglePin}
+                >
+                  <span>📌</span>
+                </button>
 
-        <div className="notion-doc-header-right">
-          {/* History */}
-          <IconButton
-            aria-label="История версий"
-            icon="history"
-            size="sm"
-            title="История изменений и версий"
-            variant="ghost"
-            onClick={() => setHistoryOpen((current) => !current)}
-          />
-
-          {/* Pin toggle */}
-          <button
-            className={`notion-doc-pin-btn ${draftPinned ? "is-pinned" : ""}`}
-            title={draftPinned ? "Открепить страницу" : "Закрепить страницу"}
-            type="button"
-            onClick={handleTogglePin}
-          >
-            <span>📌</span>
-          </button>
-
-          {/* More Actions Dropdown (...) */}
-          <div className="notion-actions-dropdown-wrap">
-            <IconButton
-              aria-label="Действия с заметкой"
-              icon="more"
-              size="sm"
-              title="Действия"
-              variant="ghost"
-              onClick={() => {
-                setCategoryPickerOpen(false);
-                setActionsMenuOpen((prev) => !prev);
-              }}
-            />
-
-            {actionsMenuOpen ? (
-              <>
-                <div className="notion-picker-backdrop" onClick={() => setActionsMenuOpen(false)} />
-                <div className="notion-doc-actions-menu">
-                  <button
-                    className="notion-dropdown-item"
-                    type="button"
+                {/* More Actions Dropdown (...) */}
+                <div className="notion-actions-dropdown-wrap">
+                  <IconButton
+                    aria-label="Действия с заметкой"
+                    icon="more"
+                    size="sm"
+                    title="Действия"
+                    variant="ghost"
                     onClick={() => {
-                      onDuplicateNote?.(note);
-                      setActionsMenuOpen(false);
+                      setCategoryPickerOpen(false);
+                      setActionsMenuOpen((prev) => !prev);
                     }}
-                  >
-                    <AppIcon name="copy" size="xs" />
-                    <span>Дублировать заметку</span>
-                  </button>
-                  <button className="notion-dropdown-item" type="button" onClick={handleExportMarkdown}>
-                    <AppIcon name="download" size="xs" />
-                    <span>Скачать Markdown (.md)</span>
-                  </button>
-                  <button
-                    className="notion-dropdown-item"
-                    type="button"
-                    onClick={() => {
-                      setRawMarkdownMode((prev) => !prev);
-                      setActionsMenuOpen(false);
-                    }}
-                  >
-                    <AppIcon name="code" size="xs" />
-                    <span>{rawMarkdownMode ? "Вернуться в визуальный вид" : "Исходный Markdown"}</span>
-                  </button>
-                  <div className="notion-dropdown-separator" />
-                  <button
-                    className="notion-dropdown-item is-danger"
-                    type="button"
-                    onClick={() => {
-                      setActionsMenuOpen(false);
-                      onDeleteNote?.(note);
-                    }}
-                  >
-                    <AppIcon name="trash" size="xs" />
-                    <span>Удалить заметку</span>
-                  </button>
+                  />
+
+                  {actionsMenuOpen ? (
+                    <>
+                      <div className="notion-picker-backdrop" onClick={() => setActionsMenuOpen(false)} />
+                      <div className="notion-doc-actions-menu">
+                        <button
+                          className="notion-dropdown-item"
+                          type="button"
+                          onClick={() => {
+                            setHistoryOpen(true);
+                            setActionsMenuOpen(false);
+                          }}
+                        >
+                          <AppIcon name="history" size="xs" />
+                          <span>История версий</span>
+                        </button>
+                        <button
+                          className="notion-dropdown-item"
+                          type="button"
+                          onClick={() => {
+                            onDuplicateNote?.(note);
+                            setActionsMenuOpen(false);
+                          }}
+                        >
+                          <AppIcon name="copy" size="xs" />
+                          <span>Дублировать заметку</span>
+                        </button>
+                        <button className="notion-dropdown-item" type="button" onClick={handleExportMarkdown}>
+                          <AppIcon name="download" size="xs" />
+                          <span>Скачать Markdown (.md)</span>
+                        </button>
+                        <div className="notion-dropdown-separator" />
+                        <button
+                          className="notion-dropdown-item is-danger"
+                          type="button"
+                          onClick={() => {
+                            setActionsMenuOpen(false);
+                            onDeleteNote?.(note);
+                          }}
+                        >
+                          <AppIcon name="trash" size="xs" />
+                          <span>Удалить заметку</span>
+                        </button>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
-              </>
-            ) : null}
-          </div>
+              </div>
+            </div>
 
-          {/* Focus Mode ("Развернуть" / "Свернуть") button */}
-          {!isMobile ? (
-            <Button
-              className="notion-focus-mode-btn"
-              leftIcon={isFocusMode ? "minimize" : "maximize"}
-              size="sm"
-              variant="secondary"
-              onClick={onToggleFocusMode}
-            >
-              {isFocusMode ? "Свернуть" : "Развернуть"}
-            </Button>
-          ) : null}
-        </div>
+            <div className="notion-doc-header-meta">
+              {/* Save Status Indicator */}
+              <button
+                className={`notion-save-status is-${saveStatus}`}
+                disabled={saveStatus !== "error"}
+                type="button"
+                onClick={() => void flushSave()}
+              >
+                {saveStatus === "saving" ? (
+                  <>
+                    <span className="notion-save-dot" />
+                    <span>Сохранение...</span>
+                  </>
+                ) : saveStatus === "error" ? (
+                  "Не сохранено · повторить"
+                ) : (
+                  `✓ Сохранено ${formatNoteDate(lastSavedAt)}`
+                )}
+              </button>
+
+              {/* History Button on mobile */}
+              <button
+                className="notion-mobile-history-btn"
+                type="button"
+                onClick={() => setHistoryOpen((current) => !current)}
+              >
+                <AppIcon name="history" size="xs" />
+                <span>История</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          /* Desktop Single-Row Header */
+          <>
+            <div className="notion-doc-header-left">
+              {/* Category Selector Dropdown */}
+              <div className="notion-category-picker-wrap">
+                <button
+                  className="notion-doc-category-btn"
+                  type="button"
+                  aria-label="Категория заметки"
+                  onClick={() => {
+                    setActionsMenuOpen(false);
+                    setCategoryPickerOpen((prev) => !prev);
+                  }}
+                >
+                  <span>{activeCategoryObj.emoji}</span>
+                  <span className="notion-doc-category-label">{activeCategoryObj.label}</span>
+                  <AppIcon name="chevronDown" size="xs" />
+                </button>
+
+                {categoryPickerOpen ? (
+                  <>
+                    <div className="notion-picker-backdrop" onClick={() => setCategoryPickerOpen(false)} />
+                    <div className="notion-category-dropdown">
+                      {NOTION_NOTE_CATEGORIES.filter((c) => c.id !== "all").map((cat) => (
+                        <button
+                          className={`notion-dropdown-item ${draftCategory === cat.id ? "is-active" : ""}`}
+                          key={cat.id}
+                          type="button"
+                          onClick={() => handleCategorySelect(cat.id)}
+                        >
+                          <span>{cat.emoji}</span>
+                          <span>{cat.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+              </div>
+
+              {/* Mode Switch: Visual / Raw Markdown */}
+              <div className="notion-doc-mode-tabs" role="tablist" aria-label="Режим отображения">
+                <button
+                  className={`notion-doc-mode-tab ${!rawMarkdownMode ? "is-active" : ""}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={!rawMarkdownMode}
+                  title="Интерактивный вид с таблицами и чекбоксами"
+                  onClick={() => setRawMarkdownMode(false)}
+                >
+                  <AppIcon name="eye" size="xs" />
+                  <span>Вид</span>
+                </button>
+                <button
+                  className={`notion-doc-mode-tab ${rawMarkdownMode ? "is-active" : ""}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={rawMarkdownMode}
+                  title="Исходная разметка Markdown для вставки текста и таблиц"
+                  onClick={() => setRawMarkdownMode(true)}
+                >
+                  <AppIcon name="code" size="xs" />
+                  <span>Разметка (MD)</span>
+                </button>
+              </div>
+
+              {/* Save Status Indicator */}
+              <button
+                className={`notion-save-status is-${saveStatus}`}
+                disabled={saveStatus !== "error"}
+                type="button"
+                onClick={() => void flushSave()}
+              >
+                {saveStatus === "saving" ? (
+                  <>
+                    <span className="notion-save-dot" />
+                    <span>Сохранение...</span>
+                  </>
+                ) : saveStatus === "error" ? (
+                  "Не сохранено · повторить"
+                ) : (
+                  `✓ Сохранено ${formatNoteDate(lastSavedAt)}`
+                )}
+              </button>
+            </div>
+
+            <div className="notion-doc-header-right">
+              {/* History */}
+              <IconButton
+                aria-label="История версий"
+                icon="history"
+                size="sm"
+                title="История изменений и версий"
+                variant="ghost"
+                onClick={() => setHistoryOpen((current) => !current)}
+              />
+
+              {/* Pin toggle */}
+              <button
+                className={`notion-doc-pin-btn ${draftPinned ? "is-pinned" : ""}`}
+                title={draftPinned ? "Открепить страницу" : "Закрепить страницу"}
+                type="button"
+                onClick={handleTogglePin}
+              >
+                <span>📌</span>
+              </button>
+
+              {/* More Actions Dropdown (...) */}
+              <div className="notion-actions-dropdown-wrap">
+                <IconButton
+                  aria-label="Действия с заметкой"
+                  icon="more"
+                  size="sm"
+                  title="Действия"
+                  variant="ghost"
+                  onClick={() => {
+                    setCategoryPickerOpen(false);
+                    setActionsMenuOpen((prev) => !prev);
+                  }}
+                />
+
+                {actionsMenuOpen ? (
+                  <>
+                    <div className="notion-picker-backdrop" onClick={() => setActionsMenuOpen(false)} />
+                    <div className="notion-doc-actions-menu">
+                      <button
+                        className="notion-dropdown-item"
+                        type="button"
+                        onClick={() => {
+                          onDuplicateNote?.(note);
+                          setActionsMenuOpen(false);
+                        }}
+                      >
+                        <AppIcon name="copy" size="xs" />
+                        <span>Дублировать заметку</span>
+                      </button>
+                      <button className="notion-dropdown-item" type="button" onClick={handleExportMarkdown}>
+                        <AppIcon name="download" size="xs" />
+                        <span>Скачать Markdown (.md)</span>
+                      </button>
+                      <button
+                        className="notion-dropdown-item"
+                        type="button"
+                        onClick={() => {
+                          setRawMarkdownMode((prev) => !prev);
+                          setActionsMenuOpen(false);
+                        }}
+                      >
+                        <AppIcon name="code" size="xs" />
+                        <span>{rawMarkdownMode ? "Вернуться в визуальный вид" : "Исходный Markdown"}</span>
+                      </button>
+                      <div className="notion-dropdown-separator" />
+                      <button
+                        className="notion-dropdown-item is-danger"
+                        type="button"
+                        onClick={() => {
+                          setActionsMenuOpen(false);
+                          onDeleteNote?.(note);
+                        }}
+                      >
+                        <AppIcon name="trash" size="xs" />
+                        <span>Удалить заметку</span>
+                      </button>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+
+              {/* Focus Mode ("Развернуть" / "Свернуть") button */}
+              <Button
+                className="notion-focus-mode-btn"
+                leftIcon={isFocusMode ? "minimize" : "maximize"}
+                size="sm"
+                variant="secondary"
+                onClick={onToggleFocusMode}
+              >
+                {isFocusMode ? "Свернуть" : "Развернуть"}
+              </Button>
+            </div>
+          </>
+        )}
       </header>
 
       {/* Page Content Canvas */}
