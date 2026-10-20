@@ -412,17 +412,6 @@ function NotionDocEditor({
               </div>
 
               <div className="notion-doc-header-nav-right">
-                {/* Mobile Mode Toggle button */}
-                <button
-                  className={`notion-mobile-mode-toggle ${rawMarkdownMode ? "is-code" : "is-view"}`}
-                  type="button"
-                  title={rawMarkdownMode ? "Визуальный интерактивный вид" : "Исходный Markdown код"}
-                  onClick={() => setRawMarkdownMode((prev) => !prev)}
-                >
-                  <AppIcon name={rawMarkdownMode ? "code" : "eye"} size="xs" />
-                  <span>{rawMarkdownMode ? "MD" : "Вид"}</span>
-                </button>
-
                 {/* Pin toggle */}
                 <button
                   className={`notion-doc-pin-btn ${draftPinned ? "is-pinned" : ""}`}
@@ -516,15 +505,44 @@ function NotionDocEditor({
                 )}
               </button>
 
-              {/* History Button on mobile */}
-              <button
-                className="notion-mobile-history-btn"
-                type="button"
-                onClick={() => setHistoryOpen((current) => !current)}
-              >
-                <AppIcon name="history" size="xs" />
-                <span>История</span>
-              </button>
+              <div className="notion-doc-header-meta-right">
+                {/* Mobile Mode Switch: Visual / Raw Markdown */}
+                <div className="notion-mobile-mode-segmented" role="tablist" aria-label="Режим отображения">
+                  <button
+                    className={`notion-mobile-mode-seg ${!rawMarkdownMode ? "is-active" : ""}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={!rawMarkdownMode}
+                    title="Визуальный интерактивный вид"
+                    onClick={() => setRawMarkdownMode(false)}
+                  >
+                    <AppIcon name="eye" size="xs" />
+                    <span>Вид</span>
+                  </button>
+                  <button
+                    className={`notion-mobile-mode-seg ${rawMarkdownMode ? "is-active is-code-active" : ""}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={rawMarkdownMode}
+                    title="Исходная разметка Markdown"
+                    onClick={() => setRawMarkdownMode(true)}
+                  >
+                    <AppIcon name="code" size="xs" />
+                    <span>MD</span>
+                  </button>
+                </div>
+
+                {/* History Button on mobile */}
+                <button
+                  className="notion-mobile-history-btn"
+                  type="button"
+                  title="История версий"
+                  onClick={() => setHistoryOpen((current) => !current)}
+                >
+                  <AppIcon name="history" size="xs" />
+                  <span>История</span>
+                </button>
+              </div>
             </div>
           </>
         ) : (

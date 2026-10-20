@@ -1944,6 +1944,7 @@
     justify-content: space-between;
     gap: 8px;
     width: 100%;
+    min-width: 0;
   }
 
   .notion-doc-header-nav-left {
@@ -1961,17 +1962,25 @@
     flex-shrink: 0;
   }
 
+  .notion-category-picker-wrap {
+    min-width: 0;
+    flex: 0 1 auto;
+    position: relative;
+  }
+
   .notion-doc-header-nav-left .notion-doc-category-btn {
     height: 34px;
     padding: 0 9px;
     font-size: 12px;
-    max-width: 135px;
+    max-width: 140px;
+    min-width: 0;
   }
 
   .notion-doc-header-nav-left .notion-doc-category-label {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
   }
 
   .notion-doc-header-nav-right {
@@ -1981,36 +1990,10 @@
     flex-shrink: 0;
   }
 
-  .notion-mobile-mode-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    height: 34px;
-    padding: 0 10px;
-    background: var(--color-surface-2, #1b1b1e);
-    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
-    border-radius: var(--radius-sm, 6px);
-    color: var(--color-text, #ffffff);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 120ms ease;
-    white-space: nowrap;
-  }
-
-  .notion-mobile-mode-toggle.is-code {
-    background: rgba(225, 29, 46, 0.14);
-    border-color: rgba(225, 29, 46, 0.35);
-    color: #ff6b78;
-  }
-
-  .notion-mobile-mode-toggle:active {
-    transform: scale(0.97);
-  }
-
   .notion-doc-header-nav-right .notion-doc-pin-btn {
     width: 34px;
     height: 34px;
+    flex-shrink: 0;
   }
 
   .notion-doc-header-meta {
@@ -2019,35 +2002,93 @@
     justify-content: space-between;
     gap: 8px;
     width: 100%;
+    min-width: 0;
     padding-top: 2px;
   }
 
   .notion-doc-header-meta .notion-save-status {
     font-size: 11px;
-    padding: 2px 6px;
+    padding: 2px 4px;
     background: transparent;
     border: 0;
+    color: var(--color-text-faint, #7f7f86);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
+  }
+
+  .notion-doc-header-meta-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .notion-mobile-mode-segmented {
+    display: inline-flex;
+    align-items: center;
+    background: var(--color-field, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+    border-radius: var(--radius-sm, 6px);
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .notion-mobile-mode-seg {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 24px;
+    padding: 0 7px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-faint, #7f7f86);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 120ms ease;
+    user-select: none;
+  }
+
+  .notion-mobile-mode-seg.is-active {
+    background: var(--color-surface-2, #1b1b1e);
+    color: var(--color-text, #ffffff);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .notion-mobile-mode-seg.is-active.is-code-active {
+    background: rgba(225, 29, 46, 0.18);
+    color: #ff7476;
   }
 
   .notion-mobile-history-btn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    height: 24px;
-    padding: 0 6px;
-    background: transparent;
-    border: 0;
-    border-radius: var(--radius-xs, 4px);
+    height: 28px;
+    padding: 0 8px;
+    background: var(--color-field, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.05));
+    border-radius: var(--radius-sm, 6px);
     color: var(--color-text-faint, #7f7f86);
     font-size: 11.5px;
     font-weight: 500;
     cursor: pointer;
-    transition: color 120ms ease;
+    transition: all 120ms ease;
   }
 
   .notion-mobile-history-btn:hover,
   .notion-mobile-history-btn:active {
     color: var(--color-text, #ffffff);
+    background: var(--color-field, rgba(255, 255, 255, 0.06));
+    border-color: var(--color-border, rgba(255, 255, 255, 0.09));
   }
 
   .notion-doc-actions-menu {
