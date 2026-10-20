@@ -1,4 +1,5 @@
 import {createPortal} from "react-dom";
+import {useState} from "react";
 import {useRowActionMenu} from "../hooks/useRowActionMenu.js";
 import {Button, IconButton} from "./ui/index.js";
 
@@ -42,6 +43,9 @@ export function RowActionsMenu({
   setOpenMenuId,
 }) {
   const isOpen = openMenuId === itemId;
+  const [activeSubmenu, setActiveSubmenu] = useState(null);
+  const currentSubmenu = isOpen ? activeSubmenu : null;
+
   const {menuRef, menuStyle, triggerRef} = useRowActionMenu({
     isOpen,
     setOpenMenuId,
@@ -49,6 +53,7 @@ export function RowActionsMenu({
   const runMenuAction = (event, action) => {
     event.preventDefault();
     event.stopPropagation();
+    setActiveSubmenu(null);
     setOpenMenuId(null);
     window.setTimeout(() => action?.(), 0);
   };
@@ -64,62 +69,115 @@ export function RowActionsMenu({
         icon="more"
         label="Действия"
         type="button"
-        onClick={() =>
-          setOpenMenuId(openMenuId === itemId ? null : itemId)
-        }
+        onClick={() => {
+          setActiveSubmenu(null);
+          setOpenMenuId(openMenuId === itemId ? null : itemId);
+        }}
       />
 
       <RowActionMenuPortal
         isOpen={isOpen}
         menuRef={menuRef}
         menuStyle={menuStyle}>
-        {onView ? (
-          <Button
-            className="row-action-menu-item"
-            fullWidth
-            leftIcon="eye"
-            size="sm"
-            type="button"
-            variant="ghost"
-            onPointerDown={(event) => runMenuAction(event, onView)}>
-            Посмотреть
-          </Button>
-        ) : null}
-        {extraActions.map((action) => (
-          <Button
-            className="row-action-menu-item"
-            disabled={action.disabled}
-            fullWidth
-            key={action.label}
-            leftIcon={action.icon}
-            size="sm"
-            title={action.title}
-            type="button"
-            variant="ghost"
-            onPointerDown={(event) => runMenuAction(event, action.onClick)}>
-            {action.label}
-          </Button>
-        ))}
-        <Button
-          className="row-action-menu-item"
-          fullWidth
-          leftIcon="edit"
-          size="sm"
-          type="button"
-          variant="ghost"
-          onPointerDown={(event) => runMenuAction(event, onEdit)}>
-          Редактировать
-        </Button>
-        <Button
-          className="danger row-action-menu-item"
-          fullWidth
-          leftIcon="trash"
-          size="sm"
-          type="button"
-          variant="ghost"
-          onPointerDown={(event) => runMenuAction(event, onDelete)}>
-          Удалить
-        </Button>
+        {currentSubmenu ? (
+          <>
+            <Button
+              className="row-action-menu-item"
+              fullWidth
+              leftIcon="chevronLeft"
+              size="sm"
+              type="button"
+              variant="ghost"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setActiveSubmenu(null);
+              }}>
+              Назад
+            </Button>
+            <div className="row-action-submenu-title">
+              {currentSubmenu.title || currentSubmenu.label}
+            </div>
+            {currentSubmenu.subActions?.map((sub) => (
+              <Button
+                className="row-action-menu-item"
+                disabled={sub.disabled}
+                fullWidth
+                key={sub.label}
+                leftIcon={sub.icon}
+                size="sm"
+                title={sub.title}
+                type="button"
+                variant="ghost"
+                onPointerDown={(event) => runMenuAction(event, sub.onClick)}>
+                {sub.label}
+              </Button>
+            ))}
+          </>
+        ) : (
+          <>
+            {onView ? (
+              <Button
+                className="row-action-menu-item"
+                fullWidth
+                leftIcon="eye"
+                size="sm"
+                type="button"
+                variant="ghost"
+                onPointerDown={(event) => runMenuAction(event, onView)}>
+                Посмотреть
+              </Button>
+            ) : null}
+            {extraActions.map((action) => (
+              <Button
+                className="row-action-menu-item"
+                disabled={action.disabled}
+                fullWidth
+                key={action.label}
+                leftIcon={action.icon}
+                rightIcon={action.subActions?.length ? "chevronRight" : undefined}
+                size="sm"
+                title={action.title}
+                type="button"
+                variant="ghost"
+                onPointerDown={(event) => {
+                  if (action.subActions?.length) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setActiveSubmenu(action);
+                  } else {
+                    runMenuAction(event, action.onClick);
+                  }
+                }}>
+                {action.label}
+              </Button>
+            ))}
+            {onEdit ? (
+              <Button
+                className="row-action-menu-item"
+                fullWidth
+                leftIcon="edit"
+                size="sm"
+                type="button"
+                variant="ghost"
+                onPointerDown={(event) => runMenuAction(event, onEdit)}>
+                Редактировать
+              </Button>
+            ) : null}
+            {onDelete ? (
+              <Button
+                className="danger row-action-menu-item"
+                fullWidth
+                leftIcon="trash"
+                size="sm"
+                type="button"
+                variant="ghost"
+                onPointerDown={(event) => runMenuAction(event, onDelete)}>
+                Удалить
+              </Button>
+            ) : null}
+          </>
+        )}
       </RowActionMenuPortal>
     </div>
   );

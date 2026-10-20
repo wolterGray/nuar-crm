@@ -1546,6 +1546,7 @@ function App() {
     initializeAcquisitionPlan,
     moveTaskTemplateToArea,
     moveTaskToDate,
+    transferChecklistItemToDate,
     openCreateTask,
     openEditTask,
     performDeleteTask,
@@ -2382,6 +2383,7 @@ function App() {
             pushNotification={pushNotification}
             remindCalendarClient={remindCalendarClient}
             moveTaskToDate={moveTaskToDate}
+            transferChecklistItemToDate={transferChecklistItemToDate}
             deleteTaskTemplates={deleteTaskTemplates}
             moveTaskTemplateToArea={moveTaskTemplateToArea}
             renameTaskArea={renameTaskArea}

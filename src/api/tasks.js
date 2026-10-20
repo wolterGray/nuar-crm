@@ -67,3 +67,14 @@ export const deleteTask = async (id) => {
 
   return handleResponse(response, "Delete task");
 };
+
+export const transferChecklistItem = async ({ sourceTaskId, sourceDate, checklistItemId, targetDate }) => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/tasks/transfer-checklist-item`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", ...headers},
+    body: JSON.stringify({ sourceTaskId, sourceDate, checklistItemId, targetDate }),
+  });
+
+  return handleResponse(response, "Transfer checklist item");
+};

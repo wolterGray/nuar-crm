@@ -2,6 +2,7 @@ import {useCallback} from "react";
 import {
   createTask,
   deleteTask,
+  transferChecklistItem,
   updateTask,
 } from "../api/tasks.js";
 import {patchNote} from "../api/notes.js";
@@ -1031,6 +1032,58 @@ export function useTaskHandlers({
     [pushNotification, setTasks],
   );
 
+  const transferChecklistItemToDate = useCallback(
+    async (task, item, targetDate) => {
+      const date = normalizeInputDate(targetDate);
+      if (!date) {
+        pushNotification({
+          title: "Пункт не перенесён",
+          message: "Укажите дату в формате YYYY-MM-DD.",
+          persist: false,
+        });
+        return false;
+      }
+      const sourceTaskId = getTaskStorageId(task);
+      const sourceDate = task?.isVirtualOccurrence ? task?.occurrenceDate : getTaskDueDate(task);
+      const checklistItemId = item?.id;
+
+      try {
+        const response = await transferChecklistItem({
+          sourceTaskId,
+          sourceDate,
+          checklistItemId,
+          targetDate: date,
+        });
+        const { sourceTask, newTask } = response?.data || {};
+
+        setTasks((current) => {
+          let updated = current;
+          if (sourceTask) {
+            updated = updated.map((t) => (String(t.id) === String(sourceTaskId) ? sourceTask : t));
+          }
+          if (newTask) {
+            updated = [newTask, ...updated];
+          }
+          return updated;
+        });
+
+        pushNotification({
+          title: "Пункт перенесён в задачу",
+          message: `«${item?.text}» → ${date}`,
+        });
+        return true;
+      } catch (error) {
+        pushNotification({
+          title: "Пункт не перенесён",
+          message: error?.message || "Backend не принял перенос",
+          persist: false,
+        });
+        return false;
+      }
+    },
+    [pushNotification, setTasks],
+  );
+
   return {
     addQuickNote,
     completeTask,
@@ -1047,6 +1100,7 @@ export function useTaskHandlers({
     saveTaskOccurrence,
     setTaskTemplateArchived,
     moveTaskToDate,
+    transferChecklistItemToDate,
     setMainTask,
     updateNote,
   };

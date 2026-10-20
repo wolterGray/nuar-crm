@@ -311,6 +311,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
             onEditWaitlistEntry={props.openEditWaitlistEntry}
             onMessageWaitlistEntry={props.messageWaitlistEntryFromPanel}
             onMoveTask={props.moveTaskToDate}
+            onTransferChecklistItem={props.transferChecklistItemToDate}
             onMoveTaskTemplateToArea={props.moveTaskTemplateToArea}
             onRenameTaskArea={props.renameTaskArea}
             onInitializeAcquisitionPlan={props.initializeAcquisitionPlan}

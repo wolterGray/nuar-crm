@@ -331,6 +331,13 @@ export const isTaskCompleted = (task = {}) =>
   taskRecord(task).status === "completed" ||
   taskRecord(task).completed === true;
 
+export const isTaskUnfinished = (task = {}) => {
+  if (!task) return false;
+  if (!isTaskCompleted(task)) return true;
+  const progress = getChecklistProgress(task);
+  return progress.total > 0 && progress.done < progress.total;
+};
+
 export const isTaskRepeating = (task = {}) => {
   const payload = getTaskPayload(task);
   return payload.repeat?.enabled === true || payload.taskKind === "daily";

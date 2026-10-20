@@ -23,6 +23,7 @@ import {
   WEEKDAY_FULL_LABELS,
   addDays,
   applyOperationsFilters,
+  compareInputDates,
   expandTasksForRange,
   formatDateShort,
   formatDayMonth,
@@ -51,6 +52,7 @@ import {
   isTaskMainOnDate,
   isTaskOverdue,
   isTaskRepeating,
+  isTaskUnfinished,
   occursOnDate,
   sortPlanTasks,
 } from "../../utils/operationsPlanner.js";
@@ -61,6 +63,9 @@ import {
   Dialog,
   DialogBackdrop,
   DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   IconButton,
   Input,
   Select,
@@ -210,13 +215,126 @@ const formatCompactWeekRange = (start, end) => {
   return full.replace(/\s*\d{4}\b/, "").trim();
 };
 
-function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
+function OperationsDatePickerDialogContent({
+  initialDate,
+  minDate,
+  onClose,
+  onSelectDate,
+  title,
+}) {
+  const today = getWarsawTodayInput();
+  const [selectedDate, setSelectedDate] = useState(initialDate || today);
+  const tomorrow = addDays(today, 1);
+  const dayAfter = addDays(today, 2);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (selectedDate && /^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) {
+      onSelectDate?.(selectedDate);
+      onClose();
+    }
+  };
+
+  return (
+    <DialogContent
+      className="operations-reschedule-dialog"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <DialogHeader>
+        <DialogTitle>{title || "Выберите дату"}</DialogTitle>
+      </DialogHeader>
+
+      <form className="operations-reschedule-form" onSubmit={handleSubmit}>
+        <div className="operations-reschedule-quick-pills">
+          <Button
+            size="sm"
+            type="button"
+            variant={selectedDate === today ? "primary" : "secondary"}
+            onClick={() => setSelectedDate(today)}
+          >
+            Сегодня
+          </Button>
+          <Button
+            size="sm"
+            type="button"
+            variant={selectedDate === tomorrow ? "primary" : "secondary"}
+            onClick={() => setSelectedDate(tomorrow)}
+          >
+            Завтра
+          </Button>
+          <Button
+            size="sm"
+            type="button"
+            variant={selectedDate === dayAfter ? "primary" : "secondary"}
+            onClick={() => setSelectedDate(dayAfter)}
+          >
+            Послезавтра
+          </Button>
+        </div>
+
+        <div className="operations-reschedule-input-wrap">
+          <label className="operations-reschedule-label" htmlFor="reschedule-date-input">
+            Дата
+          </label>
+          <Input
+            autoFocus
+            id="reschedule-date-input"
+            min={minDate}
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+        </div>
+
+        <DialogFooter>
+          <Button size="sm" type="button" variant="ghost" onClick={onClose}>
+            Отмена
+          </Button>
+          <Button disabled={!selectedDate} size="sm" type="submit" variant="primary">
+            Перенести
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
+  );
+}
+
+function OperationsDatePickerDialog({
+  initialDate,
+  isOpen,
+  minDate,
+  onClose,
+  onSelectDate,
+  title,
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <Dialog open={isOpen}>
+      <DialogBackdrop onClick={onClose}>
+        <OperationsDatePickerDialogContent
+          key={initialDate}
+          initialDate={initialDate}
+          minDate={minDate}
+          onClose={onClose}
+          onSelectDate={onSelectDate}
+          title={title}
+        />
+      </DialogBackdrop>
+    </Dialog>
+  );
+}
+
+function MiniWeekDayTab({day, isCurrentDay, isPastDay, isSelected, onClick, tasks}) {
   const {isOver, setNodeRef} = useDroppable({
     id: `mini-day-${day.input}`,
     data: {date: day.input},
   });
 
   const totalCount = tasks.length;
+  const unfinishedCount = tasks.filter(isTaskUnfinished).length;
+  const allCompleted = totalCount > 0 && unfinishedCount === 0;
+
   const weekdayIndex = (new Date(`${day.input}T12:00:00.000Z`).getUTCDay() || 7) - 1;
   const weekdayShort = WEEKDAY_SHORT_LABELS[weekdayIndex] || day.label;
   const dayOfMonth = day.input ? String(parseInt(day.input.split("-")[2], 10)) : "";
@@ -228,12 +346,24 @@ function MiniWeekDayTab({day, isCurrentDay, isSelected, onClick, tasks}) {
       className={`operations-mini-day-dropzone ${isOver ? "is-over" : ""}`}
     >
       <button
-        type="button"
-        role="tab"
         aria-selected={isSelected}
-        className={`operations-mini-day-tab ${isSelected ? "is-selected" : ""} ${isCurrentDay ? "is-today" : ""}`}
+        className={`operations-mini-day-tab ${isSelected ? "is-selected" : ""} ${isCurrentDay ? "is-today" : ""} ${isPastDay && unfinishedCount > 0 ? "has-debt" : ""}`}
+        role="tab"
+        type="button"
         onClick={() => onClick(day.input)}
       >
+        {unfinishedCount > 0 ? (
+          <span
+            className={`operations-mini-day-badge ${isPastDay ? "is-past" : ""}`}
+            title={`Незавершённых задач: ${unfinishedCount}`}
+          >
+            {unfinishedCount}
+          </span>
+        ) : allCompleted ? (
+          <span className="operations-mini-day-badge is-all-done" title="Все задачи выполнены">
+            <AppIcon name="check" size="xs" />
+          </span>
+        ) : null}
         <span className="operations-mini-day-weekday">{weekdayShort}</span>
         <span className="operations-mini-day-num">{dayOfMonth}</span>
         <span className="operations-mini-day-task-count">
@@ -254,9 +384,13 @@ function HorizontalDayTaskCard({
   onEdit,
   onMain,
   onMove,
+  onMoveToDate,
+  onOpenDatePicker,
   onToggleChecklist,
+  onTransferChecklistItem,
   onView,
   openMenuId,
+  selectedDate,
   setOpenMenuId,
   task,
   today,
@@ -277,6 +411,11 @@ function HorizontalDayTaskCard({
   const estimateMinutes = getTaskEstimateMinutes(task);
   const timeRangeText = formatTaskTimeRange(task);
 
+  const effectiveDueDate = taskDueDate || selectedDate || today;
+  const isPastDate = compareInputDates(effectiveDueDate, today) < 0;
+  const tomorrow = addDays(effectiveDueDate, 1);
+  const dayAfter = addDays(effectiveDueDate, 2);
+
   const taskPayload = getTaskPayload(task);
   const rawChecklist = getTaskChecklist(task);
   const visibleChecklist = rawChecklist.filter((entry) => !(
@@ -286,11 +425,46 @@ function HorizontalDayTaskCard({
   const doneChecklistCount = visibleChecklist.filter((item) => item.done).length;
   const totalChecklistCount = visibleChecklist.length;
 
+  const moveSubActions = [
+    ...(isPastDate || isLate ? [
+      {
+        icon: "calendar",
+        label: "На сегодня",
+        onClick: () => (onMoveToDate ? onMoveToDate(task, today) : onMove(task)),
+      },
+    ] : []),
+    {
+      icon: "calendar",
+      label: "На завтра",
+      onClick: () => (onMoveToDate ? onMoveToDate(task, tomorrow) : onMove(task)),
+    },
+    {
+      icon: "calendar",
+      label: "На послезавтра",
+      onClick: () => (onMoveToDate ? onMoveToDate(task, dayAfter) : onMove(task)),
+    },
+    {
+      icon: "calendar",
+      label: "Выбрать дату…",
+      onClick: () => {
+        if (onOpenDatePicker) {
+          onOpenDatePicker({
+            defaultDate: effectiveDueDate,
+            task,
+            type: "task",
+          });
+        } else {
+          onMove(task);
+        }
+      },
+    },
+  ];
+
   const rowMenuActions = [
     {
       icon: "calendar",
       label: "Перенести",
-      onClick: () => onMove(task),
+      subActions: moveSubActions,
     },
     {
       disabled: !taskDueDate,
@@ -546,19 +720,63 @@ function HorizontalDayTaskCard({
                 </div>
               </div>
               <div className="operations-linear-drawer-checklist-items">
-                {visibleChecklist.map((item) => (
-                  <label
-                    key={item.id}
-                    className={`operations-linear-drawer-check-item ${item.done ? "is-checked" : ""}`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Checkbox
-                      checked={item.done}
-                      onChange={(event) => onToggleChecklist?.(task, item.id, event.target.checked)}
-                    />
-                    <span className="operations-linear-drawer-check-text">{item.text}</span>
-                  </label>
-                ))}
+                {visibleChecklist.map((item) => {
+                  const itemSubActions = [
+                    ...(isPastDate || isLate ? [
+                      {
+                        icon: "calendar",
+                        label: "Перенести на сегодня",
+                        onClick: () => onTransferChecklistItem?.(task, item, today),
+                      },
+                    ] : []),
+                    {
+                      icon: "calendar",
+                      label: "Перенести на завтра",
+                      onClick: () => onTransferChecklistItem?.(task, item, tomorrow),
+                    },
+                    {
+                      icon: "calendar",
+                      label: "Перенести на послезавтра",
+                      onClick: () => onTransferChecklistItem?.(task, item, dayAfter),
+                    },
+                    {
+                      icon: "calendar",
+                      label: "Выбрать дату…",
+                      onClick: () => onOpenDatePicker?.({
+                        defaultDate: effectiveDueDate,
+                        item,
+                        task,
+                        type: "checklist-item",
+                      }),
+                    },
+                  ];
+
+                  return (
+                    <div
+                      key={item.id}
+                      className={`operations-linear-drawer-check-item ${item.done ? "is-checked" : ""}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <label className="operations-linear-drawer-check-label">
+                        <Checkbox
+                          checked={item.done}
+                          onChange={(event) => onToggleChecklist?.(task, item.id, event.target.checked)}
+                        />
+                        <span className="operations-linear-drawer-check-text">{item.text}</span>
+                      </label>
+                      {!item.done ? (
+                        <div className="operations-checklist-item-actions">
+                          <RowActionsMenu
+                            extraActions={itemSubActions}
+                            itemId={`chk-${task.id}-${item.id}`}
+                            openMenuId={openMenuId}
+                            setOpenMenuId={setOpenMenuId}
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : null}
@@ -659,11 +877,32 @@ function TaskTemplateCard({onDelete, onEdit, onSelect, onToggleArchived, openMen
   );
 }
 
-function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
-  const taskDate = getTaskDueDate(item);
+function TaskDetailsDialog({
+  item,
+  onClose,
+  onOpenDatePicker,
+  onSave,
+  onTransferChecklistItem,
+  openMenuId,
+  relatedTasks,
+  setOpenMenuId,
+  today = getWarsawTodayInput(),
+}) {
+  const taskDate = getTaskDueDate(item) || today;
+  const isPastDate = compareInputDates(taskDate, today) < 0;
+  const tomorrow = addDays(taskDate, 1);
+  const dayAfter = addDays(taskDate, 2);
   const taskPayload = getTaskPayload(item);
   const defaultResults = item?.occurrenceResults ?? {};
   const [checklist, setChecklist] = useState(() => item?.occurrenceChecklist ?? getTaskPayload(item).checklist ?? []);
+
+  const handleTransferItemFromDialog = async (entry, targetDate) => {
+    if (!onTransferChecklistItem) return;
+    const success = await onTransferChecklistItem(item, entry, targetDate);
+    if (success) {
+      setChecklist((current) => current.filter((value) => value.id !== entry.id));
+    }
+  };
   const [results, setResults] = useState(() => taskPayload.templateKey === "acquisition-meta-control" && !defaultResults.statsDate
     ? {...defaultResults, statsDate: addDays(taskDate, -1)}
     : defaultResults);
@@ -817,12 +1056,62 @@ function TaskDetailsDialog({item, onClose, onSave, relatedTasks}) {
               <section className="operations-detail-section">
                 <div className="operations-detail-section-head"><div><h3>Действия на сегодня</h3><span>{progress.done} из {progress.total}</span></div><b>{progress.total ? Math.round((progress.done / progress.total) * 100) : 0}%</b></div>
                 <div className="operations-detail-checklist">
-                  {visibleChecklist.map((entry) => (
-                    <label className={entry.done ? "is-done" : ""} key={entry.id}>
-                      <span className="operations-check-hit"><Checkbox checked={entry.done === true} onChange={(event) => setChecklist((current) => current.map((value) => value.id === entry.id ? {...value, done: event.target.checked} : value))} /></span>
-                      <span>{entry.text}</span>
-                    </label>
-                  ))}
+                  {visibleChecklist.map((entry) => {
+                    const itemSubActions = [
+                      ...(isPastDate ? [
+                        {
+                          icon: "calendar",
+                          label: "Перенести на сегодня",
+                          onClick: () => handleTransferItemFromDialog(entry, today),
+                        },
+                      ] : []),
+                      {
+                        icon: "calendar",
+                        label: "Перенести на завтра",
+                        onClick: () => handleTransferItemFromDialog(entry, tomorrow),
+                      },
+                      {
+                        icon: "calendar",
+                        label: "Перенести на послезавтра",
+                        onClick: () => handleTransferItemFromDialog(entry, dayAfter),
+                      },
+                      {
+                        icon: "calendar",
+                        label: "Выбрать дату…",
+                        onClick: () => onOpenDatePicker?.({
+                          defaultDate: taskDate,
+                          item: entry,
+                          onTransferSuccess: (newDate) => handleTransferItemFromDialog(entry, newDate),
+                          task: item,
+                          type: "checklist-item-dialog",
+                        }),
+                      },
+                    ];
+
+                    return (
+                      <div className={`operations-detail-checklist-row ${entry.done ? "is-done" : ""}`} key={entry.id}>
+                        <label className="operations-detail-checklist-label">
+                          <span className="operations-check-hit">
+                            <Checkbox
+                              checked={entry.done === true}
+                              onChange={(event) => setChecklist((current) => current.map((value) => value.id === entry.id ? {...value, done: event.target.checked} : value))}
+                            />
+                          </span>
+                          <span>{entry.text}</span>
+                        </label>
+                        {!entry.done ? (
+                          <div className="operations-checklist-item-actions">
+                            <RowActionsMenu
+                              extraActions={itemSubActions}
+                              itemId={`dialog-chk-${item.id}-${entry.id}`}
+                              openMenuId={openMenuId}
+                              setOpenMenuId={setOpenMenuId}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
             ) : null}
@@ -896,6 +1185,7 @@ function OperationsPage({
   onEditWaitlistEntry,
   onMessageWaitlistEntry,
   onMoveTask,
+  onTransferChecklistItem,
   onRenameTaskArea,
   onInitializeAcquisitionPlan,
   onRemoveWaitlistEntry,
@@ -914,7 +1204,8 @@ function OperationsPage({
   const storedView = readStoredJson(VIEW_STORAGE_KEY, {});
   const [activeTab, setActiveTab] = useState(storedView.activeTab ?? "plan");
   const [planMode, setPlanMode] = useState(storedView.planMode === "templates" ? "templates" : "week");
-  const [selectedDate, setSelectedDate] = useState(storedView.selectedDate ?? getWarsawTodayInput());
+  const [selectedDate, setSelectedDate] = useState(() => getWarsawTodayInput());
+  const [datePickerState, setDatePickerState] = useState(null);
   const [weekViewMode, setWeekViewMode] = useState(storedView.weekViewMode ?? "workweek");
   const [filters, setFilters] = useState(() => readStoredJson(FILTER_STORAGE_KEY, DEFAULT_FILTERS));
   const [openItemMenuId, setOpenItemMenuId] = useState(null);
@@ -932,8 +1223,8 @@ function OperationsPage({
   const kanbanSensors = useSensors(useSensor(PointerSensor, {activationConstraint: {distance: 6}}));
 
   useEffect(() => {
-    window.localStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify({activeTab, planMode, selectedDate, weekViewMode}));
-  }, [activeTab, planMode, selectedDate, weekViewMode]);
+    window.localStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify({activeTab, planMode, weekViewMode}));
+  }, [activeTab, planMode, weekViewMode]);
 
   useEffect(() => {
     window.localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
@@ -1123,12 +1414,6 @@ function OperationsPage({
 
   const handleToggleWeekViewMode = (mode) => {
     setWeekViewMode(mode);
-    if (mode === "workweek") {
-      const isWeekend = [weekDays[5]?.input, weekDays[6]?.input].filter(Boolean).includes(selectedDate);
-      if (isWeekend) {
-        setSelectedDate(weekDays[0]?.input || selectedDate);
-      }
-    }
   };
 
   const moveTaskWithUndo = async (task, nextDate) => {
@@ -1199,9 +1484,13 @@ function OperationsPage({
     onEdit: onEditTask,
     onMain: (task) => onSetMainTask?.(task, getTaskDueDate(task) || selectedDate),
     onMove: handleMoveTask,
+    onMoveToDate: (task, targetDate) => moveTaskWithUndo(task, targetDate),
+    onOpenDatePicker: setDatePickerState,
     onToggleChecklist: handleToggleChecklist,
+    onTransferChecklistItem,
     onView: setViewingTask,
     openMenuId: openItemMenuId,
+    selectedDate,
     setOpenMenuId: setOpenItemMenuId,
     today,
   };
@@ -1265,7 +1554,13 @@ function OperationsPage({
         {!isTemplateManager ? (
           <div className="operations-tabs-action-bar">
             <nav aria-label="Разделы работы" className="operations-tabs-nav" ref={tabsNavRef}>
-              <SegmentButton active={activeTab === "plan"} onClick={() => setActiveTab("plan")}>
+              <SegmentButton
+                active={activeTab === "plan"}
+                onClick={() => {
+                  setActiveTab("plan");
+                  setSelectedDate(getWarsawTodayInput());
+                }}
+              >
                 Задачи
               </SegmentButton>
               <SegmentButton active={activeTab === "history"} onClick={() => setActiveTab("history")}>
@@ -1540,6 +1835,7 @@ function OperationsPage({
                       <MiniWeekDayTab
                         day={day}
                         isCurrentDay={day.input === today}
+                        isPastDay={compareInputDates(day.input, today) < 0}
                         isSelected={day.input === selectedDate}
                         key={day.input}
                         onClick={setSelectedDate}
@@ -1700,8 +1996,36 @@ function OperationsPage({
           item={currentViewingTask}
           key={`${currentViewingTask.id}-${getTaskDueDate(currentViewingTask)}`}
           onClose={() => setViewingTask(null)}
+          onOpenDatePicker={setDatePickerState}
           onSave={onSaveTaskOccurrence}
+          onTransferChecklistItem={onTransferChecklistItem}
+          openMenuId={openItemMenuId}
           relatedTasks={workTasks}
+          setOpenMenuId={setOpenItemMenuId}
+          today={today}
+        />
+      ) : null}
+
+      {datePickerState ? (
+        <OperationsDatePickerDialog
+          initialDate={datePickerState.defaultDate || today}
+          isOpen={Boolean(datePickerState)}
+          minDate={today}
+          title={
+            datePickerState.type === "task"
+              ? `Перенести задачу «${datePickerState.task?.title}»`
+              : `Перенести пункт «${datePickerState.item?.text}»`
+          }
+          onClose={() => setDatePickerState(null)}
+          onSelectDate={(chosenDate) => {
+            if (datePickerState.type === "task") {
+              moveTaskWithUndo(datePickerState.task, chosenDate);
+            } else if (datePickerState.type === "checklist-item") {
+              onTransferChecklistItem?.(datePickerState.task, datePickerState.item, chosenDate);
+            } else if (datePickerState.type === "checklist-item-dialog") {
+              datePickerState.onTransferSuccess?.(chosenDate);
+            }
+          }}
         />
       ) : null}
     </section>

@@ -302,6 +302,173 @@ router.post('/tasks', requirePermission(PERMISSIONS.TASKS_MANAGE), (req, res) =>
   auditCreate(prisma, req, res, createTaskWithMainGuard(data).then(withStoredId), 'Task', 'create task');
 });
 
+router.post('/tasks/transfer-checklist-item', requirePermission(PERMISSIONS.TASKS_MANAGE), async (req, res) => {
+  try {
+    const { sourceTaskId, sourceDate, checklistItemId, targetDate } = req.body ?? {};
+    if (!sourceTaskId || !checklistItemId || !targetDate) {
+      return res.status(400).json({ success: false, error: 'sourceTaskId, checklistItemId, and targetDate are required' });
+    }
+    const cleanTargetDate = String(targetDate).trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanTargetDate)) {
+      return res.status(400).json({ success: false, error: 'targetDate must be in YYYY-MM-DD format' });
+    }
+    const cleanSourceDate = sourceDate ? String(sourceDate).trim() : null;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.task.findUnique({ where: { id: Number(sourceTaskId) } });
+      if (!existing) {
+        const error = new Error('Source task not found');
+        error.status = 404;
+        throw error;
+      }
+      if (isNote(existing) && !isOwnerAuth(req.auth)) {
+        const error = new Error('Owner role required');
+        error.status = 403;
+        throw error;
+      }
+
+      const rawPayload = objectPayload(existing.payload);
+      const nestedPayload = objectPayload(rawPayload.payload);
+      const payload = Object.keys(nestedPayload).length ? { ...rawPayload, ...nestedPayload } : rawPayload;
+
+      const isRepeating = payload.repeat?.enabled === true || payload.taskKind === 'daily';
+      let foundItem = null;
+      let nextChecklist = [];
+      let updatedPayload = null;
+      let updatedStatus = null;
+      let updatedCompleted = undefined;
+
+      if (isRepeating && cleanSourceDate) {
+        // Occurrence-specific checklist override
+        const occurrence = objectPayload(payload.occurrences?.[cleanSourceDate]);
+        const checklist = Array.isArray(occurrence.checklist)
+          ? occurrence.checklist
+          : Array.isArray(payload.checklist)
+            ? payload.checklist
+            : [];
+
+        foundItem = checklist.find((i) => String(i?.id) === String(checklistItemId));
+        if (!foundItem) {
+          const error = new Error('Checklist item not found');
+          error.status = 400;
+          throw error;
+        }
+
+        nextChecklist = checklist.filter((i) => String(i?.id) !== String(checklistItemId));
+        const transferRecord = {
+          id: foundItem.id,
+          text: foundItem.text,
+          targetDate: cleanTargetDate,
+          sourceDate: cleanSourceDate,
+          transferredAt: new Date().toISOString(),
+        };
+
+        const allDone = nextChecklist.length > 0 && nextChecklist.every((i) => i.done);
+        const nextOccurrence = {
+          ...occurrence,
+          checklist: nextChecklist,
+          transferredItems: [
+            ...(Array.isArray(occurrence.transferredItems) ? occurrence.transferredItems : []),
+            transferRecord,
+          ],
+          ...(allDone && occurrence.status !== 'completed' ? { status: 'completed', completedAt: new Date().toISOString() } : {}),
+        };
+
+        updatedPayload = {
+          ...payload,
+          occurrences: {
+            ...(payload.occurrences || {}),
+            [cleanSourceDate]: nextOccurrence,
+          },
+        };
+      } else {
+        // Regular task checklist
+        const checklist = Array.isArray(payload.checklist) ? payload.checklist : [];
+        foundItem = checklist.find((i) => String(i?.id) === String(checklistItemId));
+        if (!foundItem) {
+          const error = new Error('Checklist item not found');
+          error.status = 400;
+          throw error;
+        }
+
+        nextChecklist = checklist.filter((i) => String(i?.id) !== String(checklistItemId));
+        const transferRecord = {
+          id: foundItem.id,
+          text: foundItem.text,
+          targetDate: cleanTargetDate,
+          sourceDate: cleanSourceDate || (existing.dueDate ? existing.dueDate.toISOString().slice(0, 10) : ''),
+          transferredAt: new Date().toISOString(),
+        };
+
+        const allDone = nextChecklist.length > 0 && nextChecklist.every((i) => i.done);
+        updatedPayload = {
+          ...payload,
+          checklist: nextChecklist,
+          transferredItems: [
+            ...(Array.isArray(payload.transferredItems) ? payload.transferredItems : []),
+            transferRecord,
+          ],
+        };
+        if (allDone && existing.status !== 'completed') {
+          updatedStatus = 'completed';
+          updatedCompleted = true;
+        }
+      }
+
+      // 1. Update source task
+      const updateData = { payload: updatedPayload };
+      if (updatedStatus) updateData.status = updatedStatus;
+      if (updatedCompleted !== undefined) updateData.completed = updatedCompleted;
+
+      const updatedSourceTask = await tx.task.update({
+        where: { id: existing.id },
+        data: updateData,
+      });
+
+      // 2. Create target standalone task
+      const newTaskData = {
+        type: 'task',
+        title: String(foundItem.text || '').trim(),
+        description: `Перенесено из задачи «${existing.title}»${cleanSourceDate ? ` (${cleanSourceDate})` : ''}`,
+        note: `Перенесено из задачи «${existing.title}»`,
+        dueDate: toDate(cleanTargetDate),
+        priority: existing.priority || 'medium',
+        status: 'active',
+        completed: false,
+        sortOrder: 0,
+        payload: {
+          areaId: payload.areaId || 'general',
+          areaLabel: payload.areaLabel || '',
+          assigneeId: payload.assigneeId || '',
+          assigneeName: payload.assigneeName || '',
+          originTaskId: existing.id,
+          originTaskTitle: existing.title,
+          originChecklistItemId: foundItem.id,
+          originDate: cleanSourceDate || '',
+          transferredFromChecklist: true,
+          dueDate: cleanTargetDate,
+        },
+      };
+
+      const createdNewTask = await tx.task.create({ data: newTaskData });
+
+      return {
+        sourceTask: withStoredId(updatedSourceTask),
+        newTask: withStoredId(createdNewTask),
+      };
+    });
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    console.error('Transfer checklist item error:', err);
+    res.status(response.status || 500).json({ success: false, error: response.message });
+  }
+});
+
 router.get('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.task.findUnique({ where: { id } }).then((task) => {
