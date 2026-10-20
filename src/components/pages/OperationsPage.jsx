@@ -210,6 +210,15 @@ const formatTaskCountRu = (count) => {
   return `${count} ${formatTaskNounRu(count)}`;
 };
 
+const formatDebtCountRu = (count) => {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod100 >= 11 && mod100 <= 19) return `${count} долгов`;
+  if (mod10 === 1) return `${count} долг`;
+  if (mod10 >= 2 && mod10 <= 4) return `${count} долга`;
+  return `${count} долгов`;
+};
+
 const formatCompactWeekRange = (start, end) => {
   const full = formatHumanWeekRange(start, end);
   return full.replace(/\s*\d{4}\b/, "").trim();
@@ -363,7 +372,7 @@ function MiniWeekDayTab({day, isCurrentDay, isPastDay, isSelected, onClick, task
         <span className="operations-mini-day-task-count">
           <span className="operations-mini-day-count-full">
             {hasDebt ? (
-              <span className="operations-mini-day-debt-text">{unfinishedCount} долг</span>
+              <span className="operations-mini-day-debt-text">{formatDebtCountRu(unfinishedCount)}</span>
             ) : allCompleted ? (
               <span className="operations-mini-day-done-text">
                 <AppIcon name="check" size="xs" /> Готово
@@ -372,25 +381,27 @@ function MiniWeekDayTab({day, isCurrentDay, isPastDay, isSelected, onClick, task
               taskCountText
             )}
           </span>
-          {hasDebt ? (
-            <span
-              className="operations-mini-day-count-compact is-debt"
-              title={`Долг: ${unfinishedCount}`}
-            >
-              {unfinishedCount}
-            </span>
-          ) : allCompleted ? (
-            <span
-              className="operations-mini-day-count-compact is-done"
-              title="Все задачи выполнены"
-            >
-              <AppIcon name="check" size="xs" />
-            </span>
-          ) : (
-            <span className="operations-mini-day-count-compact">
-              {totalCount > 0 ? totalCount : "—"}
-            </span>
-          )}
+          <span className="operations-mini-day-count-compact-wrap">
+            {hasDebt ? (
+              <span
+                className="operations-mini-day-count-compact is-debt"
+                title={`Долг: ${unfinishedCount}`}
+              >
+                {unfinishedCount}
+              </span>
+            ) : allCompleted ? (
+              <span
+                className="operations-mini-day-count-compact is-done"
+                title="Все задачи выполнены"
+              >
+                <AppIcon name="check" size="xs" />
+              </span>
+            ) : (
+              <span className="operations-mini-day-count-compact">
+                {totalCount > 0 ? totalCount : "—"}
+              </span>
+            )}
+          </span>
         </span>
       </button>
     </div>

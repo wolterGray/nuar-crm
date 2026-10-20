@@ -10,6 +10,7 @@ import {
   buildMovedTask,
   getChecklistProgress,
   getTaskAssigneeId,
+  getTaskChecklist,
   getTaskDueDate,
   getTaskPayload,
   getTaskPriorityLabel,
@@ -1048,18 +1049,103 @@ export function useTaskHandlers({
       const checklistItemId = item?.id;
 
       try {
-        const response = await transferChecklistItem({
-          sourceTaskId,
-          sourceDate,
-          checklistItemId,
-          targetDate: date,
-        });
-        const { sourceTask, newTask } = response?.data || {};
+        let sourceTask = null;
+        let newTask = null;
+
+        try {
+          const response = await transferChecklistItem({
+            sourceTaskId,
+            sourceDate,
+            checklistItemId,
+            targetDate: date,
+          });
+          sourceTask = response?.data?.sourceTask;
+          newTask = response?.data?.newTask;
+        } catch (apiError) {
+          // If the backend route returns 404 (e.g. backend server not yet redeployed),
+          // seamlessly perform the transfer using standard createTask (POST) and updateTask (PUT)
+          const is404 = String(apiError?.message || "").includes("404");
+          if (!is404) {
+            throw apiError;
+          }
+
+          const currentChecklist = getTaskChecklist(task);
+          const remainingChecklist = currentChecklist.filter(
+            (ci) => String(ci.id) !== String(checklistItemId),
+          );
+          const allDone =
+            remainingChecklist.length > 0 &&
+            remainingChecklist.every((ci) => ci.done === true);
+
+          if (task?.isVirtualOccurrence) {
+            const occurrencePatch = {
+              checklist: remainingChecklist,
+              comment: task.occurrenceComment ?? "",
+              results: task.occurrenceResults ?? {},
+              ...(allDone
+                ? {status: "completed", completedAt: new Date().toISOString()}
+                : {}),
+            };
+            const nextTask = patchOccurrence(task, sourceDate, occurrencePatch);
+            const updateRes = await updateTask(sourceTaskId, nextTask);
+            sourceTask = updateRes?.data ?? nextTask;
+          } else {
+            const nextTask = {
+              ...task,
+              checklist: remainingChecklist,
+              payload: {
+                ...getTaskPayload(task),
+                checklist: remainingChecklist,
+              },
+              ...(allDone
+                ? {
+                    status: "completed",
+                    completed: true,
+                    completedAt: new Date().toISOString(),
+                  }
+                : {}),
+              updatedAt: new Date().toISOString(),
+            };
+            const updateRes = await updateTask(sourceTaskId, nextTask);
+            sourceTask = updateRes?.data ?? nextTask;
+          }
+
+          const newTaskPayload = {
+            type: "task",
+            title: item?.text || "Перенесённый пункт",
+            dueDate: date,
+            status: "pending",
+            completed: false,
+            priority: task?.priority || "normal",
+            payload: {
+              area: task?.area || "operations",
+              assigneeId: getTaskAssigneeId(task) || null,
+              checklist: [
+                {
+                  id: `item-${Date.now()}`,
+                  text: item?.text || "",
+                  done: false,
+                },
+              ],
+              transferredFrom: {
+                sourceTaskId,
+                sourceDate,
+                sourceTaskTitle: task?.title || "",
+                checklistItemId,
+              },
+            },
+          };
+
+          const createRes = await createTask(newTaskPayload);
+          newTask = createRes?.data ?? createRes;
+        }
 
         setTasks((current) => {
           let updated = current;
           if (sourceTask) {
-            updated = updated.map((t) => (String(t.id) === String(sourceTaskId) ? sourceTask : t));
+            updated = updated.map((t) =>
+              String(t.id) === String(sourceTaskId) ? sourceTask : t,
+            );
           }
           if (newTask) {
             updated = [newTask, ...updated];

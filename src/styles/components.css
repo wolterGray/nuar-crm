@@ -12412,6 +12412,18 @@
   white-space: nowrap;
 }
 
+.operations-page .operations-mini-day-count-full {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.operations-page .operations-mini-day-count-compact,
+.operations-page .operations-mini-day-count-compact-wrap {
+  display: none !important;
+}
+
 .operations-page .operations-mini-day-tab.is-selected .operations-mini-day-task-count {
   color: #fca5a5;
   font-weight: 600;
@@ -17465,7 +17477,8 @@ input[type="checkbox"].ui-checkbox:disabled,
     display: none !important;
   }
 
-  .operations-page .operations-mini-day-count-compact {
+  .operations-page .operations-mini-day-count-compact,
+  .operations-page .operations-mini-day-count-compact-wrap {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;

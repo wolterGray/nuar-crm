@@ -357,6 +357,17 @@
     color: #d7d7da !important;
   }
 
+  .operations-page-mobile .operations-mini-day-count-full {
+    display: none !important;
+  }
+
+  .operations-page-mobile .operations-mini-day-count-compact,
+  .operations-page-mobile .operations-mini-day-count-compact-wrap {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
   .operations-page-mobile .operations-mini-day-count-compact {
     color: var(--operations-mobile-muted) !important;
     background: var(--operations-mobile-raised) !important;
@@ -806,6 +817,18 @@
   gap: 3px;
   color: var(--color-success);
   font-weight: 600;
+}
+
+.operations-mini-day-count-compact,
+.operations-mini-day-count-compact-wrap {
+  display: none;
+}
+
+.operations-mini-day-count-full {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
 }
 
 .operations-mini-day-count-compact.is-debt {
