@@ -234,7 +234,7 @@ function WaitlistPanel({
   }, []);
 
   return (
-    <section className="panel operations-panel waitlist-panel-container">
+    <div className="waitlist-panel-container">
       {/* 1. Header Toolbar with Title, Badge, and Add Action */}
       <div className="waitlist-toolbar">
         <div className="waitlist-toolbar-top">
@@ -302,7 +302,7 @@ function WaitlistPanel({
       {/* 3. Cards List or Empty State */}
       {visibleEntries.length === 0 ? (
         <EmptyState
-          className="operations-empty"
+          className="waitlist-empty-state"
           icon={filter === "deleted" ? "trash" : "clock"}
           title={
             filter === "active"
@@ -347,7 +347,7 @@ function WaitlistPanel({
         onRemove={onRemove}
         onRestore={onRestore}
       />
-    </section>
+    </div>
   );
 }
 

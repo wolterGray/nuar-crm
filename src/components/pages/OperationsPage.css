@@ -513,21 +513,18 @@
     gap: 9px !important;
   }
 
-  .operations-page-mobile .operations-panel-header h2,
-  .operations-page-mobile .waitlist-panel .page-title {
+  .operations-page-mobile .operations-panel-header h2 {
     color: var(--operations-mobile-text) !important;
     font-size: 18px !important;
     letter-spacing: 0 !important;
   }
 
-  .operations-page-mobile .operations-panel-header p,
-  .operations-page-mobile .waitlist-panel .page-header-description {
+  .operations-page-mobile .operations-panel-header p {
     color: var(--operations-mobile-muted) !important;
     font-size: 12px !important;
   }
 
-  .operations-page-mobile :is(.operations-panel-header, .waitlist-panel) > .button,
-  .operations-page-mobile .waitlist-add-button {
+  .operations-page-mobile .operations-panel-header > .button {
     min-height: 38px !important;
     color: #fff !important;
     background: var(--operations-mobile-accent) !important;
@@ -565,7 +562,7 @@
     gap: 8px !important;
   }
 
-  .operations-page-mobile :is(.note-row, .supply-row, .waitlist-card) {
+  .operations-page-mobile :is(.note-row, .supply-row) {
     width: 100% !important;
     min-width: 0 !important;
     margin: 0 !important;
@@ -577,12 +574,12 @@
     box-shadow: none !important;
   }
 
-  .operations-page-mobile :is(.note-row, .supply-row, .waitlist-card) strong {
+  .operations-page-mobile :is(.note-row, .supply-row) strong {
     color: var(--operations-mobile-text) !important;
     font-size: 14px !important;
   }
 
-  .operations-page-mobile :is(.note-row, .supply-row, .waitlist-card) span {
+  .operations-page-mobile :is(.note-row, .supply-row) span {
     color: var(--operations-mobile-muted) !important;
   }
 
@@ -622,38 +619,13 @@
     border-color: rgba(239, 56, 59, 0.35) !important;
   }
 
-  .operations-page-mobile .waitlist-panel .page-header-unified {
-    min-height: 48px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .operations-page-mobile .waitlist-add-button {
-    width: 100% !important;
-    margin: 0 !important;
-  }
-
   .operations-page-mobile .client-packages-list {
     display: grid !important;
     gap: 8px !important;
   }
 
-  .operations-page-mobile .waitlist-card-actions {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 7px !important;
-    margin-top: 9px !important;
-  }
-
-  .operations-page-mobile .waitlist-card-actions button {
-    min-height: 38px !important;
-    color: #d8d8db !important;
-    background: var(--operations-mobile-field) !important;
-    border-color: var(--operations-mobile-border) !important;
-  }
-
   .operations-page-mobile .waitlist-offered-block,
-  .operations-page-mobile .operations-empty {
+  .operations-page-mobile .operations-empty:not(.waitlist-empty-state) {
     color: var(--operations-mobile-muted) !important;
     background: var(--operations-mobile-surface) !important;
     border-color: var(--operations-mobile-border) !important;
