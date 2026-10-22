@@ -14,6 +14,11 @@ export function useRowActionMenu({isOpen, setOpenMenuId}) {
     }
 
     const rect = trigger.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+      setMenuStyle(null);
+      return;
+    }
+
     const menuHeight = menuRef.current?.offsetHeight ?? 76;
     let top = rect.top;
     let left = rect.left - MENU_WIDTH - 4;
@@ -77,14 +82,22 @@ export function useRowActionMenu({isOpen, setOpenMenuId}) {
       setOpenMenuId(null);
     };
 
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setOpenMenuId(null);
+      }
+    };
+
     const handleLayoutChange = () => updateMenuPosition();
 
     document.addEventListener("pointerdown", closeMenu);
+    document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("resize", handleLayoutChange);
     window.addEventListener("scroll", handleLayoutChange, true);
 
     return () => {
       document.removeEventListener("pointerdown", closeMenu);
+      document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("resize", handleLayoutChange);
       window.removeEventListener("scroll", handleLayoutChange, true);
     };
