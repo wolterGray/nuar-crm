@@ -34,3 +34,58 @@ export function validatePasswordStrength(password = "", {email = ""} = {}) {
     isValid: failures.length === 0,
   };
 }
+
+const UPPER = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+const LOWER = "abcdefghijkmnopqrstuvwxyz";
+const DIGITS = "23456789";
+const SYMBOLS = "!@#$%&*+-=";
+const ALL_CHARS = UPPER + LOWER + DIGITS + SYMBOLS;
+
+function randomInt(max) {
+  if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
+    const arr = new Uint32Array(1);
+    globalThis.crypto.getRandomValues(arr);
+    return arr[0] % max;
+  }
+  return Math.floor(Math.random() * max);
+}
+
+function pickChar(charset) {
+  return charset[randomInt(charset.length)];
+}
+
+export function generateStrongPassword({email = ""} = {}) {
+  for (let attempt = 0; attempt < 25; attempt += 1) {
+    const chars = [
+      pickChar(UPPER),
+      pickChar(LOWER),
+      pickChar(DIGITS),
+      pickChar(SYMBOLS),
+      pickChar(UPPER),
+      pickChar(LOWER),
+      pickChar(DIGITS),
+      pickChar(SYMBOLS),
+    ];
+
+    while (chars.length < 14) {
+      chars.push(pickChar(ALL_CHARS));
+    }
+
+    // Fisher-Yates shuffle
+    for (let i = chars.length - 1; i > 0; i -= 1) {
+      const j = randomInt(i + 1);
+      const tmp = chars[i];
+      chars[i] = chars[j];
+      chars[j] = tmp;
+    }
+
+    const candidate = chars.join("");
+    const check = validatePasswordStrength(candidate, {email});
+    if (check.isValid) {
+      return candidate;
+    }
+  }
+
+  return "K9mP#7vR2x!L4q";
+}
+

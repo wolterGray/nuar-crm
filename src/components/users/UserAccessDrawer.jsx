@@ -12,9 +12,11 @@ import {
   getAllowedNavigation,
 } from "../../utils/permissions.js";
 import {navGroups} from "../../constants/navigation.js";
-import {validatePasswordStrength} from "../../utils/passwordStrength.js";
 import {
-  USER_ROLE_OPTIONS,
+  generateStrongPassword,
+  validatePasswordStrength,
+} from "../../utils/passwordStrength.js";
+import {
   ROLE_BADGE_VARIANTS,
   ROLE_LABELS,
 } from "../../constants/userRoles.js";
@@ -35,8 +37,10 @@ function UserEditPane({
   submitting,
   onSubmit,
   onClose,
+  onSwitchMode,
   setIsDirty,
 }) {
+  const [email, setEmail] = useState(user?.email || "");
   const [name, setName] = useState(user?.name || "");
   const [role, setRole] = useState(user?.role || "staff");
   const [employeeId, setEmployeeId] = useState(
@@ -45,9 +49,9 @@ function UserEditPane({
 
   const isOwnerProtected = !isOwner && user?.role === "owner";
 
-  // Snapshot to detect unsaved changes
   const initialSnapshot = useMemo(
     () => ({
+      email: (user?.email || "").trim().toLowerCase(),
       name: (user?.name || "").trim(),
       role: user?.role || "staff",
       employeeId: user?.employeeId ? String(user.employeeId) : "",
@@ -57,11 +61,12 @@ function UserEditPane({
 
   const dirty = useMemo(() => {
     return (
+      email.trim().toLowerCase() !== initialSnapshot.email ||
       name.trim() !== initialSnapshot.name ||
       role !== initialSnapshot.role ||
       employeeId !== initialSnapshot.employeeId
     );
-  }, [name, role, employeeId, initialSnapshot]);
+  }, [email, name, role, employeeId, initialSnapshot]);
 
   useEffect(() => {
     setIsDirty(dirty);
@@ -71,6 +76,7 @@ function UserEditPane({
     e?.preventDefault();
     if (submitting) return;
     onSubmit(user, {
+      email: email.trim().toLowerCase() || user.email,
       name: name.trim(),
       role: isOwnerProtected ? user.role : role,
       employeeId: employeeId ? Number(employeeId) : null,
@@ -80,11 +86,11 @@ function UserEditPane({
   return (
     <form onSubmit={handleSubmit} className="crm-drawer-pane-form">
       <div className="crm-drawer-body">
-        {/* Account Info Card */}
+        {/* Account Status Card */}
         <div className="p-3 bg-surface-2/60 rounded-control border border-border-soft flex items-center justify-between gap-3">
           <div className="flex flex-col min-w-0">
             <span className="text-[11px] font-bold text-text-faint uppercase tracking-wider">
-              Учётная запись
+              Статус учётной записи
             </span>
             <span className="text-xs font-semibold text-text-main truncate mt-0.5">
               {user.email}
@@ -97,14 +103,25 @@ function UserEditPane({
 
         {/* Name */}
         <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
-          <span>
-            Имя сотрудника <span className="text-accent">*</span>
-          </span>
+          <span>Имя сотрудника</span>
           <Input
-            autoComplete="name"
-            placeholder="Например: Анна Смирнова"
+            autoComplete="off"
+            placeholder="Например, Натали"
             value={name}
             onChange={(e) => setName(e.target.value)}
+          />
+        </label>
+
+        {/* Email */}
+        <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+          <span>Email для входа в CRM</span>
+          <Input
+            autoComplete="off"
+            type="email"
+            required
+            placeholder="master@nuarr.pl"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </label>
 
@@ -112,29 +129,26 @@ function UserEditPane({
         <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
           <span>Роль в CRM</span>
           <Select
-            value={role}
             disabled={isOwnerProtected}
+            value={role}
             onChange={(e) => setRole(e.target.value)}
           >
-            {(isOwnerProtected ? USER_ROLE_OPTIONS : allowedRoleOptions).map((r) => (
+            {allowedRoleOptions.map((r) => (
               <option key={r.value} value={r.value}>
                 {r.label}
               </option>
             ))}
           </Select>
-          {isOwnerProtected && (
-            <span className="text-[11px] text-accentWarning">
-              Роль владельца защищена от изменения администратором
-            </span>
-          )}
+          <span className="text-[11px] text-text-faint leading-relaxed">
+            Определяет базовый шаблон прав доступа сотрудника.
+          </span>
         </label>
 
         {/* Master Binding */}
         <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
-          <span>Привязка к профилю мастера</span>
+          <span>Привязка к мастеру в расписании</span>
           <Select
             value={employeeId}
-            disabled={isOwnerProtected}
             onChange={(e) => setEmployeeId(e.target.value)}
           >
             <option value="">— Без привязки к мастеру —</option>
@@ -144,10 +158,60 @@ function UserEditPane({
               </option>
             ))}
           </Select>
-          <span className="text-[11px] text-text-faint leading-normal">
-            Связывает учётную запись пользователя с расписанием и визитами мастера в календаре.
+          <span className="text-[11px] text-text-faint leading-relaxed">
+            Позволяет сотруднику с ролью «Сотрудник» видеть свои записи и собственные начисления.
           </span>
         </label>
+
+        {/* Inline Save Actions right under fields so they are immediately visible */}
+        <div className="pt-2 flex items-center gap-2.5">
+          <Button
+            size="md"
+            variant="primary"
+            type="submit"
+            loading={submitting}
+            className="flex-1"
+            leftIcon={<AppIcon name="check" size="sm" />}
+          >
+            Сохранить изменения
+          </Button>
+          <Button
+            size="md"
+            variant="secondary"
+            type="button"
+            disabled={submitting}
+            onClick={onClose}
+          >
+            Отмена
+          </Button>
+        </div>
+
+        {/* Quick transition to Password or Permissions */}
+        <div className="pt-3 border-t border-border-soft flex flex-col gap-2">
+          <span className="text-[11px] font-bold text-text-faint uppercase tracking-wider">
+            Быстрые действия
+          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              type="button"
+              leftIcon={<AppIcon name="key" size="xs" />}
+              onClick={() => onSwitchMode?.("reset-password")}
+            >
+              Задать / сбросить пароль
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              type="button"
+              leftIcon={<AppIcon name="shield" size="xs" />}
+              onClick={() => onSwitchMode?.("permissions")}
+            >
+              Настроить права доступа
+            </Button>
+          </div>
+        </div>
 
         {/* Status Notice */}
         {!user.isActive && (
@@ -279,7 +343,6 @@ function UserPermissionsPane({
     const p = effectivePermsUser.effectivePermissions || {};
     const items = [];
 
-    // Calendar
     if (p[PERMISSIONS.CALENDAR_VIEW_ALL]) {
       items.push({
         label: "Календарь",
@@ -303,7 +366,6 @@ function UserPermissionsPane({
       });
     }
 
-    // Contacts
     if (p[PERMISSIONS.CLIENTS_VIEW_CONTACTS]) {
       items.push({
         label: "Контакты",
@@ -320,7 +382,6 @@ function UserPermissionsPane({
       });
     }
 
-    // Finance
     if (p[PERMISSIONS.FINANCE_VIEW_SALON_STATS]) {
       items.push({
         label: "Финансы",
@@ -344,7 +405,6 @@ function UserPermissionsPane({
       });
     }
 
-    // Catalog
     if (p[PERMISSIONS.CATALOG_MANAGE]) {
       items.push({
         label: "Каталог",
@@ -363,18 +423,8 @@ function UserPermissionsPane({
       items.push({
         label: "Каталог",
         value: "Скрыт",
-        variant: "disabled",
-        icon: "briefcase",
-      });
-    }
-
-    // Security
-    if (p[PERMISSIONS.USERS_MANAGE]) {
-      items.push({
-        label: "Безопасность",
-        value: "Управление доступом",
-        variant: "warning",
-        icon: "shield",
+        variant: "danger",
+        icon: "eyeOff",
       });
     }
 
@@ -395,39 +445,47 @@ function UserPermissionsPane({
     onSubmit(user, permsDraft);
   };
 
+  const customOverrideCount = Object.keys(permsDraft).filter(
+    (k) => k !== "mustChangePassword",
+  ).length;
+
   return (
     <form onSubmit={handleSubmit} className="crm-drawer-pane-form">
-      <div className="crm-drawer-body">
-        {/* Sub-tab Navigation */}
-        <div className="flex items-center gap-2 p-1 bg-surface-2 rounded-control border border-border-soft">
-          <button
+      {/* Sub-navigation bar for Permissions vs Navigation Preview */}
+      <div className="px-5 py-2.5 bg-surface-2/60 border-b border-border-soft flex items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant={modalTab === "permissions" ? "primary" : "ghost"}
             type="button"
             onClick={() => setModalTab("permissions")}
-            className={clsx(
-              "flex-1 py-1.5 px-3 rounded-control text-xs font-semibold transition-colors flex items-center justify-center gap-1.5",
-              modalTab === "permissions"
-                ? "bg-accent text-white shadow-sm"
-                : "text-text-muted hover:text-text-main hover:bg-surface/50",
-            )}
+            leftIcon={<AppIcon name="shield" size="xs" />}
           >
-            <AppIcon name="shield" size="xs" />
-            <span>Настройки прав</span>
-          </button>
-          <button
+            Настройки прав
+          </Button>
+          <Button
+            size="sm"
+            variant={modalTab === "preview" ? "primary" : "ghost"}
             type="button"
             onClick={() => setModalTab("preview")}
-            className={clsx(
-              "flex-1 py-1.5 px-3 rounded-control text-xs font-semibold transition-colors flex items-center justify-center gap-1.5",
-              modalTab === "preview"
-                ? "bg-accent text-white shadow-sm"
-                : "text-text-muted hover:text-text-main hover:bg-surface/50",
-            )}
+            leftIcon={<AppIcon name="eye" size="xs" />}
           >
-            <AppIcon name="eye" size="xs" />
-            <span>Предпросмотр ({previewAllowedGroups.length})</span>
-          </button>
+            Предпросмотр ({previewAllowedGroups.length})
+          </Button>
         </div>
 
+        <Button
+          size="sm"
+          variant="primary"
+          type="submit"
+          loading={submitting}
+          leftIcon={<AppIcon name="check" size="xs" />}
+        >
+          Сохранить
+        </Button>
+      </div>
+
+      <div className="crm-drawer-body">
         {modalTab === "permissions" ? (
           <>
             {/* Quick Role Templates */}
@@ -435,17 +493,26 @@ function UserPermissionsPane({
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 text-xs text-text-muted">
                   <AppIcon name="sparkles" size="xs" className="text-accent" />
-                  <span className="font-semibold text-text-main">Шаблоны ролей:</span>
+                  <span className="font-semibold text-text-main">Быстрые шаблоны:</span>
                 </div>
+                {customOverrideCount > 0 && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    type="button"
+                    onClick={handleResetPermissionsToRole}
+                    title="Сбросить все индивидуальные переопределения к роли пользователя"
+                  >
+                    Сбросить к роли
+                  </Button>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 <Button
                   size="sm"
                   variant="outline"
                   type="button"
-                  className="h-7 text-xs px-2.5"
                   onClick={() => handleApplyRoleTemplate("owner")}
-                  title="Полный доступ ко всей CRM и настройкам"
                 >
                   Владелец
                 </Button>
@@ -453,9 +520,7 @@ function UserPermissionsPane({
                   size="sm"
                   variant="outline"
                   type="button"
-                  className="h-7 text-xs px-2.5"
                   onClick={() => handleApplyRoleTemplate("admin")}
-                  title="Все операции кроме управления владельцами"
                 >
                   Админ
                 </Button>
@@ -463,9 +528,7 @@ function UserPermissionsPane({
                   size="sm"
                   variant="outline"
                   type="button"
-                  className="h-7 text-xs px-2.5"
                   onClick={() => handleApplyRoleTemplate("staff")}
-                  title="Только свои визиты, маскированные контакты, свои начисления"
                 >
                   Массажист
                 </Button>
@@ -473,28 +536,26 @@ function UserPermissionsPane({
                   size="sm"
                   variant="outline"
                   type="button"
-                  className="h-7 text-xs px-2.5"
                   onClick={() => handleApplyRoleTemplate("readonly")}
-                  title="Просмотр календаря и базы клиентов без редактирования"
                 >
                   Только чтение
                 </Button>
               </div>
             </div>
 
-            {/* Effective Access Summary */}
+            {/* Access Summary Card */}
             <div className="flex flex-col gap-2 p-3 rounded-control bg-field border border-border-soft">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-bold text-text-faint uppercase tracking-wider">
                   Итоговый профиль доступа
                 </span>
                 <span className="text-[11px] text-text-muted">
-                  {Object.keys(permsDraft).length > 0 ? (
+                  {customOverrideCount > 0 ? (
                     <span className="text-accent font-medium">
-                      {Object.keys(permsDraft).length} переопределений
+                      Изменено вручную: {customOverrideCount}
                     </span>
                   ) : (
-                    "Права по умолчанию"
+                    "Стандартные права роли"
                   )}
                 </span>
               </div>
@@ -515,11 +576,12 @@ function UserPermissionsPane({
               </div>
             </div>
 
-            {/* Grouped Permissions Matrix */}
-            <div className="flex flex-col gap-2.5">
+            {/* 2-Level Permission Groups */}
+            <div className="flex flex-col gap-3">
               {permissionGroups.map((group) => {
                 const roleDefaults =
-                  ROLE_DEFAULT_PERMISSIONS[user?.role] || ROLE_DEFAULT_PERMISSIONS.staff;
+                  ROLE_DEFAULT_PERMISSIONS[user.role] ||
+                  ROLE_DEFAULT_PERMISSIONS.staff;
                 const activeCount = group.permissions.filter((perm) => {
                   const val =
                     permsDraft[perm.key] !== undefined
@@ -540,7 +602,7 @@ function UserPermissionsPane({
                       <button
                         type="button"
                         onClick={() => toggleGroupCollapse(group.id)}
-                        className="flex items-center gap-2 text-left flex-1 hover:opacity-85 transition-opacity"
+                        className="flex items-center gap-2 text-left flex-1 bg-transparent border-0 p-0 cursor-pointer hover:opacity-85 transition-opacity"
                       >
                         <AppIcon
                           name={isCollapsed ? "chevronRight" : "chevronDown"}
@@ -552,7 +614,7 @@ function UserPermissionsPane({
                             {group.title}
                           </span>
                           <span className="text-[10px] text-text-faint">
-                            Включено: {activeCount} из {group.permissions.length}
+                            Активно: {activeCount} из {group.permissions.length}
                           </span>
                         </div>
                       </button>
@@ -560,20 +622,20 @@ function UserPermissionsPane({
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-[11px] text-text-muted hidden sm:inline">
                           {allEnabled
-                            ? "Все"
+                            ? "Все включены"
                             : activeCount === 0
-                              ? "Выкл"
+                              ? "Отключено"
                               : "Частично"}
                         </span>
                         <Switch
                           checked={allEnabled}
                           onChange={() => handleToggleSection(group)}
-                          aria-label={`Переключить раздел ${group.title}`}
+                          aria-label={`Переключить весь раздел ${group.title}`}
                         />
                       </div>
                     </div>
 
-                    {/* Level 2: Detailed Permissions */}
+                    {/* Level 2: Individual Permissions */}
                     {!isCollapsed && (
                       <div className="flex flex-col gap-1.5 p-2.5">
                         {group.permissions.map((perm) => {
@@ -591,7 +653,7 @@ function UserPermissionsPane({
                               key={perm.key}
                               className="flex items-center justify-between gap-3 p-2.5 rounded-control bg-surface/60 border border-border-soft hover:border-border transition-colors"
                             >
-                              <div className="flex flex-col gap-0.5">
+                              <div className="flex flex-col gap-0.5 min-w-0">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className="text-xs font-semibold text-text-main">
                                     {perm.label}
@@ -630,17 +692,17 @@ function UserPermissionsPane({
             </div>
           </>
         ) : (
-          /* Preview Tab */
+          /* Live Navigation Preview */
           <div className="flex flex-col gap-4">
             <div className="rounded-control border border-border-soft bg-surface-2/40 p-3 flex items-center gap-2.5 text-xs text-text-muted">
               <AppIcon name="info" size="sm" className="text-accent shrink-0" />
               <div>
-                Предпросмотр интерфейса с текущими правами сотрудника без необходимости перезахода.
+                Предпросмотр показывает, какие разделы меню будут видны сотруднику с текущими настройками прав.
               </div>
             </div>
 
             <div className="flex flex-col gap-3.5">
-              {/* Desktop Navigation Preview */}
+              {/* Desktop Menu Preview */}
               <div className="flex flex-col gap-2 rounded-control bg-field p-3.5 border border-border-soft">
                 <div className="flex items-center gap-2 text-xs font-bold text-text-main border-b border-border-soft pb-2">
                   <AppIcon name="monitor" size="xs" className="text-text-muted" />
@@ -673,13 +735,13 @@ function UserPermissionsPane({
                 </div>
               </div>
 
-              {/* Mobile Navigation Preview */}
+              {/* Mobile Nav Preview */}
               <div className="flex flex-col gap-3 rounded-control bg-field p-3.5 border border-border-soft">
                 <div className="flex items-center gap-2 text-xs font-bold text-text-main border-b border-border-soft pb-2">
                   <AppIcon name="smartphone" size="xs" className="text-text-muted" />
-                  <span>Нижняя мобильная панель ({previewAllowedMobile.length} кнопок)</span>
+                  <span>Мобильная панель ({previewAllowedMobile.length} кнопок)</span>
                 </div>
-                <div className="p-3 bg-surface rounded-control border border-border flex items-center justify-between gap-1 shadow-sm">
+                <div className="p-3 bg-surface rounded-control border border-border flex items-center justify-between gap-1">
                   {previewAllowedMobile.map((item) => (
                     <div
                       key={item.page}
@@ -695,7 +757,6 @@ function UserPermissionsPane({
                   ))}
                 </div>
 
-                {/* CRM Key Pages Matrix */}
                 <div className="flex flex-col gap-1.5 border-t border-border-soft pt-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-text-faint">
                     Доступность ключевых разделов
@@ -762,7 +823,7 @@ function UserPermissionsPane({
             variant="primary"
             type="submit"
             loading={submitting}
-            leftIcon={<AppIcon name="shield" size="sm" />}
+            leftIcon={<AppIcon name="check" size="sm" />}
           >
             Сохранить права
           </Button>
@@ -773,7 +834,7 @@ function UserPermissionsPane({
 }
 
 /* ==========================================================================
-   PANE 3: Reset Password Pane
+   PANE 3: Password Management Pane (Direct Generation / Input + Save)
    ========================================================================== */
 function UserResetPasswordPane({
   user,
@@ -782,189 +843,208 @@ function UserResetPasswordPane({
   onSubmit,
   onClose,
   setIsDirty,
+  pushNotification,
 }) {
-  const [method, setMethod] = useState("email"); // "email" | "generate_temp" | "manual_temp"
-  const [manualPassword, setManualPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showManualPassword, setShowManualPassword] = useState(false);
+  const [password, setPassword] = useState(() =>
+    generateStrongPassword({email: user?.email || ""}),
+  );
+  const [showPassword, setShowPassword] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   const passwordStrength = useMemo(
-    () => validatePasswordStrength(manualPassword, {email: user?.email}),
-    [manualPassword, user?.email],
+    () => validatePasswordStrength(password, {email: user?.email}),
+    [password, user?.email],
   );
 
-  const passwordsMatch = manualPassword === confirmPassword;
-  const canSubmit =
-    method === "email" ||
-    method === "generate_temp" ||
-    (method === "manual_temp" &&
-      manualPassword &&
-      passwordsMatch &&
-      passwordStrength.isValid);
-
-  const dirty = useMemo(() => {
-    return method !== "email" || Boolean(manualPassword);
-  }, [method, manualPassword]);
+  const canSubmit = Boolean(password.trim() && passwordStrength.isValid);
 
   useEffect(() => {
-    setIsDirty(dirty);
-  }, [dirty, setIsDirty]);
+    setIsDirty(false);
+  }, [setIsDirty]);
+
+  const handleGenerateNew = () => {
+    const next = generateStrongPassword({email: user?.email || ""});
+    setPassword(next);
+    setShowPassword(true);
+    setCopied(false);
+  };
+
+  const handleCopyPassword = async () => {
+    if (!password) return;
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+      pushNotification?.({
+        title: "Пароль скопирован в буфер",
+        message: "Теперь нажмите «Сохранить пароль», чтобы применить его для сотрудника",
+        persist: false,
+      });
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      pushNotification?.({
+        title: "Пароль",
+        message: password,
+        persist: false,
+      });
+    }
+  };
 
   const handleSubmit = (e) => {
     e?.preventDefault();
     if (!canSubmit || submitting) return;
+    onSubmit(user, {
+      method: "manual_temp",
+      deliveryMethod: "manual_temp",
+      temporaryPassword: password.trim(),
+      password: password.trim(),
+      email: user?.email,
+    });
+  };
 
-    if (method === "email") {
-      onSubmit(user, {deliveryMethod: "email"});
-    } else if (method === "generate_temp") {
-      onSubmit(user, {deliveryMethod: "generate_temp"});
-    } else if (method === "manual_temp") {
-      onSubmit(user, {
-        deliveryMethod: "manual_temp",
-        manualPassword,
-      });
-    }
+  const handleCreateResetLink = () => {
+    if (submitting) return;
+    onSubmit(user, {
+      method: "link",
+      deliveryMethod: "link",
+      email: user?.email,
+    });
   };
 
   return (
     <form onSubmit={handleSubmit} className="crm-drawer-pane-form">
       <div className="crm-drawer-body">
-        {/* Session Invalidation Notice */}
-        <div className="rounded-control border border-border-soft bg-field p-3 text-xs text-text-muted flex items-start gap-2.5">
-          <AppIcon name="shield" size="sm" className="text-accent shrink-0 mt-0.5" />
+        {/* Main Block: Direct Password Generator & Editor */}
+        <div className="p-4 rounded-card bg-surface-2/70 border border-border flex flex-col gap-3.5">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-text-main">
+                Новый пароль сотрудника
+              </span>
+              <span className="text-[11px] text-text-muted mt-0.5">
+                Пароль уже сгенерирован — вы можете скопировать его или ввести свой
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              type="button"
+              onClick={handleGenerateNew}
+              leftIcon={<AppIcon name="refreshCw" size="xs" />}
+            >
+              Сгенерировать другой
+            </Button>
+          </div>
+
+          {/* Password Input + Copy Button */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 flex items-center">
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                autoComplete="new-password"
+                placeholder="Введите или сгенерируйте пароль"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setCopied(false);
+                }}
+                className="font-mono font-bold text-sm tracking-wide pr-9"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2.5 text-text-muted hover:text-text-main bg-transparent border-0 cursor-pointer p-1"
+                title={showPassword ? "Скрыть пароль" : "Показать пароль"}
+              >
+                <AppIcon name={showPassword ? "eyeOff" : "eye"} size="xs" />
+              </button>
+            </div>
+
+            <Button
+              size="md"
+              variant={copied ? "success" : "secondary"}
+              type="button"
+              onClick={handleCopyPassword}
+              className="shrink-0"
+              leftIcon={<AppIcon name={copied ? "check" : "copy"} size="xs" />}
+            >
+              {copied ? "Скопировано" : "Скопировать"}
+            </Button>
+          </div>
+
+          {/* Validation Status */}
+          {passwordStrength.isValid ? (
+            <div className="flex items-center gap-1.5 text-[11.5px] text-accentSuccess font-medium">
+              <AppIcon name="check" size="xs" />
+              <span>Надёжный пароль — готов к сохранению</span>
+            </div>
+          ) : (
+            <div className="text-[11.5px] text-accentError flex flex-col gap-0.5">
+              {passwordStrength.failures.map((f, i) => (
+                <span key={i}>• {f}</span>
+              ))}
+            </div>
+          )}
+
+          {/* PROMINENT SAVE BUTTON RIGHT INSIDE THE CARD */}
+          <div className="pt-1 flex items-center gap-2.5">
+            <Button
+              size="md"
+              variant="primary"
+              type="submit"
+              disabled={!canSubmit || submitting}
+              loading={submitting}
+              className="flex-1"
+              leftIcon={<AppIcon name="check" size="sm" />}
+            >
+              Сохранить пароль
+            </Button>
+            <Button
+              size="md"
+              variant="secondary"
+              type="button"
+              disabled={submitting}
+              onClick={onClose}
+            >
+              Отмена
+            </Button>
+          </div>
+        </div>
+
+        {/* Secondary Option: One-time Reset Link */}
+        <div className="p-3.5 rounded-control bg-field border border-border-soft flex flex-col gap-2.5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-semibold text-text-main">
+                Одноразовая ссылка для самостоятельной смены пароля
+              </span>
+              <span className="text-[11px] text-text-muted leading-relaxed">
+                {smtpConfigured
+                  ? `Отправит ссылку на ${user.email} и покажет её для копирования.`
+                  : "Создаст одноразовую ссылку, которую можно отправить сотруднику в Telegram или WhatsApp."}
+              </span>
+            </div>
+          </div>
+          <div>
+            <Button
+              size="sm"
+              variant="outline"
+              type="button"
+              disabled={submitting}
+              onClick={handleCreateResetLink}
+              leftIcon={<AppIcon name="link" size="xs" />}
+            >
+              Получить ссылку для сброса
+            </Button>
+          </div>
+        </div>
+
+        {/* Security Notice */}
+        <div className="rounded-control border border-border-soft bg-field/50 p-3 text-[11.5px] text-text-muted flex items-start gap-2.5">
+          <AppIcon name="shield" size="sm" className="text-text-faint shrink-0 mt-0.5" />
           <span className="leading-relaxed">
-            При сбросе пароля все ранее выданные активные сессии сотрудника на всех устройствах будут немедленно завершены.
+            После сохранения нового пароля прежние сессии сотрудника на других устройствах будут завершены.
           </span>
         </div>
-
-        {/* 3 Delivery Options */}
-        <div className="delivery-options-grid">
-          {/* Option A: Email */}
-          <div
-            className={clsx(
-              "delivery-option-card",
-              method === "email" && "is-selected",
-            )}
-            onClick={() => setMethod("email")}
-          >
-            <div className="delivery-option-radio">
-              {method === "email" && <div className="delivery-option-radio-dot" />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <span className="text-xs font-bold text-text-main">
-                Отправить ссылку на email
-              </span>
-              <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
-                {smtpConfigured
-                  ? `Ссылка для установки нового пароля придёт на ${user.email}.`
-                  : "Почта не настроена — ссылка будет сгенерирована для передачи в мессенджер."}
-              </p>
-            </div>
-          </div>
-
-          {/* Option B: Generate temp */}
-          <div
-            className={clsx(
-              "delivery-option-card",
-              method === "generate_temp" && "is-selected",
-            )}
-            onClick={() => setMethod("generate_temp")}
-          >
-            <div className="delivery-option-radio">
-              {method === "generate_temp" && (
-                <div className="delivery-option-radio-dot" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <span className="text-xs font-bold text-text-main">
-                Сгенерировать временный пароль
-              </span>
-              <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
-                Сервер создаст надёжный пароль и отобразит его в защищённом окне для копирования.
-              </p>
-            </div>
-          </div>
-
-          {/* Option C: Manual temp */}
-          <div
-            className={clsx(
-              "delivery-option-card",
-              method === "manual_temp" && "is-selected",
-            )}
-            onClick={() => setMethod("manual_temp")}
-          >
-            <div className="delivery-option-radio">
-              {method === "manual_temp" && (
-                <div className="delivery-option-radio-dot" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <span className="text-xs font-bold text-text-main">
-                Задать временный пароль вручную
-              </span>
-              <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
-                Вы сами задаёте пароль с валидацией сложности по стандартам безопасности.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Manual Password Input Block */}
-        {method === "manual_temp" && (
-          <div className="p-3 bg-surface-2 rounded-control border border-border flex flex-col gap-3">
-            <div className="flex flex-col gap-3">
-              <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
-                <span>Новый временный пароль</span>
-                <div className="relative flex items-center">
-                  <Input
-                    type={showManualPassword ? "text" : "password"}
-                    value={manualPassword}
-                    autoComplete="new-password"
-                    placeholder="Минимум 12 символов"
-                    onChange={(e) => setManualPassword(e.target.value)}
-                    className="pr-9"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowManualPassword((v) => !v)}
-                    className="absolute right-2 text-text-muted hover:text-text-main bg-transparent border-0 cursor-pointer p-1"
-                    tabIndex="-1"
-                  >
-                    <AppIcon
-                      name={showManualPassword ? "eyeOff" : "eye"}
-                      size="xs"
-                    />
-                  </button>
-                </div>
-              </label>
-
-              <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
-                <span>Подтверждение пароля</span>
-                <Input
-                  type={showManualPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  autoComplete="new-password"
-                  placeholder="Повторите пароль"
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </label>
-            </div>
-
-            {manualPassword && !passwordsMatch && (
-              <span className="text-[11px] text-accentError">
-                Пароли не совпадают
-              </span>
-            )}
-
-            {manualPassword && passwordStrength.failures.length > 0 && (
-              <div className="text-[11px] text-accentError flex flex-col gap-0.5">
-                {passwordStrength.failures.map((f, i) => (
-                  <span key={i}>• {f}</span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Fixed Footer */}
@@ -984,9 +1064,9 @@ function UserResetPasswordPane({
           type="submit"
           disabled={!canSubmit || submitting}
           loading={submitting}
-          leftIcon={<AppIcon name="key" size="sm" />}
+          leftIcon={<AppIcon name="check" size="sm" />}
         >
-          Сбросить пароль
+          Сохранить пароль
         </Button>
       </div>
     </form>
@@ -1000,6 +1080,7 @@ export default function UserAccessDrawer({
   activeDrawer, // { type: 'edit' | 'permissions' | 'reset-password', userId } | null
   user,
   onClose,
+   onChangeMode,
   allowedRoleOptions,
   employees,
   permissionGroups,
@@ -1015,7 +1096,6 @@ export default function UserAccessDrawer({
   useModalScrollLock(isOpen);
   const [isDirty, setIsDirty] = useState(false);
 
-  // Safe close handler that checks for unsaved changes
   const handleSafeClose = useCallback(() => {
     if (isDirty) {
       const ok = window.confirm(
@@ -1026,7 +1106,6 @@ export default function UserAccessDrawer({
     onClose();
   }, [isDirty, onClose]);
 
-  // Handle escape key
   useEffect(() => {
     if (!isOpen) return;
 
@@ -1040,14 +1119,21 @@ export default function UserAccessDrawer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, handleSafeClose]);
 
-  if (!isOpen || !user) return null;
+  if (!isOpen) return null;
 
-  const mode = activeDrawer.type; // "edit" | "permissions" | "reset-password"
+  const mode = activeDrawer.type;
 
-  // Title, subtitle and icon config
+  const switchMode = (nextMode) => {
+    if (nextMode === mode) return;
+    setIsDirty(false);
+    if (onChangeMode) {
+      onChangeMode(nextMode);
+    }
+  };
+
   const titleConfig = {
     edit: {
-      title: "Редактирование пользователя",
+      title: "Профиль сотрудника",
       icon: "pencil",
     },
     permissions: {
@@ -1055,7 +1141,7 @@ export default function UserAccessDrawer({
       icon: "shield",
     },
     "reset-password": {
-      title: "Сброс пароля",
+      title: "Пароль сотрудника",
       icon: "key",
     },
   }[mode] || {
@@ -1083,37 +1169,70 @@ export default function UserAccessDrawer({
         onClick={(e) => e.stopPropagation()}
       >
         {/* 1. FIXED HEADER */}
-        <div className="crm-drawer-header">
-          <div className="crm-drawer-title-wrap">
-            <div className="w-9 h-9 rounded-control bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent">
-              <AppIcon name={titleConfig.icon} size="md" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="crm-drawer-title">{titleConfig.title}</h2>
-              <div className="crm-drawer-subtitle">
-                <span className="font-semibold text-text-main truncate">
-                  {user.name || user.email}
-                </span>
-                <span className="text-text-faint">•</span>
-                <Badge
-                  variant={ROLE_BADGE_VARIANTS[user.role] || "neutral"}
-                  size="sm"
-                >
-                  {ROLE_LABELS[user.role] || user.role}
-                </Badge>
+        <div className="crm-drawer-header flex-col items-stretch gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="crm-drawer-title-wrap">
+              <div className="w-9 h-9 rounded-control bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent">
+                <AppIcon name={titleConfig.icon} size="md" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="crm-drawer-title">{titleConfig.title}</h2>
+                <div className="crm-drawer-subtitle">
+                  <span className="font-semibold text-text-main truncate">
+                    {user.name || user.email}
+                  </span>
+                  <span className="text-text-faint">•</span>
+                  <Badge
+                    variant={ROLE_BADGE_VARIANTS[user.role] || "neutral"}
+                    size="sm"
+                  >
+                    {ROLE_LABELS[user.role] || user.role}
+                  </Badge>
+                </div>
               </div>
             </div>
+            <IconButton
+              icon="x"
+              label="Закрыть панель"
+              size="sm"
+              variant="ghost"
+              onClick={handleSafeClose}
+            />
           </div>
-          <IconButton
-            icon="x"
-            label="Закрыть панель"
-            size="sm"
-            variant="ghost"
-            onClick={handleSafeClose}
-          />
+
+          {/* Mode Tabs so user can switch between Profile, Permissions, and Password effortlessly */}
+          <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-border-soft">
+            <Button
+              size="sm"
+              variant={mode === "edit" ? "primary" : "ghost"}
+              type="button"
+              onClick={() => switchMode("edit")}
+              leftIcon={<AppIcon name="pencil" size="xs" />}
+            >
+              Профиль
+            </Button>
+            <Button
+              size="sm"
+              variant={mode === "permissions" ? "primary" : "ghost"}
+              type="button"
+              onClick={() => switchMode("permissions")}
+              leftIcon={<AppIcon name="shield" size="xs" />}
+            >
+              Права
+            </Button>
+            <Button
+              size="sm"
+              variant={mode === "reset-password" ? "primary" : "ghost"}
+              type="button"
+              onClick={() => switchMode("reset-password")}
+              leftIcon={<AppIcon name="key" size="xs" />}
+            >
+              Пароль
+            </Button>
+          </div>
         </div>
 
-        {/* 2. PANE CONTENT (includes scrollable body + fixed footer) */}
+        {/* 2. PANE CONTENT */}
         {mode === "edit" && (
           <UserEditPane
             key={`edit-${user.id}`}
@@ -1124,6 +1243,7 @@ export default function UserAccessDrawer({
             submitting={submitting}
             onSubmit={onSaveEdit}
             onClose={handleSafeClose}
+            onSwitchMode={switchMode}
             setIsDirty={setIsDirty}
           />
         )}
@@ -1150,6 +1270,7 @@ export default function UserAccessDrawer({
             onSubmit={onResetPassword}
             onClose={handleSafeClose}
             setIsDirty={setIsDirty}
+            pushNotification={pushNotification}
           />
         )}
       </aside>

@@ -586,7 +586,7 @@ function createUsersRouter({
         });
       }
 
-      const method = String(req.body?.method || 'email').trim().toLowerCase();
+      const method = String(req.body?.method || req.body?.deliveryMethod || 'email').trim().toLowerCase();
       const now = new Date();
 
       if (method === 'generate_temp') {
@@ -643,7 +643,9 @@ function createUsersRouter({
       }
 
       if (method === 'manual_temp') {
-        const manualPassword = String(req.body?.temporaryPassword || req.body?.password || '');
+        const manualPassword = String(
+          req.body?.temporaryPassword || req.body?.password || req.body?.manualPassword || '',
+        );
         const strength = validatePasswordStrength(manualPassword, {email: user.email, role: user.role});
         if (!strength.ok || !strength.isValid) {
           return res.status(422).json({

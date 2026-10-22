@@ -14,7 +14,10 @@ import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
 import {resolveColorTheme} from "../../utils/colorTheme.js";
 import {buildIntegrationHealth} from "../../utils/integrationHealth.js";
-import {validatePasswordStrength} from "../../utils/passwordStrength.js";
+import {
+  generateStrongPassword,
+  validatePasswordStrength,
+} from "../../utils/passwordStrength.js";
 import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import UserAccessDrawer from "../users/UserAccessDrawer.jsx";
 import {
@@ -340,33 +343,54 @@ function CreateEmployeeDialog({
   employees,
   onSubmit,
   submitting,
-  smtpConfigured,
+  pushNotification,
 }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState("staff");
   const [employeeId, setEmployeeId] = useState("");
-  const [deliveryMethod, setDeliveryMethod] = useState("email");
-  const [manualPassword, setManualPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showManualPassword, setShowManualPassword] = useState(false);
+  const [password, setPassword] = useState(() => generateStrongPassword());
+  const [showPassword, setShowPassword] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   const passwordStrength = useMemo(() => {
-    if (deliveryMethod !== "manual_temp") return { isValid: true, failures: [] };
-    return validatePasswordStrength(manualPassword, { email, role });
-  }, [manualPassword, email, role, deliveryMethod]);
-
-  const passwordsMatch = manualPassword === confirmPassword;
+    return validatePasswordStrength(password, { email, role });
+  }, [password, email, role]);
 
   const canSubmit = useMemo(() => {
     if (submitting) return false;
     const cleanEmail = email.trim();
     if (!cleanEmail || !cleanEmail.includes("@")) return false;
-    if (deliveryMethod === "manual_temp") {
-      if (!manualPassword || !passwordStrength.isValid || !passwordsMatch) return false;
-    }
+    if (!password || !passwordStrength.isValid) return false;
     return true;
-  }, [email, deliveryMethod, manualPassword, passwordStrength.isValid, passwordsMatch, submitting]);
+  }, [email, password, passwordStrength.isValid, submitting]);
+
+  const handleGeneratePassword = () => {
+    const next = generateStrongPassword({ email });
+    setPassword(next);
+    setShowPassword(true);
+    setCopied(false);
+  };
+
+  const handleCopyPassword = async () => {
+    if (!password) return;
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+      pushNotification?.({
+        title: "Пароль скопирован",
+        message: "Не забудьте нажать «Создать сотрудника»",
+        persist: false,
+      });
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      pushNotification?.({
+        title: "Скопируйте пароль вручную",
+        message: password,
+        persist: false,
+      });
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -376,8 +400,8 @@ function CreateEmployeeDialog({
       name: name.trim(),
       role,
       employeeId: employeeId ? Number(employeeId) : null,
-      deliveryMethod,
-      temporaryPassword: deliveryMethod === "manual_temp" ? manualPassword : undefined,
+      deliveryMethod: "manual_temp",
+      temporaryPassword: password.trim(),
     });
   };
 
@@ -396,7 +420,7 @@ function CreateEmployeeDialog({
                     Добавить сотрудника
                   </DialogTitle>
                   <DialogDescription className="text-xs text-text-muted mt-0.5 m-0">
-                    Создание учётной записи и выбор способа передачи доступа
+                    Укажите данные для входа и начальный пароль сотрудника
                   </DialogDescription>
                 </div>
               </div>
@@ -464,139 +488,74 @@ function CreateEmployeeDialog({
               </label>
             </div>
 
-            <div className="flex flex-col gap-2 mt-1">
-              <span className="text-text-main text-xs font-semibold">
-                Способ передачи доступа:
-              </span>
-
-              <div className="delivery-options-grid">
-                {/* Variant A: Email */}
-                <div
-                  className={clsx(
-                    "delivery-option-card",
-                    deliveryMethod === "email" && "is-selected",
-                  )}
-                  onClick={() => setDeliveryMethod("email")}
-                >
-                  <div className="delivery-option-radio">
-                    {deliveryMethod === "email" && <div className="delivery-option-radio-dot" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold text-text-main">
-                        Приглашение на email
-                      </span>
-                      <Badge variant="success" size="sm">Рекомендуется</Badge>
-                    </div>
-                    <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
-                      Ссылка на самостоятельную установку пароля отправится на почту сотрудника.
-                    </p>
-                    {!smtpConfigured && (
-                      <span className="block mt-1 text-[10.5px] text-accentWarning">
-                        Почтовый сервер (SMTP) не настроен — ссылка будет показана для копирования.
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Variant B: Auto Generate */}
-                <div
-                  className={clsx(
-                    "delivery-option-card",
-                    deliveryMethod === "generate_temp" && "is-selected",
-                  )}
-                  onClick={() => setDeliveryMethod("generate_temp")}
-                >
-                  <div className="delivery-option-radio">
-                    {deliveryMethod === "generate_temp" && <div className="delivery-option-radio-dot" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-xs font-bold text-text-main">
-                      Сгенерировать временный пароль
-                    </span>
-                    <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
-                      Система создаст криптостойкий пароль и покажет его один раз в защищённом окне. Обязательная смена при первом входе.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Variant C: Manual */}
-                <div
-                  className={clsx(
-                    "delivery-option-card",
-                    deliveryMethod === "manual_temp" && "is-selected",
-                  )}
-                  onClick={() => setDeliveryMethod("manual_temp")}
-                >
-                  <div className="delivery-option-radio">
-                    {deliveryMethod === "manual_temp" && <div className="delivery-option-radio-dot" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-xs font-bold text-text-main">
-                      Задать временный пароль вручную
-                    </span>
-                    <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
-                      Вы вводите пароль самостоятельно. При первом входе сотрудник обязан его сменить.
-                    </p>
-                  </div>
+            <div className="p-3.5 bg-surface-2 rounded-control border border-border flex flex-col gap-3 mt-1">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-text-main text-xs font-semibold">
+                  Пароль для входа сотрудника
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    type="button"
+                    onClick={handleGeneratePassword}
+                    className="flex items-center gap-1.5"
+                  >
+                    <AppIcon name="refreshCw" size="xs" />
+                    <span>Сгенерировать</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={copied ? "success" : "secondary"}
+                    type="button"
+                    onClick={handleCopyPassword}
+                    disabled={!password}
+                    className="flex items-center gap-1.5"
+                  >
+                    <AppIcon name={copied ? "check" : "copy"} size="xs" />
+                    <span>{copied ? "Скопировано!" : "Скопировать"}</span>
+                  </Button>
                 </div>
               </div>
+
+              <div className="relative flex items-center">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  autoComplete="new-password"
+                  placeholder="Минимум 12 символов"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setCopied(false);
+                  }}
+                  className="pr-10 font-mono text-sm tracking-wide"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2.5 text-text-muted hover:text-text-main bg-transparent border-0 cursor-pointer p-1"
+                  tabIndex="-1"
+                  aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                >
+                  <AppIcon name={showPassword ? "eyeOff" : "eye"} size="xs" />
+                </button>
+              </div>
+
+              {password && passwordStrength.failures.length > 0 ? (
+                <div className="rounded-control border border-accentError/30 bg-accentError/10 p-2.5 text-[11px] text-accentError flex flex-col gap-0.5">
+                  {passwordStrength.failures.map((f, i) => (
+                    <span key={i}>• {f}</span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-[11px] text-accentSuccess flex items-center gap-1.5 font-medium">
+                  <AppIcon name="check" size="xs" />
+                  Надёжный пароль готов к сохранению
+                </span>
+              )}
             </div>
 
-            {deliveryMethod === "manual_temp" && (
-              <div className="p-3 bg-surface-2 rounded-control border border-border flex flex-col gap-2.5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
-                    Временный пароль
-                    <div className="relative flex items-center">
-                      <Input
-                        type={showManualPassword ? "text" : "password"}
-                        value={manualPassword}
-                        autoComplete="new-password"
-                        placeholder="Минимум 12 символов"
-                        onChange={(e) => setManualPassword(e.target.value)}
-                        className="pr-9"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowManualPassword((v) => !v)}
-                        className="absolute right-2 text-text-muted hover:text-text-main bg-transparent border-0 cursor-pointer p-1"
-                        tabIndex="-1"
-                      >
-                        <AppIcon name={showManualPassword ? "eyeOff" : "eye"} size="xs" />
-                      </button>
-                    </div>
-                  </label>
-
-                  <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
-                    Подтверждение пароля
-                    <Input
-                      type={showManualPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      autoComplete="new-password"
-                      placeholder="Повторите пароль"
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
-                  </label>
-                </div>
-
-                {manualPassword && !passwordsMatch && (
-                  <span className="text-[11px] text-accentError">
-                    Пароли не совпадают
-                  </span>
-                )}
-
-                {manualPassword && passwordStrength.failures.length > 0 && (
-                  <div className="text-[11px] text-accentError flex flex-col gap-0.5">
-                    {passwordStrength.failures.map((f, i) => (
-                      <span key={i}>• {f}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <DialogFooter className="border-t border-border-soft pt-3 mt-2 flex items-center justify-end gap-2">
+            <DialogFooter className="border-t border-border-soft pt-3 mt-1 flex items-center justify-end gap-2">
               <Button
                 variant="ghost"
                 type="button"
@@ -682,13 +641,13 @@ function TemporaryPasswordDisplayDialog({ data, open, onClose, pushNotification 
             <div className="rounded-control border border-accentWarning/30 bg-accentWarning/10 p-3 text-xs text-text-main flex items-start gap-2.5">
               <AppIcon name="alertTriangle" size="sm" className="text-accentWarning shrink-0 mt-0.5" />
               <div className="leading-relaxed">
-                <strong className="font-semibold block text-accentWarning">Пароль отображается только один раз!</strong>
-                Скопируйте и передайте его сотруднику по безопасному каналу (личным сообщением). При первом входе в систему потребуется обязательная смена пароля.
+                <strong className="font-semibold block text-accentWarning">Пароль установлен!</strong>
+                Скопируйте и передайте его сотруднику по безопасному каналу (личным сообщением).
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <span className="text-text-muted text-xs font-medium">Сгенерированный пароль:</span>
+              <span className="text-text-muted text-xs font-medium">Установленный пароль:</span>
               <div className="flex items-center gap-2 bg-field p-2.5 rounded-control border border-border">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -1029,11 +988,10 @@ function UserAccessPanel({authUser, pushNotification}) {
     setSubmittingAction(true);
     try {
       const payload = await updateUser(user.id, {
-        email: user.email,
+        email: fields.email || user.email,
         employeeId: fields.employeeId,
         isActive: user.isActive,
         name: fields.name,
-        permissions: user.permissions || {},
         role: fields.role,
       });
       patchRow(user.id, payload.user);
@@ -1069,8 +1027,8 @@ function UserAccessPanel({authUser, pushNotification}) {
           temporaryPassword: res.temporaryPassword,
         });
         pushNotification?.({
-          title: "Пароль сброшен",
-          message: "Скопируйте новый временный пароль",
+          title: "Пароль обновлён",
+          message: "Новый пароль успешно сохранён",
         });
       } else if (res.resetUrl) {
         setResetLinkModalData({
@@ -1080,7 +1038,7 @@ function UserAccessPanel({authUser, pushNotification}) {
           smtpConfigured: Boolean(res.smtpConfigured),
         });
         pushNotification?.({
-          title: "Пароль сброшен",
+          title: "Ссылка создана",
           message: res.resetEmailSent
             ? `Письмо для сброса отправлено на ${user.email}`
             : "Скопируйте ссылку для сброса пароля",
@@ -1088,7 +1046,7 @@ function UserAccessPanel({authUser, pushNotification}) {
       } else {
         pushNotification?.({
           title: "Пароль обновлён",
-          message: "Новый временный пароль установлен. Предыдущие сессии завершены.",
+          message: "Новый пароль установлен. Предыдущие сессии завершены.",
         });
       }
     } catch (error) {
@@ -1329,9 +1287,13 @@ function UserAccessPanel({authUser, pushNotification}) {
                       <article
                         key={user.id}
                         className={clsx(
-                          "crm-user-card",
+                          "crm-user-card cursor-pointer",
                           !user.isActive && "is-disabled",
                         )}
+                        onClick={() => {
+                          if (!isOwner && user.role === "owner") return;
+                          setActiveDrawer({ type: "edit", userId: user.id });
+                        }}
                       >
                         <div className="crm-user-card-header">
                           <div className="crm-user-identity">
@@ -1408,9 +1370,13 @@ function UserAccessPanel({authUser, pushNotification}) {
                       <div
                         key={user.id}
                         className={clsx(
-                          "crm-users-table-row",
+                          "crm-users-table-row cursor-pointer",
                           !user.isActive && "is-disabled",
                         )}
+                        onClick={() => {
+                          if (!isOwner && user.role === "owner") return;
+                          setActiveDrawer({ type: "edit", userId: user.id });
+                        }}
                       >
                         {/* Identity */}
                         <div className="crm-user-identity">
@@ -1487,13 +1453,16 @@ function UserAccessPanel({authUser, pushNotification}) {
             employees={employees}
             onSubmit={handleCreateEmployee}
             submitting={submittingAction}
-            smtpConfigured={smtpConfigured}
+            pushNotification={pushNotification}
           />
 
           <UserAccessDrawer
             activeDrawer={activeDrawer}
             user={activeDrawerUser}
             onClose={() => setActiveDrawer(null)}
+            onChangeMode={(nextMode) =>
+              setActiveDrawer((prev) => (prev ? { ...prev, type: nextMode } : null))
+            }
             allowedRoleOptions={allowedRoleOptions}
             employees={employees}
             permissionGroups={permissionGroups}
