@@ -65,3 +65,10 @@ export const sendUserReset = (id) =>
   requestUsers(`/${id}/send-reset`, {
     method: "POST",
   });
+
+export const resetUserPassword = (id, payload) =>
+  requestUsers(`/${id}/reset-password`, {
+    body: payload,
+    method: "POST",
+  });
+

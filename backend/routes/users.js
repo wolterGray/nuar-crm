@@ -40,20 +40,24 @@ const USER_SELECT = {
   },
 };
 
-const serializeUser = (user) => ({
-  createdAt: user.createdAt,
-  email: user.email,
-  employeeId: user.employeeId || null,
-  employeeName: user.employee?.name || null,
-  employee: user.employee ? { id: user.employee.id, name: user.employee.name, role: user.employee.role } : null,
-  id: user.id,
-  isActive: user.isActive,
-  lastLoginAt: user.lastLoginAt,
-  name: user.name || '',
-  permissions: (user.permissions && typeof user.permissions === 'object') ? user.permissions : {},
-  role: user.role,
-  updatedAt: user.updatedAt,
-});
+const serializeUser = (user) => {
+  const permissions = (user.permissions && typeof user.permissions === 'object') ? user.permissions : {};
+  return {
+    createdAt: user.createdAt,
+    email: user.email,
+    employeeId: user.employeeId || null,
+    employeeName: user.employee?.name || null,
+    employee: user.employee ? { id: user.employee.id, name: user.employee.name, role: user.employee.role } : null,
+    id: user.id,
+    isActive: user.isActive,
+    lastLoginAt: user.lastLoginAt,
+    mustChangePassword: Boolean(permissions.mustChangePassword),
+    name: user.name || '',
+    permissions,
+    role: user.role,
+    updatedAt: user.updatedAt,
+  };
+};
 
 const parseUserPayload = (body = {}) => {
   const email = normalizeEmail(body.email);
@@ -303,13 +307,33 @@ function createUsersRouter({
         }
       }
 
-      const temporaryPassword = createStrongTemporaryPassword({email, role});
-      const strength = validatePasswordStrength(temporaryPassword, {email, role});
+      const deliveryMethod = String(req.body?.deliveryMethod || 'email').trim().toLowerCase();
+      let temporaryPassword = null;
+      const userPermissions = permissions && typeof permissions === 'object' ? {...permissions} : {};
 
-      if (!strength.ok || !strength.isValid) {
-        const error = new Error('Не удалось сгенерировать безопасный временный пароль');
-        error.status = 500;
-        throw error;
+      if (deliveryMethod === 'manual_temp') {
+        const manualPassword = String(req.body?.temporaryPassword || req.body?.password || '');
+        const strength = validatePasswordStrength(manualPassword, {email, role});
+        if (!strength.ok || !strength.isValid) {
+          const error = new Error(strength.failures?.[0] || 'Пароль не соответствует требованиям безопасности');
+          error.status = 422;
+          error.failures = strength.failures;
+          throw error;
+        }
+        temporaryPassword = manualPassword;
+        userPermissions.mustChangePassword = true;
+      } else if (deliveryMethod === 'generate_temp') {
+        temporaryPassword = createStrongTemporaryPassword({email, role});
+        const strength = validatePasswordStrength(temporaryPassword, {email, role});
+        if (!strength.ok || !strength.isValid) {
+          const error = new Error('Не удалось сгенерировать безопасный временный пароль');
+          error.status = 500;
+          throw error;
+        }
+        userPermissions.mustChangePassword = true;
+      } else {
+        // default: 'email'
+        temporaryPassword = createStrongTemporaryPassword({email, role});
       }
 
       const passwordHash = await hashPassword(temporaryPassword);
@@ -320,7 +344,7 @@ function createUsersRouter({
           name,
           passwordChangedAt: null,
           passwordHash,
-          permissions: permissions || {},
+          permissions: userPermissions,
           role,
         },
         select: USER_SELECT,
@@ -332,14 +356,32 @@ function createUsersRouter({
         userId: user.id,
       });
 
+      if (deliveryMethod === 'generate_temp') {
+        return res.status(201).json({
+          success: true,
+          user: serializeUser(user),
+          deliveryMethod: 'generate_temp',
+          temporaryPassword,
+        });
+      }
+
+      if (deliveryMethod === 'manual_temp') {
+        return res.status(201).json({
+          success: true,
+          user: serializeUser(user),
+          deliveryMethod: 'manual_temp',
+        });
+      }
+
       const reset = await createAndSendResetToken(req, user);
 
       res.status(201).json({
         success: true,
         user: serializeUser(user),
+        deliveryMethod: 'email',
         resetEmailSent: Boolean(reset.emailResult.sent),
         smtpConfigured: Boolean(reset.smtpConfigured),
-        resetUrl: reset.resetUrl,
+        resetUrl: (!reset.emailResult.sent || !isProduction()) ? reset.resetUrl : undefined,
       });
     } catch (error) {
       await handleRouteError(req, res, error, {action: 'create user'});
@@ -520,6 +562,158 @@ function createUsersRouter({
       res.json({success: true, user: serializeUser(updated)});
     } catch (error) {
       await handleRouteError(req, res, error, {action: 'enable user', userId: id});
+    }
+  });
+
+  router.post('/users/:id/reset-password', async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+      return res.status(422).json({success: false, error: 'Некорректный ID пользователя'});
+    }
+
+    try {
+      const user = await prisma.user.findUnique({where: {id}, select: USER_SELECT});
+      if (!user) {
+        return res.status(404).json({success: false, error: 'Пользователь не найден'});
+      }
+
+      ensureAdminDoesNotManageOwner(req, user.role);
+
+      if (!user.isActive) {
+        return res.status(409).json({
+          success: false,
+          error: 'Нельзя сбросить пароль отключённому пользователю',
+        });
+      }
+
+      const method = String(req.body?.method || 'email').trim().toLowerCase();
+      const now = new Date();
+
+      if (method === 'generate_temp') {
+        const temporaryPassword = createStrongTemporaryPassword({email: user.email, role: user.role});
+        const strength = validatePasswordStrength(temporaryPassword, {email: user.email, role: user.role});
+        if (!strength.ok || !strength.isValid) {
+          const error = new Error('Не удалось сгенерировать безопасный временный пароль');
+          error.status = 500;
+          throw error;
+        }
+
+        const passwordHash = await hashPassword(temporaryPassword);
+        const userPermissions = (user.permissions && typeof user.permissions === 'object')
+          ? {...user.permissions}
+          : {};
+        userPermissions.mustChangePassword = true;
+
+        const [updated] = await prisma.$transaction([
+          prisma.user.update({
+            where: {id},
+            data: {
+              failedLoginCount: 0,
+              lockedUntil: null,
+              passwordChangedAt: now,
+              passwordHash,
+              permissions: userPermissions,
+            },
+            select: USER_SELECT,
+          }),
+          prisma.passwordResetToken.updateMany({
+            where: {userId: id, usedAt: null},
+            data: {usedAt: now},
+          }),
+        ]);
+
+        invalidateUserCache(id);
+
+        await auditUserAction(req, {
+          action: 'user temporary password generated',
+          after: {
+            email: user.email,
+            mustChangePassword: true,
+            passwordChangedAt: now,
+          },
+          userId: id,
+        });
+
+        return res.json({
+          success: true,
+          method: 'generate_temp',
+          temporaryPassword,
+          user: serializeUser(updated),
+        });
+      }
+
+      if (method === 'manual_temp') {
+        const manualPassword = String(req.body?.temporaryPassword || req.body?.password || '');
+        const strength = validatePasswordStrength(manualPassword, {email: user.email, role: user.role});
+        if (!strength.ok || !strength.isValid) {
+          return res.status(422).json({
+            success: false,
+            error: strength.failures?.[0] || 'Пароль не соответствует требованиям безопасности',
+            failures: strength.failures,
+          });
+        }
+
+        const passwordHash = await hashPassword(manualPassword);
+        const userPermissions = (user.permissions && typeof user.permissions === 'object')
+          ? {...user.permissions}
+          : {};
+        userPermissions.mustChangePassword = true;
+
+        const [updated] = await prisma.$transaction([
+          prisma.user.update({
+            where: {id},
+            data: {
+              failedLoginCount: 0,
+              lockedUntil: null,
+              passwordChangedAt: now,
+              passwordHash,
+              permissions: userPermissions,
+            },
+            select: USER_SELECT,
+          }),
+          prisma.passwordResetToken.updateMany({
+            where: {userId: id, usedAt: null},
+            data: {usedAt: now},
+          }),
+        ]);
+
+        invalidateUserCache(id);
+
+        await auditUserAction(req, {
+          action: 'user temporary password set manually',
+          after: {
+            email: user.email,
+            mustChangePassword: true,
+            passwordChangedAt: now,
+          },
+          userId: id,
+        });
+
+        return res.json({
+          success: true,
+          method: 'manual_temp',
+          user: serializeUser(updated),
+        });
+      }
+
+      // Default: method === 'email' or 'link'
+      const reset = await createAndSendResetToken(req, user);
+
+      await prisma.user.update({
+        where: {id},
+        data: {passwordChangedAt: now},
+      });
+      invalidateUserCache(id);
+
+      return res.json({
+        success: true,
+        method: method === 'link' ? 'link' : 'email',
+        resetEmailSent: Boolean(reset.emailResult.sent),
+        smtpConfigured: Boolean(reset.smtpConfigured),
+        resetUrl: (!reset.emailResult.sent || !isProduction() || method === 'link') ? reset.resetUrl : undefined,
+      });
+    } catch (error) {
+      await handleRouteError(req, res, error, {action: 'reset user password', userId: id});
     }
   });
 

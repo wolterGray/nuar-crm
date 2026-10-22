@@ -12,12 +12,38 @@ const createResetToken = () => crypto.randomBytes(32).toString('base64url');
 const hashResetToken = (token = '') =>
   crypto.createHash('sha256').update(String(token)).digest('hex');
 
+const isAllowedOrigin = (origin = '') => {
+  if (!origin) return false;
+  try {
+    const parsed = new URL(origin);
+    const host = parsed.hostname.toLowerCase();
+    if (host === 'crm.nuarr.pl' || host === 'nuarr.pl' || host.endsWith('.nuarr.pl')) {
+      return true;
+    }
+    if (!isProduction()) {
+      if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') {
+        return true;
+      }
+    }
+    const appUrl = process.env.AUTH_RESET_BASE_URL || process.env.APP_URL;
+    if (appUrl) {
+      try {
+        const parsedApp = new URL(appUrl);
+        if (parsedApp.hostname.toLowerCase() === host) return true;
+      } catch {}
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 const getResetBaseUrl = (origin = '') => {
   const configured = String(process.env.AUTH_RESET_BASE_URL ?? '').trim();
   if (configured) return configured;
 
   const cleanOrigin = String(origin ?? '').trim().replace(/\/+$/, '');
-  if (cleanOrigin && /^https?:\/\//i.test(cleanOrigin)) {
+  if (cleanOrigin && isAllowedOrigin(cleanOrigin)) {
     return `${cleanOrigin}/reset-password`;
   }
 
@@ -51,6 +77,9 @@ module.exports = {
   buildResetUrl,
   createPasswordResetTokenPayload,
   createResetToken,
+  getResetBaseUrl,
   hashResetToken,
+  isAllowedOrigin,
   isProduction,
 };
+

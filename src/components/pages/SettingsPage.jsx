@@ -5,14 +5,17 @@ import {
   disableUser,
   enableUser,
   fetchUsers,
-  sendUserReset,
+  resetUserPassword,
   updateUser,
 } from "../../api/users.js";
 import {changePassword} from "../../api/auth.js";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
+import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
 import {resolveColorTheme} from "../../utils/colorTheme.js";
 import {buildIntegrationHealth} from "../../utils/integrationHealth.js";
+import {validatePasswordStrength} from "../../utils/passwordStrength.js";
+import RowActionMenuPortal from "../RowActionMenuPortal.jsx";
 import HintIcon, {FieldLabel} from "../HintIcon.jsx";
 import InactiveFollowUpPanel from "../InactiveFollowUpPanel.jsx";
 import PushNotificationsPanel from "../PushNotificationsPanel.jsx";
@@ -33,8 +36,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  IconButton,
   Input,
   PageHeader,
+  SearchControl,
   Select,
   Switch,
   TabButton,
@@ -182,23 +187,1071 @@ const USER_ROLE_OPTIONS = [
   {label: "Только чтение", value: "readonly"},
 ];
 
+const ROLE_BADGE_VARIANTS = {
+  owner: "premium",
+  admin: "danger",
+  manager: "info",
+  staff: "success",
+  readonly: "neutral",
+};
+
+const ROLE_LABELS = {
+  owner: "Владелец",
+  admin: "Администратор",
+  manager: "Управляющий",
+  staff: "Сотрудник",
+  readonly: "Только чтение",
+};
+
 const formatUserDate = (value) => {
-  if (!value) return "—";
+  if (!value) return "Никогда";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "Никогда";
 
   return date.toLocaleString("ru-RU", {
     day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
     month: "2-digit",
     year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
+const getUserInitials = (name = "", email = "") => {
+  const cleanName = String(name || "").trim();
+  if (cleanName) {
+    const parts = cleanName.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return cleanName.slice(0, 2).toUpperCase();
+  }
+  const cleanEmail = String(email || "").trim();
+  if (cleanEmail) {
+    return cleanEmail.slice(0, 2).toUpperCase();
+  }
+  return "NU";
+};
+
+function UserRowActionsMenu({
+  user,
+  isOwner,
+  authUser,
+  openMenuId,
+  setOpenMenuId,
+  onEdit,
+  onOpenPermissions,
+  onResetPassword,
+  onToggleStatus,
+}) {
+  const isOpen = openMenuId === user.id;
+  const { menuRef, menuStyle, triggerRef } = useRowActionMenu({
+    isOpen,
+    setOpenMenuId,
+  });
+
+  const isOwnerProtected = !isOwner && user.role === "owner";
+  const isEditingSelf = String(authUser?.id) === String(user.id);
+  const customPermCount = Object.keys(user.permissions || {}).length;
+
+  const handleAction = (callback) => {
+    setOpenMenuId(null);
+    callback(user);
+  };
+
+  return (
+    <div
+      className="relative flex items-center justify-end"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <IconButton
+        ref={triggerRef}
+        aria-expanded={isOpen}
+        icon="ellipsis"
+        label="Действия"
+        size="sm"
+        variant="ghost"
+        disabled={isOwnerProtected}
+        onClick={() => setOpenMenuId(isOpen ? null : user.id)}
+      />
+
+      <RowActionMenuPortal
+        isOpen={isOpen}
+        menuRef={menuRef}
+        menuStyle={menuStyle}
+      >
+        <div className="crm-user-menu" role="menu">
+          <button
+            className="crm-user-menu-item"
+            role="menuitem"
+            type="button"
+            disabled={isOwnerProtected}
+            onClick={() => handleAction(onEdit)}
+          >
+            <AppIcon name="pencil" size="xs" />
+            <span>Редактировать</span>
+          </button>
+
+          <button
+            className="crm-user-menu-item"
+            role="menuitem"
+            type="button"
+            disabled={isOwnerProtected}
+            onClick={() => handleAction(onOpenPermissions)}
+          >
+            <AppIcon name="shield" size="xs" />
+            <span>Права доступа</span>
+            {customPermCount > 0 ? (
+              <span className="ml-auto rounded-full bg-accent/20 px-1.5 py-0.2 text-[10px] text-accent font-bold">
+                {customPermCount}
+              </span>
+            ) : null}
+          </button>
+
+          <button
+            className="crm-user-menu-item"
+            role="menuitem"
+            type="button"
+            disabled={!user.isActive || isOwnerProtected}
+            title={!user.isActive ? "Пользователь отключён" : ""}
+            onClick={() => handleAction(onResetPassword)}
+          >
+            <AppIcon name="key" size="xs" />
+            <span>Сбросить пароль</span>
+          </button>
+
+          <div className="crm-user-menu-divider" />
+
+          <button
+            className={clsx(
+              "crm-user-menu-item",
+              user.isActive ? "is-danger" : "is-success",
+            )}
+            role="menuitem"
+            type="button"
+            disabled={isOwnerProtected || isEditingSelf}
+            title={isEditingSelf ? "Нельзя отключить собственный аккаунт" : ""}
+            onClick={() => handleAction(onToggleStatus)}
+          >
+            <AppIcon name={user.isActive ? "userX" : "userCheck"} size="xs" />
+            <span>{user.isActive ? "Отключить доступ" : "Включить доступ"}</span>
+          </button>
+        </div>
+      </RowActionMenuPortal>
+    </div>
+  );
+}
+
+function CreateEmployeeDialog({
+  open,
+  onClose,
+  allowedRoleOptions,
+  employees,
+  onSubmit,
+  submitting,
+  smtpConfigured,
+}) {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("staff");
+  const [employeeId, setEmployeeId] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState("email");
+  const [manualPassword, setManualPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showManualPassword, setShowManualPassword] = useState(false);
+
+  const passwordStrength = useMemo(() => {
+    if (deliveryMethod !== "manual_temp") return { isValid: true, failures: [] };
+    return validatePasswordStrength(manualPassword, { email, role });
+  }, [manualPassword, email, role, deliveryMethod]);
+
+  const passwordsMatch = manualPassword === confirmPassword;
+
+  const canSubmit = useMemo(() => {
+    if (submitting) return false;
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !cleanEmail.includes("@")) return false;
+    if (deliveryMethod === "manual_temp") {
+      if (!manualPassword || !passwordStrength.isValid || !passwordsMatch) return false;
+    }
+    return true;
+  }, [email, deliveryMethod, manualPassword, passwordStrength.isValid, passwordsMatch, submitting]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    onSubmit({
+      email: email.trim().toLowerCase(),
+      name: name.trim(),
+      role,
+      employeeId: employeeId ? Number(employeeId) : null,
+      deliveryMethod,
+      temporaryPassword: deliveryMethod === "manual_temp" ? manualPassword : undefined,
+    });
+  };
+
+  return (
+    <Dialog open={open}>
+      <DialogBackdrop>
+        <DialogContent className="max-w-lg p-5 bg-surface border-border rounded-modal shadow-modal flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b border-border-soft pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-control bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent">
+                  <AppIcon name="userPlus" size="md" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base font-bold text-text-main m-0">
+                    Добавить сотрудника
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-text-muted mt-0.5 m-0">
+                    Создание учётной записи и выбор способа передачи доступа
+                  </DialogDescription>
+                </div>
+              </div>
+              <IconButton
+                icon="x"
+                label="Закрыть"
+                size="sm"
+                variant="ghost"
+                onClick={onClose}
+              />
+            </div>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+                Email для входа <span className="text-accent">*</span>
+                <Input
+                  autoComplete="off"
+                  placeholder="master@nuarr.pl"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </label>
+
+              <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+                Имя сотрудника
+                <Input
+                  autoComplete="off"
+                  placeholder="Например, Натали"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+                Роль в CRM
+                <Select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                >
+                  {allowedRoleOptions.map((r) => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </Select>
+              </label>
+
+              <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+                Привязка к мастеру
+                <Select
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value)}
+                >
+                  <option value="">— Без привязки —</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name} {emp.role ? `(${emp.role})` : ""}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+            </div>
+
+            <div className="flex flex-col gap-2 mt-1">
+              <span className="text-text-main text-xs font-semibold">
+                Способ передачи доступа:
+              </span>
+
+              <div className="delivery-options-grid">
+                {/* Variant A: Email */}
+                <div
+                  className={clsx(
+                    "delivery-option-card",
+                    deliveryMethod === "email" && "is-selected",
+                  )}
+                  onClick={() => setDeliveryMethod("email")}
+                >
+                  <div className="delivery-option-radio">
+                    {deliveryMethod === "email" && <div className="delivery-option-radio-dot" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-text-main">
+                        Приглашение на email
+                      </span>
+                      <Badge variant="success" size="sm">Рекомендуется</Badge>
+                    </div>
+                    <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
+                      Ссылка на самостоятельную установку пароля отправится на почту сотрудника.
+                    </p>
+                    {!smtpConfigured && (
+                      <span className="block mt-1 text-[10.5px] text-accentWarning">
+                        Почтовый сервер (SMTP) не настроен — ссылка будет показана для копирования.
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Variant B: Auto Generate */}
+                <div
+                  className={clsx(
+                    "delivery-option-card",
+                    deliveryMethod === "generate_temp" && "is-selected",
+                  )}
+                  onClick={() => setDeliveryMethod("generate_temp")}
+                >
+                  <div className="delivery-option-radio">
+                    {deliveryMethod === "generate_temp" && <div className="delivery-option-radio-dot" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs font-bold text-text-main">
+                      Сгенерировать временный пароль
+                    </span>
+                    <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
+                      Система создаст криптостойкий пароль и покажет его один раз в защищённом окне. Обязательная смена при первом входе.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Variant C: Manual */}
+                <div
+                  className={clsx(
+                    "delivery-option-card",
+                    deliveryMethod === "manual_temp" && "is-selected",
+                  )}
+                  onClick={() => setDeliveryMethod("manual_temp")}
+                >
+                  <div className="delivery-option-radio">
+                    {deliveryMethod === "manual_temp" && <div className="delivery-option-radio-dot" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs font-bold text-text-main">
+                      Задать временный пароль вручную
+                    </span>
+                    <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
+                      Вы вводите пароль самостоятельно. При первом входе сотрудник обязан его сменить.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {deliveryMethod === "manual_temp" && (
+              <div className="p-3 bg-surface-2 rounded-control border border-border flex flex-col gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+                    Временный пароль
+                    <div className="relative flex items-center">
+                      <Input
+                        type={showManualPassword ? "text" : "password"}
+                        value={manualPassword}
+                        autoComplete="new-password"
+                        placeholder="Минимум 12 символов"
+                        onChange={(e) => setManualPassword(e.target.value)}
+                        className="pr-9"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowManualPassword((v) => !v)}
+                        className="absolute right-2 text-text-muted hover:text-text-main bg-transparent border-0 cursor-pointer p-1"
+                        tabIndex="-1"
+                      >
+                        <AppIcon name={showManualPassword ? "eyeOff" : "eye"} size="xs" />
+                      </button>
+                    </div>
+                  </label>
+
+                  <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+                    Подтверждение пароля
+                    <Input
+                      type={showManualPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      autoComplete="new-password"
+                      placeholder="Повторите пароль"
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </label>
+                </div>
+
+                {manualPassword && !passwordsMatch && (
+                  <span className="text-[11px] text-accentError">
+                    Пароли не совпадают
+                  </span>
+                )}
+
+                {manualPassword && passwordStrength.failures.length > 0 && (
+                  <div className="text-[11px] text-accentError flex flex-col gap-0.5">
+                    {passwordStrength.failures.map((f, i) => (
+                      <span key={i}>• {f}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter className="border-t border-border-soft pt-3 mt-2 flex items-center justify-end gap-2">
+              <Button
+                variant="ghost"
+                type="button"
+                disabled={submitting}
+                onClick={onClose}
+              >
+                Отмена
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                loading={submitting}
+                disabled={!canSubmit}
+                leftIcon={<AppIcon name="userPlus" size="sm" />}
+              >
+                Создать сотрудника
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </DialogBackdrop>
+    </Dialog>
+  );
+}
+
+function ResetPasswordDialog({
+  user,
+  open,
+  onClose,
+  onSubmit,
+  submitting,
+  smtpConfigured,
+}) {
+  const [method, setMethod] = useState("email");
+  const [manualPassword, setManualPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showManualPassword, setShowManualPassword] = useState(false);
+
+  const passwordStrength = useMemo(() => {
+    if (method !== "manual_temp") return { isValid: true, failures: [] };
+    return validatePasswordStrength(manualPassword, {
+      email: user?.email || "",
+      role: user?.role || "staff",
+    });
+  }, [manualPassword, user, method]);
+
+  const passwordsMatch = manualPassword === confirmPassword;
+
+  const canSubmit = useMemo(() => {
+    if (submitting) return false;
+    if (method === "manual_temp") {
+      if (!manualPassword || !passwordStrength.isValid || !passwordsMatch) return false;
+    }
+    return true;
+  }, [method, manualPassword, passwordStrength.isValid, passwordsMatch, submitting]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!canSubmit || !user) return;
+    onSubmit(user, {
+      method,
+      temporaryPassword: method === "manual_temp" ? manualPassword : undefined,
+    });
+  };
+
+  return (
+    <Dialog open={open}>
+      <DialogBackdrop>
+        <DialogContent className="max-w-md p-5 bg-surface border-border rounded-modal shadow-modal flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b border-border-soft pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-control bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent">
+                  <AppIcon name="key" size="md" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base font-bold text-text-main m-0">
+                    Сброс пароля
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-text-muted mt-0.5 m-0">
+                    {user?.name ? `${user.name} • ` : ""}{user?.email}
+                  </DialogDescription>
+                </div>
+              </div>
+              <IconButton
+                icon="x"
+                label="Закрыть"
+                size="sm"
+                variant="ghost"
+                onClick={onClose}
+              />
+            </div>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+            <div className="rounded-control border border-border-soft bg-field p-2.5 text-xs text-text-muted flex items-start gap-2">
+              <AppIcon name="shield" size="xs" className="text-accent shrink-0 mt-0.5" />
+              <span>
+                При сбросе пароля все ранее выданные активные токены и сессии сотрудника будут немедленно завершены.
+              </span>
+            </div>
+
+            <div className="delivery-options-grid">
+              {/* Option A: Email */}
+              <div
+                className={clsx(
+                  "delivery-option-card",
+                  method === "email" && "is-selected",
+                )}
+                onClick={() => setMethod("email")}
+              >
+                <div className="delivery-option-radio">
+                  {method === "email" && <div className="delivery-option-radio-dot" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold text-text-main">
+                    Отправить ссылку на email
+                  </span>
+                  <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
+                    {smtpConfigured
+                      ? "Ссылка для установки нового пароля придёт сотруднику на почту."
+                      : "Почта не настроена — ссылка будет показана для передачи в мессенджер."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Option B: Generate temp */}
+              <div
+                className={clsx(
+                  "delivery-option-card",
+                  method === "generate_temp" && "is-selected",
+                )}
+                onClick={() => setMethod("generate_temp")}
+              >
+                <div className="delivery-option-radio">
+                  {method === "generate_temp" && <div className="delivery-option-radio-dot" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold text-text-main">
+                    Сгенерировать временный пароль
+                  </span>
+                  <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
+                    Сервер создаст надёжный пароль и покажет его в защищённом окне.
+                  </p>
+                </div>
+              </div>
+
+              {/* Option C: Manual temp */}
+              <div
+                className={clsx(
+                  "delivery-option-card",
+                  method === "manual_temp" && "is-selected",
+                )}
+                onClick={() => setMethod("manual_temp")}
+              >
+                <div className="delivery-option-radio">
+                  {method === "manual_temp" && <div className="delivery-option-radio-dot" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-bold text-text-main">
+                    Задать временный пароль вручную
+                  </span>
+                  <p className="m-0 mt-0.5 text-[11px] text-text-muted leading-tight">
+                    Вы сами задаёте новый пароль с валидацией сложности.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {method === "manual_temp" && (
+              <div className="p-3 bg-surface-2 rounded-control border border-border flex flex-col gap-2.5">
+                <div className="grid grid-cols-1 gap-2.5">
+                  <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+                    Новый временный пароль
+                    <div className="relative flex items-center">
+                      <Input
+                        type={showManualPassword ? "text" : "password"}
+                        value={manualPassword}
+                        autoComplete="new-password"
+                        placeholder="Минимум 12 символов"
+                        onChange={(e) => setManualPassword(e.target.value)}
+                        className="pr-9"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowManualPassword((v) => !v)}
+                        className="absolute right-2 text-text-muted hover:text-text-main bg-transparent border-0 cursor-pointer p-1"
+                        tabIndex="-1"
+                      >
+                        <AppIcon name={showManualPassword ? "eyeOff" : "eye"} size="xs" />
+                      </button>
+                    </div>
+                  </label>
+
+                  <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+                    Подтверждение пароля
+                    <Input
+                      type={showManualPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      autoComplete="new-password"
+                      placeholder="Повторите пароль"
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </label>
+                </div>
+
+                {manualPassword && !passwordsMatch && (
+                  <span className="text-[11px] text-accentError">
+                    Пароли не совпадают
+                  </span>
+                )}
+
+                {manualPassword && passwordStrength.failures.length > 0 && (
+                  <div className="text-[11px] text-accentError flex flex-col gap-0.5">
+                    {passwordStrength.failures.map((f, i) => (
+                      <span key={i}>• {f}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter className="border-t border-border-soft pt-3 mt-2 flex items-center justify-end gap-2">
+              <Button
+                variant="ghost"
+                type="button"
+                disabled={submitting}
+                onClick={onClose}
+              >
+                Отмена
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                loading={submitting}
+                disabled={!canSubmit}
+                leftIcon={<AppIcon name="key" size="sm" />}
+              >
+                Сбросить пароль
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </DialogBackdrop>
+    </Dialog>
+  );
+}
+
+function TemporaryPasswordDisplayDialog({ data, open, onClose, pushNotification }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  if (!data || !open) return null;
+
+  const handleCopy = async () => {
+    if (!data.temporaryPassword) return;
+    try {
+      await navigator.clipboard.writeText(data.temporaryPassword);
+      setCopied(true);
+      pushNotification?.({
+        title: "Пароль скопирован",
+        message: "Передайте его сотруднику по защищённому каналу",
+        persist: false,
+      });
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      pushNotification?.({
+        title: "Скопируйте пароль вручную",
+        message: data.temporaryPassword,
+        persist: false,
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open}>
+      <DialogBackdrop>
+        <DialogContent className="max-w-md p-5 bg-surface border-border rounded-modal shadow-modal flex flex-col gap-4">
+          <DialogHeader className="border-b border-border-soft pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-control bg-accentSuccess/15 border border-accentSuccess/30 flex items-center justify-center shrink-0 text-accentSuccess">
+                  <AppIcon name="lock" size="md" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base font-bold text-text-main m-0">
+                    Временный пароль
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-text-muted mt-0.5 m-0">
+                    {data.user?.name ? `${data.user.name} • ` : ""}{data.user?.email}
+                  </DialogDescription>
+                </div>
+              </div>
+              <IconButton
+                icon="x"
+                label="Закрыть"
+                size="sm"
+                variant="ghost"
+                onClick={onClose}
+              />
+            </div>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-3">
+            <div className="rounded-control border border-accentWarning/30 bg-accentWarning/10 p-3 text-xs text-text-main flex items-start gap-2.5">
+              <AppIcon name="alertTriangle" size="sm" className="text-accentWarning shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <strong className="font-semibold block text-accentWarning">Пароль отображается только один раз!</strong>
+                Скопируйте и передайте его сотруднику по безопасному каналу (личным сообщением). При первом входе в систему потребуется обязательная смена пароля.
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-text-muted text-xs font-medium">Сгенерированный пароль:</span>
+              <div className="flex items-center gap-2 bg-field p-2.5 rounded-control border border-border">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  readOnly
+                  value={data.temporaryPassword || ""}
+                  className="w-full bg-transparent border-0 font-mono text-sm font-bold text-text-main tracking-wider focus:outline-none select-all"
+                  onFocus={(e) => e.target.select()}
+                />
+                <IconButton
+                  icon={showPassword ? "eyeOff" : "eye"}
+                  label={showPassword ? "Скрыть" : "Показать"}
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowPassword((v) => !v)}
+                />
+                <Button
+                  size="sm"
+                  variant={copied ? "success" : "secondary"}
+                  type="button"
+                  onClick={handleCopy}
+                  className="shrink-0 flex items-center gap-1.5"
+                >
+                  <AppIcon name={copied ? "check" : "copy"} size="xs" />
+                  <span>{copied ? "Скопировано!" : "Скопировать"}</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="border-t border-border-soft pt-3 flex items-center justify-end">
+            <Button
+              variant="primary"
+              type="button"
+              onClick={onClose}
+            >
+              Готово, пароль сохранён
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogBackdrop>
+    </Dialog>
+  );
+}
+
+function ResetLinkDisplayDialog({ data, open, onClose, pushNotification }) {
+  const [copied, setCopied] = useState(false);
+
+  if (!data || !open) return null;
+
+  const handleCopy = async () => {
+    if (!data.url) return;
+    try {
+      await navigator.clipboard.writeText(data.url);
+      setCopied(true);
+      pushNotification?.({
+        title: "Ссылка скопирована",
+        message: "Отправьте её сотруднику для задания пароля",
+        persist: false,
+      });
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      pushNotification?.({
+        title: "Скопируйте ссылку вручную",
+        message: data.url,
+        persist: false,
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open}>
+      <DialogBackdrop>
+        <DialogContent className="max-w-md p-5 bg-surface border-border rounded-modal shadow-modal flex flex-col gap-4">
+          <DialogHeader className="border-b border-border-soft pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-control bg-accentInfo/15 border border-accentInfo/30 flex items-center justify-center shrink-0 text-accentInfo">
+                  <AppIcon name="link" size="md" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base font-bold text-text-main m-0">
+                    Ссылка для установки пароля
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-text-muted mt-0.5 m-0">
+                    {data.email}
+                  </DialogDescription>
+                </div>
+              </div>
+              <IconButton
+                icon="x"
+                label="Закрыть"
+                size="sm"
+                variant="ghost"
+                onClick={onClose}
+              />
+            </div>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-3">
+            <p className="m-0 text-xs text-text-muted leading-relaxed">
+              {data.emailSent
+                ? "Письмо успешно отправлено на почту сотрудника. При необходимости вы можете скопировать одноразовую ссылку вручную:"
+                : "Почтовый сервер (SMTP) не подключён. Скопируйте одноразовую ссылку и отправьте её сотруднику в Telegram или мессенджер:"}
+            </p>
+
+            <div className="flex flex-col gap-1.5">
+              <input
+                readOnly
+                className="w-full rounded-control border border-border bg-field p-2.5 text-xs font-mono text-text-main select-all focus:outline-none"
+                value={data.url}
+                onFocus={(e) => e.target.select()}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="border-t border-border-soft pt-3 flex items-center justify-end gap-2">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={handleCopy}
+              className="flex items-center gap-1.5"
+            >
+              <AppIcon name={copied ? "check" : "copy"} size="xs" />
+              <span>{copied ? "Скопировано!" : "Скопировать ссылку"}</span>
+            </Button>
+            <Button
+              variant="primary"
+              type="button"
+              onClick={onClose}
+            >
+              Готово
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogBackdrop>
+    </Dialog>
+  );
+}
+
+function EditUserDialog({
+  user,
+  open,
+  onClose,
+  allowedRoleOptions,
+  employees,
+  onSubmit,
+  submitting,
+  isOwner,
+}) {
+  const [name, setName] = useState(user?.name || "");
+  const [role, setRole] = useState(user?.role || "staff");
+  const [employeeId, setEmployeeId] = useState(user?.employeeId ? String(user.employeeId) : "");
+
+  if (!user || !open) return null;
+
+  const isOwnerProtected = !isOwner && user.role === "owner";
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (submitting) return;
+    onSubmit(user, {
+      name: name.trim(),
+      role: isOwnerProtected ? user.role : role,
+      employeeId: employeeId ? Number(employeeId) : null,
+    });
+  };
+
+  return (
+    <Dialog open={open}>
+      <DialogBackdrop>
+        <DialogContent className="max-w-md p-5 bg-surface border-border rounded-modal shadow-modal flex flex-col gap-4">
+          <DialogHeader className="border-b border-border-soft pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-control bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent">
+                  <AppIcon name="pencil" size="md" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base font-bold text-text-main m-0">
+                    Редактировать сотрудника
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-text-muted mt-0.5 m-0">
+                    {user.email}
+                  </DialogDescription>
+                </div>
+              </div>
+              <IconButton
+                icon="x"
+                label="Закрыть"
+                size="sm"
+                variant="ghost"
+                onClick={onClose}
+              />
+            </div>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+            <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+              Имя сотрудника
+              <Input
+                autoComplete="off"
+                placeholder="Имя"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </label>
+
+            <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+              Роль в CRM
+              <Select
+                value={role}
+                disabled={isOwnerProtected}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                {(isOwnerProtected ? USER_ROLE_OPTIONS : allowedRoleOptions).map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+              </Select>
+            </label>
+
+            <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
+              Привязка к мастеру
+              <Select
+                value={employeeId}
+                disabled={isOwnerProtected}
+                onChange={(e) => setEmployeeId(e.target.value)}
+              >
+                <option value="">— Без мастера —</option>
+                {employees.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.name} {emp.role ? `(${emp.role})` : ""}
+                  </option>
+                ))}
+              </Select>
+            </label>
+
+            <DialogFooter className="border-t border-border-soft pt-3 mt-2 flex items-center justify-end gap-2">
+              <Button
+                variant="ghost"
+                type="button"
+                disabled={submitting}
+                onClick={onClose}
+              >
+                Отмена
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                loading={submitting}
+              >
+                Сохранить
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </DialogBackdrop>
+    </Dialog>
+  );
+}
+
+function DisableUserDialog({
+  user,
+  open,
+  onClose,
+  onConfirm,
+  submitting,
+}) {
+  if (!user || !open) return null;
+
+  return (
+    <Dialog open={open}>
+      <DialogBackdrop>
+        <DialogContent className="max-w-md p-5 bg-surface border-border rounded-modal shadow-modal flex flex-col gap-4">
+          <DialogHeader className="border-b border-border-soft pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-control bg-accentError/15 border border-accentError/30 flex items-center justify-center shrink-0 text-accentError">
+                  <AppIcon name="userX" size="md" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base font-bold text-text-main m-0">
+                    Отключить доступ сотрудника?
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-text-muted mt-0.5 m-0">
+                    {user.name ? `${user.name} (${user.email})` : user.email}
+                  </DialogDescription>
+                </div>
+              </div>
+              <IconButton
+                icon="x"
+                label="Закрыть"
+                size="sm"
+                variant="ghost"
+                onClick={onClose}
+              />
+            </div>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-2.5 text-xs text-text-muted leading-relaxed">
+            <p className="m-0">
+              Сотрудник больше не сможет войти в систему. Все текущие активные сессии и токены будут немедленно аннулированы.
+            </p>
+            <p className="m-0">
+              Данные визитов, клиентов и история сотрудника останутся в сохранности. Вы сможете восстановить доступ в любой момент.
+            </p>
+          </div>
+
+          <DialogFooter className="border-t border-border-soft pt-3 flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              type="button"
+              disabled={submitting}
+              onClick={onClose}
+            >
+              Отмена
+            </Button>
+            <Button
+              variant="danger"
+              type="button"
+              loading={submitting}
+              onClick={() => onConfirm(user)}
+            >
+              Отключить доступ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogBackdrop>
+    </Dialog>
+  );
+}
+
 function UserAccessPanel({authUser, pushNotification}) {
-  const [creating, setCreating] = useState(false);
-  const [draft, setDraft] = useState({email: "", employeeId: "", name: "", role: "staff"});
   const [employees, setEmployees] = useState([]);
   const [permissionGroups, setPermissionGroups] = useState([]);
   const [editingPermsUser, setEditingPermsUser] = useState(null);
@@ -208,9 +1261,25 @@ function UserAccessPanel({authUser, pushNotification}) {
   const [savingPerms, setSavingPerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
-  const [resetInfo, setResetInfo] = useState(null);
   const [rows, setRows] = useState([]);
-  const [savingId, setSavingId] = useState(null);
+  const [smtpConfigured, setSmtpConfigured] = useState(false);
+
+  // Filters & Search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Action Menu & Dialogs State
+  const [openMenuUserId, setOpenMenuUserId] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [resettingUser, setResettingUser] = useState(null);
+  const [disablingUser, setDisablingUser] = useState(null);
+  const [tempPasswordModalData, setTempPasswordModalData] = useState(null);
+  const [resetLinkModalData, setResetLinkModalData] = useState(null);
+
+  // Submitting States
+  const [submittingAction, setSubmittingAction] = useState(false);
 
   const canManageAccess = hasPermission(authUser, PERMISSIONS.USERS_MANAGE);
   const isOwner = authUser?.role === "owner" || authUser?.id === "local-admin";
@@ -232,6 +1301,7 @@ function UserAccessPanel({authUser, pushNotification}) {
       setRows(payload.users || []);
       setEmployees(payload.employees || []);
       setPermissionGroups(payload.permissionGroups || []);
+      setSmtpConfigured(Boolean(payload.smtpConfigured));
     } catch (error) {
       const message = error?.message || "Не удалось загрузить список пользователей";
       setLoadError(message);
@@ -257,140 +1327,197 @@ function UserAccessPanel({authUser, pushNotification}) {
     );
   };
 
-  const handleCopyResetUrl = async (url) => {
-    if (!url) return;
+  // Add Employee Handler
+  const handleCreateEmployee = async (formData) => {
+    setSubmittingAction(true);
     try {
-      await navigator.clipboard.writeText(url);
-      pushNotification?.({
-        title: "Ссылка скопирована",
-        message: "Отправьте её сотруднику для установки пароля",
-        persist: false,
-      });
-    } catch {
-      pushNotification?.({
-        title: "Скопируйте ссылку вручную",
-        message: url,
-        persist: false,
-      });
-    }
-  };
-
-  const handleCreateUser = async () => {
-    const normalizedEmail = String(draft.email ?? "").trim().toLowerCase();
-    if (!normalizedEmail) return;
-
-    setCreating(true);
-    setResetInfo(null);
-    try {
-      const payload = await createUser({
-        email: normalizedEmail,
-        employeeId: draft.employeeId ? Number(draft.employeeId) : null,
-        name: String(draft.name ?? "").trim(),
-        role: draft.role,
-      });
+      const payload = await createUser(formData);
       setRows((current) => [...current, payload.user]);
-      setDraft({email: "", employeeId: "", name: "", role: "staff"});
-      if (payload.resetUrl) {
-        setResetInfo({
+      setIsAddModalOpen(false);
+
+      if (payload.temporaryPassword) {
+        setTempPasswordModalData({
+          user: payload.user,
+          temporaryPassword: payload.temporaryPassword,
+        });
+        pushNotification?.({
+          title: "Сотрудник создан",
+          message: "Скопируйте сгенерированный временный пароль",
+        });
+      } else if (payload.resetUrl) {
+        setResetLinkModalData({
           email: payload.user.email,
+          url: payload.resetUrl,
           emailSent: Boolean(payload.resetEmailSent),
           smtpConfigured: Boolean(payload.smtpConfigured),
-          url: payload.resetUrl,
+        });
+        pushNotification?.({
+          title: "Сотрудник создан",
+          message: payload.resetEmailSent
+            ? `Письмо со ссылкой отправлено на ${payload.user.email}`
+            : "Скопируйте ссылку для передачи сотруднику",
+        });
+      } else {
+        pushNotification?.({
+          title: "Сотрудник создан",
+          message: `${payload.user.email} успешно добавлен в систему`,
         });
       }
-      pushNotification?.({
-        title: "Пользователь создан",
-        message: payload.resetEmailSent
-          ? `Письмо со ссылкой для установки пароля отправлено на ${payload.user.email}.`
-          : "Скопируйте одноразовую ссылку ниже и отправьте сотруднику для задания пароля.",
-      });
     } catch (error) {
       pushNotification?.({
-        title: "Пользователь не создан",
-        message: error?.message || "Проверьте корректность email и выбранной роли",
+        title: "Ошибка создания сотрудника",
+        message: error?.message || "Не удалось создать пользователя",
       });
     } finally {
-      setCreating(false);
+      setSubmittingAction(false);
     }
   };
 
-  const handleUpdateUser = async (user) => {
-    setSavingId(user.id);
+  // Edit User Handler
+  const handleEditUser = async (user, fields) => {
+    setSubmittingAction(true);
     try {
       const payload = await updateUser(user.id, {
         email: user.email,
-        employeeId: user.employeeId ? Number(user.employeeId) : null,
+        employeeId: fields.employeeId,
         isActive: user.isActive,
-        name: user.name,
+        name: fields.name,
         permissions: user.permissions || {},
-        role: user.role,
+        role: fields.role,
       });
       patchRow(user.id, payload.user);
+      setEditingUser(null);
       pushNotification?.({
-        title: "Доступ сохранён",
-        message: `${payload.user.email} (${USER_ROLE_OPTIONS.find((r) => r.value === payload.user.role)?.label || payload.user.role})`,
+        title: "Данные обновлены",
+        message: `${payload.user.email} (${ROLE_LABELS[payload.user.role] || payload.user.role})`,
       });
     } catch (error) {
       pushNotification?.({
-        title: "Доступ не обновлён",
-        message: error?.message || "Нельзя удалить или понизить последнего активного владельца",
+        title: "Ошибка обновления",
+        message: error?.message || "Не удалось обновить пользователя",
       });
-      void loadUsers();
     } finally {
-      setSavingId(null);
+      setSubmittingAction(false);
     }
   };
 
-  const handleToggleUser = async (user) => {
-    setSavingId(user.id);
+  // Reset Password Handler
+  const handleResetPassword = async (user, payload) => {
+    setSubmittingAction(true);
     try {
-      const payload = user.isActive
-        ? await disableUser(user.id)
-        : await enableUser(user.id);
+      const res = await resetUserPassword(user.id, payload);
+      setResettingUser(null);
+
+      if (res.user) {
+        patchRow(user.id, res.user);
+      }
+
+      if (res.temporaryPassword) {
+        setTempPasswordModalData({
+          user: res.user || user,
+          temporaryPassword: res.temporaryPassword,
+        });
+        pushNotification?.({
+          title: "Пароль сброшен",
+          message: "Скопируйте новый временный пароль",
+        });
+      } else if (res.resetUrl) {
+        setResetLinkModalData({
+          email: user.email,
+          url: res.resetUrl,
+          emailSent: Boolean(res.resetEmailSent),
+          smtpConfigured: Boolean(res.smtpConfigured),
+        });
+        pushNotification?.({
+          title: "Пароль сброшен",
+          message: res.resetEmailSent
+            ? `Письмо для сброса отправлено на ${user.email}`
+            : "Скопируйте ссылку для сброса пароля",
+        });
+      } else {
+        pushNotification?.({
+          title: "Пароль обновлён",
+          message: "Новый временный пароль установлен. Предыдущие сессии завершены.",
+        });
+      }
+    } catch (error) {
+      pushNotification?.({
+        title: "Не удалось сбросить пароль",
+        message: error?.message || "Ошибка сброса пароля",
+      });
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  // Toggle Status Handler
+  const handleToggleStatus = (user) => {
+    if (user.isActive) {
+      setDisablingUser(user);
+    } else {
+      void handleEnableUser(user);
+    }
+  };
+
+  const handleEnableUser = async (user) => {
+    setSubmittingAction(true);
+    try {
+      const payload = await enableUser(user.id);
       patchRow(user.id, payload.user);
       pushNotification?.({
-        title: payload.user.isActive ? "Доступ включён" : "Доступ отключён",
+        title: "Доступ включён",
         message: payload.user.email,
       });
     } catch (error) {
       pushNotification?.({
-        title: "Статус не изменён",
-        message: error?.message || "Нельзя отключить последнего активного владельца",
+        title: "Ошибка",
+        message: error?.message || "Не удалось включить доступ",
       });
     } finally {
-      setSavingId(null);
+      setSubmittingAction(false);
     }
   };
 
-  const handleSendReset = async (user) => {
-    setSavingId(user.id);
-    setResetInfo(null);
+  const handleConfirmDisable = async (user) => {
+    setSubmittingAction(true);
     try {
-      const payload = await sendUserReset(user.id);
-      if (payload.resetUrl) {
-        setResetInfo({
-          email: user.email,
-          emailSent: Boolean(payload.resetEmailSent),
-          smtpConfigured: Boolean(payload.smtpConfigured),
-          url: payload.resetUrl,
-        });
-      }
+      const payload = await disableUser(user.id);
+      patchRow(user.id, payload.user);
+      setDisablingUser(null);
       pushNotification?.({
-        title: payload.resetEmailSent ? "Ссылка отправлена на почту" : "Ссылка для пароля создана",
-        message: payload.resetEmailSent
-          ? `Письмо отправлено на ${user.email}`
-          : "Скопируйте ссылку ниже и передайте сотруднику.",
+        title: "Доступ отключён",
+        message: payload.user.email,
       });
     } catch (error) {
       pushNotification?.({
-        title: "Не удалось создать ссылку",
-        message: error?.message || "Пользователь должен быть активен",
+        title: "Ошибка",
+        message: error?.message || "Нельзя отключить последнего владельца",
       });
     } finally {
-      setSavingId(null);
+      setSubmittingAction(false);
     }
   };
 
+  // Filtered users calculation
+  const filteredUsers = useMemo(() => {
+    return rows.filter((u) => {
+      if (statusFilter === "active" && !u.isActive) return false;
+      if (statusFilter === "disabled" && u.isActive) return false;
+      if (roleFilter !== "all" && u.role !== roleFilter) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const nameMatch = (u.name || "").toLowerCase().includes(q);
+        const emailMatch = (u.email || "").toLowerCase().includes(q);
+        const masterMatch = (u.employeeName || "").toLowerCase().includes(q);
+        if (!nameMatch && !emailMatch && !masterMatch) return false;
+      }
+      return true;
+    });
+  }, [rows, searchQuery, roleFilter, statusFilter]);
+
+  const activeCount = rows.filter((r) => r.isActive).length;
+
+  // RBAC Modal openers
   const openPermissionsModal = (user) => {
     setEditingPermsUser(user);
     setPermsDraft({ ...(user.permissions || {}) });
@@ -411,7 +1538,7 @@ function UserAccessPanel({authUser, pushNotification}) {
     setPermsDraft({ ...templatePerms });
     pushNotification?.({
       title: "Шаблон применён",
-      message: `Загружены настройки прав для роли «${USER_ROLE_OPTIONS.find((r) => r.value === roleKey)?.label || roleKey}»`,
+      message: `Загружены настройки прав для роли «${ROLE_LABELS[roleKey] || roleKey}»`,
       persist: false,
     });
   };
@@ -542,263 +1669,346 @@ function UserAccessPanel({authUser, pushNotification}) {
   };
 
   return (
-    <Card className="p-4 sm:p-5 flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-soft pb-3">
+    <Card className="crm-users-panel p-4 sm:p-5">
+      {/* 1. Header */}
+      <div className="crm-users-header">
         <div className="flex items-center gap-2.5">
-          <AppIcon name="shield" size="md" className="text-accent" />
+          <div className="w-9 h-9 rounded-control bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent">
+            <AppIcon name="shield" size="md" />
+          </div>
           <div>
-            <h2 className="m-0 text-text-main text-[15px] font-bold">Доступы сотрудников и права</h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="m-0 text-text-main text-[15px] font-bold">
+                Управление доступом
+              </h2>
+              <Badge variant="neutral" size="sm">
+                Активных: {activeCount} из {rows.length}
+              </Badge>
+            </div>
             <p className="m-0 mt-0.5 text-text-muted text-xs">
-              Учётные записи, привязка к мастерам, роли и детальные разрешения доступа к CRM.
+              Учётные записи, роли, пароли и детальные права доступа к CRM.
             </p>
           </div>
         </div>
-        <StatusBadge tone="neutral">
-          Активных: {rows.filter((row) => row.isActive).length} из {rows.length}
-        </StatusBadge>
+
+        {canManageAccess && (
+          <Button
+            variant="primary"
+            type="button"
+            className="flex items-center gap-1.5"
+            leftIcon={<AppIcon name="userPlus" size="sm" />}
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            + Добавить сотрудника
+          </Button>
+        )}
       </div>
 
       {!canManageAccess ? (
         <div className="rounded-control border border-border bg-field p-3.5 text-xs text-text-muted">
-          Вы вошли с ролью «{USER_ROLE_OPTIONS.find((r) => r.value === authUser?.role)?.label || authUser?.role}». Управление пользователями и ролями доступно владельцу и администратору студии.
+          Вы вошли с ролью «{ROLE_LABELS[authUser?.role] || authUser?.role}». Управление сотрудниками и ролями доступно владельцу и администратору студии.
         </div>
       ) : (
         <>
-          <section className="rounded-control border border-border-soft bg-field p-3.5 flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-2">
-              <strong className="text-text-main text-[13px] font-semibold">Добавить пользователя</strong>
-              <span className="text-text-faint text-[11px]">
-                После создания вы получите ссылку для установки пароля
-              </span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-[minmax(180px,1.2fr)_minmax(130px,0.8fr)_160px_170px_auto] gap-2.5 items-end">
-              <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
-                Email для входа
-                <Input
-                  autoComplete="off"
-                  placeholder="master@nuarr.pl"
-                  type="email"
-                  value={draft.email}
-                  onChange={(event) => setDraft((current) => ({...current, email: event.target.value}))}
-                />
-              </label>
-              <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
-                Имя сотрудника
-                <Input
-                  autoComplete="off"
-                  placeholder="Например, Натали"
-                  value={draft.name}
-                  onChange={(event) => setDraft((current) => ({...current, name: event.target.value}))}
-                />
-              </label>
-              <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
-                Роль в CRM
-                <Select
-                  value={draft.role}
-                  onChange={(event) => setDraft((current) => ({...current, role: event.target.value}))}
-                >
-                  {allowedRoleOptions.map((role) => (
-                    <option key={role.value} value={role.value}>{role.label}</option>
-                  ))}
-                </Select>
-              </label>
-              <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
-                Привязка к мастеру
-                <Select
-                  value={draft.employeeId}
-                  onChange={(event) => setDraft((current) => ({...current, employeeId: event.target.value}))}
-                >
-                  <option value="">— Без привязки —</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} {emp.role ? `(${emp.role})` : ""}
-                    </option>
-                  ))}
-                </Select>
-              </label>
-              <Button
-                className="flex items-center justify-center gap-1.5 min-h-10"
-                disabled={creating || !draft.email.trim()}
-                loading={creating}
-                type="button"
-                variant="primary"
-                onClick={handleCreateUser}
-              >
-                <AppIcon name="userPlus" size="sm" />
-                Создать
-              </Button>
-            </div>
-          </section>
-
-          {resetInfo ? (
-            <div className="settings-success-note rounded-control border p-3 flex flex-col gap-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-xs">
-                  <strong className="font-semibold">
-                    Одноразовая ссылка для установки пароля ({resetInfo.email})
-                  </strong>
-                  <span className="block text-text-muted mt-0.5">
-                    {resetInfo.emailSent
-                      ? "Письмо отправлено на почту. При необходимости вы также можете скопировать ссылку вручную:"
-                      : "Почтовый сервер (SMTP) не подключён — скопируйте ссылку и отправьте сотруднику в Telegram или мессенджер:"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    size="sm"
-                    type="button"
-                    variant="secondary"
-                    onClick={() => handleCopyResetUrl(resetInfo.url)}
-                  >
-                    Скопировать ссылку
-                  </Button>
-                  <Button
-                    size="sm"
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setResetInfo(null)}
-                  >
-                    Скрыть
-                  </Button>
-                </div>
-              </div>
-              <input
-                readOnly
-                className="w-full rounded-control border border-border bg-surface px-2.5 py-1.5 text-xs font-mono text-text-main select-all"
-                value={resetInfo.url}
-                onFocus={(event) => event.target.select()}
+          {/* 2. Filters & Search Toolbar */}
+          <div className="crm-users-toolbar">
+            <div className="crm-users-search-wrap">
+              <SearchControl
+                placeholder="Поиск по имени или email…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onClear={() => setSearchQuery("")}
               />
             </div>
-          ) : null}
 
-          <div className="flex flex-col gap-2">
-            {loading ? (
-              <div className="rounded-control border border-border bg-field p-3.5 text-xs text-text-muted">
-                Загрузка списка пользователей…
-              </div>
-            ) : loadError ? (
-              <div className="rounded-control border border-accentError/40 bg-field p-3.5 text-xs text-accentError flex items-center justify-between gap-3">
-                <span>{loadError}</span>
-                <Button size="sm" type="button" variant="secondary" onClick={loadUsers}>
-                  Повторить
+            <div className="crm-users-filter-select">
+              <Select
+                aria-label="Фильтр по роли"
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+              >
+                <option value="all">Все роли</option>
+                <option value="owner">Владелец</option>
+                <option value="admin">Администратор</option>
+                <option value="manager">Управляющий</option>
+                <option value="staff">Сотрудник</option>
+                <option value="readonly">Только чтение</option>
+              </Select>
+            </div>
+
+            <div className="crm-users-filter-select">
+              <Select
+                aria-label="Фильтр по статусу"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">Все статусы</option>
+                <option value="active">Активные</option>
+                <option value="disabled">Отключённые</option>
+              </Select>
+            </div>
+
+            <div className="crm-users-counter">
+              Показано: {filteredUsers.length} из {rows.length}
+            </div>
+          </div>
+
+          {/* 3. Content: Table or Cards */}
+          {loading ? (
+            <div className="rounded-control border border-border bg-field p-6 text-center text-xs text-text-muted flex items-center justify-center gap-2">
+              <AppIcon name="loader" size="sm" className="animate-spin text-accent" />
+              <span>Загрузка списка сотрудников…</span>
+            </div>
+          ) : loadError ? (
+            <div className="rounded-control border border-accentError/40 bg-field p-4 text-xs text-accentError flex items-center justify-between gap-3">
+              <span>{loadError}</span>
+              <Button size="sm" type="button" variant="secondary" onClick={loadUsers}>
+                Повторить
+              </Button>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="rounded-control border border-border bg-field p-8 text-center text-xs text-text-muted flex flex-col items-center justify-center gap-2.5">
+              <AppIcon name="users" size="lg" className="text-text-faint" />
+              <strong className="text-text-main text-sm">
+                {rows.length === 0 ? "Сотрудников пока нет" : "Ничего не найдено"}
+              </strong>
+              <p className="m-0 text-text-faint max-w-sm">
+                {rows.length === 0
+                  ? "Добавьте первого сотрудника, нажав на кнопку «+ Добавить сотрудника» вверху."
+                  : "Попробуйте изменить параметры поиска или сбросить фильтры."}
+              </p>
+              {rows.length > 0 && (searchQuery || roleFilter !== "all" || statusFilter !== "all") && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setRoleFilter("all");
+                    setStatusFilter("all");
+                  }}
+                >
+                  Сбросить фильтры
                 </Button>
-              </div>
-            ) : rows.length ? (
-              rows.map((user) => {
-                const customPermCount = Object.keys(user.permissions || {}).length;
-                const ownerProtectedFromAdmin = !isOwner && user.role === "owner";
-                return (
-                  <article
-                    className="grid grid-cols-1 xl:grid-cols-[minmax(160px,1.1fr)_minmax(110px,0.7fr)_140px_160px_90px_120px_auto] gap-2.5 items-center rounded-control border border-border-soft bg-field px-3.5 py-2.5"
-                    key={user.id}
-                  >
-                    <Input
-                      aria-label="Email"
-                      type="email"
-                      value={user.email}
-                      disabled={ownerProtectedFromAdmin}
-                      onChange={(event) => patchRow(user.id, {email: event.target.value})}
-                    />
-                    <Input
-                      aria-label="Имя"
-                      placeholder="Имя"
-                      value={user.name || ""}
-                      disabled={ownerProtectedFromAdmin}
-                      onChange={(event) => patchRow(user.id, {name: event.target.value})}
-                    />
-                    <Select
-                      aria-label="Роль"
-                      value={user.role}
-                      disabled={ownerProtectedFromAdmin}
-                      onChange={(event) => patchRow(user.id, {role: event.target.value})}
-                    >
-                      {(ownerProtectedFromAdmin ? USER_ROLE_OPTIONS : allowedRoleOptions).map((role) => (
-                        <option key={role.value} value={role.value}>{role.label}</option>
-                      ))}
-                    </Select>
-                    <Select
-                      aria-label="Мастер"
-                      value={user.employeeId || ""}
-                      disabled={ownerProtectedFromAdmin}
-                      onChange={(event) => patchRow(user.id, {employeeId: event.target.value ? Number(event.target.value) : null})}
-                    >
-                      <option value="">— Без мастера —</option>
-                      {employees.map((emp) => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.name}
-                        </option>
-                      ))}
-                    </Select>
-                    <span
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="crm-users-table-wrap">
+                <div className="crm-users-table-header">
+                  <div>Сотрудник</div>
+                  <div>Роль</div>
+                  <div>Мастер</div>
+                  <div>Статус</div>
+                  <div>Последний вход</div>
+                  <div className="text-right"></div>
+                </div>
+
+                {filteredUsers.map((user) => {
+                  const masterName = user.employeeName || (user.employeeId ? employees.find((e) => e.id === user.employeeId)?.name : null);
+                  return (
+                    <div
+                      key={user.id}
                       className={clsx(
-                        "settings-user-status inline-flex min-h-8 items-center justify-center rounded-control border px-2 text-xs font-bold",
-                        user.isActive ? "is-active" : "is-disabled",
+                        "crm-users-table-row",
+                        !user.isActive && "is-disabled",
                       )}
                     >
-                      {user.isActive ? "Активен" : "Отключён"}
-                    </span>
-                    <div className="text-[11px] text-text-muted leading-tight">
-                      <span className="block">Создан: {formatUserDate(user.createdAt)}</span>
-                      <span className="block mt-0.5">Вход: {formatUserDate(user.lastLoginAt)}</span>
-                    </div>
-                    <div className="flex flex-wrap justify-end gap-1.5">
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="secondary"
-                        title="Настройка индивидуальных прав доступа"
-                        onClick={() => openPermissionsModal(user)}
-                        disabled={ownerProtectedFromAdmin}
-                        className="flex items-center gap-1"
-                      >
-                        <AppIcon name="shield" size="xs" />
-                        Права
-                        {customPermCount > 0 ? (
-                          <span className="ml-0.5 rounded-full bg-accent/20 px-1 py-0.2 text-[10px] text-accent font-bold">
-                            {customPermCount}
+                      {/* Identity */}
+                      <div className="crm-user-identity">
+                        <div className="crm-user-avatar">
+                          {getUserInitials(user.name, user.email)}
+                        </div>
+                        <div className="crm-user-names">
+                          <span className="crm-user-name" title={user.name || user.email}>
+                            {user.name || "Без имени"}
                           </span>
-                        ) : null}
-                      </Button>
-                      <Button
-                        disabled={savingId === user.id || ownerProtectedFromAdmin}
-                        size="sm"
-                        type="button"
-                        variant="secondary"
-                        onClick={() => handleUpdateUser(user)}
-                      >
-                        Сохранить
-                      </Button>
-                      <Button
-                        disabled={savingId === user.id || !user.isActive || ownerProtectedFromAdmin}
-                        size="sm"
-                        title="Получить или отправить ссылку для смены пароля"
-                        type="button"
-                        variant="secondary"
-                        onClick={() => handleSendReset(user)}
-                      >
-                        <AppIcon name="send" size="xs" />
-                        Пароль
-                      </Button>
-                      <Button
-                        disabled={savingId === user.id || ownerProtectedFromAdmin}
-                        size="sm"
-                        type="button"
-                        variant={user.isActive ? "danger" : "secondary"}
-                        onClick={() => handleToggleUser(user)}
-                      >
-                        <AppIcon name="power" size="xs" />
-                        {user.isActive ? "Откл." : "Вкл."}
-                      </Button>
+                          <span className="crm-user-email" title={user.email}>
+                            {user.email}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Role Badge */}
+                      <div>
+                        <Badge variant={ROLE_BADGE_VARIANTS[user.role] || "neutral"}>
+                          {ROLE_LABELS[user.role] || user.role}
+                        </Badge>
+                      </div>
+
+                      {/* Master Binding */}
+                      <div className="text-xs text-text-main truncate">
+                        {masterName ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <AppIcon name="userCheck" size="xs" className="text-text-muted" />
+                            <span className="truncate">{masterName}</span>
+                          </span>
+                        ) : (
+                          <span className="text-text-faint">—</span>
+                        )}
+                      </div>
+
+                      {/* Status */}
+                      <div>
+                        <Badge variant={user.isActive ? "success" : "disabled"} size="sm">
+                          {user.isActive ? "Активен" : "Отключён"}
+                        </Badge>
+                      </div>
+
+                      {/* Last Login */}
+                      <div className="text-[11.5px] text-text-muted truncate">
+                        {formatUserDate(user.lastLoginAt)}
+                      </div>
+
+                      {/* Actions Menu */}
+                      <div className="flex justify-end">
+                        <UserRowActionsMenu
+                          user={user}
+                          isOwner={isOwner}
+                          authUser={authUser}
+                          openMenuId={openMenuUserId}
+                          setOpenMenuId={setOpenMenuUserId}
+                          onEdit={(u) => setEditingUser(u)}
+                          onOpenPermissions={(u) => openPermissionsModal(u)}
+                          onResetPassword={(u) => setResettingUser(u)}
+                          onToggleStatus={(u) => handleToggleStatus(u)}
+                        />
+                      </div>
                     </div>
-                  </article>
-                );
-              })
-            ) : (
-              <div className="rounded-control border border-border bg-field p-3.5 text-xs text-text-muted">
-                Пользователей в базе пока нет. Создайте первую учётную запись выше.
+                  );
+                })}
               </div>
-            )}
-          </div>
+
+              {/* Mobile Cards View */}
+              <div className="crm-users-cards">
+                {filteredUsers.map((user) => {
+                  const masterName = user.employeeName || (user.employeeId ? employees.find((e) => e.id === user.employeeId)?.name : null);
+                  return (
+                    <article
+                      key={user.id}
+                      className={clsx(
+                        "crm-user-card",
+                        !user.isActive && "is-disabled",
+                      )}
+                    >
+                      <div className="crm-user-card-header">
+                        <div className="crm-user-identity">
+                          <div className="crm-user-avatar">
+                            {getUserInitials(user.name, user.email)}
+                          </div>
+                          <div className="crm-user-names">
+                            <span className="crm-user-name" title={user.name || user.email}>
+                              {user.name || "Без имени"}
+                            </span>
+                            <span className="crm-user-email" title={user.email}>
+                              {user.email}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge variant={ROLE_BADGE_VARIANTS[user.role] || "neutral"}>
+                            {ROLE_LABELS[user.role] || user.role}
+                          </Badge>
+                          <UserRowActionsMenu
+                            user={user}
+                            isOwner={isOwner}
+                            authUser={authUser}
+                            openMenuId={openMenuUserId}
+                            setOpenMenuId={setOpenMenuUserId}
+                            onEdit={(u) => setEditingUser(u)}
+                            onOpenPermissions={(u) => openPermissionsModal(u)}
+                            onResetPassword={(u) => setResettingUser(u)}
+                            onToggleStatus={(u) => handleToggleStatus(u)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="crm-user-card-body">
+                        <div className="crm-user-card-row">
+                          <span className="text-text-muted">Мастер:</span>
+                          <span className="text-text-main font-medium">
+                            {masterName || "—"}
+                          </span>
+                        </div>
+                        <div className="crm-user-card-row">
+                          <span className="text-text-muted">Статус:</span>
+                          <Badge variant={user.isActive ? "success" : "disabled"} size="sm">
+                            {user.isActive ? "Активен" : "Отключён"}
+                          </Badge>
+                        </div>
+                        <div className="crm-user-card-row">
+                          <span className="text-text-muted">Последний вход:</span>
+                          <span className="text-text-faint">
+                            {formatUserDate(user.lastLoginAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* Modals & Dialogs */}
+          <CreateEmployeeDialog
+            key={isAddModalOpen ? "add-emp-open" : "add-emp-closed"}
+            open={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            allowedRoleOptions={allowedRoleOptions}
+            employees={employees}
+            onSubmit={handleCreateEmployee}
+            submitting={submittingAction}
+            smtpConfigured={smtpConfigured}
+          />
+
+          <EditUserDialog
+            key={editingUser ? `edit-${editingUser.id}` : "edit-closed"}
+            user={editingUser}
+            open={Boolean(editingUser)}
+            onClose={() => setEditingUser(null)}
+            allowedRoleOptions={allowedRoleOptions}
+            employees={employees}
+            onSubmit={handleEditUser}
+            submitting={submittingAction}
+            isOwner={isOwner}
+          />
+
+          <ResetPasswordDialog
+            key={resettingUser ? `reset-${resettingUser.id}` : "reset-closed"}
+            user={resettingUser}
+            open={Boolean(resettingUser)}
+            onClose={() => setResettingUser(null)}
+            onSubmit={handleResetPassword}
+            submitting={submittingAction}
+            smtpConfigured={smtpConfigured}
+          />
+
+          <TemporaryPasswordDisplayDialog
+            key={tempPasswordModalData ? `temp-${tempPasswordModalData.user?.id || "u"}` : "temp-closed"}
+            data={tempPasswordModalData}
+            open={Boolean(tempPasswordModalData)}
+            onClose={() => setTempPasswordModalData(null)}
+            pushNotification={pushNotification}
+          />
+
+          <ResetLinkDisplayDialog
+            key={resetLinkModalData ? `link-${resetLinkModalData.email}` : "link-closed"}
+            data={resetLinkModalData}
+            open={Boolean(resetLinkModalData)}
+            onClose={() => setResetLinkModalData(null)}
+            pushNotification={pushNotification}
+          />
+
+          <DisableUserDialog
+            user={disablingUser}
+            open={Boolean(disablingUser)}
+            onClose={() => setDisablingUser(null)}
+            onConfirm={handleConfirmDisable}
+            submitting={submittingAction}
+          />
         </>
       )}
 

@@ -238,6 +238,7 @@ function createAuthRouter({
           name: updatedUser.name || '',
           role: updatedUser.role,
           employeeId: updatedUser.employeeId ?? null,
+          mustChangePassword: Boolean(updatedUser.permissions?.mustChangePassword),
           permissions: updatedUser.permissions || {},
           effectivePermissions,
         };
@@ -467,6 +468,11 @@ function createAuthRouter({
       }
 
       const passwordHash = await hashPassword(newPassword);
+      const userPermissions = (resetToken.user.permissions && typeof resetToken.user.permissions === 'object')
+        ? { ...resetToken.user.permissions }
+        : {};
+      delete userPermissions.mustChangePassword;
+
       await prisma.$transaction([
         prisma.user.update({
           where: {id: resetToken.user.id},
@@ -475,6 +481,7 @@ function createAuthRouter({
             lockedUntil: null,
             passwordChangedAt: now,
             passwordHash,
+            permissions: userPermissions,
           },
         }),
         prisma.passwordResetToken.update({
@@ -549,12 +556,17 @@ function createAuthRouter({
 
       const passwordHash = await hashPassword(newPassword);
       const now = new Date();
+      const userPermissions = (dbUser.permissions && typeof dbUser.permissions === 'object')
+        ? { ...dbUser.permissions }
+        : {};
+      delete userPermissions.mustChangePassword;
 
       await prisma.user.update({
         where: { id: numericId },
         data: {
           passwordHash,
           passwordChangedAt: now,
+          permissions: userPermissions,
         },
       });
 
@@ -589,6 +601,7 @@ function createAuthRouter({
         name: req.auth?.name || '',
         role,
         employeeId: req.auth?.employeeId ? Number(req.auth.employeeId) : null,
+        mustChangePassword: Boolean(req.auth?.permissions?.mustChangePassword),
         permissions: req.auth?.permissions || {},
         effectivePermissions: req.auth?.effectivePermissions || getEffectivePermissions(role, req.auth?.permissions),
       },
