@@ -488,6 +488,21 @@ function CreateEmployeeDialog({
               </label>
             </div>
 
+            {role === "staff" && !employeeId && (
+              <div className="rounded-control border border-accentWarning/30 bg-accentWarning/10 p-3 text-xs text-text-main flex items-start gap-2.5">
+                <AppIcon name="alertTriangle" size="sm" className="text-accentWarning shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <strong>Не выбран мастер.</strong> Привяжите учётную запись к сотруднику, чтобы открыть личный календарь и визиты.
+                </div>
+              </div>
+            )}
+
+            {role === "staff" && employeeId && (
+              <div className="rounded-control border border-border-soft bg-surface-2/60 p-3 text-xs text-text-muted leading-relaxed">
+                Сотрудник сможет работать со своими записями, клиентами, услугами и личными расчётами.
+              </div>
+            )}
+
             <div className="p-3.5 bg-surface-2 rounded-control border border-border flex flex-col gap-3 mt-1">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="text-text-main text-xs font-semibold">

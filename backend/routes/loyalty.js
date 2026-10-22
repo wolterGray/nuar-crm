@@ -116,6 +116,34 @@ const requireCardAccess = async (db, req, cardId) => {
   return card;
 };
 
+const buildLoyaltyCardsWhere = (auth, {search = '', status = 'all', reward = 'all'} = {}) => {
+  const employeeId = Number(auth?.employeeId) || null;
+  const clientFilters = [];
+
+  if (!hasPermission(auth, PERMISSIONS.CALENDAR_VIEW_ALL)) {
+    if (!employeeId) return {id: -1};
+    clientFilters.push({visits: {some: {employeeId}}});
+  }
+
+  if (search) {
+    clientFilters.push({
+      OR: [
+        {name: {contains: search, mode: 'insensitive'}},
+        {phone: {contains: search, mode: 'insensitive'}},
+        {messageName: {contains: search, mode: 'insensitive'}},
+      ],
+    });
+  }
+
+  return {
+    ...(clientFilters.length ? {client: {AND: clientFilters}} : {}),
+    ...(status === 'active' ? {isActive: true} : {}),
+    ...(status === 'inactive' ? {isActive: false} : {}),
+    ...(status === 'archived' ? {archivedAt: {not: null}} : {}),
+    ...(reward === 'available' ? {rewardAvailable: true} : {}),
+  };
+};
+
 const requireReason = (value, fieldName = 'description') => {
   const description = String(value ?? '').trim();
   if (!description) {
@@ -269,28 +297,7 @@ router.get('/loyalty/cards', async (req, res) => {
     const status = String(req.query.status ?? 'all').trim();
     const reward = String(req.query.reward ?? 'all').trim();
 
-    const where = {
-      ...(!hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)
-        ? Number(req.auth?.employeeId)
-          ? {client: {visits: {some: {employeeId: Number(req.auth.employeeId)}}}}
-          : {id: -1}
-        : {}),
-      ...(status === 'active' ? { isActive: true } : {}),
-      ...(status === 'inactive' ? { isActive: false } : {}),
-      ...(status === 'archived' ? { archivedAt: { not: null } } : {}),
-      ...(reward === 'available' ? { rewardAvailable: true } : {}),
-      ...(search
-        ? {
-            client: {
-              OR: [
-                { name: { contains: search, mode: 'insensitive' } },
-                { phone: { contains: search, mode: 'insensitive' } },
-                { messageName: { contains: search, mode: 'insensitive' } },
-              ],
-            },
-          }
-        : {}),
-    };
+    const where = buildLoyaltyCardsWhere(req.auth, {search, status, reward});
 
     const [items, total] = await Promise.all([
       prisma.loyaltyCard.findMany({
@@ -808,6 +815,7 @@ router.delete('/loyalty/cards/:cardId', requireLoyaltyAdmin, async (req, res) =>
 });
 
 module.exports = {
+  buildLoyaltyCardsWhere,
   loyaltyRouter: router,
   publicLoyaltyRouter: publicRouter,
 };

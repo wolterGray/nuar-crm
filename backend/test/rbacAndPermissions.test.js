@@ -365,3 +365,49 @@ test('operations notes access: staff can view shared work notes and own private 
   assert.equal(canAccessNote({ role: 'unknown' }, workNote), false, 'Unknown role fails closed');
 });
 
+test('loyalty card search preserves assigned-client isolation for staff', () => {
+  const {buildLoyaltyCardsWhere} = require('../routes/loyalty');
+  const where = buildLoyaltyCardsWhere(
+    {
+      role: 'staff',
+      employeeId: 42,
+      effectivePermissions: {[PERMISSIONS.CALENDAR_VIEW_ALL]: false},
+    },
+    {search: 'Anna', status: 'active', reward: 'available'},
+  );
+
+  assert.deepEqual(where.client.AND[0], {visits: {some: {employeeId: 42}}});
+  assert.deepEqual(where.client.AND[1].OR[0], {
+    name: {contains: 'Anna', mode: 'insensitive'},
+  });
+  assert.equal(where.isActive, true);
+  assert.equal(where.rewardAvailable, true);
+});
+
+test('loyalty card list fails closed when assigned-only user has no employee binding', () => {
+  const {buildLoyaltyCardsWhere} = require('../routes/loyalty');
+  const where = buildLoyaltyCardsWhere({
+    role: 'staff',
+    employeeId: null,
+    effectivePermissions: {[PERMISSIONS.CALENDAR_VIEW_ALL]: false},
+  }, {search: 'Anna'});
+
+  assert.deepEqual(where, {id: -1});
+});
+
+test('system state endpoint rejects staff before reading shared settings', async () => {
+  const systemStateRouter = require('../routes/systemState');
+  const response = await invokeRouter(systemStateRouter, {
+    method: 'GET',
+    url: '/system-state',
+    auth: {
+      role: 'staff',
+      employeeId: 42,
+      effectivePermissions: {[PERMISSIONS.USERS_MANAGE]: false},
+    },
+  });
+
+  assert.equal(response.statusCode, 403);
+  assert.match(response.body.error, /users\.manage/);
+});
+

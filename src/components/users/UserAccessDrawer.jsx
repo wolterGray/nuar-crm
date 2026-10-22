@@ -163,6 +163,15 @@ function UserEditPane({
           </span>
         </label>
 
+        {role === "staff" && !employeeId && (
+          <div className="rounded-control border border-accentWarning/30 bg-accentWarning/10 p-3 text-xs text-text-main flex items-start gap-2.5">
+            <AppIcon name="alertTriangle" size="sm" className="text-accentWarning shrink-0 mt-0.5" />
+            <div className="leading-relaxed">
+              <strong>Не выбран мастер.</strong> Привяжите учётную запись к сотруднику, чтобы открыть личный календарь и визиты.
+            </div>
+          </div>
+        )}
+
         {/* Inline Save Actions right under fields so they are immediately visible */}
         <div className="pt-2 flex items-center gap-2.5">
           <Button
@@ -259,7 +268,6 @@ function UserPermissionsPane({
   onSubmit,
   onClose,
   setIsDirty,
-  pushNotification,
 }) {
   const [modalTab, setModalTab] = useState("permissions"); // "permissions" | "preview"
   const [permsDraft, setPermsDraft] = useState(() => ({...(user?.permissions || {})}));
@@ -279,24 +287,23 @@ function UserPermissionsPane({
   }, [dirty, setIsDirty]);
 
   const handleTogglePermission = (key, currentVal) => {
-    setPermsDraft((prev) => ({
-      ...prev,
-      [key]: !currentVal,
-    }));
-  };
-
-  const handleApplyRoleTemplate = (roleKey) => {
-    const templatePerms = ROLE_DEFAULT_PERMISSIONS[roleKey];
-    if (!templatePerms) return;
-    setPermsDraft({...templatePerms});
-    pushNotification?.({
-      title: "Шаблон применён",
-      message: `Загружены настройки прав для роли «${ROLE_LABELS[roleKey] || roleKey}»`,
-      persist: false,
+    const roleDefaults = ROLE_DEFAULT_PERMISSIONS[user.role] || {};
+    const nextValue = !currentVal;
+    setPermsDraft((prev) => {
+      const next = {...prev};
+      if (Boolean(roleDefaults[key]) === nextValue) {
+        delete next[key];
+      } else {
+        next[key] = nextValue;
+      }
+      return next;
     });
   };
 
   const handleResetPermissionsToRole = () => {
+    if (!window.confirm("Сбросить индивидуальные настройки и вернуть права выбранной роли?")) {
+      return;
+    }
     setPermsDraft({});
   };
 
@@ -315,7 +322,11 @@ function UserPermissionsPane({
     setPermsDraft((prev) => {
       const next = {...prev};
       group.permissions.forEach((perm) => {
-        next[perm.key] = targetVal;
+        if (Boolean(roleDefaults[perm.key]) === targetVal) {
+          delete next[perm.key];
+        } else {
+          next[perm.key] = targetVal;
+        }
       });
       return next;
     });
@@ -488,12 +499,14 @@ function UserPermissionsPane({
       <div className="crm-drawer-body">
         {modalTab === "permissions" ? (
           <>
-            {/* Quick Role Templates */}
+            {/* Role inheritance */}
             <div className="flex flex-col gap-2 p-3 rounded-control bg-surface-2/60 border border-border-soft">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                  <AppIcon name="sparkles" size="xs" className="text-accent" />
-                  <span className="font-semibold text-text-main">Быстрые шаблоны:</span>
+                  <AppIcon name="shield" size="xs" className="text-accent" />
+                  <span className="font-semibold text-text-main">
+                    Шаблон роли: {ROLE_LABELS[user.role] || user.role}
+                  </span>
                 </div>
                 {customOverrideCount > 0 && (
                   <Button
@@ -507,40 +520,9 @@ function UserPermissionsPane({
                   </Button>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  type="button"
-                  onClick={() => handleApplyRoleTemplate("owner")}
-                >
-                  Владелец
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  type="button"
-                  onClick={() => handleApplyRoleTemplate("admin")}
-                >
-                  Админ
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  type="button"
-                  onClick={() => handleApplyRoleTemplate("staff")}
-                >
-                  Массажист
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  type="button"
-                  onClick={() => handleApplyRoleTemplate("readonly")}
-                >
-                  Только чтение
-                </Button>
-              </div>
+              <p className="m-0 text-[11px] leading-relaxed text-text-muted">
+                Права наследуются от роли. Здесь сохраняются только индивидуальные разрешения и запреты.
+              </p>
             </div>
 
             {/* Access Summary Card */}

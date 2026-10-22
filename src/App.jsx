@@ -287,17 +287,27 @@ function App() {
   }, [handleLogout]);
 
   // Reset/switch in-memory CRM collections on user session change to prevent data leakage
-  const prevUserIdRef = useRef(null);
+  const prevSessionIdentityRef = useRef(undefined);
+  const hasSeenAuthenticatedSessionRef = useRef(false);
 
   useEffect(() => {
     const currentUserId = authSession?.user?.id ?? null;
     const currentUserRole = String(authSession?.user?.role || "").toLowerCase();
-    const prevUserId = prevUserIdRef.current;
+    const sessionIdentity = currentUserId
+      ? `${currentUserId}:${currentUserRole}:${authSession?.user?.employeeId ?? "none"}`
+      : null;
+    const previousIdentity = prevSessionIdentityRef.current;
 
-    if (prevUserId !== null && prevUserId !== currentUserId) {
+    const targetUser = authSession?.user;
+    const isNowOwner = currentUserRole === "owner" || targetUser?.id === "local-admin";
+    const shouldResetCollections = previousIdentity !== undefined && previousIdentity !== sessionIdentity && (
+      !sessionIdentity ||
+      !isNowOwner ||
+      hasSeenAuthenticatedSessionRef.current
+    );
+
+    if (shouldResetCollections) {
       clearCrmCollectionsCache();
-      const targetUser = authSession?.user;
-      const isNowOwner = currentUserRole === "owner" || targetUser?.id === "local-admin";
       queueMicrotask(() => {
         const initial = isNowOwner && targetUser
           ? getInitialCrmCollections(targetUser)
@@ -311,10 +321,19 @@ function App() {
         setPayrollRecords(isNowOwner ? loadStoredPayrollRecords(targetUser) : []);
         setCommunicationLog(isNowOwner ? loadCommunicationLog(targetUser) : []);
         setWaitlistEntries(isNowOwner ? loadStoredWaitlistEntries(targetUser) : []);
+        if (!isNowOwner) {
+          setEmployees([]);
+          setPackagesCatalog([]);
+          setServiceCatalog([]);
+          setSupplies([]);
+          setTasks([]);
+          setMessageTemplates([]);
+        }
       });
     }
 
-    prevUserIdRef.current = currentUserId;
+    if (sessionIdentity) hasSeenAuthenticatedSessionRef.current = true;
+    prevSessionIdentityRef.current = sessionIdentity;
   }, [authSession?.user]);
 
   // Automatically switch to first accessible page if current activePage is forbidden
@@ -327,7 +346,7 @@ function App() {
   }, [authSession?.user, activePage, setActivePage]);
 
   useEffect(() => {
-    if (!authSession) {
+    if (!authSession || !hasPermission(authSession.user, PERMISSIONS.CLIENTS_VIEW)) {
       return undefined;
     }
 
@@ -371,24 +390,38 @@ function App() {
     if (!canViewCatalog || canViewSalonFinances) return undefined;
 
     let active = true;
-    Promise.all([fetchPackages(), fetchClientPackages(), fetchCertificates()])
-      .then(([packagesResponse, clientPackagesResponse, certificatesResponse]) => {
+    Promise.allSettled([fetchPackages(), fetchClientPackages(), fetchCertificates()])
+      .then((results) => {
         if (!active) return;
-        setPackagesCatalog(Array.isArray(packagesResponse?.data) ? packagesResponse.data : []);
-        setClientPackages(
-          Array.isArray(clientPackagesResponse?.data) ? clientPackagesResponse.data : [],
-        );
-        setCertificates(
-          Array.isArray(certificatesResponse?.data) ? certificatesResponse.data : [],
-        );
-      })
-      .catch((error) => {
-        if (!active) return;
-        pushNotification({
-          title: "Пакеты не загружены",
-          message: error?.message || "Не удалось загрузить доступные пакеты клиентов",
-          persist: false,
-        });
+        const [packagesResult, clientPackagesResult, certificatesResult] = results;
+        if (packagesResult.status === "fulfilled") {
+          setPackagesCatalog(
+            Array.isArray(packagesResult.value?.data) ? packagesResult.value.data : [],
+          );
+        }
+        if (clientPackagesResult.status === "fulfilled") {
+          setClientPackages(
+            Array.isArray(clientPackagesResult.value?.data)
+              ? clientPackagesResult.value.data
+              : [],
+          );
+        }
+        if (certificatesResult.status === "fulfilled") {
+          setCertificates(
+            Array.isArray(certificatesResult.value?.data)
+              ? certificatesResult.value.data
+              : [],
+          );
+        }
+
+        const failed = results.filter((result) => result.status === "rejected");
+        if (failed.length) {
+          pushNotification({
+            title: "Часть данных пакетов не загружена",
+            message: failed[0].reason?.message || "Повторите загрузку позже",
+            persist: false,
+          });
+        }
       });
 
     return () => {
@@ -397,7 +430,11 @@ function App() {
   }, [authSession, pushNotification]);
 
   useEffect(() => {
-    if (!authSession) {
+    const canViewCalendar = authSession && (
+      hasPermission(authSession.user, PERMISSIONS.CALENDAR_VIEW_ALL) ||
+      hasPermission(authSession.user, PERMISSIONS.CALENDAR_VIEW_ASSIGNED)
+    );
+    if (!canViewCalendar) {
       return undefined;
     }
 
@@ -441,27 +478,39 @@ function App() {
     let active = true;
 
     const loadBackendCatalogs = async () => {
-      try {
-        const canViewCatalog =
-          hasPermission(authSession.user, PERMISSIONS.CATALOG_VIEW) ||
-          hasPermission(authSession.user, PERMISSIONS.CATALOG_MANAGE);
+      const canViewCatalog =
+        hasPermission(authSession.user, PERMISSIONS.CATALOG_VIEW) ||
+        hasPermission(authSession.user, PERMISSIONS.CATALOG_MANAGE);
+      const canFetchEmployees =
+        hasPermission(authSession.user, PERMISSIONS.CALENDAR_VIEW_ALL) ||
+        hasPermission(authSession.user, PERMISSIONS.CALENDAR_VIEW_ASSIGNED) ||
+        hasPermission(authSession.user, PERMISSIONS.EMPLOYEES_MANAGE) ||
+        hasPermission(authSession.user, PERMISSIONS.PAYOUTS_VIEW_OWN);
 
-        const [servicesResponse, employeesResponse] = await Promise.all([
-          canViewCatalog
-            ? fetchServices().catch(() => ({data: []}))
-            : Promise.resolve({data: []}),
-          fetchEmployees().catch(() => ({data: []})),
-        ]);
+      const [servicesResult, employeesResult] = await Promise.allSettled([
+        canViewCatalog ? fetchServices() : Promise.resolve(null),
+        canFetchEmployees ? fetchEmployees() : Promise.resolve(null),
+      ]);
+      try {
         if (!active) {
           return;
         }
 
-        setServiceCatalog(
-          Array.isArray(servicesResponse?.data) ? servicesResponse.data : [],
+        if (servicesResult.status === "fulfilled" && servicesResult.value) {
+          setServiceCatalog(
+            Array.isArray(servicesResult.value.data) ? servicesResult.value.data : [],
+          );
+        }
+        if (employeesResult.status === "fulfilled" && employeesResult.value) {
+          setEmployees(
+            Array.isArray(employeesResult.value.data) ? employeesResult.value.data : [],
+          );
+        }
+
+        const failed = [servicesResult, employeesResult].filter(
+          (result) => result.status === "rejected",
         );
-        setEmployees(
-          Array.isArray(employeesResponse?.data) ? employeesResponse.data : [],
-        );
+        if (failed.length) throw failed[0].reason;
       } catch (error) {
         if (!active) {
           return;
@@ -483,7 +532,7 @@ function App() {
   }, [authSession, pushNotification]);
 
   useEffect(() => {
-    if (!authSession) {
+    if (!authSession || !canViewPage("operations", authSession.user)) {
       return undefined;
     }
 
@@ -647,7 +696,7 @@ function App() {
   }, [authSession, clientProfiles, pushNotification]);
 
   useEffect(() => {
-    if (!authSession) {
+    if (!authSession || !hasPermission(authSession.user, PERMISSIONS.USERS_MANAGE)) {
       systemStateLoadedRef.current = false;
       return undefined;
     }

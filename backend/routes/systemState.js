@@ -51,7 +51,7 @@ const sanitizePayload = (key, payload, isOwner) => {
 };
 
 // ==================== System state settings ====================
-router.get('/system-state', async (req, res) => {
+router.get('/system-state', requirePermission(PERMISSIONS.USERS_MANAGE), async (req, res) => {
   try {
     const isOwner = isOwnerAuth(req.auth);
     const records = await prisma.systemState.findMany({ orderBy: { key: 'asc' } });
@@ -69,7 +69,7 @@ router.get('/system-state', async (req, res) => {
   }
 });
 
-router.get('/system-state/:key', async (req, res) => {
+router.get('/system-state/:key', requirePermission(PERMISSIONS.USERS_MANAGE), async (req, res) => {
   const key = String(req.params.key ?? '').trim();
   try {
     const isOwner = isOwnerAuth(req.auth);
