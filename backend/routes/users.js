@@ -243,7 +243,10 @@ function createUsersRouter({
     res.status(status).json({success: false, error: message});
   };
 
-  router.use(requireAdminOrOwner);
+  // Scope the management guard to this router's URL namespace. This router is
+  // mounted at /api before other private routers, so an unscoped middleware
+  // would reject every staff request before the matching router can handle it.
+  router.use('/users', requireAdminOrOwner);
 
   const ensureAdminDoesNotManageOwner = (req, targetRole) => {
     if (!isOwnerAuth(req.auth) && targetRole === 'owner') {

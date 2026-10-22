@@ -317,6 +317,27 @@ test('admin can manage staff but cannot modify an owner account or assign owner'
   assert.equal(promoteStaff.statusCode, 403);
 });
 
+test('users router does not block staff requests for other API namespaces', async () => {
+  const usersRouter = defaultUsersRouter.createUsersRouter({
+    prismaClient: {
+      user: {},
+    },
+  });
+
+  const response = await invokeRouter(usersRouter, {
+    method: 'GET',
+    url: '/clients',
+    auth: {
+      role: 'staff',
+      employeeId: 42,
+      effectivePermissions: getEffectivePermissions('staff'),
+    },
+  });
+
+  assert.equal(response.statusCode, 200, 'non-user route must fall through to the next API router');
+  assert.equal(response.body, null);
+});
+
 test('operations notes access: staff can view shared work notes and own private notes, but not owner notes or others private notes', () => {
   const operationsRouter = require('../routes/operations');
   const { canAccessNote } = operationsRouter;
