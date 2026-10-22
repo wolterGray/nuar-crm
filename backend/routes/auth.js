@@ -1,7 +1,12 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
-const { verifyJwt, requireActiveUser, invalidateUserCache } = require('../middleware/auth');
+const {
+  createActiveUserMiddleware,
+  verifyJwt,
+  requireActiveUser,
+  invalidateUserCache,
+} = require('../middleware/auth');
 const { getEffectivePermissions } = require('../constants/permissions');
 const { authLoginLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
@@ -28,6 +33,7 @@ function createAuthRouter({
 } = {}) {
   const router = express.Router();
   const prisma = prismaClient;
+  const requireSessionUser = createActiveUserMiddleware(prisma);
 
   const getJwtSecret = () => String(process.env.JWT_SECRET ?? '').trim();
 
@@ -572,44 +578,8 @@ function createAuthRouter({
     }
   });
 
-  router.get('/session', verifyJwt, async (req, res) => {
-    const rawId = req.auth?.sub || req.auth?.id || 'local-admin';
-    const numericId = Number(rawId);
-
-    if (rawId !== 'local-admin' && Number.isInteger(numericId) && numericId > 0) {
-      try {
-        const dbUser = await prisma.user.findUnique({where: {id: numericId}});
-        if (!dbUser || !dbUser.isActive) {
-          return res.status(401).json({
-            success: false,
-            error: 'Account is disabled',
-          });
-        }
-
-        const effectivePermissions = getEffectivePermissions(
-          dbUser.role,
-          dbUser.permissions,
-        );
-
-        return res.json({
-          success: true,
-          user: {
-            id: String(dbUser.id),
-            email: dbUser.email,
-            name: dbUser.name || '',
-            role: dbUser.role,
-            employeeId: dbUser.employeeId ?? null,
-            permissions: dbUser.permissions || {},
-            effectivePermissions,
-          },
-        });
-      } catch (error) {
-        if (error?.code !== 'P2021' && error?.code !== 'P2022') {
-          console.error('Session user lookup failed:', error);
-        }
-      }
-    }
-
+  router.get('/session', verifyJwt, requireSessionUser, async (req, res) => {
+    const rawId = req.auth?.sub || req.auth?.id;
     const role = getSessionRole(req.auth);
     return res.json({
       success: true,

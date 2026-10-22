@@ -1,6 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { requirePermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { ensureSiteCmsTables } = require('../utils/siteCmsTables');
@@ -8,6 +8,7 @@ const { ensureSiteCmsTables } = require('../utils/siteCmsTables');
 const router = express.Router();
 const prisma = new PrismaClient();
 const SITE_CONTENT_ROW_ID = 'main';
+const requireSiteAdmin = requirePermission(PERMISSIONS.USERS_MANAGE);
 
 const validationError = (message) => {
   const error = new Error(message);
@@ -55,7 +56,7 @@ const handleRouteError = async (req, res, error, context = {}) => {
   res.status(response.status).json({ success: false, error: response.message });
 };
 
-router.get('/site-content', requireOwner, async (req, res) => {
+router.get('/site-content', requireSiteAdmin, async (req, res) => {
   try {
     await ensureSiteCmsTables(prisma);
     const rows = await prisma.$queryRaw`
@@ -77,7 +78,7 @@ router.get('/site-content', requireOwner, async (req, res) => {
   }
 });
 
-router.put('/site-content', requireOwner, async (req, res) => {
+router.put('/site-content', requireSiteAdmin, async (req, res) => {
   const overrides = req.body?.overrides ?? req.body?.data;
   if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) {
     return res.status(422).json({ success: false, error: 'CMS overrides object is required' });
@@ -110,7 +111,7 @@ router.put('/site-content', requireOwner, async (req, res) => {
   }
 });
 
-router.patch('/site-content', requireOwner, async (req, res) => {
+router.patch('/site-content', requireSiteAdmin, async (req, res) => {
   const patch = req.body?.overrides ?? req.body?.data ?? req.body;
   if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
     return res.status(422).json({ success: false, error: 'CMS overrides patch object is required' });
@@ -155,7 +156,7 @@ router.patch('/site-content', requireOwner, async (req, res) => {
   }
 });
 
-router.delete('/site-content', requireOwner, async (req, res) => {
+router.delete('/site-content', requireSiteAdmin, async (req, res) => {
   try {
     await ensureSiteCmsTables(prisma);
     const rows = await prisma.$queryRaw`
@@ -182,7 +183,7 @@ router.delete('/site-content', requireOwner, async (req, res) => {
   }
 });
 
-router.get('/site-images', requireOwner, async (req, res) => {
+router.get('/site-images', requireSiteAdmin, async (req, res) => {
   const ids = String(req.query.ids ?? '')
     .split(',')
     .map((item) => item.trim())
@@ -225,7 +226,7 @@ router.get('/site-images', requireOwner, async (req, res) => {
   }
 });
 
-router.get('/site-images/storage-usage', requireOwner, async (req, res) => {
+router.get('/site-images/storage-usage', requireSiteAdmin, async (req, res) => {
   try {
     await ensureSiteCmsTables(prisma);
     const rows = await prisma.$queryRaw`
@@ -238,7 +239,7 @@ router.get('/site-images/storage-usage', requireOwner, async (req, res) => {
   }
 });
 
-router.put('/site-images/:id', requireOwner, async (req, res) => {
+router.put('/site-images/:id', requireSiteAdmin, async (req, res) => {
   const id = String(req.params.id ?? '').trim();
   const body = req.body ?? {};
 
@@ -281,7 +282,7 @@ router.put('/site-images/:id', requireOwner, async (req, res) => {
   }
 });
 
-router.patch('/site-images/:id', requireOwner, async (req, res) => {
+router.patch('/site-images/:id', requireSiteAdmin, async (req, res) => {
   const id = String(req.params.id ?? '').trim();
   const body = req.body ?? {};
 
@@ -316,7 +317,7 @@ router.patch('/site-images/:id', requireOwner, async (req, res) => {
   }
 });
 
-router.delete('/site-images', requireOwner, async (req, res) => {
+router.delete('/site-images', requireSiteAdmin, async (req, res) => {
   const ids = Array.isArray(req.body?.ids) ? req.body.ids.map(String).filter(Boolean) : [];
   if (!ids.length) return res.json({ success: true, data: { removed: 0 } });
 
@@ -331,7 +332,7 @@ router.delete('/site-images', requireOwner, async (req, res) => {
   }
 });
 
-router.get('/site-images/orphans', requireOwner, async (req, res) => {
+router.get('/site-images/orphans', requireSiteAdmin, async (req, res) => {
   try {
     await ensureSiteCmsTables(prisma);
     const rows = await prisma.$queryRaw`

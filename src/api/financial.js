@@ -41,6 +41,12 @@ const request = async (path, {body, label, method = "GET"} = {}) => {
 export const fetchFinancialState = () =>
   request("/api/financial-state", {label: "Financial state"});
 
+export const fetchClientPackages = () =>
+  request("/api/client-packages", {label: "Client packages"});
+
+export const fetchCertificates = () =>
+  request("/api/certificates", {label: "Certificates"});
+
 export const createPackage = (packageItem) =>
   request("/api/packages", {body: packageItem, label: "Create package", method: "POST"});
 

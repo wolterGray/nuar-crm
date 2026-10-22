@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { isOwnerAuth, requireOwner, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
+const { isOwnerAuth, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const {ensureNoteTables} = require('../utils/noteTables');
@@ -20,7 +20,55 @@ const NOTE_ATTACHMENT_MAX_BYTES = 8 * 1024 * 1024;
 const NOTE_ATTACHMENT_TYPES = new Set(['image/gif', 'image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
 
 const isNote = (record) => String(record?.type ?? '').trim() === 'note';
-const denyOwnerOnly = (res) => res.status(403).json({success: false, error: 'Owner role required'});
+const denyAccess = (res) => res.status(403).json({success: false, error: 'Доступ запрещён'});
+const getAuthUserId = (auth) => String(auth?.sub || auth?.id || '');
+const getNoteAccess = (note) => {
+  const payload = notePayload(note);
+  return {
+    ownerUserId: String(payload.ownerUserId || ''),
+    visibility: ['private', 'work', 'owner'].includes(payload.visibility)
+      ? payload.visibility
+      : 'owner',
+  };
+};
+const canAccessNote = (auth, note) => {
+  if (!note || !isNote(note)) return false;
+  const access = getNoteAccess(note);
+  if (access.ownerUserId && access.ownerUserId === getAuthUserId(auth)) return true;
+  if (access.visibility === 'private') return false;
+  if (access.visibility === 'owner') return isOwnerAuth(auth);
+  return (
+    access.visibility === 'work' &&
+    Boolean(
+      isOwnerAuth(auth) ||
+      auth?.role === 'admin' ||
+      auth?.role === 'manager' ||
+      auth?.role === 'staff'
+    )
+  );
+};
+const stampNoteAccess = (data, auth) => {
+  const payload = notePayload(data);
+  const requestedVisibility = String(payload.visibility || '').toLowerCase();
+  const defaultVisibility = isOwnerAuth(auth)
+    ? 'owner'
+    : auth?.role === 'admin'
+      ? 'work'
+      : 'private';
+  const allowedVisibility = isOwnerAuth(auth)
+    ? new Set(['private', 'work', 'owner'])
+    : new Set(['private', 'work']);
+  return {
+    ...data,
+    payload: {
+      ...payload,
+      ownerUserId: getAuthUserId(auth),
+      visibility: allowedVisibility.has(requestedVisibility)
+        ? requestedVisibility
+        : defaultVisibility,
+    },
+  };
+};
 const cleanFileName = (value) => [...String(value ?? 'attachment')]
   .filter((character) => character.charCodeAt(0) >= 32)
   .join('')
@@ -162,6 +210,24 @@ const buildWaitlistEntryData = (payload) => ({
   payload,
 });
 
+const getWaitlistEmployeeId = (entry) => {
+  const payload = objectPayload(entry?.payload);
+  return Number(payload.employeeId || payload.masterId) || null;
+};
+
+const canAccessWaitlistEntry = (auth, entry) => {
+  if (hasPermission(auth, PERMISSIONS.CALENDAR_VIEW_ALL)) return true;
+  const employeeId = Number(auth?.employeeId) || null;
+  return Boolean(employeeId && getWaitlistEmployeeId(entry) === employeeId);
+};
+
+const scopeWaitlistPayload = (auth, payload) => {
+  if (hasPermission(auth, PERMISSIONS.CALENDAR_VIEW_ALL)) return payload;
+  const employeeId = Number(auth?.employeeId) || null;
+  if (!employeeId) return null;
+  return {...payload, employeeId, masterId: employeeId};
+};
+
 const buildSupplyData = (payload) => ({
   name: String(payload?.name ?? '').trim(),
   stock:
@@ -182,6 +248,12 @@ const buildSupplyData = (payload) => ({
   payload,
 });
 
+const serializeSupply = (record, auth) => {
+  const base = withStoredId(record);
+  if (hasPermission(auth, PERMISSIONS.TASKS_MANAGE)) return base;
+  return {...base, cost: null, orderUrl: null};
+};
+
 const buildMessageTemplateData = (payload) => ({
   name: String(payload?.name ?? '').trim(),
   channel: cleanOptionalString(payload?.channel),
@@ -190,16 +262,6 @@ const buildMessageTemplateData = (payload) => ({
   purpose: cleanOptionalString(payload?.purpose),
   subject: cleanOptionalString(payload?.subject),
   body: String(payload?.body ?? '').trim(),
-  payload,
-});
-
-const buildCommunicationLogData = (payload) => ({
-  clientId: payload?.clientId ? Number(payload.clientId) : null,
-  clientName: cleanOptionalString(payload?.clientName),
-  channel: cleanOptionalString(payload?.channel),
-  templateName: cleanOptionalString(payload?.templateName),
-  body: cleanOptionalString(payload?.body),
-  createdAt: payload?.createdAt ? new Date(payload.createdAt) : undefined,
   payload,
 });
 
@@ -241,7 +303,7 @@ router.get('/operations-state', async (req, res) => {
     const isOwner = isOwnerAuth(req.auth);
     const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
     const canViewLogs = hasPermission(req.auth, PERMISSIONS.LOGS_VIEW);
-    const canManageClients = hasPermission(req.auth, PERMISSIONS.CLIENTS_MANAGE);
+    const canManageTasks = hasPermission(req.auth, PERMISSIONS.TASKS_MANAGE);
     const canViewAllCalendar = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
     const userEmpId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
 
@@ -256,7 +318,7 @@ router.get('/operations-state', async (req, res) => {
         .findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] }),
       prisma.supply.findMany({ orderBy: { name: 'asc' } }),
       prisma.waitlistEntry.findMany({ orderBy: { createdAt: 'asc' } }),
-      (isOwner || canManageClients)
+      (isOwner || canManageTasks)
         ? prisma.messageTemplate.findMany({ orderBy: { name: 'asc' } })
         : Promise.resolve([]),
       (isOwner || canViewLogs)
@@ -268,7 +330,7 @@ router.get('/operations-state', async (req, res) => {
     const filteredWaitlist = waitlistEntries.filter((w) => {
       if (canViewAllCalendar) return true;
       if (!userEmpId) return false;
-      const entryEmpId = w.employeeId || w.masterId;
+      const entryEmpId = getWaitlistEmployeeId(w);
       return entryEmpId && Number(entryEmpId) === userEmpId;
     });
 
@@ -277,9 +339,14 @@ router.get('/operations-state', async (req, res) => {
       data: {
         communicationLog: communicationLog.map((l) => sanitizeCommLog(l, canViewContacts)),
         messageTemplates: messageTemplates.map(withStoredId),
-        supplies: supplies.map(withStoredId),
+        supplies: supplies.map((supply) => serializeSupply(supply, req.auth)),
         tasks: tasks
-          .filter((task) => !isNote(task) || (isOwner && !notePayload(task).deletedAt))
+          .filter((task) => {
+            if (isNote(task)) {
+              return !notePayload(task).deletedAt && canAccessNote(req.auth, task);
+            }
+            return canManageTasks;
+          })
           .map(withStoredId),
         waitlistEntries: filteredWaitlist.map((w) => sanitizeWaitlist(w, canViewContacts)),
       },
@@ -292,9 +359,13 @@ router.get('/operations-state', async (req, res) => {
 });
 
 // ==================== Task CRUD ====================
-router.post('/tasks', requirePermission(PERMISSIONS.TASKS_MANAGE), (req, res) => {
-  const data = buildTaskData(req.body ?? {});
-  if (isNote(data) && !isOwnerAuth(req.auth)) return denyOwnerOnly(res);
+router.post('/tasks', (req, res) => {
+  let data = buildTaskData(req.body ?? {});
+  if (isNote(data)) {
+    data = stampNoteAccess(data, req.auth);
+  } else if (!hasPermission(req.auth, PERMISSIONS.TASKS_MANAGE)) {
+    return denyAccess(res);
+  }
   if (!data.title) {
     return res.status(400).json({ success: false, error: 'Task title is required' });
   }
@@ -332,9 +403,9 @@ router.post('/tasks/transfer-checklist-item', requirePermission(PERMISSIONS.TASK
       const payload = Object.keys(nestedPayload).length ? { ...rawPayload, ...nestedPayload } : rawPayload;
 
       const isRepeating = payload.repeat?.enabled === true || payload.taskKind === 'daily';
-      let foundItem = null;
-      let nextChecklist = [];
-      let updatedPayload = null;
+      let foundItem;
+      let nextChecklist;
+      let updatedPayload;
       let updatedStatus = null;
       let updatedCompleted = undefined;
 
@@ -472,8 +543,13 @@ router.post('/tasks/transfer-checklist-item', requirePermission(PERMISSIONS.TASK
 router.get('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.task.findUnique({ where: { id } }).then((task) => {
-    if (isNote(task) && !isOwnerAuth(req.auth)) {
-      const error = new Error('Owner role required');
+    if (isNote(task) && !canAccessNote(req.auth, task)) {
+      const error = new Error('Доступ запрещён');
+      error.status = 403;
+      throw error;
+    }
+    if (!isNote(task) && !hasPermission(req.auth, PERMISSIONS.TASKS_MANAGE)) {
+      const error = new Error('Доступ запрещён');
       error.status = 403;
       throw error;
     }
@@ -481,11 +557,15 @@ router.get('/tasks/:id', (req, res) => {
   }));
 });
 
-router.put('/tasks/:id', requirePermission(PERMISSIONS.TASKS_MANAGE), async (req, res) => {
+router.put('/tasks/:id', async (req, res) => {
   const id = Number(req.params.id);
   const existing = await prisma.task.findUnique({where: {id}});
-  if ((isNote(existing) || isNote(req.body)) && !isOwnerAuth(req.auth)) return denyOwnerOnly(res);
-  const data = buildTaskData({ ...(req.body ?? {}), id });
+  if (isNote(existing) && !canAccessNote(req.auth, existing)) return denyAccess(res);
+  if (!isNote(existing) && !hasPermission(req.auth, PERMISSIONS.TASKS_MANAGE)) return denyAccess(res);
+  let data = buildTaskData({ ...(req.body ?? {}), id });
+  if (isNote(existing)) {
+    data = {...data, payload: {...notePayload(existing), ...notePayload(data)}};
+  }
   if (!data.title) {
     return res.status(400).json({ success: false, error: 'Task title is required' });
   }
@@ -502,10 +582,11 @@ router.put('/tasks/:id', requirePermission(PERMISSIONS.TASKS_MANAGE), async (req
   );
 });
 
-router.delete('/tasks/:id', requireOwner, async (req, res) => {
+router.delete('/tasks/:id', async (req, res) => {
   const id = Number(req.params.id);
   const existing = await prisma.task.findUnique({where: {id}});
   if (isNote(existing)) {
+    if (!canAccessNote(req.auth, existing)) return denyAccess(res);
     const payload = {...notePayload(existing), deletedAt: new Date().toISOString()};
     await auditUpdate(
       prisma,
@@ -519,6 +600,7 @@ router.delete('/tasks/:id', requireOwner, async (req, res) => {
     );
     return;
   }
+  if (!isOwnerAuth(req.auth)) return denyAccess(res);
   await auditDelete(
     prisma,
     req,
@@ -537,13 +619,15 @@ router.get('/tasks', (req, res) => {
     prisma.task
       .findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] })
       .then((records) => records
-        .filter((task) => !isNote(task) || (isOwnerAuth(req.auth) && !notePayload(task).deletedAt))
+        .filter((task) => isNote(task)
+          ? canAccessNote(req.auth, task) && !notePayload(task).deletedAt
+          : hasPermission(req.auth, PERMISSIONS.TASKS_MANAGE))
         .map(withStoredId)),
   );
 });
 
-// ==================== Owner notes ====================
-router.patch('/notes/:id', requireOwner, async (req, res) => {
+// ==================== Personal and work notes ====================
+router.patch('/notes/:id', async (req, res) => {
   const id = Number(req.params.id);
   try {
     await ensureNoteTables(prisma);
@@ -552,6 +636,11 @@ router.patch('/notes/:id', requireOwner, async (req, res) => {
       if (!existing || !isNote(existing)) {
         const error = new Error('Note not found');
         error.status = 404;
+        throw error;
+      }
+      if (!canAccessNote(req.auth, existing)) {
+        const error = new Error('Доступ запрещён');
+        error.status = 403;
         throw error;
       }
 
@@ -566,9 +655,15 @@ router.patch('/notes/:id', requireOwner, async (req, res) => {
 
       await saveRevisionIfDue(tx, existing);
       const incomingPayload = objectPayload(req.body?.payload);
+      const requestedVisibility = String(incomingPayload.visibility || currentPayload.visibility || '').toLowerCase();
+      const nextVisibility = isOwnerAuth(req.auth)
+        ? (['private', 'work', 'owner'].includes(requestedVisibility) ? requestedVisibility : 'owner')
+        : (['private', 'work'].includes(requestedVisibility) ? requestedVisibility : getNoteAccess(existing).visibility);
       const nextPayload = {
         ...currentPayload,
         ...incomingPayload,
+        ownerUserId: currentPayload.ownerUserId || getAuthUserId(req.auth),
+        visibility: nextVisibility,
         lastEditedAt: new Date().toISOString(),
         noteVersion: currentVersion + 1,
       };
@@ -591,21 +686,27 @@ router.patch('/notes/:id', requireOwner, async (req, res) => {
   }
 });
 
-router.get('/notes-trash', requireOwner, async (_req, res) => {
+router.get('/notes-trash', async (req, res) => {
   try {
     const notes = await prisma.task.findMany({where: {type: 'note'}, orderBy: {updatedAt: 'desc'}});
-    res.json({success: true, data: notes.filter((note) => Boolean(notePayload(note).deletedAt)).map(withStoredId)});
+    res.json({
+      success: true,
+      data: notes
+        .filter((note) => canAccessNote(req.auth, note) && Boolean(notePayload(note).deletedAt))
+        .map(withStoredId),
+    });
   } catch (error) {
     const response = getHttpErrorResponse(error);
     res.status(response.status).json({success: false, error: response.message});
   }
 });
 
-router.post('/notes/:id/restore', requireOwner, async (req, res) => {
+router.post('/notes/:id/restore', async (req, res) => {
   const id = Number(req.params.id);
   try {
     const existing = await prisma.task.findUnique({where: {id}});
     if (!existing || !isNote(existing)) return res.status(404).json({success: false, error: 'Note not found'});
+    if (!canAccessNote(req.auth, existing)) return denyAccess(res);
     const payload = {...notePayload(existing)};
     delete payload.deletedAt;
     const saved = await prisma.task.update({where: {id}, data: {payload, status: 'active'}});
@@ -616,13 +717,14 @@ router.post('/notes/:id/restore', requireOwner, async (req, res) => {
   }
 });
 
-router.delete('/notes/:id/permanent', requireOwner, async (req, res) => {
+router.delete('/notes/:id/permanent', async (req, res) => {
   const id = Number(req.params.id);
   try {
     const existing = await prisma.task.findUnique({where: {id}});
     if (!existing || !isNote(existing) || !notePayload(existing).deletedAt) {
       return res.status(404).json({success: false, error: 'Deleted note not found'});
     }
+    if (!canAccessNote(req.auth, existing)) return denyAccess(res);
     await prisma.task.delete({where: {id}});
     res.json({success: true, data: {id}});
   } catch (error) {
@@ -631,10 +733,13 @@ router.delete('/notes/:id/permanent', requireOwner, async (req, res) => {
   }
 });
 
-router.get('/notes/:id/revisions', requireOwner, async (req, res) => {
+router.get('/notes/:id/revisions', async (req, res) => {
   const id = Number(req.params.id);
   try {
     await ensureNoteTables(prisma);
+    const note = await prisma.task.findUnique({where: {id}});
+    if (!note || !isNote(note)) return res.status(404).json({success: false, error: 'Note not found'});
+    if (!canAccessNote(req.auth, note)) return denyAccess(res);
     const rows = await prisma.$queryRaw`
       select id, note_id, title, content, priority, version, created_at
       from note_revisions
@@ -652,7 +757,7 @@ router.get('/notes/:id/revisions', requireOwner, async (req, res) => {
   }
 });
 
-router.post('/notes/:id/revisions/:revisionId/restore', requireOwner, async (req, res) => {
+router.post('/notes/:id/revisions/:revisionId/restore', async (req, res) => {
   const id = Number(req.params.id);
   try {
     const revisionId = BigInt(req.params.revisionId);
@@ -662,6 +767,11 @@ router.post('/notes/:id/revisions/:revisionId/restore', requireOwner, async (req
       if (!existing || !isNote(existing)) {
         const error = new Error('Note not found');
         error.status = 404;
+        throw error;
+      }
+      if (!canAccessNote(req.auth, existing)) {
+        const error = new Error('Доступ запрещён');
+        error.status = 403;
         throw error;
       }
       const revisions = await tx.$queryRaw`
@@ -696,10 +806,13 @@ router.post('/notes/:id/revisions/:revisionId/restore', requireOwner, async (req
   }
 });
 
-router.get('/notes/:id/attachments', requireOwner, async (req, res) => {
+router.get('/notes/:id/attachments', async (req, res) => {
   const id = Number(req.params.id);
   try {
     await ensureNoteTables(prisma);
+    const note = await prisma.task.findUnique({where: {id}});
+    if (!note || !isNote(note)) return res.status(404).json({success: false, error: 'Note not found'});
+    if (!canAccessNote(req.auth, note)) return denyAccess(res);
     const rows = await prisma.$queryRaw`
       select id, note_id, file_name, mime_type, size_bytes, created_at
       from note_attachments
@@ -713,7 +826,7 @@ router.get('/notes/:id/attachments', requireOwner, async (req, res) => {
   }
 });
 
-router.post('/notes/:id/attachments', requireOwner, async (req, res) => {
+router.post('/notes/:id/attachments', async (req, res) => {
   const noteId = Number(req.params.id);
   const mimeType = String(req.body?.mimeType ?? '').toLowerCase();
   const data = decodeBase64(req.body?.dataBase64);
@@ -727,6 +840,7 @@ router.post('/notes/:id/attachments', requireOwner, async (req, res) => {
     await ensureNoteTables(prisma);
     const note = await prisma.task.findUnique({where: {id: noteId}});
     if (!note || !isNote(note)) return res.status(404).json({success: false, error: 'Note not found'});
+    if (!canAccessNote(req.auth, note)) return denyAccess(res);
     const id = crypto.randomUUID();
     const fileName = cleanFileName(req.body?.fileName);
     const rows = await prisma.$queryRaw`
@@ -741,17 +855,19 @@ router.post('/notes/:id/attachments', requireOwner, async (req, res) => {
   }
 });
 
-router.get('/notes/attachments/:attachmentId/content', requireOwner, async (req, res) => {
+router.get('/notes/attachments/:attachmentId/content', async (req, res) => {
   try {
     await ensureNoteTables(prisma);
     const rows = await prisma.$queryRaw`
-      select file_name, mime_type, data
+      select id, note_id, file_name, mime_type, data
       from note_attachments
       where id = ${String(req.params.attachmentId)}
       limit 1
     `;
     const attachment = rows?.[0];
     if (!attachment) return res.status(404).json({success: false, error: 'Attachment not found'});
+    const note = await prisma.task.findUnique({where: {id: Number(attachment.note_id)}});
+    if (!canAccessNote(req.auth, note)) return denyAccess(res);
     res.set('Content-Type', attachment.mime_type);
     res.set('Content-Disposition', `inline; filename="${cleanFileName(attachment.file_name)}"`);
     res.set('Cache-Control', 'private, max-age=300');
@@ -762,9 +878,18 @@ router.get('/notes/attachments/:attachmentId/content', requireOwner, async (req,
   }
 });
 
-router.delete('/notes/attachments/:attachmentId', requireOwner, async (req, res) => {
+router.delete('/notes/attachments/:attachmentId', async (req, res) => {
   try {
     await ensureNoteTables(prisma);
+    const attachments = await prisma.$queryRaw`
+      select note_id from note_attachments
+      where id = ${String(req.params.attachmentId)}
+      limit 1
+    `;
+    const attachment = attachments?.[0];
+    if (!attachment) return res.status(404).json({success: false, error: 'Attachment not found'});
+    const note = await prisma.task.findUnique({where: {id: Number(attachment.note_id)}});
+    if (!canAccessNote(req.auth, note)) return denyAccess(res);
     const count = await prisma.$executeRaw`
       delete from note_attachments where id = ${String(req.params.attachmentId)}
     `;
@@ -777,7 +902,9 @@ router.delete('/notes/attachments/:attachmentId', requireOwner, async (req, res)
 
 // ==================== Waitlist CRUD ====================
 router.post('/waitlist', (req, res) => {
-  const data = buildWaitlistEntryData(req.body ?? {});
+  const scopedPayload = scopeWaitlistPayload(req.auth, req.body ?? {});
+  if (!scopedPayload) return denyAccess(res);
+  const data = buildWaitlistEntryData(scopedPayload);
   if (!data.clientName) {
     return res.status(400).json({ success: false, error: 'Waitlist client name is required' });
   }
@@ -798,6 +925,7 @@ router.get('/waitlist/:id', async (req, res) => {
   try {
     const record = await prisma.waitlistEntry.findUnique({ where: { id } });
     if (!record) return res.status(404).json({ success: false, error: 'Waitlist entry not found' });
+    if (!canAccessWaitlistEntry(req.auth, record)) return denyAccess(res);
     res.json({ success: true, data: sanitizeWaitlist(record, canViewContacts) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -806,7 +934,12 @@ router.get('/waitlist/:id', async (req, res) => {
 
 router.put('/waitlist/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const data = buildWaitlistEntryData({ ...(req.body ?? {}), id });
+  const existing = await prisma.waitlistEntry.findUnique({where: {id}});
+  if (!existing) return res.status(404).json({success: false, error: 'Waitlist entry not found'});
+  if (!canAccessWaitlistEntry(req.auth, existing)) return denyAccess(res);
+  const scopedPayload = scopeWaitlistPayload(req.auth, {...(req.body ?? {}), id});
+  if (!scopedPayload) return denyAccess(res);
+  const data = buildWaitlistEntryData(scopedPayload);
   if (!data.clientName) {
     return res.status(400).json({ success: false, error: 'Waitlist client name is required' });
   }
@@ -832,6 +965,7 @@ router.delete('/waitlist/:id', async (req, res) => {
   if (!existing) {
     return res.status(404).json({ success: false, error: 'Запись не найдена' });
   }
+  if (!canAccessWaitlistEntry(req.auth, existing)) return denyAccess(res);
 
   const existingPayload = existing.payload && typeof existing.payload === 'object' ? existing.payload : {};
   const nextPayload = {
@@ -867,6 +1001,7 @@ router.post('/waitlist/:id/restore', async (req, res) => {
   if (!existing) {
     return res.status(404).json({ success: false, error: 'Запись не найдена' });
   }
+  if (!canAccessWaitlistEntry(req.auth, existing)) return denyAccess(res);
 
   const existingPayload = existing.payload && typeof existing.payload === 'object' ? { ...existing.payload } : {};
   const targetStatus = existingPayload.previousStatus || 'active';
@@ -895,14 +1030,19 @@ router.get('/waitlist', async (req, res) => {
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
     const records = await prisma.waitlistEntry.findMany({ orderBy: { createdAt: 'asc' } });
-    res.json({ success: true, data: records.map((r) => sanitizeWaitlist(r, canViewContacts)) });
+    res.json({
+      success: true,
+      data: records
+        .filter((record) => canAccessWaitlistEntry(req.auth, record))
+        .map((record) => sanitizeWaitlist(record, canViewContacts)),
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
 // ==================== Supplies CRUD ====================
-router.post('/supplies', (req, res) => {
+router.post('/supplies', requirePermission(PERMISSIONS.TASKS_MANAGE), (req, res) => {
   const data = buildSupplyData(req.body ?? {});
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Supply name is required' });
@@ -913,13 +1053,18 @@ router.post('/supplies', (req, res) => {
 
 router.get('/supplies/:id', (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.supply.findUnique({ where: { id } }).then(withStoredId));
+  respond(res, prisma.supply.findUnique({ where: { id } }).then((record) => serializeSupply(record, req.auth)));
 });
 
 router.put('/supplies/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const data = buildSupplyData({ ...(req.body ?? {}), id });
-  if (!data.name) {
+  const canManage = hasPermission(req.auth, PERMISSIONS.TASKS_MANAGE);
+  const existing = await prisma.supply.findUnique({where: {id}});
+  if (!existing) return res.status(404).json({success: false, error: 'Supply not found'});
+  const data = canManage
+    ? buildSupplyData({ ...(req.body ?? {}), id })
+    : {stock: Number(req.body?.stock ?? existing.stock) || 0};
+  if (canManage && !data.name) {
     return res.status(400).json({ success: false, error: 'Supply name is required' });
   }
 
@@ -935,7 +1080,7 @@ router.put('/supplies/:id', async (req, res) => {
   );
 });
 
-router.delete('/supplies/:id', requireOwner, async (req, res) => {
+router.delete('/supplies/:id', requirePermission(PERMISSIONS.TASKS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   await auditDelete(
     prisma,
@@ -954,12 +1099,12 @@ router.get('/supplies', (req, res) => {
     res,
     prisma.supply
       .findMany({ orderBy: { name: 'asc' } })
-      .then((records) => records.map(withStoredId)),
+      .then((records) => records.map((record) => serializeSupply(record, req.auth))),
   );
 });
 
 // ==================== Message Templates CRUD ====================
-router.post('/message-templates', (req, res) => {
+router.post('/message-templates', requirePermission(PERMISSIONS.TASKS_MANAGE), (req, res) => {
   const data = buildMessageTemplateData(req.body ?? {});
   if (!data.name || !data.body) {
     return res.status(400).json({ success: false, error: 'Template name and body are required' });
@@ -975,12 +1120,12 @@ router.post('/message-templates', (req, res) => {
   );
 });
 
-router.get('/message-templates/:id', (req, res) => {
+router.get('/message-templates/:id', requirePermission(PERMISSIONS.TASKS_MANAGE), (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.messageTemplate.findUnique({ where: { id } }).then(withStoredId));
 });
 
-router.put('/message-templates/:id', async (req, res) => {
+router.put('/message-templates/:id', requirePermission(PERMISSIONS.TASKS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   const data = buildMessageTemplateData({ ...(req.body ?? {}), id });
   if (!data.name || !data.body) {
@@ -999,7 +1144,7 @@ router.put('/message-templates/:id', async (req, res) => {
   );
 });
 
-router.delete('/message-templates/:id', requireOwner, async (req, res) => {
+router.delete('/message-templates/:id', requirePermission(PERMISSIONS.TASKS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   await auditDelete(
     prisma,
@@ -1013,7 +1158,7 @@ router.delete('/message-templates/:id', requireOwner, async (req, res) => {
   );
 });
 
-router.get('/message-templates', (req, res) => {
+router.get('/message-templates', requirePermission(PERMISSIONS.TASKS_MANAGE), (req, res) => {
   respond(
     res,
     prisma.messageTemplate
@@ -1022,72 +1167,7 @@ router.get('/message-templates', (req, res) => {
   );
 });
 
-// ==================== Communication Log CRUD ====================
-router.post('/communication-log', requirePermission(PERMISSIONS.CLIENTS_MANAGE), (req, res) => {
-  const data = buildCommunicationLogData(req.body ?? {});
-  if (!data.clientName && !data.body) {
-    return res.status(400).json({ success: false, error: 'Communication log entry is empty' });
-  }
-
-  auditCreate(
-    prisma,
-    req,
-    res,
-    prisma.communicationLog.create({ data }).then(withStoredId),
-    'CommunicationLog',
-    'create communication log',
-  );
-});
-
-router.get('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
-  const id = Number(req.params.id);
-  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
-  try {
-    const record = await prisma.communicationLog.findUnique({ where: { id } });
-    if (!record) return res.status(404).json({ success: false, error: 'Communication log not found' });
-    res.json({ success: true, data: sanitizeCommLog(record, canViewContacts) });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-router.put('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_MANAGE), async (req, res) => {
-  const id = Number(req.params.id);
-  const data = buildCommunicationLogData({ ...(req.body ?? {}), id });
-  await auditUpdate(
-    prisma,
-    req,
-    res,
-    'communicationLog',
-    id,
-    prisma.communicationLog.update({ where: { id }, data }).then(withStoredId),
-    'CommunicationLog',
-    'update communication log',
-  );
-});
-
-router.delete('/communication-log/:id', requireOwner, async (req, res) => {
-  const id = Number(req.params.id);
-  await auditDelete(
-    prisma,
-    req,
-    res,
-    'communicationLog',
-    id,
-    prisma.communicationLog.delete({ where: { id } }).then(withStoredId),
-    'CommunicationLog',
-    'delete communication log',
-  );
-});
-
-router.get('/communication-log', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
-  const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
-  try {
-    const records = await prisma.communicationLog.findMany({ orderBy: { createdAt: 'desc' } });
-    res.json({ success: true, data: records.map((r) => sanitizeCommLog(r, canViewContacts)) });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+router.canAccessNote = canAccessNote;
+router.getNoteAccess = getNoteAccess;
 
 module.exports = router;

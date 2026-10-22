@@ -74,7 +74,7 @@ function requirePermission(permissionKey) {
 }
 
 function getEffectiveAuth(decoded, dbUser = null) {
-  const role = dbUser?.role || decoded?.role || (isOwnerAuth(decoded) ? 'owner' : 'staff');
+  const role = dbUser?.role || decoded?.role || 'unknown';
   const employeeId = dbUser ? dbUser.employeeId : (decoded?.employeeId ? Number(decoded.employeeId) : null);
   const permissions = (dbUser?.permissions && typeof dbUser.permissions === 'object')
     ? dbUser.permissions

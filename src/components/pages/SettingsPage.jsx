@@ -212,12 +212,16 @@ function UserAccessPanel({authUser, pushNotification}) {
   const [rows, setRows] = useState([]);
   const [savingId, setSavingId] = useState(null);
 
-  const isOwner = !authUser?.role || authUser.role === "owner";
+  const canManageAccess = hasPermission(authUser, PERMISSIONS.USERS_MANAGE);
+  const isOwner = authUser?.role === "owner" || authUser?.id === "local-admin";
+  const allowedRoleOptions = isOwner
+    ? USER_ROLE_OPTIONS
+    : USER_ROLE_OPTIONS.filter((role) => role.value !== "owner");
 
   const loadUsers = useCallback(async () => {
-    if (!isOwner) {
+    if (!canManageAccess) {
       setRows([]);
-      setLoadError("Управление доступами доступно только владельцу студии (Owner).");
+      setLoadError("Управление доступами доступно владельцу и администратору студии.");
       return;
     }
 
@@ -238,7 +242,7 @@ function UserAccessPanel({authUser, pushNotification}) {
     } finally {
       setLoading(false);
     }
-  }, [isOwner, pushNotification]);
+  }, [canManageAccess, pushNotification]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -554,9 +558,9 @@ function UserAccessPanel({authUser, pushNotification}) {
         </StatusBadge>
       </div>
 
-      {!isOwner ? (
+      {!canManageAccess ? (
         <div className="rounded-control border border-border bg-field p-3.5 text-xs text-text-muted">
-          Вы вошли с ролью «{USER_ROLE_OPTIONS.find((r) => r.value === authUser?.role)?.label || authUser?.role}». Управление пользователями и ролями доступно только владельцу студии.
+          Вы вошли с ролью «{USER_ROLE_OPTIONS.find((r) => r.value === authUser?.role)?.label || authUser?.role}». Управление пользователями и ролями доступно владельцу и администратору студии.
         </div>
       ) : (
         <>
@@ -593,7 +597,7 @@ function UserAccessPanel({authUser, pushNotification}) {
                   value={draft.role}
                   onChange={(event) => setDraft((current) => ({...current, role: event.target.value}))}
                 >
-                  {USER_ROLE_OPTIONS.map((role) => (
+                  {allowedRoleOptions.map((role) => (
                     <option key={role.value} value={role.value}>{role.label}</option>
                   ))}
                 </Select>
@@ -682,6 +686,7 @@ function UserAccessPanel({authUser, pushNotification}) {
             ) : rows.length ? (
               rows.map((user) => {
                 const customPermCount = Object.keys(user.permissions || {}).length;
+                const ownerProtectedFromAdmin = !isOwner && user.role === "owner";
                 return (
                   <article
                     className="grid grid-cols-1 xl:grid-cols-[minmax(160px,1.1fr)_minmax(110px,0.7fr)_140px_160px_90px_120px_auto] gap-2.5 items-center rounded-control border border-border-soft bg-field px-3.5 py-2.5"
@@ -691,26 +696,30 @@ function UserAccessPanel({authUser, pushNotification}) {
                       aria-label="Email"
                       type="email"
                       value={user.email}
+                      disabled={ownerProtectedFromAdmin}
                       onChange={(event) => patchRow(user.id, {email: event.target.value})}
                     />
                     <Input
                       aria-label="Имя"
                       placeholder="Имя"
                       value={user.name || ""}
+                      disabled={ownerProtectedFromAdmin}
                       onChange={(event) => patchRow(user.id, {name: event.target.value})}
                     />
                     <Select
                       aria-label="Роль"
                       value={user.role}
+                      disabled={ownerProtectedFromAdmin}
                       onChange={(event) => patchRow(user.id, {role: event.target.value})}
                     >
-                      {USER_ROLE_OPTIONS.map((role) => (
+                      {(ownerProtectedFromAdmin ? USER_ROLE_OPTIONS : allowedRoleOptions).map((role) => (
                         <option key={role.value} value={role.value}>{role.label}</option>
                       ))}
                     </Select>
                     <Select
                       aria-label="Мастер"
                       value={user.employeeId || ""}
+                      disabled={ownerProtectedFromAdmin}
                       onChange={(event) => patchRow(user.id, {employeeId: event.target.value ? Number(event.target.value) : null})}
                     >
                       <option value="">— Без мастера —</option>
@@ -739,6 +748,7 @@ function UserAccessPanel({authUser, pushNotification}) {
                         variant="secondary"
                         title="Настройка индивидуальных прав доступа"
                         onClick={() => openPermissionsModal(user)}
+                        disabled={ownerProtectedFromAdmin}
                         className="flex items-center gap-1"
                       >
                         <AppIcon name="shield" size="xs" />
@@ -750,7 +760,7 @@ function UserAccessPanel({authUser, pushNotification}) {
                         ) : null}
                       </Button>
                       <Button
-                        disabled={savingId === user.id}
+                        disabled={savingId === user.id || ownerProtectedFromAdmin}
                         size="sm"
                         type="button"
                         variant="secondary"
@@ -759,7 +769,7 @@ function UserAccessPanel({authUser, pushNotification}) {
                         Сохранить
                       </Button>
                       <Button
-                        disabled={savingId === user.id || !user.isActive}
+                        disabled={savingId === user.id || !user.isActive || ownerProtectedFromAdmin}
                         size="sm"
                         title="Получить или отправить ссылку для смены пароля"
                         type="button"
@@ -770,7 +780,7 @@ function UserAccessPanel({authUser, pushNotification}) {
                         Пароль
                       </Button>
                       <Button
-                        disabled={savingId === user.id}
+                        disabled={savingId === user.id || ownerProtectedFromAdmin}
                         size="sm"
                         type="button"
                         variant={user.isActive ? "danger" : "secondary"}
@@ -1218,7 +1228,7 @@ function StaffAccountCard({ authUser, employees = [] }) {
       case "readonly":
         return "Только просмотр";
       default:
-        return role || "Сотрудник";
+        return "Роль не определена";
     }
   }, [authUser]);
 
@@ -1234,7 +1244,7 @@ function StaffAccountCard({ authUser, employees = [] }) {
               {authUser?.name || "Личный профиль"}
             </h2>
             <p className="m-0 mt-0.5 text-text-muted text-xs">
-              {authUser?.email || "Учётная запись сотрудника"}
+              {authUser?.email || "Данные сессии недоступны"}
             </p>
           </div>
         </div>

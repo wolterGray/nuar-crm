@@ -119,6 +119,17 @@ export default function MyEarningsPage({
     }, 0);
   }, [summaryData, periodVisits]);
 
+  const totalRevenue = useMemo(() => {
+    return periodVisits.reduce((acc, v) => {
+      const price = Number(v.price || v.cost || v.amount || 0);
+      return acc + price;
+    }, 0);
+  }, [periodVisits]);
+
+  const salonCommission = useMemo(() => {
+    return Math.max(0, totalRevenue - totalEarned);
+  }, [totalRevenue, totalEarned]);
+
   const totalPaid = useMemo(() => {
     if (summaryData?.totalPaid !== undefined && summaryData?.totalPaid !== null) {
       return Number(summaryData.totalPaid);
@@ -151,14 +162,15 @@ export default function MyEarningsPage({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl md:text-2xl font-bold text-text-main m-0">
-              Мои начисления
+              Мой расчёт
             </h1>
             <Badge variant="neutral" size="sm">
               {employeeName}
             </Badge>
           </div>
           <p className="text-xs text-text-muted mt-1 m-0">
-            Личные комиссии за визиты и история полученных выплат
+            Личные комиссии за визиты, расчёт выплат и история начислений •{" "}
+            {new Date().toLocaleDateString("ru-RU", {month: "long", year: "numeric"})} ({currentPeriod.startDate} — {currentPeriod.endDate})
           </p>
         </div>
 
@@ -188,43 +200,63 @@ export default function MyEarningsPage({
         </Card>
       )}
 
-      {/* KPI Cards */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" aria-label="Сводка начислений">
-        <Card className="p-4 flex flex-col gap-1 bg-surface border border-border rounded-card">
-          <span className="text-xs text-text-muted font-medium">Начислено за месяц</span>
+      {/* 6 KPI Cards */}
+      <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4" aria-label="Сводка расчёта">
+        {/* 1. Выполненные массажи */}
+        <Card className="p-3.5 flex flex-col gap-1 bg-surface border border-border rounded-card">
+          <span className="text-xs text-text-muted font-medium">Выполненные массажи</span>
           <strong className="text-lg md:text-xl font-bold text-text-main">
-            {formatMoney(totalEarned)}
+            {visitsCount}
           </strong>
           <span className="text-[11px] text-text-faint">
-            {visitsCount} {visitsCount === 1 ? "визит" : "визитов"}
+            {visitsCount === 1 ? "визит" : visitsCount >= 2 && visitsCount <= 4 ? "визита" : "визитов"}
             {tipsAmount > 0 && ` • чаевые ${formatMoney(tipsAmount)}`}
           </span>
         </Card>
 
-        <Card className="p-4 flex flex-col gap-1 bg-surface border border-border rounded-card">
-          <span className="text-xs text-text-muted font-medium">Выплачено</span>
+        {/* 2. Расчётная выручка */}
+        <Card className="p-3.5 flex flex-col gap-1 bg-surface border border-border rounded-card">
+          <span className="text-xs text-text-muted font-medium">Расчётная выручка</span>
+          <strong className="text-lg md:text-xl font-bold text-text-main">
+            {formatMoney(totalRevenue)}
+          </strong>
+          <span className="text-[11px] text-text-faint">Оборот по визитам</span>
+        </Card>
+
+        {/* 3. Комиссия салона */}
+        <Card className="p-3.5 flex flex-col gap-1 bg-surface border border-border rounded-card">
+          <span className="text-xs text-text-muted font-medium">Комиссия салона</span>
+          <strong className="text-lg md:text-xl font-bold text-text-muted">
+            {formatMoney(salonCommission)}
+          </strong>
+          <span className="text-[11px] text-text-faint">Доля студии</span>
+        </Card>
+
+        {/* 4. Чистый заработок */}
+        <Card className="p-3.5 flex flex-col gap-1 bg-surface border border-border rounded-card">
+          <span className="text-xs text-text-muted font-medium">Чистый заработок</span>
+          <strong className="text-lg md:text-xl font-bold text-text-main">
+            {formatMoney(totalEarned)}
+          </strong>
+          <span className="text-[11px] text-text-faint">Начислено мастеру</span>
+        </Card>
+
+        {/* 5. Выплаты */}
+        <Card className="p-3.5 flex flex-col gap-1 bg-surface border border-border rounded-card">
+          <span className="text-xs text-text-muted font-medium">Выплаты</span>
           <strong className="text-lg md:text-xl font-bold text-accentSuccess">
             {formatMoney(totalPaid)}
           </strong>
-          <span className="text-[11px] text-text-faint">За текущий месяц</span>
+          <span className="text-[11px] text-text-faint">Перечислено</span>
         </Card>
 
-        <Card className="p-4 flex flex-col gap-1 bg-surface border border-border rounded-card">
-          <span className="text-xs text-text-muted font-medium">К выплате (остаток)</span>
+        {/* 6. Остаток к выплате */}
+        <Card className="p-3.5 flex flex-col gap-1 bg-surface border border-border rounded-card">
+          <span className="text-xs text-text-muted font-medium">Остаток к выплате</span>
           <strong className="text-lg md:text-xl font-bold text-accent">
             {formatMoney(balanceDue)}
           </strong>
           <span className="text-[11px] text-text-faint">Текущий баланс</span>
-        </Card>
-
-        <Card className="p-4 flex flex-col gap-1 bg-surface border border-border rounded-card">
-          <span className="text-xs text-text-muted font-medium">Период</span>
-          <strong className="text-sm md:text-base font-semibold text-text-main mt-0.5">
-            {new Date().toLocaleDateString("ru-RU", {month: "long", year: "numeric"})}
-          </strong>
-          <span className="text-[11px] text-text-faint">
-            {currentPeriod.startDate} — {currentPeriod.endDate}
-          </span>
         </Card>
       </section>
 
@@ -342,7 +374,7 @@ export default function MyEarningsPage({
                         <td className="p-3 text-text-faint">
                           {noteStr}
                         </td>
-                        <td className="p-3 text-right font-mono font-bold text-emerald-400 whitespace-nowrap">
+                        <td className="p-3 text-right font-mono font-bold text-accentSuccess whitespace-nowrap">
                           {formatMoney(amount)}
                         </td>
                       </tr>

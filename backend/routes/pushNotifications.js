@@ -1,6 +1,6 @@
 const express = require('express');
 const {PrismaClient} = require('@prisma/client');
-const {requireOwner, requirePermission} = require('../middleware/auth');
+const {requirePermission} = require('../middleware/auth');
 const {PERMISSIONS} = require('../constants/permissions');
 const {recordAuditLog, recordErrorEvent} = require('../services/loggingService');
 const {getWorkerStatus, runWorkerCycle} = require('../services/notificationWorker');
@@ -195,7 +195,7 @@ router.delete('/push/subscriptions', async (req, res) => {
   }
 });
 
-router.post('/push/test', requireOwner, async (req, res) => {
+router.post('/push/test', requirePermission(PERMISSIONS.USERS_MANAGE), async (req, res) => {
   try {
     const user = await resolveAuthenticatedUser(req);
     const now = Date.now();

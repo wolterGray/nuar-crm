@@ -52,18 +52,24 @@ describe("Frontend RBAC: permissions.js", () => {
     it("staff has assigned permissions but lacks salon management and delete", () => {
       expect(hasPermission(staffUser, PERMISSIONS.CALENDAR_VIEW_ASSIGNED)).toBe(true);
       expect(hasPermission(staffUser, PERMISSIONS.PAYOUTS_VIEW_OWN)).toBe(true);
-      expect(hasPermission(staffUser, PERMISSIONS.TASKS_MANAGE)).toBe(true);
+      expect(hasPermission(staffUser, PERMISSIONS.TASKS_MANAGE)).toBe(false);
 
       // Forbidden for staff by default
       expect(hasPermission(staffUser, PERMISSIONS.CALENDAR_VIEW_ALL)).toBe(false);
       expect(hasPermission(staffUser, PERMISSIONS.CALENDAR_DELETE)).toBe(false);
-      expect(hasPermission(staffUser, PERMISSIONS.CLIENTS_VIEW_CONTACTS)).toBe(false);
+      expect(hasPermission(staffUser, PERMISSIONS.CLIENTS_VIEW_CONTACTS)).toBe(true);
+      expect(hasPermission(staffUser, PERMISSIONS.CLIENTS_MANAGE)).toBe(true);
       expect(hasPermission(staffUser, PERMISSIONS.CLIENTS_DELETE)).toBe(false);
       expect(hasPermission(staffUser, PERMISSIONS.FINANCE_VIEW_SALON_STATS)).toBe(false);
       expect(hasPermission(staffUser, PERMISSIONS.PAYOUTS_VIEW_ALL)).toBe(false);
-      expect(hasPermission(staffUser, PERMISSIONS.CATALOG_VIEW)).toBe(false);
+      expect(hasPermission(staffUser, PERMISSIONS.CATALOG_VIEW)).toBe(true);
       expect(hasPermission(staffUser, PERMISSIONS.CATALOG_MANAGE)).toBe(false);
       expect(hasPermission(staffUser, PERMISSIONS.USERS_MANAGE)).toBe(false);
+    });
+
+    it("unknown or missing role fails closed", () => {
+      expect(hasPermission({id: 99}, PERMISSIONS.CALENDAR_VIEW_ASSIGNED)).toBe(false);
+      expect(hasPermission({id: 100, role: "unknown"}, PERMISSIONS.CATALOG_VIEW)).toBe(false);
     });
 
     it("custom override takes precedence over role defaults", () => {
@@ -110,20 +116,22 @@ describe("Frontend RBAC: permissions.js", () => {
       expect(canViewPage("today", staffUser)).toBe(true);
       expect(canViewPage("calendar", staffUser)).toBe(true);
       expect(canViewPage("clients", staffUser)).toBe(true);
+      expect(canViewPage("payments", staffUser)).toBe(true);
       expect(canViewPage("my-earnings", staffUser)).toBe(true);
       expect(canViewPage("operations", staffUser)).toBe(true);
       expect(canViewPage("settings", staffUser)).toBe(true);
 
-      // Staff cannot view salon finance, statistics, catalog, site, import, or employees
-      expect(canViewPage("payments", staffUser)).toBe(false);
-      expect(canViewPage("statistics", staffUser)).toBe(false);
-      expect(canViewPage("services", staffUser)).toBe(false);
-      expect(canViewPage("packages", staffUser)).toBe(false);
+      // Staff can view own client cards/packages/services and own statistics
+      expect(canViewPage("services", staffUser)).toBe(true);
+      expect(canViewPage("packages", staffUser)).toBe(true);
+      expect(canViewPage("statistics", staffUser)).toBe(true);
+      expect(canViewPage("club", staffUser)).toBe(true);
+
+      // Staff cannot view masters management, site CMS, templates, or import
       expect(canViewPage("masters", staffUser)).toBe(false);
       expect(canViewPage("templates", staffUser)).toBe(false);
       expect(canViewPage("import", staffUser)).toBe(false);
       expect(canViewPage("site", staffUser)).toBe(false);
-      expect(canViewPage("club", staffUser)).toBe(false);
     });
 
     it("readonly user can view calendar and catalog but not edit or view finance", () => {
@@ -142,7 +150,7 @@ describe("Frontend RBAC: permissions.js", () => {
 
   describe("canPerform granular actions", () => {
     it("service catalog permissions", () => {
-      expect(canPerform("view", "service", null, staffUser)).toBe(false);
+      expect(canPerform("view", "service", null, staffUser)).toBe(true);
       expect(canPerform("create", "service", null, staffUser)).toBe(false);
 
       expect(canPerform("view", "service", null, adminUser)).toBe(true);
@@ -151,7 +159,7 @@ describe("Frontend RBAC: permissions.js", () => {
 
     it("clients contacts protection", () => {
       expect(canPerform("view", "client", null, staffUser)).toBe(true);
-      expect(canPerform("view_contacts", "client", null, staffUser)).toBe(false);
+      expect(canPerform("view_contacts", "client", null, staffUser)).toBe(true);
       expect(canPerform("delete", "client", null, staffUser)).toBe(false);
 
       expect(canPerform("view_contacts", "client", null, adminUser)).toBe(true);
@@ -199,7 +207,7 @@ describe("Frontend RBAC: permissions.js", () => {
       expect(allPages).toContain("settings");
     });
 
-    it("staff receives tailored groups: no empty groups, 'Мои начисления' and 'Мои клиенты'", () => {
+    it("staff receives tailored groups: no empty groups, 'Мой расчёт' replacing masters, and 'Мои клиенты'", () => {
       const allowed = getAllowedNavigation(navGroups, staffUser);
 
       // Verify no empty groups exist
@@ -211,24 +219,26 @@ describe("Frontend RBAC: permissions.js", () => {
       expect(allPages).toContain("today");
       expect(allPages).toContain("calendar");
       expect(allPages).toContain("clients");
+      expect(allPages).toContain("payments");
       expect(allPages).toContain("my-earnings");
       expect(allPages).toContain("operations");
+      expect(allPages).toContain("services");
+      expect(allPages).toContain("packages");
+      expect(allPages).toContain("statistics");
       expect(allPages).toContain("settings");
 
-      // Staff must NOT have salon payments, services, packages, masters, site, templates, import, statistics
-      expect(allPages).not.toContain("payments");
-      expect(allPages).not.toContain("services");
-      expect(allPages).not.toContain("packages");
+      // Staff must NOT have masters management, site CMS, templates, or import
       expect(allPages).not.toContain("masters");
       expect(allPages).not.toContain("site");
-      expect(allPages).not.toContain("statistics");
+      expect(allPages).not.toContain("templates");
+      expect(allPages).not.toContain("import");
 
       // Check tailored labels
       const clientItem = allowed.flatMap((g) => g.items).find((i) => i.page === "clients");
       expect(clientItem.label).toBe("Мои клиенты");
 
       const earningsItem = allowed.flatMap((g) => g.items).find((i) => i.page === "my-earnings");
-      expect(earningsItem.label).toBe("Мои начисления");
+      expect(earningsItem.label).toBe("Мой расчёт");
 
       const settingsItem = allowed.flatMap((g) => g.items).find((i) => i.page === "settings");
       expect(settingsItem.label).toBe("Профиль");
@@ -248,16 +258,16 @@ describe("Frontend RBAC: permissions.js", () => {
       expect(mobile.find((m) => m.page === "payments").label).toBe("Визиты");
     });
 
-    it("staff receives mobile bottom bar with 'Начисления' and 'Мои клиенты'", () => {
+    it("staff receives mobile bottom bar with 'Визиты' and 'Мои клиенты'", () => {
       const mobile = getAllowedMobileNav(staffUser);
       expect(mobile.map((m) => m.page)).toEqual([
         "today",
         "calendar",
-        "my-earnings",
+        "payments",
         "clients",
         "operations",
       ]);
-      expect(mobile.find((m) => m.page === "my-earnings").label).toBe("Начисления");
+      expect(mobile.find((m) => m.page === "payments").label).toBe("Визиты");
       expect(mobile.find((m) => m.page === "clients").label).toBe("Мои клиенты");
     });
   });

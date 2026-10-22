@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { requirePermission, PERMISSIONS } = require('../middleware/auth');
 const { publicBookingLimiter } = require('../middleware/rateLimiter');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { queueBusinessPushDeliveries } = require('../services/businessPushService');
@@ -862,7 +862,7 @@ publicSiteBookingRouter.post('/site-booking-submit', publicBookingLimiter, async
   }
 });
 
-siteBookingRouter.get('/site-bookings', requireOwner, async (req, res) => {
+siteBookingRouter.get('/site-bookings', requirePermission(PERMISSIONS.USERS_MANAGE), async (req, res) => {
   const status = cleanString(req.query.status);
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 25));
 
@@ -884,7 +884,7 @@ siteBookingRouter.get('/site-bookings', requireOwner, async (req, res) => {
   }
 });
 
-siteBookingRouter.patch('/site-bookings/:id', requireOwner, async (req, res) => {
+siteBookingRouter.patch('/site-bookings/:id', requirePermission(PERMISSIONS.USERS_MANAGE), async (req, res) => {
   const id = cleanString(req.params.id);
   const status = cleanString(req.body?.status);
   const linkedCalendarEntryId = cleanString(req.body?.linked_calendar_entry_id);

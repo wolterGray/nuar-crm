@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner, hasPermission, PERMISSIONS } = require('../middleware/auth');
+const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { recordErrorEvent, recordAuditLog } = require('../services/loggingService');
 const {
@@ -123,7 +123,7 @@ const sanitizeEmployee = (employee, auth) => {
 };
 
 // ==================== Employee ====================
-router.post('/employees', requireOwner, (req, res) => {
+router.post('/employees', requirePermission(PERMISSIONS.EMPLOYEES_MANAGE), (req, res) => {
   const data = buildEmployeeData(req.body ?? {});
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Employee name is required' });
@@ -139,6 +139,12 @@ router.post('/employees', requireOwner, (req, res) => {
 
 router.get('/employees/:id', async (req, res) => {
   const id = Number(req.params.id);
+  const canViewAll = hasPermission(req.auth, PERMISSIONS.EMPLOYEES_MANAGE) ||
+    hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
+  const ownEmployeeId = Number(req.auth?.employeeId) || null;
+  if (!canViewAll && (!ownEmployeeId || id !== ownEmployeeId)) {
+    return res.status(403).json({success: false, error: 'Можно просматривать только собственный профиль сотрудника'});
+  }
   try {
     const employee = await prisma.employee.findUnique({ where: { id } }).then(withStoredId);
     if (!employee) return res.status(404).json({ success: false, error: 'Employee not found' });
@@ -148,7 +154,7 @@ router.get('/employees/:id', async (req, res) => {
   }
 });
 
-router.put('/employees/:id', requireOwner, async (req, res) => {
+router.put('/employees/:id', requirePermission(PERMISSIONS.EMPLOYEES_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   const data = buildEmployeeData({ ...(req.body ?? {}), id });
   if (!data.name) {
@@ -172,7 +178,7 @@ router.put('/employees/:id', requireOwner, async (req, res) => {
   );
 });
 
-router.delete('/employees/:id', requireOwner, async (req, res) => {
+router.delete('/employees/:id', requirePermission(PERMISSIONS.EMPLOYEES_MANAGE), async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
 
@@ -220,8 +226,11 @@ router.delete('/employees/:id', requireOwner, async (req, res) => {
 });
 
 router.get('/employees', async (req, res) => {
+  const canViewAll = hasPermission(req.auth, PERMISSIONS.EMPLOYEES_MANAGE) ||
+    hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
+  const ownEmployeeId = Number(req.auth?.employeeId) || null;
   const includeDeleted = req.query.includeDeleted === 'true';
-  const where = includeDeleted
+  const statusWhere = includeDeleted
     ? {}
     : {
         OR: [
@@ -229,6 +238,11 @@ router.get('/employees', async (req, res) => {
           { status: { not: 'Удален' } },
         ],
       };
+  const where = canViewAll
+    ? statusWhere
+    : ownEmployeeId
+      ? {AND: [{id: ownEmployeeId}, statusWhere]}
+      : {id: -1};
 
   try {
     const records = await prisma.employee.findMany({ where, orderBy: { name: 'asc' } });
@@ -239,7 +253,7 @@ router.get('/employees', async (req, res) => {
 });
 
 // ==================== Payroll Record ====================
-router.post('/payroll-records', requireOwner, async (req, res) => {
+router.post('/payroll-records', requirePermission(PERMISSIONS.PAYOUTS_MANAGE), async (req, res) => {
   const allowed = await requireLegacyFinancialWriteFlag(prisma, req, res, {
     action: 'create payroll record',
     entity: 'PayrollRecord',
@@ -269,7 +283,7 @@ router.post('/payroll-records', requireOwner, async (req, res) => {
   );
 });
 
-router.put('/payroll-records/:id', requireOwner, async (req, res) => {
+router.put('/payroll-records/:id', requirePermission(PERMISSIONS.PAYOUTS_MANAGE), async (req, res) => {
   const allowed = await requireLegacyFinancialWriteFlag(prisma, req, res, {
     action: 'update payroll record',
     entity: 'PayrollRecord',
@@ -302,7 +316,7 @@ router.put('/payroll-records/:id', requireOwner, async (req, res) => {
   );
 });
 
-router.delete('/payroll-records/:id', requireOwner, async (req, res) => {
+router.delete('/payroll-records/:id', requirePermission(PERMISSIONS.PAYOUTS_MANAGE), async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
   await auditDelete(
@@ -404,7 +418,7 @@ router.get('/payroll/summary', async (req, res) => {
   }
 });
 
-router.post('/payroll/mark-paid', requireOwner, async (req, res) => {
+router.post('/payroll/mark-paid', requirePermission(PERMISSIONS.PAYOUTS_MANAGE), async (req, res) => {
   const body = req.body ?? {};
   const startDate = normalizeDayCloseDate(body.dateFrom ?? body.startDate);
   const endDate = normalizeDayCloseDate(body.dateTo ?? body.endDate);

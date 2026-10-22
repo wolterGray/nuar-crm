@@ -5,15 +5,21 @@ import {isResetPasswordPath} from "../utils/appRouting.js";
 
 const AUTH_TOKEN_STORAGE_KEY = "nuar_crm_auth_token";
 const AUTH_SESSION_STORAGE_KEY = "nuar_crm_auth_session";
+const AUTH_ROLES = new Set(["owner", "admin", "manager", "staff", "readonly"]);
+
+const normalizeSessionRole = (role) => {
+  const normalized = String(role || "").trim().toLowerCase();
+  return AUTH_ROLES.has(normalized) ? normalized : "unknown";
+};
 
 const createSession = ({token, user}) => ({
   access_token: token,
   provider: "local",
   user: {
-    id: user?.id || "local-admin",
+    id: user?.id || "",
     email: user?.email || "",
     name: user?.name || "",
-    role: user?.role || "owner",
+    role: normalizeSessionRole(user?.role),
     employeeId: user?.employeeId ?? null,
     permissions: user?.permissions || {},
     effectivePermissions: user?.effectivePermissions || {},

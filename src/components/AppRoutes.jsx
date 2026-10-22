@@ -1,6 +1,12 @@
 import {lazy, Suspense} from "react";
 import ForbiddenScreen from "./ForbiddenScreen.jsx";
-import {canPerform, canViewPage, getDefaultPageForUser} from "../utils/permissions.js";
+import {
+  PERMISSIONS,
+  canPerform,
+  canViewPage,
+  getDefaultPageForUser,
+  hasPermission,
+} from "../utils/permissions.js";
 
 const TodayPage = lazy(() => import("./pages/TodayPage.jsx"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage.jsx"));
@@ -120,6 +126,12 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
             reopenDayClose={props.reopenDayClose}
             removeDayClose={props.removeDayClose}
             visits={props.filteredPaymentRows}
+            canManageDayClose={hasPermission(user, PERMISSIONS.FINANCE_DAY_CLOSE)}
+            canViewSalonStats={hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS)}
+            canAddPayment={
+              hasPermission(user, PERMISSIONS.FINANCE_DAY_CLOSE) ||
+              hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS)
+            }
             onAddPayment={props.openCreatePayment}
             onDeleteVisit={props.deletePaymentRow}
             onEditVisit={props.editPaymentRow}
@@ -221,6 +233,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
       return (
         <PageSuspense>
           <PackagesPage
+            canManagePackages={hasPermission(user, PERMISSIONS.CATALOG_MANAGE)}
             packages={props.packagesCatalog}
             clientPackages={props.clientPackages}
             clientProfiles={props.clientProfiles ?? props.clients ?? []}
@@ -293,6 +306,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
       return (
         <PageSuspense>
           <><OperationsPage
+            canManageTasks={hasPermission(user, PERMISSIONS.TASKS_MANAGE)}
             alertFocus={props.alertFocus}
             tasks={props.tasks}
             supplies={props.supplies}
@@ -376,7 +390,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
       return (
         <PageSuspense>
           <SettingsPage
-            authUser={props.authUser}
+            authUser={user}
             employees={props.employees}
             cloudConflict={props.cloudConflict}
             cloudEnabled={props.cloudEnabled}

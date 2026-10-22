@@ -133,6 +133,9 @@ function PaymentsPage({
   reopenDayClose,
   removeDayClose,
   visits,
+  canManageDayClose = true,
+  canViewSalonStats = true,
+  canAddPayment = true,
   onAddPayment,
   onDeleteVisit,
   onEditVisit,
@@ -149,10 +152,17 @@ function PaymentsPage({
 
   if (qualityFocusToken !== prevFocusToken) {
     setPrevFocusToken(qualityFocusToken);
-    if (qualityFocusToken) {
+    if (qualityFocusToken && canViewSalonStats) {
       setActiveTab("quality");
     }
   }
+
+  // Derive effective tab based on user permissions
+  const effectiveTab =
+    (activeTab === "dayClose" && !canManageDayClose) ||
+    (activeTab === "quality" && !canViewSalonStats)
+      ? "journal"
+      : activeTab;
 
   const financialQualityReport = useMemo(
     () =>
@@ -193,7 +203,11 @@ function PaymentsPage({
       <div className="payments-top-bar">
         <div className="payments-top-title-wrap">
           <h1 className="payments-top-title">{isMobile ? "Визиты и оплаты" : "Оплаты"}</h1>
-          <HintIcon>Управление платежами, закрытие смены и проверка финансовых несоответствий.</HintIcon>
+          <HintIcon>
+            {canManageDayClose || canViewSalonStats
+              ? "Управление платежами, закрытие смены и проверка финансовых несоответствий."
+              : "Журнал визитов и персональных оплат."}
+          </HintIcon>
         </div>
         <div className="payments-top-actions">
           <PageNotificationsSlot />
@@ -206,53 +220,59 @@ function PaymentsPage({
           <button
             type="button"
             role="tab"
-            aria-selected={activeTab === "journal"}
-            className={`payments-tab-btn ${activeTab === "journal" ? "is-active" : ""}`}
+            aria-selected={effectiveTab === "journal"}
+            className={`payments-tab-btn ${effectiveTab === "journal" ? "is-active" : ""}`}
             onClick={() => setActiveTab("journal")}
           >
             <AppIcon className="payments-tab-icon" name="list" size="xs" />
             <span className="payments-tab-label">Журнал</span>
-            {activeTab === "journal" ? <span className="payments-tab-underline" /> : null}
+            {effectiveTab === "journal" ? <span className="payments-tab-underline" /> : null}
           </button>
-          <button
-            type="button"
-            role="tab"
-            aria-label="Закрытие дня"
-            aria-selected={activeTab === "dayClose"}
-            className={`payments-tab-btn ${activeTab === "dayClose" ? "is-active" : ""}`}
-            onClick={() => setActiveTab("dayClose")}
-          >
-            <AppIcon className="payments-tab-icon" name="lock" size="xs" />
-            <span className="payments-tab-label">{isMobile ? "Закрытие" : "Закрытие дня"}</span>
-            {activeTab === "dayClose" ? <span className="payments-tab-underline" /> : null}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-label="Проверка денег"
-            aria-selected={activeTab === "quality"}
-            className={`payments-tab-btn ${activeTab === "quality" ? "is-active" : ""}`}
-            onClick={() => setActiveTab("quality")}
-          >
-            <AppIcon className="payments-tab-icon" name="wallet" size="xs" />
-            <span className="payments-tab-label">{isMobile ? "Проверка" : "Проверка денег"}</span>
-            {issueCount > 0 ? (
-              <span className="payments-tab-badge">{issueCount}</span>
-            ) : null}
-            {activeTab === "quality" ? <span className="payments-tab-underline" /> : null}
-          </button>
+          {canManageDayClose ? (
+            <button
+              type="button"
+              role="tab"
+              aria-label="Закрытие дня"
+              aria-selected={effectiveTab === "dayClose"}
+              className={`payments-tab-btn ${effectiveTab === "dayClose" ? "is-active" : ""}`}
+              onClick={() => setActiveTab("dayClose")}
+            >
+              <AppIcon className="payments-tab-icon" name="lock" size="xs" />
+              <span className="payments-tab-label">{isMobile ? "Закрытие" : "Закрытие дня"}</span>
+              {effectiveTab === "dayClose" ? <span className="payments-tab-underline" /> : null}
+            </button>
+          ) : null}
+          {canViewSalonStats ? (
+            <button
+              type="button"
+              role="tab"
+              aria-label="Проверка денег"
+              aria-selected={effectiveTab === "quality"}
+              className={`payments-tab-btn ${effectiveTab === "quality" ? "is-active" : ""}`}
+              onClick={() => setActiveTab("quality")}
+            >
+              <AppIcon className="payments-tab-icon" name="wallet" size="xs" />
+              <span className="payments-tab-label">{isMobile ? "Проверка" : "Проверка денег"}</span>
+              {issueCount > 0 ? (
+                <span className="payments-tab-badge">{issueCount}</span>
+              ) : null}
+              {effectiveTab === "quality" ? <span className="payments-tab-underline" /> : null}
+            </button>
+          ) : null}
         </div>
 
         <div className="payments-tabs-actions">
-          <Button
-            className="payments-add-payment-cta"
-            leftIcon="plus"
-            size="sm"
-            variant="primary"
-            onClick={onAddPayment}
-          >
-            Добавить поступление
-          </Button>
+          {canAddPayment ? (
+            <Button
+              className="payments-add-payment-cta"
+              leftIcon="plus"
+              size="sm"
+              variant="primary"
+              onClick={onAddPayment}
+            >
+              Добавить поступление
+            </Button>
+          ) : null}
           <Button
             aria-label="Экспорт CSV"
             className="payments-export-csv-btn"
@@ -268,7 +288,7 @@ function PaymentsPage({
 
       {/* 3. Active Tab Content */}
       <div className="payments-tab-content flex-1 min-h-0 h-full flex flex-col overflow-hidden">
-        {activeTab === "journal" ? (
+        {effectiveTab === "journal" ? (
           <VisitsTable
             clientProfiles={clientProfiles}
             filters={filters}
@@ -283,7 +303,7 @@ function PaymentsPage({
           />
         ) : null}
 
-        {activeTab === "dayClose" ? (
+        {effectiveTab === "dayClose" ? (
           <DayClosePanel
             inTab={true}
             dayCloseRecords={dayCloseRecords}
@@ -294,7 +314,7 @@ function PaymentsPage({
           />
         ) : null}
 
-        {activeTab === "quality" ? (
+        {effectiveTab === "quality" ? (
           <FinancialQualityPanel
             focused={qualityPanelFocused}
             panelRef={qualityPanelRef}

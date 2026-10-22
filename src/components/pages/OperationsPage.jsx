@@ -1201,6 +1201,7 @@ function TaskDetailsDialog({
 
 function OperationsPage({
   alertFocus,
+  canManageTasks = true,
   employees = [],
   tasks,
   supplies,
@@ -1235,7 +1236,10 @@ function OperationsPage({
 }) {
   const {isMobile} = useBreakpoint();
   const storedView = readStoredJson(VIEW_STORAGE_KEY, {});
-  const [activeTab, setActiveTab] = useState(storedView.activeTab ?? "plan");
+  const [activeTab, setActiveTab] = useState(() => {
+    const storedTab = storedView.activeTab ?? "plan";
+    return !canManageTasks && ["plan", "history"].includes(storedTab) ? "notes" : storedTab;
+  });
   const [planMode, setPlanMode] = useState(storedView.planMode === "templates" ? "templates" : "week");
   const [selectedDate, setSelectedDate] = useState(() => getWarsawTodayInput());
   const [datePickerState, setDatePickerState] = useState(null);
@@ -1258,6 +1262,14 @@ function OperationsPage({
   useEffect(() => {
     window.localStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify({activeTab, planMode, weekViewMode}));
   }, [activeTab, planMode, weekViewMode]);
+
+  useEffect(() => {
+    if (!canManageTasks && ["plan", "history"].includes(activeTab)) {
+      const timer = window.setTimeout(() => setActiveTab("notes"), 0);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [activeTab, canManageTasks]);
 
   useEffect(() => {
     window.localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
@@ -1587,18 +1599,22 @@ function OperationsPage({
         {!isTemplateManager ? (
           <div className="operations-tabs-action-bar">
             <nav aria-label="Разделы работы" className="operations-tabs-nav" ref={tabsNavRef}>
-              <SegmentButton
-                active={activeTab === "plan"}
-                onClick={() => {
-                  setActiveTab("plan");
-                  setSelectedDate(getWarsawTodayInput());
-                }}
-              >
-                Задачи
-              </SegmentButton>
-              <SegmentButton active={activeTab === "history"} onClick={() => setActiveTab("history")}>
-                История
-              </SegmentButton>
+              {canManageTasks ? (
+                <>
+                  <SegmentButton
+                    active={activeTab === "plan"}
+                    onClick={() => {
+                      setActiveTab("plan");
+                      setSelectedDate(getWarsawTodayInput());
+                    }}
+                  >
+                    Задачи
+                  </SegmentButton>
+                  <SegmentButton active={activeTab === "history"} onClick={() => setActiveTab("history")}>
+                    История
+                  </SegmentButton>
+                </>
+              ) : null}
               <SegmentButton active={activeTab === "notes"} onClick={() => setActiveTab("notes")}>
                 Заметки
               </SegmentButton>
@@ -1964,7 +1980,9 @@ function OperationsPage({
         <section className="panel operations-panel operations-panel-supplies">
           <div className="operations-panel-header">
             <div><AppIcon name="packagePlus" size="md" /><div><h2>Расходники</h2><p>{supplies.length} позиций · {lowStockCount} пополнить</p></div></div>
-            <Button leftIcon="plus" size="sm" variant="primary" onClick={onAddSupply}>Добавить</Button>
+            {canManageTasks ? (
+              <Button leftIcon="plus" size="sm" variant="primary" onClick={onAddSupply}>Добавить</Button>
+            ) : null}
           </div>
           <div className="operations-list">
             {sortedSupplies.map((item) => {
@@ -1979,19 +1997,21 @@ function OperationsPage({
                     </div>
                     <div className="supply-row-aside">
                       <span className="supply-stock-badge">{getSupplyStockStatusLabel(stockStatus)}</span>
-                      <RowActionsMenu
-                        extraActions={[{disabled: !item.orderUrl, icon: "external", label: "Заказать", onClick: () => openSupplyOrderUrl(item.orderUrl)}]}
-                        itemId={`supply-${item.id}`}
-                        openMenuId={openItemMenuId}
-                        setOpenMenuId={setOpenItemMenuId}
-                        onDelete={() => onDeleteSupply(item)}
-                        onEdit={() => onEditSupply(item)}
-                      />
+                      {canManageTasks ? (
+                        <RowActionsMenu
+                          extraActions={[{disabled: !item.orderUrl, icon: "external", label: "Заказать", onClick: () => openSupplyOrderUrl(item.orderUrl)}]}
+                          itemId={`supply-${item.id}`}
+                          openMenuId={openItemMenuId}
+                          setOpenMenuId={setOpenItemMenuId}
+                          onDelete={() => onDeleteSupply(item)}
+                          onEdit={() => onEditSupply(item)}
+                        />
+                      ) : null}
                     </div>
                   </div>
                   <div className="supply-meta">
                     <span><strong>{item.stock} {item.unit}</strong><small>мин {item.minStock}</small></span>
-                    <span><strong>{formatMoney(item.cost)}</strong></span>
+                    {canManageTasks ? <span><strong>{formatMoney(item.cost)}</strong></span> : null}
                   </div>
                   <div className="supply-actions">
                     <IconButton icon="minus" label="Уменьшить остаток" size="sm" variant="secondary" onClick={() => onChangeSupplyStock(item, -1)} />
@@ -2000,7 +2020,7 @@ function OperationsPage({
                 </article>
               );
             })}
-            {!supplies.length ? <p className="operations-empty">Добавьте первый расходник.</p> : null}
+            {!supplies.length ? <p className="operations-empty">Расходников пока нет.</p> : null}
           </div>
         </section>
       ) : null}

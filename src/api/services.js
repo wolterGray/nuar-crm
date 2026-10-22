@@ -37,6 +37,17 @@ export const fetchServices = async () => {
   return handleResponse(response, "Services");
 };
 
+export const fetchPackages = async () => {
+  const headers = await authHeaders();
+  const response = await fetch(`${API_URL}/api/packages`, {
+    method: "GET",
+    cache: "no-store",
+    headers: {"Content-Type": "application/json", ...headers},
+  });
+
+  return handleResponse(response, "Packages");
+};
+
 export const createService = async (service) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/services`, {

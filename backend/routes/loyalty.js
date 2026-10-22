@@ -1,6 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner } = require('../middleware/auth');
+const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const path = require('path');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
@@ -19,7 +19,6 @@ const {
   getClubCollectionsForClient,
   getActorUserId,
   getPublicCardByToken,
-  isOwner,
   listRewardTemplates,
   openChest,
   redeemRewardAndReissue,
@@ -37,6 +36,7 @@ const { getHttpErrorResponse } = require('../utils/httpErrors');
 const prisma = new PrismaClient();
 const router = express.Router();
 const publicRouter = express.Router();
+const requireLoyaltyAdmin = requirePermission(PERMISSIONS.CATALOG_MANAGE);
 
 const PUBLIC_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const PUBLIC_RATE_LIMIT_MAX = 20;
@@ -86,6 +86,34 @@ const parseId = (value, fieldName = 'id') => {
     throw validationError(`${fieldName} is invalid`);
   }
   return id;
+};
+
+const forbiddenError = () => {
+  const error = new Error('Доступ к клубной карте запрещён');
+  error.status = 403;
+  return error;
+};
+
+const canAccessClient = async (db, req, clientId) => {
+  if (hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)) return true;
+  const employeeId = Number(req.auth?.employeeId) || null;
+  if (!employeeId || !clientId) return false;
+  const visit = await db.visit.findFirst({
+    where: {clientId: Number(clientId), employeeId},
+    select: {id: true},
+  });
+  return Boolean(visit);
+};
+
+const requireClientAccess = async (db, req, clientId) => {
+  if (!(await canAccessClient(db, req, clientId))) throw forbiddenError();
+};
+
+const requireCardAccess = async (db, req, cardId) => {
+  const card = await db.loyaltyCard.findUnique({where: {id: cardId}, select: {clientId: true}});
+  if (!card) throw validationError('Loyalty card not found', 404);
+  await requireClientAccess(db, req, card.clientId);
+  return card;
 };
 
 const requireReason = (value, fieldName = 'description') => {
@@ -198,6 +226,7 @@ publicRouter.post('/loyalty/:token/chests/:chestId/open', publicRateLimit, async
 router.post('/loyalty/cards/:clientId/create', async (req, res) => {
   try {
     const clientId = parseId(req.params.clientId, 'clientId');
+    await requireClientAccess(prisma, req, clientId);
     const cardLanguage = req.body?.cardLanguage;
     const result = await prisma.$transaction(async (tx) => {
       const created = await createCardForClient(tx, clientId, { cardLanguage });
@@ -224,6 +253,7 @@ router.post('/loyalty/cards/:clientId/create', async (req, res) => {
 router.get('/loyalty/cards/client/:clientId', async (req, res) => {
   try {
     const clientId = parseId(req.params.clientId, 'clientId');
+    await requireClientAccess(prisma, req, clientId);
     const card = await findCardForClient(prisma, clientId);
     res.json({ success: true, data: card ? serializeCard(card) : null });
   } catch (error) {
@@ -240,6 +270,11 @@ router.get('/loyalty/cards', async (req, res) => {
     const reward = String(req.query.reward ?? 'all').trim();
 
     const where = {
+      ...(!hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)
+        ? Number(req.auth?.employeeId)
+          ? {client: {visits: {some: {employeeId: Number(req.auth.employeeId)}}}}
+          : {id: -1}
+        : {}),
       ...(status === 'active' ? { isActive: true } : {}),
       ...(status === 'inactive' ? { isActive: false } : {}),
       ...(status === 'archived' ? { archivedAt: { not: null } } : {}),
@@ -300,8 +335,7 @@ router.get('/loyalty/cards', async (req, res) => {
 router.get('/loyalty/cards/:cardId/club', async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
-    const card = await prisma.loyaltyCard.findUnique({ where: { id: cardId }, select: { clientId: true } });
-    if (!card) throw validationError('Loyalty card not found', 404);
+    const card = await requireCardAccess(prisma, req, cardId);
     const collections = await getClubCollectionsForClient(prisma, card.clientId);
     res.json({ success: true, data: collections });
   } catch (error) {
@@ -313,6 +347,7 @@ router.post('/loyalty/cards/:cardId/chests/:chestId/open', async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
     const chestId = parseId(req.params.chestId, 'chestId');
+    await requireCardAccess(prisma, req, cardId);
     const result = await prisma.$transaction(async (tx) => {
       const card = await tx.loyaltyCard.findUnique({
         where: { id: cardId },
@@ -342,12 +377,12 @@ router.post('/loyalty/cards/:cardId/chests/:chestId/open', async (req, res) => {
   }
 });
 
-router.get('/loyalty/reward-templates', requireOwner, async (_req, res) => {
+router.get('/loyalty/reward-templates', requireLoyaltyAdmin, async (_req, res) => {
   const templates = await listRewardTemplates(prisma);
   res.json({ success: true, data: { items: templates } });
 });
 
-router.post('/loyalty/reward-templates', requireOwner, async (req, res) => {
+router.post('/loyalty/reward-templates', requireLoyaltyAdmin, async (req, res) => {
   try {
     const template = await saveRewardTemplate(prisma, req.body);
     res.status(201).json({ success: true, data: { template } });
@@ -356,7 +391,7 @@ router.post('/loyalty/reward-templates', requireOwner, async (req, res) => {
   }
 });
 
-router.patch('/loyalty/reward-templates/:templateId', requireOwner, async (req, res) => {
+router.patch('/loyalty/reward-templates/:templateId', requireLoyaltyAdmin, async (req, res) => {
   try {
     const templateId = parseId(req.params.templateId, 'templateId');
     const template = await saveRewardTemplate(prisma, req.body, templateId);
@@ -366,7 +401,7 @@ router.patch('/loyalty/reward-templates/:templateId', requireOwner, async (req, 
   }
 });
 
-router.delete('/loyalty/reward-templates/:templateId', requireOwner, async (req, res) => {
+router.delete('/loyalty/reward-templates/:templateId', requireLoyaltyAdmin, async (req, res) => {
   try {
     const templateId = parseId(req.params.templateId, 'templateId');
     const template = await prisma.loyaltyRewardTemplate.delete({ where: { id: templateId } });
@@ -380,10 +415,16 @@ router.post('/loyalty/rewards/:rewardId/redeem', async (req, res) => {
   try {
     const rewardId = parseId(req.params.rewardId, 'rewardId');
     const visitId = req.body?.visitId ? parseId(req.body.visitId, 'visitId') : null;
+    const existingReward = await prisma.loyaltyReward.findUnique({
+      where: {id: rewardId},
+      select: {clientId: true},
+    });
+    if (!existingReward) throw validationError('Reward not found', 404);
+    await requireClientAccess(prisma, req, existingReward.clientId);
     const reward = await prisma.$transaction((tx) =>
       redeemIssuedReward(tx, rewardId, {
         createdById: getActorUserId(req),
-        isOwnerActor: isOwner(req),
+        isOwnerActor: hasPermission(req.auth, PERMISSIONS.CATALOG_MANAGE),
         visitId,
       }),
     );
@@ -396,6 +437,7 @@ router.post('/loyalty/rewards/:rewardId/redeem', async (req, res) => {
 router.get('/loyalty/cards/:cardId/transactions', async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
+    await requireCardAccess(prisma, req, cardId);
     const page = Math.max(1, Number(req.query.page) || 1);
     const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize) || 25));
     const [items, total] = await Promise.all([
@@ -428,6 +470,7 @@ router.get('/loyalty/cards/:cardId/transactions', async (req, res) => {
 router.post('/loyalty/cards/:cardId/earn', async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
+    await requireCardAccess(prisma, req, cardId);
     const description = requireReason(req.body?.description);
     const appointmentId = req.body?.appointmentId ? parseId(req.body.appointmentId, 'appointmentId') : null;
     const result = await prisma.$transaction(async (tx) => {
@@ -460,6 +503,7 @@ router.post('/loyalty/cards/:cardId/earn', async (req, res) => {
 router.post('/loyalty/cards/:cardId/redeem', async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
+    await requireCardAccess(prisma, req, cardId);
     const description = String(req.body?.description ?? 'Использование награды').trim();
     const result = await prisma.$transaction(async (tx) => {
       const card = await tx.loyaltyCard.findUnique({ where: { id: cardId } });
@@ -496,8 +540,8 @@ router.post('/loyalty/cards/:cardId/redeem', async (req, res) => {
 });
 
 router.post('/loyalty/cards/:cardId/correct', async (req, res) => {
-  if (!isOwner(req)) {
-    return res.status(403).json({ success: false, error: 'Owner role required' });
+  if (!hasPermission(req.auth, PERMISSIONS.CATALOG_MANAGE)) {
+    return res.status(403).json({ success: false, error: 'Доступ к корректировке карты запрещён' });
   }
 
   try {
@@ -533,7 +577,7 @@ router.post('/loyalty/cards/:cardId/correct', async (req, res) => {
   }
 });
 
-router.post('/loyalty/cards/:cardId/rewards', requireOwner, async (req, res) => {
+router.post('/loyalty/cards/:cardId/rewards', requireLoyaltyAdmin, async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
     const templateId = req.body?.templateId ? parseId(req.body.templateId, 'templateId') : null;
@@ -591,7 +635,7 @@ router.post('/loyalty/cards/:cardId/rewards', requireOwner, async (req, res) => 
   }
 });
 
-router.delete('/loyalty/rewards/:rewardId', requireOwner, async (req, res) => {
+router.delete('/loyalty/rewards/:rewardId', requireLoyaltyAdmin, async (req, res) => {
   try {
     const rewardId = parseId(req.params.rewardId, 'rewardId');
     const reward = await prisma.loyaltyReward.delete({
@@ -613,6 +657,7 @@ router.delete('/loyalty/rewards/:rewardId', requireOwner, async (req, res) => {
 router.post('/loyalty/cards/:cardId/reissue-link', async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
+    await requireCardAccess(prisma, req, cardId);
     const result = await prisma.$transaction(async (tx) => {
       const before = await tx.loyaltyCard.findUnique({ where: { id: cardId } });
       if (!before) throw validationError('Loyalty card not found', 404);
@@ -652,7 +697,7 @@ router.post('/loyalty/cards/:cardId/reissue-link', async (req, res) => {
   }
 });
 
-router.patch('/loyalty/cards/:cardId/language', requireOwner, async (req, res) => {
+router.patch('/loyalty/cards/:cardId/language', requireLoyaltyAdmin, async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
     const cardLanguage = String(req.body?.cardLanguage ?? '').trim();
@@ -687,7 +732,7 @@ router.patch('/loyalty/cards/:cardId/language', requireOwner, async (req, res) =
   }
 });
 
-router.patch('/loyalty/cards/:cardId/status', requireOwner, async (req, res) => {
+router.patch('/loyalty/cards/:cardId/status', requireLoyaltyAdmin, async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
     const isActive = Boolean(req.body?.isActive);
@@ -733,7 +778,7 @@ router.patch('/loyalty/cards/:cardId/status', requireOwner, async (req, res) => 
   }
 });
 
-router.delete('/loyalty/cards/:cardId', requireOwner, async (req, res) => {
+router.delete('/loyalty/cards/:cardId', requireLoyaltyAdmin, async (req, res) => {
   try {
     const cardId = parseId(req.params.cardId, 'cardId');
     const result = await prisma.$transaction(async (tx) => {

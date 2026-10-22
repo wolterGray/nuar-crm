@@ -1,7 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
-const { requireOwner } = require('../middleware/auth');
+const { requirePermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { sendBulkSms } = require('../services/smsService');
 const { telegramDigest } = require('../services/telegramService');
@@ -11,6 +11,7 @@ const { reviewRequests } = require('../services/reviewRequestsService');
 const { booksySync } = require('../services/booksySyncService');
 
 const prisma = new PrismaClient();
+const requireIntegrationAdmin = requirePermission(PERMISSIONS.USERS_MANAGE);
 
 const countItems = (value) => (Array.isArray(value) ? value.length : 0);
 
@@ -78,7 +79,7 @@ const skippedIntegrationResponse = ({configured = false, enabled = false, reason
 });
 
 // Bulk SMS
-router.post('/bulk-sms', requireOwner, async (req, res) => {
+router.post('/bulk-sms', requireIntegrationAdmin, async (req, res) => {
   const { action, recipients, message, testNumber } = req.body;
 
   try {
@@ -157,7 +158,7 @@ router.post('/bulk-sms', requireOwner, async (req, res) => {
 });
 
 // Telegram Digest
-router.post('/telegram-digest', requireOwner, async (req, res) => {
+router.post('/telegram-digest', requireIntegrationAdmin, async (req, res) => {
   const payload = req.body;
   if (payload?.action === 'status') {
     const settings = await loadAppSettings();
@@ -321,7 +322,7 @@ router.post('/telegram-digest', requireOwner, async (req, res) => {
 });
 
 // SMS Reminders
-router.post('/sms-reminders', requireOwner, async (req, res) => {
+router.post('/sms-reminders', requireIntegrationAdmin, async (req, res) => {
   const payload = req.body;
   const settings = await loadAppSettings();
   const smsEnabled = isSmsEnabled(settings);
@@ -404,7 +405,7 @@ router.post('/sms-reminders', requireOwner, async (req, res) => {
 });
 
 // Owner email notification
-router.post('/owner-notify', requireOwner, async (req, res) => {
+router.post('/owner-notify', requireIntegrationAdmin, async (req, res) => {
   const payload = req.body;
   const result = await ownerNotify(payload);
   await auditFunctionCall(req, 'send owner notification', {
@@ -417,7 +418,7 @@ router.post('/owner-notify', requireOwner, async (req, res) => {
 });
 
 // Review Requests
-router.post('/review-requests', requireOwner, async (req, res) => {
+router.post('/review-requests', requireIntegrationAdmin, async (req, res) => {
   const payload = req.body;
   const settings = await loadAppSettings();
   const smsEnabled = isSmsEnabled(settings);
@@ -440,7 +441,7 @@ router.post('/review-requests', requireOwner, async (req, res) => {
 });
 
 // Booksy Gmail Sync compatibility endpoint
-router.post('/booksy-sync', requireOwner, async (req, res) => {
+router.post('/booksy-sync', requireIntegrationAdmin, async (req, res) => {
   const payload = req.body;
   const settings = await loadAppSettings();
   if (settings.gmailBooksySyncEnabled !== true) {

@@ -179,7 +179,7 @@ router.post('/packages', requirePermission(PERMISSIONS.CATALOG_MANAGE), (req, re
   auditCreate(prisma, req, res, prisma.package.create({ data }).then(withStoredId), 'Package', 'create package');
 });
 
-router.get('/packages/:id', (req, res) => {
+router.get('/packages/:id', requirePermission(PERMISSIONS.CATALOG_VIEW), (req, res) => {
   const id = Number(req.params.id);
   respond(res, prisma.package.findUnique({ where: { id } }).then(withStoredId));
 });
@@ -217,7 +217,7 @@ router.delete('/packages/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE), as
   );
 });
 
-router.get('/packages', (req, res) => {
+router.get('/packages', requirePermission(PERMISSIONS.CATALOG_VIEW), (req, res) => {
   respond(res, prisma.package.findMany({ orderBy: { name: 'asc' } }).then((records) => records.map(withStoredId)));
 });
 

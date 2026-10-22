@@ -109,7 +109,7 @@ const ROLE_DEFAULT_PERMISSIONS = {
     [PERMISSIONS.CATALOG_MANAGE]: true,
     [PERMISSIONS.EMPLOYEES_MANAGE]: true,
     [PERMISSIONS.TASKS_MANAGE]: true,
-    [PERMISSIONS.USERS_MANAGE]: false, // Only owner manages user roles/perms by default
+    [PERMISSIONS.USERS_MANAGE]: true,
     [PERMISSIONS.LOGS_VIEW]: true,
   },
   manager: {
@@ -141,18 +141,18 @@ const ROLE_DEFAULT_PERMISSIONS = {
     [PERMISSIONS.CALENDAR_MANAGE_ASSIGNED]: true,
     [PERMISSIONS.CALENDAR_DELETE]: false,
     [PERMISSIONS.CLIENTS_VIEW]: true,
-    [PERMISSIONS.CLIENTS_VIEW_CONTACTS]: false, // Contacts masked by default
-    [PERMISSIONS.CLIENTS_MANAGE]: false,
+    [PERMISSIONS.CLIENTS_VIEW_CONTACTS]: true,
+    [PERMISSIONS.CLIENTS_MANAGE]: true,
     [PERMISSIONS.CLIENTS_DELETE]: false,
     [PERMISSIONS.FINANCE_VIEW_SALON_STATS]: false,
     [PERMISSIONS.FINANCE_DAY_CLOSE]: false,
     [PERMISSIONS.PAYOUTS_VIEW_ALL]: false,
     [PERMISSIONS.PAYOUTS_VIEW_OWN]: true,
     [PERMISSIONS.PAYOUTS_MANAGE]: false,
-    [PERMISSIONS.CATALOG_VIEW]: false,
+    [PERMISSIONS.CATALOG_VIEW]: true,
     [PERMISSIONS.CATALOG_MANAGE]: false,
     [PERMISSIONS.EMPLOYEES_MANAGE]: false,
-    [PERMISSIONS.TASKS_MANAGE]: true,
+    [PERMISSIONS.TASKS_MANAGE]: false,
     [PERMISSIONS.USERS_MANAGE]: false,
     [PERMISSIONS.LOGS_VIEW]: false,
   },
@@ -184,12 +184,14 @@ const ROLE_DEFAULT_PERMISSIONS = {
  * Calculates effective permissions by merging role defaults with explicit user overrides.
  */
 function getEffectivePermissions(role, customPermissions = {}) {
-  const normRole = String(role || 'staff').toLowerCase();
+  const normRole = String(role || '').toLowerCase();
   if (normRole === 'owner') {
     return ALL_PERMISSION_KEYS.reduce((acc, key) => ({ ...acc, [key]: true }), {});
   }
 
-  const base = { ...(ROLE_DEFAULT_PERMISSIONS[normRole] || ROLE_DEFAULT_PERMISSIONS.staff) };
+  const base = ROLE_DEFAULT_PERMISSIONS[normRole]
+    ? { ...ROLE_DEFAULT_PERMISSIONS[normRole] }
+    : ALL_PERMISSION_KEYS.reduce((acc, key) => ({ ...acc, [key]: false }), {});
 
   if (customPermissions && typeof customPermissions === 'object') {
     for (const [key, val] of Object.entries(customPermissions)) {

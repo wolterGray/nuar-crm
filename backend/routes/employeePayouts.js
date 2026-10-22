@@ -1,6 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const { requireAdminOrOwner } = require('../middleware/auth');
+const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
   EMPLOYEE_EARNING_INCLUDE,
@@ -16,7 +16,20 @@ const { getHttpErrorResponse } = require('../utils/httpErrors');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-router.use(requireAdminOrOwner);
+const getPayoutScope = (req) => {
+  if (hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_ALL)) return {all: true, employeeId: null};
+  if (hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_OWN)) {
+    return {all: false, employeeId: Number(req.auth?.employeeId) || null};
+  }
+  return {all: false, employeeId: null};
+};
+
+const requirePayoutRead = (req, res) => {
+  const scope = getPayoutScope(req);
+  if (scope.all || scope.employeeId) return scope;
+  res.status(403).json({success: false, error: 'Доступ к расчётам запрещён'});
+  return null;
+};
 
 const normalizeDate = (value) => {
   const normalized = normalizeDayCloseDate(value);
@@ -156,15 +169,21 @@ const earningInclude = {
 };
 
 router.get('/employee-earnings/summary', async (req, res) => {
+  const scope = requirePayoutRead(req, res);
+  if (!scope) return;
   const startDate = normalizeDate(req.query.startDate);
   const endDate = normalizeDate(req.query.endDate);
 
   try {
     validateDateRange(startDate, endDate);
-    await cleanupPackageVisitEarningsAndEnsureSales(prisma);
+    if (scope.all) await cleanupPackageVisitEarningsAndEnsureSales(prisma);
     const [employees, earnings] = await Promise.all([
-      prisma.employee.findMany({ orderBy: { name: 'asc' } }),
+      prisma.employee.findMany({
+        where: scope.all ? {} : {id: scope.employeeId},
+        orderBy: { name: 'asc' },
+      }),
       prisma.employeeEarning.findMany({
+        where: scope.all ? {} : {employeeId: scope.employeeId},
         include: earningInclude,
         orderBy: { createdAt: 'desc' },
       }),
@@ -188,6 +207,8 @@ router.get('/employee-earnings/summary', async (req, res) => {
 });
 
 router.get('/employee-earnings/employees/:employeeId', async (req, res) => {
+  const scope = requirePayoutRead(req, res);
+  if (!scope) return;
   const employeeId = Number(req.params.employeeId);
   const startDate = normalizeDate(req.query.startDate);
   const endDate = normalizeDate(req.query.endDate);
@@ -195,10 +216,13 @@ router.get('/employee-earnings/employees/:employeeId', async (req, res) => {
   if (!Number.isInteger(employeeId) || employeeId <= 0) {
     return res.status(422).json({ success: false, error: 'employeeId is invalid' });
   }
+  if (!scope.all && employeeId !== scope.employeeId) {
+    return res.status(403).json({success: false, error: 'Можно просматривать только собственный расчёт'});
+  }
 
   try {
     validateDateRange(startDate, endDate);
-    await cleanupPackageVisitEarningsAndEnsureSales(prisma);
+    if (scope.all) await cleanupPackageVisitEarningsAndEnsureSales(prisma);
     const [employee, earnings] = await Promise.all([
       prisma.employee.findUnique({ where: { id: employeeId } }),
       prisma.employeeEarning.findMany({
@@ -236,7 +260,7 @@ router.get('/employee-earnings/employees/:employeeId', async (req, res) => {
   }
 });
 
-router.post('/employee-payouts', async (req, res) => {
+router.post('/employee-payouts', requirePermission(PERMISSIONS.PAYOUTS_MANAGE), async (req, res) => {
   const employeeId = Number(req.body?.employeeId);
   let earningIds = [];
 
@@ -331,9 +355,12 @@ router.post('/employee-payouts', async (req, res) => {
   }
 });
 
-router.get('/employee-payouts', async (_req, res) => {
+router.get('/employee-payouts', async (req, res) => {
+  const scope = requirePayoutRead(req, res);
+  if (!scope) return;
   try {
     const payouts = await prisma.employeePayout.findMany({
+      where: scope.all ? {} : {employeeId: scope.employeeId},
       include: {
         employee: true,
         earnings: true,
@@ -349,6 +376,8 @@ router.get('/employee-payouts', async (_req, res) => {
 });
 
 router.get('/employee-payouts/:id', async (req, res) => {
+  const scope = requirePayoutRead(req, res);
+  if (!scope) return;
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) {
     return res.status(422).json({ success: false, error: 'id is invalid' });
@@ -365,6 +394,9 @@ router.get('/employee-payouts/:id', async (req, res) => {
     if (!payout) {
       return res.status(404).json({ success: false, error: 'Payout not found' });
     }
+    if (!scope.all && Number(payout.employeeId) !== scope.employeeId) {
+      return res.status(403).json({success: false, error: 'Можно просматривать только собственные выплаты'});
+    }
     res.json({ success: true, data: serializePayout(payout) });
   } catch (err) {
     const response = getHttpErrorResponse(err);
@@ -373,7 +405,7 @@ router.get('/employee-payouts/:id', async (req, res) => {
   }
 });
 
-router.post('/employee-payouts/:id/cancel', async (req, res) => {
+router.post('/employee-payouts/:id/cancel', requirePermission(PERMISSIONS.PAYOUTS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) {
     return res.status(422).json({ success: false, error: 'id is invalid' });
@@ -447,7 +479,7 @@ router.post('/employee-payouts/:id/cancel', async (req, res) => {
   }
 });
 
-router.delete('/employee-payouts/:id', async (req, res) => {
+router.delete('/employee-payouts/:id', requirePermission(PERMISSIONS.PAYOUTS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) {
     return res.status(422).json({ success: false, error: 'id is invalid' });

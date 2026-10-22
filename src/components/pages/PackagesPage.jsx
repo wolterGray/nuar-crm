@@ -108,6 +108,7 @@ function getCertificateDisplay(cert, clients = []) {
 }
 
 function ClientPackageCard({
+  canManage = true,
   clients = [],
   onDelete,
   onEdit,
@@ -151,13 +152,15 @@ function ClientPackageCard({
             </span>
           ) : null}
         </div>
-        <RowActionsMenu
-          itemId={packageItem.id}
-          openMenuId={openMenuId}
-          setOpenMenuId={setOpenMenuId}
-          onDelete={() => onDelete?.(resolvedItem)}
-          onEdit={() => onEdit?.(resolvedItem)}
-        />
+        {canManage ? (
+          <RowActionsMenu
+            itemId={packageItem.id}
+            openMenuId={openMenuId}
+            setOpenMenuId={setOpenMenuId}
+            onDelete={() => onDelete?.(resolvedItem)}
+            onEdit={() => onEdit?.(resolvedItem)}
+          />
+        ) : null}
       </div>
 
       <div className="package-card-progress">
@@ -190,6 +193,7 @@ function ClientPackageCard({
 }
 
 function CertificateCard({
+  canManage = true,
   certificate,
   clients = [],
   onDelete,
@@ -237,13 +241,13 @@ function CertificateCard({
             </span>
           )}
         </div>
-        <RowActionsMenu
+        {canManage ? <RowActionsMenu
           itemId={certificate.id}
           openMenuId={openMenuId}
           setOpenMenuId={setOpenMenuId}
           onDelete={() => onDelete?.(resolvedCert)}
           onEdit={() => onEdit?.(resolvedCert)}
-        />
+        /> : null}
       </div>
 
       <div className="package-card-progress">
@@ -276,6 +280,7 @@ function CertificateCard({
 }
 
 function PackageTemplateCard({
+  canManage = true,
   onDelete,
   onEdit,
   openMenuId,
@@ -301,13 +306,13 @@ function PackageTemplateCard({
             <span className="package-card-pkg-name">Общая услуга</span>
           )}
         </div>
-        <RowActionsMenu
+        {canManage ? <RowActionsMenu
           itemId={packageItem.id}
           openMenuId={openMenuId}
           setOpenMenuId={setOpenMenuId}
           onDelete={() => onDelete(packageItem)}
           onEdit={() => onEdit(packageItem)}
-        />
+        /> : null}
       </div>
 
       <div className="package-template-meta">
@@ -398,6 +403,7 @@ function PackagesKpiGrid({
 }
 
 function PackagesPage({
+  canManagePackages = true,
   packages = [],
   clientPackages = [],
   clientProfiles = [],
@@ -616,7 +622,7 @@ function PackagesPage({
         : "Поиск в архиве...";
 
   // Top action buttons for desktop header
-  const desktopHeaderActions = (
+  const desktopHeaderActions = canManagePackages ? (
     <div className="packages-desktop-header-actions">
       {packageTab === "active" && (
         <>
@@ -634,10 +640,10 @@ function PackagesPage({
         </Button>
       )}
     </div>
-  );
+  ) : null;
 
   // Mobile header action buttons
-  const mobileHeaderActions = (
+  const mobileHeaderActions = canManagePackages ? (
     <div className="packages-mobile-actions-row">
       {packageTab === "active" && (
         <div className="packages-mobile-actions-grid">
@@ -655,7 +661,7 @@ function PackagesPage({
         </Button>
       )}
     </div>
-  );
+  ) : null;
 
   return (
     <div
@@ -769,6 +775,7 @@ function PackagesPage({
                 <div className="packages-list">
                   {filteredActiveClientPackages.map((packageItem) => (
                     <ClientPackageCard
+                      canManage={canManagePackages}
                       key={packageItem.id}
                       clients={allClients}
                       packages={packages}
@@ -785,8 +792,8 @@ function PackagesPage({
                       icon="package"
                       title={search.trim() ? "Пакеты не найдены" : "Активных пакетов нет"}
                       description={search.trim() ? "Попробуйте изменить поисковый запрос" : "Клиенты пока не приобрели абонементы"}
-                      actionLabel={search.trim() ? "Очистить поиск" : "Продать пакет"}
-                      onAction={search.trim() ? () => setSearch("") : onSellPackage}
+                      actionLabel={search.trim() ? "Очистить поиск" : canManagePackages ? "Продать пакет" : undefined}
+                      onAction={search.trim() ? () => setSearch("") : canManagePackages ? onSellPackage : undefined}
                     />
                   )}
                 </div>
@@ -806,6 +813,7 @@ function PackagesPage({
                 <div className="packages-list">
                   {filteredActiveCertificates.map((certificate) => (
                     <CertificateCard
+                      canManage={canManagePackages}
                       key={certificate.id}
                       clients={allClients}
                       certificate={certificate}
@@ -821,8 +829,8 @@ function PackagesPage({
                       icon="gift"
                       title={search.trim() ? "Сертификаты не найдены" : "Активных сертификатов нет"}
                       description={search.trim() ? "Попробуйте изменить поисковый запрос" : "Оформите подарочный сертификат для клиента"}
-                      actionLabel={search.trim() ? "Очистить поиск" : "Продать сертификат"}
-                      onAction={search.trim() ? () => setSearch("") : onSellCertificate}
+                      actionLabel={search.trim() ? "Очистить поиск" : canManagePackages ? "Продать сертификат" : undefined}
+                      onAction={search.trim() ? () => setSearch("") : canManagePackages ? onSellCertificate : undefined}
                     />
                   )}
                 </div>
@@ -844,6 +852,7 @@ function PackagesPage({
             <div className="packages-list packages-templates-grid">
               {filteredTemplates.map((packageItem) => (
                 <PackageTemplateCard
+                  canManage={canManagePackages}
                   key={packageItem.id}
                   onDelete={onDelete}
                   onEdit={onEdit}
@@ -858,8 +867,8 @@ function PackagesPage({
                   icon="package"
                   title={search.trim() ? "Шаблоны не найдены" : "Шаблонов ещё нет"}
                   description={search.trim() ? "Попробуйте изменить поисковый запрос" : "Создайте шаблон пакета услуг для быстрой продажи в CRM"}
-                  actionLabel={search.trim() ? "Очистить поиск" : "Создать шаблон"}
-                  onAction={search.trim() ? () => setSearch("") : onAdd}
+                  actionLabel={search.trim() ? "Очистить поиск" : canManagePackages ? "Создать шаблон" : undefined}
+                  onAction={search.trim() ? () => setSearch("") : canManagePackages ? onAdd : undefined}
                 />
               )}
             </div>
@@ -882,6 +891,7 @@ function PackagesPage({
                 <div className="packages-list">
                   {filteredArchivedClientPackages.map((packageItem) => (
                     <ClientPackageCard
+                      canManage={canManagePackages}
                       key={packageItem.id}
                       clients={allClients}
                       packages={packages}
@@ -917,6 +927,7 @@ function PackagesPage({
                 <div className="packages-list">
                   {filteredArchivedCertificates.map((certificate) => (
                     <CertificateCard
+                      canManage={canManagePackages}
                       key={certificate.id}
                       clients={allClients}
                       certificate={certificate}

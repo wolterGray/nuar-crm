@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
+const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
@@ -653,14 +653,14 @@ const serializeCertificate = (record, canViewContacts = true) => {
   };
 };
 
-const requireClientOrFinanceManage = (req, res, next) => {
+const requirePackageFinanceManage = (req, res, next) => {
   if (
-    hasPermission(req.auth, PERMISSIONS.CLIENTS_MANAGE) ||
+    hasPermission(req.auth, PERMISSIONS.CATALOG_MANAGE) ||
     hasPermission(req.auth, PERMISSIONS.FINANCE_VIEW_SALON_STATS)
   ) {
     return next();
   }
-  return res.status(403).json({ success: false, error: 'Доступ запрещён: требуется право управления клиентами или финансами' });
+  return res.status(403).json({ success: false, error: 'Доступ запрещён: требуется право управления каталогом или финансами' });
 };
 
 const requireClientOrFinanceView = (req, res, next) => {
@@ -671,6 +671,13 @@ const requireClientOrFinanceView = (req, res, next) => {
     return next();
   }
   return res.status(403).json({ success: false, error: 'Доступ запрещён: требуется право просмотра клиентов или финансов' });
+};
+
+const getScopedClientWhere = (req) => {
+  if (hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)) return {};
+  const employeeId = Number(req.auth?.employeeId) || null;
+  if (!employeeId) return {id: -1};
+  return {visits: {some: {employeeId}}};
 };
 
 const buildDayCloseRecordData = (payload) => {
@@ -750,7 +757,7 @@ router.get('/financial-state', requirePermission(PERMISSIONS.FINANCE_VIEW_SALON_
 });
 
 // ==================== Client Packages CRUD ====================
-router.post('/client-packages', requireClientOrFinanceManage, async (req, res) => {
+router.post('/client-packages', requirePackageFinanceManage, async (req, res) => {
   const data = buildClientPackageData(req.body ?? {});
   try {
     validateClientPackageData(data);
@@ -786,8 +793,8 @@ router.get('/client-packages/:id', requireClientOrFinanceView, async (req, res) 
   const id = Number(req.params.id);
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
-    const record = await prisma.clientPackage.findUnique({
-      where: { id },
+    const record = await prisma.clientPackage.findFirst({
+      where: { id, client: getScopedClientWhere(req) },
       include: { client: true, package: true },
     });
     if (!record) return res.status(404).json({ success: false, error: 'Client package not found' });
@@ -797,7 +804,7 @@ router.get('/client-packages/:id', requireClientOrFinanceView, async (req, res) 
   }
 });
 
-router.put('/client-packages/:id', requireClientOrFinanceManage, async (req, res) => {
+router.put('/client-packages/:id', requirePackageFinanceManage, async (req, res) => {
   const id = Number(req.params.id);
   const data = buildClientPackageData({ ...(req.body ?? {}), id });
   try {
@@ -831,7 +838,7 @@ router.put('/client-packages/:id', requireClientOrFinanceManage, async (req, res
   }
 });
 
-router.delete('/client-packages/:id', requireOwner, async (req, res) => {
+router.delete('/client-packages/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE), async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
   try {
@@ -860,6 +867,7 @@ router.get('/client-packages', requireClientOrFinanceView, async (req, res) => {
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
     const records = await prisma.clientPackage.findMany({
+      where: {client: getScopedClientWhere(req)},
       orderBy: { createdAt: 'desc' },
       include: { client: true, package: true },
     });
@@ -870,7 +878,7 @@ router.get('/client-packages', requireClientOrFinanceView, async (req, res) => {
 });
 
 // ==================== Certificates Sales & CRUD ====================
-router.post('/certificates/sell', requireClientOrFinanceManage, async (req, res) => {
+router.post('/certificates/sell', requirePackageFinanceManage, async (req, res) => {
   const body = req.body ?? {};
   const certificatePayload = body.certificate ?? body;
   const visitPayload = body.visit ?? {};
@@ -953,7 +961,7 @@ router.post('/certificates/sell', requireClientOrFinanceManage, async (req, res)
   }
 });
 
-router.post('/certificates', requireClientOrFinanceManage, (req, res) => {
+router.post('/certificates', requirePackageFinanceManage, (req, res) => {
   const data = buildCertificateData(req.body ?? {});
   try {
     validateCertificateData(data);
@@ -978,8 +986,12 @@ router.get('/certificates/:id', requireClientOrFinanceView, async (req, res) => 
   const id = Number(req.params.id);
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
-    const record = await prisma.certificate.findUnique({
-      where: { id },
+    const scopedClientWhere = getScopedClientWhere(req);
+    const record = await prisma.certificate.findFirst({
+      where: {
+        id,
+        OR: [{client: scopedClientWhere}, {recipient: scopedClientWhere}],
+      },
       include: { client: true, recipient: true },
     });
     if (!record) return res.status(404).json({ success: false, error: 'Certificate not found' });
@@ -989,7 +1001,7 @@ router.get('/certificates/:id', requireClientOrFinanceView, async (req, res) => 
   }
 });
 
-router.put('/certificates/:id', requireClientOrFinanceManage, async (req, res) => {
+router.put('/certificates/:id', requirePackageFinanceManage, async (req, res) => {
   const id = Number(req.params.id);
   const data = buildCertificateData({ ...(req.body ?? {}), id });
   try {
@@ -1013,7 +1025,7 @@ router.put('/certificates/:id', requireClientOrFinanceManage, async (req, res) =
   );
 });
 
-router.delete('/certificates/:id', requireOwner, async (req, res) => {
+router.delete('/certificates/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE), async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
   await auditDelete(
@@ -1032,6 +1044,12 @@ router.get('/certificates', requireClientOrFinanceView, async (req, res) => {
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
     const records = await prisma.certificate.findMany({
+      where: {
+        OR: [
+          {client: getScopedClientWhere(req)},
+          {recipient: getScopedClientWhere(req)},
+        ],
+      },
       orderBy: { createdAt: 'desc' },
       include: { client: true, recipient: true },
     });
@@ -1120,7 +1138,7 @@ router.post('/day-close-records/close', requirePermission(PERMISSIONS.FINANCE_DA
   }
 });
 
-router.post('/day-close-records', requireOwner, async (req, res) => {
+router.post('/day-close-records', requirePermission(PERMISSIONS.FINANCE_DAY_CLOSE), async (req, res) => {
   const allowed = await requireLegacyFinancialWriteFlag(req, res, {
     action: 'create day close',
     entity: 'DayCloseRecord',
@@ -1150,7 +1168,7 @@ router.post('/day-close-records', requireOwner, async (req, res) => {
   );
 });
 
-router.put('/day-close-records/:id', requireOwner, async (req, res) => {
+router.put('/day-close-records/:id', requirePermission(PERMISSIONS.FINANCE_DAY_CLOSE), async (req, res) => {
   const allowed = await requireLegacyFinancialWriteFlag(req, res, {
     action: 'update day close',
     entity: 'DayCloseRecord',
@@ -1183,7 +1201,7 @@ router.put('/day-close-records/:id', requireOwner, async (req, res) => {
   );
 });
 
-router.delete('/day-close-records/:id', requireOwner, async (req, res) => {
+router.delete('/day-close-records/:id', requirePermission(PERMISSIONS.FINANCE_DAY_CLOSE), async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
   await auditDelete(
@@ -1418,7 +1436,7 @@ router.put('/visits/journal/:id/financial', async (req, res) => {
   }
 });
 
-router.post('/visits/journal/:id/delete-financial', requireOwner, async (req, res) => {
+router.post('/visits/journal/:id/delete-financial', requirePermission(PERMISSIONS.FINANCE_DAY_CLOSE), async (req, res) => {
   const visitId = Number(req.params.id);
 
   if (!Number.isFinite(visitId) || visitId <= 0) {
@@ -1589,7 +1607,7 @@ router.put('/visits/journal/:id', async (req, res) => {
   }
 });
 
-router.delete('/visits/journal/:id', requireOwner, async (req, res) => {
+router.delete('/visits/journal/:id', requirePermission(PERMISSIONS.FINANCE_DAY_CLOSE), async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
   try {

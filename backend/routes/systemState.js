@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { isOwnerAuth, requireOwner } = require('../middleware/auth');
+const { isOwnerAuth, requirePermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const {
-  respond,
   respondWithAudit,
 } = require('../utils/crudHelpers');
 
@@ -89,7 +88,7 @@ router.get('/system-state/:key', async (req, res) => {
   }
 });
 
-router.put('/system-state/:key', requireOwner, async (req, res) => {
+router.put('/system-state/:key', requirePermission(PERMISSIONS.USERS_MANAGE), async (req, res) => {
   const key = String(req.params.key ?? '').trim();
   const payload = req.body?.payload ?? req.body ?? null;
 
@@ -121,7 +120,7 @@ router.put('/system-state/:key', requireOwner, async (req, res) => {
   );
 });
 
-router.put('/system-state', requireOwner, async (req, res) => {
+router.put('/system-state', requirePermission(PERMISSIONS.USERS_MANAGE), async (req, res) => {
   const entries = req.body?.entries ?? req.body ?? {};
   if (!entries || typeof entries !== 'object' || Array.isArray(entries)) {
     return res.status(400).json({ success: false, error: 'System state entries object is required' });
@@ -131,7 +130,9 @@ router.put('/system-state', requireOwner, async (req, res) => {
     const beforeRecords = await prisma.systemState.findMany({
       where: { key: { in: Object.keys(entries) } },
     });
-    const before = Object.fromEntries(beforeRecords.map(systemStateRecord));
+    const before = Object.fromEntries(
+      beforeRecords.map((record) => [record.key, record.payload]),
+    );
 
     await prisma.$transaction(
       Object.entries(entries).map(([key, payload]) =>

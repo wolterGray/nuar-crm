@@ -1,6 +1,6 @@
 const express = require('express');
 const {PrismaClient} = require('@prisma/client');
-const {requireOwner, isOwnerAuth, invalidateUserCache} = require('../middleware/auth');
+const {requireAdminOrOwner, isOwnerAuth, invalidateUserCache} = require('../middleware/auth');
 const {PERMISSION_GROUPS} = require('../constants/permissions');
 const {recordAuditLog, recordErrorEvent} = require('../services/loggingService');
 const {
@@ -239,7 +239,15 @@ function createUsersRouter({
     res.status(status).json({success: false, error: message});
   };
 
-  router.use(requireOwner);
+  router.use(requireAdminOrOwner);
+
+  const ensureAdminDoesNotManageOwner = (req, targetRole) => {
+    if (!isOwnerAuth(req.auth) && targetRole === 'owner') {
+      const error = new Error('Только владелец может управлять аккаунтом владельца');
+      error.status = 403;
+      throw error;
+    }
+  };
 
   router.get('/users', async (req, res) => {
     try {
@@ -350,6 +358,8 @@ function createUsersRouter({
         return res.status(404).json({success: false, error: 'Пользователь не найден'});
       }
 
+      ensureAdminDoesNotManageOwner(req, current.role);
+
       const {email, name, role, employeeId, permissions} = parseUserPayload({
         email: req.body?.email ?? current.email,
         employeeId: req.body?.employeeId !== undefined ? req.body.employeeId : current.employeeId,
@@ -447,6 +457,9 @@ function createUsersRouter({
         return res.status(404).json({success: false, error: 'Пользователь не найден'});
       }
 
+
+      ensureAdminDoesNotManageOwner(req, current.role);
+
       await ensureCanChangeOwnerStatus(current, {nextIsActive: false});
 
       if (String(req.auth?.id) === String(id)) {
@@ -486,6 +499,9 @@ function createUsersRouter({
         return res.status(404).json({success: false, error: 'Пользователь не найден'});
       }
 
+
+      ensureAdminDoesNotManageOwner(req, current.role);
+
       const updated = await prisma.user.update({
         data: {isActive: true},
         where: {id},
@@ -518,6 +534,9 @@ function createUsersRouter({
       if (!user) {
         return res.status(404).json({success: false, error: 'Пользователь не найден'});
       }
+
+
+      ensureAdminDoesNotManageOwner(req, user.role);
 
       if (!user.isActive) {
         return res.status(409).json({

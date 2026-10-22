@@ -55,7 +55,7 @@ export const ROLE_DEFAULT_PERMISSIONS = {
     [PERMISSIONS.CATALOG_MANAGE]: true,
     [PERMISSIONS.EMPLOYEES_MANAGE]: true,
     [PERMISSIONS.TASKS_MANAGE]: true,
-    [PERMISSIONS.USERS_MANAGE]: false,
+    [PERMISSIONS.USERS_MANAGE]: true,
     [PERMISSIONS.LOGS_VIEW]: true,
   },
   manager: {
@@ -87,18 +87,18 @@ export const ROLE_DEFAULT_PERMISSIONS = {
     [PERMISSIONS.CALENDAR_MANAGE_ASSIGNED]: true,
     [PERMISSIONS.CALENDAR_DELETE]: false,
     [PERMISSIONS.CLIENTS_VIEW]: true,
-    [PERMISSIONS.CLIENTS_VIEW_CONTACTS]: false,
-    [PERMISSIONS.CLIENTS_MANAGE]: false,
+    [PERMISSIONS.CLIENTS_VIEW_CONTACTS]: true,
+    [PERMISSIONS.CLIENTS_MANAGE]: true,
     [PERMISSIONS.CLIENTS_DELETE]: false,
     [PERMISSIONS.FINANCE_VIEW_SALON_STATS]: false,
     [PERMISSIONS.FINANCE_DAY_CLOSE]: false,
     [PERMISSIONS.PAYOUTS_VIEW_ALL]: false,
     [PERMISSIONS.PAYOUTS_VIEW_OWN]: true,
     [PERMISSIONS.PAYOUTS_MANAGE]: false,
-    [PERMISSIONS.CATALOG_VIEW]: false,
+    [PERMISSIONS.CATALOG_VIEW]: true,
     [PERMISSIONS.CATALOG_MANAGE]: false,
     [PERMISSIONS.EMPLOYEES_MANAGE]: false,
-    [PERMISSIONS.TASKS_MANAGE]: true,
+    [PERMISSIONS.TASKS_MANAGE]: false,
     [PERMISSIONS.USERS_MANAGE]: false,
     [PERMISSIONS.LOGS_VIEW]: false,
   },
@@ -140,7 +140,8 @@ export function hasPermission(user, permissionKey) {
   }
 
   // Fallback to role defaults if effective permissions not yet resolved
-  const defaults = ROLE_DEFAULT_PERMISSIONS[role] || ROLE_DEFAULT_PERMISSIONS.staff;
+  const defaults = ROLE_DEFAULT_PERMISSIONS[role];
+  if (!defaults) return false;
   return Boolean(defaults[permissionKey]);
 }
 
@@ -170,10 +171,11 @@ export function canViewPage(page, user) {
       );
 
     case "payments":
-      // Salon-wide revenue and all payroll
+      // Salon-wide revenue and all payroll or assigned employee's visit payments
       return (
         hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS) ||
-        hasPermission(user, PERMISSIONS.PAYOUTS_VIEW_ALL)
+        hasPermission(user, PERMISSIONS.PAYOUTS_VIEW_ALL) ||
+        hasPermission(user, PERMISSIONS.PAYOUTS_VIEW_OWN)
       );
 
     case "my-earnings":
@@ -181,7 +183,7 @@ export function canViewPage(page, user) {
       return hasPermission(user, PERMISSIONS.PAYOUTS_VIEW_OWN);
 
     case "operations":
-      return (
+      return role === "staff" || role === "manager" || (
         hasPermission(user, PERMISSIONS.TASKS_MANAGE) ||
         hasPermission(user, PERMISSIONS.EMPLOYEES_MANAGE)
       );
@@ -194,6 +196,7 @@ export function canViewPage(page, user) {
 
     case "packages":
       return (
+        role === "staff" ||
         hasPermission(user, PERMISSIONS.CATALOG_MANAGE) ||
         hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS)
       );
@@ -202,6 +205,7 @@ export function canViewPage(page, user) {
       return hasPermission(user, PERMISSIONS.EMPLOYEES_MANAGE);
 
     case "templates":
+      if (role === "staff") return false;
       return (
         hasPermission(user, PERMISSIONS.CLIENTS_MANAGE) ||
         hasPermission(user, PERMISSIONS.USERS_MANAGE) ||
@@ -212,7 +216,10 @@ export function canViewPage(page, user) {
       return hasPermission(user, PERMISSIONS.USERS_MANAGE);
 
     case "statistics":
-      return hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS);
+      return (
+        hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS) ||
+        (role === "staff" && hasPermission(user, PERMISSIONS.PAYOUTS_VIEW_OWN))
+      );
 
     case "site":
       return hasPermission(user, PERMISSIONS.USERS_MANAGE);
@@ -330,17 +337,20 @@ export function getAllowedNavigation(rawNavGroups, user) {
   if (!user) return [];
 
   const isOwner = String(user.role || "").toLowerCase() === "owner";
-  const hasSalonFinance = hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS);
   const hasOwnPayouts = hasPermission(user, PERMISSIONS.PAYOUTS_VIEW_OWN);
 
   return rawNavGroups
     .map((group) => {
       const allowedItems = group.items
         .map((item) => {
-          // If staff without salon stats, replace "payments" with "my-earnings"
-          if (item.page === "payments" && !hasSalonFinance && hasOwnPayouts) {
+          // If staff without employee management rights, replace "masters" with "Мой расчёт"
+          if (
+            item.page === "masters" &&
+            !hasPermission(user, PERMISSIONS.EMPLOYEES_MANAGE) &&
+            hasOwnPayouts
+          ) {
             return {
-              label: "Мои начисления",
+              label: "Мой расчёт",
               page: "my-earnings",
               icon: "receipt",
             };
@@ -385,16 +395,14 @@ export function getAllowedNavigation(rawNavGroups, user) {
 export function getAllowedMobileNav(user) {
   if (!user) return [];
 
-  const hasSalonFinance = hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS);
-  const hasOwnPayouts = hasPermission(user, PERMISSIONS.PAYOUTS_VIEW_OWN);
-  const isStaff = !hasSalonFinance && hasOwnPayouts;
+  const isStaff =
+    !hasPermission(user, PERMISSIONS.CALENDAR_VIEW_ALL) &&
+    hasPermission(user, PERMISSIONS.CALENDAR_VIEW_ASSIGNED);
 
   const baseItems = [
     {label: "Сегодня", page: "today", icon: "sun"},
     {label: "Календарь", page: "calendar", icon: "calendarDays"},
-    isStaff
-      ? {label: "Начисления", page: "my-earnings", icon: "receipt"}
-      : {label: "Визиты", page: "payments", icon: "receipt"},
+    {label: "Визиты", page: "payments", icon: "receipt"},
     {
       label: isStaff ? "Мои клиенты" : "Клиенты",
       page: "clients",

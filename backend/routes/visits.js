@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Prisma, PrismaClient } = require('@prisma/client');
-const { requireOwner, hasPermission, PERMISSIONS } = require('../middleware/auth');
+const { requireOwner, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
@@ -656,7 +656,7 @@ router.put('/calendar-entries/:id', async (req, res) => {
   );
 });
 
-router.delete('/calendar-entries/:id', requireOwner, async (req, res) => {
+router.delete('/calendar-entries/:id', requirePermission(PERMISSIONS.CALENDAR_DELETE), async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
   const before = await prisma.calendarEntry.findUnique({where: {id}});
@@ -775,7 +775,7 @@ router.post('/visits/dedupe-calendar', requireOwner, async (req, res) => {
   }
 });
 
-router.post('/calendar-entries/delete-completed', requireOwner, async (req, res) => {
+router.post('/calendar-entries/delete-completed', requirePermission(PERMISSIONS.CALENDAR_DELETE), async (req, res) => {
   const body = req.body ?? {};
   const calendarEntryId = Number(body.calendarEntryId);
   const requestedVisitId = body.visitId ? Number(body.visitId) : null;
@@ -1852,7 +1852,7 @@ router.post('/visits/update-completed', async (req, res) => {
   }
 });
 
-router.post('/visits/revert-completed', requireOwner, async (req, res) => {
+router.post('/visits/revert-completed', requirePermission(PERMISSIONS.CALENDAR_DELETE), async (req, res) => {
   const body = req.body ?? {};
   const calendarEntryId = Number(body.calendarEntryId);
   const requestedVisitId = body.visitId ? Number(body.visitId) : null;
@@ -2254,7 +2254,7 @@ router.put('/visits/:id', async (req, res) => {
   );
 });
 
-router.delete('/visits/:id', requireOwner, async (req, res) => {
+router.delete('/visits/:id', requirePermission(PERMISSIONS.CALENDAR_DELETE), async (req, res) => {
   const id = getRouteId(req, res);
   if (id === null) return;
   try {

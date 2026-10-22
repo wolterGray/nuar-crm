@@ -111,10 +111,14 @@ import {usePullRefresh} from "./hooks/usePullRefresh.js";
 import {usePersistentState} from "./hooks/usePersistentState.js";
 import {fetchClients} from "./api/clients.js";
 import {fetchVisitState} from "./api/visits.js";
-import {fetchServices} from "./api/services.js";
+import {fetchPackages, fetchServices} from "./api/services.js";
 import {fetchEmployees} from "./api/employees.js";
 import {fetchOperationsState} from "./api/operations.js";
-import {fetchFinancialState} from "./api/financial.js";
+import {
+  fetchCertificates,
+  fetchClientPackages,
+  fetchFinancialState,
+} from "./api/financial.js";
 import {
   fetchSystemState,
   saveSystemStateEntries,
@@ -292,32 +296,22 @@ function App() {
 
     if (prevUserId !== null && prevUserId !== currentUserId) {
       clearCrmCollectionsCache();
-
-      const isNowOwner = currentUserRole === "owner" || authSession?.user?.id === "local-admin";
-      if (!isNowOwner) {
-        // Switched from owner/another user to staff: reset sensitive state arrays immediately
-        setVisits([]);
-        setClientProfiles([]);
-        setCalendarEntries([]);
-        setClientPackages([]);
-        setCertificates([]);
-        setDayCloseRecords([]);
-        setPayrollRecords([]);
-        setCommunicationLog([]);
-        setWaitlistEntries([]);
-      } else {
-        // Switched back to owner: reload owner's partitioned collections
-        const initial = getInitialCrmCollections(authSession.user);
+      const targetUser = authSession?.user;
+      const isNowOwner = currentUserRole === "owner" || targetUser?.id === "local-admin";
+      queueMicrotask(() => {
+        const initial = isNowOwner && targetUser
+          ? getInitialCrmCollections(targetUser)
+          : {visits: [], clients: [], calendarEntries: [], clientPackages: [], certificates: []};
         setVisits(initial.visits);
         setClientProfiles(initial.clients);
         setCalendarEntries(initial.calendarEntries);
         setClientPackages(initial.clientPackages);
         setCertificates(initial.certificates);
-        setDayCloseRecords(loadStoredDayCloseRecords(authSession.user));
-        setPayrollRecords(loadStoredPayrollRecords(authSession.user));
-        setCommunicationLog(loadCommunicationLog(authSession.user));
-        setWaitlistEntries(loadStoredWaitlistEntries(authSession.user));
-      }
+        setDayCloseRecords(isNowOwner ? loadStoredDayCloseRecords(targetUser) : []);
+        setPayrollRecords(isNowOwner ? loadStoredPayrollRecords(targetUser) : []);
+        setCommunicationLog(isNowOwner ? loadCommunicationLog(targetUser) : []);
+        setWaitlistEntries(isNowOwner ? loadStoredWaitlistEntries(targetUser) : []);
+      });
     }
 
     prevUserIdRef.current = currentUserId;
@@ -361,6 +355,41 @@ function App() {
     };
 
     loadBackendClients();
+
+    return () => {
+      active = false;
+    };
+  }, [authSession, pushNotification]);
+
+  useEffect(() => {
+    if (!authSession) return undefined;
+    const canViewCatalog = hasPermission(authSession.user, PERMISSIONS.CATALOG_VIEW);
+    const canViewSalonFinances = hasPermission(
+      authSession.user,
+      PERMISSIONS.FINANCE_VIEW_SALON_STATS,
+    );
+    if (!canViewCatalog || canViewSalonFinances) return undefined;
+
+    let active = true;
+    Promise.all([fetchPackages(), fetchClientPackages(), fetchCertificates()])
+      .then(([packagesResponse, clientPackagesResponse, certificatesResponse]) => {
+        if (!active) return;
+        setPackagesCatalog(Array.isArray(packagesResponse?.data) ? packagesResponse.data : []);
+        setClientPackages(
+          Array.isArray(clientPackagesResponse?.data) ? clientPackagesResponse.data : [],
+        );
+        setCertificates(
+          Array.isArray(certificatesResponse?.data) ? certificatesResponse.data : [],
+        );
+      })
+      .catch((error) => {
+        if (!active) return;
+        pushNotification({
+          title: "Пакеты не загружены",
+          message: error?.message || "Не удалось загрузить доступные пакеты клиентов",
+          persist: false,
+        });
+      });
 
     return () => {
       active = false;
@@ -701,7 +730,7 @@ function App() {
   }, [authSession, pushNotification, setAppSettings]);
 
   useEffect(() => {
-    const isOwnerSession = !authSession?.user?.role || authSession.user.role === "owner";
+    const isOwnerSession = authSession?.user?.role === "owner";
     if (!authSession || !isOwnerSession || !systemStateLoadedRef.current) {
       return undefined;
     }

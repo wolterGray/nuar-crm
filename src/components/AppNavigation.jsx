@@ -9,6 +9,7 @@ const ROLE_LABELS = {
   manager: "Менеджер",
   staff: "Сотрудник",
   readonly: "Только чтение",
+  unknown: "Роль не определена",
 };
 
 export default function AppNavigation({
@@ -29,7 +30,7 @@ export default function AppNavigation({
     (authUser?.role && authUser.role !== "owner"
       ? String(authUser.email ?? "").split("@")[0] || "Сотрудник"
       : ownerName);
-  const displayRoleLabel = ROLE_LABELS[authUser?.role] || "Владелец";
+  const displayRoleLabel = ROLE_LABELS[authUser?.role] || "Роль не определена";
 
   const handleDesktopPageChange = (page) => {
     onPageChange(page);

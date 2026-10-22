@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requireOwner, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
+const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const {
   auditCreate,
@@ -52,6 +52,17 @@ const sanitizeClientRecord = (client, canViewContacts) => {
     instagram: client.instagram ? '***' : null,
     telegram: client.telegram ? '***' : null,
   };
+};
+
+const canAccessClient = async (req, clientId) => {
+  if (hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)) return true;
+  const employeeId = Number(req.auth?.employeeId) || null;
+  if (!employeeId || !clientId) return false;
+  const visit = await prisma.visit.findFirst({
+    where: {clientId: Number(clientId), employeeId},
+    select: {id: true},
+  });
+  return Boolean(visit);
 };
 
 // ==================== Client ====================
@@ -149,6 +160,9 @@ router.get('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (r
 
 router.put('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
+  if (!(await canAccessClient(req, id))) {
+    return res.status(403).json({success: false, error: 'Доступ к клиенту запрещён'});
+  }
   const data = buildClientData(req.body);
   if (!data.name) {
     return res.status(400).json({ success: false, error: 'Client name is required' });
@@ -196,10 +210,13 @@ const sanitizeCommunicationLog = (log, canViewContacts) => {
   };
 };
 
-router.post('/communication-log', requirePermission(PERMISSIONS.CLIENTS_MANAGE), (req, res) => {
+router.post('/communication-log', requirePermission(PERMISSIONS.CLIENTS_MANAGE), async (req, res) => {
   const data = buildCommunicationLogData(req.body ?? {});
   if (!data.clientName && !data.body) {
     return res.status(400).json({ success: false, error: 'Communication log entry is empty' });
+  }
+  if (data.clientId && !(await canAccessClient(req, data.clientId))) {
+    return res.status(403).json({success: false, error: 'Доступ к клиенту запрещён'});
   }
 
   auditCreate(
@@ -218,6 +235,7 @@ router.get('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW)
   try {
     const record = await prisma.communicationLog.findUnique({ where: { id } });
     if (!record) return res.status(404).json({ success: false, error: 'Communication log not found' });
+    if (record.clientId && !(await canAccessClient(req, record.clientId))) return res.status(403).json({success: false, error: 'Доступ к клиенту запрещён'});
     res.json({ success: true, data: sanitizeCommunicationLog(record, canViewContacts) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -226,6 +244,9 @@ router.get('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW)
 
 router.put('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_MANAGE), async (req, res) => {
   const id = Number(req.params.id);
+  const existing = await prisma.communicationLog.findUnique({where: {id}});
+  if (!existing) return res.status(404).json({success: false, error: 'Communication log not found'});
+  if (existing.clientId && !(await canAccessClient(req, existing.clientId))) return res.status(403).json({success: false, error: 'Доступ к клиенту запрещён'});
   const data = buildCommunicationLogData({ ...(req.body ?? {}), id });
   await auditUpdate(
     prisma,
@@ -239,7 +260,7 @@ router.put('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_MANAG
   );
 });
 
-router.delete('/communication-log/:id', requireOwner, async (req, res) => {
+router.delete('/communication-log/:id', requirePermission(PERMISSIONS.CLIENTS_DELETE), async (req, res) => {
   const id = Number(req.params.id);
   await auditDelete(
     prisma,
@@ -256,7 +277,16 @@ router.delete('/communication-log/:id', requireOwner, async (req, res) => {
 router.get('/communication-log', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
-    const records = await prisma.communicationLog.findMany({ orderBy: { createdAt: 'desc' } });
+    const employeeId = Number(req.auth?.employeeId) || null;
+    const canViewAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
+    const records = await prisma.communicationLog.findMany({
+      where: canViewAll
+        ? {}
+        : employeeId
+          ? {client: {visits: {some: {employeeId}}}}
+          : {id: -1},
+      orderBy: { createdAt: 'desc' },
+    });
     res.json({ success: true, data: records.map((r) => sanitizeCommunicationLog(r, canViewContacts)) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
