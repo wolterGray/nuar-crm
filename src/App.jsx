@@ -1980,6 +1980,7 @@ function App() {
     clientProfiles,
     createLocalId,
     employees,
+    enabled: Boolean(authSession && canViewPage("site", authSession.user)),
     getCalendarServiceColor,
     pushNotification,
     serviceCatalog,

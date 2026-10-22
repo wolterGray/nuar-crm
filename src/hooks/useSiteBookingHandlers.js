@@ -12,6 +12,7 @@ export function useSiteBookingHandlers({
   clientProfiles,
   createLocalId,
   employees,
+  enabled = true,
   getCalendarServiceColor,
   pushNotification,
   serviceCatalog,
@@ -25,6 +26,14 @@ export function useSiteBookingHandlers({
   const [applyingRequestId, setApplyingRequestId] = useState("");
 
   const refreshPendingRequests = useCallback(async () => {
+    if (!enabled) {
+      setPendingRequests([]);
+      setRecentRequests([]);
+      setLoadError("");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setLoadError("");
 
@@ -42,15 +51,17 @@ export function useSiteBookingHandlers({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) return undefined;
+
     const timer = window.setTimeout(() => {
       void refreshPendingRequests();
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [refreshPendingRequests]);
+  }, [enabled, refreshPendingRequests]);
 
   const applyRequest = useCallback(
     async (request) => {
@@ -150,10 +161,10 @@ export function useSiteBookingHandlers({
   return {
     applyRequest,
     applyingRequestId,
-    loadError,
-    loading,
-    pendingRequests,
-    recentRequests,
+    loadError: enabled ? loadError : "",
+    loading: enabled ? loading : false,
+    pendingRequests: enabled ? pendingRequests : [],
+    recentRequests: enabled ? recentRequests : [],
     refreshPendingRequests,
     rejectRequest,
   };
