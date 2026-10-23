@@ -1,3 +1,4 @@
+import {useEffect} from "react";
 import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 import {navGroups} from "../constants/navigation.js";
 import {getAllowedMobileNav, getAllowedNavigation} from "../utils/permissions.js";
@@ -24,6 +25,53 @@ export default function AppNavigation({
   studioName = "NUAR",
   ownerName = "Влад",
 }) {
+  useEffect(() => {
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+    const standalone = window.matchMedia?.("(display-mode: standalone)").matches;
+    let frame = 0;
+
+    const updateBottomOffset = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (standalone || window.innerWidth > MOBILE_MAX_WIDTH) {
+          root.style.removeProperty("--mobile-viewport-bottom-offset");
+          return;
+        }
+
+        const isMobileChrome = /CriOS/i.test(navigator.userAgent) ||
+          (/Android/i.test(navigator.userAgent) && /Chrome/i.test(navigator.userAgent));
+        const layoutHeight = document.documentElement.clientHeight;
+        const visibleBottom = viewport
+          ? viewport.offsetTop + viewport.height
+          : layoutHeight;
+        const viewportObstruction = Math.max(0, layoutHeight - visibleBottom);
+        const keyboardOpen = viewport && viewport.height < layoutHeight * 0.75;
+        const offset = keyboardOpen || !isMobileChrome
+          ? 0
+          : Math.min(12, Math.max(6, viewportObstruction));
+
+        root.style.setProperty(
+          "--mobile-viewport-bottom-offset",
+          `${Math.round(offset)}px`,
+        );
+      });
+    };
+
+    updateBottomOffset();
+    window.addEventListener("resize", updateBottomOffset, {passive: true});
+    viewport?.addEventListener("resize", updateBottomOffset, {passive: true});
+    viewport?.addEventListener("scroll", updateBottomOffset, {passive: true});
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateBottomOffset);
+      viewport?.removeEventListener("resize", updateBottomOffset);
+      viewport?.removeEventListener("scroll", updateBottomOffset);
+      root.style.removeProperty("--mobile-viewport-bottom-offset");
+    };
+  }, []);
+
   const closeSidebar = () => onSidebarVisibleChange(false);
   const displayUserName =
     String(authUser?.name ?? "").trim() ||
