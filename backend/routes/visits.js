@@ -36,6 +36,19 @@ const {
 } = require('../utils/crudHelpers');
 
 const prisma = new PrismaClient();
+const {recordBelongsToEmployee, resolveScopedEmployee} = require('../utils/employeeScope');
+
+const resolveEmployeeIdForRecord = async (record) => {
+  const payload = record?.payload && typeof record.payload === 'object' ? record.payload : {};
+  const directId = Number(record?.employeeId ?? payload.employeeId ?? payload.masterId);
+  if (Number.isInteger(directId) && directId > 0) return directId;
+  const masterName = String(payload.master ?? payload.masterName ?? record?.master ?? '').trim();
+  if (!masterName) return null;
+  const employees = await prisma.employee.findMany({select: {id: true, name: true}});
+  return employees.find((employee) =>
+    employee.name.localeCompare(masterName, undefined, {sensitivity: 'base'}) === 0
+  )?.id ?? null;
+};
 
 const runSerializableTransaction = async (callback, attempts = 3) => {
   let lastError = null;
@@ -70,6 +83,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
     const serviceName = afterPayload.service || afterPayload.serviceName || beforePayload.service || beforePayload.serviceName || 'Услуга';
     const masterName = afterPayload.master || afterPayload.masterName || beforePayload.master || beforePayload.masterName || 'Мастер';
     const clientId = afterPayload.clientId || beforePayload.clientId || null;
+    const employeeId = await resolveEmployeeIdForRecord(after || before);
 
     const isDeleted = !after;
     const cancelledStatuses = ['cancelled', 'canceled', 'no_show'];
@@ -85,7 +99,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
         entityId: String(id),
         entityType: 'calendar_entry',
         fingerprint: `visit:${id}:cancelled`,
-        payload: { date, time, clientName, deleted: isDeleted, serviceName, masterName },
+        payload: { date, time, clientName, deleted: isDeleted, employeeId, serviceName, masterName },
         priority: 'high',
         recommendedAction: 'open_calendar',
         source: 'visit-tracker',
@@ -104,7 +118,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
         entityId: String(id),
         entityType: 'calendar_entry',
         fingerprint: `visit:${id}:created`,
-        payload: {date: after.date, time: after.time, clientName, serviceName, masterName},
+        payload: {date: after.date, time: after.time, clientName, employeeId, serviceName, masterName},
         priority: 'normal',
         recommendedAction: 'open_calendar',
         source: 'visit-tracker',
@@ -133,6 +147,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
             newDate: after.date,
             newTime: after.time,
             clientName,
+            employeeId,
             serviceName,
             masterName,
           },
@@ -169,6 +184,7 @@ const handleVisitChange = async (before, after) => {
     const service = visit.serviceId ? await prisma.service.findUnique({where: {id: visit.serviceId}}) : null;
     const current = toWarsawDateTime(after?.scheduledAt || before?.scheduledAt);
     const previous = toWarsawDateTime(before?.scheduledAt);
+    const employeeId = await resolveEmployeeIdForRecord(visit);
     const common = {
       entityId: String(visit.id), entityType: 'visit', priority: 'normal',
       recommendedAction: 'open_calendar', source: 'visit-tracker',
@@ -176,7 +192,7 @@ const handleVisitChange = async (before, after) => {
     if (!after) {
       await recordBusinessNotificationEvent(prisma, {
         ...common, fingerprint: `visit-record:${visit.id}:cancelled`,
-        payload: {...previous, deleted: true, serviceName: service?.name || ''},
+        payload: {...previous, deleted: true, employeeId, serviceName: service?.name || ''},
         priority: 'high', title: 'Запись отменена', message: service?.name || 'Запись отменена',
         type: 'visit_cancelled', urgency: 15,
       }, upsertNotificationEvent);
@@ -185,7 +201,7 @@ const handleVisitChange = async (before, after) => {
     if (!before) {
       await recordBusinessNotificationEvent(prisma, {
         ...common, fingerprint: `visit-record:${visit.id}:created`,
-        payload: {...current, serviceName: service?.name || ''}, title: 'Новая запись',
+        payload: {...current, employeeId, serviceName: service?.name || ''}, title: 'Новая запись',
         message: service?.name || 'Новая запись', type: 'visit_created', urgency: 10,
       }, upsertNotificationEvent);
       return;
@@ -194,7 +210,7 @@ const handleVisitChange = async (before, after) => {
       await recordBusinessNotificationEvent(prisma, {
         ...common,
         fingerprint: `visit-record:${visit.id}:rescheduled:${previous.date}:${previous.time}:${current.date}:${current.time}`,
-        payload: {newDate: current.date, newTime: current.time, oldDate: previous.date, oldTime: previous.time, serviceName: service?.name || ''},
+        payload: {employeeId, newDate: current.date, newTime: current.time, oldDate: previous.date, oldTime: previous.time, serviceName: service?.name || ''},
         title: 'Запись перенесена', message: service?.name || 'Запись перенесена',
         type: 'visit_rescheduled', urgency: 10,
       }, upsertNotificationEvent);
@@ -492,6 +508,33 @@ const sanitizeCalendarEntry = (entry, canViewContacts) => {
   };
 };
 
+const sanitizeCoworkerCalendarEntry = (entry) => {
+  const base = withStoredId(entry);
+  const payload = base.payload && typeof base.payload === 'object' ? base.payload : {};
+  const service = payload.service || payload.serviceName || base.service || 'Занято';
+  const master = payload.master || payload.masterName || payload.employeeName || base.master || 'Сотрудник';
+  const safePayload = {
+    color: payload.color || base.color || null,
+    duration: Number(payload.duration || base.duration) || 60,
+    master,
+    service,
+  };
+  return {
+    id: base.id,
+    kind: base.kind,
+    date: base.date,
+    time: base.time,
+    status: base.status,
+    color: safePayload.color,
+    duration: safePayload.duration,
+    master,
+    service,
+    client: 'Занято',
+    restricted: true,
+    payload: safePayload,
+  };
+};
+
 const sanitizeVisit = (visit, { canViewContacts, canViewAllPayouts, canViewOwnPayouts, userEmployeeId }) => {
   const base = serializeVisitWithEarning(visit);
   const rawPayload = base.payload && typeof base.payload === 'object' ? base.payload : {};
@@ -544,6 +587,9 @@ router.get('/visit-state', async (req, res) => {
     const canViewAllPayouts = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_ALL);
     const canViewOwnPayouts = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_OWN);
     const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
+    const scopedEmployee = !canViewAll && canViewAssigned
+      ? await resolveScopedEmployee(prisma, req.auth)
+      : null;
 
     let [calendarEntries, visits] = await Promise.all([
       prisma.calendarEntry.findMany({ orderBy: [{ date: 'asc' }, { time: 'asc' }, { id: 'asc' }] }),
@@ -555,24 +601,22 @@ router.get('/visit-state', async (req, res) => {
 
     // If scoped to assigned visits only
     if (!canViewAll && canViewAssigned) {
-      if (!userEmployeeId) {
+      if (!scopedEmployee) {
         calendarEntries = [];
         visits = [];
       } else {
-        calendarEntries = calendarEntries.filter((entry) => {
-          const p = entry.payload && typeof entry.payload === 'object' ? entry.payload : {};
-          const assignedId = Number(entry.employeeId ?? p.employeeId);
-          return assignedId === userEmployeeId;
-        });
-
-        visits = visits.filter((v) => Number(v.employeeId) === userEmployeeId);
+        visits = visits.filter((visit) => recordBelongsToEmployee(visit, scopedEmployee));
       }
     }
 
     res.json({
       success: true,
       data: {
-        calendarEntries: calendarEntries.map((e) => sanitizeCalendarEntry(e, canViewContacts)),
+        calendarEntries: calendarEntries.map((entry) =>
+          scopedEmployee && !recordBelongsToEmployee(entry, scopedEmployee)
+            ? sanitizeCoworkerCalendarEntry(entry)
+            : sanitizeCalendarEntry(entry, canViewContacts),
+        ),
         visits: visits.map((v) =>
           sanitizeVisit(v, {
             canViewContacts,
@@ -590,7 +634,7 @@ router.get('/visit-state', async (req, res) => {
   }
 });
 
-router.post('/calendar-entries', (req, res) => {
+router.post('/calendar-entries', async (req, res) => {
   const canManageAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL);
   const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
 
@@ -599,11 +643,9 @@ router.post('/calendar-entries', (req, res) => {
   }
 
   const payload = req.body ?? {};
-  const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
-
   if (!canManageAll && canManageAssigned) {
-    const entryMasterId = Number(payload.employeeId ?? payload.masterId ?? payload.payload?.employeeId ?? payload.payload?.masterId);
-    if (!userEmployeeId || entryMasterId !== userEmployeeId) {
+    const employee = await resolveScopedEmployee(prisma, req.auth);
+    if (!employee || !recordBelongsToEmployee({payload}, employee)) {
       return res.status(403).json({ success: false, error: 'Доступ запрещён: можно создавать записи только для себя' });
     }
   }
@@ -629,16 +671,21 @@ router.put('/calendar-entries/:id', async (req, res) => {
 
   const id = Number(req.params.id);
   const payload = { ...(req.body ?? {}), id };
-  const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
-
   if (!canManageAll && canManageAssigned) {
     const existing = await prisma.calendarEntry.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ success: false, error: 'Calendar entry not found' });
     }
-    const existingMasterId = Number(existing.employeeId ?? existing.payload?.employeeId ?? existing.payload?.masterId);
-    const targetMasterId = Number(payload.employeeId ?? payload.masterId ?? payload.payload?.employeeId ?? payload.payload?.masterId ?? existingMasterId);
-    if (!userEmployeeId || existingMasterId !== userEmployeeId || targetMasterId !== userEmployeeId) {
+    const employee = await resolveScopedEmployee(prisma, req.auth);
+    const target = {
+      ...existing,
+      payload: {...(existing.payload || {}), ...payload},
+    };
+    if (
+      !employee ||
+      !recordBelongsToEmployee(existing, employee) ||
+      !recordBelongsToEmployee(target, employee)
+    ) {
       return res.status(403).json({ success: false, error: 'Доступ запрещён: можно изменять записи только для себя' });
     }
   }
@@ -660,6 +707,13 @@ router.delete('/calendar-entries/:id', requirePermission(PERMISSIONS.CALENDAR_DE
   const id = getRouteId(req, res);
   if (id === null) return;
   const before = await prisma.calendarEntry.findUnique({where: {id}});
+  if (!before) return res.status(404).json({success: false, error: 'Calendar entry not found'});
+  if (!hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL)) {
+    const employee = await resolveScopedEmployee(prisma, req.auth);
+    if (!employee || !recordBelongsToEmployee(before, employee)) {
+      return res.status(403).json({success: false, error: 'Доступ запрещён: можно удалять записи только для себя'});
+    }
+  }
   localRespondWithAudit(
     req,
     res,
@@ -2296,16 +2350,15 @@ router.get('/visits', async (req, res) => {
   const canViewAllPayouts = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_ALL);
   const canViewOwnPayouts = hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_OWN);
 
-  const where = (!canViewAll && canViewAssigned)
-    ? { employeeId: userEmployeeId ?? -1 }
-    : {};
-
   try {
-    const visits = await prisma.visit.findMany({
-      where,
+    let visits = await prisma.visit.findMany({
       include: VISIT_WITH_EARNING_INCLUDE,
       orderBy: { createdAt: 'desc' },
     });
+    if (!canViewAll && canViewAssigned) {
+      const employee = await resolveScopedEmployee(prisma, req.auth);
+      visits = employee ? visits.filter((visit) => recordBelongsToEmployee(visit, employee)) : [];
+    }
 
     res.json({
       success: true,
@@ -2324,3 +2377,4 @@ router.get('/visits', async (req, res) => {
 });
 
 module.exports = router;
+module.exports._private = {sanitizeCoworkerCalendarEntry};

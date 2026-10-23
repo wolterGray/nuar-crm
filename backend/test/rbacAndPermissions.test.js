@@ -395,9 +395,10 @@ test('loyalty card search preserves assigned-client isolation for staff', () => 
       effectivePermissions: {[PERMISSIONS.CALENDAR_VIEW_ALL]: false},
     },
     {search: 'Anna', status: 'active', reward: 'available'},
+    [7, 9],
   );
 
-  assert.deepEqual(where.client.AND[0], {visits: {some: {employeeId: 42}}});
+  assert.deepEqual(where.client.AND[0], {id: {in: [7, 9]}});
   assert.deepEqual(where.client.AND[1].OR[0], {
     name: {contains: 'Anna', mode: 'insensitive'},
   });

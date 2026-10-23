@@ -38,6 +38,7 @@ const {
 } = require('../utils/financeHelpers');
 
 const prisma = new PrismaClient();
+const {getScopedClientIds} = require('../utils/employeeScope');
 
 // ----- Helper methods for client package status -----
 const resolveClientPackageStatus = (remainingVisits, currentStatus) => {
@@ -673,11 +674,10 @@ const requireClientOrFinanceView = (req, res, next) => {
   return res.status(403).json({ success: false, error: 'Доступ запрещён: требуется право просмотра клиентов или финансов' });
 };
 
-const getScopedClientWhere = (req) => {
+const getScopedClientWhere = async (req) => {
   if (hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)) return {};
-  const employeeId = Number(req.auth?.employeeId) || null;
-  if (!employeeId) return {id: -1};
-  return {visits: {some: {employeeId}}};
+  const clientIds = await getScopedClientIds(prisma, req.auth);
+  return {id: {in: clientIds}};
 };
 
 const buildDayCloseRecordData = (payload) => {
@@ -793,8 +793,9 @@ router.get('/client-packages/:id', requireClientOrFinanceView, async (req, res) 
   const id = Number(req.params.id);
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
+    const clientWhere = await getScopedClientWhere(req);
     const record = await prisma.clientPackage.findFirst({
-      where: { id, client: getScopedClientWhere(req) },
+      where: { id, client: clientWhere },
       include: { client: true, package: true },
     });
     if (!record) return res.status(404).json({ success: false, error: 'Client package not found' });
@@ -866,8 +867,9 @@ router.delete('/client-packages/:id', requirePermission(PERMISSIONS.CATALOG_MANA
 router.get('/client-packages', requireClientOrFinanceView, async (req, res) => {
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
+    const clientWhere = await getScopedClientWhere(req);
     const records = await prisma.clientPackage.findMany({
-      where: {client: getScopedClientWhere(req)},
+      where: {client: clientWhere},
       orderBy: { createdAt: 'desc' },
       include: { client: true, package: true },
     });
@@ -986,7 +988,7 @@ router.get('/certificates/:id', requireClientOrFinanceView, async (req, res) => 
   const id = Number(req.params.id);
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
-    const scopedClientWhere = getScopedClientWhere(req);
+    const scopedClientWhere = await getScopedClientWhere(req);
     const record = await prisma.certificate.findFirst({
       where: {
         id,
@@ -1043,11 +1045,12 @@ router.delete('/certificates/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE)
 router.get('/certificates', requireClientOrFinanceView, async (req, res) => {
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
+    const scopedClientWhere = await getScopedClientWhere(req);
     const records = await prisma.certificate.findMany({
       where: {
         OR: [
-          {client: getScopedClientWhere(req)},
-          {recipient: getScopedClientWhere(req)},
+          {client: scopedClientWhere},
+          {recipient: scopedClientWhere},
         ],
       },
       orderBy: { createdAt: 'desc' },

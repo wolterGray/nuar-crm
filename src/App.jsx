@@ -1019,7 +1019,7 @@ function App() {
   );
 
   const paymentRows = useMemo(
-    () => buildPaymentRows(calendarEntries, visits),
+    () => buildPaymentRows(calendarEntries.filter((entry) => entry.restricted !== true), visits),
     [calendarEntries, visits],
   );
 

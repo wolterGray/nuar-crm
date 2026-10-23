@@ -72,6 +72,7 @@ function VisitMobileCard({
   setOpenMenuId,
 }) {
   const { isMobile } = useBreakpoint();
+  const isRestricted = visit.restricted === true;
   const useCompactMenu = Boolean(setOpenMenuId && onEdit && onDelete) && isMobile;
   const debt = getVisitDebt(visit);
   const amount = formatMoney(getVisitTransactionTotal(visit));
@@ -110,10 +111,26 @@ function VisitMobileCard({
 
   const handleOpen = () => {
     close();
+    if (isRestricted) return;
     (onOpen ?? onEdit)?.(visit);
   };
 
-  const cardBody = useCompactMenu ? (
+  const cardBody = isRestricted ? (
+    <>
+      <div className="visit-mobile-card-head">
+        <div className="visit-mobile-card-client">
+          <strong className="visit-mobile-card-time">{visit.time || visit.date}</strong>
+          <div className="visit-mobile-card-name-row">
+            <span>{visit.service || "Занято"}</span>
+          </div>
+        </div>
+      </div>
+      <div className="visit-mobile-card-meta-row">
+        {visit.master ? <span>{visit.master}</span> : null}
+        {showStatus && status ? <span className={`visit-mobile-badge ${statusTone}`}>{status}</span> : null}
+      </div>
+    </>
+  ) : useCompactMenu ? (
     <>
       <div className="visit-mobile-card-head">
         <div className="visit-mobile-card-client">

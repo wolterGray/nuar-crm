@@ -122,6 +122,24 @@ const sanitizeEmployee = (employee, auth) => {
   };
 };
 
+const sanitizeCalendarEmployee = (employee) => {
+  const payload = employee?.payload && typeof employee.payload === 'object' ? employee.payload : {};
+  return {
+    id: employee.id,
+    name: employee.name,
+    status: employee.status,
+    color: employee.color,
+    shiftStart: employee.shiftStart,
+    shiftEnd: employee.shiftEnd,
+    shifts: employee.shifts,
+    payload: {
+      bookingBlockedDates: payload.bookingBlockedDates ?? [],
+      dailyShifts: payload.dailyShifts ?? payload.shifts ?? employee.shifts ?? {},
+      workingDaysOfWeek: payload.workingDaysOfWeek ?? null,
+    },
+  };
+};
+
 // ==================== Employee ====================
 router.post('/employees', requirePermission(PERMISSIONS.EMPLOYEES_MANAGE), (req, res) => {
   const data = buildEmployeeData(req.body ?? {});
@@ -228,6 +246,7 @@ router.delete('/employees/:id', requirePermission(PERMISSIONS.EMPLOYEES_MANAGE),
 router.get('/employees', async (req, res) => {
   const canViewAll = hasPermission(req.auth, PERMISSIONS.EMPLOYEES_MANAGE) ||
     hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
+  const canViewSharedCalendar = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ASSIGNED);
   const ownEmployeeId = Number(req.auth?.employeeId) || null;
   const includeDeleted = req.query.includeDeleted === 'true';
   const statusWhere = includeDeleted
@@ -240,13 +259,21 @@ router.get('/employees', async (req, res) => {
       };
   const where = canViewAll
     ? statusWhere
+    : canViewSharedCalendar && ownEmployeeId
+      ? statusWhere
     : ownEmployeeId
       ? {AND: [{id: ownEmployeeId}, statusWhere]}
       : {id: -1};
 
   try {
     const records = await prisma.employee.findMany({ where, orderBy: { name: 'asc' } });
-    res.json({ success: true, data: records.map(withStoredId).map((e) => sanitizeEmployee(e, req.auth)) });
+    const data = records.map(withStoredId).map((employee) => {
+      if (canViewAll || Number(employee.id) === ownEmployeeId) {
+        return sanitizeEmployee(employee, req.auth);
+      }
+      return sanitizeCalendarEmployee(employee);
+    });
+    res.json({success: true, data});
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -494,3 +521,4 @@ router.post('/payroll/mark-paid', requirePermission(PERMISSIONS.PAYOUTS_MANAGE),
 });
 
 module.exports = router;
+module.exports._private = {sanitizeCalendarEmployee};

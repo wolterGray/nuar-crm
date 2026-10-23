@@ -8,7 +8,6 @@ import {
   resetUserPassword,
   updateUser,
 } from "../../api/users.js";
-import {changePassword} from "../../api/auth.js";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
@@ -1520,33 +1519,10 @@ function UserAccessPanel({authUser, pushNotification}) {
   );
 }
 
-function StaffAccountCard({ authUser, employees = [] }) {
-  const linkedMaster = useMemo(() => {
-    if (!authUser?.employeeId) return null;
-    return employees.find((e) => Number(e.id) === Number(authUser.employeeId)) || null;
-  }, [authUser, employees]);
-
-  const roleLabel = useMemo(() => {
-    const role = String(authUser?.role || "").toLowerCase();
-    switch (role) {
-      case "owner":
-        return "Владелец студии";
-      case "admin":
-        return "Администратор";
-      case "manager":
-        return "Менеджер";
-      case "staff":
-        return "Мастер / Специалист";
-      case "readonly":
-        return "Только просмотр";
-      default:
-        return "Роль не определена";
-    }
-  }, [authUser]);
-
+function StaffAccountCard({ authUser }) {
   return (
     <Card className="p-4 sm:p-5 flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3 border-b border-border-soft pb-3">
+      <div className="flex items-center gap-3">
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-sm">
             {(authUser?.name || authUser?.email || "U").slice(0, 2).toUpperCase()}
@@ -1560,161 +1536,7 @@ function StaffAccountCard({ authUser, employees = [] }) {
             </p>
           </div>
         </div>
-        <Badge variant="neutral" size="md">
-          {roleLabel}
-        </Badge>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="p-3 rounded-control border border-border-soft bg-field flex flex-col gap-1">
-          <span className="text-[11px] text-text-faint">Email для входа</span>
-          <strong className="text-xs text-text-main font-mono">{authUser?.email || "—"}</strong>
-        </div>
-
-        <div className="p-3 rounded-control border border-border-soft bg-field flex flex-col gap-1">
-          <span className="text-[11px] text-text-faint">Привязка к мастеру</span>
-          {linkedMaster ? (
-            <div className="flex items-center gap-2">
-              <strong className="text-xs text-text-main">{linkedMaster.name}</strong>
-              {linkedMaster.position && (
-                <span className="text-[11px] text-text-muted">({linkedMaster.position})</span>
-              )}
-            </div>
-          ) : (
-            <span className="text-xs text-accentWarning font-medium">
-              Не привязан к мастеру
-            </span>
-          )}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function StaffPasswordCard({ pushNotification }) {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess(false);
-
-    if (!currentPassword) {
-      setError("Введите текущий пароль");
-      return;
-    }
-    if (!newPassword || newPassword.length < 8) {
-      setError("Новый пароль должен содержать минимум 8 символов");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError("Пароли не совпадают");
-      return;
-    }
-    if (newPassword === currentPassword) {
-      setError("Новый пароль должен отличаться от текущего");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await changePassword({ currentPassword, newPassword });
-      setSuccess(true);
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      pushNotification?.({
-        title: "Пароль обновлён",
-        message: "Ваш пароль успешно изменён",
-      });
-    } catch (err) {
-      setError(err?.message || "Не удалось изменить пароль");
-      pushNotification?.({
-        title: "Ошибка смены пароля",
-        message: err?.message || "Проверьте правильность текущего пароля",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Card className="p-4 sm:p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-2.5 border-b border-border-soft pb-3">
-        <AppIcon name="lock" size="md" className="text-accent" />
-        <div>
-          <h2 className="m-0 text-text-main text-[15px] font-bold">Смена пароля</h2>
-          <p className="m-0 mt-0.5 text-text-muted text-xs">
-            Для безопасности рекомендуем использовать надёжный пароль от 8 символов.
-          </p>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3.5 max-w-md">
-        {error && (
-          <div className="rounded-control border border-accentError/30 bg-accentError/10 p-3 text-xs text-accentError">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="rounded-control border border-accentSuccess/30 bg-accentSuccess/10 p-3 text-xs text-accentSuccess">
-            Пароль успешно обновлён
-          </div>
-        )}
-
-        <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
-          Текущий пароль
-          <Input
-            type="password"
-            autoComplete="current-password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-          />
-        </label>
-
-        <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
-          Новый пароль
-          <Input
-            type="password"
-            autoComplete="new-password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Минимум 8 символов"
-            required
-          />
-        </label>
-
-        <label className="flex flex-col gap-1 text-text-muted text-xs font-medium">
-          Подтверждение нового пароля
-          <Input
-            type="password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Повторите новый пароль"
-            required
-          />
-        </label>
-
-        <div className="pt-1">
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            loading={loading}
-            className="w-full sm:w-auto font-bold"
-          >
-            Обновить пароль
-          </Button>
-        </div>
-      </form>
     </Card>
   );
 }
@@ -1841,7 +1663,7 @@ function SettingsPage({
   const isSalonAdmin = isOwner || userRole === "admin" || canManageUsers;
 
   const staffTabs = [
-    {id: "account", label: "Профиль и пароль", mobileLabel: "Профиль", icon: "user"},
+    {id: "account", label: "Профиль", mobileLabel: "Профиль", icon: "user"},
     {id: "display", label: "Оформление", mobileLabel: "Тема", icon: "sliders"},
     {id: "notifications", label: "Push-уведомления", mobileLabel: "Push", icon: "bell"},
   ];
@@ -2273,7 +2095,7 @@ function SettingsPage({
             staffTabs.find((tab) => tab.id === effectiveStaffTab)?.label ?? "Профиль"
           }
           collapsible={isMobile}
-          description="Личные настройки, смена пароля и управление Push-уведомлениями"
+          description="Личные настройки профиля, оформления и Push-уведомлений"
           title="Личный профиль"
         />
 
@@ -2289,8 +2111,7 @@ function SettingsPage({
         <div className="settings-scroll flex-1 overflow-y-auto pr-1 pb-3 flex flex-col gap-4">
           {effectiveStaffTab === "account" && (
             <div className="flex flex-col gap-4">
-              <StaffAccountCard authUser={authUser} employees={employees} />
-              <StaffPasswordCard pushNotification={pushNotification} />
+              <StaffAccountCard authUser={authUser} />
             </div>
           )}
 

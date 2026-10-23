@@ -578,6 +578,7 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
       if (busy.some((interval) => conflictsWithBuffers(minutes, minutes + duration, requestBuffers, interval))) continue;
       const startTime = toClockTime(minutes);
       employeeSlots.push({
+        employeeId: employee.id || null,
         master,
         startTime,
         ...calculatePrice({ basePrice, date: preferredDate, durationMinutes: duration, employee, time: startTime }),
@@ -696,6 +697,7 @@ const createSiteBookingNotification = (tx, booking, waitlistEntry) =>
       durationMinutes: booking.durationMinutes,
       preferredDate: booking.preferredDate,
       preferredMaster: booking.preferredMaster,
+      preferredMasterId: booking.preferredMasterId || null,
       preferredTime: booking.preferredTime,
       serviceName: booking.serviceName,
       waitlistEntryId: waitlistEntry?.id ?? null,
@@ -791,7 +793,8 @@ publicSiteBookingRouter.post('/site-booking-submit', publicBookingLimiter, async
       id,
       note: cleanString(req.body?.note),
       preferredDate,
-      preferredMaster: cleanString(req.body?.preferredMaster),
+      preferredMaster: cleanString(requestedSlot.master),
+      preferredMasterId: Number(requestedSlot.employeeId) || null,
       preferredTime,
       serviceName,
       serviceSlug: cleanString(req.body?.serviceSlug),

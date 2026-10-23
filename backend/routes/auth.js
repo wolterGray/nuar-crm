@@ -537,6 +537,12 @@ function createAuthRouter({
       if (!dbUser || !dbUser.isActive) {
         return res.status(401).json({ success: false, error: 'Пользователь не найден или отключён' });
       }
+      if (dbUser.role === 'staff') {
+        return res.status(403).json({
+          success: false,
+          error: 'Пароль сотрудника изменяет владелец в настройках доступа',
+        });
+      }
 
       const passwordMatches = await verifyPassword(currentPassword, dbUser.passwordHash);
       if (!passwordMatches) {

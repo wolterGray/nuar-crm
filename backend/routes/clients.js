@@ -14,6 +14,7 @@ const {
 } = require('../utils/crudHelpers');
 
 const prisma = new PrismaClient();
+const {getScopedClientIds} = require('../utils/employeeScope');
 
 const buildClientData = (body) => ({
   name: String(body?.name ?? '').trim(),
@@ -56,38 +57,19 @@ const sanitizeClientRecord = (client, canViewContacts) => {
 
 const canAccessClient = async (req, clientId) => {
   if (hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)) return true;
-  const employeeId = Number(req.auth?.employeeId) || null;
-  if (!employeeId || !clientId) return false;
-  const visit = await prisma.visit.findFirst({
-    where: {clientId: Number(clientId), employeeId},
-    select: {id: true},
-  });
-  return Boolean(visit);
+  if (!clientId) return false;
+  const clientIds = await getScopedClientIds(prisma, req.auth);
+  return clientIds.includes(Number(clientId));
 };
 
 // ==================== Client ====================
 router.get('/clients', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (req, res) => {
   try {
     const canViewAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
-    const userEmpId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
-
     let where = {};
     if (!canViewAll) {
-      if (userEmpId) {
-        where = {
-          visits: {
-            some: {
-              employeeId: userEmpId,
-            },
-          },
-        };
-      } else {
-        // Fail-closed: user lacks calendar.view_all and has no employeeId assigned
-        return res.json({
-          success: true,
-          data: [],
-        });
-      }
+      const clientIds = await getScopedClientIds(prisma, req.auth);
+      where = {id: {in: clientIds}};
     }
 
     const clients = await prisma.client.findMany({
@@ -120,9 +102,7 @@ router.get('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (r
   const id = Number(req.params.id);
   try {
     const canViewAll = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL);
-    const userEmpId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
-
-    if (!canViewAll && !userEmpId) {
+    if (!canViewAll && !req.auth?.employeeId) {
       return res.status(403).json({
         success: false,
         error: 'Доступ к карточке клиента закрыт: пользователь не привязан к сотруднику',
@@ -133,7 +113,6 @@ router.get('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (r
       where: { id },
       select: {
         ...clientSelect,
-        ...(canViewAll ? {} : { visits: { select: { employeeId: true } } }),
       },
     });
     if (!client) {
@@ -141,8 +120,7 @@ router.get('/clients/:id', requirePermission(PERMISSIONS.CLIENTS_VIEW), async (r
     }
 
     if (!canViewAll) {
-      const isAssigned = (client.visits || []).some((v) => Number(v.employeeId) === userEmpId);
-      if (!isAssigned) {
+      if (!(await canAccessClient(req, id))) {
         return res.status(403).json({ success: false, error: 'Доступ к клиенту запрещён: нет общих визитов' });
       }
     }

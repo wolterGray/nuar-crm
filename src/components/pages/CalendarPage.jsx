@@ -229,10 +229,12 @@ function DraggableScheduleEntry({children, className, disabled = false, domId, e
 
 function CalendarPage({
   alertFocus,
+  canManageAll = false,
   entries,
   clients,
   clientPackages,
   employees,
+  ownEmployeeId = null,
   visits = [],
   settings,
   onAdd,
@@ -406,6 +408,12 @@ function CalendarPage({
       ),
     [calendarMasters],
   );
+  const canManageMaster = (employee) =>
+    canManageAll || (ownEmployeeId && Number(employee.id) === Number(ownEmployeeId));
+  const canManageMasterName = (master) => {
+    const employee = calendarMasters.find((item) => item.name === master);
+    return employee ? canManageMaster(employee) : canManageAll;
+  };
   const calendarPanelDate = useMemo(
     () => new Date(`${calendarPanelMonth}-01T12:00:00`),
     [calendarPanelMonth],
@@ -892,13 +900,18 @@ return (
               setDragPreview(null);
               setPendingSlot(null);
             }}
-            onDragMove={(event) => setDragPreview(getDragPosition(event))}
+            onDragMove={(event) => {
+              const position = getDragPosition(event);
+              setDragPreview(position && canManageMasterName(position.master) ? position : null);
+            }}
             onDragEnd={(event) => {
               const position = getDragPosition(event);
               clearSlotLongPress();
               setDragPreview(null);
               setPendingSlot(null);
-              if (position) onMove(position.entry.id, {master: position.master, time: position.time});
+              if (position && canManageMasterName(position.master)) {
+                onMove(position.entry.id, {master: position.master, time: position.time});
+              }
             }}
           >
             <section
@@ -1012,10 +1025,12 @@ return (
                     </header>
                     <DroppableScheduleColumn
                       master={employee.name}
-                      onPointerCancel={clearSlotLongPress}
-                      onPointerDown={(event) => startSlotLongPress(event, employee.name)}
-                      onPointerMove={moveSlotLongPress}
-                      onPointerUp={clearSlotLongPress}
+                      onPointerCancel={canManageMaster(employee) ? clearSlotLongPress : undefined}
+                      onPointerDown={canManageMaster(employee)
+                        ? (event) => startSlotLongPress(event, employee.name)
+                        : undefined}
+                      onPointerMove={canManageMaster(employee) ? moveSlotLongPress : undefined}
+                      onPointerUp={canManageMaster(employee) ? clearSlotLongPress : undefined}
                     >
                       {(() => {
                         const shift = getEmployeeShiftForDate(employee, selectedDate, {
@@ -1098,11 +1113,12 @@ return (
                             } ${ended ? "opacity-80" : ""} ${
                               isFocusedEntry(entry.id) ? "animate-pulse" : ""
                             } ${height <= 44 ? "is-compact" : ""}`}
-                            disabled={entry.__displayMaster !== entry.master}
+                            disabled={entry.restricted === true || entry.__displayMaster !== entry.master}
                             domId={`alert-focus-calendar-${entry.id}-${entry.__displayMaster}`}
                             entry={entry}
                             key={`${entry.id}-${entry.__displayMaster}`}
                             onOpen={(item) => {
+                              if (item.restricted === true) return;
                               if (item.kind === "visit") {
                                 setViewedClientEntry(item);
                                 return;
@@ -1127,7 +1143,9 @@ return (
                               )}
                             <div className="nuar-calendar-entry-content">
                               <strong className="nuar-calendar-entry-title">
-                                {entry.kind === "visit" ? entry.client : entry.title}
+                                {entry.kind === "visit"
+                                  ? entry.restricted === true ? entry.service : entry.client
+                                  : entry.title}
                               </strong>
                               <span className="nuar-calendar-entry-time">
                                 {displayedEntry.time}–{getEntryEndTime(displayedEntry)}
@@ -1137,7 +1155,7 @@ return (
                                   {getEntryServiceLabel(entry)}
                                 </small>
                               )}
-                              {entry.kind === "visit" && (
+                              {entry.kind === "visit" && entry.restricted !== true && (
                                 <small
                                   className={`nuar-calendar-entry-money ${
                                     getVisitDebt(entry) > 0 ? "is-debt" : "is-paid"
@@ -1146,7 +1164,7 @@ return (
                                   {getEntryMoneyLabel(entry)}
                                 </small>
                               )}
-                              {entry.kind === "visit" && entry.packageUsageId && (() => {
+                              {entry.kind === "visit" && entry.restricted !== true && entry.packageUsageId && (() => {
                                 const packageItem = clientPackages.find(
                                   (item) => item.id === entry.packageUsageId,
                                 );
@@ -1166,7 +1184,7 @@ return (
                                 </b>
                               )}
                             </div>
-                            <div className="nuar-calendar-entry-menu absolute top-1 right-1 opacity-0 hover:opacity-100 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex flex-col gap-1 z-10">
+                            {entry.restricted !== true && <div className="nuar-calendar-entry-menu absolute top-1 right-1 opacity-0 hover:opacity-100 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex flex-col gap-1 z-10">
                               <IconButton
                                 className="nuar-calendar-entry-trigger"
                                 icon="moreVertical"
@@ -1236,7 +1254,7 @@ return (
                                   </Button>
                                 </div>
                               )}
-                            </div>
+                            </div>}
                           </DraggableScheduleEntry>
                         );
                       })}

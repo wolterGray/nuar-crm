@@ -1,17 +1,22 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {fetchPayrollRecords, fetchPayrollSummary} from "../../api/financial.js";
+import {isPackageVisit} from "../../utils/finance.js";
 import {formatMoney} from "../../utils/formatters.jsx";
-import {AppIcon, Badge, Button, Card} from "../ui/index.js";
+import {AppIcon, Badge, Button, Card, Input} from "../ui/index.js";
 
-function getMonthBounds(date = new Date()) {
-  const y = date.getFullYear();
-  const m = date.getMonth();
-  const start = new Date(y, m, 1);
-  const end = new Date(y, m + 1, 0);
-
-  const format = (d) => d.toISOString().slice(0, 10);
-  return {startDate: format(start), endDate: format(end)};
+function getMonthBounds(monthValue) {
+  const [year, month] = String(monthValue).split("-").map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  return {
+    startDate: `${year}-${String(month).padStart(2, "0")}-01`,
+    endDate: `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`,
+  };
 }
+
+const getCurrentMonthValue = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+};
 
 export default function MyEarningsPage({
   authUser = null,
@@ -26,8 +31,8 @@ export default function MyEarningsPage({
   const employeeId = authUser?.employeeId ? Number(authUser.employeeId) : null;
   const employeeName = authUser?.name || authUser?.email?.split("@")[0] || "Мастер";
 
-  // Selected period: default current month
-  const [currentPeriod] = useState(() => getMonthBounds());
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthValue);
+  const currentPeriod = useMemo(() => getMonthBounds(selectedMonth), [selectedMonth]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -114,7 +119,9 @@ export default function MyEarningsPage({
       return Number(summaryData.totalEarnings);
     }
     return periodVisits.reduce((acc, v) => {
-      const earning = Number(v.masterEarned || v.employeeEarning || v.commissionAmount || 0);
+      const earning = isPackageVisit(v)
+        ? 0
+        : Number(v.masterEarned || v.employeeEarning || v.commissionAmount || 0);
       return acc + earning;
     }, 0);
   }, [summaryData, periodVisits]);
@@ -169,20 +176,31 @@ export default function MyEarningsPage({
             </Badge>
           </div>
           <p className="text-xs text-text-muted mt-1 m-0">
-            Личные комиссии за визиты, расчёт выплат и история начислений •{" "}
-            {new Date().toLocaleDateString("ru-RU", {month: "long", year: "numeric"})} ({currentPeriod.startDate} — {currentPeriod.endDate})
+            Личные комиссии за визиты и история выплат ({currentPeriod.startDate} — {currentPeriod.endDate})
           </p>
         </div>
 
-        <Button
-          leftIcon="refresh"
-          loading={loading}
-          size="sm"
-          variant="secondary"
-          onClick={loadData}
-        >
-          Обновить
-        </Button>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="flex flex-col gap-1 text-xs font-medium text-text-muted">
+            Период расчёта
+            <Input
+              aria-label="Период расчёта"
+              className="w-44"
+              type="month"
+              value={selectedMonth}
+              onChange={(event) => setSelectedMonth(event.target.value)}
+            />
+          </label>
+          <Button
+            leftIcon="refresh"
+            loading={loading}
+            size="sm"
+            variant="secondary"
+            onClick={loadData}
+          >
+            Обновить
+          </Button>
+        </div>
       </header>
 
       {/* Unlinked Master Alert / EmptyState */}
@@ -307,7 +325,9 @@ export default function MyEarningsPage({
                     const clientName = v.clientName || v.client || "Клиент";
                     const serviceName = v.serviceName || v.service || "Услуга";
                     const price = Number(v.price || v.cost || 0);
-                    const earned = Number(v.masterEarned || v.employeeEarning || v.commissionAmount || 0);
+                    const earned = isPackageVisit(v)
+                      ? 0
+                      : Number(v.masterEarned || v.employeeEarning || v.commissionAmount || 0);
 
                     return (
                       <tr key={v.id || i} className="hover:bg-field/50 transition-colors">

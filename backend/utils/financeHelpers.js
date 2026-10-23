@@ -577,13 +577,7 @@ const buildServerPayrollReport = ({
       for (const visit of employeeVisits) {
         tips += getDayCloseTipAmount(visit);
 
-        if (isDayClosePackageVisit(visit)) {
-          packageVisitPayout += getDayClosePackageVisitEmployeePayout(
-            {...visit, master: employee.name},
-            filteredEmployees,
-            clientPackagePayloads,
-          );
-        } else {
+        if (!isDayClosePackageVisit(visit)) {
           servicePayout += getDayCloseEmployeePayout(
             {...visit, master: employee.name},
             filteredEmployees,

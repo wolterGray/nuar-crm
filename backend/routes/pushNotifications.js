@@ -195,7 +195,7 @@ router.delete('/push/subscriptions', async (req, res) => {
   }
 });
 
-router.post('/push/test', requirePermission(PERMISSIONS.USERS_MANAGE), async (req, res) => {
+router.post('/push/test', async (req, res) => {
   try {
     const user = await resolveAuthenticatedUser(req);
     const now = Date.now();

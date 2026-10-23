@@ -34,6 +34,7 @@ const {
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 
 const prisma = new PrismaClient();
+const {getScopedClientIds} = require('../utils/employeeScope');
 const router = express.Router();
 const publicRouter = express.Router();
 const requireLoyaltyAdmin = requirePermission(PERMISSIONS.CATALOG_MANAGE);
@@ -96,13 +97,9 @@ const forbiddenError = () => {
 
 const canAccessClient = async (db, req, clientId) => {
   if (hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)) return true;
-  const employeeId = Number(req.auth?.employeeId) || null;
-  if (!employeeId || !clientId) return false;
-  const visit = await db.visit.findFirst({
-    where: {clientId: Number(clientId), employeeId},
-    select: {id: true},
-  });
-  return Boolean(visit);
+  if (!clientId) return false;
+  const clientIds = await getScopedClientIds(db, req.auth);
+  return clientIds.includes(Number(clientId));
 };
 
 const requireClientAccess = async (db, req, clientId) => {
@@ -116,13 +113,12 @@ const requireCardAccess = async (db, req, cardId) => {
   return card;
 };
 
-const buildLoyaltyCardsWhere = (auth, {search = '', status = 'all', reward = 'all'} = {}) => {
-  const employeeId = Number(auth?.employeeId) || null;
+const buildLoyaltyCardsWhere = (auth, {search = '', status = 'all', reward = 'all'} = {}, scopedClientIds = []) => {
   const clientFilters = [];
 
   if (!hasPermission(auth, PERMISSIONS.CALENDAR_VIEW_ALL)) {
-    if (!employeeId) return {id: -1};
-    clientFilters.push({visits: {some: {employeeId}}});
+    if (!auth?.employeeId) return {id: -1};
+    clientFilters.push({id: {in: scopedClientIds}});
   }
 
   if (search) {
@@ -297,7 +293,10 @@ router.get('/loyalty/cards', async (req, res) => {
     const status = String(req.query.status ?? 'all').trim();
     const reward = String(req.query.reward ?? 'all').trim();
 
-    const where = buildLoyaltyCardsWhere(req.auth, {search, status, reward});
+    const scopedClientIds = hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)
+      ? []
+      : await getScopedClientIds(prisma, req.auth);
+    const where = buildLoyaltyCardsWhere(req.auth, {search, status, reward}, scopedClientIds);
 
     const [items, total] = await Promise.all([
       prisma.loyaltyCard.findMany({

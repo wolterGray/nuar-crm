@@ -45,7 +45,7 @@ test('JWT middleware accepts a valid authenticated request', () => {
   assert.equal(request.auth.sub, '42');
 });
 
-test('test Push action remains owner-only', () => {
+test('owner guard still rejects non-owner administration requests', () => {
   const response = createResponse();
   let nextCalled = false;
   requireOwner({auth: {role: 'admin'}}, response, () => {

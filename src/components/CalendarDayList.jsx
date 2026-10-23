@@ -54,12 +54,12 @@ function CalendarDayList({
           showMaster
           showStatus
           visit={entry}
-          onCancel={(item) => onStatus?.(item, "cancelled")}
-          onConfirm={(item) => onStatus?.(item, "confirmed")}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onMessage={onRemind}
-          onOpen={onViewClient}
+          onCancel={entry.restricted ? null : (item) => onStatus?.(item, "cancelled")}
+          onConfirm={entry.restricted ? null : (item) => onStatus?.(item, "confirmed")}
+          onEdit={entry.restricted ? null : onEdit}
+          onDelete={entry.restricted ? null : onDelete}
+          onMessage={entry.restricted ? null : onRemind}
+          onOpen={entry.restricted ? null : onViewClient}
           openMenuId={openVisitMenuId}
           setOpenMenuId={setOpenVisitMenuId}
         />

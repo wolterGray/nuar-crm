@@ -44,6 +44,9 @@ function PageSuspense({children}) {
 
 export default function AppRoutes({activePage, authUser = null, ...props}) {
   const user = authUser || props.authUser || null;
+  const privateCalendarEntries = (props.calendarEntries ?? []).filter(
+    (entry) => entry.restricted !== true,
+  );
 
   // Enforce access control: if user is not authorized to view the requested page, show ForbiddenScreen
   if (user && !canViewPage(activePage, user)) {
@@ -63,7 +66,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
             alertSummary={props.alertSummary}
             alerts={props.alerts}
             appSettings={props.appSettings}
-            calendarEntries={props.calendarEntries}
+            calendarEntries={privateCalendarEntries}
             certificates={props.certificates}
             clientPackages={props.clientPackages}
             clientProfiles={props.clientProfiles}
@@ -91,11 +94,13 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
         <PageSuspense>
           <CalendarPage
             alertFocus={props.alertFocus}
+            canManageAll={hasPermission(user, PERMISSIONS.CALENDAR_MANAGE_ALL)}
             entries={props.calendarEntriesWithServiceColors}
             visits={props.visits}
             clients={props.clientProfiles}
             clientPackages={props.clientPackages}
             employees={props.activeEmployees}
+            ownEmployeeId={user?.employeeId}
             settings={props.appSettings}
             onAdd={props.openCreateCalendarEntry}
             onAlertFocusHandled={props.clearAlertFocus}
@@ -113,7 +118,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
       return (
         <PageSuspense>
           <PaymentsPage
-            calendarEntries={props.calendarEntries}
+            calendarEntries={privateCalendarEntries}
             clientProfiles={props.clientProfiles}
             closeDay={props.closeDay}
             completedVisits={props.visits}
@@ -158,23 +163,13 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
       const canManageClients = canPerform("manage", "client", null, user);
       const canDeleteClients = canPerform("delete", "client", null, user);
 
-      // Filter clients for staff to only assigned clients if employeeId is set
-      const clientsList = (!canPerform("view_all", "calendar_entry", null, user) && user?.employeeId)
-        ? (props.clientProfiles ?? []).filter((client) => {
-            const clientVisits = (props.visits || []).filter(
-              (v) => String(v.clientId) === String(client.id),
-            );
-            return clientVisits.some((v) => Number(v.employeeId) === Number(user.employeeId));
-          })
-        : props.clientProfiles;
-
       return (
         <PageSuspense>
           <ClientsPage
             alertFocus={props.alertFocus}
             visits={props.visits}
-            calendarEntries={props.calendarEntries}
-            clients={clientsList}
+            calendarEntries={privateCalendarEntries}
+            clients={props.clientProfiles}
             clientPackages={props.clientPackages}
             certificates={props.certificates}
             communicationLog={props.communicationLog}
@@ -258,7 +253,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
       return (
         <PageSuspense>
           <EmployeesPage
-            calendarEntries={props.calendarEntries}
+            calendarEntries={privateCalendarEntries}
             completedVisits={props.visits}
             employees={props.employeeStats}
             getDailyPayrollReport={props.getDailyPayrollReport}
@@ -363,7 +358,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
         <PageSuspense>
           <StatisticsPage
             visits={props.paymentRows}
-            calendarEntries={props.calendarEntries}
+            calendarEntries={privateCalendarEntries}
             certificates={props.certificates}
             clientPackages={props.clientPackages}
             clients={props.clientProfiles}

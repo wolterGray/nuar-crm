@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { requirePermission, PERMISSIONS } = require('../middleware/auth');
+const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
+const {resolveScopedEmployee, serviceIsAssignedToEmployee} = require('../utils/employeeScope');
 const {
   respond,
   auditCreate,
@@ -121,9 +122,21 @@ router.patch('/services/reorder', requirePermission(PERMISSIONS.CATALOG_MANAGE),
   }
 });
 
-router.get('/services/:id', requirePermission(PERMISSIONS.CATALOG_VIEW), (req, res) => {
+router.get('/services/:id', requirePermission(PERMISSIONS.CATALOG_VIEW), async (req, res) => {
   const id = Number(req.params.id);
-  respond(res, prisma.service.findUnique({ where: { id } }).then(withStoredId));
+  try {
+    const service = await prisma.service.findUnique({where: {id}});
+    if (!service) return res.status(404).json({success: false, error: 'Service not found'});
+    if (!hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)) {
+      const employee = await resolveScopedEmployee(prisma, req.auth);
+      if (!employee || !serviceIsAssignedToEmployee(service, employee)) {
+        return res.status(403).json({success: false, error: 'Услуга не назначена этому сотруднику'});
+      }
+    }
+    return res.json({success: true, data: withStoredId(service)});
+  } catch (err) {
+    return res.status(500).json({success: false, error: err.message});
+  }
 });
 
 router.put('/services/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE), async (req, res) => {
@@ -160,13 +173,21 @@ router.delete('/services/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE), as
   );
 });
 
-router.get('/services', requirePermission(PERMISSIONS.CATALOG_VIEW), (req, res) => {
-  respond(
-    res,
-    prisma.service
-      .findMany({ orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }] })
-      .then((records) => records.map(withStoredId)),
-  );
+router.get('/services', requirePermission(PERMISSIONS.CATALOG_VIEW), async (req, res) => {
+  try {
+    const records = await prisma.service.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }],
+    });
+    if (hasPermission(req.auth, PERMISSIONS.CALENDAR_VIEW_ALL)) {
+      return res.json({success: true, data: records.map(withStoredId)});
+    }
+    const employee = await resolveScopedEmployee(prisma, req.auth);
+    const visible = employee ? records.filter((service) => serviceIsAssignedToEmployee(service, employee)) : [];
+    return res.json({success: true, data: visible.map(withStoredId)});
+  } catch (err) {
+    console.error('Service list error:', err);
+    return res.status(500).json({success: false, error: err.message});
+  }
 });
 
 // ==================== Package ====================
