@@ -10,9 +10,9 @@
     --mobile-page-x: 16px;
     --mobile-page-gap: 16px;
     --mobile-safe-top: env(safe-area-inset-top, 0px);
-    --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
-    --mobile-nav-height: 72px;
-    --mobile-nav-total: calc(var(--mobile-nav-height) + var(--mobile-safe-bottom));
+    --mobile-safe-bottom: 0px;
+    --mobile-nav-height: 60px;
+    --mobile-nav-total: var(--mobile-nav-height);
     --mobile-content-bottom: calc(var(--mobile-nav-total) + 18px);
     --mobile-touch-target: 48px;
   }
@@ -206,13 +206,16 @@
   }
 
   .mobile-bottom-nav {
+    position: fixed !important;
     right: 0 !important;
     bottom: 0 !important;
     left: 0 !important;
     z-index: 80 !important;
     display: flex !important;
+    align-items: center !important;
     height: var(--mobile-nav-total) !important;
-    padding: 0 8px var(--mobile-safe-bottom) !important;
+    margin: 0 !important;
+    padding: 2px 6px !important;
     border-top: 1px solid var(--color-border-soft) !important;
     background: var(--mobile-nav-bg) !important;
     box-shadow: var(--shadow-card);
@@ -222,14 +225,14 @@
     flex: 1 1 0 !important;
     min-width: 0 !important;
     width: auto !important;
-    height: var(--mobile-nav-height) !important;
-    min-height: var(--mobile-nav-height) !important;
+    height: 54px !important;
+    min-height: 54px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 4px !important;
-    padding: 6px 2px 7px !important;
+    gap: 3px !important;
+    padding: 4px 2px !important;
     border-radius: 10px !important;
   }
 

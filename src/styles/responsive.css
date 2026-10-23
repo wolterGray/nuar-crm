@@ -14,7 +14,7 @@
 
 @media (max-width: 768px) {
   :root {
-    --mobile-bottom-nav-height: calc(68px + env(safe-area-inset-bottom));
+    --mobile-bottom-nav-height: 60px;
     --mobile-page-padding: 12px;
     --mobile-overlay-bg: rgba(17, 19, 24, 0.38);
     --mobile-sheet-bg: var(--surface, #fff);
@@ -154,12 +154,12 @@
 
   .mobile-bottom-nav {
     height: var(--mobile-bottom-nav-height);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: 0;
   }
 
   .mobile-bottom-nav button {
     min-width: 0;
-    min-height: 56px;
+    min-height: 54px;
   }
 
   .mobile-bottom-nav span {
@@ -912,10 +912,10 @@
     z-index: 52;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    padding: 7px 6px calc(7px + env(safe-area-inset-bottom));
+    padding: 2px 6px;
     border-top: 1px solid var(--app-window-border, rgba(255, 255, 255, 0.08));
-    background: var(--mobile-nav-bg, #14171d);
-    box-shadow: var(--shadow-md, 0 -12px 32px rgba(17, 19, 24, 0.16));
+    background: var(--mobile-nav-bg);
+    box-shadow: var(--shadow-md);
   }
 
   .mobile-bottom-nav button {
@@ -2309,7 +2309,9 @@
   }
 
   .mobile-bottom-nav {
-    height: calc(68px + env(safe-area-inset-bottom)) !important;
+    height: var(--mobile-nav-total, 60px) !important;
+    bottom: 0 !important;
+    padding-bottom: 2px !important;
   }
 }
 

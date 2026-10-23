@@ -3142,10 +3142,15 @@
 
 @media (max-width: 768px) {
   .mobile-bottom-nav {
-    height: var(--mobile-nav-total, calc(68px + env(safe-area-inset-bottom, 0px))) !important;
-    padding: 4px 6px var(--mobile-safe-bottom, env(safe-area-inset-bottom, 0px)) !important;
+    position: fixed !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    height: var(--mobile-nav-total, 60px) !important;
+    margin: 0 !important;
+    padding: 2px 6px !important;
     border-top: 1px solid var(--color-border) !important;
-    background: color-mix(in srgb, var(--color-page) 96%, #090a0d 4%) !important;
+    background: color-mix(in srgb, var(--color-page) 96%, var(--color-window) 4%) !important;
     backdrop-filter: blur(16px);
     box-shadow: var(--shadow-dropdown) !important;
     align-items: center !important;
@@ -3158,12 +3163,12 @@
     flex-direction: column !important;
     flex: 1 1 0 !important;
     min-width: 0 !important;
-    height: 58px !important;
-    min-height: 58px !important;
+    height: 54px !important;
+    min-height: 54px !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 4px !important;
-    padding: 6px 2px !important;
+    gap: 3px !important;
+    padding: 4px 2px !important;
     border: 0 !important;
     border-radius: 10px !important;
     background: transparent !important;
