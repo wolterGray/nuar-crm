@@ -181,7 +181,12 @@ const handleVisitChange = async (before, after) => {
   try {
     const visit = after || before;
     if (!visit) return;
-    const service = visit.serviceId ? await prisma.service.findUnique({where: {id: visit.serviceId}}) : null;
+    const [service, client] = await Promise.all([
+      visit.serviceId ? prisma.service.findUnique({where: {id: visit.serviceId}}) : null,
+      visit.clientId ? prisma.client.findUnique({where: {id: visit.clientId}}) : null,
+    ]);
+    const visitPayload = visit.payload && typeof visit.payload === 'object' ? visit.payload : {};
+    const clientName = client?.name || visitPayload.clientName || visitPayload.client || 'Клиент';
     const current = toWarsawDateTime(after?.scheduledAt || before?.scheduledAt);
     const previous = toWarsawDateTime(before?.scheduledAt);
     const employeeId = await resolveEmployeeIdForRecord(visit);
@@ -192,7 +197,8 @@ const handleVisitChange = async (before, after) => {
     if (!after) {
       await recordBusinessNotificationEvent(prisma, {
         ...common, fingerprint: `visit-record:${visit.id}:cancelled`,
-        payload: {...previous, deleted: true, employeeId, serviceName: service?.name || ''},
+        clientName,
+        payload: {...previous, clientName, deleted: true, employeeId, serviceName: service?.name || ''},
         priority: 'high', title: 'Запись отменена', message: service?.name || 'Запись отменена',
         type: 'visit_cancelled', urgency: 15,
       }, upsertNotificationEvent);
@@ -201,7 +207,8 @@ const handleVisitChange = async (before, after) => {
     if (!before) {
       await recordBusinessNotificationEvent(prisma, {
         ...common, fingerprint: `visit-record:${visit.id}:created`,
-        payload: {...current, employeeId, serviceName: service?.name || ''}, title: 'Новая запись',
+        clientName,
+        payload: {...current, clientName, employeeId, serviceName: service?.name || ''}, title: 'Новая запись',
         message: service?.name || 'Новая запись', type: 'visit_created', urgency: 10,
       }, upsertNotificationEvent);
       return;
@@ -210,7 +217,8 @@ const handleVisitChange = async (before, after) => {
       await recordBusinessNotificationEvent(prisma, {
         ...common,
         fingerprint: `visit-record:${visit.id}:rescheduled:${previous.date}:${previous.time}:${current.date}:${current.time}`,
-        payload: {employeeId, newDate: current.date, newTime: current.time, oldDate: previous.date, oldTime: previous.time, serviceName: service?.name || ''},
+        clientName,
+        payload: {clientName, employeeId, newDate: current.date, newTime: current.time, oldDate: previous.date, oldTime: previous.time, serviceName: service?.name || ''},
         title: 'Запись перенесена', message: service?.name || 'Запись перенесена',
         type: 'visit_rescheduled', urgency: 10,
       }, upsertNotificationEvent);

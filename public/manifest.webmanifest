@@ -1,6 +1,6 @@
 {
-  "name": "NUAR CRM",
-  "short_name": "NUAR",
+  "name": "NUAR-CRM",
+  "short_name": "NUAR-CRM",
   "id": "/",
   "description": "CRM салона NUAR — календарь, клиенты, оплаты",
   "start_url": "/",

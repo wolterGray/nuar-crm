@@ -7,7 +7,7 @@ const {
   queueBusinessPushDeliveries,
 } = require('../services/businessPushService');
 
-test('visit Push payload contains a deep link but no client personal data', () => {
+test('visit Push payload contains an exact deep link and readable visit summary', () => {
   const payload = buildBusinessPushPayload({
     entityId: '42',
     fingerprint: 'visit:42:created',
@@ -16,11 +16,11 @@ test('visit Push payload contains a deep link but no client personal data', () =
   });
 
   assert.equal(payload.url, '/calendar?entry=42');
-  assert.match(payload.body, /2026-10-16/);
-  assert.doesNotMatch(JSON.stringify(payload), /Sensitive Name|48123456789/);
+  assert.match(payload.body, /^Sensitive Name · Услуга · 16 октября, 14:30/);
+  assert.doesNotMatch(JSON.stringify(payload), /48123456789/);
 });
 
-test('site booking Push opens the exact request without exposing personal data', () => {
+test('site booking Push opens the exact queue entry and shows name, service, date and time', () => {
   const payload = buildBusinessPushPayload({
     entityId: 'booking-42',
     fingerprint: 'site-booking:booking-42',
@@ -33,13 +33,27 @@ test('site booking Push opens the exact request without exposing personal data',
       preferredDate: '2026-10-17',
       preferredTime: '14:30',
       serviceName: 'Massage',
+      waitlistEntryId: 77,
     },
     type: 'site_booking_request',
   });
 
-  assert.equal(payload.url, '/site?booking=booking-42');
-  assert.match(payload.body, /2026-10-17.*14:30.*Massage.*60/);
-  assert.doesNotMatch(JSON.stringify(payload), /Sensitive Name|48123456789|private@example|Private note/);
+  assert.equal(payload.url, '/operations?waitlist=77');
+  assert.match(payload.body, /^Sensitive Name · Massage · 17 октября, 14:30 · 60 мин$/);
+  assert.doesNotMatch(JSON.stringify(payload), /48123456789|private@example|Private note/);
+});
+
+test('important task Push opens the exact task and uses its title in the body', () => {
+  const payload = buildBusinessPushPayload({
+    entityId: 'task-15',
+    fingerprint: 'task:task-15:important-due',
+    message: 'Проверить остатки масла',
+    payload: {dueDate: '2026-10-23T10:00:00.000Z', taskTitle: 'Проверить остатки масла'},
+    type: 'task_important_due',
+  });
+
+  assert.equal(payload.url, '/operations?task=task-15');
+  assert.match(payload.body, /^Проверить остатки масла · Срок: 23 октября$/);
 });
 
 test('queues one idempotent delivery per active owner device', async () => {

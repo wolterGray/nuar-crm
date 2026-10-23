@@ -423,7 +423,7 @@ const generateSmartNotificationEvents = async (prisma, {now = new Date()} = {}) 
         entityId: task.id,
         entityType: 'task',
         fingerprint: `task:${task.id}:${overdue ? 'important-overdue' : 'important-due'}`,
-        payload: {dueDate: task.dueDate, priority: task.priority},
+        payload: {dueDate: task.dueDate, priority: task.priority, taskTitle: task.title},
         priority: overdue ? 'high' : 'normal',
         recommendedAction: 'open_task',
         reopenWhenCurrent: true,

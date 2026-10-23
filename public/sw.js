@@ -16,7 +16,7 @@ self.addEventListener("push", (event) => {
     payload = {body: event.data?.text() || "Новое уведомление"};
   }
 
-  const title = payload.title || "Nuar CRM";
+  const title = payload.title || "NUAR-CRM";
   const options = {
     body: payload.body || "Откройте CRM, чтобы посмотреть детали.",
     data: {url: payload.url || DEFAULT_URL},

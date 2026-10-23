@@ -1,4 +1,4 @@
-import {memo, useCallback, useMemo, useState} from "react";
+import {memo, useCallback, useEffect, useMemo, useState} from "react";
 import "./WaitlistPanel.css";
 import WaitlistDetailDrawer from "./WaitlistDetailDrawer.jsx";
 import {AppIcon, Badge, Button, EmptyState} from "./ui/index.js";
@@ -183,6 +183,7 @@ const WaitlistCard = memo(function WaitlistCard({
 });
 
 function WaitlistPanel({
+  alertFocus,
   clientProfiles = [],
   waitlistEntries = [],
   onAdd,
@@ -191,6 +192,7 @@ function WaitlistPanel({
   onMessage,
   onRemove,
   onRestore,
+  onAlertFocusHandled,
 }) {
   const [filter, setFilter] = useState("active");
   const [selectedEntryId, setSelectedEntryId] = useState(null);
@@ -218,6 +220,20 @@ function WaitlistPanel({
     () => waitlistEntries.find((item) => item.id === selectedEntryId) || null,
     [waitlistEntries, selectedEntryId],
   );
+
+  useEffect(() => {
+    if (alertFocus?.type !== "waitlist" || !alertFocus.entityId) return;
+    const focusedEntry = waitlistEntries.find(
+      (entry) => String(entry.id) === String(alertFocus.entityId),
+    );
+    if (!focusedEntry) return;
+    const timer = window.setTimeout(() => {
+      setFilter(isWaitlistEntryDeleted(focusedEntry) ? "deleted" : "all");
+      setSelectedEntryId(focusedEntry.id);
+      onAlertFocusHandled?.();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [alertFocus, onAlertFocusHandled, waitlistEntries]);
 
   // Visible entries depending on active tab
   const visibleEntries = useMemo(() => {

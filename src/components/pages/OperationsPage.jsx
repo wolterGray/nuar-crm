@@ -1288,7 +1288,9 @@ function OperationsPage({
   useEffect(() => {
     if (!alertFocus?.entityId) return undefined;
     const nextTab =
-      alertFocus.section === "supplies"
+      alertFocus.section === "waitlist" || alertFocus.section === "waitlist_entry" || alertFocus.type === "waitlist"
+        ? "waitlist"
+        : alertFocus.section === "supplies" || alertFocus.section === "supply"
         ? "supplies"
         : alertFocus.section === "tasks" || alertFocus.type === "task"
           ? "plan"
@@ -2028,6 +2030,7 @@ function OperationsPage({
       {activeTab === "waitlist" ? (
         <section className="operations-panel-waitlist">
           <WaitlistPanel
+            alertFocus={alertFocus}
             clientProfiles={clientProfiles}
             employees={employees}
             openMenuId={openItemMenuId}
@@ -2040,6 +2043,7 @@ function OperationsPage({
             onMessage={onMessageWaitlistEntry}
             onRemove={onRemoveWaitlistEntry}
             onRestore={onRestoreWaitlistEntry}
+            onAlertFocusHandled={onAlertFocusHandled}
           />
         </section>
       ) : null}

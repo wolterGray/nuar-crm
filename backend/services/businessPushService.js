@@ -11,7 +11,23 @@ const EVENT_CONFIG = {
 
 const cleanString = (value) => String(value ?? '').trim();
 
-const formatDateTime = (date, time) => [cleanString(date), cleanString(time)].filter(Boolean).join(' · ');
+const formatDate = (value) => {
+  const normalized = cleanString(value);
+  if (!normalized) return '';
+  const parsed = new Date(`${normalized}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return normalized;
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'Europe/Warsaw',
+  }).format(parsed);
+};
+const formatDateTime = (date, time) => [formatDate(date), cleanString(time)].filter(Boolean).join(', ');
+const formatPersonServiceDate = ({clientName, date, serviceName, time}) => [
+  cleanString(clientName) || 'Клиент',
+  cleanString(serviceName) || 'Услуга',
+  formatDateTime(date, time),
+].filter(Boolean).join(' · ');
 const getVisitUrl = (event, payload) => {
   if (payload.deleted === true) return `/calendar?date=${encodeURIComponent(payload.date || '')}`;
   const parameter = event.entityType === 'visit' ? 'visit' : 'entry';
@@ -19,9 +35,10 @@ const getVisitUrl = (event, payload) => {
   return `/calendar?${parameter}=${encodeURIComponent(event.entityId || '')}${date}`;
 };
 const formatVisitBody = (payload) => [
-  formatDateTime(payload.date, payload.time),
-  cleanString(payload.serviceName),
-  Number(payload.durationMin) > 0 ? `${Number(payload.durationMin)} мин` : '',
+  formatPersonServiceDate(payload),
+  Number(payload.durationMin || payload.durationMinutes) > 0
+    ? `${Number(payload.durationMin || payload.durationMinutes)} мин`
+    : '',
 ].filter(Boolean).join(' · ');
 
 const buildBusinessPushPayload = (event) => {
@@ -32,6 +49,7 @@ const buildBusinessPushPayload = (event) => {
   if (event.type === 'site_booking_request') {
     return {
       body: formatVisitBody({
+        clientName: event.clientName || payload.clientName,
         date: payload.preferredDate,
         durationMin: payload.durationMinutes,
         serviceName: payload.serviceName,
@@ -41,7 +59,7 @@ const buildBusinessPushPayload = (event) => {
       title: config.title,
       ttl: 3600,
       type: event.type,
-      url: `/site?booking=${encodeURIComponent(event.entityId || '')}`,
+      url: `/operations?waitlist=${encodeURIComponent(payload.waitlistEntryId || event.entityId || '')}`,
     };
   }
 
@@ -49,7 +67,13 @@ const buildBusinessPushPayload = (event) => {
     const oldDateTime = formatDateTime(payload.oldDate, payload.oldTime);
     const newDateTime = formatDateTime(payload.newDate, payload.newTime);
     return {
-      body: [oldDateTime && newDateTime ? `${oldDateTime} → ${newDateTime}` : `Новое время: ${newDateTime || 'откройте календарь'}`, cleanString(payload.serviceName)].filter(Boolean).join(' · '),
+      body: [
+        cleanString(payload.clientName) || cleanString(event.clientName) || 'Клиент',
+        cleanString(payload.serviceName) || 'Услуга',
+        oldDateTime && newDateTime
+          ? `${oldDateTime} → ${newDateTime}`
+          : `Новое время: ${newDateTime || 'откройте календарь'}`,
+      ].filter(Boolean).join(' · '),
       tag: `nuar-${event.fingerprint}`,
       title: config.title,
       ttl: 3600,
@@ -59,7 +83,8 @@ const buildBusinessPushPayload = (event) => {
   }
   if (event.type.startsWith('visit_')) {
     return {
-      body: formatVisitBody(payload) || 'Откройте календарь, чтобы посмотреть запись',
+      body: formatVisitBody({...payload, clientName: payload.clientName || event.clientName})
+        || 'Откройте календарь, чтобы посмотреть запись',
       tag: `nuar-${event.fingerprint}`,
       title: config.title,
       ttl: 3600,
@@ -72,7 +97,8 @@ const buildBusinessPushPayload = (event) => {
     ? new Intl.DateTimeFormat('ru-RU', {day: 'numeric', month: 'long', timeZone: 'Europe/Warsaw'}).format(dueDate)
     : '';
   return {
-    body: dueLabel ? `Срок: ${dueLabel}. Откройте задачу, чтобы посмотреть детали` : 'Откройте задачу, чтобы посмотреть детали',
+    body: [cleanString(payload.taskTitle) || cleanString(event.message), dueLabel ? `Срок: ${dueLabel}` : ''].filter(Boolean).join(' · ')
+      || 'Откройте задачу, чтобы посмотреть детали',
     tag: `nuar-${event.fingerprint}`,
     title: config.title,
     ttl: 3600,

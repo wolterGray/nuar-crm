@@ -35,6 +35,7 @@ test('E2E Real Booking Push: generates clean payload and delivers successfully',
       preferredMasterId: 3,
       preferredTime: '15:00',
       serviceName: 'Masaż Relaksacyjny',
+      waitlistEntryId: 501,
     },
     type: 'site_booking_request',
   };
@@ -42,12 +43,10 @@ test('E2E Real Booking Push: generates clean payload and delivers successfully',
   // 1. Verify sanitized payload
   const pushPayload = buildBusinessPushPayload(bookingEvent);
   assert.equal(pushPayload.title, 'Новая заявка с сайта');
-  assert.equal(pushPayload.url, '/site?booking=booking-uuid-101');
-  assert.match(pushPayload.body, /2026-10-25 · 15:00/);
-  assert.match(pushPayload.body, /Masaż Relaksacyjny/);
-  assert.match(pushPayload.body, /75 мин/);
-  // Guarantee no private client contacts leaked in body
-  assert.doesNotMatch(pushPayload.body, /Aleksandra|\+48500100200|client@example\.com|plecy/);
+  assert.equal(pushPayload.url, '/operations?waitlist=501');
+  assert.equal(pushPayload.body, 'Aleksandra Kowalska · Masaż Relaksacyjny · 25 октября, 15:00 · 75 мин');
+  // Contact details and private notes never appear in the notification.
+  assert.doesNotMatch(pushPayload.body, /\+48500100200|client@example\.com|plecy/);
 
   // 2. Mock database state
   const mockUsers = [

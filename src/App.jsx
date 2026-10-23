@@ -1671,10 +1671,12 @@ function App() {
     const calendarDate = params.get("date");
     const taskId = params.get("task");
     const bookingId = params.get("booking");
+    const waitlistEntryId = params.get("waitlist");
     if ((calendarEntryId || visitId || calendarDate) && window.location.pathname === "/calendar") {
       const linkedEntry = visitId
         ? calendarEntries.find((entry) => String(entry.visitId) === String(visitId))
         : null;
+      if (visitId && !linkedEntry) return;
       params.delete("entry");
       params.delete("visit");
       params.delete("date");
@@ -1696,6 +1698,15 @@ function App() {
       const timer = window.setTimeout(() => {
         setActivePage("site");
         setAlertFocus({entityId: bookingId, type: "site-booking"});
+      }, 0);
+      const query = params.toString();
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+      return () => window.clearTimeout(timer);
+    } else if (waitlistEntryId && window.location.pathname === "/operations") {
+      params.delete("waitlist");
+      const timer = window.setTimeout(() => {
+        setActivePage("operations");
+        setAlertFocus({entityId: waitlistEntryId, section: "waitlist", type: "waitlist"});
       }, 0);
       const query = params.toString();
       window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
@@ -1769,11 +1780,15 @@ function App() {
           alert.children.find((child) => child.priority === "critical") ??
           alert.children[0];
 
+        const serverEvent = focusChild?.meta?.serverEvent;
         setActivePage(alert.page);
         setAlertFocus({
           entityId: focusChild?.entityId,
           section: alert.section,
-          type: focusChild?.type ?? alert.aggregateKind,
+          type: alert.page === "calendar" ? "calendar" : focusChild?.type ?? alert.aggregateKind,
+          visitId: serverEvent?.entityType === "visit" ? serverEvent.entityId : null,
+          date: serverEvent?.payload?.date || serverEvent?.payload?.newDate || null,
+          open: alert.page === "calendar",
         });
         setClientAlertsOpen(false);
         setActiveClientAlertId(null);
@@ -1788,11 +1803,15 @@ function App() {
           ? resolveAlertClient(alert)
           : null;
 
+      const serverEvent = alert.meta?.serverEvent;
       setActivePage(alert.page);
       setAlertFocus({
         entityId: alertClient?.id ?? alert.entityId,
         section: alert.section,
-        type: alertClient ? "client" : alert.type,
+        type: alertClient ? "client" : alert.page === "calendar" ? "calendar" : alert.type,
+        visitId: serverEvent?.entityType === "visit" ? serverEvent.entityId : null,
+        date: serverEvent?.payload?.date || serverEvent?.payload?.newDate || null,
+        open: alert.page === "calendar",
       });
       setClientAlertsOpen(false);
       setActiveClientAlertId(null);

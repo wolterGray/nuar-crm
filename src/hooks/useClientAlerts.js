@@ -48,6 +48,7 @@ const getSnoozeUntilMinutes = (minutes, now = new Date()) =>
   new Date(now.getTime() + minutes * 60 * 1000);
 
 const getServerAlertPage = (event) => {
+  if (event.entityType === "site_booking_request") return "operations";
   if (event.entityType === "calendar_entry" || event.type === "visit_upcoming") return "calendar";
   if (event.entityType === "task" || event.type?.startsWith("task_")) return "operations";
   if (event.entityType === "supply" || event.type === "supply_low_stock") return "operations";
@@ -58,11 +59,11 @@ const getServerAlertPage = (event) => {
 };
 
 const getServerAlertType = (event) => {
+  if (event.entityType === "site_booking_request" || event.type === "waitlist_active") return "waitlist";
   if (event.type?.startsWith("task_")) return "task";
   if (event.type === "supply_low_stock") return "supply";
   if (event.type === "package_ending") return "package";
   if (event.type?.startsWith("certificate_")) return "package";
-  if (event.type === "waitlist_active") return "task";
   if (event.type === "visit_upcoming" || event.type === "visit_cancelled" || event.type === "visit_rescheduled") return "visit";
   if (event.type === "delivery_failed") return "task";
   if (event.type === "client_inactive") return "inactive";
@@ -70,6 +71,7 @@ const getServerAlertType = (event) => {
 };
 
 const getServerAlertGroup = (event) => {
+  if (event.entityType === "site_booking_request") return "operations";
   if (event.type === "visit_upcoming" || event.type === "visit_cancelled" || event.type === "visit_rescheduled") return "calendar";
   if (event.type?.startsWith("task_") || event.type === "supply_low_stock" || event.type === "waitlist_active" || event.type === "delivery_failed") return "operations";
   if (event.type === "package_ending" || event.type?.startsWith("certificate_")) return "packages";
@@ -195,7 +197,12 @@ const mapServerEventToAlert = (event) => ({
   actions: getServerAlertActions(event),
   category: event.category,
   createdAt: event.createdAt,
-  entityId: event.clientId ?? event.entityId,
+  entityId:
+    event.entityType === "site_booking_request"
+      ? event.payload?.waitlistEntryId ?? event.entityId
+      : getServerAlertPage(event) === "clients"
+        ? event.clientId ?? event.entityId
+        : event.entityId,
   group: getServerAlertGroup(event),
   id: `${SERVER_ALERT_PREFIX}${event.id}`,
   message: event.message,
@@ -216,7 +223,7 @@ const mapServerEventToAlert = (event) => ({
   },
   page: getServerAlertPage(event),
   priority: getServerAlertPriority(event),
-  section: event.entityType,
+  section: event.entityType === "site_booking_request" ? "waitlist" : event.entityType,
   title: event.title,
   type: getServerAlertType(event),
 });
