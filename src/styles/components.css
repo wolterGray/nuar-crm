@@ -8113,6 +8113,183 @@
     overflow: hidden;
   }
 
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-header {
+    position: relative;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    flex: 0 0 50px;
+    min-height: 50px;
+    align-items: center;
+    gap: 6px;
+    padding: 3px var(--mobile-page-x, 16px);
+    border-bottom: 1px solid var(--calendar-border-soft);
+    background: var(--color-page);
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-view-menu {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-menu-trigger,
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-date-nav > button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    color: var(--color-text-muted);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-menu-trigger svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-view-popover {
+    position: absolute;
+    z-index: 80;
+    top: calc(100% + 6px);
+    left: 0;
+    display: grid;
+    width: 190px;
+    gap: 3px;
+    padding: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-window);
+    box-shadow: var(--shadow-dropdown);
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-view-popover button {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) 20px;
+    min-height: 42px;
+    align-items: center;
+    gap: 9px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 6px;
+    color: var(--color-text-muted);
+    background: transparent;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-view-popover button.is-active {
+    color: var(--color-text);
+    background: color-mix(in srgb, var(--calendar-accent) 14%, var(--color-card));
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-view-popover button > svg:last-child {
+    color: var(--calendar-accent);
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-date-nav {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    min-width: 0;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-date-picker {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    min-height: 40px;
+    place-content: center;
+    gap: 1px;
+    padding: 2px 4px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-date-picker > span {
+    overflow: hidden;
+    color: var(--color-text);
+    font-size: 16px;
+    font-weight: 750;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-date-picker > small {
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: 9px;
+    font-weight: 550;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-date-picker > input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-header > .page-notifications-slot {
+    display: grid;
+    width: 40px;
+    min-width: 40px;
+    place-items: center;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-header .client-alert-button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .mobile-calendar-week {
+    flex-basis: 44px;
+    height: 44px;
+    min-height: 44px;
+    gap: 2px;
+    padding: 2px var(--mobile-page-x, 16px);
+    background: var(--color-page);
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .mobile-calendar-week button,
+  .mobile-page-container[data-mobile-page="calendar"] .mobile-calendar-week button.selected {
+    height: 38px;
+    min-height: 38px;
+    grid-template-rows: 11px 24px;
+    gap: 0;
+    padding: 0 2px;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .mobile-calendar-week span {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .mobile-calendar-week b {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .mobile-calendar-week button.selected b {
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+  }
+
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-header {
     display: grid;
     grid-template-rows: auto auto;
@@ -8286,7 +8463,7 @@
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-mobile-view-switch {
-    display: grid;
+    display: none;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     flex: 0 0 48px;
     width: calc(100% - (var(--mobile-page-x, 16px) * 2));
@@ -8413,9 +8590,9 @@
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-master-header {
-    height: 54px;
-    min-height: 54px;
-    padding: 8px 10px;
+    height: 46px;
+    min-height: 46px;
+    padding: 5px 10px;
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .nuar-calendar-master-header strong,

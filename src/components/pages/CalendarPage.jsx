@@ -1,6 +1,7 @@
 import {getTodayInput} from "../../utils/dateHelpers.js";
 import {normalizeCalendarEntryDate} from "../../utils/dateUtils.js";
 import PageHeader from "../PageHeader.jsx";
+import {PageNotificationsSlot} from "../PageNotifications.jsx";
 import CalendarDayList from "../CalendarDayList.jsx";
 import MobileSheet from "../MobileSheet.jsx";
 import {AppIcon, Button, IconButton} from "../ui/index.js";
@@ -24,7 +25,7 @@ import {getEmployeeShiftForDate, isEmployeeAvailableOnDate} from "../../utils/em
 
 const QUARTER_HEIGHT = 22;
 const DESKTOP_SCHEDULE_HEADER_HEIGHT = 48;
-const MOBILE_SCHEDULE_HEADER_HEIGHT = 54;
+const MOBILE_SCHEDULE_HEADER_HEIGHT = 46;
 const MOBILE_TIME_AXIS_WIDTH = 52;
 const MOBILE_MIN_MASTER_WIDTH = 140;
 const isValidInputDate = (date) =>
@@ -255,6 +256,7 @@ function CalendarPage({
   );
   const [now, setNow] = useState(new Date());
   const [mobileCalendarView, setMobileCalendarView] = useState("grid");
+  const [mobileViewMenuOpen, setMobileViewMenuOpen] = useState(false);
   const [remindersVisible, setRemindersVisible] = useState(
     () => !isMobileViewport() && (settings.calendarRemindersVisible ?? true),
   );
@@ -480,7 +482,7 @@ function CalendarPage({
   }, []);
 
   useEffect(() => {
-    if (!openCalendarPickerMenu && !openReminderMenuId && !openEntryMenuId) {
+    if (!openCalendarPickerMenu && !openReminderMenuId && !openEntryMenuId && !mobileViewMenuOpen) {
       return undefined;
     }
 
@@ -498,11 +500,15 @@ function CalendarPage({
       if (!target.closest(".nuar-calendar-entry-menu")) {
         setOpenEntryMenuId(null);
       }
+
+      if (!target.closest(".nuar-calendar-mobile-view-menu")) {
+        setMobileViewMenuOpen(false);
+      }
     };
 
     document.addEventListener("pointerdown", closeOpenMenus);
     return () => document.removeEventListener("pointerdown", closeOpenMenus);
-  }, [openCalendarPickerMenu, openEntryMenuId, openReminderMenuId]);
+  }, [mobileViewMenuOpen, openCalendarPickerMenu, openEntryMenuId, openReminderMenuId]);
 
   const showDayList = isMobile && mobileCalendarView === "list";
   const showScheduleGrid = !isMobile || mobileCalendarView === "grid";
@@ -682,11 +688,90 @@ function CalendarPage({
 
 return (
     <section className="nuar-calendar flex flex-col flex-1 gap-3 min-h-0">
-      <PageHeader
-        className="nuar-calendar-header"
-        description={`${visitEntries.length} визитов запланировано`}
-        headerActions={
-          <div className="nuar-calendar-actions flex items-center gap-2">
+      {isMobile ? (
+        <header className="nuar-calendar-mobile-header">
+          <div className="nuar-calendar-mobile-view-menu">
+            <IconButton
+              aria-expanded={mobileViewMenuOpen}
+              aria-haspopup="menu"
+              className="nuar-calendar-mobile-menu-trigger"
+              icon="moreVertical"
+              label="Вид календаря"
+              size="md"
+              variant="ghost"
+              onClick={() => setMobileViewMenuOpen((current) => !current)}
+            />
+            {mobileViewMenuOpen ? (
+              <div className="nuar-calendar-mobile-view-popover" role="menu">
+                <button
+                  className={mobileCalendarView === "grid" ? "is-active" : ""}
+                  role="menuitemradio"
+                  aria-checked={mobileCalendarView === "grid"}
+                  type="button"
+                  onClick={() => {
+                    setMobileCalendarView("grid");
+                    setMobileViewMenuOpen(false);
+                  }}
+                >
+                  <AppIcon name="calendar" size="sm" />
+                  <span>Расписание</span>
+                  {mobileCalendarView === "grid" ? <AppIcon name="check" size="sm" /> : null}
+                </button>
+                <button
+                  className={mobileCalendarView === "list" ? "is-active" : ""}
+                  role="menuitemradio"
+                  aria-checked={mobileCalendarView === "list"}
+                  type="button"
+                  onClick={() => {
+                    setMobileCalendarView("list");
+                    setMobileViewMenuOpen(false);
+                  }}
+                >
+                  <AppIcon name="list" size="sm" />
+                  <span>Список</span>
+                  {mobileCalendarView === "list" ? <AppIcon name="check" size="sm" /> : null}
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="nuar-calendar-mobile-date-nav">
+            <IconButton
+              icon="chevronLeft"
+              label="Предыдущий день"
+              size="sm"
+              variant="ghost"
+              onClick={() => selectCalendarDate(shiftDate(selectedDate, -1))}
+            />
+            <label className="nuar-calendar-mobile-date-picker">
+              <span>{isToday ? "Сегодня" : toDisplayDate(selectedDate)}</span>
+              <small>{toMobileWeekday(selectedDate)}</small>
+              <input
+                aria-label="Выбрать дату в календаре"
+                type="date"
+                value={selectedDate}
+                onChange={(event) => {
+                  if (event.target.value) selectCalendarDate(event.target.value);
+                }}
+              />
+            </label>
+            <IconButton
+              icon="chevronRight"
+              label="Следующий день"
+              size="sm"
+              variant="ghost"
+              onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}
+            />
+          </div>
+
+          <PageNotificationsSlot />
+        </header>
+      ) : (
+        <PageHeader
+          className="nuar-calendar-header"
+          description={`${visitEntries.length} визитов запланировано`}
+          headerActions={
+            <div className="nuar-calendar-actions flex items-center gap-2">
             <div className="nuar-calendar-date-nav flex items-center gap-1.5">
               <IconButton
                 className="nuar-calendar-nav-button"
@@ -723,19 +808,7 @@ return (
                 onClick={() => selectCalendarDate(shiftDate(selectedDate, 1))}
               />
             </div>
-            {isMobile && (
-              <label className="nuar-calendar-mobile-picker-button" aria-label="Открыть календарь">
-                <AppIcon name="calendar" size="md" />
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(event) => {
-                    if (event.target.value) selectCalendarDate(event.target.value);
-                  }}
-                />
-              </label>
-            )}
-            {!isToday && !isMobile && (
+            {!isToday && (
               <Button
                 className="nuar-calendar-today-button"
                 size="sm"
@@ -755,33 +828,30 @@ return (
                 onClick={() => setRemindersVisible(true)}
               />
             )}
-            {!isMobile && (
-              <IconButton
-                className={overlayOpen ? "hidden" : ""}
-                icon={remindersVisible ? "x" : "clipboardCheck"}
-                label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
-                size="md"
-                variant="outline"
-                onClick={() => setRemindersVisible((current) => !current)}
-              />
-            )}
-            {!isMobile && (
-              <Button
-                className={`nuar-calendar-add-button ${
-                  overlayOpen || remindersVisible ? "hidden" : ""
-                }`}
-                leftIcon="plus"
-                size="sm"
-                variant="primary"
-                onClick={() => onAdd({date: selectedDate})}
-              >
-                Добавить
-              </Button>
-            )}
+            <IconButton
+              className={overlayOpen ? "hidden" : ""}
+              icon={remindersVisible ? "x" : "clipboardCheck"}
+              label={remindersVisible ? "Скрыть ленту дня" : "Открыть ленту дня"}
+              size="md"
+              variant="outline"
+              onClick={() => setRemindersVisible((current) => !current)}
+            />
+            <Button
+              className={`nuar-calendar-add-button ${
+                overlayOpen || remindersVisible ? "hidden" : ""
+              }`}
+              leftIcon="plus"
+              size="sm"
+              variant="primary"
+              onClick={() => onAdd({date: selectedDate})}
+            >
+              Добавить
+            </Button>
           </div>
         }
         title="Календарь"
-      />
+        />
+      )}
 
       <div
         className={`mobile-calendar-week hidden max-md:grid ${
@@ -827,29 +897,6 @@ return (
             </button>
           );
         })}
-      </div>
-
-      <div className="nuar-calendar-mobile-view-switch" role="tablist" aria-label="Вид календаря">
-        <button
-          className={mobileCalendarView === "grid" ? "is-active" : ""}
-          type="button"
-          role="tab"
-          aria-selected={mobileCalendarView === "grid"}
-          onClick={() => setMobileCalendarView("grid")}
-        >
-          <AppIcon name="calendar" size="sm" />
-          Расписание
-        </button>
-        <button
-          className={mobileCalendarView === "list" ? "is-active" : ""}
-          type="button"
-          role="tab"
-          aria-selected={mobileCalendarView === "list"}
-          onClick={() => setMobileCalendarView("list")}
-        >
-          <AppIcon name="list" size="sm" />
-          Список
-        </button>
       </div>
 
       {isMobile && !isToday && (
