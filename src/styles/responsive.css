@@ -14,7 +14,7 @@
 
 @media (max-width: 768px) {
   :root {
-    --mobile-bottom-nav-height: 60px;
+    --mobile-bottom-nav-height: 50px;
     --mobile-page-padding: 12px;
     --mobile-overlay-bg: rgba(17, 19, 24, 0.38);
     --mobile-sheet-bg: var(--surface, #fff);
@@ -159,7 +159,7 @@
 
   .mobile-bottom-nav button {
     min-width: 0;
-    min-height: 54px;
+    min-height: 46px;
   }
 
   .mobile-bottom-nav span {
@@ -2309,9 +2309,9 @@
   }
 
   .mobile-bottom-nav {
-    height: var(--mobile-nav-total, 60px) !important;
+    height: var(--mobile-nav-total, 50px) !important;
     bottom: 0 !important;
-    padding-bottom: 2px !important;
+    padding-bottom: 0 !important;
   }
 }
 
