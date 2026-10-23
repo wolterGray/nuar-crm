@@ -32,12 +32,48 @@ const recordBelongsToEmployee = (record, employee) => {
     payload.staffId,
   ]
     .map(Number)
-    .filter(Number.isInteger);
+    .filter((id) => Number.isInteger(id) && id > 0);
 
-  if (assignedIds.includes(employeeId)) return true;
+  const secondaryIds = [
+    record.secondaryEmployeeId,
+    record.secondMasterId,
+    payload.secondaryEmployeeId,
+    payload.secondMasterId,
+    ...(Array.isArray(payload.parallelMasters)
+      ? payload.parallelMasters.map((m) => m?.employeeId ?? m?.id)
+      : []),
+  ]
+    .map(Number)
+    .filter((id) => Number.isInteger(id) && id > 0);
+
+  if (assignedIds.includes(employeeId) || secondaryIds.includes(employeeId)) return true;
 
   const names = getEmployeeNames(employee);
-  return [record.master, record.masterName, record.employeeName, payload.master, payload.masterName, payload.employeeName]
+  const secondaryNames = [
+    record.secondaryMaster,
+    record.secondMaster,
+    payload.secondaryMaster,
+    payload.secondMaster,
+    ...(Array.isArray(payload.parallelMasters)
+      ? payload.parallelMasters.map((m) => (typeof m === 'string' ? m : m?.name ?? m?.master))
+      : []),
+  ]
+    .map(normalizeEmployeeName)
+    .filter(Boolean);
+
+  if (secondaryNames.some((name) => names.has(name))) return true;
+
+  // If an explicit primary employeeId is present and did not match, do not fall back to primary name matching
+  if (assignedIds.length > 0) return false;
+
+  return [
+    record.master,
+    record.masterName,
+    record.employeeName,
+    payload.master,
+    payload.masterName,
+    payload.employeeName,
+  ]
     .map(normalizeEmployeeName)
     .filter(Boolean)
     .some((name) => names.has(name));
@@ -49,11 +85,27 @@ const resolveScopedEmployee = async (prisma, auth) => {
   return prisma.employee.findUnique({where: {id: employeeId}});
 };
 
-const findScopedClientIds = async (prisma, employee) => {
+const findScopedClientIds = async (prisma, employee, auth = null) => {
   if (!employee) return [];
-  const [visits, calendarEntries] = await Promise.all([
+  const actorIds = [auth?.sub, auth?.id, auth?.email]
+    .filter((val) => val !== undefined && val !== null && String(val).trim() !== '')
+    .map(String);
+
+  const [visits, calendarEntries, createdClientLogs] = await Promise.all([
     prisma.visit.findMany({select: {clientId: true, employeeId: true, payload: true}}),
     prisma.calendarEntry.findMany({select: {payload: true}}),
+    actorIds.length > 0 && typeof prisma?.auditLog?.findMany === 'function'
+      ? prisma.auditLog
+          .findMany({
+            where: {
+              entity: 'Client',
+              action: 'create client',
+              actorId: {in: actorIds},
+            },
+            select: {entityId: true},
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
   ]);
   const clientIds = new Set();
 
@@ -64,12 +116,17 @@ const findScopedClientIds = async (prisma, employee) => {
     if (Number.isInteger(clientId) && clientId > 0) clientIds.add(clientId);
   }
 
+  for (const log of createdClientLogs || []) {
+    const clientId = Number(log?.entityId);
+    if (Number.isInteger(clientId) && clientId > 0) clientIds.add(clientId);
+  }
+
   return [...clientIds];
 };
 
 const getScopedClientIds = async (prisma, auth) => {
   const employee = await resolveScopedEmployee(prisma, auth);
-  return findScopedClientIds(prisma, employee);
+  return findScopedClientIds(prisma, employee, auth);
 };
 
 const serviceIsAssignedToEmployee = (service, employee) => {

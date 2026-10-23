@@ -537,12 +537,6 @@ function createAuthRouter({
       if (!dbUser || !dbUser.isActive) {
         return res.status(401).json({ success: false, error: 'Пользователь не найден или отключён' });
       }
-      if (dbUser.role === 'staff') {
-        return res.status(403).json({
-          success: false,
-          error: 'Пароль сотрудника изменяет владелец в настройках доступа',
-        });
-      }
 
       const passwordMatches = await verifyPassword(currentPassword, dbUser.passwordHash);
       if (!passwordMatches) {
@@ -552,11 +546,14 @@ function createAuthRouter({
         });
       }
 
-      const strength = validatePasswordStrength(newPassword);
+      const strength = validatePasswordStrength(newPassword, {
+        email: dbUser.email,
+        role: dbUser.role,
+      });
       if (!strength.isValid) {
         return res.status(400).json({
           success: false,
-          error: strength.errors[0] || 'Новый пароль не соответствует требованиям безопасности',
+          error: strength.failures?.[0] || strength.errors?.[0] || 'Новый пароль не соответствует требованиям безопасности',
         });
       }
 

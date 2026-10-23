@@ -138,8 +138,8 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
               hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS)
             }
             onAddPayment={props.openCreatePayment}
-            onDeleteVisit={props.deletePaymentRow}
-            onEditVisit={props.editPaymentRow}
+            onDeleteVisit={canPerform("delete", "visit", null, user) ? props.deletePaymentRow : null}
+            onEditVisit={canPerform("edit", "visit", null, user) ? props.editPaymentRow : null}
             onFilterChange={props.onPaymentFilterChange}
             onOpenCalendarIssue={props.openCalendarIssue}
             onResetFilters={props.onPaymentFiltersReset}

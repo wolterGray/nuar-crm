@@ -119,9 +119,13 @@ export default function MyEarningsPage({
       return Number(summaryData.totalEarnings);
     }
     return periodVisits.reduce((acc, v) => {
+      const rawEarning =
+        typeof v.employeeEarning === "object" && v.employeeEarning !== null
+          ? v.employeeEarning.amount
+          : v.employeeEarning;
       const earning = isPackageVisit(v)
         ? 0
-        : Number(v.masterEarned || v.employeeEarning || v.commissionAmount || 0);
+        : Number(v.masterEarned ?? rawEarning ?? v.commissionAmount ?? 0) || 0;
       return acc + earning;
     }, 0);
   }, [summaryData, periodVisits]);
@@ -324,10 +328,14 @@ export default function MyEarningsPage({
                     const dateStr = v.date || v.scheduledAt || "";
                     const clientName = v.clientName || v.client || "Клиент";
                     const serviceName = v.serviceName || v.service || "Услуга";
-                    const price = Number(v.price || v.cost || 0);
+                    const price = Number(v.price || v.cost || v.amount || 0);
+                    const rawEarning =
+                      typeof v.employeeEarning === "object" && v.employeeEarning !== null
+                        ? v.employeeEarning.amount
+                        : v.employeeEarning;
                     const earned = isPackageVisit(v)
                       ? 0
-                      : Number(v.masterEarned || v.employeeEarning || v.commissionAmount || 0);
+                      : Number(v.masterEarned ?? rawEarning ?? v.commissionAmount ?? 0) || 0;
 
                     return (
                       <tr key={v.id || i} className="hover:bg-field/50 transition-colors">

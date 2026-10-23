@@ -523,6 +523,9 @@ const buildServerPayrollReport = ({
     .map(withStoredId)
     .filter((employee) => !employeeIdNumber || Number(employee.id) === employeeIdNumber);
   const employeeNames = new Set(filteredEmployees.map((employee) => employee.name));
+  const employeeIds = new Set(
+    filteredEmployees.map((employee) => Number(employee.id)).filter(Number.isInteger),
+  );
   const completedVisits = visits
     .map(getVisitPayloadForDayClose)
     .filter(
@@ -531,7 +534,8 @@ const buildServerPayrollReport = ({
         !isDayCloseCancelledVisit(visit) &&
         visit.recordType !== 'operation' &&
         isInPayrollPeriod(visit.date, reportStartDate, reportEndDate) &&
-        employeeNames.has(visit.master),
+        (getDayCloseVisitMasters(visit).some((name) => employeeNames.has(name)) ||
+          (visit.employeeId && employeeIds.has(Number(visit.employeeId)))),
     );
   const financialOperations = visits
     .map(getVisitPayloadForDayClose)
@@ -539,7 +543,8 @@ const buildServerPayrollReport = ({
       (visit) =>
         visit.recordType === 'operation' &&
         isInPayrollPeriod(visit.date, reportStartDate, reportEndDate) &&
-        employeeNames.has(visit.master),
+        (employeeNames.has(visit.master) ||
+          (visit.employeeId && employeeIds.has(Number(visit.employeeId)))),
     );
   const certificateSaleOperations = financialOperations.filter((visit) => {
     const service = normalizeDayCloseText(visit.service);
@@ -560,8 +565,10 @@ const buildServerPayrollReport = ({
   );
   const rows = filteredEmployees
     .map((employee) => {
-      const employeeVisits = completedVisits.filter((visit) =>
-        getDayCloseVisitMasters(visit).includes(employee.name),
+      const employeeVisits = completedVisits.filter(
+        (visit) =>
+          getDayCloseVisitMasters(visit).includes(employee.name) ||
+          (employee.id && Number(visit.employeeId) === Number(employee.id)),
       );
       const employeePackages = packagesInPeriod.filter((item) => item.master === employee.name);
       const employeeCertificateSales = certificateSaleOperations.filter(

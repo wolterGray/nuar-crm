@@ -39,3 +39,31 @@ test('staff service visibility follows explicit CRM assignment', () => {
   assert.equal(serviceIsAssignedToEmployee({id: 6, payload: {assignedEmployeeNames: ['Olha']}}, max), false);
   assert.equal(serviceIsAssignedToEmployee({id: 7, payload: {}}, max), false);
 });
+
+test('explicit primary employeeId belonging to another master prevents primary name collision while preserving pair secondary master access', () => {
+  assert.equal(
+    recordBelongsToEmployee({employeeId: 99, payload: {master: 'Max'}}, max),
+    false,
+  );
+  assert.equal(
+    recordBelongsToEmployee({employeeId: 99, payload: {master: 'Olha', secondaryMaster: 'Max'}}, max),
+    true,
+  );
+});
+
+test('newly created clients by staff user are included in scoped client ids via AuditLog before first visit', async () => {
+  const prisma = {
+    auditLog: {
+      findMany: async () => [{entityId: '55'}],
+    },
+    calendarEntry: {
+      findMany: async () => [],
+    },
+    visit: {
+      findMany: async () => [],
+    },
+  };
+
+  const clientIds = await findScopedClientIds(prisma, max, {id: 5, sub: '5', email: 'max@nuarr.pl'});
+  assert.deepEqual(clientIds, [55]);
+});

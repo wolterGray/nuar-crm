@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {changePassword} from "../../api/auth.js";
 import {
   createUser,
   disableUser,
@@ -1519,10 +1520,24 @@ function UserAccessPanel({authUser, pushNotification}) {
   );
 }
 
-function StaffAccountCard({ authUser }) {
+function StaffAccountCard({ authUser, employees = [] }) {
+  const linkedMaster = authUser?.employeeId
+    ? employees.find((e) => Number(e.id) === Number(authUser.employeeId)) || null
+    : null;
+
+  const role = String(authUser?.role || "").toLowerCase();
+  const roleLabel =
+    role === "staff"
+      ? "Мастер / Специалист"
+      : role === "readonly"
+        ? "Только просмотр"
+        : role === "manager"
+          ? "Менеджер"
+          : role || "Сотрудник";
+
   return (
     <Card className="p-4 sm:p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3 border-b border-border-soft pb-3">
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-sm">
             {(authUser?.name || authUser?.email || "U").slice(0, 2).toUpperCase()}
@@ -1536,7 +1551,167 @@ function StaffAccountCard({ authUser }) {
             </p>
           </div>
         </div>
+        <Badge variant="info" size="sm">
+          {roleLabel}
+        </Badge>
       </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="rounded-control border border-border-soft bg-field px-3.5 py-2.5 flex flex-col gap-0.5">
+          <span className="text-text-faint text-[11px] uppercase tracking-wider font-medium">
+            Email для входа
+          </span>
+          <strong className="text-text-main text-xs font-semibold truncate">
+            {authUser?.email || "—"}
+          </strong>
+        </div>
+
+        <div className="rounded-control border border-border-soft bg-field px-3.5 py-2.5 flex flex-col gap-0.5">
+          <span className="text-text-faint text-[11px] uppercase tracking-wider font-medium">
+            Роль в системе
+          </span>
+          <strong className="text-text-main text-xs font-semibold">
+            {roleLabel}
+          </strong>
+        </div>
+
+        <div className="rounded-control border border-border-soft bg-field px-3.5 py-2.5 flex flex-col gap-0.5">
+          <span className="text-text-faint text-[11px] uppercase tracking-wider font-medium">
+            Привязанный мастер в календаре
+          </span>
+          <strong className="text-text-main text-xs font-semibold">
+            {linkedMaster
+              ? `${linkedMaster.name}${linkedMaster.role ? ` · ${linkedMaster.role}` : ""}`
+              : authUser?.employeeId
+                ? `ID #${authUser.employeeId}`
+                : "Не привязан"}
+          </strong>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function StaffPasswordCard({ pushNotification }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess(false);
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setError("Заполните все поля пароля");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Новый пароль и подтверждение не совпадают");
+      return;
+    }
+
+    const strength = validatePasswordStrength(newPassword);
+    if (!strength.isValid) {
+      setError(strength.failures?.[0] || strength.errors?.[0] || "Пароль недостаточно надёжен");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await changePassword({ currentPassword, newPassword });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setSuccess(true);
+      pushNotification?.({
+        title: "Пароль обновлён",
+        message: "Ваш новый пароль успешно сохранён.",
+      });
+    } catch (err) {
+      setError(err?.message || "Не удалось изменить пароль");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card className="p-4 sm:p-5 flex flex-col gap-4">
+      <div className="flex items-center gap-2.5 border-b border-border-soft pb-3">
+        <AppIcon name="lock" size="md" className="text-accent" />
+        <div>
+          <h2 className="m-0 text-text-main text-[15px] font-bold">Смена пароля</h2>
+          <p className="m-0 mt-0.5 text-text-muted text-xs">
+            Используйте сложный пароль не менее 10 символов (буквы, цифры и спецсимвол).
+          </p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-md">
+        <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+          <span>Текущий пароль</span>
+          <Input
+            type="password"
+            autoComplete="current-password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="Введите текущий пароль"
+            disabled={loading}
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+          <span>Новый пароль</span>
+          <Input
+            type="password"
+            autoComplete="new-password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Минимум 10 символов"
+            disabled={loading}
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
+          <span>Подтвердите новый пароль</span>
+          <Input
+            type="password"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Повторите новый пароль"
+            disabled={loading}
+          />
+        </label>
+
+        {error ? (
+          <div className="text-xs font-medium text-accentError bg-accentError/10 border border-accentError/20 rounded-control px-3 py-2">
+            {error}
+          </div>
+        ) : null}
+
+        {success ? (
+          <div className="text-xs font-medium text-accentSuccess bg-accentSuccess/10 border border-accentSuccess/20 rounded-control px-3 py-2">
+            Пароль успешно изменён!
+          </div>
+        ) : null}
+
+        <div className="pt-1">
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            disabled={loading}
+          >
+            <AppIcon name="save" size="sm" />
+            {loading ? "Сохранение..." : "Обновить пароль"}
+          </Button>
+        </div>
+      </form>
     </Card>
   );
 }
@@ -2111,7 +2286,8 @@ function SettingsPage({
         <div className="settings-scroll flex-1 overflow-y-auto pr-1 pb-3 flex flex-col gap-4">
           {effectiveStaffTab === "account" && (
             <div className="flex flex-col gap-4">
-              <StaffAccountCard authUser={authUser} />
+              <StaffAccountCard authUser={authUser} employees={employees} />
+              <StaffPasswordCard pushNotification={pushNotification} />
             </div>
           )}
 

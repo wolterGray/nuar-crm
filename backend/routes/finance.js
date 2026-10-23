@@ -38,7 +38,11 @@ const {
 } = require('../utils/financeHelpers');
 
 const prisma = new PrismaClient();
-const {getScopedClientIds} = require('../utils/employeeScope');
+const {
+  getScopedClientIds,
+  recordBelongsToEmployee,
+  resolveScopedEmployee,
+} = require('../utils/employeeScope');
 
 // ----- Helper methods for client package status -----
 const resolveClientPackageStatus = (remainingVisits, currentStatus) => {
@@ -1142,7 +1146,7 @@ router.post('/day-close-records/close', requirePermission(PERMISSIONS.FINANCE_DA
 });
 
 router.post('/day-close-records', requirePermission(PERMISSIONS.FINANCE_DAY_CLOSE), async (req, res) => {
-  const allowed = await requireLegacyFinancialWriteFlag(req, res, {
+  const allowed = await requireLegacyFinancialWriteFlag(prisma, req, res, {
     action: 'create day close',
     entity: 'DayCloseRecord',
     sourceOfTruth: 'POST /api/day-close-records/close',
@@ -1172,7 +1176,7 @@ router.post('/day-close-records', requirePermission(PERMISSIONS.FINANCE_DAY_CLOS
 });
 
 router.put('/day-close-records/:id', requirePermission(PERMISSIONS.FINANCE_DAY_CLOSE), async (req, res) => {
-  const allowed = await requireLegacyFinancialWriteFlag(req, res, {
+  const allowed = await requireLegacyFinancialWriteFlag(prisma, req, res, {
     action: 'update day close',
     entity: 'DayCloseRecord',
     sourceOfTruth: 'POST /api/day-close-records/close',
@@ -1225,7 +1229,30 @@ router.get('/day-close-records', requirePermission(PERMISSIONS.FINANCE_VIEW_SALO
 
 // ==================== Financial Visit Journal ====================
 router.post('/visits/journal/financial', async (req, res) => {
-  const visitPayload = req.body?.visit ?? req.body ?? {};
+  const canManageAll =
+    hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL) ||
+    hasPermission(req.auth, PERMISSIONS.FINANCE_DAY_CLOSE) ||
+    hasPermission(req.auth, PERMISSIONS.FINANCE_VIEW_SALON_STATS);
+  const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
+
+  if (!canManageAll && !canManageAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ к финансовому журналу запрещён' });
+  }
+
+  const visitPayload = { ...(req.body?.visit ?? req.body ?? {}) };
+  if (!canManageAll) {
+    if (visitPayload.recordType === 'operation') {
+      return res.status(403).json({ success: false, error: 'Создание кассовых операций недоступно для роли сотрудника' });
+    }
+    const scopedEmployee = await resolveScopedEmployee(prisma, req.auth);
+    if (!scopedEmployee || !recordBelongsToEmployee({ payload: visitPayload }, scopedEmployee)) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещён: можно добавлять визиты только для себя' });
+    }
+    if (!visitPayload.employeeId && !visitPayload.masterId) {
+      visitPayload.employeeId = scopedEmployee.id;
+    }
+  }
+
   const usesPackage = isPackageCompletePayment(visitPayload);
   const usesCertificate = isCertificateCompletePayment(visitPayload);
 
@@ -1303,6 +1330,16 @@ router.post('/visits/journal/financial', async (req, res) => {
 });
 
 router.put('/visits/journal/:id/financial', async (req, res) => {
+  const canManageAll =
+    hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL) ||
+    hasPermission(req.auth, PERMISSIONS.FINANCE_DAY_CLOSE) ||
+    hasPermission(req.auth, PERMISSIONS.FINANCE_VIEW_SALON_STATS);
+  const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
+
+  if (!canManageAll && !canManageAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ к финансовому журналу запрещён' });
+  }
+
   const visitId = Number(req.params.id);
   const visitPayload = { ...(req.body?.visit ?? req.body ?? {}), id: visitId };
   const newUsesPackage = isPackageCompletePayment(visitPayload);
@@ -1326,6 +1363,26 @@ router.put('/visits/journal/:id/financial', async (req, res) => {
         const error = new Error('Visit not found');
         error.status = 404;
         throw error;
+      }
+
+      if (!canManageAll) {
+        const scopedEmployee = await resolveScopedEmployee(tx, req.auth);
+        const targetRecord = {
+          ...visit,
+          payload: { ...(visit.payload || {}), ...visitPayload },
+        };
+        if (
+          !scopedEmployee ||
+          !recordBelongsToEmployee(visit, scopedEmployee) ||
+          !recordBelongsToEmployee(targetRecord, scopedEmployee)
+        ) {
+          const error = new Error('Доступ запрещён: нельзя изменять визиты других мастеров');
+          error.status = 403;
+          throw error;
+        }
+        if (!visitPayload.employeeId && !visitPayload.masterId) {
+          visitPayload.employeeId = scopedEmployee.id;
+        }
       }
 
       if (visit.calendarEntryId) {
@@ -1539,7 +1596,30 @@ router.post('/visits/journal/:id/delete-financial', requirePermission(PERMISSION
 });
 
 router.post('/visits/journal', async (req, res) => {
-  const payload = req.body ?? {};
+  const canManageAll =
+    hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL) ||
+    hasPermission(req.auth, PERMISSIONS.FINANCE_DAY_CLOSE) ||
+    hasPermission(req.auth, PERMISSIONS.FINANCE_VIEW_SALON_STATS);
+  const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
+
+  if (!canManageAll && !canManageAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ к журналу визитов запрещён' });
+  }
+
+  const payload = { ...(req.body ?? {}) };
+  if (!canManageAll) {
+    if (payload.recordType === 'operation') {
+      return res.status(403).json({ success: false, error: 'Создание кассовых операций недоступно для роли сотрудника' });
+    }
+    const scopedEmployee = await resolveScopedEmployee(prisma, req.auth);
+    if (!scopedEmployee || !recordBelongsToEmployee({ payload }, scopedEmployee)) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещён: можно добавлять визиты только для себя' });
+    }
+    if (!payload.employeeId && !payload.masterId) {
+      payload.employeeId = scopedEmployee.id;
+    }
+  }
+
   try {
     validateVisitPayload(payload);
   } catch (err) {
@@ -1574,6 +1654,16 @@ router.post('/visits/journal', async (req, res) => {
 });
 
 router.put('/visits/journal/:id', async (req, res) => {
+  const canManageAll =
+    hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL) ||
+    hasPermission(req.auth, PERMISSIONS.FINANCE_DAY_CLOSE) ||
+    hasPermission(req.auth, PERMISSIONS.FINANCE_VIEW_SALON_STATS);
+  const canManageAssigned = hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ASSIGNED);
+
+  if (!canManageAll && !canManageAssigned) {
+    return res.status(403).json({ success: false, error: 'Доступ к журналу визитов запрещён' });
+  }
+
   const id = Number(req.params.id);
   const payload = { ...(req.body ?? {}), id };
   try {
@@ -1584,6 +1674,30 @@ router.put('/visits/journal/:id', async (req, res) => {
   try {
     const result = await prisma.$transaction(async (tx) => {
       const before = await tx.visit.findUnique({ where: { id } });
+      if (!before) {
+        const error = new Error('Visit not found');
+        error.status = 404;
+        throw error;
+      }
+      if (!canManageAll) {
+        const scopedEmployee = await resolveScopedEmployee(tx, req.auth);
+        const targetRecord = {
+          ...before,
+          payload: { ...(before.payload || {}), ...payload },
+        };
+        if (
+          !scopedEmployee ||
+          !recordBelongsToEmployee(before, scopedEmployee) ||
+          !recordBelongsToEmployee(targetRecord, scopedEmployee)
+        ) {
+          const error = new Error('Доступ запрещён: нельзя изменять визиты других мастеров');
+          error.status = 403;
+          throw error;
+        }
+        if (!payload.employeeId && !payload.masterId) {
+          payload.employeeId = scopedEmployee.id;
+        }
+      }
       const updated = await tx.visit.update({ where: { id }, data: buildVisitData(payload) });
       if (payload.status === 'completed' || before?.payload?.status === 'completed') {
         await syncEmployeeEarningForCompletedVisit(tx, req, updated);

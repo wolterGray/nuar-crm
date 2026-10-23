@@ -1183,18 +1183,15 @@ router.post('/visits/complete', async (req, res) => {
       }
 
       if (!canManageAll && canManageAssigned) {
-        const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
-        const entryEmployeeId = Number(
-          calendarEntry.employeeId ??
-          calendarEntry.payload?.employeeId ??
-          calendarEntry.payload?.masterId ??
-          visitPayload.employeeId ??
-          visitPayload.masterId
-        );
-        if (!userEmployeeId || entryEmployeeId !== userEmployeeId) {
+        const scopedEmployee = await resolveScopedEmployee(tx, req.auth);
+        const belongsToCalendar = recordBelongsToEmployee(calendarEntry, scopedEmployee);
+        if (!scopedEmployee || !belongsToCalendar) {
           const error = new Error('Доступ запрещён: нельзя завершать визиты других мастеров');
           error.status = 403;
           throw error;
+        }
+        if (!visitPayload.employeeId && !visitPayload.masterId) {
+          visitPayload.employeeId = scopedEmployee.id;
         }
       }
 
@@ -1598,12 +1595,17 @@ router.post('/visits/update-completed', async (req, res) => {
       }
 
       if (!canManageAll && canManageAssigned) {
-        const userEmployeeId = req.auth?.employeeId ? Number(req.auth.employeeId) : null;
-        const entryEmployeeId = Number(visit.employeeId ?? calendarEntry?.employeeId);
-        if (!userEmployeeId || entryEmployeeId !== userEmployeeId) {
+        const scopedEmployee = await resolveScopedEmployee(tx, req.auth);
+        const belongsToVisit =
+          recordBelongsToEmployee(visit, scopedEmployee) ||
+          recordBelongsToEmployee(calendarEntry, scopedEmployee);
+        if (!scopedEmployee || !belongsToVisit) {
           const error = new Error('Доступ запрещён: нельзя изменять визиты других мастеров');
           error.status = 403;
           throw error;
+        }
+        if (!visitPayload.employeeId && !visitPayload.masterId) {
+          visitPayload.employeeId = scopedEmployee.id;
         }
       }
 
@@ -2242,7 +2244,8 @@ router.get('/visits/:id', async (req, res) => {
     }
 
     if (!canViewAll && canViewAssigned) {
-      if (!userEmployeeId || Number(visit.employeeId) !== userEmployeeId) {
+      const scopedEmployee = await resolveScopedEmployee(prisma, req.auth);
+      if (!scopedEmployee || !recordBelongsToEmployee(visit, scopedEmployee)) {
         return res.status(403).json({ success: false, error: 'Доступ запрещён: можно просматривать только свои визиты' });
       }
     }
@@ -2279,7 +2282,12 @@ router.put('/visits/:id', async (req, res) => {
   }
 
   if (!canManageAll && canManageAssigned) {
-    if (!userEmployeeId || Number(before.employeeId) !== userEmployeeId || (employeeId && Number(employeeId) !== userEmployeeId)) {
+    const scopedEmployee = await resolveScopedEmployee(prisma, req.auth);
+    if (
+      !scopedEmployee ||
+      !recordBelongsToEmployee(before, scopedEmployee) ||
+      (employeeId && Number(employeeId) !== userEmployeeId)
+    ) {
       return res.status(403).json({ success: false, error: 'Доступ запрещён: можно изменять только свои визиты' });
     }
   }
