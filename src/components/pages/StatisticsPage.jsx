@@ -53,11 +53,11 @@ const currencyIcons = {
 };
 
 const statisticsChartTokens = {
-  cursor: "rgba(56, 189, 248, 0.08)",
-  dot: "#ffffff",
-  grid: "rgba(255, 255, 255, 0.08)",
-  revenue: "#38bdf8",
-  tick: "#a3a6b3",
+  cursor: "color-mix(in srgb, var(--color-accent) 10%, transparent)",
+  dot: "var(--color-window)",
+  grid: "var(--color-border)",
+  revenue: "var(--color-accent)",
+  tick: "var(--color-text-muted)",
 };
 const paymentDisplay = [
   {color: "var(--color-chart-cash)", key: "cash", label: "Наличные"},
@@ -167,6 +167,7 @@ const buildStatisticsAnalytics = (stats, clients = []) => {
 };
 
 function StatisticsFilters({
+  canViewSalonStats = true,
   currency,
   employees,
   endDate,
@@ -226,9 +227,10 @@ function StatisticsFilters({
         <div className="statistics-mobile-select-grid grid grid-cols-[2fr_1fr] gap-2">
           <Select
             className="h-10 min-h-10 text-xs cursor-pointer truncate"
+            disabled={!canViewSalonStats}
             value={master}
             onChange={(event) => onMasterChange(event.target.value)}>
-            <option value="">Все сотрудники</option>
+            {canViewSalonStats ? <option value="">Все сотрудники</option> : null}
             {employees.map((employee) => (
               <option key={employee.id} value={employee.name}>{employee.name}</option>
             ))}
@@ -291,9 +293,10 @@ function StatisticsFilters({
       <div className="flex flex-wrap items-center gap-2 xl:justify-end">
         <Select
           className="statistics-filter-select h-[38px] min-h-[38px] w-full sm:w-[190px] min-w-0 text-xs cursor-pointer"
+          disabled={!canViewSalonStats}
           value={master}
           onChange={(event) => onMasterChange(event.target.value)}>
-          <option value="">Все сотрудники</option>
+          {canViewSalonStats ? <option value="">Все сотрудники</option> : null}
           {employees.map((employee) => (
             <option key={employee.id} value={employee.name}>{employee.name}</option>
           ))}
@@ -454,6 +457,8 @@ function RevenueChart({chartData, formatIncome}) {
 }
 
 function StatisticsPage({
+  authUser = null,
+  canViewSalonStats = true,
   calendarEntries,
   clientPackages,
   certificates = [],
@@ -461,9 +466,49 @@ function StatisticsPage({
   employees,
   visits,
 }) {
+  const ownEmployee = useMemo(() => {
+    if (!authUser || !Array.isArray(employees)) return null;
+    if (authUser.employeeId !== undefined && authUser.employeeId !== null) {
+      const byId = employees.find(
+        (emp) => String(emp.id) === String(authUser.employeeId),
+      );
+      if (byId) return byId;
+    }
+    const candidateName = String(
+      authUser.employeeName || authUser.displayName || authUser.login || "",
+    )
+      .trim()
+      .toLowerCase();
+    if (!candidateName) return null;
+    return (
+      employees.find(
+        (emp) => String(emp?.name ?? "").trim().toLowerCase() === candidateName,
+      ) || null
+    );
+  }, [authUser, employees]);
+
+  const ownMasterName =
+    ownEmployee?.name ||
+    String(authUser?.employeeName || authUser?.displayName || authUser?.login || "").trim();
+
   const [startDate, setStartDate] = useState(getMonthStart);
   const [endDate, setEndDate] = useState(getTodayInput);
-  const [master, setMaster] = useState("");
+  const [selectedMaster, setMaster] = useState("");
+  const master = canViewSalonStats ? selectedMaster : ownMasterName;
+  const visibleEmployees = useMemo(() => {
+    if (canViewSalonStats) return employees;
+    if (ownEmployee) return [ownEmployee];
+    if (ownMasterName) return [{id: authUser?.employeeId ?? "self", name: ownMasterName}];
+    return employees;
+  }, [authUser?.employeeId, canViewSalonStats, employees, ownEmployee, ownMasterName]);
+  const scopedClientPackages = useMemo(
+    () => (canViewSalonStats ? clientPackages : []),
+    [canViewSalonStats, clientPackages],
+  );
+  const scopedCertificates = useMemo(
+    () => (canViewSalonStats ? certificates : []),
+    [canViewSalonStats, certificates],
+  );
   const [currency, setCurrency] = useState("PLN");
   const [rates, setRates] = useState(() => {
     const cached = localStorage.getItem(CURRENCY_CACHE_KEY);
@@ -516,8 +561,8 @@ function StatisticsPage({
 
     const currentStats = buildStatisticsAnalytics(buildFinanceStats({
       calendarEntries,
-      certificates,
-      clientPackages,
+      certificates: scopedCertificates,
+      clientPackages: scopedClientPackages,
       employees,
       endDate,
       master,
@@ -527,8 +572,8 @@ function StatisticsPage({
     }), clients);
     const previousStats = buildStatisticsAnalytics(buildFinanceStats({
       calendarEntries,
-      certificates,
-      clientPackages,
+      certificates: scopedCertificates,
+      clientPackages: scopedClientPackages,
       employees,
       endDate: previousEnd,
       master,
@@ -539,8 +584,8 @@ function StatisticsPage({
     const dates = periodDays.map((date) => {
       const dailyStats = buildStatisticsAnalytics(buildFinanceStats({
         calendarEntries,
-        certificates,
-        clientPackages,
+        certificates: scopedCertificates,
+        clientPackages: scopedClientPackages,
         employees,
         endDate: date,
         master,
@@ -563,8 +608,8 @@ function StatisticsPage({
     };
   }, [
     calendarEntries,
-    clientPackages,
-    certificates,
+    scopedClientPackages,
+    scopedCertificates,
     clients,
     employees,
     endDate,
@@ -578,8 +623,8 @@ function StatisticsPage({
     const now = new Date();
     const todayStats = buildFinanceStats({
       calendarEntries,
-      certificates,
-      clientPackages,
+      certificates: scopedCertificates,
+      clientPackages: scopedClientPackages,
       employees,
       endDate: today,
       master,
@@ -609,7 +654,7 @@ function StatisticsPage({
       todayVisits: upcomingVisits,
       upcomingVisits,
     };
-  }, [calendarEntries, certificates, clientPackages, employees, master, visits]);
+  }, [calendarEntries, scopedCertificates, scopedClientPackages, employees, master, visits]);
 
   const chartData = groupChartDates(analytics.dates);
   const periodChangePercent =
@@ -627,15 +672,22 @@ function StatisticsPage({
     analytics.packageIncome +
     analytics.certificateIncome +
     analytics.financialOperationsIncome;
-  const incomeBreakdownItems = [
-    ["Оплаты визитов", analytics.visitPaymentTotal],
-    ["Продажи пакетов", analytics.packageIncome],
-    ["Сертификаты", analytics.certificateIncome],
-    ["Прочие операции", analytics.financialOperationsIncome],
-  ];
+  const incomeBreakdownItems = canViewSalonStats
+    ? [
+        ["Оплаты визитов", analytics.visitPaymentTotal],
+        ["Продажи пакетов", analytics.packageIncome],
+        ["Сертификаты", analytics.certificateIncome],
+        ["Прочие операции", analytics.financialOperationsIncome],
+      ]
+    : [
+        ["Оплаты визитов", analytics.visitPaymentTotal],
+        ["Чаевые", analytics.tips],
+      ];
   const incomeScopeLabel = master
     ? `Чистая прибыль мастера ${master}`
-    : "Чистая прибыль бизнеса";
+    : canViewSalonStats
+      ? "Чистая прибыль бизнеса"
+      : "Моя статистика";
   const repeatRate =
     (analytics.repeatClients / Math.max(analytics.clientsCount, 1)) * 100;
   const kpiStats = [
@@ -834,8 +886,9 @@ function StatisticsPage({
 
   const filtersPanel = (
     <StatisticsFilters
+      canViewSalonStats={canViewSalonStats}
       currency={currency}
-      employees={employees}
+      employees={visibleEmployees}
       endDate={endDate}
       master={master}
       mobile={isMobile}
@@ -964,7 +1017,11 @@ function StatisticsPage({
       : `${Math.abs(Math.round(periodChangePercent))}% к прошлому периоду`;
   const chartChangeIcon =
     periodChangePercent === null ? null : periodChangePercent >= 0 ? "arrowUp" : "arrowDown";
-  const scopeLabel = master ? `Сотрудник: ${master}` : "Сотрудники: все";
+  const scopeLabel = master
+    ? `Сотрудник: ${master}`
+    : canViewSalonStats
+      ? "Сотрудники: все"
+      : "Мои визиты";
 
   const incomeCard = (
     <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card shadow-lg">
@@ -1062,7 +1119,7 @@ function StatisticsPage({
           <div className="statistics-mobile-overview flex flex-col gap-1 p-3.5 rounded-xl border border-border bg-card shadow-sm mt-1">
             <div className="flex items-start justify-between">
               <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                {master ? `Чистая прибыль мастера ${master}` : "Чистая прибыль бизнеса"}
+                {incomeScopeLabel}
               </span>
               <span className="text-xs font-bold text-accent">{currencyIcons[currency] || currency}</span>
             </div>
@@ -1086,8 +1143,9 @@ function StatisticsPage({
           </div>
 
           <StatisticsFilters
+            canViewSalonStats={canViewSalonStats}
             currency={currency}
-            employees={employees}
+            employees={visibleEmployees}
             endDate={endDate}
             master={master}
             mobile={true}
@@ -1145,35 +1203,37 @@ function StatisticsPage({
             {paymentsPanel}
           </section>
 
-          <section className="flex flex-col gap-2">
-            <div className="flex justify-between items-center text-xs">
-              <h3 className="font-semibold text-muted-foreground">Продажи пакетов</h3>
-              <span className="font-semibold text-foreground">
-                {formatIncome(analytics.packageSalesTotal)}
-              </span>
-            </div>
-            <p className="text-[10px] text-muted-foreground -mt-1">
-              Способы оплаты новых пакетов. Эти суммы не входят в оплату визитов.
-            </p>
-            <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
-              <div className="flex flex-col gap-3.5">
-                {packagePaymentRows.length > 0 ? (
-                  packagePaymentRows.map((item) => (
-                      <PaymentRow
-                        item={item}
-                        key={`package-${item.label}`}
-                        total={analytics.packageSalesTotal}
-                        value={formatIncome(item.value)}
-                      />
-                    ))
-                ) : (
-                  <p className="statistics-empty-note m-0 text-xs text-muted-foreground">
-                    Продаж пакетов за выбранный период нет.
-                  </p>
-                )}
+          {canViewSalonStats ? (
+            <section className="flex flex-col gap-2">
+              <div className="flex justify-between items-center text-xs">
+                <h3 className="font-semibold text-muted-foreground">Продажи пакетов</h3>
+                <span className="font-semibold text-foreground">
+                  {formatIncome(analytics.packageSalesTotal)}
+                </span>
               </div>
-            </article>
-          </section>
+              <p className="text-[10px] text-muted-foreground -mt-1">
+                Способы оплаты новых пакетов. Эти суммы не входят в оплату визитов.
+              </p>
+              <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
+                <div className="flex flex-col gap-3.5">
+                  {packagePaymentRows.length > 0 ? (
+                    packagePaymentRows.map((item) => (
+                        <PaymentRow
+                          item={item}
+                          key={`package-${item.label}`}
+                          total={analytics.packageSalesTotal}
+                          value={formatIncome(item.value)}
+                        />
+                      ))
+                  ) : (
+                    <p className="statistics-empty-note m-0 text-xs text-muted-foreground">
+                      Продаж пакетов за выбранный период нет.
+                    </p>
+                  )}
+                </div>
+              </article>
+            </section>
+          ) : null}
 
           <section className="flex flex-col gap-2 pb-6">
             <div className="flex justify-between items-center text-xs">
@@ -1314,33 +1374,35 @@ function StatisticsPage({
         </div>
       </article>
 
-      <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
-        <div className="flex justify-between items-center">
-          <div className="flex flex-col">
-            <h3 className="text-foreground text-sm font-bold">Продажи пакетов</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Оплата новых пакетов по способам оплаты. В общий чек визитов не входит.
-            </p>
+      {canViewSalonStats ? (
+        <article className="flex flex-col gap-4 p-5 rounded-xl border border-border bg-card">
+          <div className="flex justify-between items-center">
+            <div className="flex flex-col">
+              <h3 className="text-foreground text-sm font-bold">Продажи пакетов</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Оплата новых пакетов по способам оплаты. В общий чек визитов не входит.
+              </p>
+            </div>
+            <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.packageSalesTotal)}</strong>
           </div>
-          <strong className="text-foreground text-lg font-bold">{formatIncome(analytics.packageSalesTotal)}</strong>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-          {packagePaymentRows.length > 0 ? (
-            packagePaymentRows.map((item) => (
-                <PaymentRow
-                  item={item}
-                  key={`package-${item.label}`}
-                  total={analytics.packageSalesTotal}
-                  value={formatIncome(item.value)}
-                />
-              ))
-          ) : (
-            <p className="statistics-empty-note m-0 text-xs text-muted-foreground">
-              Продаж пакетов за выбранный период нет.
-            </p>
-          )}
-        </div>
-      </article>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+            {packagePaymentRows.length > 0 ? (
+              packagePaymentRows.map((item) => (
+                  <PaymentRow
+                    item={item}
+                    key={`package-${item.label}`}
+                    total={analytics.packageSalesTotal}
+                    value={formatIncome(item.value)}
+                  />
+                ))
+            ) : (
+              <p className="statistics-empty-note m-0 text-xs text-muted-foreground">
+                Продаж пакетов за выбранный период нет.
+              </p>
+            )}
+          </div>
+        </article>
+      ) : null}
 
       {detailsPanel}
     </section>

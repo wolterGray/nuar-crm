@@ -712,7 +712,12 @@ function App() {
 
         const state = response?.data ?? {};
         if (state[SYSTEM_STATE_KEYS.appSettings]) {
-          setAppSettings(normalizeStoredSettings(state[SYSTEM_STATE_KEYS.appSettings]));
+          setAppSettings(
+            normalizeStoredSettings(
+              state[SYSTEM_STATE_KEYS.appSettings],
+              authSession?.user,
+            ),
+          );
         }
         if (Array.isArray(state[SYSTEM_STATE_KEYS.importDocuments])) {
           setImportDocuments(state[SYSTEM_STATE_KEYS.importDocuments]);
@@ -785,9 +790,15 @@ function App() {
     }
 
     const timer = window.setTimeout(() => {
+      const sharedAppSettings = {
+        ...appSettings,
+        colorTheme: defaultAppSettings.colorTheme,
+        theme: defaultAppSettings.theme,
+        accentColor: defaultAppSettings.accentColor,
+      };
       saveSystemStateEntries({
         [SYSTEM_STATE_KEYS.alertSnoozes]: alertSnoozes,
-        [SYSTEM_STATE_KEYS.appSettings]: appSettings,
+        [SYSTEM_STATE_KEYS.appSettings]: sharedAppSettings,
         [SYSTEM_STATE_KEYS.autoCompletedCalendarEntryIds]:
           autoCompletedCalendarEntryIds,
         [SYSTEM_STATE_KEYS.booksyGmailLastSyncAt]: booksyGmailLastSyncAt,

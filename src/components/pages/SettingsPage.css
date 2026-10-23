@@ -1,17 +1,17 @@
 /* NUAR Design System: Settings Page (Mobile & Desktop) */
 
 .nuar-settings {
-  --settings-surface: var(--color-window, #141416);
-  --settings-surface-raised: var(--color-card-muted, #1b1b1e);
-  --settings-field: var(--color-field, rgba(255, 255, 255, 0.04));
-  --settings-border: var(--color-border, rgba(255, 255, 255, 0.07));
-  --settings-border-soft: var(--color-border-soft, rgba(255, 255, 255, 0.045));
-  --settings-accent: var(--color-primary, #e11d2e);
-  --settings-accent-soft: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
-  --settings-text: var(--color-text, #ffffff);
-  --settings-muted: var(--color-text-muted, #a4a4ac);
-  --settings-faint: var(--color-text-faint, #7f7f86);
-  --settings-success: var(--color-success, #6fcf97);
+  --settings-surface: var(--color-window);
+  --settings-surface-raised: var(--color-card-muted);
+  --settings-field: var(--color-field);
+  --settings-border: var(--color-border);
+  --settings-border-soft: var(--color-border-soft);
+  --settings-accent: var(--color-primary);
+  --settings-accent-soft: var(--color-accent-soft);
+  --settings-text: var(--color-text);
+  --settings-muted: var(--color-text-muted);
+  --settings-faint: var(--color-text-faint);
+  --settings-success: var(--color-success);
 }
 
 /* ==========================================================================
@@ -110,9 +110,9 @@
   height: 18px !important;
   padding: 0 5px !important;
   border-radius: 999px !important;
-  color: #ffffff !important;
+  color: var(--button-primary-text, #ffffff) !important;
   background: var(--settings-accent) !important;
-  box-shadow: 0 0 0 2px #0a0a0a !important;
+  box-shadow: 0 0 0 2px var(--color-page) !important;
   font-size: 10.5px !important;
   font-weight: 700 !important;
   line-height: 18px !important;
@@ -211,7 +211,7 @@
 .nuar-settings .settings-tabs-row button.border-accent,
 .nuar-settings .settings-tabs-row button.text-accent {
   background: var(--settings-accent-soft) !important;
-  border-color: rgba(225, 29, 46, 0.45) !important;
+  border-color: color-mix(in srgb, var(--settings-accent) 45%, transparent) !important;
   color: var(--settings-accent) !important;
   font-weight: 700 !important;
 }
@@ -292,9 +292,9 @@
 }
 
 .nuar-settings .settings-scroll :is(input, select, textarea):focus {
-  border-color: rgba(225, 29, 46, 0.45) !important;
+  border-color: color-mix(in srgb, var(--settings-accent) 45%, transparent) !important;
   outline: none !important;
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: var(--color-field-hover) !important;
 }
 
 /* ==========================================================================
@@ -322,8 +322,8 @@
 }
 
 .nuar-settings .color-theme-option:has(input:checked) {
-  border-color: rgba(225, 29, 46, 0.5) !important;
-  background: rgba(225, 29, 46, 0.06) !important;
+  border-color: color-mix(in srgb, var(--settings-accent) 50%, transparent) !important;
+  background: var(--settings-accent-soft) !important;
 }
 
 .nuar-settings .color-theme-swatches {
@@ -336,7 +336,7 @@
 .nuar-settings .color-theme-swatches span {
   height: 26px !important;
   border-radius: 6px !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid var(--color-border) !important;
 }
 
 .nuar-settings .color-theme-option strong {
@@ -423,11 +423,11 @@
   padding: 0 14px !important;
   border-radius: 10px !important;
   background: var(--settings-accent) !important;
-  color: #ffffff !important;
+  color: var(--button-primary-text, #ffffff) !important;
   font-size: 14px !important;
   font-weight: 750 !important;
   border: 0 !important;
-  box-shadow: 0 4px 14px rgba(225, 29, 46, 0.28) !important;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--settings-accent) 28%, transparent) !important;
   white-space: nowrap !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -452,7 +452,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3, 12px);
-  border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.045));
+  border-bottom: 1px solid var(--color-border-soft);
   padding-bottom: var(--space-3, 12px);
 }
 
@@ -461,8 +461,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2, 8px);
-  background: var(--surface-2, #1b1b1e);
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+  background: var(--color-card-muted);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card, 14px);
   padding: var(--space-3, 12px);
 }
@@ -481,15 +481,15 @@
   margin-left: auto;
   font-size: 11px;
   font-weight: 500;
-  color: var(--text-muted, #a4a4ac);
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
 /* Desktop Users Table */
 .crm-users-table-wrap {
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card, 14px);
-  background: var(--surface, #141416);
+  background: var(--color-window);
   overflow: hidden;
 }
 
@@ -499,13 +499,13 @@
   align-items: center;
   gap: var(--space-3, 12px);
   padding: var(--space-3, 12px) var(--space-4, 16px);
-  background: var(--surface-2, #1b1b1e);
-  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+  background: var(--color-card-muted);
+  border-bottom: 1px solid var(--color-border);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted, #a4a4ac);
+  color: var(--color-text-muted);
 }
 
 .crm-users-table-row {
@@ -514,7 +514,7 @@
   align-items: center;
   gap: var(--space-3, 12px);
   padding: var(--space-3, 12px) var(--space-4, 16px);
-  border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.045));
+  border-bottom: 1px solid var(--color-border-soft);
   transition: background-color 150ms ease;
 }
 
@@ -523,7 +523,7 @@
 }
 
 .crm-users-table-row:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-field);
 }
 
 .crm-users-table-row.is-disabled {
@@ -543,9 +543,9 @@
   height: 36px;
   min-width: 36px;
   border-radius: var(--radius-pill, 999px);
-  background: var(--accent-soft, rgba(225, 29, 46, 0.12));
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
-  color: var(--accent, #e11d2e);
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-border);
+  color: var(--color-accent);
   font-size: 13px;
   font-weight: 700;
   display: flex;
@@ -563,7 +563,7 @@
 .crm-user-name {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text, #ffffff);
+  color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -571,7 +571,7 @@
 
 .crm-user-email {
   font-size: 11px;
-  color: var(--text-muted, #a4a4ac);
+  color: var(--color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -585,8 +585,8 @@
 }
 
 .crm-user-card {
-  background: var(--surface, #141416);
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+  background: var(--color-window);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card, 14px);
   padding: var(--space-3, 12px);
   display: flex;
@@ -611,9 +611,9 @@
   flex-direction: column;
   gap: 6px;
   padding: var(--space-2, 8px);
-  background: var(--field, rgba(255, 255, 255, 0.03));
+  background: var(--color-field);
   border-radius: var(--radius-md, 8px);
-  border: 1px solid var(--border-soft, rgba(255, 255, 255, 0.045));
+  border: 1px solid var(--color-border-soft);
   font-size: 12px;
 }
 
@@ -626,10 +626,10 @@
 
 /* Action Dropdown Menu */
 .crm-user-menu {
-  background: var(--surface-2, #1b1b1e);
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  background: var(--color-card-muted);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-dropdown, 12px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--shadow-dropdown);
   padding: 4px;
   min-width: 190px;
   display: flex;
@@ -647,7 +647,7 @@
   padding: 8px 12px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--text, #ffffff);
+  color: var(--color-text);
   border-radius: var(--radius-sm, 6px);
   background: transparent;
   border: 0;
@@ -657,7 +657,7 @@
 }
 
 .crm-user-menu-item:hover:not(:disabled) {
-  background: var(--field, rgba(255, 255, 255, 0.06));
+  background: var(--color-field-hover);
 }
 
 .crm-user-menu-item:disabled {
@@ -666,24 +666,24 @@
 }
 
 .crm-user-menu-item.is-danger {
-  color: var(--color-danger, #ff4d5e);
+  color: var(--color-danger);
 }
 
 .crm-user-menu-item.is-danger:hover:not(:disabled) {
-  background: rgba(255, 77, 94, 0.12);
+  background: var(--status-danger-bg);
 }
 
 .crm-user-menu-item.is-success {
-  color: var(--color-success, #6fcf97);
+  color: var(--color-success);
 }
 
 .crm-user-menu-item.is-success:hover:not(:disabled) {
-  background: rgba(111, 207, 151, 0.12);
+  background: var(--status-success-bg);
 }
 
 .crm-user-menu-divider {
   height: 1px;
-  background: var(--border-soft, rgba(255, 255, 255, 0.06));
+  background: var(--color-border-soft);
   margin: 3px 0;
 }
 
@@ -700,8 +700,8 @@
   gap: var(--space-3, 12px);
   padding: var(--space-3, 12px);
   border-radius: var(--radius-control, 10px);
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
-  background: var(--field, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--color-border);
+  background: var(--color-field);
   cursor: pointer;
   transition: border-color 150ms ease, background-color 150ms ease;
   text-align: left;
@@ -709,20 +709,20 @@
 }
 
 .delivery-option-card:hover {
-  border-color: var(--border-strong, rgba(255, 255, 255, 0.14));
-  background: var(--surface-2, #1b1b1e);
+  border-color: var(--color-border-strong);
+  background: var(--color-card-muted);
 }
 
 .delivery-option-card.is-selected {
-  border-color: var(--accent, #e11d2e);
-  background: var(--accent-soft, rgba(225, 29, 46, 0.08));
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
 }
 
 .delivery-option-radio {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  border: 2px solid var(--border-strong, rgba(255, 255, 255, 0.2));
+  border: 2px solid var(--color-border-strong);
   margin-top: 2px;
   display: flex;
   align-items: center;
@@ -731,14 +731,14 @@
 }
 
 .delivery-option-card.is-selected .delivery-option-radio {
-  border-color: var(--accent, #e11d2e);
+  border-color: var(--color-accent);
 }
 
 .delivery-option-radio-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--accent, #e11d2e);
+  background: var(--color-accent);
 }
 
 /* Responsive Breakpoint */
@@ -771,7 +771,7 @@
 .crm-drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: var(--color-overlay, rgba(0, 0, 0, 0.72));
+  background: var(--color-overlay);
   z-index: 1040;
   backdrop-filter: blur(2px);
   animation: crmDrawerFadeIn 180ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -787,9 +787,9 @@
   z-index: 1050;
   display: flex;
   flex-direction: column;
-  background: var(--surface, #141416);
-  border-left: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.65);
+  background: var(--color-window);
+  border-left: 1px solid var(--color-border);
+  box-shadow: var(--shadow-modal);
   overflow: hidden;
   box-sizing: border-box;
   animation: crmDrawerSlideIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -819,8 +819,8 @@
   justify-content: space-between;
   gap: var(--space-3, 12px);
   padding: 16px 20px;
-  background: var(--surface-2, #1b1b1e);
-  border-bottom: 1px solid var(--border-soft, rgba(255, 255, 255, 0.06));
+  background: var(--color-card-muted);
+  border-bottom: 1px solid var(--color-border-soft);
   flex-shrink: 0;
 }
 
@@ -835,7 +835,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: var(--text, #ffffff);
+  color: var(--color-text);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -846,7 +846,7 @@
   margin: 0;
   margin-top: 2px;
   font-size: 12px;
-  color: var(--text-muted, #a4a4ac);
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -882,8 +882,8 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 14px 20px;
-  background: var(--surface, #141416);
-  border-top: 1px solid var(--border-soft, rgba(255, 255, 255, 0.06));
+  background: var(--color-window);
+  border-top: 1px solid var(--color-border-soft);
   flex-shrink: 0;
   min-height: 60px;
   box-sizing: border-box;

@@ -12,7 +12,7 @@ import {
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import {useRowActionMenu} from "../../hooks/useRowActionMenu.js";
-import {resolveColorTheme} from "../../utils/colorTheme.js";
+import {applyColorTheme, resolveColorTheme} from "../../utils/colorTheme.js";
 import {buildIntegrationHealth} from "../../utils/integrationHealth.js";
 import {
   generateStrongPassword,
@@ -1749,6 +1749,7 @@ function StaffDisplayCard({ settings, onSubmit, onReset }) {
                 <input
                   defaultChecked={selectedColorTheme.id === themeOption.id}
                   name="colorTheme"
+                  onChange={() => applyColorTheme({colorTheme: themeOption.id})}
                   type="radio"
                   value={themeOption.id}
                 />
@@ -2400,6 +2401,7 @@ function SettingsPage({
                     <input
                       defaultChecked={selectedColorTheme.id === themeOption.id}
                       name="colorTheme"
+                      onChange={() => applyColorTheme({colorTheme: themeOption.id})}
                       type="radio"
                       value={themeOption.id}
                     />

@@ -117,7 +117,7 @@
 
 .waitlist-filter-chip.is-active {
   background: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
-  color: #ffffff;
+  color: var(--color-text);
   border-color: rgba(225, 29, 46, 0.45);
   font-weight: 600;
 }
@@ -130,7 +130,7 @@
   height: 18px;
   padding: 0 5px;
   border-radius: var(--radius-pill, 999px);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-field-hover);
   color: var(--color-text-muted, #a4a4ac);
   font-size: 11px;
   font-weight: 700;
@@ -270,13 +270,13 @@
   font-size: 11px;
   font-weight: 500;
   border-radius: var(--radius-pill, 999px);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-field);
   color: var(--color-text-muted, #a4a4ac);
 }
 
 .waitlist-source-site {
   background: rgba(56, 189, 248, 0.1);
-  color: #38bdf8;
+  color: var(--color-info);
 }
 
 /* Card Main Date & Time Block */
@@ -311,7 +311,7 @@
   align-items: center;
   gap: 5px;
   padding: 4px 9px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--color-field);
   border: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.045));
   border-radius: var(--radius-sm, 6px);
   font-size: 12px;
@@ -333,7 +333,7 @@
   margin: 0;
   font-size: 12.5px;
   color: var(--color-text-muted, #a4a4ac);
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--color-field);
   border-left: 2px solid var(--color-border-strong, rgba(255, 255, 255, 0.14));
   padding: 5px 8px;
   border-radius: 0 4px 4px 0;
@@ -534,7 +534,7 @@
 }
 
 .waitlist-menu-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-field);
 }
 
 .waitlist-menu-item.text-danger {
@@ -653,7 +653,7 @@
 }
 
 .waitlist-contact-link:hover {
-  color: #38bdf8;
+  color: var(--color-info);
   text-decoration: underline;
 }
 
@@ -668,7 +668,7 @@
   align-items: center;
   gap: 4px;
   padding: 4px 9px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-field);
   border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
   border-radius: var(--radius-pill, 999px);
   color: var(--color-text, #ffffff);
@@ -679,7 +679,7 @@
 }
 
 .waitlist-action-pill:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--color-field-active);
 }
 
 .waitlist-pill-wa {
@@ -721,7 +721,7 @@
   width: 32px;
   height: 32px;
   border-radius: var(--radius-sm, 6px);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-field);
   color: var(--color-accent, #e11d2e);
   flex-shrink: 0;
 }
@@ -749,7 +749,7 @@
   align-items: flex-start;
   gap: 10px;
   padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-field);
   border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
   border-radius: var(--radius-md, 8px);
 }
@@ -782,7 +782,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--color-field);
   border: 1px solid var(--color-border-soft, rgba(255, 255, 255, 0.045));
   border-radius: var(--radius-sm, 6px);
   font-size: 11.5px;
@@ -800,7 +800,7 @@
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-field);
   border: 0;
   border-radius: 4px;
   color: var(--color-text, #ffffff);
@@ -809,7 +809,7 @@
 }
 
 .waitlist-copy-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--color-field-active);
 }
 
 /* Sticky Footer */

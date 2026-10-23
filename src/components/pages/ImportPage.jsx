@@ -137,11 +137,11 @@ function ImportDocumentFilters({
         </span>
         <div className="import-select-wrapper relative flex items-center">
           <select
-            className="import-native-select w-full h-10 pl-3 pr-7 rounded-control bg-field border border-border text-white text-xs font-medium appearance-none focus:outline-none focus:border-accent transition-colors cursor-pointer"
+            className="import-native-select w-full h-10 pl-3 pr-7 rounded-control bg-field border border-border text-text-main text-xs font-medium appearance-none focus:outline-none focus:border-accent transition-colors cursor-pointer"
             value={filters.source}
             onChange={(event) => updateFilter("source", event.target.value)}>
             {sourceFilterOptions.map((option) => (
-              <option key={option.value} value={option.value} className="bg-[#141416] text-white">
+              <option key={option.value} value={option.value} className="bg-surface text-text-main">
                 {option.label}
               </option>
             ))}
@@ -156,11 +156,11 @@ function ImportDocumentFilters({
         </span>
         <div className="import-select-wrapper relative flex items-center">
           <select
-            className="import-native-select w-full h-10 pl-3 pr-7 rounded-control bg-field border border-border text-white text-xs font-medium appearance-none focus:outline-none focus:border-accent transition-colors cursor-pointer"
+            className="import-native-select w-full h-10 pl-3 pr-7 rounded-control bg-field border border-border text-text-main text-xs font-medium appearance-none focus:outline-none focus:border-accent transition-colors cursor-pointer"
             value={filters.amount}
             onChange={(event) => updateFilter("amount", event.target.value)}>
             {amountFilterOptions.map((option) => (
-              <option key={option.value} value={option.value} className="bg-[#141416] text-white">
+              <option key={option.value} value={option.value} className="bg-surface text-text-main">
                 {option.label}
               </option>
             ))}
@@ -175,11 +175,11 @@ function ImportDocumentFilters({
         </span>
         <div className="import-select-wrapper relative flex items-center">
           <select
-            className="import-native-select w-full h-10 pl-3 pr-7 rounded-control bg-field border border-border text-white text-xs font-medium appearance-none focus:outline-none focus:border-accent transition-colors cursor-pointer"
+            className="import-native-select w-full h-10 pl-3 pr-7 rounded-control bg-field border border-border text-text-main text-xs font-medium appearance-none focus:outline-none focus:border-accent transition-colors cursor-pointer"
             value={filters.period}
             onChange={(event) => updateFilter("period", event.target.value)}>
             {periodFilterOptions.map((option) => (
-              <option key={option.value} value={option.value} className="bg-[#141416] text-white">
+              <option key={option.value} value={option.value} className="bg-surface text-text-main">
                 {option.label}
               </option>
             ))}

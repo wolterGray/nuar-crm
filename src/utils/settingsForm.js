@@ -1,7 +1,18 @@
 import {syncSettingsWithColorTheme} from "./colorTheme.js";
 
-export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
-  syncSettingsWithColorTheme({
+export const parseSettingsForm = (form, appSettings, defaultAppSettings) => {
+  if (!form.has("studioName")) {
+    return syncSettingsWithColorTheme({
+      ...appSettings,
+      colorTheme:
+        form.get("colorTheme") ||
+        appSettings?.colorTheme ||
+        defaultAppSettings.colorTheme,
+      compactMode: form.get("compactMode") === "on",
+    });
+  }
+
+  return syncSettingsWithColorTheme({
     ...appSettings,
     studioName:
       String(form.get("studioName") ?? "").trim() || defaultAppSettings.studioName,
@@ -10,8 +21,8 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
     ownerName:
       String(form.get("ownerName") ?? "").trim() || defaultAppSettings.ownerName,
     colorTheme: form.get("colorTheme") || defaultAppSettings.colorTheme,
-  sidebarVisible: appSettings.sidebarVisible,
-  compactMode: form.get("compactMode") === "on",
+    sidebarVisible: appSettings.sidebarVisible,
+    compactMode: form.get("compactMode") === "on",
   animationsEnabled: appSettings.animationsEnabled,
   notificationsEnabled: form.get("notificationsEnabled") === "on",
   taskAlertsEnabled: form.get("taskAlertsEnabled") === "on",
@@ -117,7 +128,8 @@ export const parseSettingsForm = (form, appSettings, defaultAppSettings) =>
     defaultAppSettings.calendarSlotMinutes,
   gmailBooksySyncEnabled: form.get("gmailBooksySyncEnabled") === "on",
   gmailClientId: String(form.get("gmailClientId") ?? "").trim(),
-});
+  });
+};
 
 export const parseSiteBookingNotifyForm = (form, appSettings) => ({
   ...appSettings,

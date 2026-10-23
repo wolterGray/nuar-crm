@@ -44,14 +44,59 @@ import {migrateClientLinks} from "./clientLinks.js";
 import {mergeLegacyCertificateSales, syncCertificateStatus} from "./certificates.js";
 import {normalizeServiceColors} from "./serviceColors.js";
 
-export const normalizeStoredSettings = (settings = {}) => {
+export const getPersonalUiPreferencesKey = (user = null) => {
+  const scope = typeof user === "string" ? user : getStorageScope(user);
+  return `nuar_crm_ui_prefs_${scope}`;
+};
+
+export const loadPersonalUiPreferences = (user = null) => {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return {};
+    const raw = window.localStorage.getItem(getPersonalUiPreferencesKey(user));
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return {};
+    const prefs = {};
+    if (typeof parsed.colorTheme === "string" && parsed.colorTheme) {
+      prefs.colorTheme = parsed.colorTheme;
+    }
+    if (typeof parsed.compactMode === "boolean") {
+      prefs.compactMode = parsed.compactMode;
+    }
+    return prefs;
+  } catch {
+    return {};
+  }
+};
+
+export const savePersonalUiPreferences = (settings = {}, user = null) => {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return false;
+    const synced = syncSettingsWithColorTheme(settings);
+    const payload = {
+      colorTheme: synced.colorTheme,
+      compactMode: Boolean(synced.compactMode ?? true),
+    };
+    window.localStorage.setItem(
+      getPersonalUiPreferencesKey(user),
+      JSON.stringify(payload),
+    );
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const normalizeStoredSettings = (settings = {}, user = null) => {
   const safeSettings = {...settings};
   delete safeSettings.authLogin;
   delete safeSettings.authPassword;
+  const personalPrefs = loadPersonalUiPreferences(user);
 
   return syncSettingsWithColorTheme({
     ...defaultAppSettings,
     ...safeSettings,
+    ...personalPrefs,
     sidebarVisible:
       window.innerWidth <= MOBILE_MAX_WIDTH ? false : safeSettings.sidebarVisible ?? true,
   });

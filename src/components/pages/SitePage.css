@@ -112,9 +112,9 @@
   height: 18px !important;
   padding: 0 5px !important;
   border-radius: 999px !important;
-  color: #ffffff !important;
+  color: var(--button-primary-text, #ffffff) !important;
   background: var(--site-accent) !important;
-  box-shadow: 0 0 0 2px #0a0a0a !important;
+  box-shadow: 0 0 0 2px var(--color-page, #0a0a0a) !important;
   font-size: 10.5px !important;
   font-weight: 700 !important;
   line-height: 18px !important;
@@ -150,11 +150,11 @@
   padding: 0 12px !important;
   border-radius: 10px !important;
   background: var(--site-accent) !important;
-  color: #ffffff !important;
+  color: var(--button-primary-text, #ffffff) !important;
   font-size: 13px !important;
   font-weight: 700 !important;
   border: 0 !important;
-  box-shadow: 0 2px 8px rgba(225, 29, 46, 0.25) !important;
+  box-shadow: var(--button-primary-shadow, 0 2px 8px rgba(225, 29, 46, 0.25)) !important;
   text-align: center !important;
   white-space: nowrap !important;
 }
@@ -219,7 +219,7 @@
 }
 
 .nuar-site .site-page-summary-card.is-active {
-  border-color: rgba(225, 29, 46, 0.45) !important;
+  border-color: color-mix(in srgb, var(--site-accent) 45%, transparent) !important;
   background: var(--site-accent-soft) !important;
 }
 
@@ -314,9 +314,9 @@
 
 .nuar-site .site-page input:focus,
 .nuar-site .site-notify-field input:focus {
-  border-color: rgba(225, 29, 46, 0.45) !important;
+  border-color: color-mix(in srgb, var(--site-accent) 45%, transparent) !important;
   outline: none !important;
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: var(--color-field-hover, rgba(255, 255, 255, 0.06)) !important;
 }
 
 /* Checkbox toggle rows */
@@ -402,7 +402,7 @@
 }
 
 .nuar-site .site-booking-toolbar-mobile button:active {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: var(--color-field-active, rgba(255, 255, 255, 0.08)) !important;
 }
 
 .nuar-site .site-booking-toolbar-mobile button svg {
@@ -444,7 +444,7 @@
   justify-content: center !important;
   padding: 8px 4px !important;
   border-radius: 8px !important;
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: var(--site-surface) !important;
   border: 1px solid var(--site-border-soft) !important;
 }
 
@@ -520,11 +520,11 @@
   min-height: 46px !important;
   border-radius: 10px !important;
   background: var(--site-accent) !important;
-  color: #ffffff !important;
+  color: var(--button-primary-text, #ffffff) !important;
   font-size: 14px !important;
   font-weight: 750 !important;
   border: 0 !important;
-  box-shadow: 0 4px 14px rgba(225, 29, 46, 0.28) !important;
+  box-shadow: var(--button-primary-shadow, 0 4px 14px rgba(225, 29, 46, 0.28)) !important;
   cursor: pointer !important;
 }
 

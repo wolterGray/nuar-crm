@@ -63,4 +63,13 @@ describe("settingsForm", () => {
       telegramChatId: "987654321",
     });
   });
+
+  it("theme-only form submit (personal preference) keeps salon settings intact", () => {
+    const appSettings = {...defaultAppSettings, studioName: "NUAR", colorTheme: "dark"};
+    const form = buildForm([["colorTheme", "light"]]);
+
+    const next = parseSettingsForm(form, appSettings, defaultAppSettings);
+    expect(next.colorTheme).toBe("light");
+    expect(next.studioName).toBe("NUAR");
+  });
 });

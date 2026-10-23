@@ -46,13 +46,22 @@ export const applyColorTheme = (settings = {}) => {
   const root = document.documentElement;
 
   root.dataset.colorTheme = theme.id;
+  root.style.colorScheme = theme.mode;
+  root.classList.toggle("theme-light", theme.mode === "light");
+  root.classList.toggle("theme-dark", theme.mode === "dark");
 
   Object.entries(theme.tokens).forEach(([name, value]) => {
     root.style.setProperty(name, value);
   });
 
   root.style.setProperty("--accent-color", theme.accentColor);
-  document.body.style.backgroundColor = theme.tokens["--app-bg"] ?? "";
+  if (document.body) {
+    document.body.dataset.colorTheme = theme.id;
+    document.body.classList.toggle("theme-light", theme.mode === "light");
+    document.body.classList.toggle("theme-dark", theme.mode === "dark");
+    document.body.style.backgroundColor = theme.tokens["--app-bg"] ?? "";
+    document.body.style.color = theme.tokens["--text-main"] ?? "";
+  }
 
   return theme;
 };

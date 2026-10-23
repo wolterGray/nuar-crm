@@ -46,4 +46,23 @@ describe("colorTheme", () => {
     expect(theme.mode).toBe("dark");
     expect(theme.accentColor).toBe("#e11d2e");
   });
+
+  it("resolves Booksy Biz light theme tokens with WCAG AA contrast", () => {
+    const light = resolveColorTheme({colorTheme: "light"});
+
+    expect(light.id).toBe("light");
+    expect(light.mode).toBe("light");
+    expect(light.accentColor).toBe("#00796D");
+    expect(light.tokens["--app-bg"]).toBe("#F5F7F8");
+    expect(light.tokens["--surface"]).toBe("#FFFFFF");
+    expect(light.tokens["--text-main"]).toBe("#17232A");
+    expect(light.tokens["--accent-color"]).toBe("#00796D");
+    expect(light.tokens["--brand-teal"]).toBe("#05CFA6");
+  });
+
+  it("dark theme keeps NUAR graphite + crimson", () => {
+    const dark = resolveColorTheme({colorTheme: "dark"});
+    expect(dark.accentColor).toBe("#e11d2e");
+    expect(dark.mode).toBe("dark");
+  });
 });

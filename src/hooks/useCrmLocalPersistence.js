@@ -26,6 +26,7 @@ import {
   TASKS_STORAGE_KEY,
   VISITS_STORAGE_KEY,
   getStorageScope,
+  savePersonalUiPreferences,
   saveScopedValue,
   saveStoredValue,
 } from "../utils/crmStorage.js";
@@ -191,7 +192,10 @@ export function useCrmLocalPersistence({
 
   useLayoutEffect(() => {
     applyColorTheme(appSettings);
-  }, [appSettings]);
+    if (canWriteScoped()) {
+      savePersonalUiPreferences(appSettings, authUser);
+    }
+  }, [appSettings, authUser, canWriteScoped]);
 
   useEffect(() => {
     if (canWriteOwnerShared()) {

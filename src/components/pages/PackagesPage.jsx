@@ -338,6 +338,7 @@ function PackageTemplateCard({
 }
 
 function PackagesKpiGrid({
+  canViewSalonStats = true,
   clientPackagesCount,
   packageSalesIncome,
   certificatesCount,
@@ -353,24 +354,32 @@ function PackagesKpiGrid({
       icon: "package",
       tone: "accent",
     },
-    {
-      label: "Доход от пакетов",
-      val: formatMoney(packageSalesIncome),
-      icon: "banknote",
-      tone: "success",
-    },
+    ...(canViewSalonStats
+      ? [
+          {
+            label: "Доход от пакетов",
+            val: formatMoney(packageSalesIncome),
+            icon: "banknote",
+            tone: "success",
+          },
+        ]
+      : []),
     {
       label: "Сертиф. продано",
       val: certificatesCount,
       icon: "gift",
       tone: "info",
     },
-    {
-      label: "Доход от сертиф.",
-      val: formatMoney(certificateSalesIncome),
-      icon: "wallet",
-      tone: "success",
-    },
+    ...(canViewSalonStats
+      ? [
+          {
+            label: "Доход от сертиф.",
+            val: formatMoney(certificateSalesIncome),
+            icon: "wallet",
+            tone: "success",
+          },
+        ]
+      : []),
     {
       label: "Остаток сертиф.",
       val: formatMoney(activeCertificateBalance),
@@ -404,6 +413,7 @@ function PackagesKpiGrid({
 
 function PackagesPage({
   canManagePackages = true,
+  canViewSalonStats = true,
   packages = [],
   clientPackages = [],
   clientProfiles = [],
@@ -748,6 +758,7 @@ function PackagesPage({
 
       {/* 3. KPI Metrics Summary Cards */}
       <PackagesKpiGrid
+        canViewSalonStats={canViewSalonStats}
         clientPackagesCount={clientPackages.length}
         packageSalesIncome={packageSalesIncome}
         certificatesCount={certificates.length}

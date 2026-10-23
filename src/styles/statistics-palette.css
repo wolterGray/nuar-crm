@@ -13,15 +13,15 @@
 /* shadcn-like minimal UI layer */
 :root {
   --app-bg: var(--color-page);
-  --surface: color-mix(in srgb, var(--color-card) 92%, transparent);
+  --surface: var(--color-window);
   --surface-solid: var(--color-window);
   --surface-muted: var(--color-card-muted);
   --line-soft: var(--color-border);
   --line-subtle: var(--color-border-soft);
-  --text-main: var(--color-text);
-  --text-soft: var(--color-text-muted);
-  --text-muted: var(--color-text-faint);
-  --muted: var(--color-text-faint);
+  --text-main: var(--linear-text);
+  --text-soft: var(--linear-muted);
+  --text-muted: var(--linear-muted);
+  --muted: var(--linear-dim);
   --premium-shadow: var(--shadow-card);
   --soft-shadow: var(--shadow-focus);
   --focus-ring: var(--button-focus-shadow);
@@ -502,9 +502,23 @@ button:focus-visible {
   --surface-muted: var(--color-card-muted);
   --line-soft: var(--color-border);
   --line-subtle: var(--color-border-soft);
-  --text-main: var(--color-text);
-  --text-soft: var(--color-text-muted);
-  --text-muted: var(--color-text-faint);
+  --text-main: var(--linear-text);
+  --text-soft: var(--linear-muted);
+  --text-muted: var(--linear-muted);
+  color: var(--text-main);
+  background: var(--color-page);
+}
+
+.theme-light {
+  --app-bg: var(--color-page);
+  --surface: var(--color-window);
+  --surface-solid: var(--color-window);
+  --surface-muted: var(--color-card-muted);
+  --line-soft: var(--color-border);
+  --line-subtle: var(--color-border-soft);
+  --text-main: var(--linear-text);
+  --text-soft: var(--linear-muted);
+  --text-muted: var(--linear-muted);
   color: var(--text-main);
   background: var(--color-page);
 }

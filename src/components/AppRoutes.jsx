@@ -229,6 +229,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
         <PageSuspense>
           <PackagesPage
             canManagePackages={hasPermission(user, PERMISSIONS.CATALOG_MANAGE)}
+            canViewSalonStats={hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS)}
             packages={props.packagesCatalog}
             clientPackages={props.clientPackages}
             clientProfiles={props.clientProfiles ?? props.clients ?? []}
@@ -357,6 +358,8 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
       return (
         <PageSuspense>
           <StatisticsPage
+            authUser={user}
+            canViewSalonStats={hasPermission(user, PERMISSIONS.FINANCE_VIEW_SALON_STATS)}
             visits={props.paymentRows}
             calendarEntries={privateCalendarEntries}
             certificates={props.certificates}

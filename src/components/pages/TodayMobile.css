@@ -5,22 +5,24 @@
    глобальное правило mobile-system.css (min-height 48px, font-size 16px).
    ============================================================ */
 
-/* Нейтральный почти чёрный фон только для страницы «Сегодня» */
+/* Нейтральный фон только для страницы «Сегодня» */
 .theme-dark .mobile-page-container[data-mobile-page="today"],
-.theme-dark .content.today-content {
-  background: #0a0a0a !important;
+.theme-dark .content.today-content,
+.theme-light .mobile-page-container[data-mobile-page="today"],
+.theme-light .content.today-content {
+  background: var(--color-page) !important;
 }
 
 .tm-page {
-  --tm-bg: #0a0a0a;
-  --tm-surface: #141416;
-  --tm-surface-2: #1b1b1e;
-  --tm-border: rgba(255, 255, 255, 0.07);
-  --tm-text: #ffffff;
-  --tm-muted: #a4a4ac;
-  --tm-faint: #7f7f86;
-  --tm-accent: var(--accent, #e11d2e);
-  --tm-accent-soft: rgba(225, 29, 46, 0.12);
+  --tm-bg: var(--color-page);
+  --tm-surface: var(--color-window);
+  --tm-surface-2: var(--color-card);
+  --tm-border: var(--color-border);
+  --tm-text: var(--color-text);
+  --tm-muted: var(--color-text-muted);
+  --tm-faint: var(--color-text-faint);
+  --tm-accent: var(--color-accent);
+  --tm-accent-soft: var(--color-accent-soft);
   --tm-gap: 12px;
   --tm-radius: 14px;
 
@@ -31,15 +33,6 @@
   min-width: 0;
   color: var(--tm-text);
   font-size: 14px;
-}
-
-.theme-light .tm-page {
-  --tm-surface: #ffffff;
-  --tm-surface-2: #f4f4f5;
-  --tm-border: rgba(0, 0, 0, 0.08);
-  --tm-text: #18181b;
-  --tm-muted: #71717a;
-  --tm-faint: #a1a1aa;
 }
 
 .tm-page * {
@@ -95,7 +88,7 @@
   font-weight: 760;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: #ffffff;
+  color: var(--tm-text);
 }
 
 .tm-heading p {
@@ -154,7 +147,7 @@
 
 .tm-date-picker svg {
   pointer-events: none;
-  color: #ffffff;
+  color: var(--tm-text);
 }
 
 .mobile-page-container .tm-page.tm-page .tm-date-picker input {
@@ -200,7 +193,7 @@
 .tm-bell .client-alert-button svg {
   width: 20px;
   height: 20px;
-  color: #ffffff;
+  color: var(--tm-text);
 }
 
 .tm-bell .notification-trigger.client-alert-button b,
@@ -211,9 +204,9 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 999px;
-  color: #fff;
+  color: var(--button-primary-text, #ffffff);
   background: var(--tm-accent);
-  box-shadow: 0 0 0 2px #0a0a0a;
+  box-shadow: 0 0 0 2px var(--tm-bg);
   font-size: 10.5px;
   font-weight: 700;
   line-height: 18px;
@@ -228,7 +221,7 @@
   width: 100%;
   height: 48px;
   border-radius: var(--tm-radius);
-  color: #fff;
+  color: var(--button-primary-text, #ffffff);
   background: var(--tm-accent);
   font-size: 15.5px !important;
   font-weight: 650;
@@ -283,7 +276,7 @@
   font-weight: 750;
   line-height: 1.1;
   letter-spacing: -0.01em;
-  color: #ffffff;
+  color: var(--tm-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -313,7 +306,7 @@
 .tm-metric-label-main {
   font-size: 12.5px;
   font-weight: 500;
-  color: #d4d4d8;
+  color: var(--tm-muted);
   line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -333,7 +326,7 @@
   width: 100%;
   height: 3.5px;
   border-radius: 2px;
-  background: #26262a;
+  background: var(--color-field-active);
   overflow: hidden;
   margin-top: 1px;
 }
@@ -366,9 +359,9 @@
 /* ---------- Требует внимания ---------- */
 .tm-attention {
   overflow: hidden;
-  border: 1px solid rgba(225, 29, 46, 0.18);
+  border: 1px solid color-mix(in srgb, var(--tm-accent) 18%, transparent);
   border-radius: var(--tm-radius);
-  background: rgba(225, 29, 46, 0.05);
+  background: color-mix(in srgb, var(--tm-accent) 5%, transparent);
 }
 
 .mobile-page-container .tm-page.tm-page .tm-attention-head {
@@ -386,7 +379,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(225, 29, 46, 0.16);
+  background: var(--tm-accent-soft);
   flex: none;
 }
 
@@ -409,7 +402,7 @@
 .tm-attention-copy strong {
   font-size: 14.5px;
   font-weight: 650;
-  color: #ffffff;
+  color: var(--tm-text);
   line-height: 1.25;
 }
 
@@ -433,12 +426,12 @@
   flex-direction: column;
   margin: 0;
   padding: 0;
-  border-top: 1px solid rgba(225, 29, 46, 0.15);
+  border-top: 1px solid color-mix(in srgb, var(--tm-accent) 15%, transparent);
   list-style: none;
 }
 
 .tm-attention-list li + li {
-  border-top: 1px solid rgba(225, 29, 46, 0.12);
+  border-top: 1px solid color-mix(in srgb, var(--tm-accent) 12%, transparent);
 }
 
 .mobile-page-container .tm-page.tm-page .tm-attention-list button {
@@ -500,7 +493,7 @@
 .tm-section-head h2 {
   font-size: 18px;
   font-weight: 720;
-  color: #ffffff;
+  color: var(--tm-text);
   letter-spacing: -0.01em;
 }
 
@@ -508,8 +501,8 @@
   min-width: 22px;
   padding: 2px 8px;
   border-radius: 999px;
-  color: #8e8e93;
-  background: #222226;
+  color: var(--tm-muted);
+  background: var(--tm-surface-2);
   font-size: 12px;
   font-weight: 550;
   text-align: center;
@@ -522,12 +515,12 @@
   gap: 3px;
   min-height: 36px;
   padding: 0 4px;
-  color: #8e8e93;
+  color: var(--tm-muted);
   font-size: 13.5px !important;
 }
 
 .mobile-page-container .tm-page.tm-page .tm-link svg {
-  color: #71717a;
+  color: var(--tm-faint);
 }
 
 .tm-chips {
@@ -549,8 +542,8 @@
   padding: 0 16px;
   border: 1px solid var(--tm-border);
   border-radius: 999px;
-  color: #c4c4c8;
-  background: #161619;
+  color: var(--tm-muted);
+  background: var(--tm-surface);
   font-size: 13px !important;
   font-weight: 450;
   white-space: nowrap;
@@ -558,7 +551,7 @@
 
 .mobile-page-container .tm-page.tm-page .tm-chip.is-active {
   border-color: var(--tm-accent);
-  color: #fff;
+  color: var(--button-primary-text, #ffffff);
   background: var(--tm-accent);
   font-weight: 550;
 }
@@ -593,8 +586,8 @@
 
 .tm-visit-card.is-next,
 .tm-visit-card.is-in_progress {
-  background: #191214;
-  border-color: rgba(225, 29, 46, 0.25);
+  background: color-mix(in srgb, var(--tm-accent) 8%, var(--tm-surface));
+  border-color: color-mix(in srgb, var(--tm-accent) 25%, transparent);
 }
 
 /* Колонка времени (слева) */
@@ -609,14 +602,14 @@
 .tm-visit-time strong {
   font-size: 16px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--tm-text);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 
 .tm-visit-card.is-in_progress .tm-visit-time strong,
 .tm-visit-card.is-next .tm-visit-time strong {
-  color: #ff3b4b;
+  color: var(--color-error);
 }
 
 .tm-visit-time small {
@@ -638,7 +631,7 @@
 .tm-visit-main strong {
   font-size: 15px;
   font-weight: 650;
-  color: #ffffff;
+  color: var(--tm-text);
   line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -656,7 +649,7 @@
 
 .tm-visit-details {
   font-size: 12px;
-  color: #6f6f76;
+  color: var(--tm-faint);
   line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -697,34 +690,34 @@
 }
 
 .tm-status-pill.is-scheduled {
-  background: #232327;
-  color: #8e8e93;
+  background: var(--tm-surface-2);
+  color: var(--tm-muted);
 }
 
 .tm-status-pill.is-in_progress {
-  background: rgba(225, 29, 46, 0.16);
-  color: #ff4d5e;
+  background: var(--status-danger-bg);
+  color: var(--color-error);
 }
 
 .tm-status-pill.is-confirmed {
-  background: rgba(111, 207, 151, 0.14);
-  color: #6fcf97;
+  background: var(--status-success-bg);
+  color: var(--color-success);
 }
 
 .tm-status-pill.is-needs_closing {
-  background: rgba(224, 164, 58, 0.14);
-  color: #e0a43a;
+  background: var(--status-warning-bg);
+  color: var(--color-warning);
 }
 
 .tm-status-pill.is-completed {
-  background: #1c1c1f;
-  color: #6e6e73;
+  background: var(--color-field);
+  color: var(--tm-faint);
 }
 
 .tm-visit-price {
   font-size: 15.5px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--tm-text);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
   text-align: right;
@@ -739,7 +732,7 @@
   place-items: center;
   width: 24px;
   height: 24px;
-  color: #66666e;
+  color: var(--tm-faint);
   border-radius: 6px;
 }
 
@@ -755,7 +748,7 @@
   border: 1px solid var(--tm-border);
   border-radius: 12px;
   background: var(--tm-surface-2);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-dropdown);
 }
 
 .mobile-page-container .tm-page.tm-page .tm-menu button {
@@ -808,7 +801,7 @@
   flex: none;
   font-size: 15px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--tm-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -832,7 +825,7 @@
 
 .tm-slot-chevron {
   flex: none;
-  color: #55555c;
+  color: var(--tm-faint);
   margin-left: 2px;
 }
 
@@ -843,7 +836,7 @@
   z-index: 200;
   display: flex;
   align-items: flex-end;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--color-overlay);
 }
 
 .tm-sheet {

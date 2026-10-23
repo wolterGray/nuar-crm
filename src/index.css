@@ -5,8 +5,14 @@
 
 @theme {
   --color-app-bg: var(--bg);
+  --color-background: var(--color-page);
+  --color-foreground: var(--color-text);
   --color-surface: var(--surface);
   --color-surface-soft: var(--surface-2);
+  --color-card: var(--color-window);
+  --color-card-foreground: var(--color-text);
+  --color-muted: var(--color-card-muted);
+  --color-muted-foreground: var(--color-text-muted);
   --color-field: var(--field);
   --color-border: var(--border);
   --color-border-soft: var(--border-soft);

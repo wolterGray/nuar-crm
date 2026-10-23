@@ -25,15 +25,15 @@
 
 @media (max-width: 768px) {
   .operations-page.operations-page-mobile {
-    --operations-mobile-bg: var(--color-page, #0a0a0a);
-    --operations-mobile-surface: var(--color-surface, #141416);
-    --operations-mobile-field: var(--color-field, #1b1b1e);
-    --operations-mobile-raised: var(--color-surface-soft, #1b1b1e);
-    --operations-mobile-border: var(--color-border, rgba(255, 255, 255, 0.07));
-    --operations-mobile-text: var(--color-text, #ffffff);
-    --operations-mobile-muted: var(--color-text-muted, #a4a4ac);
-    --operations-mobile-accent: var(--color-accent, #e11d2e);
-    --operations-mobile-accent-soft: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
+    --operations-mobile-bg: var(--color-page);
+    --operations-mobile-surface: var(--color-window);
+    --operations-mobile-field: var(--color-field);
+    --operations-mobile-raised: var(--color-card-muted);
+    --operations-mobile-border: var(--color-border);
+    --operations-mobile-text: var(--color-text);
+    --operations-mobile-muted: var(--color-text-muted);
+    --operations-mobile-accent: var(--color-accent);
+    --operations-mobile-accent-soft: var(--color-accent-soft);
     gap: 10px !important;
     padding: 2px 0 0 !important;
     background: var(--operations-mobile-bg) !important;
@@ -63,7 +63,7 @@
     min-height: 36px !important;
     margin: 0 !important;
     flex: 0 0 36px !important;
-    color: #d8d8db !important;
+    color: var(--operations-mobile-text) !important;
     background: var(--operations-mobile-surface) !important;
     border: 1px solid var(--operations-mobile-border) !important;
     border-radius: 8px !important;
@@ -114,9 +114,9 @@
   .operations-page-mobile .operations-tabs-nav button.is-active,
   .operations-page-mobile .operations-tabs-nav button[aria-selected="true"],
   .operations-page-mobile .operations-tab-btn.is-active {
-    color: #ffffff !important;
+    color: var(--operations-mobile-text) !important;
     background: var(--operations-mobile-accent-soft) !important;
-    border-color: rgba(225, 29, 46, 0.45) !important;
+    border-color: color-mix(in srgb, var(--operations-mobile-accent) 45%, transparent) !important;
     font-weight: 600 !important;
     box-shadow: none !important;
   }
@@ -139,7 +139,7 @@
   .operations-page-mobile .operations-add-task-cta {
     height: 44px !important;
     min-height: 44px !important;
-    color: #fff !important;
+    color: var(--button-primary-text, #ffffff) !important;
     background: var(--operations-mobile-accent) !important;
     border-color: var(--operations-mobile-accent) !important;
     border-radius: 9px !important;
@@ -160,7 +160,7 @@
 
   .operations-page-mobile .operations-week-nav-btn,
   .operations-page-mobile .operations-manage-tasks-btn {
-    color: #d2d2d5 !important;
+    color: var(--operations-mobile-muted) !important;
     background: var(--operations-mobile-field) !important;
     border-color: var(--operations-mobile-border) !important;
     box-shadow: none !important;
@@ -171,9 +171,9 @@
   }
 
   .operations-page-mobile .operations-week-relative-tag.is-current {
-    color: #5dd29a !important;
-    background: rgba(36, 138, 79, 0.12) !important;
-    border-color: rgba(66, 185, 128, 0.32) !important;
+    color: var(--color-success) !important;
+    background: var(--status-success-bg) !important;
+    border-color: var(--status-success-border) !important;
   }
 
   .operations-page-mobile .operations-week-mode-toggle {
@@ -190,7 +190,7 @@
 
   .operations-page-mobile .operations-week-mode-btn.is-active {
     color: var(--operations-mobile-text) !important;
-    background: rgba(255, 255, 255, 0.09) !important;
+    background: var(--color-field-active) !important;
     box-shadow: none !important;
     font-weight: 600 !important;
   }
@@ -217,7 +217,7 @@
   }
 
   .operations-page-mobile .operations-summary-progress i {
-    background: #5dd29a !important;
+    background: var(--color-success) !important;
   }
 
   .operations-page-mobile .operations-list-toolbar {
@@ -325,7 +325,7 @@
     padding: 0 5px !important;
     border-radius: 9999px !important;
     background: var(--operations-mobile-accent) !important;
-    color: #ffffff !important;
+    color: var(--button-primary-text, #ffffff) !important;
     font-size: 11px !important;
     font-weight: 600 !important;
   }
@@ -350,11 +350,11 @@
   }
 
   .operations-page-mobile .operations-mini-day-weekday {
-    color: #85858a !important;
+    color: var(--color-text-faint) !important;
   }
 
   .operations-page-mobile .operations-mini-day-num {
-    color: #d7d7da !important;
+    color: var(--operations-mobile-text) !important;
   }
 
   .operations-page-mobile .operations-mini-day-count-full {
@@ -374,7 +374,7 @@
   }
 
   .operations-page-mobile .operations-mini-day-count-compact.is-debt {
-    color: #ffffff !important;
+    color: var(--button-primary-text, #ffffff) !important;
     background: var(--operations-mobile-accent) !important;
   }
 
@@ -391,15 +391,15 @@
 
   .operations-page-mobile .operations-mini-day-tab.is-selected {
     background: var(--operations-mobile-accent-soft) !important;
-    border-color: rgba(239, 56, 59, 0.6) !important;
+    border-color: color-mix(in srgb, var(--operations-mobile-accent) 60%, transparent) !important;
   }
 
   .operations-page-mobile .operations-mini-day-tab.is-selected .operations-mini-day-weekday {
-    color: #ff7476 !important;
+    color: var(--operations-mobile-accent) !important;
   }
 
   .operations-page-mobile .operations-mini-day-tab.is-selected .operations-mini-day-count-compact {
-    color: #fff !important;
+    color: var(--button-primary-text, #ffffff) !important;
     background: var(--operations-mobile-accent) !important;
   }
 
@@ -413,9 +413,9 @@
   }
 
   .operations-page-mobile .operations-day-today-pill {
-    color: #ff7476 !important;
+    color: var(--operations-mobile-accent) !important;
     background: var(--operations-mobile-accent-soft) !important;
-    border-color: rgba(239, 56, 59, 0.42) !important;
+    border-color: color-mix(in srgb, var(--operations-mobile-accent) 42%, transparent) !important;
   }
 
   .operations-page-mobile .operations-day-meta-badge {
@@ -437,7 +437,7 @@
   }
 
   .operations-page-mobile .operations-linear-row:active {
-    background: #18181b !important;
+    background: var(--operations-mobile-raised) !important;
   }
 
   .operations-page-mobile .operations-m-task-card {
@@ -454,15 +454,15 @@
     max-height: 20px !important;
     flex-basis: 20px !important;
     background: transparent !important;
-    border: 1.5px solid #5d5d62 !important;
+    border: 1.5px solid var(--color-border-strong) !important;
     border-radius: 5px !important;
     box-shadow: none !important;
   }
 
   .operations-page-mobile :is(.operations-m-checkbox, .operations-linear-checkbox).is-checked {
-    color: #fff !important;
-    background: #287a58 !important;
-    border-color: #45ad7e !important;
+    color: var(--button-primary-text, #ffffff) !important;
+    background: var(--color-success) !important;
+    border-color: var(--color-success) !important;
   }
 
   .operations-page-mobile .operations-linear-checklist-badge,
@@ -483,7 +483,7 @@
 
   .operations-page-mobile .operations-linear-drawer {
     border-color: var(--operations-mobile-border) !important;
-    background: #141416 !important;
+    background: var(--color-window) !important;
   }
 
   .operations-page-mobile .operations-history-section {
@@ -526,7 +526,7 @@
 
   .operations-page-mobile .operations-panel-header > .button {
     min-height: 38px !important;
-    color: #fff !important;
+    color: var(--button-primary-text, #ffffff) !important;
     background: var(--operations-mobile-accent) !important;
     border-color: var(--operations-mobile-accent) !important;
     border-radius: 8px !important;
@@ -554,7 +554,7 @@
   .operations-page-mobile .quick-note-form > button {
     grid-column: 1 / -1 !important;
     min-height: 40px !important;
-    color: #fff !important;
+    color: var(--button-primary-text, #ffffff) !important;
   }
 
   .operations-page-mobile .operations-list {
@@ -584,7 +584,7 @@
   }
 
   .operations-page-mobile .operations-card-icon {
-    color: #c6c6ca !important;
+    color: var(--operations-mobile-muted) !important;
     background: var(--operations-mobile-field) !important;
     border-color: var(--operations-mobile-border) !important;
   }
@@ -609,14 +609,14 @@
   .operations-page-mobile .supply-actions button {
     width: 38px !important;
     height: 36px !important;
-    color: #d2d2d5 !important;
+    color: var(--operations-mobile-muted) !important;
     background: var(--operations-mobile-field) !important;
     border-color: var(--operations-mobile-border) !important;
   }
 
   .operations-page-mobile .supply-row.supply-low {
-    background: #1b1516 !important;
-    border-color: rgba(239, 56, 59, 0.35) !important;
+    background: var(--status-danger-bg) !important;
+    border-color: var(--status-danger-border) !important;
   }
 
   .operations-page-mobile .client-packages-list {
@@ -805,7 +805,7 @@
 
 .operations-mini-day-count-compact.is-debt {
   background: var(--color-accent) !important;
-  color: #ffffff !important;
+  color: var(--button-primary-text, #ffffff) !important;
   font-weight: 700 !important;
 }
 

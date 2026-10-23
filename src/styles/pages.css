@@ -1360,7 +1360,7 @@ button:focus-visible {
   display: block;
   height: 1px;
   margin: 6px 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--sidebar-divider, var(--color-border));
 }
 
 /* Unified page header */
@@ -1558,20 +1558,20 @@ button:focus-visible {
 }
 
 .theme-dark .page-header-collapsible-summary {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-border-strong);
+  background: var(--color-field);
 }
 
 .theme-dark .page-header-collapsible-body {
-  border-color: rgba(255, 255, 255, 0.12);
-  border-top-color: rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-border-strong);
+  border-top-color: var(--color-border-soft);
+  background: var(--color-field);
 }
 
 .theme-dark .page-header-collapsible-toggle,
 .theme-dark .page-header-collapsible-notifications .client-alert-button {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-border-strong);
+  background: var(--color-field);
   color: #b3bdcb;
 }
 
@@ -2189,8 +2189,8 @@ button:focus-visible {
   --packages-bg: var(--color-page);
   --packages-panel: var(--color-window);
   --packages-panel-soft: var(--color-card);
-  --packages-border: rgba(255, 255, 255, 0.04);
-  --packages-border-soft: rgba(255, 255, 255, 0.03);
+  --packages-border: var(--color-border);
+  --packages-border-soft: var(--color-border-soft);
   --packages-text: var(--color-text);
   --packages-muted: var(--color-text-muted);
   --packages-faint: var(--color-text-faint);
@@ -2293,7 +2293,7 @@ button:focus-visible {
 }
 
 .packages-page-tabs button.is-active {
-  color: var(--packages-text);
+  color: var(--button-primary-text);
   background: var(--packages-accent);
 }
 
@@ -2398,7 +2398,7 @@ button:focus-visible {
   overflow-x: hidden;
   overflow-y: auto;
   padding-right: 2px;
-  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+  scrollbar-color: var(--color-border-strong) transparent;
   scrollbar-width: thin;
 }
 
@@ -3897,7 +3897,7 @@ button:focus-visible {
   border: 1px solid color-mix(in srgb, var(--tier-badge-accent) 56%, var(--club-border));
   border-radius: 999px;
   padding: 4px 9px;
-  color: color-mix(in srgb, var(--tier-badge-accent) 88%, #fff);
+  color: color-mix(in srgb, var(--tier-badge-accent) 72%, var(--club-text));
   background: color-mix(in srgb, var(--tier-badge-accent) var(--tier-badge-bg-strength), var(--club-card));
   font-size: 10px;
   font-style: normal;
@@ -3912,28 +3912,26 @@ button:focus-visible {
 }
 
 .club-tier-badge.is-silver {
-  --tier-badge-accent: #f0f4f8;
+  --tier-badge-accent: var(--color-loyalty-silver, #94a3b8);
   --tier-badge-bg-strength: 20%;
 }
 
 .club-tier-badge.is-gold {
-  --tier-badge-accent: #f3c969;
+  --tier-badge-accent: var(--color-loyalty-gold, #d8ad4f);
   --tier-badge-bg-strength: 22%;
 }
 
 .club-tier-badge.is-diamond {
-  --tier-badge-accent: #9fe7ff;
+  --tier-badge-accent: var(--color-loyalty-diamond, #38bdf8);
   --tier-badge-bg-strength: 24%;
 }
 
 .club-tier-badge.is-royal {
-  --tier-badge-accent: #7c3aed;
-  --tier-badge-bg-strength: 30%;
-  border-color: color-mix(in srgb, #d7a46d 62%, #7c3aed);
-  color: #f1c986;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, #2a1238 88%, transparent), color-mix(in srgb, #13081f 92%, transparent)),
-    color-mix(in srgb, #7c3aed 18%, var(--club-card));
+  --tier-badge-accent: var(--color-loyalty-royalty, #7c3aed);
+  --tier-badge-bg-strength: 22%;
+  border-color: color-mix(in srgb, var(--color-loyalty-gold, #d7a46d) 52%, var(--color-loyalty-royalty, #7c3aed));
+  color: color-mix(in srgb, var(--color-loyalty-royalty, #7c3aed) 72%, var(--club-text));
+  background: color-mix(in srgb, var(--color-loyalty-royalty, #7c3aed) 18%, var(--club-card));
 }
 
 .club-physical-benefits {
@@ -4369,7 +4367,7 @@ button:focus-visible {
   aspect-ratio: 1.586 / 1;
   flex-direction: column;
   justify-content: space-between;
-  border: 1px solid color-mix(in srgb, var(--physical-accent) 42%, rgba(255, 255, 255, 0.12));
+  border: 1px solid color-mix(in srgb, var(--physical-accent) 42%, var(--color-border-strong));
   border-radius: 13px;
   padding: clamp(18px, 3.2vw, 32px);
   color: var(--club-text);
@@ -4850,7 +4848,7 @@ button:focus-visible {
   aspect-ratio: 1;
   min-width: 0;
   place-items: center;
-  border: 1.35px solid color-mix(in srgb, var(--physical-engrave) 82%, rgba(255, 255, 255, 0.1));
+  border: 1.35px solid color-mix(in srgb, var(--physical-engrave) 82%, var(--color-border));
   border-radius: 50%;
   color: var(--physical-engrave);
   background: rgba(0, 0, 0, 0.04);
@@ -4865,7 +4863,7 @@ button:focus-visible {
 .club-physical-stamps i.is-gift {
   aspect-ratio: 1;
   min-height: 0;
-  border-color: color-mix(in srgb, var(--physical-engrave) 86%, rgba(255, 255, 255, 0.14));
+  border-color: color-mix(in srgb, var(--physical-engrave) 86%, var(--color-border-strong));
   border-style: solid;
   border-width: 1.45px;
   border-radius: 50%;
@@ -4881,7 +4879,7 @@ button:focus-visible {
 }
 
 .club-physical-stamps i.is-filled {
-  background: color-mix(in srgb, var(--physical-accent) 72%, rgba(255, 255, 255, 0.04));
+  background: color-mix(in srgb, var(--physical-accent) 72%, var(--color-field));
   box-shadow: none;
 }
 
@@ -5027,8 +5025,8 @@ button:focus-visible {
 
 .club-error {
   padding: 10px 12px;
-  color: #fecaca;
-  background: rgba(127, 29, 29, 0.2);
+  color: var(--status-danger-text);
+  background: var(--status-danger-bg);
 }
 
 .club-layout {
@@ -5207,9 +5205,7 @@ button:focus-visible {
   place-items: center;
   border-radius: 999px;
   color: var(--club-text);
-  background:
-    radial-gradient(circle at 34% 20%, rgba(255, 255, 255, 0.12), transparent 42%),
-    color-mix(in srgb, var(--club-card) 88%, black 18%);
+  background: var(--club-card);
   font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.02em;
@@ -5314,13 +5310,13 @@ button:focus-visible {
 }
 
 .club-card-meta span.is-purple {
-  color: #d9b7ff;
-  background: color-mix(in srgb, #7c3aed 26%, var(--club-field));
+  color: var(--color-loyalty-royalty);
+  background: color-mix(in srgb, var(--color-loyalty-royalty) 16%, var(--club-field));
 }
 
 .club-card-meta span.is-green {
-  color: #9ee6b4;
-  background: color-mix(in srgb, #22c55e 22%, var(--club-field));
+  color: var(--status-success-text);
+  background: var(--status-success-bg);
 }
 
 .club-card-status span,
@@ -5351,8 +5347,8 @@ button:focus-visible {
 }
 
 .club-card-status span.is-active {
-  color: #9ee6b4;
-  background: color-mix(in srgb, #22c55e 18%, var(--club-field));
+  color: var(--status-success-text);
+  background: var(--status-success-bg);
 }
 
 .club-card-status span.is-archived {
@@ -5448,6 +5444,7 @@ button:focus-visible {
   color: var(--button-danger-text, var(--club-text));
 }
 
+
 .club-qr-modal-backdrop,
 .club-card-style-modal-backdrop {
   position: fixed;
@@ -5479,12 +5476,12 @@ button:focus-visible {
   display: grid;
   width: min(100%, 440px);
   gap: 16px;
-  border: 1px solid var(--color-border, #22262D);
+  border: 1px solid var(--club-border, var(--color-border));
   border-radius: 12px;
   padding: 20px;
-  color: var(--color-primary, #FFFFFF);
-  background: var(--color-surface, #0E1013);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  color: var(--club-text, var(--color-text));
+  background: var(--club-panel, var(--color-window));
+  box-shadow: var(--shadow-modal);
 }
 
 .club-adjust-modal-head {
@@ -5517,10 +5514,10 @@ button:focus-visible {
 .club-adjust-field input,
 .club-adjust-field textarea,
 .club-adjust-field select {
-  border: 1px solid var(--color-secondary-border, #272B31) !important;
+  border: 1px solid var(--club-border, var(--color-border)) !important;
   border-radius: 8px;
-  color: var(--color-primary, #FFFFFF) !important;
-  background: var(--color-secondary-bg, #15171A) !important;
+  color: var(--club-text, var(--color-text)) !important;
+  background: var(--club-field, var(--color-field)) !important;
   font: inherit;
   outline: none;
   transition: all 0.2s ease;
@@ -5529,9 +5526,9 @@ button:focus-visible {
 .club-adjust-field input:focus,
 .club-adjust-field textarea:focus,
 .club-adjust-field select:focus {
-  border-color: var(--color-accent, #B91C1C) !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent, #B91C1C) 25%, transparent) !important;
-  background: var(--color-surface, #0E1013) !important;
+  border-color: var(--club-accent, var(--color-accent)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--club-accent, var(--color-accent)) 25%, transparent) !important;
+  background: var(--club-panel, var(--color-window)) !important;
 }
 
 .club-adjust-modal button {
@@ -5750,10 +5747,7 @@ button:focus-visible {
   gap: 14px 20px;
   overflow: visible;
   padding: 14px;
-  background:
-    radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.045), transparent 34%),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  background: var(--club-panel);
 }
 
 .club-details::-webkit-scrollbar {
@@ -5785,7 +5779,7 @@ button:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #f8fafc;
+  color: var(--club-text);
   font-size: 18px;
   font-weight: 900;
 }
@@ -5866,9 +5860,7 @@ button:focus-visible {
   border: 1px solid var(--club-border);
   border-radius: 8px;
   padding: 8px 10px;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.04), transparent 42%),
-    rgba(255, 255, 255, 0.026);
+  background: var(--club-field);
 }
 
 .club-details-grid small {
@@ -5883,7 +5875,7 @@ button:focus-visible {
 
 .club-details-grid b {
   overflow: hidden;
-  color: #f8fafc;
+  color: var(--club-text);
   font-size: 12px;
   line-height: 1.1;
   text-overflow: ellipsis;
@@ -5913,9 +5905,7 @@ button:focus-visible {
 
 .club-card-settings select {
   height: 38px;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.04), transparent 42%),
-    rgba(255, 255, 255, 0.026);
+  background: var(--club-field);
 }
 
 .club-card-settings button {
@@ -5947,15 +5937,13 @@ button:focus-visible {
   border-radius: 8px;
   padding: 0;
   color: var(--club-text);
-  background:
-    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.05), transparent 42%),
-    rgba(255, 255, 255, 0.028);
+  background: var(--club-field);
   text-decoration: none;
 }
 
 .club-link-actions :is(button, a).is-active {
   border-color: color-mix(in srgb, var(--club-accent) 60%, var(--club-border));
-  color: #fff;
+  color: var(--club-accent);
   background: color-mix(in srgb, var(--club-accent) 18%, var(--club-card));
 }
 
@@ -5992,13 +5980,12 @@ button:focus-visible {
   color: color-mix(in srgb, var(--club-text) 72%, var(--club-muted));
   font-size: 10px;
   line-height: 1;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.045), transparent 42%),
-    rgba(255, 255, 255, 0.026);
+  background: var(--club-field);
 }
 
 .club-details-actions button:first-child {
-  color: #fff;
+  color: var(--button-primary-text, #ffffff);
+  background: var(--club-accent);
 }
 
 .club-details-actions button svg,
@@ -6016,9 +6003,9 @@ button:focus-visible {
 }
 
 .club-details-actions button.is-danger {
-  border-color: rgba(248, 113, 113, 0.28);
-  color: #fecaca;
-  background: rgba(127, 29, 29, 0.2);
+  border-color: var(--status-danger-border);
+  color: var(--status-danger-text);
+  background: var(--status-danger-bg);
 }
 
 .club-transactions {
@@ -6323,7 +6310,7 @@ button:focus-visible {
     justify-content: space-between;
     padding: 10px 12px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--club-field);
     border: 1px solid var(--club-border);
   }
 
@@ -6338,7 +6325,7 @@ button:focus-visible {
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--club-card);
     border: 1px solid var(--club-border);
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
@@ -6380,8 +6367,8 @@ button:focus-visible {
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 6px;
-    background: rgba(34, 197, 94, 0.1);
-    color: rgb(34, 197, 94);
+    background: var(--status-success-bg);
+    color: var(--status-success-text);
   }
 
   .club-mobile-card-meta .status-archived {
@@ -6389,8 +6376,8 @@ button:focus-visible {
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 6px;
-    background: rgba(239, 68, 68, 0.1);
-    color: rgb(239, 68, 68);
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
   }
 
   .club-mobile-card-meta-right {
@@ -6411,17 +6398,17 @@ button:focus-visible {
   }
 
   .club-mobile-gift-badge.is-unopened {
-    background: rgba(168, 85, 247, 0.1);
-    color: rgb(168, 85, 247);
+    background: var(--loyalty-badge-bg, rgba(168, 85, 247, 0.1));
+    color: var(--loyalty-text, rgb(168, 85, 247));
   }
 
   .club-mobile-gift-badge.is-opened {
-    background: rgba(34, 197, 94, 0.1);
-    color: rgb(34, 197, 94);
+    background: var(--status-success-bg);
+    color: var(--status-success-text);
   }
 
   .club-mobile-card-lang select {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--club-field);
     border: 1px solid var(--club-border);
     border-radius: 6px;
     color: var(--club-text);
@@ -6639,7 +6626,7 @@ button:focus-visible {
   gap: 18px;
   width: min(100%, 390px);
   padding: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--color-border);
   border-radius: 18px;
   background: rgba(13, 15, 18, 0.92);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
@@ -6688,9 +6675,9 @@ button:focus-visible {
   display: grid;
   gap: 4px;
   padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--color-field);
 }
 
 .public-loyalty-person strong {
@@ -6704,7 +6691,7 @@ button:focus-visible {
   height: 156px;
   place-items: center;
   justify-self: center;
-  border: 12px solid rgba(255, 255, 255, 0.1);
+  border: 12px solid var(--color-border);
   border-top-color: #d51f1f;
   border-right-color: rgba(213, 31, 31, 0.82);
   border-radius: 999px;
@@ -6731,7 +6718,7 @@ button:focus-visible {
   height: 9px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-field-hover);
 }
 
 .public-loyalty-progress span {
@@ -6780,10 +6767,10 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   color: #fff;
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--color-field);
   font-size: 14px;
   font-weight: 850;
   text-decoration: none;
@@ -7402,7 +7389,7 @@ button:focus-visible {
 }
 
 .operations-detail-checklist label:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-field-hover);
 }
 
 .operations-detail-checklist input[type="checkbox"] {
@@ -11451,8 +11438,8 @@ button:focus-visible {
 .theme-dark .day-close-breakdown li,
 .theme-dark .day-close-variance,
 .theme-dark .day-close-history button {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--color-border);
+  background: var(--color-field);
 }
 
 .theme-dark .day-close-status.is-closed {
@@ -12035,7 +12022,7 @@ button:focus-visible {
 .theme-dark .payroll-table th,
 .theme-dark .payroll-table td,
 .theme-dark .payroll-history button {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--color-border);
 }
 
 .theme-dark .payroll-history button {

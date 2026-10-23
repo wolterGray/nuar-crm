@@ -22,7 +22,7 @@
 }
 
 .nuar-import .import-summary-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.12));
 }
 
 .nuar-import .import-documents-panel {
@@ -111,7 +111,7 @@
 }
 
 .nuar-import .import-document-card:hover {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.14));
 }
 
 /* ========================================================
@@ -139,7 +139,7 @@
   .mobile-page-container[data-mobile-page="import"] .import-page-header h1 {
     font-size: 22px !important;
     font-weight: 700 !important;
-    color: #ffffff !important;
+    color: var(--import-text) !important;
     letter-spacing: -0.01em !important;
     display: flex !important;
     align-items: center !important;
@@ -193,14 +193,14 @@
     background: var(--import-field) !important;
     box-shadow: none !important;
     overflow: visible !important;
-    color: #ffffff !important;
+    color: var(--import-text) !important;
   }
 
   .nuar-import .import-page-header .client-alert-button svg,
   .mobile-page-container[data-mobile-page="import"] .client-alert-button svg {
     width: 19px !important;
     height: 19px !important;
-    color: #ffffff !important;
+    color: var(--import-text) !important;
   }
 
   .nuar-import .import-page-header .client-alert-button b,
@@ -215,7 +215,7 @@
     padding: 0 5px !important;
     border-radius: 999px !important;
     background: var(--import-accent) !important;
-    color: #ffffff !important;
+    color: var(--button-primary-text, #ffffff) !important;
     font-size: 10px !important;
     font-weight: 700 !important;
     line-height: 18px !important;
@@ -246,7 +246,7 @@
   .nuar-import .import-sync-panel h2 {
     font-size: 14px !important;
     font-weight: 600 !important;
-    color: #ffffff !important;
+    color: var(--import-text) !important;
   }
 
   .nuar-import .import-sync-panel p,
@@ -288,7 +288,7 @@
   .nuar-import .import-summary-card strong {
     font-size: 18px !important;
     font-weight: 700 !important;
-    color: #ffffff !important;
+    color: var(--import-text) !important;
     letter-spacing: -0.02em !important;
     margin-top: 2px !important;
   }
@@ -322,7 +322,7 @@
     background: var(--import-field) !important;
     border: 1px solid var(--import-border) !important;
     border-radius: 9px !important;
-    color: #ffffff !important;
+    color: var(--import-text) !important;
     font-size: 13px !important;
   }
 
@@ -352,7 +352,7 @@
     background: var(--import-field) !important;
     border: 1px solid var(--import-border) !important;
     border-radius: 8px !important;
-    color: #ffffff !important;
+    color: var(--import-text) !important;
   }
 
   .nuar-import .import-select-arrow {

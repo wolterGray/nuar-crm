@@ -5,17 +5,17 @@
    ========================================================================== */
 
 .nuar-packages {
-  --pkg-surface: var(--color-window, #141416);
-  --pkg-surface-raised: var(--color-card-muted, #1b1b1e);
-  --pkg-field: var(--color-field, rgba(255, 255, 255, 0.04));
-  --pkg-border: var(--color-border, rgba(255, 255, 255, 0.07));
-  --pkg-border-soft: var(--color-border-soft, rgba(255, 255, 255, 0.045));
-  --pkg-border-strong: var(--color-border-strong, rgba(255, 255, 255, 0.14));
-  --pkg-accent: var(--color-primary, #e11d2e);
-  --pkg-accent-soft: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
-  --pkg-text: var(--color-text, #ffffff);
-  --pkg-muted: var(--color-text-muted, #a4a4ac);
-  --pkg-faint: var(--color-text-faint, #7f7f86);
+  --pkg-surface: var(--color-window);
+  --pkg-surface-raised: var(--color-card-muted);
+  --pkg-field: var(--color-field);
+  --pkg-border: var(--color-border);
+  --pkg-border-soft: var(--color-border-soft);
+  --pkg-border-strong: var(--color-border-strong);
+  --pkg-accent: var(--color-primary);
+  --pkg-accent-soft: var(--color-accent-soft);
+  --pkg-text: var(--color-text);
+  --pkg-muted: var(--color-text-muted);
+  --pkg-faint: var(--color-text-faint);
 
   display: flex !important;
   flex-direction: column !important;
@@ -87,7 +87,7 @@
   align-items: center !important;
   gap: 3px !important;
   padding: 3px !important;
-  border-radius: var(--radius-control, 10px) !important;
+  border-radius: var(--radius-control) !important;
   background: var(--pkg-field) !important;
   border: 1px solid var(--pkg-border) !important;
   max-width: 100% !important;
@@ -113,14 +113,14 @@
 
 .nuar-packages .packages-tab-btn:hover {
   color: var(--pkg-text) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  background: var(--color-field-hover) !important;
 }
 
 .nuar-packages .packages-tab-btn.is-active {
   color: var(--pkg-text) !important;
   background: var(--pkg-surface-raised) !important;
   border-color: var(--pkg-border-strong) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: var(--shadow-card) !important;
   font-weight: 700 !important;
 }
 
@@ -132,7 +132,7 @@
   height: 18px !important;
   padding: 0 5px !important;
   border-radius: 999px !important;
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: var(--color-field-active) !important;
   color: var(--pkg-muted) !important;
   font-size: 10.5px !important;
   font-weight: 700 !important;
@@ -151,7 +151,7 @@
   align-items: center !important;
   gap: 3px !important;
   padding: 3px !important;
-  border-radius: var(--radius-control, 10px) !important;
+  border-radius: var(--radius-control) !important;
   background: var(--pkg-field) !important;
   border: 1px solid var(--pkg-border) !important;
 }
@@ -180,7 +180,7 @@
 .nuar-packages .packages-subfilter-btn.is-active {
   color: var(--pkg-accent) !important;
   background: var(--pkg-accent-soft) !important;
-  border-color: rgba(225, 29, 46, 0.3) !important;
+  border-color: color-mix(in srgb, var(--pkg-accent) 30%, transparent) !important;
   font-weight: 700 !important;
 }
 
@@ -193,7 +193,7 @@
 
 .nuar-packages .packages-page-search {
   min-height: 38px !important;
-  border-radius: var(--radius-control, 10px) !important;
+  border-radius: var(--radius-control) !important;
   background: var(--pkg-field) !important;
   border: 1px solid var(--pkg-border) !important;
 }
@@ -214,7 +214,7 @@
   gap: 10px !important;
   min-height: 64px !important;
   padding: 10px 14px !important;
-  border-radius: var(--radius-card, 14px) !important;
+  border-radius: var(--radius-card) !important;
   background: var(--pkg-surface) !important;
   border: 1px solid var(--pkg-border) !important;
   transition: border-color 150ms ease, background 150ms ease, transform 150ms ease !important;
@@ -247,23 +247,23 @@
 }
 
 .nuar-packages .packages-summary-card[data-tone="success"] .packages-summary-icon {
-  background: rgba(111, 207, 151, 0.12) !important;
-  color: var(--color-success, #6fcf97) !important;
+  background: var(--status-success-bg) !important;
+  color: var(--color-success) !important;
 }
 
 .nuar-packages .packages-summary-card[data-tone="info"] .packages-summary-icon {
-  background: rgba(192, 132, 252, 0.12) !important;
-  color: #c084fc !important;
+  background: color-mix(in srgb, var(--color-chart-package) 14%, transparent) !important;
+  color: var(--color-chart-package) !important;
 }
 
 .nuar-packages .packages-summary-card[data-tone="warning"] .packages-summary-icon {
-  background: rgba(224, 164, 58, 0.12) !important;
-  color: var(--color-warning, #e0a43a) !important;
+  background: var(--status-warning-bg) !important;
+  color: var(--color-warning) !important;
 }
 
 .nuar-packages .packages-summary-card[data-tone="cyan"] .packages-summary-icon {
-  background: rgba(56, 189, 248, 0.12) !important;
-  color: var(--color-info, #38bdf8) !important;
+  background: color-mix(in srgb, var(--color-info) 14%, transparent) !important;
+  color: var(--color-info) !important;
 }
 
 .nuar-packages .packages-summary-copy {
@@ -387,7 +387,7 @@
   min-width: 0 !important;
   height: auto !important;
   padding: 14px 16px !important;
-  border-radius: var(--radius-card, 14px) !important;
+  border-radius: var(--radius-card) !important;
   background: var(--pkg-surface) !important;
   border: 1px solid var(--pkg-border) !important;
   box-sizing: border-box !important;
@@ -397,7 +397,7 @@
 
 .nuar-packages .package-card:hover {
   border-color: var(--pkg-border-strong) !important;
-  background: color-mix(in srgb, var(--pkg-surface) 95%, #ffffff) !important;
+  background: color-mix(in srgb, var(--pkg-surface) 88%, var(--pkg-surface-raised)) !important;
 }
 
 .nuar-packages .package-card.is-archived {
@@ -428,7 +428,7 @@
   margin: 0 !important;
 }
 
-/* Client Name / Title: Always readable, contrasting white text */
+/* Client Name / Title: Always readable, contrasting text */
 .nuar-packages .package-card-client-name {
   display: flex !important;
   align-items: center !important;
@@ -562,7 +562,7 @@
   width: 100% !important;
   height: 5px !important;
   border-radius: 999px !important;
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: var(--color-field-active) !important;
   overflow: hidden !important;
 }
 
@@ -632,7 +632,7 @@
 .nuar-packages .package-status-pill.is-active {
   background: var(--pkg-accent-soft) !important;
   color: var(--pkg-accent) !important;
-  border-color: rgba(225, 29, 46, 0.35) !important;
+  border-color: color-mix(in srgb, var(--pkg-accent) 35%, transparent) !important;
 }
 
 /* Template Card Meta */

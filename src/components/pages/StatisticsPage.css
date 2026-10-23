@@ -1,17 +1,17 @@
 /* NUAR CRM - Statistics Page Styling */
 
 .statistics-page {
-  --stat-bg: var(--color-page, #0a0a0a);
-  --stat-surface: var(--color-surface, #141416);
-  --stat-surface-2: var(--color-surface-soft, #1b1b1e);
-  --stat-field: var(--color-field, rgba(255, 255, 255, 0.04));
-  --stat-border: var(--color-border, rgba(255, 255, 255, 0.07));
-  --stat-border-soft: var(--color-border-soft, rgba(255, 255, 255, 0.045));
-  --stat-text: var(--color-text, #ffffff);
-  --stat-muted: var(--color-text-muted, #a4a4ac);
-  --stat-faint: var(--color-text-faint, #7f7f86);
-  --stat-accent: var(--color-accent, #e11d2e);
-  --stat-accent-soft: var(--color-accent-soft, rgba(225, 29, 46, 0.12));
+  --stat-bg: var(--color-page);
+  --stat-surface: var(--color-window);
+  --stat-surface-2: var(--color-card-muted);
+  --stat-field: var(--color-field);
+  --stat-border: var(--color-border);
+  --stat-border-soft: var(--color-border-soft);
+  --stat-text: var(--color-text);
+  --stat-muted: var(--color-text-muted);
+  --stat-faint: var(--color-text-faint);
+  --stat-accent: var(--color-accent);
+  --stat-accent-soft: var(--color-accent-soft);
 }
 
 /* ========================================================
@@ -55,7 +55,7 @@
     height: 38px !important;
     min-height: 38px !important;
     padding: 0 12px !important;
-    color: #ffffff !important;
+    color: var(--stat-text) !important;
     background: var(--stat-field) !important;
     border: 1px solid var(--stat-border) !important;
     border-radius: 9px !important;
@@ -97,13 +97,13 @@
     background: var(--stat-field) !important;
     box-shadow: none !important;
     overflow: visible !important;
-    color: #ffffff !important;
+    color: var(--stat-text) !important;
   }
 
   .statistics-page-mobile .statistics-mobile-header-actions .client-alert-button svg {
     width: 18px !important;
     height: 18px !important;
-    color: #ffffff !important;
+    color: var(--stat-text) !important;
   }
 
   .statistics-page-mobile .statistics-mobile-header-actions .client-alert-button b,
@@ -116,7 +116,7 @@
     padding: 0 5px !important;
     border-radius: 999px !important;
     background: var(--stat-accent) !important;
-    color: #ffffff !important;
+    color: var(--button-primary-text, #ffffff) !important;
     font-size: 10px !important;
     font-weight: 700 !important;
     line-height: 18px !important;
@@ -147,7 +147,7 @@
   }
 
   .statistics-page-mobile .statistics-mobile-overview strong {
-    color: #ffffff !important;
+    color: var(--stat-text) !important;
     font-size: 28px !important;
     letter-spacing: -0.02em !important;
   }
@@ -181,8 +181,8 @@
 
   .statistics-page-mobile .statistics-mobile-periods button.statistics-filter-btn-active {
     background: var(--stat-accent-soft) !important;
-    border-color: rgba(225, 29, 46, 0.45) !important;
-    color: #ffffff !important;
+    border-color: color-mix(in srgb, var(--stat-accent) 45%, transparent) !important;
+    color: var(--stat-text) !important;
     font-weight: 600 !important;
   }
 
@@ -204,7 +204,7 @@
     height: 38px !important;
     min-height: 38px !important;
     padding-inline: 10px !important;
-    color: #ffffff !important;
+    color: var(--stat-text) !important;
     background: var(--stat-field) !important;
     border: 1px solid var(--stat-border) !important;
     border-radius: 8px !important;
@@ -242,7 +242,7 @@
   }
 
   .statistics-page-mobile .statistics-mobile-kpi-card > strong {
-    color: #ffffff !important;
+    color: var(--stat-text) !important;
     font-size: 17px !important;
     font-weight: 700 !important;
     letter-spacing: -0.01em !important;
