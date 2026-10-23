@@ -197,6 +197,34 @@ export const parseEmployeePricingFromForm = (form, editingEmployee = null) => {
     Math.min(100, Number(form.get("siteDiscountPercent")) || 0),
   );
   const premiumHoursEnabled = form.get("premiumHoursEnabled") === "on";
+  const hasPerDayRules = form.get("premiumRulesMode") === "per-day";
+
+  if (hasPerDayRules) {
+    const premiumHoursRules = WEEKDAY_OPTIONS.flatMap((day) => {
+      if (form.get(`premiumRuleEnabled_${day.value}`) !== "on") {
+        return [];
+      }
+
+      return [
+        buildPremiumHoursRule({
+          daysOfWeek: [day.value],
+          enabled: true,
+          endTime: String(form.get(`premiumRuleEnd_${day.value}`) || "22:00"),
+          id: `premium-day-${day.value}`,
+          label: day.fullLabel,
+          percent: Number(form.get(`premiumRulePercent_${day.value}`)) || 0,
+          startTime: String(form.get(`premiumRuleStart_${day.value}`) || "17:00"),
+        }),
+      ];
+    });
+
+    return {
+      premiumHoursEnabled,
+      premiumHoursRules: normalizePremiumHoursRules(premiumHoursRules),
+      siteDiscountPercent,
+    };
+  }
+
   const premiumDays = form
     .getAll("premiumHoursDays")
     .map(Number)

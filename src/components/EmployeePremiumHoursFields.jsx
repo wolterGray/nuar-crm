@@ -1,15 +1,43 @@
-import {useState} from "react";
-import {WEEKDAY_OPTIONS, buildPremiumHoursRule} from "../utils/siteBookingPricing.js";
-import FormCheckbox from "./FormCheckbox.jsx";
+import {useMemo, useState} from "react";
+import {WEEKDAY_OPTIONS, normalizePremiumHoursRules} from "../utils/siteBookingPricing.js";
 import HintIcon, {FieldLabel} from "./HintIcon.jsx";
 import {Input} from "./ui/index.js";
 
+const getRulesByDay = (employee) => {
+  const rules = normalizePremiumHoursRules(employee?.premiumHoursRules);
+
+  return Object.fromEntries(
+    WEEKDAY_OPTIONS.map((day) => {
+      const matchingRules = rules
+        .filter((rule) => rule.enabled && rule.daysOfWeek.includes(day.value))
+        .sort((first, second) => second.percent - first.percent);
+      return [
+        day.value,
+        matchingRules[0] ?? {
+          enabled: false,
+          endTime: "22:00",
+          percent: 15,
+          startTime: "17:00",
+        },
+      ];
+    }),
+  );
+};
+
 function EmployeePremiumHoursFields({employee}) {
-  const firstRule = employee?.premiumHoursRules?.[0] ?? buildPremiumHoursRule();
-  const selectedDays = new Set(firstRule.daysOfWeek ?? []);
+  const rulesByDay = useMemo(() => getRulesByDay(employee), [employee]);
   const [premiumHoursEnabled, setPremiumHoursEnabled] = useState(
     employee?.premiumHoursEnabled ?? false,
   );
+  const [enabledDays, setEnabledDays] = useState(() =>
+    Object.fromEntries(
+      WEEKDAY_OPTIONS.map((day) => [day.value, Boolean(rulesByDay[day.value]?.enabled)]),
+    ),
+  );
+
+  const toggleDay = (day, enabled) => {
+    setEnabledDays((current) => ({...current, [day]: enabled}));
+  };
 
   return (
     <div className="employee-pricing-panel">
@@ -48,75 +76,88 @@ function EmployeePremiumHoursFields({employee}) {
             <span className="labeled-hint-row labeled-hint-row-nowrap">
               Премиум-часы
               <HintIcon>
-                Дополнительная наценка, если клиент записывается через сайт в
-                выбранные дни и время (например, у Ольги вечером в выходные).
+                Для каждого дня можно отдельно настроить время и процент наценки.
               </HintIcon>
             </span>
           </strong>
           <small>
             {premiumHoursEnabled
-              ? "Наценка активна для выбранных часов."
+              ? "Настройте дни и часы действия наценки."
               : "Выключены"}
           </small>
         </span>
       </label>
       {premiumHoursEnabled ? (
-        <div className="employee-premium-fields">
-          <div className="employee-premium-rule-grid">
-            <label>
-              <FieldLabel hint="Сколько добавить к цене после скидки мастера.">
-                Наценка, %
-              </FieldLabel>
-              <Input
-                min="0"
-                name="premiumHoursPercent"
-                type="number"
-                defaultValue={firstRule.percent ?? 15}
-              />
-            </label>
-            <label>
-              <FieldLabel hint="Начало интервала.">С</FieldLabel>
-              <Input
-                defaultValue={firstRule.startTime ?? "17:00"}
-                name="premiumHoursStart"
-                type="time"
-              />
-            </label>
-            <label>
-              <FieldLabel hint="Конец интервала, не включая это время.">До</FieldLabel>
-              <Input
-                defaultValue={firstRule.endTime ?? "22:00"}
-                name="premiumHoursEnd"
-                type="time"
-              />
-            </label>
-          </div>
-          <fieldset className="employee-premium-days">
-            <legend>
-              <span className="labeled-hint-row labeled-hint-row-nowrap">
-                Дни, когда действует наценка
-                <HintIcon>
-                  Отметьте дни недели, в которые сайт должен повысить цену, если клиент
-                  выбрал время между «С» и «До». Пример: пятница–воскресенье, 17:00–22:00
-                  дает +15% к стоимости массажа при записи онлайн.
-                </HintIcon>
-              </span>
-            </legend>
-            <div className="employee-premium-days-grid">
-              {WEEKDAY_OPTIONS.map((day) => (
-                <FormCheckbox
-                  className="employee-premium-day-option"
-                  defaultChecked={selectedDays.has(day.value)}
+        <fieldset className="employee-premium-days employee-premium-schedule">
+          <input name="premiumRulesMode" type="hidden" value="per-day" />
+          <legend>
+            <span className="labeled-hint-row labeled-hint-row-nowrap">
+              Расписание премиум-часов
+              <HintIcon>
+                Включите нужный день и задайте его наценку и интервал. Например,
+                суббота 18:00–22:00 +20%, воскресенье 12:00–20:00 +30%.
+              </HintIcon>
+            </span>
+          </legend>
+          <div className="employee-premium-schedule-list">
+            {WEEKDAY_OPTIONS.map((day) => {
+              const rule = rulesByDay[day.value];
+              const dayEnabled = Boolean(enabledDays[day.value]);
+
+              return (
+                <div
+                  className={`employee-premium-schedule-row${dayEnabled ? " is-enabled" : ""}`}
                   key={day.value}
-                  labelClassName="employee-premium-day-label"
-                  name="premiumHoursDays"
-                  value={day.value}>
-                  {day.fullLabel}
-                </FormCheckbox>
-              ))}
-            </div>
-          </fieldset>
-        </div>
+                >
+                  <label className="employee-premium-day-toggle">
+                    <input
+                      checked={dayEnabled}
+                      className="employee-day-toggle-input"
+                      name={`premiumRuleEnabled_${day.value}`}
+                      type="checkbox"
+                      onChange={(event) => toggleDay(day.value, event.target.checked)}
+                    />
+                    <span className="employee-day-switch" aria-hidden="true" />
+                    <span>{day.fullLabel}</span>
+                  </label>
+                  <div className="employee-premium-day-fields">
+                    <label>
+                      <small>Наценка, %</small>
+                      <Input
+                        aria-label={`${day.fullLabel}: наценка`}
+                        defaultValue={rule.percent ?? 15}
+                        disabled={!dayEnabled}
+                        min="0"
+                        name={`premiumRulePercent_${day.value}`}
+                        type="number"
+                      />
+                    </label>
+                    <label>
+                      <small>С</small>
+                      <Input
+                        aria-label={`${day.fullLabel}: начало премиум-часов`}
+                        defaultValue={rule.startTime ?? "17:00"}
+                        disabled={!dayEnabled}
+                        name={`premiumRuleStart_${day.value}`}
+                        type="time"
+                      />
+                    </label>
+                    <label>
+                      <small>До</small>
+                      <Input
+                        aria-label={`${day.fullLabel}: конец премиум-часов`}
+                        defaultValue={rule.endTime ?? "22:00"}
+                        disabled={!dayEnabled}
+                        name={`premiumRuleEnd_${day.value}`}
+                        type="time"
+                      />
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </fieldset>
       ) : null}
     </div>
   );

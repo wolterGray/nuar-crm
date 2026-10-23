@@ -11590,6 +11590,78 @@
   margin-top: 0;
 }
 
+.employee-premium-schedule {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.employee-premium-schedule-list {
+  display: grid;
+  gap: 8px;
+}
+
+.employee-premium-schedule-row {
+  display: grid;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-window);
+}
+
+.employee-premium-schedule-row.is-enabled {
+  border-color: color-mix(in srgb, var(--color-primary) 38%, var(--color-border));
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-window));
+}
+
+.employee-premium-day-toggle {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.employee-premium-day-toggle > input {
+  position: absolute;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.employee-premium-day-fields {
+  display: grid;
+  grid-template-columns: minmax(74px, 0.75fr) repeat(2, minmax(88px, 1fr));
+  gap: 7px;
+  min-width: 0;
+}
+
+.employee-modal.employee-form-modal .employee-premium-day-fields label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.employee-premium-day-fields small {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.employee-modal.employee-form-modal .employee-premium-day-fields input {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 8px;
+}
+
 /* Operations planner v2 */
 .operations-page.operations-workspace {
   --operations-radius: 8px;

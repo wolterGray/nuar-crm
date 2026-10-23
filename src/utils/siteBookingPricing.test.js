@@ -120,6 +120,43 @@ describe("getPremiumPercentForSlot", () => {
       ),
     ).toBe(20);
   });
+
+  it("uses separate premium schedules for Saturday and Sunday", () => {
+    const employee = {
+      ...olgaEmployee,
+      premiumHoursRules: [
+        {
+          daysOfWeek: [6],
+          enabled: true,
+          endTime: "22:00",
+          percent: 20,
+          startTime: "18:00",
+        },
+        {
+          daysOfWeek: [0],
+          enabled: true,
+          endTime: "20:00",
+          percent: 30,
+          startTime: "12:00",
+        },
+      ],
+    };
+
+    expect(
+      getPremiumPercentForSlot(employee, {
+        date: "2026-06-13",
+        durationMinutes: 60,
+        time: "18:30",
+      }),
+    ).toBe(20);
+    expect(
+      getPremiumPercentForSlot(employee, {
+        date: "2026-06-14",
+        durationMinutes: 60,
+        time: "18:30",
+      }),
+    ).toBe(30);
+  });
 });
 
 describe("attachPricingToSlots", () => {
@@ -173,5 +210,37 @@ describe("parseEmployeePricingFromForm", () => {
     expect(parsed.premiumHoursEnabled).toBe(true);
     expect(parsed.premiumHoursRules[0].percent).toBe(20);
     expect(parsed.premiumHoursRules[0].daysOfWeek).toEqual([5, 6]);
+  });
+
+  it("stores separate premium hours for individual weekdays", () => {
+    const form = new FormData();
+    form.set("siteDiscountPercent", "0");
+    form.set("premiumHoursEnabled", "on");
+    form.set("premiumRulesMode", "per-day");
+    form.set("premiumRuleEnabled_6", "on");
+    form.set("premiumRulePercent_6", "20");
+    form.set("premiumRuleStart_6", "18:00");
+    form.set("premiumRuleEnd_6", "22:00");
+    form.set("premiumRuleEnabled_0", "on");
+    form.set("premiumRulePercent_0", "30");
+    form.set("premiumRuleStart_0", "12:00");
+    form.set("premiumRuleEnd_0", "20:00");
+
+    const parsed = parseEmployeePricingFromForm(form);
+
+    expect(parsed.premiumHoursRules).toEqual([
+      expect.objectContaining({
+        daysOfWeek: [6],
+        endTime: "22:00",
+        percent: 20,
+        startTime: "18:00",
+      }),
+      expect.objectContaining({
+        daysOfWeek: [0],
+        endTime: "20:00",
+        percent: 30,
+        startTime: "12:00",
+      }),
+    ]);
   });
 });
