@@ -8,6 +8,7 @@ import {
   parseWaitlistEntryDetails,
 } from "../utils/waitlist.js";
 import {AppIcon, Badge, Button, IconButton} from "./ui/index.js";
+import {formatMoney} from "../utils/formatters.jsx";
 
 export default function WaitlistDetailDrawer({
   clientProfiles = [],
@@ -302,6 +303,20 @@ export default function WaitlistDetailDrawer({
                   </span>
                 </div>
               </div>
+
+              {details.bookedPrice ? (
+                <div className="waitlist-param-item">
+                  <div className="waitlist-param-icon">
+                    <AppIcon name="banknote" size="sm" />
+                  </div>
+                  <div className="waitlist-param-content">
+                    <span className="waitlist-param-label">Цена при бронировании</span>
+                    <span className="waitlist-param-value font-medium">
+                      {formatMoney(details.bookedPrice)}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="waitlist-param-item">
                 <div className="waitlist-param-icon">

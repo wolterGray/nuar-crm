@@ -11,6 +11,7 @@ import {
   isWaitlistEntryDeleted,
   parseWaitlistEntryDetails,
 } from "../utils/waitlist.js";
+import {formatMoney} from "../utils/formatters.jsx";
 
 const WaitlistCard = memo(function WaitlistCard({
   clientProfiles,
@@ -113,6 +114,14 @@ const WaitlistCard = memo(function WaitlistCard({
             Услуга: <strong>{details.preferredService || "Любая"}</strong>
           </span>
         </span>
+        {details.bookedPrice ? (
+          <span className="waitlist-chip waitlist-chip-price">
+            <AppIcon className="waitlist-chip-icon" name="banknote" size="xs" />
+            <span>
+              Цена: <strong>{formatMoney(details.bookedPrice)}</strong>
+            </span>
+          </span>
+        ) : null}
         <span className="waitlist-chip">
           <AppIcon className="waitlist-chip-icon" name="clock" size="xs" />
           <span>{details.durationMinutes} мин</span>

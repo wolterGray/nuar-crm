@@ -104,6 +104,7 @@ describe("waitlist", () => {
         source: "site-booking",
         clientPhone: "+48452402306",
         clientEmail: "nuar.contact@gmail.com",
+        bookedPrice: 310,
         durationMinutes: 75,
         siteBookingRequestId: "6bbc321a-a163-470a-b558-25cf19ba370e",
       },
@@ -123,6 +124,7 @@ describe("waitlist", () => {
     expect(parsed.siteBookingRequestId).toBe("6bbc321a-a163-470a-b558-25cf19ba370e");
     expect(parsed.source).toBe("site");
     expect(parsed.durationMinutes).toBe(75);
+    expect(parsed.bookedPrice).toBe(310);
     expect(parsed.isActive).toBe(true);
     expect(parsed.isDeleted).toBe(false);
   });

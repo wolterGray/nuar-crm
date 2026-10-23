@@ -670,9 +670,15 @@ const createSiteBookingWaitlistEntry = (tx, booking) => {
       clientName: booking.clientName,
       note: contactLines.join('\n'),
       payload: {
+        basePrice: booking.basePrice,
+        bookedPrice: booking.finalPrice,
         clientEmail: booking.clientEmail || null,
         clientPhone: booking.clientPhone,
+        discountAmount: booking.discountAmount,
+        discountPercent: booking.discountPercent,
         durationMinutes: booking.durationMinutes,
+        premiumAmount: booking.premiumAmount,
+        premiumPercent: booking.premiumPercent,
         source: 'site-booking',
         siteBookingRequestId: booking.id,
       },
@@ -694,6 +700,7 @@ const createSiteBookingNotification = (tx, booking, waitlistEntry) =>
     entityType: 'site_booking_request',
     fingerprint: `site-booking:${booking.id}`,
     payload: {
+      bookedPrice: booking.finalPrice,
       durationMinutes: booking.durationMinutes,
       preferredDate: booking.preferredDate,
       preferredMaster: booking.preferredMaster,
@@ -786,12 +793,18 @@ publicSiteBookingRouter.post('/site-booking-submit', publicBookingLimiter, async
 
     const id = crypto.randomUUID();
     const booking = {
+      basePrice: Number(requestedSlot.basePrice) || 0,
       clientEmail: cleanString(req.body?.clientEmail),
       clientName,
       clientPhone,
+      discountAmount: Number(requestedSlot.discountAmount) || 0,
+      discountPercent: Number(requestedSlot.discountPercent) || 0,
       durationMinutes,
+      finalPrice: Number(requestedSlot.finalPrice) || 0,
       id,
       note: cleanString(req.body?.note),
+      premiumAmount: Number(requestedSlot.premiumAmount) || 0,
+      premiumPercent: Number(requestedSlot.premiumPercent) || 0,
       preferredDate,
       preferredMaster: cleanString(requestedSlot.master),
       preferredMasterId: Number(requestedSlot.employeeId) || null,
@@ -813,7 +826,16 @@ publicSiteBookingRouter.post('/site-booking-submit', publicBookingLimiter, async
           ${booking.serviceSlug || null}, ${serviceName}, ${preferredDate},
           ${preferredTime}, ${booking.preferredMaster || null}, ${durationMinutes},
           'pending', ${booking.note || null}, ${cleanString(req.body?.locale) || null},
-          ${JSON.stringify({...req.body, source: 'site-booking'})}::jsonb, now(), now()
+          ${JSON.stringify({
+            ...req.body,
+            basePrice: booking.basePrice,
+            discountAmount: booking.discountAmount,
+            discountPercent: booking.discountPercent,
+            finalPrice: booking.finalPrice,
+            premiumAmount: booking.premiumAmount,
+            premiumPercent: booking.premiumPercent,
+            source: 'site-booking',
+          })}::jsonb, now(), now()
         )
         returning id
       `;

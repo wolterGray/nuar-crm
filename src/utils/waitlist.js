@@ -223,6 +223,9 @@ export const parseWaitlistEntryDetails = (entry = {}, clientProfiles = []) => {
   if (!durationMinutes) {
     durationMinutes = 60;
   }
+  const rawBookedPrice = payload.bookedPrice ?? payload.finalPrice;
+  const bookedPrice = Number(rawBookedPrice);
+  const hasBookedPrice = Number.isFinite(bookedPrice) && bookedPrice > 0;
 
   const isDeleted = isWaitlistEntryDeleted(entry);
   const isCompleted = isWaitlistEntryCompleted(entry);
@@ -239,6 +242,7 @@ export const parseWaitlistEntryDetails = (entry = {}, clientProfiles = []) => {
   }
 
   return {
+    bookedPrice: hasBookedPrice ? bookedPrice : null,
     clientComment,
     clientEmail,
     clientName: entry.clientName || linkedClient?.name || "Клиент",

@@ -462,11 +462,13 @@ function App() {
 
   useEffect(() => {
     let active = true;
-
-    refreshBackendVisits({isCurrent: () => active});
+    const timer = window.setTimeout(() => {
+      refreshBackendVisits({isCurrent: () => active});
+    }, 0);
 
     return () => {
       active = false;
+      window.clearTimeout(timer);
     };
   }, [refreshBackendVisits]);
 
@@ -873,10 +875,12 @@ function App() {
   }, [autoCompletedCalendarEntryIds]);
 
   const pullRefreshOnRefreshRef = useRef(async () => window.location.reload());
-  pullRefreshOnRefreshRef.current =
-    activePage === "calendar"
-      ? refreshBackendVisits
-      : async () => window.location.reload();
+  useEffect(() => {
+    pullRefreshOnRefreshRef.current =
+      activePage === "calendar"
+        ? refreshBackendVisits
+        : async () => window.location.reload();
+  }, [activePage, refreshBackendVisits]);
 
   const pullRefreshBlockedExtrasRef = useRef({
     clientSearchOpen: false,

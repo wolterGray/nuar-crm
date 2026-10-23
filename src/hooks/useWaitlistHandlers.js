@@ -387,7 +387,7 @@ export function useWaitlistHandlers({
       });
 
       openCreateCalendarEntry({
-        amount: "",
+        amount: details.bookedPrice ?? "",
         client: details.clientName,
         clientId: details.linkedClient?.id || entry.clientId || null,
         date: entry.preferredDate || getTodayInput(),

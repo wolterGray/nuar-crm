@@ -281,6 +281,46 @@ const sanitizeWaitlist = (entry, canViewContacts) => {
   };
 };
 
+const enrichWaitlistBookingPrices = async (entries = []) => {
+  const siteBookingIds = new Set(
+    entries
+      .map((entry) => objectPayload(entry?.payload).siteBookingRequestId)
+      .filter(Boolean)
+      .map(String),
+  );
+  if (!siteBookingIds.size) return entries;
+
+  try {
+    const requests = await prisma.$queryRaw`
+      select id, payload
+      from site_booking_requests
+      where status = 'pending'
+      order by created_at desc
+      limit 200
+    `;
+    const priceByRequestId = new Map(
+      (requests ?? []).flatMap((request) => {
+        const payload = objectPayload(request?.payload);
+        const price = Number(payload.bookedPrice ?? payload.finalPrice);
+        return Number.isFinite(price) && price > 0
+          ? [[String(request.id), price]]
+          : [];
+      }),
+    );
+
+    return entries.map((entry) => {
+      const payload = objectPayload(entry?.payload);
+      const requestId = String(payload.siteBookingRequestId ?? '');
+      const bookedPrice = Number(payload.bookedPrice ?? priceByRequestId.get(requestId));
+      if (!Number.isFinite(bookedPrice) || bookedPrice <= 0) return entry;
+      return {...entry, payload: {...payload, bookedPrice}};
+    });
+  } catch (error) {
+    console.warn('Failed to enrich waitlist booking prices:', error?.message || error);
+    return entries;
+  }
+};
+
 const sanitizeCommLog = (log, canViewContacts) => {
   const base = withStoredId(log);
   if (canViewContacts || !base) return base;
@@ -333,6 +373,7 @@ router.get('/operations-state', async (req, res) => {
       const entryEmpId = getWaitlistEmployeeId(w);
       return entryEmpId && Number(entryEmpId) === userEmpId;
     });
+    const pricedWaitlist = await enrichWaitlistBookingPrices(filteredWaitlist);
 
     res.json({
       success: true,
@@ -348,7 +389,7 @@ router.get('/operations-state', async (req, res) => {
             return canManageTasks;
           })
           .map(withStoredId),
-        waitlistEntries: filteredWaitlist.map((w) => sanitizeWaitlist(w, canViewContacts)),
+        waitlistEntries: pricedWaitlist.map((w) => sanitizeWaitlist(w, canViewContacts)),
       },
     });
   } catch (err) {
@@ -1030,11 +1071,11 @@ router.get('/waitlist', async (req, res) => {
   const canViewContacts = hasPermission(req.auth, PERMISSIONS.CLIENTS_VIEW_CONTACTS);
   try {
     const records = await prisma.waitlistEntry.findMany({ orderBy: { createdAt: 'asc' } });
+    const accessibleRecords = records.filter((record) => canAccessWaitlistEntry(req.auth, record));
+    const pricedRecords = await enrichWaitlistBookingPrices(accessibleRecords);
     res.json({
       success: true,
-      data: records
-        .filter((record) => canAccessWaitlistEntry(req.auth, record))
-        .map((record) => sanitizeWaitlist(record, canViewContacts)),
+      data: pricedRecords.map((record) => sanitizeWaitlist(record, canViewContacts)),
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
