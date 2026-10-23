@@ -395,12 +395,6 @@
   }
 }
 
-@media (max-width: 768px) and (display-mode: standalone) {
-  :root {
-    --mobile-viewport-bottom-offset: env(safe-area-inset-bottom, 0px);
-  }
-}
-
 @media (min-width: 769px) {
   .mobile-layout,
   .mobile-page-container {
