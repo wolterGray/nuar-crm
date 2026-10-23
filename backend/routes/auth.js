@@ -4,7 +4,6 @@ const { PrismaClient } = require('@prisma/client');
 const {
   createActiveUserMiddleware,
   verifyJwt,
-  requireActiveUser,
   invalidateUserCache,
 } = require('../middleware/auth');
 const { getEffectivePermissions } = require('../constants/permissions');
@@ -512,7 +511,7 @@ function createAuthRouter({
     }
   });
 
-  router.post('/change-password', verifyJwt, requireActiveUser, async (req, res) => {
+  router.post('/change-password', verifyJwt, requireSessionUser, async (req, res) => {
     const rawId = req.auth?.sub || req.auth?.id;
     const numericId = Number(rawId);
     const currentPassword = String(req.body?.currentPassword ?? '');
@@ -536,6 +535,12 @@ function createAuthRouter({
       const dbUser = await prisma.user.findUnique({ where: { id: numericId } });
       if (!dbUser || !dbUser.isActive) {
         return res.status(401).json({ success: false, error: 'Пользователь не найден или отключён' });
+      }
+      if (dbUser.role === 'staff') {
+        return res.status(403).json({
+          success: false,
+          error: 'Пароль сотрудника изменяет владелец в настройках доступа',
+        });
       }
 
       const passwordMatches = await verifyPassword(currentPassword, dbUser.passwordHash);

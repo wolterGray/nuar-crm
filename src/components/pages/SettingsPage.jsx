@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {changePassword} from "../../api/auth.js";
 import {
   createUser,
   disableUser,
@@ -1592,130 +1591,6 @@ function StaffAccountCard({ authUser, employees = [] }) {
   );
 }
 
-function StaffPasswordCard({ pushNotification }) {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess(false);
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      setError("Заполните все поля пароля");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError("Новый пароль и подтверждение не совпадают");
-      return;
-    }
-
-    const strength = validatePasswordStrength(newPassword);
-    if (!strength.isValid) {
-      setError(strength.failures?.[0] || strength.errors?.[0] || "Пароль недостаточно надёжен");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await changePassword({ currentPassword, newPassword });
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setSuccess(true);
-      pushNotification?.({
-        title: "Пароль обновлён",
-        message: "Ваш новый пароль успешно сохранён.",
-      });
-    } catch (err) {
-      setError(err?.message || "Не удалось изменить пароль");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Card className="p-4 sm:p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-2.5 border-b border-border-soft pb-3">
-        <AppIcon name="lock" size="md" className="text-accent" />
-        <div>
-          <h2 className="m-0 text-text-main text-[15px] font-bold">Смена пароля</h2>
-          <p className="m-0 mt-0.5 text-text-muted text-xs">
-            Используйте сложный пароль не менее 10 символов (буквы, цифры и спецсимвол).
-          </p>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-md">
-        <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
-          <span>Текущий пароль</span>
-          <Input
-            type="password"
-            autoComplete="current-password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="Введите текущий пароль"
-            disabled={loading}
-          />
-        </label>
-
-        <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
-          <span>Новый пароль</span>
-          <Input
-            type="password"
-            autoComplete="new-password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Минимум 10 символов"
-            disabled={loading}
-          />
-        </label>
-
-        <label className="flex flex-col gap-1.5 text-text-muted text-xs font-medium">
-          <span>Подтвердите новый пароль</span>
-          <Input
-            type="password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Повторите новый пароль"
-            disabled={loading}
-          />
-        </label>
-
-        {error ? (
-          <div className="text-xs font-medium text-accentError bg-accentError/10 border border-accentError/20 rounded-control px-3 py-2">
-            {error}
-          </div>
-        ) : null}
-
-        {success ? (
-          <div className="text-xs font-medium text-accentSuccess bg-accentSuccess/10 border border-accentSuccess/20 rounded-control px-3 py-2">
-            Пароль успешно изменён!
-          </div>
-        ) : null}
-
-        <div className="pt-1">
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            disabled={loading}
-          >
-            <AppIcon name="save" size="sm" />
-            {loading ? "Сохранение..." : "Обновить пароль"}
-          </Button>
-        </div>
-      </form>
-    </Card>
-  );
-}
-
 function StaffDisplayCard({ settings, onSubmit, onReset }) {
   const selectedColorTheme = resolveColorTheme(settings);
   const formRef = useRef(null);
@@ -2286,10 +2161,7 @@ function SettingsPage({
 
         <div className="settings-scroll flex-1 overflow-y-auto pr-1 pb-3 flex flex-col gap-4">
           {effectiveStaffTab === "account" && (
-            <div className="flex flex-col gap-4">
-              <StaffAccountCard authUser={authUser} employees={employees} />
-              <StaffPasswordCard pushNotification={pushNotification} />
-            </div>
+            <StaffAccountCard authUser={authUser} employees={employees} />
           )}
 
           {effectiveStaffTab === "display" && (

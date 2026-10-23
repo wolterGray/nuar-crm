@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const {before, beforeEach, test} = require('node:test');
+const jwt = require('jsonwebtoken');
 const {createAuthRouter} = require('../routes/auth');
 const {passwordResetLimiter, authLoginLimiter} = require('../middleware/rateLimiter');
 const {createPasswordResetTokenPayload} = require('../utils/passwordResetTokens');
@@ -98,14 +99,14 @@ const createMockPrisma = () => {
   };
 };
 
-const invokeRouter = async (router, {method, url, body = {}}) => {
+const invokeRouter = async (router, {method, url, body = {}, headers = {}}) => {
   return new Promise((resolve, reject) => {
     const req = {
       method: method.toUpperCase(),
       url,
       originalUrl: `/api/auth${url}`,
       body,
-      headers: {},
+      headers,
       params: {},
       ip: '127.0.0.1',
     };
@@ -129,6 +130,48 @@ const invokeRouter = async (router, {method, url, body = {}}) => {
     });
   });
 };
+
+test('Backend Password Change: staff password remains owner-managed', async () => {
+  const prisma = createMockPrisma();
+  const authRouter = createAuthRouter({prismaClient: prisma});
+  const passwordHash = await hashPassword('InitialPass#2026!');
+  const staffUser = {
+    id: 3,
+    email: 'staff@nuarr.pl',
+    name: 'Staff',
+    role: 'staff',
+    isActive: true,
+    employeeId: 2,
+    permissions: {},
+    passwordChangedAt: null,
+    passwordHash,
+  };
+  prisma.users.set(staffUser.id, staffUser);
+  const token = jwt.sign(
+    {
+      id: staffUser.id,
+      email: staffUser.email,
+      role: staffUser.role,
+      employeeId: staffUser.employeeId,
+    },
+    JWT_SECRET,
+    {subject: String(staffUser.id)},
+  );
+
+  const response = await invokeRouter(authRouter, {
+    method: 'POST',
+    url: '/change-password',
+    headers: {authorization: `Bearer ${token}`},
+    body: {
+      currentPassword: 'InitialPass#2026!',
+      newPassword: 'AnotherSafePass#2026!',
+    },
+  });
+
+  assert.equal(response.statusCode, 403);
+  assert.match(response.body.error, /изменяет владелец/);
+  assert.equal(prisma.users.get(staffUser.id).passwordHash, passwordHash);
+});
 
 test('Backend Password Reset: Rejects missing token or missing password', async () => {
   const prisma = createMockPrisma();
