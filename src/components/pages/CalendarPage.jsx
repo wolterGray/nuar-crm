@@ -333,8 +333,8 @@ function CalendarPage({
   const endMinutes = configuredEndMinutes > startMinutes
     ? configuredEndMinutes
     : startMinutes + 60;
-  const visualStartMinutes = startMinutes - 120;
-  const visualEndMinutes = endMinutes + 120;
+  const visualStartMinutes = startMinutes - 60;
+  const visualEndMinutes = endMinutes + 60;
   const slotMinutes = Number(settings.calendarSlotMinutes) || 15;
   const gridSlotMinutes = 15;
   const minutesInDay = visualEndMinutes - visualStartMinutes;
@@ -472,9 +472,9 @@ function CalendarPage({
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const currentTop =
     ((currentMinutes - visualStartMinutes) / minutesInDay) * gridHeight;
-  const nextVisitId = activeVisitEntries
-    .filter((entry) => !isToday || toMinutes(entry.time) >= currentMinutes)
-    .sort((first, second) => String(first.time).localeCompare(String(second.time)))[0]?.id;
+  const nearestUpcomingVisit = [...activeVisitEntries]
+    .sort((first, second) => String(first.time).localeCompare(String(second.time)))[0];
+  const nextVisitId = nearestUpcomingVisit?.id;
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60000);
@@ -550,29 +550,51 @@ function CalendarPage({
   }, [isMobile, showScheduleGrid]);
 
   useLayoutEffect(() => {
-    if (!isToday || !showScheduleGrid || alertFocus?.entityId) return;
+    if (!showScheduleGrid || alertFocus?.entityId) return;
 
     const container = schedulePanelRef.current;
-    const scrollKey = `${selectedDate}-${isMobile ? "mobile" : "desktop"}`;
+    const scrollTargetKey = nearestUpcomingVisit
+      ? `visit-${nearestUpcomingVisit.id}-${nearestUpcomingVisit.time}`
+      : isToday
+        ? "now"
+        : "workday-start";
+    const scrollKey = `${selectedDate}-${isMobile ? "mobile" : "desktop"}-${scrollTargetKey}`;
 
     if (!container || autoScrolledNowLineRef.current === scrollKey) return;
 
     autoScrolledNowLineRef.current = scrollKey;
 
     window.requestAnimationFrame(() => {
-      const targetTop = scheduleHeaderHeight + currentTop - container.clientHeight * 0.42;
+      const targetMinutes = nearestUpcomingVisit
+        ? toMinutes(nearestUpcomingVisit.time)
+        : isToday
+          ? currentMinutes
+          : startMinutes;
+      const targetPosition =
+        scheduleHeaderHeight +
+        ((targetMinutes - visualStartMinutes) / minutesInDay) * gridHeight;
+      const contextAbove = nearestUpcomingVisit
+        ? 4 * slotHeight
+        : container.clientHeight * 0.42;
+      const targetTop = targetPosition - contextAbove;
       const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
 
       container.scrollTop = Math.max(0, Math.min(targetTop, maxScrollTop));
     });
   }, [
     alertFocus?.entityId,
-    currentTop,
+    currentMinutes,
+    gridHeight,
     isMobile,
     isToday,
+    minutesInDay,
+    nearestUpcomingVisit,
     scheduleHeaderHeight,
     selectedDate,
     showScheduleGrid,
+    slotHeight,
+    startMinutes,
+    visualStartMinutes,
   ]);
 
   const getDragPosition = ({active, delta, over}) => {
