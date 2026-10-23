@@ -5,6 +5,7 @@ const { requirePermission, PERMISSIONS } = require('../middleware/auth');
 const { publicBookingLimiter } = require('../middleware/rateLimiter');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { queueBusinessPushDeliveries } = require('../services/businessPushService');
+const {findOrCreateSiteBookingClient} = require('../services/siteBookingClientService');
 const { upsertNotificationEvent } = require('../services/notificationEventsService');
 const { telegramDigest } = require('../services/telegramService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
@@ -656,7 +657,7 @@ const notifyOwnerAboutBooking = async (booking) => {
   return result;
 };
 
-const createSiteBookingWaitlistEntry = (tx, booking) => {
+const createSiteBookingWaitlistEntry = (tx, booking, client) => {
   const contactLines = [
     `Телефон: ${booking.clientPhone}`,
     booking.clientEmail ? `Email: ${booking.clientEmail}` : null,
@@ -666,7 +667,7 @@ const createSiteBookingWaitlistEntry = (tx, booking) => {
 
   return tx.waitlistEntry.create({
     data: {
-      clientId: null,
+      clientId: client.id,
       clientName: booking.clientName,
       note: contactLines.join('\n'),
       payload: {
@@ -692,9 +693,9 @@ const createSiteBookingWaitlistEntry = (tx, booking) => {
   });
 };
 
-const createSiteBookingNotification = (tx, booking, waitlistEntry) =>
+const createSiteBookingNotification = (tx, booking, waitlistEntry, client) =>
   upsertNotificationEvent(tx, {
-    clientId: null,
+    clientId: client.id,
     clientName: booking.clientName,
     entityId: booking.id,
     entityType: 'site_booking_request',
@@ -839,11 +840,13 @@ publicSiteBookingRouter.post('/site-booking-submit', publicBookingLimiter, async
         )
         returning id
       `;
-      const waitlistEntry = await createSiteBookingWaitlistEntry(tx, booking);
-      const notificationEvent = await createSiteBookingNotification(tx, booking, waitlistEntry);
+      const client = await findOrCreateSiteBookingClient(tx, booking);
+      const waitlistEntry = await createSiteBookingWaitlistEntry(tx, booking, client);
+      const notificationEvent = await createSiteBookingNotification(tx, booking, waitlistEntry, client);
       businessEvent = notificationEvent;
       crmLinks = {
         notificationEventId: notificationEvent?.id ?? null,
+        clientId: client.id,
         waitlistEntryId: waitlistEntry.id,
       };
 
@@ -872,6 +875,7 @@ publicSiteBookingRouter.post('/site-booking-submit', publicBookingLimiter, async
       success: true,
       data: {
         id: rows?.[0]?.id ?? id,
+        clientId: crmLinks.clientId ?? null,
         waitlistEntryId: crmLinks.waitlistEntryId ?? null,
         notification: notifyResult
           ? {

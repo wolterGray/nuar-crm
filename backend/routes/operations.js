@@ -5,6 +5,7 @@ const { PrismaClient } = require('@prisma/client');
 const { isOwnerAuth, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
+const {reconcileSiteBookingWaitlistClients} = require('../services/siteBookingClientService');
 const {ensureNoteTables} = require('../utils/noteTables');
 const {
   respond,
@@ -366,8 +367,10 @@ router.get('/operations-state', async (req, res) => {
         : Promise.resolve([]),
     ]);
 
+    const linkedWaitlistEntries = await reconcileSiteBookingWaitlistClients(prisma, waitlistEntries);
+
     // Filter waitlist entries for staff without calendar.view_all
-    const filteredWaitlist = waitlistEntries.filter((w) => {
+    const filteredWaitlist = linkedWaitlistEntries.filter((w) => {
       if (canViewAllCalendar) return true;
       if (!userEmpId) return false;
       const entryEmpId = getWaitlistEmployeeId(w);
