@@ -40,7 +40,8 @@ export default function AppNavigation({
         }
 
         const isMobileChrome = /CriOS/i.test(navigator.userAgent) ||
-          (/Android/i.test(navigator.userAgent) && /Chrome/i.test(navigator.userAgent));
+          (/Android/i.test(navigator.userAgent) && /Chrome/i.test(navigator.userAgent)) ||
+          Boolean(window.chrome);
         const layoutHeight = document.documentElement.clientHeight;
         const visibleBottom = viewport
           ? viewport.offsetTop + viewport.height
