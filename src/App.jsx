@@ -429,46 +429,46 @@ function App() {
     };
   }, [authSession, pushNotification]);
 
-  useEffect(() => {
+  const refreshBackendVisits = useCallback(async ({isCurrent = () => true} = {}) => {
     const canViewCalendar = authSession && (
       hasPermission(authSession.user, PERMISSIONS.CALENDAR_VIEW_ALL) ||
       hasPermission(authSession.user, PERMISSIONS.CALENDAR_VIEW_ASSIGNED)
     );
     if (!canViewCalendar) {
-      return undefined;
+      return false;
     }
 
-    let active = true;
+    try {
+      const response = await fetchVisitState();
+      if (!isCurrent()) {
+        return false;
+      }
 
-    const loadBackendVisits = async () => {
-      try {
-        const response = await fetchVisitState();
-        if (!active) {
-          return;
-        }
-
-        const data = response?.data ?? {};
-        setCalendarEntries(Array.isArray(data.calendarEntries) ? data.calendarEntries : []);
-        setVisits(Array.isArray(data.visits) ? data.visits : []);
-      } catch (error) {
-        if (!active) {
-          return;
-        }
-
+      const data = response?.data ?? {};
+      setCalendarEntries(Array.isArray(data.calendarEntries) ? data.calendarEntries : []);
+      setVisits(Array.isArray(data.visits) ? data.visits : []);
+      return true;
+    } catch (error) {
+      if (isCurrent()) {
         pushNotification({
           title: "Визиты не загружены",
           message: error?.message || "Не удалось загрузить календарь из backend",
           persist: false,
         });
       }
-    };
+      return false;
+    }
+  }, [authSession, pushNotification]);
 
-    loadBackendVisits();
+  useEffect(() => {
+    let active = true;
+
+    refreshBackendVisits({isCurrent: () => active});
 
     return () => {
       active = false;
     };
-  }, [authSession, pushNotification]);
+  }, [refreshBackendVisits]);
 
   useEffect(() => {
     if (!authSession) {
@@ -872,9 +872,11 @@ function App() {
     autoCompletedCalendarEntryIdsRef.current = new Set(autoCompletedCalendarEntryIds);
   }, [autoCompletedCalendarEntryIds]);
 
-  const pullRefreshOnRefreshRef = useRef(async () => {
-    window.location.reload();
-  });
+  const pullRefreshOnRefreshRef = useRef(async () => window.location.reload());
+  pullRefreshOnRefreshRef.current =
+    activePage === "calendar"
+      ? refreshBackendVisits
+      : async () => window.location.reload();
 
   const pullRefreshBlockedExtrasRef = useRef({
     clientSearchOpen: false,
