@@ -52,12 +52,12 @@ describe("colorTheme", () => {
 
     expect(light.id).toBe("light");
     expect(light.mode).toBe("light");
-    expect(light.accentColor).toBe("#00796D");
-    expect(light.tokens["--app-bg"]).toBe("#F5F7F8");
+    expect(light.accentColor).toBe("#F20D3F");
+    expect(light.tokens["--app-bg"]).toBe("#F7F7F8");
     expect(light.tokens["--surface"]).toBe("#FFFFFF");
-    expect(light.tokens["--text-main"]).toBe("#17232A");
-    expect(light.tokens["--accent-color"]).toBe("#00796D");
-    expect(light.tokens["--brand-teal"]).toBe("#05CFA6");
+    expect(light.tokens["--text-main"]).toBe("#18181B");
+    expect(light.tokens["--accent-color"]).toBe("#F20D3F");
+    expect(light.tokens["--brand-teal"]).toBe("#F20D3F");
   });
 
   it("dark theme keeps NUAR graphite + crimson", () => {
