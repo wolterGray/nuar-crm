@@ -2336,7 +2336,6 @@
   .mobile-bottom-nav {
     height: var(--mobile-nav-total, 50px) !important;
     bottom: var(--mobile-viewport-bottom-offset, 0px) !important;
-    padding-bottom: 0 !important;
   }
 }
 

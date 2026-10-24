@@ -892,7 +892,6 @@
   }
 
   .nuar-packages :is(.client-package-card, .certificate-card) {
-    max-height: 210px !important;
     justify-content: flex-start !important;
   }
 
@@ -923,5 +922,40 @@
     display: flex !important;
     flex-direction: column !important;
     gap: 10px !important;
+  }
+
+  /* Keep package rows content-sized; legacy page rules used equal-height tracks. */
+  .mobile-page-container[data-mobile-page="packages"] .nuar-packages .packages-live-row,
+  .mobile-page-container[data-mobile-page="packages"] .nuar-packages .packages-panel,
+  .mobile-page-container[data-mobile-page="packages"] .nuar-packages .packages-list {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-auto-rows: max-content !important;
+    align-items: stretch !important;
+    align-content: flex-start !important;
+    justify-content: flex-start !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: 0 0 auto !important;
+  }
+
+  .mobile-page-container[data-mobile-page="packages"] .nuar-packages .package-card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    block-size: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: 0 0 auto !important;
+    align-self: auto !important;
+    overflow: hidden !important;
+  }
+
+  .mobile-page-container[data-mobile-page="packages"] .nuar-packages .package-card > * {
+    position: static !important;
+    flex: 0 0 auto !important;
+    margin-block: 0 !important;
   }
 }

@@ -19,7 +19,7 @@
   }
 
   html.is-chrome-mobile {
-    --mobile-nav-total: 60px;
+    --mobile-nav-total: 66px;
   }
 
   html,
@@ -226,6 +226,11 @@
     border-top: 1px solid var(--color-border-soft) !important;
     background: var(--mobile-nav-bg) !important;
     box-shadow: var(--shadow-card);
+  }
+
+  html.is-chrome-mobile .mobile-bottom-nav {
+    height: var(--mobile-nav-total) !important;
+    padding-bottom: 12px !important;
   }
 
   .mobile-bottom-nav button {
