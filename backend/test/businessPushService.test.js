@@ -20,6 +20,30 @@ test('visit Push payload contains an exact deep link and readable visit summary'
   assert.doesNotMatch(JSON.stringify(payload), /48123456789/);
 });
 
+test('visit Push reads client and service labels from nested CRM payloads', () => {
+  const payload = buildBusinessPushPayload({
+    clientName: 'Fallback Client',
+    entityId: '84',
+    fingerprint: 'visit:84:created',
+    payload: {
+      payload: {
+        client: 'Maks Kowalski',
+        date: '2026-11-06',
+        duration: 60,
+        service: 'Masaż klasyczny',
+        time: '12:30',
+      },
+    },
+    type: 'visit_created',
+  });
+
+  assert.equal(
+    payload.body,
+    'Maks Kowalski · Masaż klasyczny · 6 ноября, 12:30 · 60 мин',
+  );
+  assert.equal(payload.url, '/calendar?entry=84');
+});
+
 test('site booking Push opens the exact queue entry and shows name, service, date and time', () => {
   const payload = buildBusinessPushPayload({
     entityId: 'booking-42',

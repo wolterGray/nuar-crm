@@ -269,12 +269,14 @@ function CalendarPage({
   const [dragPreview, setDragPreview] = useState(null);
   const [pendingSlot, setPendingSlot] = useState(null);
   const [mobileWeekAnimation, setMobileWeekAnimation] = useState(null);
+  const [calendarContentAnimation, setCalendarContentAnimation] = useState(null);
   const [scheduleViewportWidth, setScheduleViewportWidth] = useState(0);
   const schedulePanelRef = useRef(null);
   const onEditRef = useRef(onEdit);
   const weekCarouselRef = useRef(null);
   const longPressRef = useRef(null);
   const mobileWeekSwipeRef = useRef(null);
+  const calendarContentAnimationTimerRef = useRef(null);
   const suppressMobileWeekClickRef = useRef(false);
   const pendingSlotOpenedAtRef = useRef(0);
   const autoScrolledNowLineRef = useRef(null);
@@ -457,6 +459,16 @@ function CalendarPage({
     });
   }, [selectedDate]);
   const selectCalendarDate = (nextDate) => {
+    if (nextDate !== selectedDate) {
+      const direction = nextDate > selectedDate ? "next" : "previous";
+      setCalendarContentAnimation(null);
+      window.clearTimeout(calendarContentAnimationTimerRef.current);
+      window.requestAnimationFrame(() => setCalendarContentAnimation(direction));
+      calendarContentAnimationTimerRef.current = window.setTimeout(
+        () => setCalendarContentAnimation(null),
+        220,
+      );
+    }
     setSelectedDate(nextDate);
     setCalendarPanelMonth(nextDate.slice(0, 7));
   };
@@ -519,6 +531,7 @@ function CalendarPage({
       if (longPressRef.current?.timer) {
         window.clearTimeout(longPressRef.current.timer);
       }
+      window.clearTimeout(calendarContentAnimationTimerRef.current);
     },
     [],
   );
@@ -936,6 +949,8 @@ return (
 
       <div
         className={`nuar-calendar-layout gap-3 flex-1 items-stretch min-h-0 ${
+          calendarContentAnimation ? `is-changing-date-${calendarContentAnimation}` : ""
+        } ${
           showDayList
             ? "flex flex-col"
             : `grid ${remindersVisible ? "grid-cols-[1fr_320px]" : "grid-cols-[1fr]"}`

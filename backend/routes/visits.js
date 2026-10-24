@@ -79,10 +79,15 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
     const beforePayload = before?.payload && typeof before.payload === 'object' ? before.payload : {};
     const afterPayload = after?.payload && typeof after.payload === 'object' ? after.payload : {};
 
-    const clientName = afterPayload.client || afterPayload.clientName || beforePayload.client || beforePayload.clientName || 'Клиент';
-    const serviceName = afterPayload.service || afterPayload.serviceName || beforePayload.service || beforePayload.serviceName || 'Услуга';
-    const masterName = afterPayload.master || afterPayload.masterName || beforePayload.master || beforePayload.masterName || 'Мастер';
     const clientId = afterPayload.clientId || beforePayload.clientId || null;
+    const serviceId = afterPayload.serviceId || beforePayload.serviceId || null;
+    const [linkedClient, linkedService] = await Promise.all([
+      clientId ? prisma.client.findUnique({where: {id: Number(clientId)}, select: {name: true}}) : null,
+      serviceId ? prisma.service.findUnique({where: {id: Number(serviceId)}, select: {name: true}}) : null,
+    ]);
+    const clientName = afterPayload.client || afterPayload.clientName || beforePayload.client || beforePayload.clientName || linkedClient?.name || 'Клиент';
+    const serviceName = afterPayload.service || afterPayload.serviceName || beforePayload.service || beforePayload.serviceName || linkedService?.name || 'Услуга';
+    const masterName = afterPayload.master || afterPayload.masterName || beforePayload.master || beforePayload.masterName || 'Мастер';
     const employeeId = await resolveEmployeeIdForRecord(after || before);
 
     const isDeleted = !after;

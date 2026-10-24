@@ -4,6 +4,8 @@ const PULL_THRESHOLD = 64;
 const PULL_HOLD_DISTANCE = 54;
 const PULL_MAX_DISTANCE = 104;
 const MIN_REFRESH_FEEDBACK_MS = 420;
+const DIRECTION_LOCK_DISTANCE = 10;
+const VERTICAL_GESTURE_RATIO = 1.35;
 
 function getElasticDistance(delta) {
   if (delta <= 0) return 0;
@@ -49,7 +51,9 @@ export function usePullRefresh({contentRef, isBlocked, onRefresh}) {
     refreshing: false,
   });
   const pullStartYRef = useRef(0);
+  const pullStartXRef = useRef(0);
   const pullTrackingRef = useRef(false);
+  const pullDirectionRef = useRef(null);
 
   useEffect(() => {
     reloadIfNewFrontendBundle();
@@ -105,10 +109,9 @@ export function usePullRefresh({contentRef, isBlocked, onRefresh}) {
           : scrollParent.scrollTop;
 
       pullTrackingRef.current = scrollTop <= 0;
+      pullDirectionRef.current = null;
+      pullStartXRef.current = event.touches[0]?.clientX ?? 0;
       pullStartYRef.current = event.touches[0]?.clientY ?? 0;
-      if (pullTrackingRef.current) {
-        setPullRefresh((current) => ({...current, pulling: true}));
-      }
     },
     [getScrollableParent, isBlocked, pullRefresh.refreshing],
   );
@@ -118,8 +121,25 @@ export function usePullRefresh({contentRef, isBlocked, onRefresh}) {
       return;
     }
 
-    const currentY = event.touches[0]?.clientY ?? 0;
+    const touch = event.touches[0];
+    const currentX = touch?.clientX ?? 0;
+    const currentY = touch?.clientY ?? 0;
+    const deltaX = currentX - pullStartXRef.current;
     const delta = currentY - pullStartYRef.current;
+
+    if (!pullDirectionRef.current) {
+      if (Math.max(Math.abs(deltaX), Math.abs(delta)) < DIRECTION_LOCK_DISTANCE) return;
+
+      if (Math.abs(delta) < Math.abs(deltaX) * VERTICAL_GESTURE_RATIO || delta <= 0) {
+        pullDirectionRef.current = "horizontal";
+        pullTrackingRef.current = false;
+        return;
+      }
+
+      pullDirectionRef.current = "vertical";
+    }
+
+    if (pullDirectionRef.current !== "vertical") return;
 
     if (delta <= 0) {
       setPullRefresh((current) =>
@@ -149,6 +169,7 @@ export function usePullRefresh({contentRef, isBlocked, onRefresh}) {
     }
 
     pullTrackingRef.current = false;
+    pullDirectionRef.current = null;
     if (event?.type === "touchcancel") {
       setPullRefresh({distance: 0, pulling: false, ready: false, refreshing: false});
       return;

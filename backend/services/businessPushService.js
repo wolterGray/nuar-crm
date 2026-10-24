@@ -10,6 +10,23 @@ const EVENT_CONFIG = {
 };
 
 const cleanString = (value) => String(value ?? '').trim();
+const getPayloadValue = (payload, keys) => {
+  const sources = [
+    payload,
+    payload?.payload,
+    payload?.entry,
+    payload?.visit,
+    payload?.client,
+    payload?.service,
+  ].filter((value) => value && typeof value === 'object');
+  for (const source of sources) {
+    for (const key of keys) {
+      const value = cleanString(source[key]);
+      if (value) return value;
+    }
+  }
+  return '';
+};
 
 const formatDate = (value) => {
   const normalized = cleanString(value);
@@ -35,9 +52,14 @@ const getVisitUrl = (event, payload) => {
   return `/calendar?${parameter}=${encodeURIComponent(event.entityId || '')}${date}`;
 };
 const formatVisitBody = (payload) => [
-  formatPersonServiceDate(payload),
-  Number(payload.durationMin || payload.durationMinutes) > 0
-    ? `${Number(payload.durationMin || payload.durationMinutes)} мин`
+  formatPersonServiceDate({
+    clientName: getPayloadValue(payload, ['clientName', 'client', 'name']),
+    date: getPayloadValue(payload, ['date', 'inputDate', 'preferredDate']),
+    serviceName: getPayloadValue(payload, ['serviceName', 'service', 'title']),
+    time: getPayloadValue(payload, ['time', 'preferredTime']),
+  }),
+  Number(getPayloadValue(payload, ['durationMin', 'durationMinutes', 'duration'])) > 0
+    ? `${Number(getPayloadValue(payload, ['durationMin', 'durationMinutes', 'duration']))} мин`
     : '',
 ].filter(Boolean).join(' · ');
 
@@ -82,8 +104,13 @@ const buildBusinessPushPayload = (event) => {
     };
   }
   if (event.type.startsWith('visit_')) {
+    const visitPayload = {
+      ...payload,
+      clientName: getPayloadValue(payload, ['clientName', 'client', 'name']) || cleanString(event.clientName),
+      serviceName: getPayloadValue(payload, ['serviceName', 'service', 'title']),
+    };
     return {
-      body: formatVisitBody({...payload, clientName: payload.clientName || event.clientName})
+      body: formatVisitBody(visitPayload)
         || 'Откройте календарь, чтобы посмотреть запись',
       tag: `nuar-${event.fingerprint}`,
       title: config.title,
@@ -183,7 +210,7 @@ const recordBusinessNotificationEvent = async (prisma, input, upsertNotification
 };
 
 const processDueWebPushDeliveries = async (prisma, options = {}) => {
-  const {limit = 50, sendNotification} = options;
+  const {limit = 50} = options;
   if (!isWebPushConfigured()) return {processed: 0, skipped: true, skippedReason: 'not_configured'};
   const staleClaim = new Date(Date.now() - 5 * 60 * 1000);
   const deliveries = await prisma.notificationDelivery.findMany({

@@ -1697,7 +1697,7 @@ function App() {
         setAlertFocus({
           date: calendarDate || linkedEntry?.date || null,
           entityId: calendarEntryId || linkedEntry?.id || null,
-          open: Boolean(calendarEntryId || visitId),
+          open: false,
           type: "calendar",
           visitId: visitId || null,
         });
