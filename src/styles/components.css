@@ -2398,13 +2398,70 @@
 }
 
 .app-pull-refresh {
-  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + var(--space-2));
+  left: 50%;
+  z-index: 95;
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
   color: var(--color-text-muted);
-  background: color-mix(in srgb, var(--color-window) 82%, transparent);
+  background: color-mix(in srgb, var(--color-window) 94%, transparent);
+  box-shadow: var(--shadow-card);
+  font-size: 12px;
+  font-weight: 700;
+  opacity: clamp(0, var(--pull-progress), 1);
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - var(--space-4) + var(--pull-distance)));
+  transition: opacity 180ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+  will-change: transform;
 }
 
-.app-pull-refresh-dot {
+.app-pull-refresh.is-visible {
+  opacity: 1;
+}
+
+.app-pull-refresh-icon {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  color: var(--color-primary);
+  background: var(--color-accent-soft);
+  transform: rotate(calc(var(--pull-progress) * 270deg));
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.app-pull-refresh.is-ready .app-pull-refresh-icon {
+  color: var(--color-text);
   background: var(--color-primary);
+}
+
+.app-pull-refresh.is-refreshing .app-pull-refresh-icon {
+  animation: app-pull-refresh-spin 700ms linear infinite;
+}
+
+@keyframes app-pull-refresh-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .app-shell-content {
+    transform: translateY(var(--pull-distance, 0));
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .app-shell-content.is-pull-tracking {
+    transition: none;
+  }
 }
 
 .today-review-message-button {

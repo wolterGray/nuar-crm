@@ -1,4 +1,5 @@
 import {MobileLayout, MobilePageContainer} from "./MobileLayout.jsx";
+import AppIcon from "./ui/AppIcon.jsx";
 
 export default function AppShell({
   afterMain,
@@ -68,6 +69,8 @@ export default function AppShell({
     isStatisticsPage ? "statistics-content" : "",
     isSitePage ? "site-content" : "",
     isSettingsPage ? "settings-content" : "",
+    pullRefresh.pulling ? "is-pull-tracking" : "",
+    pullRefresh.refreshing ? "is-pull-refreshing" : "",
     "app-shell-content flex-1 min-w-0 min-h-0 p-4 md:p-6 pb-20 md:pb-6 overflow-y-auto overscroll-contain",
   ]
     .filter(Boolean)
@@ -82,11 +85,24 @@ export default function AppShell({
 
       {/* Pull to refresh indicator */}
       <div
-        className="app-pull-refresh fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 h-12 text-xs font-semibold backdrop-blur-xs transition-transform duration-200 ease-out select-none pointer-events-none transform translate-y-[-100%]"
-        style={{ transform: pullRefresh.refreshing ? "translateY(0)" : `translateY(calc(-100% + ${Math.min(pullRefresh.distance, 48)}px))` }}
+        aria-live="polite"
+        className={`app-pull-refresh ${pullRefresh.distance > 0 || pullRefresh.refreshing ? "is-visible" : ""} ${pullRefresh.ready ? "is-ready" : ""} ${pullRefresh.refreshing ? "is-refreshing" : ""}`}
+        role="status"
+        style={{
+          "--pull-distance": `${pullRefresh.distance}px`,
+          "--pull-progress": pullRefresh.progress,
+        }}
       >
-        <span className={`app-pull-refresh-dot w-2.5 h-2.5 rounded-full ${pullRefresh.refreshing ? "animate-ping" : ""}`} aria-hidden="true" />
-        <span>{pullRefresh.refreshing ? "Обновляем..." : "Потяните для обновления"}</span>
+        <span className="app-pull-refresh-icon" aria-hidden="true">
+          <AppIcon name="refresh" size="sm" />
+        </span>
+        <span>
+          {pullRefresh.refreshing
+            ? "Обновляем..."
+            : pullRefresh.ready
+              ? "Отпустите, чтобы обновить"
+              : "Потяните для обновления"}
+        </span>
       </div>
 
       <main
@@ -96,6 +112,7 @@ export default function AppShell({
         onTouchEnd={onTouchEnd}
         onTouchMove={onTouchMove}
         onTouchStart={onTouchStart}
+        style={{"--pull-distance": `${pullRefresh.distance}px`}}
       >
         <MobileLayout page={pageName}>
           <MobilePageContainer page={pageName}>

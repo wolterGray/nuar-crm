@@ -1,5 +1,18 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 
+const PULL_THRESHOLD = 64;
+const PULL_HOLD_DISTANCE = 54;
+const PULL_MAX_DISTANCE = 104;
+const MIN_REFRESH_FEEDBACK_MS = 420;
+
+function getElasticDistance(delta) {
+  if (delta <= 0) return 0;
+  return Math.min(
+    PULL_MAX_DISTANCE,
+    Math.round(PULL_MAX_DISTANCE * (1 - Math.exp(-delta / 118))),
+  );
+}
+
 async function reloadIfNewFrontendBundle() {
   if (typeof window === "undefined" || typeof document === "undefined") return false;
   const currentAssets = [
@@ -31,6 +44,8 @@ async function reloadIfNewFrontendBundle() {
 export function usePullRefresh({contentRef, isBlocked, onRefresh}) {
   const [pullRefresh, setPullRefresh] = useState({
     distance: 0,
+    pulling: false,
+    ready: false,
     refreshing: false,
   });
   const pullStartYRef = useRef(0);
@@ -91,6 +106,9 @@ export function usePullRefresh({contentRef, isBlocked, onRefresh}) {
 
       pullTrackingRef.current = scrollTop <= 0;
       pullStartYRef.current = event.touches[0]?.clientY ?? 0;
+      if (pullTrackingRef.current) {
+        setPullRefresh((current) => ({...current, pulling: true}));
+      }
     },
     [getScrollableParent, isBlocked, pullRefresh.refreshing],
   );
@@ -105,38 +123,53 @@ export function usePullRefresh({contentRef, isBlocked, onRefresh}) {
 
     if (delta <= 0) {
       setPullRefresh((current) =>
-        current.distance ? {...current, distance: 0} : current,
+        current.distance || current.ready
+          ? {...current, distance: 0, ready: false}
+          : current,
       );
       return;
     }
 
-    if (delta > 12) {
+    if (delta > 6) {
       event.preventDefault();
     }
 
-    const distance = Math.min(86, Math.round(delta * 0.48));
-    setPullRefresh((current) => ({...current, distance}));
+    const distance = getElasticDistance(delta);
+    setPullRefresh((current) => ({
+      ...current,
+      distance,
+      pulling: true,
+      ready: distance >= PULL_THRESHOLD,
+    }));
   }, []);
 
-  const handlePullRefreshEnd = useCallback(() => {
+  const handlePullRefreshEnd = useCallback((event) => {
     if (!pullTrackingRef.current) {
       return;
     }
 
     pullTrackingRef.current = false;
+    if (event?.type === "touchcancel") {
+      setPullRefresh({distance: 0, pulling: false, ready: false, refreshing: false});
+      return;
+    }
+
     setPullRefresh((current) => {
-      if (current.distance >= 58) {
+      if (current.ready) {
         const finishRefresh = async () => {
           try {
             const reloaded = await reloadIfNewFrontendBundle();
             if (reloaded) return;
             if (onRefresh) {
-              await onRefresh();
+              await Promise.all([
+                onRefresh(),
+                new Promise((resolve) => window.setTimeout(resolve, MIN_REFRESH_FEEDBACK_MS)),
+              ]);
             } else {
               window.location.reload();
             }
           } finally {
-            setPullRefresh({distance: 0, refreshing: false});
+            setPullRefresh({distance: 0, pulling: false, ready: false, refreshing: false});
           }
         };
 
@@ -144,10 +177,10 @@ export function usePullRefresh({contentRef, isBlocked, onRefresh}) {
           finishRefresh();
         }, 180);
 
-        return {distance: 68, refreshing: true};
+        return {distance: PULL_HOLD_DISTANCE, pulling: false, ready: true, refreshing: true};
       }
 
-      return {distance: 0, refreshing: false};
+      return {distance: 0, pulling: false, ready: false, refreshing: false};
     });
   }, [onRefresh]);
 
@@ -155,6 +188,9 @@ export function usePullRefresh({contentRef, isBlocked, onRefresh}) {
     handlePullRefreshEnd,
     handlePullRefreshMove,
     handlePullRefreshStart,
-    pullRefresh,
+    pullRefresh: {
+      ...pullRefresh,
+      progress: Math.min(1, pullRefresh.distance / PULL_THRESHOLD),
+    },
   };
 }
