@@ -52,6 +52,24 @@ const shiftDate = (date, days) => {
   return nextDate.toISOString().slice(0, 10);
 };
 
+const getWeekDates = (dateValue) => {
+  const selected = new Date(`${dateValue}T12:00:00`);
+  const selectedDayIndex = (selected.getDay() + 6) % 7;
+  const weekStart = new Date(selected);
+  weekStart.setDate(selected.getDate() - selectedDayIndex);
+  return Array.from({length: 7}, (_, index) => {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + index);
+    return date.toISOString().slice(0, 10);
+  });
+};
+
+const getInitialCalendarDate = () => {
+  if (typeof window === "undefined") return getTodayInput();
+  const linkedDate = new URLSearchParams(window.location.search).get("date");
+  return isValidInputDate(linkedDate) ? linkedDate : getTodayInput();
+};
+
 const toMobileWeekday = (date) =>
   new Intl.DateTimeFormat("ru-RU", {
     weekday: "long",
@@ -248,11 +266,9 @@ function CalendarPage({
   overlayOpen,
 }) {
   const {isMobile} = useBreakpoint();
-  const [selectedDate, setSelectedDate] = useState(
-    () => getTodayInput(),
-  );
+  const [selectedDate, setSelectedDate] = useState(getInitialCalendarDate);
   const [calendarPanelMonth, setCalendarPanelMonth] = useState(
-    () => getTodayInput().slice(0, 7),
+    () => getInitialCalendarDate().slice(0, 7),
   );
   const [now, setNow] = useState(new Date());
   const [mobileCalendarView, setMobileCalendarView] = useState("grid");
@@ -268,7 +284,7 @@ function CalendarPage({
   const [viewedReservedEntry, setViewedReservedEntry] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
   const [pendingSlot, setPendingSlot] = useState(null);
-  const [mobileWeekAnimation, setMobileWeekAnimation] = useState(null);
+  const [mobileWeekTransition, setMobileWeekTransition] = useState(null);
   const [calendarContentAnimation, setCalendarContentAnimation] = useState(null);
   const [scheduleViewportWidth, setScheduleViewportWidth] = useState(0);
   const schedulePanelRef = useRef(null);
@@ -446,21 +462,16 @@ function CalendarPage({
     });
   }, [calendarPanelDate]);
   const isToday = selectedDate === getTodayInput();
-  const weekDates = useMemo(() => {
-    const selected = new Date(`${selectedDate}T12:00:00`);
-    const selectedDayIndex = (selected.getDay() + 6) % 7;
-    const weekStart = new Date(selected);
-    weekStart.setDate(selected.getDate() - selectedDayIndex);
-
-    return Array.from({length: 7}, (_, index) => {
-      const date = new Date(weekStart);
-      date.setDate(weekStart.getDate() + index);
-      return date.toISOString().slice(0, 10);
-    });
-  }, [selectedDate]);
+  const weekDates = useMemo(() => getWeekDates(selectedDate), [selectedDate]);
   const selectCalendarDate = (nextDate) => {
     if (nextDate !== selectedDate) {
       const direction = nextDate > selectedDate ? "next" : "previous";
+      const currentWeek = getWeekDates(selectedDate);
+      const nextWeek = getWeekDates(nextDate);
+      if (currentWeek[0] !== nextWeek[0]) {
+        setMobileWeekTransition({direction, previousDates: currentWeek});
+        window.setTimeout(() => setMobileWeekTransition(null), 260);
+      }
       setCalendarContentAnimation(null);
       window.clearTimeout(calendarContentAnimationTimerRef.current);
       window.requestAnimationFrame(() => setCalendarContentAnimation(direction));
@@ -713,12 +724,10 @@ function CalendarPage({
     const direction = deltaX < 0 ? "next" : "previous";
 
     suppressMobileWeekClickRef.current = true;
-    setMobileWeekAnimation(direction);
     selectCalendarDate(shiftDate(selectedDate, direction === "next" ? 7 : -7));
     window.setTimeout(() => {
       suppressMobileWeekClickRef.current = false;
-      setMobileWeekAnimation(null);
-    }, 240);
+    }, 260);
   };
 
 return (
@@ -889,8 +898,8 @@ return (
       )}
 
       <div
-        className={`mobile-calendar-week hidden max-md:grid ${
-          mobileWeekAnimation ? `is-shifting-${mobileWeekAnimation}` : ""
+        className={`mobile-calendar-week hidden max-md:block ${
+          mobileWeekTransition ? `is-sliding-${mobileWeekTransition.direction}` : ""
         }`}
         aria-label="Дни недели"
         ref={weekCarouselRef}
@@ -908,11 +917,19 @@ return (
           if (touch) endMobileWeekSwipe(touch);
         }}
       >
-        {weekDates.map((date) => {
+        <div className="mobile-calendar-week-track">
+        {(mobileWeekTransition
+          ? mobileWeekTransition.direction === "next"
+            ? [mobileWeekTransition.previousDates, weekDates]
+            : [weekDates, mobileWeekTransition.previousDates]
+          : [weekDates]
+        ).map((dates, pageIndex) => (
+          <div className="mobile-calendar-week-page" key={`${dates[0]}-${pageIndex}`}>
+          {dates.map((date) => {
           const today = date === getTodayInput();
           const dayIndex = (new Date(`${date}T12:00:00`).getDay() + 6) % 7;
           const isSelected = date === selectedDate;
-          return (
+            return (
             <button
               className={`${isSelected ? "selected" : ""} ${today ? "today" : ""}`}
               data-date={date}
@@ -930,8 +947,11 @@ return (
                 {Number(date.slice(-2))}
               </b>
             </button>
-          );
-        })}
+            );
+          })}
+          </div>
+        ))}
+        </div>
       </div>
 
       {isMobile && !isToday && (

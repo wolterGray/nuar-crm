@@ -15,7 +15,7 @@ test('visit Push payload contains an exact deep link and readable visit summary'
     type: 'visit_created',
   });
 
-  assert.equal(payload.url, '/calendar?entry=42');
+  assert.equal(payload.url, '/calendar?entry=42&date=2026-10-16');
   assert.match(payload.body, /^Sensitive Name · Услуга · 16 октября, 14:30/);
   assert.doesNotMatch(JSON.stringify(payload), /48123456789/);
 });
@@ -41,7 +41,7 @@ test('visit Push reads client and service labels from nested CRM payloads', () =
     payload.body,
     'Maks Kowalski · Masaż klasyczny · 6 ноября, 12:30 · 60 мин',
   );
-  assert.equal(payload.url, '/calendar?entry=84');
+  assert.equal(payload.url, '/calendar?entry=84&date=2026-11-06');
 });
 
 test('site booking Push opens the exact queue entry and shows name, service, date and time', () => {

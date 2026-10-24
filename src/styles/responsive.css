@@ -1276,28 +1276,40 @@
   }
 
   .mobile-calendar-week {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    display: block;
     flex: 0 0 52px;
     min-height: 52px;
     height: 52px;
     overflow-x: hidden;
     overflow-y: hidden;
-    align-items: center;
-    gap: 4px;
-    padding: 5px 16px 4px;
+    padding: 0;
     border-bottom: 0;
     background: var(--mobile-sheet-bg, #fff);
     scrollbar-width: none;
     touch-action: pan-y;
   }
 
-  .mobile-calendar-week.is-shifting-next {
-    animation: mobile-week-slide-next 220ms ease-out both;
+  .mobile-calendar-week-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
   }
 
-  .mobile-calendar-week.is-shifting-previous {
-    animation: mobile-week-slide-previous 220ms ease-out both;
+  .mobile-calendar-week-page {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    flex: 0 0 100%;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 16px 4px;
+  }
+
+  .mobile-calendar-week.is-sliding-next .mobile-calendar-week-track {
+    animation: mobile-week-track-next 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mobile-calendar-week.is-sliding-previous .mobile-calendar-week-track {
+    animation: mobile-week-track-previous 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .nuar-calendar-layout.is-changing-date-next {
@@ -1319,36 +1331,22 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .mobile-calendar-week.is-shifting-next,
-    .mobile-calendar-week.is-shifting-previous,
+    .mobile-calendar-week.is-sliding-next .mobile-calendar-week-track,
+    .mobile-calendar-week.is-sliding-previous .mobile-calendar-week-track,
     .nuar-calendar-layout.is-changing-date-next,
     .nuar-calendar-layout.is-changing-date-previous {
       animation: none;
     }
   }
 
-  @keyframes mobile-week-slide-next {
-    from {
-      opacity: 0.2;
-      transform: translateX(18px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+  @keyframes mobile-week-track-next {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
   }
 
-  @keyframes mobile-week-slide-previous {
-    from {
-      opacity: 0.2;
-      transform: translateX(-18px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+  @keyframes mobile-week-track-previous {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
   }
 
   .mobile-calendar-week button {

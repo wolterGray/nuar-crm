@@ -2,7 +2,9 @@ import {toDisplayDate} from "./formatters.jsx";
 import {isCalendarVisitPlanned} from "./calendarVisitStatus.js";
 import {toVisitNumber} from "./visits.jsx";
 
-export const buildPaymentRows = (calendarEntries, visits, now = new Date()) => {
+export const buildPaymentRows = (calendarEntries, visits, clientPackagesOrNow = [], suppliedNow = new Date()) => {
+  const clientPackages = Array.isArray(clientPackagesOrNow) ? clientPackagesOrNow : [];
+  const now = clientPackagesOrNow instanceof Date ? clientPackagesOrNow : suppliedNow;
   const calendarEntryById = new Map(
     calendarEntries
       .filter((entry) => entry.kind === "visit")
@@ -81,6 +83,37 @@ export const buildPaymentRows = (calendarEntries, visits, now = new Date()) => {
     };
   });
 
+  const packageSales = clientPackages.map((packageItem) => {
+    const client = typeof packageItem.client === "object"
+      ? packageItem.client?.name
+      : packageItem.client || packageItem.clientName;
+    const amount = toVisitNumber(packageItem.price ?? packageItem.payload?.price);
+    const payment = packageItem.payment || packageItem.payload?.payment || "Не указано";
+
+    return {
+      ...packageItem,
+      id: `package-sale-${packageItem.id}`,
+      sourceId: packageItem.id,
+      recordType: "package_sale",
+      readOnly: true,
+      client: client || "Без имени",
+      master: packageItem.master || packageItem.payload?.master || "—",
+      service: `Продажа пакета: ${packageItem.packageName || packageItem.name || packageItem.payload?.packageName || "Пакет"}`,
+      date: toDisplayDate(packageItem.purchaseDate || packageItem.payload?.purchaseDate),
+      amount,
+      paidAmount: amount,
+      payment,
+      cashAmount: payment === "Наличные" ? amount : packageItem.cashAmount ?? packageItem.payload?.cashAmount ?? "",
+      cardAmount: payment === "Карта" ? amount : packageItem.cardAmount ?? packageItem.payload?.cardAmount ?? "",
+      commission: 0,
+      discount: 0,
+      debt: 0,
+      extra: 0,
+      tip: 0,
+      status: "completed",
+    };
+  });
+
   return [
     ...calendarEntries
       .filter(
@@ -91,6 +124,7 @@ export const buildPaymentRows = (calendarEntries, visits, now = new Date()) => {
       )
       .map(normalizeCalendarEntryRow),
     ...syncedVisits,
+    ...packageSales,
   ];
 };
 

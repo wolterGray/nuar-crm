@@ -440,14 +440,14 @@ function VisitsTable({
                           variant="ghost"
                           onClick={() => toggleRowExpanded(visit.id)}
                         />
-                        <RowActionsMenu
+                        {!visit.readOnly ? <RowActionsMenu
                           className="payments-row-menu"
                           itemId={visit.id}
                           openMenuId={openActionMenuId}
                           setOpenMenuId={onToggleActionMenu}
                           onDelete={onDeleteVisit ? () => onDeleteVisit(visit) : undefined}
                           onEdit={onEditVisit ? () => onEditVisit(visit) : undefined}
-                        />
+                        /> : null}
                       </div>
                     </div>
 

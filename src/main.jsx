@@ -5,6 +5,10 @@ import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import PublicLoyaltyPage from './components/pages/PublicLoyaltyPage.jsx'
 
+if (/Chrome|CriOS/i.test(navigator.userAgent)) {
+  document.documentElement.classList.add('is-chrome-mobile')
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>

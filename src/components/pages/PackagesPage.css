@@ -867,11 +867,13 @@
     min-height: 0 !important;
     flex: 0 0 auto !important;
     align-items: stretch !important;
+    align-content: flex-start !important;
   }
 
   .nuar-packages .packages-panel,
   .nuar-packages .packages-list,
   .nuar-packages .package-card {
+    block-size: fit-content !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
@@ -880,12 +882,18 @@
 
   .nuar-packages .packages-panel {
     align-self: stretch !important;
+    justify-content: flex-start !important;
   }
 
   .nuar-packages .packages-list {
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
+  }
+
+  .nuar-packages :is(.client-package-card, .certificate-card) {
+    max-height: 210px !important;
+    justify-content: flex-start !important;
   }
 
   .nuar-packages .package-card {

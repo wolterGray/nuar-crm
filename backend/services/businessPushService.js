@@ -48,7 +48,8 @@ const formatPersonServiceDate = ({clientName, date, serviceName, time}) => [
 const getVisitUrl = (event, payload) => {
   if (payload.deleted === true) return `/calendar?date=${encodeURIComponent(payload.date || '')}`;
   const parameter = event.entityType === 'visit' ? 'visit' : 'entry';
-  const date = event.entityType === 'visit' && payload.date ? `&date=${encodeURIComponent(payload.date)}` : '';
+  const visitDate = getPayloadValue(payload, ['date', 'newDate', 'inputDate']);
+  const date = visitDate ? `&date=${encodeURIComponent(visitDate)}` : '';
   return `/calendar?${parameter}=${encodeURIComponent(event.entityId || '')}${date}`;
 };
 const formatVisitBody = (payload) => [

@@ -31,4 +31,27 @@ describe("paymentRows", () => {
 
     expect(filtered).toHaveLength(1);
   });
+
+  it("includes package sales as read-only income rows", () => {
+    const rows = buildPaymentRows([], [], [{
+      id: 7,
+      client: "Magda",
+      master: "Max",
+      packageName: "Пакет 6 визитов",
+      payment: "Карта",
+      price: 990,
+      purchaseDate: "2026-10-24",
+    }]);
+
+    expect(rows).toEqual([expect.objectContaining({
+      amount: 990,
+      client: "Magda",
+      date: "24.10.2026",
+      master: "Max",
+      paidAmount: 990,
+      payment: "Карта",
+      readOnly: true,
+      recordType: "package_sale",
+    })]);
+  });
 });

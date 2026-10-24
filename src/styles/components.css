@@ -8316,9 +8316,13 @@
     flex-basis: 44px;
     height: 44px;
     min-height: 44px;
+    padding: 0;
+    background: var(--color-page);
+  }
+
+  .mobile-page-container[data-mobile-page="calendar"] .mobile-calendar-week-page {
     gap: 2px;
     padding: 2px var(--mobile-page-x, 16px);
-    background: var(--color-page);
   }
 
   .mobile-page-container[data-mobile-page="calendar"] .mobile-calendar-week button,

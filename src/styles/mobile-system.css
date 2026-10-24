@@ -18,6 +18,10 @@
     --mobile-touch-target: 48px;
   }
 
+  html.is-chrome-mobile {
+    --mobile-viewport-bottom-offset: 6px;
+  }
+
   html,
   body,
   #root {
