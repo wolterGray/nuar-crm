@@ -15,7 +15,7 @@ import {
   getServiceColor,
   serviceColorPalette,
 } from "./utils/serviceColors.js";
-import AppRoutes from "./components/AppRoutes.jsx";
+import AppRoutes, {preloadAppRoute} from "./components/AppRoutes.jsx";
 import {navItems} from "./constants/navigation.js";
 import {
   canViewPage,
@@ -211,6 +211,19 @@ function App() {
     },
   );
   const setActivePage = useAppRouting(activePage, setActivePageState);
+  const initialRoutePageRef = useRef(activePage);
+  const [initialRouteReady, setInitialRouteReady] = useState(false);
+  useEffect(() => {
+    let active = true;
+    preloadAppRoute(initialRoutePageRef.current)
+      .catch(() => {})
+      .finally(() => {
+        if (active) setInitialRouteReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
@@ -2125,6 +2138,7 @@ function App() {
       handleLogout={handleAppLogout}
       handleResetPassword={handleResetPassword}
       handleUpdatePassword={handleUpdatePassword}
+      initialRouteReady={initialRouteReady}
       notifications={notifications}
       passwordRecovery={passwordRecovery}
       resetToken={resetToken}>

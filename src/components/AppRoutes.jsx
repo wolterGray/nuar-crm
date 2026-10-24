@@ -8,22 +8,46 @@ import {
   hasPermission,
 } from "../utils/permissions.js";
 
-const TodayPage = lazy(() => import("./pages/TodayPage.jsx"));
-const CalendarPage = lazy(() => import("./pages/CalendarPage.jsx"));
-const ClientsPage = lazy(() => import("./pages/ClientsPage.jsx"));
-const ClubPage = lazy(() => import("./pages/ClubPage.jsx"));
-const ServicesPage = lazy(() => import("./pages/ServicesPage.jsx"));
-const PackagesPage = lazy(() => import("./pages/PackagesPage.jsx"));
-const EmployeesPage = lazy(() => import("./EmployeesPage.jsx"));
-const MessageTemplatesPage = lazy(() => import("./pages/MessageTemplatesPage.jsx"));
-const OperationsPage = lazy(() => import("./pages/OperationsPage.jsx"));
-const TaskEditorPage = lazy(() => import("./pages/TaskEditorPage.jsx"));
-const ImportPage = lazy(() => import("./pages/ImportPage.jsx"));
-const PaymentsPage = lazy(() => import("./pages/PaymentsPage.jsx"));
-const MyEarningsPage = lazy(() => import("./pages/MyEarningsPage.jsx"));
-const StatisticsPage = lazy(() => import("./pages/StatisticsPage.jsx"));
-const SitePage = lazy(() => import("./pages/SitePage.jsx"));
-const SettingsPage = lazy(() => import("./pages/SettingsPage.jsx"));
+const routeLoaders = {
+  today: () => import("./pages/TodayPage.jsx"),
+  calendar: () => import("./pages/CalendarPage.jsx"),
+  clients: () => import("./pages/ClientsPage.jsx"),
+  club: () => import("./pages/ClubPage.jsx"),
+  services: () => import("./pages/ServicesPage.jsx"),
+  packages: () => import("./pages/PackagesPage.jsx"),
+  masters: () => import("./EmployeesPage.jsx"),
+  templates: () => import("./pages/MessageTemplatesPage.jsx"),
+  operations: () => import("./pages/OperationsPage.jsx"),
+  "task-editor": () => import("./pages/TaskEditorPage.jsx"),
+  import: () => import("./pages/ImportPage.jsx"),
+  payments: () => import("./pages/PaymentsPage.jsx"),
+  "my-earnings": () => import("./pages/MyEarningsPage.jsx"),
+  statistics: () => import("./pages/StatisticsPage.jsx"),
+  site: () => import("./pages/SitePage.jsx"),
+  settings: () => import("./pages/SettingsPage.jsx"),
+};
+
+export function preloadAppRoute(activePage) {
+  const loader = routeLoaders[activePage] ?? routeLoaders.calendar;
+  return loader();
+}
+
+const TodayPage = lazy(routeLoaders.today);
+const CalendarPage = lazy(routeLoaders.calendar);
+const ClientsPage = lazy(routeLoaders.clients);
+const ClubPage = lazy(routeLoaders.club);
+const ServicesPage = lazy(routeLoaders.services);
+const PackagesPage = lazy(routeLoaders.packages);
+const EmployeesPage = lazy(routeLoaders.masters);
+const MessageTemplatesPage = lazy(routeLoaders.templates);
+const OperationsPage = lazy(routeLoaders.operations);
+const TaskEditorPage = lazy(routeLoaders["task-editor"]);
+const ImportPage = lazy(routeLoaders.import);
+const PaymentsPage = lazy(routeLoaders.payments);
+const MyEarningsPage = lazy(routeLoaders["my-earnings"]);
+const StatisticsPage = lazy(routeLoaders.statistics);
+const SitePage = lazy(routeLoaders.site);
+const SettingsPage = lazy(routeLoaders.settings);
 
 function SectionLoadingFallback() {
   return (

@@ -17,6 +17,7 @@ export default function AppGate({
   handleLogout,
   handleResetPassword,
   handleUpdatePassword,
+  initialRouteReady,
   notifications,
   passwordRecovery,
   resetToken,
@@ -60,7 +61,7 @@ export default function AppGate({
     );
   }
 
-  if (!authReady || (authSession && !cloudHydrated)) {
+  if (!authReady || (authSession && (!cloudHydrated || !initialRouteReady))) {
     const hasCloudError = Boolean(authReady && authSession && cloudLoadError);
 
     return (
