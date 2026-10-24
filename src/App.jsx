@@ -97,7 +97,6 @@ import {useReviewRequests} from "./hooks/useReviewRequests.js";
 import {useSmsReminders} from "./hooks/useSmsReminders.js";
 import {useAppRouting} from "./hooks/useAppRouting.js";
 import {useClientSearch} from "./hooks/useClientSearch.js";
-import {useSiteBookingHandlers} from "./hooks/useSiteBookingHandlers.js";
 import {useTelegramDigest} from "./hooks/useTelegramDigest.js";
 import {useToastNotifications} from "./hooks/useToastNotifications.js";
 import {useAuth} from "./hooks/useAuth.js";
@@ -2024,19 +2023,6 @@ function App() {
     [pushNotification],
   );
 
-  const siteBooking = useSiteBookingHandlers({
-    calendarEntries,
-    clientProfiles,
-    createLocalId,
-    employees,
-    enabled: Boolean(authSession && canViewPage("site", authSession.user)),
-    getCalendarServiceColor,
-    pushNotification,
-    serviceCatalog,
-    setCalendarEntries,
-    setClientProfiles,
-  });
-
   const booksyGmailSync = useBooksyGmailSync({
     calendarEntries,
     clientProfiles,
@@ -2119,10 +2105,18 @@ function App() {
   const navigationBadges = useMemo(
     () => ({
       operations: activeWaitlistCount,
-      site: siteBooking.pendingRequests.length,
     }),
-    [activeWaitlistCount, siteBooking.pendingRequests.length],
+    [activeWaitlistCount],
   );
+
+  const openWaitlistQueue = useCallback(() => {
+    setAlertFocus({
+      entityId: "queue",
+      section: "waitlist",
+      type: "waitlist",
+    });
+    setActivePage("operations");
+  }, [setActivePage]);
 
   return (
     <AppGate
@@ -2544,7 +2538,8 @@ function App() {
             renameServiceCategory={renameServiceCategory}
             saveService={saveService}
             toggleServiceStatus={toggleServiceStatus}
-            siteBooking={siteBooking}
+            activeWaitlistCount={activeWaitlistCount}
+            openWaitlistQueue={openWaitlistQueue}
             setActivePage={setActivePage}
             setOpenPaymentActionMenuId={setOpenPaymentActionMenuId}
             supplies={supplies}

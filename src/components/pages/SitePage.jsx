@@ -3,19 +3,15 @@ import PageHeader from "../ui/PageHeader.jsx";
 import {Button} from "../ui/index.js";
 import SiteAdminPanel from "../SiteAdminPanel.jsx";
 import SiteBookingNotifySettings from "../SiteBookingNotifySettings.jsx";
-import SiteBookingPanel from "../SiteBookingPanel.jsx";
 import "./SitePage.css";
 
 function SitePage({
-  alertFocus,
   settings,
-  siteBooking = null,
-  pushNotification,
-  onAlertFocusHandled,
+  pendingRequestCount = 0,
+  onOpenQueue,
   onSubmit,
 }) {
   const {isMobile} = useBreakpoint();
-  const pendingCount = siteBooking?.pendingRequests?.length ?? 0;
   const telegramEnabled =
     settings.telegramEnabled === true &&
     settings.siteBookingNotifyTelegramEnabled === true;
@@ -35,11 +31,7 @@ function SitePage({
       <section className="site-page site-page-mobile nuar-site">
         <PageHeader
           className="site-page-header"
-          description={
-            pendingCount > 0
-              ? `${pendingCount} заявок ждут обработки`
-              : "CMS nuarr.pl и заявки с сайта"
-          }
+          description="CMS nuarr.pl и уведомления о новых заявках"
           title="Сайт"
         />
 
@@ -48,13 +40,6 @@ function SitePage({
         </div>
 
         <div className="site-page-summary">
-          <article
-            className={`site-page-summary-card${
-              pendingCount > 0 ? " is-active" : ""
-            }`}>
-            <span>Заявки</span>
-            <strong>{pendingCount}</strong>
-          </article>
           <article className="site-page-summary-card">
             <span>Telegram</span>
             <strong className={telegramEnabled ? "is-enabled" : ""}>
@@ -73,6 +58,12 @@ function SitePage({
               {hasChatId ? "Есть" : "Нет"}
             </strong>
           </article>
+          <article className="site-page-summary-card site-page-queue-card">
+            <span>Очередь заявок</span>
+            <Button size="sm" variant="secondary" onClick={onOpenQueue}>
+              Открыть{pendingRequestCount > 0 ? ` · ${pendingRequestCount}` : ""}
+            </Button>
+          </article>
         </div>
 
         <form className="site-page-form settings-form" onSubmit={onSubmit}>
@@ -80,23 +71,6 @@ function SitePage({
             <section className="site-mobile-section panel settings-panel">
               <SiteBookingNotifySettings settings={settings} />
             </section>
-
-            {siteBooking ? (
-              <SiteBookingPanel
-                alertFocus={alertFocus}
-                applyingRequestId={siteBooking.applyingRequestId}
-                isMobile
-                loadError={siteBooking.loadError}
-                loading={siteBooking.loading}
-                pendingRequests={siteBooking.pendingRequests}
-                recentRequests={siteBooking.recentRequests}
-                pushNotification={pushNotification}
-                onAlertFocusHandled={onAlertFocusHandled}
-                onApply={siteBooking.applyRequest}
-                onRefresh={siteBooking.refreshPendingRequests}
-                onReject={siteBooking.rejectRequest}
-              />
-            ) : null}
           </div>
 
           {saveBar}
@@ -108,7 +82,7 @@ function SitePage({
   return (
     <section className="settings-page site-page">
       <PageHeader
-        description="CMS nuarr.pl, заявки с сайта и уведомления владельцу о новых бронях"
+        description="CMS nuarr.pl и уведомления владельцу о новых заявках"
         title="Сайт NUAR"
       />
 
@@ -116,13 +90,6 @@ function SitePage({
         <section className="panel settings-panel settings-grid-full">
           <SiteAdminPanel compact />
           <div className="site-page-summary site-page-summary-desktop">
-            <article
-              className={`site-page-summary-card${
-                pendingCount > 0 ? " is-active" : ""
-              }`}>
-              <span>Заявки</span>
-              <strong>{pendingCount}</strong>
-            </article>
             <article className="site-page-summary-card">
               <span>Telegram</span>
               <strong>{telegramEnabled ? "Вкл" : "Выкл"}</strong>
@@ -135,28 +102,18 @@ function SitePage({
               <span>Chat ID</span>
               <strong>{hasChatId ? "Есть" : "Нет"}</strong>
             </article>
+            <article className="site-page-summary-card site-page-queue-card">
+              <span>Очередь заявок</span>
+              <Button size="sm" variant="secondary" onClick={onOpenQueue}>
+                Открыть{pendingRequestCount > 0 ? ` · ${pendingRequestCount}` : ""}
+              </Button>
+            </article>
           </div>
         </section>
 
         <section className="panel settings-panel settings-grid-full">
           <SiteBookingNotifySettings settings={settings} />
         </section>
-
-        {siteBooking ? (
-          <SiteBookingPanel
-            alertFocus={alertFocus}
-            applyingRequestId={siteBooking.applyingRequestId}
-            loadError={siteBooking.loadError}
-            loading={siteBooking.loading}
-            pendingRequests={siteBooking.pendingRequests}
-            recentRequests={siteBooking.recentRequests}
-            pushNotification={pushNotification}
-            onAlertFocusHandled={onAlertFocusHandled}
-            onApply={siteBooking.applyRequest}
-            onRefresh={siteBooking.refreshPendingRequests}
-            onReject={siteBooking.rejectRequest}
-          />
-        ) : null}
 
         {saveBar}
       </form>
