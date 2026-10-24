@@ -2334,8 +2334,8 @@
   }
 
   .mobile-bottom-nav {
-    height: var(--mobile-nav-total, 50px) !important;
-    bottom: var(--mobile-viewport-bottom-offset, 0px) !important;
+    height: var(--mobile-nav-total, calc(50px + max(env(safe-area-inset-bottom, 0px), 10px))) !important;
+    bottom: 0 !important;
   }
 }
 

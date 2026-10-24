@@ -10,16 +10,12 @@
     --mobile-page-x: 16px;
     --mobile-page-gap: 16px;
     --mobile-safe-top: env(safe-area-inset-top, 0px);
-    --mobile-safe-bottom: 0px;
+    --mobile-safe-bottom: max(env(safe-area-inset-bottom, 0px), 10px);
     --mobile-viewport-bottom-offset: 0px;
     --mobile-nav-height: 50px;
-    --mobile-nav-total: var(--mobile-nav-height);
-    --mobile-content-bottom: calc(var(--mobile-nav-total) + var(--mobile-viewport-bottom-offset) + 14px);
+    --mobile-nav-total: calc(var(--mobile-nav-height) + var(--mobile-safe-bottom));
+    --mobile-content-bottom: calc(var(--mobile-nav-total) + 14px);
     --mobile-touch-target: 48px;
-  }
-
-  html.is-chrome-mobile {
-    --mobile-nav-total: 66px;
   }
 
   html,
@@ -214,23 +210,19 @@
   .mobile-bottom-nav {
     position: fixed !important;
     right: 0 !important;
-    bottom: var(--mobile-viewport-bottom-offset) !important;
+    bottom: 0 !important;
     left: 0 !important;
     z-index: 80 !important;
     display: flex !important;
-    align-items: flex-end !important;
+    align-items: flex-start !important;
     height: var(--mobile-nav-total) !important;
     min-height: 0 !important;
     margin: 0 !important;
-    padding: 2px 6px 0 !important;
+    padding: 3px 6px var(--mobile-safe-bottom) !important;
     border-top: 1px solid var(--color-border-soft) !important;
     background: var(--mobile-nav-bg) !important;
     box-shadow: var(--shadow-card);
-  }
-
-  html.is-chrome-mobile .mobile-bottom-nav {
-    height: var(--mobile-nav-total) !important;
-    padding-bottom: 12px !important;
+    box-sizing: border-box !important;
   }
 
   .mobile-bottom-nav button {
@@ -242,10 +234,10 @@
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: flex-end !important;
-    gap: 2px !important;
+    justify-content: center !important;
+    gap: 3px !important;
     margin: 0 !important;
-    padding: 3px 2px 2px !important;
+    padding: 3px 2px !important;
     border-radius: 10px !important;
   }
 
