@@ -19,7 +19,7 @@
 
   display: flex !important;
   flex-direction: column !important;
-  gap: 16px !important;
+  gap: 12px !important;
   width: 100% !important;
   max-width: 100% !important;
   min-height: 0 !important;
@@ -212,8 +212,8 @@
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
-  min-height: 64px !important;
-  padding: 10px 14px !important;
+  min-height: 58px !important;
+  padding: 8px 12px !important;
   border-radius: var(--radius-card) !important;
   background: var(--pkg-surface) !important;
   border: 1px solid var(--pkg-border) !important;
@@ -306,7 +306,7 @@
 .nuar-packages .packages-board {
   display: flex !important;
   flex-direction: column !important;
-  gap: 16px !important;
+  gap: 12px !important;
   width: 100% !important;
   min-height: 0 !important;
 }
@@ -314,9 +314,12 @@
 .nuar-packages .packages-panel {
   display: flex !important;
   flex-direction: column !important;
-  gap: 12px !important;
+  gap: 8px !important;
   width: 100% !important;
   min-height: 0 !important;
+  height: auto !important;
+  flex: 0 0 auto !important;
+  align-self: start !important;
 }
 
 .nuar-packages .packages-panel-header {
@@ -373,6 +376,9 @@
   overflow: visible !important;
   padding: 0 !important;
   margin: 0 !important;
+  height: auto !important;
+  flex: 0 0 auto !important;
+  align-content: start !important;
 }
 
 /* ==========================================================================
@@ -386,6 +392,9 @@
   max-width: 100% !important;
   min-width: 0 !important;
   height: auto !important;
+  min-height: 0 !important;
+  flex: 0 0 auto !important;
+  align-self: stretch !important;
   padding: 14px 16px !important;
   border-radius: var(--radius-card) !important;
   background: var(--pkg-surface) !important;
@@ -683,7 +692,7 @@
 @media (min-width: 769px) {
   .nuar-packages .packages-live-row {
     display: grid !important;
-    grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr) !important;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px) !important;
     align-items: start !important;
     gap: 16px !important;
     width: 100% !important;
@@ -700,6 +709,22 @@
     gap: 12px !important;
   }
 
+  .nuar-packages .packages-panel-active .packages-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start !important;
+    gap: 10px !important;
+  }
+
+  .nuar-packages .packages-panel-certificates .packages-list {
+    display: flex !important;
+  }
+
+  .nuar-packages .packages-live-row.is-single-column .packages-panel-certificates .packages-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
   .nuar-packages .packages-templates-grid {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(220px, 1fr)) !important;
@@ -714,6 +739,15 @@
     .nuar-packages .packages-templates-grid {
       grid-template-columns: repeat(2, minmax(200px, 1fr)) !important;
     }
+
+    .nuar-packages .packages-live-row {
+      grid-template-columns: 1fr !important;
+    }
+
+    .nuar-packages .packages-panel-certificates .packages-list {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
   }
 }
 
@@ -722,7 +756,7 @@
    ========================================================================== */
 @media (max-width: 768px) {
   .packages-page-mobile.nuar-packages {
-    gap: 12px !important;
+    gap: 10px !important;
     width: 100% !important;
     max-width: 100% !important;
     min-height: 0 !important;
@@ -735,12 +769,12 @@
   .nuar-packages .packages-controls-bar {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 10px !important;
+    gap: 8px !important;
   }
 
   .nuar-packages .packages-search-wrap {
     width: 100% !important;
-    order: 1 !important;
+    order: 2 !important;
   }
 
   .nuar-packages .packages-page-search {
@@ -753,7 +787,7 @@
     align-items: stretch !important;
     width: 100% !important;
     gap: 8px !important;
-    order: 2 !important;
+    order: 1 !important;
   }
 
   .nuar-packages .packages-page-tabs {
@@ -783,15 +817,29 @@
 
   /* Compact KPI Grid on Mobile */
   .nuar-packages .packages-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 6px !important;
+    display: flex !important;
+    gap: 8px !important;
+    width: calc(100% + 12px) !important;
+    margin-right: -12px !important;
+    padding-right: 12px !important;
+    overflow-x: auto !important;
+    overscroll-behavior-inline: contain !important;
+    scroll-snap-type: x proximity !important;
+    scrollbar-width: none !important;
+  }
+
+  .nuar-packages .packages-summary-grid::-webkit-scrollbar {
+    display: none !important;
   }
 
   .nuar-packages .packages-summary-card {
-    min-height: 52px !important;
+    flex: 0 0 148px !important;
+    min-width: 148px !important;
+    min-height: 56px !important;
     padding: 8px 10px !important;
     gap: 8px !important;
-    border-radius: 12px !important;
+    border-radius: 8px !important;
+    scroll-snap-align: start !important;
   }
 
   .nuar-packages .packages-summary-icon {
@@ -813,8 +861,54 @@
   .nuar-packages .packages-live-row {
     display: flex !important;
     flex-direction: column !important;
-    gap: 16px !important;
+    gap: 14px !important;
     width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    flex: 0 0 auto !important;
+    align-items: stretch !important;
+  }
+
+  .nuar-packages .packages-panel,
+  .nuar-packages .packages-list,
+  .nuar-packages .package-card {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: 0 0 auto !important;
+  }
+
+  .nuar-packages .packages-panel {
+    align-self: stretch !important;
+  }
+
+  .nuar-packages .packages-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .nuar-packages .package-card {
+    gap: 8px !important;
+    padding: 12px !important;
+    overflow: visible !important;
+  }
+
+  .nuar-packages .package-card-client-name {
+    font-size: 14px !important;
+  }
+
+  .nuar-packages .package-card-pkg-name {
+    font-size: 12px !important;
+  }
+
+  .nuar-packages .package-card-footer {
+    padding-top: 8px !important;
+  }
+
+  .nuar-packages .packages-empty-state {
+    min-height: 132px !important;
+    padding: 18px 14px !important;
   }
 
   .nuar-packages .packages-templates-grid {
