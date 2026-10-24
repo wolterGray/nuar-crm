@@ -434,6 +434,7 @@ const getCalendarIntervals = (rows, date, master, employees = [], services = [])
     .filter((row) => {
       if (!master) return true;
       const rowMaster = cleanString(readPayload(row).master ?? row.master);
+      if (!rowMaster) return false;
       return (
         resolveMaster(rowMaster, employees) === master ||
         normalizeText(rowMaster) === normalizeText(master)
@@ -462,6 +463,7 @@ const getPendingIntervals = (rows, date, master, employees = [], services = []) 
     .filter((row) => {
       if (!master) return true;
       const pendingMaster = cleanString(row.preferred_master);
+      if (!pendingMaster) return false;
       return (
         resolveMaster(pendingMaster, employees) === master ||
         normalizeText(pendingMaster) === normalizeText(master)
@@ -536,6 +538,7 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
     .filter((employee) => employee.siteVisible && employee.status !== 'Архив' && employee.status !== 'Удален');
 
   const availableMasters = [...new Set(activeEmployees.map((e) => cleanString(e.name)).filter(Boolean))];
+  const masterDirectory = activeEmployees.length ? activeEmployees : DEFAULT_MASTERS.map((name) => ({ name }));
 
   let employees = activeEmployees.filter((employee) => isEmployeeAvailableOnDate(employee, preferredDate));
   if (!employees.length) {
@@ -550,8 +553,8 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
   }
 
   if (preferredMaster) {
-    const resolved = resolveMaster(preferredMaster, employees);
-    employees = employees.filter((employee) => resolveMaster(employee.name, employees) === resolved);
+    const resolved = resolveMaster(preferredMaster, masterDirectory);
+    employees = employees.filter((employee) => resolveMaster(employee.name, masterDirectory) === resolved);
   }
 
   const services = serviceRows.map(toPublicService).filter((service) => service.siteVisible && service.status !== 'Архив');
@@ -578,8 +581,8 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
     const start = toMinutes(shift.start);
     const end = toMinutes(shift.end);
     const busy = [
-      ...getCalendarIntervals(calendarRows, preferredDate, master, employees, services),
-      ...getPendingIntervals(bookingRows, preferredDate, master, employees, services),
+      ...getCalendarIntervals(calendarRows, preferredDate, master, masterDirectory, services),
+      ...getPendingIntervals(bookingRows, preferredDate, master, masterDirectory, services),
     ];
     const employeeSlots = [];
 
@@ -988,6 +991,10 @@ siteBookingRouter.patch('/site-bookings/:id', requirePermission(PERMISSIONS.USER
 });
 
 module.exports = {
+  _test: {
+    getCalendarIntervals,
+    getPendingIntervals,
+  },
   publicSiteBookingRouter,
   siteBookingRouter,
 };
