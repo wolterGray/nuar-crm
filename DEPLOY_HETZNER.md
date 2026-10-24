@@ -228,7 +228,7 @@ Start backend:
 cd /var/www/nuar-crm
 pm2 start ecosystem.config.js --env production
 pm2 status
-pm2 logs nuar-crm-backend
+pm2 logs nuar-backend
 ```
 
 Enable PM2 on reboot:

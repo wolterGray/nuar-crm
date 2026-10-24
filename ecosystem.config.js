@@ -1,7 +1,7 @@
 export default {
   apps: [
     {
-      name: "nuar-crm-backend",
+      name: "nuar-backend",
       cwd: "./backend",
       script: "server.js",
       exec_mode: "fork",
