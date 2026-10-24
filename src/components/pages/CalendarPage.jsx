@@ -1725,6 +1725,14 @@ return (
             onEdit(viewedReservedEntry);
             setViewedReservedEntry(null);
           }}
+          onConvertToVisit={() => {
+            onEdit({
+              ...viewedReservedEntry,
+              kind: "visit",
+              client: viewedReservedEntry.title,
+            });
+            setViewedReservedEntry(null);
+          }}
         />
       )}
     </section>
@@ -1883,6 +1891,7 @@ function ReservedCalendarCard({
   onClose,
   onDelete,
   onEdit,
+  onConvertToVisit,
 }) {
   return (
     <MobileSheet
@@ -1895,6 +1904,11 @@ function ReservedCalendarCard({
       onClose={onClose}
       footer={
         <div className="calendar-reserved-card-actions">
+          {onConvertToVisit ? (
+            <Button leftIcon="userPlus" size="sm" type="button" variant="primary" onClick={onConvertToVisit}>
+              Преобразовать в визит
+            </Button>
+          ) : null}
           <Button leftIcon="edit" size="sm" type="button" variant="secondary" onClick={onEdit}>
             Редактировать
           </Button>
@@ -1903,6 +1917,12 @@ function ReservedCalendarCard({
           </Button>
         </div>
       }>
+      <div className="calendar-reserved-card-notice">
+        <AppIcon name="info" size="sm" />
+        <span>
+          Это <b>технический резерв времени</b> (без привязки к клиенту и услуге). Чтобы привязать клиента и стоимость, нажмите «Преобразовать в визит».
+        </span>
+      </div>
       <div className="calendar-reserved-card-panel">
         <span>
           <b>Время</b>
