@@ -64,6 +64,11 @@ const getWeekDates = (dateValue) => {
   });
 };
 
+const getAdjacentWeekStart = (dateValue, direction) => {
+  const [weekStart] = getWeekDates(dateValue);
+  return shiftDate(weekStart, direction === "next" ? 7 : -7);
+};
+
 const getInitialCalendarDate = () => {
   if (typeof window === "undefined") return getTodayInput();
   const linkedDate = new URLSearchParams(window.location.search).get("date");
@@ -724,7 +729,7 @@ function CalendarPage({
     const direction = deltaX < 0 ? "next" : "previous";
 
     suppressMobileWeekClickRef.current = true;
-    selectCalendarDate(shiftDate(selectedDate, direction === "next" ? 7 : -7));
+    selectCalendarDate(getAdjacentWeekStart(selectedDate, direction));
     window.setTimeout(() => {
       suppressMobileWeekClickRef.current = false;
     }, 260);
@@ -908,14 +913,6 @@ return (
         }}
         onPointerDown={(event) => startMobileWeekSwipe(event)}
         onPointerUp={(event) => endMobileWeekSwipe(event)}
-        onTouchStart={(event) => {
-          const touch = event.changedTouches[0];
-          if (touch) startMobileWeekSwipe(touch);
-        }}
-        onTouchEnd={(event) => {
-          const touch = event.changedTouches[0];
-          if (touch) endMobileWeekSwipe(touch);
-        }}
       >
         <div className="mobile-calendar-week-track">
         {(mobileWeekTransition
