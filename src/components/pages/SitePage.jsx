@@ -1,80 +1,23 @@
 import {useBreakpoint} from "../../hooks/useBreakpoint.js";
 import PageHeader from "../ui/PageHeader.jsx";
-import {Button} from "../ui/index.js";
 import SiteAdminPanel from "../SiteAdminPanel.jsx";
-import SiteBookingNotifySettings from "../SiteBookingNotifySettings.jsx";
 import "./SitePage.css";
 
-function SitePage({
-  settings,
-  pendingRequestCount = 0,
-  onOpenQueue,
-  onSubmit,
-}) {
+function SitePage() {
   const {isMobile} = useBreakpoint();
-  const telegramEnabled =
-    settings.telegramEnabled === true &&
-    settings.siteBookingNotifyTelegramEnabled === true;
-  const whatsappEnabled = settings.siteBookingNotifyWhatsappEnabled !== false;
-  const hasChatId = Boolean(String(settings.telegramChatId ?? "").trim());
-
-  const saveBar = (
-    <div className="settings-actions settings-save-bar settings-grid-full">
-      <Button className="submit-button" leftIcon="save" type="submit" variant="primary">
-        Сохранить настройки
-      </Button>
-    </div>
-  );
 
   if (isMobile) {
     return (
       <section className="site-page site-page-mobile nuar-site">
         <PageHeader
           className="site-page-header"
-          description="CMS nuarr.pl и уведомления о новых заявках"
+          description="Управление сайтом и проверка онлайн-записи"
           title="Сайт"
         />
 
         <div className="site-mobile-admin-panel">
           <SiteAdminPanel compact embeddedMobile />
         </div>
-
-        <div className="site-page-summary">
-          <article className="site-page-summary-card">
-            <span>Telegram</span>
-            <strong className={telegramEnabled ? "is-enabled" : ""}>
-              {telegramEnabled ? "Вкл" : "Выкл"}
-            </strong>
-          </article>
-          <article className="site-page-summary-card">
-            <span>WhatsApp</span>
-            <strong className={whatsappEnabled ? "is-enabled" : ""}>
-              {whatsappEnabled ? "Вкл" : "Выкл"}
-            </strong>
-          </article>
-          <article className="site-page-summary-card">
-            <span>Chat ID</span>
-            <strong className={hasChatId ? "is-enabled" : ""}>
-              {hasChatId ? "Есть" : "Нет"}
-            </strong>
-          </article>
-          <article className="site-page-summary-card site-page-queue-card">
-            <span>Очередь заявок</span>
-            <Button size="sm" variant="secondary" onClick={onOpenQueue}>
-              Открыть{pendingRequestCount > 0 ? ` · ${pendingRequestCount}` : ""}
-            </Button>
-          </article>
-        </div>
-
-        <form className="site-page-form settings-form" onSubmit={onSubmit}>
-          <div className="site-scroll">
-            <section className="site-mobile-section panel settings-panel">
-              <SiteBookingNotifySettings settings={settings} />
-            </section>
-          </div>
-
-          {saveBar}
-        </form>
       </section>
     );
   }
@@ -82,41 +25,13 @@ function SitePage({
   return (
     <section className="settings-page site-page">
       <PageHeader
-        description="CMS nuarr.pl и уведомления владельцу о новых заявках"
+        description="Управление публичным сайтом и проверка формы онлайн-записи"
         title="Сайт NUAR"
       />
 
-      <form className="settings-form settings-grid" onSubmit={onSubmit}>
-        <section className="panel settings-panel settings-grid-full">
-          <SiteAdminPanel compact />
-          <div className="site-page-summary site-page-summary-desktop">
-            <article className="site-page-summary-card">
-              <span>Telegram</span>
-              <strong>{telegramEnabled ? "Вкл" : "Выкл"}</strong>
-            </article>
-            <article className="site-page-summary-card">
-              <span>WhatsApp</span>
-              <strong>{whatsappEnabled ? "Вкл" : "Выкл"}</strong>
-            </article>
-            <article className="site-page-summary-card">
-              <span>Chat ID</span>
-              <strong>{hasChatId ? "Есть" : "Нет"}</strong>
-            </article>
-            <article className="site-page-summary-card site-page-queue-card">
-              <span>Очередь заявок</span>
-              <Button size="sm" variant="secondary" onClick={onOpenQueue}>
-                Открыть{pendingRequestCount > 0 ? ` · ${pendingRequestCount}` : ""}
-              </Button>
-            </article>
-          </div>
-        </section>
-
-        <section className="panel settings-panel settings-grid-full">
-          <SiteBookingNotifySettings settings={settings} />
-        </section>
-
-        {saveBar}
-      </form>
+      <section className="panel settings-panel site-launchpad">
+        <SiteAdminPanel compact />
+      </section>
     </section>
   );
 }

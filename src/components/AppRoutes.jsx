@@ -397,12 +397,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
     case "site":
       return (
         <PageSuspense>
-          <SitePage
-            settings={props.appSettings}
-            pendingRequestCount={props.activeWaitlistCount}
-            onOpenQueue={props.openWaitlistQueue}
-            onSubmit={props.handleSiteSettingsSubmit}
-          />
+          <SitePage />
         </PageSuspense>
       );
 

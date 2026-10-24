@@ -1249,7 +1249,7 @@ function App() {
     setters: backupSetters,
   });
 
-  const {handleSettingsSubmit, handleSiteSettingsSubmit, resetSettings} = useAppSettingsHandlers({
+  const {handleSettingsSubmit, resetSettings} = useAppSettingsHandlers({
     appSettings,
     defaultAppSettings,
     pushNotification,
@@ -2109,15 +2109,6 @@ function App() {
     [activeWaitlistCount],
   );
 
-  const openWaitlistQueue = useCallback(() => {
-    setAlertFocus({
-      entityId: "queue",
-      section: "waitlist",
-      type: "waitlist",
-    });
-    setActivePage("operations");
-  }, [setActivePage]);
-
   return (
     <AppGate
       appSettings={appSettings}
@@ -2425,7 +2416,6 @@ function App() {
             handleGoogleLogin={handleGoogleLogin}
             handleOverwriteRemoteSnapshot={handleOverwriteRemoteSnapshot}
             handleSettingsSubmit={handleSettingsSubmit}
-            handleSiteSettingsSubmit={handleSiteSettingsSubmit}
             importDataBackup={importDataBackup}
             importDocuments={importDocuments}
             importedMailIds={importedMailIds}
@@ -2538,8 +2528,6 @@ function App() {
             renameServiceCategory={renameServiceCategory}
             saveService={saveService}
             toggleServiceStatus={toggleServiceStatus}
-            activeWaitlistCount={activeWaitlistCount}
-            openWaitlistQueue={openWaitlistQueue}
             setActivePage={setActivePage}
             setOpenPaymentActionMenuId={setOpenPaymentActionMenuId}
             supplies={supplies}

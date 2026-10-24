@@ -21,6 +21,8 @@ export default function SiteAdminPanel({compact = false, embeddedMobile = false}
     }
   };
 
+  const publicSiteUrl = getPublicSiteUrl();
+
   return (
     <>
       {!embeddedMobile ? (
@@ -37,7 +39,7 @@ export default function SiteAdminPanel({compact = false, embeddedMobile = false}
         </div>
       ) : null}
       <div
-        className={`toolbar-actions${
+        className={`toolbar-actions site-admin-actions${
           embeddedMobile ? " site-admin-mobile-actions" : ""
         }`}>
         <Button
@@ -49,13 +51,20 @@ export default function SiteAdminPanel({compact = false, embeddedMobile = false}
           {openingAdmin ? "Открываем…" : "Открыть админку сайта"}
         </Button>
         <a
-          className={embeddedMobile ? "secondary-button" : "compact-icon-button"}
-          href={getPublicSiteUrl()}
+          className="secondary-button"
+          href={publicSiteUrl}
           rel="noreferrer"
-          target="_blank"
-          title="Открыть сайт">
+          target="_blank">
           <AppIcon name="external" size="sm" />
-          {embeddedMobile ? "Открыть nuarr.pl" : null}
+          Открыть сайт
+        </a>
+        <a
+          className="secondary-button"
+          href={`${publicSiteUrl}/booking`}
+          rel="noreferrer"
+          target="_blank">
+          <AppIcon name="calendar" size="sm" />
+          Проверить бронирование
         </a>
       </div>
       {message ? <p className="settings-inline-note">{message}</p> : null}
