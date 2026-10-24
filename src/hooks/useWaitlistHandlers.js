@@ -17,6 +17,7 @@ import {
   parseWaitlistEntryDetails,
   personalizeWaitlistOfferTemplate,
 } from "../utils/waitlist.js";
+import {updateSiteBookingRequest} from "../utils/siteBookingApi.js";
 
 export function useWaitlistHandlers({
   appSettings,
@@ -353,7 +354,7 @@ export function useWaitlistHandlers({
   );
 
   const markWaitlistBooked = useCallback(
-    async (id) => {
+    async (id, calendarEntry) => {
       if (!id) return;
       const numericId = Number(id);
       const target = waitlistEntries.find((item) => Number(item.id) === numericId);
@@ -366,8 +367,15 @@ export function useWaitlistHandlers({
 
       try {
         await updateWaitlistEntry(numericId, nextEntry);
+        const siteBookingRequestId = target.payload?.siteBookingRequestId;
+        if (siteBookingRequestId) {
+          await updateSiteBookingRequest(siteBookingRequestId, {
+            linked_calendar_entry_id: String(calendarEntry?.id || ""),
+            status: "applied",
+          });
+        }
       } catch (error) {
-        console.warn("Failed to mark waitlist entry booked on backend:", error);
+        console.warn("Failed to finalize booked waitlist entry on backend:", error);
       }
 
       setWaitlistEntries((current) =>

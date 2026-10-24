@@ -516,9 +516,18 @@ const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, ser
     prisma.service.findMany(),
     prisma.calendarEntry.findMany({ where: { date: preferredDate } }),
     prisma.$queryRaw`
-      select preferred_date, preferred_time, preferred_master, duration_minutes, service_name, service_slug, status
-      from site_booking_requests
-      where preferred_date = ${preferredDate} and status = 'pending'
+      select request.preferred_date, request.preferred_time, request.preferred_master,
+             request.duration_minutes, request.service_name, request.service_slug, request.status
+      from site_booking_requests request
+      where request.preferred_date = ${preferredDate}
+        and request.status = 'pending'
+        and request.linked_calendar_entry_id is null
+        and not exists (
+          select 1
+          from "WaitlistEntry" waitlist
+          where waitlist.payload->>'siteBookingRequestId' = request.id
+            and waitlist.status in ('booked', 'closed', 'deleted')
+        )
     `,
   ]);
 

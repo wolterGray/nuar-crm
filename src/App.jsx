@@ -1369,7 +1369,8 @@ function App() {
     employees,
     getCalendarServiceColor,
     onCalendarSlotFreed: (entry) => onCalendarSlotFreedRef.current(entry),
-    onWaitlistEntryBooked: (entryId) => onWaitlistEntryBookedRef.current(entryId),
+    onWaitlistEntryBooked: (entryId, calendarEntry) =>
+      onWaitlistEntryBookedRef.current(entryId, calendarEntry),
     pushNotification,
     serviceCatalog,
     setActiveClientAlertId,

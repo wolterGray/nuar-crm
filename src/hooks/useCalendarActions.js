@@ -468,7 +468,7 @@ export function useCalendarActions({
       await syncCompletedCalendarVisit(savedEntry);
       const bookedWaitlistId = calendarEntryDefaults?.waitlistEntryId;
       if (bookedWaitlistId && !isEditing) {
-        onWaitlistEntryBooked?.(bookedWaitlistId);
+        onWaitlistEntryBooked?.(bookedWaitlistId, savedEntry);
       }
       setCalendarEntryModalOpen(false);
       setEditingCalendarEntry(null);
