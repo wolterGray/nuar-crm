@@ -3247,6 +3247,12 @@
     overflow: visible !important;
   }
 
+  html.is-chrome-mobile .mobile-bottom-nav {
+    bottom: 0 !important;
+    height: var(--mobile-nav-total, 60px) !important;
+    padding-bottom: 10px !important;
+  }
+
   .mobile-bottom-nav button.active {
     color: var(--color-primary) !important;
     font-weight: var(--font-weight-semibold) !important;

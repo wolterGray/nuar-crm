@@ -19,7 +19,7 @@
   }
 
   html.is-chrome-mobile {
-    --mobile-viewport-bottom-offset: 6px;
+    --mobile-nav-total: 60px;
   }
 
   html,
