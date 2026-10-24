@@ -58,14 +58,6 @@ export default function SiteAdminPanel({compact = false, embeddedMobile = false}
           <AppIcon name="external" size="sm" />
           Открыть сайт
         </a>
-        <a
-          className="secondary-button"
-          href={`${publicSiteUrl}/booking`}
-          rel="noreferrer"
-          target="_blank">
-          <AppIcon name="calendar" size="sm" />
-          Проверить бронирование
-        </a>
       </div>
       {message ? <p className="settings-inline-note">{message}</p> : null}
       {error ? <p className="field-error">{error}</p> : null}

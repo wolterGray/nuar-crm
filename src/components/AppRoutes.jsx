@@ -397,7 +397,7 @@ export default function AppRoutes({activePage, authUser = null, ...props}) {
     case "site":
       return (
         <PageSuspense>
-          <SitePage />
+          <SitePage waitlistEntries={props.waitlistEntries} />
         </PageSuspense>
       );
 
