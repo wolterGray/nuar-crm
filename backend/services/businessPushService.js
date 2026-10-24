@@ -1,10 +1,15 @@
 const {isWebPushConfigured, processQueuedPushDelivery} = require('./webPushService');
 
 const EVENT_CONFIG = {
+  booking_request: {preference: 'pushNewVisits', title: 'Новая запись'},
   site_booking_request: {preference: 'pushNewVisits', title: 'Новая заявка с сайта'},
   visit_created: {preference: 'pushNewVisits', title: 'Новая запись'},
   visit_cancelled: {preference: 'pushVisitCancelled', title: 'Запись отменена'},
   visit_rescheduled: {preference: 'pushVisitRescheduled', title: 'Запись перенесена'},
+  waitlist_entry: {preference: 'pushNewVisits', title: 'Лист ожидания'},
+  waitlist_match: {preference: 'pushNewVisits', title: 'Свободное окно в листе ожидания'},
+  supply_low_stock: {preference: 'pushImportantTasks', title: 'Заканчивается расходник'},
+  supply_out_of_stock: {preference: 'pushImportantTasks', title: 'Расходник закончился'},
   task_important_due: {preference: 'pushImportantTasks', title: 'Важная задача на сегодня'},
   task_important_overdue: {preference: 'pushOverdueTasks', title: 'Важная задача просрочена'},
 };
@@ -69,7 +74,7 @@ const buildBusinessPushPayload = (event) => {
   if (!config) return null;
   const payload = event.payload && typeof event.payload === 'object' ? event.payload : {};
 
-  if (event.type === 'site_booking_request') {
+  if (event.type === 'site_booking_request' || event.type === 'booking_request') {
     return {
       body: formatVisitBody({
         clientName: event.clientName || payload.clientName,
@@ -104,6 +109,7 @@ const buildBusinessPushPayload = (event) => {
       url: getVisitUrl(event, payload),
     };
   }
+
   if (event.type.startsWith('visit_')) {
     const visitPayload = {
       ...payload,
@@ -120,23 +126,80 @@ const buildBusinessPushPayload = (event) => {
       url: getVisitUrl(event, payload),
     };
   }
-  const dueDate = payload.dueDate ? new Date(payload.dueDate) : null;
-  const dueLabel = dueDate && !Number.isNaN(dueDate.getTime())
-    ? new Intl.DateTimeFormat('ru-RU', {day: 'numeric', month: 'long', timeZone: 'Europe/Warsaw'}).format(dueDate)
-    : '';
+
+  if (event.type === 'waitlist_entry' || event.type === 'waitlist_match') {
+    return {
+      body: cleanString(event.message) || 'Новая заявка в листе ожидания',
+      tag: `nuar-${event.fingerprint}`,
+      title: config.title,
+      ttl: 3600,
+      type: event.type,
+      url: `/operations?waitlist=${encodeURIComponent(event.entityId || '')}`,
+    };
+  }
+
+  if (event.type === 'supply_low_stock' || event.type === 'supply_out_of_stock') {
+    return {
+      body: cleanString(event.message) || config.title,
+      tag: `nuar-${event.fingerprint}`,
+      title: config.title,
+      ttl: 3600,
+      type: event.type,
+      url: `/operations?supply=${encodeURIComponent(event.entityId || '')}`,
+    };
+  }
+
+  if (event.type?.startsWith('task_')) {
+    const dueDate = payload.dueDate ? new Date(payload.dueDate) : null;
+    const dueLabel = dueDate && !Number.isNaN(dueDate.getTime())
+      ? new Intl.DateTimeFormat('ru-RU', {day: 'numeric', month: 'long', timeZone: 'Europe/Warsaw'}).format(dueDate)
+      : '';
+    return {
+      body: [cleanString(payload.taskTitle) || cleanString(event.message), dueLabel ? `Срок: ${dueLabel}` : ''].filter(Boolean).join(' · ')
+        || 'Откройте задачу, чтобы посмотреть детали',
+      tag: `nuar-${event.fingerprint}`,
+      title: config.title,
+      ttl: 3600,
+      type: event.type,
+      url: `/operations?task=${encodeURIComponent(event.entityId || '')}`,
+    };
+  }
+
   return {
-    body: [cleanString(payload.taskTitle) || cleanString(event.message), dueLabel ? `Срок: ${dueLabel}` : ''].filter(Boolean).join(' · ')
-      || 'Откройте задачу, чтобы посмотреть детали',
+    body: cleanString(event.message) || config.title,
     tag: `nuar-${event.fingerprint}`,
     title: config.title,
     ttl: 3600,
     type: event.type,
-    url: `/operations?task=${encodeURIComponent(event.entityId || '')}`,
+    url: '/',
   };
 };
 
-const getTargetUsers = async (prisma, event, config) => {
+const getTargetUsers = async (prisma, event, config, options = {}) => {
   const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {};
+  const isSupplyEvent = String(event.type).startsWith('supply_');
+
+  // Supplies only target owner and admin
+  if (isSupplyEvent) {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        role: true,
+        employeeId: true,
+        [config.preference]: true,
+        pushSubscriptions: {select: {id: true}, where: {isActive: true}},
+      },
+      where: {
+        isActive: true,
+        role: {in: ['owner', 'admin']},
+      },
+    });
+    if (options.suppressActorUserId) {
+      return users.filter((u) => u.id !== Number(options.suppressActorUserId));
+    }
+    return users;
+  }
+
   const roleConditions = [
     {role: {in: ['owner', 'admin']}},
   ];
@@ -157,7 +220,7 @@ const getTargetUsers = async (prisma, event, config) => {
     OR: roleConditions,
   };
 
-  return prisma.user.findMany({
+  const users = await prisma.user.findMany({
     select: {
       id: true,
       role: true,
@@ -167,6 +230,12 @@ const getTargetUsers = async (prisma, event, config) => {
     },
     where,
   });
+
+  if (options.suppressActorUserId) {
+    return users.filter((u) => u.id !== Number(options.suppressActorUserId));
+  }
+
+  return users;
 };
 
 const queueBusinessPushDeliveries = async (prisma, event, options = {}) => {
@@ -174,7 +243,7 @@ const queueBusinessPushDeliveries = async (prisma, event, options = {}) => {
   const pushPayload = buildBusinessPushPayload(event);
   if (!config || !pushPayload || !isWebPushConfigured()) return {queued: 0, skipped: true};
 
-  const users = await getTargetUsers(prisma, event, config);
+  const users = await getTargetUsers(prisma, event, config, options);
   const deliveries = users.flatMap((user) => (user.pushSubscriptions || []).map((subscription) => ({
     channel: 'web_push',
     deduplicationKey: `web-push:event:${event.id}:subscription:${subscription.id}`,

@@ -108,6 +108,7 @@ import {useBulkSms} from "./hooks/useBulkSms.js";
 import {useCommunicationLog} from "./hooks/useCommunicationLog.js";
 import {usePullRefresh} from "./hooks/usePullRefresh.js";
 import {usePersistentState} from "./hooks/usePersistentState.js";
+import {updateNotificationEvent} from "./api/notificationEvents.js";
 import {fetchClients} from "./api/clients.js";
 import {fetchVisitState} from "./api/visits.js";
 import {fetchPackages, fetchServices} from "./api/services.js";
@@ -955,7 +956,8 @@ function App() {
     allAlerts,
     alerts,
     alertsCount,
-    dismissAlertPermanent,
+    handleNotificationDismiss,
+    handleNotificationView,
     openClientMessageTemplates,
     quietHoursActive,
     restoreAlertSnooze,
@@ -1679,12 +1681,25 @@ function App() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const openNotificationId = params.get("openNotificationId") || params.get("notificationId");
+    if (openNotificationId) {
+      params.delete("openNotificationId");
+      params.delete("notificationId");
+      const numId = Number(openNotificationId);
+      if (Number.isFinite(numId) && numId > 0) {
+        void updateNotificationEvent(numId, {action: "view", status: "resolved"});
+      }
+      const query = params.toString();
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+    }
+
     const calendarEntryId = params.get("entry");
     const visitId = params.get("visit");
     const calendarDate = params.get("date");
     const taskId = params.get("task");
     const bookingId = params.get("booking");
     const waitlistEntryId = params.get("waitlist");
+    const supplyId = params.get("supply");
     if ((calendarEntryId || visitId || calendarDate) && window.location.pathname === "/calendar") {
       const linkedEntry = visitId
         ? calendarEntries.find((entry) => String(entry.visitId) === String(visitId))
@@ -1720,6 +1735,15 @@ function App() {
       const timer = window.setTimeout(() => {
         setActivePage("operations");
         setAlertFocus({entityId: waitlistEntryId, section: "waitlist", type: "waitlist"});
+      }, 0);
+      const query = params.toString();
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+      return () => window.clearTimeout(timer);
+    } else if (supplyId && window.location.pathname === "/operations") {
+      params.delete("supply");
+      const timer = window.setTimeout(() => {
+        setActivePage("operations");
+        setAlertFocus({entityId: supplyId, section: "supplies", type: "supply"});
       }, 0);
       const query = params.toString();
       window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
@@ -1861,7 +1885,12 @@ function App() {
           }
           break;
         case "open":
-          navigateFromAlert(alert);
+          try {
+            navigateFromAlert(alert);
+            handleNotificationView(alert);
+          } catch (err) {
+            console.error("Failed to navigate from alert:", err);
+          }
           break;
         case "order":
           if (alert.meta?.item?.orderUrl) {
@@ -1917,6 +1946,7 @@ function App() {
               current.filter((item) => item.id !== alert.meta.notification.id),
             );
           }
+          handleNotificationDismiss(alert);
           break;
         case "sell": {
           const client = resolveAlertClient(alert);
@@ -1936,6 +1966,8 @@ function App() {
     [
       changeSupplyStock,
       completeTask,
+      handleNotificationDismiss,
+      handleNotificationView,
       navigateFromAlert,
       openClientMessageTemplates,
       openCreateClientPackage,
@@ -2352,7 +2384,7 @@ function App() {
               serverCounts={serverCounts}
               theme={colorTheme.mode}
               onAction={handleAlertAction}
-              onDismissPermanent={dismissAlertPermanent}
+              onDismissPermanent={handleNotificationDismiss}
               onFilterChange={setAlertFilter}
               onRestoreSnooze={restoreAlertSnooze}
               onSnoozeReview={snoozeAlertReview}

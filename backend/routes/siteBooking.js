@@ -982,6 +982,34 @@ siteBookingRouter.patch('/site-bookings/:id', requirePermission(PERMISSIONS.USER
         .catch((error) => {
           console.error('Failed to close site booking waitlist entry:', error);
         });
+
+      const matchingEvents = await prisma.notificationEvent.findMany({
+        select: {id: true},
+        where: {
+          fingerprint: `site-booking:${id}`,
+          status: {in: ['new', 'seen', 'snoozed']},
+        },
+      }).catch(() => []);
+
+      if (matchingEvents.length > 0) {
+        const eventIds = matchingEvents.map((e) => e.id);
+        await prisma.notificationEvent.updateMany({
+          data: {
+            actionHistory: [{action: `auto_resolve_site_booking_${row.status}`, at: new Date().toISOString()}],
+            resolvedAt: new Date(),
+            status: 'resolved',
+          },
+          where: {id: {in: eventIds}},
+        }).catch(() => {});
+        await prisma.notificationRecipient.updateMany({
+          data: {
+            actionHistory: [{action: `auto_resolve_site_booking_${row.status}`, at: new Date().toISOString()}],
+            resolvedAt: new Date(),
+            status: 'resolved',
+          },
+          where: {notificationEventId: {in: eventIds}, status: {in: ['new', 'seen', 'snoozed']}},
+        }).catch(() => {});
+      }
     }
 
     res.json({ success: true, data: row });

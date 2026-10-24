@@ -4,9 +4,8 @@ import {
   fetchAllNotificationEvents,
   updateNotificationEvent,
 } from "../api/notificationEvents.js";
-import {buildAlertCenter, filterAlertsByMode} from "../utils/alertCenter.js";
+import {buildAlertCenter} from "../utils/alertCenter.js";
 import {
-  aggregateDisplayAlerts,
   getAggregateChildIds,
 } from "../utils/alertAggregation.js";
 import {
@@ -15,9 +14,7 @@ import {
   pruneExpiredSnoozes,
 } from "../utils/alertSnooze.js";
 import {getTodayInput} from "../utils/dateHelpers.js";
-import {formatAppDate, INPUT_DATE_FORMAT} from "../utils/dateUtils.js";
 import {
-  applyQuietHoursFilter,
   isQuietHours,
   shouldShowSmartVisitPopup,
 } from "../utils/quietHours.js";
@@ -48,161 +45,47 @@ const getSnoozeUntilMinutes = (minutes, now = new Date()) =>
   new Date(now.getTime() + minutes * 60 * 1000);
 
 const getServerAlertPage = (event) => {
-  if (event.entityType === "site_booking_request") return "operations";
-  if (event.entityType === "calendar_entry" || event.type === "visit_upcoming") return "calendar";
-  if (event.entityType === "task" || event.type?.startsWith("task_")) return "operations";
-  if (event.entityType === "supply" || event.type === "supply_low_stock") return "operations";
-  if (event.entityType === "waitlist_entry" || event.type === "waitlist_active") return "operations";
-  if (event.entityType === "client_package" || event.type === "package_ending") return "packages";
-  if (event.entityType === "certificate" || event.type?.startsWith("certificate_")) return "payments";
-  return "clients";
+  if (event.type === "site_booking_request" || event.type === "booking_request") return "operations";
+  if (event.type?.startsWith("visit_") || event.entityType === "calendar_entry" || event.entityType === "visit") return "calendar";
+  if (event.type?.startsWith("waitlist_") || event.entityType === "waitlist_entry") return "operations";
+  if (event.type?.startsWith("supply_") || event.entityType === "supply") return "operations";
+  return "calendar";
 };
 
 const getServerAlertType = (event) => {
-  if (event.entityType === "site_booking_request" || event.type === "waitlist_active") return "waitlist";
-  if (event.type?.startsWith("task_")) return "task";
-  if (event.type === "supply_low_stock") return "supply";
-  if (event.type === "package_ending") return "package";
-  if (event.type?.startsWith("certificate_")) return "package";
-  if (event.type === "visit_upcoming" || event.type === "visit_cancelled" || event.type === "visit_rescheduled") return "visit";
-  if (event.type === "delivery_failed") return "task";
-  if (event.type === "client_inactive") return "inactive";
-  return "inactive";
+  if (event.type === "site_booking_request" || event.type === "booking_request") return "site_booking";
+  if (event.type === "visit_created") return "visit_created";
+  if (event.type === "visit_rescheduled") return "visit_rescheduled";
+  if (event.type === "visit_cancelled") return "visit_cancelled";
+  if (event.type?.startsWith("waitlist_")) return "waitlist";
+  if (event.type === "supply_out_of_stock") return "supply_out_of_stock";
+  if (event.type === "supply_low_stock") return "supply_low_stock";
+  return event.type || "notification";
 };
 
 const getServerAlertGroup = (event) => {
-  if (event.entityType === "site_booking_request") return "operations";
-  if (event.type === "visit_upcoming" || event.type === "visit_cancelled" || event.type === "visit_rescheduled") return "calendar";
-  if (event.type?.startsWith("task_") || event.type === "supply_low_stock" || event.type === "waitlist_active" || event.type === "delivery_failed") return "operations";
-  if (event.type === "package_ending" || event.type?.startsWith("certificate_")) return "packages";
-  return "inactive";
+  if (event.type === "site_booking_request" || event.type === "booking_request" || event.type?.startsWith("waitlist_")) return "waitlist";
+  if (event.type?.startsWith("visit_")) return "calendar";
+  if (event.type?.startsWith("supply_")) return "supplies";
+  return "notifications";
 };
 
 const getServerAlertPriority = (event) => {
-  if (event.category === "critical") return "critical";
-  if (event.category === "action") return "action";
-  if (event.category === "opportunity" || event.category === "information") return "info";
-  if (event.priority === "critical") return "critical";
-  if (event.priority === "high" || Number(event.score) >= 70) return "action";
+  if (event.category === "critical" || event.type === "supply_out_of_stock") return "critical";
+  if (event.category === "action" || event.type === "site_booking_request" || event.type === "booking_request" || event.type === "supply_low_stock") return "action";
   return "info";
 };
 
-const getServerAlertActions = (event) => {
-  if (event.recommendedAction === "offer_package") {
-    return ["sell", "write", "open", "snooze"];
-  }
-  if (event.recommendedAction === "contact_client") {
-    return ["write", "open", "snooze"];
-  }
-  if (event.recommendedAction === "open_calendar") return ["calendar", "snooze"];
-  if (event.recommendedAction === "order_supply") return ["order", "open", "snooze"];
-  return ["open", "snooze"];
-};
-
-const SERVER_VISIT_GRACE_MINUTES = 30;
-const SERVER_VISIT_HORIZON_MINUTES = 180;
-const CLOSED_VISIT_STATUSES = new Set(["completed", "cancelled", "canceled", "no_show"]);
-
-const getMinutesFromTime = (value) => {
-  const [hours, minutes] = String(value ?? "").split(":").map(Number);
-  if (!Number.isFinite(hours)) return null;
-  return hours * 60 + (Number.isFinite(minutes) ? minutes : 0);
-};
-
-const getInputDateFromNow = (now = new Date()) =>
-  formatAppDate(
-    new Date(now.getFullYear(), now.getMonth(), now.getDate()),
-    INPUT_DATE_FORMAT,
-  );
-
-const getTomorrowInputFromNow = (now = new Date()) =>
-  formatAppDate(
-    new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
-    INPUT_DATE_FORMAT,
-  );
-
-const getServerEventPayload = (event) =>
-  event?.payload && typeof event.payload === "object" ? event.payload : {};
-
-const getServerEventCalendarEntry = (event, calendarEntries = []) => {
-  if (event?.type !== "visit_upcoming") return null;
-
-  const entityId = String(event.entityId ?? "");
-  if (!entityId) return null;
-
-  return (
-    calendarEntries.find((entry) => String(entry.id) === entityId) ?? null
-  );
-};
-
-const getServerVisitDate = (event, calendarEntry = null) => {
-  const payload = getServerEventPayload(event);
-  return formatAppDate(calendarEntry?.date ?? payload.date, INPUT_DATE_FORMAT);
-};
-
-const getServerVisitTime = (event, calendarEntry = null) => {
-  const payload = getServerEventPayload(event);
-  return calendarEntry?.time ?? payload.time;
-};
-
-export const isStaleServerVisitEvent = (
-  event,
-  now = new Date(),
-  calendarEntry = null,
-) => {
-  if (event?.type !== "visit_upcoming") return false;
-
-  const eventDate = getServerVisitDate(event, calendarEntry);
-  if (!eventDate) return false;
-
-  const today = getInputDateFromNow(now);
-  const tomorrow = getTomorrowInputFromNow(now);
-
-  if (eventDate < today || eventDate > tomorrow) return true;
-
-  if (CLOSED_VISIT_STATUSES.has(String(calendarEntry?.status ?? ""))) {
-    return true;
-  }
-
-  if (eventDate === today) {
-    const eventMinutes = getMinutesFromTime(getServerVisitTime(event, calendarEntry));
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    return eventMinutes !== null && eventMinutes + SERVER_VISIT_GRACE_MINUTES < nowMinutes;
-  }
-
-  return false;
-};
-
-export const isActionableServerVisitEvent = (
-  event,
-  now = new Date(),
-  calendarEntry = null,
-  horizonMinutes = SERVER_VISIT_HORIZON_MINUTES,
-) => {
-  if (event?.type !== "visit_upcoming") return true;
-  if (isStaleServerVisitEvent(event, now, calendarEntry)) return false;
-
-  const eventDate = getServerVisitDate(event, calendarEntry);
-  if (eventDate !== getInputDateFromNow(now)) return false;
-
-  const eventMinutes = getMinutesFromTime(getServerVisitTime(event, calendarEntry));
-  if (eventMinutes === null) return false;
-
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const difference = eventMinutes - nowMinutes;
-  return difference >= 0 && difference <= Math.max(15, Number(horizonMinutes) || SERVER_VISIT_HORIZON_MINUTES);
-};
+const getServerAlertActions = () => ["open", "dismiss"];
 
 const mapServerEventToAlert = (event) => ({
-  actions: getServerAlertActions(event),
+  actions: getServerAlertActions(),
   category: event.category,
   createdAt: event.createdAt,
   entityId:
-    event.entityType === "site_booking_request"
+    event.type === "site_booking_request" || event.type === "booking_request"
       ? event.payload?.waitlistEntryId ?? event.entityId
-      : getServerAlertPage(event) === "clients"
-        ? event.clientId ?? event.entityId
-        : event.entityId,
+      : event.entityId,
   group: getServerAlertGroup(event),
   id: `${SERVER_ALERT_PREFIX}${event.id}`,
   message: event.message,
@@ -212,29 +95,38 @@ const mapServerEventToAlert = (event) => ({
     serverEvent: event,
     client: event.clientId ? {id: event.clientId, name: event.clientName} : null,
     entry:
-      event.entityType === "calendar_entry"
+      event.entityType === "calendar_entry" || event.entityType === "visit"
         ? {
             id: event.entityId,
             client: event.clientName,
             clientId: event.clientId,
+            date: event.payload?.date || event.payload?.newDate,
+            time: event.payload?.time || event.payload?.newTime,
           }
         : null,
     item: event.payload,
   },
   page: getServerAlertPage(event),
   priority: getServerAlertPriority(event),
-  section: event.entityType === "site_booking_request" ? "waitlist" : event.entityType,
+  section:
+    event.type === "site_booking_request" || event.type === "booking_request" || event.type?.startsWith("waitlist_")
+      ? "waitlist"
+      : event.type?.startsWith("supply_")
+        ? "supplies"
+        : "calendar",
   title: event.title,
   type: getServerAlertType(event),
+  status: event.status,
+  isUnviewed: event.status === "new" || !event.lastSeenAt,
 });
 
 export function useClientAlerts({
-  alertFilter = "all",
+  alertFilter: _alertFilter = "all",
   alertSnoozes,
   appSettings,
   calendarEntries,
   certificates,
-  clientAlertsOpen,
+  clientAlertsOpen: _clientAlertsOpen,
   clientPackages,
   clientProfiles,
   completedVisits = [],
@@ -339,124 +231,101 @@ export function useClientAlerts({
   }, [refreshServerEvents]);
 
   const serverAlerts = useMemo(
-    () => {
-      const now = new Date();
-      const horizonMinutes = appSettings.upcomingVisitMinutes;
-
-      return serverEvents
-        .filter((event) => event.isCurrent !== false || event.category === "information")
-        .filter((event) => {
-          const calendarEntry = getServerEventCalendarEntry(event, calendarEntries);
-          return isActionableServerVisitEvent(
-            event,
-            now,
-            calendarEntry,
-            horizonMinutes,
-          );
-        })
-        .map(mapServerEventToAlert);
-    },
-    [appSettings.upcomingVisitMinutes, calendarEntries, serverEvents],
+    () => serverEvents.map(mapServerEventToAlert),
+    [serverEvents],
   );
 
-  useEffect(() => {
-    if (serverEvents.length === 0) {
-      return;
-    }
+  const handleNotificationView = useCallback(
+    async (alert) => {
+      const serverEventId = getServerEventId(alert?.id);
+      if (!Number.isFinite(serverEventId)) return;
 
-    const now = new Date();
-    const staleEvents = serverEvents.filter((event) =>
-      isStaleServerVisitEvent(
-        event,
-        now,
-        getServerEventCalendarEntry(event, calendarEntries),
-      ),
-    );
+      const previousEvents = serverEvents;
+      const previousCounts = serverCounts;
 
-    if (staleEvents.length === 0) {
-      return;
-    }
+      // Optimistic removal from visible state immediately
+      setServerEvents((current) => current.filter((e) => e.id !== serverEventId));
+      if (serverCounts) {
+        setServerCounts((current) => current ? {
+          ...current,
+          action: Math.max(0, (current.action || 0) - (alert.priority === 'action' ? 1 : 0)),
+          attention: Math.max(0, (current.attention || 0) - (alert.priority === 'critical' || alert.priority === 'action' ? 1 : 0)),
+          critical: Math.max(0, (current.critical || 0) - (alert.priority === 'critical' ? 1 : 0)),
+          total: Math.max(0, (current.total || 0) - 1),
+        } : null);
+      }
 
-    staleEvents.forEach((event) => {
-      void updateNotificationEvent(event.id, {
-        action: "auto_resolve_stale_visit_client",
-        status: "resolved",
-      });
-    });
-    setServerEvents((current) =>
-      current.filter(
-        (event) => !staleEvents.some((staleEvent) => staleEvent.id === event.id),
-      ),
-    );
-  }, [calendarEntries, serverEvents]);
-
-  useEffect(() => {
-    if (!clientAlertsOpen || serverEvents.length === 0) {
-      return undefined;
-    }
-
-    const newEvents = serverEvents.filter((event) => event.status === "new");
-    if (newEvents.length === 0) {
-      return undefined;
-    }
-
-    const timer = window.setTimeout(() => {
-      const seenAt = new Date().toISOString();
-      newEvents.forEach((event) => {
-        void updateNotificationEvent(event.id, {
-          action: "seen",
-          status: "seen",
+      try {
+        await updateNotificationEvent(serverEventId, {
+          action: "view",
+          status: "resolved",
         });
-      });
-      setServerEvents((current) =>
-        current.map((event) =>
-          newEvents.some((newEvent) => newEvent.id === event.id)
-            ? {...event, lastSeenAt: seenAt, status: "seen"}
-            : event,
-        ),
-      );
-    }, 0);
+      } catch (err) {
+        console.error("Failed to mark notification viewed:", err);
+        setServerEvents(previousEvents);
+        setServerCounts(previousCounts);
+      }
+    },
+    [serverCounts, serverEvents],
+  );
 
-    return () => window.clearTimeout(timer);
-  }, [clientAlertsOpen, serverEvents]);
+  const handleNotificationDismiss = useCallback(
+    async (alert) => {
+      const serverEventId = getServerEventId(alert?.id);
+      if (!Number.isFinite(serverEventId)) return;
+
+      const previousEvents = serverEvents;
+      const previousCounts = serverCounts;
+
+      // Optimistic removal from visible state immediately
+      setServerEvents((current) => current.filter((e) => e.id !== serverEventId));
+      if (serverCounts) {
+        setServerCounts((current) => current ? {
+          ...current,
+          action: Math.max(0, (current.action || 0) - (alert.priority === 'action' ? 1 : 0)),
+          attention: Math.max(0, (current.attention || 0) - (alert.priority === 'critical' || alert.priority === 'action' ? 1 : 0)),
+          critical: Math.max(0, (current.critical || 0) - (alert.priority === 'critical' ? 1 : 0)),
+          total: Math.max(0, (current.total || 0) - 1),
+        } : null);
+      }
+
+      try {
+        await updateNotificationEvent(serverEventId, {
+          action: "dismiss",
+          status: "dismissed",
+        });
+      } catch (err) {
+        console.error("Failed to dismiss notification:", err);
+        setServerEvents(previousEvents);
+        setServerCounts(previousCounts);
+      }
+    },
+    [serverCounts, serverEvents],
+  );
 
   const combinedAlerts = useMemo(() => {
-    const clientAlerts = serverConnected
-      ? alertCenter.alerts.filter(
-          (alert) =>
-            alert.type !== "calendar" &&
-            alert.type !== "task" &&
-            alert.type !== "supply" &&
-            alert.type !== "package" &&
-            alert.type !== "certificate" &&
-            alert.type !== "inactive"
-        )
-      : alertCenter.alerts;
-    const groupedServerAlerts = aggregateDisplayAlerts(serverAlerts, appSettings);
-    return [...groupedServerAlerts, ...clientAlerts];
-  }, [alertCenter.alerts, appSettings, serverAlerts, serverConnected]);
+    return serverAlerts;
+  }, [serverAlerts]);
 
   const quietFilteredAlerts = useMemo(
-    () => applyQuietHoursFilter(combinedAlerts, appSettings),
-    [appSettings, combinedAlerts],
+    () => combinedAlerts,
+    [combinedAlerts],
   );
 
   const visibleAlerts = useMemo(
-    () => filterAlertsByMode(quietFilteredAlerts, alertFilter),
-    [alertFilter, quietFilteredAlerts],
+    () => quietFilteredAlerts,
+    [quietFilteredAlerts],
   );
 
   const drawerCounts = useMemo(() => {
-    const urgentAlertsCount = quietFilteredAlerts.filter(
-      (alert) => alert.priority === "critical" || alert.priority === "action",
-    ).length;
-
     return {
       alertsCount: visibleAlerts.length,
-      totalAlertsCount: quietFilteredAlerts.length,
-      urgentAlertsCount,
+      totalAlertsCount: visibleAlerts.length,
+      urgentAlertsCount: visibleAlerts.filter(
+        (alert) => alert.priority === "critical" || alert.priority === "action",
+      ).length,
     };
-  }, [quietFilteredAlerts, visibleAlerts.length]);
+  }, [visibleAlerts]);
 
   const snoozeAlertIdsUntil = useCallback(
     (alertOrId, until) => {
@@ -747,6 +616,8 @@ export function useClientAlerts({
     alerts: visibleAlerts,
     alertsCount: drawerCounts.alertsCount,
     dismissAlertPermanent,
+    handleNotificationDismiss,
+    handleNotificationView,
     openClientMessageTemplates,
     quietHoursActive,
     restoreAlertSnooze,
@@ -761,3 +632,9 @@ export function useClientAlerts({
     urgentAlertsCount: drawerCounts.urgentAlertsCount,
   };
 }
+
+export {
+  isServerAlertId,
+  getServerEventId,
+  mapServerEventToAlert,
+};

@@ -1,29 +1,13 @@
 import {AnimatePresence, motion} from "framer-motion";
-import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useLayoutEffect, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 import {useSwipeable} from "react-swipeable";
-import {
-  ALERT_GROUP_LABELS,
-  filterAlertsByMode,
-  groupAlerts,
-} from "../utils/alertCenter.js";
-import {
-  countNotificationObjects,
-  getNotificationAlertIds,
-  getNotificationDrawerCounts,
-} from "../utils/notificationDrawerCounts.js";
-import NotificationAggregateRow from "./NotificationAggregateRow.jsx";
-import NotificationAlertRow from "./NotificationAlertRow.jsx";
-import {Button, IconButton} from "./ui/index.js";
+import {AppIcon, IconButton} from "./ui/index.js";
+import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 
 const DESKTOP_POPOVER_WIDTH = 440;
 const POPOVER_GAP = 8;
 const VIEWPORT_PADDING = 16;
-const LOCAL_HIDE_MS = 30 * 60 * 1000;
-const LOCAL_HIDE_DAY_MS = 24 * 60 * 60 * 1000;
-const LOCAL_HIDE_WEEK_MS = 7 * LOCAL_HIDE_DAY_MS;
-const SWIPE_UNDO_MS = 4200;
-import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
 
 const getPopoverStyle = (buttonRect) => {
   if (!buttonRect) {
@@ -74,125 +58,106 @@ const getPopoverStyle = (buttonRect) => {
   };
 };
 
-const FILTER_OPTIONS = [
-  {id: "urgent", label: "Внимание"},
-  {id: "opportunity", label: "Возможности"},
-  {id: "information", label: "История"},
-];
+const formatRelativeTime = (timestamp, now = new Date()) => {
+  if (!timestamp) return "";
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "";
 
-const HISTORY_GROUP_LABELS = {
-  today: "Сегодня",
-  yesterday: "Вчера",
-  earlier: "Ранее",
+  const diffMs = now.getTime() - date.getTime();
+  if (diffMs < 60 * 1000) return "только что";
+  const diffMinutes = Math.floor(diffMs / (60 * 1000));
+  if (diffMinutes < 60) return `${diffMinutes} мин назад`;
+  const diffHours = Math.floor(diffMs / (3600 * 1000));
+  if (diffHours < 24) return `${diffHours} ч назад`;
+  const diffDays = Math.floor(diffMs / (86400 * 1000));
+  if (diffDays === 1) return "вчера";
+  if (diffDays < 7) return `${diffDays} дн назад`;
+
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "short",
+    timeZone: "Europe/Warsaw",
+  }).format(date);
 };
 
-const getHistoryGroup = (alert, now = new Date()) => {
-  const timestamp = alert.createdAt ?? alert.meta?.notification?.archivedAt;
-  const date = timestamp ? new Date(timestamp) : null;
-  if (!date || Number.isNaN(date.getTime())) return "earlier";
-
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const eventDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const dayDifference = Math.round((today - eventDay) / 86_400_000);
-  if (dayDifference <= 0) return "today";
-  if (dayDifference === 1) return "yesterday";
-  return "earlier";
+const getNotificationIconInfo = (type) => {
+  switch (type) {
+    case "site_booking_request":
+    case "booking_request":
+    case "site_booking":
+      return {
+        icon: "calendarPlus",
+        colorClass: "notif-icon-booking",
+      };
+    case "visit_created":
+      return {
+        icon: "calendar",
+        colorClass: "notif-icon-created",
+      };
+    case "visit_rescheduled":
+      return {
+        icon: "calendarClock",
+        colorClass: "notif-icon-rescheduled",
+      };
+    case "visit_cancelled":
+      return {
+        icon: "userX",
+        colorClass: "notif-icon-cancelled",
+      };
+    case "waitlist_entry":
+    case "waitlist_active":
+    case "waitlist_match":
+    case "waitlist":
+      return {
+        icon: "userPlus",
+        colorClass: "notif-icon-waitlist",
+      };
+    case "supply_out_of_stock":
+      return {
+        icon: "alert",
+        colorClass: "notif-icon-danger",
+      };
+    case "supply_low_stock":
+    case "supply":
+      return {
+        icon: "package",
+        colorClass: "notif-icon-warning",
+      };
+    default:
+      return {
+        icon: "bell",
+        colorClass: "notif-icon-default",
+      };
+  }
 };
 
 export default function NotificationDrawer({
-  alertFilter,
-  allAlerts,
-  alerts,
-  animationsEnabled,
-  isOpen,
+  alerts = [],
+  animationsEnabled = true,
+  isOpen = false,
   onAction,
   onDismissPermanent,
-  onFilterChange,
-  onRestoreSnooze,
-  onSnoozeReview,
-  onSnoozeToday,
-  onSnoozeWeek,
   onToggleOpen,
-  quietHoursActive,
   serverConnected,
   serverCounts,
   theme = "dark",
 }) {
   const buttonRef = useRef(null);
-  const swipeUndoTimerRef = useRef(null);
-  const wasOpenRef = useRef(isOpen);
-  const [locallyHiddenAlerts, setLocallyHiddenAlerts] = useState({});
-  const [localNow, setLocalNow] = useState(() => Date.now());
   const [popoverStyle, setPopoverStyle] = useState({});
-  const [swipeUndo, setSwipeUndo] = useState(null);
+  const [now, setNow] = useState(() => new Date());
   const transition = {duration: animationsEnabled ? 0.18 : 0};
-  const {
-    alertsCount: localAlertsCount,
-    visibleAlerts: localVisibleAlerts,
-  } = useMemo(
-    () =>
-      getNotificationDrawerCounts({
-        alerts,
-        locallyHiddenAlerts,
-        now: localNow,
-      }),
-    [alerts, localNow, locallyHiddenAlerts],
-  );
-  const {
-    badgeCount: localBadgeCount,
-    totalAlertsCount: globalTotalAlertsCount,
-    urgentAlertsCount: globalUrgentAlertsCount,
-    visibleAlerts: globalVisibleAlerts,
-  } = useMemo(
-    () =>
-      getNotificationDrawerCounts({
-        alerts: allAlerts ?? alerts,
-        locallyHiddenAlerts,
-        now: localNow,
-      }),
-    [allAlerts, alerts, localNow, locallyHiddenAlerts],
-  );
-  const notificationCenterV2Enabled = import.meta.env.VITE_NOTIFICATION_CENTER_V2 !== "false";
-  const badgeCount = notificationCenterV2Enabled && serverCounts
-    ? Number(serverCounts.attention) || 0
-    : localBadgeCount;
-  const effectiveUrgentAlertsCount = notificationCenterV2Enabled && serverCounts
-    ? Number(serverCounts.attention) || 0
-    : globalUrgentAlertsCount;
-  const groupedAlerts = useMemo(() => {
-    if (alertFilter !== "information") return groupAlerts(localVisibleAlerts);
 
-    return localVisibleAlerts.reduce((groups, alert) => {
-      const key = getHistoryGroup(alert);
-      groups.set(key, [...(groups.get(key) ?? []), alert]);
-      return groups;
-    }, new Map());
-  }, [alertFilter, localVisibleAlerts]);
-  const underlyingObjectCount = useMemo(
-    () => countNotificationObjects(localVisibleAlerts),
-    [localVisibleAlerts],
-  );
-  const filterCounts = useMemo(
-    () => FILTER_OPTIONS.reduce((counts, option) => {
-      counts[option.id] = countNotificationObjects(filterAlertsByMode(globalVisibleAlerts, option.id));
-      return counts;
-    }, {}),
-    [globalVisibleAlerts],
-  );
-  const urgentAlerts = globalVisibleAlerts.filter(
-    (alert) => alert.priority === "critical" || alert.priority === "action",
-  );
-  const onlyCalendarUrgentAlerts =
-    urgentAlerts.length > 0 && urgentAlerts.every((alert) => alert.type === "calendar");
+  const badgeCount = serverCounts
+    ? Number(serverCounts.attention ?? serverCounts.total) || alerts.length
+    : alerts.length;
+
   const isMobilePopover =
     typeof window !== "undefined" && window.innerWidth <= MOBILE_MAX_WIDTH;
+
   const panelSwipeHandlers = useSwipeable({
     delta: 112,
     onSwipedDown: ({absY, velocity}) => {
-      if (!isMobilePopover) {
-        return;
-      }
-
+      if (!isMobilePopover) return;
       if (absY >= 128 || velocity >= 0.72) {
         onToggleOpen();
       }
@@ -203,30 +168,8 @@ export default function NotificationDrawer({
     trackTouch: isMobilePopover,
   });
 
-  useEffect(() => {
-    const openedNow = isOpen && !wasOpenRef.current;
-    wasOpenRef.current = isOpen;
-
-    if (
-      openedNow &&
-      alertFilter !== "urgent" &&
-      localAlertsCount === 0 &&
-      effectiveUrgentAlertsCount > 0
-    ) {
-      onFilterChange("urgent");
-    }
-  }, [
-    alertFilter,
-    effectiveUrgentAlertsCount,
-    isOpen,
-    localAlertsCount,
-    onFilterChange,
-  ]);
-
   useLayoutEffect(() => {
-    if (!isOpen || !buttonRef.current) {
-      return undefined;
-    }
+    if (!isOpen || !buttonRef.current) return undefined;
 
     const updatePosition = () => {
       setPopoverStyle(getPopoverStyle(buttonRef.current.getBoundingClientRect()));
@@ -240,15 +183,13 @@ export default function NotificationDrawer({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [isOpen, localAlertsCount, alertFilter, quietHoursActive]);
+  }, [isOpen, alerts.length]);
 
   useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
+    if (!isOpen) return undefined;
 
     const timer = window.setInterval(() => {
-      setLocalNow(Date.now());
+      setNow(new Date());
     }, 60_000);
 
     return () => window.clearInterval(timer);
@@ -274,175 +215,6 @@ export default function NotificationDrawer({
     };
   }, [isMobilePopover, isOpen]);
 
-  useEffect(
-    () => () => {
-      if (swipeUndoTimerRef.current) {
-        window.clearTimeout(swipeUndoTimerRef.current);
-      }
-    },
-    [],
-  );
-
-  const hideLocally = (alert, durationMs = LOCAL_HIDE_MS) => {
-    const alertIds = getNotificationAlertIds(alert);
-
-    if (alertIds.length === 0) {
-      return;
-    }
-
-    const now = Date.now();
-    const hiddenUntil = now + durationMs;
-    setLocalNow(now);
-    setLocallyHiddenAlerts((current) => {
-      const next = {...current};
-      alertIds.forEach((alertId) => {
-        next[alertId] = hiddenUntil;
-      });
-      return next;
-    });
-  };
-
-  const clearLocalHide = (alertIds) => {
-    if (alertIds.length === 0) {
-      return;
-    }
-
-    setLocalNow(Date.now());
-    setLocallyHiddenAlerts((current) => {
-      const next = {...current};
-      alertIds.forEach((alertId) => {
-        delete next[alertId];
-      });
-      return next;
-    });
-  };
-
-  const queueSwipeUndo = (undoState) => {
-    if (swipeUndoTimerRef.current) {
-      window.clearTimeout(swipeUndoTimerRef.current);
-    }
-
-    setSwipeUndo(undoState);
-    swipeUndoTimerRef.current = window.setTimeout(() => {
-      setSwipeUndo(null);
-      swipeUndoTimerRef.current = null;
-    }, SWIPE_UNDO_MS);
-  };
-
-  const getSmartSnoozePlan = (alert) => {
-    if (alert.type === "inactive") {
-      return {
-        action: onSnoozeWeek,
-        durationMs: LOCAL_HIDE_WEEK_MS,
-        message: "Отложено на неделю",
-      };
-    }
-
-    if (["calendar", "visit"].includes(alert.type)) {
-      return {
-        action: onSnoozeReview,
-        durationMs: LOCAL_HIDE_MS,
-        message: "Отложено на ревизию",
-      };
-    }
-
-    return {
-      action: onSnoozeToday ?? onSnoozeReview,
-      durationMs: LOCAL_HIDE_DAY_MS,
-      message: "Скрыто до конца дня",
-    };
-  };
-
-  const handleSwipeAction = (alert, swipeAction) => {
-    const alertIds = getNotificationAlertIds(alert);
-
-    if (alertIds.length === 0) {
-      return;
-    }
-
-    const plan =
-      swipeAction === "snooze"
-        ? getSmartSnoozePlan(alert)
-        : {
-            action: onSnoozeReview,
-            durationMs: LOCAL_HIDE_MS,
-            message: "Скрыто до следующей ревизии",
-          };
-
-    hideLocally(alert, plan.durationMs);
-    plan.action?.(alert);
-    queueSwipeUndo({alert, alertIds, message: plan.message});
-  };
-
-  const handleUndoSwipe = () => {
-    if (!swipeUndo) {
-      return;
-    }
-
-    clearLocalHide(swipeUndo.alertIds);
-    onRestoreSnooze?.(swipeUndo.alert);
-    setSwipeUndo(null);
-
-    if (swipeUndoTimerRef.current) {
-      window.clearTimeout(swipeUndoTimerRef.current);
-      swipeUndoTimerRef.current = null;
-    }
-  };
-
-  const handleSnoozeReview = (alert) => {
-    hideLocally(alert);
-    onSnoozeReview?.(alert);
-  };
-
-  const defaultGroupOrder = [
-    "closing",
-    "calendar",
-    "finance",
-    "operations",
-    "packages",
-    "birthdays",
-    "inactive",
-    "forecast",
-    "system",
-  ];
-  const groupOrder = alertFilter === "information"
-    ? ["today", "yesterday", "earlier"]
-    : defaultGroupOrder;
-  const groupLabels = alertFilter === "information"
-    ? HISTORY_GROUP_LABELS
-    : ALERT_GROUP_LABELS;
-
-  const renderAlert = (alert) => {
-    if (alert.type === "aggregate") {
-      return (
-        <NotificationAggregateRow
-          alert={alert}
-          key={alert.id}
-          onAction={onAction}
-          onDismissPermanent={onDismissPermanent}
-          onSwipeAction={handleSwipeAction}
-          onSnoozeReview={handleSnoozeReview}
-          onSnoozeToday={onSnoozeToday}
-          onSnoozeWeek={onSnoozeWeek}
-        />
-      );
-    }
-
-    return (
-      <NotificationAlertRow
-        alert={alert}
-        historyMode={alertFilter === "information"}
-        key={alert.id}
-        onAction={onAction}
-        onDismissPermanent={onDismissPermanent}
-        onSwipeAction={handleSwipeAction}
-        onSnoozeReview={handleSnoozeReview}
-        onSnoozeToday={onSnoozeToday}
-        onSnoozeWeek={onSnoozeWeek}
-      />
-    );
-  };
-
   const popover = (
     <AnimatePresence>
       {isOpen ? (
@@ -465,131 +237,105 @@ export default function NotificationDrawer({
             style={{...popoverStyle, zIndex: 120}}
             transition={transition}
             onClick={(event) => event.stopPropagation()}>
-          <div className="client-alert-heading">
-            <div>
-              <h2>Уведомления</h2>
-              <p>
-                {serverConnected === null
-                  ? "Загрузка событий…"
-                  : serverConnected === false
+            <div className="client-alert-heading">
+              <div>
+                <h2>Уведомления</h2>
+                <p>
+                  {serverConnected === false
                     ? "Нет связи с сервером"
-                    : effectiveUrgentAlertsCount > 0
-                  ? `${effectiveUrgentAlertsCount} требуют внимания`
-                  : "Всё в порядке"}
-              </p>
-            </div>
-            <div className="client-alert-heading-actions">
-              <IconButton
-                icon="x"
-                label="Закрыть уведомления"
-                size="sm"
-                type="button"
-                variant="ghost"
-                onClick={onToggleOpen}
-              />
-            </div>
-          </div>
-
-          {quietHoursActive ? (
-            <div className="client-alert-quiet-note">
-              Тихий режим · показываются только срочные события
-            </div>
-          ) : null}
-
-          <div className="client-alert-filter-chips" role="tablist" aria-label="Разделы уведомлений">
-            {FILTER_OPTIONS.map((option) => (
-              <Button
-                aria-selected={alertFilter === option.id}
-                className={alertFilter === option.id ? "active" : ""}
-                key={option.id}
-                role="tab"
-                size="sm"
-                type="button"
-                variant="ghost"
-                onClick={() => onFilterChange(option.id)}>
-                <span className="client-alert-filter-label">{option.label}</span>
-                {filterCounts[option.id] > 0 ? (
-                  <span className="client-alert-filter-count">
-                    {filterCounts[option.id]}
-                  </span>
-                ) : null}
-              </Button>
-            ))}
-          </div>
-
-          <div className="client-alert-toolbar">
-            <span>
-              {alertFilter === "opportunity"
-                ? `${localVisibleAlerts.length} группы · ${underlyingObjectCount} объектов`
-                : alertFilter === "urgent"
-                  ? `${underlyingObjectCount} актуальных вопросов`
-                  : `${underlyingObjectCount} событий`}
-            </span>
-          </div>
-
-          <AnimatePresence>
-            {swipeUndo ? (
-              <motion.div
-                animate={{opacity: 1, y: 0}}
-                className="client-alert-swipe-undo"
-                exit={{opacity: 0, y: -6}}
-                initial={{opacity: 0, y: -6}}
-                transition={transition}>
-                <span>{swipeUndo.message}</span>
-                <Button
+                    : alerts.length > 0
+                      ? `${alerts.length} ${alerts.length === 1 ? "событие" : alerts.length < 5 ? "события" : "событий"}`
+                      : "Всё в порядке"}
+                </p>
+              </div>
+              <div className="client-alert-heading-actions">
+                <IconButton
+                  icon="x"
+                  label="Закрыть уведомления"
                   size="sm"
                   type="button"
-                  variant="subtle"
-                  onClick={handleUndoSwipe}>
-                  Отменить
-                </Button>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-
-          <div className="client-alert-list">
-            {groupOrder.map((groupKey) => {
-              const groupAlertsList = groupedAlerts.get(groupKey);
-
-              if (!groupAlertsList?.length) {
-                return null;
-              }
-
-              return (
-                <motion.div className="client-alert-group" key={groupKey} layout>
-                  {alertFilter !== "opportunity" ? (
-                    <div className="client-alert-group-heading">
-                      {groupLabels[groupKey] ?? groupKey}
-                      {groupAlertsList.length > 1 ? <b>{groupAlertsList.length}</b> : null}
-                    </div>
-                  ) : null}
-                  <AnimatePresence initial={false}>
-                    {groupAlertsList.map((alert) => renderAlert(alert))}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
-
-            {localAlertsCount === 0 && (
-              <div className="client-alert-empty">
-                <strong>{alertFilter === "urgent" ? "Всё в порядке" : "Событий нет"}</strong>
-                <span>
-                {alertFilter === "urgent"
-                  ? "Сейчас нет вопросов, требующих внимания."
-                  : alertFilter === "closing"
-                    ? "Незакрытых прошедших визитов нет."
-                  : alertFilter === "finance"
-                    ? "Финансовых ошибок нет."
-                  : alertFilter === "clients"
-                    ? "Клиентских уведомлений нет."
-                    : alertFilter === "operations"
-                      ? "Операционных уведомлений нет."
-                      : "Сейчас здесь нет новых уведомлений."}
-                </span>
+                  variant="ghost"
+                  onClick={onToggleOpen}
+                />
               </div>
-            )}
-          </div>
-        </motion.div>
+            </div>
+
+            <div className="client-alert-list notif-single-stream-list">
+              {alerts.length > 0 ? (
+                <AnimatePresence initial={false}>
+                  {alerts.map((alert) => {
+                    const iconInfo = getNotificationIconInfo(alert.type);
+                    const relativeTime = formatRelativeTime(alert.createdAt, now);
+                    const isUnviewed = alert.isUnviewed || alert.status === "new";
+
+                    return (
+                      <motion.div
+                        className="notif-stream-row"
+                        key={alert.id}
+                        layout
+                        initial={{opacity: 0, y: 4}}
+                        animate={{opacity: 1, y: 0}}
+                        exit={{opacity: 0, height: 0, marginBottom: 0, overflow: "hidden"}}
+                        transition={transition}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => onAction?.(alert, "open")}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            onAction?.(alert, "open");
+                          }
+                        }}>
+                        <div className={`notif-icon-box ${iconInfo.colorClass}`}>
+                          <AppIcon name={iconInfo.icon} size={18} />
+                        </div>
+
+                        <div className="notif-content-box">
+                          <div className="notif-header-line">
+                            <div className="notif-title-wrap">
+                              {isUnviewed ? <span className="notif-unviewed-dot" /> : null}
+                              <strong className="notif-title">{alert.title}</strong>
+                            </div>
+                            {relativeTime ? (
+                              <time className="notif-time">{relativeTime}</time>
+                            ) : null}
+                          </div>
+
+                          <div className="notif-message-text">
+                            {alert.message}
+                          </div>
+                        </div>
+
+                        <div
+                          className="notif-dismiss-box"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDismissPermanent?.(alert);
+                          }}>
+                          <IconButton
+                            icon="x"
+                            label="Убрать уведомление"
+                            size="sm"
+                            type="button"
+                            variant="ghost"
+                            className="notif-dismiss-btn"
+                          />
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              ) : (
+                <div className="client-alert-empty notif-empty-state">
+                  <div className="notif-empty-icon-wrap">
+                    <AppIcon name="badgeCheck" size={28} />
+                  </div>
+                  <strong>Всё в порядке ✓</strong>
+                  <span>Нет новых событий, требующих внимания.</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
         </>
       ) : null}
     </AnimatePresence>
@@ -604,15 +350,12 @@ export default function NotificationDrawer({
           ref={buttonRef}
           aria-expanded={isOpen}
           badge={badgeCount > 0 ? badgeCount : null}
-          badgeClassName={effectiveUrgentAlertsCount > 0 && !onlyCalendarUrgentAlerts ? undefined : "client-alert-button-info"}
           className="client-alert-button notification-trigger"
           icon="bell"
           label={
-            effectiveUrgentAlertsCount > 0
-              ? `Уведомления: ${effectiveUrgentAlertsCount} требуют внимания`
-              : globalTotalAlertsCount > 0
-                ? `Уведомления: ${globalTotalAlertsCount}`
-                : "Центр уведомлений"
+            badgeCount > 0
+              ? `Уведомления: ${badgeCount}`
+              : "Центр уведомлений"
           }
           size="md"
           variant="subtle"

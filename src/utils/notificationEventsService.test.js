@@ -3,166 +3,112 @@ import {describe, expect, it} from "vitest";
 
 const require = createRequire(import.meta.url);
 const {
+  autoResolveExpiredAndStaleNotificationEvents,
+  filterEventsByRole,
   listNotificationEvents,
-  _private: {
-    isActionableVisitUpcomingEvent,
-    isStaleVisitUpcomingEvent,
-    resolveStaleVisitUpcomingEvents,
-  },
 } = require("../../backend/services/notificationEventsService.js");
 
-const toInputDate = (date) => [
-  String(date.getFullYear()).padStart(4, "0"),
-  String(date.getMonth() + 1).padStart(2, "0"),
-  String(date.getDate()).padStart(2, "0"),
-].join("-");
-
-const toTime = (date) => [
-  String(date.getHours()).padStart(2, "0"),
-  String(date.getMinutes()).padStart(2, "0"),
-].join(":");
-
 describe("notification events service", () => {
-  it("treats past upcoming visit notifications as stale", () => {
-    const now = new Date("2026-09-28T12:00:00");
+  it("auto-resolves deprecated types and expired 48h visit events", async () => {
+    const now = new Date("2026-10-24T12:00:00Z");
+    const resolvedIds = [];
 
-    expect(
-      isStaleVisitUpcomingEvent(
-        {
-          payload: {date: "2026-08-28", time: "16:00"},
-          type: "visit_upcoming",
-        },
-        null,
-        now,
-      ),
-    ).toBe(true);
-  });
-
-  it("treats today's visit notification as stale after the grace window", () => {
-    const now = new Date("2026-09-28T12:00:00");
-
-    expect(
-      isStaleVisitUpcomingEvent(
-        {
-          payload: {date: "2026-09-28", time: "11:00"},
-          type: "visit_upcoming",
-        },
-        null,
-        now,
-      ),
-    ).toBe(true);
-  });
-
-  it("keeps a future visit notification active", () => {
-    const now = new Date("2026-09-28T12:00:00");
-
-    expect(
-      isStaleVisitUpcomingEvent(
-        {
-          payload: {date: "2026-09-28", time: "13:00"},
-          type: "visit_upcoming",
-        },
-        null,
-        now,
-      ),
-    ).toBe(false);
-  });
-
-  it("shows only upcoming visit notifications inside the near horizon", () => {
-    const now = new Date("2026-09-28T12:00:00");
-
-    expect(
-      isActionableVisitUpcomingEvent(
-        {
-          payload: {date: "2026-09-28", time: "13:00"},
-          type: "visit_upcoming",
-        },
-        null,
-        now,
-      ),
-    ).toBe(true);
-    expect(
-      isActionableVisitUpcomingEvent(
-        {
-          payload: {date: "2026-09-29", time: "10:00"},
-          type: "visit_upcoming",
-        },
-        null,
-        now,
-      ),
-    ).toBe(false);
-  });
-
-  it("resolves stale visit notifications before listing active events", async () => {
-    const now = new Date("2026-09-28T12:00:00");
-    const yesterday = toInputDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
-    const today = toInputDate(now);
-    const nearTime = toTime(new Date(now.getTime() + 60 * 60 * 1000));
-    const updatedIds = [];
-    const events = [
+    const mockEvents = [
+      {id: 1, type: "visit_upcoming", status: "new", createdAt: now}, // deprecated type
+      {id: 2, type: "client_inactive", status: "new", createdAt: now}, // deprecated type
       {
-        id: 1,
-        entityId: "10",
-        payload: {date: yesterday, time: "16:00"},
+        id: 3,
+        type: "visit_created",
         status: "new",
-        type: "visit_upcoming",
+        createdAt: new Date(now.getTime() - 50 * 3600 * 1000), // > 48h
       },
       {
-        id: 2,
-        entityId: "11",
-        payload: {date: today, time: nearTime},
+        id: 4,
+        type: "visit_created",
         status: "new",
-        type: "visit_upcoming",
+        createdAt: new Date(now.getTime() - 2 * 3600 * 1000), // recent, should stay
       },
     ];
+
     const prisma = {
-      calendarEntry: {
-        findMany: async () => [],
-      },
       notificationEvent: {
         findMany: async ({where}) => {
-          if (where?.type === "visit_upcoming") return events;
-          return events.filter((event) => !updatedIds.includes(event.id));
+          if (where?.type?.notIn) {
+            return mockEvents.filter((e) => ["visit_upcoming", "client_inactive"].includes(e.type));
+          }
+          if (where?.type?.in && where?.createdAt?.lt) {
+            return mockEvents.filter((e) => e.id === 3);
+          }
+          return [];
         },
         updateMany: async ({where}) => {
-          updatedIds.push(...where.id.in);
-          return {count: where.id.in.length};
+          if (where?.id?.in) {
+            resolvedIds.push(...where.id.in);
+            return {count: where.id.in.length};
+          }
+          return {count: 0};
         },
       },
-    };
-
-    const listed = await listNotificationEvents(prisma, {
-      limit: 10,
-      now,
-      status: "active",
-    });
-
-    expect(updatedIds).toEqual([1]);
-    expect(listed.map((event) => event.id)).toEqual([2]);
-  });
-
-  it("can run stale cleanup directly", async () => {
-    const prisma = {
-      calendarEntry: {
+      notificationRecipient: {
+        updateMany: async () => ({count: 0}),
+      },
+      supply: {
         findMany: async () => [],
       },
-      notificationEvent: {
-        findMany: async () => [
-          {
-            id: 3,
-            payload: {date: "2026-08-28", time: "16:00"},
-            status: "seen",
-            type: "visit_upcoming",
-          },
-        ],
-        updateMany: async ({where}) => ({count: where.id.in.length}),
+      waitlistEntry: {
+        findMany: async () => [],
       },
     };
 
-    await expect(
-      resolveStaleVisitUpcomingEvents(prisma, {
-        now: new Date("2026-09-28T12:00:00"),
-      }),
-    ).resolves.toBe(1);
+    await autoResolveExpiredAndStaleNotificationEvents(prisma, now);
+
+    expect(resolvedIds).toContain(1);
+    expect(resolvedIds).toContain(2);
+    expect(resolvedIds).toContain(3);
+    expect(resolvedIds).not.toContain(4);
+  });
+
+  it("filters events strictly by role: owner gets everything, staff gets only assigned visits", () => {
+    const events = [
+      {id: 1, type: "supply_low_stock", payload: {}},
+      {id: 2, type: "visit_created", payload: {employeeId: 10}},
+      {id: 3, type: "visit_created", payload: {employeeId: 20}},
+      {id: 4, type: "site_booking_request", payload: {preferredMasterId: 10}},
+    ];
+
+    const ownerUser = {id: 1, role: "owner"};
+    const adminUser = {id: 2, role: "admin"};
+    const staffUser10 = {id: 3, role: "staff", employeeId: 10};
+
+    expect(filterEventsByRole(events, ownerUser)).toHaveLength(4);
+    expect(filterEventsByRole(events, adminUser)).toHaveLength(4);
+
+    const staffEvents = filterEventsByRole(events, staffUser10);
+    // Staff should not see supplies, only events where employeeId or preferredMasterId === 10
+    expect(staffEvents.map((e) => e.id)).toEqual([2, 4]);
+  });
+
+  it("lists active notification events with proper limit", async () => {
+    const prisma = {
+      notificationEvent: {
+        findMany: async () => [
+          {id: 1, type: "site_booking_request", status: "new"},
+        ],
+        updateMany: async () => ({count: 0}),
+      },
+      notificationRecipient: {
+        updateMany: async () => ({count: 0}),
+      },
+      supply: {
+        findMany: async () => [],
+      },
+      waitlistEntry: {
+        findMany: async () => [],
+      },
+    };
+
+    const listed = await listNotificationEvents(prisma, {limit: 5});
+    expect(listed).toHaveLength(1);
+    expect(listed[0].type).toBe("site_booking_request");
   });
 });

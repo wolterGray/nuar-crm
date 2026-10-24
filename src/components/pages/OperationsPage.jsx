@@ -1288,9 +1288,9 @@ function OperationsPage({
   useEffect(() => {
     if (!alertFocus?.entityId) return undefined;
     const nextTab =
-      alertFocus.section === "waitlist" || alertFocus.section === "waitlist_entry" || alertFocus.type === "waitlist"
+      alertFocus.section === "waitlist" || alertFocus.section === "waitlist_entry" || alertFocus.type === "waitlist" || alertFocus.type === "site_booking"
         ? "waitlist"
-        : alertFocus.section === "supplies" || alertFocus.section === "supply"
+        : alertFocus.section === "supplies" || alertFocus.section === "supply" || String(alertFocus.type ?? "").startsWith("supply")
         ? "supplies"
         : alertFocus.section === "tasks" || alertFocus.type === "task"
           ? "plan"

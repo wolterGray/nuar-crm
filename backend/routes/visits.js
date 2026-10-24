@@ -70,10 +70,13 @@ const runSerializableTransaction = async (callback, attempts = 3) => {
 };
 
 // ----- Calendar event handler for notification generation -----
-const handleCalendarEntryChange = async (before, after, _action, _req) => {
+const handleCalendarEntryChange = async (before, after, _action, req = null) => {
   try {
     const kind = before?.kind || after?.kind;
     if (kind !== 'visit') return;
+
+    const actorUserId = Number(req?.auth?.sub || req?.auth?.id) || null;
+    const pushOptions = actorUserId ? {suppressActorUserId: actorUserId} : {};
 
     const id = before?.id || after?.id;
     const beforePayload = before?.payload && typeof before.payload === 'object' ? before.payload : {};
@@ -112,7 +115,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
         message: `${clientName} · ${serviceName} · ${date} ${time} · Мастер: ${masterName}`,
         type: 'visit_cancelled',
         urgency: 15,
-      }, upsertNotificationEvent);
+      }, upsertNotificationEvent, pushOptions);
       return;
     }
 
@@ -131,7 +134,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
         message: `${clientName} · ${serviceName} · ${after.date || ''} ${after.time || ''}`,
         type: 'visit_created',
         urgency: 10,
-      }, upsertNotificationEvent);
+      }, upsertNotificationEvent, pushOptions);
       return;
     }
 
@@ -163,7 +166,7 @@ const handleCalendarEntryChange = async (before, after, _action, _req) => {
           message: `${clientName} · Было: ${before.date} ${before.time} · Стало: ${after.date} ${after.time}`,
           type: 'visit_rescheduled',
           urgency: 10,
-        }, upsertNotificationEvent);
+        }, upsertNotificationEvent, pushOptions);
       }
     }
   } catch (error) {
