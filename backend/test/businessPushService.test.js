@@ -114,6 +114,47 @@ test('queues one idempotent delivery per active owner device', async () => {
   assert.ok(rows.every((row) => row.notificationEventId === 12));
 });
 
+test('queues visit updates for the actor device instead of suppressing the only recipient', async () => {
+  const keys = webpush.generateVAPIDKeys();
+  process.env.VAPID_PUBLIC_KEY = keys.publicKey;
+  process.env.VAPID_PRIVATE_KEY = keys.privateKey;
+  process.env.VAPID_SUBJECT = 'mailto:test@example.com';
+  let rows = [];
+  const prisma = {
+    notificationDelivery: {
+      createMany: async ({data}) => {
+        rows = data;
+        return {count: data.length};
+      },
+    },
+    notificationRecipient: {createMany: async () => ({count: 1})},
+    user: {
+      findMany: async () => [{
+        id: 1,
+        pushSubscriptions: [{id: 9}],
+        pushVisitRescheduled: true,
+      }],
+    },
+  };
+
+  const result = await queueBusinessPushDeliveries(prisma, {
+    id: 14,
+    entityId: '44',
+    fingerprint: 'visit:44:rescheduled:2026-10-25:09:00:2026-10-25:10:00',
+    payload: {
+      clientName: 'Olga Client',
+      newDate: '2026-10-25',
+      newTime: '10:00',
+      oldDate: '2026-10-25',
+      oldTime: '09:00',
+    },
+    type: 'visit_rescheduled',
+  }, {suppressActorUserId: 1});
+
+  assert.equal(result.queued, 1);
+  assert.equal(rows[0].pushSubscriptionId, 9);
+});
+
 test('does not queue a disabled category or require an active subscription', async () => {
   let recipientRows = [];
   const prisma = {

@@ -178,6 +178,9 @@ const buildBusinessPushPayload = (event) => {
 const getTargetUsers = async (prisma, event, config, options = {}) => {
   const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {};
   const isSupplyEvent = String(event.type).startsWith('supply_');
+  const suppressActorUserId = String(event.type).startsWith('visit_')
+    ? null
+    : options.suppressActorUserId;
 
   // Supplies only target owner and admin
   if (isSupplyEvent) {
@@ -194,8 +197,8 @@ const getTargetUsers = async (prisma, event, config, options = {}) => {
         role: {in: ['owner', 'admin']},
       },
     });
-    if (options.suppressActorUserId) {
-      return users.filter((u) => u.id !== Number(options.suppressActorUserId));
+    if (suppressActorUserId) {
+      return users.filter((u) => u.id !== Number(suppressActorUserId));
     }
     return users;
   }
@@ -231,8 +234,8 @@ const getTargetUsers = async (prisma, event, config, options = {}) => {
     where,
   });
 
-  if (options.suppressActorUserId) {
-    return users.filter((u) => u.id !== Number(options.suppressActorUserId));
+  if (suppressActorUserId) {
+    return users.filter((u) => u.id !== Number(suppressActorUserId));
   }
 
   return users;
