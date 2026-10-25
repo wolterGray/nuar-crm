@@ -22,10 +22,10 @@ const getPopoverStyle = (buttonRect) => {
       position: "fixed",
       left: 0,
       right: 0,
-      bottom: 0,
-      top: "auto",
+      top: 0,
+      bottom: "auto",
       width: "100%",
-      maxHeight: "85dvh",
+      maxHeight: "min(72dvh, 620px)",
     };
   }
 
@@ -153,10 +153,10 @@ export default function NotificationDrawer({
     typeof window !== "undefined" && window.innerWidth <= MOBILE_MAX_WIDTH;
 
   const panelSwipeHandlers = useSwipeable({
-    delta: 112,
-    onSwipedDown: ({absY, velocity}) => {
+    delta: 72,
+    onSwipedUp: ({absY, velocity}) => {
       if (!isMobilePopover) return;
-      if (absY >= 128 || velocity >= 0.72) {
+      if (absY >= 96 || velocity >= 0.65) {
         onToggleOpen();
       }
     },
@@ -231,7 +231,7 @@ export default function NotificationDrawer({
             key="notification-popover"
             initial={
               isMobilePopover
-                ? {opacity: 0, y: "100%"}
+                ? {opacity: 0, y: "-100%"}
                 : {opacity: 0, y: -6, scale: 0.98}
             }
             animate={
@@ -241,7 +241,7 @@ export default function NotificationDrawer({
             }
             exit={
               isMobilePopover
-                ? {opacity: 0, y: "100%"}
+                ? {opacity: 0, y: "-100%"}
                 : {opacity: 0, y: -4, scale: 0.98}
             }
             transition={
@@ -254,8 +254,6 @@ export default function NotificationDrawer({
             className={styles.popover}
             style={{...popoverStyle, zIndex: 120}}
             onClick={(event) => event.stopPropagation()}>
-            {isMobilePopover && <div className={styles.mobileHandle} />}
-
             <div className={styles.header}>
               <div className={styles.titleRow}>
                 <h2 className={styles.title}>Уведомления</h2>

@@ -40,32 +40,16 @@
   .popover {
     left: 0 !important;
     right: 0 !important;
-    bottom: 0 !important;
-    top: auto !important;
+    top: 0 !important;
+    bottom: auto !important;
     width: 100% !important;
     max-width: 100% !important;
-    max-height: 85dvh !important;
-    border-radius: 20px 20px 0 0;
-    border-bottom: 0;
+    max-height: min(72dvh, 620px) !important;
+    border-radius: 0 0 18px 18px;
+    border-top: 0;
     border-inline: 0;
-    box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.75);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-}
-
-.mobileHandle {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .mobileHandle {
-    display: block;
-    width: 36px;
-    height: 4px;
-    margin: 8px auto 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.2);
-    flex-shrink: 0;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.72);
+    padding-top: env(safe-area-inset-top, 0px);
   }
 }
 
