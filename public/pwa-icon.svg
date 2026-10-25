@@ -30,35 +30,25 @@
       <feDropShadow dx="0" dy="0" stdDeviation="16" flood-color="#DEB36D" flood-opacity="0.12"/>
     </filter>
 
-    <!-- Precision Squircle Mask -->
-    <clipPath id="squircleClip">
-      <rect x="0" y="0" width="512" height="512" rx="115"/>
-    </clipPath>
   </defs>
 
-  <g clip-path="url(#squircleClip)">
-    <!-- Base Background -->
-    <rect width="512" height="512" fill="url(#bg)"/>
-    <rect width="512" height="512" fill="url(#centerGlow)"/>
+  <!-- Full-bleed opaque artwork: the operating system applies its own icon mask. -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect width="512" height="512" fill="url(#centerGlow)"/>
 
-    <!-- Subtle Inset Gold Hairline Border -->
-    <rect x="1" y="1" width="510" height="510" rx="114" fill="none" stroke="#E2C075" stroke-width="1.5" stroke-opacity="0.25"/>
-
-    <!-- Single Unified Monogram N -->
-    <path
-      d="M 148,130
-         L 192,130
-         L 320,332
-         L 320,130
-         L 364,130
-         L 364,382
-         L 320,382
-         L 192,180
-         L 192,382
-         L 148,382
-         Z"
-      fill="url(#gold)"
-      filter="url(#shadow)"
-    />
-  </g>
+  <path
+    d="M 156,138
+       L 197,138
+       L 315,325
+       L 315,138
+       L 356,138
+       L 356,374
+       L 315,374
+       L 197,187
+       L 197,374
+       L 156,374
+       Z"
+    fill="url(#gold)"
+    filter="url(#shadow)"
+  />
 </svg>

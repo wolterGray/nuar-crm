@@ -20,8 +20,8 @@ self.addEventListener("push", (event) => {
   const options = {
     body: payload.body || "Откройте CRM, чтобы посмотреть детали.",
     data: {url: payload.url || DEFAULT_URL},
-    icon: "/pwa-icon-192.png",
-    badge: "/pwa-icon-192.png",
+    icon: "/pwa-icon-192.png?v=2",
+    badge: "/pwa-icon-192.png?v=2",
     tag: payload.tag || undefined,
     renotify: Boolean(payload.renotify),
   };
