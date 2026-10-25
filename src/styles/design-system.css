@@ -515,13 +515,13 @@
 }
 
 .calendar-client-card.mobile-sheet {
-  width: min(640px, calc(100vw - 32px));
-  max-height: min(88dvh, 860px);
+  width: min(460px, calc(100vw - 32px));
+  max-height: min(88dvh, 800px);
 }
 
 .calendar-reserved-card.mobile-sheet {
-  width: min(500px, calc(100vw - 32px));
-  max-height: min(86dvh, 720px);
+  width: min(440px, calc(100vw - 32px));
+  max-height: min(86dvh, 700px);
 }
 
 .mobile-sheet-backdrop:has(.calendar-client-card),
@@ -626,21 +626,19 @@
 }
 
 .calendar-client-card-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  display: flex;
+  align-items: center;
   gap: 8px;
+  width: 100%;
 }
 
-.calendar-client-card-actions :is(button, a) {
-  display: inline-flex;
+.calendar-client-card-actions > .btn,
+.calendar-client-card-actions > button:not(.calendar-actions-more-btn) {
+  flex: 1 1 0%;
   min-width: 0;
   min-height: 38px;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
   padding-inline: 10px;
-  font-size: 12px;
-  line-height: 1.1;
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -700,7 +698,31 @@
 
 .calendar-sheet-menu {
   position: relative;
-  flex: none;
+  flex-shrink: 0;
+}
+
+.calendar-actions-more-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+  border-radius: var(--radius-control, 10px);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  background: var(--color-field);
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.calendar-actions-more-btn:hover,
+.calendar-actions-more-btn:focus-visible {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+  background: var(--color-field-active);
 }
 
 .calendar-sheet-menu-button {
@@ -726,40 +748,83 @@
 
 .calendar-sheet-popover {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 6px);
   right: 0;
-  z-index: 20;
+  z-index: 60;
   display: grid;
-  min-width: 168px;
+  min-width: 180px;
   gap: 2px;
   padding: 6px;
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-card);
-  box-shadow: var(--shadow-dropdown);
+  border-radius: var(--radius-dropdown, 12px);
+  background: var(--color-window);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  animation: calendarPopoverFade 140ms ease-out;
+}
+
+@keyframes calendarPopoverFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .calendar-sheet-popover button {
   display: flex;
-  min-height: 36px;
+  min-height: 38px;
   align-items: center;
   gap: 9px;
-  padding: 0 10px;
+  padding: 0 12px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px);
   color: var(--color-text);
   background: transparent;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   text-align: left;
   cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+  white-space: nowrap;
 }
 
 .calendar-sheet-popover button:hover,
 .calendar-sheet-popover button:focus-visible {
-  color: var(--color-primary-text);
-  background: var(--button-ghost-hover-bg);
+  color: var(--color-text);
+  background: var(--color-field-hover, var(--color-field));
   outline: none;
+}
+
+.calendar-sheet-popover button.is-danger {
+  color: var(--color-error);
+}
+
+.calendar-sheet-popover button.is-danger:hover,
+.calendar-sheet-popover button.is-danger:focus-visible {
+  color: #ffffff;
+  background: var(--color-error);
+}
+
+.calendar-sheet-popover-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--color-border-soft);
+}
+
+.calendar-client-card-debt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .calendar-visit-detail-grid,
@@ -922,18 +987,19 @@
 
 .calendar-reserved-card-actions {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   width: 100%;
 }
 
-.calendar-reserved-card-actions :is(button, a) {
-  flex: 1 1 calc(50% - 4px);
-  min-width: 140px;
-}
-
-.calendar-reserved-card-actions :is(button, a):first-child:nth-last-child(3) {
-  flex: 1 1 100%;
+.calendar-reserved-card-actions > .btn,
+.calendar-reserved-card-actions > button:not(.calendar-actions-more-btn) {
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 38px;
+  padding-inline: 10px;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 .calendar-reserved-card-notice {
@@ -2187,17 +2253,32 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .calendar-client-card-actions {
-    grid-template-columns: 1fr;
+  .calendar-client-card-actions,
+  .calendar-reserved-card-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
   }
 
-  .calendar-client-card-actions :is(button, a) {
-    min-height: 40px;
+  .calendar-client-card-actions > .btn,
+  .calendar-client-card-actions > button:not(.calendar-actions-more-btn),
+  .calendar-reserved-card-actions > .btn,
+  .calendar-reserved-card-actions > button:not(.calendar-actions-more-btn) {
+    min-height: 44px;
+    font-size: 13px;
+    padding-inline: 8px;
+  }
+
+  .calendar-actions-more-btn {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
   }
 
   .calendar-sheet-popover {
     right: 0;
-    min-width: 172px;
+    min-width: 180px;
   }
 
   .calendar-reserved-card.mobile-sheet {
@@ -2211,20 +2292,6 @@
 
   .calendar-reserved-card.mobile-sheet .mobile-sheet-body {
     padding: 0 14px 14px;
-  }
-
-  .calendar-reserved-card.mobile-sheet .mobile-sheet-footer {
-    padding:
-      10px
-      14px
-      calc(12px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .calendar-reserved-card-actions :is(button, a) {
-    min-width: 0;
-    min-height: 42px;
-    padding-inline: 8px;
-    font-size: 12px;
   }
 
   .client-details-modal {

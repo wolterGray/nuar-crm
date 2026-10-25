@@ -1752,6 +1752,24 @@ function ClientCalendarCard({
   onDelete,
   onRemind,
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleOutsideClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [menuOpen]);
+
   const entryStatus =
     statusLabels[currentEntry.status] ||
     (currentEntry.status === "completed" ? "Окончен" : statusLabels.scheduled);
@@ -1774,19 +1792,6 @@ function ClientCalendarCard({
   const clientContact = client?.phone || currentEntry.phone || "Телефон не указан";
   const visitMeta = [
     {
-      icon: "clock",
-      label: "Время",
-      value: `${currentEntry.time}–${getEntryEndTime(currentEntry)}`,
-      detail: duration ? `${duration} мин` : "Длительность не указана",
-    },
-    {
-      icon: "creditCard",
-      label: "Стоимость",
-      value: paymentTotal,
-      detail: hasDebt ? `Стоимость услуги ${serviceAmount}` : currentEntry.payment || "Оплата не указана",
-      tone: hasDebt ? "danger" : "",
-    },
-    {
       icon: "userRound",
       label: "Мастер",
       value: currentEntry.master || "—",
@@ -1796,7 +1801,7 @@ function ClientCalendarCard({
       icon: "phone",
       label: "Клиент",
       value: clientName,
-      detail: clientContact,
+      detail: `${clientContact}${currentEntry.payment ? ` · ${currentEntry.payment}` : ""}`,
     },
   ];
 
@@ -1830,17 +1835,51 @@ function ClientCalendarCard({
         <Button leftIcon="message" size="sm" type="button" variant="secondary" onClick={onRemind}>
           Написать
         </Button>
-        {canCancel ? (
-          <Button leftIcon="ban" size="sm" type="button" variant="secondary" onClick={onCancel}>
-            Отменить
-          </Button>
-        ) : null}
-        <Button leftIcon="trash" size="sm" type="button" variant="danger" onClick={onDelete}>
-          Удалить
-        </Button>
-        <Button leftIcon="calendarPlus" size="sm" type="button" variant="secondary" onClick={onAdd}>
-          Новая запись
-        </Button>
+        <div className="calendar-sheet-menu" ref={menuRef}>
+          <IconButton
+            className="calendar-actions-more-btn"
+            icon="more"
+            label="Дополнительные действия"
+            size="sm"
+            variant="subtle"
+            onClick={() => setMenuOpen((prev) => !prev)}
+          />
+          {menuOpen && (
+            <div className="calendar-sheet-popover" role="menu">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onAdd?.();
+                }}>
+                <AppIcon name="calendarPlus" size="sm" />
+                <span>Новая запись</span>
+              </button>
+              {canCancel ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onCancel?.();
+                  }}>
+                  <AppIcon name="ban" size="sm" />
+                  <span>Отменить визит</span>
+                </button>
+              ) : null}
+              <div className="calendar-sheet-popover-divider" />
+              <button
+                className="is-danger"
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDelete?.();
+                }}>
+                <AppIcon name="trash" size="sm" />
+                <span>Удалить запись</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       <div className="calendar-visit-detail-grid">
         {visitMeta.map((item) => (
@@ -1852,6 +1891,12 @@ function ClientCalendarCard({
           </span>
         ))}
       </div>
+      {hasDebt ? (
+        <div className="calendar-client-card-debt">
+          <AppIcon name="alertCircle" size="sm" />
+          <span>Долг: {formatMoney(getVisitDebt(currentEntry))} (стоимость услуги: {serviceAmount})</span>
+        </div>
+      ) : null}
       {getEntryMasters(currentEntry).length > 1 ? (
         <div className="calendar-client-card-note">
           <strong>Парная услуга</strong>
@@ -1877,10 +1922,12 @@ function ClientCalendarCard({
           ))}
         </div>
       ) : null}
-      <div className="calendar-client-card-note">
-        <strong>Комментарий к визиту</strong>
-        <p>{note || "Комментария к этой записи нет."}</p>
-      </div>
+      {note ? (
+        <div className="calendar-client-card-note">
+          <strong>Комментарий к визиту</strong>
+          <p>{note}</p>
+        </div>
+      ) : null}
     </MobileSheet>
   );
 }
@@ -1893,6 +1940,24 @@ function ReservedCalendarCard({
   onEdit,
   onConvertToVisit,
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleOutsideClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [menuOpen]);
+
   return (
     <MobileSheet
       className="calendar-reserved-card"
@@ -1901,27 +1966,46 @@ function ReservedCalendarCard({
       labelledBy="calendar-reserved-card-title"
       title={entry.title || "Резерв"}
       description={`${entry.time}–${getEntryEndTime(entry)} · ${entry.master || "Мастер не указан"}`}
-      onClose={onClose}
-      footer={
-        <div className="calendar-reserved-card-actions">
-          {onConvertToVisit ? (
-            <Button leftIcon="userPlus" size="sm" type="button" variant="primary" onClick={onConvertToVisit}>
-              Преобразовать в визит
-            </Button>
-          ) : null}
-          <Button leftIcon="edit" size="sm" type="button" variant="secondary" onClick={onEdit}>
-            Редактировать
-          </Button>
-          <Button leftIcon="trash" size="sm" type="button" variant="danger" onClick={onDelete}>
-            Удалить
-          </Button>
-        </div>
-      }>
+      onClose={onClose}>
       <div className="calendar-reserved-card-notice">
         <AppIcon name="info" size="sm" />
         <span>
           Это <b>технический резерв времени</b> (без привязки к клиенту и услуге). Чтобы привязать клиента и стоимость, нажмите «Преобразовать в визит».
         </span>
+      </div>
+      <div className="calendar-reserved-card-actions">
+        {onConvertToVisit ? (
+          <Button leftIcon="userPlus" size="sm" type="button" variant="primary" onClick={onConvertToVisit}>
+            Преобразовать в визит
+          </Button>
+        ) : null}
+        <Button leftIcon="edit" size="sm" type="button" variant="secondary" onClick={onEdit}>
+          Редактировать
+        </Button>
+        <div className="calendar-sheet-menu" ref={menuRef}>
+          <IconButton
+            className="calendar-actions-more-btn"
+            icon="more"
+            label="Дополнительные действия"
+            size="sm"
+            variant="subtle"
+            onClick={() => setMenuOpen((prev) => !prev)}
+          />
+          {menuOpen && (
+            <div className="calendar-sheet-popover" role="menu">
+              <button
+                className="is-danger"
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDelete?.();
+                }}>
+                <AppIcon name="trash" size="sm" />
+                <span>Удалить резерв</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       <div className="calendar-reserved-card-panel">
         <span>
