@@ -1,6 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const { requirePermission, PERMISSIONS } = require('../middleware/auth');
+const { hasPermission, requirePermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { ensureSiteCmsTables } = require('../utils/siteCmsTables');
@@ -8,7 +8,18 @@ const { ensureSiteCmsTables } = require('../utils/siteCmsTables');
 const router = express.Router();
 const prisma = new PrismaClient();
 const SITE_CONTENT_ROW_ID = 'main';
-const requireSiteAdmin = requirePermission(PERMISSIONS.USERS_MANAGE);
+const requireSiteAdmin = (req, res, next) => {
+  if (
+    hasPermission(req.auth, PERMISSIONS.USERS_MANAGE) ||
+    hasPermission(req.auth, PERMISSIONS.CATALOG_MANAGE)
+  ) {
+    return next();
+  }
+  return res.status(403).json({
+    success: false,
+    error: `Доступ запрещён: требуется право '${PERMISSIONS.CATALOG_MANAGE}' или '${PERMISSIONS.USERS_MANAGE}'`,
+  });
+};
 
 const validationError = (message) => {
   const error = new Error(message);
