@@ -1,27 +1,33 @@
 {
-  "name": "NUAR-CRM",
-  "short_name": "NUAR-CRM",
+  "name": "NUAR CRM",
+  "short_name": "NUAR CRM",
   "id": "/",
   "description": "CRM салона NUAR — календарь, клиенты, оплаты",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#10141c",
-  "theme_color": "#10141c",
+  "background_color": "#0a0a0c",
+  "theme_color": "#0a0a0c",
   "lang": "ru",
   "icons": [
     {
       "src": "/pwa-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "/pwa-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }

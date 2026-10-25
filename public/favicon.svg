@@ -1,4 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="8" fill="#10141c"/>
-  <text x="16" y="23" text-anchor="middle" fill="#d2ad7d" font-family="system-ui, sans-serif" font-size="18" font-weight="700">N</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="favBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#15121A"/>
+      <stop offset="100%" stop-color="#060508"/>
+    </linearGradient>
+    <linearGradient id="favGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF8E8"/>
+      <stop offset="50%" stop-color="#DEB36D"/>
+      <stop offset="100%" stop-color="#BA8840"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7.5" fill="url(#favBg)"/>
+  <rect x="0.5" y="0.5" width="31" height="31" rx="7" fill="none" stroke="#E2C075" stroke-width="0.75" stroke-opacity="0.3"/>
+  <path
+    d="M 9.25,8
+       L 12,8
+       L 20,20.6
+       L 20,8
+       L 22.75,8
+       L 22.75,24
+       L 20,24
+       L 12,11.4
+       L 12,24
+       L 9.25,24
+       Z"
+    fill="url(#favGold)"
+  />
 </svg>
