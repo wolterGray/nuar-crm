@@ -4,8 +4,9 @@ import {createPortal} from "react-dom";
 import {useSwipeable} from "react-swipeable";
 import {AppIcon, IconButton} from "./ui/index.js";
 import {MOBILE_MAX_WIDTH} from "../constants/breakpoints.js";
+import styles from "./NotificationDrawer.module.css";
 
-const DESKTOP_POPOVER_WIDTH = 440;
+const DESKTOP_POPOVER_WIDTH = 400;
 const POPOVER_GAP = 8;
 const VIEWPORT_PADDING = 16;
 
@@ -17,19 +18,14 @@ const getPopoverStyle = (buttonRect) => {
   const isMobile = window.innerWidth <= MOBILE_MAX_WIDTH;
 
   if (isMobile) {
-    const top = buttonRect.bottom + POPOVER_GAP;
-    const maxHeight = Math.max(
-      180,
-      window.innerHeight - top - VIEWPORT_PADDING,
-    );
-
     return {
-      left: VIEWPORT_PADDING,
-      maxHeight,
       position: "fixed",
-      right: VIEWPORT_PADDING,
-      top,
-      width: "auto",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      top: "auto",
+      width: "100%",
+      maxHeight: "85dvh",
     };
   }
 
@@ -37,24 +33,28 @@ const getPopoverStyle = (buttonRect) => {
     DESKTOP_POPOVER_WIDTH,
     window.innerWidth - VIEWPORT_PADDING * 2,
   );
-  let left = buttonRect.right - width;
-  left = Math.max(
-    VIEWPORT_PADDING,
-    Math.min(left, window.innerWidth - width - VIEWPORT_PADDING),
-  );
+
+  let right = window.innerWidth - buttonRect.right;
+  if (right < VIEWPORT_PADDING) {
+    right = VIEWPORT_PADDING;
+  }
+  if (window.innerWidth - right - width < VIEWPORT_PADDING) {
+    right = window.innerWidth - width - VIEWPORT_PADDING;
+  }
+
   const top = buttonRect.bottom + POPOVER_GAP;
   const maxHeight = Math.max(
-    220,
+    260,
     window.innerHeight - top - VIEWPORT_PADDING,
   );
 
   return {
-    left,
-    maxHeight,
     position: "fixed",
-    right: "auto",
     top,
+    right,
+    left: "auto",
     width,
+    maxHeight,
   };
 };
 
@@ -87,22 +87,22 @@ const getNotificationIconInfo = (type) => {
     case "site_booking":
       return {
         icon: "calendarPlus",
-        colorClass: "notif-icon-booking",
+        colorClass: styles.iconBooking,
       };
     case "visit_created":
       return {
         icon: "calendar",
-        colorClass: "notif-icon-created",
+        colorClass: styles.iconCreated,
       };
     case "visit_rescheduled":
       return {
         icon: "calendarClock",
-        colorClass: "notif-icon-rescheduled",
+        colorClass: styles.iconRescheduled,
       };
     case "visit_cancelled":
       return {
         icon: "userX",
-        colorClass: "notif-icon-cancelled",
+        colorClass: styles.iconCancelled,
       };
     case "waitlist_entry":
     case "waitlist_active":
@@ -110,23 +110,23 @@ const getNotificationIconInfo = (type) => {
     case "waitlist":
       return {
         icon: "userPlus",
-        colorClass: "notif-icon-waitlist",
+        colorClass: styles.iconWaitlist,
       };
     case "supply_out_of_stock":
       return {
-        icon: "alert",
-        colorClass: "notif-icon-danger",
+        icon: "alertTriangle",
+        colorClass: styles.iconCancelled,
       };
     case "supply_low_stock":
     case "supply":
       return {
         icon: "package",
-        colorClass: "notif-icon-warning",
+        colorClass: styles.iconSupply,
       };
     default:
       return {
         icon: "bell",
-        colorClass: "notif-icon-default",
+        colorClass: styles.iconDefault,
       };
   }
 };
@@ -140,12 +140,10 @@ export default function NotificationDrawer({
   onToggleOpen,
   serverConnected,
   serverCounts,
-  theme = "dark",
 }) {
   const buttonRef = useRef(null);
   const [popoverStyle, setPopoverStyle] = useState({});
   const [now, setNow] = useState(() => new Date());
-  const transition = {duration: animationsEnabled ? 0.18 : 0};
 
   const badgeCount = serverCounts
     ? Number(serverCounts.attention ?? serverCounts.total) || alerts.length
@@ -224,31 +222,61 @@ export default function NotificationDrawer({
             initial={{opacity: 0}}
             animate={{opacity: 1}}
             exit={{opacity: 0}}
-            className="client-alert-backdrop"
+            transition={{duration: animationsEnabled ? 0.15 : 0}}
+            className={styles.backdrop}
             onClick={onToggleOpen}
           />
           <motion.div
             {...panelSwipeHandlers}
             key="notification-popover"
-            animate={{opacity: 1, y: 0}}
-            className={`client-alert-popover client-alert-popover-portal theme-${theme}`}
-            exit={{opacity: 0, y: -6}}
-            initial={{opacity: 0, y: -8}}
+            initial={
+              isMobilePopover
+                ? {opacity: 0, y: "100%"}
+                : {opacity: 0, y: -6, scale: 0.98}
+            }
+            animate={
+              isMobilePopover
+                ? {opacity: 1, y: 0}
+                : {opacity: 1, y: 0, scale: 1}
+            }
+            exit={
+              isMobilePopover
+                ? {opacity: 0, y: "100%"}
+                : {opacity: 0, y: -4, scale: 0.98}
+            }
+            transition={
+              animationsEnabled
+                ? isMobilePopover
+                  ? {type: "spring", damping: 28, stiffness: 320}
+                  : {duration: 0.16, ease: [0.16, 1, 0.3, 1]}
+                : {duration: 0}
+            }
+            className={styles.popover}
             style={{...popoverStyle, zIndex: 120}}
-            transition={transition}
             onClick={(event) => event.stopPropagation()}>
-            <div className="client-alert-heading">
-              <div>
-                <h2>Уведомления</h2>
-                <p>
-                  {serverConnected === false
-                    ? "Нет связи с сервером"
-                    : alerts.length > 0
-                      ? `${alerts.length} ${alerts.length === 1 ? "событие" : alerts.length < 5 ? "события" : "событий"}`
-                      : "Всё в порядке"}
-                </p>
+            {isMobilePopover && <div className={styles.mobileHandle} />}
+
+            <div className={styles.header}>
+              <div className={styles.titleRow}>
+                <h2 className={styles.title}>Уведомления</h2>
+                {alerts.length > 0 ? (
+                  <span className={styles.badgeActive}>{alerts.length}</span>
+                ) : (
+                  <span className={styles.badgeIdle}>0</span>
+                )}
               </div>
-              <div className="client-alert-heading-actions">
+              <div className={styles.headerActions}>
+                {alerts.length > 0 && onDismissPermanent ? (
+                  <button
+                    type="button"
+                    className={styles.clearAllBtn}
+                    onClick={() => {
+                      alerts.forEach((alert) => onDismissPermanent?.(alert));
+                    }}>
+                    <AppIcon name="checkCheck" size="sm" />
+                    <span>Очистить все</span>
+                  </button>
+                ) : null}
                 <IconButton
                   icon="x"
                   label="Закрыть уведомления"
@@ -260,7 +288,7 @@ export default function NotificationDrawer({
               </div>
             </div>
 
-            <div className="client-alert-list notif-single-stream-list">
+            <div className={styles.list}>
               {alerts.length > 0 ? (
                 <AnimatePresence initial={false}>
                   {alerts.map((alert) => {
@@ -270,13 +298,13 @@ export default function NotificationDrawer({
 
                     return (
                       <motion.div
-                        className="notif-stream-row"
+                        className={`${styles.row} ${isUnviewed ? styles.rowUnviewed : ""}`}
                         key={alert.id}
                         layout
                         initial={{opacity: 0, y: 4}}
                         animate={{opacity: 1, y: 0}}
                         exit={{opacity: 0, height: 0, marginBottom: 0, overflow: "hidden"}}
-                        transition={transition}
+                        transition={{duration: animationsEnabled ? 0.15 : 0}}
                         role="button"
                         tabIndex={0}
                         onClick={() => onAction?.(alert, "open")}
@@ -286,28 +314,28 @@ export default function NotificationDrawer({
                             onAction?.(alert, "open");
                           }
                         }}>
-                        <div className={`notif-icon-box ${iconInfo.colorClass}`}>
+                        <div className={`${styles.iconBox} ${iconInfo.colorClass}`}>
                           <AppIcon name={iconInfo.icon} size={18} />
                         </div>
 
-                        <div className="notif-content-box">
-                          <div className="notif-header-line">
-                            <div className="notif-title-wrap">
-                              {isUnviewed ? <span className="notif-unviewed-dot" /> : null}
-                              <strong className="notif-title">{alert.title}</strong>
+                        <div className={styles.contentBox}>
+                          <div className={styles.headerLine}>
+                            <div className={styles.titleWrap}>
+                              {isUnviewed ? <span className={styles.unviewedDot} /> : null}
+                              <strong className={styles.rowTitle}>{alert.title}</strong>
                             </div>
                             {relativeTime ? (
-                              <time className="notif-time">{relativeTime}</time>
+                              <time className={styles.time}>{relativeTime}</time>
                             ) : null}
                           </div>
 
-                          <div className="notif-message-text">
+                          <div className={styles.message}>
                             {alert.message}
                           </div>
                         </div>
 
                         <div
-                          className="notif-dismiss-box"
+                          className={styles.dismissBox}
                           onClick={(e) => {
                             e.stopPropagation();
                             onDismissPermanent?.(alert);
@@ -318,7 +346,7 @@ export default function NotificationDrawer({
                             size="sm"
                             type="button"
                             variant="ghost"
-                            className="notif-dismiss-btn"
+                            className={styles.dismissBtn}
                           />
                         </div>
                       </motion.div>
@@ -326,15 +354,24 @@ export default function NotificationDrawer({
                   })}
                 </AnimatePresence>
               ) : (
-                <div className="client-alert-empty notif-empty-state">
-                  <div className="notif-empty-icon-wrap">
-                    <AppIcon name="badgeCheck" size={28} />
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIconWrap}>
+                    <AppIcon name="bellOff" size={24} />
                   </div>
-                  <strong>Всё в порядке ✓</strong>
-                  <span>Нет новых событий, требующих внимания.</span>
+                  <strong className={styles.emptyTitle}>Все уведомления прочитаны</strong>
+                  <p className={styles.emptyDesc}>
+                    Новые записи с сайта, переносы и важные события студии появятся здесь
+                  </p>
                 </div>
               )}
             </div>
+
+            {serverConnected === false ? (
+              <div className={styles.serverWarning}>
+                <AppIcon name="alertTriangle" size="xs" />
+                <span>Нет связи с сервером уведомлений</span>
+              </div>
+            ) : null}
           </motion.div>
         </>
       ) : null}
