@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {getMutationKey} from "./idempotency.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -73,7 +74,11 @@ export const createVisit = async (visit) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/visits/journal`, {
     method: "POST",
-    headers: {"Content-Type": "application/json", ...headers},
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+      "Idempotency-Key": getMutationKey("POST:/api/visits/journal", visit),
+    },
     body: JSON.stringify(visit),
   });
 
@@ -84,7 +89,11 @@ export const createJournalFinancialVisit = async (visit) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/visits/journal/financial`, {
     method: "POST",
-    headers: {"Content-Type": "application/json", ...headers},
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+      "Idempotency-Key": getMutationKey("POST:/api/visits/journal/financial", visit),
+    },
     body: JSON.stringify(visit),
   });
 

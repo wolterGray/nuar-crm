@@ -4,6 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
+const { executeIdempotentMutation } = require('../services/idempotencyService');
 const {
   VISIT_WITH_EARNING_INCLUDE,
   assertVisitCanBeRemoved,
@@ -761,7 +762,7 @@ router.post('/client-packages', requirePackageFinanceManage, async (req, res) =>
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const { replayed, result } = await executeIdempotentMutation(prisma, req, 'create-client-package', async (tx) => {
       const saved = await tx.clientPackage.create({ data });
       await syncEmployeeEarningForClientPackageSale(tx, req, saved);
       await recordAuditLog(tx, req, {
@@ -773,6 +774,7 @@ router.post('/client-packages', requirePackageFinanceManage, async (req, res) =>
       });
       return withStoredId(saved);
     });
+    if (replayed) res.set('Idempotency-Replayed', 'true');
     res.json({ success: true, data: result });
   } catch (err) {
     const response = getHttpErrorResponse(err);
@@ -892,7 +894,7 @@ router.post('/certificates/sell', requirePackageFinanceManage, async (req, res) 
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const { replayed, result } = await executeIdempotentMutation(prisma, req, 'sell-certificate', async (tx) => {
       const certificate = await tx.certificate.create({ data: certificateData });
       const saleVisitPayload = {
         ...visitPayload,
@@ -940,6 +942,7 @@ router.post('/certificates/sell', requirePackageFinanceManage, async (req, res) 
 
       return data;
     });
+    if (replayed) res.set('Idempotency-Replayed', 'true');
 
     res.json({ success: true, data: result });
   } catch (err) {
@@ -1255,7 +1258,7 @@ router.post('/visits/journal/financial', async (req, res) => {
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const { replayed, result } = await executeIdempotentMutation(prisma, req, 'create-journal-financial-visit', async (tx) => {
       const visit = await tx.visit.create({ data: buildVisitData(visitPayload) });
       let clientPackage = null;
       let clientPackageUsage = null;
@@ -1307,6 +1310,7 @@ router.post('/visits/journal/financial', async (req, res) => {
       return data;
     });
 
+    if (replayed) res.set('Idempotency-Replayed', 'true');
     res.json({ success: true, data: result });
   } catch (err) {
     const response = getHttpErrorResponse(err);
@@ -1618,7 +1622,7 @@ router.post('/visits/journal', async (req, res) => {
     return sendValidationError(res, err);
   }
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const { replayed, result } = await executeIdempotentMutation(prisma, req, 'create-journal-visit', async (tx) => {
       const visit = await tx.visit.create({ data: buildVisitData(payload) });
       if (payload.status === 'completed') {
         await syncEmployeeEarningForCompletedVisit(tx, req, visit);
@@ -1637,6 +1641,7 @@ router.post('/visits/journal', async (req, res) => {
       });
       return data;
     });
+    if (replayed) res.set('Idempotency-Replayed', 'true');
     res.json({ success: true, data: result });
   } catch (err) {
     const response = getHttpErrorResponse(err);

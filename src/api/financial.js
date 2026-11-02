@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {getMutationKey} from "./idempotency.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -26,12 +27,15 @@ const handleResponse = async (response, label) => {
   return response.json();
 };
 
-const request = async (path, {body, label, method = "GET"} = {}) => {
+const request = async (path, {body, idempotent = false, label, method = "GET"} = {}) => {
   const headers = await authHeaders();
+  const idempotencyHeaders = idempotent
+    ? {"Idempotency-Key": getMutationKey(`${method}:${path}`, body)}
+    : {};
   const response = await fetch(`${API_URL}${path}`, {
     method,
     ...(method === "GET" ? {cache: "no-store"} : {}),
-    headers: {"Content-Type": "application/json", ...headers},
+    headers: {"Content-Type": "application/json", ...headers, ...idempotencyHeaders},
     ...(body === undefined ? {} : {body: JSON.stringify(body)}),
   });
 
@@ -59,6 +63,7 @@ export const deletePackage = (id) =>
 export const createClientPackage = (clientPackage) =>
   request("/api/client-packages", {
     body: clientPackage,
+    idempotent: true,
     label: "Create client package",
     method: "POST",
   });
@@ -86,6 +91,7 @@ export const createCertificate = (certificate) =>
 export const sellCertificate = (payload) =>
   request("/api/certificates/sell", {
     body: payload,
+    idempotent: true,
     label: "Sell certificate",
     method: "POST",
   });
