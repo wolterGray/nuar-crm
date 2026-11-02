@@ -1,16 +1,7 @@
 const { recordAuditLog } = require('./loggingService');
 const { validationError, withStoredId } = require('../utils/crudHelpers');
 const { objectPayload } = require('../utils/financeHelpers');
-
-const resolveClientPackageStatus = (remainingVisits, currentStatus) => {
-  if (Number(remainingVisits) <= 0) {
-    return 'Архив';
-  }
-
-  return ['Архив', 'Закончился'].includes(String(currentStatus ?? ''))
-    ? 'Активен'
-    : currentStatus;
-};
+const { resolveClientPackageStatus } = require('../domain/financialAssetLifecycle');
 
 const normalizeUsagePayload = (context) => {
   if (context && typeof context === 'object' && !Array.isArray(context)) {

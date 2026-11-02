@@ -44,6 +44,10 @@ const {
   assertEditableAppointmentTransition,
   normalizeAppointmentStatus,
 } = require('../domain/appointmentLifecycle');
+const {
+  resolveCertificateStatus,
+  resolveClientPackageStatus,
+} = require('../domain/financialAssetLifecycle');
 
 const resolveEmployeeIdForRecord = async (record) => {
   const payload = record?.payload && typeof record.payload === 'object' ? record.payload : {};
@@ -318,30 +322,6 @@ const isCertificateCompletePayment = (payload) => {
     payment.includes('certyfikat') ||
     payment.includes('certificate')
   );
-};
-
-const resolveClientPackageStatus = (remainingVisits, currentStatus) => {
-  if (Number(remainingVisits) <= 0) {
-    return 'Архив';
-  }
-  return ['Архив', 'Закончился'].includes(String(currentStatus ?? ''))
-    ? 'Активен'
-    : currentStatus;
-};
-
-const resolveCertificateStatus = (remainingBalance, nominal, currentStatus) => {
-  const remaining = Number(remainingBalance) || 0;
-  const total = Number(nominal) || 0;
-
-  if (remaining <= 0) {
-    return 'Погашен';
-  }
-  if (remaining < total) {
-    return 'Частично';
-  }
-  return ['Архив', 'Погашен', 'Просрочен'].includes(String(currentStatus ?? ''))
-    ? 'Активен'
-    : currentStatus;
 };
 
 const restorePackageUsageForVisit = async (tx, req, visit, usage) => {

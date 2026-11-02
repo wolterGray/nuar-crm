@@ -36,6 +36,12 @@ const {
   buildServerDayCloseRecordData,
   objectPayload,
 } = require('../utils/financeHelpers');
+const {
+  normalizeCertificateStatus,
+  normalizeClientPackageStatus,
+  resolveCertificateStatus,
+  resolveClientPackageStatus,
+} = require('../domain/financialAssetLifecycle');
 
 const prisma = new PrismaClient();
 const {
@@ -43,31 +49,6 @@ const {
   recordBelongsToEmployee,
   resolveScopedEmployee,
 } = require('../utils/employeeScope');
-
-// ----- Helper methods for client package status -----
-const resolveClientPackageStatus = (remainingVisits, currentStatus) => {
-  if (Number(remainingVisits) <= 0) {
-    return 'Архив';
-  }
-  return ['Архив', 'Закончился'].includes(String(currentStatus ?? ''))
-    ? 'Активен'
-    : currentStatus;
-};
-
-const resolveCertificateStatus = (remainingBalance, nominal, currentStatus) => {
-  const remaining = Number(remainingBalance) || 0;
-  const total = Number(nominal) || 0;
-
-  if (remaining <= 0) {
-    return 'Погашен';
-  }
-  if (remaining < total) {
-    return 'Частично';
-  }
-  return ['Архив', 'Погашен', 'Просрочен'].includes(String(currentStatus ?? ''))
-    ? 'Активен'
-    : currentStatus;
-};
 
 // ----- Local helpers for visits payment state check -----
 const normalizedPaymentName = (payload) =>
@@ -517,57 +498,63 @@ const buildJournalFinancialResponse = ({
 });
 
 // ----- Data builder and validator functions -----
-const buildClientPackageData = (payload) => ({
-  clientId: payload?.clientId ? Number(payload.clientId) : null,
-  packageId: payload?.packageId ? Number(payload.packageId) : null,
-  employeeId: payload?.employeeId ? Number(payload.employeeId) : null,
-  clientName: cleanOptionalString(payload?.client ?? payload?.clientName),
-  packageName: cleanOptionalString(payload?.packageName ?? payload?.name),
-  service: cleanOptionalString(payload?.service),
-  totalVisits:
-    payload?.totalVisits !== undefined && payload?.totalVisits !== null
-      ? Number(payload.totalVisits) || 0
-      : null,
-  remainingVisits:
-    payload?.remainingVisits !== undefined && payload?.remainingVisits !== null
-      ? Number(payload.remainingVisits) || 0
-      : null,
-  price:
-    payload?.price !== undefined && payload?.price !== null
-      ? Number(payload.price) || 0
-      : null,
-  purchaseDate: cleanOptionalString(payload?.purchaseDate),
-  expiryDate: cleanOptionalString(payload?.expiryDate),
-  payment: cleanOptionalString(payload?.payment),
-  status: cleanOptionalString(payload?.status),
-  writeOffHistory: Array.isArray(payload?.writeOffHistory) ? payload.writeOffHistory : [],
-  payload,
-});
+const buildClientPackageData = (payload) => {
+  const status = normalizeClientPackageStatus(payload?.status, 'Активен');
+  return {
+    clientId: payload?.clientId ? Number(payload.clientId) : null,
+    packageId: payload?.packageId ? Number(payload.packageId) : null,
+    employeeId: payload?.employeeId ? Number(payload.employeeId) : null,
+    clientName: cleanOptionalString(payload?.client ?? payload?.clientName),
+    packageName: cleanOptionalString(payload?.packageName ?? payload?.name),
+    service: cleanOptionalString(payload?.service),
+    totalVisits:
+      payload?.totalVisits !== undefined && payload?.totalVisits !== null
+        ? Number(payload.totalVisits) || 0
+        : null,
+    remainingVisits:
+      payload?.remainingVisits !== undefined && payload?.remainingVisits !== null
+        ? Number(payload.remainingVisits) || 0
+        : null,
+    price:
+      payload?.price !== undefined && payload?.price !== null
+        ? Number(payload.price) || 0
+        : null,
+    purchaseDate: cleanOptionalString(payload?.purchaseDate),
+    expiryDate: cleanOptionalString(payload?.expiryDate),
+    payment: cleanOptionalString(payload?.payment),
+    status,
+    writeOffHistory: Array.isArray(payload?.writeOffHistory) ? payload.writeOffHistory : [],
+    payload: {...payload, status},
+  };
+};
 
-const buildCertificateData = (payload) => ({
-  code: String(payload?.code ?? '').trim(),
-  clientId: payload?.clientId ? Number(payload.clientId) : null,
-  recipientId: payload?.recipientId ? Number(payload.recipientId) : null,
-  employeeId: payload?.employeeId ? Number(payload.employeeId) : null,
-  saleVisitId: payload?.saleVisitId ? Number(payload.saleVisitId) : null,
-  clientName: cleanOptionalString(payload?.client ?? payload?.clientName),
-  recipientName: cleanOptionalString(payload?.recipient ?? payload?.recipientName),
-  nominal:
-    payload?.nominal !== undefined && payload?.nominal !== null
-      ? Number(payload.nominal) || 0
-      : null,
-  remainingBalance:
-    payload?.remainingBalance !== undefined && payload?.remainingBalance !== null
-      ? Number(payload.remainingBalance) || 0
-      : null,
-  purchaseDate: cleanOptionalString(payload?.purchaseDate),
-  usedDate: cleanOptionalString(payload?.usedDate),
-  expiryDate: cleanOptionalString(payload?.expiryDate),
-  payment: cleanOptionalString(payload?.payment),
-  status: cleanOptionalString(payload?.status),
-  note: cleanOptionalString(payload?.note),
-  payload,
-});
+const buildCertificateData = (payload) => {
+  const status = normalizeCertificateStatus(payload?.status, 'Активен');
+  return {
+    code: String(payload?.code ?? '').trim(),
+    clientId: payload?.clientId ? Number(payload.clientId) : null,
+    recipientId: payload?.recipientId ? Number(payload.recipientId) : null,
+    employeeId: payload?.employeeId ? Number(payload.employeeId) : null,
+    saleVisitId: payload?.saleVisitId ? Number(payload.saleVisitId) : null,
+    clientName: cleanOptionalString(payload?.client ?? payload?.clientName),
+    recipientName: cleanOptionalString(payload?.recipient ?? payload?.recipientName),
+    nominal:
+      payload?.nominal !== undefined && payload?.nominal !== null
+        ? Number(payload.nominal) || 0
+        : null,
+    remainingBalance:
+      payload?.remainingBalance !== undefined && payload?.remainingBalance !== null
+        ? Number(payload.remainingBalance) || 0
+        : null,
+    purchaseDate: cleanOptionalString(payload?.purchaseDate),
+    usedDate: cleanOptionalString(payload?.usedDate),
+    expiryDate: cleanOptionalString(payload?.expiryDate),
+    payment: cleanOptionalString(payload?.payment),
+    status,
+    note: cleanOptionalString(payload?.note),
+    payload: {...payload, status},
+  };
+};
 
 const serializeClientPackage = (record, canViewContacts = true) => {
   if (!record) return record;
@@ -762,8 +749,9 @@ router.get('/financial-state', requirePermission(PERMISSIONS.FINANCE_VIEW_SALON_
 
 // ==================== Client Packages CRUD ====================
 router.post('/client-packages', requirePackageFinanceManage, async (req, res) => {
-  const data = buildClientPackageData(req.body ?? {});
+  let data;
   try {
+    data = buildClientPackageData(req.body ?? {});
     validateClientPackageData(data);
   } catch (err) {
     return sendValidationError(res, err);
@@ -811,8 +799,9 @@ router.get('/client-packages/:id', requireClientOrFinanceView, async (req, res) 
 
 router.put('/client-packages/:id', requirePackageFinanceManage, async (req, res) => {
   const id = Number(req.params.id);
-  const data = buildClientPackageData({ ...(req.body ?? {}), id });
+  let data;
   try {
+    data = buildClientPackageData({ ...(req.body ?? {}), id });
     validateClientPackageData(data);
   } catch (err) {
     return sendValidationError(res, err);
@@ -888,9 +877,10 @@ router.post('/certificates/sell', requirePackageFinanceManage, async (req, res) 
   const body = req.body ?? {};
   const certificatePayload = body.certificate ?? body;
   const visitPayload = body.visit ?? {};
-  const certificateData = buildCertificateData(certificatePayload);
+  let certificateData;
 
   try {
+    certificateData = buildCertificateData(certificatePayload);
     validateCertificateData(certificateData);
     validateVisitPayload(visitPayload);
 
@@ -968,8 +958,9 @@ router.post('/certificates/sell', requirePackageFinanceManage, async (req, res) 
 });
 
 router.post('/certificates', requirePackageFinanceManage, (req, res) => {
-  const data = buildCertificateData(req.body ?? {});
+  let data;
   try {
+    data = buildCertificateData(req.body ?? {});
     validateCertificateData(data);
   } catch (err) {
     return sendValidationError(res, err);
@@ -1009,8 +1000,9 @@ router.get('/certificates/:id', requireClientOrFinanceView, async (req, res) => 
 
 router.put('/certificates/:id', requirePackageFinanceManage, async (req, res) => {
   const id = Number(req.params.id);
-  const data = buildCertificateData({ ...(req.body ?? {}), id });
+  let data;
   try {
+    data = buildCertificateData({ ...(req.body ?? {}), id });
     validateCertificateData(data);
   } catch (err) {
     return sendValidationError(res, err);
