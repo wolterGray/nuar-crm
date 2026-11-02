@@ -27,7 +27,7 @@ const handleResponse = async (response, label) => {
   return response.json();
 };
 
-const request = async (path, {body, idempotent = false, label, method = "GET"} = {}) => {
+const request = async (path, {body, headers: requestHeaders = {}, idempotent = false, label, method = "GET"} = {}) => {
   const headers = await authHeaders();
   const idempotencyHeaders = idempotent
     ? {"Idempotency-Key": getMutationKey(`${method}:${path}`, body)}
@@ -35,7 +35,7 @@ const request = async (path, {body, idempotent = false, label, method = "GET"} =
   const response = await fetch(`${API_URL}${path}`, {
     method,
     ...(method === "GET" ? {cache: "no-store"} : {}),
-    headers: {"Content-Type": "application/json", ...headers, ...idempotencyHeaders},
+    headers: {"Content-Type": "application/json", ...headers, ...requestHeaders, ...idempotencyHeaders},
     ...(body === undefined ? {} : {body: JSON.stringify(body)}),
   });
 
@@ -75,8 +75,9 @@ export const updateClientPackage = (id, clientPackage) =>
     method: "PUT",
   });
 
-export const deleteClientPackage = (id) =>
+export const deleteClientPackage = (id, updatedAt) =>
   request(`/api/client-packages/${id}`, {
+    headers: updatedAt ? {"X-Expected-Updated-At": updatedAt} : {},
     label: "Delete client package",
     method: "DELETE",
   });
@@ -103,8 +104,9 @@ export const updateCertificate = (id, certificate) =>
     method: "PUT",
   });
 
-export const deleteCertificate = (id) =>
+export const deleteCertificate = (id, updatedAt) =>
   request(`/api/certificates/${id}`, {
+    headers: updatedAt ? {"X-Expected-Updated-At": updatedAt} : {},
     label: "Delete certificate",
     method: "DELETE",
   });

@@ -5,7 +5,12 @@ const { requireOwner, requirePermission, hasPermission, PERMISSIONS } = require(
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
-const { updateWithVersion } = require('../domain/optimisticConcurrency');
+const {
+  assertRecordVersion,
+  deleteWithVersion,
+  getRequestVersion,
+  updateWithVersion,
+} = require('../domain/optimisticConcurrency');
 const { upsertNotificationEvent } = require('../services/notificationEventsService');
 const {recordBusinessNotificationEvent} = require('../services/businessPushService');
 const {
@@ -813,12 +818,12 @@ router.delete('/calendar-entries/:id', requirePermission(PERMISSIONS.CALENDAR_DE
   const before = await prisma.calendarEntry.findUnique({where: {id}});
   if (!before) return res.status(404).json({success: false, error: 'Calendar entry not found'});
   const linkedVisit = before.visitId
-    ? await prisma.visit.findUnique({where: {id: before.visitId}, select: {id: true}})
-    : await prisma.visit.findFirst({where: {calendarEntryId: id}, select: {id: true}});
-  if (linkedVisit) {
-    return res.status(409).json({
+    ? await prisma.visit.findUnique({where: {id: before.visitId}})
+    : await prisma.visit.findFirst({where: {calendarEntryId: id}});
+  if (linkedVisit && !hasPermission(req.auth, PERMISSIONS.FINANCE_DAY_CLOSE)) {
+    return res.status(403).json({
       success: false,
-      error: 'Завершённый визит нельзя удалить обычным действием календаря',
+      error: 'Для удаления связанного визита требуется доступ к финансовому журналу',
     });
   }
   if (!hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL)) {
@@ -827,12 +832,55 @@ router.delete('/calendar-entries/:id', requirePermission(PERMISSIONS.CALENDAR_DE
       return res.status(403).json({success: false, error: 'Доступ запрещён: можно удалять записи только для себя'});
     }
   }
-  localRespondWithAudit(
-    req,
-    res,
-    prisma.calendarEntry.delete({where: {id}}).then(withStoredId),
-    {action: 'delete/cancel visit', after: null, before, entity: 'CalendarEntry', entityId: id},
-  );
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const currentEntry = await tx.calendarEntry.findUnique({where: {id}});
+      const expectedUpdatedAt = getRequestVersion(req);
+      assertRecordVersion(currentEntry, expectedUpdatedAt);
+      const currentLinkedVisit = currentEntry?.visitId
+        ? await tx.visit.findUnique({where: {id: currentEntry.visitId}})
+        : await tx.visit.findFirst({where: {calendarEntryId: id}});
+
+      let deletedVisit = null;
+      if (currentLinkedVisit) {
+        const expectedVisitUpdatedAt = getRequestVersion(req, 'x-expected-visit-updated-at');
+        assertRecordVersion(currentLinkedVisit, expectedVisitUpdatedAt);
+        await assertVisitCanBeRemoved(tx, currentLinkedVisit.id);
+        await removeUnpaidEmployeeEarningForVisit(tx, req, currentLinkedVisit.id);
+        deletedVisit = await deleteWithVersion(tx.visit, {
+          expectedUpdatedAt: expectedVisitUpdatedAt,
+          id: currentLinkedVisit.id,
+        });
+        await recordAuditLog(tx, req, {
+          action: 'delete/cancel visit',
+          after: null,
+          before: withStoredId(currentLinkedVisit),
+          entity: 'Visit',
+          entityId: currentLinkedVisit.id,
+        });
+      }
+
+      const deletedEntry = await deleteWithVersion(tx.calendarEntry, {
+        expectedUpdatedAt,
+        id,
+      });
+      await recordAuditLog(tx, req, {
+        action: 'delete/cancel visit',
+        after: null,
+        before: withStoredId(currentEntry),
+        entity: 'CalendarEntry',
+        entityId: id,
+      });
+      return {
+        calendarEntry: withStoredId(deletedEntry),
+        visit: deletedVisit ? withStoredId(deletedVisit) : null,
+      };
+    });
+    res.json({success: true, data: result});
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    res.status(response.status).json({success: false, error: response.message});
+  }
 });
 
 router.post('/visits/dedupe-calendar', requireOwner, async (req, res) => {

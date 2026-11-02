@@ -60,11 +60,16 @@ export const updateCalendarEntry = async (id, entry) => {
   return handleResponse(response, "Update calendar entry");
 };
 
-export const deleteCalendarEntry = async (id) => {
+export const deleteCalendarEntry = async (id, updatedAt, visitUpdatedAt) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/calendar-entries/${id}`, {
     method: "DELETE",
-    headers: {"Content-Type": "application/json", ...headers},
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+      ...(updatedAt ? {"X-Expected-Updated-At": updatedAt} : {}),
+      ...(visitUpdatedAt ? {"X-Expected-Visit-Updated-At": visitUpdatedAt} : {}),
+    },
   });
 
   return handleResponse(response, "Delete calendar entry");
@@ -166,11 +171,15 @@ export const updateJournalFinancialVisit = async (id, visit) => {
   return handleResponse(response, "Update journal financial visit");
 };
 
-export const deleteVisit = async (id) => {
+export const deleteVisit = async (id, updatedAt) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/visits/journal/${id}`, {
     method: "DELETE",
-    headers: {"Content-Type": "application/json", ...headers},
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+      ...(updatedAt ? {"X-Expected-Updated-At": updatedAt} : {}),
+    },
   });
 
   return handleResponse(response, "Delete visit");

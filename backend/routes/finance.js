@@ -43,7 +43,12 @@ const {
   resolveCertificateStatus,
   resolveClientPackageStatus,
 } = require('../domain/financialAssetLifecycle');
-const { updateWithVersion } = require('../domain/optimisticConcurrency');
+const {
+  assertRecordVersion,
+  deleteWithVersion,
+  getRequestVersion,
+  updateWithVersion,
+} = require('../domain/optimisticConcurrency');
 
 const prisma = new PrismaClient();
 const {
@@ -845,8 +850,10 @@ router.delete('/client-packages/:id', requirePermission(PERMISSIONS.CATALOG_MANA
   try {
     const result = await prisma.$transaction(async (tx) => {
       const previous = await tx.clientPackage.findUnique({ where: { id } });
+      const expectedUpdatedAt = getRequestVersion(req);
+      assertRecordVersion(previous, expectedUpdatedAt);
       await removeUnpaidEmployeeEarningForClientPackage(tx, req, id);
-      const deleted = await tx.clientPackage.delete({ where: { id } });
+      const deleted = await deleteWithVersion(tx.clientPackage, { expectedUpdatedAt, id });
       await recordAuditLog(tx, req, {
         action: 'delete package sale',
         after: null,
@@ -1046,7 +1053,12 @@ router.delete('/certificates/:id', requirePermission(PERMISSIONS.CATALOG_MANAGE)
     res,
     'certificate',
     id,
-    prisma.certificate.delete({ where: { id } }).then(withStoredId),
+    prisma.$transaction((tx) =>
+      deleteWithVersion(tx.certificate, {
+        expectedUpdatedAt: getRequestVersion(req),
+        id,
+      }).then(withStoredId),
+    ),
     'Certificate',
     'delete certificate',
   );
@@ -1743,9 +1755,11 @@ router.delete('/visits/journal/:id', requirePermission(PERMISSIONS.FINANCE_DAY_C
   try {
     const result = await prisma.$transaction(async (tx) => {
       const before = await tx.visit.findUnique({ where: { id } });
+      const expectedUpdatedAt = getRequestVersion(req);
+      assertRecordVersion(before, expectedUpdatedAt);
       await assertVisitCanBeRemoved(tx, id);
       await removeUnpaidEmployeeEarningForVisit(tx, req, id);
-      const deleted = await tx.visit.delete({ where: { id } });
+      const deleted = await deleteWithVersion(tx.visit, { expectedUpdatedAt, id });
       await recordAuditLog(tx, req, {
         action: 'delete/cancel visit',
         after: null,

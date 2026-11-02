@@ -14,6 +14,35 @@ const staleWriteError = () => {
   return error;
 };
 
+const assertRecordVersion = (record, expectedUpdatedAt) => {
+  if (!expectedUpdatedAt) return;
+  if (!record || new Date(record.updatedAt).getTime() !== expectedUpdatedAt.getTime()) {
+    throw staleWriteError();
+  }
+};
+
+const getRequestVersion = (req, header = 'x-expected-updated-at') => {
+  const raw = req?.headers?.[header];
+  if (!raw) return null;
+  const version = getExpectedUpdatedAt({ expectedUpdatedAt: raw });
+  if (version) return version;
+  const error = new Error(`Invalid ${header} header`);
+  error.status = 400;
+  throw error;
+};
+
+async function deleteWithVersion(model, { expectedUpdatedAt, id }) {
+  const before = await model.findUnique({ where: { id } });
+  if (!before) {
+    const error = new Error('Record not found');
+    error.status = 404;
+    throw error;
+  }
+  assertRecordVersion(before, expectedUpdatedAt);
+  await model.delete({ where: { id } });
+  return before;
+}
+
 async function updateWithVersion(model, { data, id, payload }) {
   const expectedUpdatedAt = getExpectedUpdatedAt(payload);
   if (!expectedUpdatedAt) return model.update({ where: { id }, data });
@@ -27,7 +56,10 @@ async function updateWithVersion(model, { data, id, payload }) {
 }
 
 module.exports = {
+  assertRecordVersion,
+  deleteWithVersion,
   getExpectedUpdatedAt,
+  getRequestVersion,
   staleWriteError,
   updateWithVersion,
 };

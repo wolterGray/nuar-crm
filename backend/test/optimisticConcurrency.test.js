@@ -1,7 +1,11 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { getExpectedUpdatedAt, updateWithVersion } = require('../domain/optimisticConcurrency');
+const {
+  deleteWithVersion,
+  getExpectedUpdatedAt,
+  updateWithVersion,
+} = require('../domain/optimisticConcurrency');
 
 test('reads a valid expected record version', () => {
   const value = getExpectedUpdatedAt({ updatedAt: '2026-11-02T10:00:00.000Z' });
@@ -42,4 +46,37 @@ test('rejects a stale update with HTTP 409 semantics', async () => {
 test('keeps backward compatibility when a client sends no version', async () => {
   const model = { update: async ({ where }) => ({ id: where.id }) };
   assert.deepEqual(await updateWithVersion(model, { data: {}, id: 7, payload: {} }), { id: 7 });
+});
+
+test('deletes only the version that the user reviewed', async () => {
+  let deletedId = null;
+  const updatedAt = new Date('2026-11-02T10:00:00.000Z');
+  const model = {
+    delete: async ({ where }) => { deletedId = where.id; },
+    findUnique: async () => ({ id: 9, updatedAt }),
+  };
+
+  const deleted = await deleteWithVersion(model, {
+    expectedUpdatedAt: updatedAt,
+    id: 9,
+  });
+  assert.equal(deleted.id, 9);
+  assert.equal(deletedId, 9);
+});
+
+test('refuses to delete a record changed after confirmation', async () => {
+  const model = {
+    findUnique: async () => ({
+      id: 9,
+      updatedAt: new Date('2026-11-02T10:01:00.000Z'),
+    }),
+  };
+
+  await assert.rejects(
+    deleteWithVersion(model, {
+      expectedUpdatedAt: new Date('2026-11-02T10:00:00.000Z'),
+      id: 9,
+    }),
+    (error) => error.status === 409,
+  );
 });

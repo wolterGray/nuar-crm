@@ -409,7 +409,7 @@ export function useCalendarActions({
         }
 
         try {
-          await deleteVisit(completedVisit.id);
+          await deleteVisit(completedVisit.id, completedVisit.updatedAt);
         } catch (error) {
           pushNotification({
             title: "Визит не удален",
@@ -964,10 +964,11 @@ export function useCalendarActions({
       }
 
       try {
-        if (linkedVisit) {
-          await deleteVisit(linkedVisit.id);
-        }
-        await deleteBackendCalendarEntry(entry.id);
+        await deleteBackendCalendarEntry(
+          entry.id,
+          entry.updatedAt,
+          linkedVisit?.updatedAt,
+        );
       } catch (error) {
         pushNotification({
           title: "Запись не удалена",

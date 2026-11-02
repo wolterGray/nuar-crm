@@ -171,8 +171,14 @@ export function usePaymentJournal({
       }
 
       try {
-        await deleteVisit(pendingPaymentDelete.id);
-        await deleteCalendarEntry(pendingPaymentDelete.calendarEntryId);
+        const calendarEntry = calendarEntries.find(
+          (item) => item.id === pendingPaymentDelete.calendarEntryId,
+        );
+        await deleteCalendarEntry(
+          pendingPaymentDelete.calendarEntryId,
+          calendarEntry?.updatedAt,
+          pendingPaymentDelete.updatedAt,
+        );
       } catch (error) {
         pushNotification({
           title: "Запись не удалена",
@@ -256,7 +262,7 @@ export function usePaymentJournal({
       }
     } else {
       try {
-        await deleteVisit(pendingPaymentDelete.id);
+        await deleteVisit(pendingPaymentDelete.id, pendingPaymentDelete.updatedAt);
       } catch (error) {
         pushNotification({
           title: "Запись не удалена",
@@ -281,6 +287,7 @@ export function usePaymentJournal({
     });
     setPendingPaymentDelete(null);
   }, [
+    calendarEntries,
     pendingPaymentDelete,
     pushNotification,
     setCalendarEntries,

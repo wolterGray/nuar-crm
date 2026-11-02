@@ -488,7 +488,7 @@ export function useClientHandlers({
   const performDeleteClientPackage = useCallback(
     async (packageItem) => {
       try {
-        await deleteClientPackage(packageItem.id);
+        await deleteClientPackage(packageItem.id, packageItem.updatedAt);
       } catch (error) {
         pushNotification({
           title: "Пакет клиента не удален",

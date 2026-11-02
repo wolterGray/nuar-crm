@@ -207,7 +207,7 @@ export function useCertificateHandlers({
   const performDeleteCertificate = useCallback(
     async (certificate) => {
       try {
-        await deleteCertificate(certificate.id);
+        await deleteCertificate(certificate.id, certificate.updatedAt);
       } catch (error) {
         pushNotification({
           title: "Сертификат не удалён",
