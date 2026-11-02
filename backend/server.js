@@ -3,8 +3,16 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const {PrismaClient} = require('@prisma/client');
+const {checkReadiness} = require('./services/readinessService');
+const {
+  getWorkerStatus,
+  startNotificationWorker,
+  stopNotificationWorker,
+} = require('./services/notificationWorker');
 
 const app = express();
+const serverPrisma = new PrismaClient();
 
 const requiredAuthEnv = ['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'JWT_SECRET'];
 const missingAuthEnv = requiredAuthEnv.filter((name) => !process.env[name]);
@@ -61,7 +69,13 @@ app.use('/api', (req, res, next) => {
 });
 
 // Health endpoint
-app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
+app.get('/health', (_req, res) => {
+  res.set('Cache-Control', 'no-store').status(200).json({status: 'ok'});
+});
+app.get('/ready', async (_req, res) => {
+  const readiness = await checkReadiness({getWorkerStatus, prisma: serverPrisma});
+  res.set('Cache-Control', 'no-store').status(readiness.ready ? 200 : 503).json(readiness);
+});
 
 // Routes
 const authRouter = require('./routes/auth');
@@ -127,14 +141,36 @@ app.use('/api', auditLogsRouter);
 const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
 
-const {PrismaClient} = require('@prisma/client');
-const {startNotificationWorker} = require('./services/notificationWorker');
-const serverPrisma = new PrismaClient();
-
 const PORT = process.env.PORT || 3001;
 const server = app.listen(PORT, () => {
   console.log(`🚀 Backend listening on http://localhost:${PORT}`);
   startNotificationWorker(serverPrisma);
 });
+
+let shuttingDown = false;
+const shutdown = (signal) => {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`[shutdown] ${signal} received; draining connections...`);
+  stopNotificationWorker();
+
+  const forceExit = setTimeout(() => {
+    console.error('[shutdown] Graceful shutdown timed out');
+    process.exit(1);
+  }, 10000);
+  if (typeof forceExit.unref === 'function') forceExit.unref();
+
+  server.close(async (error) => {
+    clearTimeout(forceExit);
+    try {
+      await serverPrisma.$disconnect();
+    } finally {
+      process.exit(error ? 1 : 0);
+    }
+  });
+};
+
+process.once('SIGTERM', () => shutdown('SIGTERM'));
+process.once('SIGINT', () => shutdown('SIGINT'));
 
 module.exports = {app, server};

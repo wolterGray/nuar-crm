@@ -145,7 +145,8 @@ crontab -e
    ```
 9. **Проведите Smoke-тест:**
    ```bash
-   curl -I http://localhost:3001/health
+   curl --fail http://localhost:3001/health
+   curl --fail http://localhost:3001/ready
    # Проверьте логи
    pm2 logs nuar-backend --lines 50
    ```

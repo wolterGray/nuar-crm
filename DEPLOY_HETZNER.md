@@ -243,7 +243,8 @@ Run the command printed by `pm2 startup`.
 Health check:
 
 ```bash
-curl http://127.0.0.1:3001/health
+curl --fail http://127.0.0.1:3001/health
+curl --fail http://127.0.0.1:3001/ready
 ```
 
 Expected:
