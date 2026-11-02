@@ -111,6 +111,7 @@ const financeRouter = require('./routes/finance');
 const employeePayoutsRouter = require('./routes/employeePayouts');
 const operationsRouter = require('./routes/operations');
 const systemStateRouter = require('./routes/systemState');
+const auditLogsRouter = require('./routes/auditLogs');
 
 app.use('/api', clientsRouter);
 app.use('/api', employeesRouter);
@@ -120,6 +121,7 @@ app.use('/api', financeRouter);
 app.use('/api', employeePayoutsRouter);
 app.use('/api', operationsRouter);
 app.use('/api', systemStateRouter);
+app.use('/api', auditLogsRouter);
 
 // Error handling middleware – must be after routes
 const errorHandler = require('./middleware/errorHandler');

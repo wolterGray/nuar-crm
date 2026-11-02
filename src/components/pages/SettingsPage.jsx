@@ -31,6 +31,7 @@ import ReviewRequestsPanel from "../ReviewRequestsPanel.jsx";
 import SettingsToggle from "../SettingsToggle.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
+import AuditLogPanel from "../AuditLogPanel.jsx";
 import "./SettingsPage.css";
 import {
   AppIcon,
@@ -1712,6 +1713,7 @@ function SettingsPage({
   const isOwner = userRole === "owner" || authUser?.id === "local-admin";
   const canManageUsers = hasPermission(authUser, PERMISSIONS.USERS_MANAGE);
   const isSalonAdmin = isOwner || userRole === "admin" || canManageUsers;
+  const canViewLogs = hasPermission(authUser, PERMISSIONS.LOGS_VIEW);
 
   const staffTabs = [
     {id: "account", label: "Профиль", mobileLabel: "Профиль", icon: "user"},
@@ -1726,6 +1728,7 @@ function SettingsPage({
     {id: "calendar", label: "Календарь", mobileLabel: "Календ.", icon: "calendar"},
     {id: "integrations", label: "Интеграции", mobileLabel: "Интегр.", icon: "link"},
     {id: "data", label: "Данные", mobileLabel: "Данные", icon: "database"},
+    ...(canViewLogs ? [{id: "audit", label: "История", mobileLabel: "История", icon: "history"}] : []),
   ];
 
   const settingsTabs = !isSalonAdmin ? staffTabs : adminTabs;
@@ -3190,6 +3193,19 @@ function SettingsPage({
                   </label>
                 </div>
               </div>
+            </Card>
+          </div>
+
+          <div className={activeTab === "audit" ? "flex flex-col gap-4" : "hidden"}>
+            <Card className="p-4 sm:p-5 flex flex-col gap-3.5">
+              <div className="flex items-center gap-2.5 border-b border-border-soft pb-3">
+                <AppIcon name="history" size="md" className="text-accent" />
+                <div>
+                  <h2 className="m-0 text-text-main text-[15px] font-bold">История изменений</h2>
+                  <p className="m-0 mt-0.5 text-text-muted text-xs">Кто, когда и какие данные изменил в CRM.</p>
+                </div>
+              </div>
+              {canViewLogs ? <AuditLogPanel /> : null}
             </Card>
           </div>
         </div>
