@@ -2,6 +2,8 @@ const express = require('express');
 const {PrismaClient} = require('@prisma/client');
 const {requirePermission, PERMISSIONS} = require('../middleware/auth');
 const {buildAuditLogWhere, parseAuditLogQuery} = require('../domain/auditLogQuery');
+const {redactSensitiveData} = require('../services/loggingService');
+const {getWorkerStatus} = require('../services/notificationWorker');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -33,6 +35,32 @@ router.get('/audit-logs', requirePermission(PERMISSIONS.LOGS_VIEW), async (req, 
         actor: usersById.get(String(item.actorId)) || null,
       })),
       nextCursor: hasMore ? String(items.at(-1)?.id || '') : null,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/error-events/summary', requirePermission(PERMISSIONS.LOGS_VIEW), async (_req, res, next) => {
+  try {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const [errorCount24h, warningCount24h, pendingDeliveries, retryingDeliveries, failedDeliveries24h, recent] = await Promise.all([
+      prisma.errorEvent.count({where: {createdAt: {gte: since}, severity: 'error'}}),
+      prisma.errorEvent.count({where: {createdAt: {gte: since}, severity: 'warning'}}),
+      prisma.notificationDelivery.count({where: {status: 'pending'}}),
+      prisma.notificationDelivery.count({where: {status: 'retrying'}}),
+      prisma.notificationDelivery.count({where: {status: 'failed', updatedAt: {gte: since}}}),
+      prisma.errorEvent.findMany({
+        orderBy: {id: 'desc'},
+        select: {context: true, createdAt: true, id: true, message: true, severity: true, source: true},
+        take: 12,
+      }),
+    ]);
+
+    res.json({
+      counts: {errorCount24h, failedDeliveries24h, pendingDeliveries, retryingDeliveries, warningCount24h},
+      recent: recent.map((event) => ({...event, context: redactSensitiveData(event.context)})),
+      worker: getWorkerStatus(),
     });
   } catch (error) {
     next(error);

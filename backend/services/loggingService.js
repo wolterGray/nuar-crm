@@ -8,6 +8,33 @@ const safeJson = (value) => {
   }
 };
 
+const SENSITIVE_KEY_PATTERN = /(^|_)(authorization|cookie|password|passcode|secret|token|access.?token|refresh.?token|p256dh|auth|phone|email|address)($|_)/i;
+const BEARER_PATTERN = /Bearer\s+[A-Za-z0-9._~+/=-]+/gi;
+
+const redactSensitiveData = (value, depth = 0, seen = new WeakSet()) => {
+  if (value === null || value === undefined) return value;
+  if (typeof value === 'string') {
+    return value.replace(BEARER_PATTERN, 'Bearer [REDACTED]').slice(0, 2000);
+  }
+  if (typeof value !== 'object') return value;
+  if (depth >= 6) return '[TRUNCATED]';
+  if (seen.has(value)) return '[CIRCULAR]';
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    return value.slice(0, 50).map((item) => redactSensitiveData(item, depth + 1, seen));
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).slice(0, 100).map(([key, item]) => [
+      key,
+      SENSITIVE_KEY_PATTERN.test(key)
+        ? '[REDACTED]'
+        : redactSensitiveData(item, depth + 1, seen),
+    ])
+  );
+};
+
 const getActorId = (req) =>
   String(req?.auth?.sub || req?.auth?.id || req?.auth?.email || 'unknown');
 
@@ -21,7 +48,7 @@ async function recordErrorEvent(prisma, {
   try {
     await prisma.errorEvent.create({
       data: {
-        context: safeJson(context),
+        context: safeJson(redactSensitiveData(context)),
         message: String(message || error?.message || 'Unknown error'),
         severity,
         source,
@@ -64,6 +91,7 @@ async function recordAuditLog(prisma, req, {
 }
 
 module.exports = {
+  redactSensitiveData,
   recordAuditLog,
   recordErrorEvent,
 };

@@ -30,8 +30,25 @@
 .audit-log-change span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .audit-log-error, .audit-log-empty { padding: 14px; border: 1px solid var(--color-border-soft); border-radius: 8px; color: var(--color-text-muted); font-size: 12px; text-align: center; }
 .audit-log-error { color: var(--color-error); border-color: var(--status-danger-border); }
+.error-monitoring-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.error-monitoring-kpi { min-height: 62px; padding: 10px 12px; border: 1px solid var(--color-border-soft); border-radius: 8px; background: var(--color-card-muted); display: flex; flex-direction: column; justify-content: space-between; gap: 4px; }
+.error-monitoring-kpi span { color: var(--color-text-muted); font-size: 11px; }
+.error-monitoring-kpi strong { color: var(--color-text); font-size: 15px; }
+.error-monitoring-kpi.is-danger strong { color: var(--color-error); }
+.error-monitoring-kpi.is-warning strong { color: var(--color-warning); }
+.error-monitoring-kpi.is-success strong { color: var(--color-success); }
+.error-monitoring-events { border: 1px solid var(--color-border-soft); border-radius: 8px; overflow: hidden; }
+.error-monitoring-event { min-height: 46px; padding: 8px 11px; display: grid; grid-template-columns: 8px minmax(0, 1fr); align-items: center; gap: 9px; }
+.error-monitoring-event + .error-monitoring-event { border-top: 1px solid var(--color-border-soft); }
+.error-monitoring-event div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.error-monitoring-event strong { overflow: hidden; color: var(--color-text); font-size: 12px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.error-monitoring-event small { color: var(--color-text-muted); font-size: 10px; }
+.error-monitoring-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-text-faint); }
+.error-monitoring-dot.is-error { background: var(--color-error); }
+.error-monitoring-dot.is-warning { background: var(--color-warning); }
 
 @media (max-width: 640px) {
+  .error-monitoring-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .audit-log-row-main { grid-template-columns: 30px minmax(0, 1fr) 16px; padding: 9px; }
   .audit-log-row-main time { grid-column: 2; }
   .audit-log-chevron { grid-column: 3; grid-row: 1 / span 2; }

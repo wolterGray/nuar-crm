@@ -32,6 +32,7 @@ import SettingsToggle from "../SettingsToggle.jsx";
 import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 import AuditLogPanel from "../AuditLogPanel.jsx";
+import ErrorMonitoringPanel from "../ErrorMonitoringPanel.jsx";
 import "./SettingsPage.css";
 import {
   AppIcon,
@@ -3205,6 +3206,8 @@ function SettingsPage({
                   <p className="m-0 mt-0.5 text-text-muted text-xs">Кто, когда и какие данные изменил в CRM.</p>
                 </div>
               </div>
+              {canViewLogs ? <ErrorMonitoringPanel /> : null}
+              <div className="border-t border-border-soft" />
               {canViewLogs ? <AuditLogPanel /> : null}
             </Card>
           </div>

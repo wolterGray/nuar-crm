@@ -19,3 +19,16 @@ export async function fetchAuditLogs(params = {}) {
   }
   return response.json();
 }
+
+export async function fetchErrorSummary() {
+  const token = await getAuthToken?.();
+  const response = await fetch(`${API_URL}/api/error-events/summary`, {
+    headers: token ? {Authorization: `Bearer ${token}`} : {},
+  });
+  if (!response.ok) {
+    if (response.status === 401) notifyAuthTokenRejected();
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error || `Не удалось загрузить диагностику (${response.status})`);
+  }
+  return response.json();
+}
