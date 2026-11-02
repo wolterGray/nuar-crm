@@ -438,7 +438,7 @@ export function useCalendarActions({
   );
 
   const saveCalendarEntry = useCallback(
-    async (entry, isEditing) => {
+    async (entry, isEditing, {allowConflict = false} = {}) => {
       const previousEntry = isEditing
         ? calendarEntries.find((item) => item.id === entry.id)
         : null;
@@ -447,9 +447,10 @@ export function useCalendarActions({
       await removeCompletedVisitLink(previousEntry, entry);
 
       try {
+        const requestEntry = allowConflict ? {...entry, allowConflict: true} : entry;
         const response = isEditing
-          ? await updateCalendarEntry(entry.id, entry)
-          : await createCalendarEntry(entry);
+          ? await updateCalendarEntry(entry.id, requestEntry)
+          : await createCalendarEntry(requestEntry);
         savedEntry = response?.data ?? entry;
       } catch (error) {
         pushNotification({
@@ -829,7 +830,9 @@ export function useCalendarActions({
         return;
       }
 
-      await saveCalendarEntry(entry, isEditing);
+      await saveCalendarEntry(entry, isEditing, {
+        allowConflict: !appSettings.calendarConflictWarnings,
+      });
     },
     [
       appSettings,
@@ -988,12 +991,13 @@ export function useCalendarActions({
   );
 
   const performMoveCalendarEntry = useCallback(
-    async (entryId, previousEntry, movedEntry) => {
+    async (entryId, previousEntry, movedEntry, {allowConflict = false} = {}) => {
       await removeCompletedVisitLink(previousEntry, movedEntry);
 
       let savedEntry = movedEntry;
       try {
-        const response = await updateCalendarEntry(entryId, movedEntry);
+        const requestEntry = allowConflict ? {...movedEntry, allowConflict: true} : movedEntry;
+        const response = await updateCalendarEntry(entryId, requestEntry);
         savedEntry = response?.data ?? movedEntry;
       } catch (error) {
         pushNotification({
@@ -1055,7 +1059,8 @@ export function useCalendarActions({
       setPendingCalendarAction({
         type: "move",
         entry: currentEntry,
-        nextPosition: { ...nextPosition, masterName }
+        nextPosition: { ...nextPosition, masterName },
+        allowConflict: !appSettings.calendarConflictWarnings,
       });
     },
     [
@@ -1076,9 +1081,9 @@ export function useCalendarActions({
 
     if (type === "move") {
       const previousEntry = calendarEntries.find((item) => item.id === entry.id);
-      await performMoveCalendarEntry(entry.id, previousEntry, entry);
+      await performMoveCalendarEntry(entry.id, previousEntry, entry, {allowConflict: true});
     } else {
-      await saveCalendarEntry(entry, isEditing);
+      await saveCalendarEntry(entry, isEditing, {allowConflict: true});
     }
 
     setPendingCalendarConflict(null);
@@ -1203,13 +1208,13 @@ export function useCalendarActions({
     } else if (type === "delete") {
       deleteCalendarEntry(entry);
     } else if (type === "move") {
-      const {nextPosition} = pendingCalendarAction;
+      const {allowConflict, nextPosition} = pendingCalendarAction;
       const previousEntry = calendarEntries.find((item) => item.id === entry.id);
       const movedEntry = previousEntry
         ? normalizeCalendarEntryTiming({...previousEntry, ...nextPosition}, previousEntry)
         : null;
       if (movedEntry) {
-        performMoveCalendarEntry(entry.id, previousEntry, movedEntry);
+        performMoveCalendarEntry(entry.id, previousEntry, movedEntry, {allowConflict});
       }
     } else if (type === "cancel_status") {
       const {status} = pendingCalendarAction;

@@ -48,6 +48,7 @@ const {
   resolveCertificateStatus,
   resolveClientPackageStatus,
 } = require('../domain/financialAssetLifecycle');
+const {findCalendarConflicts, getCalendarLockKeys} = require('../domain/calendarScheduling');
 
 const resolveEmployeeIdForRecord = async (record) => {
   const payload = record?.payload && typeof record.payload === 'object' ? record.payload : {};
@@ -252,11 +253,10 @@ const localRespondWithAudit = (req, res, promise, audit) => {
   return respondWithAudit(prisma, req, res, promise, audit, handleCalendarEntryChange);
 };
 
-const localAuditCreate = (req, res, promise, entity, action) =>
-  localRespondWithAudit(req, res, promise, { action, entity });
-
 // ----- Visit local helpers -----
 const buildCalendarEntryData = (payload) => {
+  const storedPayload = {...(payload ?? {})};
+  delete storedPayload.allowConflict;
   const kind = cleanOptionalString(payload?.kind);
   const status = kind === 'visit'
     ? normalizeAppointmentStatus(payload?.status)
@@ -268,8 +268,25 @@ const buildCalendarEntryData = (payload) => {
     time: cleanOptionalString(payload?.time),
     status,
     visitId: payload?.visitId ? Number(payload.visitId) : null,
-    payload: kind === 'visit' ? {...payload, status} : payload,
+    payload: kind === 'visit' ? {...storedPayload, status} : storedPayload,
   };
+};
+
+const assertCalendarEntryAvailable = async (tx, payload, excludeId = null) => {
+  const lockKeys = getCalendarLockKeys(payload);
+  for (const lockKey of lockKeys) {
+    await tx.$queryRaw`select pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`;
+  }
+  if (payload?.allowConflict === true || lockKeys.length === 0 || !payload?.date) return;
+
+  const entries = await tx.calendarEntry.findMany({where: {date: payload.date}});
+  const conflicts = findCalendarConflicts(payload, entries, excludeId);
+  if (conflicts.length > 0) {
+    const error = new Error('Запись пересекается с другим событием календаря');
+    error.status = 409;
+    error.code = 'CALENDAR_CONFLICT';
+    throw error;
+  }
 };
 
 const toDateTime = (date, time) => {
@@ -668,15 +685,25 @@ router.post('/calendar-entries', async (req, res) => {
     }
   }
 
-  localAuditCreate(
-    req,
-    res,
-    prisma.calendarEntry
-      .create({ data: buildCalendarEntryData(payload) })
-      .then(withStoredId),
-    'CalendarEntry',
-    payload.kind === 'visit' ? 'create visit' : 'create calendar entry',
-  );
+  try {
+    const result = await runSerializableTransaction(async (tx) => {
+      await assertCalendarEntryAvailable(tx, payload);
+      const calendarEntry = await tx.calendarEntry.create({data: buildCalendarEntryData(payload)});
+      await recordAuditLog(tx, req, {
+        action: payload.kind === 'visit' ? 'create visit' : 'create calendar entry',
+        after: withStoredId(calendarEntry),
+        before: null,
+        entity: 'CalendarEntry',
+        entityId: calendarEntry.id,
+      });
+      return calendarEntry;
+    });
+    await handleCalendarEntryChange(null, result, 'create', req);
+    res.json({success: true, data: withStoredId(result)});
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    res.status(response.status).json({success: false, error: response.message, code: err.code});
+  }
 });
 
 router.put('/calendar-entries/:id', async (req, res) => {
@@ -724,6 +751,8 @@ router.put('/calendar-entries/:id', async (req, res) => {
           payload.status ?? before.status,
         );
       }
+
+      await assertCalendarEntryAvailable(tx, payload, id);
 
       const calendarEntry = await tx.calendarEntry.update({
         where: {id},
