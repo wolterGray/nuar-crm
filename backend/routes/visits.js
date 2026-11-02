@@ -38,6 +38,12 @@ const {
 const prisma = new PrismaClient();
 const {recordBelongsToEmployee, resolveScopedEmployee} = require('../utils/employeeScope');
 const {buildLinkedVisitCalendarUpdate} = require('../utils/visitCalendarConsistency');
+const {
+  APPOINTMENT_STATUS,
+  assertCreatableAppointmentStatus,
+  assertEditableAppointmentTransition,
+  normalizeAppointmentStatus,
+} = require('../domain/appointmentLifecycle');
 
 const resolveEmployeeIdForRecord = async (record) => {
   const payload = record?.payload && typeof record.payload === 'object' ? record.payload : {};
@@ -246,14 +252,21 @@ const localAuditCreate = (req, res, promise, entity, action) =>
   localRespondWithAudit(req, res, promise, { action, entity });
 
 // ----- Visit local helpers -----
-const buildCalendarEntryData = (payload) => ({
-  kind: cleanOptionalString(payload?.kind),
-  date: cleanOptionalString(payload?.date),
-  time: cleanOptionalString(payload?.time),
-  status: cleanOptionalString(payload?.status),
-  visitId: payload?.visitId ? Number(payload.visitId) : null,
-  payload,
-});
+const buildCalendarEntryData = (payload) => {
+  const kind = cleanOptionalString(payload?.kind);
+  const status = kind === 'visit'
+    ? normalizeAppointmentStatus(payload?.status)
+    : cleanOptionalString(payload?.status);
+
+  return {
+    kind,
+    date: cleanOptionalString(payload?.date),
+    time: cleanOptionalString(payload?.time),
+    status,
+    visitId: payload?.visitId ? Number(payload.visitId) : null,
+    payload: kind === 'visit' ? {...payload, status} : payload,
+  };
+};
 
 const toDateTime = (date, time) => {
   if (!date) return null;
@@ -661,6 +674,13 @@ router.post('/calendar-entries', async (req, res) => {
   }
 
   const payload = req.body ?? {};
+  try {
+    if (payload.kind === 'visit') {
+      payload.status = assertCreatableAppointmentStatus(payload.status);
+    }
+  } catch (err) {
+    return sendValidationError(res, err);
+  }
   if (!canManageAll && canManageAssigned) {
     const employee = await resolveScopedEmployee(prisma, req.auth);
     if (!employee || !recordBelongsToEmployee({payload}, employee)) {
@@ -715,6 +735,14 @@ router.put('/calendar-entries/:id', async (req, res) => {
         const error = new Error('Calendar entry not found');
         error.status = 404;
         throw error;
+      }
+
+      if (before.kind === 'visit' || payload.kind === 'visit') {
+        payload.kind = 'visit';
+        payload.status = assertEditableAppointmentTransition(
+          before.status,
+          payload.status ?? before.status,
+        );
       }
 
       const calendarEntry = await tx.calendarEntry.update({
@@ -1233,7 +1261,7 @@ router.post('/visits/complete', async (req, res) => {
   const visitPayload = {
     ...(body.visit ?? body),
     calendarEntryId,
-    status: 'completed',
+    status: APPOINTMENT_STATUS.COMPLETED,
   };
   const usesPackage = isPackageCompletePayment(visitPayload);
   const usesCertificate = isCertificateCompletePayment(visitPayload);
