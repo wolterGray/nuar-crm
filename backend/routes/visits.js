@@ -606,6 +606,12 @@ router.get('/visit-state', async (req, res) => {
     let [calendarEntries, visits] = await Promise.all([
       prisma.calendarEntry.findMany({ orderBy: [{ date: 'asc' }, { time: 'asc' }, { id: 'asc' }] }),
       prisma.visit.findMany({
+        where: {
+          OR: [
+            {recordType: null},
+            {recordType: {not: 'archived_duplicate'}},
+          ],
+        },
         include: VISIT_WITH_EARNING_INCLUDE,
         orderBy: { createdAt: 'desc' },
       }),
@@ -822,7 +828,11 @@ router.post('/visits/dedupe-calendar', requireOwner, async (req, res) => {
           tx.visit.findMany({
             where: { calendarEntryId: entryId },
             include: {
+              certificateUsages: true,
               employeeEarnings: true,
+              loyaltyRewards: true,
+              loyaltyTransactions: true,
+              packageUsages: true,
             },
             orderBy: { id: 'asc' },
           }),
@@ -835,22 +845,62 @@ router.post('/visits/dedupe-calendar', requireOwner, async (req, res) => {
         const paidVisits = visits.filter((visit) =>
           visit.employeeEarnings.some((earning) => earning.payoutId),
         );
-        // A visit included in a payout is the strongest financial fact and must
-        // win over a stale reciprocal link left on CalendarEntry.
-        const keepVisit = paidVisits[0] || keepByCalendar || visits[0];
+        // With multiple paid duplicates, preserve the visit referenced by the
+        // calendar. With one paid visit, that financial fact is canonical.
+        const keepVisit = paidVisits.length > 1
+          ? keepByCalendar || paidVisits[0]
+          : paidVisits[0] || keepByCalendar || visits[0];
         const duplicates = visits.filter((visit) => visit.id !== keepVisit.id);
+        const paidDuplicates = duplicates.filter((visit) =>
+          visit.employeeEarnings.some((earning) => earning.payoutId),
+        );
+        const unsafePaidDuplicates = paidDuplicates.filter((visit) =>
+          visit.packageUsages.length > 0 ||
+          visit.certificateUsages.length > 0 ||
+          visit.loyaltyTransactions.length > 0 ||
+          visit.loyaltyRewards.length > 0,
+        );
 
-        if (duplicates.some((visit) => visit.employeeEarnings.some((earning) => earning.payoutId))) {
+        if (unsafePaidDuplicates.length > 0) {
           skipped.push({
             calendarEntryId: entryId,
-            reason: 'duplicate_visit_already_in_payout',
-            visitIds: duplicates.map((visit) => visit.id),
+            reason: 'paid_duplicate_has_financial_ledger_relations',
+            visitIds: unsafePaidDuplicates.map((visit) => visit.id),
           });
           continue;
         }
 
+        const quarantined = [];
+        for (const visit of paidDuplicates) {
+          const visitPayload = visit.payload && typeof visit.payload === 'object'
+            ? visit.payload
+            : {};
+          const archived = await tx.visit.update({
+            where: {id: visit.id},
+            data: {
+              calendarEntryId: null,
+              recordType: 'archived_duplicate',
+              payload: {
+                ...visitPayload,
+                archivedReason: 'paid_calendar_duplicate',
+                duplicateOfVisitId: keepVisit.id,
+                originalCalendarEntryId: entryId,
+                status: 'archived_duplicate',
+              },
+            },
+          });
+          await recordAuditLog(tx, req, {
+            action: 'archive paid duplicate completed visit',
+            after: withStoredId(archived),
+            before: withStoredId(visit),
+            entity: 'Visit',
+            entityId: visit.id,
+          });
+          quarantined.push(visit.id);
+        }
+
         const deleted = [];
-        for (const visit of duplicates) {
+        for (const visit of duplicates.filter((item) => !paidDuplicates.includes(item))) {
           deleted.push(await removeDuplicateCalendarVisit(tx, req, visit));
         }
 
@@ -873,6 +923,7 @@ router.post('/visits/dedupe-calendar', requireOwner, async (req, res) => {
           calendarEntryId: entryId,
           deleted,
           keepVisitId: keepVisit.id,
+          quarantinedVisitIds: quarantined,
         });
       }
 
