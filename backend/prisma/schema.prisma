@@ -163,7 +163,7 @@ model Visit {
   employeeId      Int?
   scheduledAt     DateTime?
   notes           String?
-  calendarEntryId Int?
+  calendarEntryId Int?      @unique
   recordType      String?
   payload         Json?
   createdAt       DateTime  @default(now())
@@ -308,7 +308,7 @@ model CalendarEntry {
   date      String?
   time      String?
   status    String?
-  visitId   Int?
+  visitId   Int?     @unique
   payload   Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

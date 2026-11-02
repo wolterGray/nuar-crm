@@ -37,6 +37,7 @@ const {
 
 const prisma = new PrismaClient();
 const {recordBelongsToEmployee, resolveScopedEmployee} = require('../utils/employeeScope');
+const {buildLinkedVisitCalendarUpdate} = require('../utils/visitCalendarConsistency');
 
 const resolveEmployeeIdForRecord = async (record) => {
   const payload = record?.payload && typeof record.payload === 'object' ? record.payload : {};
@@ -243,11 +244,6 @@ const localRespondWithAudit = (req, res, promise, audit) => {
 
 const localAuditCreate = (req, res, promise, entity, action) =>
   localRespondWithAudit(req, res, promise, { action, entity });
-
-const localAuditUpdate = async (req, res, model, id, promise, entity, action) => {
-  const before = Number.isFinite(id) ? await prisma[model].findUnique({ where: { id } }) : null;
-  localRespondWithAudit(req, res, promise, { action, before, entity, entityId: id });
-};
 
 // ----- Visit local helpers -----
 const buildCalendarEntryData = (payload) => ({
@@ -706,17 +702,64 @@ router.put('/calendar-entries/:id', async (req, res) => {
     }
   }
 
-  localAuditUpdate(
-    req,
-    res,
-    'calendarEntry',
-    id,
-    prisma.calendarEntry
-      .update({ where: { id }, data: buildCalendarEntryData(payload) })
-      .then(withStoredId),
-    'CalendarEntry',
-    payload.kind === 'visit' ? 'update visit' : 'update calendar entry',
-  );
+  try {
+    const result = await runSerializableTransaction(async (tx) => {
+      const before = await tx.calendarEntry.findUnique({where: {id}});
+      if (!before) {
+        const error = new Error('Calendar entry not found');
+        error.status = 404;
+        throw error;
+      }
+
+      const calendarEntry = await tx.calendarEntry.update({
+        where: {id},
+        data: buildCalendarEntryData(payload),
+      });
+
+      let persistedCalendarEntry = calendarEntry;
+      if (calendarEntry.kind === 'visit') {
+        const linkedVisit = calendarEntry.visitId
+          ? await tx.visit.findUnique({where: {id: calendarEntry.visitId}})
+          : await tx.visit.findUnique({where: {calendarEntryId: id}});
+
+        if (linkedVisit) {
+          await tx.visit.update({
+            where: {id: linkedVisit.id},
+            data: buildLinkedVisitCalendarUpdate(linkedVisit, calendarEntry),
+          });
+
+          if (calendarEntry.visitId !== linkedVisit.id) {
+            persistedCalendarEntry = await tx.calendarEntry.update({
+              where: {id},
+              data: {visitId: linkedVisit.id},
+            });
+          }
+        }
+      }
+
+      await recordAuditLog(tx, req, {
+        action: payload.kind === 'visit' ? 'update visit' : 'update calendar entry',
+        after: withStoredId(persistedCalendarEntry),
+        before: withStoredId(before),
+        entity: 'CalendarEntry',
+        entityId: id,
+      });
+
+      return {before, calendarEntry: persistedCalendarEntry};
+    });
+
+    await handleCalendarEntryChange(result.before, result.calendarEntry, 'update', req);
+    res.json({success: true, data: withStoredId(result.calendarEntry)});
+  } catch (err) {
+    const response = getHttpErrorResponse(err);
+    await recordErrorEvent(prisma, {
+      context: {calendarEntryId: id, path: req.originalUrl},
+      error: err,
+      message: err.message,
+      source: 'crud',
+    });
+    res.status(response.status).json({success: false, error: response.message});
+  }
 });
 
 router.delete('/calendar-entries/:id', requirePermission(PERMISSIONS.CALENDAR_DELETE), async (req, res) => {
@@ -724,6 +767,15 @@ router.delete('/calendar-entries/:id', requirePermission(PERMISSIONS.CALENDAR_DE
   if (id === null) return;
   const before = await prisma.calendarEntry.findUnique({where: {id}});
   if (!before) return res.status(404).json({success: false, error: 'Calendar entry not found'});
+  const linkedVisit = before.visitId
+    ? await prisma.visit.findUnique({where: {id: before.visitId}, select: {id: true}})
+    : await prisma.visit.findFirst({where: {calendarEntryId: id}, select: {id: true}});
+  if (linkedVisit) {
+    return res.status(409).json({
+      success: false,
+      error: 'Завершённый визит нельзя удалить обычным действием календаря',
+    });
+  }
   if (!hasPermission(req.auth, PERMISSIONS.CALENDAR_MANAGE_ALL)) {
     const employee = await resolveScopedEmployee(prisma, req.auth);
     if (!employee || !recordBelongsToEmployee(before, employee)) {
