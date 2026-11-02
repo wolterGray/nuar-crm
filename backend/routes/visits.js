@@ -835,7 +835,9 @@ router.post('/visits/dedupe-calendar', requireOwner, async (req, res) => {
         const paidVisits = visits.filter((visit) =>
           visit.employeeEarnings.some((earning) => earning.payoutId),
         );
-        const keepVisit = keepByCalendar || paidVisits[0] || visits[0];
+        // A visit included in a payout is the strongest financial fact and must
+        // win over a stale reciprocal link left on CalendarEntry.
+        const keepVisit = paidVisits[0] || keepByCalendar || visits[0];
         const duplicates = visits.filter((visit) => visit.id !== keepVisit.id);
 
         if (duplicates.some((visit) => visit.employeeEarnings.some((earning) => earning.payoutId))) {
