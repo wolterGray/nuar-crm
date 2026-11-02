@@ -9,6 +9,17 @@ const employees = [
 ];
 
 describe('site booking availability master isolation', () => {
+  it('uses one transaction lock key for equivalent master labels', () => {
+    assert.equal(
+      _test.buildBookingLockKey('2026-10-25', ' Olha '),
+      _test.buildBookingLockKey('2026-10-25', 'olha'),
+    );
+    assert.notEqual(
+      _test.buildBookingLockKey('2026-10-25', 'Olha'),
+      _test.buildBookingLockKey('2026-10-25', 'Max'),
+    );
+  });
+
   it('does not apply another master calendar entry to Olha', () => {
     const rows = [{
       date: '2026-10-25',

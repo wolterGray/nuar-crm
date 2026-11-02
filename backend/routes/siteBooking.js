@@ -427,6 +427,9 @@ const conflictsWithBuffers = (start, end, requestBuffers, interval) => (
   end + Math.max(requestBuffers.after || 0, interval.before || 0) > interval.start
 );
 
+const buildBookingLockKey = (date, master) =>
+  ['site-booking', cleanString(date), normalizeText(master)].join(':');
+
 const getCalendarIntervals = (rows, date, master, employees = [], services = []) =>
   rows
     .filter((row) => cleanString(row.date) === date)
@@ -509,15 +512,22 @@ const getServicesByMaster = (employees, services) => {
   return result;
 };
 
-const buildSlots = async ({ durationMinutes, preferredDate, preferredMaster, serviceName, serviceSlug }) => {
+const buildSlots = async ({
+  db = prisma,
+  durationMinutes,
+  preferredDate,
+  preferredMaster,
+  serviceName,
+  serviceSlug,
+}) => {
   if (!isInputDate(preferredDate)) throw validationError('preferredDate is invalid');
 
   const duration = Math.max(15, Number(durationMinutes) || 60);
   const [employeeRows, serviceRows, calendarRows, bookingRows] = await Promise.all([
-    prisma.employee.findMany(),
-    prisma.service.findMany(),
-    prisma.calendarEntry.findMany({ where: { date: preferredDate } }),
-    prisma.$queryRaw`
+    db.employee.findMany(),
+    db.service.findMany(),
+    db.calendarEntry.findMany({ where: { date: preferredDate } }),
+    db.$queryRaw`
       select request.preferred_date, request.preferred_time, request.preferred_master,
              request.duration_minutes, request.service_name, request.service_slug, request.status
       from site_booking_requests request
@@ -805,7 +815,7 @@ publicSiteBookingRouter.post('/site-booking-submit', publicBookingLimiter, async
     if (!requestedSlot) throw validationError('preferredTime is unavailable');
 
     const id = crypto.randomUUID();
-    const booking = {
+    let booking = {
       basePrice: Number(requestedSlot.basePrice) || 0,
       clientEmail: cleanString(req.body?.clientEmail),
       clientName,
@@ -828,6 +838,36 @@ publicSiteBookingRouter.post('/site-booking-submit', publicBookingLimiter, async
     let businessEvent = null;
     let crmLinks = {};
     const rows = await prisma.$transaction(async (tx) => {
+      const bookingLockKey = buildBookingLockKey(preferredDate, booking.preferredMaster);
+      await tx.$queryRaw`select pg_advisory_xact_lock(hashtextextended(${bookingLockKey}, 0))`;
+
+      const {slots: lockedSlots} = await buildSlots({
+        db: tx,
+        durationMinutes,
+        preferredDate,
+        preferredMaster: booking.preferredMaster,
+        serviceName,
+        serviceSlug: booking.serviceSlug,
+      });
+      const lockedSlot = lockedSlots.find(
+        (slot) =>
+          cleanString(slot.startTime) === preferredTime &&
+          resolveMaster(slot.master) === resolveMaster(booking.preferredMaster),
+      );
+      if (!lockedSlot) throw validationError('preferredTime is unavailable');
+
+      booking = {
+        ...booking,
+        basePrice: Number(lockedSlot.basePrice) || 0,
+        discountAmount: Number(lockedSlot.discountAmount) || 0,
+        discountPercent: Number(lockedSlot.discountPercent) || 0,
+        finalPrice: Number(lockedSlot.finalPrice) || 0,
+        premiumAmount: Number(lockedSlot.premiumAmount) || 0,
+        premiumPercent: Number(lockedSlot.premiumPercent) || 0,
+        preferredMaster: cleanString(lockedSlot.master),
+        preferredMasterId: Number(lockedSlot.employeeId) || null,
+      };
+
       const insertedRows = await tx.$queryRaw`
         insert into site_booking_requests (
           id, client_name, client_phone, client_email, service_slug, service_name,
@@ -1020,6 +1060,7 @@ siteBookingRouter.patch('/site-bookings/:id', requirePermission(PERMISSIONS.USER
 
 module.exports = {
   _test: {
+    buildBookingLockKey,
     getCalendarIntervals,
     getPendingIntervals,
   },
