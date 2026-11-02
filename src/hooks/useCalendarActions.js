@@ -302,7 +302,7 @@ export function useCalendarActions({
               message: error?.message || "Не удалось откатить пакетный визит",
               persist: false,
             });
-            return;
+            return false;
           }
 
           const restoredEntry = response?.data?.calendarEntry;
@@ -353,7 +353,7 @@ export function useCalendarActions({
               ),
             );
           }
-          return;
+          return restoredEntry;
         }
 
         if (usesCertificate && !usesPackage) {
@@ -370,7 +370,7 @@ export function useCalendarActions({
               message: error?.message || "Не удалось откатить сертификатный визит",
               persist: false,
             });
-            return;
+            return false;
           }
 
           const restoredEntry = response?.data?.calendarEntry;
@@ -405,7 +405,7 @@ export function useCalendarActions({
               ),
             );
           }
-          return;
+          return restoredEntry;
         }
 
         try {
@@ -416,7 +416,7 @@ export function useCalendarActions({
             message: error?.message || "Не удалось удалить завершенный визит",
             persist: false,
           });
-          return;
+          return false;
         }
         setVisits((current) =>
           current.filter(
@@ -444,10 +444,18 @@ export function useCalendarActions({
         : null;
       let savedEntry = entry;
 
-      await removeCompletedVisitLink(previousEntry, entry);
+      const restoredEntry = await removeCompletedVisitLink(previousEntry, entry);
+      if (restoredEntry === false) return;
+      const expectedEntry = restoredEntry ?? previousEntry;
 
       try {
-        const requestEntry = allowConflict ? {...entry, allowConflict: true} : entry;
+        const requestEntry = {
+          ...entry,
+          ...(expectedEntry?.updatedAt
+            ? {expectedUpdatedAt: expectedEntry.updatedAt}
+            : {}),
+          ...(allowConflict ? {allowConflict: true} : {}),
+        };
         const response = isEditing
           ? await updateCalendarEntry(entry.id, requestEntry)
           : await createCalendarEntry(requestEntry);
@@ -992,11 +1000,19 @@ export function useCalendarActions({
 
   const performMoveCalendarEntry = useCallback(
     async (entryId, previousEntry, movedEntry, {allowConflict = false} = {}) => {
-      await removeCompletedVisitLink(previousEntry, movedEntry);
+      const restoredEntry = await removeCompletedVisitLink(previousEntry, movedEntry);
+      if (restoredEntry === false) return;
+      const expectedEntry = restoredEntry ?? previousEntry;
 
       let savedEntry = movedEntry;
       try {
-        const requestEntry = allowConflict ? {...movedEntry, allowConflict: true} : movedEntry;
+        const requestEntry = {
+          ...movedEntry,
+          ...(expectedEntry?.updatedAt
+            ? {expectedUpdatedAt: expectedEntry.updatedAt}
+            : {}),
+          ...(allowConflict ? {allowConflict: true} : {}),
+        };
         const response = await updateCalendarEntry(entryId, requestEntry);
         savedEntry = response?.data ?? movedEntry;
       } catch (error) {

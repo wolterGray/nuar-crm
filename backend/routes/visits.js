@@ -5,6 +5,7 @@ const { requireOwner, requirePermission, hasPermission, PERMISSIONS } = require(
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
+const { updateWithVersion } = require('../domain/optimisticConcurrency');
 const { upsertNotificationEvent } = require('../services/notificationEventsService');
 const {recordBusinessNotificationEvent} = require('../services/businessPushService');
 const {
@@ -754,8 +755,9 @@ router.put('/calendar-entries/:id', async (req, res) => {
 
       await assertCalendarEntryAvailable(tx, payload, id);
 
-      const calendarEntry = await tx.calendarEntry.update({
-        where: {id},
+      const calendarEntry = await updateWithVersion(tx.calendarEntry, {
+        id,
+        payload,
         data: buildCalendarEntryData(payload),
       });
 
@@ -2003,8 +2005,9 @@ router.post('/visits/update-completed', async (req, res) => {
         calendarEntry.payload && typeof calendarEntry.payload === 'object'
           ? calendarEntry.payload
           : {};
-      const updatedVisit = await tx.visit.update({
-        where: { id: visitId },
+      const updatedVisit = await updateWithVersion(tx.visit, {
+        id: visitId,
+        payload: visitPayload,
         data: buildVisitData(visitPayload),
       });
       await syncEmployeeEarningForCompletedVisit(tx, req, updatedVisit);
@@ -2012,8 +2015,9 @@ router.post('/visits/update-completed', async (req, res) => {
         where: { id: visitId },
         include: VISIT_WITH_EARNING_INCLUDE,
       });
-      const updatedCalendarEntry = await tx.calendarEntry.update({
-        where: { id: calendarEntryId },
+      const updatedCalendarEntry = await updateWithVersion(tx.calendarEntry, {
+        id: calendarEntryId,
+        payload: calendarEntryPatch,
         data: buildCalendarEntryData({
           ...calendarPayload,
           ...calendarEntryPatch,

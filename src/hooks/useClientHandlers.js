@@ -416,6 +416,9 @@ export function useClientHandlers({
 
       const clientPackage = attachClientLink(clientProfiles, {
         ...(editingClientPackage?.id ? {id: editingClientPackage.id} : {}),
+        ...(editingClientPackage?.updatedAt
+          ? {expectedUpdatedAt: editingClientPackage.updatedAt}
+          : {}),
         client: form.get("client"),
         packageId: packageTemplate?.id ?? editingClientPackage?.packageId,
         packageName:

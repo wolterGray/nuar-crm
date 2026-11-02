@@ -82,6 +82,9 @@ export function useCertificateHandlers({
 
       const certificate = syncCertificateStatus({
         ...(editingCertificate?.id ? {id: editingCertificate.id} : {}),
+        ...(editingCertificate?.updatedAt
+          ? {expectedUpdatedAt: editingCertificate.updatedAt}
+          : {}),
         code,
         client: buyer.client,
         clientId: buyer.clientId || "",

@@ -43,6 +43,7 @@ const {
   resolveCertificateStatus,
   resolveClientPackageStatus,
 } = require('../domain/financialAssetLifecycle');
+const { updateWithVersion } = require('../domain/optimisticConcurrency');
 
 const prisma = new PrismaClient();
 const {
@@ -815,7 +816,11 @@ router.put('/client-packages/:id', requirePackageFinanceManage, async (req, res)
   try {
     const result = await prisma.$transaction(async (tx) => {
       const previous = await tx.clientPackage.findUnique({ where: { id } });
-      const saved = await tx.clientPackage.update({ where: { id }, data });
+      const saved = await updateWithVersion(tx.clientPackage, {
+        data,
+        id,
+        payload: req.body,
+      });
       await syncEmployeeEarningForClientPackageSale(tx, req, saved);
       await recordAuditLog(tx, req, {
         action: 'update package sale',
@@ -1020,7 +1025,13 @@ router.put('/certificates/:id', requirePackageFinanceManage, async (req, res) =>
     res,
     'certificate',
     id,
-    prisma.certificate.update({ where: { id }, data }).then(withStoredId),
+    prisma.$transaction((tx) =>
+      updateWithVersion(tx.certificate, {
+        data,
+        id,
+        payload: req.body,
+      }).then(withStoredId),
+    ),
     'Certificate',
     'use certificate',
   );
@@ -1444,8 +1455,9 @@ router.put('/visits/journal/:id/financial', async (req, res) => {
         ));
       }
 
-      const updatedVisit = await tx.visit.update({
-        where: { id: visitId },
+      const updatedVisit = await updateWithVersion(tx.visit, {
+        id: visitId,
+        payload: visitPayload,
         data: buildVisitData(visitPayload),
       });
       if (visitPayload.status === 'completed' || visit?.payload?.status === 'completed') {
@@ -1695,7 +1707,11 @@ router.put('/visits/journal/:id', async (req, res) => {
           payload.employeeId = scopedEmployee.id;
         }
       }
-      const updated = await tx.visit.update({ where: { id }, data: buildVisitData(payload) });
+      const updated = await updateWithVersion(tx.visit, {
+        data: buildVisitData(payload),
+        id,
+        payload,
+      });
       if (payload.status === 'completed' || before?.payload?.status === 'completed') {
         await syncEmployeeEarningForCompletedVisit(tx, req, updated);
       }
