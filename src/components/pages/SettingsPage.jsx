@@ -33,6 +33,7 @@ import SmsRemindersPanel from "../SmsRemindersPanel.jsx";
 import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 import AuditLogPanel from "../AuditLogPanel.jsx";
 import ErrorMonitoringPanel from "../ErrorMonitoringPanel.jsx";
+import BackupStatusPanel from "../BackupStatusPanel.jsx";
 import "./SettingsPage.css";
 import {
   AppIcon,
@@ -3093,6 +3094,8 @@ function SettingsPage({
                   {cloudLoadError || lastCloudSyncError || cloudConflict ? "Требует внимания" : "Подключено (Hetzner)"}
                 </StatusBadge>
               </div>
+
+              {canViewLogs ? <BackupStatusPanel /> : null}
 
               <div className="p-3.5 border border-border-soft rounded-control bg-field flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex flex-col gap-0.5">

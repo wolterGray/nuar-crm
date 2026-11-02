@@ -1,9 +1,11 @@
 const express = require('express');
+const path = require('path');
 const {PrismaClient} = require('@prisma/client');
 const {requirePermission, PERMISSIONS} = require('../middleware/auth');
 const {buildAuditLogWhere, parseAuditLogQuery} = require('../domain/auditLogQuery');
 const {redactSensitiveData} = require('../services/loggingService');
 const {getWorkerStatus} = require('../services/notificationWorker');
+const {getBackupStatus} = require('../services/backupService');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -61,6 +63,21 @@ router.get('/error-events/summary', requirePermission(PERMISSIONS.LOGS_VIEW), as
       counts: {errorCount24h, failedDeliveries24h, pendingDeliveries, retryingDeliveries, warningCount24h},
       recent: recent.map((event) => ({...event, context: redactSensitiveData(event.context)})),
       worker: getWorkerStatus(),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/backup/status', requirePermission(PERMISSIONS.LOGS_VIEW), (_req, res, next) => {
+  try {
+    const backupDir = path.resolve(__dirname, '..', process.env.BACKUP_DIR || 'backups');
+    const staleAfterHours = Math.max(1, Number(process.env.BACKUP_STALE_AFTER_HOURS) || 30);
+    const status = getBackupStatus(backupDir, {staleAfterHours});
+    res.json({
+      ...status,
+      latest: status.latest ? {...status.latest, name: undefined} : null,
+      storage: 'local',
     });
   } catch (error) {
     next(error);

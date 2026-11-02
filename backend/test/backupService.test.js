@@ -127,6 +127,23 @@ test('getBackupStatus: correctly summarizes backup directory status', () => {
   fs.rmSync(tmpDir, {force: true, recursive: true});
 });
 
+test('getBackupStatus: marks an old valid dump as stale', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'backup-stale-'));
+  const dumpPath = path.join(tmpDir, 'nuar-crm-daily-old.dump');
+  fs.writeFileSync(dumpPath, Buffer.concat([Buffer.from('PGDMP'), Buffer.alloc(50)]));
+  const createdAt = new Date('2026-11-01T00:00:00.000Z');
+  fs.utimesSync(dumpPath, createdAt, createdAt);
+
+  const status = getBackupStatus(tmpDir, {
+    now: new Date('2026-11-03T00:00:00.000Z'),
+    staleAfterHours: 30,
+  });
+  assert.equal(status.available, true);
+  assert.equal(status.healthy, false);
+  assert.equal(status.latest.isStale, true);
+  assert.equal(status.latest.ageHours, 48);
+});
+
 test('sanitizePostgresUrlForCli: removes Prisma schema and non-libpq query params', () => {
   // 1. Removes schema=public
   const prismaUrl = 'postgresql://nuar:secret@localhost:5432/nuar_crm?schema=public';

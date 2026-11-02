@@ -133,7 +133,7 @@ const applyRetentionPolicy = (backupDir, {maxKeep = 14} = {}) => {
 /**
  * Returns latest backup health status.
  */
-const getBackupStatus = (backupDir) => {
+const getBackupStatus = (backupDir, {now = new Date(), staleAfterHours = 30} = {}) => {
   if (!fs.existsSync(backupDir)) {
     return {available: false, count: 0, error: 'Backup directory does not exist'};
   }
@@ -154,18 +154,34 @@ const getBackupStatus = (backupDir) => {
 
   const latest = files[0];
   const headerCheck = latest.name.endsWith('.dump') ? validateDumpHeader(latest.path) : {valid: true, size: latest.size};
+  const ageHours = Math.max(0, (now.getTime() - latest.mtime.getTime()) / (60 * 60 * 1000));
+  let metadata = null;
+  try {
+    const metadataPath = path.join(backupDir, 'latest-backup.json');
+    if (fs.existsSync(metadataPath)) {
+      const parsed = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+      if (parsed?.file === latest.name) metadata = parsed;
+    }
+  } catch {
+    // A corrupt metadata sidecar must not hide an otherwise valid dump.
+  }
 
   return {
     available: true,
     count: files.length,
+    healthy: headerCheck.valid && ageHours <= staleAfterHours,
     latest: {
+      ageHours: Number(ageHours.toFixed(1)),
       createdAt: latest.mtime.toISOString(),
+      entryCount: Number(metadata?.entryCount) || null,
       isValid: headerCheck.valid,
+      isStale: ageHours > staleAfterHours,
       name: latest.name,
       sizeBytes: latest.size,
       sizeFormatted: `${(latest.size / (1024 * 1024)).toFixed(2)} MB`,
       validationError: headerCheck.error || null,
     },
+    staleAfterHours,
   };
 };
 
