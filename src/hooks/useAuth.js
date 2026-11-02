@@ -12,8 +12,21 @@ const normalizeSessionRole = (role) => {
   return AUTH_ROLES.has(normalized) ? normalized : "unknown";
 };
 
-const createSession = ({token, user}) => ({
+const getTokenExpiresAt = (token) => {
+  try {
+    const encoded = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=');
+    const payload = JSON.parse(window.atob(padded));
+    return Number(payload?.exp) || null;
+  } catch {
+    return null;
+  }
+};
+
+const createSession = ({token, refreshToken, user}) => ({
   access_token: token,
+  refresh_token: refreshToken || null,
+  expires_at: getTokenExpiresAt(token),
   provider: "local",
   user: {
     id: user?.id || "",
@@ -85,9 +98,23 @@ export function getAuthToken() {
 }
 
 export function notifyAuthTokenRejected() {
-  clearStoredAuth();
   window.dispatchEvent(new Event("nuar-crm-auth-lost"));
 }
+
+const requestSessionRefresh = async (refreshToken) => {
+  const response = await fetch(`${API_URL}/api/auth/refresh`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({refreshToken}),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(payload?.error || "Session refresh failed");
+    error.status = response.status;
+    throw error;
+  }
+  return createSession(payload);
+};
 
 export function useAuth({onSessionLostRef, pushNotification}) {
   const [authSession, setAuthSession] = useState(null);
@@ -99,6 +126,7 @@ export function useAuth({onSessionLostRef, pushNotification}) {
 
   useEffect(() => {
     let active = true;
+    let recoveryPromise = null;
 
     const rejectSession = () => {
       if (!active) return;
@@ -130,8 +158,21 @@ export function useAuth({onSessionLostRef, pushNotification}) {
           },
         });
 
+        if (response.status === 401 && storedSession.refresh_token) {
+          const session = await requestSessionRefresh(storedSession.refresh_token);
+          if (!active) return;
+          saveAuthSession(session);
+          setAuthSession(session);
+          setAuthReady(true);
+          return;
+        }
+
         if (!response.ok) {
-          rejectSession();
+          if (response.status === 401 || response.status === 403) rejectSession();
+          else {
+            setAuthSession(storedSession);
+            setAuthReady(true);
+          }
           return;
         }
 
@@ -139,7 +180,8 @@ export function useAuth({onSessionLostRef, pushNotification}) {
         if (!active) return;
 
         const session = createSession({
-          token: storedSession.access_token,
+          token: payload.token || storedSession.access_token,
+          refreshToken: payload.refreshToken || storedSession.refresh_token,
           user: payload.user || storedSession.user,
         });
         saveAuthSession(session);
@@ -147,11 +189,37 @@ export function useAuth({onSessionLostRef, pushNotification}) {
         setAuthReady(true);
       } catch (error) {
         console.error("Failed to verify local auth session:", error?.message || "network error");
-        rejectSession();
+        if (error?.status === 401 || error?.status === 403) rejectSession();
+        else {
+          setAuthSession(storedSession);
+          setAuthReady(true);
+        }
       }
     };
 
-    const handleAuthLost = () => rejectSession();
+    const handleAuthLost = () => {
+      if (recoveryPromise) return;
+      const storedSession = loadStoredSession();
+      if (!storedSession?.refresh_token) {
+        rejectSession();
+        return;
+      }
+
+      recoveryPromise = requestSessionRefresh(storedSession.refresh_token)
+        .then((session) => {
+          if (!active) return;
+          saveAuthSession(session);
+          setAuthSession(session);
+          setAuthReady(true);
+        })
+        .catch((error) => {
+          if (error?.status === 401 || error?.status === 403) rejectSession();
+          else console.error("Session recovery postponed:", error?.message || "network error");
+        })
+        .finally(() => {
+          recoveryPromise = null;
+        });
+    };
     window.addEventListener("nuar-crm-auth-lost", handleAuthLost);
     restoreSession();
 
@@ -160,6 +228,56 @@ export function useAuth({onSessionLostRef, pushNotification}) {
       window.removeEventListener("nuar-crm-auth-lost", handleAuthLost);
     };
   }, [onSessionLostRef]);
+
+  useEffect(() => {
+    if (!authSession?.refresh_token) return undefined;
+
+    let active = true;
+    let refreshPromise = null;
+
+    const refresh = async ({force = false} = {}) => {
+      if (!active || refreshPromise) return refreshPromise;
+      const expiresAtMs = Number(authSession.expires_at || 0) * 1000;
+      if (!force && expiresAtMs - Date.now() > 24 * 60 * 60 * 1000) return null;
+
+      refreshPromise = requestSessionRefresh(authSession.refresh_token)
+        .then((session) => {
+          if (!active) return null;
+          saveAuthSession(session);
+          setAuthSession(session);
+          return session;
+        })
+        .catch((error) => {
+          if (error?.status === 401 || error?.status === 403) {
+            notifyAuthTokenRejected();
+          } else {
+            console.error("Session refresh postponed:", error?.message || "network error");
+          }
+          return null;
+        })
+        .finally(() => {
+          refreshPromise = null;
+        });
+      return refreshPromise;
+    };
+
+    const expiresAtMs = Number(authSession.expires_at || 0) * 1000;
+    const refreshAtMs = expiresAtMs - 24 * 60 * 60 * 1000;
+    const delay = Math.max(1000, Math.min(refreshAtMs - Date.now(), 2147483647));
+    const timer = window.setTimeout(() => refresh({force: true}), delay);
+    const handleResume = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", handleResume);
+    window.addEventListener("focus", handleResume);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", handleResume);
+      window.removeEventListener("focus", handleResume);
+    };
+  }, [authSession]);
 
   const handleLogin = useCallback(
     async (event) => {

@@ -104,6 +104,9 @@ function verifyJwt(req, res, next) {
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error('JWT_SECRET not set');
     const decoded = jwt.verify(token, secret);
+    if (decoded?.tokenType === 'refresh') {
+      return res.status(401).json({ success: false, error: 'Refresh token cannot access this endpoint' });
+    }
     req.auth = getEffectiveAuth(decoded);
     next();
   } catch {

@@ -65,6 +65,43 @@ function createAuthRouter({
       subject: String(user.id),
     });
 
+  const signRefreshToken = (user) =>
+    jwt.sign(
+      {
+        tokenType: 'refresh',
+        email: user.email || '',
+        role: user.role || 'authenticated',
+      },
+      getJwtSecret(),
+      {
+        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '90d',
+        subject: String(user.id),
+      },
+    );
+
+  const createTokenPair = (user) => ({
+    token: signAuthToken(user),
+    refreshToken: signRefreshToken(user),
+  });
+
+  const verifyRefreshJwt = (req, res, next) => {
+    const refreshToken = String(req.body?.refreshToken || '').trim();
+    if (!refreshToken) {
+      return res.status(401).json({ success: false, error: 'Refresh token is required' });
+    }
+
+    try {
+      const decoded = jwt.verify(refreshToken, getJwtSecret());
+      if (decoded?.tokenType !== 'refresh') {
+        return res.status(401).json({ success: false, error: 'Invalid refresh token' });
+      }
+      req.auth = decoded;
+      return next();
+    } catch {
+      return res.status(401).json({ success: false, error: 'Invalid or expired refresh token' });
+    }
+  };
+
   const getActiveOwnerCount = async () =>
     prisma.user.count({
       where: {
@@ -138,7 +175,7 @@ function createAuthRouter({
       permissions: {},
       effectivePermissions: getEffectivePermissions('owner'),
     };
-    const token = signAuthToken(user);
+    const tokens = createTokenPair(user);
 
     req.auth = user;
     await recordLoginAudit(req, {
@@ -149,7 +186,7 @@ function createAuthRouter({
 
     return res.json({
       success: true,
-      token,
+      ...tokens,
       user,
     });
   };
@@ -241,7 +278,7 @@ function createAuthRouter({
           permissions: updatedUser.permissions || {},
           effectivePermissions,
         };
-        const token = signAuthToken(user);
+        const tokens = createTokenPair(user);
 
         req.auth = user;
         await recordLoginAudit(req, {
@@ -251,7 +288,7 @@ function createAuthRouter({
 
         return res.json({
           success: true,
-          token,
+          ...tokens,
           user,
         });
       }
@@ -601,18 +638,40 @@ function createAuthRouter({
   router.get('/session', verifyJwt, requireSessionUser, async (req, res) => {
     const rawId = req.auth?.sub || req.auth?.id;
     const role = getSessionRole(req.auth);
+    const user = {
+      id: String(rawId),
+      email: req.auth?.email || process.env.ADMIN_EMAIL || '',
+      name: req.auth?.name || '',
+      role,
+      employeeId: req.auth?.employeeId ? Number(req.auth.employeeId) : null,
+      mustChangePassword: Boolean(req.auth?.permissions?.mustChangePassword),
+      permissions: req.auth?.permissions || {},
+      effectivePermissions: req.auth?.effectivePermissions || getEffectivePermissions(role, req.auth?.permissions),
+    };
     return res.json({
       success: true,
-      user: {
-        id: String(rawId),
-        email: req.auth?.email || process.env.ADMIN_EMAIL || '',
-        name: req.auth?.name || '',
-        role,
-        employeeId: req.auth?.employeeId ? Number(req.auth.employeeId) : null,
-        mustChangePassword: Boolean(req.auth?.permissions?.mustChangePassword),
-        permissions: req.auth?.permissions || {},
-        effectivePermissions: req.auth?.effectivePermissions || getEffectivePermissions(role, req.auth?.permissions),
-      },
+      ...createTokenPair(user),
+      user,
+    });
+  });
+
+  router.post('/refresh', verifyRefreshJwt, requireSessionUser, async (req, res) => {
+    const rawId = req.auth?.sub || req.auth?.id;
+    const role = getSessionRole(req.auth);
+    const user = {
+      id: String(rawId),
+      email: req.auth?.email || process.env.ADMIN_EMAIL || '',
+      name: req.auth?.name || '',
+      role,
+      employeeId: req.auth?.employeeId ? Number(req.auth.employeeId) : null,
+      mustChangePassword: Boolean(req.auth?.permissions?.mustChangePassword),
+      permissions: req.auth?.permissions || {},
+      effectivePermissions: req.auth?.effectivePermissions || getEffectivePermissions(role, req.auth?.permissions),
+    };
+    return res.json({
+      success: true,
+      ...createTokenPair(user),
+      user,
     });
   });
 
