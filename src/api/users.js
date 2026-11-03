@@ -102,6 +102,11 @@ export const enableUser = (id) =>
     method: "POST",
   });
 
+export const revokeUserSessions = (id) =>
+  requestUsers(`/${id}/revoke-sessions`, {
+    method: "POST",
+  });
+
 export const sendUserReset = (id) =>
   requestUsers(`/${id}/send-reset`, {
     method: "POST",

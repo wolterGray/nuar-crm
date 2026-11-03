@@ -12,6 +12,7 @@ const createMockPrisma = () => {
   const resetTokens = new Map();
   const auditLogs = [];
   const errorEvents = [];
+  const authSessions = new Map();
 
   const pickSelect = (record, select) => {
     if (!record || !select) return record ? {...record} : null;
@@ -27,6 +28,19 @@ const createMockPrisma = () => {
     resetTokens,
     auditLogs,
     errorEvents,
+    authSessions,
+    authSession: {
+      findMany: async () => Array.from(authSessions.values()).filter((session) => !session.revokedAt),
+      updateMany: async ({where, data}) => {
+        let count = 0;
+        for (const [id, session] of authSessions.entries()) {
+          if (session.userId !== where.userId || session.revokedAt) continue;
+          authSessions.set(id, {...session, ...data});
+          count += 1;
+        }
+        return {count};
+      },
+    },
     user: {
       count: async ({where = {}} = {}) => {
         let count = 0;
@@ -334,6 +348,13 @@ test('Password reset for existing user: generate temp, manual temp, email link, 
       isActive: false,
     },
   });
+  prisma.authSessions.set('staff-device', {
+    id: 'staff-device',
+    userId: staff.id,
+    lastUsedAt: new Date(),
+    expiresAt: new Date(Date.now() + 86400000),
+    revokedAt: null,
+  });
 
   // 1. Admin CANNOT reset Owner password
   const adminResetOwnerRes = await invokeRouter(usersRouter, {
@@ -371,6 +392,7 @@ test('Password reset for existing user: generate temp, manual temp, email link, 
   const valid = await verifyPassword(resetGenRes.body.temporaryPassword, updatedStaff.passwordHash);
   assert.equal(valid, true);
   assert.ok(updatedStaff.passwordChangedAt);
+  assert.ok(prisma.authSessions.get('staff-device').revokedAt);
 
   // 4. Reset via manual_temp
   const resetManualRes = await invokeRouter(usersRouter, {
@@ -391,4 +413,40 @@ test('Password reset for existing user: generate temp, manual temp, email link, 
   });
   assert.equal(resetEmailRes.statusCode, 200);
   assert.equal(resetEmailRes.body.resetEmailSent, true);
+});
+
+test('Owner can inspect session counts and revoke all sessions for another user', async () => {
+  const prisma = createMockPrisma();
+  const usersRouter = createUsersRouter({prismaClient: prisma});
+  const owner = await prisma.user.create({
+    data: {email: 'owner2@nuarr.pl', name: 'Owner', role: 'owner', passwordHash: 'hash'},
+  });
+  const staff = await prisma.user.create({
+    data: {email: 'staff2@nuarr.pl', name: 'Staff', role: 'staff', passwordHash: 'hash'},
+  });
+  prisma.authSessions.set('staff-phone', {
+    id: 'staff-phone',
+    userId: staff.id,
+    lastUsedAt: new Date('2026-11-03T09:00:00Z'),
+    expiresAt: new Date('2027-01-01T00:00:00Z'),
+    revokedAt: null,
+  });
+
+  const list = await invokeRouter(usersRouter, {
+    method: 'GET',
+    url: '/users',
+    auth: {id: String(owner.id), role: 'owner'},
+  });
+  const listedStaff = list.body.users.find((user) => user.id === staff.id);
+  assert.equal(listedStaff.activeSessionCount, 1);
+  assert.equal(new Date(listedStaff.lastSessionAt).toISOString(), '2026-11-03T09:00:00.000Z');
+
+  const revoked = await invokeRouter(usersRouter, {
+    method: 'POST',
+    url: `/users/${staff.id}/revoke-sessions`,
+    auth: {id: String(owner.id), role: 'owner'},
+  });
+  assert.equal(revoked.statusCode, 200);
+  assert.equal(revoked.body.revokedCount, 1);
+  assert.ok(prisma.authSessions.get('staff-phone').revokedAt);
 });

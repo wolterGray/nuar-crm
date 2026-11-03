@@ -6,6 +6,7 @@ import {
   enableUser,
   fetchUsers,
   resetUserPassword,
+  revokeUserSessions,
   updateUser,
 } from "../../api/users.js";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
@@ -225,6 +226,7 @@ function UserRowActionsMenu({
   onEdit,
   onOpenPermissions,
   onResetPassword,
+  onRevokeSessions,
   onToggleStatus,
 }) {
   const isOpen = openMenuId === user.id;
@@ -314,6 +316,24 @@ function UserRowActionsMenu({
           >
             <AppIcon name="key" size="xs" />
             <span>Сбросить пароль</span>
+          </button>
+
+          <button
+            className="crm-user-menu-item"
+            role="menuitem"
+            type="button"
+            disabled={isEditingSelf || isOwnerProtected || !user.activeSessionCount}
+            title={isEditingSelf ? "Свои устройства доступны выше на этой странице" : ""}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => handleAction(e, onRevokeSessions)}
+          >
+            <AppIcon name="devices" size="xs" />
+            <span>Завершить все сеансы</span>
+            {user.activeSessionCount ? (
+              <span className="ml-auto rounded-full bg-accent/20 px-1.5 py-0.2 text-[10px] text-accent font-bold">
+                {user.activeSessionCount}
+              </span>
+            ) : null}
           </button>
 
           <div className="crm-user-menu-divider" />
@@ -1153,6 +1173,27 @@ function UserAccessPanel({authUser, pushNotification}) {
     }
   };
 
+  const handleRevokeSessions = async (user) => {
+    setSubmittingAction(true);
+    try {
+      const payload = await revokeUserSessions(user.id);
+      patchRow(user.id, {activeSessionCount: 0, lastSessionAt: null});
+      pushNotification?.({
+        title: "Сеансы завершены",
+        message: `${user.email}: отключено устройств ${payload.revokedCount || 0}`,
+        persist: false,
+      });
+    } catch (error) {
+      pushNotification?.({
+        title: "Не удалось завершить сеансы",
+        message: error?.message || "Повторите попытку",
+        persist: false,
+      });
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
   // Filtered users calculation
   const filteredUsers = useMemo(() => {
     return rows.filter((u) => {
@@ -1341,6 +1382,7 @@ function UserAccessPanel({authUser, pushNotification}) {
                               onEdit={(u) => setActiveDrawer({ type: "edit", userId: u.id })}
                               onOpenPermissions={(u) => setActiveDrawer({ type: "permissions", userId: u.id })}
                               onResetPassword={(u) => setActiveDrawer({ type: "reset-password", userId: u.id })}
+                              onRevokeSessions={handleRevokeSessions}
                               onToggleStatus={(u) => handleToggleStatus(u)}
                             />
                           </div>
@@ -1364,6 +1406,12 @@ function UserAccessPanel({authUser, pushNotification}) {
                             <span className="text-text-faint">
                               {formatUserDate(user.lastLoginAt)}
                             </span>
+                          </div>
+                          <div className="crm-user-card-row">
+                            <span className="text-text-muted">Устройства:</span>
+                            <Badge variant={user.activeSessionCount ? "info" : "neutral"} size="sm">
+                              {user.activeSessionCount || 0}
+                            </Badge>
                           </div>
                         </div>
                       </article>
@@ -1432,9 +1480,14 @@ function UserAccessPanel({authUser, pushNotification}) {
 
                         {/* Status */}
                         <div>
-                          <Badge variant={user.isActive ? "success" : "disabled"} size="sm">
-                            {user.isActive ? "Активен" : "Отключён"}
-                          </Badge>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <Badge variant={user.isActive ? "success" : "disabled"} size="sm">
+                              {user.isActive ? "Активен" : "Отключён"}
+                            </Badge>
+                            {user.activeSessionCount ? (
+                              <Badge variant="info" size="sm">{user.activeSessionCount} устр.</Badge>
+                            ) : null}
+                          </div>
                         </div>
 
                         {/* Last Login */}
@@ -1453,6 +1506,7 @@ function UserAccessPanel({authUser, pushNotification}) {
                             onEdit={(u) => setActiveDrawer({ type: "edit", userId: u.id })}
                             onOpenPermissions={(u) => setActiveDrawer({ type: "permissions", userId: u.id })}
                             onResetPassword={(u) => setActiveDrawer({ type: "reset-password", userId: u.id })}
+                            onRevokeSessions={handleRevokeSessions}
                             onToggleStatus={(u) => handleToggleStatus(u)}
                           />
                         </div>

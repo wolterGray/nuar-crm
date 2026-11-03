@@ -40,7 +40,7 @@ const USER_SELECT = {
   },
 };
 
-const serializeUser = (user) => {
+const serializeUser = (user, sessionSummary = null) => {
   const permissions = (user.permissions && typeof user.permissions === 'object') ? user.permissions : {};
   return {
     createdAt: user.createdAt,
@@ -51,6 +51,8 @@ const serializeUser = (user) => {
     id: user.id,
     isActive: user.isActive,
     lastLoginAt: user.lastLoginAt,
+    activeSessionCount: sessionSummary?.count || 0,
+    lastSessionAt: sessionSummary?.lastUsedAt || null,
     mustChangePassword: Boolean(permissions.mustChangePassword),
     name: user.name || '',
     permissions,
@@ -258,7 +260,7 @@ function createUsersRouter({
 
   router.get('/users', async (req, res) => {
     try {
-      const [users, employees] = await Promise.all([
+      const [users, employees, activeSessions] = await Promise.all([
         prisma.user.findMany({
           orderBy: [{role: 'asc'}, {createdAt: 'asc'}],
           select: USER_SELECT,
@@ -269,12 +271,28 @@ function createUsersRouter({
               select: {id: true, name: true, role: true, email: true, status: true},
             })
           : Promise.resolve([]),
+        prisma.authSession
+          ? prisma.authSession.findMany({
+              where: {revokedAt: null, expiresAt: {gt: new Date()}},
+              select: {userId: true, lastUsedAt: true},
+            })
+          : Promise.resolve([]),
       ]);
+
+      const sessionSummaries = new Map();
+      for (const session of activeSessions || []) {
+        const current = sessionSummaries.get(session.userId) || {count: 0, lastUsedAt: null};
+        current.count += 1;
+        if (!current.lastUsedAt || session.lastUsedAt > current.lastUsedAt) {
+          current.lastUsedAt = session.lastUsedAt;
+        }
+        sessionSummaries.set(session.userId, current);
+      }
 
       res.json({
         success: true,
         smtpConfigured: Boolean(checkSmtpConfigured()),
-        users: users.map(serializeUser),
+        users: users.map((user) => serializeUser(user, sessionSummaries.get(user.id))),
         employees: (employees || []).map((emp) => ({
           id: emp.id,
           name: emp.name,
@@ -511,11 +529,17 @@ function createUsersRouter({
         return res.status(403).json({success: false, error: 'Нельзя отключить собственный аккаунт'});
       }
 
-      const updated = await prisma.user.update({
-        data: {isActive: false},
-        where: {id},
-        select: USER_SELECT,
-      });
+      const [updated] = await prisma.$transaction([
+        prisma.user.update({
+          data: {isActive: false},
+          where: {id},
+          select: USER_SELECT,
+        }),
+        prisma.authSession.updateMany({
+          where: {userId: id, revokedAt: null},
+          data: {revokedAt: new Date()},
+        }),
+      ]);
 
       invalidateUserCache(id);
 
@@ -623,6 +647,10 @@ function createUsersRouter({
             where: {userId: id, usedAt: null},
             data: {usedAt: now},
           }),
+          prisma.authSession.updateMany({
+            where: {userId: id, revokedAt: null},
+            data: {revokedAt: now},
+          }),
         ]);
 
         invalidateUserCache(id);
@@ -680,6 +708,10 @@ function createUsersRouter({
             where: {userId: id, usedAt: null},
             data: {usedAt: now},
           }),
+          prisma.authSession.updateMany({
+            where: {userId: id, revokedAt: null},
+            data: {revokedAt: now},
+          }),
         ]);
 
         invalidateUserCache(id);
@@ -704,10 +736,16 @@ function createUsersRouter({
       // Default: method === 'email' or 'link'
       const reset = await createAndSendResetToken(req, user);
 
-      await prisma.user.update({
-        where: {id},
-        data: {passwordChangedAt: now},
-      });
+      await prisma.$transaction([
+        prisma.user.update({
+          where: {id},
+          data: {passwordChangedAt: now},
+        }),
+        prisma.authSession.updateMany({
+          where: {userId: id, revokedAt: null},
+          data: {revokedAt: now},
+        }),
+      ]);
       invalidateUserCache(id);
 
       return res.json({
@@ -754,6 +792,39 @@ function createUsersRouter({
       });
     } catch (error) {
       await handleRouteError(req, res, error, {action: 'send user reset', userId: id});
+    }
+  });
+
+  router.post('/users/:id/revoke-sessions', async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+      return res.status(422).json({success: false, error: 'Некорректный ID пользователя'});
+    }
+
+    try {
+      const user = await prisma.user.findUnique({where: {id}, select: USER_SELECT});
+      if (!user) {
+        return res.status(404).json({success: false, error: 'Пользователь не найден'});
+      }
+      ensureAdminDoesNotManageOwner(req, user.role);
+      if (String(req.auth?.id) === String(id)) {
+        return res.status(403).json({success: false, error: 'Свои устройства завершайте в блоке активных устройств'});
+      }
+
+      const result = await prisma.authSession.updateMany({
+        where: {userId: id, revokedAt: null},
+        data: {revokedAt: new Date()},
+      });
+
+      await auditUserAction(req, {
+        action: 'user sessions revoked',
+        after: {email: user.email, revokedCount: result.count},
+        userId: id,
+      });
+
+      return res.json({success: true, revokedCount: result.count});
+    } catch (error) {
+      await handleRouteError(req, res, error, {action: 'revoke user sessions', userId: id});
     }
   });
 

@@ -33,6 +33,7 @@ const createMockPrisma = () => {
     errorEvents,
     authSession: {
       create: async ({data}) => { authSessions.set(data.id, {...data}); return data; },
+      findMany: async () => Array.from(authSessions.values()).filter((session) => !session.revokedAt),
       findFirst: async ({where}) => {
         const session = authSessions.get(where.id);
         return session && session.userId === where.userId && !session.revokedAt && session.expiresAt > new Date()
