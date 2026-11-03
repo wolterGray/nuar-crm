@@ -257,7 +257,11 @@ function createAuthRouter({
 
         const passwordMatches = await verifyPassword(password, dbUser.passwordHash);
         if (!passwordMatches) {
-          const failedLoginCount = (dbUser.failedLoginCount || 0) + 1;
+          const previousFailedLoginCount =
+            dbUser.lockedUntil && dbUser.lockedUntil <= now
+              ? 0
+              : (dbUser.failedLoginCount || 0);
+          const failedLoginCount = previousFailedLoginCount + 1;
           const lockedUntil =
             failedLoginCount >= 5
               ? new Date(Date.now() + 10 * 60 * 1000)

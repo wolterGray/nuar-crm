@@ -160,6 +160,33 @@ test('auth refresh: refresh token is rejected as an API access token', async () 
   assert.match(result.body.error, /Refresh token cannot access/);
 });
 
+test('auth login: an expired lock starts a new failed-attempt window', async () => {
+  const user = {
+    id: 9,
+    email: 'expired-lock@nuarr.pl',
+    name: 'Expired Lock',
+    role: 'staff',
+    isActive: true,
+    employeeId: null,
+    permissions: {},
+    passwordChangedAt: null,
+    failedLoginCount: 5,
+    lockedUntil: new Date(Date.now() - 60_000),
+    passwordHash: await hashPassword('StrongPassword#2026'),
+  };
+  const router = createAuthRouter({prismaClient: createPrisma(user)});
+
+  const login = await invokeRouter(router, {
+    method: 'POST',
+    url: '/login',
+    body: {email: user.email, password: 'WrongPassword#2026'},
+  });
+
+  assert.equal(login.statusCode, 401);
+  assert.equal(user.failedLoginCount, 1);
+  assert.equal(user.lockedUntil, null);
+});
+
 test('auth sessions: lists devices and revokes every session except the current one', async () => {
   const user = {
     id: 8,

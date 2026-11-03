@@ -7,6 +7,7 @@ import {
   fetchUsers,
   resetUserPassword,
   revokeUserSessions,
+  unlockUserLogin,
   updateUser,
 } from "../../api/users.js";
 import {COLOR_THEME_OPTIONS} from "../../constants/colorThemes.js";
@@ -227,6 +228,7 @@ function UserRowActionsMenu({
   onOpenPermissions,
   onResetPassword,
   onRevokeSessions,
+  onUnlockLogin,
   onToggleStatus,
 }) {
   const isOpen = openMenuId === user.id;
@@ -238,6 +240,7 @@ function UserRowActionsMenu({
   const isOwnerProtected = !isOwner && user.role === "owner";
   const isEditingSelf = String(authUser?.id) === String(user.id);
   const customPermCount = Object.keys(user.permissions || {}).length;
+  const isLoginLocked = Boolean(user.isLoginLocked);
 
   const handleAction = (e, callback) => {
     e.preventDefault();
@@ -287,6 +290,20 @@ function UserRowActionsMenu({
             <AppIcon name="pencil" size="xs" />
             <span>Редактировать</span>
           </button>
+
+          {isLoginLocked ? (
+            <button
+              className="crm-user-menu-item is-success"
+              role="menuitem"
+              type="button"
+              disabled={isOwnerProtected}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => handleAction(e, onUnlockLogin)}
+            >
+              <AppIcon name="unlock" size="xs" />
+              <span>Разблокировать вход</span>
+            </button>
+          ) : null}
 
           <button
             className="crm-user-menu-item"
@@ -1194,6 +1211,27 @@ function UserAccessPanel({authUser, pushNotification}) {
     }
   };
 
+  const handleUnlockLogin = async (user) => {
+    setSubmittingAction(true);
+    try {
+      const payload = await unlockUserLogin(user.id);
+      patchRow(user.id, payload.user);
+      pushNotification?.({
+        title: "Вход разблокирован",
+        message: user.email,
+        persist: false,
+      });
+    } catch (error) {
+      pushNotification?.({
+        title: "Не удалось разблокировать вход",
+        message: error?.message || "Повторите попытку",
+        persist: false,
+      });
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
   // Filtered users calculation
   const filteredUsers = useMemo(() => {
     return rows.filter((u) => {
@@ -1342,6 +1380,7 @@ function UserAccessPanel({authUser, pushNotification}) {
             <div className="crm-users-cards">
                   {filteredUsers.map((user) => {
                     const masterName = user.employeeName || (user.employeeId ? employees.find((e) => e.id === user.employeeId)?.name : null);
+                    const isLoginLocked = Boolean(user.isLoginLocked);
                     return (
                       <article
                         key={user.id}
@@ -1383,6 +1422,7 @@ function UserAccessPanel({authUser, pushNotification}) {
                               onOpenPermissions={(u) => setActiveDrawer({ type: "permissions", userId: u.id })}
                               onResetPassword={(u) => setActiveDrawer({ type: "reset-password", userId: u.id })}
                               onRevokeSessions={handleRevokeSessions}
+                              onUnlockLogin={handleUnlockLogin}
                               onToggleStatus={(u) => handleToggleStatus(u)}
                             />
                           </div>
@@ -1397,8 +1437,8 @@ function UserAccessPanel({authUser, pushNotification}) {
                           </div>
                           <div className="crm-user-card-row">
                             <span className="text-text-muted">Статус:</span>
-                            <Badge variant={user.isActive ? "success" : "disabled"} size="sm">
-                              {user.isActive ? "Активен" : "Отключён"}
+                            <Badge variant={isLoginLocked ? "warning" : user.isActive ? "success" : "disabled"} size="sm">
+                              {isLoginLocked ? "Вход заблокирован" : user.isActive ? "Активен" : "Отключён"}
                             </Badge>
                           </div>
                           <div className="crm-user-card-row">
@@ -1407,6 +1447,12 @@ function UserAccessPanel({authUser, pushNotification}) {
                               {formatUserDate(user.lastLoginAt)}
                             </span>
                           </div>
+                          {user.failedLoginCount ? (
+                            <div className="crm-user-card-row">
+                              <span className="text-text-muted">Ошибок входа:</span>
+                              <span className="text-accentWarning font-semibold">{user.failedLoginCount}</span>
+                            </div>
+                          ) : null}
                           <div className="crm-user-card-row">
                             <span className="text-text-muted">Устройства:</span>
                             <Badge variant={user.activeSessionCount ? "info" : "neutral"} size="sm">
@@ -1432,6 +1478,7 @@ function UserAccessPanel({authUser, pushNotification}) {
 
                   {filteredUsers.map((user) => {
                     const masterName = user.employeeName || (user.employeeId ? employees.find((e) => e.id === user.employeeId)?.name : null);
+                    const isLoginLocked = Boolean(user.isLoginLocked);
                     return (
                       <div
                         key={user.id}
@@ -1481,8 +1528,8 @@ function UserAccessPanel({authUser, pushNotification}) {
                         {/* Status */}
                         <div>
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <Badge variant={user.isActive ? "success" : "disabled"} size="sm">
-                              {user.isActive ? "Активен" : "Отключён"}
+                            <Badge variant={isLoginLocked ? "warning" : user.isActive ? "success" : "disabled"} size="sm">
+                              {isLoginLocked ? "Вход заблокирован" : user.isActive ? "Активен" : "Отключён"}
                             </Badge>
                             {user.activeSessionCount ? (
                               <Badge variant="info" size="sm">{user.activeSessionCount} устр.</Badge>
@@ -1507,6 +1554,7 @@ function UserAccessPanel({authUser, pushNotification}) {
                             onOpenPermissions={(u) => setActiveDrawer({ type: "permissions", userId: u.id })}
                             onResetPassword={(u) => setActiveDrawer({ type: "reset-password", userId: u.id })}
                             onRevokeSessions={handleRevokeSessions}
+                            onUnlockLogin={handleUnlockLogin}
                             onToggleStatus={(u) => handleToggleStatus(u)}
                           />
                         </div>

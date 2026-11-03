@@ -450,3 +450,42 @@ test('Owner can inspect session counts and revoke all sessions for another user'
   assert.equal(revoked.body.revokedCount, 1);
   assert.ok(prisma.authSessions.get('staff-phone').revokedAt);
 });
+
+test('Owner can inspect and clear a staff login lock', async () => {
+  const prisma = createMockPrisma();
+  const usersRouter = createUsersRouter({prismaClient: prisma});
+  const owner = await prisma.user.create({
+    data: {email: 'lock-owner@nuarr.pl', name: 'Owner', role: 'owner', passwordHash: 'hash'},
+  });
+  const staff = await prisma.user.create({
+    data: {email: 'locked-staff@nuarr.pl', name: 'Staff', role: 'staff', passwordHash: 'hash'},
+  });
+  const lockedUntil = new Date(Date.now() + 10 * 60 * 1000);
+  await prisma.user.update({
+    where: {id: staff.id},
+    data: {failedLoginCount: 5, lockedUntil},
+  });
+
+  const list = await invokeRouter(usersRouter, {
+    method: 'GET',
+    url: '/users',
+    auth: {id: String(owner.id), role: 'owner'},
+  });
+  const listedStaff = list.body.users.find((user) => user.id === staff.id);
+  assert.equal(listedStaff.failedLoginCount, 5);
+  assert.equal(listedStaff.isLoginLocked, true);
+  assert.equal(new Date(listedStaff.lockedUntil).getTime(), lockedUntil.getTime());
+
+  const unlocked = await invokeRouter(usersRouter, {
+    method: 'POST',
+    url: `/users/${staff.id}/unlock`,
+    auth: {id: String(owner.id), email: owner.email, role: 'owner'},
+  });
+  assert.equal(unlocked.statusCode, 200);
+  assert.equal(unlocked.body.user.failedLoginCount, 0);
+  assert.equal(unlocked.body.user.isLoginLocked, false);
+  assert.equal(unlocked.body.user.lockedUntil, null);
+  assert.equal(prisma.users.get(staff.id).failedLoginCount, 0);
+  assert.equal(prisma.users.get(staff.id).lockedUntil, null);
+  assert.ok(prisma.auditLogs.some((event) => event.action === 'user login unlocked'));
+});

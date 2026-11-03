@@ -107,6 +107,11 @@ export const revokeUserSessions = (id) =>
     method: "POST",
   });
 
+export const unlockUserLogin = (id) =>
+  requestUsers(`/${id}/unlock`, {
+    method: "POST",
+  });
+
 export const sendUserReset = (id) =>
   requestUsers(`/${id}/send-reset`, {
     method: "POST",

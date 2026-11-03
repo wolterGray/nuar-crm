@@ -26,7 +26,9 @@ const USER_SELECT = {
   employeeId: true,
   id: true,
   isActive: true,
+  failedLoginCount: true,
   lastLoginAt: true,
+  lockedUntil: true,
   name: true,
   permissions: true,
   role: true,
@@ -42,6 +44,9 @@ const USER_SELECT = {
 
 const serializeUser = (user, sessionSummary = null) => {
   const permissions = (user.permissions && typeof user.permissions === 'object') ? user.permissions : {};
+  const isLoginLocked = Boolean(
+    user.lockedUntil && new Date(user.lockedUntil).getTime() > Date.now(),
+  );
   return {
     createdAt: user.createdAt,
     email: user.email,
@@ -50,7 +55,10 @@ const serializeUser = (user, sessionSummary = null) => {
     employee: user.employee ? { id: user.employee.id, name: user.employee.name, role: user.employee.role } : null,
     id: user.id,
     isActive: user.isActive,
+    failedLoginCount: user.failedLoginCount || 0,
+    isLoginLocked,
     lastLoginAt: user.lastLoginAt,
+    lockedUntil: user.lockedUntil || null,
     activeSessionCount: sessionSummary?.count || 0,
     lastSessionAt: sessionSummary?.lastUsedAt || null,
     mustChangePassword: Boolean(permissions.mustChangePassword),
@@ -825,6 +833,43 @@ function createUsersRouter({
       return res.json({success: true, revokedCount: result.count});
     } catch (error) {
       await handleRouteError(req, res, error, {action: 'revoke user sessions', userId: id});
+    }
+  });
+
+  router.post('/users/:id/unlock', async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+      return res.status(422).json({success: false, error: 'Некорректный ID пользователя'});
+    }
+
+    try {
+      const current = await prisma.user.findUnique({where: {id}, select: USER_SELECT});
+      if (!current) {
+        return res.status(404).json({success: false, error: 'Пользователь не найден'});
+      }
+      ensureAdminDoesNotManageOwner(req, current.role);
+
+      const updated = await prisma.user.update({
+        where: {id},
+        data: {failedLoginCount: 0, lockedUntil: null},
+        select: USER_SELECT,
+      });
+      invalidateUserCache(id);
+
+      await auditUserAction(req, {
+        action: 'user login unlocked',
+        after: {email: current.email, failedLoginCount: 0, lockedUntil: null},
+        before: {
+          email: current.email,
+          failedLoginCount: current.failedLoginCount || 0,
+          lockedUntil: current.lockedUntil || null,
+        },
+        userId: id,
+      });
+
+      return res.json({success: true, user: serializeUser(updated)});
+    } catch (error) {
+      await handleRouteError(req, res, error, {action: 'unlock user login', userId: id});
     }
   });
 
