@@ -58,3 +58,25 @@ export async function logoutSession(token) {
   return parseAuthResponse(response);
 }
 
+const sessionRequest = async (path = "", {method = "GET"} = {}) => {
+  const token = typeof window !== "undefined"
+    ? window.localStorage.getItem("nuar_crm_auth_token")
+    : null;
+  const response = await fetch(`${API_URL}/api/auth/sessions${path}`, {
+    method,
+    headers: token ? {Authorization: `Bearer ${token}`} : {},
+  });
+  if (response.status === 401 && typeof window !== "undefined") {
+    window.dispatchEvent(new Event("nuar-crm-auth-lost"));
+  }
+  return parseAuthResponse(response);
+};
+
+export const fetchAuthSessions = () => sessionRequest();
+
+export const revokeAuthSession = (sessionId) =>
+  sessionRequest(`/${encodeURIComponent(sessionId)}`, {method: "DELETE"});
+
+export const revokeOtherAuthSessions = () =>
+  sessionRequest("/revoke-others", {method: "POST"});
+

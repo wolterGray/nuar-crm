@@ -65,6 +65,9 @@ const createPrisma = (user) => {
   errorEvent: {create: async ({data}) => data},
   authSession: {
     create: async ({data}) => { sessions.set(data.id, {...data}); return data; },
+    findMany: async ({where}) => Array.from(sessions.values())
+      .filter((session) => session.userId === where.userId && !session.revokedAt && session.expiresAt > new Date())
+      .sort((left, right) => right.lastUsedAt - left.lastUsedAt),
     findFirst: async ({where}) => {
       const session = sessions.get(where.id);
       return session && session.userId === where.userId && !session.revokedAt && session.expiresAt > new Date()
@@ -77,10 +80,18 @@ const createPrisma = (user) => {
       return updated;
     },
     updateMany: async ({where, data}) => {
-      const session = sessions.get(where.id);
-      if (!session || session.userId !== where.userId || session.revokedAt) return {count: 0};
-      sessions.set(where.id, {...session, ...data});
-      return {count: 1};
+      let count = 0;
+      for (const [id, session] of sessions.entries()) {
+        const idMatches = typeof where.id === 'string'
+          ? id === where.id
+          : where.id?.not
+            ? id !== where.id.not
+            : true;
+        if (session.userId !== where.userId || session.revokedAt || !idMatches) continue;
+        sessions.set(id, {...session, ...data});
+        count += 1;
+      }
+      return {count};
     },
   },
   });
@@ -147,4 +158,57 @@ test('auth refresh: refresh token is rejected as an API access token', async () 
   assert.equal(result.nextCalled, false);
   assert.equal(result.statusCode, 401);
   assert.match(result.body.error, /Refresh token cannot access/);
+});
+
+test('auth sessions: lists devices and revokes every session except the current one', async () => {
+  const user = {
+    id: 8,
+    email: 'devices@nuarr.pl',
+    name: 'Devices Owner',
+    role: 'owner',
+    isActive: true,
+    employeeId: null,
+    permissions: {},
+    passwordChangedAt: null,
+    failedLoginCount: 0,
+    lockedUntil: null,
+    passwordHash: await hashPassword('StrongPassword#2026'),
+  };
+  const router = createAuthRouter({prismaClient: createPrisma(user)});
+  const first = await invokeRouter(router, {
+    method: 'POST',
+    url: '/login',
+    body: {email: user.email, password: 'StrongPassword#2026'},
+    headers: {'user-agent': 'Mozilla/5.0 (Macintosh)'},
+  });
+  const second = await invokeRouter(router, {
+    method: 'POST',
+    url: '/login',
+    body: {email: user.email, password: 'StrongPassword#2026'},
+    headers: {'user-agent': 'Mozilla/5.0 (iPhone)'},
+  });
+
+  const before = await invokeRouter(router, {
+    method: 'GET',
+    url: '/sessions',
+    headers: {authorization: `Bearer ${second.body.token}`},
+  });
+  assert.equal(before.statusCode, 200);
+  assert.equal(before.body.sessions.length, 2);
+  assert.equal(before.body.sessions.filter((session) => session.current).length, 1);
+
+  const revoked = await invokeRouter(router, {
+    method: 'POST',
+    url: '/sessions/revoke-others',
+    headers: {authorization: `Bearer ${second.body.token}`},
+  });
+  assert.equal(revoked.statusCode, 200);
+  assert.equal(revoked.body.revokedCount, 1);
+
+  const oldSession = await invokeRouter(router, {
+    method: 'GET',
+    url: '/session',
+    headers: {authorization: `Bearer ${first.body.token}`},
+  });
+  assert.equal(oldSession.statusCode, 401);
 });

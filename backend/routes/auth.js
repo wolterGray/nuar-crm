@@ -742,6 +742,79 @@ function createAuthRouter({
     return res.json({success: true});
   });
 
+  router.get('/sessions', verifyJwt, requireSessionUser, async (req, res) => {
+    try {
+      const userId = Number(req.auth?.sub || req.auth?.id);
+      if (!Number.isInteger(userId) || userId <= 0) {
+        return res.json({success: true, sessions: []});
+      }
+
+      const now = new Date();
+      const sessions = await prisma.authSession.findMany({
+        where: {userId, revokedAt: null, expiresAt: {gt: now}},
+        orderBy: [{lastUsedAt: 'desc'}, {createdAt: 'desc'}],
+        select: {
+          id: true,
+          deviceName: true,
+          ip: true,
+          userAgent: true,
+          createdAt: true,
+          lastUsedAt: true,
+          expiresAt: true,
+        },
+      });
+
+      return res.json({
+        success: true,
+        sessions: sessions.map((session) => ({
+          ...session,
+          current: session.id === req.auth.sessionId,
+        })),
+      });
+    } catch (error) {
+      console.error('List auth sessions failed:', error);
+      return res.status(500).json({success: false, error: 'Failed to load active sessions'});
+    }
+  });
+
+  router.delete('/sessions/:sessionId', verifyJwt, requireSessionUser, async (req, res) => {
+    try {
+      const userId = Number(req.auth?.sub || req.auth?.id);
+      const sessionId = String(req.params?.sessionId || '').trim();
+      const result = await prisma.authSession.updateMany({
+        where: {id: sessionId, userId, revokedAt: null},
+        data: {revokedAt: new Date()},
+      });
+      if (!result.count) {
+        return res.status(404).json({success: false, error: 'Session not found'});
+      }
+
+      return res.json({success: true, current: sessionId === req.auth.sessionId});
+    } catch (error) {
+      console.error('Revoke auth session failed:', error);
+      return res.status(500).json({success: false, error: 'Failed to revoke session'});
+    }
+  });
+
+  router.post('/sessions/revoke-others', verifyJwt, requireSessionUser, async (req, res) => {
+    try {
+      const userId = Number(req.auth?.sub || req.auth?.id);
+      const result = await prisma.authSession.updateMany({
+        where: {
+          userId,
+          revokedAt: null,
+          ...(req.auth.sessionId ? {id: {not: req.auth.sessionId}} : {}),
+        },
+        data: {revokedAt: new Date()},
+      });
+
+      return res.json({success: true, revokedCount: result.count});
+    } catch (error) {
+      console.error('Revoke other auth sessions failed:', error);
+      return res.status(500).json({success: false, error: 'Failed to revoke other sessions'});
+    }
+  });
+
   return router;
 }
 

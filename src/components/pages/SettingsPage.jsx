@@ -34,6 +34,7 @@ import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 import AuditLogPanel from "../AuditLogPanel.jsx";
 import ErrorMonitoringPanel from "../ErrorMonitoringPanel.jsx";
 import BackupStatusPanel from "../BackupStatusPanel.jsx";
+import ActiveSessionsPanel from "../ActiveSessionsPanel.jsx";
 import "./SettingsPage.css";
 import {
   AppIcon,
@@ -2166,7 +2167,10 @@ function SettingsPage({
 
         <div className="settings-scroll flex-1 overflow-y-auto pr-1 pb-3 flex flex-col gap-4">
           {effectiveStaffTab === "account" && (
-            <StaffAccountCard authUser={authUser} employees={employees} />
+            <>
+              <StaffAccountCard authUser={authUser} employees={employees} />
+              <ActiveSessionsPanel pushNotification={pushNotification} />
+            </>
           )}
 
           {effectiveStaffTab === "display" && (
@@ -2311,6 +2315,7 @@ function SettingsPage({
               activeTab === "access" ? "flex" : "hidden",
             )}
           >
+            <ActiveSessionsPanel pushNotification={pushNotification} />
             <UserAccessPanel authUser={authUser} pushNotification={pushNotification} />
           </div>
 
