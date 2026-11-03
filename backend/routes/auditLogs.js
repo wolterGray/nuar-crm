@@ -6,6 +6,7 @@ const {buildAuditLogWhere, parseAuditLogQuery} = require('../domain/auditLogQuer
 const {redactSensitiveData} = require('../services/loggingService');
 const {getWorkerStatus} = require('../services/notificationWorker');
 const {getBackupStatus} = require('../services/backupService');
+const {getDataRetentionStatus} = require('../services/dataRetentionService');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -62,6 +63,7 @@ router.get('/error-events/summary', requirePermission(PERMISSIONS.LOGS_VIEW), as
     res.json({
       counts: {errorCount24h, failedDeliveries24h, pendingDeliveries, retryingDeliveries, warningCount24h},
       recent: recent.map((event) => ({...event, context: redactSensitiveData(event.context)})),
+      retention: getDataRetentionStatus(),
       worker: getWorkerStatus(),
     });
   } catch (error) {

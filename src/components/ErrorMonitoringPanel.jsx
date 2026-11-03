@@ -5,6 +5,7 @@ import {AppIcon, Button} from "./ui/index.js";
 const emptySummary = {
   counts: {errorCount24h: 0, failedDeliveries24h: 0, pendingDeliveries: 0, retryingDeliveries: 0, warningCount24h: 0},
   recent: [],
+  retention: null,
   worker: null,
 };
 
@@ -62,6 +63,17 @@ export default function ErrorMonitoringPanel() {
           </div>
         ))}
       </div>
+      {summary.retention ? (
+        <div className="error-monitoring-retention">
+          <AppIcon name="database" size="sm" />
+          <span>
+            Очистка технических данных: {summary.retention.active ? "активна" : "выключена"}
+            {summary.retention.lastRunAt
+              ? ` · ${new Date(summary.retention.lastRunAt).toLocaleString("ru-RU")} · удалено ${summary.retention.lastResult?.totalDeleted || 0}`
+              : " · ожидает первого запуска"}
+          </span>
+        </div>
+      ) : null}
       {error ? <div className="audit-log-error">{error}</div> : null}
       {summary.recent?.length ? (
         <div className="error-monitoring-events">
