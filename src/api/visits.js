@@ -17,6 +17,9 @@ const handleResponse = async (response, label) => {
     try {
       const payload = await response.json();
       message = payload?.error || payload?.message || message;
+      if (response.status >= 500 && payload?.code) {
+        message = `${message} (${payload.code})`;
+      }
     } catch {
       // Keep the status-based message.
     }

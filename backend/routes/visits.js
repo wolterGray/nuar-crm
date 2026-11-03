@@ -708,6 +708,19 @@ router.post('/calendar-entries', async (req, res) => {
     res.json({success: true, data: withStoredId(result)});
   } catch (err) {
     const response = getHttpErrorResponse(err);
+    console.error('Create calendar entry error:', err);
+    await recordErrorEvent(prisma, {
+      context: {
+        code: err?.code || null,
+        date: payload?.date || null,
+        kind: payload?.kind || null,
+        master: payload?.master || null,
+        operation: 'create-calendar-entry',
+      },
+      error: err,
+      message: err?.message || 'Create calendar entry failed',
+      source: 'calendar.create',
+    });
     res.status(response.status).json({success: false, error: response.message, code: err.code});
   }
 });
