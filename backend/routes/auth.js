@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 const {
@@ -24,6 +25,7 @@ const {
   validatePasswordStrength,
   verifyPassword,
 } = require('../utils/passwordAuth');
+const {getSessionMetadata, hashRefreshToken, tokensMatch} = require('../services/authSessionService');
 
 function createAuthRouter({
   prismaClient = new PrismaClient(),
@@ -59,30 +61,53 @@ function createAuthRouter({
     return auth.role || 'authenticated';
   };
 
-  const signAuthToken = (user) =>
-    jwt.sign(user, getJwtSecret(), {
-      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  const signAuthToken = (user, sessionId = null) =>
+    jwt.sign({...user, ...(sessionId ? {sessionId} : {})}, getJwtSecret(), {
+      expiresIn: process.env.JWT_EXPIRES_IN || '15m',
       subject: String(user.id),
     });
 
-  const signRefreshToken = (user) =>
+  const signRefreshToken = (user, sessionId = null) =>
     jwt.sign(
       {
         tokenType: 'refresh',
         email: user.email || '',
         role: user.role || 'authenticated',
+        ...(sessionId ? {sessionId} : {}),
       },
       getJwtSecret(),
       {
         expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '90d',
+        jwtid: crypto.randomUUID(),
         subject: String(user.id),
       },
     );
 
-  const createTokenPair = (user) => ({
-    token: signAuthToken(user),
-    refreshToken: signRefreshToken(user),
+  const createTokenPair = (user, sessionId = null) => ({
+    token: signAuthToken(user, sessionId),
+    refreshToken: signRefreshToken(user, sessionId),
   });
+
+  const createPersistedTokenPair = async (user, req, existingSessionId = null) => {
+    if (user.id === 'local-admin') return createTokenPair(user);
+    const sessionId = existingSessionId || crypto.randomUUID();
+    const tokens = createTokenPair(user, sessionId);
+    const decodedRefresh = jwt.decode(tokens.refreshToken);
+    const data = {
+      ...getSessionMetadata(req),
+      expiresAt: new Date(Number(decodedRefresh.exp) * 1000),
+      lastUsedAt: new Date(),
+      revokedAt: null,
+      tokenHash: hashRefreshToken(tokens.refreshToken),
+      userId: Number(user.id),
+    };
+    if (existingSessionId) {
+      await prisma.authSession.update({where: {id: sessionId}, data});
+    } else {
+      await prisma.authSession.create({data: {id: sessionId, ...data}});
+    }
+    return tokens;
+  };
 
   const verifyRefreshJwt = (req, res, next) => {
     const refreshToken = String(req.body?.refreshToken || '').trim();
@@ -96,6 +121,7 @@ function createAuthRouter({
         return res.status(401).json({ success: false, error: 'Invalid refresh token' });
       }
       req.auth = decoded;
+      req.refreshToken = refreshToken;
       return next();
     } catch {
       return res.status(401).json({ success: false, error: 'Invalid or expired refresh token' });
@@ -278,7 +304,7 @@ function createAuthRouter({
           permissions: updatedUser.permissions || {},
           effectivePermissions,
         };
-        const tokens = createTokenPair(user);
+        const tokens = await createPersistedTokenPair(user, req);
 
         req.auth = user;
         await recordLoginAudit(req, {
@@ -524,6 +550,10 @@ function createAuthRouter({
           where: {id: resetToken.id},
           data: {usedAt: now},
         }),
+        prisma.authSession.updateMany({
+          where: {userId: resetToken.user.id, revokedAt: null},
+          data: {revokedAt: now},
+        }),
       ]);
 
       invalidateUserCache(resetToken.user.id);
@@ -606,14 +636,20 @@ function createAuthRouter({
         : {};
       delete userPermissions.mustChangePassword;
 
-      await prisma.user.update({
-        where: { id: numericId },
-        data: {
-          passwordHash,
-          passwordChangedAt: now,
-          permissions: userPermissions,
-        },
-      });
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: numericId },
+          data: {
+            passwordHash,
+            passwordChangedAt: now,
+            permissions: userPermissions,
+          },
+        }),
+        prisma.authSession.updateMany({
+          where: {userId: numericId, revokedAt: null},
+          data: {revokedAt: now},
+        }),
+      ]);
 
       invalidateUserCache(numericId);
 
@@ -648,9 +684,19 @@ function createAuthRouter({
       permissions: req.auth?.permissions || {},
       effectivePermissions: req.auth?.effectivePermissions || getEffectivePermissions(role, req.auth?.permissions),
     };
+    const sessionId = req.auth?.sessionId || null;
+    if (sessionId && rawId !== 'local-admin') {
+      const session = await prisma.authSession.findFirst({
+        where: {id: sessionId, userId: Number(rawId), revokedAt: null, expiresAt: {gt: new Date()}},
+      });
+      if (!session) return res.status(401).json({success: false, error: 'Session expired or revoked'});
+    }
+    const tokens = sessionId
+      ? {token: signAuthToken(user, sessionId)}
+      : await createPersistedTokenPair(user, req);
     return res.json({
       success: true,
-      ...createTokenPair(user),
+      ...tokens,
       user,
     });
   });
@@ -668,11 +714,32 @@ function createAuthRouter({
       permissions: req.auth?.permissions || {},
       effectivePermissions: req.auth?.effectivePermissions || getEffectivePermissions(role, req.auth?.permissions),
     };
+    const sessionId = req.auth?.sessionId || null;
+    if (sessionId && rawId !== 'local-admin') {
+      const session = await prisma.authSession.findFirst({
+        where: {id: sessionId, userId: Number(rawId), revokedAt: null, expiresAt: {gt: new Date()}},
+      });
+      if (!session || !tokensMatch(req.refreshToken, session.tokenHash)) {
+        return res.status(401).json({success: false, error: 'Invalid or reused refresh token'});
+      }
+    }
+    const tokens = await createPersistedTokenPair(user, req, sessionId);
     return res.json({
       success: true,
-      ...createTokenPair(user),
+      ...tokens,
       user,
     });
+  });
+
+  router.post('/logout', verifyJwt, requireSessionUser, async (req, res) => {
+    const sessionId = req.auth?.sessionId;
+    if (sessionId && req.auth?.sub !== 'local-admin') {
+      await prisma.authSession.updateMany({
+        where: {id: sessionId, userId: Number(req.auth.sub), revokedAt: null},
+        data: {revokedAt: new Date()},
+      });
+    }
+    return res.json({success: true});
   });
 
   return router;

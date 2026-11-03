@@ -153,6 +153,28 @@ function createActiveUserMiddleware(prismaClient = null) {
       return res.status(401).json({ success: false, error: 'Invalid user ID in token' });
     }
 
+    if (req.auth.sessionId) {
+      try {
+        const activeSession = await db.authSession.findFirst({
+          where: {
+            id: req.auth.sessionId,
+            userId: numericId,
+            revokedAt: null,
+            expiresAt: {gt: new Date()},
+          },
+          select: {id: true},
+        });
+        if (!activeSession) {
+          return res.status(401).json({success: false, error: 'Session expired or revoked'});
+        }
+      } catch (err) {
+        if (process.env.NODE_ENV === 'production') {
+          console.error('requireActiveUser session lookup error:', err);
+          return res.status(500).json({success: false, error: 'Authentication verification failed'});
+        }
+      }
+    }
+
     const cached = userCache.get(numericId);
     if (cached && cached.expiresAt > Date.now()) {
       if (!cached.user.isActive) {

@@ -296,7 +296,7 @@ function App() {
 
   const handleAppLogout = useCallback(async () => {
     await detachWebPushOnLogout().catch(() => {});
-    handleLogout();
+    await handleLogout();
   }, [handleLogout]);
 
   // Reset/switch in-memory CRM collections on user session change to prevent data leakage

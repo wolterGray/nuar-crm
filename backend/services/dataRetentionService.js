@@ -13,6 +13,7 @@ const readDays = (value, fallback) => {
 
 const getRetentionPolicy = (env = process.env) => ({
   auditLogDays: readDays(env.RETENTION_AUDIT_LOG_DAYS, 730),
+  authSessionDays: readDays(env.RETENTION_AUTH_SESSION_DAYS, 30),
   errorEventDays: readDays(env.RETENTION_ERROR_EVENT_DAYS, 90),
   integrationJobDays: readDays(env.RETENTION_INTEGRATION_JOB_DAYS, 90),
   notificationDays: readDays(env.RETENTION_NOTIFICATION_DAYS, 180),
@@ -23,8 +24,16 @@ const cutoff = (now, days) => new Date(now.getTime() - days * DAY_MS);
 
 async function runDataRetention(prisma, {env = process.env, now = new Date()} = {}) {
   const policy = getRetentionPolicy(env);
-  const [auditLogs, errorEvents, deliveries, notificationEvents, resetTokens, integrationJobs] = await Promise.all([
+  const [auditLogs, authSessions, errorEvents, deliveries, notificationEvents, resetTokens, integrationJobs] = await Promise.all([
     prisma.auditLog.deleteMany({where: {createdAt: {lt: cutoff(now, policy.auditLogDays)}}}),
+    prisma.authSession.deleteMany({
+      where: {
+        OR: [
+          {expiresAt: {lt: now}},
+          {revokedAt: {lt: cutoff(now, policy.authSessionDays)}},
+        ],
+      },
+    }),
     prisma.errorEvent.deleteMany({where: {createdAt: {lt: cutoff(now, policy.errorEventDays)}}}),
     prisma.notificationDelivery.deleteMany({
       where: {
@@ -53,6 +62,7 @@ async function runDataRetention(prisma, {env = process.env, now = new Date()} = 
 
   const deleted = {
     auditLogs: auditLogs.count,
+    authSessions: authSessions.count,
     deliveries: deliveries.count,
     errorEvents: errorEvents.count,
     integrationJobs: integrationJobs.count,

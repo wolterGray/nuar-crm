@@ -1,10 +1,11 @@
 import {useCallback, useEffect, useState} from "react";
-import {forgotPassword, resetPassword} from "../api/auth.js";
+import {forgotPassword, logoutSession, resetPassword} from "../api/auth.js";
 import {API_URL} from "../api/config.js";
 import {isResetPasswordPath} from "../utils/appRouting.js";
 
 const AUTH_TOKEN_STORAGE_KEY = "nuar_crm_auth_token";
 const AUTH_SESSION_STORAGE_KEY = "nuar_crm_auth_session";
+const SESSION_REFRESH_LEEWAY_MS = 60 * 1000;
 const AUTH_ROLES = new Set(["owner", "admin", "manager", "staff", "readonly"]);
 
 const normalizeSessionRole = (role) => {
@@ -220,12 +221,20 @@ export function useAuth({onSessionLostRef, pushNotification}) {
           recoveryPromise = null;
         });
     };
+    const handleStorage = (event) => {
+      if (event.key !== AUTH_SESSION_STORAGE_KEY) return;
+      const session = loadStoredSession();
+      if (session) setAuthSession(session);
+      else rejectSession();
+    };
     window.addEventListener("nuar-crm-auth-lost", handleAuthLost);
+    window.addEventListener("storage", handleStorage);
     restoreSession();
 
     return () => {
       active = false;
       window.removeEventListener("nuar-crm-auth-lost", handleAuthLost);
+      window.removeEventListener("storage", handleStorage);
     };
   }, [onSessionLostRef]);
 
@@ -238,7 +247,7 @@ export function useAuth({onSessionLostRef, pushNotification}) {
     const refresh = async ({force = false} = {}) => {
       if (!active || refreshPromise) return refreshPromise;
       const expiresAtMs = Number(authSession.expires_at || 0) * 1000;
-      if (!force && expiresAtMs - Date.now() > 24 * 60 * 60 * 1000) return null;
+      if (!force && expiresAtMs - Date.now() > SESSION_REFRESH_LEEWAY_MS) return null;
 
       refreshPromise = requestSessionRefresh(authSession.refresh_token)
         .then((session) => {
@@ -262,7 +271,7 @@ export function useAuth({onSessionLostRef, pushNotification}) {
     };
 
     const expiresAtMs = Number(authSession.expires_at || 0) * 1000;
-    const refreshAtMs = expiresAtMs - 24 * 60 * 60 * 1000;
+    const refreshAtMs = expiresAtMs - SESSION_REFRESH_LEEWAY_MS;
     const delay = Math.max(1000, Math.min(refreshAtMs - Date.now(), 2147483647));
     const timer = window.setTimeout(() => refresh({force: true}), delay);
     const handleResume = () => {
@@ -414,11 +423,18 @@ export function useAuth({onSessionLostRef, pushNotification}) {
     [pushNotification, resetToken],
   );
 
-  const handleLogout = useCallback(() => {
-    clearStoredAuth();
-    setAuthSession(null);
-    onSessionLostRef?.current?.();
-  }, [onSessionLostRef]);
+  const handleLogout = useCallback(async () => {
+    const token = authSession?.access_token || getAuthToken();
+    try {
+      await logoutSession(token);
+    } catch (error) {
+      console.error("Failed to revoke server session:", error?.message || "network error");
+    } finally {
+      clearStoredAuth();
+      setAuthSession(null);
+      onSessionLostRef?.current?.();
+    }
+  }, [authSession?.access_token, onSessionLostRef]);
 
   return {
     authReady,

@@ -128,6 +128,24 @@ test('auth hardening: requireActiveUser rejects non-numeric or invalid user IDs'
   }
 });
 
+test('auth hardening: requireActiveUser immediately rejects a revoked device session', async () => {
+  const middleware = createActiveUserMiddleware({
+    authSession: {findFirst: async () => null},
+    user: {findUnique: async () => assert.fail('user lookup must not run for revoked session')},
+  });
+  const req = {auth: {id: '10', sub: '10', role: 'owner', sessionId: 'revoked-session'}};
+  const res = createResponse();
+  let nextCalled = false;
+
+  await middleware(req, res, () => {
+    nextCalled = true;
+  });
+
+  assert.equal(nextCalled, false);
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.body?.error, 'Session expired or revoked');
+});
+
 test('auth hardening: requireActiveUser rejects JWT issued before password change (both uncached and cached)', async () => {
   const nowSec = Math.floor(Date.now() / 1000);
   const passwordChangedAt = new Date((nowSec - 100) * 1000); // Changed 100 seconds ago

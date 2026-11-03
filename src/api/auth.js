@@ -48,3 +48,13 @@ export async function changePassword({currentPassword, newPassword}) {
   return parseAuthResponse(response);
 }
 
+export async function logoutSession(token) {
+  if (!token) return {success: true};
+  const response = await fetch(`${API_URL}/api/auth/logout`, {
+    method: "POST",
+    headers: {Authorization: `Bearer ${token}`},
+  });
+
+  return parseAuthResponse(response);
+}
+

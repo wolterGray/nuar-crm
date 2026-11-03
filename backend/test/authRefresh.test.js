@@ -49,7 +49,9 @@ const invokeRouter = (router, {method, url, body = {}, headers = {}}) =>
     });
   });
 
-const createPrisma = (user) => ({
+const createPrisma = (user) => {
+  const sessions = new Map();
+  return ({
   user: {
     count: async () => (user.role === 'owner' && user.isActive ? 1 : 0),
     findUnique: async ({where}) => {
@@ -61,7 +63,28 @@ const createPrisma = (user) => ({
   },
   auditLog: {create: async ({data}) => data},
   errorEvent: {create: async ({data}) => data},
-});
+  authSession: {
+    create: async ({data}) => { sessions.set(data.id, {...data}); return data; },
+    findFirst: async ({where}) => {
+      const session = sessions.get(where.id);
+      return session && session.userId === where.userId && !session.revokedAt && session.expiresAt > new Date()
+        ? session
+        : null;
+    },
+    update: async ({where, data}) => {
+      const updated = {...sessions.get(where.id), ...data};
+      sessions.set(where.id, updated);
+      return updated;
+    },
+    updateMany: async ({where, data}) => {
+      const session = sessions.get(where.id);
+      if (!session || session.userId !== where.userId || session.revokedAt) return {count: 0};
+      sessions.set(where.id, {...session, ...data});
+      return {count: 1};
+    },
+  },
+  });
+};
 
 test('auth refresh: login issues a refresh token and refresh rotates the session', async () => {
   const user = {
@@ -97,8 +120,17 @@ test('auth refresh: login issues a refresh token and refresh rotates the session
   assert.equal(refreshed.statusCode, 200);
   assert.ok(refreshed.body.token);
   assert.ok(refreshed.body.refreshToken);
+  assert.notEqual(refreshed.body.refreshToken, login.body.refreshToken);
   assert.equal(refreshed.body.user.id, String(user.id));
   assert.equal(jwt.verify(refreshed.body.token, JWT_SECRET).tokenType, undefined);
+
+  const reused = await invokeRouter(router, {
+    method: 'POST',
+    url: '/refresh',
+    body: {refreshToken: login.body.refreshToken},
+  });
+  assert.equal(reused.statusCode, 401);
+  assert.match(reused.body.error, /reused refresh token/i);
 });
 
 test('auth refresh: refresh token is rejected as an API access token', async () => {

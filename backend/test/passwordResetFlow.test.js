@@ -22,12 +22,35 @@ const createMockPrisma = () => {
   const resetTokens = new Map();
   const auditLogs = [];
   const errorEvents = [];
+  const authSessions = new Map();
 
   return {
     users,
     resetTokens,
     auditLogs,
     errorEvents,
+    authSession: {
+      create: async ({data}) => { authSessions.set(data.id, {...data}); return data; },
+      findFirst: async ({where}) => {
+        const session = authSessions.get(where.id);
+        return session && session.userId === where.userId && !session.revokedAt ? session : null;
+      },
+      update: async ({where, data}) => {
+        const updated = {...authSessions.get(where.id), ...data};
+        authSessions.set(where.id, updated);
+        return updated;
+      },
+      updateMany: async ({where, data}) => {
+        let count = 0;
+        for (const [id, session] of authSessions.entries()) {
+          if (session.userId === where.userId && (!where.id || id === where.id) && !session.revokedAt) {
+            authSessions.set(id, {...session, ...data});
+            count += 1;
+          }
+        }
+        return {count};
+      },
+    },
     user: {
       findUnique: async ({where = {}} = {}) => {
         if (where.id !== undefined) return users.get(where.id) || null;

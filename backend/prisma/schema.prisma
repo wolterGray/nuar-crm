@@ -55,11 +55,31 @@ model User {
   notificationRecipients NotificationRecipient[]
 
   passwordResetTokens    PasswordResetToken[]
+  authSessions           AuthSession[]
   loyaltyTransactions    LoyaltyTransaction[] @relation("LoyaltyTransactionCreatedBy")
   redeemedLoyaltyRewards LoyaltyReward[]      @relation("LoyaltyRewardRedeemedBy")
 
   @@index([role])
   @@index([isActive])
+}
+
+model AuthSession {
+  id           String    @id @default(uuid())
+  userId       Int
+  tokenHash    String
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  lastUsedAt   DateTime  @default(now())
+  ip           String?
+  userAgent    String?
+  deviceName   String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
 }
 
 model PasswordResetToken {

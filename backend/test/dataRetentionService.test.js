@@ -12,6 +12,7 @@ const model = (count, calls, name) => ({
 test('retention policy uses conservative defaults and validates overrides', () => {
   assert.deepEqual(getRetentionPolicy({}), {
     auditLogDays: 730,
+    authSessionDays: 30,
     errorEventDays: 90,
     integrationJobDays: 90,
     notificationDays: 180,
@@ -25,6 +26,7 @@ test('retention removes only expired technical records', async () => {
   const calls = {};
   const prisma = {
     auditLog: model(1, calls, 'auditLog'),
+    authSession: model(7, calls, 'authSession'),
     errorEvent: model(2, calls, 'errorEvent'),
     integrationJob: model(3, calls, 'integrationJob'),
     notificationDelivery: model(4, calls, 'notificationDelivery'),
@@ -33,9 +35,10 @@ test('retention removes only expired technical records', async () => {
   };
   const result = await runDataRetention(prisma, {now: new Date('2026-11-03T12:00:00.000Z')});
 
-  assert.equal(result.totalDeleted, 21);
+  assert.equal(result.totalDeleted, 28);
   assert.deepEqual(calls.notificationDelivery.where.status.in, ['failed', 'sent']);
   assert.deepEqual(calls.integrationJob.where.status.in, ['completed', 'failed']);
   assert.equal(calls.auditLog.where.createdAt.lt.toISOString(), '2024-11-03T12:00:00.000Z');
   assert.ok(calls.passwordResetToken.where.OR[0].expiresAt.lt instanceof Date);
+  assert.equal(calls.authSession.where.OR[0].expiresAt.lt.toISOString(), '2026-11-03T12:00:00.000Z');
 });
