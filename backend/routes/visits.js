@@ -281,7 +281,7 @@ const buildCalendarEntryData = (payload) => {
 const assertCalendarEntryAvailable = async (tx, payload, excludeId = null) => {
   const lockKeys = getCalendarLockKeys(payload);
   for (const lockKey of lockKeys) {
-    await tx.$queryRaw`select pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`;
+    await tx.$queryRaw`select pg_advisory_xact_lock(hashtext(${lockKey})::bigint)`;
   }
   if (payload?.allowConflict === true || lockKeys.length === 0 || !payload?.date) return;
 
