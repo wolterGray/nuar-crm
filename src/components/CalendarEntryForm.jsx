@@ -353,7 +353,7 @@ function CalendarEntryForm({
       employee: selectedEmployee,
       time,
     });
-  }, [date, duration, kind, selectedEmployee, serviceVariant, time]);
+  }, [date, duration, kind, master, selectedEmployee, serviceVariant, time]);
   useEffect(() => {
     if (kind !== "visit" || !serviceId) {
       return;

@@ -27,6 +27,7 @@ const routeLoaders = {
   settings: () => import("./pages/SettingsPage.jsx"),
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function preloadAppRoute(activePage) {
   const loader = routeLoaders[activePage] ?? routeLoaders.calendar;
   return loader();

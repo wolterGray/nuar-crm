@@ -1,6 +1,6 @@
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useEffect, useMemo, useRef} from "react";
-import {useForm} from "react-hook-form";
+import {useForm, useWatch} from "react-hook-form";
 import {z} from "zod";
 import {FieldLabel} from "./HintIcon.jsx";
 import {AppIcon, Button, Field, Input, Select, Textarea} from "./ui/index.js";
@@ -31,6 +31,7 @@ const clientFormSchema = z.object({
 
 export const DEFAULT_CLIENT_PREFERENCE = "Любой мастер";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function getClientPreferenceOptions(employees = [], currentPreference = "") {
   const options = [DEFAULT_CLIENT_PREFERENCE];
   const seen = new Set(options);
@@ -60,10 +61,10 @@ function NewClientForm({client, clients = [], employees = [], onSubmit}) {
   const preferenceOptions = getClientPreferenceOptions(employees, currentPreference);
   const {
     formState: {errors, isSubmitting, isValid},
+    control,
     handleSubmit,
     register,
     trigger,
-    watch,
   } = useForm({
     defaultValues: {
       name: client?.name ?? "",
@@ -87,7 +88,10 @@ function NewClientForm({client, clients = [], employees = [], onSubmit}) {
   useEffect(() => {
     formRef.current?.scrollTo({top: 0});
   }, [client?.id]);
-  const duplicateDraft = watch(["name", "phone", "instagram", "telegram"]);
+  const duplicateDraft = useWatch({
+    control,
+    name: ["name", "phone", "instagram", "telegram"],
+  });
   const duplicateCandidates = useMemo(
     () =>
       findClientDuplicateCandidates(

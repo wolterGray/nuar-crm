@@ -426,7 +426,7 @@ function ClientsPage({
           hasNote,
         };
       }),
-    [calendarEntries, certificates, clientPackages, clients, employees, visits],
+    [calendarEntries, certificates, clientPackages, clients, employees, inactiveClientDays, visits],
   );
 
   const clientQualityReport = useMemo(
@@ -565,11 +565,7 @@ function ClientsPage({
     return clientsData.find((c) => c.id === selectedClientId) ?? null;
   }, [clientsData, selectedClientId]);
 
-  useEffect(() => {
-    if (activeSelectedClient) {
-      setDrawerClient(activeSelectedClient);
-    }
-  }, [activeSelectedClient]);
+  const displayedDrawerClient = activeSelectedClient ?? drawerClient;
 
   // Drawer Opening & Closing Logic
   const handleSelectClient = useCallback((client) => {
@@ -726,7 +722,7 @@ function ClientsPage({
         />
 
         {/* 4. Right Side Drawer for Selected Client */}
-        {drawerClient && (
+        {displayedDrawerClient && (
           <div
             className={`client-drawer-backdrop ${isDrawerOpen ? "is-open" : "is-closing"}`}
             onClick={handleCloseDrawer}>
@@ -736,8 +732,8 @@ function ClientsPage({
               role="dialog"
               onClick={(e) => e.stopPropagation()}>
               <ClientWorkspace
-                client={drawerClient}
-                key={drawerClient.id}
+                client={displayedDrawerClient}
+                key={displayedDrawerClient.id}
                 communicationLog={communicationLog}
                 formatAppointmentSummary={formatAppointmentSummary}
                 formatMoney={formatMoney}

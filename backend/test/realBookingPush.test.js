@@ -3,11 +3,10 @@ const {test} = require('node:test');
 const webpush = require('web-push');
 const {
   buildBusinessPushPayload,
-  getTargetUsers,
   processDueWebPushDeliveries,
   queueBusinessPushDeliveries,
 } = require('../services/businessPushService');
-const {runWorkerCycle, getWorkerStatus} = require('../services/notificationWorker');
+const {runWorkerCycle} = require('../services/notificationWorker');
 
 const setupVapid = () => {
   const keys = webpush.generateVAPIDKeys();
@@ -129,7 +128,7 @@ test('E2E Real Booking Push: generates clean payload and delivers successfully',
 
   // 3. Queue deliveries with immediate synchronous flush
   const deliveredEndpoints = [];
-  const mockSendNotification = async (sub, body) => {
+  const mockSendNotification = async (sub, _body) => {
     deliveredEndpoints.push(sub.endpoint);
     return {headers: {location: 'https://push.apple.com/msg-uuid-ok'}};
   };

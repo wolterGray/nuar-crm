@@ -1,6 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const { hasPermission, requirePermission, PERMISSIONS } = require('../middleware/auth');
+const { hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { ensureSiteCmsTables } = require('../utils/siteCmsTables');

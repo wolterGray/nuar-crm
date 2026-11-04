@@ -190,7 +190,7 @@ export function useBooksyGmailSync({
     return () => {
       active = false;
     };
-  }, [enabled, refreshClientDashboard]);
+  }, [enabled, pushNotification, refreshClientDashboard]);
 
   const connectGmail = useCallback(async () => {
     if (!enabled) {

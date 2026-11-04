@@ -31,7 +31,6 @@ const {
   restoreClientPackageUsage: restorePackageLedgerUsage,
 } = require('../services/packageLedgerService');
 const {
-  respondWithAudit,
   auditCreate,
   auditUpdate,
   cleanOptionalString,
@@ -253,11 +252,6 @@ const handleVisitChange = async (before, after) => {
   } catch (error) {
     console.error('Failed to handle visit change for notifications:', error);
   }
-};
-
-// Wrapper that passes handleCalendarEntryChange callback
-const localRespondWithAudit = (req, res, promise, audit) => {
-  return respondWithAudit(prisma, req, res, promise, audit, handleCalendarEntryChange);
 };
 
 // ----- Visit local helpers -----

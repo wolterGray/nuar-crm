@@ -30,7 +30,9 @@ const isAllowedOrigin = (origin = '') => {
       try {
         const parsedApp = new URL(appUrl);
         if (parsedApp.hostname.toLowerCase() === host) return true;
-      } catch {}
+      } catch {
+        // Ignore an invalid optional application URL and keep the safe fallback.
+      }
     }
     return false;
   } catch {

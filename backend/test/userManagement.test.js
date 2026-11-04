@@ -1,7 +1,6 @@
 const assert = require('node:assert/strict');
 const {before, test} = require('node:test');
 const {createUsersRouter} = require('../routes/users');
-const {createAuthRouter} = require('../routes/auth');
 const {isAllowedOrigin, getResetBaseUrl} = require('../utils/passwordResetTokens');
 const {verifyPassword} = require('../utils/passwordAuth');
 
@@ -224,7 +223,7 @@ test('Origin header poisoning defense: rejects attacker domain and falls back to
 test('User creation: Variant A (email invite), Variant B (generated temp password), Variant C (manual temp password)', async () => {
   const prisma = createMockPrisma();
   let emailSentCount = 0;
-  const sendResetEmail = async ({email, resetUrl}) => {
+  const sendResetEmail = async ({email: _email, resetUrl: _resetUrl}) => {
     emailSentCount += 1;
     return {sent: true, messageId: `msg-${emailSentCount}`};
   };
@@ -308,9 +307,7 @@ test('User creation: Variant A (email invite), Variant B (generated temp passwor
 
 test('Password reset for existing user: generate temp, manual temp, email link, and owner protection', async () => {
   const prisma = createMockPrisma();
-  let emailSentCount = 0;
   const sendResetEmail = async () => {
-    emailSentCount += 1;
     return {sent: true, messageId: 'reset-msg-1'};
   };
 

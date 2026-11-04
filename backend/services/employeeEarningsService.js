@@ -9,7 +9,7 @@ const {
   isDayClosePackageVisit,
   normalizeDayCloseDate,
 } = require('../utils/financeHelpers');
-const { validationError, withStoredId } = require('../utils/crudHelpers');
+const { withStoredId } = require('../utils/crudHelpers');
 const { recordAuditLog } = require('./loggingService');
 
 const Decimal = Prisma.Decimal;
@@ -43,9 +43,6 @@ const stateConflictError = (message) => {
   error.status = 409;
   return error;
 };
-
-const getEmployeeDisplayName = (employee, visitPayload = {}) =>
-  employee?.name || String(visitPayload?.master ?? visitPayload?.employeeName ?? '').trim() || 'employee';
 
 const validateCommissionPercent = (employee) => {
   if (!employee) {
@@ -396,20 +393,7 @@ const normalizeVisitParticipants = async (tx, visitPayload = {}) => {
   };
 };
 
-const resolveEmployeeForVisit = async (tx, visit, visitPayload) => {
-  const employeeId = Number(visit?.employeeId ?? visitPayload?.employeeId);
-  if (Number.isInteger(employeeId) && employeeId > 0) {
-    const employee = await tx.employee.findUnique({ where: { id: employeeId } });
-    if (employee) return employee;
-  }
-
-  const master = String(visitPayload?.master ?? visitPayload?.employeeName ?? '').trim();
-  if (!master) return null;
-
-  return resolveEmployeeByMasterName(tx, master);
-};
-
-const resolveEmployeeForVisitParticipant = async (tx, participant, visit, visitPayload) => {
+const resolveEmployeeForVisitParticipant = async (tx, participant) => {
   const employeeId = Number(participant?.employeeId);
   if (Number.isInteger(employeeId) && employeeId > 0) {
     const employee = await tx.employee.findUnique({ where: { id: employeeId } });
