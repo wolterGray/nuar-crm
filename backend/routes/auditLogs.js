@@ -8,6 +8,7 @@ const {getWorkerStatus} = require('../services/notificationWorker');
 const {getBackupStatus} = require('../services/backupService');
 const {getDataRetentionStatus} = require('../services/dataRetentionService');
 const {checkDataIntegrity} = require('../services/dataIntegrityService');
+const {getDataIntegrityWorkerStatus} = require('../services/dataIntegrityWorker');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -89,7 +90,7 @@ router.get('/backup/status', requirePermission(PERMISSIONS.LOGS_VIEW), (_req, re
 
 router.get('/data-integrity/status', requirePermission(PERMISSIONS.LOGS_VIEW), async (_req, res, next) => {
   try {
-    res.json(await checkDataIntegrity(prisma));
+    res.json({...await checkDataIntegrity(prisma), automation: getDataIntegrityWorkerStatus()});
   } catch (error) {
     next(error);
   }

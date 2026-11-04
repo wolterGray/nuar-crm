@@ -4,10 +4,7 @@ const sample = (items) => items.slice(0, MAX_SAMPLES);
 
 async function checkDataIntegrity(prisma) {
   const [visits, calendarEntries, packages, certificates] = await Promise.all([
-    prisma.visit.findMany({
-      where: {calendarEntryId: {not: null}},
-      select: {calendarEntryId: true, id: true},
-    }),
+    prisma.visit.findMany({select: {calendarEntryId: true, id: true}}),
     prisma.calendarEntry.findMany({
       select: {id: true, status: true, visitId: true},
     }),
@@ -20,9 +17,10 @@ async function checkDataIntegrity(prisma) {
   ]);
 
   const visitsById = new Map(visits.map((visit) => [visit.id, visit]));
+  const linkedVisits = visits.filter((visit) => visit.calendarEntryId !== null);
   const entriesById = new Map(calendarEntries.map((entry) => [entry.id, entry]));
   const visitsByEntryId = new Map();
-  for (const visit of visits) {
+  for (const visit of linkedVisits) {
     const group = visitsByEntryId.get(visit.calendarEntryId) || [];
     group.push(visit.id);
     visitsByEntryId.set(visit.calendarEntryId, group);
@@ -31,7 +29,7 @@ async function checkDataIntegrity(prisma) {
   const duplicateVisitLinks = [...visitsByEntryId.entries()]
     .filter(([, visitIds]) => visitIds.length > 1)
     .map(([calendarEntryId, visitIds]) => ({calendarEntryId, visitIds}));
-  const missingCalendarEntries = visits
+  const missingCalendarEntries = linkedVisits
     .filter((visit) => !entriesById.has(visit.calendarEntryId))
     .map((visit) => ({calendarEntryId: visit.calendarEntryId, visitId: visit.id}));
   const missingVisits = calendarEntries
@@ -40,7 +38,7 @@ async function checkDataIntegrity(prisma) {
   const completedEntriesWithoutVisit = calendarEntries
     .filter((entry) => entry.status === 'completed' && !entry.visitId)
     .map((entry) => ({calendarEntryId: entry.id}));
-  const mismatchedVisitLinks = visits
+  const mismatchedVisitLinks = linkedVisits
     .filter((visit) => {
       const entry = entriesById.get(visit.calendarEntryId);
       return entry && entry.visitId !== visit.id;
@@ -48,8 +46,20 @@ async function checkDataIntegrity(prisma) {
     .map((visit) => ({
       calendarEntryId: visit.calendarEntryId,
       calendarVisitId: entriesById.get(visit.calendarEntryId)?.visitId || null,
+      direction: 'visit_to_calendar',
       visitId: visit.id,
-    }));
+    }))
+    .concat(calendarEntries
+      .filter((entry) => {
+        const visit = entry.visitId ? visitsById.get(entry.visitId) : null;
+        return visit && visit.calendarEntryId !== entry.id;
+      })
+      .map((entry) => ({
+        calendarEntryId: entry.id,
+        direction: 'calendar_to_visit',
+        visitCalendarEntryId: visitsById.get(entry.visitId)?.calendarEntryId || null,
+        visitId: entry.visitId,
+      })));
   const invalidPackageBalances = packages
     .filter((item) =>
       Number(item.remainingVisits) < 0 ||

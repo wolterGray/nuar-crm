@@ -21,6 +21,17 @@ test('data integrity reports a healthy consistent CRM snapshot', async () => {
   assert.deepEqual(result.summary, {criticalCount: 0, warningCount: 0});
 });
 
+test('data integrity distinguishes a missing visit from an existing visit with a broken reverse link', async () => {
+  const result = await checkDataIntegrity(createPrisma({
+    calendarEntries: [{id: 10, status: 'scheduled', visitId: 20}],
+    visits: [{id: 20, calendarEntryId: null}],
+  }));
+
+  assert.equal(result.checks.missingVisits.count, 0);
+  assert.equal(result.checks.mismatchedVisitLinks.count, 1);
+  assert.equal(result.checks.mismatchedVisitLinks.samples[0].direction, 'calendar_to_visit');
+});
+
 test('data integrity detects duplicate, broken, mismatched and invalid financial links', async () => {
   const result = await checkDataIntegrity(createPrisma({
     calendarEntries: [

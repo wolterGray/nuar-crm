@@ -29,6 +29,9 @@ export default function DataIntegrityPanel() {
 
   const issues = Object.entries(status?.checks || {}).filter(([, check]) => check.count > 0);
   const healthy = status?.healthy === true && issues.length === 0;
+  const automaticCheck = status?.automation?.lastRunAt
+    ? new Date(status.automation.lastRunAt).toLocaleString("ru-RU", {dateStyle: "short", timeStyle: "short"})
+    : "ещё не выполнялась";
 
   return (
     <div className={`backup-status-panel ${healthy ? "is-healthy" : "is-warning"}`}>
@@ -43,6 +46,7 @@ export default function DataIntegrityPanel() {
         ) : (
           <small>Связи календаря, визитов, пакетов и сертификатов согласованы.</small>
         )}
+        {!loading && !error ? <small>Автопроверка: {automaticCheck}</small> : null}
       </div>
       <Button
         disabled={loading}

@@ -14,6 +14,10 @@ const {
   startDataRetentionWorker,
   stopDataRetentionWorker,
 } = require('./services/dataRetentionService');
+const {
+  startDataIntegrityWorker,
+  stopDataIntegrityWorker,
+} = require('./services/dataIntegrityWorker');
 
 const app = express();
 const serverPrisma = new PrismaClient();
@@ -150,6 +154,7 @@ const server = app.listen(PORT, () => {
   console.log(`🚀 Backend listening on http://localhost:${PORT}`);
   startNotificationWorker(serverPrisma);
   startDataRetentionWorker(serverPrisma);
+  startDataIntegrityWorker(serverPrisma);
 });
 
 let shuttingDown = false;
@@ -159,6 +164,7 @@ const shutdown = (signal) => {
   console.log(`[shutdown] ${signal} received; draining connections...`);
   stopNotificationWorker();
   stopDataRetentionWorker();
+  stopDataIntegrityWorker();
 
   const forceExit = setTimeout(() => {
     console.error('[shutdown] Graceful shutdown timed out');
