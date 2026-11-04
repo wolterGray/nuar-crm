@@ -45,7 +45,11 @@ export const createCalendarEntry = async (entry) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/calendar-entries`, {
     method: "POST",
-    headers: {"Content-Type": "application/json", ...headers},
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+      "Idempotency-Key": getMutationKey("POST:/api/calendar-entries", entry),
+    },
     body: JSON.stringify(entry),
   });
 

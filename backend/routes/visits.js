@@ -4,6 +4,7 @@ const { Prisma, PrismaClient } = require('@prisma/client');
 const { requireOwner, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
+const {executeIdempotentMutation} = require('../services/idempotencyService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const {
   assertRecordVersion,
@@ -688,7 +689,7 @@ router.post('/calendar-entries', async (req, res) => {
   }
 
   try {
-    const result = await runSerializableTransaction(async (tx) => {
+    const {replayed, result} = await executeIdempotentMutation(prisma, req, 'create-calendar-entry', async (tx) => {
       await assertCalendarEntryAvailable(tx, payload);
       const calendarEntry = await tx.calendarEntry.create({data: buildCalendarEntryData(payload)});
       await recordAuditLog(tx, req, {
@@ -699,8 +700,9 @@ router.post('/calendar-entries', async (req, res) => {
         entityId: calendarEntry.id,
       });
       return calendarEntry;
-    });
-    await handleCalendarEntryChange(null, result, 'create', req);
+    }, {runTransaction: runSerializableTransaction});
+    if (!replayed) await handleCalendarEntryChange(null, result, 'create', req);
+    if (replayed) res.set('Idempotency-Replayed', 'true');
     res.json({success: true, data: withStoredId(result)});
   } catch (err) {
     const response = getHttpErrorResponse(err);

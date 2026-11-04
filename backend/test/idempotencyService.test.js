@@ -77,3 +77,31 @@ test('stores a new mutation response in the same transaction', async () => {
   assert.equal(calls.length, 2);
   assert.deepEqual(calls[1][1].data.payload.response, { id: 11 });
 });
+
+test('uses a custom transaction runner for serializable mutations', async () => {
+  let runnerCalls = 0;
+  const tx = {
+    systemState: {
+      create: async () => {},
+      findUnique: async () => null,
+      update: async () => {},
+    },
+  };
+  const prisma = {};
+  const result = await executeIdempotentMutation(
+    prisma,
+    {auth: {id: '7'}, headers: {'idempotency-key': 'calendar-create-123'}},
+    'create-calendar-entry',
+    async () => ({id: 42}),
+    {
+      runTransaction: async (callback) => {
+        runnerCalls += 1;
+        return callback(tx);
+      },
+    },
+  );
+
+  assert.equal(runnerCalls, 1);
+  assert.equal(result.replayed, false);
+  assert.deepEqual(result.result, {id: 42});
+});

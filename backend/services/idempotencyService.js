@@ -28,12 +28,15 @@ const buildReceiptKey = ({ actorId, key, operation }) => {
   return `idempotency:${digest}`;
 };
 
-async function executeIdempotentMutation(prisma, req, operation, mutation) {
+async function executeIdempotentMutation(prisma, req, operation, mutation, options = {}) {
   const key = getIdempotencyKey(req);
+  const runTransaction = typeof options.runTransaction === 'function'
+    ? options.runTransaction
+    : (callback) => prisma.$transaction(callback);
   if (!key) {
     return {
       replayed: false,
-      result: await prisma.$transaction((tx) => mutation(tx)),
+      result: await runTransaction((tx) => mutation(tx)),
     };
   }
 
@@ -44,7 +47,7 @@ async function executeIdempotentMutation(prisma, req, operation, mutation) {
   });
 
   try {
-    const outcome = await prisma.$transaction(async (tx) => {
+    const outcome = await runTransaction(async (tx) => {
       const existing = await tx.systemState.findUnique({ where: { key: receiptKey } });
       if (existing) return { replayed: true, result: existing.payload?.response };
 
