@@ -6,7 +6,23 @@ const withTimeout = (promise, timeoutMs) => new Promise((resolve, reject) => {
   );
 });
 
-async function checkReadiness({getWorkerStatus, prisma, timeoutMs = 2000}) {
+const workerCheck = (status, fallbackError) => {
+  const error = status?.lastError || null;
+  return {
+    ok: Boolean(status?.active) && !error,
+    active: Boolean(status?.active),
+    lastRunAt: status?.lastRunAt || null,
+    ...(error ? {error} : !status?.active ? {error: fallbackError} : {}),
+  };
+};
+
+async function checkReadiness({
+  getDataIntegrityWorkerStatus,
+  getDataRetentionStatus,
+  getWorkerStatus,
+  prisma,
+  timeoutMs = 2000,
+}) {
   const checks = {
     database: {ok: false},
     notificationWorker: {ok: false},
@@ -27,6 +43,19 @@ async function checkReadiness({getWorkerStatus, prisma, timeoutMs = 2000}) {
     lastRunAt: worker?.lastRunAt || null,
     ...(workerError ? {error: workerError} : {}),
   };
+
+  if (getDataIntegrityWorkerStatus) {
+    checks.dataIntegrityWorker = workerCheck(
+      getDataIntegrityWorkerStatus(),
+      'Data integrity worker is inactive',
+    );
+  }
+  if (getDataRetentionStatus) {
+    checks.dataRetentionWorker = workerCheck(
+      getDataRetentionStatus(),
+      'Data retention worker is inactive',
+    );
+  }
 
   return {
     checks,

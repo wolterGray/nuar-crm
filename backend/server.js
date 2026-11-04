@@ -11,10 +11,12 @@ const {
   stopNotificationWorker,
 } = require('./services/notificationWorker');
 const {
+  getDataRetentionStatus,
   startDataRetentionWorker,
   stopDataRetentionWorker,
 } = require('./services/dataRetentionService');
 const {
+  getDataIntegrityWorkerStatus,
   startDataIntegrityWorker,
   stopDataIntegrityWorker,
 } = require('./services/dataIntegrityWorker');
@@ -81,7 +83,12 @@ app.get('/health', (_req, res) => {
   res.set('Cache-Control', 'no-store').status(200).json({status: 'ok'});
 });
 app.get('/ready', async (_req, res) => {
-  const readiness = await checkReadiness({getWorkerStatus, prisma: serverPrisma});
+  const readiness = await checkReadiness({
+    getDataIntegrityWorkerStatus,
+    getDataRetentionStatus,
+    getWorkerStatus,
+    prisma: serverPrisma,
+  });
   res.set('Cache-Control', 'no-store').status(readiness.ready ? 200 : 503).json(readiness);
 });
 
