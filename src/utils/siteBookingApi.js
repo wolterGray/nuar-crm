@@ -1,4 +1,5 @@
 import {API_URL} from "../api/config.js";
+import {authenticatedFetch} from "../api/authenticatedFetch.js";
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 
 const PENDING_SITE_BOOKINGS_LIMIT = 100;
@@ -50,7 +51,8 @@ const backendRequest = async (path, {body, label, method = "GET", publicRequest 
   }
 
   const headers = publicRequest ? {} : await authHeaders();
-  const response = await fetch(`${API_URL}${path}`, {
+  const request = publicRequest ? fetch : authenticatedFetch;
+  const response = await request(`${API_URL}${path}`, {
     method,
     headers: {"Content-Type": "application/json", ...headers},
     ...(body === undefined ? {} : {body: JSON.stringify(body)}),

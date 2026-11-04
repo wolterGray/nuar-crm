@@ -1,9 +1,10 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 export async function fetchBackupStatus() {
   const token = await getAuthToken?.();
-  const response = await fetch(`${API_URL}/api/backup/status`, {
+  const response = await authenticatedFetch(`${API_URL}/api/backup/status`, {
     headers: token ? {Authorization: `Bearer ${token}`} : {},
   });
   if (!response.ok) {
@@ -16,7 +17,7 @@ export async function fetchBackupStatus() {
 
 export async function fetchDataIntegrityStatus() {
   const token = await getAuthToken?.();
-  const response = await fetch(`${API_URL}/api/data-integrity/status`, {
+  const response = await authenticatedFetch(`${API_URL}/api/data-integrity/status`, {
     headers: token ? {Authorization: `Bearer ${token}`} : {},
   });
   if (!response.ok) {

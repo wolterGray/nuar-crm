@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const reportedClientErrors = new Set();
 
@@ -14,7 +15,7 @@ export async function reportClientError(error, {componentStack = ""} = {}) {
   reportedClientErrors.add(fingerprint);
 
   try {
-    const response = await fetch(`${API_URL}/api/client-errors`, {
+    const response = await authenticatedFetch(`${API_URL}/api/client-errors`, {
       body: JSON.stringify({
         componentStack: String(componentStack).slice(0, 4000),
         message,
@@ -44,7 +45,7 @@ export async function fetchAuditLogs(params = {}) {
     }
   });
   const token = await getAuthToken?.();
-  const response = await fetch(`${API_URL}/api/audit-logs?${query}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/audit-logs?${query}`, {
     headers: token ? {Authorization: `Bearer ${token}`} : {},
   });
   if (!response.ok) {
@@ -57,7 +58,7 @@ export async function fetchAuditLogs(params = {}) {
 
 export async function fetchErrorSummary() {
   const token = await getAuthToken?.();
-  const response = await fetch(`${API_URL}/api/error-events/summary`, {
+  const response = await authenticatedFetch(`${API_URL}/api/error-events/summary`, {
     headers: token ? {Authorization: `Bearer ${token}`} : {},
   });
   if (!response.ok) {

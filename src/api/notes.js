@@ -1,9 +1,10 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const request = async (path, options = {}) => {
   const token = await getAuthToken?.();
-  const response = await fetch(`${API_URL}/api${path}`, {
+  const response = await authenticatedFetch(`${API_URL}/api${path}`, {
     ...options,
     headers: {
       ...(options.body ? {"Content-Type": "application/json"} : {}),

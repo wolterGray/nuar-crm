@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -26,7 +27,7 @@ export const fetchNotificationEvents = async ({limit = 50, offset = 0, status = 
     offset: String(offset),
     status,
   });
-  const res = await fetch(`${API_URL}/api/notification-events?${params.toString()}`, {
+  const res = await authenticatedFetch(`${API_URL}/api/notification-events?${params.toString()}`, {
     headers,
   });
   return parseResponse(res);
@@ -55,13 +56,13 @@ export const fetchAllNotificationEvents = async (options = {}) =>
 
 export const fetchNotificationEventCounts = async () => {
   const headers = await authHeaders();
-  const res = await fetch(`${API_URL}/api/notification-events/counts`, {headers});
+  const res = await authenticatedFetch(`${API_URL}/api/notification-events/counts`, {headers});
   return parseResponse(res);
 };
 
 export const generateNotificationEvents = async () => {
   const headers = await authHeaders();
-  const res = await fetch(`${API_URL}/api/notification-events/generate`, {
+  const res = await authenticatedFetch(`${API_URL}/api/notification-events/generate`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify({}),
@@ -71,7 +72,7 @@ export const generateNotificationEvents = async () => {
 
 export const upsertNotificationEvent = async (event) => {
   const headers = await authHeaders();
-  const res = await fetch(`${API_URL}/api/notification-events`, {
+  const res = await authenticatedFetch(`${API_URL}/api/notification-events`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(event),
@@ -81,7 +82,7 @@ export const upsertNotificationEvent = async (event) => {
 
 export const planNotificationDeliveries = async ({commit = false, limit = 50} = {}) => {
   const headers = await authHeaders();
-  const res = await fetch(`${API_URL}/api/notification-events/plan-delivery`, {
+  const res = await authenticatedFetch(`${API_URL}/api/notification-events/plan-delivery`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify({commit, limit}),
@@ -91,7 +92,7 @@ export const planNotificationDeliveries = async ({commit = false, limit = 50} = 
 
 export const updateNotificationEvent = async (id, patch) => {
   const headers = await authHeaders();
-  const res = await fetch(`${API_URL}/api/notification-events/${id}`, {
+  const res = await authenticatedFetch(`${API_URL}/api/notification-events/${id}`, {
     method: "PATCH",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(patch),

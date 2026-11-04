@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 export const SYSTEM_STATE_KEYS = {
   alertSnoozes: "alertSnoozes",
@@ -43,7 +44,7 @@ const handleResponse = async (response, label) => {
 
 export const fetchSystemState = async () => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/system-state`, {
+  const response = await authenticatedFetch(`${API_URL}/api/system-state`, {
     method: "GET",
     cache: "no-store",
     headers: {"Content-Type": "application/json", ...headers},
@@ -54,7 +55,7 @@ export const fetchSystemState = async () => {
 
 export const saveSystemStateEntries = async (entries) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/system-state`, {
+  const response = await authenticatedFetch(`${API_URL}/api/system-state`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify({entries}),
@@ -65,7 +66,7 @@ export const saveSystemStateEntries = async (entries) => {
 
 export const saveSystemStateEntry = async (key, payload) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/system-state/${key}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/system-state/${key}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify({payload}),
