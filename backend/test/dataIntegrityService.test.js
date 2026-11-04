@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const {checkDataIntegrity} = require('../services/dataIntegrityService');
+const {checkDataIntegrity, findSiteBookingLifecycleMismatches} = require('../services/dataIntegrityService');
 
 const createPrisma = ({calendarEntries = [], certificates = [], packages = [], visits = []} = {}) => ({
   calendarEntry: {findMany: async () => calendarEntries},
@@ -56,4 +56,21 @@ test('data integrity detects duplicate, broken, mismatched and invalid financial
   assert.equal(result.checks.missingVisits.count, 1);
   assert.equal(result.summary.criticalCount, 5);
   assert.equal(result.summary.warningCount, 2);
+});
+
+test('data integrity detects inconsistent site booking lifecycle links', () => {
+  const mismatches = findSiteBookingLifecycleMismatches([
+    {eventId: 7, eventStatus: 'new', requestId: 'a', requestStatus: 'pending', waitlistId: 2, waitlistStatus: 'deleted'},
+    {eventId: 8, eventStatus: 'new', requestId: 'b', requestStatus: 'rejected', waitlistId: 3, waitlistStatus: 'active'},
+    {eventId: 9, eventStatus: 'resolved', requestId: 'c', requestStatus: 'rejected', waitlistId: 4, waitlistStatus: 'closed'},
+    {eventId: null, eventStatus: null, requestId: 'd', requestStatus: 'pending', waitlistId: null, waitlistStatus: null},
+  ]);
+
+  assert.equal(mismatches.length, 3);
+  assert.deepEqual(mismatches[0].reasons, ['pending_request_with_closed_waitlist']);
+  assert.deepEqual(mismatches[1].reasons, [
+    'terminal_request_with_active_waitlist',
+    'terminal_request_with_active_notification',
+  ]);
+  assert.deepEqual(mismatches[2].reasons, ['missing_waitlist', 'missing_notification']);
 });
