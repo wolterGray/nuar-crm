@@ -5,7 +5,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PM2_PROCESS_NAME="${PM2_PROCESS_NAME:-nuar-backend}"
-HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:3001/health}"
+READINESS_URL="${READINESS_URL:-http://127.0.0.1:3001/ready}"
 
 cd "${BACKEND_DIR}"
 
@@ -47,9 +47,9 @@ fi
 pm2 restart "${PM2_PROCESS_NAME}" --update-env
 pm2 save
 
-echo "[8/8] Waiting for backend health check..."
+echo "[8/8] Waiting for backend readiness check..."
 for attempt in {1..10}; do
-  if curl --fail --silent --show-error "${HEALTH_URL}"; then
+  if curl --fail --silent --show-error "${READINESS_URL}"; then
     echo
     trap - ERR
     echo "NUAR CRM backend deployed successfully."
@@ -60,5 +60,5 @@ for attempt in {1..10}; do
   fi
 done
 
-echo "Backend did not become healthy at ${HEALTH_URL}." >&2
+echo "Backend did not become ready at ${READINESS_URL}." >&2
 exit 1
