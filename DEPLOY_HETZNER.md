@@ -180,6 +180,34 @@ existing browser subscriptions continue to work.
 
 ## 6. Prisma
 
+### Routine backend deployment
+
+After pulling a reviewed commit, use the guarded deployment command instead of
+running migration and PM2 commands separately:
+
+```bash
+cd /opt/nuar-crm/backend
+npm run deploy:production
+```
+
+The command installs locked dependencies, generates Prisma Client, creates and
+verifies a pre-deploy backup, checks CRM data integrity, applies migrations,
+checks integrity again, and only then restarts `nuar-backend`. It stops on the
+first failure and does not continue to the PM2 restart.
+
+Optional overrides:
+
+```bash
+PM2_PROCESS_NAME=nuar-backend HEALTH_URL=http://127.0.0.1:3001/health npm run deploy:production
+```
+
+Never add `|| true` to backup, integrity, or migration commands. If Prisma
+reports a failed migration, investigate and repair its underlying data issue
+before using `prisma migrate resolve`; do not mark a migration as applied only
+to make deployment continue.
+
+### Initial Prisma setup
+
 Generate Prisma Client and apply existing migrations:
 
 ```bash
