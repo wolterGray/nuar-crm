@@ -7,6 +7,7 @@ const {redactSensitiveData} = require('../services/loggingService');
 const {getWorkerStatus} = require('../services/notificationWorker');
 const {getBackupStatus} = require('../services/backupService');
 const {getDataRetentionStatus} = require('../services/dataRetentionService');
+const {checkDataIntegrity} = require('../services/dataIntegrityService');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -81,6 +82,14 @@ router.get('/backup/status', requirePermission(PERMISSIONS.LOGS_VIEW), (_req, re
       latest: status.latest ? {...status.latest, name: undefined} : null,
       storage: 'local',
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/data-integrity/status', requirePermission(PERMISSIONS.LOGS_VIEW), async (_req, res, next) => {
+  try {
+    res.json(await checkDataIntegrity(prisma));
   } catch (error) {
     next(error);
   }

@@ -13,3 +13,16 @@ export async function fetchBackupStatus() {
   }
   return response.json();
 }
+
+export async function fetchDataIntegrityStatus() {
+  const token = await getAuthToken?.();
+  const response = await fetch(`${API_URL}/api/data-integrity/status`, {
+    headers: token ? {Authorization: `Bearer ${token}`} : {},
+  });
+  if (!response.ok) {
+    if (response.status === 401) notifyAuthTokenRejected();
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error || `Не удалось проверить целостность данных (${response.status})`);
+  }
+  return response.json();
+}

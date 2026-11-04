@@ -36,6 +36,7 @@ import TelegramDigestPanel from "../TelegramDigestPanel.jsx";
 import AuditLogPanel from "../AuditLogPanel.jsx";
 import ErrorMonitoringPanel from "../ErrorMonitoringPanel.jsx";
 import BackupStatusPanel from "../BackupStatusPanel.jsx";
+import DataIntegrityPanel from "../DataIntegrityPanel.jsx";
 import ActiveSessionsPanel from "../ActiveSessionsPanel.jsx";
 import "./SettingsPage.css";
 import {
@@ -3203,6 +3204,7 @@ function SettingsPage({
               </div>
 
               {canViewLogs ? <BackupStatusPanel /> : null}
+              {canViewLogs ? <DataIntegrityPanel /> : null}
 
               <div className="p-3.5 border border-border-soft rounded-control bg-field flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex flex-col gap-0.5">

@@ -18,6 +18,7 @@
     "db:backup:verify": "node scripts/verify-backup.js",
     "db:backup:status": "node scripts/backup-status.js",
     "db:backup:encrypt": "node scripts/encrypt-backup.js",
+    "db:check-integrity": "node scripts/check-data-integrity.js",
     "tasks:reseed-weekly": "node scripts/reseed-weekly-tasks.js",
     "tasks:align-weekly": "node scripts/align-weekly-task-start-dates.js",
     "visits:dedupe-calendar": "node scripts/dedupe-calendar-visits.js",
