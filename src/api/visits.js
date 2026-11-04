@@ -116,7 +116,11 @@ export const completeVisit = async (payload) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/visits/complete`, {
     method: "POST",
-    headers: {"Content-Type": "application/json", ...headers},
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+      "Idempotency-Key": getMutationKey("POST:/api/visits/complete", payload),
+    },
     body: JSON.stringify(payload),
   });
 
@@ -127,7 +131,11 @@ export const revertCompletedVisit = async (payload) => {
   const headers = await authHeaders();
   const response = await fetch(`${API_URL}/api/visits/revert-completed`, {
     method: "POST",
-    headers: {"Content-Type": "application/json", ...headers},
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+      "Idempotency-Key": getMutationKey("POST:/api/visits/revert-completed", payload),
+    },
     body: JSON.stringify(payload),
   });
 

@@ -1390,7 +1390,7 @@ router.post('/visits/complete', async (req, res) => {
   }
 
   try {
-    const result = await runSerializableTransaction(async (tx) => {
+    const {replayed, result} = await executeIdempotentMutation(prisma, req, 'complete-calendar-visit', async (tx) => {
       const calendarEntry = await tx.calendarEntry.findUnique({
         where: { id: calendarEntryId },
       });
@@ -1701,9 +1701,10 @@ router.post('/visits/complete', async (req, res) => {
       });
 
       return data;
-    });
+    }, {runTransaction: runSerializableTransaction});
 
-    res.json({ success: true, data: result });
+    if (replayed) res.set('Idempotency-Replayed', 'true');
+    res.json({success: true, data: replayed ? {...result, idempotent: true} : result});
   } catch (err) {
     const response = getHttpErrorResponse(err);
     console.error('Complete calendar entry error:', err);
@@ -2139,7 +2140,7 @@ router.post('/visits/revert-completed', requirePermission(PERMISSIONS.CALENDAR_D
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const {replayed, result} = await executeIdempotentMutation(prisma, req, 'revert-completed-visit', async (tx) => {
       const calendarEntry = await tx.calendarEntry.findUnique({
         where: { id: calendarEntryId },
       });
@@ -2381,9 +2382,10 @@ router.post('/visits/revert-completed', requirePermission(PERMISSIONS.CALENDAR_D
       });
 
       return data;
-    });
+    }, {runTransaction: runSerializableTransaction});
 
-    res.json({ success: true, data: result });
+    if (replayed) res.set('Idempotency-Replayed', 'true');
+    res.json({success: true, data: replayed ? {...result, idempotent: true} : result});
   } catch (err) {
     const response = getHttpErrorResponse(err);
     console.error('Revert completed visit error:', err);
