@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const {PrismaClient} = require('@prisma/client');
 const {checkReadiness} = require('./services/readinessService');
+const {getBackupTopologyStatus} = require('./services/backupService');
 const {
   getWorkerStatus,
   startNotificationWorker,
@@ -83,7 +84,18 @@ app.get('/health', (_req, res) => {
   res.set('Cache-Control', 'no-store').status(200).json({status: 'ok'});
 });
 app.get('/ready', async (_req, res) => {
+  const backupReadinessRequired = process.env.NODE_ENV === 'production'
+    && process.env.BACKUP_READINESS_REQUIRED !== 'false';
   const readiness = await checkReadiness({
+    getBackupStatus: backupReadinessRequired
+      ? () => getBackupTopologyStatus(
+        path.resolve(__dirname, process.env.BACKUP_DIR || 'backups'),
+        {
+          mirrorDir: process.env.BACKUP_MIRROR_DIR,
+          staleAfterHours: Math.max(1, Number(process.env.BACKUP_STALE_AFTER_HOURS) || 30),
+        },
+      )
+      : undefined,
     getDataIntegrityWorkerStatus,
     getDataRetentionStatus,
     getWorkerStatus,

@@ -17,6 +17,7 @@ const workerCheck = (status, fallbackError) => {
 };
 
 async function checkReadiness({
+  getBackupStatus,
   getDataIntegrityWorkerStatus,
   getDataRetentionStatus,
   getWorkerStatus,
@@ -55,6 +56,20 @@ async function checkReadiness({
       getDataRetentionStatus(),
       'Data retention worker is inactive',
     );
+  }
+  if (getBackupStatus) {
+    try {
+      const backup = getBackupStatus();
+      checks.backup = {
+        ok: backup?.healthy === true,
+        latestAt: backup?.latest?.createdAt || null,
+        mirrorConfigured: backup?.mirror?.configured === true,
+        mirrorOk: backup?.mirror?.configured === true ? backup?.mirror?.healthy === true : null,
+        ...(backup?.healthy === true ? {} : {error: 'Database backup is missing, stale, or invalid'}),
+      };
+    } catch (error) {
+      checks.backup = {ok: false, error: error.message || 'Backup status unavailable'};
+    }
   }
 
   return {

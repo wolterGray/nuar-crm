@@ -4,6 +4,11 @@ const {checkReadiness} = require('../services/readinessService');
 
 test('readiness succeeds only when database and worker are healthy', async () => {
   const result = await checkReadiness({
+    getBackupStatus: () => ({
+      healthy: true,
+      latest: {createdAt: '2026-11-04T10:00:00.000Z'},
+      mirror: {configured: true, healthy: true},
+    }),
     prisma: {$queryRawUnsafe: async () => [{one: 1}]},
     getDataIntegrityWorkerStatus: () => ({active: true, lastError: null}),
     getDataRetentionStatus: () => ({active: true, lastError: null}),
@@ -14,6 +19,37 @@ test('readiness succeeds only when database and worker are healthy', async () =>
   assert.equal(result.checks.notificationWorker.ok, true);
   assert.equal(result.checks.dataIntegrityWorker.ok, true);
   assert.equal(result.checks.dataRetentionWorker.ok, true);
+  assert.equal(result.checks.backup.ok, true);
+  assert.equal(result.checks.backup.mirrorOk, true);
+});
+
+test('readiness fails when a required backup or its configured mirror is unhealthy', async () => {
+  const result = await checkReadiness({
+    getBackupStatus: () => ({
+      healthy: false,
+      latest: {createdAt: '2026-11-01T10:00:00.000Z'},
+      mirror: {configured: true, healthy: false},
+    }),
+    prisma: {$queryRawUnsafe: async () => [{one: 1}]},
+    getWorkerStatus: () => ({active: true}),
+  });
+
+  assert.equal(result.ready, false);
+  assert.equal(result.checks.backup.ok, false);
+  assert.equal(result.checks.backup.mirrorConfigured, true);
+  assert.equal(result.checks.backup.mirrorOk, false);
+  assert.match(result.checks.backup.error, /backup/i);
+});
+
+test('readiness reports backup status errors without crashing the endpoint', async () => {
+  const result = await checkReadiness({
+    getBackupStatus: () => { throw new Error('backup volume unavailable'); },
+    prisma: {$queryRawUnsafe: async () => [{one: 1}]},
+    getWorkerStatus: () => ({active: true}),
+  });
+
+  assert.equal(result.ready, false);
+  assert.equal(result.checks.backup.error, 'backup volume unavailable');
 });
 
 test('readiness reports inactive or failed maintenance workers', async () => {
