@@ -430,6 +430,11 @@ const conflictsWithBuffers = (start, end, requestBuffers, interval) => (
 const buildBookingLockKey = (date, master) =>
   ['site-booking', cleanString(date), normalizeText(master)].join(':');
 
+const acquireBookingLock = (tx, lockKey) => tx.$queryRaw`
+  select 1::integer as locked
+  from pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
+`;
+
 const getCalendarIntervals = (rows, date, master, employees = [], services = []) =>
   rows
     .filter((row) => cleanString(row.date) === date)
@@ -839,7 +844,7 @@ publicSiteBookingRouter.post('/site-booking-submit', publicBookingLimiter, async
     let crmLinks = {};
     const rows = await prisma.$transaction(async (tx) => {
       const bookingLockKey = buildBookingLockKey(preferredDate, booking.preferredMaster);
-      await tx.$queryRaw`select pg_advisory_xact_lock(hashtextextended(${bookingLockKey}, 0))`;
+      await acquireBookingLock(tx, bookingLockKey);
 
       const {slots: lockedSlots} = await buildSlots({
         db: tx,
@@ -1060,6 +1065,7 @@ siteBookingRouter.patch('/site-bookings/:id', requirePermission(PERMISSIONS.USER
 
 module.exports = {
   _test: {
+    acquireBookingLock,
     buildBookingLockKey,
     getCalendarIntervals,
     getPendingIntervals,

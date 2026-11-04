@@ -9,6 +9,26 @@ const employees = [
 ];
 
 describe('site booking availability master isolation', () => {
+  it('acquires the transaction lock without returning PostgreSQL void to Prisma', async () => {
+    let query = '';
+    let values = [];
+    const tx = {
+      $queryRaw: async (strings, ...params) => {
+        query = strings.join('?');
+        values = params;
+        return [{locked: 1}];
+      },
+    };
+
+    const result = await _test.acquireBookingLock(tx, 'site-booking:2026-11-04:olha');
+
+    assert.match(query, /select 1::integer as locked/i);
+    assert.match(query, /from pg_advisory_xact_lock/i);
+    assert.doesNotMatch(query, /select\s+pg_advisory_xact_lock/i);
+    assert.deepEqual(values, ['site-booking:2026-11-04:olha']);
+    assert.deepEqual(result, [{locked: 1}]);
+  });
+
   it('uses one transaction lock key for equivalent master labels', () => {
     assert.equal(
       _test.buildBookingLockKey('2026-10-25', ' Olha '),
