@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -28,7 +29,7 @@ const handleResponse = async (response, label) => {
 
 export const fetchEmployees = async () => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/employees`, {
+  const response = await authenticatedFetch(`${API_URL}/api/employees`, {
     method: "GET",
     cache: "no-store",
     headers: {"Content-Type": "application/json", ...headers},
@@ -39,7 +40,7 @@ export const fetchEmployees = async () => {
 
 export const createEmployee = async (employee) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/employees`, {
+  const response = await authenticatedFetch(`${API_URL}/api/employees`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(employee),
@@ -50,7 +51,7 @@ export const createEmployee = async (employee) => {
 
 export const updateEmployee = async (id, employee) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/employees/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/employees/${id}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(employee),
@@ -61,7 +62,7 @@ export const updateEmployee = async (id, employee) => {
 
 export const deleteEmployee = async (id) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/employees/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/employees/${id}`, {
     method: "DELETE",
     headers: {"Content-Type": "application/json", ...headers},
   });

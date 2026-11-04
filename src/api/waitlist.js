@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -28,7 +29,7 @@ const handleResponse = async (response, label) => {
 
 export const fetchWaitlist = async () => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/waitlist`, {
+  const response = await authenticatedFetch(`${API_URL}/api/waitlist`, {
     method: "GET",
     headers: {"Content-Type": "application/json", ...headers},
   });
@@ -38,7 +39,7 @@ export const fetchWaitlist = async () => {
 
 export const createWaitlistEntry = async (entry) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/waitlist`, {
+  const response = await authenticatedFetch(`${API_URL}/api/waitlist`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(entry),
@@ -49,7 +50,7 @@ export const createWaitlistEntry = async (entry) => {
 
 export const updateWaitlistEntry = async (id, entry) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/waitlist/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/waitlist/${id}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(entry),
@@ -60,7 +61,7 @@ export const updateWaitlistEntry = async (id, entry) => {
 
 export const deleteWaitlistEntry = async (id) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/waitlist/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/waitlist/${id}`, {
     method: "DELETE",
     headers: {"Content-Type": "application/json", ...headers},
   });
@@ -70,7 +71,7 @@ export const deleteWaitlistEntry = async (id) => {
 
 export const restoreWaitlistEntry = async (id) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/waitlist/${id}/restore`, {
+  const response = await authenticatedFetch(`${API_URL}/api/waitlist/${id}/restore`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
   });

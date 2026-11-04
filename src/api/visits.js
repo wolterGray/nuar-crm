@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 import {getMutationKey} from "./idempotency.js";
 
 const authHeaders = async () => {
@@ -32,7 +33,7 @@ const handleResponse = async (response, label) => {
 
 export const fetchVisitState = async () => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/visit-state`, {
+  const response = await authenticatedFetch(`${API_URL}/api/visit-state`, {
     method: "GET",
     cache: "no-store",
     headers: {"Content-Type": "application/json", ...headers},
@@ -43,7 +44,7 @@ export const fetchVisitState = async () => {
 
 export const createCalendarEntry = async (entry) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/calendar-entries`, {
+  const response = await authenticatedFetch(`${API_URL}/api/calendar-entries`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -58,7 +59,7 @@ export const createCalendarEntry = async (entry) => {
 
 export const updateCalendarEntry = async (id, entry) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/calendar-entries/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/calendar-entries/${id}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(entry),
@@ -69,7 +70,7 @@ export const updateCalendarEntry = async (id, entry) => {
 
 export const deleteCalendarEntry = async (id, updatedAt, visitUpdatedAt) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/calendar-entries/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/calendar-entries/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -84,7 +85,7 @@ export const deleteCalendarEntry = async (id, updatedAt, visitUpdatedAt) => {
 
 export const createVisit = async (visit) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/visits/journal`, {
+  const response = await authenticatedFetch(`${API_URL}/api/visits/journal`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -99,7 +100,7 @@ export const createVisit = async (visit) => {
 
 export const createJournalFinancialVisit = async (visit) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/visits/journal/financial`, {
+  const response = await authenticatedFetch(`${API_URL}/api/visits/journal/financial`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -114,7 +115,7 @@ export const createJournalFinancialVisit = async (visit) => {
 
 export const completeVisit = async (payload) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/visits/complete`, {
+  const response = await authenticatedFetch(`${API_URL}/api/visits/complete`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -129,7 +130,7 @@ export const completeVisit = async (payload) => {
 
 export const revertCompletedVisit = async (payload) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/visits/revert-completed`, {
+  const response = await authenticatedFetch(`${API_URL}/api/visits/revert-completed`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -144,7 +145,7 @@ export const revertCompletedVisit = async (payload) => {
 
 export const deleteCompletedCalendarEntry = async (payload) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/calendar-entries/delete-completed`, {
+  const response = await authenticatedFetch(`${API_URL}/api/calendar-entries/delete-completed`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(payload),
@@ -155,7 +156,7 @@ export const deleteCompletedCalendarEntry = async (payload) => {
 
 export const updateCompletedVisit = async (payload) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/visits/update-completed`, {
+  const response = await authenticatedFetch(`${API_URL}/api/visits/update-completed`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(payload),
@@ -166,7 +167,7 @@ export const updateCompletedVisit = async (payload) => {
 
 export const updateVisit = async (id, visit) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/visits/journal/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/visits/journal/${id}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(visit),
@@ -177,7 +178,7 @@ export const updateVisit = async (id, visit) => {
 
 export const updateJournalFinancialVisit = async (id, visit) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/visits/journal/${id}/financial`, {
+  const response = await authenticatedFetch(`${API_URL}/api/visits/journal/${id}/financial`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(visit),
@@ -188,7 +189,7 @@ export const updateJournalFinancialVisit = async (id, visit) => {
 
 export const deleteVisit = async (id, updatedAt) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/visits/journal/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/visits/journal/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -202,7 +203,7 @@ export const deleteVisit = async (id, updatedAt) => {
 
 export const deleteJournalFinancialVisit = async (id) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/visits/journal/${id}/delete-financial`, {
+  const response = await authenticatedFetch(`${API_URL}/api/visits/journal/${id}/delete-financial`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
   });

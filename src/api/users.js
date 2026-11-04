@@ -2,6 +2,7 @@ import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {generateStrongPassword} from "../utils/passwordStrength.js";
 import {resetPassword} from "./auth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -34,7 +35,7 @@ const handleResponse = async (response, label) => {
 
 const requestUsers = async (path = "", {body, method = "GET"} = {}) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/users${path}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/users${path}`, {
     method,
     headers: {"Content-Type": "application/json", ...headers},
     ...(body === undefined ? {} : {body: JSON.stringify(body)}),

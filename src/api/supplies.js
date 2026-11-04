@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -28,7 +29,7 @@ const handleResponse = async (response, label) => {
 
 export const fetchSupplies = async () => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/supplies`, {
+  const response = await authenticatedFetch(`${API_URL}/api/supplies`, {
     method: "GET",
     headers: {"Content-Type": "application/json", ...headers},
   });
@@ -38,7 +39,7 @@ export const fetchSupplies = async () => {
 
 export const createSupply = async (supply) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/supplies`, {
+  const response = await authenticatedFetch(`${API_URL}/api/supplies`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(supply),
@@ -49,7 +50,7 @@ export const createSupply = async (supply) => {
 
 export const updateSupply = async (id, supply) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/supplies/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/supplies/${id}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(supply),
@@ -60,7 +61,7 @@ export const updateSupply = async (id, supply) => {
 
 export const deleteSupply = async (id) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/supplies/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/supplies/${id}`, {
     method: "DELETE",
     headers: {"Content-Type": "application/json", ...headers},
   });

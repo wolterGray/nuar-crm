@@ -102,6 +102,19 @@ export function notifyAuthTokenRejected() {
   window.dispatchEvent(new Event("nuar-crm-auth-lost"));
 }
 
+export function recoverAuthSession({timeoutMs = 15000} = {}) {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error("Session recovery timed out")), timeoutMs);
+    const settle = (callback) => (value) => {
+      window.clearTimeout(timeout);
+      callback(value);
+    };
+    window.dispatchEvent(new CustomEvent("nuar-crm-auth-lost", {
+      detail: {reject: settle(reject), resolve: settle(resolve)},
+    }));
+  });
+}
+
 const requestSessionRefresh = async (refreshToken) => {
   const response = await fetch(`${API_URL}/api/auth/refresh`, {
     method: "POST",
@@ -198,28 +211,37 @@ export function useAuth({onSessionLostRef, pushNotification}) {
       }
     };
 
-    const handleAuthLost = () => {
-      if (recoveryPromise) return;
+    const handleAuthLost = (event) => {
+      const waiter = event?.detail;
+      if (recoveryPromise) {
+        if (waiter?.resolve || waiter?.reject) recoveryPromise.then(waiter.resolve, waiter.reject);
+        return;
+      }
       const storedSession = loadStoredSession();
       if (!storedSession?.refresh_token) {
         rejectSession();
+        waiter?.reject?.(new Error("Refresh token is unavailable"));
         return;
       }
 
       recoveryPromise = requestSessionRefresh(storedSession.refresh_token)
         .then((session) => {
-          if (!active) return;
+          if (!active) return null;
           saveAuthSession(session);
           setAuthSession(session);
           setAuthReady(true);
+          return session;
         })
         .catch((error) => {
           if (error?.status === 401 || error?.status === 403) rejectSession();
           else console.error("Session recovery postponed:", error?.message || "network error");
+          throw error;
         })
         .finally(() => {
           recoveryPromise = null;
         });
+      if (waiter?.resolve || waiter?.reject) recoveryPromise.then(waiter.resolve, waiter.reject);
+      else recoveryPromise.catch(() => {});
     };
     const handleStorage = (event) => {
       if (event.key !== AUTH_SESSION_STORAGE_KEY) return;

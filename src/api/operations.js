@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -28,7 +29,7 @@ const handleResponse = async (response, label) => {
 
 const request = async (path, {body, label, method = "GET"} = {}) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await authenticatedFetch(`${API_URL}${path}`, {
     method,
     ...(method === "GET" ? {cache: "no-store"} : {}),
     headers: {"Content-Type": "application/json", ...headers},

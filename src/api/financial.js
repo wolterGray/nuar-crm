@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 import {getMutationKey} from "./idempotency.js";
 
 const authHeaders = async () => {
@@ -32,7 +33,7 @@ const request = async (path, {body, headers: requestHeaders = {}, idempotent = f
   const idempotencyHeaders = idempotent
     ? {"Idempotency-Key": getMutationKey(`${method}:${path}`, body)}
     : {};
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await authenticatedFetch(`${API_URL}${path}`, {
     method,
     ...(method === "GET" ? {cache: "no-store"} : {}),
     headers: {"Content-Type": "application/json", ...headers, ...requestHeaders, ...idempotencyHeaders},

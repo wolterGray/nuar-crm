@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -28,7 +29,7 @@ const handleResponse = async (response, label) => {
 
 export const fetchTasks = async () => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/tasks`, {
+  const response = await authenticatedFetch(`${API_URL}/api/tasks`, {
     method: "GET",
     headers: {"Content-Type": "application/json", ...headers},
   });
@@ -38,7 +39,7 @@ export const fetchTasks = async () => {
 
 export const createTask = async (task) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/tasks`, {
+  const response = await authenticatedFetch(`${API_URL}/api/tasks`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(task),
@@ -49,7 +50,7 @@ export const createTask = async (task) => {
 
 export const updateTask = async (id, task) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/tasks/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/tasks/${id}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(task),
@@ -60,7 +61,7 @@ export const updateTask = async (id, task) => {
 
 export const deleteTask = async (id) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/tasks/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/tasks/${id}`, {
     method: "DELETE",
     headers: {"Content-Type": "application/json", ...headers},
   });
@@ -70,7 +71,7 @@ export const deleteTask = async (id) => {
 
 export const transferChecklistItem = async ({ sourceTaskId, sourceDate, checklistItemId, targetDate }) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/tasks/transfer-checklist-item`, {
+  const response = await authenticatedFetch(`${API_URL}/api/tasks/transfer-checklist-item`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify({ sourceTaskId, sourceDate, checklistItemId, targetDate }),

@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -28,7 +29,7 @@ const handleResponse = async (response, label) => {
 
 export const fetchClients = async () => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/clients`, {
+  const response = await authenticatedFetch(`${API_URL}/api/clients`, {
     method: "GET",
     cache: "no-store",
     headers: {"Content-Type": "application/json", ...headers},
@@ -39,7 +40,7 @@ export const fetchClients = async () => {
 
 export const createClient = async (client) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/clients`, {
+  const response = await authenticatedFetch(`${API_URL}/api/clients`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(client),
@@ -50,7 +51,7 @@ export const createClient = async (client) => {
 
 export const updateClient = async (id, client) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/clients/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/clients/${id}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(client),
@@ -61,7 +62,7 @@ export const updateClient = async (id, client) => {
 
 export const deleteClient = async (id) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/clients/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/clients/${id}`, {
     method: "DELETE",
     headers: {"Content-Type": "application/json", ...headers},
   });

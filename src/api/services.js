@@ -1,5 +1,6 @@
 import {getAuthToken, notifyAuthTokenRejected} from "../hooks/useAuth.js";
 import {API_URL} from "./config.js";
+import {authenticatedFetch} from "./authenticatedFetch.js";
 
 const authHeaders = async () => {
   const token = await getAuthToken?.();
@@ -28,7 +29,7 @@ const handleResponse = async (response, label) => {
 
 export const fetchServices = async () => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/services`, {
+  const response = await authenticatedFetch(`${API_URL}/api/services`, {
     method: "GET",
     cache: "no-store",
     headers: {"Content-Type": "application/json", ...headers},
@@ -39,7 +40,7 @@ export const fetchServices = async () => {
 
 export const fetchPackages = async () => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/packages`, {
+  const response = await authenticatedFetch(`${API_URL}/api/packages`, {
     method: "GET",
     cache: "no-store",
     headers: {"Content-Type": "application/json", ...headers},
@@ -50,7 +51,7 @@ export const fetchPackages = async () => {
 
 export const createService = async (service) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/services`, {
+  const response = await authenticatedFetch(`${API_URL}/api/services`, {
     method: "POST",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(service),
@@ -61,7 +62,7 @@ export const createService = async (service) => {
 
 export const updateService = async (id, service) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/services/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/services/${id}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify(service),
@@ -72,7 +73,7 @@ export const updateService = async (id, service) => {
 
 export const reorderServices = async (ids) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/services/reorder`, {
+  const response = await authenticatedFetch(`${API_URL}/api/services/reorder`, {
     method: "PATCH",
     headers: {"Content-Type": "application/json", ...headers},
     body: JSON.stringify({ids}),
@@ -83,7 +84,7 @@ export const reorderServices = async (ids) => {
 
 export const deleteService = async (id) => {
   const headers = await authHeaders();
-  const response = await fetch(`${API_URL}/api/services/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/services/${id}`, {
     method: "DELETE",
     headers: {"Content-Type": "application/json", ...headers},
   });
