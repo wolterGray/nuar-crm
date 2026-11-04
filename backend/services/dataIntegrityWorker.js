@@ -12,11 +12,13 @@ let lastRunAt = null;
 
 async function runDataIntegrityAudit(prisma, {now = new Date()} = {}) {
   const result = await checkDataIntegrity(prisma);
-  if (!result.healthy) {
+  const {criticalCount, warningCount} = result.summary;
+  if (criticalCount > 0 || warningCount > 0) {
+    const severity = criticalCount > 0 ? 'error' : 'warning';
     await recordErrorEvent(prisma, {
       context: {checks: Object.fromEntries(Object.entries(result.checks).map(([key, value]) => [key, value.count]))},
-      message: `CRM data integrity check found ${result.summary.criticalCount} critical issue(s)`,
-      severity: 'error',
+      message: `CRM data integrity check found ${criticalCount} critical issue(s) and ${warningCount} warning(s)`,
+      severity,
       source: 'data-integrity',
     });
   }
