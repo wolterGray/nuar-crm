@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const {test} = require('node:test');
-const {createRateLimiter, cleanIp} = require('../middleware/rateLimiter');
+const {clientErrorLimiter, createRateLimiter, cleanIp} = require('../middleware/rateLimiter');
 
 const createMockReqRes = (ip = '192.168.1.10', headers = {}) => {
   const req = {
@@ -92,4 +92,24 @@ test('rateLimiter resets correctly after window expires or via .reset()', () => 
   limiter(c3.req, c3.res, next);
   assert.equal(nextCalled, 2);
   assert.equal(c3.statusCode(), 200);
+});
+
+test('client error limiter isolates authenticated users', () => {
+  clientErrorLimiter.reset();
+  let nextCalled = 0;
+  const next = () => { nextCalled += 1; };
+
+  for (let index = 0; index < 21; index += 1) {
+    const call = createMockReqRes('1.2.3.4');
+    call.req.auth = {sub: 'user-1'};
+    clientErrorLimiter(call.req, call.res, next);
+    assert.equal(call.statusCode(), index < 20 ? 200 : 429);
+  }
+
+  const otherUser = createMockReqRes('1.2.3.4');
+  otherUser.req.auth = {sub: 'user-2'};
+  clientErrorLimiter(otherUser.req, otherUser.res, next);
+  assert.equal(otherUser.statusCode(), 200);
+  assert.equal(nextCalled, 21);
+  clientErrorLimiter.reset();
 });

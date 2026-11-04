@@ -109,8 +109,16 @@ const publicApiLimiter = createRateLimiter({
   windowMs: 60 * 1000,
 });
 
+const clientErrorLimiter = createRateLimiter({
+  keyGenerator: (req) => String(req.auth?.sub || req.auth?.id || cleanIp(req)),
+  max: 20,
+  message: 'Слишком много отчётов об ошибках. Диагностика временно приостановлена.',
+  windowMs: 60 * 1000,
+});
+
 module.exports = {
   authLoginLimiter,
+  clientErrorLimiter,
   cleanIp,
   createRateLimiter,
   passwordResetLimiter,
