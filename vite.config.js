@@ -14,7 +14,7 @@ export default defineConfig({
           if (normalizedId.includes("node_modules/react-dom")) return "vendor-react-dom";
           if (normalizedId.includes("node_modules/react")) return "vendor-react";
           if (normalizedId.includes("node_modules/recharts")) return "vendor-recharts";
-          if (normalizedId.includes("node_modules/xlsx")) return "vendor-xlsx";
+          if (normalizedId.includes("node_modules/write-excel-file")) return "vendor-xlsx";
           if (normalizedId.includes("node_modules/@dnd-kit")) return "vendor-dnd-kit";
           if (
             normalizedId.includes("node_modules/@tiptap") ||
