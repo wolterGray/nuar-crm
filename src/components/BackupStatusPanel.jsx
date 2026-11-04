@@ -36,6 +36,9 @@ export default function BackupStatusPanel() {
             {status.mirror?.configured
               ? ` · внешняя копия: ${status.mirror.healthy ? "актуальна" : "требует внимания"}`
               : " · внешняя копия не настроена"}
+            {status.restoreDrill?.available
+              ? ` · восстановление проверено: ${formatDate(status.restoreDrill.completedAt)}${status.restoreDrill.healthy ? "" : " (проверка устарела)"}`
+              : " · полное восстановление ещё не проверялось"}
           </small>
         ) : <small>Резервные копии не найдены. Проверьте расписание `db:backup` на сервере.</small>}
       </div>

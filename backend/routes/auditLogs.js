@@ -98,8 +98,10 @@ router.get('/backup/status', requirePermission(PERMISSIONS.LOGS_VIEW), (_req, re
   try {
     const backupDir = path.resolve(__dirname, '..', process.env.BACKUP_DIR || 'backups');
     const staleAfterHours = Math.max(1, Number(process.env.BACKUP_STALE_AFTER_HOURS) || 30);
+    const restoreDrillStaleAfterDays = Math.max(1, Number(process.env.RESTORE_DRILL_STALE_AFTER_DAYS) || 35);
     const status = getBackupTopologyStatus(backupDir, {
       mirrorDir: process.env.BACKUP_MIRROR_DIR,
+      restoreDrillStaleAfterDays,
       staleAfterHours,
     });
     res.json({
@@ -108,6 +110,9 @@ router.get('/backup/status', requirePermission(PERMISSIONS.LOGS_VIEW), (_req, re
       mirror: status.mirror?.latest
         ? {...status.mirror, latest: {...status.mirror.latest, name: undefined}}
         : status.mirror,
+      restoreDrill: status.restoreDrill?.available
+        ? {...status.restoreDrill, databaseName: undefined}
+        : status.restoreDrill,
     });
   } catch (error) {
     next(error);

@@ -6,6 +6,7 @@ require('dotenv').config({path: path.join(__dirname, '..', '.env')});
 const {
   inspectDumpTOC,
   isSafeTestDatabase,
+  recordRestoreDrillSuccess,
   sanitizePostgresUrlForCli,
   validateDumpHeader,
 } = require('../services/backupService');
@@ -95,6 +96,7 @@ if (testDbUrl) {
       '--if-exists',
       '--no-owner',
       '--no-acl',
+      '--exit-on-error',
       targetDump,
     ],
     {
@@ -108,7 +110,7 @@ if (testDbUrl) {
     process.exit(1);
   }
 
-  if (restoreResult.status !== 0 && restoreResult.status !== 1) { // code 1 in pg_restore often represents ignorable warnings like 'table does not exist' during drop
+  if (restoreResult.status !== 0) {
     console.error(`❌ Restore drill exited with error status ${restoreResult.status}`);
     if (restoreResult.stderr) console.error(restoreResult.stderr);
     process.exit(1);
@@ -141,6 +143,10 @@ if (testDbUrl) {
         process.exit(1);
       }
 
+      recordRestoreDrillSuccess(backupDir, {
+        databaseName: safety.databaseName,
+        dumpFile: targetDump,
+      });
       console.log(`\n🎉 DRILL COMPLETED: Backup is 100% verified and restorable!`);
     } catch (err) {
       console.error(`\n❌ RESTORE VERIFICATION FAILED: Database queries failed: ${err.message}`);

@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const {spawnSync} = require('child_process');
 
 const PGDUMP_MAGIC = Buffer.from('PGDMP');
+const RESTORE_DRILL_METADATA_FILE = 'latest-restore-drill.json';
 
 const cleanString = (value) => String(value ?? '').trim();
 
@@ -226,7 +227,50 @@ const getBackupStatus = (backupDir, {now = new Date(), staleAfterHours = 30} = {
   };
 };
 
-const getBackupTopologyStatus = (backupDir, {mirrorDir = '', now = new Date(), staleAfterHours = 30} = {}) => {
+const getRestoreDrillStatus = (backupDir, {now = new Date(), staleAfterDays = 35} = {}) => {
+  const metadataPath = path.join(backupDir, RESTORE_DRILL_METADATA_FILE);
+  try {
+    const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+    const completedAt = new Date(metadata.completedAt);
+    if (!Number.isFinite(completedAt.getTime()) || metadata.success !== true) {
+      return {available: false, healthy: false};
+    }
+    const ageDays = Math.max(0, (now.getTime() - completedAt.getTime()) / (24 * 60 * 60 * 1000));
+    return {
+      ageDays: Number(ageDays.toFixed(1)),
+      available: true,
+      completedAt: completedAt.toISOString(),
+      databaseName: cleanString(metadata.databaseName) || null,
+      healthy: ageDays <= staleAfterDays,
+      isStale: ageDays > staleAfterDays,
+      staleAfterDays,
+    };
+  } catch {
+    return {available: false, healthy: false};
+  }
+};
+
+const recordRestoreDrillSuccess = (backupDir, details) => {
+  fs.mkdirSync(backupDir, {recursive: true});
+  const metadataPath = path.join(backupDir, RESTORE_DRILL_METADATA_FILE);
+  const temporaryPath = `${metadataPath}.partial-${process.pid}`;
+  const payload = {
+    completedAt: new Date().toISOString(),
+    databaseName: cleanString(details?.databaseName),
+    dumpFile: path.basename(cleanString(details?.dumpFile)),
+    success: true,
+  };
+  fs.writeFileSync(temporaryPath, `${JSON.stringify(payload, null, 2)}\n`, {mode: 0o600});
+  fs.renameSync(temporaryPath, metadataPath);
+  return payload;
+};
+
+const getBackupTopologyStatus = (backupDir, {
+  mirrorDir = '',
+  now = new Date(),
+  restoreDrillStaleAfterDays = 35,
+  staleAfterHours = 30,
+} = {}) => {
   const local = getBackupStatus(backupDir, {now, staleAfterHours});
   const configuredMirrorDir = cleanString(mirrorDir);
   const mirror = configuredMirrorDir
@@ -236,6 +280,7 @@ const getBackupTopologyStatus = (backupDir, {mirrorDir = '', now = new Date(), s
     ...local,
     healthy: local.healthy === true && (!mirror.configured || mirror.healthy === true),
     mirror,
+    restoreDrill: getRestoreDrillStatus(backupDir, {now, staleAfterDays: restoreDrillStaleAfterDays}),
     storage: mirror.configured ? 'local+mirror' : 'local',
   };
 };
@@ -394,9 +439,11 @@ module.exports = {
   encryptDumpFile,
   getBackupStatus,
   getBackupTopologyStatus,
+  getRestoreDrillStatus,
   inspectDumpTOC,
   isSafeTestDatabase,
   mirrorBackupFile,
+  recordRestoreDrillSuccess,
   sanitizePostgresUrlForCli,
   validateDumpHeader,
 };

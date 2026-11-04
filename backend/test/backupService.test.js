@@ -9,8 +9,10 @@ const {
   applyRetentionPolicy,
   getBackupStatus,
   getBackupTopologyStatus,
+  getRestoreDrillStatus,
   isSafeTestDatabase,
   mirrorBackupFile,
+  recordRestoreDrillSuccess,
   sanitizePostgresUrlForCli,
   validateDumpHeader,
 } = require('../services/backupService');
@@ -188,6 +190,30 @@ test('getBackupTopologyStatus: requires a configured mirror to be current', () =
   assert.equal(localOnly.storage, 'local');
   assert.equal(localOnly.healthy, true);
   assert.equal(localOnly.mirror.configured, false);
+  fs.rmSync(tmpDir, {force: true, recursive: true});
+});
+
+test('restore drill metadata: records and reports only recent successful drills', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'restore-drill-status-'));
+  assert.equal(getRestoreDrillStatus(tmpDir).available, false);
+
+  const recorded = recordRestoreDrillSuccess(tmpDir, {
+    databaseName: 'nuar_crm_restore_drill',
+    dumpFile: '/private/backups/nuar-crm-daily.dump',
+  });
+  assert.equal(recorded.dumpFile, 'nuar-crm-daily.dump');
+
+  const current = getRestoreDrillStatus(tmpDir, {now: new Date(recorded.completedAt)});
+  assert.equal(current.available, true);
+  assert.equal(current.healthy, true);
+  assert.equal(current.databaseName, 'nuar_crm_restore_drill');
+
+  const stale = getRestoreDrillStatus(tmpDir, {
+    now: new Date(new Date(recorded.completedAt).getTime() + (36 * 24 * 60 * 60 * 1000)),
+    staleAfterDays: 35,
+  });
+  assert.equal(stale.healthy, false);
+  assert.equal(stale.isStale, true);
   fs.rmSync(tmpDir, {force: true, recursive: true});
 });
 
