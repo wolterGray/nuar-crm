@@ -226,6 +226,20 @@ const getBackupStatus = (backupDir, {now = new Date(), staleAfterHours = 30} = {
   };
 };
 
+const getBackupTopologyStatus = (backupDir, {mirrorDir = '', now = new Date(), staleAfterHours = 30} = {}) => {
+  const local = getBackupStatus(backupDir, {now, staleAfterHours});
+  const configuredMirrorDir = cleanString(mirrorDir);
+  const mirror = configuredMirrorDir
+    ? {...getBackupStatus(path.resolve(configuredMirrorDir), {now, staleAfterHours}), configured: true}
+    : {configured: false};
+  return {
+    ...local,
+    healthy: local.healthy === true && (!mirror.configured || mirror.healthy === true),
+    mirror,
+    storage: mirror.configured ? 'local+mirror' : 'local',
+  };
+};
+
 /**
  * Strips non-standard connection parameters (such as Prisma's ?schema=public, ?connection_limit, etc.)
  * from a PostgreSQL URL so that pg_dump and pg_restore (libpq) do not fail with
@@ -379,6 +393,7 @@ module.exports = {
   decryptDumpFile,
   encryptDumpFile,
   getBackupStatus,
+  getBackupTopologyStatus,
   inspectDumpTOC,
   isSafeTestDatabase,
   mirrorBackupFile,

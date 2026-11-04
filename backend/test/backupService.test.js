@@ -8,6 +8,7 @@ const {
   PGDUMP_MAGIC,
   applyRetentionPolicy,
   getBackupStatus,
+  getBackupTopologyStatus,
   isSafeTestDatabase,
   mirrorBackupFile,
   sanitizePostgresUrlForCli,
@@ -162,6 +163,32 @@ test('getBackupStatus: marks an old valid dump as stale', () => {
   assert.equal(status.healthy, false);
   assert.equal(status.latest.isStale, true);
   assert.equal(status.latest.ageHours, 48);
+});
+
+test('getBackupTopologyStatus: requires a configured mirror to be current', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'backup-topology-'));
+  const localDir = path.join(tmpDir, 'local');
+  const mirrorDir = path.join(tmpDir, 'mirror');
+  fs.mkdirSync(localDir, {recursive: true});
+  fs.mkdirSync(mirrorDir, {recursive: true});
+  const fileName = 'nuar-crm-daily-2026-11-04.dump';
+  fs.writeFileSync(path.join(localDir, fileName), Buffer.concat([PGDUMP_MAGIC, Buffer.alloc(50)]));
+
+  const missingMirror = getBackupTopologyStatus(localDir, {mirrorDir});
+  assert.equal(missingMirror.storage, 'local+mirror');
+  assert.equal(missingMirror.healthy, false);
+  assert.equal(missingMirror.mirror.available, false);
+
+  mirrorBackupFile(path.join(localDir, fileName), mirrorDir);
+  const mirrored = getBackupTopologyStatus(localDir, {mirrorDir});
+  assert.equal(mirrored.healthy, true);
+  assert.equal(mirrored.mirror.healthy, true);
+
+  const localOnly = getBackupTopologyStatus(localDir);
+  assert.equal(localOnly.storage, 'local');
+  assert.equal(localOnly.healthy, true);
+  assert.equal(localOnly.mirror.configured, false);
+  fs.rmSync(tmpDir, {force: true, recursive: true});
 });
 
 test('sanitizePostgresUrlForCli: removes Prisma schema and non-libpq query params', () => {

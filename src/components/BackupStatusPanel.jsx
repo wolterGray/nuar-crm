@@ -33,6 +33,9 @@ export default function BackupStatusPanel() {
           <small>
             Последняя: {formatDate(status.latest?.createdAt)} · {status.latest?.sizeFormatted || "—"}
             {status.latest?.entryCount ? ` · ${status.latest.entryCount} объектов` : ""}
+            {status.mirror?.configured
+              ? ` · внешняя копия: ${status.mirror.healthy ? "актуальна" : "требует внимания"}`
+              : " · внешняя копия не настроена"}
           </small>
         ) : <small>Резервные копии не найдены. Проверьте расписание `db:backup` на сервере.</small>}
       </div>

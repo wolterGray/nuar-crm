@@ -7,7 +7,7 @@ const {recordErrorEvent, redactSensitiveData} = require('../services/loggingServ
 const {normalizeClientErrorReport} = require('../domain/clientErrorReport');
 const {clientErrorLimiter} = require('../middleware/rateLimiter');
 const {getWorkerStatus} = require('../services/notificationWorker');
-const {getBackupStatus} = require('../services/backupService');
+const {getBackupTopologyStatus} = require('../services/backupService');
 const {getDataRetentionStatus} = require('../services/dataRetentionService');
 const {checkDataIntegrity} = require('../services/dataIntegrityService');
 const {getDataIntegrityWorkerStatus} = require('../services/dataIntegrityWorker');
@@ -98,11 +98,16 @@ router.get('/backup/status', requirePermission(PERMISSIONS.LOGS_VIEW), (_req, re
   try {
     const backupDir = path.resolve(__dirname, '..', process.env.BACKUP_DIR || 'backups');
     const staleAfterHours = Math.max(1, Number(process.env.BACKUP_STALE_AFTER_HOURS) || 30);
-    const status = getBackupStatus(backupDir, {staleAfterHours});
+    const status = getBackupTopologyStatus(backupDir, {
+      mirrorDir: process.env.BACKUP_MIRROR_DIR,
+      staleAfterHours,
+    });
     res.json({
       ...status,
       latest: status.latest ? {...status.latest, name: undefined} : null,
-      storage: 'local',
+      mirror: status.mirror?.latest
+        ? {...status.mirror, latest: {...status.mirror.latest, name: undefined}}
+        : status.mirror,
     });
   } catch (error) {
     next(error);
