@@ -6,6 +6,7 @@ require('dotenv').config({path: path.join(__dirname, '..', '.env')});
 const {
   applyRetentionPolicy,
   inspectDumpTOC,
+  mirrorBackupFile,
   sanitizePostgresUrlForCli,
   validateDumpHeader,
 } = require('../services/backupService');
@@ -25,6 +26,7 @@ const pgRestoreBin = process.env.PGRESTORE_PATH || 'pg_restore';
 const databaseUrl = process.env.DATABASE_URL;
 const outputFile = path.join(backupDir, `nuar-crm-${tag}-${timestamp}.dump`);
 const maxRetention = Number(process.env.BACKUP_RETENTION_COUNT) || 14;
+const mirrorDir = String(process.env.BACKUP_MIRROR_DIR || '').trim();
 
 if (!databaseUrl) {
   console.error('❌ DATABASE_URL is required to create a database backup.');
@@ -93,6 +95,14 @@ console.log(`   Path: ${outputFile}`);
 console.log(`   Size: ${(headerCheck.size / (1024 * 1024)).toFixed(2)} MB (${headerCheck.size} bytes)`);
 if (tocCheck.entryCount) {
   console.log(`   TOC Entries: ${tocCheck.entryCount} database objects`);
+}
+
+if (mirrorDir) {
+  const mirrored = mirrorBackupFile(outputFile, mirrorDir);
+  console.log(`✅ Verified backup mirror: ${mirrored.path}`);
+  console.log(`   SHA-256: ${mirrored.sha256}`);
+  const mirrorRetention = applyRetentionPolicy(path.resolve(mirrorDir), {maxKeep: maxRetention});
+  console.log(`[mirror retention] Retaining ${mirrorRetention.kept.length} recent backup(s) (limit: ${maxRetention})`);
 }
 
 // 3. Apply retention policy

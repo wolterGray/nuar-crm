@@ -7,6 +7,47 @@ const PGDUMP_MAGIC = Buffer.from('PGDMP');
 
 const cleanString = (value) => String(value ?? '').trim();
 
+const fileSha256 = (filePath) => {
+  const hash = crypto.createHash('sha256');
+  const fd = fs.openSync(filePath, 'r');
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  try {
+    let bytesRead = 0;
+    do {
+      bytesRead = fs.readSync(fd, buffer, 0, buffer.length, null);
+      if (bytesRead > 0) hash.update(buffer.subarray(0, bytesRead));
+    } while (bytesRead > 0);
+  } finally {
+    fs.closeSync(fd);
+  }
+  return hash.digest('hex');
+};
+
+const mirrorBackupFile = (sourcePath, mirrorDir) => {
+  if (!fs.existsSync(sourcePath)) throw new Error(`Backup source does not exist: ${sourcePath}`);
+  const targetDir = path.resolve(mirrorDir);
+  const targetPath = path.join(targetDir, path.basename(sourcePath));
+  if (path.resolve(sourcePath) === targetPath) throw new Error('Backup mirror must differ from the local backup path');
+
+  fs.mkdirSync(targetDir, {recursive: true});
+  const temporaryPath = `${targetPath}.partial-${process.pid}`;
+  try {
+    fs.copyFileSync(sourcePath, temporaryPath);
+    const sourceSize = fs.statSync(sourcePath).size;
+    const mirroredSize = fs.statSync(temporaryPath).size;
+    const sourceSha256 = fileSha256(sourcePath);
+    const mirroredSha256 = fileSha256(temporaryPath);
+    if (sourceSize !== mirroredSize || sourceSha256 !== mirroredSha256) {
+      throw new Error('Backup mirror verification failed');
+    }
+    fs.renameSync(temporaryPath, targetPath);
+    return {path: targetPath, sha256: mirroredSha256, size: mirroredSize, valid: true};
+  } catch (error) {
+    try { fs.unlinkSync(temporaryPath); } catch { /* no partial file to remove */ }
+    throw error;
+  }
+};
+
 /**
  * Validates the binary header of a PostgreSQL custom-format dump.
  */
@@ -340,6 +381,7 @@ module.exports = {
   getBackupStatus,
   inspectDumpTOC,
   isSafeTestDatabase,
+  mirrorBackupFile,
   sanitizePostgresUrlForCli,
   validateDumpHeader,
 };

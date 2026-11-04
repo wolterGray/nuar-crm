@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const {test} = require('node:test');
 const fs = require('fs');
 const path = require('path');
@@ -8,6 +9,7 @@ const {
   applyRetentionPolicy,
   getBackupStatus,
   isSafeTestDatabase,
+  mirrorBackupFile,
   sanitizePostgresUrlForCli,
   validateDumpHeader,
 } = require('../services/backupService');
@@ -76,6 +78,24 @@ test('applyRetentionPolicy: keeps newest N backups and prunes older ones safely'
   assert.ok(remaining.includes('nuar-crm-scheduled-2026-10-13.dump'));
   assert.ok(remaining.includes('nuar-crm-scheduled-2026-10-12.dump'));
 
+  fs.rmSync(tmpDir, {force: true, recursive: true});
+});
+
+test('mirrorBackupFile: atomically copies and verifies an off-site backup', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'backup-mirror-'));
+  const sourceDir = path.join(tmpDir, 'local');
+  const mirrorDir = path.join(tmpDir, 'remote');
+  fs.mkdirSync(sourceDir, {recursive: true});
+  const sourcePath = path.join(sourceDir, 'nuar-crm-daily.dump');
+  fs.writeFileSync(sourcePath, Buffer.concat([PGDUMP_MAGIC, crypto.randomBytes(128 * 1024)]));
+
+  const result = mirrorBackupFile(sourcePath, mirrorDir);
+
+  assert.equal(result.valid, true);
+  assert.equal(result.size, fs.statSync(sourcePath).size);
+  assert.equal(result.sha256.length, 64);
+  assert.deepEqual(fs.readFileSync(result.path), fs.readFileSync(sourcePath));
+  assert.equal(fs.readdirSync(mirrorDir).some((name) => name.includes('.partial-')), false);
   fs.rmSync(tmpDir, {force: true, recursive: true});
 });
 
