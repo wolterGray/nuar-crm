@@ -6,6 +6,7 @@ const { isOwnerAuth, requirePermission, hasPermission, PERMISSIONS } = require('
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const {reconcileSiteBookingWaitlistClients} = require('../services/siteBookingClientService');
+const {syncSiteBookingFromWaitlistStatus} = require('../services/siteBookingLifecycleService');
 const {ensureNoteTables} = require('../utils/noteTables');
 const {
   respond,
@@ -1024,13 +1025,14 @@ router.delete('/waitlist/:id', async (req, res) => {
     res,
     'waitlistEntry',
     id,
-    prisma.waitlistEntry.update({
-      where: { id },
-      data: {
-        status: 'deleted',
-        payload: nextPayload,
-      },
-    }).then(withStoredId),
+    prisma.$transaction(async (tx) => {
+      const updated = await tx.waitlistEntry.update({
+        where: {id},
+        data: {payload: nextPayload, status: 'deleted'},
+      });
+      await syncSiteBookingFromWaitlistStatus(tx, existingPayload.siteBookingRequestId, {deleted: true});
+      return withStoredId(updated);
+    }),
     'WaitlistEntry',
     'soft delete waitlist entry',
   );
@@ -1058,13 +1060,14 @@ router.post('/waitlist/:id/restore', async (req, res) => {
     res,
     'waitlistEntry',
     id,
-    prisma.waitlistEntry.update({
-      where: { id },
-      data: {
-        status: targetStatus,
-        payload: existingPayload,
-      },
-    }).then(withStoredId),
+    prisma.$transaction(async (tx) => {
+      const updated = await tx.waitlistEntry.update({
+        where: {id},
+        data: {payload: existingPayload, status: targetStatus},
+      });
+      await syncSiteBookingFromWaitlistStatus(tx, existingPayload.siteBookingRequestId, {deleted: false});
+      return withStoredId(updated);
+    }),
     'WaitlistEntry',
     'restore waitlist entry',
   );
