@@ -14,6 +14,7 @@ export default function ErrorMonitoringPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -77,12 +78,40 @@ export default function ErrorMonitoringPanel() {
       {error ? <div className="audit-log-error">{error}</div> : null}
       {summary.recent?.length ? (
         <div className="error-monitoring-events">
-          {summary.recent.map((event) => (
-            <div className="error-monitoring-event" key={event.id}>
-              <span className={`error-monitoring-dot is-${event.severity}`} />
-              <div><strong>{event.message}</strong><small>{event.source} · {new Date(event.createdAt).toLocaleString("ru-RU")}</small></div>
-            </div>
-          ))}
+          {summary.recent.map((event) => {
+            const expanded = expandedId === event.id;
+            const context = event.context && typeof event.context === "object" ? event.context : {};
+            const details = [
+              context.path ? `Страница: ${context.path}` : "",
+              context.release ? `Версия: ${context.release}` : "",
+              context.actorId ? `Пользователь: ${context.actorId}` : "",
+            ].filter(Boolean);
+            return (
+              <article className="error-monitoring-event" key={event.id}>
+                <button
+                  aria-expanded={expanded}
+                  className="error-monitoring-event-main"
+                  onClick={() => setExpandedId(expanded ? null : event.id)}
+                  type="button"
+                >
+                  <span className={`error-monitoring-dot is-${event.severity}`} />
+                  <span className="error-monitoring-event-copy">
+                    <strong>{event.message}</strong>
+                    <small>{event.source === "frontend" ? "Интерфейс" : event.source} · {new Date(event.createdAt).toLocaleString("ru-RU")}</small>
+                  </span>
+                  <AppIcon className={expanded ? "audit-log-chevron is-open" : "audit-log-chevron"} name="chevronDown" size="sm" />
+                </button>
+                {expanded ? (
+                  <div className="error-monitoring-event-details">
+                    {details.length ? <p>{details.join(" · ")}</p> : null}
+                    {event.stack ? <pre>{event.stack}</pre> : null}
+                    {context.componentStack ? <pre>{context.componentStack}</pre> : null}
+                    {!event.stack && !context.componentStack && !details.length ? <p>Дополнительных данных нет.</p> : null}
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
         </div>
       ) : !loading && !error ? <div className="audit-log-empty">Недавних ошибок нет.</div> : null}
     </section>

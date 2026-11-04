@@ -74,14 +74,18 @@ router.get('/error-events/summary', requirePermission(PERMISSIONS.LOGS_VIEW), as
       prisma.notificationDelivery.count({where: {status: 'failed', updatedAt: {gte: since}}}),
       prisma.errorEvent.findMany({
         orderBy: {id: 'desc'},
-        select: {context: true, createdAt: true, id: true, message: true, severity: true, source: true},
+        select: {context: true, createdAt: true, id: true, message: true, severity: true, source: true, stack: true},
         take: 12,
       }),
     ]);
 
     res.json({
       counts: {errorCount24h, failedDeliveries24h, pendingDeliveries, retryingDeliveries, warningCount24h},
-      recent: recent.map((event) => ({...event, context: redactSensitiveData(event.context)})),
+      recent: recent.map((event) => ({
+        ...event,
+        context: redactSensitiveData(event.context),
+        stack: redactSensitiveData(event.stack),
+      })),
       retention: getDataRetentionStatus(),
       worker: getWorkerStatus(),
     });

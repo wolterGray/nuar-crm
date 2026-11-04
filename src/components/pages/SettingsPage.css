@@ -63,11 +63,16 @@
 .error-monitoring-kpi.is-warning strong { color: var(--color-warning); }
 .error-monitoring-kpi.is-success strong { color: var(--color-success); }
 .error-monitoring-events { border: 1px solid var(--color-border-soft); border-radius: 8px; overflow: hidden; }
-.error-monitoring-event { min-height: 46px; padding: 8px 11px; display: grid; grid-template-columns: 8px minmax(0, 1fr); align-items: center; gap: 9px; }
+.error-monitoring-event { min-height: 46px; }
 .error-monitoring-event + .error-monitoring-event { border-top: 1px solid var(--color-border-soft); }
-.error-monitoring-event div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.error-monitoring-event strong { overflow: hidden; color: var(--color-text); font-size: 12px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-.error-monitoring-event small { color: var(--color-text-muted); font-size: 10px; }
+.error-monitoring-event-main { width: 100%; min-height: 46px; padding: 8px 11px; border: 0; background: transparent; color: inherit; display: grid; grid-template-columns: 8px minmax(0, 1fr) 18px; align-items: center; gap: 9px; text-align: left; cursor: pointer; }
+.error-monitoring-event-main:hover { background: var(--color-card-muted); }
+.error-monitoring-event-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.error-monitoring-event-copy strong { overflow: hidden; color: var(--color-text); font-size: 12px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.error-monitoring-event-copy small { color: var(--color-text-muted); font-size: 10px; }
+.error-monitoring-event-details { padding: 0 11px 10px 28px; color: var(--color-text-muted); font-size: 11px; }
+.error-monitoring-event-details p { margin: 0 0 7px; line-height: 1.4; overflow-wrap: anywhere; }
+.error-monitoring-event-details pre { max-height: 180px; margin: 0 0 7px; padding: 8px; border: 1px solid var(--color-border-soft); border-radius: 6px; background: var(--color-field); color: var(--color-text-muted); font: 10px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 .error-monitoring-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-text-faint); }
 .error-monitoring-dot.is-error { background: var(--color-error); }
 .error-monitoring-dot.is-warning { background: var(--color-warning); }
