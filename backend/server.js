@@ -181,9 +181,11 @@ const shutdown = (signal) => {
   if (shuttingDown) return;
   shuttingDown = true;
   console.log(`[shutdown] ${signal} received; draining connections...`);
-  stopNotificationWorker();
-  stopDataRetentionWorker();
-  stopDataIntegrityWorker();
+  const workersStopped = Promise.all([
+    stopNotificationWorker(),
+    stopDataRetentionWorker(),
+    stopDataIntegrityWorker(),
+  ]);
 
   const forceExit = setTimeout(() => {
     console.error('[shutdown] Graceful shutdown timed out');
@@ -192,12 +194,16 @@ const shutdown = (signal) => {
   if (typeof forceExit.unref === 'function') forceExit.unref();
 
   server.close(async (error) => {
-    clearTimeout(forceExit);
+    let exitCode = error ? 1 : 0;
     try {
+      await workersStopped;
       await serverPrisma.$disconnect();
-    } finally {
-      process.exit(error ? 1 : 0);
+    } catch (shutdownError) {
+      exitCode = 1;
+      console.error('[shutdown] Failed to close cleanly:', shutdownError);
     }
+    clearTimeout(forceExit);
+    process.exit(exitCode);
   });
 };
 

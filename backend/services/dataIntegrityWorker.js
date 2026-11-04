@@ -6,6 +6,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 let workerTimer = null;
 let initialTimer = null;
 let isRunning = false;
+let activeAudit = null;
 let lastError = null;
 let lastResult = null;
 let lastRunAt = null;
@@ -31,18 +32,22 @@ function startDataIntegrityWorker(prisma, {env = process.env, intervalMs = DAY_M
   const execute = async () => {
     if (isRunning) return;
     isRunning = true;
-    try {
-      lastResult = await runDataIntegrityAudit(prisma);
-      lastError = null;
-      console.log(`[dataIntegrity] Completed; critical=${lastResult.summary.criticalCount}, warnings=${lastResult.summary.warningCount}`);
-    } catch (error) {
-      lastError = error.message || 'Data integrity check failed';
-      console.error('[dataIntegrity] Failed:', error);
-      await recordErrorEvent(prisma, {error, message: 'Automated CRM data integrity check failed', source: 'data-integrity-worker'});
-    } finally {
-      lastRunAt = new Date();
-      isRunning = false;
-    }
+    activeAudit = (async () => {
+      try {
+        lastResult = await runDataIntegrityAudit(prisma);
+        lastError = null;
+        console.log(`[dataIntegrity] Completed; critical=${lastResult.summary.criticalCount}, warnings=${lastResult.summary.warningCount}`);
+      } catch (error) {
+        lastError = error.message || 'Data integrity check failed';
+        console.error('[dataIntegrity] Failed:', error);
+        await recordErrorEvent(prisma, {error, message: 'Automated CRM data integrity check failed', source: 'data-integrity-worker'});
+      } finally {
+        lastRunAt = new Date();
+        isRunning = false;
+        activeAudit = null;
+      }
+    })();
+    await activeAudit;
   };
 
   initialTimer = setTimeout(execute, 30000);
@@ -52,11 +57,12 @@ function startDataIntegrityWorker(prisma, {env = process.env, intervalMs = DAY_M
   console.log(`[dataIntegrity] Started (checking every ${Math.max(60 * 60 * 1000, Number(intervalMs) || DAY_MS)}ms)`);
 }
 
-function stopDataIntegrityWorker() {
+async function stopDataIntegrityWorker() {
   if (workerTimer) clearInterval(workerTimer);
   if (initialTimer) clearTimeout(initialTimer);
   workerTimer = null;
   initialTimer = null;
+  if (activeAudit) await activeAudit;
 }
 
 const getDataIntegrityWorkerStatus = () => ({

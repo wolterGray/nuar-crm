@@ -5,6 +5,8 @@ let retentionInitialTimer = null;
 let lastRunAt = null;
 let lastResult = null;
 let lastError = null;
+let isRunning = false;
+let activeRetention = null;
 
 const readDays = (value, fallback) => {
   const parsed = Number(value);
@@ -76,16 +78,24 @@ const startDataRetentionWorker = (prisma, {env = process.env, intervalMs = DAY_M
   if (retentionTimer || String(env.DATA_RETENTION_ENABLED || 'true').toLowerCase() === 'false') return;
 
   const execute = async () => {
-    try {
-      lastResult = await runDataRetention(prisma, {env});
-      lastRunAt = new Date();
-      lastError = null;
-      console.log(`[dataRetention] Completed; deleted ${lastResult.totalDeleted} expired technical records`);
-    } catch (error) {
-      lastRunAt = new Date();
-      lastError = error.message || 'Data retention failed';
-      console.error('[dataRetention] Failed:', error);
-    }
+    if (isRunning) return;
+    isRunning = true;
+    activeRetention = (async () => {
+      try {
+        lastResult = await runDataRetention(prisma, {env});
+        lastRunAt = new Date();
+        lastError = null;
+        console.log(`[dataRetention] Completed; deleted ${lastResult.totalDeleted} expired technical records`);
+      } catch (error) {
+        lastRunAt = new Date();
+        lastError = error.message || 'Data retention failed';
+        console.error('[dataRetention] Failed:', error);
+      } finally {
+        isRunning = false;
+        activeRetention = null;
+      }
+    })();
+    await activeRetention;
   };
 
   retentionInitialTimer = setTimeout(execute, 15000);
@@ -94,15 +104,17 @@ const startDataRetentionWorker = (prisma, {env = process.env, intervalMs = DAY_M
   if (typeof retentionTimer.unref === 'function') retentionTimer.unref();
 };
 
-const stopDataRetentionWorker = () => {
+const stopDataRetentionWorker = async () => {
   if (retentionTimer) clearInterval(retentionTimer);
   if (retentionInitialTimer) clearTimeout(retentionInitialTimer);
   retentionTimer = null;
   retentionInitialTimer = null;
+  if (activeRetention) await activeRetention;
 };
 
 const getDataRetentionStatus = () => ({
   active: Boolean(retentionTimer),
+  isRunning,
   lastError,
   lastResult,
   lastRunAt,
