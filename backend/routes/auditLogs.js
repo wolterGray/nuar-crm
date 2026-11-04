@@ -3,7 +3,7 @@ const path = require('path');
 const {PrismaClient} = require('@prisma/client');
 const {requirePermission, PERMISSIONS} = require('../middleware/auth');
 const {buildAuditLogWhere, parseAuditLogQuery} = require('../domain/auditLogQuery');
-const {redactSensitiveData} = require('../services/loggingService');
+const {recordErrorEvent, redactSensitiveData} = require('../services/loggingService');
 const {getWorkerStatus} = require('../services/notificationWorker');
 const {getBackupStatus} = require('../services/backupService');
 const {getDataRetentionStatus} = require('../services/dataRetentionService');
@@ -12,6 +12,34 @@ const {getDataIntegrityWorkerStatus} = require('../services/dataIntegrityWorker'
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+const truncate = (value, limit) => String(value ?? '').trim().slice(0, limit);
+
+router.post('/client-errors', async (req, res, next) => {
+  try {
+    const message = truncate(redactSensitiveData(req.body?.message), 500);
+    if (!message) {
+      return res.status(422).json({error: 'message is required'});
+    }
+
+    const stack = truncate(redactSensitiveData(req.body?.stack), 4000);
+    await recordErrorEvent(prisma, {
+      context: {
+        actorId: String(req.auth?.sub || req.auth?.id || 'unknown'),
+        componentStack: truncate(req.body?.componentStack, 4000),
+        path: truncate(req.body?.path, 300),
+        release: truncate(req.body?.release, 100),
+      },
+      error: stack ? {message, stack} : null,
+      message,
+      source: 'frontend',
+    });
+
+    return res.status(204).end();
+  } catch (error) {
+    return next(error);
+  }
+});
 
 router.get('/audit-logs', requirePermission(PERMISSIONS.LOGS_VIEW), async (req, res, next) => {
   try {

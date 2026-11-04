@@ -1,5 +1,6 @@
 import {Component} from "react";
 import {AppIcon, Button} from "./ui/index.js";
+import {reportClientError} from "../api/auditLogs.js";
 
 const CHUNK_RELOAD_STORAGE_KEY = "nuar-crm:chunk-reload-attempted";
 
@@ -100,6 +101,7 @@ export default class ErrorBoundary extends Component {
 
   componentDidCatch(error, errorInfo) {
     console.error("CRM ErrorBoundary caught an error", error, errorInfo);
+    void reportClientError(error, {componentStack: errorInfo?.componentStack});
 
     if (
       isChunkLoadError(error) &&
