@@ -194,6 +194,50 @@ test('auth sessions: repeated login on one device reuses a single session', asyn
   );
 });
 
+test('auth sessions: first identified login removes legacy sessions without a device id', async () => {
+  const user = {
+    id: 11,
+    email: 'legacy-device@nuarr.pl',
+    name: 'Legacy Device',
+    role: 'staff',
+    isActive: true,
+    employeeId: null,
+    permissions: {},
+    passwordChangedAt: null,
+    failedLoginCount: 0,
+    lockedUntil: null,
+    passwordHash: await hashPassword('StrongPassword#2026'),
+  };
+  const router = createAuthRouter({prismaClient: createPrisma(user)});
+
+  await invokeRouter(router, {
+    method: 'POST',
+    url: '/login',
+    body: {email: user.email, password: 'StrongPassword#2026'},
+    headers: {'user-agent': 'Legacy Browser'},
+  });
+  const identified = await invokeRouter(router, {
+    method: 'POST',
+    url: '/login',
+    body: {
+      deviceId: 'device-abcdef1234567890',
+      email: user.email,
+      password: 'StrongPassword#2026',
+    },
+    headers: {'user-agent': 'Mozilla/5.0 (iPhone)'},
+  });
+  const sessions = await invokeRouter(router, {
+    method: 'GET',
+    url: '/sessions',
+    headers: {authorization: `Bearer ${identified.body.token}`},
+  });
+
+  assert.equal(identified.statusCode, 200);
+  assert.equal(sessions.statusCode, 200);
+  assert.equal(sessions.body.sessions.length, 1);
+  assert.equal(sessions.body.sessions[0].deviceName, 'iPhone');
+});
+
 test('auth refresh: refresh token is rejected as an API access token', async () => {
   const refreshToken = jwt.sign(
     {tokenType: 'refresh', role: 'owner'},

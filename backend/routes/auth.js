@@ -124,7 +124,6 @@ function createAuthRouter({
           userId: Number(user.id),
           revokedAt: null,
           deviceId: null,
-          userAgent: metadata.userAgent,
         },
         data: {revokedAt: new Date()},
       });
