@@ -65,6 +65,13 @@ const createPrisma = (user) => {
   errorEvent: {create: async ({data}) => data},
   authSession: {
     create: async ({data}) => { sessions.set(data.id, {...data}); return data; },
+    findUnique: async ({where}) => {
+      const key = where.userId_deviceId;
+      if (!key) return null;
+      return Array.from(sessions.values()).find(
+        (session) => session.userId === key.userId && session.deviceId === key.deviceId,
+      ) || null;
+    },
     findMany: async ({where}) => Array.from(sessions.values())
       .filter((session) => session.userId === where.userId && !session.revokedAt && session.expiresAt > new Date())
       .sort((left, right) => right.lastUsedAt - left.lastUsedAt),
@@ -97,7 +104,7 @@ const createPrisma = (user) => {
   });
 };
 
-test('auth refresh: login issues a refresh token and refresh rotates the session', async () => {
+test('auth refresh: login issues a reusable device refresh token without cross-tab rotation', async () => {
   const user = {
     id: 7,
     email: 'owner@nuarr.pl',
@@ -131,17 +138,60 @@ test('auth refresh: login issues a refresh token and refresh rotates the session
   assert.equal(refreshed.statusCode, 200);
   assert.ok(refreshed.body.token);
   assert.ok(refreshed.body.refreshToken);
-  assert.notEqual(refreshed.body.refreshToken, login.body.refreshToken);
+  assert.equal(refreshed.body.refreshToken, login.body.refreshToken);
   assert.equal(refreshed.body.user.id, String(user.id));
   assert.equal(jwt.verify(refreshed.body.token, JWT_SECRET).tokenType, undefined);
 
-  const reused = await invokeRouter(router, {
+  const concurrentRefresh = await invokeRouter(router, {
     method: 'POST',
     url: '/refresh',
     body: {refreshToken: login.body.refreshToken},
   });
-  assert.equal(reused.statusCode, 401);
-  assert.match(reused.body.error, /reused refresh token/i);
+  assert.equal(concurrentRefresh.statusCode, 200);
+  assert.equal(concurrentRefresh.body.refreshToken, login.body.refreshToken);
+});
+
+test('auth sessions: repeated login on one device reuses a single session', async () => {
+  const user = {
+    id: 10,
+    email: 'stable-device@nuarr.pl',
+    name: 'Stable Device',
+    role: 'owner',
+    isActive: true,
+    employeeId: null,
+    permissions: {},
+    passwordChangedAt: null,
+    failedLoginCount: 0,
+    lockedUntil: null,
+    passwordHash: await hashPassword('StrongPassword#2026'),
+  };
+  const router = createAuthRouter({prismaClient: createPrisma(user)});
+  const request = {
+    method: 'POST',
+    url: '/login',
+    body: {
+      deviceId: 'device-1234567890abcdef',
+      email: user.email,
+      password: 'StrongPassword#2026',
+    },
+    headers: {'user-agent': 'Mozilla/5.0 (iPhone)'},
+  };
+
+  const first = await invokeRouter(router, request);
+  const second = await invokeRouter(router, request);
+  const sessions = await invokeRouter(router, {
+    method: 'GET',
+    url: '/sessions',
+    headers: {authorization: `Bearer ${second.body.token}`},
+  });
+
+  assert.equal(first.statusCode, 200);
+  assert.equal(second.statusCode, 200);
+  assert.equal(sessions.body.sessions.length, 1);
+  assert.equal(
+    jwt.verify(first.body.refreshToken, JWT_SECRET).sessionId,
+    jwt.verify(second.body.refreshToken, JWT_SECRET).sessionId,
+  );
 });
 
 test('auth refresh: refresh token is rejected as an API access token', async () => {

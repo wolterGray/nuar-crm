@@ -90,21 +90,44 @@ function createAuthRouter({
 
   const createPersistedTokenPair = async (user, req, existingSessionId = null) => {
     if (user.id === 'local-admin') return createTokenPair(user);
-    const sessionId = existingSessionId || crypto.randomUUID();
+    const metadata = getSessionMetadata(req);
+    const existingDeviceSession = !existingSessionId && metadata.deviceId
+      ? await prisma.authSession.findUnique({
+          where: {
+            userId_deviceId: {
+              deviceId: metadata.deviceId,
+              userId: Number(user.id),
+            },
+          },
+        })
+      : null;
+    const sessionId = existingSessionId || existingDeviceSession?.id || crypto.randomUUID();
     const tokens = createTokenPair(user, sessionId);
     const decodedRefresh = jwt.decode(tokens.refreshToken);
     const data = {
-      ...getSessionMetadata(req),
+      ...metadata,
       expiresAt: new Date(Number(decodedRefresh.exp) * 1000),
       lastUsedAt: new Date(),
       revokedAt: null,
       tokenHash: hashRefreshToken(tokens.refreshToken),
       userId: Number(user.id),
     };
-    if (existingSessionId) {
+    if (existingSessionId || existingDeviceSession) {
       await prisma.authSession.update({where: {id: sessionId}, data});
     } else {
       await prisma.authSession.create({data: {id: sessionId, ...data}});
+    }
+    if (metadata.deviceId) {
+      await prisma.authSession.updateMany({
+        where: {
+          id: {not: sessionId},
+          userId: Number(user.id),
+          revokedAt: null,
+          deviceId: null,
+          userAgent: metadata.userAgent,
+        },
+        data: {revokedAt: new Date()},
+      });
     }
     return tokens;
   };
@@ -727,7 +750,20 @@ function createAuthRouter({
         return res.status(401).json({success: false, error: 'Invalid or reused refresh token'});
       }
     }
-    const tokens = await createPersistedTokenPair(user, req, sessionId);
+    const tokens = sessionId
+      ? {token: signAuthToken(user, sessionId), refreshToken: req.refreshToken}
+      : await createPersistedTokenPair(user, req);
+    if (sessionId) {
+      const metadata = getSessionMetadata(req);
+      if (!metadata.deviceId) delete metadata.deviceId;
+      await prisma.authSession.update({
+        where: {id: sessionId},
+        data: {
+          ...metadata,
+          lastUsedAt: new Date(),
+        },
+      });
+    }
     return res.json({
       success: true,
       ...tokens,

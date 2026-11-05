@@ -14,6 +14,11 @@ const getRequestIp = (req) => String(req?.headers?.['x-forwarded-for'] || req?.i
   .trim()
   .slice(0, 120) || null;
 
+const getDeviceId = (req) => {
+  const value = String(req?.body?.deviceId || req?.headers?.['x-device-id'] || '').trim();
+  return /^[A-Za-z0-9._:-]{16,128}$/.test(value) ? value : null;
+};
+
 const getDeviceName = (req) => {
   const explicit = String(req?.body?.deviceName || '').trim().slice(0, 120);
   if (explicit) return explicit;
@@ -27,12 +32,14 @@ const getDeviceName = (req) => {
 };
 
 const getSessionMetadata = (req) => ({
+  deviceId: getDeviceId(req),
   deviceName: getDeviceName(req),
   ip: getRequestIp(req),
   userAgent: String(req?.headers?.['user-agent'] || '').slice(0, 500) || null,
 });
 
 module.exports = {
+  getDeviceId,
   getSessionMetadata,
   hashRefreshToken,
   tokensMatch,

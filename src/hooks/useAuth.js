@@ -2,6 +2,7 @@ import {useCallback, useEffect, useState} from "react";
 import {forgotPassword, logoutSession, resetPassword} from "../api/auth.js";
 import {API_URL} from "../api/config.js";
 import {isResetPasswordPath} from "../utils/appRouting.js";
+import {getOrCreateAuthDeviceId} from "../utils/authDevice.js";
 
 const AUTH_TOKEN_STORAGE_KEY = "nuar_crm_auth_token";
 const AUTH_SESSION_STORAGE_KEY = "nuar_crm_auth_session";
@@ -116,10 +117,11 @@ export function recoverAuthSession({timeoutMs = 15000} = {}) {
 }
 
 const requestSessionRefresh = async (refreshToken) => {
+  const deviceId = getOrCreateAuthDeviceId();
   const response = await fetch(`${API_URL}/api/auth/refresh`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({refreshToken}),
+    headers: {"Content-Type": "application/json", "X-Device-Id": deviceId},
+    body: JSON.stringify({deviceId, refreshToken}),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -169,6 +171,7 @@ export function useAuth({onSessionLostRef, pushNotification}) {
         const response = await fetch(`${API_URL}/api/auth/session`, {
           headers: {
             Authorization: `Bearer ${storedSession.access_token}`,
+            "X-Device-Id": getOrCreateAuthDeviceId(),
           },
         });
 
@@ -322,7 +325,11 @@ export function useAuth({onSessionLostRef, pushNotification}) {
         const response = await fetch(`${API_URL}/api/auth/login`, {
           method: "POST",
           headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({email, password}),
+          body: JSON.stringify({
+            deviceId: getOrCreateAuthDeviceId(),
+            email,
+            password,
+          }),
         });
 
         const payload = await response.json().catch(() => ({}));
