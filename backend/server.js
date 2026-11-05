@@ -25,6 +25,7 @@ const {
 
 const app = express();
 const {requestContext} = require('./middleware/requestContext');
+const {requestMonitor} = require('./middleware/requestMonitor');
 
 const requiredAuthEnv = ['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'JWT_SECRET'];
 const missingAuthEnv = requiredAuthEnv.filter((name) => !process.env[name]);
@@ -71,6 +72,7 @@ const corsOptions = {
 };
 
 app.use(requestContext);
+app.use(requestMonitor);
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(helmet());
