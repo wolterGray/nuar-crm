@@ -1,5 +1,5 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const {
@@ -14,7 +14,6 @@ const { normalizeDayCloseDate } = require('../utils/financeHelpers');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const getPayoutScope = (req) => {
   if (hasPermission(req.auth, PERMISSIONS.PAYOUTS_VIEW_ALL)) return {all: true, employeeId: null};

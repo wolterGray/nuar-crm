@@ -1,12 +1,11 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { ensureSiteCmsTables } = require('../utils/siteCmsTables');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const SITE_CONTENT_ROW_ID = 'main';
 const requireSiteAdmin = (req, res, next) => {
   if (

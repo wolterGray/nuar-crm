@@ -2,9 +2,7 @@
 // Service for sending bulk SMS using SMSAPI.
 // This module is used by the /functions/bulk-sms endpoint.
 
-const {PrismaClient} = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const {prisma} = require('./prismaClient');
 const MAX_RECIPIENTS = 100;
 const MAX_DELIVERY_ATTEMPTS = 3;
 

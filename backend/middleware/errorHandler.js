@@ -1,9 +1,8 @@
 // backend/middleware/errorHandler.js
-const {PrismaClient} = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const {recordErrorEvent} = require('../services/loggingService');
 const {getHttpErrorResponse} = require('../utils/httpErrors');
 
-const prisma = new PrismaClient();
 
 module.exports = async function errorHandler(err, req, res, _next) {
   const response = getHttpErrorResponse(err);

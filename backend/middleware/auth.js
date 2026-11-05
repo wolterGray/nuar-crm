@@ -1,12 +1,8 @@
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const {prisma: defaultPrisma} = require('../services/prismaClient');
 const { getEffectivePermissions, PERMISSIONS } = require('../constants/permissions');
 
-let defaultPrisma = null;
 function getPrisma() {
-  if (!defaultPrisma) {
-    defaultPrisma = new PrismaClient();
-  }
   return defaultPrisma;
 }
 

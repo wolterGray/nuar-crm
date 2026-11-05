@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { recordErrorEvent, recordAuditLog } = require('../services/loggingService');
@@ -22,7 +22,6 @@ const {
   buildServerPayrollRecordData,
 } = require('../utils/financeHelpers');
 
-const prisma = new PrismaClient();
 
 const buildEmployeeData = (payload) => ({
   name: String(payload?.name ?? '').trim(),

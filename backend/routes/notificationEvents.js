@@ -1,5 +1,5 @@
 const express = require('express');
-const {PrismaClient} = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const {recordAuditLog, recordErrorEvent} = require('../services/loggingService');
 const {planNotificationDeliveries} = require('../services/notificationDeliveryPlanner');
 const {
@@ -12,7 +12,6 @@ const {
 const {requirePermission, PERMISSIONS} = require('../middleware/auth');
 const {getHttpErrorResponse} = require('../utils/httpErrors');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 const resolveAuthenticatedUser = async (req) => {

@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { requirePermission, PERMISSIONS } = require('../middleware/auth');
 const { publicBookingLimiter } = require('../middleware/rateLimiter');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
@@ -11,7 +11,6 @@ const { telegramDigest } = require('../services/telegramService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { ensureSiteBookingTables } = require('../utils/siteCmsTables');
 
-const prisma = new PrismaClient();
 const publicSiteBookingRouter = express.Router();
 const siteBookingRouter = express.Router();
 

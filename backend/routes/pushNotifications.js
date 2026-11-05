@@ -1,5 +1,5 @@
 const express = require('express');
-const {PrismaClient} = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const {requirePermission} = require('../middleware/auth');
 const {PERMISSIONS} = require('../constants/permissions');
 const {recordAuditLog, recordErrorEvent} = require('../services/loggingService');
@@ -10,7 +10,6 @@ const {
   sendPushToUser,
 } = require('../services/webPushService');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 const testRequestTimes = new Map();
 const TEST_RATE_LIMIT_MS = 30 * 1000;

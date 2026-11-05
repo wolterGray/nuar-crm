@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
@@ -50,7 +50,6 @@ const {
   updateWithVersion,
 } = require('../domain/optimisticConcurrency');
 
-const prisma = new PrismaClient();
 const {
   getScopedClientIds,
   recordBelongsToEmployee,

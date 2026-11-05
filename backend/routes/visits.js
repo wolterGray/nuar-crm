@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Prisma, PrismaClient } = require('@prisma/client');
+const {Prisma} = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { requireOwner, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
@@ -41,7 +42,6 @@ const {
   assertNonNegative,
 } = require('../utils/crudHelpers');
 
-const prisma = new PrismaClient();
 const {recordBelongsToEmployee, resolveScopedEmployee} = require('../utils/employeeScope');
 const {buildLinkedVisitCalendarUpdate} = require('../utils/visitCalendarConsistency');
 const {

@@ -1,5 +1,5 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const path = require('path');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
@@ -33,7 +33,6 @@ const {
 } = require('../services/loyaltyService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 
-const prisma = new PrismaClient();
 const {getScopedClientIds} = require('../utils/employeeScope');
 const router = express.Router();
 const publicRouter = express.Router();

@@ -1,5 +1,5 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const router = express.Router();
 const { requirePermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog, recordErrorEvent } = require('../services/loggingService');
@@ -10,7 +10,6 @@ const { ownerNotify } = require('../services/ownerNotifyService');
 const { reviewRequests } = require('../services/reviewRequestsService');
 const { booksySync } = require('../services/booksySyncService');
 
-const prisma = new PrismaClient();
 const requireIntegrationAdmin = requirePermission(PERMISSIONS.USERS_MANAGE);
 
 const countItems = (value) => (Array.isArray(value) ? value.length : 0);

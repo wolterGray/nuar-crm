@@ -3,7 +3,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const {PrismaClient} = require('@prisma/client');
+const {prisma: serverPrisma} = require('./services/prismaClient');
 const {checkReadiness} = require('./services/readinessService');
 const {getBackupTopologyStatus} = require('./services/backupService');
 const {
@@ -23,7 +23,6 @@ const {
 } = require('./services/dataIntegrityWorker');
 
 const app = express();
-const serverPrisma = new PrismaClient();
 
 const requiredAuthEnv = ['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'JWT_SECRET'];
 const missingAuthEnv = requiredAuthEnv.filter((name) => !process.env[name]);

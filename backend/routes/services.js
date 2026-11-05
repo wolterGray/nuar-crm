@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const {resolveScopedEmployee, serviceIsAssignedToEmployee} = require('../utils/employeeScope');
 const {
@@ -13,7 +13,6 @@ const {
   withStoredId,
 } = require('../utils/crudHelpers');
 
-const prisma = new PrismaClient();
 
 const firstServiceVariant = (variants) => {
   if (!Array.isArray(variants)) {

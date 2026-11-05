@@ -1,5 +1,5 @@
 const express = require('express');
-const {PrismaClient} = require('@prisma/client');
+const {prisma: defaultPrisma} = require('../services/prismaClient');
 const {requireAdminOrOwner, isOwnerAuth, invalidateUserCache} = require('../middleware/auth');
 const {PERMISSION_GROUPS} = require('../constants/permissions');
 const {recordAuditLog, recordErrorEvent} = require('../services/loggingService');
@@ -105,7 +105,7 @@ const parseUserPayload = (body = {}) => {
 };
 
 function createUsersRouter({
-  prismaClient = new PrismaClient(),
+  prismaClient = defaultPrisma,
   sendResetEmail = sendPasswordResetEmail,
   checkSmtpConfigured = isPasswordResetSmtpConfigured,
 } = {}) {

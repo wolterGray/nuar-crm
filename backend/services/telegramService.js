@@ -2,9 +2,7 @@
 // Service for sending Telegram digest messages.
 // Uses Telegram Bot API – token must be provided via TELEGRAM_BOT_TOKEN env var.
 
-const {PrismaClient} = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const {prisma} = require('./prismaClient');
 
 const loadAppSettings = async () =>
   prisma.systemState

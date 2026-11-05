@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { isOwnerAuth, requirePermission, PERMISSIONS } = require('../middleware/auth');
 const { recordAuditLog } = require('../services/loggingService');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
@@ -8,7 +8,6 @@ const {
   respondWithAudit,
 } = require('../utils/crudHelpers');
 
-const prisma = new PrismaClient();
 
 const SENSITIVE_SETTINGS_KEYS = [
   'telegramBotToken',

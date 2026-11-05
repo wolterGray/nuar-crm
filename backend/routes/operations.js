@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { isOwnerAuth, requirePermission, hasPermission, PERMISSIONS } = require('../middleware/auth');
 const { maskEmail, maskPhoneNumber } = require('../constants/permissions');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
@@ -17,7 +17,6 @@ const {
   withStoredId,
 } = require('../utils/crudHelpers');
 
-const prisma = new PrismaClient();
 const NOTE_ATTACHMENT_MAX_BYTES = 8 * 1024 * 1024;
 const NOTE_ATTACHMENT_TYPES = new Set(['image/gif', 'image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const {prisma: defaultPrisma} = require('../services/prismaClient');
 const {
   createActiveUserMiddleware,
   verifyJwt,
@@ -28,7 +28,7 @@ const {
 const {getSessionMetadata, hashRefreshToken, tokensMatch} = require('../services/authSessionService');
 
 function createAuthRouter({
-  prismaClient = new PrismaClient(),
+  prismaClient = defaultPrisma,
   sendResetEmail = sendPasswordResetEmail,
   checkSmtpConfigured = isPasswordResetSmtpConfigured,
 } = {}) {

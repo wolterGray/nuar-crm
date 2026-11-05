@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const {PrismaClient} = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const {requirePermission, PERMISSIONS} = require('../middleware/auth');
 const {buildAuditLogWhere, parseAuditLogQuery} = require('../domain/auditLogQuery');
 const {recordErrorEvent, redactSensitiveData} = require('../services/loggingService');
@@ -13,7 +13,6 @@ const {checkDataIntegrity} = require('../services/dataIntegrityService');
 const {getDataIntegrityWorkerStatus} = require('../services/dataIntegrityWorker');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 router.post('/client-errors', clientErrorLimiter, async (req, res, next) => {
   try {

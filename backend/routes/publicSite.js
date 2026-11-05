@@ -1,11 +1,10 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const {prisma} = require('../services/prismaClient');
 const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { ensureSiteCmsTables } = require('../utils/siteCmsTables');
 const { buildPublicServicesCatalog } = require('../utils/siteServicesCatalog');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const SITE_CONTENT_ROW_ID = 'main';
 
 const handleRouteError = (res, error) => {
