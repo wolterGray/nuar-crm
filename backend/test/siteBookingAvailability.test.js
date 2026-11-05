@@ -86,4 +86,19 @@ describe('site booking availability master isolation', () => {
     assert.equal(_test.getPendingIntervals(rows, '2026-10-25', 'Olha', employees).length, 1);
     assert.deepEqual(_test.getPendingIntervals(rows, '2026-10-25', 'Max', employees), []);
   });
+
+  it('blocks the full duration of a pending booking', () => {
+    const rows = [{
+      duration_minutes: 60,
+      preferred_date: '2026-10-25',
+      preferred_master: 'Olha',
+      preferred_time: '09:00',
+      status: 'pending',
+    }];
+
+    assert.deepEqual(
+      _test.getPendingIntervals(rows, '2026-10-25', 'Olha', employees),
+      [{ after: 0, before: 0, end: 600, start: 540 }],
+    );
+  });
 });

@@ -12,6 +12,11 @@ const { getHttpErrorResponse } = require('../utils/httpErrors');
 const { ensureSiteBookingTables } = require('../utils/siteCmsTables');
 
 const publicSiteBookingRouter = express.Router();
+
+publicSiteBookingRouter.use((_req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 const siteBookingRouter = express.Router();
 
 const DEFAULT_MASTERS = ['Ольга', 'Максим'];
