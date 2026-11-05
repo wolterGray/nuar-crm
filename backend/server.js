@@ -24,6 +24,7 @@ const {
 } = require('./services/dataIntegrityWorker');
 
 const app = express();
+const {requestContext} = require('./middleware/requestContext');
 
 const requiredAuthEnv = ['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'JWT_SECRET'];
 const missingAuthEnv = requiredAuthEnv.filter((name) => !process.env[name]);
@@ -58,6 +59,7 @@ const isLocalDevOrigin = (origin) =>
   );
 const corsOptions = {
   credentials: true,
+  exposedHeaders: ['X-Request-Id'],
   origin(origin, callback) {
     if (!origin || allowedOrigins.has(origin) || isLocalDevOrigin(origin)) {
       callback(null, true);
@@ -68,6 +70,7 @@ const corsOptions = {
   },
 };
 
+app.use(requestContext);
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(helmet());

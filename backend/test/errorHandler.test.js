@@ -8,12 +8,13 @@ test('error middleware responds before deferred database logging completes', asy
   let resolveLogging;
   const logging = new Promise((resolve) => { resolveLogging = resolve; });
   const calls = [];
+  let loggedEvent;
   const response = {
     json(payload) { calls.push(['json', payload]); return this; },
     status(code) { calls.push(['status', code]); return this; },
   };
   const handler = createErrorHandler({
-    logErrorEvent: () => logging,
+    logErrorEvent: (_prisma, event) => { loggedEvent = event; return logging; },
     logger: {error: () => {}},
     prismaClient: {},
   });
@@ -24,12 +25,15 @@ test('error middleware responds before deferred database logging completes', asy
     originalUrl: '/api/visits',
     params: {},
     query: {},
+    requestId: 'request-123',
   }, response);
 
   assert.deepEqual(calls, [
     ['status', 500],
     ['json', {success: false, error: 'Internal Server Error'}],
   ]);
+  await flushMicrotasks();
+  assert.equal(loggedEvent.context.requestId, 'request-123');
   resolveLogging();
   await flushMicrotasks();
 });

@@ -9,7 +9,7 @@ const createErrorHandler = ({
   prismaClient = prisma,
 } = {}) => function errorHandler(err, req, res, _next) {
   const response = getHttpErrorResponse(err);
-  logger.error('Backend request error:', err);
+  logger.error(`Backend request error [${req.requestId || 'unknown'}]:`, err);
 
   const event = {
     context: {
@@ -18,6 +18,7 @@ const createErrorHandler = ({
       params: req.params,
       path: req.originalUrl,
       query: req.query,
+      requestId: req.requestId || null,
     },
     error: err,
     message: response.message,
