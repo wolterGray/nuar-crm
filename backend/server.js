@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const {prisma: serverPrisma} = require('./services/prismaClient');
 const {checkReadiness} = require('./services/readinessService');
 const {getBackupTopologyStatus} = require('./services/backupService');
+const {createFatalErrorHandler} = require('./services/processFailureService');
 const {
   getWorkerStatus,
   startNotificationWorker,
@@ -176,11 +177,13 @@ const server = app.listen(PORT, () => {
 });
 
 let shuttingDown = false;
-const shutdown = (signal) => {
+let shutdownExitCode = 0;
+const shutdown = (signal, requestedExitCode = 0) => {
+  shutdownExitCode = Math.max(shutdownExitCode, requestedExitCode);
   if (shuttingDown) return;
   shuttingDown = true;
   console.log(`[shutdown] ${signal} received; draining connections...`);
-  const workersStopped = Promise.all([
+  const workersStopped = Promise.allSettled([
     stopNotificationWorker(),
     stopDataRetentionWorker(),
     stopDataIntegrityWorker(),
@@ -193,9 +196,11 @@ const shutdown = (signal) => {
   if (typeof forceExit.unref === 'function') forceExit.unref();
 
   server.close(async (error) => {
-    let exitCode = error ? 1 : 0;
+    let exitCode = error ? 1 : shutdownExitCode;
     try {
-      await workersStopped;
+      const workerResults = await workersStopped;
+      const failedWorker = workerResults.find((result) => result.status === 'rejected');
+      if (failedWorker) throw failedWorker.reason;
       await serverPrisma.$disconnect();
     } catch (shutdownError) {
       exitCode = 1;
@@ -206,7 +211,11 @@ const shutdown = (signal) => {
   });
 };
 
+const handleFatalError = createFatalErrorHandler({shutdown});
 process.once('SIGTERM', () => shutdown('SIGTERM'));
 process.once('SIGINT', () => shutdown('SIGINT'));
+process.once('uncaughtException', (error) => handleFatalError('uncaughtException', error));
+process.once('unhandledRejection', (reason) => handleFatalError('unhandledRejection', reason));
+server.once('error', (error) => handleFatalError('serverError', error));
 
 module.exports = {app, server};
