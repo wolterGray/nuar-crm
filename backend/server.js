@@ -26,6 +26,7 @@ const {
 const app = express();
 const {requestContext} = require('./middleware/requestContext');
 const {requestMonitor} = require('./middleware/requestMonitor');
+const {applyJsonBodyParsers} = require('./middleware/requestBodyLimits');
 
 const requiredAuthEnv = ['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'JWT_SECRET'];
 const missingAuthEnv = requiredAuthEnv.filter((name) => !process.env[name]);
@@ -76,7 +77,7 @@ app.use(requestMonitor);
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(helmet());
-app.use(express.json({ limit: '15mb' }));
+applyJsonBodyParsers(app);
 
 // CRM data is mutable and must never be served from a stale browser cache.
 app.use('/api', (req, res, next) => {
