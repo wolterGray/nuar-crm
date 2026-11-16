@@ -19,7 +19,6 @@ publicSiteBookingRouter.use((_req, res, next) => {
 });
 const siteBookingRouter = express.Router();
 
-const DEFAULT_MASTERS = ['Ольга', 'Максим'];
 const DEFAULT_WORKDAY_START = '08:00';
 const DEFAULT_WORKDAY_END = '22:00';
 const DEFAULT_SLOT_STEP = 15;
@@ -230,6 +229,11 @@ const toPublicEmployee = (row) => {
     workingDaysOfWeek: normalizeWorkingDays(payload.workingDaysOfWeek),
   };
 };
+
+const getSiteVisibleEmployees = (rows = []) =>
+  rows
+    .map(toPublicEmployee)
+    .filter((employee) => employee.siteVisible && employee.status !== 'Архив' && employee.status !== 'Удален');
 
 const toPublicService = (row) => {
   const payload = readPayload(row);
@@ -552,24 +556,12 @@ const buildSlots = async ({
     `,
   ]);
 
-  const activeEmployees = employeeRows
-    .map(toPublicEmployee)
-    .filter((employee) => employee.siteVisible && employee.status !== 'Архив' && employee.status !== 'Удален');
+  const activeEmployees = getSiteVisibleEmployees(employeeRows);
 
   const availableMasters = [...new Set(activeEmployees.map((e) => cleanString(e.name)).filter(Boolean))];
-  const masterDirectory = activeEmployees.length ? activeEmployees : DEFAULT_MASTERS.map((name) => ({ name }));
+  const masterDirectory = activeEmployees;
 
   let employees = activeEmployees.filter((employee) => isEmployeeAvailableOnDate(employee, preferredDate));
-  if (!employees.length) {
-    employees = employeeRows.length
-      ? []
-      : DEFAULT_MASTERS.map((name) => ({
-          name,
-          shiftStart: DEFAULT_WORKDAY_START,
-          shiftEnd: DEFAULT_WORKDAY_END,
-          workingDaysOfWeek: [1, 2, 3, 4, 5, 6, 0],
-        }));
-  }
 
   if (preferredMaster) {
     const resolved = resolveMaster(preferredMaster, masterDirectory);
@@ -620,7 +612,7 @@ const buildSlots = async ({
     return employeeSlots;
   });
 
-  return { slots, masters: availableMasters.length ? availableMasters : DEFAULT_MASTERS };
+  return { slots, masters: availableMasters };
 };
 
 const notifyOwnerAboutBooking = async (booking) => {
@@ -757,9 +749,7 @@ publicSiteBookingRouter.get('/site-booking-masters', async (req, res) => {
       prisma.employee.findMany(),
       prisma.service.findMany(),
     ]);
-    const active = rows
-      .map(toPublicEmployee)
-      .filter((employee) => employee.siteVisible && employee.status !== 'Архив' && employee.status !== 'Удален');
+    const active = getSiteVisibleEmployees(rows);
     const services = serviceRows
       .map(toPublicService)
       .filter((service) => service.siteVisible && service.status !== 'Архив');
@@ -767,7 +757,7 @@ publicSiteBookingRouter.get('/site-booking-masters', async (req, res) => {
     res.json({
       success: true,
       data: {
-        masters: masters.length ? masters : DEFAULT_MASTERS,
+        masters,
         servicesByMaster: getServicesByMaster(active, services),
       },
     });
@@ -1073,6 +1063,7 @@ module.exports = {
     buildBookingLockKey,
     getCalendarIntervals,
     getPendingIntervals,
+    getSiteVisibleEmployees,
   },
   publicSiteBookingRouter,
   siteBookingRouter,

@@ -9,6 +9,15 @@ const employees = [
 ];
 
 describe('site booking availability master isolation', () => {
+  it('excludes an employee disabled for site booking without restoring defaults', () => {
+    const visible = _test.getSiteVisibleEmployees([
+      {name: 'Max', siteVisible: false, status: 'Активен'},
+      {name: 'Olha', siteVisible: true, status: 'Активен'},
+    ]);
+
+    assert.deepEqual(visible.map((employee) => employee.name), ['Olha']);
+  });
+
   it('acquires the transaction lock without returning PostgreSQL void to Prisma', async () => {
     let query = '';
     let values = [];
